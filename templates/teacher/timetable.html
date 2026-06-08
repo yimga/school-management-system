@@ -4,6 +4,8 @@
 {% block title %}My Timetable{% endblock %}
 
 {% block content %}
+{% include "components/next_action_strip.html" %}
+
 <div data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   <h1 class="visually-hidden" data-rmc-injected-h1="1">My Timetable</h1>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
@@ -27,7 +29,7 @@
       >
         <h5 class="card-title mb-3">Weekly schedule</h5>
         <div class="table-responsive">
-          <table class="table table-bordered align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1">
+          <table class="table table-bordered align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Weekly schedule" %}</caption>
             <thead class="table-light">
               <tr>

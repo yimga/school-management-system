@@ -101,7 +101,7 @@ def build_register() -> dict:
                     "templates/components/rmc_page_explain_strip.html"
                 ),
                 "info_tag_auto_js": "rmc-info-tag-auto.js"
-                in _read("templates/portal_base.html"),
+                in _read("templates/partials/rmc_tour_bootstrap.html"),
                 "info_tag_verifier": _exists("scripts/verify_info_tag_coverage.py"),
                 "sovereign_50x_route_help": "ROUTE_HELP_SOVEREIGN_50X"
                 in _read("apps/siteconfig/ui_route_help.py"),
@@ -290,6 +290,18 @@ def build_register() -> dict:
                         ("templates/siteconfig/entity_catalog_overview.html", "entity-catalog-seven-column-operator-lens"),
                         ("templates/siteconfig/metadata_dynamic_fields_operator.html", "portal_row_detail_drawer_bundle.html"),
                         ("templates/siteconfig/sync_center.html", "data-rmc-row-detail-table"),
+                    )
+                ),
+                "teacher_zone_wave13_burndown": all(
+                    "next_action_strip" in _read(f"templates/teacher/{name}")
+                    for name in (
+                        "leave.html",
+                        "marks_entry.html",
+                        "marks_list.html",
+                        "timetable.html",
+                        "attendance.html",
+                        "disciplinary.html",
+                        "dashboard.html",
                     )
                 ),
             },

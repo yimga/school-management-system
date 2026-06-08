@@ -5,6 +5,8 @@
 {% block title %}Attendance{% endblock %}
 
 {% block content %}
+{% include "components/next_action_strip.html" %}
+
 <div data-task="teacher_attendance" data-task-step="teacher:attendance-session" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   {% include "widgets/dashboard_hero.html" with hero=hero %}
   {% if show_module_inline_help_assistant and show_kb_ai_assistant_panel %}
@@ -48,7 +50,7 @@
           <h5 class="mb-2">History</h5>
           {% if logs %}
             <div class="table-responsive">
-              <table class="table table-family align-middle mb-0 table-mobile-cards rmc-data-table" id="history" data-rmc-row-detail-table="1">
+              <table class="table table-family align-middle mb-0 table-mobile-cards rmc-data-table" id="history" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
                 <caption class="visually-hidden">{% trans "History" %}</caption>
                 <thead class="table-light">
                   <tr>
@@ -89,4 +91,5 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

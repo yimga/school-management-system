@@ -1,0 +1,11 @@
+{% load static %}
+{% if request.user.is_authenticated %}
+<script nonce="{{ csp_nonce }}">
+  window.__RMC_WEB_PUSH_BOOT__ = {
+    enabled: true,
+    vapidUrl: "{% url 'accounts:web_push_vapid_public_key' %}",
+    subscribeUrl: "{% url 'accounts:web_push_subscribe' %}"
+  };
+</script>
+<script src="{% static 'js/rmc-web-push-subscribe.js' %}" defer nonce="{{ csp_nonce }}"></script>
+{% endif %}

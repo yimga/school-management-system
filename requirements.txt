@@ -57,6 +57,7 @@ pynacl>=1.5,<2.0
 
 # HTTP & APIs
 requests>=2.31.0
+pywebpush>=2.0,<3.0
 
 # REST API
 djangorestframework>=3.14.0

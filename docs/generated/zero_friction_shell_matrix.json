@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-08T18:28:18.008652+00:00",
+  "generated_at": "2026-06-08T23:24:13.368817+00:00",
   "root_shell_count": 11,
   "sub_router_count": 4,
   "shells": [
@@ -15,7 +15,7 @@
       "kind": "root",
       "exists": true,
       "extends": null,
-      "direct_child_count": 46
+      "direct_child_count": 47
     },
     {
       "path": "templates/control_plane_skeleton.html",
@@ -110,6 +110,6 @@
     }
   ],
   "missing_paths": [],
-  "extends_graph_sample_size": 884,
+  "extends_graph_sample_size": 885,
   "audited": true
 }

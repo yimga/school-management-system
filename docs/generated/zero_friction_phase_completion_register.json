@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-08T23:14:11.947471+00:00",
+  "generated_at": "2026-06-08T23:24:44.918572+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASES-0-8",
   "summary": {
     "phases_total": 9,
@@ -9,7 +9,7 @@
     "not_done": 0,
     "repo_scope_complete": true
   },
-  "service_worker_version": "sms-v4.03.16-signup-portal-channels-2026-06-08",
+  "service_worker_version": "sms-v4.03.17-signup-web-push-2026-06-08",
   "phases": [
     {
       "phase": 0,
@@ -18,7 +18,7 @@
       "proof_verifier": "verify_zero_friction_phase0.py",
       "evidence": {
         "zones_audited": 15,
-        "template_rows_scored": 1632,
+        "template_rows_scored": 1638,
         "scanner_open_gaps": 0,
         "scanner_resolved_gaps": 7
       }
@@ -33,9 +33,9 @@
         "smart_action_hub_portal": true,
         "layout_sentinel_wired": true,
         "zero_click_css": true,
-        "five_col_templates_adopted": 161,
+        "five_col_templates_adopted": 165,
         "info_tag_page_explain_strip": true,
-        "info_tag_auto_js": false,
+        "info_tag_auto_js": true,
         "info_tag_verifier": true,
         "sovereign_50x_route_help": true
       }
@@ -98,9 +98,9 @@
       "status": "PARTIAL",
       "proof_verifier": "verify_zero_friction_journeys.py",
       "evidence": {
-        "high_friction_template_count": 1627,
-        "burndown_templates_with_5col": 161,
-        "top_route_head": "templates/teacher/leave.html",
+        "high_friction_template_count": 1621,
+        "burndown_templates_with_5col": 165,
+        "top_route_head": "templates/academics/syllabus_approval_queue.html",
         "p0_templates_burndown": true,
         "teacher_zone_scroll_complete": true,
         "parent_portal_rmc_table_scroll_complete": true,
@@ -109,10 +109,11 @@
         "finance_platform_runtime_mechanical_gaps_cleared": true,
         "analytics_mechanical_gaps_cleared": true,
         "evals_accounts_mechanical_gaps_cleared": true,
-        "migration_siteconfig_mechanical_gaps_cleared": true
+        "migration_siteconfig_mechanical_gaps_cleared": true,
+        "teacher_zone_wave13_burndown": true
       },
       "residual": [
-        "1627 templates still above friction threshold (incremental ledger burndown)"
+        "1621 templates still above friction threshold (incremental ledger burndown)"
       ]
     },
     {

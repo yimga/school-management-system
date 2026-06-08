@@ -96,6 +96,11 @@ from .views_security import (
     sessions_page,
     sessions_revoke,
 )
+from .views_web_push import (
+    web_push_subscribe,
+    web_push_unsubscribe,
+    web_push_vapid_public_key,
+)
 from .views_oidc import oidc_start, oidc_callback, oidc_logout
 from .views_saml import saml_start, saml_acs, saml_metadata
 from .views_impersonation import impersonate_entry, end_impersonation
@@ -635,6 +640,21 @@ urlpatterns = [
         "notifications/corner/mark-read/",
         notification_corner_mark_read,
         name="notification_corner_mark_read",
+    ),
+    path(
+        "web-push/vapid-public-key/",
+        web_push_vapid_public_key,
+        name="web_push_vapid_public_key",
+    ),
+    path(
+        "web-push/subscribe/",
+        web_push_subscribe,
+        name="web_push_subscribe",
+    ),
+    path(
+        "web-push/unsubscribe/",
+        web_push_unsubscribe,
+        name="web_push_unsubscribe",
     ),
     path(
         "profile/security/activity/",

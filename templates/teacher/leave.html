@@ -3,6 +3,8 @@
 {% block title %}Leave{% endblock %}
 
 {% block content %}
+{% include "components/next_action_strip.html" %}
+
 <div data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Leave</h1>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
@@ -26,7 +28,7 @@
           <h5 class="mb-3">My requests</h5>
           {% if leave_requests %}
             <div class="table-responsive">
-              <table class="table align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1">
+              <table class="table align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
                 <caption class="visually-hidden">{% trans "My requests" %}</caption>
                 <thead class="table-light">
                   <tr>
@@ -61,11 +63,12 @@
               </table>
             </div>
           {% else %}
-            <div class="alert alert-info mb-0">No leave requests yet.</div>
+            {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("No leave requests yet.") message=_("Nothing here yet — check back after your school adds data.") %}
           {% endif %}
         </div>
       </div>
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

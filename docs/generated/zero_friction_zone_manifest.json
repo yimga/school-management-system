@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-08T18:27:33.592991+00:00",
+  "generated_at": "2026-06-08T23:24:10.382016+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASE-0",
   "zone_count": 15,
   "zones_audited": 15,
@@ -74,12 +74,12 @@
         "apps"
       ],
       "file_counts_by_suffix": {
-        "py": 5237,
+        "py": 5260,
         "md": 3,
         "json": 51,
         "js": 1
       },
-      "total_files": 5292,
+      "total_files": 5315,
       "audited": true
     },
     {
@@ -89,9 +89,9 @@
         "templates"
       ],
       "file_counts_by_suffix": {
-        "html": 1632
+        "html": 1638
       },
-      "total_files": 1632,
+      "total_files": 1638,
       "audited": true
     },
     {
@@ -143,9 +143,9 @@
         "json": 7,
         "css": 330,
         "md": 4,
-        "js": 410
+        "js": 413
       },
-      "total_files": 751,
+      "total_files": 754,
       "audited": true
     },
     {
@@ -208,14 +208,14 @@
         "scripts"
       ],
       "file_counts_by_suffix": {
-        "py": 946,
+        "py": 951,
         "ts": 1,
         "json": 12,
         "js": 4,
         "mjs": 6,
         "md": 1
       },
-      "total_files": 970,
+      "total_files": 975,
       "audited": true
     },
     {
@@ -255,11 +255,11 @@
       "file_counts_by_suffix": {
         "tsx": 4,
         "ts": 10,
-        "js": 64,
+        "js": 65,
         "json": 2,
         "md": 1
       },
-      "total_files": 81,
+      "total_files": 82,
       "audited": true
     },
     {
@@ -283,11 +283,11 @@
         "docs/generated"
       ],
       "file_counts_by_suffix": {
-        "json": 777,
+        "json": 779,
         "html": 27,
         "md": 237
       },
-      "total_files": 1041,
+      "total_files": 1043,
       "audited": true
     }
   ]

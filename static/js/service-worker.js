@@ -185,7 +185,7 @@
 // v4.02.86: globe online reconnect retry + bridge mode sync; offline prefetch single bundle.
 // v4.02.89: purge retired vendor chunks; loader normalized; preview uses loader offline events.
 // v4.02.92: workflow progress SSE WSGI sync stream + busy reconnect in rmc-workflow-progress.js
-const CACHE_VERSION = "sms-v4.03.16-signup-portal-channels-2026-06-08";
+const CACHE_VERSION = "sms-v4.03.17-signup-web-push-2026-06-08";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -1115,3 +1115,48 @@ async function updateSyncItem(id, updates) {
     req.onerror = () => reject(req.error);
   });
 }
+
+// Browser Web Push — portal-ready and operational alerts (v4.03.17).
+self.addEventListener("push", (event) => {
+  let payload = { title: "RunMyCampus", body: "", url: "/", tag: "rmc-push" };
+  try {
+    if (event.data) {
+      const parsed = event.data.json();
+      payload = {
+        title: parsed.title || payload.title,
+        body: parsed.body || payload.body,
+        url: parsed.url || payload.url,
+        tag: parsed.tag || payload.tag,
+      };
+    }
+  } catch (_err) {
+    /* use defaults */
+  }
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "/static/images/icon-192.png",
+      badge: "/static/images/icon-192.png",
+      tag: payload.tag,
+      data: { url: payload.url },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if (client.url.includes(targetUrl) && "focus" in client) {
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+      return undefined;
+    })
+  );
+});

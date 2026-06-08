@@ -599,6 +599,7 @@
     {% comment %} Phase 14: Toast + interaction guard (showToast + RMCInteractionGuard app-wide) {% endcomment %}
     {% include 'components/toast_notifications.html' %}
     {% include "partials/rmc_notification_corner_boot.html" %}
+    {% include "partials/rmc_web_push_boot.html" %}
     <script src="{% static 'js/rmc-interaction-guard.js' %}" defer></script>
     {% if request.user.is_authenticated %}
     <script src="{% static 'js/rmc-surface-overlay-guard.js' %}" defer></script>

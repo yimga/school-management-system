@@ -1645,6 +1645,12 @@ OPERATOR_ALERT_EMAIL = os.getenv("OPERATOR_ALERT_EMAIL", RMC_OPERATOR_ALERT_EMAI
 RMC_COMPANY_LEGAL_NAME = os.getenv("RMC_COMPANY_LEGAL_NAME", "RunMyCampus")
 RMC_COMPANY_POSTAL_ADDRESS = os.getenv("RMC_COMPANY_POSTAL_ADDRESS", "")
 RMC_PUBLIC_SITE_URL = os.getenv("RMC_PUBLIC_SITE_URL", "https://runmycampus.com")
+# Browser Web Push (VAPID). Generate with: python -m py_vapid --applicationServerKey
+WEB_PUSH_VAPID_PUBLIC_KEY = os.getenv("WEB_PUSH_VAPID_PUBLIC_KEY", "")
+WEB_PUSH_VAPID_PRIVATE_KEY = os.getenv("WEB_PUSH_VAPID_PRIVATE_KEY", "")
+WEB_PUSH_VAPID_CLAIMS_EMAIL = os.getenv(
+    "WEB_PUSH_VAPID_CLAIMS_EMAIL", "mailto:noreply@runmycampus.com"
+)
 RMC_LIST_ID = os.getenv("RMC_LIST_ID", "")
 RMC_LIST_UNSUBSCRIBE_MAILTO = os.getenv("RMC_LIST_UNSUBSCRIBE_MAILTO", "")
 # https one-click (RFC 8058) unsubscribe endpoint. When set, BULK / MARKETING

@@ -23,6 +23,8 @@
 {% endblock %}
 
 {% block content %}
+{% include "components/next_action_strip.html" %}
+
 <div data-rmc-scroll-policy="paginate" data-page-archetype="role-home">
 {% include "partials/tenant/hero_greeting.html" %}
 {% phase8_dashboard_declaration "teacher/dashboard.html" %}

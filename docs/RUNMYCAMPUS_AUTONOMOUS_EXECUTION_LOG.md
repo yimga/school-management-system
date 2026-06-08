@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Multi-track end-to-end (wave 13 + web push + governance priority - 2026-06-08)
+
+**A. Scope:** User-requested follow-through on four recommended slices (teacher UX, web push, governance priority, signup channels completion).
+
+**B. Shipped:** Zero-Friction **wave 13** (`codemod_zero_friction_wave13_teacher.py`, 16 teacher templates); **Web Push** (`WebPushSubscription`, VAPID API, SW handlers, portal-ready dispatch); **governance priority gate** (`verify_global_governance_priority_countries.py` for CM/NG/US/GB/IN); ledger **1627→1621** high-friction count.
+
+**C. Proof:** **ZERO_FRICTION_JOURNEYS_PASS**; **SIGNUP_PRODUCTION_READINESS_PASS**; **GLOBAL_GOVERNANCE_PRIORITY_COUNTRIES_PASS**; **7/7** signup + web-push tests OK; SW **`sms-v4.03.17-signup-web-push-2026-06-08`**.
+
+**D. Honest:** Render stuck-tenant recovery remains ops (`activate_pending_signup_schools`); web push needs VAPID env + prior browser subscribe; phase 6 still PARTIAL until more zone waves.
+
 ## Slice - Signup production E2E closeout (2026-06-08)
 
 **A. Scope:** Portal email, tenant isolation, operator recovery for production signup (`USE_DJANGO_TENANTS=1`).
@@ -9,6 +19,16 @@
 **C. Proof:** **SIGNUP_PRODUCTION_READINESS_PASS** (passes 1–5); **17/17** signup/pending/operator verification tests OK.
 
 **D. Honest:** Live Render needs Celery/worker + `activate_pending_signup_schools --slug=…` for stuck tenants.
+
+## Slice - Signup portal-ready browser Web Push (2026-06-08)
+
+**A. Scope:** Wire VAPID Web Push for portal-ready signup completion (batch 1665 follow-up).
+
+**B. Shipped:** `WebPushSubscription` model + migration; `web_push_service.py` (pywebpush); subscribe API on accounts; `rmc-web-push-subscribe.js` + SW push/click handlers; `notify_portal_ready_web_push` in portal channel dispatch; SW **`sms-v4.03.17-signup-web-push-2026-06-08`**.
+
+**C. Proof:** **7/7** web push + portal channel tests OK; pass6 **0 findings**.
+
+**D. Honest:** Push fires only when owner already subscribed (post-login); requires `WEB_PUSH_VAPID_*` env on Render; first-time owners still rely on email until they grant notification permission.
 
 ## Slice - Signup portal-ready channels follow-up (2026-06-08)
 

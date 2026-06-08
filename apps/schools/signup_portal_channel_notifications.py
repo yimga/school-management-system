@@ -171,6 +171,50 @@ def notify_portal_ready_sms(
         return False
 
 
+def notify_portal_ready_web_push(
+    admin_user,
+    school,
+    payload: dict[str, Any],
+    *,
+    force: bool = False,
+) -> int:
+    """Browser push when the owner already subscribed on a prior session."""
+    if not admin_user or not school:
+        return 0
+
+    state = _notification_state(school)
+    if state.get("web_push_dispatched_at") and not force:
+        return 0
+
+    school_name = payload.get("school_name") or getattr(school, "name", "")
+    if payload.get("account_ready"):
+        body = _("Your school %(name)s is live. Tap to open your portal.") % {
+            "name": school_name
+        }
+    else:
+        body = _("Your school %(name)s is ready. Tap to set your password.") % {
+            "name": school_name
+        }
+    url = _portal_ready_link(payload)
+
+    try:
+        from apps.communication.web_push_service import send_web_push_to_user
+
+        sent = send_web_push_to_user(
+            admin_user,
+            title=PORTAL_READY_INBOX_TITLE,
+            body=body,
+            url=url,
+            tag=f"portal-ready:{getattr(school, 'pk', '')}",
+        )
+        if sent:
+            _mark_channel_sent(school, "web_push")
+        return sent
+    except Exception:  # noqa: BLE001
+        logger.warning("portal_ready_web_push_failed", exc_info=True)
+        return 0
+
+
 def dispatch_portal_ready_channels(
     school,
     contact_email: str,
@@ -191,5 +235,11 @@ def dispatch_portal_ready_channels(
         school,
         payload,
         contact_email,
+        force=force,
+    )
+    notify_portal_ready_web_push(
+        admin_user,
+        school,
+        payload,
         force=force,
     )

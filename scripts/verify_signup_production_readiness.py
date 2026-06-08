@@ -283,6 +283,7 @@ def pass6_portal_ready_channels() -> list[dict[str, str]]:
     for needle in (
         "ensure_portal_ready_in_app_notification",
         "notify_portal_ready_sms",
+        "notify_portal_ready_web_push",
         "dispatch_portal_ready_channels",
         "Notification",
         "send_sms",
@@ -303,6 +304,37 @@ def pass6_portal_ready_channels() -> list[dict[str, str]]:
                 path="apps/schools/signup_completion_notifications.py",
             )
         )
+    web_push = REPO_ROOT / "apps" / "communication" / "web_push_service.py"
+    if not web_push.is_file():
+        findings.append(
+            _finding(
+                "pass6",
+                "web_push_service_module_missing",
+                path="apps/communication/web_push_service.py",
+            )
+        )
+    else:
+        wp_txt = web_push.read_text(encoding="utf-8")
+        for needle in ("send_web_push_to_user", "vapid_configured", "WebPushSubscription"):
+            if needle not in wp_txt:
+                findings.append(
+                    _finding(
+                        "pass6",
+                        f"web_push_service_missing:{needle}",
+                        path="apps/communication/web_push_service.py",
+                    )
+                )
+    sw = REPO_ROOT / "static" / "js" / "service-worker.js"
+    if sw.is_file():
+        sw_txt = sw.read_text(encoding="utf-8")
+        if 'addEventListener("push"' not in sw_txt:
+            findings.append(
+                _finding(
+                    "pass6",
+                    "service_worker_missing_push_handler",
+                    path="static/js/service-worker.js",
+                )
+            )
     e2e = REPO_ROOT / "tests" / "e2e" / "signup-production-smoke.spec.js"
     if not e2e.is_file():
         findings.append(

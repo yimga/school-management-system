@@ -1165,3 +1165,4 @@ from .models_delivery_receipt import (  # noqa: E402,F401
     DeliveryChannel,
     MessageDeliveryReceipt,
 )
+from .models_web_push import WebPushSubscription  # noqa: E402,F401
