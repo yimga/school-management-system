@@ -357,7 +357,7 @@
     <div class="card-body">
       <h5 class="mb-2">{% trans "Uploaded Receipts" %}</h5>
       <div class="table-responsive">
-        <table class="table table-sm align-middle table-family rmc-data-table">
+        <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Uploaded Receipts" %}</caption>
           <thead>
             <tr>
@@ -419,7 +419,7 @@
     <div class="card-body">
       <h5 class="mb-2">{% trans "Lines" %}</h5>
       <div class="table-responsive">
-        <table class="table table-sm align-middle table-family rmc-data-table">
+        <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Lines" %}</caption>
           <thead>
             <tr>
@@ -450,4 +450,5 @@
 {% block extra_js %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
 <script src="{% static 'js/_pages/finance__invoice_detail.js' %}"></script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

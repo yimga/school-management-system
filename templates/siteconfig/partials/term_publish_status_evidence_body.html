@@ -34,7 +34,7 @@
     {% endif %}
   </div>
   <div class="table-responsive">
-    <table class="table table-sm align-middle table-family table-sticky-head rmc-data-table" aria-label="{% trans 'Term publish status' %}">
+    <table class="table table-sm align-middle table-family table-sticky-head rmc-data-table" aria-label="{% trans 'Term publish status' %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead>
         <tr>
           <th>{% trans_term "Academic year" key="academic_year" %}</th>
@@ -67,3 +67,4 @@
   </div>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}

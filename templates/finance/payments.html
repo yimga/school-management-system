@@ -57,7 +57,7 @@
   <div class="card-body">
     {% if payments %}
     <div class="table-responsive rmc-data-table-wrapper">
-      <table class="table table-sm align-middle table-sticky-head table-zebra table-family rmc-data-table" aria-label="Payments list: invoice, method, amount, paid date, and actions">
+      <table class="table table-sm align-middle table-sticky-head table-zebra table-family rmc-data-table" aria-label="Payments list: invoice, method, amount, paid date, and actions" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
             <th scope="col">Invoice</th>
@@ -99,4 +99,5 @@
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
 <script src="{% static 'js/_pages/finance__payments.js' %}"></script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

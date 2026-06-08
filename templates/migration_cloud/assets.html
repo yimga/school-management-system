@@ -33,7 +33,7 @@
     {% if not assets %}
       <p class="rmc-empty">{% trans "No assets registered yet. Landers register asset URLs as they land rows; rerun apply or open the bundle detail to see live status." %}</p>
     {% else %}
-      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
             <th>{% trans "Entity" %}</th>
@@ -60,4 +60,5 @@
     {% endif %}
   </section>
 </main>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

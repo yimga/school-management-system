@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3" data-page-archetype="catalog">
+<div class="container-fluid py-3" data-page-archetype="catalog" data-rmc-scroll-policy="paginate">
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <h1 class="h4 mb-1 fw-bold">{% trans "One SIS, any LMS" %}</h1>
     <p class="small mb-0">{% trans "We're the spine: configure integration → SSO → roster sync (OneRoster) → grade passback (LTI). Google, Microsoft, Canvas, D2L, Moodle, Blackboard." %}</p>
@@ -43,7 +43,7 @@
   <section class="mt-4 pt-3 border-top border-secondary" aria-label="{% trans 'LMS certification status' %}">
     <h2 class="h6 mb-2 fw-bold">{% trans "Certification status" %}</h2>
     <div class="table-responsive">
-      <table class="table table-family table-sm table-striped rmc-data-table">
+      <table class="table table-family table-sm table-striped rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Certification status" %}</caption>
         <thead>
           <tr>
@@ -90,4 +90,5 @@
   </section>
   {% if onboarding_url %}<a href="{{ onboarding_url }}" class="btn btn-primary mt-3">{% trans "Setup Studio" %}</a>{% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

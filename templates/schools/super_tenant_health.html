@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{# table-column-budget-allow: tenant-health-ten-column-operator-lens #}
 {% load static i18n glocal_tags %}
 {% load region_format %}
 
@@ -32,7 +33,7 @@
       <div class="card-body p-0">
         {% if tenants %}
         <div class="table-responsive table-density-comfortable">
-          <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+          <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "School Health Monitor" %}</caption>
             <thead class="table-light">
               <tr>
@@ -108,4 +109,5 @@
       {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query show_page_size=True page_size=page_size page_size_options=page_size_options %}
     </div>
   </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

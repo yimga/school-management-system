@@ -1,4 +1,5 @@
 {% extends "backend_base.html" %}
+{# table-column-budget-allow: installed-packages-nine-column-rollback-lens #}
 {% load i18n static %}
 {% block title %}{% trans "Package rollback" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Installed metadata packages" %}{% endblock %}
@@ -33,7 +34,7 @@
     <div class="card-body p-0">
       <div class="table-responsive">
         <!-- large-collection-allow: dashboard-widget-capped-list -->
-<table class="table table-sm mb-0 table-family align-middle rmc-data-table">
+<table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Active installs" %}</caption>
           <thead><tr><th>{% trans "Package" %}</th><th>{% trans "Version" %}</th><th>{% trans "Type" %}</th><th>{% trans "Stage" %}</th><th>{% trans "Reconciliation" %}</th><th>{% trans "Dependencies (snapshot)" %}</th><th>{% trans "Applied" %}</th><th>{% trans "Graph" %}</th><th></th></tr></thead>
           <tbody>
@@ -83,7 +84,7 @@
     <div class="card-body p-0">
       <div class="table-responsive">
         <!-- large-collection-allow: dashboard-widget-capped-list -->
-<table class="table table-sm table-hover mb-0 small table-family align-middle rmc-data-table">
+<table class="table table-sm table-hover mb-0 small table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Package rollback" %} — {{ school.name }}</caption>
           <thead>
             <tr>
@@ -139,4 +140,5 @@
   "var_package_impact_fetch_url_escapejs": "{{ package_impact_fetch_url|escapejs|escapejs }}",
   "var_school_pk": "{{ school.pk|escapejs }}"
 }</script><script src="{% static 'js/_pages/siteconfig__installed_packages_rollback-1.js' %}"></script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

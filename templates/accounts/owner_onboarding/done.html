@@ -3,6 +3,13 @@
 
 {% block title %}{% trans "You’re all set" %}{% endblock %}
 
+{% block extrahead %}
+{{ block.super }}
+{% if not school_is_live %}
+<meta http-equiv="refresh" content="15">
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <section class="auth-shell" aria-labelledby="ob-title">
   <div class="auth-card text-center">

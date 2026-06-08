@@ -4,7 +4,7 @@
 {% block backend_title %}Migration Wizard{% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "accounts/migration_wizard.html" %}
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
 
@@ -109,7 +109,7 @@
       <h2 class="h6 mb-2">Step 2: Map columns → target fields</h2>
       <p class="small text-muted mb-3">Map each CSV column to a target field (or skip). Required: {{ required_fields|join:", " }}.</p>
       <div class="table-responsive">
-        <table class="table table-sm table-family align-middle rmc-data-table">
+        <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Step 2: Map columns → target fields" %}</caption>
           <thead><tr><th>CSV column</th><th>→ Target field</th></tr></thead>
           <tbody id="mapping-body">
@@ -143,7 +143,7 @@
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table">
+        <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Migration Wizard" %}</caption>
           <thead class="table-light">
             <tr>
@@ -248,4 +248,5 @@
   "var_schema_hints_json_safe": "{{ schema_hints_json|safe|escapejs }}"
 }</script><script src="{% static 'js/_pages/accounts__migration_wizard-1.js' %}"></script>
 {% endif %}
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

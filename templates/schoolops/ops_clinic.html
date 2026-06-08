@@ -5,16 +5,16 @@
 {% block backend_title %}{% trans "Health records" %}{% endblock %}
 {% block backend_page %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Clinic log" %} — {{ school.name }}</h1>
-<div class="container-fluid py-2">
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <p class="small text-muted">{% trans "Confidential. Restricted to leadership and staff. Log entries are created from integrated clinic workflows or admin." %}</p>
   <div class="table-responsive">
-    <table class="table table-sm table-family align-middle rmc-data-table">
+    <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
       <caption class="visually-hidden">{% trans "Clinic log" %} — {{ school.name }}</caption>
       <thead><tr><th>{% trans "When" %}</th><th>{% trans_term "Student" key="student" %}</th><th>{% trans "Type" %}</th><th>{% trans "Notes" %}</th></tr></thead>
       <tbody>
         {% for r in records %}
-        <tr>
+        <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ r.student.get_full_name|default:r.student_id }}" data-rmc-row-subtitle="{{ r.record_type }}">
           <td>{{ r.recorded_at|date:"Y-m-d H:i" }}</td>
           <td>{{ r.student.get_full_name|default:r.student_id }}</td>
           <td>{{ r.record_type }}</td>

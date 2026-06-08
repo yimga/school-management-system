@@ -89,14 +89,13 @@
                     <!-- FAQ Contributions Tab -->
                     <div class="tab-pane fade show active" id="faqs">
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1">
+                            <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
                               <caption class="visually-hidden">{% trans "My Contributions - Knowledge Base" %}</caption>
                                 <thead class="table-light">
                                     <tr>
                                         <th>{% trans "Question" %}</th>
                                         <th>{% trans "Status" %}</th>
-                                        <th>{% trans "Views" %}</th>
-                                        <th>{% trans "Helpful" %}</th>
+                                        <th>{% trans "Engagement" %}</th>
                                         <th>{% trans "Submitted" %}</th>
                                         <th>{% trans "Actions" %}</th>
                                     </tr>
@@ -132,10 +131,9 @@
                                             <span class="badge badge-light">{{ faq.get_status_display }}</span>
                                             {% endif %}
                                         </td>
-                                        <td>{{ faq.views }}</td>
                                         <td>
-                                            {{ faq.helpful_count }}
-                                            <small class="text-muted">/{{ faq.helpful_count|add:faq.unhelpful_count }}</small>
+                                            {{ faq.views }} {% trans "views" %}
+                                            <div class="small text-muted">{{ faq.helpful_count }}/{{ faq.helpful_count|add:faq.unhelpful_count }} {% trans "helpful" %}</div>
                                         </td>
                                         <td><small>{{ faq.created_at|format_date }}</small></td>
                                         <td>
@@ -147,7 +145,7 @@
                                     </tr>
                                     {% empty %}
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted py-4">
+                                        <td colspan="5" class="text-center text-muted py-4">
                                             <i class="bi bi-inbox"></i> {% trans "No FAQ submissions yet" %}
                                             <br>
                                             <a href="{% url 'kb:faq_submit' %}">{% trans "Submit your first question!" %}</a>
@@ -162,14 +160,13 @@
                     <!-- Article Contributions Tab -->
                     <div class="tab-pane fade" id="articles">
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1">
+                            <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
                               <caption class="visually-hidden">{% trans "My Contributions - Knowledge Base" %}</caption>
                                 <thead class="table-light">
                                     <tr>
                                         <th>{% trans "Title" %}</th>
                                         <th>{% trans "Status" %}</th>
-                                        <th>{% trans "Views" %}</th>
-                                        <th>{% trans "Read Time" %}</th>
+                                        <th>{% trans "Engagement" %}</th>
                                         <th>{% trans "Submitted" %}</th>
                                         <th>{% trans "Actions" %}</th>
                                     </tr>
@@ -205,8 +202,10 @@
                                             <span class="badge badge-light">{{ article.get_status_display }}</span>
                                             {% endif %}
                                         </td>
-                                        <td>{{ article.views }}</td>
-                                        <td>{% blocktrans with t=article.read_time %}{{ t }} min{% endblocktrans %}</td>
+                                        <td>
+                                            {{ article.views }} {% trans "views" %}
+                                            <div class="small text-muted">{% blocktrans with t=article.read_time %}{{ t }} min read{% endblocktrans %}</div>
+                                        </td>
                                         <td><small>{{ article.created_at|format_date }}</small></td>
                                         <td>
                                             <a href="{% url 'kb:kb_article' article.slug %}"
@@ -217,7 +216,7 @@
                                     </tr>
                                     {% empty %}
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted py-4">
+                                        <td colspan="5" class="text-center text-muted py-4">
                                             <i class="bi bi-inbox"></i> {% trans "No article submissions yet" %}
                                             <br>
                                             <a href="{% url 'kb:kb_article_submit' %}">{% trans "Write your first article!" %}</a>
@@ -325,5 +324,5 @@
         </div>
     </div>
 </div>
-
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

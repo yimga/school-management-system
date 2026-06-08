@@ -4,7 +4,7 @@
 {% block title %}{% trans "Payment Readiness Center" %} — {{ school.name }}{% endblock %}
 
 {% block content %}
-<div class="container py-4" data-page-archetype="finance-payment-readiness-dashboard" data-rmc-os-center="payment_readiness">
+<div class="container py-4" data-page-archetype="finance-payment-readiness-dashboard" data-rmc-os-center="payment_readiness" data-rmc-scroll-policy="paginate">
   {% trans "Finance" as fin_eyebrow %}
   {% trans "Honest corridor status: metadata-only health checks — no live charges; CARD/BANK stay external until PSP onboarding." as pay_purpose %}
   {% include "components/rmc_os_page_header.html" with os_center_key="payment_readiness" center_eyebrow=fin_eyebrow center_title=_("Payment Readiness Center") center_purpose=pay_purpose status_badge_text=readiness_display_label status_badge_variant=status_badge_class %}
@@ -68,7 +68,7 @@
       <h2 class="h5">Gateway health (metadata checks)</h2>
       <p class="small text-muted">No live charges; secrets never logged. CARD/BANK rails stay <code>external_required</code> until PSP onboarding completes.</p>
       <div class="table-responsive">
-        <table class="table table-sm align-middle mb-0 table-family rmc-data-table">
+        <table class="table table-sm align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Gateway health (metadata checks)" %}</caption>
           <thead>
             <tr>
@@ -145,4 +145,5 @@
   </div>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

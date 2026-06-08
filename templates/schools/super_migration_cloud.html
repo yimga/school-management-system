@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{# table-column-budget-allow: migration-cloud-ten-column-operator-lens #}
 {% load static i18n phase8_tags control_console %}
 {% load region_format %}
 
@@ -234,7 +235,7 @@
             <h5 class="card-title">Recent migration runs</h5>
             <div class="table-responsive">
               <!-- large-collection-allow: dashboard-widget-capped-list -->
-              <table class="table table-sm align-middle mb-0 table-family rmc-data-table" aria-label="Recent cloud migration runs">
+              <table class="table table-sm align-middle mb-0 table-family rmc-data-table" aria-label="Recent cloud migration runs" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
                 <thead>
                   <tr>
                     <th scope="col">Started</th>
@@ -289,4 +290,5 @@
     </div>
     </details>
   </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

@@ -5,19 +5,19 @@
 {% block title %}{% trans "Employer portal — Apprentice progress" %}{% endblock %}
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Employer portal — Apprentice progress</h1>
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "people/employer_dashboard.html" %}
   {% include "studio_os/components/page_header.html" with title=_("Apprentice progress") subtitle=_("View and confirm apprentice placements") %}
   <div class="card shadow-sm">
     <div class="card-body">
       {% if placements %}
       <div class="table-responsive">
-        <table class="table table-sm table-family align-middle rmc-data-table">
+        <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Apprentice progress" %}</caption>
-          <thead><tr><th>Student</th><th>School</th><th>Confirmed hours</th><th>Last confirmed</th><th></th></tr></thead>
+          <thead><tr><th>{% trans "Student" %}</th><th>{% trans "School" %}</th><th>{% trans "Confirmed hours" %}</th><th>{% trans "Last confirmed" %}</th><th></th></tr></thead>
           <tbody>
             {% for p in placements %}
-            <tr>
+            <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ p.student.get_full_name }}" data-rmc-row-subtitle="{{ p.school.name }}">
               <td>{{ p.student.get_full_name }}</td>
               <td>{{ p.school.name }}</td>
               <td>{{ p.confirmed_hours }}</td>
@@ -37,4 +37,5 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

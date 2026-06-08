@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{# table-column-budget-allow: analytics-insights-teacher-compliance-six-column-widget #}
 {% block rmc_workspace_os_header %}{% endblock %}
 {% load i18n static region_format phase8_tags %}
 {% load terminology_tags %}
@@ -375,7 +376,7 @@
       <h5 class="mb-2">{% trans "Ranking per class" %}</h5>
       <div class="text-muted small mb-2">{{ selected_classroom.name }} - {{ term.get_name_display }}</div>
       <div class="table-responsive">
-        <table class="table table-sm align-middle table-family rmc-data-table">
+        <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Ranking per class" %}</caption>
           <thead>
             <tr>
@@ -408,7 +409,7 @@
         <h5 class="mb-2">{% trans "Top students (class, term)" %}</h5>
         {% if selected_classroom %}
           <div class="table-responsive">
-            <table class="table table-sm align-middle table-family rmc-data-table">
+            <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "Top students (class, term)" %}</caption>
               <thead>
                 <tr>
@@ -441,7 +442,7 @@
       <div class="card-body">
         <h5 class="mb-2">{% trans "Top students (school, term)" %}</h5>
         <div class="table-responsive">
-          <table class="table table-sm align-middle table-family rmc-data-table">
+          <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Top students (school, term)" %}</caption>
             <thead>
               <tr>
@@ -475,7 +476,7 @@
         <h5 class="mb-2">{% trans "Top students (class, annual)" %}</h5>
         {% if selected_classroom %}
           <div class="table-responsive">
-            <table class="table table-sm align-middle table-family rmc-data-table">
+            <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "Top students (class, annual)" %}</caption>
               <thead>
                 <tr>
@@ -508,7 +509,7 @@
       <div class="card-body">
         <h5 class="mb-2">{% trans "Top students (school, annual)" %}</h5>
         <div class="table-responsive">
-          <table class="table table-sm align-middle table-family rmc-data-table">
+          <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Top students (school, annual)" %}</caption>
             <thead>
               <tr>
@@ -542,7 +543,7 @@
         <h5 class="mb-2">{% trans "Weak subject focus" %}</h5>
         <div class="text-muted small mb-2">{% trans "Subjects below the selected threshold." %}</div>
         <div class="table-responsive">
-          <table class="table table-sm align-middle table-family rmc-data-table">
+          <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Weak subject focus" %}</caption>
             <thead>
               <tr>
@@ -574,7 +575,7 @@
         {% term "student" plural=True capitalize=True as analytics_stu_pl %}
         <div class="text-muted small mb-2">{% blocktrans with t=analytics_stu_pl %}{{ t }} whose averages improved between terms.{% endblocktrans %}</div>
         <div class="table-responsive">
-          <table class="table table-sm align-middle table-family rmc-data-table">
+          <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% term "student" capitalize=True %} {% trans "improvement list" %}</caption>
             <thead>
               <tr>
@@ -610,7 +611,7 @@
         <h5 class="mb-2">{% term "teacher" capitalize=True %} {% trans "deadline compliance" %}</h5>
         <div class="text-muted small mb-2">{% trans "Based on selected deadline mode." %}</div>
         <div class="table-responsive">
-          <table class="table table-sm align-middle table-family rmc-data-table">
+          <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% term "teacher" capitalize=True %} {% trans "deadline compliance" %}</caption>
             <thead>
               <tr>
@@ -646,7 +647,7 @@
       <div class="card-body">
         <h5 class="mb-2">{% trans "Specialty pass rates" %}</h5>
         <div class="table-responsive">
-          <table class="table table-sm align-middle table-family rmc-data-table">
+          <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Specialty pass rates" %}</caption>
             <thead>
               <tr>
@@ -676,4 +677,5 @@
     </div>
   </div>
 </div> <!-- /analytics-dashboard-widgets -->
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

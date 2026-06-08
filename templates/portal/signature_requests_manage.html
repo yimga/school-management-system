@@ -115,17 +115,14 @@
              (.table-family .table-sticky-head .table-zebra). Right-aligned the
              three date columns for column-type consistency with finance/invoices. {% endcomment %}
           <!-- large-collection-allow: dashboard-widget-capped-list -->
-<table class="table table-family table-sticky-head table-zebra table-hover align-middle rmc-data-table" aria-label="Signature requests: form, student, parent, status, dates, and actions" data-rmc-row-detail-table="1">
+<table class="table table-family table-sticky-head table-zebra table-hover align-middle rmc-data-table" aria-label="Signature requests: form, student, parent, status, dates, and actions" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
             <thead class="table-light">
               <tr>
                 <th scope="col">{% trans "Form" %}</th>
-                <th scope="col">{% trans_term "Student" key="student" %}</th>
-                <th scope="col">{% trans_term "Parent" key="parent" %}</th>
-                <th scope="col">Status</th>
-                <th scope="col" class="text-end">Created</th>
-                <th scope="col" class="text-end">Expires</th>
-                <th scope="col" class="text-end">Signed</th>
-                <th scope="col" class="text-end">Actions</th>
+                <th scope="col">{% trans "Parties" %}</th>
+                <th scope="col">{% trans "Status" %}</th>
+                <th scope="col" class="text-end">{% trans "Timeline" %}</th>
+                <th scope="col" class="text-end">{% trans "Actions" %}</th>
               </tr>
             </thead>
             <tbody>
@@ -141,14 +138,10 @@
                   </td>
                   <td>
                     {% if req.student %}
-                      <div>{{ req.student.get_full_name }}</div>
+                      <div class="small fw-semibold">{{ req.student.get_full_name }}</div>
                       <div class="text-muted small">{{ req.student.admission_number }}</div>
-                    {% else %}
-                      <span class="text-muted">—</span>
                     {% endif %}
-                  </td>
-                  <td>
-                    <div>{{ req.parent.get_full_name }}</div>
+                    <div class="small">{{ req.parent.get_full_name }}</div>
                     <div class="text-muted small">{{ req.parent.email }}</div>
                   </td>
                   <td>
@@ -166,28 +159,13 @@
                       <span class="badge bg-secondary">{{ req.get_status_display }}</span>
                     {% endif %}
                   </td>
-                  <td>
-                    <div class="small">{{ req.created_at|format_date }}</div>
-                    <div class="text-muted small">{{ req.created_at|time:"g:i A" }}</div>
-                  </td>
-                  <td>
+                  <td class="text-end">
+                    <div class="small">{% trans "Created" %}: {{ req.created_at|format_date }}</div>
                     {% if req.expires_at %}
-                      <div class="small">{{ req.expires_at|format_date }}</div>
-                      {% if req.is_expired %}
-                        <div class="text-danger small">Expired</div>
-                      {% else %}
-                        <div class="text-muted small">{{ req.expires_at|timesince }} left</div>
-                      {% endif %}
-                    {% else %}
-                      <span class="text-muted">No expiry</span>
+                      <div class="small">{% trans "Expires" %}: {{ req.expires_at|format_date }}</div>
                     {% endif %}
-                  </td>
-                  <td>
                     {% if req.signed_at %}
-                      <div class="small">{{ req.signed_at|format_date }}</div>
-                      <div class="text-muted small">{{ req.signed_at|time:"g:i A" }}</div>
-                    {% else %}
-                      <span class="text-muted">—</span>
+                      <div class="small text-success">{% trans "Signed" %}: {{ req.signed_at|format_date }}</div>
                     {% endif %}
                   </td>
                   <td class="text-end">

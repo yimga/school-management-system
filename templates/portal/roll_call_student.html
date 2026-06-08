@@ -7,6 +7,7 @@
 {% blocktrans asvar rc_title with t=rc_student_sg %}Take {{ t }} attendance{% endblocktrans %}
 {% block title %}{{ rc_title }}{% endblock %}
 {% block content %}
+<div data-rmc-scroll-policy="paginate">
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ rc_title }}</h1>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
   <p class="small mb-2 d-flex flex-wrap gap-2">
@@ -130,4 +131,5 @@
   <script src="{% static 'js/_pages/portal__roll_call_student.js' %}"></script>
   {% comment %} v4.00.7: progressive WAL enhancement. No-op when window.rmcWAL is absent. {% endcomment %}
   <script src="{% static 'js/_pages/rmc-attendance-wal-enhance.js' %}" defer></script>
+</div>
 {% endblock %}

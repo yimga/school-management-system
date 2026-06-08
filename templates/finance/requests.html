@@ -38,7 +38,7 @@
     <div class="card-body">
       {% if notifications %}
         <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1">
+          <table class="table table-hover align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Finance Access Requests" %}</caption>
             <thead>
               <tr>
@@ -108,7 +108,7 @@
         <span class="badge bg-info text-dark">{{ finance_request_audits|length }} records</span>
       </div>
       <div class="table-responsive">
-        <table class="table table-sm table-hover align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1">
+        <table class="table table-sm table-hover align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Finance request audit trail" %}</caption>
           <thead>
             <tr>
@@ -154,4 +154,5 @@
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
 <script src="{% static 'js/_pages/finance__requests.js' %}"></script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

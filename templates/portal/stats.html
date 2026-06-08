@@ -3,6 +3,7 @@
 {% block title %}School Stats{% endblock %}
 
 {% block content %}
+<div data-rmc-scroll-policy="paginate">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
       <h1 class="mb-1">School Stats</h1>
@@ -89,7 +90,7 @@
         <div class="card-body">
           <h5 class="mb-3">Specialty pass rates</h5>
           <div class="table-responsive">
-            <table class="table table-sm mb-0 table-family align-middle rmc-data-table" aria-label="Specialty pass rates">
+            <table class="table table-sm mb-0 table-family align-middle rmc-data-table" aria-label="Specialty pass rates" data-rmc-row-detail-table="1">
               <thead>
                 <tr>
                   <th scope="col">Specialty</th>
@@ -98,7 +99,7 @@
               </thead>
               <tbody>
                 {% for row in specialty_rows %}
-                  <tr>
+                  <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ row.specialty.name }}" data-rmc-row-subtitle="{{ row.rate|format_number:2 }}%">
                     <td>{{ row.specialty.name }}</td>
                     <td class="text-end">{{ row.rate|format_number:2 }}%</td>
                   </tr>
@@ -146,7 +147,7 @@
         <div class="card-body">
           <h5 class="mb-3">Improving students</h5>
           <div class="table-responsive">
-            <table class="table table-sm mb-0 table-family align-middle rmc-data-table" aria-label="Improving students by delta">
+            <table class="table table-sm mb-0 table-family align-middle rmc-data-table" aria-label="Improving students by delta" data-rmc-row-detail-table="1">
               <thead>
                 <tr>
                   <th scope="col">Student</th>
@@ -155,7 +156,7 @@
               </thead>
               <tbody>
                 {% for row in improvement_rows %}
-                  <tr>
+                  <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ row.student }}" data-rmc-row-subtitle="{{ row.delta|format_number:2 }}">
                     <td>{{ row.student }}</td>
                     <td class="text-end">{{ row.delta|format_number:2 }}</td>
                   </tr>
@@ -173,4 +174,6 @@
       </div>
     </div>
   </div>
+</div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

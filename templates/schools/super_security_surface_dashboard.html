@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-security-surface="1">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-security-surface="1" data-rmc-scroll-policy="paginate">
   {% trans "Security surface audit" as page_title %}
   {% trans "Summary from docs/generated/security_surface_audit.json — run scripts/audit_security_surface.py to refresh." as page_subtitle %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="security_surface_dashboard" center_eyebrow=_("Platform operators") center_title=page_title center_purpose=page_subtitle primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
@@ -130,7 +130,7 @@
 
   <h1 class="h6">{% trans "Needs review / violation (first rows)" %}</h1>
   <div class="table-responsive border rounded mb-3">
-    <table class="table table-sm mb-0 table-family align-middle rmc-data-table">
+    <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Needs review / violation (first rows)" %}</caption>
       <thead class="table-light">
         <tr>
@@ -180,4 +180,5 @@
 
   <p class="small mb-0"><a href="{{ support_visibility_url }}">{% trans "Support queue & access visibility" %}</a> — {% trans "operator support posture (impersonation and tickets live in governed tools)." %}</p>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

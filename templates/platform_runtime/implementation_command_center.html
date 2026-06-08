@@ -2,7 +2,7 @@
 {% load i18n phase8_tags %}
 {% block cp_title %}{% trans "Implementation command center" %}{% endblock %}
 {% block cp_content %}
-<div class="container-lg py-4" data-page-archetype="operations" data-decision-engine="surface" data-rmc-implementation-command-center="{{ page_marker }}">
+<div class="container-lg py-4" data-page-archetype="operations" data-decision-engine="surface" data-rmc-implementation-command-center="{{ page_marker }}" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "platform_runtime/implementation_command_center.html" %}
   <header class="mb-4">
     <h1 class="h3">{% trans "Implementation command center" %}</h1>
@@ -73,7 +73,7 @@
   </div>
 
   <div class="table-responsive">
-    <table class="table table-sm align-middle table-family rmc-data-table">
+    <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Adoption signals (event log — honest)" %}</caption>
       <thead>
         <tr>
@@ -96,4 +96,5 @@
     </table>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

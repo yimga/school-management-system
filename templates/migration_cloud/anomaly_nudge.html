@@ -20,7 +20,7 @@
       <span class="rmc-muted">({{ low_conf_mappings|length }} {% trans "below" %} {{ threshold|floatformat:2 }})</span>
     </h2>
     {% if low_conf_mappings %}
-      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
             <th>{% trans "Artifact" %}</th>
@@ -57,7 +57,7 @@
       <span class="rmc-muted">({{ quarantine_rows|length }})</span>
     </h2>
     {% if quarantine_rows %}
-      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
             <th>{% trans "Run" %}</th>
@@ -85,7 +85,7 @@
   <section class="rmc-card rmc-reveal">
     <h2 class="rmc-h2">{% trans "Reconciliation drift" %}</h2>
     {% if drift_domains %}
-      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
             <th>{% trans "Domain" %}</th>
@@ -114,4 +114,5 @@
     {% endif %}
   </section>
 </main>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

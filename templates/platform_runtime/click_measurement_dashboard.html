@@ -1,10 +1,11 @@
 {% extends "portal_base.html" %}
+{# table-column-budget-allow: click-measurement-seven-column-lens #}
 {% load i18n %}
 
 {% block title %}{% trans "Click measurement" %}{% endblock %}
 
 {% block content %}
-<div class="container-lg py-4" data-page-archetype="analytics">
+<div class="container-lg py-4" data-page-archetype="analytics" data-rmc-scroll-policy="paginate">
   <header class="mb-4">
     <h1 class="h3 mb-2">{% trans "Workflow click measurement" %}</h1>
     <p class="text-muted mb-0">
@@ -76,7 +77,7 @@
   </div>
 
   <div class="table-responsive">
-    <table class="table table-family table-density-comfortable align-middle rmc-data-table">
+    <table class="table table-family table-density-comfortable align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Click measurement" %}</caption>
       <thead>
         <tr>
@@ -115,4 +116,5 @@
     </table>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

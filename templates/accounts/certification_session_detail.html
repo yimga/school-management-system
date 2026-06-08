@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{# table-column-budget-allow: certification-session-eight-column-roster-lens #}
 {% load i18n static region_format %}
 {% load terminology_tags %}
 
@@ -88,7 +89,7 @@
       {% if candidates %}
       <div class="table-responsive">
         <!-- large-collection-allow: dashboard-widget-capped-list -->
-<table class="table table-sm align-middle table-family rmc-data-table" aria-label="{% trans 'Certification session candidates' %}">
+<table class="table table-sm align-middle table-family rmc-data-table" aria-label="{% trans 'Certification session candidates' %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <thead>
             <tr>
               <th scope="col">{% trans_term "Student" key="student" %}</th>
@@ -172,5 +173,6 @@
   </div>
 </div>
 {% endif %}
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}
 

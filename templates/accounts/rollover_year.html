@@ -119,26 +119,27 @@
       </div>
       <div class="card-body p-0">
         <div class="table-responsive">
-          <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table">
+          <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Year-end rollover" %}</caption>
             <thead class="table-light">
               <tr>
-                <th>Student</th>
-                <th>Current class</th>
-                <th>Annual avg</th>
-                <th>Promotion</th>
-                <th>Returns</th>
-                <th>Next class</th>
+                <th>{% trans "Student" %}</th>
+                <th>{% trans "Current class" %}</th>
+                <th>{% trans "Annual avg" %}</th>
+                <th>{% trans "Promotion" %}</th>
+                <th>{% trans "Next class" %}</th>
               </tr>
             </thead>
             <tbody>
               {% for row in rows %}
-              <tr>
+              <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ row.student.get_full_name|default:row.student.last_name }}" data-rmc-row-subtitle="{{ row.promotion_status }}">
                 <td>{{ row.student.get_full_name|default:row.student.last_name }}</td>
                 <td>{{ row.student.classroom.name|default:"—" }}</td>
                 <td>{{ row.annual_average|default:"—" }}</td>
-                <td><span class="badge {% if row.promotion_status == 'PROMOTED' %}bg-success{% elif row.promotion_status == 'REPEAT' or row.promotion_status == 'DEMOTED' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ row.promotion_status }}</span></td>
-                <td>{% if row.outstanding_returns %}<span class="badge bg-warning text-dark">{{ row.outstanding_returns }} outstanding</span>{% else %}<span class="text-muted">0</span>{% endif %}</td>
+                <td>
+                  <span class="badge {% if row.promotion_status == 'PROMOTED' %}bg-success{% elif row.promotion_status == 'REPEAT' or row.promotion_status == 'DEMOTED' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ row.promotion_status }}</span>
+                  {% if row.outstanding_returns %}<div class="small text-muted">{{ row.outstanding_returns }} {% trans "outstanding returns" %}</div>{% endif %}
+                </td>
                 <td>
                   <select name="classroom_{{ row.student.id }}" class="form-select form-select-sm" style="min-width:160px;">
                     <option value="__graduate__">— Graduate (Alumni) —</option>
@@ -149,7 +150,7 @@
                 </td>
               </tr>
               {% empty %}
-              <tr><td colspan="6" class="text-muted">No active students in {{ source_year.name }}.</td></tr>
+              <tr><td colspan="5" class="text-muted">No active students in {{ source_year.name }}.</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -163,4 +164,5 @@
   </form>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

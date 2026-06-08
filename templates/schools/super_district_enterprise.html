@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{# table-column-budget-allow: district-enterprise-seven-column-lens #}
 {% load i18n %}
 {% load terminology_tags %}
 
@@ -14,7 +15,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3" data-page-archetype="catalog">
+<div class="container-fluid py-3" data-page-archetype="catalog" data-rmc-scroll-policy="paginate">
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <h1 class="h4 mb-1 fw-bold">{% trans "District & enterprise (wedge 4)" %}</h1>
     <p class="small mb-0">{% trans "Operator surface: multi-school governance, interop, billing, and analytics — decision links, not a toggle wall." %}</p>
@@ -26,7 +27,7 @@
     <h2 class="h6 mb-2">{% trans "Live platform rollups" %}</h2>
     <p class="small mb-2">{% trans "Cross-tenant aggregates for operators (no student-level rows). Pairs with tenant statutory JSON and government aggregate API." %}</p>
     <div class="table-responsive">
-      <table class="table table-family table-sm w-auto rmc-data-table">
+      <table class="table table-family table-sm w-auto rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Live platform rollups" %}</caption>
         <tbody class="small">
           <tr><th scope="row" >{% trans "Active schools" %}</th><td>{{ platform_rollups.active_schools }}</td></tr>
@@ -58,7 +59,7 @@
     <p class="small mb-2">{% trans "Signed webhooks + API Center subscriptions; customer maps events to their finance system of record." %}</p>
     {% if erp_coexistence_patterns %}
     <div class="table-responsive mb-3">
-      <table class="table table-family table-sm rmc-data-table">
+      <table class="table table-family table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Customer ERP coexistence" %}</caption>
         <thead><tr><th>{% trans "Pattern" %}</th><th>{% trans "Motion" %}</th><th>{% trans "Webhook events" %}</th></tr></thead>
         <tbody class="small">
@@ -95,4 +96,5 @@
   </section>
   <p class="small mb-0">{% trans "Clever and ClassLink native HTTP clients ship in-repo; district OAuth and bearer tokens unlock live calls. OneRoster + district hub remains the universal fallback." %}</p>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

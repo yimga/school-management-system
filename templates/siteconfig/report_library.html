@@ -4,7 +4,7 @@
 {% block title %}Report Library · {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block backend_page %}
-  <div class="d-flex justify-content-between align-items-center mb-3">
+  <div data-rmc-scroll-policy="paginate" class="d-flex justify-content-between align-items-center mb-3">
     <div>
       <h1 class="h3">Reports & Downloads</h1>
       <p class="text-muted mb-0">Report packs now include dependency mapping and seeded preview data alongside downloadable exports.</p>
@@ -71,7 +71,7 @@
               </div>
               <div class="table-responsive mb-3">
                 <!-- large-collection-allow: catalog-link-row-actions -->
-<table class="table table-sm align-middle mb-0 table-family rmc-data-table">
+<table class="table table-sm align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
                   <caption class="visually-hidden">{{ key|cut:"_" }}</caption>
                   <tbody>
                     {% for row in report_pack_preview.rows %}
@@ -110,7 +110,7 @@
   {% if reports %}
     <div class="table-responsive">
       <!-- large-collection-allow: catalog-link-row-actions -->
-<table class="table table-striped align-middle table-family table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+<table class="table table-striped align-middle table-family table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Dependencies" %}</caption>
         <thead>
           <tr>
@@ -152,4 +152,5 @@
       No downloadable reports are available yet. Check back after the finance team seeds the templates.
     </div>
   {% endif %}
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

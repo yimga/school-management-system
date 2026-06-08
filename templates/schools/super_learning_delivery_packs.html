@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3" data-page-archetype="catalog">
+<div class="container-fluid py-3" data-page-archetype="catalog" data-rmc-scroll-policy="paginate">
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <h1 class="h4 mb-1 fw-bold">{% trans "Learning delivery & institution types" %}</h1>
     <p class="small mb-2">{% trans "Wedges 23–30 (delivery) and 31–43 (institution types): catalog of modes and suggested pack slugs. Enable via marketplace / plan addons." %}</p>
@@ -30,7 +30,7 @@
 
   <h2 class="h6 mb-2">{% trans "Learning delivery modes" %}</h2>
   <div class="table-responsive mb-4">
-    <table class="table table-family table-sm table-striped rmc-data-table">
+    <table class="table table-family table-sm table-striped rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Learning delivery modes" %}</caption>
       <thead><tr><th>#</th><th>{% trans "Code" %}</th><th>{% trans "Label" %}</th><th>{% trans "Pack slugs" %}</th><th>{% trans "Notes" %}</th></tr></thead>
       <tbody>
@@ -49,7 +49,7 @@
 
   <h2 class="h6 mb-2">{% trans "Institution types → packs" %}</h2>
   <div class="table-responsive">
-    <table class="table table-family table-sm table-striped rmc-data-table">
+    <table class="table table-family table-sm table-striped rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Institution types → packs" %}</caption>
       <thead><tr><th>#</th><th>{% trans "Code" %}</th><th>{% trans "Label" %}</th><th>{% trans "Pack slugs" %}</th></tr></thead>
       <tbody>
@@ -65,4 +65,5 @@
     </table>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

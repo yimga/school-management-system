@@ -1,4 +1,5 @@
 {% load i18n %}
+{# table-column-budget-allow: tag-manager-seven-column-catalog-lens #}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Tag Manager" %}</h1>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
@@ -47,7 +48,7 @@
 
     <h5 class="mb-2">{% trans "Existing tags" %}</h5>
     <div class="table-responsive">
-      <table class="table table-sm table-hover table-family align-middle rmc-data-table">
+      <table class="table table-sm table-hover table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Existing tags" %}</caption>
         <thead>
           <tr>
@@ -83,3 +84,4 @@
     <a href="{% url 'studio_os:experience' %}">{% trans "Back to Customizer" %}</a>
   </p>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}

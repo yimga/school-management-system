@@ -112,7 +112,7 @@
     <!-- table-column-budget-allow: finance-invoice-ledger-eleven-column-set -->
     <div class="table-responsive rmc-data-table-wrapper" data-table-density-key="finance_invoices" data-tour="finance-table">
       {% if invoices %}
-      <table class="table table-sm align-middle table-sticky-head table-zebra table-family rmc-data-table" aria-label="{% trans 'Invoices list: reference, type, status, due date, student, total, balance, and actions' %}" data-rmc-row-detail-table="1">
+      <table class="table table-sm align-middle table-sticky-head table-zebra table-family rmc-data-table" aria-label="{% trans 'Invoices list: reference, type, status, due date, student, total, balance, and actions' %}" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
         <thead class="table-light">
           <tr>
             <th scope="col">{% trans "Reference" %}</th>
@@ -224,7 +224,7 @@
          on confirm, so each row sends its own student_id. {% endcomment %}
       {% include "components/confirm_modal.html" with modal_id="grantAccessConfirm" icon="bi-people" title=_("Grant finance access to this student's guardians?") body=_("All guardians linked to the student will be granted access to invoices and payment history. They will be notified by email when finance notifications are enabled.") confirm_label=_("Grant access") confirm_class="btn-primary" %}
       {% elif finance_access_required and not finance_access_granted %}
-      <table class="table table-sm align-middle table-family rmc-data-table" aria-label="{% trans 'Invoices list (no results)' %}">
+      <table class="table table-sm align-middle table-family rmc-data-table" aria-label="{% trans 'Invoices list (no results)' %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead class="table-light">
           <tr>
             <th scope="col">{% trans "Reference" %}</th>

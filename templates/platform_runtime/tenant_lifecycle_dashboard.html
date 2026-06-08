@@ -5,7 +5,7 @@
 {% block cp_title %}{% trans "Tenant lifecycle" %}{% endblock %}
 
 {% block cp_content %}
-<div class="container-lg py-4" data-page-archetype="operations" data-decision-engine="surface" data-rmc-tenant-lifecycle-dashboard="{{ page_marker }}" data-rmc-ux-role-dashboard="tenant-lifecycle-portfolio" data-task="tenant_lifecycle" data-task-step="lifecycle:dashboard-root">
+<div class="container-lg py-4" data-page-archetype="operations" data-decision-engine="surface" data-rmc-tenant-lifecycle-dashboard="{{ page_marker }}" data-rmc-ux-role-dashboard="tenant-lifecycle-portfolio" data-task="tenant_lifecycle" data-task-step="lifecycle:dashboard-root" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "platform_runtime/tenant_lifecycle_dashboard.html" %}
   <header class="mb-4">
     <h1 class="h3 mb-2">{% trans "Tenant lifecycle" %}</h1>
@@ -140,7 +140,7 @@
   </div>
 
   <div class="table-responsive">
-    <table class="table table-family table-density-comfortable align-middle rmc-data-table">
+    <table class="table table-family table-density-comfortable align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Operator adoption (event log)" %}</caption>
       <thead>
         <tr>
@@ -171,4 +171,5 @@
     </table>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

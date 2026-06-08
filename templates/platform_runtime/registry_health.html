@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{# table-column-budget-allow: registry-health-seven-column-lens #}
 {% load i18n %}
 
 {% block cp_title %}{% trans "Registry Health" %}{% endblock %}
@@ -16,7 +17,7 @@
   </div>
 
   <div class="table-responsive" tabindex="0" role="region" aria-label="{% trans 'Registry health table' %}">
-    <table class="table table-sm align-middle table-family rmc-data-table">
+    <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Registry Health" %}</caption>
       <thead>
         <tr><th>{% trans "Registry" %}</th><th>{% trans "Owner" %}</th><th>{% trans "Scope" %}</th><th>{% trans "Route" %}</th><th>{% trans "Gaps" %}</th><th>{% trans "Severity" %}</th><th>{% trans "Action" %}</th></tr>
@@ -43,4 +44,5 @@
     </table>
   </div>
 </section>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

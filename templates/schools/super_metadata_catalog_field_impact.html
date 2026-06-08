@@ -28,7 +28,7 @@
   </div>
   <div class="card shadow-sm border-secondary" style="background: var(--cp-panel-bg, rgba(8,16,30,0.6)); border-color: var(--cp-panel-border) !important;">
     <div class="card-body p-0">
-      <table class="table table-family table-hover mb-0 rmc-data-table" data-rmc-scroll-policy="paginate">
+      <table class="table table-family table-hover mb-0 rmc-data-table" data-rmc-scroll-policy="paginate" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{{ entity.code }}.{{ field.field_name }} — {{ field.label|default:field.field_name }}</caption>
         <thead>
           <tr>
@@ -52,4 +52,5 @@
   {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

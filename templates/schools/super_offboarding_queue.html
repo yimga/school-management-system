@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{# table-column-budget-allow: offboarding-queue-eight-column-operator-lens #}
 {% load i18n static glocal_tags %}
 
 {% block cp_title %}{% trans "Offboarding queue" %}{% endblock %}
@@ -56,7 +57,7 @@
   </ul>
   {% endif %}
   <div class="table-responsive">
-    <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead>
         <tr>
           <th>{% trans "School" %}</th>
@@ -99,4 +100,5 @@
   "auto_purge_enabled": {% if auto_purge_enabled %}true{% else %}false{% endif %}
 }</script>
 <script src="{% static 'js/_pages/schools__super_offboarding_queue-1.js' %}"></script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

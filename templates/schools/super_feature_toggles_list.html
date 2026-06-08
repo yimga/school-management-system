@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{# table-column-budget-allow: feature-toggles-seven-column-lens #}
 {% load i18n control_console %}
 
 {% block cp_title %}{% trans "Feature toggles" %} — RunMyCampus Manager{% endblock %}
@@ -33,7 +34,7 @@
   {% if definitions %}
   <div class="cp-overview-card border border-secondary rounded p-0 overflow-hidden">
     <div class="table-responsive">
-      <table class="table table-family table-hover mb-0 rmc-data-table">
+      <table class="table table-family table-hover mb-0 rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Feature toggles" %}</caption>
         <thead>
           <tr>
@@ -75,4 +76,5 @@
   {% include "components/pagination.html" %}
   <p class="mt-3"><a href="{{ system_config_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Back to Config center" %}</a></p>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

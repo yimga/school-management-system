@@ -1,6 +1,6 @@
 # Security surface audit (generated)
 
-**UTC** `2026-06-08T17:16:30.206459+00:00`  
+**UTC** `2026-06-08T18:31:14.505355+00:00`  
 
 Counts are **visibility only**; review classifications in JSON.
 

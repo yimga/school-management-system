@@ -31,7 +31,7 @@
 
     <!-- ── Card 1: Audit chain ──────────────────────────────────────── -->
     {% with sec=sections.audit_chain %}
-    <section class="rmc-card rmc-card--mc-command" aria-labelledby="cc-audit-heading">
+    <section class="rmc-card rmc-card--mc-command" aria-labelledby="cc-audit-heading" data-rmc-scroll-policy="paginate">
       <header class="rmc-card__header">
         <h2 id="cc-audit-heading" class="rmc-h2">{% trans "Audit chain" %}</h2>
         {% if sec.error %}
@@ -49,7 +49,7 @@
       {% if sec.error %}
         <p class="rmc-hint">{% blocktrans with name=sec.error %}Section unavailable: {{ name }}{% endblocktrans %}</p>
       {% else %}
-        <dl class="rmc-data-table rmc-data-table--mc-command">
+        <dl class="rmc-data-table rmc-data-table--mc-command" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <div><dt>{% trans "Total events (all-time)" %}</dt><dd>{{ sec.all_count }}</dd></div>
           <div><dt>{% trans "Events (last 90d)" %}</dt><dd>{{ sec.recent_count }}</dd></div>
           <div><dt>{% trans "Chain status" %}</dt><dd><code class="rmc-kbd">{{ sec.chain_status }}</code></dd></div>
@@ -96,7 +96,7 @@
       {% if sec.error %}
         <p class="rmc-hint">{% blocktrans with name=sec.error %}Section unavailable: {{ name }}{% endblocktrans %}</p>
       {% else %}
-        <dl class="rmc-data-table rmc-data-table--mc-command">
+        <dl class="rmc-data-table rmc-data-table--mc-command" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <div><dt>{% trans "Active subscriptions" %}</dt><dd>{{ sec.active_subscriptions }}</dd></div>
           <div><dt>{% trans "24h success rate" %}</dt><dd>{{ sec.success_rate_pct }}%</dd></div>
           <div><dt>{% trans "24h deliveries (D/F/T)" %}</dt><dd>{{ sec.delivered_24h }} / {{ sec.failed_24h }} / {{ sec.total_24h }}</dd></div>
@@ -140,7 +140,7 @@
       {% if sec.error %}
         <p class="rmc-hint">{% blocktrans with name=sec.error %}Section unavailable: {{ name }}{% endblocktrans %}</p>
       {% else %}
-        <dl class="rmc-data-table rmc-data-table--mc-command">
+        <dl class="rmc-data-table rmc-data-table--mc-command" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <div><dt>{% trans "Active scoped tokens" %}</dt><dd>{{ sec.active_count }}</dd></div>
           <div><dt>{% trans "Rotating in next 14d" %}</dt><dd>{{ sec.rotating_soon }}</dd></div>
           <div><dt>{% trans "Rotation overdue" %}</dt><dd>{{ sec.overdue }}</dd></div>
@@ -175,7 +175,7 @@
       {% if sec.error %}
         <p class="rmc-hint">{% blocktrans with name=sec.error %}Section unavailable: {{ name }}{% endblocktrans %}</p>
       {% else %}
-        <dl class="rmc-data-table rmc-data-table--mc-command">
+        <dl class="rmc-data-table rmc-data-table--mc-command" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <div><dt>{% trans "Tenants w/ active keypair" %}</dt><dd>{{ sec.keypair_tenants }}</dd></div>
           <div><dt>{% trans "Uploads (30d)" %}</dt><dd>{{ sec.upload_count_30d }}</dd></div>
           <div><dt>{% trans "Bytes (30d)" %}</dt><dd>{{ sec.bytes_total_30d }}</dd></div>
@@ -211,7 +211,7 @@
       {% if sec.error %}
         <p class="rmc-hint">{% blocktrans with name=sec.error %}Section unavailable: {{ name }}{% endblocktrans %}</p>
       {% else %}
-        <dl class="rmc-data-table rmc-data-table--mc-command">
+        <dl class="rmc-data-table rmc-data-table--mc-command" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <div><dt>{% trans "SSE transport" %}</dt><dd><code class="rmc-kbd">{{ sec.sse_transport }}</code></dd></div>
           <div><dt>{% trans "Throttle snapshot" %}</dt><dd>{% if sec.snapshot_available %}{% trans "available" %}{% else %}{% trans "no data" %}{% endif %}</dd></div>
         </dl>
@@ -247,7 +247,7 @@
       {% if sec.error %}
         <p class="rmc-hint">{% blocktrans with name=sec.error %}Section unavailable: {{ name }}{% endblocktrans %}</p>
       {% else %}
-        <dl class="rmc-data-table rmc-data-table--mc-command">
+        <dl class="rmc-data-table rmc-data-table--mc-command" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <div><dt>{% trans "SW cache key" %}</dt><dd><code class="rmc-kbd">{{ sec.cache_key }}</code></dd></div>
           <div><dt>{% trans "Last release tag" %}</dt><dd><code class="rmc-kbd">{{ sec.last_tag }}</code></dd></div>
           <div><dt>{% trans "Audit-root signing" %}</dt><dd><code class="rmc-kbd">{{ sec.signing_backend }}</code></dd></div>
@@ -276,7 +276,7 @@
       {% if sec.error %}
         <p class="rmc-hint">{% blocktrans with name=sec.error %}Section unavailable: {{ name }}{% endblocktrans %}</p>
       {% else %}
-        <dl class="rmc-data-table rmc-data-table--mc-command">
+        <dl class="rmc-data-table rmc-data-table--mc-command" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <div><dt>{% trans "Metrics backend" %}</dt><dd><code class="rmc-kbd">{{ sec.backend }}</code></dd></div>
           <div><dt>{% trans "/metrics/ registered" %}</dt><dd>{% if sec.metrics_url_registered %}{% trans "yes" %}{% else %}{% trans "no" %}{% endif %}</dd></div>
         </dl>
@@ -304,7 +304,7 @@
       {% if sec.error %}
         <p class="rmc-hint">{% blocktrans with name=sec.error %}Section unavailable: {{ name }}{% endblocktrans %}</p>
       {% else %}
-        <dl class="rmc-data-table rmc-data-table--mc-command">
+        <dl class="rmc-data-table rmc-data-table--mc-command" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <div><dt>{% trans "MAA active version" %}</dt><dd><code class="rmc-kbd">{{ sec.active_version }}</code></dd></div>
           <div><dt>{% trans "Tenants signed (active)" %}</dt><dd>{{ sec.active_signed_tenants }}</dd></div>
           <div><dt>{% trans "v2.0 draft" %}</dt><dd>{% if sec.v2_draft %}{% trans "DRAFT — counsel signoff pending" %}{% else %}{% trans "—" %}{% endif %}</dd></div>
@@ -329,4 +329,5 @@
 
   </div>
 </main>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

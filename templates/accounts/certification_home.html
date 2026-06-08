@@ -4,7 +4,7 @@
 {% block title %}Certification & Exams{% endblock %}
 
 {% block content %}
-<div class="container-fluid" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface">
+<div class="container-fluid" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "accounts/certification_home.html" %}
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2 mb-3">
     <div>
@@ -43,7 +43,7 @@
       <h5 class="mb-3">Exam sessions</h5>
       {% if sessions %}
         <div class="table-responsive">
-          <table class="table table-sm align-middle table-family rmc-data-table" aria-label="Certification exam sessions">
+          <table class="table table-sm align-middle table-family rmc-data-table" aria-label="Certification exam sessions" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <thead>
               <tr>
                 <th scope="col">Session</th>
@@ -90,5 +90,6 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}
 

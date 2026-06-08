@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{# table-column-budget-allow: at-risk-dashboard-six-column-intervention-lens #}
 {% load i18n glocal_tags %}
 {% load terminology_tags %}
 {% load region_format phase8_tags %}
@@ -12,7 +13,7 @@
   <div class="card shadow-sm mb-3">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'At-risk students by score and band' %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+        <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'At-risk students by score and band' %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "At-Risk Dashboard" %}</caption>
           <thead>
             <tr>
@@ -79,7 +80,7 @@
       <h6 class="mb-2">{% trans "EWS signals (portal-linked students)" %}</h6>
       <p class="small text-muted mb-2">{% trans "Synced from nightly risk scores for students with portal accounts. Status updates when you log or resolve interventions." %}</p>
       <div class="table-responsive">
-        <table class="table table-sm table-family align-middle rmc-data-table">
+        <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "EWS signals (portal-linked students)" %}</caption>
           <thead><tr><th>{% trans "Student user" %}</th><th>{% trans "Score" %}</th><th>{% trans "Status" %}</th><th>{% trans "Factors" %}</th></tr></thead>
           <tbody>
@@ -102,7 +103,7 @@
     <div class="card-body">
       <h6 class="mb-3">{% trans "Ongoing interventions" %}</h6>
       <div class="table-responsive">
-        <table class="table table-sm table-family align-middle rmc-data-table">
+        <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Ongoing interventions" %}</caption>
           <thead><tr><th>{% trans_term "Student" key="student" %}</th><th>{% trans "Action" %}</th><th>{% trans "Trigger" %}</th><th></th></tr></thead>
           <tbody>
@@ -135,4 +136,5 @@
   </div>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

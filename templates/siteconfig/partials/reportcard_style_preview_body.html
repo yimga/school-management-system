@@ -51,7 +51,7 @@
     <div class="card-body">
       <h5 class="mb-3">Sample term table</h5>
       <!-- large-collection-allow: print-report-fixed-layout -->
-<table class="report-table table-family align-middle table-sm table-sticky-head rmc-data-table" aria-label="Sample term report table preview">
+<table class="report-table table-family align-middle table-sm table-sticky-head rmc-data-table" aria-label="Sample term report table preview" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
             <th scope="col">{% report_style_label report_style "subject_header" "Subject / Matiere" %}</th>
@@ -116,3 +116,4 @@
   </div>
 
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}

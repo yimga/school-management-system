@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{# table-column-budget-allow: migration-token-list-eight-column-lens #}
 {% load i18n glocal_tags %}
 
 {% block page_title %}{{ page_title|default:"Migration Cloud — scoped API tokens" }}{% endblock %}
@@ -27,7 +28,7 @@
   </form>
 
   {% if rows %}
-  <table class="rmc-data-table rmc-data-table--tokens table-sm table-sticky-head" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+  <table class="rmc-data-table rmc-data-table--tokens table-sm table-sticky-head" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
     <thead>
       <tr>
         <th>{% trans "ID" %}</th>
@@ -87,4 +88,5 @@
   </div>
   {% endif %}
 </main>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

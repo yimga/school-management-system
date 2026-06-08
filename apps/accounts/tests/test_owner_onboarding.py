@@ -11,6 +11,8 @@ from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sessions.middleware import SessionMiddleware
+from unittest import mock
+
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils.encoding import force_bytes
@@ -136,6 +138,20 @@ class OwnerOnboardingFlowTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.school.refresh_from_db()
         self.assertTrue(self.school.settings["owner_onboarding"]["completed"])
+
+    def test_done_nudge_requeues_provisioning_when_inactive(self):
+        self._login_past_mfa()
+        with mock.patch(
+            "apps.schools.tasks.dispatch_provision_school",
+            return_value={"queued": True, "job_id": "j-1"},
+        ) as dispatch:
+            r = self.client.get(
+                reverse("accounts:owner_onboarding_done") + "?nudge=1"
+            )
+        self.assertEqual(r.status_code, 200)
+        dispatch.assert_called_once_with(
+            str(self.school.pk), contact_email=self.user.email
+        )
 
     def test_completed_owner_is_bounced_out_of_wizard(self):
         self.school.settings = {"owner_onboarding": {"completed": True}}

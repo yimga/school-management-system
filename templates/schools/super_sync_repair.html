@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{# table-column-budget-allow: sync-repair-seven-column-lens #}
 {% load static glocal_tags %}
 {% load region_format %}
 {% load i18n %}
@@ -12,7 +13,7 @@
 
   {% if conflicts %}
   <div class="table-responsive">
-    <table class="table table-bordered table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <table class="table table-bordered table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Emergency Sync Repair" %}</caption>
       <thead>
         <tr>
@@ -58,4 +59,5 @@
   <div class="alert alert-info">No sync conflicts for this school.</div>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

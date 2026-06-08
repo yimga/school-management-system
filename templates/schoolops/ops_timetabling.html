@@ -5,15 +5,15 @@
 {% block backend_title %}{% trans "Schedules" %}{% endblock %}
 {% block backend_page %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Timetabling" %} — {{ school.name }}</h1>
-<div class="container-fluid py-2">
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <p class="small text-muted">{% trans "Draft and published master schedules. Generate or validate via API (scheduler) from integrations." %}</p>
-  <table class="table table-sm table-family align-middle rmc-data-table">
+  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
     <caption class="visually-hidden">{% trans "Timetabling" %} — {{ school.name }}</caption>
     <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Year" %}</th><th>{% trans_term "Term" key="term" %}</th><th>{% trans "Status" %}</th><th>{% trans "Generated" %}</th></tr></thead>
     <tbody>
       {% for s in schedules %}
-      <tr><td>{{ s.name }}</td><td>{{ s.academic_year.name }}</td><td>{{ s.term.name }}</td><td>{{ s.status }}</td><td>{{ s.generated_at|date:"Y-m-d H:i" }}</td></tr>
+      <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ s.name }}" data-rmc-row-subtitle="{{ s.status }}"><td>{{ s.name }}</td><td>{{ s.academic_year.name }}</td><td>{{ s.term.name }}</td><td>{{ s.status }}</td><td>{{ s.generated_at|date:"Y-m-d H:i" }}</td></tr>
       {% empty %}<tr><td colspan="5" class="rmc-empty-state rmc-empty-state--row">
         <i class="bi bi-calendar3-week rmc-empty-state__icon" aria-hidden="true"></i>
         <p class="rmc-empty-state__title">{% trans "No master schedules yet" %}</p>

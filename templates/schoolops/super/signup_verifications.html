@@ -119,6 +119,7 @@
           <th scope="col">{% trans "School" %}</th>
           <th scope="col">{% trans "Admin email" %}</th>
           <th scope="col">{% trans "Status" %}</th>
+          <th scope="col">{% trans "Portal" %}</th>
           <th scope="col">{% trans "Email health" %}</th>
           <th scope="col">{% trans "Created" %}</th>
           <th scope="col">{% trans "Expires" %}</th>
@@ -145,6 +146,17 @@
             {% endif %}
           </td>
           <td>
+            {% if row.status == 'verified' %}
+              {% if row.school_active %}
+                <span class="badge bg-success">{% trans "Live" %}</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">{% trans "Provisioning" %}</span>
+              {% endif %}
+            {% else %}
+              <span class="text-muted small">—</span>
+            {% endif %}
+          </td>
+          <td>
             {% if row.health.state == 'delivered' %}
               <span class="badge bg-success-subtle text-success" title="{{ row.health.when|date:'Y-m-d H:i' }}">{% trans "Delivered" %}</span>
             {% elif row.health.state == 'bounced' %}
@@ -167,11 +179,16 @@
               <button type="submit" name="action" value="resend" class="btn btn-sm btn-outline-primary">{% trans "Resend" %}</button>
               <button type="submit" name="action" value="regenerate" class="btn btn-sm btn-outline-warning">{% trans "Regenerate" %}</button>
             </form>
+            {% elif not row.school_active %}
+            <form method="post" action="{% url 'super:signup_verification_action' row.id %}" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" name="action" value="reprovision" class="btn btn-sm btn-outline-primary">{% trans "Retry provisioning" %}</button>
+            </form>
             {% endif %}
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="7" class="text-center text-muted py-4">{% trans "No signup verifications match this filter." %}</td></tr>
+        <tr><td colspan="8" class="text-center text-muted py-4">{% trans "No signup verifications match this filter." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>

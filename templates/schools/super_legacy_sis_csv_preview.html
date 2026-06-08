@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate">
   {% include "components/rmc_operational_center_frame.html" with os_center_key="legacy_sis_csv_preview" center_eyebrow=_("Platform operators") center_title=_("Read-only legacy CSV preview") center_purpose=_("Upload district export; first 500 rows shown. No write-back.") primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
 
   <form method="post" enctype="multipart/form-data" class="mb-4">
@@ -25,7 +25,7 @@
   {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
   {% if headers %}
   <div class="table-responsive">
-    <table class="table table-sm table-striped table-family align-middle rmc-data-table">
+    <table class="table table-sm table-striped table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Read-only legacy CSV preview" %}</caption>
       <thead><tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
       <tbody>{% for vals in row_values %}<tr>{% for v in vals %}<td>{{ v }}</td>{% endfor %}</tr>{% endfor %}</tbody>
@@ -34,4 +34,5 @@
   <p class="small text-muted">{% trans "Showing up to 500 rows." %}</p>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

@@ -2,6 +2,7 @@
 {% load i18n glocal_tags %}
 {% block title %}Cahier de Texte – Verification{% endblock %}
 {% block content %}
+<div data-rmc-scroll-policy="paginate">
 {# semantic-btn-allow: bi-state-cahier-verification visa-vs-request-revisions #}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Cahier de Texte – Verification</h1>
 {% include "widgets/dashboard_hero.html" with hero=hero %}
@@ -43,4 +44,5 @@
   </div>
 </div>
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
+</div>
 {% endblock %}

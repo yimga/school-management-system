@@ -45,12 +45,12 @@
   <section id="kb-articles" class="mb-4">
     <h2 class="h5">{% trans "Recent articles" %} <span class="badge text-bg-secondary">{{ article_count }}</span></h2>
     <div class="table-responsive">
-      <table class="table table-sm rmc-data-table align-middle">
+      <table class="table table-sm rmc-data-table align-middle" data-rmc-row-detail-table="1">
         <caption class="visually-hidden">{% trans "Recent knowledge base articles" %}</caption>
         <thead><tr><th>{% trans "Title" %}</th><th>{% trans "Category" %}</th><th>{% trans "Linked office doc" %}</th><th></th></tr></thead>
         <tbody>
           {% for article in recent_articles %}
-          <tr>
+          <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ article.title }}" data-rmc-row-subtitle="{{ article.category.name }}">
             <td>{{ article.title }}</td>
             <td>{{ article.category.name }}</td>
             <td>
@@ -76,12 +76,12 @@
   <section id="office-docs">
     <h2 class="h5">{% trans "Office documents" %}</h2>
     <div class="table-responsive">
-      <table class="table table-sm rmc-data-table align-middle">
+      <table class="table table-sm rmc-data-table align-middle" data-rmc-row-detail-table="1">
         <caption class="visually-hidden">{% trans "Hosted office documents" %}</caption>
         <thead><tr><th>{% trans "Title" %}</th><th>{% trans "Audience" %}</th><th>{% trans "Updated" %}</th><th></th></tr></thead>
         <tbody>
           {% for doc in office_documents %}
-          <tr>
+          <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ doc.title }}" data-rmc-row-subtitle="{{ doc.help_audience }}">
             <td>{{ doc.title }}</td>
             <td>{{ doc.help_audience }}</td>
             <td>{{ doc.updated_at|date:"SHORT_DATE_FORMAT" }}</td>
@@ -132,4 +132,5 @@
   </section>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

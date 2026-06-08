@@ -7,7 +7,7 @@
 {% block title %}{% trans "Transcript vault" %} · {{ student.first_name }} {{ student.last_name }}{% endblock %}
 
 {% block content %}
-<div class="container py-4 rmc-print-v2" data-page-archetype="record-detail" data-rmc-transcript-vault="1">
+<div class="container py-4 rmc-print-v2" data-page-archetype="record-detail" data-rmc-transcript-vault="1" data-rmc-scroll-policy="paginate">
   {% comment %} v3.57.11+ (2026-05-21): civic brand block per rmc-print-v2 grammar
      so PDF / print renders of the transcript vault carry the wordmark + motto +
      crest header. Translated title pre-resolved to avoid lazy-callable leak. {% endcomment %}
@@ -19,7 +19,7 @@
   <p class="small text-muted">{% trans "Artifacts are stored with verification hashes only; no credential is implied without issuer data." %}</p>
 
   <div class="table-responsive">
-    <table class="table table-sm table-striped table-family align-middle rmc-data-table">
+    <table class="table table-sm table-striped table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
       <caption class="visually-hidden">{% trans "Transcript vault" %}</caption>
       <thead>
         <tr>
@@ -31,7 +31,7 @@
       </thead>
       <tbody>
         {% for v in vault_items %}
-        <tr>
+        <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ v.artifact_type }}" data-rmc-row-subtitle="{{ v.access_status }}">
           <td>{{ v.artifact_type }}</td>
           <td>{{ v.issued_at|default:"—" }}</td>
           <td><code class="small">{% if v.verification_hash %}{{ v.verification_hash|slice:":16" }}…{% else %}—{% endif %}</code></td>
@@ -51,4 +51,5 @@
   </p>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

@@ -4,10 +4,10 @@
 {% block backend_title %}{% trans "Platform activity (this school)" %}{% endblock %}
 {% block backend_page %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Activity log" %} — {{ school.name }}</h1>
-<div class="container-fluid py-2">
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate">
   <p class="text-muted small mb-3">{% trans "Recent catalog events recorded for this tenant. Used for audits and operational awareness (N24 partial)." %}</p>
   <div class="table-responsive">
-    <table class="table table-sm table-family align-middle rmc-data-table">
+    <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Activity log" %} — {{ school.name }}</caption>
       <thead><tr><th>{% trans "When" %}</th><th>{% trans "Type" %}</th><th>{% trans "Payload keys" %}</th></tr></thead>
       <tbody>
@@ -24,4 +24,5 @@
     </table>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3" data-page-archetype="decision-console">
+<div class="container-fluid py-3" data-page-archetype="decision-console" data-rmc-scroll-policy="paginate">
   {% operator_console_strip %}
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
@@ -30,7 +30,7 @@
   {% if site_settings_list %}
   <div class="cp-overview-card border border-secondary rounded p-0 overflow-hidden">
     <div class="table-responsive">
-      <table class="table table-family table-hover mb-0 rmc-data-table">
+      <table class="table table-family table-hover mb-0 rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Site settings" %}</caption>
         <thead>
           <tr>
@@ -62,4 +62,5 @@
   {% endif %}
   <p class="mt-3"><a href="{{ system_config_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Back to Config center" %}</a></p>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

@@ -264,7 +264,7 @@
           <button type="button" class="btn btn-sm btn-danger" data-rmc-purge-apply disabled>{% trans "Permanent delete tenant" %}</button>
         </div>
         <div data-rmc-inventory-table data-rmc-scroll-policy="paginate" class="d-none">
-          <table class="table table-sm rmc-data-table mb-0" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+          <table class="table table-sm rmc-data-table mb-0" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Purge inventory" %}</caption>
             <thead><tr><th>{% trans "Model" %}</th><th>{% trans "Rows" %}</th></tr></thead>
             <tbody data-rmc-inventory-body></tbody>
@@ -306,4 +306,5 @@
   "dual_approved": {% if offboarding.dual_approved %}true{% else %}false{% endif %}
 }</script>
 <script src="{% static 'js/_pages/schools__tenant_offboarding-1.js' %}"></script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

@@ -102,7 +102,7 @@
   <div class="card shadow-sm mb-3">
     <div class="card-header">{% trans "Active sessions (sample)" %}</div>
     <div class="card-body p-0 table-responsive">
-      <table class="table table-sm mb-0 rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+      <table class="table table-sm mb-0 rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead><tr><th>{% trans "Session" %}</th><th>{% trans "Expires" %}</th></tr></thead>
         <tbody>
           {% for s in sessions %}
@@ -119,7 +119,7 @@
   <div class="card shadow-sm mb-3" data-rmc-impersonation-audit-strip="1">
     <div class="card-header">{% trans "Impersonation & proxy (recent)" %}</div>
     <div class="card-body p-0 table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-18" data-rmc-iso-scroll-zone="1">
-      <table class="table table-sm table-family mb-0 small rmc-data-table">
+      <table class="table table-sm table-family mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Impersonation & proxy (platform operator)" %}</caption>
         <thead>
           <tr>
@@ -166,4 +166,5 @@
   </div>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

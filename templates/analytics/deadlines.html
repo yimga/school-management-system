@@ -5,6 +5,7 @@
 {% block title %}Grading Deadlines{% endblock %}
 
 {% block content %}
+<div data-rmc-scroll-policy="paginate">
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
   <div>
     <h1 class="mb-0">Grading Deadlines</h1>
@@ -68,7 +69,7 @@
 <div class="card">
   <div class="card-body">
     <div class="table-responsive">
-      <table class="table table-sm align-middle table-family rmc-data-table" aria-label="Grading deadlines by scope and date">
+      <table class="table table-sm align-middle table-family rmc-data-table" aria-label="Grading deadlines by scope and date" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
             <th scope="col">Scope</th>
@@ -93,4 +94,6 @@
     </div>
   </div>
 </div>
+</div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

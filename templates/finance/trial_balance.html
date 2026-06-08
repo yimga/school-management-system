@@ -6,7 +6,7 @@
 
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Trial Balance</h1>
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
 {% trans "Back to Finance" as back_action %}
 {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
 
@@ -31,7 +31,7 @@
 <div class="card">
   <div class="card-body">
     <div class="table-responsive">
-      <table class="table table-sm align-middle table-family rmc-data-table">
+      <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Trial Balance" %}</caption>
         <thead>
           <tr>
@@ -68,4 +68,5 @@
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
 <script src="{% static 'js/_pages/finance__trial_balance.js' %}"></script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

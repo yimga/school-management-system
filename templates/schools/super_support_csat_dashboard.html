@@ -18,7 +18,7 @@
 {% endblock %}
 {% block cp_content %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#support-csat-dashboard-main">{% trans "Skip to CSAT dashboard content" %}</a>
-<div id="support-csat-dashboard-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
+<div id="support-csat-dashboard-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "schools/super_support_csat_dashboard.html" %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="support_csat_dashboard" center_eyebrow=_("Platform operators") center_title=_("Operations") center_purpose="" primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   <h1 class="h4 mb-3">{% trans "Global support CSAT" %}</h1>
@@ -55,7 +55,7 @@
   <div class="card border-0 shadow-sm mb-4">
     <div class="card-header">{% trans "By month" %}</div>
     <div class="card-body p-0 table-responsive">
-      <table class="table table-sm mb-0 table-family align-middle rmc-data-table">
+      <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "By month" %}</caption>
         <thead><tr><th>{% trans "Month" %}</th><th>{% trans "Avg score" %}</th><th>{% trans "Count" %}</th></tr></thead>
         <tbody>
@@ -75,7 +75,7 @@
   <div class="card border-0 shadow-sm">
     <div class="card-header">{% trans "Recent responses" %}</div>
     <div class="card-body p-0 table-responsive">
-      <table class="table table-sm mb-0 table-family align-middle rmc-data-table">
+      <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Recent responses" %}</caption>
         <thead><tr><th>{% trans "Submitted" %}</th><th>{% trans_term "School" key="school" %}</th><th>{% trans "Score" %}</th><th>{% trans_term "Subject" key="subject" %}</th></tr></thead>
         <tbody>
@@ -95,4 +95,5 @@
   </div>
   <p class="mt-3"><a href="{% url 'super:support_dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "Back to support queue" %}</a></p>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

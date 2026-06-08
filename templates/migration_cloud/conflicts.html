@@ -21,7 +21,7 @@
     {% if not pending %}
       <p class="rmc-empty">{% trans "No pending conflicts. The apply step will overwrite cleanly." %}</p>
     {% else %}
-      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
             <th>{% trans "Model" %}</th>
@@ -104,4 +104,5 @@ incoming: {{ c.incoming_values }}</pre>
   });
 })();
 </script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

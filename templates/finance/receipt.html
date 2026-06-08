@@ -23,7 +23,7 @@
     {% trans "Receipt" as report_title %}
     {% include "partials/rmc_print_v2_brand_block.html" with report_title=report_title report_subtitle=payment.reference|default:payment.id report_meta_left=payment.paid_at|format_date report_meta_right=school %}
 
-    <div class="section">
+    <div data-rmc-scroll-policy="paginate" class="section">
       <strong>{% trans "Billed to" %}</strong>
       <div>{{ invoice.student|default:invoice.counterparty }}</div>
       <div>Invoice: {{ invoice.reference|default:invoice.id }}</div>
@@ -38,7 +38,7 @@
       <div>Remaining balance: {{ invoice.balance_amount|format_currency }}</div>
     </div>
 
-    <table class="table table-family align-middle rmc-data-table" aria-label="{% trans 'Invoice line items and amount paid' %}">
+    <table class="table table-family align-middle rmc-data-table" aria-label="{% trans 'Invoice line items and amount paid' %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead>
         <tr>
           <th scope="col">Description</th>
@@ -62,3 +62,4 @@
     </table>
   </body>
 </html>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}

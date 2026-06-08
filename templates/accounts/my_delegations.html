@@ -32,24 +32,25 @@
       <div class="card-body">
         {% if delegations_made %}
           <div class="table-responsive">
-            <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table">
+            <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "My delegations" %}</caption>
               <thead>
                 <tr>
-                  <th>Delegate</th>
-                  <th>Start</th>
-                  <th>End</th>
-                  <th>Scope</th>
-                  <th>Status</th>
+                  <th>{% trans "Delegate" %}</th>
+                  <th>{% trans "Period" %}</th>
+                  <th>{% trans "Scope" %}</th>
+                  <th>{% trans "Status" %}</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
                 {% for d in delegations_made %}
-                  <tr>
+                  <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ d.delegate.get_full_name|default:d.delegate.username }}" data-rmc-row-subtitle="{% if d.is_current %}{% trans 'Active' %}{% else %}{% trans 'Ended' %}{% endif %}">
                     <td>{{ d.delegate.get_full_name|default:d.delegate.username }}</td>
-                    <td>{{ d.start_date|date:"M j, Y H:i" }}</td>
-                    <td>{{ d.effective_end_date|date:"M j, Y H:i" }}</td>
+                    <td>
+                      <div class="small">{{ d.start_date|date:"M j, Y H:i" }}</div>
+                      <div class="small text-muted">→ {{ d.effective_end_date|date:"M j, Y H:i" }}</div>
+                    </td>
                     <td>
                       {% if d.scope %}
                         {{ d.scope|join:", " }}
@@ -93,4 +94,5 @@
       </div>
     </div>
   </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

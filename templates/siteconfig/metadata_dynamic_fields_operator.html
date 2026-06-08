@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{# table-column-budget-allow: metadata-dynamic-fields-six-column-lens #}
 {% load i18n %}
 {% block cp_title %}{% trans "Dynamic fields (EAV)" %} — RunMyCampus{% endblock %}
 {% block breadcrumbs %}
@@ -41,7 +42,7 @@
     <h2 class="h6 text-uppercase mb-2">{{ section.entity_type }} <span class="badge bg-secondary">{% trans "Value rows" %}: {{ section.value_row_count }}</span></h2>
     <p class="small mb-0">{% trans "Per-entity value row counts include only keys matching this entity type." %}</p>
     <div class="table-responsive mt-2">
-      <table class="table table-sm table-family table-bordered rmc-data-table">
+      <table class="table table-sm table-family table-bordered rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{{ section.entity_type }} {% trans "Value rows" %}: {{ section.value_row_count }}</caption>
         <thead>
           <tr>
@@ -74,4 +75,5 @@
   <p >{% trans "No dynamic field definitions found." %}</p>
   {% endfor %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

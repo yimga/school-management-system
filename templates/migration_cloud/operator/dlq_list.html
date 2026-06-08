@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{# table-column-budget-allow: migration-dlq-ten-column-operator-lens #}
 {% load i18n %}
 
 {% block page_title %}{{ page_title|default:"Webhook Dead Letter Queue" }}{% endblock %}
@@ -26,7 +27,7 @@
   </p>
 
   {% if rows %}
-  <table class="rmc-data-table rmc-data-table--dlq" data-rmc-dlq-table="1" aria-label="{% blocktrans %}Dead-letter queue entries in {{ status_filter }} status{% endblocktrans %}">
+  <table class="rmc-data-table rmc-data-table--dlq" data-rmc-dlq-table="1" aria-label="{% blocktrans %}Dead-letter queue entries in {{ status_filter }} status{% endblocktrans %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
     <thead>
       <tr>
         <th scope="col">{% trans "ID" %}</th>
@@ -72,4 +73,5 @@
   </div>
   {% endif %}
 </main>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

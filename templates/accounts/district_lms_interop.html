@@ -3,7 +3,7 @@
 {% comment %} Phase 9: connector health + schema / webhook workbench links {% endcomment %}
 {% block backend_title %}{% trans "District & LMS interoperability" %}{% endblock %}
 {% block backend_page %}
-<div class="container-fluid py-2" data-page-archetype="setup-flow" data-decision-engine="surface">
+<div class="container-fluid py-2" data-page-archetype="setup-flow" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
 {% phase8_dashboard_declaration "accounts/district_lms_interop.html" %}
   <nav class="mb-3" aria-label="{% trans 'Breadcrumb' %}">
     <ol class="breadcrumb mb-0">
@@ -37,7 +37,7 @@
     <div class="card-body p-0">
       {% if interop_access_recent %}
       <div class="table-responsive">
-        <table class="table table-sm table-hover mb-0 small table-family align-middle rmc-data-table">
+        <table class="table table-sm table-hover mb-0 small table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Interop workbench (Phase 9)" %}</caption>
           <thead><tr><th>{% trans "When" %}</th><th>{% trans "Service" %}</th><th>{% trans "Endpoint" %}</th><th>{% trans "IP" %}</th><th>{% trans "Token" %}</th></tr></thead>
           <tbody>
@@ -103,7 +103,7 @@
     <div class="card-body small">
       {% if federation_sso_rows %}
       <div class="table-responsive">
-        <table class="table table-sm table-borderless mb-0 table-family align-middle rmc-data-table">
+        <table class="table table-sm table-borderless mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "SSO / IdP login health" %} {% trans "Wedge 45" %}</caption>
           <thead><tr><th>{% trans "Integration" %}</th><th>{% trans "Last OK" %}</th><th>{% trans "Last fail" %}</th><th>{% trans "Fails" %}</th><th>{% trans "Last error" %}</th></tr></thead>
           <tbody>
@@ -229,4 +229,5 @@
 
   <p class="small text-muted mb-0">{% trans "SSO: configure OIDC/SAML under Integrations. LTI: register tools per tenant. Native Clever/ClassLink HTTP clients are available above when the district provisions tokens." %}</p>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

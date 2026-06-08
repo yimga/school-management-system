@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{# table-column-budget-allow: runtime-inspector-seven-column-lens #}
 {% load i18n static %}
 {% load terminology_tags %}
 
@@ -244,7 +245,7 @@
       {% if inspection.feature_toggles %}
       <p class="small text-secondary mb-2">{% trans "Active overrides with owner/expiry/source/scope from capability registry. Source: school = tenant override, global = platform override." %}</p>
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family align-middle rmc-data-table">
+        <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Feature toggles &amp; flag metadata (GAP.13)" %}</caption>
           <thead><tr><th>{% trans "Key" %}</th><th>{% trans "On" %}</th><th>{% trans "Source" %}</th><th>{% trans "Expires" %}</th><th>{% trans "Owner" %}</th><th>{% trans "Def. source" %}</th><th>{% trans "Scope" %}</th></tr></thead>
           <tbody>
@@ -324,4 +325,5 @@
   </div>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

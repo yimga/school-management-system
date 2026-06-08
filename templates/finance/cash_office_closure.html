@@ -10,7 +10,7 @@
 
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Cash Office Closure</h1>
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
 {% url 'finance:payments' as cash_closure_back_url %}
 {% include "studio_os/components/page_header.html" with title="Cash Office Closure" subtitle="Daily reconciliation between cash desk receipts and bank deposit." action_url=cash_closure_back_url action_text="Back to Payments" %}
 
@@ -99,7 +99,7 @@
       <div class="card-body">
         <h5 class="mb-3">Recent closures</h5>
         <div class="table-responsive">
-          <table class="table table-sm align-middle mb-0 table-family rmc-data-table">
+          <table class="table table-sm align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Recent closures" %}</caption>
             <thead>
               <tr>
@@ -131,4 +131,5 @@
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
 <script src="{% static 'js/_pages/finance__cash_office_closure.js' %}"></script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

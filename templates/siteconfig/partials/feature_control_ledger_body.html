@@ -3,7 +3,7 @@
   <h1>Feature control ledger</h1>
   <p class="text-muted">Audit trail for feature toggles. Metadata lineage: see <code>docs/</code> usage_registry and feature_control governance.</p>
   <p><a href="{{ panel_url }}">Feature control panel</a> · <a href="{{ audit_url }}">Legacy audit view</a></p>
-  <table class="table table-sm table-striped table-family align-middle rmc-data-table">
+  <table class="table table-sm table-striped table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
     <caption class="visually-hidden">{% trans "Feature control ledger" %}</caption>
     <thead><tr><th>When</th><th>User</th><th>Action</th><th>Changes (summary)</th></tr></thead>
     <tbody>
@@ -24,3 +24,4 @@
     </tbody>
   </table>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}

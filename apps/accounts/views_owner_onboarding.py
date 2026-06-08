@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 
 from django import forms
 from django.contrib.auth.decorators import login_required
@@ -98,9 +99,38 @@ def _post_onboarding_dashboard_href(request, school) -> str:
         except Exception:  # noqa: BLE001 - template fallback must not 500
             pass
     try:
-        return reverse("accounts:owner_onboarding_done")
+        href = reverse("accounts:owner_onboarding_done")
     except Exception:  # noqa: BLE001
-        return "/authentication/onboarding/done/"
+        href = "/authentication/onboarding/done/"
+    if school and not getattr(school, "is_active", False):
+        sep = "&" if "?" in href else "?"
+        href = f"{href}{sep}nudge=1"
+    return href
+
+
+def _maybe_nudge_provisioning(request, school, user) -> None:
+    """Re-queue provisioning when the owner checks again (rate-limited per session)."""
+    if not school or getattr(school, "is_active", False):
+        return
+    if (request.GET.get("nudge") or "").strip() != "1":
+        return
+    session_key = f"owner_provision_nudge:{school.pk}"
+    now_ts = time.time()
+    last_ts = request.session.get(session_key)
+    if last_ts and (now_ts - float(last_ts)) < 60:  # magic-number-allow: provision-nudge-cooldown-seconds
+        return
+    request.session[session_key] = now_ts
+    contact_email = (getattr(user, "email", "") or "").strip()
+    try:
+        from apps.schools.tasks import dispatch_provision_school
+
+        dispatch_provision_school(str(school.pk), contact_email=contact_email)
+        logger.info(
+            "owner_onboarding_provision_nudge school_id=%s",
+            getattr(school, "pk", None),
+        )
+    except Exception:  # noqa: BLE001 - nudge must never block the launchpad
+        logger.warning("owner_onboarding_provision_nudge_failed", exc_info=True)
 
 
 # ── Step 1: Create your account (token-authed) ──────────────────────────────
@@ -195,6 +225,7 @@ def owner_onboarding_done(request):
             clear_activation_gate(school)
         except ImportError:
             pass
+    _maybe_nudge_provisioning(request, school, request.user)
     return render(
         request,
         "accounts/owner_onboarding/done.html",

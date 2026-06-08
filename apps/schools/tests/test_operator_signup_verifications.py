@@ -112,3 +112,18 @@ class OperatorSignupVerificationTests(TestCase):
             )
         self.assertEqual(resp.status_code, 302)
         send.assert_not_called()
+
+    def test_reprovision_queues_inactive_verified_school(self):
+        self.verif.verified_at = timezone.now()
+        self.verif.save(update_fields=["verified_at"])
+        with mock.patch(
+            "apps.schools.tasks.dispatch_provision_school",
+            return_value={"job_id": "job-1", "queued": True, "fallback": False},
+        ) as dispatch:
+            resp = SignupVerificationActionView.as_view()(
+                self._req("post", {"action": "reprovision"}), pk=self.verif.pk
+            )
+        self.assertEqual(resp.status_code, 302)
+        dispatch.assert_called_once_with(
+            str(self.school.id), contact_email=self.verif.email
+        )

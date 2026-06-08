@@ -4,7 +4,7 @@
 {% block backend_title %}{% trans "Canteen meals" %}{% endblock %}
 {% block backend_page %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Canteen" %} — {{ school.name }}</h1>
-<div class="container-fluid py-2">
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <div class="card shadow-sm mb-4">
     <div class="card-body">
@@ -15,9 +15,9 @@
       </form>
     </div>
   </div>
-  <table class="table table-sm table-family align-middle rmc-data-table"><thead><tr><th>{% trans "Meal" %}</th><th>{% trans "Price" %}</th></tr></thead>
+  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1"><thead><tr><th>{% trans "Meal" %}</th><th>{% trans "Price" %}</th></tr></thead>
     <caption class="visually-hidden">{% trans "Canteen" %} — {{ school.name }}</caption>
-    <tbody>{% for m in meals %}<tr><td>{{ m.name }}</td><td>{{ m.price }}</td></tr>{% empty %}<tr><td colspan="2" class="rmc-empty-state rmc-empty-state--row">
+    <tbody>{% for m in meals %}<tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ m.name }}" data-rmc-row-subtitle="{{ m.price }}"><td>{{ m.name }}</td><td>{{ m.price }}</td></tr>{% empty %}<tr><td colspan="2" class="rmc-empty-state rmc-empty-state--row">
       <i class="bi bi-cup-hot rmc-empty-state__icon" aria-hidden="true"></i>
       <p class="rmc-empty-state__title">{% trans "No meals on the menu yet" %}</p>
       <p class="rmc-empty-state__body">{% trans "Add a meal using the form above to start building the canteen menu and pricing." %}</p>

@@ -76,7 +76,7 @@ backend-shell dashboard-page-backend
      v3.58.x Wave 10 Agent T (2026-05-22): each cockpit section wrapped in the collapsable
      primitive so school admins can fold sections they don't need. State persists per-section
      via localStorage. Inner partials keep their cockpit.<section>.enabled self-gate. {% endcomment %}
-  <div class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="backend-admin">
+  <div data-rmc-scroll-policy="paginate" class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="backend-admin">
     {% comment %} v3.59.x Wave A (2026-05-22): year-progress strip sits above the cockpit sections per v3 100x preview. {% endcomment %}
     {% include "partials/cockpit/_year_progress.html" %}
     {% include "partials/cockpit/_collapsable_section.html" with title=_("Today snapshot") key="backend__today_snapshot" include_partial="partials/cockpit/_today_snapshot.html" chrome="section" %}
@@ -362,7 +362,7 @@ backend-shell dashboard-page-backend
               </div>
               <div id="backendBentoDrillPanel" class="backend-bento-drill-panel d-none">
                 <div class="table-responsive">
-                  <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table">
+                  <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
                     <caption class="visually-hidden">{% trans "KPI snapshot" %}</caption>
                     <thead><tr><th>{% trans "Metric" %}</th><th>{% trans "Value" %}</th><th>{% trans "Context" %}</th></tr></thead>
                     <tbody>
@@ -405,7 +405,7 @@ backend-shell dashboard-page-backend
               <p class="small text-muted">{% trans "Expand for full table" %}</p>
               <div id="backendBentoDrillPanel" class="backend-bento-drill-panel d-none">
                 <div class="table-responsive">
-                  <table class="table table-sm mb-0 table-family align-middle rmc-data-table"><thead><tr><th>{% trans "Metric" %}</th><th>{% trans "Value" %}</th><th>{% trans "Context" %}</th></tr></thead>
+                  <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1"><thead><tr><th>{% trans "Metric" %}</th><th>{% trans "Value" %}</th><th>{% trans "Context" %}</th></tr></thead>
                     <caption class="visually-hidden">{% trans "KPI detail" %}</caption>
                   <tbody>{% for item in kpi_strip_cards %}<tr><td>{{ item.label }}</td><td>{{ item.value }}</td><td>{{ item.meta }}</td></tr>{% endfor %}</tbody></table>
                 </div>
@@ -1031,4 +1031,5 @@ backend-shell dashboard-page-backend
   "delayMs": 600
 }</script>
   {% endif %}
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

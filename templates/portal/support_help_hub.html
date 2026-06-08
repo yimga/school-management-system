@@ -7,7 +7,8 @@
 {% block page_archetype %}support-hub{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
+<div data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
+<div class="d-flex justify-content-between align-items-center mb-3">
   <div>
     <h1 class="h4 mb-1" id="support-help-hub-heading">{% trans "Help & support" %}</h1>
     <p class="text-muted small mb-0">{% trans "Knowledge base, platform requests, and school contact — in one place." %}</p>
@@ -86,7 +87,7 @@
   <div class="card-body p-0">
     {% if my_tickets %}
     <div class="table-responsive">
-      <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table">
+      <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
         <caption class="visually-hidden">{% trans "Escalation" %}</caption>
         <thead class="table-light">
           <tr>
@@ -97,7 +98,7 @@
         </thead>
         <tbody>
           {% for t in my_tickets %}
-          <tr>
+          <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ t.subject|truncatechars:64 }}" data-rmc-row-subtitle="{{ t.get_status_display }}">
             <td><a href="{% url 'portal:support_ticket_detail' t.id %}">{{ t.subject|truncatechars:64 }}</a></td>
             <td><span class="badge bg-secondary">{{ t.get_status_display }}</span></td>
             <td class="text-muted small">{{ t.updated_at|date:"M j, Y H:i" }}</td>
@@ -112,4 +113,6 @@
   </div>
 </div>
 {% endif %}
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
+</div>
 {% endblock %}

@@ -264,6 +264,69 @@ class SignupVerificationConsoleView(View):
         return back
 
 
+def _reprovision_verified_school(request, verification, back):
+    """Re-queue tenant provisioning for a verified school that is still inactive."""
+    if verification.verified_at is None:
+        messages.error(
+            request,
+            _("Verify the signup first — provisioning starts after email verification."),
+        )
+        return back
+    school = verification.school
+    if school is None:
+        messages.error(request, _("That school record no longer exists."))
+        return back
+    if getattr(school, "is_active", False):
+        messages.info(
+            request,
+            _("%(name)s is already live — no reprovision needed.")
+            % {"name": getattr(school, "name", "") or school.slug},
+        )
+        return back
+    try:
+        from apps.schools.models import SchoolProvisioningEvent
+        from apps.schools.tasks import dispatch_provision_school
+
+        dispatch = dispatch_provision_school(
+            str(school.id), contact_email=verification.email
+        )
+        SchoolProvisioningEvent.log_event(
+            school=school,
+            event_type=SchoolProvisioningEvent.EventType.QUEUED,
+            status=SchoolProvisioningEvent.Status.INFO,
+            message="Operator re-queued provisioning.",
+            payload={
+                "job_id": dispatch.get("job_id") or "",
+                "operator_id": str(getattr(request.user, "id", "") or ""),
+                "fallback": bool(dispatch.get("fallback")),
+            },
+            created_by=request.user
+            if getattr(request, "user", None) and request.user.is_authenticated
+            else None,
+        )
+    except Exception:  # noqa: BLE001 - operator action must surface a message, not 500
+        logger.exception(
+            "super.signup_verification.reprovision_failed school_id=%s",
+            getattr(school, "id", None),
+        )
+        messages.error(
+            request,
+            _("Could not queue provisioning — check worker logs and try again."),
+        )
+        return back
+    logger.info(
+        "super.signup_verification.reprovision by=%s school_id=%s",
+        getattr(request.user, "id", None),
+        getattr(school, "id", None),
+    )
+    messages.success(
+        request,
+        _("Provisioning re-queued for %(name)s — welcome mail sends when it completes.")
+        % {"name": getattr(school, "name", "") or school.slug},
+    )
+    return back
+
+
 @method_decorator(staff_member_required, name="dispatch")
 class SignupVerificationActionView(View):
     """Resend or regenerate a single signup verification (operator-trusted)."""
@@ -281,6 +344,9 @@ class SignupVerificationActionView(View):
         if verification is None:
             messages.error(request, _("That signup verification no longer exists."))
             return back
+
+        if action == "reprovision":
+            return _reprovision_verified_school(request, verification, back)
 
         if verification.verified_at is not None:
             messages.info(

@@ -18,7 +18,7 @@
   </header>
 
   {% if form_errors %}
-  <section class="rmc-card rmc-card--maa-counsel-activate-error" aria-labelledby="maa-activate-errors-heading">
+  <section class="rmc-card rmc-card--maa-counsel-activate-error" aria-labelledby="maa-activate-errors-heading" data-rmc-scroll-policy="paginate">
     <h2 id="maa-activate-errors-heading" class="rmc-h2">{% trans "Activation refused" %}</h2>
     <ul class="rmc-list rmc-list--errors">
       {% for err in form_errors %}
@@ -31,7 +31,7 @@
   <!-- ── Section 1 — current state ─────────────────────────────────── -->
   <section class="rmc-card rmc-card--maa-counsel-activate-state" aria-labelledby="maa-activate-state-heading">
     <h2 id="maa-activate-state-heading" class="rmc-h2">{% trans "Current state" %}</h2>
-    <dl class="rmc-data-table rmc-data-table--maa-counsel-activate-state">
+    <dl class="rmc-data-table rmc-data-table--maa-counsel-activate-state" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <div>
         <dt>{% trans "Active MAA version" %}</dt>
         <dd><code class="rmc-kbd">{{ state.active_version }}</code></dd>
@@ -138,4 +138,5 @@
   </section>
   {% endif %}
 </main>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

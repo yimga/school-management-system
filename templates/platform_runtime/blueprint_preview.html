@@ -10,7 +10,7 @@
     <h1 class="h3 mb-2">{{ preview.blueprint_name }} {% trans "preview" %}</h1>
     <p class="text-muted mb-0">{% trans "Preview is read-only. It computes tenant-scoped changes, blockers, rollback posture, and audit requirements before apply." %}</p>
   </header>
-  <div class="row g-3 mb-3 rmc-reveal-stagger">
+  <div data-rmc-scroll-policy="paginate" class="row g-3 mb-3 rmc-reveal-stagger">
     <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "Tenant" %}</div><strong>{{ preview.tenant_name|default:preview.tenant }}</strong></div></div></div>
     <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "Can apply" %}</div><strong>{{ preview.can_apply|yesno:"yes,no" }}</strong></div></div></div>
     <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "Confirmation" %}</div><strong>{{ preview.requires_confirmation|yesno:"required,not required" }}</strong></div></div></div>
@@ -18,7 +18,7 @@
   </div>
   <div class="card border-0 shadow-sm mb-3"><div class="card-body">
     <h2 class="h5">{% trans "Changes" %}</h2>
-    <div class="table-responsive"><table class="table table-sm table-family align-middle rmc-data-table"><thead><tr><th>{% trans "Section" %}</th><th>{% trans "Operation" %}</th><th>{% trans "Target" %}</th><th>{% trans "Rollback" %}</th></tr></thead><tbody>
+    <div class="table-responsive"><table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1"><thead><tr><th>{% trans "Section" %}</th><th>{% trans "Operation" %}</th><th>{% trans "Target" %}</th><th>{% trans "Rollback" %}</th></tr></thead><tbody>
       {% for change in preview.changes %}<tr><td>{{ change.section }}</td><td>{{ change.operation }}</td><td>{{ change.target }}</td><td>{{ change.rollback }}</td></tr>{% endfor %}
     </tbody></table></div>
   </div></div>
@@ -31,4 +31,5 @@
     {% if preview.can_apply %}<a class="btn btn-primary btn-sm" href="{% url 'configuration:blueprint_apply' preview.blueprint_key %}{% if selected_school %}?school={{ selected_school.slug }}{% endif %}">{% trans "Apply confirmation" %}</a>{% endif %}
   </div>
 </section>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

@@ -47,7 +47,7 @@
   </div>
 
   <div class="table-responsive">
-    <table class="table table-sm align-middle table-family table-sticky-head rmc-data-table" aria-label="{% trans 'Report output history' %}">
+    <table class="table table-sm align-middle table-family table-sticky-head rmc-data-table" aria-label="{% trans 'Report output history' %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead>
         <tr>
           <th>{% trans "Generated" %}</th>
@@ -80,3 +80,4 @@
   </div>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}

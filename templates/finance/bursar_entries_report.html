@@ -5,7 +5,7 @@
 {% block title %}Bursar Entries Report{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2 rmc-print-v2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
+<div class="container-fluid py-2 rmc-print-v2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
 {% comment %} v3.57.11+ (2026-05-21): civic brand block per rmc-print-v2 grammar
    so PDF / print renders of the bursar report carry the wordmark + motto + crest
    header. Translated title pre-resolved to avoid lazy-callable leak. {% endcomment %}
@@ -25,7 +25,7 @@
   <div class="card-body">
     {% if payments %}
     <div class="table-responsive">
-      <table class="table table-sm align-middle mb-0 table-family rmc-data-table">
+      <table class="table table-sm align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Bursar Entries Report" %}</caption>
         <thead>
           <tr>
@@ -54,4 +54,5 @@
   </div>
 </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

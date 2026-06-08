@@ -53,35 +53,35 @@
   {% endif %}
   <div class="table-responsive">
     <!-- large-collection-allow: dashboard-widget-capped-list -->
-<table class="table table-sm table-family align-middle rmc-data-table">
+<table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "POS (stub)" %} — {{ school.name }}</caption>
       <thead><tr>
         <th scope="col">{% trans "When" %}</th>
         <th scope="col">{% trans "Item" %}</th>
-        <th scope="col">{% trans "Stock link" %}</th>
-        <th scope="col">{% trans "Qty" %}</th>
-        <th scope="col">{% trans "Unit" %}</th>
-        <th scope="col">{% trans "Net" %}</th>
-        <th scope="col">{% trans "Tax %" %}</th>
-        <th scope="col">{% trans "Tax" %}</th>
-        <th scope="col">{% trans "Gross" %}</th>
+        <th scope="col">{% trans "Qty × unit" %}</th>
+        <th scope="col">{% trans "Totals" %}</th>
         <th scope="col">{% trans "Pay" %}</th>
       </tr></thead>
       <tbody>
         {% for line in lines %}
-        <tr>
+        <tr data-rmc-row-detail="1"
+            tabindex="0"
+            data-rmc-row-title="{{ line.item_label }}"
+            data-rmc-row-subtitle="{{ line.created_at|date:'Y-m-d' }}"
+            data-rmc-row-meta='{"{% trans "Tax" %}":"{{ line.tax_amount|escapejs }}","{% trans "Tax %" %}":"{{ line.tax_rate_percent|escapejs }}"}'>
           <td class="small">{{ line.created_at|date:"Y-m-d H:i" }}</td>
-          <td>{{ line.item_label }}</td>
-          <td>{% if line.inventory_item %}<span class="badge bg-info text-dark">{{ line.inventory_item.name }}</span>{% else %}—{% endif %}</td>
-          <td>{{ line.quantity }}</td>
-          <td>{{ line.unit_price }}</td>
-          <td>{{ line.line_total }}</td>
-          <td>{{ line.tax_rate_percent }}</td>
-          <td>{{ line.tax_amount }}</td>
-          <td>{{ line.grand_total }}</td>
+          <td>
+            {{ line.item_label }}
+            {% if line.inventory_item %}<div><span class="badge bg-info text-dark">{{ line.inventory_item.name }}</span></div>{% endif %}
+          </td>
+          <td>{{ line.quantity }} × {{ line.unit_price }}</td>
+          <td>
+            <div>{% trans "Net" %}: {{ line.line_total }}</div>
+            <div class="small text-muted">{% trans "Gross" %}: {{ line.grand_total }}</div>
+          </td>
           <td>{{ line.get_payment_method_display }}</td>
         </tr>
-        {% empty %}<tr><td colspan="10" class="rmc-empty-state rmc-empty-state--row">
+        {% empty %}<tr><td colspan="5" class="rmc-empty-state rmc-empty-state--row">
           <i class="bi bi-receipt rmc-empty-state__icon" aria-hidden="true"></i>
           <p class="rmc-empty-state__title">{% trans "No sale lines recorded yet" %}</p>
           <p class="rmc-empty-state__body">{% trans "Record a sale using the form above. When Inventory is enabled, link a stock line to prefill the item label." %}</p>

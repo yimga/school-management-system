@@ -81,7 +81,7 @@
   </div>
   <div class="card shadow-sm border-secondary">
     <div class="card-body p-0">
-      <table class="table table-family table-hover mb-0 rmc-data-table" data-rmc-scroll-policy="paginate" aria-label="Metadata catalog entities and field impact">
+      <table class="table table-family table-hover mb-0 rmc-data-table" data-rmc-scroll-policy="paginate" aria-label="Metadata catalog entities and field impact" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
             <th scope="col">{% trans "Entity" %}</th>
@@ -140,4 +140,5 @@
   {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

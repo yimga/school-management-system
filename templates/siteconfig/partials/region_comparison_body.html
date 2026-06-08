@@ -12,7 +12,7 @@
   </div>
   {% if regions %}
   <div class="table-responsive">
-    <table class="table table-sm table-family table-bordered rmc-data-table">
+    <table class="table table-sm table-family table-bordered rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Cross-region settings comparison" %}</caption>
       <thead>
         <tr>
@@ -38,3 +38,4 @@
   <p >{% trans "No regions configured." %}</p>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}

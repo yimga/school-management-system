@@ -1260,7 +1260,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views.py",
         "governance_tier": "safe",
-        "line": "1180",
+        "line": "1186",
         "pattern": "login_required"
       },
       {
@@ -1268,7 +1268,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views.py",
         "governance_tier": "safe",
-        "line": "1305",
+        "line": "1311",
         "pattern": "login_required"
       },
       {
@@ -1276,7 +1276,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views.py",
         "governance_tier": "safe",
-        "line": "2888",
+        "line": "2894",
         "pattern": "login_required"
       },
       {
@@ -1284,7 +1284,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views.py",
         "governance_tier": "safe",
-        "line": "3564",
+        "line": "3611",
         "pattern": "login_required"
       },
       {
@@ -1292,7 +1292,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views.py",
         "governance_tier": "safe",
-        "line": "3645",
+        "line": "3692",
         "pattern": "login_required"
       },
       {
@@ -7120,7 +7120,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views.py",
         "governance_tier": "safe",
-        "line": "3648",
+        "line": "3695",
         "pattern": "require_http_methods"
       },
       {
@@ -17868,7 +17868,7 @@
         "classification": "needs_review",
         "file": "scripts/verify_zero_friction_journeys.py",
         "governance_tier": "controlled",
-        "line": "132",
+        "line": "165",
         "pattern": "subprocess"
       },
       {
@@ -18025,7 +18025,7 @@
       }
     ]
   },
-  "generated_at": "2026-06-08T17:16:30.206459+00:00",
+  "generated_at": "2026-06-08T18:31:14.505355+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/br_northstar_views.py",
@@ -19344,7 +19344,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views.py",
       "governance_tier": "safe",
-      "line": "1180",
+      "line": "1186",
       "pattern": "login_required"
     },
     {
@@ -19352,7 +19352,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views.py",
       "governance_tier": "safe",
-      "line": "1305",
+      "line": "1311",
       "pattern": "login_required"
     },
     {
@@ -19360,7 +19360,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views.py",
       "governance_tier": "safe",
-      "line": "2888",
+      "line": "2894",
       "pattern": "login_required"
     },
     {
@@ -19368,7 +19368,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views.py",
       "governance_tier": "safe",
-      "line": "3564",
+      "line": "3611",
       "pattern": "login_required"
     },
     {
@@ -19376,7 +19376,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views.py",
       "governance_tier": "safe",
-      "line": "3645",
+      "line": "3692",
       "pattern": "login_required"
     },
     {
@@ -25200,7 +25200,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views.py",
       "governance_tier": "safe",
-      "line": "3648",
+      "line": "3695",
       "pattern": "require_http_methods"
     },
     {
@@ -35944,7 +35944,7 @@
       "classification": "needs_review",
       "file": "scripts/verify_zero_friction_journeys.py",
       "governance_tier": "controlled",
-      "line": "132",
+      "line": "165",
       "pattern": "subprocess"
     },
     {

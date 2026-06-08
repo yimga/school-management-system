@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-08T17:15:46.026972+00:00",
+  "generated_at": "2026-06-08T18:29:48.276924+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASES-0-8",
   "summary": {
     "phases_total": 9,
@@ -9,7 +9,7 @@
     "not_done": 0,
     "repo_scope_complete": true
   },
-  "service_worker_version": "sms-v4.02.99-zero-friction-sweep-wave5-2026-06-08",
+  "service_worker_version": "sms-v4.03.06-zero-friction-sweep-wave12-2026-06-08",
   "phases": [
     {
       "phase": 0,
@@ -33,7 +33,7 @@
         "smart_action_hub_portal": true,
         "layout_sentinel_wired": true,
         "zero_click_css": true,
-        "five_col_templates_adopted": 13
+        "five_col_templates_adopted": 161
       }
     },
     {
@@ -95,10 +95,17 @@
       "proof_verifier": "verify_zero_friction_journeys.py",
       "evidence": {
         "high_friction_template_count": 1627,
-        "burndown_templates_with_5col": 13,
+        "burndown_templates_with_5col": 161,
         "top_route_head": "templates/teacher/leave.html",
         "p0_templates_burndown": true,
-        "teacher_zone_scroll_complete": true
+        "teacher_zone_scroll_complete": true,
+        "parent_portal_rmc_table_scroll_complete": true,
+        "people_portal_drawer_gaps_cleared": true,
+        "schools_siteconfig_mechanical_gaps_cleared": true,
+        "finance_platform_runtime_mechanical_gaps_cleared": true,
+        "analytics_mechanical_gaps_cleared": true,
+        "evals_accounts_mechanical_gaps_cleared": true,
+        "migration_siteconfig_mechanical_gaps_cleared": true
       },
       "residual": [
         "1627 templates still above friction threshold (incremental ledger burndown)"

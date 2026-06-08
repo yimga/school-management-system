@@ -10,6 +10,7 @@
 {% endblock %}
 
 {% block content %}
+<div data-rmc-scroll-policy="paginate">
 {# table-pagination-allow: rbac-role-permission-matrix bounded-by-role-registry-not-pageable #}
 <div id="rbac-page" class="rbac-page professional-page" data-decision-engine="surface">
   {% phase8_dashboard_declaration "accounts/rbac_dashboard.html" %}
@@ -205,7 +206,7 @@
       <h5 class="mb-3">{% trans "Active temporary grants" %}</h5>
       {% if active_temporary_grants %}
         <div class="table-responsive">
-          <table class="table align-middle mb-0 table-family rmc-data-table">
+          <table class="table align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Active temporary grants" %}</caption>
             <thead class="table-light">
               <tr>
@@ -239,7 +240,7 @@
       <h5 class="mb-3">{% trans "Existing Roles" %}</h5>
       {% if roles %}
         <div class="table-responsive">
-          <table class="table align-middle mb-0 table-family rmc-data-table" aria-label="Existing RBAC roles">
+          <table class="table align-middle mb-0 table-family rmc-data-table" aria-label="Existing RBAC roles" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <thead class="table-light">
               <tr>
                 <th scope="col">Code</th>
@@ -320,7 +321,7 @@
       <h5 class="mb-3">{% trans "Existing Permissions" %}</h5>
       {% if permissions %}
         <div class="table-responsive">
-          <table class="table align-middle mb-0 table-family rmc-data-table">
+          <table class="table align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Existing Permissions" %}</caption>
             <thead class="table-light">
               <tr>
@@ -351,4 +352,6 @@
   "url_accounts_rbac": "{% url "accounts:rbac" %}"
 }</script><script src="{% static 'js/_pages/accounts__rbac_dashboard-1.js' %}"></script>
 {% endif %}
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
+</div>
 {% endblock %}

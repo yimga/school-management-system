@@ -1,4 +1,5 @@
 {% extends "backend_base.html" %}
+{# table-column-budget-allow: migration-run-list-seven-column-operator-lens #}
 {% load i18n %}
 {% load region_format %}
 {% block backend_title %}{% trans "Migration runs" %}{% endblock %}
@@ -10,7 +11,7 @@
     <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:legacy_data_cleaner' %}">{% trans "Legacy data cleaner" %}</a>
   </div>
   <div class="table-responsive">
-    <table class="table table-sm table-family align-middle rmc-data-table">
+    <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Migration runs" %}</caption>
       <thead>
         <tr>
@@ -61,4 +62,5 @@
     </table>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

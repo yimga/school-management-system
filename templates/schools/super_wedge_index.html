@@ -13,14 +13,14 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3" data-page-archetype="catalog" data-decision-engine="surface">
+<div class="container-fluid py-3" data-page-archetype="catalog" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "schools/super_wedge_index.html" %}
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <h1 class="h4 mb-1 fw-bold">{% trans "Canonical wedge operator URLs" %}</h1>
     <p class="small mb-0">{% trans "Each wedge has a stable path /super/wedge/&lt;id&gt;/ (registry + checklist + deep links). Grouped surfaces still support ?wedge= for bulk pages." %}</p>
   </header>
   <div class="table-responsive">
-    <table class="table table-family table-sm table-striped rmc-data-table">
+    <table class="table table-family table-sm table-striped rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Canonical wedge operator URLs" %}</caption>
       <thead>
         <tr>
@@ -45,4 +45,5 @@
     </table>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

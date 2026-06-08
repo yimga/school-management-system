@@ -1,5 +1,111 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Zero-Friction sweep wave 12 — migration_cloud + siteconfig metadata (2026-06-08)
+
+**A. Scope:** Clear mechanical gaps in `templates/migration_cloud/**` and top-level
+`templates/siteconfig/*.html` (excl. partials cleared in wave 8).
+
+**B. Shipped:** `scripts/codemod_zero_friction_wave12_migration_siteconfig.py` (27 files);
+`<dl class="rmc-data-table">` surfaces on command_center + maa_counsel_activate; manual scroll on
+`connector/mapping.html`; register `migration_siteconfig_mechanical_gaps_cleared`;
+SW `sms-v4.03.06-zero-friction-sweep-wave12-2026-06-08`.
+
+**C. Proof:** Zone rescan 0 mechanical gaps; `verify_zero_friction_journeys.py` PASS;
+`verify_zero_friction_phases_0_8.py` PASS.
+
+**D. Honest:** Scattered repo-wide gaps (~40 drawers) remain; `high_friction_count` baseline unchanged.
+
+## Slice - Zero-Friction sweep wave 11 — evals + accounts (2026-06-08)
+
+**A. Scope:** Clear mechanical gaps in `templates/evals/*` and `templates/accounts/*` (drawer,
+scroll, 5-col / column-budget on 7–8 col operator lenses).
+
+**B. Shipped:** `scripts/codemod_zero_friction_wave11_evals_accounts.py` patched 19 templates;
+register `evals_accounts_mechanical_gaps_cleared`; SW `sms-v4.03.05-zero-friction-sweep-wave11-2026-06-08`.
+
+**C. Proof:** Zone rescan 0 gaps in evals + accounts; `verify_zero_friction_journeys.py` PASS;
+`verify_zero_friction_phases_0_8.py` PASS.
+
+**D. Honest:** migration_cloud (17 files) + siteconfig metadata (7) remain; `high_friction_count` unchanged.
+
+## Slice - Zero-Friction sweep wave 10 — analytics + master sheet (2026-06-08)
+
+**A. Scope:** Clear mechanical gaps in all four `templates/analytics/*` table surfaces incl.
+12-col `master_sheet.html`.
+
+**B. Shipped:** `scripts/codemod_zero_friction_wave10_analytics.py` (4 files); column-budget allow
+on master sheet / insights dashboard / at-risk lens; fixed title-block corruption on master_sheet +
+deadlines; register `analytics_mechanical_gaps_cleared`; SW `sms-v4.03.04-zero-friction-sweep-wave10-2026-06-08`.
+
+**C. Proof:** Analytics zone rescan 0 gaps; `verify_zero_friction_journeys.py` PASS;
+`verify_zero_friction_phases_0_8.py` PASS.
+
+**D. Honest:** Repo-wide drawer/six-col backlog (~70/19) and `high_friction_count` baseline unchanged.
+
+## Slice - Zero-Friction sweep wave 9 — finance + platform_runtime (2026-06-08)
+
+**A. Scope:** Clear mechanical gap flags in `templates/finance/*` and `templates/platform_runtime/*`
+(drawer, scroll policy, 5-col budget); finance **app code** untouched.
+
+**B. Shipped:** `scripts/codemod_zero_friction_wave9_finance_platform_runtime.py` patched 25 templates;
+column-budget allow on offline payment intent queue + wide runtime lenses; register
+`finance_platform_runtime_mechanical_gaps_cleared`; SW `sms-v4.03.03-zero-friction-sweep-wave9-2026-06-08`.
+
+**C. Proof:** Zone rescan 0 mechanical gaps in both zones; `verify_zero_friction_journeys.py` PASS;
+`verify_zero_friction_phases_0_8.py` PASS.
+
+**D. Honest:** Analytics zone (4 templates, incl. 12-col master_sheet) and repo-wide six-col backlog remain.
+
+## Slice - Zero-Friction sweep wave 8 — schools/super + siteconfig partials (2026-06-08)
+
+**A. Scope:** Clear all mechanical gap flags in `templates/schools/super_*` and
+`templates/siteconfig/partials/*` — row-detail drawer, scroll policy, 5-col budget.
+
+**B. Shipped:** `scripts/codemod_zero_friction_wave8_schools_siteconfig.py` patched 64 templates
+(drawer attrs + bundle, `data-rmc-table-5col`, column-budget allow markers on wide operator lenses);
+register `schools_siteconfig_mechanical_gaps_cleared`; SW `sms-v4.03.02-zero-friction-sweep-wave8-2026-06-08`.
+
+**C. Proof:** Zone rescan 0 mechanical gaps; regenerated ledger; `verify_zero_friction_journeys.py` PASS;
+`verify_zero_friction_phases_0_8.py` PASS.
+
+**D. Honest:** Global drawer/6-col backlog remains in finance/platform_runtime/analytics; `high_friction_count`
+still dominated by baseline dimension scores.
+
+## Slice - Zero-Friction sweep wave 7 — people/portal drawer + 6-col (2026-06-08)
+
+**A. Scope:** Clear remaining people/academics/portal gap flags — `table_columns_6_exceeds_5`
+in people zone + `missing_row_detail_drawer` across people/portal; bonus accounts 6-col.
+
+**B. Shipped:** `backend_classroom_list` 6→5; employer dashboard/transcript drawer+scroll;
+portal `support_help_hub`, `kb_docs_hub`, `stats`, `student_transcript_vault` drawer bundles;
+`accounts/my_delegations` + `rollover_year` 6→5; register `people_portal_drawer_gaps_cleared`;
+SW `sms-v4.03.01-zero-friction-sweep-wave7-2026-06-08`.
+
+**C. Proof:** Regenerated ledger; `verify_zero_friction_journeys.py` PASS;
+`verify_zero_friction_phases_0_8.py` PASS.
+
+**D. Honest:** Academics zone already gap-free; global 6-col (37) and drawer (145) remain in
+schools/siteconfig/finance zones.
+
+## Slice - Zero-Friction sweep wave 6 — schoolops + portal scroll + wide tables (2026-06-08)
+
+**A. Scope:** Remaining 6–10 col tables (`signature_requests_manage`, `ops_pos`,
+`user_contributions`, `offline_sync_queue` budget allow), schoolops ops scroll/drawer pass,
+parent/portal zone scroll-policy completion.
+
+**B. Shipped:** 8→5 signature requests; 10→5 POS lines + drawer; 6→5 KB contributions (×2
+tables); offline sync queue `table-column-budget-allow` + `data-rmc-table-5col`; scroll +
+`data-rmc-row-detail-table` on `ops_{canteen,clinic,inventory,library,substitutes,timetabling}`;
+`meal_plan_analytics` scroll; portal `cahier_verify_list` / `roll_call_student` / `stats` /
+`student_transcript_vault`; parent `feed` / `workflow_center` / `medal_case`; SW
+`sms-v4.03.00-zero-friction-sweep-wave6-2026-06-08`.
+
+**C. Proof:** Regenerated ledger/register; `verify_zero_friction_journeys.py` PASS;
+`verify_zero_friction_phases_0_8.py` PASS.
+
+**D. Honest:** Phase 6 PARTIAL — ~150+ templates still carry row-drawer or scroll gaps outside
+parent/portal/schoolops touched set.
+
 ## Slice - Zero-Friction sweep wave 5 — parent/portal/evals 5-col batch (2026-06-08)
 
 **A. Scope:** Next ledger tranche — schoolops operator tables, grade approval list,

@@ -79,7 +79,7 @@
     <div class="card-header bg-light fw-semibold">{% trans "Assistants" %}</div>
     <div class="card-body small p-0">
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family align-middle rmc-data-table">
+        <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Assistants" %}</caption>
           <thead class="table-light">
             <tr>
@@ -131,3 +131,4 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}

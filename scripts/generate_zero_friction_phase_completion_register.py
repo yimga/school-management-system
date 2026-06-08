@@ -209,6 +209,81 @@ def build_register() -> dict:
                         "dashboard.html",
                     )
                 ),
+                "parent_portal_rmc_table_scroll_complete": all(
+                    'data-rmc-scroll-policy="paginate"' in _read(rel)
+                    for rel in (
+                        "templates/parent/feed.html",
+                        "templates/parent/workflow_center.html",
+                        "templates/parent/medal_case.html",
+                        "templates/portal/cahier_verify_list.html",
+                        "templates/portal/roll_call_student.html",
+                        "templates/portal/stats.html",
+                        "templates/portal/student_transcript_vault.html",
+                    )
+                ),
+                "people_portal_drawer_gaps_cleared": all(
+                    needle in _read(rel)
+                    for rel, needle in (
+                        ("templates/people/backend_classroom_list.html", 'data-rmc-table-5col="1"'),
+                        ("templates/people/employer_dashboard.html", "data-rmc-row-detail-table"),
+                        ("templates/people/employer_transcript.html", "data-rmc-row-detail-table"),
+                        ("templates/portal/support_help_hub.html", "data-rmc-row-detail-table"),
+                        ("templates/portal/kb_docs_hub.html", "data-rmc-row-detail-table"),
+                        ("templates/portal/stats.html", "data-rmc-row-detail-table"),
+                        ("templates/portal/student_transcript_vault.html", "data-rmc-row-detail-table"),
+                    )
+                ),
+                "schools_siteconfig_mechanical_gaps_cleared": all(
+                    needle in _read(rel)
+                    for rel, needle in (
+                        ("templates/schools/super_billing_accounts_list.html", "portal_row_detail_drawer_bundle.html"),
+                        ("templates/schools/super_policies_catalog.html", 'data-rmc-table-5col="1"'),
+                        ("templates/schools/super_dashboard.html", "portal_row_detail_drawer_bundle.html"),
+                        ("templates/siteconfig/partials/academic_years_setup_evidence_body.html", "data-rmc-row-detail-table"),
+                        ("templates/siteconfig/partials/reportcard_builder_inner.html", 'data-rmc-scroll-policy="paginate"'),
+                    )
+                ),
+                "finance_platform_runtime_mechanical_gaps_cleared": all(
+                    needle in _read(rel)
+                    for rel, needle in (
+                        ("templates/finance/dashboard.html", "data-rmc-row-detail-table"),
+                        ("templates/finance/invoice_detail.html", 'data-rmc-table-5col="1"'),
+                        ("templates/finance/offline_payment_intent_queue.html", "table-column-budget-allow:"),
+                        ("templates/platform_runtime/blueprint_installations.html", "data-rmc-row-detail-table"),
+                        ("templates/platform_runtime/click_measurement_dashboard.html", 'data-rmc-scroll-policy="paginate"'),
+                        ("templates/platform_runtime/tenant_lifecycle_dashboard.html", "portal_row_detail_drawer_bundle.html"),
+                    )
+                ),
+                "analytics_mechanical_gaps_cleared": all(
+                    needle in _read(rel)
+                    for rel, needle in (
+                        ("templates/analytics/master_sheet.html", "master-sheet-twelve-column-gradebook-lens"),
+                        ("templates/analytics/dashboard.html", "analytics-insights-teacher-compliance-six-column-widget"),
+                        ("templates/analytics/at_risk_dashboard.html", "at-risk-dashboard-six-column-intervention-lens"),
+                        ("templates/analytics/deadlines.html", "portal_row_detail_drawer_bundle.html"),
+                    )
+                ),
+                "evals_accounts_mechanical_gaps_cleared": all(
+                    needle in _read(rel)
+                    for rel, needle in (
+                        ("templates/evals/school_ranking.html", "data-rmc-row-detail-table"),
+                        ("templates/accounts/backend_dashboard.html", "data-rmc-row-detail-table"),
+                        ("templates/accounts/certification_session_detail.html", "certification-session-eight-column-roster-lens"),
+                        ("templates/accounts/rollover_proposal_detail.html", "rollover-proposal-seven-column-detail-lens"),
+                        ("templates/accounts/tenant_activity_log.html", 'data-rmc-scroll-policy="paginate"'),
+                    )
+                ),
+                "migration_siteconfig_mechanical_gaps_cleared": all(
+                    needle in _read(rel)
+                    for rel, needle in (
+                        ("templates/migration_cloud/operator/dlq_list.html", "migration-dlq-ten-column-operator-lens"),
+                        ("templates/migration_cloud/operator/command_center.html", "data-rmc-row-detail-auto"),
+                        ("templates/migration_cloud/connector/mapping.html", 'data-rmc-scroll-policy="paginate"'),
+                        ("templates/siteconfig/entity_catalog_overview.html", "entity-catalog-seven-column-operator-lens"),
+                        ("templates/siteconfig/metadata_dynamic_fields_operator.html", "portal_row_detail_drawer_bundle.html"),
+                        ("templates/siteconfig/sync_center.html", "data-rmc-row-detail-table"),
+                    )
+                ),
             },
             "residual": [
                 f"{ledger.get('high_friction_count', '?')} templates still above friction threshold (incremental ledger burndown)",
