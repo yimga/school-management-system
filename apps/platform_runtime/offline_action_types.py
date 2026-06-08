@@ -16,6 +16,7 @@ class OfflineActionType(models.TextChoices):
     ATTENDANCE_MARK = "attendance.mark", "Attendance mark"
     GRADE_SUBMIT = "grade.submit", "Grade submit"
     STUDENT_NOTE = "student.note", "Student note"
+    HOMEWORK_SUBMIT = "homework.submit", "Homework submit"
     PAYMENT_PROOF = "payment.proof_upload", "Payment proof upload"
     SUPPORT_TICKET = "support.ticket", "Support ticket"
     NOTIFY_PARENT = "notify.parent", "Notify parent"
@@ -32,6 +33,7 @@ LEGACY_TO_SODP: dict[str, str] = {
     "grading": OfflineActionType.GRADE_SUBMIT,
     "payment_receipt": OfflineActionType.PAYMENT_PROOF,
     "notes_report": OfflineActionType.STUDENT_NOTE,
+    "homework_submission": OfflineActionType.HOMEWORK_SUBMIT,
     "support_ticket": OfflineActionType.SUPPORT_TICKET,
 }
 
@@ -110,6 +112,13 @@ def validate_offline_payload(action_type: str, payload: dict[str, Any]) -> list[
             errors.append("support.ticket requires subject")
         if not str(payload.get("message") or payload.get("body") or "").strip():
             errors.append("support.ticket requires message")
+
+    if at == OfflineActionType.HOMEWORK_SUBMIT:
+        if not str(payload.get("homework_id") or "").strip():
+            errors.append("homework.submit requires homework_id")
+        student_id = payload.get("student_id")
+        if student_id in (None, ""):
+            errors.append("homework.submit requires student_id")
 
     if at == OfflineActionType.IAM_REQUEST_ACCESS:
         code = str(payload.get("permission_code") or "").strip()

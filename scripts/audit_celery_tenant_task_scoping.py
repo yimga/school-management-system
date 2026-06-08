@@ -43,10 +43,19 @@ def _scan_file(path: Path) -> list[str]:
 
 def _scan() -> list[str]:
     findings: list[str] = []
-    for path in sorted(ROOT.glob("apps/**/tasks*.py")):
-        findings.extend(_scan_file(path))
-    for path in sorted(ROOT.glob("apps/**/tasks/**/*.py")):
-        findings.extend(_scan_file(path))
+    globs = (
+        "apps/**/tasks*.py",
+        "apps/**/tasks/**/*.py",
+        "services/**/tasks*.py",
+        "services/**/tasks/**/*.py",
+    )
+    seen: set[Path] = set()
+    for pattern in globs:
+        for path in sorted(ROOT.glob(pattern)):
+            if path in seen:
+                continue
+            seen.add(path)
+            findings.extend(_scan_file(path))
     return findings
 
 

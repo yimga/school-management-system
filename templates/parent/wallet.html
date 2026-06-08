@@ -4,7 +4,7 @@
 {% block title %}{% trans "My wallet" %}{% endblock %}
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "My wallet" %}</h1>
-<div class="container-fluid" data-page-archetype="record-detail">
+<div class="container-fluid" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate">
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="{% url 'portal:parent_dashboard' %}">{% blocktrans with t=w_parent_sg %}{{ t }} home{% endblocktrans %}</a></li>

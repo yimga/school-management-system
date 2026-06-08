@@ -28,20 +28,23 @@
 
 {% if requests %}
   <div class="table-responsive">
-    <table class="table table-hover align-middle table-family table-sm table-sticky-head rmc-data-table" aria-label="Grade approval requests: subject, teacher, status, and actions" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <table class="table table-hover align-middle table-family table-sm table-sticky-head rmc-data-table" aria-label="Grade approval requests: subject, teacher, status, and actions" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead class="table-light">
         <tr>
           <th scope="col">Subject</th>
           <th scope="col">{% trans_term "Teacher" key="teacher" %}</th>
           <th scope="col">Status</th>
-          <th scope="col">Rows</th>
           <th scope="col">Requested</th>
           <th scope="col"><span class="visually-hidden">{% trans "Actions" %}</span></th>
         </tr>
       </thead>
       <tbody>
         {% for request in requests %}
-          <tr>
+          <tr data-rmc-row-detail="1"
+              tabindex="0"
+              data-rmc-row-title="{% if request.subject_assignment %}{{ request.subject_assignment.subject.name }}{% else %}—{% endif %}"
+              data-rmc-row-subtitle="{{ request.teacher.user.get_full_name|default:request.teacher.user.username }}"
+              data-rmc-row-meta='{"{% trans "Rows" %}":"{{ request.summary.submitted_rows|escapejs }}/{{ request.summary.total_students|escapejs }}"}'>
             <td>
               {% if request.subject_assignment %}
                 {{ request.subject_assignment.subject.name }}
@@ -52,10 +55,7 @@
             <td>{{ request.teacher.user.get_full_name|default:request.teacher.user.username }}</td>
             <td>
               <span class="badge bg-secondary text-uppercase">{{ request.get_status_display }}</span>
-            </td>
-            <td>
-              {{ request.summary.submitted_rows }} /
-              {{ request.summary.total_students }} rows
+              <div class="small text-muted">{{ request.summary.submitted_rows }} / {{ request.summary.total_students }} {% trans "rows" %}</div>
             </td>
             <td>{{ request.requested_at|date:"d/m/Y" }} {{ request.requested_at|time:"H:i" }}</td>
             <td>
@@ -69,5 +69,6 @@
 {% else %}
   {% include "components/dashboard_empty_state.html" with icon="bi-clipboard-check" title="No grade approval requests" message="When teachers submit grades for approval, requests will appear here. Try changing the filter or wait for new submissions." action_url=request.path action_text="Refresh" %}
 {% endif %}
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 </div>
 {% endblock %}

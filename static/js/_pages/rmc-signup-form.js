@@ -22,12 +22,37 @@
 
   var DEBOUNCE_MS = 350;
   var SLUG_ENDPOINT = '/signup/slug-check/';
+  var SUGGEST_ENDPOINT = '/signup/slug-suggest/';
+  var BACKOFF_MS = 60000;
 
   function slugifyClient(value) {
     var s = (value || '').toString().toLowerCase().trim();
     s = s.replace(/[^a-z0-9]+/g, '-');
     s = s.replace(/^-+|-+$/g, '');
     return s.slice(0, 120);
+  }
+
+  // Instant, optimistic anchor so the field is never blank between a keystroke
+  // and the debounced server suggestion. The SERVER is authoritative for the
+  // chip set + availability; this just mirrors its "first significant word"
+  // pick closely enough to avoid a long→short flicker.
+  var CLIENT_STOPWORDS = { the: 1, of: 1, and: 1, 'for': 1, a: 1, an: 1, at: 1, 'in': 1, on: 1 };
+  var CLIENT_TYPEWORDS = {
+    school: 1, schools: 1, academy: 1, academies: 1, college: 1, institute: 1,
+    institution: 1, university: 1, prep: 1, preparatory: 1, montessori: 1, grammar: 1
+  };
+  function clientAnchor(name) {
+    var toks = slugifyClient(name).split('-');
+    var sig = [];
+    for (var i = 0; i < toks.length; i++) {
+      var t = toks[i];
+      if (t && !CLIENT_STOPWORDS[t] && !CLIENT_TYPEWORDS[t]) sig.push(t);
+    }
+    if (sig.length) {
+      if ((sig[0] === 'st' || sig[0] === 'saint') && sig.length > 1) return 'st-' + sig[1];
+      return sig[0];
+    }
+    return toks[0] || '';
   }
 
   function clearChildren(node) {
@@ -323,18 +348,170 @@
       }, DEBOUNCE_MS);
     }
 
+    // ---- Creative web-address suggestions from the school NAME --------------
+    // As the operator types the name we offer a few short, memorable web-address
+    // options as pickable chips and preselect the cleanest available one (the
+    // user can click another chip or type their own — "preselect, allow
+    // override"). Generation is server-side (SOT for reserved words + rules);
+    // this renders the result and reflects availability without a second call.
+    var suggestBox = form.querySelector('[data-rmc-slug-suggestions]');
+    var suggestDebounce = null;
+    var lastSuggestName = null;
+    var currentSuggestions = null;
+
+    function reflectKnownAvailability(slug, available) {
+      // We already learned availability from the suggest response — show it
+      // and prime the per-slug de-dupe guard so checkSlug() won't re-hit the
+      // endpoint for the same value.
+      lastCheckedSlug = slugifyClient(slug);
+      if (available) {
+        setPillState(pill, 'rmc-slug-pill--available', '✓ Available');
+      } else {
+        setPillState(pill, 'rmc-slug-pill--taken', 'Taken');
+      }
+    }
+
+    function renderSuggestions(list, selectedSlug) {
+      currentSuggestions = list;
+      if (!suggestBox) return;
+      clearChildren(suggestBox);
+      if (!list || !list.length) {
+        suggestBox.hidden = true;
+        return;
+      }
+      suggestBox.hidden = false;
+      var label = document.createElement('span');
+      label.className = 'rmc-slug-suggest__label';
+      label.appendChild(document.createTextNode('Suggestions:'));
+      suggestBox.appendChild(label);
+      for (var i = 0; i < list.length; i++) {
+        (function (item) {
+          var chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'rmc-slug-suggest__chip'
+            + (item.slug === selectedSlug ? ' is-selected' : '')
+            + (item.available ? '' : ' is-taken');
+          if (item.slug === selectedSlug) {
+            chip.setAttribute('aria-pressed', 'true');
+          }
+          chip.appendChild(document.createTextNode(item.slug));
+          if (!item.available) {
+            var tag = document.createElement('span');
+            tag.className = 'rmc-slug-suggest__chip-tag';
+            tag.appendChild(document.createTextNode('taken'));
+            chip.appendChild(tag);
+          }
+          chip.addEventListener('click', function () {
+            slugInput.value = item.slug;
+            // An explicit pick stops auto-derive from the name field.
+            slugInput.dataset.rmcUserTouched = '1';
+            reflectKnownAvailability(item.slug, item.available);
+            renderSuggestions(currentSuggestions, item.slug);
+            slugInput.focus();
+          });
+          suggestBox.appendChild(chip);
+        })(list[i]);
+      }
+    }
+
+    function fetchSuggestions(name) {
+      var trimmed = (name || '').trim();
+      if (trimmed.length < 2) {
+        renderSuggestions(null);
+        return;
+      }
+      if (trimmed === lastSuggestName) return;
+      var nowTs = (Date.now && Date.now()) || +new Date();
+      if (backoffUntil && nowTs < backoffUntil) return;
+      lastSuggestName = trimmed;
+
+      var url = SUGGEST_ENDPOINT + '?name=' + encodeURIComponent(trimmed);
+      var ccInput = form.querySelector('input[name="country_code"]');
+      if (ccInput && ccInput.value) {
+        url += '&country_code=' + encodeURIComponent(ccInput.value);
+      }
+
+      fetch(url, {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' }
+      })
+        .then(function (resp) {
+          if (resp.status === 429) {
+            backoffUntil = ((Date.now && Date.now()) || +new Date()) + BACKOFF_MS;
+            lastSuggestName = null;
+            throw new Error('rate-limited');
+          }
+          if (!resp.ok) {
+            lastSuggestName = null;
+            throw new Error('bad-status');
+          }
+          return resp.json();
+        })
+        .then(function (data) {
+          var list = (data && data.suggestions) || [];
+          if (!list.length) {
+            renderSuggestions(null);
+            return;
+          }
+          if (userTouched()) {
+            // User owns the field — show chips but don't overwrite their value.
+            renderSuggestions(list, slugifyClient(slugInput.value));
+            return;
+          }
+          // Preselect the best: first available, else the first (shortest) one.
+          var best = null;
+          for (var i = 0; i < list.length; i++) {
+            if (list[i].available) { best = list[i]; break; }
+          }
+          if (!best) best = list[0];
+          slugInput.value = best.slug;
+          reflectKnownAvailability(best.slug, best.available);
+          renderSuggestions(list, best.slug);
+        })
+        .catch(function (err) {
+          if (!err || err.message !== 'rate-limited') {
+            lastSuggestName = null;
+          }
+          // Graceful fallback: keep the old derive-from-name behavior so the
+          // field is never left empty when suggestions can't load.
+          if (!userTouched() && nameInput) {
+            var derived = slugifyClient(nameInput.value);
+            if (derived) {
+              slugInput.value = derived;
+              scheduleCheck(derived);
+            }
+          }
+        });
+    }
+
+    function scheduleSuggest(name) {
+      if (suggestDebounce) {
+        clearTimeout(suggestDebounce);
+        suggestDebounce = null;
+      }
+      suggestDebounce = setTimeout(function () {
+        suggestDebounce = null;
+        fetchSuggestions(name);
+      }, DEBOUNCE_MS);
+    }
+
     if (nameInput) {
       nameInput.addEventListener('input', function () {
         if (userTouched()) return;
-        var derived = slugifyClient(nameInput.value);
-        slugInput.value = derived;
-        scheduleCheck(derived);
+        // Never leave the field blank: drop in an instant client anchor, then
+        // let the debounced server suggestion refine it + render the chips.
+        if (!slugInput.value) {
+          slugInput.value = clientAnchor(nameInput.value) || slugifyClient(nameInput.value);
+        }
+        scheduleSuggest(nameInput.value);
       });
     }
 
     slugInput.addEventListener('input', function () {
       // Mark touched so auto-derive stops shadowing the operator's edits.
       slugInput.dataset.rmcUserTouched = '1';
+      // They're typing their own address — retire the name-derived chips.
+      renderSuggestions(null);
       scheduleCheck(slugInput.value);
     });
 

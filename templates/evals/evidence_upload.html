@@ -5,7 +5,7 @@
 {% block title %}Evaluation Evidence{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2" data-page-archetype="record-detail">
+<div class="container-fluid py-2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate">
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
   <div>
     <h1 class="mb-1">Evaluation Evidence</h1>
@@ -49,7 +49,7 @@
       <div class="card-body">
         <h5 class="mb-3">Recent Evidence</h5>
         <div class="table-responsive">
-          <table class="table align-middle table-family rmc-data-table">
+          <table class="table align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
             <caption class="visually-hidden">{% trans "Recent Evidence" %}</caption>
             <thead>
               <tr>
@@ -61,7 +61,11 @@
             </thead>
             <tbody>
               {% for item in evidence_items %}
-                <tr>
+                <tr data-rmc-row-detail="1"
+                    tabindex="0"
+                    data-rmc-row-title="{{ item.evaluation.student }}"
+                    data-rmc-row-subtitle="{{ item.evaluation.subject_assignment.subject.name }}"
+                    data-rmc-row-meta='{"{% trans "Type" %}":"{{ item.get_media_type_display|escapejs }}"}'>
                   <td>{{ item.evaluation.student }}</td>
                   <td>{{ item.evaluation.subject_assignment.subject.name }}</td>
                   <td>{{ item.get_media_type_display }}</td>
@@ -79,5 +83,6 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 </div>
 {% endblock %}

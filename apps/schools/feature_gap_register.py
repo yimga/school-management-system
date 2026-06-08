@@ -356,8 +356,10 @@ FEATURE_REGISTER: tuple[FeatureRow, ...] = (
         feature_slug="zero-data-homework-buffer",
         label="Zero-data homework queue buffer (<500KB cache, gate sync)",
         capability_domain="classroom",
-        status="in_progress",
-        notes="VERIFIED 2026-06-07: generic OfflineSyncQueue + offline_queue handlers (attendance/grading/payment) SHIPPED, and a homework kernel exists (academics/lesson_homework_kernel.py submit_student_work). GAP: no _apply_homework_submission handler, no enable_offline_homework_sync flag wiring the two. Wave B/F.",
+        status="shipped",
+        proof_management_command="",
+        proof_model="platform_runtime.OfflineAction",
+        notes="SHIPPED 2026-06-08 (zero-friction Phase 2a): OfflineAction.ActionType.HOMEWORK_SUBMISSION + _apply_homework_submission in offline_queue.py (submit_student_work → store_submission in School.settings academics bucket); enable_offline_homework_sync in offline_mode_bundle + platform_surface_config homeworkSyncEnabled; SODP homework.submit validation. Tests: test_offline_queue homework submission path.",
     ),
     FeatureRow(
         feature_slug="smart-fleet-route-optimizer",

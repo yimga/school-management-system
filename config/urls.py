@@ -80,6 +80,7 @@ from apps.schools.marketing_views import (
 from apps.schools.signup_views import (
     signup_school,
     signup_slug_check,
+    signup_slug_suggest,
     verify_signup,
     resend_signup_verification,
     accept_school_invite,
@@ -1671,6 +1672,11 @@ urlpatterns = [
         resend_signup_verification,
         name="resend_signup_verification",
     ),
+    # Signup helper endpoints — MUST precede the "<lang>/<country>/" regional
+    # marketing catch-all below, otherwise these two-segment paths resolve to
+    # regional_marketing_landing (HTML) instead of the JSON views.
+    path("signup/slug-check/", signup_slug_check, name="signup_slug_check"),
+    path("signup/slug-suggest/", signup_slug_suggest, name="signup_slug_suggest"),
     *[
         path(
             f"{prefix}/",
@@ -1692,7 +1698,6 @@ urlpatterns = [
     path("onboard/migrate/", onboard_migration_handoff, name="onboard_migration_handoff"),
     path("onboard/migrate/start/", onboard_migration_start, name="onboard_migration_start"),
     path("signup/", signup_school, name="signup_school"),
-    path("signup/slug-check/", signup_slug_check, name="signup_slug_check"),
     path("verify-signup/", verify_signup, name="verify_signup"),
     path("accept-invite/", accept_school_invite, name="accept_school_invite"),
     path("api/trial/", api_trial_school, name="api_trial_school"),

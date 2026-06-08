@@ -1,0 +1,115 @@
+{
+  "generated_at": "2026-06-08T17:15:38.825452+00:00",
+  "root_shell_count": 11,
+  "sub_router_count": 4,
+  "shells": [
+    {
+      "path": "templates/portal_base.html",
+      "kind": "root",
+      "exists": true,
+      "extends": null,
+      "direct_child_count": 305
+    },
+    {
+      "path": "templates/base.html",
+      "kind": "root",
+      "exists": true,
+      "extends": null,
+      "direct_child_count": 46
+    },
+    {
+      "path": "templates/control_plane_skeleton.html",
+      "kind": "root",
+      "exists": true,
+      "extends": null,
+      "direct_child_count": 7
+    },
+    {
+      "path": "templates/control_plane_base.html",
+      "kind": "root",
+      "exists": true,
+      "extends": "control_plane_skeleton.html",
+      "direct_child_count": 231
+    },
+    {
+      "path": "templates/admin/base_site.html",
+      "kind": "root",
+      "exists": true,
+      "extends": "admin/base.html",
+      "direct_child_count": 0
+    },
+    {
+      "path": "templates/marketing/base_marketing.html",
+      "kind": "root",
+      "exists": true,
+      "extends": null,
+      "direct_child_count": 0
+    },
+    {
+      "path": "templates/backend_base.html",
+      "kind": "root",
+      "exists": true,
+      "extends": null,
+      "direct_child_count": 137
+    },
+    {
+      "path": "templates/backend_base_tenant.html",
+      "kind": "root",
+      "exists": true,
+      "extends": "portal_base.html",
+      "direct_child_count": 0
+    },
+    {
+      "path": "templates/backend_base_manager.html",
+      "kind": "root",
+      "exists": true,
+      "extends": "control_plane_base.html",
+      "direct_child_count": 2
+    },
+    {
+      "path": "templates/home.html",
+      "kind": "root",
+      "exists": true,
+      "extends": "base.html",
+      "direct_child_count": 0
+    },
+    {
+      "path": "templates/offline.html",
+      "kind": "root",
+      "exists": true,
+      "extends": null,
+      "direct_child_count": 0
+    },
+    {
+      "path": "templates/studio_os/shell.html",
+      "kind": "sub_router",
+      "exists": true,
+      "extends": "portal_base.html",
+      "direct_child_count": 0
+    },
+    {
+      "path": "templates/schools/marketing_page_layout.html",
+      "kind": "sub_router",
+      "exists": true,
+      "extends": "marketing/base_marketing.html",
+      "direct_child_count": 0
+    },
+    {
+      "path": "templates/migration_cloud/connector/_wizard_base.html",
+      "kind": "sub_router",
+      "exists": true,
+      "extends": "portal_base.html",
+      "direct_child_count": 0
+    },
+    {
+      "path": "templates/siteconfig/zero_ticket_shell.html",
+      "kind": "sub_router",
+      "exists": true,
+      "extends": "control_plane_base.html",
+      "direct_child_count": 0
+    }
+  ],
+  "missing_paths": [],
+  "extends_graph_sample_size": 884,
+  "audited": true
+}

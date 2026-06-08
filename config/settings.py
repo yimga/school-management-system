@@ -535,6 +535,7 @@ TEMPLATES = [
                 "apps.platform_runtime.context_processors.rmc_os_shell_context",
                 "apps.platform_runtime.context_processors.ai_operating_layer_context",
                 "apps.platform_runtime.context_processors.system_actions_context",
+                "apps.platform_runtime.context_processors.zero_click_hub_context",
                 "apps.platform_runtime.context_processors.offline_sync_bar_context",
                 "apps.platform_runtime.context_processors.operational_nav_groups",
                 # v3.62.5 Wave 2 local-first: emits `localization` dict

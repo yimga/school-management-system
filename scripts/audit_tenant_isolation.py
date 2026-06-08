@@ -46,7 +46,7 @@ def _classify(rel: str, line: str) -> str:
 
 def main() -> int:
     hits: list[dict[str, str]] = []
-    for base in (ROOT / "apps", ROOT / "config"):
+    for base in (ROOT / "apps", ROOT / "config", ROOT / "services", ROOT / "emis", ROOT / "payment"):
         if not base.is_dir():
             continue
         for path in sorted(base.rglob("*.py")):

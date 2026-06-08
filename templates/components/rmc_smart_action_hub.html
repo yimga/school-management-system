@@ -1,0 +1,16 @@
+{% load i18n zero_click_tags %}
+{% comment %}
+Smart Action Hub — persona-scoped quick actions (action_hub_kernel) with
+next-action strip fallback when the hub has no resolvable targets.
+{% endcomment %}
+<section
+  class="rmc-smart-action-hub"
+  data-rmc-smart-action-hub="1"
+  aria-label="{% trans 'Quick actions' %}">
+  {% if rmc_zero_click_hub_available %}
+    {% render_action_hub rmc_zero_click_hub %}
+  {% endif %}
+  {% if not rmc_zero_click_hub_available %}
+    {% include "components/next_action_strip.html" %}
+  {% endif %}
+</section>

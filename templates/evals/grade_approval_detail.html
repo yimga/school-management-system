@@ -76,21 +76,23 @@
     <strong>Submitted marks</strong>
   </div>
   <div class="table-responsive">
-    <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="Submitted marks for approval: student and score components" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="Submitted marks for approval: student and score components" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead>
         <tr>
           <th scope="col">{% trans_term "Student" key="student" %}</th>
           <th scope="col" class="num">Seq1</th>
           <th scope="col" class="num">Seq2</th>
           <th scope="col" class="num">Exam</th>
-          <th scope="col" class="num">Mock</th>
-          <th scope="col" class="num">Practical</th>
           <th scope="col">Remarks</th>
         </tr>
       </thead>
       <tbody>
         {% for entry in entries %}
-          <tr>
+          <tr data-rmc-row-detail="1"
+              tabindex="0"
+              data-rmc-row-title="{{ entry.student_name }}"
+              data-rmc-row-subtitle="{{ entry.student_code }}"
+              data-rmc-row-meta='{"Mock":"{% if entry.scores.mock is not None %}{{ entry.scores.mock|escapejs }}{% else %}-{% endif %}","Practical":"{% if entry.scores.practical is not None %}{{ entry.scores.practical|escapejs }}{% else %}-{% endif %}"}'>
             <td>
               <span class="student-cell">
                 <span class="av" aria-hidden="true">{{ entry.student_name|slice:":1"|upper }}</span>
@@ -100,8 +102,6 @@
             <td class="num">{{ entry.scores.seq1|default_if_none:"—" }}</td>
             <td class="num">{{ entry.scores.seq2|default_if_none:"—" }}</td>
             <td class="num">{{ entry.scores.exam|default_if_none:"—" }}</td>
-            <td class="num">{{ entry.scores.mock|default_if_none:"—" }}</td>
-            <td class="num">{{ entry.scores.practical|default_if_none:"—" }}</td>
             <td>{{ entry.remarks|default:"—" }}</td>
           </tr>
         {% endfor %}
@@ -142,5 +142,6 @@
   </div>
 </div>
 {% endif %}
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 </div>
 {% endblock %}

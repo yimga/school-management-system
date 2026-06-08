@@ -11,19 +11,17 @@ function showTeacherDetails(teacherId, teacherName, deadlines) {
     
     deadlines.forEach(deadline => {
         const row = tbody.insertRow();
+        const daysBadge = deadline.days_left < 0 ? 'badge-danger' : deadline.days_left <= 3 ? 'badge-warning' : 'badge-success';
+        const statusBadge = deadline.submission_status === 'on_track' ? 'badge-success' : deadline.submission_status === 'at_risk' ? 'badge-warning' : 'badge-danger';
         row.innerHTML = `
             <td>${deadline.subject_name}</td>
-            <td>${deadline.deadline_date}</td>
             <td>
-                <span class="badge ${deadline.days_left < 0 ? 'badge-danger' : deadline.days_left <= 3 ? 'badge-warning' : 'badge-success'}">
-                    ${deadline.days_left} days
-                </span>
+                <div>${deadline.deadline_date}</div>
+                <span class="badge ${daysBadge}">${deadline.days_left} days</span>
             </td>
-            <td>${deadline.submitted_count}/${deadline.total_students}</td>
             <td>
-                <span class="badge ${deadline.submission_status === 'on_track' ? 'badge-success' : deadline.submission_status === 'at_risk' ? 'badge-warning' : 'badge-danger'}">
-                    ${deadline.submission_status}
-                </span>
+                <span class="badge ${statusBadge}">${deadline.submission_status}</span>
+                <div class="small text-muted mt-1">${deadline.submitted_count}/${deadline.total_students}</div>
             </td>
             <td>
                 <a href="${(window.EVALS_EXTEND_DEADLINE_URL_BASE || '/evals/compliance/deadline/0/extend/').replace('/0/', '/' + deadline.subject_assignment_id + '/')}" class="btn btn-xs btn-warning">

@@ -127,6 +127,15 @@ def main() -> int:
         "src/components/social/",
     )
     add(
+        "react_island_mount",
+        "Proud campus template + social-feed.mount.js wired",
+        _exists("templates/social_media/proud_campus_feed.html")
+        and _contains("templates/social_media/proud_campus_feed.html", "data-rmc-social-feed")
+        and _contains("templates/social_media/proud_campus_feed.html", "social-feed.mount.js")
+        and _exists("static/js/dist/social-feed.mount.js"),
+        "templates/social_media/proud_campus_feed.html",
+    )
+    add(
         "isolation_tests",
         "Adversarial isolation test modules",
         _exists("apps/social_media/tests/test_social_isolation.py")

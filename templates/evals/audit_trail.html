@@ -4,7 +4,7 @@
 {% block title %}Grade Audit Trail{% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid mt-4" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
+<div class="container-fluid mt-4" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
     <div class="row">
         <div class="col-12">
             <h1 class="mb-4">
@@ -52,7 +52,7 @@
                                 <!-- Score Changes -->
                                 {% if entry.changes %}
                                 <div class="mt-2">
-                                    <table class="table table-sm mb-0 table-family align-middle rmc-data-table">
+                                    <table class="table table-sm mb-0 table-family align-middle">
                                       <caption class="visually-hidden">{% trans "Grade Audit Trail" %}</caption>
                                         <thead>
                                             <tr>
@@ -122,9 +122,7 @@
                             {% endfor %}
                         </div>
                     {% else %}
-                    <div class="alert alert-info">
-                        No changes recorded for this evaluation.
-                    </div>
+                    {% include "components/dashboard_empty_state.html" with icon="bi-clock-history" title=_("No changes recorded") message=_("Grade edits and offline sync events will appear here.") %}
                     {% endif %}
                 </div>
             </div>

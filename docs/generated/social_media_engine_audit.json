@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-05-19T14:56:53.695342+00:00",
+  "generated_at": "2026-06-08T16:52:26.975975+00:00",
   "status": "SOCIAL_MEDIA_ENGINE_PASS",
-  "pass_count": 9,
-  "total": 9,
+  "pass_count": 10,
+  "total": 10,
   "rows": [
     {
       "check_id": "app_registered",
@@ -51,6 +51,12 @@
       "description": "SocialFeedGrid + SocialModerationQueue",
       "status": "PASS",
       "proof": "src/components/social/"
+    },
+    {
+      "check_id": "react_island_mount",
+      "description": "Proud campus template + social-feed.mount.js wired",
+      "status": "PASS",
+      "proof": "templates/social_media/proud_campus_feed.html"
     },
     {
       "check_id": "isolation_tests",

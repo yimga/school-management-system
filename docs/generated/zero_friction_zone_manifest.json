@@ -1,0 +1,294 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-06-08T17:15:36.305673+00:00",
+  "protocol": "ZERO-FRICTION-OS-PHASE-0",
+  "zone_count": 15,
+  "zones_audited": 15,
+  "zones_complete": true,
+  "django_apps_on_disk": 58,
+  "django_apps": [
+    "__pycache__",
+    "academics",
+    "accounts",
+    "admissions",
+    "analytics",
+    "api",
+    "apicenter",
+    "assist_dock",
+    "automation",
+    "billing",
+    "brand_experience",
+    "communication",
+    "compliance",
+    "customers",
+    "customersuccess",
+    "dashboard",
+    "evals",
+    "events",
+    "feedback",
+    "finance",
+    "global_registries",
+    "governance",
+    "integrations_marketplace",
+    "interop",
+    "lifecycle",
+    "locale",
+    "marketplace",
+    "metadata",
+    "migration_cloud",
+    "observability",
+    "orchestration",
+    "packages",
+    "payroll",
+    "people",
+    "plans_entitlements",
+    "platform_runtime",
+    "policies",
+    "policies_rules",
+    "portal",
+    "registries",
+    "reports",
+    "requests",
+    "runtime_blueprints",
+    "safeguarding",
+    "sales",
+    "school_events",
+    "schoolops",
+    "schools",
+    "security",
+    "setup_studio",
+    "siteconfig",
+    "social_media",
+    "student360",
+    "studio_os",
+    "sync_engine",
+    "tenancy",
+    "test_utils",
+    "wal_stream"
+  ],
+  "zones": [
+    {
+      "id": "Z1",
+      "label": "apps",
+      "paths": [
+        "apps"
+      ],
+      "file_counts_by_suffix": {
+        "py": 5236,
+        "md": 3,
+        "json": 51,
+        "js": 1
+      },
+      "total_files": 5291,
+      "audited": true
+    },
+    {
+      "id": "Z2",
+      "label": "templates",
+      "paths": [
+        "templates"
+      ],
+      "file_counts_by_suffix": {
+        "html": 1632
+      },
+      "total_files": 1632,
+      "audited": true
+    },
+    {
+      "id": "Z3",
+      "label": "services",
+      "paths": [
+        "services"
+      ],
+      "file_counts_by_suffix": {
+        "py": 103
+      },
+      "total_files": 103,
+      "audited": true
+    },
+    {
+      "id": "Z4",
+      "label": "config",
+      "paths": [
+        "config"
+      ],
+      "file_counts_by_suffix": {
+        "py": 39,
+        "json": 105,
+        "md": 1
+      },
+      "total_files": 145,
+      "audited": true
+    },
+    {
+      "id": "Z5",
+      "label": "emis_payment",
+      "paths": [
+        "emis",
+        "payment"
+      ],
+      "file_counts_by_suffix": {
+        "py": 28
+      },
+      "total_files": 28,
+      "audited": true
+    },
+    {
+      "id": "Z6",
+      "label": "static",
+      "paths": [
+        "static"
+      ],
+      "file_counts_by_suffix": {
+        "json": 7,
+        "css": 330,
+        "md": 4,
+        "js": 410
+      },
+      "total_files": 751,
+      "audited": true
+    },
+    {
+      "id": "Z7",
+      "label": "react",
+      "paths": [
+        "src",
+        "frontend"
+      ],
+      "file_counts_by_suffix": {
+        "ts": 25,
+        "tsx": 43,
+        "md": 2,
+        "json": 1,
+        "jsx": 29
+      },
+      "total_files": 100,
+      "audited": true
+    },
+    {
+      "id": "Z8",
+      "label": "companions_sdk",
+      "paths": [
+        "companion-extension",
+        "companion-tauri",
+        "companion-docker",
+        "packages",
+        "sdk"
+      ],
+      "file_counts_by_suffix": {
+        "json": 14,
+        "html": 2,
+        "md": 16,
+        "ts": 21,
+        "mjs": 3,
+        "toml": 3,
+        "rs": 12,
+        "py": 27
+      },
+      "total_files": 98,
+      "audited": true
+    },
+    {
+      "id": "Z9",
+      "label": "edge",
+      "paths": [
+        "edge"
+      ],
+      "file_counts_by_suffix": {
+        "toml": 1,
+        "js": 1
+      },
+      "total_files": 2,
+      "audited": true
+    },
+    {
+      "id": "Z10",
+      "label": "scripts",
+      "paths": [
+        "scripts"
+      ],
+      "file_counts_by_suffix": {
+        "py": 941,
+        "ts": 1,
+        "json": 12,
+        "js": 4,
+        "mjs": 6,
+        "md": 1
+      },
+      "total_files": 965,
+      "audited": true
+    },
+    {
+      "id": "Z11",
+      "label": "entrypoints",
+      "paths": [
+        "manage.py",
+        "conftest.py"
+      ],
+      "file_counts_by_suffix": {
+        "py": 2
+      },
+      "total_files": 2,
+      "audited": true
+    },
+    {
+      "id": "Z12",
+      "label": "locale",
+      "paths": [
+        "locale",
+        "apps/locale"
+      ],
+      "file_counts_by_suffix": {
+        "json": 17,
+        "md": 1,
+        "py": 4
+      },
+      "total_files": 22,
+      "audited": true
+    },
+    {
+      "id": "Z13",
+      "label": "tests",
+      "paths": [
+        "tests"
+      ],
+      "file_counts_by_suffix": {
+        "tsx": 4,
+        "ts": 10,
+        "js": 64,
+        "json": 2,
+        "md": 1
+      },
+      "total_files": 81,
+      "audited": true
+    },
+    {
+      "id": "Z14",
+      "label": "ci",
+      "paths": [
+        ".github"
+      ],
+      "file_counts_by_suffix": {
+        "md": 4,
+        "yml": 52
+      },
+      "total_files": 56,
+      "audited": true
+    },
+    {
+      "id": "Z15",
+      "label": "baselines",
+      "paths": [
+        "var",
+        "docs/generated"
+      ],
+      "file_counts_by_suffix": {
+        "json": 777,
+        "html": 27,
+        "md": 237
+      },
+      "total_files": 1041,
+      "audited": true
+    }
+  ]
+}

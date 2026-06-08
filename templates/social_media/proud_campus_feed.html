@@ -1,0 +1,41 @@
+{% extends "portal_base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Proud Campus" %}{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/rmc-social-feed.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3" data-rmc-scroll-policy="paginate" data-page-archetype="discovery">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-1">{% trans "Proud Campus" %}</h1>
+      <p class="text-muted small mb-0">{% trans "Live social feed for your school community." %}</p>
+    </div>
+  </div>
+
+  <div
+    data-rmc-social-feed
+    data-feed-url="{{ feed_url }}"
+    data-columns="3"
+    class="mb-4"
+  ></div>
+
+  {% if show_moderation %}
+    <section class="mt-4" aria-labelledby="proud-campus-moderation-heading">
+      <h2 id="proud-campus-moderation-heading" class="h5 mb-3">{% trans "Moderation queue" %}</h2>
+      <div
+        data-rmc-social-moderation
+        data-list-url="{{ moderation_url }}"
+        data-action-url-base="{{ moderation_url }}"
+      ></div>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="{% static 'js/dist/social-feed.mount.js' %}"></script>
+{% endblock %}

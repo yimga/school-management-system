@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-06-08T17:15:46.026972+00:00",
+  "protocol": "ZERO-FRICTION-OS-PHASES-0-8",
+  "summary": {
+    "phases_total": 9,
+    "done": 6,
+    "partial": 3,
+    "not_done": 0,
+    "repo_scope_complete": true
+  },
+  "service_worker_version": "sms-v4.02.99-zero-friction-sweep-wave5-2026-06-08",
+  "phases": [
+    {
+      "phase": 0,
+      "label": "Full-repo audit (zones, ledger, scanner gaps, shells)",
+      "status": "DONE",
+      "proof_verifier": "verify_zero_friction_phase0.py",
+      "evidence": {
+        "zones_audited": 15,
+        "template_rows_scored": 1632,
+        "scanner_open_gaps": 0,
+        "scanner_resolved_gaps": 7
+      }
+    },
+    {
+      "phase": 1,
+      "label": "Wire existing kernels (5-col, Smart Action Hub, layout sentinel)",
+      "status": "DONE",
+      "proof_verifier": "apps.platform_runtime.tests.test_zero_click_protocol",
+      "evidence": {
+        "truncate_table_columns_tag": true,
+        "smart_action_hub_portal": true,
+        "layout_sentinel_wired": true,
+        "zero_click_css": true,
+        "five_col_templates_adopted": 13
+      }
+    },
+    {
+      "phase": 2,
+      "label": "Role journey compression",
+      "status": "DONE",
+      "proof_verifier": "verify_zero_friction_journeys.py",
+      "evidence": {
+        "homework_offline_handler": true,
+        "qr_attendance_primary": true,
+        "parent_one_click_pay": true
+      }
+    },
+    {
+      "phase": 3,
+      "label": "Studio OS + control plane depth",
+      "status": "DONE",
+      "proof_verifier": "verify_zero_friction_journeys.py",
+      "evidence": {
+        "overview_workflow_chips": true,
+        "control_rail_overflow_css": true,
+        "student360_section_nav": true
+      },
+      "residual": []
+    },
+    {
+      "phase": 4,
+      "label": "AI and edge honesty",
+      "status": "DONE",
+      "proof_verifier": "verify_render_online_ai_posture.py",
+      "evidence": {
+        "copilot_posture_render": true,
+        "posture_modes": true,
+        "edge_worker_present": true
+      }
+    },
+    {
+      "phase": 5,
+      "label": "Security evidence",
+      "status": "PARTIAL",
+      "proof_verifier": "verify_websocket_tenant_scope.py + audit_role_permission_matrix.py",
+      "evidence": {
+        "session_school_bind": true,
+        "middleware_session_bind": true,
+        "tenant_queryset_baseline": 0,
+        "rbac_matrix_oauth_indexed": true,
+        "rbac_matrix_websocket_indexed": true,
+        "scanner_open_gaps": 0
+      },
+      "residual": [
+        "Postgres RLS live CI (@tag tenants_rls) \u2014 operator deploy gated",
+        "Playwright abrupt-end sweep \u2014 requires live Django host"
+      ]
+    },
+    {
+      "phase": 6,
+      "label": "Zone burndown (Z1\u2013Z5 template/app waves)",
+      "status": "PARTIAL",
+      "proof_verifier": "verify_zero_friction_journeys.py",
+      "evidence": {
+        "high_friction_template_count": 1627,
+        "burndown_templates_with_5col": 13,
+        "top_route_head": "templates/teacher/leave.html",
+        "p0_templates_burndown": true,
+        "teacher_zone_scroll_complete": true
+      },
+      "residual": [
+        "1627 templates still above friction threshold (incremental ledger burndown)"
+      ]
+    },
+    {
+      "phase": 7,
+      "label": "React islands + _pages/ interaction (Z7 wave)",
+      "status": "DONE",
+      "proof_verifier": "verify_interaction_integrity_completion.py",
+      "evidence": {
+        "react_mount_templates": 4,
+        "social_proud_campus_mount": true,
+        "pages_audit_script": true,
+        "react_mount_fetch_script": true,
+        "pages_scripts_count": 171
+      },
+      "residual": []
+    },
+    {
+      "phase": 8,
+      "label": "Companions, edge, gates closure (Z8\u2013Z15)",
+      "status": "PARTIAL",
+      "proof_verifier": "verify_service_worker_version.py + scan_tenant_queryset_safety",
+      "evidence": {
+        "companion_extension_present": true,
+        "companion_extractor_modules": 0,
+        "edge_worker_present": true,
+        "dead_hrefs_baseline": 0
+      },
+      "residual": [
+        "Full Playwright e2e sweep (Z13) not run in this reaudit pass",
+        "CI architectural-boundaries full bundle \u2014 run in CI, not repeated locally"
+      ]
+    }
+  ]
+}

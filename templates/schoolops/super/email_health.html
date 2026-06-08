@@ -173,24 +173,29 @@
   <section class="rmc-card" aria-labelledby="failures-heading">
     <h2 id="failures-heading" class="rmc-h2">{% trans "Recent failures (top 5)" %}</h2>
     {% if failures %}
-    <table class="rmc-data-table rmc-data-table--email-failures" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <table class="rmc-data-table rmc-data-table--email-failures" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead>
         <tr>
           <th scope="col">{% trans "Time" %}</th>
           <th scope="col">{% trans "Recipient (hashed)" %}</th>
           <th scope="col">{% trans "Subject prefix" %}</th>
-          <th scope="col">{% trans "Attempts" %}</th>
           <th scope="col">{% trans "Reason" %}</th>
           <th scope="col">{% trans "Priority" %}</th>
         </tr>
       </thead>
       <tbody>
       {% for f in failures %}
-        <tr>
+        <tr data-rmc-row-detail="1"
+            tabindex="0"
+            data-rmc-row-title="{{ f.subject_prefix|default:'—' }}"
+            data-rmc-row-subtitle="{{ f.created_at_iso }}"
+            data-rmc-row-meta='{"{% trans "Attempts" %}":"{{ f.attempts|escapejs }}","{% trans "Recipient" %}":"{{ f.to_hash|escapejs }}"}'>
           <td>{{ f.created_at_iso }}</td>
           <td><code>{{ f.to_hash }}</code></td>
-          <td>{{ f.subject_prefix|default:"—" }}</td>
-          <td>{{ f.attempts }}</td>
+          <td>
+            {{ f.subject_prefix|default:"—" }}
+            <div class="rmc-muted small">{% trans "Attempts" %}: {{ f.attempts }}</div>
+          </td>
           <td>{{ f.error_kind }}</td>
           <td>{{ f.priority }}</td>
         </tr>

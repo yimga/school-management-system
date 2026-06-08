@@ -16,6 +16,13 @@ from django.utils.safestring import mark_safe
 from apps.platform_runtime.action_hub_kernel import ActionHub, HubAction
 from apps.platform_runtime.empty_state_kernel import EmptyStateCard, get_empty_state
 from apps.platform_runtime.smart_links_kernel import get_smart_links
+from apps.platform_runtime.table_grammar_kernel import (
+    Column,
+    MAX_PRIMARY_COLUMNS,
+    TruncationResult,
+    build_columns_from_dicts,
+    truncate_columns,
+)
 
 register = template.Library()
 
@@ -199,3 +206,48 @@ def text_shield(value: str, max_chars: int = 0) -> str:
             f'{escape(visible)}</span>'
         )
     return mark_safe(f'<span class="rmc-text-shield">{escape(visible)}</span>')
+
+
+# --- 5-column table grammar -----------------------------------------------
+
+
+def _columns_from_arg(columns) -> list[Column]:
+    if isinstance(columns, (list, tuple)):
+        if columns and isinstance(columns[0], Column):
+            return list(columns)
+        return build_columns_from_dicts(columns)
+    if isinstance(columns, str):
+        import json
+
+        parsed = json.loads(columns)
+        return build_columns_from_dicts(parsed)
+    raise TypeError("columns must be a sequence of dicts, Column instances, or JSON string")
+
+
+@register.simple_tag
+def truncate_table_columns(columns, persona: str = "any", max_visible: int = MAX_PRIMARY_COLUMNS):
+    """Partition table columns into visible (≤5) and drawer sets.
+
+    Usage::
+
+        {% truncate_table_columns column_defs persona as table_cols %}
+        {% for col in table_cols.visible %}…{% endfor %}
+    """
+    cols = _columns_from_arg(columns)
+    result = truncate_columns(cols, persona=persona, max_visible=int(max_visible))
+    return {
+        "visible": result.visible_columns,
+        "drawer": result.drawer_columns,
+        "overflow_count": result.overflow_count,
+        "fits_without_drawer": result.fits_without_drawer,
+    }
+
+
+@register.filter
+def column_label(column: Column) -> str:
+    return column.label if isinstance(column, Column) else str(column)
+
+
+@register.filter
+def column_key(column: Column) -> str:
+    return column.key if isinstance(column, Column) else str(column)

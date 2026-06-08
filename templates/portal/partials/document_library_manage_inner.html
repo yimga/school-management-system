@@ -129,17 +129,12 @@
       {% if documents %}
         <div class="table-responsive ds-table-wrap">
           <!-- large-collection-allow: document-library-row-actions -->
-          <table class="table table-hover align-middle table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Document library' %}" data-rmc-row-detail-table="1">
+          <table class="table table-hover align-middle table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Document library' %}" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
             <thead>
               <tr>
                 <th scope="col">{% trans "Title" %}</th>
                 <th scope="col">{% trans "Type" %}</th>
-                <th scope="col">{% trans "Pack" %}</th>
                 <th scope="col">{% trans "Lifecycle" %}</th>
-                <th scope="col">{% trans "File/Link" %}</th>
-                <th scope="col">{% trans "Signature" %}</th>
-                <th scope="col">{% trans "Retention" %}</th>
-                <th scope="col">{% trans "Status" %}</th>
                 <th scope="col">{% trans "Created" %}</th>
                 <th scope="col" class="text-end">{% trans "Actions" %}</th>
               </tr>
@@ -150,63 +145,32 @@
                     tabindex="0"
                     data-rmc-row-title="{{ doc.title }}"
                     data-rmc-row-subtitle="{{ doc.get_document_type_display }}"
-                    data-rmc-row-meta='{"{% trans "Lifecycle" %}":"{{ doc.get_lifecycle_state_display|default:doc.lifecycle_state|escapejs }}","{% trans "Status" %}":"{{ doc.get_status_display|escapejs }}"}'>
+                    data-rmc-row-meta='{"{% trans "Pack" %}":"{% if doc.document_pack %}{{ doc.document_pack.name|escapejs }}{% else %}-{% endif %}","{% trans "File/Link" %}":"{% if doc.file %}File ({{ doc.file_size_mb }}MB){% elif doc.link %}Link{% else %}-{% endif %}","{% trans "Signature" %}":"{% if doc.requires_signature %}{% trans "Required" %}{% else %}-{% endif %}","{% trans "Retention" %}":"{% if doc.retention_review_at %}{{ doc.retention_review_at|format_date:"YYYY-MM-DD" }}{% else %}-{% endif %}","{% trans "Status" %}":"{{ doc.get_status_display|escapejs }}"}'>
                   <td data-label="{% trans 'Title' %}">
                     <div class="fw-semibold">{{ doc.title }}</div>
                     {% if doc.description %}
                       <div class="text-muted small">{{ doc.description|truncatewords:10 }}</div>
                     {% endif %}
+                    {% if doc.document_pack %}
+                      <div class="text-muted small">{{ doc.document_pack.name }}</div>
+                    {% endif %}
                   </td>
                   <td>
                     <span class="badge bg-secondary">{{ doc.get_document_type_display }}</span>
-                  </td>
-                  <td>
-                    {% if doc.document_pack %}
-                      <span class="badge text-bg-light">{{ doc.document_pack.name }}</span>
-                    {% else %}
-                      <span class="text-muted">-</span>
+                    {% if doc.requires_signature %}
+                      <span class="badge bg-warning text-dark d-block mt-1">
+                        <i class="bi bi-pen me-1"></i>{% trans "Signature" %}
+                      </span>
                     {% endif %}
                   </td>
                   <td>
                     <span class="badge {% if doc.lifecycle_state == 'approved' %}bg-success{% elif doc.lifecycle_state == 'archived' %}bg-secondary{% elif doc.lifecycle_state == 'review' %}bg-warning text-dark{% elif doc.lifecycle_state == 'retracted' %}bg-danger{% else %}bg-light text-dark{% endif %}">
                       {{ doc.get_lifecycle_state_display|default:doc.lifecycle_state|title }}
                     </span>
-                  </td>
-                  <td>
-                    {% if doc.file %}
-                      <span class="badge bg-success">
-                        <i class="bi bi-file-earmark me-1"></i>File ({{ doc.file_size_mb }}MB)
-                      </span>
-                    {% elif doc.link %}
-                      <span class="badge bg-info">
-                        <i class="bi bi-link-45deg me-1"></i>Link
-                      </span>
-                    {% else %}
-                      <span class="text-muted">-</span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if doc.requires_signature %}
-                      <span class="badge bg-warning text-dark">
-                        <i class="bi bi-pen me-1"></i>{% trans "Required" %}
-                      </span>
-                    {% else %}
-                      <span class="text-muted">-</span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if doc.retention_review_at %}
-                      <div class="small">{{ doc.retention_review_at|format_date:"YYYY-MM-DD" }}</div>
-                      <div class="text-muted small">{% trans "review" %}</div>
-                    {% else %}
-                      <span class="text-muted">-</span>
-                    {% endif %}
-                  </td>
-                  <td>
                     {% if doc.is_active %}
-                      <span class="badge bg-success">{% trans "Active" %}</span>
+                      <span class="badge bg-success d-block mt-1">{% trans "Active" %}</span>
                     {% else %}
-                      <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                      <span class="badge bg-secondary d-block mt-1">{% trans "Inactive" %}</span>
                     {% endif %}
                   </td>
                   <td>

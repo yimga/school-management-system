@@ -4,7 +4,7 @@
 {% block title %}Class Ranking{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
 <div class="d-flex align-items-center justify-content-between mb-3">
   <div>
     <h1 class="mb-0">Class Ranking</h1>
@@ -85,7 +85,7 @@
       {% endif %}
 
       <div class="table-responsive">
-        <table class="table table-sm align-middle table-family rmc-data-table" aria-label="Class ranking by average score">
+        <table class="table table-sm align-middle table-family rmc-data-table" aria-label="Class ranking by average score" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
           <thead>
             <tr>
               <th scope="col" style="width: 80px;">Rank</th>
@@ -95,7 +95,11 @@
           </thead>
           <tbody>
             {% for r in rows %}
-              <tr>
+              <tr data-rmc-row-detail="1"
+                  tabindex="0"
+                  data-rmc-row-title="{{ r.student }}"
+                  data-rmc-row-subtitle="{% trans 'Rank' %} {{ r.rank }}"
+                  data-rmc-row-meta='{"{% trans "Average" %}":"{{ r.average|format_number:2|escapejs }}"}'>
                 <td><span class="badge bg-dark">{{ r.rank }}</span></td>
                 <td>{{ r.student }}</td>
                 <td class="text-end">{{ r.average|format_number:2 }}</td>
@@ -112,5 +116,6 @@
   </div>
 </div>
 {% endif %}
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 </div>
 {% endblock %}

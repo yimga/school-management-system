@@ -849,6 +849,111 @@ def _apply_support_ticket(school_id, user_id: int, payload: dict[str, Any]) -> d
     return {"ok": True, "ticket_id": str(ticket.pk)}
 
 
+def _apply_homework_submission(
+    school_id,
+    user_id: int,
+    payload: dict[str, Any],
+    *,
+    force_local: bool = False,
+) -> dict[str, Any]:
+    """Persist a queued homework submission into ``School.settings`` academics bucket."""
+    from datetime import date as date_cls
+
+    from apps.academics.lesson_homework_kernel import (
+        homework_from_dict,
+        store_submission,
+        submit_student_work,
+    )
+    from apps.people.models import StudentProfile
+    from apps.schools.models import School
+
+    homework_id = str(payload.get("homework_id") or "").strip()
+    student_id = payload.get("student_id")
+    if not homework_id or student_id in (None, ""):
+        return {"ok": False, "error": "homework_id and student_id required."}
+    try:
+        student_id_int = int(student_id)
+    except (TypeError, ValueError):
+        return {"ok": False, "error": "Invalid student_id."}
+
+    school = School.objects.filter(pk=school_id).first()
+    if school is None:
+        return {"ok": False, "error": "school_not_found"}
+
+    student = StudentProfile.objects.filter(
+        pk=student_id_int,
+        school_id=school_id,
+    ).first()
+    if student is None:
+        return {"ok": False, "error": "student_not_found"}
+
+    settings = dict(school.settings or {})
+    academics = dict(settings.get("academics") or {})
+    homeworks = dict(academics.get("homeworks") or {})
+    hw_raw = homeworks.get(homework_id)
+    if not hw_raw:
+        return {"ok": False, "error": "homework_not_found"}
+    homework = homework_from_dict(hw_raw)
+    if homework.school_id and homework.school_id != school_id:
+        return {"ok": False, "error": "Tenant mismatch for homework."}
+
+    subs_bucket = dict(academics.get("homework_submissions") or {})
+    per_hw = dict(subs_bucket.get(homework_id) or {})
+    existing = per_hw.get(str(student_id_int))
+    if existing and not force_local:
+        return {
+            "ok": True,
+            "dedup": True,
+            "homework_id": homework_id,
+            "student_id": student_id_int,
+            "remote_wins": True,
+        }
+
+    submission_text = str(payload.get("submission_text") or payload.get("body") or "")
+    attachment_refs = payload.get("attachment_refs")
+    if attachment_refs is None and payload.get("attachments"):
+        attachment_refs = payload.get("attachments")
+    if isinstance(attachment_refs, str):
+        attachment_refs = [attachment_refs]
+    today_raw = payload.get("submitted_on") or payload.get("today")
+    today_obj: date_cls | None = None
+    if today_raw:
+        try:
+            if hasattr(today_raw, "isoformat"):
+                today_obj = today_raw
+            else:
+                today_obj = date_cls.fromisoformat(str(today_raw)[:10])
+        except (TypeError, ValueError):
+            today_obj = None
+
+    try:
+        submission = submit_student_work(
+            homework=homework,
+            student_id=student_id_int,
+            submission_text=submission_text,
+            attachment_refs=list(attachment_refs or []),
+            today=today_obj,
+        )
+    except ValueError as exc:
+        return {"ok": False, "error": str(exc)}
+    except Exception as exc:  # noqa: BLE001 — lifecycle guard
+        return {"ok": False, "error": str(exc)}
+
+    updated_settings = store_submission(
+        school_settings=settings,
+        submission=submission,
+    )
+    school.settings = updated_settings
+    school.save(update_fields=["settings", "updated_at"])
+    return {
+        "ok": True,
+        "homework_id": homework_id,
+        "student_id": student_id_int,
+        "late": submission.late,
+        "submitted_by_user_id": user_id,
+    }
+
+
 def _apply_payload(action: Any, *, force_local: bool = False) -> dict[str, Any]:
     from apps.platform_runtime.models import OfflineAction
     from apps.platform_runtime.offline_action_types import (
@@ -887,6 +992,14 @@ def _apply_payload(action: Any, *, force_local: bool = False) -> dict[str, Any]:
         return _apply_payment_receipt(sid, uid, payload)
     if at == OfflineAction.ActionType.NOTES_REPORT:
         return _apply_notes_report(sid, uid, payload)
+    if at == OfflineAction.ActionType.HOMEWORK_SUBMISSION:
+        return _apply_homework_submission(
+            sid, uid, payload, force_local=force_local
+        )
+    if at_norm == OfflineActionType.HOMEWORK_SUBMIT:
+        return _apply_homework_submission(
+            sid, uid, payload, force_local=force_local
+        )
     if at == OfflineAction.ActionType.SUPPORT_TICKET:
         return _apply_support_ticket(sid, uid, payload)
     if at == OfflineAction.ActionType.PROVISION_SIGNUP:

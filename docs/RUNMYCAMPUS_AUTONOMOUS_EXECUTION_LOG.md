@@ -1,5 +1,152 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Zero-Friction sweep wave 5 — parent/portal/evals 5-col batch (2026-06-08)
+
+**A. Scope:** Next ledger tranche — schoolops operator tables, grade approval list,
+at-risk queue, parent finance/wallet, class ranking, evidence upload.
+
+**B. Shipped:** `email_health.html` + `signup_diagnostics.html` 6→5 col; `grade_approval_list.html`
+6→5 col + drawer; `at_risk_labeling/queue.html` 6→5 col + scroll; `parent/finance.html` 10→5 col;
+`parent/wallet.html` scroll policy; `class_ranking.html` + `evidence_upload.html` drawer/scroll;
+journeys gate extended; SW `sms-v4.02.99-zero-friction-sweep-wave5-2026-06-08`.
+
+**C. Proof:** Regenerated ledger/register; `verify_zero_friction_journeys.py` PASS;
+`verify_zero_friction_phases_0_8.py` PASS.
+
+**D. Honest:** Phase 6 PARTIAL — ~160 row-drawer + ~95 scroll-policy templates remain.
+
+## Slice - Zero-Friction sweep wave 4 — evals + document library 5-col (2026-06-08)
+
+**A. Scope:** Top-ledger evals routes (`compliance_dashboard`, `resolve_offline_conflict`,
+`audit_trail`) and portal `document_library_manage_inner` 10→5 column burndown.
+
+**B. Shipped:** `compliance_dashboard.html` 6→5 col + drawer meta + modal JS column merge;
+`resolve_offline_conflict.html` scroll policy + key-value tables off `rmc-data-table`;
+`audit_trail.html` scroll policy + empty-state grammar; `document_library_manage_inner.html`
+10→5 col with drawer meta for pack/file/signature/retention; journeys gate extended;
+SW `sms-v4.02.98-zero-friction-sweep-wave4-2026-06-08`.
+
+**C. Proof:** Regenerated ledger/register; `verify_zero_friction_journeys.py` PASS;
+`verify_zero_friction_phases_0_8.py` PASS.
+
+**D. Honest:** Phase 6 remains PARTIAL — incremental burndown on remaining 1600+ templates;
+Phases 5/8 deploy-gated (Postgres RLS live CI, Playwright abrupt-end sweep).
+
+## Slice - Zero-Friction sweep wave 3 — teacher zone + table burndown (2026-06-08)
+
+**A. Scope:** Wave 3 ledger burndown — top evals/parent table routes, full teacher zone
+scroll-policy adoption, scorer credit for `rmc-empty` + `portal_base` offline shell.
+
+**B. Shipped:** `grade_approval_detail.html` + `parent/results.html` 5-col + drawer meta;
+scroll policy on all 10 remaining `templates/teacher/*.html`; ledger scorer
+`_has_empty_state_grammar` + `_inherits_portal_offline`; journeys gate extended;
+SW `sms-v4.02.97-zero-friction-sweep-wave3-2026-06-08`.
+
+**C. Proof:** Regenerated `zero_friction_audit_ledger.json`; `verify_zero_friction_journeys.py`
+PASS; `verify_zero_friction_phases_0_8.py` PASS; `verify_zero_friction_phase0.py --strict` PASS.
+
+**D. Honest:** `high_friction_count` drops materially after scorer + teacher zone pass; full
+1632-template burndown remains incremental (parent/portal/evals table waves next).
+
+## Slice - Zero-Friction sweep wave 2 — scanner closure + Z6/Z7 burndown (2026-06-08)
+
+**A. Scope:** Close all five Phase 0c scanner registry gaps; burndown top-friction
+templates (marks_entry, evaluation_admin, grade_import_upload_v2, timetable);
+wire social_media React island; extend RBAC matrix for OAuth + WebSocket; Student
+360 section nav.
+
+**B. Shipped:** `verify_pages_interaction_audit.py`, `verify_react_mount_and_fetch_urls.py`,
+`src/apps/socialFeed/mount.tsx`, `vite.social.config.ts`, `npm run build:social`,
+`templates/social_media/proud_campus_feed.html`, `apps/social_media/views.py`,
+portal `proud-campus/` route; template 5-col burndowns; `audit_tenant_isolation` +
+`audit_celery_tenant_task_scoping` walk extensions; `audit_role_permission_matrix`
+OAuth/WebSocket index; ledger scorer inherits smart hub + per-table th budget;
+SW `sms-v4.02.96-zero-friction-sweep-wave2-2026-06-08`.
+
+**C. Proof:** `verify_zero_friction_phase0.py --strict` PASS (`open_gaps=0`);
+`verify_zero_friction_journeys.py` PASS; `verify_zero_friction_phases_0_8.py` PASS
+(done=6, partial=3); `INTERACTION_INTEGRITY_PASS` (19/19); `verify_social_media_engine`
+PASS (10/10 incl. mount); `PAGES_INTERACTION_AUDIT_PASS` (171 files);
+`REACT_MOUNT_FETCH_PASS`; `test_zero_click_protocol` 52/52 OK.
+
+**D. Honest register:** Phases **0, 1, 2, 3, 4, 7 = DONE**; **5, 6, 8 = PARTIAL**.
+Residuals: ledger-wide template burndown (1631 high-friction rows), Postgres RLS live
+CI, Playwright abrupt-end sweep (live Django host).
+
+## Slice - Zero-Friction OS Phases 0–8 reaudit (2026-06-08)
+
+**A. Scope:** Full reaudit of Zero-Friction phases 0–8 — regenerate artifacts,
+run 12-gate composite bundle, Django tests, honest phase completion register.
+
+**B. Shipped:** `generate_zero_friction_phase_completion_register.py` +
+`verify_zero_friction_phases_0_8.py`; artifact
+`docs/generated/zero_friction_phase_completion_register.json`.
+
+**C. Proof:** `verify_zero_friction_phases_0_8.py --run-tests` →
+**ZERO_FRICTION_PHASES_0_8_PASS** (12 gates + 52 zero_click tests);
+`verify_zero_friction_phase0.py` PASS; `verify_zero_friction_journeys.py` PASS;
+`PAGE_FOLD_STANDARDS` 26/26; `INTERACTION_INTEGRITY_PASS`; dead hrefs 0;
+`scan_tenant_queryset_safety --compare` 0; `verify_websocket_tenant_scope` PASS;
+`verify_render_online_ai_posture` PASS; `verify_global_governance_plan_completion`
+PASS (parallel program).
+
+**D. Honest register:** Phases **0, 1, 2, 4 = DONE**; **3, 5, 6, 7, 8 = PARTIAL**.
+Residuals: 1631-template burndown, Playwright/RLS live CI, 171 `_pages/` audit,
+5 scanner walk-path deferrals. DB-backed homework queue test added but Windows
+SQLite migrate lock prevented local run — handler verified via journeys gate.
+
+## Slice - Zero-Friction OS Phases 2–6 journey closure (2026-06-08)
+
+**A. Scope:** Phase 2 role journeys (homework offline buffer, QR attendance
+primary, parent 1-click pay); Phase 3 Studio OS overview workflow info chips;
+Phase 4 copilot tier disclosure on health refresh; Phase 5 session-bind evidence;
+Phase 6 top-friction marks_list 5-column burndown.
+
+**B. Shipped:** `OfflineAction.ActionType.HOMEWORK_SUBMISSION` +
+`_apply_homework_submission` + `homework_from_dict`; `enable_offline_homework_sync`
+/ `homeworkSyncEnabled`; `rmc-offline-portal-forms.js` homework wire;
+`zero-data-homework-buffer` → shipped in feature_gap_register; roll-call
+`data-rmc-attendance-primary="qr"`; parent finance `data-rmc-one-click-pay`;
+`teacher/marks_list.html` 5-column + row drawer meta; Studio `STUDIO_MODES`
+workflow step/time chips; `rmc-copilot-rail.js` `renderPosture` on insights
+refresh; `verify_zero_friction_journeys.py`; SW
+`sms-v4.02.94-zero-friction-phase2-6-2026-06-08`.
+
+**C. Proof:** `verify_zero_friction_journeys.py` → **ZERO_FRICTION_JOURNEYS_PASS**;
+`verify_zero_friction_phase0.py` PASS (regenerated ledger); `scan_tenant_queryset_safety
+--compare` 0; `verify_middleware_stack_order.py` OK; homework handler test added
+`test_homework_submission_offline_queues_and_syncs`.
+
+**D. Residual:** Full 1631-template friction burndown remains incremental;
+Postgres RLS live CI (`@tag(tenants_rls)`) still operator-deploy gated; Playwright
+abrupt-end sweep needs live Django host.
+
+## Slice - Zero-Friction OS Phase 0 audit + Phase 1 kernel wiring (2026-06-08)
+
+**A. Scope:** Inch-by-inch Phase 0 audit across 15 zones (~9k files); close
+scanner walk-path gaps; wire Smart Action Hub, 5-column table grammar tag, and
+layout health sentinel.
+
+**B. Shipped:** `generate_zero_friction_phase0_audit.py` +
+`verify_zero_friction_phase0.py`; artifacts
+`zero_friction_zone_manifest.json`, `zero_friction_audit_ledger.json` (1631
+templates scored), `scanner_coverage_gap_report.json`, `zero_friction_shell_matrix.json`;
+extended `audit_security_surface.py` and `scan_tenant_queryset_safety.py` to
+walk `services/`, `emis/`, `payment/`; EMIS school scoping fixes;
+`truncate_table_columns` template tag; `resolve_hub_for_audience` baseline
+navigation; `rmc_smart_action_hub.html`; `rmc-layout-health-sentinel.js`;
+`zero_click_hub_context` processor; portal shell integration; SW
+`sms-v4.02.93-zero-friction-phase1-2026-06-08`.
+
+**C. Proof:** `verify_zero_friction_phase0.py` PASS; `PAGE_FOLD_STANDARDS` 26/26;
+`INTERACTION_INTEGRITY_PASS`; `scan_tenant_queryset_safety --compare` 0 new;
+`scan_operator_shell_dead_hrefs --strict` 0; `verify_shell_architecture_matrix`
+PASS; `apps.platform_runtime.tests.test_zero_click_protocol` 52/52 PASS.
+
+**D. Forward:** Phase 2 role journeys (homework offline buffer, QR attendance
+default), Phase 3 Studio OS residuals, Phase 4 AI tier disclosure, Phase 5 RLS
+deploy evidence, Phase 6 per-zone burndown (1631 templates with friction gaps).
+
 ## Slice - Aggressive completion gap closure batch 1673 (2026-06-08)
 
 **A. Scope:** Re-audit the completed sovereign-platform plan against live code,

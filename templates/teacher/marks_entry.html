@@ -273,18 +273,15 @@
         {% csrf_token %}
         <input type="hidden" name="subject_assignment_id" value="{{ sa.id }}">
 
-        <!-- table-column-budget-allow: gradebook-assessment-seven-column-set -->
         <!-- large-collection-allow: marks-entry-inline-grid -->
-        <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="Marks entry by student" data-tour="gradebook-grid" data-rmc-row-detail-table="1">
+        <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="Marks entry by student" data-tour="gradebook-grid" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
           <thead>
             <tr>
               <th scope="col">{% trans "Student" %}</th>
               <th scope="col" class="num" style="width:110px;">Sequence 1</th>
               <th scope="col" class="num" style="width:110px;">Sequence 2</th>
               <th scope="col" class="num" style="width:110px;">Exam</th>
-              <th scope="col" class="num" style="width:110px;">Mock</th>
-              <th scope="col" class="num" style="width:110px;">Practical</th>
-              <th scope="col">Remarks</th>
+              <th scope="col">{% trans "More scores" %}</th>
             </tr>
           </thead>
           <tbody>
@@ -296,7 +293,7 @@
                   tabindex="0"
                   data-rmc-row-title="{{ s.last_name }}, {{ s.first_name }}"
                   data-rmc-row-subtitle="{{ s.student_code }}"
-                  data-rmc-row-meta='{"{% trans "Code" %}":"{{ s.student_code|escapejs }}","{% trans "Class" %}":"{{ sa.classroom.name|default:""|escapejs }}"}'>
+                  data-rmc-row-meta='{"{% trans "Code" %}":"{{ s.student_code|escapejs }}","{% trans "Class" %}":"{{ sa.classroom.name|default:""|escapejs }}","Mock":"{% if e %}{{ e.mock_score|default:""|escapejs }}{% endif %}","Practical":"{% if e %}{{ e.practical_score|default:""|escapejs }}{% endif %}","Remarks":"{% if e %}{{ e.remarks|default:""|escapejs }}{% endif %}"}'>
                 <td>
                   <span class="student-cell">
                     <span class="av" aria-hidden="true">{{ s.first_name|slice:":1"|upper }}{{ s.last_name|slice:":1"|upper }}</span>
@@ -306,9 +303,15 @@
                 <td class="num"><input class="mark-cell" name="seq1_{{ s.id }}" data-rmc-ocr-field="seq1_score" value="{% if e %}{{ e.seq1_score }}{% endif %}" inputmode="decimal" min="0" max="20" {% if locked %}disabled{% endif %}></td>
                 <td class="num"><input class="mark-cell" name="seq2_{{ s.id }}" data-rmc-ocr-field="seq2_score" value="{% if e %}{{ e.seq2_score }}{% endif %}" inputmode="decimal" min="0" max="20" {% if locked %}disabled{% endif %}></td>
                 <td class="num"><input class="mark-cell" name="exam_{{ s.id }}" data-rmc-ocr-field="exam_score" value="{% if e %}{{ e.exam_score }}{% endif %}" inputmode="decimal" min="0" max="20" {% if locked %}disabled{% endif %}></td>
-                <td class="num"><input class="mark-cell" name="mock_{{ s.id }}" data-rmc-ocr-field="mock_score" value="{% if e %}{{ e.mock_score }}{% endif %}" inputmode="decimal" min="0" max="20" {% if locked %}disabled{% endif %}></td>
-                <td class="num"><input class="mark-cell" name="practical_{{ s.id }}" data-rmc-ocr-field="practical_score" value="{% if e %}{{ e.practical_score }}{% endif %}" inputmode="decimal" min="0" max="20" {% if locked %}disabled{% endif %}></td>
-                <td><input class="form-control form-control-sm" name="remarks_{{ s.id }}" value="{% if e %}{{ e.remarks }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+                <td>
+                  <div class="d-flex flex-wrap gap-1 align-items-center">
+                    <label class="visually-hidden" for="mock_{{ s.id }}">Mock</label>
+                    <input id="mock_{{ s.id }}" class="mark-cell" name="mock_{{ s.id }}" data-rmc-ocr-field="mock_score" value="{% if e %}{{ e.mock_score }}{% endif %}" inputmode="decimal" min="0" max="20" placeholder="Mock" {% if locked %}disabled{% endif %}>
+                    <label class="visually-hidden" for="practical_{{ s.id }}">Practical</label>
+                    <input id="practical_{{ s.id }}" class="mark-cell" name="practical_{{ s.id }}" data-rmc-ocr-field="practical_score" value="{% if e %}{{ e.practical_score }}{% endif %}" inputmode="decimal" min="0" max="20" placeholder="Prac." {% if locked %}disabled{% endif %}>
+                    <input class="form-control form-control-sm flex-grow-1" name="remarks_{{ s.id }}" value="{% if e %}{{ e.remarks }}{% endif %}" placeholder="{% trans 'Remarks' %}" {% if locked %}disabled{% endif %}>
+                  </div>
+                </td>
               </tr>
               {% endwith %}
             {% endfor %}
@@ -336,6 +339,7 @@
 <script src="{% static 'js/_pages/teacher__marks_entry.js' %}"></script>
 {% comment %} v4.00.10: progressive WAL enhancement for bulk gradebook. No-op when window.rmcWAL is absent. {% endcomment %}
 <script src="{% static 'js/_pages/rmc-gradebook-wal-enhance.js' %}" defer></script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 </div>
 {% endblock %}
 

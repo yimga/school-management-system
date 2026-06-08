@@ -96,6 +96,7 @@ from apps.people.employer_views import (
     employer_dashboard,
     employer_student_transcript,
 )
+from apps.social_media.views import proud_campus_feed
 from apps.student360.views import (
     student_360_page,
     student_360_export,
@@ -279,6 +280,7 @@ urlpatterns = [
     ),
     path("parent/feed/", parent_feed, name="parent_feed"),
     path("teacher/feed/", teacher_feed, name="teacher_feed"),
+    path("proud-campus/", proud_campus_feed, name="proud_campus_feed"),
     path("parent/contact-school/", parent_contact_school, name="parent_contact_school"),
     path("parent/medal-case/", parent_medal_case, name="parent_medal_case"),  # rbac-allow: inline-auth (login redirect inside view)
     path(

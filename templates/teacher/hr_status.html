@@ -5,6 +5,7 @@
 {% block title %}{% trans "HR & Status" %}{% endblock %}
 
 {% block content %}
+<div data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "HR & Status" %}</h1>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
@@ -34,4 +35,5 @@
       {% endif %}
     </div>
   </div>
+</div>
 {% endblock %}

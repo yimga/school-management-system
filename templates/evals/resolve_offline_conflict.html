@@ -5,7 +5,7 @@
 
 {% block backend_page %}
 {# semantic-btn-allow: bi-state-conflict-resolution keep-offline-vs-keep-online #}
-<div class="container mt-4" data-page-archetype="record-detail">
+<div class="container mt-4" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate">
     <div class="row">
         <div class="col-md-8 offset-md-2">
             <h1 class="mb-4">
@@ -28,7 +28,7 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            <table class="table table-sm table-family align-middle rmc-data-table">
+                            <table class="table table-sm table-family align-middle">
                               <caption class="visually-hidden">{% trans "Resolve Offline Conflict" %}</caption>
                                 <tr>
                                     <th>Seq 1:</th>
@@ -86,7 +86,7 @@
                         </div>
                         <div class="card-body">
                             {% if online_entry %}
-                            <table class="table table-sm table-family align-middle rmc-data-table">
+                            <table class="table table-sm table-family align-middle">
                               <caption class="visually-hidden">{% trans "Resolve Offline Conflict" %}</caption>
                                 <tr>
                                     <th>Seq 1:</th>

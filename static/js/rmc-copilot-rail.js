@@ -208,8 +208,7 @@
       if (!data) { return; }
       if (data.insights) { renderInsights(data.insights); }
       if (data.posture_mode) {
-        var pill = document.querySelector("[data-rmc-copilot-rail-posture]");
-        if (pill) { pill.setAttribute("data-state", data.posture_mode); }
+        renderPosture({ posture_mode: data.posture_mode });
       }
     }).catch(function () { /* silent — keep existing insights */ });
   }

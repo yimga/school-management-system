@@ -1,0 +1,2712 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-06-08T17:15:37.538988+00:00",
+  "protocol": "ZERO-FRICTION-OS-PHASE-0",
+  "role_passes": [
+    "principal_architect",
+    "data_engineer",
+    "security_engineer",
+    "devops_sre",
+    "lead_ui_ux",
+    "teacher_advocate",
+    "parent_student_advocate",
+    "admin_principal",
+    "automation_engineer",
+    "ai_sync_engineer",
+    "sales_cs",
+    "qa_supervisor"
+  ],
+  "template_rows_scored": 1632,
+  "gap_summary": {
+    "missing_row_detail_drawer": 158,
+    "missing_pagination_or_scroll_policy": 94,
+    "table_columns_6_exceeds_5": 39,
+    "table_columns_7_exceeds_5": 21,
+    "missing_smart_action_surface": 19,
+    "table_columns_8_exceeds_5": 11,
+    "table_columns_10_exceeds_5": 8,
+    "table_columns_9_exceeds_5": 5,
+    "table_columns_12_exceeds_5": 2,
+    "table_columns_11_exceeds_5": 2
+  },
+  "high_friction_threshold": 20,
+  "high_friction_count": 1627,
+  "top_100_routes": [
+    {
+      "path": "templates/teacher/leave.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 10,
+      "priority_score": 210,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 4,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/teacher/marks_entry.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 10,
+      "priority_score": 210,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/teacher/timetable.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 10,
+      "priority_score": 210,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/academics/syllabus_approval_queue.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 9,
+      "priority_score": 207,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/academics/workflow_done.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 9,
+      "priority_score": 207,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/academics/workflow_empty.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 9,
+      "priority_score": 207,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/academics/workflow_step.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 9,
+      "priority_score": 207,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/evals/extend_deadline.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 9,
+      "priority_score": 207,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/evals/grade_import_upload.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 9,
+      "priority_score": 207,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/grade_import_upload_v2.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 9,
+      "priority_score": 207,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/import_job_monitor.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 9,
+      "priority_score": 207,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/people/backend_classroom_list.html",
+      "zone": "people",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 5,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 25,
+      "daily_use_weight": 8,
+      "priority_score": 200,
+      "gaps": [
+        "table_columns_6_exceeds_5"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 6,
+        "has_pagination": true,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/schoolops/ops_pos.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 5,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 25,
+      "daily_use_weight": 8,
+      "priority_score": 200,
+      "gaps": [
+        "table_columns_10_exceeds_5",
+        "missing_row_detail_drawer"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 10,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/teacher/attendance.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 20,
+      "daily_use_weight": 10,
+      "priority_score": 200,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/teacher/disciplinary.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 20,
+      "daily_use_weight": 10,
+      "priority_score": 200,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/teacher/hr_status.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 20,
+      "daily_use_weight": 10,
+      "priority_score": 200,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/teacher/lesson_notes.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 20,
+      "daily_use_weight": 10,
+      "priority_score": 200,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/teacher/lesson_plan_add_attachment.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 20,
+      "daily_use_weight": 10,
+      "priority_score": 200,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/teacher/marks_list.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 20,
+      "daily_use_weight": 10,
+      "priority_score": 200,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": true,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/teacher/onboarding_wizard.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 20,
+      "daily_use_weight": 10,
+      "priority_score": 200,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/teacher/pay_history.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 20,
+      "daily_use_weight": 10,
+      "priority_score": 200,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/teacher/training_log.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 20,
+      "daily_use_weight": 10,
+      "priority_score": 200,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/teacher/wellness.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 20,
+      "daily_use_weight": 10,
+      "priority_score": 200,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/teacher/workflow_center.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 20,
+      "daily_use_weight": 10,
+      "priority_score": 200,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/compliance_dashboard.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 22,
+      "daily_use_weight": 9,
+      "priority_score": 198,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/evaluation_drilldown.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 22,
+      "daily_use_weight": 9,
+      "priority_score": 198,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/people/employer_dashboard.html",
+      "zone": "people",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_row_detail_drawer",
+        "missing_pagination_or_scroll_policy"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/people/employer_transcript.html",
+      "zone": "people",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_row_detail_drawer",
+        "missing_pagination_or_scroll_policy"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 2,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/badge_verify.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/email/forum_reply_notification.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/email/help_north_star_report.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/operator/faq_detail_body.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/operator/faq_list_body.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": true,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/operator/kb_article_body.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/operator/kb_category_body.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": true,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/operator/kb_home_body.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/operator/kb_office_upload_body.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/operator/kb_search_body.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/operator/office_list_body.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/partials/ai_draft_inline.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/partials/forum_compose_ai_assistant.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/partials/kb_ai_assistant_panel.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/partials/platform_status_strip.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/user_contributions.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 5,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "table_columns_6_exceeds_5"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 6,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/schoolops/email/locale/ar/low_meal_balance.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/email/locale/en/low_meal_balance.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/email/locale/es/low_meal_balance.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/email/locale/fr/low_meal_balance.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/email/locale/pt/low_meal_balance.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/email/low_meal_balance.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/lost_belongings_lookup.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/operator/meal_plan_analytics.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 8,
+      "priority_score": 192,
+      "gaps": [
+        "missing_pagination_or_scroll_policy"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 3,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/teacher/dashboard.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 19,
+      "daily_use_weight": 10,
+      "priority_score": 190,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/teacher/feed.html",
+      "zone": "teacher",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 19,
+      "daily_use_weight": 10,
+      "priority_score": 190,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/academics/ca_marks_input.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/academics/syllabus_clone.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/academics/syllabus_preview.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/academics/syllabus_upload.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/academics/teacher_syllabus_hub.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/evals/audit_trail.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/bulk_grade_entry.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/evals/class_ranking.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 3,
+        "has_pagination": true,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/evidence_upload.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 4,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/grade_approval_detail.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/school_ranking.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 3,
+        "empty_error_states": 2,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [
+        "missing_row_detail_drawer"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 4,
+        "has_pagination": true,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/parent/attendance_discipline.html",
+      "zone": "parent",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 4,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/parent/claim_invite.html",
+      "zone": "parent",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/parent/feed.html",
+      "zone": "parent",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/parent/link_child.html",
+      "zone": "parent",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/parent/link_child_wizard.html",
+      "zone": "parent",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/parent/medal_case.html",
+      "zone": "parent",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/parent/results.html",
+      "zone": "parent",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/parent/wallet.html",
+      "zone": "parent",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 4,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/parent/workflow_center.html",
+      "zone": "parent",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 21,
+      "daily_use_weight": 9,
+      "priority_score": 189,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/people/backend_applicant_create.html",
+      "zone": "people",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/people/backend_applicant_list.html",
+      "zone": "people",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 3,
+        "empty_error_states": 2,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": true,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/people/backend_classroom_detail.html",
+      "zone": "people",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/people/backend_student_create.html",
+      "zone": "people",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/people/backend_student_detail.html",
+      "zone": "people",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/people/backend_teacher_create.html",
+      "zone": "people",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/people/backend_teacher_detail.html",
+      "zone": "people",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/people/employer_confirm_hours.html",
+      "zone": "people",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/portal/offline_sync_queue.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 5,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [
+        "table_columns_7_exceeds_5"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 7,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/portal/operator/kb_docs_hub_body.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/portal/partials/document_library_manage_inner.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [
+        "missing_smart_action_surface"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/portal/signature_requests_manage.html",
+      "zone": "portal",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 5,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 2,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [
+        "table_columns_8_exceeds_5"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 8,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/schoolops/lost_belongings_mint.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/lost_belongings_recover.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/ops_canteen.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 3,
+        "empty_error_states": 2,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [
+        "missing_row_detail_drawer",
+        "missing_pagination_or_scroll_policy"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 2,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/ops_clinic.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 3,
+        "empty_error_states": 2,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [
+        "missing_row_detail_drawer",
+        "missing_pagination_or_scroll_policy"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 4,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/ops_hub.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/ops_inventory.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 3,
+        "empty_error_states": 2,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [
+        "missing_row_detail_drawer",
+        "missing_pagination_or_scroll_policy"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 3,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/ops_library.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 3,
+        "empty_error_states": 2,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [
+        "missing_row_detail_drawer",
+        "missing_pagination_or_scroll_policy"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 3,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/ops_substitutes.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 3,
+        "empty_error_states": 2,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [
+        "missing_row_detail_drawer",
+        "missing_pagination_or_scroll_policy"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/ops_timetabling.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 3,
+        "empty_error_states": 2,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [
+        "missing_row_detail_drawer",
+        "missing_pagination_or_scroll_policy"
+      ],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/ops_transport.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/substitute_handover_form.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/super/email_configure.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/schoolops/super/email_health.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/schoolops/super/invite_school.html",
+      "zone": "schoolops",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 23,
+      "daily_use_weight": 8,
+      "priority_score": 184,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    }
+  ],
+  "finance_audit_only": true
+}

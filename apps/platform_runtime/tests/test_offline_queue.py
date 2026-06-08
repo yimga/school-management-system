@@ -8,6 +8,12 @@ from decimal import Decimal
 from django.test import TestCase
 
 from apps.accounts.models import User
+from apps.academics.lesson_homework_kernel import (
+    PUBLISHED,
+    advance_homework_stage,
+    create_homework,
+    store_homework,
+)
 from apps.academics.models import (
     AcademicYear,
     Attendance,
@@ -302,6 +308,49 @@ class OfflineActionQueueTests(TestCase):
                 student_id=self.student.pk, subject_assignment_id=sa.pk
             ).exists()
         )
+
+    def test_homework_submission_offline_queues_and_syncs(self):
+        hw = create_homework(
+            school_id=self.school.pk,
+            teacher_user_id=self.user.pk,
+            classroom_id=self.classroom.pk,
+            subject="Math",
+            title="Fractions worksheet",
+            instructions="Complete exercises 1-10 on page 42.",
+            assigned_student_ids=[self.student.pk],
+            due_date=None,
+        )
+        hw = advance_homework_stage(
+            homework=hw, target_stage=PUBLISHED, actor_user_id=self.user.pk
+        )
+        self.school.settings = store_homework(
+            school_settings=dict(self.school.settings or {}),
+            homework=hw,
+        )
+        self.school.save(update_fields=["settings", "updated_at"])
+
+        enqueue_offline_action(
+            user_id=self.user.pk,
+            school_id=self.school.pk,
+            action_type=OfflineAction.ActionType.HOMEWORK_SUBMISSION,
+            payload={
+                "homework_id": hw.homework_id,
+                "student_id": self.student.pk,
+                "submission_text": "Done offline — see attachment ref hw-1",
+            },
+            idempotency_key="hw-offline-1",
+        )
+        out = process_offline_queue(school_id=self.school.pk, user_id=self.user.pk)
+        self.assertEqual(out["synced"], 1)
+        self.school.refresh_from_db()
+        subs = (
+            (self.school.settings or {})
+            .get("academics", {})
+            .get("homework_submissions", {})
+            .get(hw.homework_id, {})
+        )
+        self.assertIn(str(self.student.pk), subs)
+        self.assertIn("Done offline", subs[str(self.student.pk)]["submission_text"])
 
     def test_retry_failed(self):
         action = OfflineAction.objects.create(

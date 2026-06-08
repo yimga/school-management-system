@@ -97,6 +97,8 @@
                  data-rmc-signup-slug="1">
           <span class="input-group-text rmc-signup-domain-suffix">.runmycampus.com</span>
         </div>
+        {% comment %} Name-derived, pickable web-address suggestions (rmc-signup-form.js renders chips here). {% endcomment %}
+        <div class="rmc-slug-suggest" data-rmc-slug-suggestions hidden aria-label="{% trans 'Web address suggestions' %}"></div>
         <div class="form-text rmc-signup-field__hint">{% trans "Your school workspace lives at this URL. You can connect a custom domain later." %}</div>
       </div>
 

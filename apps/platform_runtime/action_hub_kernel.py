@@ -295,3 +295,117 @@ def build_student_hub(
 def empty_hub(persona: str = PERSONA_ANY) -> ActionHub:
     """A no-action hub — used as the default fallback."""
     return ActionHub(persona=persona, actions=())
+
+
+def _baseline_navigation_actions(persona: str) -> tuple[HubAction, ...]:
+    """Always-on thumb targets when no operational counts are present."""
+    if persona == PERSONA_TEACHER:
+        return (
+            HubAction(
+                key="nav.attendance",
+                label="Take attendance",
+                severity="info",
+                icon="bi-clipboard-check",
+                url_name="evals:teacher_dashboard",
+            ),
+            HubAction(
+                key="nav.marks",
+                label="Enter marks",
+                severity="info",
+                icon="bi-journal-text",
+                url_name="evals:teacher_marks_entry",
+            ),
+            HubAction(
+                key="nav.messages",
+                label="Messages",
+                severity="info",
+                icon="bi-chat-square-text",
+                href="/portal/messages/",
+            ),
+        )
+    if persona == PERSONA_PARENT:
+        return (
+            HubAction(
+                key="nav.finance",
+                label="Family finance",
+                severity="info",
+                icon="bi-receipt",
+                href="/parent/finance/",
+            ),
+            HubAction(
+                key="nav.messages",
+                label="School messages",
+                severity="info",
+                icon="bi-chat-square-text",
+                href="/portal/messages/",
+            ),
+            HubAction(
+                key="nav.calendar",
+                label="Calendar",
+                severity="info",
+                icon="bi-calendar-event",
+                href="/portal/calendar/",
+            ),
+        )
+    if persona == PERSONA_STUDENT:
+        return (
+            HubAction(
+                key="nav.homework",
+                label="Homework",
+                severity="info",
+                icon="bi-journal-arrow-up",
+                href="/student/homework/",
+            ),
+            HubAction(
+                key="nav.learning",
+                label="Learning home",
+                severity="info",
+                icon="bi-mortarboard",
+                href="/student/learning/",
+            ),
+        )
+    if persona == PERSONA_TENANT_ADMIN:
+        return (
+            HubAction(
+                key="nav.backend",
+                label="School workspace",
+                severity="info",
+                icon="bi-grid",
+                url_name="accounts:backend_dashboard",
+            ),
+            HubAction(
+                key="nav.people",
+                label="People directory",
+                severity="info",
+                icon="bi-people",
+                href="/school/people/students/",
+            ),
+        )
+    return ()
+
+
+def resolve_hub_for_audience(audience: str, **counts) -> ActionHub:
+    """Build persona hub; merge baseline navigation when no urgent chips exist."""
+    builders = {
+        "teacher": build_teacher_hub,
+        "parent": build_parent_hub,
+        "student": build_student_hub,
+        "tenant_admin": build_tenant_admin_hub,
+        "admin": build_tenant_admin_hub,
+    }
+    persona_map = {
+        "teacher": PERSONA_TEACHER,
+        "parent": PERSONA_PARENT,
+        "student": PERSONA_STUDENT,
+        "tenant_admin": PERSONA_TENANT_ADMIN,
+        "admin": PERSONA_TENANT_ADMIN,
+    }
+    persona = persona_map.get(audience, PERSONA_ANY)
+    builder = builders.get(audience)
+    hub = builder(**counts) if builder else empty_hub(persona)
+    if hub.non_empty_actions:
+        return hub
+    baseline = _baseline_navigation_actions(persona)
+    if baseline:
+        return ActionHub(persona=persona, actions=_sort_actions(baseline))
+    return hub

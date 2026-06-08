@@ -276,6 +276,34 @@ def main() -> int:
         "tenant_urls + school_finder_bento",
     )
 
+    pages_proc = subprocess.run(
+        [sys.executable, "scripts/verify_pages_interaction_audit.py"],
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+    add(
+        "18",
+        "_pages/ interaction audit green",
+        pages_proc.returncode == 0,
+        (pages_proc.stdout or pages_proc.stderr or "").strip()[-400:],
+    )
+
+    mount_proc = subprocess.run(
+        [sys.executable, "scripts/verify_react_mount_and_fetch_urls.py"],
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    add(
+        "19",
+        "React mount bundles + API fetch URLs",
+        mount_proc.returncode == 0,
+        (mount_proc.stdout or mount_proc.stderr or "").strip()[-400:],
+    )
+
     if os.environ.get("RMC_VERIFY_INTERACTION_SKIP_TESTS") == "1":
         tests_ok, test_tail = True, "skipped (RMC_VERIFY_INTERACTION_SKIP_TESTS=1)"
     else:

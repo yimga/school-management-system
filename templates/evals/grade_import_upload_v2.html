@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid mt-4" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
+<div class="container-fluid mt-4" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
     <div class="row">
         <div class="col-12">
             <h1 class="mb-4">
@@ -123,13 +123,12 @@
                     
                     <!-- Validation Table -->
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover table-family align-middle rmc-data-table" id="validationTable" aria-label="Bulk grade import validation preview">
+                        <table class="table table-sm table-hover table-family align-middle rmc-data-table" id="validationTable" aria-label="Bulk grade import validation preview" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
                             <thead class="bg-light">
                                 <tr>
                                     <th scope="col" style="width: 50px;">Row #</th>
                                     <th scope="col">Student Code</th>
-                                    <th scope="col">Subject</th>
-                                    <th scope="col">Scores</th>
+                                    <th scope="col">Assessment</th>
                                     <th scope="col">Status</th>
                                     <th scope="col">Issues</th>
                                 </tr>

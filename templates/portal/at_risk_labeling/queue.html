@@ -3,6 +3,7 @@
 {% load terminology_tags %}
 {% block title %}At-risk outcome labeling{% endblock %}
 {% block content %}
+<div data-rmc-scroll-policy="paginate">
 <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
   <div>
     <div class="eyebrow">{{ academic_year.name }}</div>
@@ -28,15 +29,14 @@
 <div class="card">
   <div class="card-body p-0">
     <div class="table-responsive">
-      <table class="table table-sm align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1">
+      <table class="table table-sm align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
         <thead class="table-light">
           <tr>
             <th scope="col">{% trans_term "Student" key="student" %}</th>
-            <th scope="col">Risk score</th>
-            <th scope="col">Band</th>
-            <th scope="col" style="min-width: 14rem;">Outcome label</th>
-            <th scope="col">Notes (optional)</th>
-            <th scope="col">Save</th>
+            <th scope="col">{% trans "Risk" %}</th>
+            <th scope="col" style="min-width: 14rem;">{% trans "Outcome label" %}</th>
+            <th scope="col">{% trans "Notes (optional)" %}</th>
+            <th scope="col">{% trans "Save" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -55,16 +55,10 @@
               </td>
               <td>
                 {% if risk %}
-                  <span class="font-monospace">{{ risk.score|floatformat:1 }}</span>
-                {% else %}
-                  <span class="text-muted">—</span>
-                {% endif %}
-              </td>
-              <td>
-                {% if risk %}
                   {% with band=risk.band %}
                     <span class="badge bg-{% if band == 'red' %}danger{% elif band == 'amber' %}warning{% else %}success{% endif %}">{{ band }}</span>
                   {% endwith %}
+                  <div class="font-monospace small text-muted">{{ risk.score|floatformat:1 }}</div>
                 {% else %}
                   <span class="text-muted">—</span>
                 {% endif %}
@@ -90,7 +84,7 @@
             </tr>
           {% empty %}
             <tr>
-              <td colspan="6" class="text-center text-muted py-4">
+              <td colspan="5" class="text-center text-muted py-4">
                 No active {% term_lower "student" plural=True %} in this {% term_lower "school" %} yet.
               </td>
             </tr>
@@ -109,4 +103,5 @@
   then retrain with   <code>python manage.py train_at_risk_baseline --csv var/at_risk_train.csv --clear-cache</code>.
 </p>
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
+</div>
 {% endblock %}

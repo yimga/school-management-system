@@ -23,6 +23,7 @@
 {% endblock %}
 
 {% block content %}
+<div data-rmc-scroll-policy="paginate" data-page-archetype="role-home">
 {% include "partials/tenant/hero_greeting.html" %}
 {% phase8_dashboard_declaration "teacher/dashboard.html" %}
 {% if phase7_de and role_home_declaration %}
@@ -678,6 +679,7 @@
 </div>
 {% endif %}
 {% endwith %}
+</div>
 {% endblock %}
 
 {% block extrajs %}

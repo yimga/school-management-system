@@ -22,13 +22,28 @@ def _get_site_for_emis(request=None, school=None):
         return None
 
 
+def _resolve_school(request=None, school=None):
+    if school is not None:
+        return school
+    if request is not None:
+        return getattr(request, "school", None)
+    return None
+
+
 class EMISExportService:
     """Service for exporting EMIS data in schema-safe, ministry-ready formats."""
 
-    def __init__(self, country_code: str = "CMR", request=None):
+    def __init__(self, country_code: str = "CMR", request=None, school=None):
         self.country_code = country_code
         self._request = request
+        self._school = _resolve_school(request, school)
         self.field_mappings = self._load_field_mappings()
+
+    def _with_school(self, qs, school=None):
+        scoped = school or self._school
+        if scoped is not None:
+            return qs.filter(school=scoped)
+        return qs
 
     def _load_field_mappings(self) -> Dict[str, Dict[str, Dict[str, Any]]]:
         mappings = EMISFieldMapping.objects.filter(
@@ -49,7 +64,11 @@ class EMISExportService:
 
     def export_students(self, academic_year: AcademicYear, term: Optional[Term] = None) -> Dict[str, Any]:
         students = (
-            StudentProfile.objects.filter(academic_year=academic_year, is_active=True)
+            StudentProfile.objects.filter(
+                school=academic_year.school,
+                academic_year=academic_year,
+                is_active=True,
+            )
             .select_related("user", "classroom", "specialty")
             .prefetch_related("guardian_links__guardian_user")
             .order_by("last_name", "first_name")
@@ -66,7 +85,7 @@ class EMISExportService:
 
     def export_teachers(self, academic_year: AcademicYear, term: Optional[Term] = None) -> Dict[str, Any]:
         teachers = (
-            TeacherProfile.objects.filter(is_active=True)
+            TeacherProfile.objects.filter(school=academic_year.school, is_active=True)
             .select_related("user", "department")
             .prefetch_related(
                 "assignments__subject_assignment__subject",
@@ -85,7 +104,10 @@ class EMISExportService:
         }
 
     def export_subjects(self, academic_year: AcademicYear, term: Optional[Term] = None) -> Dict[str, Any]:
-        assignments = SubjectAssignment.objects.filter(academic_year=academic_year)
+        assignments = SubjectAssignment.objects.filter(
+            school=academic_year.school,
+            academic_year=academic_year,
+        )
         if term:
             assignments = assignments.filter(term=term)
 
@@ -116,7 +138,10 @@ class EMISExportService:
         }
 
     def export_enrollment(self, academic_year: AcademicYear, term: Optional[Term] = None) -> Dict[str, Any]:
-        classrooms = Classroom.objects.filter(academic_year=academic_year).order_by("name")
+        classrooms = Classroom.objects.filter(
+            school=academic_year.school,
+            academic_year=academic_year,
+        ).order_by("name")
         data = [self._format_enrollment_data(classroom, term) for classroom in classrooms]
         return {
             "data": data,
@@ -125,7 +150,10 @@ class EMISExportService:
         }
 
     def export_performance(self, academic_year: AcademicYear, term: Optional[Term] = None) -> Dict[str, Any]:
-        classrooms = Classroom.objects.filter(academic_year=academic_year).order_by("name")
+        classrooms = Classroom.objects.filter(
+            school=academic_year.school,
+            academic_year=academic_year,
+        ).order_by("name")
         data = [self._format_performance_data(classroom, term) for classroom in classrooms]
         return {
             "data": data,
@@ -135,8 +163,19 @@ class EMISExportService:
 
     def export_infrastructure(self) -> Dict[str, Any]:
         site = _get_site_for_emis(self._request)
-        current_year = AcademicYear.objects.filter(is_active=True).order_by("-start_date").first()
-        student_qs = StudentProfile.objects.all()
+        school = self._school
+        if school is None:
+            return {
+                "data": [],
+                "count": 0,
+                "headers": self._get_headers("infrastructure", []),
+            }
+        current_year = (
+            AcademicYear.objects.filter(school=school, is_active=True)
+            .order_by("-start_date")
+            .first()
+        )
+        student_qs = StudentProfile.objects.filter(school=school)
         if current_year:
             student_qs = student_qs.filter(academic_year=current_year)
 
@@ -152,9 +191,12 @@ class EMISExportService:
                 "school_code": site.school_code or "SMS001",
                 "location": location,
                 "country": getattr(site, "country", "") or "",
-                "total_classrooms": Classroom.objects.count(),
+                "total_classrooms": Classroom.objects.filter(school=school).count(),
                 "total_students": student_qs.count(),
-                "total_teachers": TeacherProfile.objects.filter(is_active=True).count(),
+                "total_teachers": TeacherProfile.objects.filter(
+                    school=school,
+                    is_active=True,
+                ).count(),
                 "electricity_available": True,
                 "internet_available": True,
                 "library_available": True,
@@ -269,12 +311,17 @@ class EMISExportService:
 
     def _format_enrollment_data(self, classroom: Classroom, term: Optional[Term]) -> Dict[str, Any]:
         mapping = self.field_mappings.get("enrollment", {})
-        students = StudentProfile.objects.filter(classroom=classroom, is_active=True)
+        students = StudentProfile.objects.filter(
+            school=classroom.school,
+            classroom=classroom,
+            is_active=True,
+        )
         male = students.filter(gender=StudentProfile.Gender.MALE).count()
         female = students.filter(gender=StudentProfile.Gender.FEMALE).count()
 
         lead_assignment = (
             TeacherAssignment.objects.filter(
+                school=classroom.school,
                 subject_assignment__classroom=classroom,
                 academic_year=classroom.academic_year,
                 is_active=True,
@@ -303,7 +350,10 @@ class EMISExportService:
 
     def _format_performance_data(self, classroom: Classroom, term: Optional[Term]) -> Dict[str, Any]:
         mapping = self.field_mappings.get("performance", {})
-        evals = Evaluation.objects.filter(subject_assignment__classroom=classroom)
+        evals = Evaluation.objects.filter(
+            school=classroom.school,
+            subject_assignment__classroom=classroom,
+        )
         if term:
             evals = evals.filter(term=term)
 

@@ -147,7 +147,14 @@ def _governance_tier(pattern: str, legacy_cls: str, bucket: str, rel: str) -> st
 
 def _iter_py_files() -> list[Path]:
     out: list[Path] = []
-    for root in (REPO / "apps", REPO / "scripts", REPO / "config"):
+    for root in (
+        REPO / "apps",
+        REPO / "scripts",
+        REPO / "config",
+        REPO / "services",
+        REPO / "emis",
+        REPO / "payment",
+    ):
         if not root.is_dir():
             continue
         for p in root.rglob("*.py"):

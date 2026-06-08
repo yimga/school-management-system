@@ -80,13 +80,12 @@
                     <h5 class="mb-0">Teacher Submission Status</h5>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0 table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+                    <table class="table table-hover table-striped mb-0 table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
                       {% term "teacher" capitalize=True as teacher_sg_cap %}
                       <caption class="visually-hidden">{% blocktrans with t=teacher_sg_cap %}{{ t }} Submission Status{% endblocktrans %}</caption>
                         <thead class="bg-light">
                             <tr>
                                 <th>{% trans_term "Teacher" key="teacher" %}</th>
-                                <th>Code</th>
                                 <th>Classroom</th>
                                 <th>Completion Rate</th>
                                 <th>Status</th>
@@ -95,16 +94,19 @@
                         </thead>
                         <tbody>
                             {% for teacher in compliance_data %}
-                            <tr>
+                            <tr data-rmc-row-detail="1"
+                                tabindex="0"
+                                data-rmc-row-title="{{ teacher.teacher_name }}"
+                                data-rmc-row-subtitle="{{ teacher.teacher_code }}"
+                                data-rmc-row-meta='{"{% trans "Classroom" %}":"{{ teacher.classroom_name|escapejs }}","{% trans "Subjects" %}":"{{ teacher.classroom_count|escapejs }}"}'>
                                 <td>
                                     <span class="teacher-crossmodule-hover" data-teacher-id="{{ teacher.teacher_id }}">
                                       <strong>{{ teacher.teacher_name }}</strong>
                                       <span class="teacher-hover-bubble glass-tooltip" role="tooltip">{% trans "Hover for workload" %}</span>
                                     </span>
                                     <br>
-                                    <small class="text-muted">{{ teacher.classroom_count }} subjects</small>
+                                    <small class="text-muted">{{ teacher.teacher_code }} · {{ teacher.classroom_count }} {% trans "subjects" %}</small>
                                 </td>
-                                <td>{{ teacher.teacher_code }}</td>
                                 <td>{{ teacher.classroom_name }}</td>
                                 <td>
                                     <div class="progress" style="height: 20px;">
@@ -137,7 +139,7 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="6" class="p-0">
+                                <td colspan="5" class="p-0">
                                     <div class="py-3 px-2">
                                         {% load i18n %}
                                         {% url 'evals:evaluation_admin' as evals_url %}
@@ -168,14 +170,12 @@
             </div>
             <div class="modal-body">
                 <h6 id="teacherName" class="mb-3"></h6>
-                <table class="table table-sm align-middle">
+                <table class="table table-sm align-middle table-family">
                   <caption class="visually-hidden">{% blocktrans with t=teacher_sg_cap %}{{ t }} deadline details{% endblocktrans %}</caption>
                     <thead class="table-light">
                         <tr>
                             <th scope="col">{% trans_term "Subject" key="subject" %}</th>
                             <th scope="col">{% trans "Deadline" %}</th>
-                            <th scope="col" class="text-end">{% trans "Days left" %}</th>
-                            <th scope="col">{% trans "Submitted" %}</th>
                             <th scope="col">{% trans "Status" %}</th>
                             <th scope="col">{% trans "Action" %}</th>
                         </tr>
@@ -194,6 +194,8 @@
   "url_evals_extend_deadline": "{% url 'evals:extend_deadline' 0 %}"
 }</script><script src="{% static 'js/_pages/evals__compliance_dashboard-1.js' %}"></script>
 <script src="{% static 'js/teacher-crossmodule-hover.js' %}" defer></script>
+
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 
 {% comment %} AI Copilot Assistant {% endcomment %}
 {% include 'components/ai_copilot.html' %}

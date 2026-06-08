@@ -20,6 +20,7 @@ OFFLINE_MODE_BACKEND_FLAG_UPDATES: dict[str, object] = {
     "enable_offline_attendance_sync": True,
     "enable_offline_proximity_attendance_sync": True,
     "enable_offline_grade_sync": True,
+    "enable_offline_homework_sync": True,
     "enable_offline_payment_sync": True,
     "enable_offline_background_sync": True,
     "enable_offline_queue_encryption": True,

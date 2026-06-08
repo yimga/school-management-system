@@ -278,6 +278,34 @@
     });
   }
 
+  function wireHomeworkSubmission(form) {
+    form.addEventListener('submit', function (ev) {
+      if (navigator.onLine || !enabled()) return;
+      ev.preventDefault();
+      var hwEl = form.querySelector('[name="homework_id"]');
+      var sidEl = form.querySelector('[name="student_id"]');
+      var bodyEl = form.querySelector('[name="submission_text"], [name="body"], textarea');
+      var homeworkId = hwEl ? String(hwEl.value || '').trim() : '';
+      var studentId = sidEl && sidEl.value ? parseInt(sidEl.value, 10) : null;
+      var body = bodyEl ? String(bodyEl.value || '').trim() : '';
+      if (!homeworkId || !studentId || !body) {
+        toast('Homework id, student, and submission text are required offline.', 'warning');
+        return;
+      }
+      var idem = 'hw-' + homeworkId + '-' + studentId + '-' + Date.now();
+      window.rmcOfflineEnqueue({
+        action_type: 'homework_submission',
+        payload: {
+          homework_id: homeworkId,
+          student_id: studentId,
+          submission_text: body,
+        },
+        idempotency_key: idem.slice(0, 128),
+      });
+      toast('Homework queued for sync when you reconnect.', 'success');
+    });
+  }
+
   function wireSupportTicket(form) {
     form.addEventListener('submit', function (ev) {
       if (navigator.onLine || !enabled()) return;
@@ -310,6 +338,7 @@
     document.querySelectorAll('form[data-rmc-offline-form="grading"]').forEach(wireGrading);
     document.querySelectorAll('form[data-rmc-offline-form="payment_receipt"]').forEach(wirePaymentReceipt);
     document.querySelectorAll('form[data-rmc-offline-form="notes_report"]').forEach(wireNotesReport);
+    document.querySelectorAll('form[data-rmc-offline-form="homework_submission"]').forEach(wireHomeworkSubmission);
     document.querySelectorAll('form[data-rmc-offline-form="support_ticket"]').forEach(wireSupportTicket);
     document.querySelectorAll('form[data-rmc-offline-form="field_capture"]').forEach(wireFieldCapture);
   });

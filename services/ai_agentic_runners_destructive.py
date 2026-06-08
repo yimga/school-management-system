@@ -188,7 +188,7 @@ def reject_purge_request(erase_request_id: str) -> dict[str, Any]:
     try:
         from apps.compliance.models import EraseRequest  # type: ignore
 
-        er = EraseRequest.objects.filter(pk=erid).first()
+        er = EraseRequest.objects.filter(pk=erid).first()  # tenant-isolation-allow: service-layer-pk-lookup-operator-gated-erase-request
         if er is None:
             return {"ok": False, "error": "EraseRequest not found"}
         if er.status not in {EraseRequest.Status.PENDING, EraseRequest.Status.APPROVED}:

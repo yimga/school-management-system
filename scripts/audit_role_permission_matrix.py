@@ -52,8 +52,26 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 APPS = ROOT / "apps"
+CONFIG = ROOT / "config"
 OUT_JSON = ROOT / "docs" / "generated" / "role_permission_matrix.json"
 OUT_CSV = ROOT / "docs" / "generated" / "role_permission_matrix.csv"
+
+EXTRA_VIEW_FILES = (
+    APPS / "apicenter" / "oauth_views.py",
+    APPS / "api" / "consumers.py",
+)
+
+EXTRA_URLS_FILES = (
+    CONFIG / "urls.py",
+    CONFIG / "manager_urls.py",
+    CONFIG / "routing.py",
+    APPS / "apicenter" / "oauth_urls.py",
+)
+
+WEBSOCKET_PATH_RE = re.compile(
+    r"""re_path\(\s*r?["']([^"']*)["']\s*,\s*([A-Za-z_][A-Za-z0-9_.]*)\.as_asgi\(\)\s*\)""",
+    re.DOTALL,
+)
 
 KNOWN_AUTH_DECORATORS = {
     # Django built-ins / DRF
@@ -399,6 +417,62 @@ def scan_urls_file(path: Path) -> tuple[list[dict], dict[str, str]]:
     return rows, aliases
 
 
+def _scan_websocket_routing(
+    path: Path,
+    view_index: dict[str, dict],
+    auth_class_set: set[str],
+) -> list[dict]:
+    """Index Channels ``re_path`` routes from config/routing.py."""
+    rel = str(path.relative_to(ROOT)).replace("\\", "/")
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return []
+
+    rows: list[dict] = []
+    lines = text.splitlines()
+    for m in WEBSOCKET_PATH_RE.finditer(text):
+        pattern = m.group(1)
+        view_sym = m.group(2)
+        line_start = text.count("\n", 0, m.start()) + 1
+        line_text = lines[line_start - 1] if 0 < line_start <= len(lines) else ""
+        rbac_allow_reason: str | None = None
+        marker_match = RBAC_ALLOW_RE.search(line_text)
+        if marker_match:
+            rbac_allow_reason = marker_match.group(1).strip()
+        elif line_start > 1:
+            prev_line = lines[line_start - 2]
+            marker_match = RBAC_ALLOW_RE.search(prev_line)
+            if marker_match and prev_line.lstrip().startswith("#"):
+                rbac_allow_reason = marker_match.group(1).strip()
+
+        lookup_name = view_sym.rsplit(".", 1)[-1]
+        view_payload = view_index.get(lookup_name)
+        unresolved = view_payload is None
+        row: dict = {
+            "url_pattern": pattern,
+            "view_symbol": view_sym,
+            "urls_file": rel,
+            "view_file": view_payload["file"] if view_payload else None,
+            "kind": view_payload["kind"] if view_payload else "websocket",
+            "decorators": [
+                f"{d['name']}({', '.join(d['args'])})" if d["args"] else d["name"]
+                for d in (view_payload["decorators"] if view_payload else [])
+            ],
+            "drf_permission_classes": view_payload["drf_permission_classes"] if view_payload else [],
+            "bases": view_payload["bases"] if view_payload else [],
+            "roles_required": _role_args(view_payload),
+            "rbac_allow_reason": rbac_allow_reason,
+            "unresolved": unresolved,
+        }
+        classification = _classify(view_payload, rbac_allow_reason, auth_class_set)
+        if unresolved and not rbac_allow_reason:
+            classification["candidate_anonymous"] = False
+        row.update(classification)
+        rows.append(row)
+    return rows
+
+
 def _resolve_view(view_sym: str, aliases: dict[str, str], view_index: dict[str, dict]) -> dict | None:
     """Best-effort lookup: try alias map, then dotted-suffix, then bare name."""
     # Strip `.as_view` so MyClass.as_view -> MyClass.
@@ -491,8 +565,11 @@ def main() -> int:
     # DRF class-based views (which previous passes missed because they were in
     # files like apps/api/dashboard_api.py / apps/finance/api_views.py).
     view_files: set[Path] = set()
-    for pattern in ("views*.py", "*_views.py", "*_api.py", "api_views.py"):
+    for pattern in ("views*.py", "*_views.py", "*_api.py", "api_views.py", "consumers.py", "oauth_views.py"):
         view_files.update(APPS.rglob(pattern))
+    for extra in EXTRA_VIEW_FILES:
+        if extra.is_file():
+            view_files.add(extra)
 
     view_index: dict[str, dict] = {}
     for views_path in view_files:
@@ -508,8 +585,17 @@ def main() -> int:
     auth_class_set = _build_auth_class_set(view_index)
 
     rows: list[dict] = []
-    for urls_path in APPS.rglob("urls*.py"):
+    urls_files: set[Path] = set(APPS.rglob("urls*.py"))
+    for extra in EXTRA_URLS_FILES:
+        if extra.is_file():
+            urls_files.add(extra)
+
+    for urls_path in sorted(urls_files):
         if "/tests/" in str(urls_path).replace("\\", "/"):
+            continue
+        rel = str(urls_path.relative_to(ROOT)).replace("\\", "/")
+        if rel.endswith("routing.py"):
+            rows.extend(_scan_websocket_routing(urls_path, view_index, auth_class_set))
             continue
         scanned_rows, aliases = scan_urls_file(urls_path)
         for raw in scanned_rows:

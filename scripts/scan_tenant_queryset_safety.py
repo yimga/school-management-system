@@ -39,6 +39,12 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 APPS_DIR = REPO_ROOT / "apps"
+SCAN_ROOTS = (
+    REPO_ROOT / "apps",
+    REPO_ROOT / "services",
+    REPO_ROOT / "emis",
+    REPO_ROOT / "payment",
+)
 BASELINE_PATH = REPO_ROOT / "var" / "security-audit-baseline-tenant-isolation.json"
 
 EXCLUDE_DIR_NAMES = {
@@ -336,15 +342,19 @@ def main(argv: list[str]) -> int:
     print(f"[scanner] tenant-scoped models: {len(tenant_names)}", file=sys.stderr)
 
     findings: list[dict] = []
-    for py_path in APPS_DIR.rglob("*.py"):
-        if _is_excluded(py_path):
+    for scan_root in SCAN_ROOTS:
+        if not scan_root.is_dir():
             continue
-        findings.extend(scan_file(py_path, tenant_names))
+        for py_path in scan_root.rglob("*.py"):
+            if _is_excluded(py_path):
+                continue
+            findings.extend(scan_file(py_path, tenant_names))
 
     findings.sort(key=lambda f: (f["file"], f["line"]))
     by_app: dict[str, int] = defaultdict(int)
     for f in findings:
-        app = f["file"].split("/")[1] if f["file"].startswith("apps/") else "other"
+        parts = f["file"].split("/")
+        app = parts[1] if len(parts) > 1 else "other"
         by_app[app] += 1
 
     payload = {

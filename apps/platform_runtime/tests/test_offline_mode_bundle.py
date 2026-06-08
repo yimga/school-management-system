@@ -20,6 +20,7 @@ class OfflineModeBundleTests(TestCase):
             {"enable_portal_pwa": False, "custom_flag": True}
         )
         self.assertTrue(merged["enable_offline_attendance_sync"])
+        self.assertTrue(merged["enable_offline_homework_sync"])
         self.assertFalse(merged["enable_portal_pwa"])
         self.assertTrue(merged["custom_flag"])
 

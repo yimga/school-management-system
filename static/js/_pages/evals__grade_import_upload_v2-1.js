@@ -101,13 +101,25 @@
               ? '<span class="badge badge-danger">✗ Error</span>'
               : '<span class="badge badge-warning">⚠ Warning</span>');
 
+        tr.setAttribute("data-rmc-row-detail", "1");
+        tr.setAttribute("tabindex", "0");
+        tr.setAttribute("data-rmc-row-title", row.student_code || "");
+        tr.setAttribute(
+          "data-rmc-row-meta",
+          JSON.stringify({
+            Subject: String(row.subject_assignment_id || ""),
+            Seq1: String(row.seq1 || ""),
+            Seq2: String(row.seq2 || ""),
+            Exam: String(row.exam || ""),
+          }),
+        );
         tr.innerHTML =
           "<td><strong>" + (idx + 2) + "</strong></td>" +
           "<td>" + escapeHtml(row.student_code) + "</td>" +
-          "<td>" + escapeHtml(row.subject_assignment_id) + "</td>" +
-          "<td><small>Seq1: " + escapeHtml(row.seq1) +
-          " | Seq2: " + escapeHtml(row.seq2) +
-          " | Exam: " + escapeHtml(row.exam) + "</small></td>" +
+          "<td><small><span class=\"text-muted\">Subject " + escapeHtml(row.subject_assignment_id) + "</span><br>" +
+          "Seq1: " + escapeHtml(row.seq1) +
+          " · Seq2: " + escapeHtml(row.seq2) +
+          " · Exam: " + escapeHtml(row.exam) + "</small></td>" +
           "<td>" + statusBadge + "</td>" +
           "<td>" + (issues.length
             ? "<small>" + issues.map(escapeHtml).join("<br>") + "</small>"

@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="report-card-print-wrapper results-page" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
+<div class="report-card-print-wrapper results-page" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate">
   {% comment %} ----- Page header: title + actions (fewer clicks via grouped Download) ----- {% endcomment %}
   <header class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-end gap-3 mb-4 no-print">
     <div>
@@ -164,16 +164,12 @@
         <h2 id="results-table-heading" class="visually-hidden">{% blocktrans with t=res_subject_pl %}{{ t }} results{% endblocktrans %}</h2>
         <div class="table-responsive">
           <!-- large-collection-allow: dashboard-widget-capped-list -->
-<table class="table table-sm table-striped align-middle table-mobile-cards mb-0 table-family rmc-data-table" aria-label="{% trans 'Term results: subject, coefficient, sequence and exam scores, average, and status' %}" data-rmc-row-detail-table="1">
+<table class="table table-sm table-striped align-middle table-mobile-cards mb-0 table-family rmc-data-table" aria-label="{% trans 'Term results: subject, coefficient, sequence and exam scores, average, and status' %}" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
             <thead class="table-light">
               <tr>
                 <th scope="col">{% trans_term "Subject" key="subject" %}</th>
                 <th scope="col">{% trans "Coef" %}</th>
-                <th scope="col">Seq1</th>
-                <th scope="col">Seq2</th>
                 <th scope="col">{% trans_term "Exam" key="exam" %}</th>
-                <th scope="col">Mock</th>
-                <th scope="col">{% trans "Pract" %}</th>
                 <th scope="col">{% trans "Avg" %}</th>
                 <th scope="col">{% trans "Status" %}</th>
               </tr>
@@ -184,14 +180,10 @@
                     tabindex="0"
                     data-rmc-row-title="{{ r.subject }}"
                     data-rmc-row-subtitle="{% if r.avg is not None %}{{ r.avg }}{% else %}{% trans 'Pending' %}{% endif %}"
-                    data-rmc-row-meta='{"{% trans "Coef" %}":"{{ r.coef }}","{% trans "Status" %}":"{% if r.avg is None %}{% trans "Pending" %}{% elif r.avg >= 10 %}{% trans "Pass" %}{% else %}{% trans "Needs work" %}{% endif %}"}'>
+                    data-rmc-row-meta='{"{% trans "Coef" %}":"{{ r.coef }}","Seq1":"{% if r.seq1 is not None %}{{ r.seq1|escapejs }}{% endif %}","Seq2":"{% if r.seq2 is not None %}{{ r.seq2|escapejs }}{% endif %}","Mock":"{% if r.mock is not None %}{{ r.mock|escapejs }}{% endif %}","{% trans "Pract" %}":"{% if r.practical is not None %}{{ r.practical|escapejs }}{% endif %}","{% trans "Status" %}":"{% if r.avg is None %}{% trans "Pending" %}{% elif r.avg >= 10 %}{% trans "Pass" %}{% else %}{% trans "Needs work" %}{% endif %}"}'>
                   <td data-label="{% term 'subject' capitalize=True %}">{{ r.subject }}</td>
                   <td data-label="{% trans 'Coef' %}">{{ r.coef }}</td>
-                  <td data-label="Seq1">{{ r.seq1|default_if_none:"" }}</td>
-                  <td data-label="Seq2">{{ r.seq2|default_if_none:"" }}</td>
                   <td data-label="{% trans 'Exam' %}">{{ r.exam|default_if_none:"" }}</td>
-                  <td data-label="Mock">{{ r.mock|default_if_none:"" }}</td>
-                  <td data-label="{% trans 'Pract' %}">{{ r.practical|default_if_none:"" }}</td>
                   <td data-label="{% trans 'Avg' %}">{{ r.avg|default_if_none:"" }}</td>
                   <td data-label="{% trans 'Status' %}">
                     {% if r.avg is None %}
@@ -205,7 +197,7 @@
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="9" class="text-muted py-4 text-center">{% trans "No marks for this term yet. They will appear when the school publishes results." %}</td>
+                  <td colspan="5" class="text-muted py-4 text-center">{% trans "No marks for this term yet. They will appear when the school publishes results." %}</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -219,5 +211,6 @@
       </div>
     </section>
   {% endif %}
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 </div>
 {% endblock %}

@@ -212,6 +212,39 @@ class Homework:
         }
 
 
+def homework_from_dict(data: dict[str, Any]) -> Homework:
+    """Rehydrate a ``Homework`` from ``School.settings`` JSON."""
+    due_raw = (data.get("due_date") or "").strip()
+    due_date: date_type | None = None
+    if due_raw:
+        try:
+            due_date = date_type.fromisoformat(str(due_raw)[:10])
+        except (TypeError, ValueError):
+            due_date = None
+    assigned_raw = data.get("assigned_student_ids") or []
+    assigned_ids = tuple(
+        int(sid) for sid in assigned_raw if str(sid).strip().isdigit()
+    )
+    classroom_raw = data.get("classroom_id")
+    classroom_id = int(classroom_raw) if classroom_raw not in (None, "") else None
+    return Homework(
+        homework_id=str(data.get("homework_id") or ""),
+        school_id=int(data.get("school_id") or 0),
+        teacher_user_id=int(data.get("teacher_user_id") or 0),
+        classroom_id=classroom_id,
+        subject=str(data.get("subject") or "")[:120],
+        title=str(data.get("title") or "")[:240],
+        instructions=str(data.get("instructions") or "")[:4000],
+        assigned_student_ids=assigned_ids,
+        due_date=due_date,
+        max_score_percent=int(data.get("max_score_percent") or 100),
+        attachment_refs=tuple(data.get("attachment_refs") or ()),
+        stage=str(data.get("stage") or DRAFT),
+        created_at=str(data.get("created_at") or _now_iso()),
+        updated_at=str(data.get("updated_at") or _now_iso()),
+    )
+
+
 def create_homework(
     *,
     school_id: int,

@@ -44,7 +44,7 @@
         {% endif %}
       </div>
       <div class="d-flex flex-wrap gap-2 align-items-center">
-        <a class="btn btn-primary" href="{{ pay_all_url }}">{% trans "Pay all" %}</a>
+        <a class="btn btn-primary" href="{{ pay_all_url }}" data-rmc-one-click-pay="1" data-task-step="finance:pay-all">{% trans "Pay all" %}</a>
         {% if parent_wallet %}
         <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_wallet' %}">{% trans "Wallet" %}: {{ parent_wallet.balance }}</a>
         {% else %}
@@ -215,18 +215,13 @@
       </div>
       {% if invoice_rows %}
         <div class="table-responsive">
-          <table class="table align-middle table-mobile-cards table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Your invoices: reference, student, due date, status, total, balance, and actions' %}" data-rmc-row-detail-table="1">
+          <table class="table align-middle table-mobile-cards table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Your invoices: reference, student, due date, status, total, balance, and actions' %}" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
             <thead class="table-light">
             <tr>
               <th scope="col">{% trans "Reference" %}</th>
-              <th scope="col">{% trans "Payment code (MoMo)" %}</th>
               <th scope="col">{% trans_term "Student" key="student" %}</th>
-              <th scope="col">{% trans "Due" %}</th>
-              <th scope="col">{% trans "Status" %}</th>
-              <th scope="col">{% trans "Method" %}</th>
-              <th scope="col" class="text-end">{% trans "Total" %}</th>
+              <th scope="col">{% trans "Due & status" %}</th>
               <th scope="col" class="text-end">{% trans "Balance" %}</th>
-              <th scope="col">{% trans "Attachment" %}</th>
               <th scope="col" class="text-end">{% trans "Action" %}</th>
             </tr>
             </thead>
@@ -237,23 +232,22 @@
                   tabindex="0"
                   data-rmc-row-title="{{ invoice.reference|default:invoice.id }}"
                   data-rmc-row-subtitle="{{ invoice.student|default:'-' }}"
-                  data-rmc-row-meta='{"{% trans "Due" %}":"{{ invoice.due_date|format_date|default:"—"|escapejs }}","{% trans "Status" %}":"{{ invoice.get_status_display|escapejs }}","{% trans "Balance" %}":"{{ invoice.balance_amount|format_currency|escapejs }}"}'>
-                <td data-label="{% trans 'Reference' %}">{{ invoice.reference|default:invoice.id }}</td>
-                <td data-label="{% trans 'Payment code' %}"><code class="small">{{ invoice.payment_code|default:"—" }}</code></td>
-                <td data-label="{% term 'student' capitalize=True %}">{{ invoice.student|default:"-" }}</td>
-                <td data-label="{% trans 'Due' %}">{{ invoice.due_date|format_date|default:"—" }}</td>
-                <td data-label="{% trans 'Status' %}">
-                  <span class="badge bg-light text-dark border">{{ invoice.get_status_display }}</span>
-                </td>
-                <td data-label="{% trans 'Method' %}">{{ row.preferred_method }}</td>
-                <td class="text-end" data-label="{% trans 'Total' %}">{{ invoice.total_amount|format_currency }}</td>
-                <td class="text-end" data-label="{% trans 'Balance' %}">{{ invoice.balance_amount|format_currency }}</td>
-                <td class="text-center" data-label="{% trans 'Attachment' %}">
-                  {% if row.attachment_url %}
-                    <a href="{{ row.attachment_url }}" target="_blank" rel="noopener noreferrer">{% trans "View" %}</a>
-                  {% else %}
-                    <span class="text-muted small">{% trans "N/A" %}</span>
+                  data-rmc-row-meta='{"{% trans "MoMo code" %}":"{{ invoice.payment_code|default:"—"|escapejs }}","{% trans "Method" %}":"{{ row.preferred_method|escapejs }}","{% trans "Total" %}":"{{ invoice.total_amount|format_currency|escapejs }}","{% trans "Attachment" %}":"{% if row.attachment_url %}{% trans "Yes" %}{% else %}{% trans "N/A" %}{% endif %}"}'>
+                <td data-label="{% trans 'Reference' %}">
+                  {{ invoice.reference|default:invoice.id }}
+                  {% if invoice.payment_code %}
+                    <div class="small text-muted"><code>{{ invoice.payment_code }}</code></div>
                   {% endif %}
+                </td>
+                <td data-label="{% term 'student' capitalize=True %}">{{ invoice.student|default:"-" }}</td>
+                <td data-label="{% trans 'Due & status' %}">
+                  <div>{{ invoice.due_date|format_date|default:"—" }}</div>
+                  <span class="badge bg-light text-dark border">{{ invoice.get_status_display }}</span>
+                  <div class="small text-muted">{{ row.preferred_method }}</div>
+                </td>
+                <td class="text-end" data-label="{% trans 'Balance' %}">
+                  <div>{{ invoice.balance_amount|format_currency }}</div>
+                  <div class="small text-muted">{% trans "of" %} {{ invoice.total_amount|format_currency }}</div>
                 </td>
                 <td class="text-end" data-label="{% trans 'Action' %}">
                   {% if link %}

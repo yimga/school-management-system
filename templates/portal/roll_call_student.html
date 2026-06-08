@@ -38,7 +38,7 @@
         </div>
       </form>
       {% if classroom and students_with_status %}
-        <div class="card border-success mb-3" id="qr-attendance-sweep" data-rmc-qr-attendance="1">
+        <div class="card border-success mb-3" id="qr-attendance-sweep" data-rmc-qr-attendance="1" data-rmc-attendance-primary="qr">
           <div class="card-body">
             <h6 class="mb-2">{% trans "Card / QR sweep" %}</h6>
             <p class="small text-muted mb-2">{% trans "Paste scanned tokens (one per line). Students are marked present without ticking each row." %}</p>

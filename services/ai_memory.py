@@ -132,14 +132,14 @@ class AIMemoryService:
             from django.db.models import Q
             from services.embeddings import embedding_provider_descriptor
 
-            qs = AIEmbeddingStore.objects.filter(
+            base_qs = AIEmbeddingStore.objects.filter(  # tenant-isolation-allow: service-layer-conditional-school-filter-below
                 scope=scope,
                 lifecycle_status="active",
             ).filter(
                 Q(retention_until__isnull=True) | Q(retention_until__gt=timezone.now())
             )
             model_id = embedding_provider_descriptor()
-            qs = qs.filter(Q(embedding_model="") | Q(embedding_model=model_id))
+            qs = base_qs.filter(Q(embedding_model="") | Q(embedding_model=model_id))
             if school_id:
                 qs = qs.filter(Q(school_id=school_id) | Q(school_id__isnull=True))
             elif global_only:

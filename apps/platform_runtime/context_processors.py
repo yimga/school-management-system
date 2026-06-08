@@ -148,6 +148,27 @@ def ai_operating_layer_context(request):
         }
 
 
+def zero_click_hub_context(request):
+    """Smart Action Hub strip (action_hub_kernel) for authenticated portal users."""
+    user = getattr(request, "user", None)
+    if not user or not getattr(user, "is_authenticated", False):
+        return {"rmc_zero_click_hub": None, "rmc_zero_click_hub_available": False}
+    if getattr(request, "public_host_kind", None) == "manager":
+        return {"rmc_zero_click_hub": None, "rmc_zero_click_hub_available": False}
+    try:
+        from apps.platform_runtime.action_engine import infer_primary_audience
+        from apps.platform_runtime.action_hub_kernel import resolve_hub_for_audience
+
+        audience = infer_primary_audience(user)
+        hub = resolve_hub_for_audience(audience)
+        return {
+            "rmc_zero_click_hub": hub,
+            "rmc_zero_click_hub_available": bool(hub.non_empty_actions),
+        }
+    except Exception:  # noqa: BLE001
+        return {"rmc_zero_click_hub": None, "rmc_zero_click_hub_available": False}
+
+
 def system_actions_context(request):
     """
     Cross-cutting next actions for dashboard strips (apps.platform_runtime.action_engine).

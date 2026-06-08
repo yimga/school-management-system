@@ -195,24 +195,23 @@
     {% if evals %}
     <div class="table-responsive" data-table-density-key="evaluation_admin">
       <!-- large-collection-allow: dashboard-widget-capped-list -->
-<table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Evaluations: student, class, subject, evidence, and score components' %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+<table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Evaluations: student, class, subject, evidence, and score components' %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
             <th scope="col">{% trans_term "Student" key="student" %}</th>
             <th scope="col">{% trans_term "Class" key="class" %}</th>
             <th scope="col">{% trans_term "Subject" key="subject" %}</th>
             <th scope="col" class="text-center">{% trans "Evidence" %}</th>
-            <th scope="col" class="num">{% trans "Seq 1" %}</th>
-            <th scope="col" class="num">{% trans "Seq 2" %}</th>
-            <th scope="col" class="num">{% trans_term "Exam" key="exam" %}</th>
-            <th scope="col" class="num">{% trans "Mock" %}</th>
-            <th scope="col" class="num">{% trans "Practical" %}</th>
             <th scope="col" class="num">{% trans "Total" %}</th>
           </tr>
         </thead>
         <tbody>
           {% for e in evals %}
-            <tr>
+            <tr data-rmc-row-detail="1"
+                tabindex="0"
+                data-rmc-row-title="{{ e.student }}"
+                data-rmc-row-subtitle="{{ e.subject_assignment.subject.name }}"
+                data-rmc-row-meta='{"{% trans "Seq 1" %}":"{{ e.seq1_score|default:"-"|escapejs }}","{% trans "Seq 2" %}":"{{ e.seq2_score|default:"-"|escapejs }}","{% trans_term "Exam" key="exam" %}":"{{ e.exam_score|default:"-"|escapejs }}","{% trans "Mock" %}":"{{ e.mock_score|default:"-"|escapejs }}","{% trans "Practical" %}":"{{ e.practical_score|default:"-"|escapejs }}"}'>
               <td>
                 <span class="student-cell">
                   <span class="av" aria-hidden="true">{{ e.student|stringformat:"s"|slice:":1"|upper }}</span>
@@ -226,11 +225,6 @@
                   {% blocktrans count counter=e.evidence.count %}{{ counter }} file{% plural %}{{ counter }} files{% endblocktrans %}
                 </a>
               </td>
-              <td class="num">{{ e.seq1_score|default:"-" }}</td>
-              <td class="num">{{ e.seq2_score|default:"-" }}</td>
-              <td class="num">{{ e.exam_score|default:"-" }}</td>
-              <td class="num">{{ e.mock_score|default:"-" }}</td>
-              <td class="num">{{ e.practical_score|default:"-" }}</td>
               <td class="num fw-semibold {% if e.total_score is not None and pass_mark is not None and e.total_score < pass_mark %}cell-fail{% endif %}">{{ e.total_score|format_number:2 }}</td>
             </tr>
           {% endfor %}
@@ -255,6 +249,7 @@
   </div>
 </div>
 <script src="{% static 'js/_pages/evals__evaluation_admin.js' %}"></script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% include "components/was_this_helpful.html" with feedback_id="evaluation-admin" %}
 </div>
 {% endblock %}

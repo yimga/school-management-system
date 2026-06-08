@@ -81,25 +81,15 @@
 
 <div class="card card-grammar" data-rmc-page="teacher-gradebook">
   <div class="card-body table-responsive">
-    <table class="table table-sm table-striped align-middle table-family table-sticky-head gradebook-table rmc-data-table" data-rmc-row-detail-table="1">
+    <table class="table table-sm table-striped align-middle table-family table-sticky-head gradebook-table rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "My Marks" %}</caption>
       <thead class="gradebook-thead-sticky">
         <tr>
-          <th scope="col">Updated</th>
           <th scope="col">{% trans "Student" %}</th>
           <th scope="col">Subject</th>
           <th scope="col">Class</th>
-          <th scope="col">Specialty</th>
           <th scope="col">{% term_label %}</th>
-          <th scope="col">Sequence 1</th>
-          <th scope="col">Sequence 2</th>
           <th scope="col">Exam</th>
-          <th scope="col">Mock</th>
-          <th scope="col">Practical</th>
-          {% if rosetta_target %}
-          <th scope="col" title="Cross-scale preview">{{ rosetta_column_label|default:rosetta_target }}</th>
-          {% endif %}
-          <th scope="col">Remarks</th>
         </tr>
       </thead>
       <tbody>
@@ -109,27 +99,17 @@
               tabindex="0"
               data-rmc-row-title="{{ e.student.last_name }}, {{ e.student.first_name }}"
               data-rmc-row-subtitle="{{ e.student.student_code }}"
-              data-rmc-row-meta='{"{% trans "Subject" %}":"{{ e.subject_assignment.subject.name|escapejs }}","{% trans "Class" %}":"{{ e.subject_assignment.classroom.name|escapejs }}","{% term_label %}":"{{ e.term.get_name_display|escapejs }}"}'>
-            <td>{{ e.updated_at }}</td>
+              data-rmc-row-meta='{"Updated":"{{ e.updated_at|escapejs }}","Subject":"{{ e.subject_assignment.subject.name|escapejs }}","Class":"{{ e.subject_assignment.classroom.name|escapejs }}","Specialty":"{{ e.subject_assignment.specialty.name|escapejs }}","Term":"{{ e.term.get_name_display|escapejs }}","Seq1":"{{ e.seq1_score|default:e.test1|escapejs }}","Seq2":"{{ e.seq2_score|default:e.test2|escapejs }}","Mock":"{{ e.mock_score|escapejs }}","Practical":"{{ e.practical_score|escapejs }}"{% if rosetta_target %},"Rosetta":"{% if row.rosetta.ok %}{{ row.rosetta.display|escapejs }}{% endif %}"{% endif %},"Remarks":"{{ e.remarks|escapejs }}"}'>
             <td>{{ e.student.last_name }} {{ e.student.first_name }} ({{ e.student.student_code }})</td>
             <td>{{ e.subject_assignment.subject.name }}</td>
             <td>{{ e.subject_assignment.classroom.name }}</td>
-            <td>{{ e.subject_assignment.specialty.name }}</td>
             <td>{{ e.term.get_name_display }}</td>
-            <td>{{ e.seq1_score|default:e.test1 }}</td>
-            <td>{{ e.seq2_score|default:e.test2 }}</td>
-            <td>{{ e.exam_score }}</td>
-            <td>{{ e.mock_score }}</td>
-            <td>{{ e.practical_score }}</td>
-            {% if rosetta_target %}
-            <td class="text-nowrap small">{% if row.rosetta.ok %}{{ row.rosetta.display }}{% else %}—{% endif %}</td>
-            {% endif %}
-            <td>{{ e.remarks }}</td>
+            <td>{{ e.exam_score|default:"—" }}</td>
           </tr>
           {% endwith %}
         {% empty %}
           <tr>
-            <td colspan="{% if rosetta_target %}13{% else %}12{% endif %}">
+            <td colspan="5">
               <div class="rmc-empty rmc-empty--row" role="status" aria-live="polite">
                 <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-table"></i></div>
                 <p class="rmc-empty__message">{% trans "No marks entered yet for the selected filters." %}</p>

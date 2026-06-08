@@ -3,7 +3,7 @@
 {% comment %} Section 15.1 / 26.1: Full Student 360 UI — summary, academic, finance, attendance, timeline (tabbed). {% endcomment %}
 {% block title %}Student 360 — {{ student.get_full_name }}{% endblock %}
 {% block content %}
-<div class="container-fluid py-3">
+<div class="container-fluid py-3" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required">
   <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
     <div data-page-header="1">
       <h1 class="h4 mb-1">Student 360 — {{ student.get_full_name }}</h1>
@@ -21,6 +21,14 @@
       <a href="{% url 'accounts:backend_student_list' %}" class="btn btn-outline-secondary btn-sm ds-btn"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to students" %}</a>
     </div>
   </div>
+
+  <nav class="rmc-section-nav mb-2" aria-label="{% trans 'Student 360 sections' %}">
+    <a class="rmc-section-nav__link" href="#panel-summary" data-rmc-section-anchor>{% trans "Summary" %}</a>
+    <a class="rmc-section-nav__link" href="#panel-academic" data-rmc-section-anchor>{% trans "Academic" %}</a>
+    <a class="rmc-section-nav__link" href="#panel-finance" data-rmc-section-anchor>{% trans "Finance" %}</a>
+    <a class="rmc-section-nav__link" href="#panel-attendance" data-rmc-section-anchor>{% trans "Attendance" %}</a>
+    <a class="rmc-section-nav__link" href="#panel-timeline" data-rmc-section-anchor>{% trans "Timeline" %}</a>
+  </nav>
 
   <ul class="nav nav-tabs mb-3" id="student360Tabs" role="tablist">
     <li class="nav-item" role="presentation">

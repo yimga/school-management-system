@@ -26,10 +26,15 @@ from .services import EMISExportService
 def emis_dashboard(request):
     """EMIS dashboard view"""
     site = get_effective_site_settings(request)
+    school = getattr(request, "school", None)
 
     # Get available academic years and terms
-    academic_years = AcademicYear.objects.all().order_by('-start_date')
-    current_year = AcademicYear.objects.filter(is_active=True).first()
+    if school is None:
+        academic_years = AcademicYear.objects.none()
+        current_year = None
+    else:
+        academic_years = AcademicYear.objects.filter(school=school).order_by("-start_date")
+        current_year = academic_years.filter(is_active=True).first()
 
     # Get supported countries
     supported_countries = EMISCompliance.objects.filter(is_active=True)
@@ -54,15 +59,28 @@ def emis_dashboard(request):
     # Entity counts for chart
     year_for_counts = current_year or academic_years.first()
     if year_for_counts:
-        students_count = StudentProfile.objects.filter(academic_year=year_for_counts, is_active=True).count()
-        teachers_count = TeacherProfile.objects.filter(is_active=True).count()
+        students_count = StudentProfile.objects.filter(
+            school=year_for_counts.school,
+            academic_year=year_for_counts,
+            is_active=True,
+        ).count()
+        teachers_count = TeacherProfile.objects.filter(
+            school=year_for_counts.school,
+            is_active=True,
+        ).count()
         subjects_count = (
-            SubjectAssignment.objects.filter(academic_year=year_for_counts)
+            SubjectAssignment.objects.filter(
+                school=year_for_counts.school,
+                academic_year=year_for_counts,
+            )
             .values("subject_id")
             .distinct()
             .count()
         )
-        classes_count = Classroom.objects.filter(academic_year=year_for_counts).count()
+        classes_count = Classroom.objects.filter(
+            school=year_for_counts.school,
+            academic_year=year_for_counts,
+        ).count()
     else:
         students_count = teachers_count = subjects_count = classes_count = 0
 
@@ -153,8 +171,20 @@ def export_emis_data(request):
 
     try:
         # Validate inputs
-        academic_year = AcademicYear.objects.get(id=academic_year_id)
-        term = Term.objects.get(id=term_id) if term_id else None
+        school = getattr(request, "school", None)
+        if school is None:
+            raise AcademicYear.DoesNotExist
+        academic_year = AcademicYear.objects.filter(
+            id=academic_year_id,
+            school=school,
+        ).get()
+        term = None
+        if term_id:
+            term = Term.objects.filter(
+                id=term_id,
+                school=school,
+                academic_year=academic_year,
+            ).get()
 
         # Initialize export service (pass request for tenant-scoped site settings)
         service = EMISExportService(country_code, request=request)

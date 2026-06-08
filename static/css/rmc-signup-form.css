@@ -84,9 +84,82 @@
   box-shadow: 0 0 0 2px var(--focus-ring, rgba(59, 130, 246, 0.45)); /* off-token-allow: focus-ring-a11y-fallback */
 }
 
+/* Name-derived web-address suggestion chips (rendered by rmc-signup-form.js).
+ * A small, pickable row under the slug field: the cleanest available option is
+ * preselected (.is-selected); taken options are de-emphasised (.is-taken). */
+.rmc-slug-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.rmc-slug-suggest[hidden] {
+  display: none;
+}
+
+.rmc-slug-suggest__label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted, #6c6c70); /* off-token-allow: suggest-label-text-muted-fallback-WCAG-AA */
+}
+
+.rmc-slug-suggest__chip {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.18rem 0.6rem;
+  margin: 0;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  border-radius: 999px;
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.14)); /* off-token-allow: suggest-chip-hairline-fallback */
+  background: var(--surface-1, transparent);
+  color: var(--text-primary, #1c1c1e); /* off-token-allow: suggest-chip-text-fallback-WCAG-AA */
+  transition: color 120ms linear, background-color 120ms linear, border-color 120ms linear;
+}
+
+.rmc-slug-suggest__chip:hover,
+.rmc-slug-suggest__chip:focus-visible {
+  background: var(--surface-2, rgba(0, 0, 0, 0.05)); /* off-token-allow: suggest-chip-hover-surface-fallback */
+  border-color: var(--border-strong, rgba(0, 0, 0, 0.28)); /* off-token-allow: suggest-chip-hover-border-fallback */
+  outline: none;
+}
+
+.rmc-slug-suggest__chip:focus-visible {
+  box-shadow: 0 0 0 2px var(--focus-ring, rgba(59, 130, 246, 0.45)); /* off-token-allow: focus-ring-a11y-fallback */
+}
+
+.rmc-slug-suggest__chip.is-selected {
+  color: var(--text-success, #166534); /* off-token-allow: suggest-chip-selected-text-fallback-WCAG-AA */
+  background: var(--surface-success-soft, rgba(22, 101, 52, 0.08)); /* off-token-allow: suggest-chip-selected-surface-fallback */
+  border-color: var(--border-success-soft, rgba(22, 101, 52, 0.4)); /* off-token-allow: suggest-chip-selected-border-fallback */
+}
+
+.rmc-slug-suggest__chip.is-taken {
+  color: var(--text-muted, #6c6c70); /* off-token-allow: suggest-chip-taken-text-muted-fallback */
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.rmc-slug-suggest__chip-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rmc-slug-pill,
-  .rmc-slug-pill__suggestion {
+  .rmc-slug-pill__suggestion,
+  .rmc-slug-suggest__chip {
     transition: none;
   }
 }

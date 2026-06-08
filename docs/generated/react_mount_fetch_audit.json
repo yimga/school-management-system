@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-06-08T16:49:10.990947+00:00",
+  "status": "REACT_MOUNT_FETCH_PASS",
+  "mount_refs": [
+    "js/dist/lux-workspace.mount.js",
+    "js/dist/social-feed.mount.js",
+    "js/dist/world-globe.mount.js"
+  ],
+  "error_count": 0,
+  "errors": []
+}

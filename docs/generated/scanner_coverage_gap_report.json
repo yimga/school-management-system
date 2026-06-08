@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-06-08T17:15:37.540221+00:00",
+  "protocol": "ZERO-FRICTION-OS-PHASE-0",
+  "scanner_entries": 7,
+  "open_gaps": 0,
+  "resolved_gaps": 7,
+  "gaps": [
+    {
+      "scanner": "audit_security_surface.py",
+      "walks": [
+        "apps/",
+        "config/",
+        "scripts/",
+        "services/",
+        "emis/",
+        "payment/"
+      ],
+      "misses": [],
+      "remediation": "resolved_phase0c",
+      "status": "resolved"
+    },
+    {
+      "scanner": "scan_tenant_queryset_safety.py",
+      "walks": [
+        "apps/",
+        "services/",
+        "emis/",
+        "payment/"
+      ],
+      "misses": [],
+      "remediation": "resolved_phase0c",
+      "status": "resolved"
+    },
+    {
+      "scanner": "audit_tenant_isolation.py",
+      "walks": [
+        "apps/",
+        "config/",
+        "services/",
+        "emis/",
+        "payment/"
+      ],
+      "misses": [],
+      "remediation": "resolved_phase0c_extend_walk_paths",
+      "status": "resolved"
+    },
+    {
+      "scanner": "audit_celery_tenant_task_scoping.py",
+      "walks": [
+        "apps/**/tasks*.py",
+        "services/**/tasks*.py",
+        "apps/**/tasks/**/*.py"
+      ],
+      "misses": [],
+      "remediation": "resolved_extend_task_glob",
+      "status": "resolved"
+    },
+    {
+      "scanner": "scan_operator_shell_dead_hrefs.py",
+      "walks": [
+        "shell template hrefs",
+        "verify_react_mount_and_fetch_urls.py"
+      ],
+      "misses": [],
+      "remediation": "resolved_verify_react_mount_and_fetch_urls",
+      "status": "resolved"
+    },
+    {
+      "scanner": "verify_interaction_integrity_completion.py",
+      "walks": [
+        "shell JS/CSS",
+        "verify_pages_interaction_audit.py"
+      ],
+      "misses": [],
+      "remediation": "resolved_verify_pages_interaction_audit",
+      "status": "resolved"
+    },
+    {
+      "scanner": "audit_role_permission_matrix.py",
+      "walks": [
+        "apps/*/views*.py",
+        "apps/apicenter/oauth_views.py",
+        "apps/api/consumers.py",
+        "config/urls.py",
+        "config/routing.py"
+      ],
+      "misses": [],
+      "remediation": "resolved_extend_oauth_websocket_index",
+      "status": "resolved"
+    }
+  ],
+  "phase0_note": "Phase 0c closed all scanner registry gaps: tenant isolation walk extended, celery task glob extended, react mount/fetch verifier added, _pages audit verifier added, RBAC matrix extended for OAuth + WebSocket routes."
+}

@@ -11,11 +11,13 @@ from django.test import SimpleTestCase
 from apps.platform_runtime.action_hub_kernel import (
     HubAction,
     PERSONA_PARENT,
+    PERSONA_TEACHER,
     build_parent_hub,
     build_student_hub,
     build_teacher_hub,
     build_tenant_admin_hub,
     empty_hub,
+    resolve_hub_for_audience,
 )
 from apps.platform_runtime.empty_state_kernel import (
     EmptyStateCard,
@@ -350,3 +352,32 @@ class ActionHubTests(SimpleTestCase):
         hub = build_tenant_admin_hub(pending_admissions=1)
         with self.assertRaises(Exception):
             hub.actions = ()  # type: ignore[misc]
+
+    def test_resolve_hub_for_teacher_includes_baseline_when_empty(self) -> None:
+        hub = resolve_hub_for_audience("teacher")
+        self.assertEqual(hub.persona, PERSONA_TEACHER)
+        self.assertGreaterEqual(len(hub.non_empty_actions), 3)
+
+    def test_resolve_hub_for_parent_baseline_navigation(self) -> None:
+        hub = resolve_hub_for_audience("parent")
+        keys = {a.key for a in hub.non_empty_actions}
+        self.assertIn("nav.finance", keys)
+
+
+class TableGrammarTagTests(SimpleTestCase):
+    def test_truncate_table_columns_tag_partitions(self) -> None:
+        from apps.platform_runtime.templatetags.zero_click_tags import truncate_table_columns
+
+        defs = [
+            {"key": "name", "label": "Name"},
+            {"key": "status", "label": "Status"},
+            {"key": "balance", "label": "Balance"},
+            {"key": "notes", "label": "Notes", "always_drawer": True},
+            {"key": "owner", "label": "Owner"},
+            {"key": "created", "label": "Created"},
+        ]
+        result = truncate_table_columns(defs, persona="teacher", max_visible=5)
+        self.assertEqual(len(result["visible"]), 5)
+        self.assertGreaterEqual(len(result["drawer"]), 1)
+        drawer_keys = {c.key for c in result["drawer"]}
+        self.assertIn("notes", drawer_keys)

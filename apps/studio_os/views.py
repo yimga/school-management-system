@@ -50,22 +50,36 @@ STUDIO_MODES = [
         "id": "experience",
         "label": "Experience",
         "description": "Shape branding, theme, and portals",
+        "workflow_step_count": 4,
+        "workflow_typical_minutes": 12,
     },
     {
         "id": "automation",
         "label": "Automation",
         "description": "Workflows, approvals, and automation",
+        "workflow_step_count": 5,
+        "workflow_typical_minutes": 18,
     },
     {
         "id": "output",
         "label": "Outputs",
         "description": "Reports, documents, and exports",
+        "workflow_step_count": 3,
+        "workflow_typical_minutes": 10,
     },
-    {"id": "launch", "label": "Launch", "description": "Setup and go live"},
+    {
+        "id": "launch",
+        "label": "Launch",
+        "description": "Setup and go live",
+        "workflow_step_count": 6,
+        "workflow_typical_minutes": 25,
+    },
     {
         "id": "control",
         "label": "Control",
         "description": "Capabilities, policies, and runtime",
+        "workflow_step_count": 4,
+        "workflow_typical_minutes": 15,
     },
 ]
 
