@@ -3,6 +3,8 @@ Audit & Monitoring models for comprehensive logging, access control, and complia
 Phase 4: Audit logging for all model changes, user actions, and system events.
 """
 
+import uuid
+
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
@@ -134,6 +136,84 @@ class AuditLog(AppendOnlyModelMixin, models.Model):
             new = self.new_values.get(field) if self.new_values else None
             changes[field] = (old, new)
         return changes
+
+
+class AuditLegalHold(models.Model):
+    """Prevent matching compliance records from entering retention archives or purges."""
+
+    name = models.CharField(max_length=200)
+    reason = models.TextField()
+    model_label = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Optional app_label.ModelName scope. Blank applies to every supported model.",
+    )
+    object_id = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Optional primary-key scope. Requires model_label.",
+    )
+    starts_at = models.DateTimeField(
+        null=True, blank=True, help_text="Optional protected record range start."
+    )
+    ends_at = models.DateTimeField(
+        null=True, blank=True, help_text="Optional protected record range end."
+    )
+    is_active = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="audit_legal_holds_created",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["is_active", "model_label"]),
+            models.Index(fields=["model_label", "object_id"]),
+        ]
+
+    def __str__(self):
+        scope = self.model_label or "all compliance records"
+        if self.object_id:
+            scope = f"{scope}:{self.object_id}"
+        return f"{self.name} ({scope})"
+
+
+class AuditArchiveRecord(models.Model):
+    """Immutable verification metadata for one archive-before-purge bundle."""
+
+    class Status(models.TextChoices):
+        VERIFIED = "VERIFIED", "Verified"
+        PURGED = "PURGED", "Purged"
+
+    archive_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    model_label = models.CharField(max_length=200, db_index=True)
+    timestamp_field = models.CharField(max_length=100)
+    cutoff_at = models.DateTimeField(db_index=True)
+    record_count = models.PositiveIntegerField()
+    first_record_at = models.DateTimeField(null=True, blank=True)
+    last_record_at = models.DateTimeField(null=True, blank=True)
+    relative_path = models.CharField(max_length=500, unique=True)
+    sha256 = models.CharField(max_length=64)
+    signature = models.CharField(max_length=64)
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.VERIFIED, db_index=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    purged_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["model_label", "status", "-created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.model_label} {self.archive_id} ({self.status})"
 
 
 class UserActivitySession(models.Model):

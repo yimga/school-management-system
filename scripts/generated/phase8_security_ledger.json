@@ -454,7 +454,7 @@
       "verdict": "keep_with_hardening"
     }
   },
-  "generated_at": "2026-06-07T11:29:21.399627+00:00",
+  "generated_at": "2026-06-08T09:09:36.932161+00:00",
   "raw_sql": {
     "apps/accounts/legacy_hashes/key_rotation.py": {
       "expected_count": 1,

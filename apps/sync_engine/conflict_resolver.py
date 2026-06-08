@@ -1,63 +1,79 @@
-"""Conflict-resolution strategies for offline sync replay.
-
-``apply_remote`` (apps/sync_engine/services.py) detects duplicate-key conflicts
-but intentionally does not decide what to do — that is a per-entity policy
-choice. This module supplies the canonical strategies so the caller can
-``resolve_conflicts(conflicts, strategy=...)`` and get a deterministic outcome.
-
-Strategies:
-
-- ``last_write_wins``   — keep the most recent change (highest ``timestamp``)
-- ``server_authoritative`` — drop the remote change; server-side row stays
-- ``manual_review``     — leave the conflict for an operator to triage; never
-                          auto-applies. Used when correctness matters more
-                          than throughput (e.g. financial entries).
-
-Per-entity defaults are configurable via ``DEFAULT_STRATEGY_PER_ENTITY``.
-"""
+"""Canonical, policy-governed conflict resolution for offline sync replay."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from datetime import datetime, timezone
+from apps.sync_engine.crdt_wire_protocol import HLC
+from apps.sync_engine.policy_registry import (
+    MergeStrategy,
+    POLICIES,
+    POLICY_VERSION,
+    get_policy,
+    normalize_entity,
+)
 
 
 class ResolutionStrategy:
-    LAST_WRITE_WINS = "last_write_wins"
-    SERVER_AUTHORITATIVE = "server_authoritative"
-    MANUAL_REVIEW = "manual_review"
+    # Compatibility name retained for existing callers. It now means causal
+    # logical-clock ordering, never a raw wall-clock race.
+    LAST_WRITE_WINS = MergeStrategy.CAUSAL_LWW
+    CAUSAL_LWW = MergeStrategy.CAUSAL_LWW
+    SERVER_AUTHORITATIVE = MergeStrategy.SERVER_AUTHORITATIVE
+    MANUAL_REVIEW = MergeStrategy.MANUAL_REVIEW
+    FIELD_MERGE = MergeStrategy.FIELD_MERGE
+    APPEND_ONLY = MergeStrategy.APPEND_ONLY
 
 
-# Per-entity default strategy. Anything not listed falls back to MANUAL_REVIEW
-# (safe-by-default — operator must opt into auto-resolution per entity type).
 DEFAULT_STRATEGY_PER_ENTITY: dict[str, str] = {
-    "attendance_record": ResolutionStrategy.LAST_WRITE_WINS,
-    "student_note": ResolutionStrategy.LAST_WRITE_WINS,
-    "lesson_plan": ResolutionStrategy.LAST_WRITE_WINS,
-    "grade_entry": ResolutionStrategy.MANUAL_REVIEW,  # money-adjacent, never auto
-    "payment_proof_upload": ResolutionStrategy.MANUAL_REVIEW,
-    "invoice_line": ResolutionStrategy.MANUAL_REVIEW,
-    "user_profile": ResolutionStrategy.SERVER_AUTHORITATIVE,
-    "permission_grant": ResolutionStrategy.SERVER_AUTHORITATIVE,
+    entity: policy.strategy for entity, policy in POLICIES.items()
 }
 
 
-def _parse_ts(value: Any) -> datetime | None:
-    if value is None:
-        return None
-    if isinstance(value, datetime):
-        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
-    s = str(value).strip()
-    if not s:
-        return None
-    # Try common ISO 8601 forms; never raise on unparseable strings.
-    try:
-        if s.endswith("Z"):
-            s = s[:-1] + "+00:00"
-        return datetime.fromisoformat(s)
-    except Exception:
-        return None
+def _parse_causal_rank(value: Any) -> tuple[int, int, str] | None:
+    if isinstance(value, HLC):
+        return (value.physical_ms, value.logical, value.actor_id)
+    if isinstance(value, str):
+        try:
+            parsed = HLC.from_wire(value)
+        except ValueError:
+            return None
+        return (parsed.physical_ms, parsed.logical, parsed.actor_id)
+    if isinstance(value, dict):
+        try:
+            logical = int(value.get("lamport", value.get("logical")))
+        except (TypeError, ValueError):
+            return None
+        replica = str(
+            value.get("replica_id") or value.get("actor_id") or ""
+        ).strip()
+        if logical < 0 or not replica:
+            return None
+        return (0, logical, replica)
+    return None
+
+
+def _causal_decision(conflict: dict[str, Any]) -> dict[str, Any]:
+    remote_rank = _parse_causal_rank(
+        conflict.get("remote_clock")
+        or conflict.get("remote_hlc")
+        or conflict.get("remote_revision")
+    )
+    server_rank = _parse_causal_rank(
+        conflict.get("server_clock")
+        or conflict.get("server_hlc")
+        or conflict.get("server_revision")
+    )
+    if remote_rank is None or server_rank is None:
+        return {
+            "action": "manual_review",
+            "reason": "causal_lww requires remote_clock and server_clock",
+        }
+    if remote_rank > server_rank:
+        return {"action": "keep_remote", "reason": "remote causal rank is newer"}
+    if server_rank > remote_rank:
+        return {"action": "keep_server", "reason": "server causal rank is newer"}
+    return {"action": "keep_server", "reason": "causal rank tie: prefer server"}
 
 
 def resolve_one(
@@ -65,39 +81,52 @@ def resolve_one(
     *,
     strategy: str | None = None,
 ) -> dict[str, Any]:
-    """Decide what to do with a single conflict.
-
-    Returns a dict shaped:
-      ``{"action": "keep_remote"|"keep_server"|"manual_review", "reason": "..."}``
-    """
-    entity = str(conflict.get("entity") or "").strip()
-    chosen = (
-        strategy
-        or DEFAULT_STRATEGY_PER_ENTITY.get(entity, ResolutionStrategy.MANUAL_REVIEW)
+    """Return a deterministic resolution decision with policy evidence."""
+    entity = normalize_entity(conflict.get("entity") or "")
+    policy = get_policy(entity)
+    override_blocked = bool(
+        strategy and policy.protected and strategy != policy.strategy
     )
+    chosen = policy.strategy if override_blocked else (strategy or policy.strategy)
 
-    if chosen == ResolutionStrategy.MANUAL_REVIEW:
-        return {"action": "manual_review", "reason": f"entity={entity!r} requires operator triage"}
+    if chosen == MergeStrategy.MANUAL_REVIEW:
+        decision = {
+            "action": "manual_review",
+            "reason": f"entity={entity!r} requires operator triage",
+        }
+    elif chosen == MergeStrategy.SERVER_AUTHORITATIVE:
+        decision = {
+            "action": "keep_server",
+            "reason": "server_authoritative policy for entity",
+        }
+    elif chosen == MergeStrategy.CAUSAL_LWW:
+        decision = _causal_decision(conflict)
+    elif chosen == MergeStrategy.APPEND_ONLY:
+        decision = {
+            "action": "manual_review",
+            "reason": "append-only entities require unique operation IDs; overwrite rejected",
+        }
+    elif chosen == MergeStrategy.FIELD_MERGE:
+        decision = {
+            "action": "manual_review",
+            "reason": "field merge requires a typed domain handler",
+        }
+    else:
+        decision = {
+            "action": "manual_review",
+            "reason": f"unknown strategy {chosen!r}",
+        }
 
-    if chosen == ResolutionStrategy.SERVER_AUTHORITATIVE:
-        return {"action": "keep_server", "reason": "server_authoritative policy for entity"}
-
-    if chosen == ResolutionStrategy.LAST_WRITE_WINS:
-        remote_ts = _parse_ts(conflict.get("remote_timestamp") or conflict.get("timestamp"))
-        server_ts = _parse_ts(conflict.get("server_timestamp"))
-        if remote_ts is None or server_ts is None:
-            # Without timestamps we cannot pick — fall through to manual review.
-            return {
-                "action": "manual_review",
-                "reason": "last_write_wins requires remote_timestamp + server_timestamp",
-            }
-        if remote_ts > server_ts:
-            return {"action": "keep_remote", "reason": "remote is newer"}
-        if server_ts > remote_ts:
-            return {"action": "keep_server", "reason": "server is newer"}
-        return {"action": "keep_server", "reason": "tie: prefer server"}
-
-    return {"action": "manual_review", "reason": f"unknown strategy {chosen!r}"}
+    decision.update(
+        {
+            "entity": entity,
+            "strategy": chosen,
+            "policy_version": POLICY_VERSION,
+            "protected_policy": policy.protected,
+            "override_blocked": override_blocked,
+        }
+    )
+    return decision
 
 
 def resolve_conflicts(
@@ -106,24 +135,27 @@ def resolve_conflicts(
     strategy: str | None = None,
     per_entity_override: dict[str, str] | None = None,
 ) -> list[dict[str, Any]]:
-    """Resolve a batch of conflicts and return a list of decisions.
-
-    ``per_entity_override`` lets the caller supply a partial entity→strategy map
-    that wins over ``DEFAULT_STRATEGY_PER_ENTITY``. ``strategy`` (when set) is
-    used for all conflicts whose entity has no override.
-    """
-    overrides = per_entity_override or {}
+    """Resolve conflicts while refusing overrides of protected policies."""
+    overrides = {
+        normalize_entity(entity): value
+        for entity, value in (per_entity_override or {}).items()
+    }
     decisions: list[dict[str, Any]] = []
-    for c in conflicts:
-        entity = str(c.get("entity") or "").strip()
-        s = overrides.get(entity, strategy)
-        decisions.append({"conflict": c, "decision": resolve_one(c, strategy=s)})
+    for conflict in conflicts:
+        entity = normalize_entity(conflict.get("entity") or "")
+        selected = overrides.get(entity, strategy)
+        decisions.append(
+            {
+                "conflict": conflict,
+                "decision": resolve_one(conflict, strategy=selected),
+            }
+        )
     return decisions
 
 
 __all__ = [
-    "ResolutionStrategy",
     "DEFAULT_STRATEGY_PER_ENTITY",
-    "resolve_one",
+    "ResolutionStrategy",
     "resolve_conflicts",
+    "resolve_one",
 ]

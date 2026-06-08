@@ -1,5 +1,5 @@
 /**
- * Minimal RUM: one beacon on tab hide (visibilitychange) with LCP if available.
+ * Privacy-bounded RUM: web vitals plus aggregate layout observations.
  * Requires window.__RUM__ = { u: absolute ingest URL, k: token } from template.
  */
 (function () {
@@ -30,13 +30,20 @@
   function send() {
     if (sent) return;
     sent = true;
+    var layout = {};
+    try {
+      if (window.rmcLayoutObserver && window.rmcLayoutObserver.getSnapshot) {
+        layout = window.rmcLayoutObserver.getSnapshot();
+      }
+    } catch (e) { /* ignore */ }
     var payload = {
       token: cfg.k,
       path: (window.location && window.location.pathname) ? window.location.pathname : "",
       navigation_type: (performance && performance.navigation && performance.navigation.type !== undefined)
         ? String(performance.navigation.type)
         : "",
-      metrics: buildMetrics()
+      metrics: buildMetrics(),
+      layout: layout
     };
     var body = JSON.stringify(payload);
     try {

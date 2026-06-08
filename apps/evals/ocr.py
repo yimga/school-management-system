@@ -165,7 +165,7 @@ def process_marksheet_upload(
 
     entries = _parse_text(preview_text)
     field_confidences = {}
-    overall_confidence = 0.7 if entries else 0.0
+    overall_confidence = 70.0 if entries else 0.0
 
     return {
         "success": bool(entries),
@@ -185,9 +185,10 @@ def _parse_text(text: str) -> List[Dict[str, Any]]:
         clean_line = line.strip()
         if not clean_line:
             continue
-        tokens = re.split(r"\s{2,}|\t|,", clean_line)
+        tokens = re.split(r"[\s,\t]+", clean_line, maxsplit=1)
         student_code = tokens[0] if tokens else ""
-        numbers = NUMBER_PATTERN.findall(clean_line)
+        score_text = tokens[1] if len(tokens) > 1 else ""
+        numbers = NUMBER_PATTERN.findall(score_text)
         if not numbers:
             continue
         scores: Dict[str, Decimal] = {}
@@ -235,9 +236,10 @@ def _parse_text_with_confidence(
         if not clean_line:
             continue
 
-        tokens = re.split(r"\s{2,}|\t|,", clean_line)
+        tokens = re.split(r"[\s,\t]+", clean_line, maxsplit=1)
         student_code = tokens[0] if tokens else ""
-        numbers = NUMBER_PATTERN.findall(clean_line)
+        score_text = tokens[1] if len(tokens) > 1 else ""
+        numbers = NUMBER_PATTERN.findall(score_text)
         if not numbers:
             continue
 

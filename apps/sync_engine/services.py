@@ -11,6 +11,7 @@ from typing import Any
 from django.db.models import Count
 
 from apps.sync_engine.conflict_resolver import resolve_one
+from apps.sync_engine.policy_registry import POLICY_VERSION, normalize_entity
 
 
 def get_pending_changes(
@@ -75,7 +76,9 @@ def apply_remote(
     conflicts: list[dict[str, Any]] = []
     seen: set[tuple[str, str]] = set()
     for change in remote_changes:
-        entity = str(change.get("entity") or change.get("entity_type") or "")
+        entity = normalize_entity(
+            change.get("entity") or change.get("entity_type") or ""
+        )
         eid = str(change.get("id") or change.get("entity_id") or "")
         key = (entity, eid)
         if key in seen and entity and eid:
@@ -83,12 +86,15 @@ def apply_remote(
                 "reason": "duplicate_remote_operation",
                 "entity": entity,
                 "id": eid,
-                "remote_timestamp": change.get("client_timestamp")
-                or change.get("timestamp"),
+                "remote_clock": change.get("causal_clock")
+                or change.get("remote_clock"),
             }
             decision = resolve_one(conflict_row)
             conflict_row["policy"] = decision.get("action")
             conflict_row["policy_reason"] = decision.get("reason")
+            conflict_row["strategy"] = decision.get("strategy")
+            conflict_row["policy_version"] = decision.get("policy_version")
+            conflict_row["protected_policy"] = decision.get("protected_policy")
             conflicts.append(conflict_row)
             continue
         if entity and eid:
@@ -100,6 +106,7 @@ def apply_remote(
         "school_id": school_id,
         "user_id": user_id,
         "device_id": device_id,
+        "policy_version": POLICY_VERSION,
     }
 
 

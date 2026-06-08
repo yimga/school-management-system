@@ -1,0 +1,125 @@
+{% extends "control_plane_base.html" %}
+{% load i18n phase8_tags %}
+
+{% block title %}{% trans "Country readiness" %}{% endblock %}
+
+{% block cp_content %}
+<main id="main" class="container-fluid py-2" data-decision-engine="surface" data-rmc-page="country-readiness" data-page-archetype="operator-report" data-rmc-scroll-policy="paginate">
+  {% phase8_dashboard_declaration "finance/country_readiness.html" %}
+  <header class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Country readiness" %}</h1>
+      <p class="text-tertiary mb-0">
+        {% blocktrans with n=summary.total_countries %}Launch-readiness for all {{ n }} countries — what a tenant configures vs. what the platform must finish first.{% endblocktrans %}
+      </p>
+    </div>
+    <div class="text-end">
+      <div class="fw-semibold">{{ summary.defined_corridors }} {% trans "defined corridors" %} · {{ summary.placeholder_corridors }} {% trans "placeholder" %}</div>
+      <div class="text-tertiary small">{{ summary.live_rail_count }} {% trans "live payment rails — until a PSP adapter is live, no country is fully config-only." %}</div>
+    </div>
+  </header>
+
+  {% comment %} Honest reframe: only the defined corridors carry a real readiness verdict {% endcomment %}
+  <div class="alert alert-secondary d-flex flex-wrap gap-2 align-items-center py-2 px-3 mb-3" role="note">
+    <span class="badge text-bg-secondary">{{ summary.placeholder_corridors }}</span>
+    <span class="small mb-0">
+      {% blocktrans with d=summary.defined_corridors %}Of {{ summary.total_countries|default:250 }} ISO countries, only <strong>{{ d }}</strong> have a researched payment corridor (real currency + dominant rails). The rest are placeholder stubs — defining a corridor is <em>data</em> work, distinct from the <em>adapter</em> work of promoting a PSP to live.{% endblocktrans %}
+    </span>
+    <a href="?data_state=defined" class="btn btn-sm btn-outline-secondary ms-auto">{% trans "Show defined only" %}</a>
+  </div>
+
+  {% comment %} Scoreboard — tier distribution across the world {% endcomment %}
+  <section class="mb-4" aria-labelledby="cr-scoreboard">
+    <h2 class="h6 text-tertiary mb-2" id="cr-scoreboard">{% trans "Readiness distribution" %}</h2>
+    <div class="row g-2">
+      {% for card in tier_cards %}
+      <div class="col-6 col-md-3">
+        <a href="?tier={{ card.tier }}" class="d-block text-decoration-none">
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body py-3">
+              <div class="display-6 fw-bold mb-0 text-{{ card.tone|default:'secondary' }}">{{ card.count }}</div>
+              <div class="small text-tertiary">{{ card.label }}</div>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% comment %} Highest-leverage builds: which single adapter unblocks the most countries {% endcomment %}
+  <section class="mb-4" aria-labelledby="cr-leverage">
+    <h2 class="h6 text-tertiary mb-2" id="cr-leverage">{% trans "Highest-leverage adapters (countries unblocked if promoted to live)" %}</h2>
+    <div class="d-flex flex-wrap gap-2">
+      {% for label, count in summary.by_blocking_psp.items %}
+      <span class="badge text-bg-light border">{{ label }} <span class="text-primary fw-bold">{{ count }}</span></span>
+      {% endfor %}
+    </div>
+    <p class="text-tertiary small mt-2 mb-0">
+      {% trans "Localization: " %}
+      {{ summary.by_locale.localized|default:0 }} {% trans "localized" %} ·
+      {{ summary.by_locale.partial|default:0 }} {% trans "partial" %} ·
+      {{ summary.by_locale.english_fallback|default:0 }} {% trans "English-fallback" %}
+    </p>
+  </section>
+
+  {% comment %} Filter + table {% endcomment %}
+  <form method="get" class="d-flex flex-wrap gap-2 align-items-center mb-2" role="search">
+    <input type="search" name="q" value="{{ query }}" class="form-control form-control-sm" style="max-width:16rem" placeholder="{% trans 'Filter country / currency' %}" aria-label="{% trans 'Filter' %}">
+    {% if active_tier %}<input type="hidden" name="tier" value="{{ active_tier }}">{% endif %}
+    {% if active_data_state %}<input type="hidden" name="data_state" value="{{ active_data_state }}">{% endif %}
+    <button class="btn btn-sm btn-primary" type="submit">{% trans "Filter" %}</button>
+    {% if active_tier or query or active_data_state %}<a class="btn btn-sm btn-link" href="?">{% trans "Clear" %}</a>{% endif %}
+    <span class="text-tertiary small ms-auto">{{ row_count }} {% trans "countries shown" %}</span>
+    <a class="btn btn-sm btn-outline-secondary" href="?{% if active_tier %}tier={{ active_tier }}&{% endif %}{% if active_data_state %}data_state={{ active_data_state }}&{% endif %}{% if query %}q={{ query }}&{% endif %}format=json" rel="nofollow">{% trans "JSON" %}</a>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-sm table-hover align-middle">
+      <thead>
+        <tr>
+          <th>{% trans "Country" %}</th>
+          <th>{% trans "Currency" %}</th>
+          <th>{% trans "Rails" %}</th>
+          <th>{% trans "Readiness" %}</th>
+          <th>{% trans "Risk" %}</th>
+          <th>{% trans "Tenant action" %}</th>
+          <th>{% trans "Platform action" %}</th>
+          <th>{% trans "Locale" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>
+            <span class="fw-semibold">{{ r.label }}</span> <code class="text-tertiary small">{{ r.country_code }}</code>
+            {% if r.data_state == "placeholder" %}<span class="badge text-bg-secondary ms-1" title="{% trans 'Corridor not yet researched — currency/rails are placeholder' %}">{% trans "stub" %}</span>{% endif %}
+          </td>
+          <td>
+            <code>{{ r.currency }}</code>
+            {% if r.zero_decimal %}<span class="badge text-bg-warning text-dark ms-1" title="{% trans 'Zero-decimal currency — charge whole units, not cents' %}">0d</span>{% endif %}
+          </td>
+          <td class="small">{% for rail in r.primary_rails %}<span class="badge text-bg-light border me-1">{{ rail }}</span>{% endfor %}</td>
+          <td><span class="badge text-bg-{{ r.overall_tone }}">{{ r.overall_label }}</span></td>
+          <td class="small">
+            {% if r.risk_tier == "high" %}<span class="badge text-bg-danger">{% trans "high" %}</span>
+            {% elif r.risk_tier == "medium" %}<span class="badge text-bg-warning text-dark">{% trans "med" %}</span>
+            {% elif r.risk_tier %}<span class="badge text-bg-success">{{ r.risk_tier }}</span>
+            {% else %}<span class="text-tertiary">—</span>{% endif %}
+          </td>
+          <td class="small text-tertiary">{{ r.tenant_action }}</td>
+          <td class="small text-tertiary">{{ r.platform_action }}</td>
+          <td class="small">
+            {% if r.locale_state == "localized" %}<span class="badge text-bg-success">{% trans "localized" %}</span>
+            {% elif r.locale_state == "partial" %}<span class="badge text-bg-warning text-dark">{% trans "partial" %}</span>
+            {% else %}<span class="badge text-bg-secondary">{% trans "English" %}</span>{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-tertiary py-4">{% trans "No countries match the filter." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</main>
+{% endblock %}

@@ -19,7 +19,22 @@ class OfflineEventEnvelopeTests(SimpleTestCase):
             client_id="c1",
         )
         self.assertEqual(payload["entity"], "attendance_record")
+        self.assertEqual(payload["merge_strategy"], "causal_lww")
+        self.assertGreaterEqual(payload["policy_version"], 1)
         self.assertLessEqual(payload["bytes_estimate"], 1024)
+
+    def test_grade_alias_is_stamped_manual_review(self):
+        env = validate_envelope_dict(
+            {
+                "entity": "grade",
+                "entity_id": "1",
+                "attribute_key": "exam_score",
+                "attribute_value": 18,
+                "client_id": "device-a",
+            }
+        )
+        self.assertEqual(env.entity, "grade_entry")
+        self.assertEqual(env.merge_strategy, "manual_review")
 
     def test_rejects_oversize_without_allow(self):
         huge = "x" * 2000

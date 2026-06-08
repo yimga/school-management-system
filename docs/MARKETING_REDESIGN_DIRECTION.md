@@ -14,7 +14,7 @@ Owner-supplied audit of PowerSchool, Toddle, Brightwheel, Arbor. Use as **messag
 |---|---|---|---|
 | Customization | Hardcoded relational fields; weeks of dev for changes | Meta-data-driven runtime (JSONField config manifests) | "Change forms & report-card matrices on a canvas — zero backend code" |
 | Data residency | Single-cloud + `filter(tenant_id=x)` patching | PostgreSQL RLS + region routing | "Isolation enforced at the database engine, per region" |
-| Offline | Constant-cloud dependency; lockout on outage | CRDT event-log sync (<1KB fragments) | "Runs offline; reconciles on reconnect, zero collisions" |
+| Offline | Constant-cloud dependency; lockout on outage | Typed CRDT/event-log sync with protected-record review | "Runs offline; deterministically reconciles supported operations and flags protected-record conflicts" |
 | Data entry | Manual checkbox clerking | Ambient capture (QR sweeps, passive RFID) | "Scan a classroom in 3 seconds — gradebook self-populates" |
 | Layout | Cluttered desktop rows; RTL breaks | Personality-driven, region-aware, progressive disclosure | "Premium, space-contained, RTL-native" |
 

@@ -29,6 +29,7 @@
     "entity_teachers",
     "friction_ingest",
     "health",
+    "kb_offline_pack",
     "kb_search",
     "me_schools",
     "me_switch_school",
@@ -36,6 +37,7 @@
     "notifications_self_capture",
     "observability_incident_status",
     "offline_delta",
+    "offline_encryption_key",
     "offline_prefetch_urls",
     "offline_queue_metrics",
     "offline_replay_batch",
@@ -50,5 +52,5 @@
     "theme_preference",
     "wizard_cache_telemetry"
   ],
-  "count": 48
+  "count": 50
 }

@@ -34,8 +34,11 @@ NAME_PATTERN = re.compile(r"(plan|roadmap|remediation|master)", flags=re.IGNOREC
 # No-mercy completion validation (2026-05-26) accepts +1 from parallel session: docs/plans/UNIFIED_WIZARD_FRAMEWORK_PLAN.md
 # (planned-only artifact for the 3-phase wizard framework rollout). Baseline 163 -> 164. Root cap 120 unchanged
 # (the new plan lives under docs/plans/, not docs root).
-MAX_MATCHING_DOCS_TOTAL = 164
-MAX_MATCHING_DOCS_ROOT = 120
+# Sovereign platform execution (2026-06-08) accepts the canonical
+# docs/GLOCAL_SOVEREIGNTY_PLAN.md added by the preceding glocal architecture
+# audit. Baseline 164 -> 165 and root cap 120 -> 121.
+MAX_MATCHING_DOCS_TOTAL = 165
+MAX_MATCHING_DOCS_ROOT = 121
 
 # Detect accidental editor overwrites (paste / stub) — stable substrings from canonical files.
 _SOT_TITLE_SNIPPET = "# RunMyCampus — single execution source of truth"

@@ -40,11 +40,18 @@
   }
 
   function probeViewport() {
+    const visual = window.visualViewport;
     return {
-      w: window.innerWidth || 0,
-      h: window.innerHeight || 0,
+      w: visual ? visual.width : (window.innerWidth || 0),
+      h: visual ? visual.height : (window.innerHeight || 0),
       pixelRatio: window.devicePixelRatio || 1,
     };
+  }
+
+  function publishViewportMeasurements() {
+    const v = probeViewport();
+    HTML.style.setProperty("--rmc-viewport-width-px", `${Math.round(v.w)}px`);
+    HTML.style.setProperty("--rmc-viewport-height-px", `${Math.round(v.h)}px`);
   }
 
   function classify() {
@@ -91,6 +98,7 @@
   }
 
   function reclassify() {
+    publishViewportMeasurements();
     apply(classify());
   }
 
@@ -98,6 +106,9 @@
   // on real telemetry post-boot.
   reclassify();
   window.addEventListener("resize", debounce(reclassify, 250));
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", debounce(reclassify, 100));
+  }
   if ("connection" in navigator) {
     try { navigator.connection.addEventListener("change", reclassify); } catch {}
   }
@@ -105,6 +116,7 @@
   // Public API for cooperative modules.
   window.rmcViewport = {
     current: () => HTML.getAttribute(ATTR) || classify(),
+    measurements: probeViewport,
     reclassify,
     onChange: (cb) => {
       const handler = (e) => { try { cb(e.detail); } catch {} };

@@ -19,6 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from apps.platform_runtime.events import emit_platform_event
+from apps.platform_runtime.layout_observability import sanitize_layout_observation
 
 logger = logging.getLogger(__name__)
 
@@ -96,12 +97,14 @@ def rum_ingest(request):
     path = str(data.get("path") or "")[:256]
     nav_type = str(data.get("navigation_type") or "")[:64]
     metrics = _sanitize_metrics(data.get("metrics"))
+    layout = sanitize_layout_observation(data.get("layout"))
 
     emit_platform_event(
         "rum_web_vitals",
         {
             "path": path,
             "metrics": metrics,
+            "layout": layout,
             "navigation_type": nav_type,
         },
         tenant_id="",

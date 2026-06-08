@@ -91,16 +91,22 @@ def validate_office_extension(filename: str) -> str:
 
 def office_documents_queryset_for_request(request):
     is_op = is_operator_help_request(request)
-    qs = HostedOfficeDocument.objects.all()
     if is_op:
-        qs = qs.filter(help_audience__in=[HelpAudience.OPERATOR, HelpAudience.BOTH])
+        qs = HostedOfficeDocument.objects.filter(  # tenant-isolation-allow: operator-help-kb-cross-tenant-catalog
+            help_audience__in=[HelpAudience.OPERATOR, HelpAudience.BOTH]
+        )
     else:
-        qs = qs.filter(help_audience__in=[HelpAudience.TENANT, HelpAudience.BOTH])
         school = getattr(request, "school", None)
         if school is not None:
-            qs = qs.filter(school__in=[school, None])
+            qs = HostedOfficeDocument.objects.filter(
+                help_audience__in=[HelpAudience.TENANT, HelpAudience.BOTH],
+                school__in=[school, None],
+            )
         else:
-            qs = qs.filter(school__isnull=True)
+            qs = HostedOfficeDocument.objects.filter(
+                help_audience__in=[HelpAudience.TENANT, HelpAudience.BOTH],
+                school__isnull=True,
+            )
     return qs.order_by("-updated_at")
 
 

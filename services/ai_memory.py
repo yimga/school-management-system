@@ -9,6 +9,8 @@ import hashlib
 import logging
 from typing import Any
 
+from django.utils import timezone
+
 logger = logging.getLogger(__name__)
 
 
@@ -71,17 +73,31 @@ class AIMemoryService:
             return False
         try:
             from apps.siteconfig.models import AIEmbeddingStore
-            embedding = get_embedding_for_text(text, max_tokens=8192)
+            from services.embeddings import (
+                embedding_provider_descriptor,
+                get_embedding_provider,
+            )
+
+            provider = get_embedding_provider()
+            embedding = provider.embed(text, max_tokens=8192)
             if not embedding:
                 return False
             text_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
-            AIEmbeddingStore.objects.create(
+            AIEmbeddingStore.objects.update_or_create(
                 school_id=school_id,
                 conversation_id=conversation_id,
                 scope=scope,
+                document_id=conversation_id,
                 text_hash=text_hash,
-                embedding=embedding,
-                metadata=metadata or {},
+                defaults={
+                    "embedding": embedding,
+                    "embedding_model": embedding_provider_descriptor(provider),
+                    "embedding_dimensions": len(embedding),
+                    "lifecycle_status": "active",
+                    "retention_until": None,
+                    "source_updated_at": timezone.now(),
+                    "metadata": metadata or {},
+                },
             )
             return True
         except Exception as e:
@@ -114,8 +130,16 @@ class AIMemoryService:
         try:
             from apps.siteconfig.models import AIEmbeddingStore
             from django.db.models import Q
+            from services.embeddings import embedding_provider_descriptor
 
-            qs = AIEmbeddingStore.objects.filter(scope=scope)
+            qs = AIEmbeddingStore.objects.filter(
+                scope=scope,
+                lifecycle_status="active",
+            ).filter(
+                Q(retention_until__isnull=True) | Q(retention_until__gt=timezone.now())
+            )
+            model_id = embedding_provider_descriptor()
+            qs = qs.filter(Q(embedding_model="") | Q(embedding_model=model_id))
             if school_id:
                 qs = qs.filter(Q(school_id=school_id) | Q(school_id__isnull=True))
             elif global_only:

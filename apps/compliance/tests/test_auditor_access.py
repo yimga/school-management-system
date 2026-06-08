@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from apps.academics.models import AcademicYear, Classroom, Department
 from apps.compliance import auditor_access
-from apps.compliance.models import AuditorAccessGrant, AuditorAccessLog
+from apps.compliance.models import AuditorAccessLog
 from apps.compliance.pii_masking import mask_student_for_auditor
 from apps.people.models import StudentProfile
 from apps.schools.models import School

@@ -23,6 +23,7 @@ import hashlib
 from pathlib import Path
 
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 
 
 CHUNK_CHARS = 1500
@@ -128,7 +129,10 @@ class Command(BaseCommand):
             return
 
         try:
-            from services.embeddings import get_embedding_provider
+            from services.embeddings import (
+                embedding_provider_descriptor,
+                get_embedding_provider,
+            )
 
             embedder = get_embedding_provider() if not dry_run else None
         except ImportError:
@@ -182,8 +186,13 @@ class Command(BaseCommand):
                 AIEmbeddingStore.objects.create(
                     school_id=school.id,
                     scope=scope,
+                    document_id=str(path.relative_to(root))[:128],
                     text_hash=text_hash,
                     embedding=list(vector),
+                    embedding_model=embedding_provider_descriptor(embedder),
+                    embedding_dimensions=len(vector),
+                    lifecycle_status="active",
+                    source_updated_at=timezone.now(),
                     metadata={
                         "source_path": str(path.relative_to(root)),
                         "source_ext": ext,

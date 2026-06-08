@@ -338,12 +338,12 @@ FEATURE_REGISTER: tuple[FeatureRow, ...] = (
     ),
     FeatureRow(
         feature_slug="omr-scan-grading",
-        label="OCR marksheet scan-grading (snap-and-sync to gradebook)",
+        label="OCR marksheet proposal and teacher-confirmed grade sync",
         capability_domain="classroom",
         status="shipped",
         proof_route_name="evals:teacher_marks_entry",
         proof_model="evals.Evaluation",
-        notes="SHIPPED (verified Wave B 2026-06-07): evals/ocr.py process_marksheet_upload (pytesseract + preprocessing + per-field confidence) → teacher_marks_entry view → _apply_ocr_entries writes evals.Evaluation. Plickers card-sweep is a distinct CV capability, tracked separately as plickers-card-sweep.",
+        notes="SHIPPED and hardened 2026-06-08: server Tesseract and self-hosted Tesseract.js create proposals only. Browser proposals preserve confidence/source coordinates and fill review-highlighted gradebook cells; server proposals require checked teacher attestation. Accepted browser proposals use the existing grade WAL/outbox and manual conflict policy. No confidence threshold can auto-write an Evaluation. Plickers card-sweep remains a distinct CV capability.",
     ),
     FeatureRow(
         feature_slug="plickers-card-sweep",

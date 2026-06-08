@@ -1,5 +1,72 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Sovereign platform final cross-phase closure batch 1671 (2026-06-08)
+
+**A. Scope:** Re-certify the complete research-driven program after every code,
+configuration, evidence, verifier, and canonical-document change.
+
+**B. Proof:** all eight canonical verifier scripts passed sequentially; 252
+Django test executions and five Vitest tests passed; browser-Tesseract smoke,
+Django checks, migration drift, SOT uniqueness/evidence, documentation density,
+sovereign ownership, syntax, JSON, and diff-whitespace gates are clean. Final
+advisory audit found 12 unregistered but live settings; all were reconciled to
+their actual defaults/owners, and strict registry coverage now reports zero
+undeclared settings.
+
+**C. Verdict:** all seven implementation phases are complete at repository
+scope. External pilots and production promotion remain deliberately unclaimed
+and fail closed.
+
+## Slice - Sovereign platform Phase P7 promotion gates batch 1670 (2026-06-08)
+
+**A. Claim:** No intelligence feature advances from repository proof to pilot
+or production on file-existence checks, aspiration, or an unsigned assertion.
+
+**B. Shipped:** canonical nine-family catalog; ten-dimensional fail-closed
+evaluator; signed feature- and stage-bound evidence envelopes; expiry, reviewer,
+source, scope, checksum, and stage-ceiling validation; management commands;
+layout-observability kill switch; operator runbook; repository report.
+
+**C. Proof:** `INTELLIGENCE_PROMOTION_CONTRACT_PASS eligible=7 blocked=2`; 29/29
+focused Django tests; catalog/source checks and `manage.py check` clean.
+
+**D. Honest:** seven implemented families are repository-eligible only.
+Browser SLM and voice AI remain disabled. Pilot and production certification
+requires real external evidence and is not claimed.
+
+## Slice - Sovereign platform Phase P6 layout observability batch 1669 (2026-06-08)
+
+**A. Claim:** Preserve tenant-local CSS behavior while adding privacy-bounded,
+platform-wide evidence for clipping and overflow.
+
+**B. Shipped:** bounded `rmc-layout-observer.js`; `visualViewport` measurements;
+single shell RUM mount; schema-v1 sanitizer and aggregate; Django/Vitest tests;
+`verify:layout-observability`; `LAYOUT_OBSERVABILITY.md`.
+
+**C. Proof:** `LAYOUT_OBSERVABILITY_CONTRACT_PASS schema_version=1`; 20/20
+Django tests; 2/2 browser tests; syntax and Django checks clean.
+
+**D. Honest:** no automatic font/layout compression; physical device, locale,
+RTL, zoom, and virtual-keyboard certification moves to Phase P7.
+
+**E. Governance:** plan-density baseline 164->165 and root cap 120->121 for the
+preceding canonical `docs/GLOCAL_SOVEREIGNTY_PLAN.md`; the Phase P6 layout
+document itself does not match the plan filename filter.
+
+## Slice — KB bulk ops + docs-hub linker + RLS tag sweep batches 1658–1660 (2026-06-07)
+
+**A. Claim:** §11.4 batches **1658** (manager KB bulk CLI UI), **1659** (unified docs-hub search + article↔office FK linker), **1660** (RLS `tenants_rls` tag sweep + explicit `school_id` bulk-grade test).
+
+**B. Shipped:** `kb_bulk_ops_service.py` + `manager_kb_bulk_ops` route; migration `0040` `linked_office_document`; docs-hub `?q=` search + `kb_link_office_document`; `verify_kb_bulk_ops.py` + `verify_tenants_rls_tag_sweep.py`; help-center discover cards.
+
+**C. Proof:** **KB_BULK_OPS_VERIFY: PASS**; **KB_LIBREOFFICE_10X_VERIFY: PASS**; **TENANTS_RLS_TAG_SWEEP: PASS**; **11/11** targeted tests (`test_kb_bulk_ops`, `test_kb_docs_hub_link_search`, `test_bulk_grade_tenant_context`).
+
+**D. SOT:** batches **1658**, **1659**, **1660** **DONE (repo-scope)**.
+
+**E. Honest:** Collabora/WOPI live edit = `COLLABORA_BASE_URL`; Postgres RLS CI tag run remains operator cadence.
+
+**F. Next:** §11.4 head after **1657** globe work or next PATH KB/RLS depth slice.
+
 ## Slice — Global Footprint offline blank-screen fix (2026-06-07)
 
 **A. Claim:** Offline SVG fallback must never render a blank map panel.

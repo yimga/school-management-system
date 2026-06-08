@@ -26,6 +26,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from apps.sync_engine.policy_registry import MergeStrategy, get_policy
+
 
 # --- Strategy enum --------------------------------------------------------
 
@@ -38,19 +40,22 @@ MANUAL_REVIEW = "MANUAL_REVIEW"
 ALL_STRATEGIES = (LATER_WINS, REMOTE_WINS, LOCAL_WINS, MERGE_FIELDS, MANUAL_REVIEW)
 
 
-_DEFAULT_POLICY: dict[str, str] = {
-    "attendance": LATER_WINS,
-    "grade": MANUAL_REVIEW,
-    "profile": MERGE_FIELDS,
-    "message": LATER_WINS,
-    "homework_submission": REMOTE_WINS,
-    "behavior_event": LATER_WINS,
-    "fee_payment": MANUAL_REVIEW,
+_CANONICAL_TO_COMPAT: dict[str, str] = {
+    MergeStrategy.CAUSAL_LWW: LATER_WINS,
+    MergeStrategy.SERVER_AUTHORITATIVE: REMOTE_WINS,
+    MergeStrategy.FIELD_MERGE: MERGE_FIELDS,
+    MergeStrategy.MANUAL_REVIEW: MANUAL_REVIEW,
+    MergeStrategy.APPEND_ONLY: MANUAL_REVIEW,
+    MergeStrategy.OR_SET: MANUAL_REVIEW,
+    MergeStrategy.G_COUNTER: MANUAL_REVIEW,
 }
 
 
 def get_default_strategy(record_type: str) -> str:
-    return _DEFAULT_POLICY.get(record_type, MANUAL_REVIEW)
+    return _CANONICAL_TO_COMPAT.get(
+        get_policy(record_type).strategy,
+        MANUAL_REVIEW,
+    )
 
 
 # --- Record shape ---------------------------------------------------------
@@ -152,7 +157,16 @@ def resolve_conflict(
     if local.record_key != remote.record_key:
         raise ValueError("record_key_mismatch")
 
-    chosen_strategy = strategy or get_default_strategy(local.record_type)
+    canonical_policy = get_policy(local.record_type)
+    canonical_strategy = _CANONICAL_TO_COMPAT.get(
+        canonical_policy.strategy,
+        MANUAL_REVIEW,
+    )
+    chosen_strategy = (
+        canonical_strategy
+        if canonical_policy.protected and strategy not in (None, canonical_strategy)
+        else (strategy or canonical_strategy)
+    )
     if chosen_strategy not in ALL_STRATEGIES:
         raise ValueError(f"unknown_strategy:{chosen_strategy}")
 

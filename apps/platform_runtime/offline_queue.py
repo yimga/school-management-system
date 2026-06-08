@@ -127,11 +127,13 @@ def merge_conflict_records(
     ``strategy`` is descriptive for the conflict drawer; authoritative resolution
     happens in entity handlers during replay.
     """
+    from apps.sync_engine.policy_registry import get_policy, normalize_entity
+
     if strategy not in {"last_write_wins", "show_both"}:
-        strategy = "last_write_wins"
+        strategy = "show_both"
     by_key: dict[tuple[str, str], dict[str, Any]] = {}
     for row in records:
-        ent = str(row.get("entity") or row.get("entity_type") or "")
+        ent = normalize_entity(row.get("entity") or row.get("entity_type") or "")
         eid = str(row.get("id") or row.get("entity_id") or "")
         key = (ent, eid)
         if not ent or not eid:
@@ -139,7 +141,8 @@ def merge_conflict_records(
         if key not in by_key:
             by_key[key] = dict(row)
             continue
-        if strategy == "last_write_wins":
+        policy = get_policy(ent)
+        if strategy == "last_write_wins" and not policy.protected:
             cur = by_key[key]
             cur_rev = float(cur.get("revision") or cur.get("client_revision") or 0)
             new_rev = float(row.get("revision") or row.get("client_revision") or 0)

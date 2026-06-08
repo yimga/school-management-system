@@ -36,12 +36,14 @@ ROOT = Path(__file__).resolve().parent.parent
 # sync tracked_root baseline to the four standard repo-root governance files added with
 # the OSS/CI manifest (CODE_OF_CONDUCT.md, LICENSE, README.md, THIRD_PARTY_NOTICES.md;
 # 35->39). Both are classified growth, not silent expansion.
+# 2026-06-08: batch 1644 closeout — vite.worldGlobe.config.ts (world-globe Vite bundle SOT;
+# mirrors vite.analytics.config.ts / vite.lux.config.ts; 39->40).
 MAX_COUNTS: dict[str, tuple[str, int]] = {
     "raw_sql_allowlist.json": ("files", 21),
     "csrf_exempt_allowlist.json": ("files", 37),
     "allow_any_allowlist.json": ("files", 4),
     "broad_except_allowlist.json": ("allowed_counts", 189),
-    "tracked_root_allowlist.json": ("allowed", 39),
+    "tracked_root_allowlist.json": ("allowed", 40),
 }
 
 _CLASSIFICATION_LINTS: tuple[tuple[str, str], ...] = (

@@ -96,7 +96,12 @@ def main() -> int:
             "kb:office_document_preview_pdf",
         ):
             try:
-                reverse(name, kwargs={"document_id": 1} if "document" in name else {})
+                kwargs = (
+                    {"document_id": 1}
+                    if name in ("kb:office_document_download", "kb:office_document_preview_pdf")
+                    else {}
+                )
+                reverse(name, kwargs=kwargs)
             except Exception as exc:
                 errors.append(f"reverse({name}) failed: {exc}")
     except Exception as exc:

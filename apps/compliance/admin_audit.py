@@ -19,6 +19,8 @@ from .models_audit import (
     ThreatDetectionConfig,
     IPAccessRule,
     CountryAccessRule,
+    AuditArchiveRecord,
+    AuditLegalHold,
 )
 
 
@@ -138,6 +140,83 @@ class AuditLogAdmin(ModelAdmin):
 
 
 register_both(AuditLog, AuditLogAdmin)
+
+
+class SuperuserRetentionAdmin(ModelAdmin):
+    def has_module_permission(self, request):
+        return bool(request.user.is_superuser)
+
+    def has_view_permission(self, request, obj=None):
+        return bool(request.user.is_superuser)
+
+    def has_add_permission(self, request):
+        return bool(request.user.is_superuser)
+
+    def has_change_permission(self, request, obj=None):
+        return bool(request.user.is_superuser)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+class AuditLegalHoldAdmin(SuperuserRetentionAdmin):
+    list_display = (
+        "name",
+        "model_label",
+        "object_id",
+        "is_active",
+        "starts_at",
+        "ends_at",
+        "created_by",
+    )
+    list_filter = ("is_active", "model_label", "created_at")
+    search_fields = ("name", "reason", "model_label", "object_id")
+    readonly_fields = ("created_at", "created_by")
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
+
+class AuditArchiveRecordAdmin(SuperuserRetentionAdmin):
+    list_display = (
+        "archive_id",
+        "model_label",
+        "timestamp_field",
+        "record_count",
+        "status",
+        "cutoff_at",
+        "created_at",
+        "purged_at",
+    )
+    list_filter = ("status", "model_label", "created_at")
+    search_fields = ("archive_id", "relative_path", "sha256")
+    readonly_fields = (
+        "archive_id",
+        "model_label",
+        "timestamp_field",
+        "cutoff_at",
+        "record_count",
+        "first_record_at",
+        "last_record_at",
+        "relative_path",
+        "sha256",
+        "signature",
+        "status",
+        "created_at",
+        "purged_at",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+register_both(AuditLegalHold, AuditLegalHoldAdmin)
+register_both(AuditArchiveRecord, AuditArchiveRecordAdmin)
 
 
 @admin.register(UserActivitySession, site=tenant_admin_site)

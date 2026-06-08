@@ -8,7 +8,6 @@ from apps.communication.offline_conflict_kernel import (
     LATER_WINS,
     LOCAL_WINS,
     MANUAL_REVIEW,
-    MERGE_FIELDS,
     SyncRecord,
     get_default_strategy,
     resolve_batch,
@@ -38,8 +37,8 @@ class DefaultPolicyTests(SimpleTestCase):
     def test_grade_default_manual_review(self):
         self.assertEqual(get_default_strategy("grade"), MANUAL_REVIEW)
 
-    def test_profile_default_merge_fields(self):
-        self.assertEqual(get_default_strategy("profile"), MERGE_FIELDS)
+    def test_profile_default_is_server_authoritative(self):
+        self.assertEqual(get_default_strategy("profile"), "REMOTE_WINS")
 
     def test_unknown_type_defaults_to_manual(self):
         self.assertEqual(get_default_strategy("invented"), MANUAL_REVIEW)
@@ -88,16 +87,16 @@ class RemoteWinsTests(SimpleTestCase):
         self.assertEqual(out.winner_payload["text"], "final")
 
 
-class MergeFieldsTests(SimpleTestCase):
+class ExplicitMergeFieldsTests(SimpleTestCase):
 
     def test_non_conflicting_fields_merged(self):
         l = _local(
-            "profile", "u1",
+            "contact_preferences", "u1",
             {"email": "old@x.com", "phone": "+1-555-1234"},
             "2026-05-26T10:00:00+00:00",
         )
         r = _remote(
-            "profile", "u1",
+            "contact_preferences", "u1",
             {"email": "old@x.com", "address": "123 Main"},
             "2026-05-26T09:00:00+00:00",
         )
@@ -110,12 +109,12 @@ class MergeFieldsTests(SimpleTestCase):
 
     def test_conflicting_fields_flagged(self):
         l = _local(
-            "profile", "u1",
+            "contact_preferences", "u1",
             {"email": "local@x.com"},
             "2026-05-26T10:00:00+00:00",
         )
         r = _remote(
-            "profile", "u1",
+            "contact_preferences", "u1",
             {"email": "remote@x.com"},
             "2026-05-26T09:00:00+00:00",
         )
@@ -139,14 +138,14 @@ class ManualReviewTests(SimpleTestCase):
 
 class StrategyOverrideTests(SimpleTestCase):
 
-    def test_override_grade_to_local_wins(self):
+    def test_override_grade_to_local_wins_is_blocked(self):
         l = _local("grade", "as1:s1",
                    {"score": 85}, "2026-05-26T10:00:00+00:00")
         r = _remote("grade", "as1:s1",
                     {"score": 90}, "2026-05-26T09:00:00+00:00")
         out = resolve_conflict(local=l, remote=r, strategy=LOCAL_WINS)
-        self.assertFalse(out.manual_review_required)
-        self.assertEqual(out.winner_payload["score"], 85)
+        self.assertTrue(out.manual_review_required)
+        self.assertEqual(out.notes, "manual_review_required_by_policy")
 
     def test_unknown_strategy_rejected(self):
         l = _local("attendance", "s1:2026-05-26", {"status": "present"},

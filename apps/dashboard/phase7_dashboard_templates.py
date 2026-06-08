@@ -28,6 +28,7 @@ PHASE7_DASHBOARD_TEMPLATES: tuple[str, ...] = (
     "customersuccess/super_dashboard.html",
     "emis/dashboard.html",
     "evals/compliance_dashboard.html",
+    "finance/country_readiness.html",
     "finance/dashboard.html",
     "finance/invoices.html",
     "marketplace/app_catalog.html",

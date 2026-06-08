@@ -155,6 +155,51 @@ RMC_LAYOUT_OBSERVABILITY_ENABLED = (
 INTELLIGENCE_PROMOTION_SIGNING_KEY = (
     os.getenv("INTELLIGENCE_PROMOTION_SIGNING_KEY") or ""
 ).strip()
+BROWSER_AI_ENABLED = os.getenv("BROWSER_AI_ENABLED", "0").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+BROWSER_AI_MANIFEST_PATH = os.getenv(
+    "BROWSER_AI_MANIFEST_PATH", str(BASE_DIR / "config" / "browser_model_pack.json")
+)
+BROWSER_AI_MIN_DEVICE_MEMORY_GB = int(
+    os.getenv("BROWSER_AI_MIN_DEVICE_MEMORY_GB", "4")
+)
+BROWSER_AI_MIN_FREE_BYTES = int(
+    os.getenv("BROWSER_AI_MIN_FREE_BYTES", str(512 * 1024 * 1024))
+)
+LOCAL_VOICE_ENABLED = os.getenv("LOCAL_VOICE_ENABLED", "0").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+LOCAL_VOICE_STT_ENDPOINT = os.getenv("LOCAL_VOICE_STT_ENDPOINT", "")
+LOCAL_VOICE_TTS_ENDPOINT = os.getenv("LOCAL_VOICE_TTS_ENDPOINT", "")
+LOCAL_VOICE_ALLOWED_HOSTS = [
+    item.strip()
+    for item in os.getenv("LOCAL_VOICE_ALLOWED_HOSTS", "").split(",")
+    if item.strip()
+]
+LOCAL_VOICE_LANGUAGES = [
+    item.strip().lower()
+    for item in os.getenv("LOCAL_VOICE_LANGUAGES", "en").split(",")
+    if item.strip()
+]
+LOCAL_VOICE_TIMEOUT_SECONDS = float(os.getenv("LOCAL_VOICE_TIMEOUT_SECONDS", "20"))
+LOCAL_VOICE_MAX_AUDIO_BYTES = int(
+    os.getenv("LOCAL_VOICE_MAX_AUDIO_BYTES", "2000000")
+)
+LOCAL_VOICE_MAX_TRANSCRIPT_CHARS = int(
+    os.getenv("LOCAL_VOICE_MAX_TRANSCRIPT_CHARS", "4000")
+)
+LOCAL_VOICE_MAX_TTS_CHARS = int(os.getenv("LOCAL_VOICE_MAX_TTS_CHARS", "2000"))
+LOCAL_VOICE_MAX_TTS_BYTES = int(os.getenv("LOCAL_VOICE_MAX_TTS_BYTES", "4000000"))
+LOCAL_VOICE_RATE_LIMIT_PER_MINUTE = int(
+    os.getenv("LOCAL_VOICE_RATE_LIMIT_PER_MINUTE", "10")
+)
 # Marketplace: default platform take on gross tenant app charges (see apps.marketplace.monetization).
 MARKETPLACE_PLATFORM_FEE_PERCENT = (os.getenv("MARKETPLACE_PLATFORM_FEE_PERCENT") or "20").strip()
 # When True, installing a paid catalog app (compute_install_charge > 0) requires a billing account with processor customer.

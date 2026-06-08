@@ -23,8 +23,8 @@ class KbDocsHubUnifiedSearchTests(TestCase):
             summary="Searchable summary for zephyr",
             content="Body about zephyr workflows",
             status="PUBLISHED",
-            is_public=True,
             help_audience=HelpAudience.BOTH,
+            author=self.user,
         )
         self.office_doc = HostedOfficeDocument.objects.create(
             title="Zephyr Office Template",

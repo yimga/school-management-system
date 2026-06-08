@@ -219,6 +219,9 @@ class RLSJWTBindingMiddleware:
                     reset_rls_school_id()
                 except Exception as exc:  # noqa: BLE001 — finally must never raise
                     logger.debug("rls_jwt.reset_failed: %s", exc)
+                    from apps.schools.rls_context import quarantine_rls_connection
+
+                    quarantine_rls_connection(str(exc))
 
     @staticmethod
     def _maybe_mint_handoff_cookie(request: HttpRequest, response: HttpResponse) -> None:

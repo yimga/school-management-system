@@ -1,4 +1,4 @@
-# Optional: Deployment and audit hardening
+# Deployment and audit hardening
 
 Optional items from RUNMYCAMPUS_SINGLE_PLAN_COMPLETE (Part 3.4 / 4.x). Primary isolation remains **schema-per-tenant**; these are defense-in-depth or operational improvements.
 
@@ -12,19 +12,33 @@ Optional items from RUNMYCAMPUS_SINGLE_PLAN_COMPLETE (Part 3.4 / 4.x). Primary i
   CREATE POLICY tenant_isolation ON people_studentprofile
     USING (current_schema() = current_setting('app.current_schema', true));
   ```
-- **When:** Only if you want an extra safeguard; not required for correctness.
+- **Status:** Implemented through reviewed migrations and the canonical
+  `app.current_school_id` context contract. Schema-per-tenant remains primary.
 
 ## 2. PgBouncer and connection pooling (multi-schema)
 
 - **Purpose:** Scale connection count when many tenant schemas are in use; avoid exhausting PostgreSQL connections.
-- **Considerations:** django-tenants switches `search_path` per request. With PgBouncer in transaction mode, the session is reset between transactions, so set `search_path` at the start of each request (middleware already does this). Use **session mode** if you need session-scoped search_path without re-set on every query.
-- **Doc:** [PGBOUNCER_MULTI_SCHEMA.md](PGBOUNCER_MULTI_SCHEMA.md). Optionally add subsection to RUNMYCAMPUS_DEPLOYMENT.md when that file exists: recommended pool size, `ignore_startup_parameters` if needed, and that tenant resolution must set schema per request.
+- **Current contract:** Use a direct endpoint or PgBouncer **session mode** and
+  declare it with `DB_POOL_MODE=direct|session`. Both django-tenants
+  `search_path` and shared-schema RLS `app.current_school_id` are session state.
+  Request-start binding is not sufficient for transaction pooling because one
+  request can issue multiple autocommit transactions on different server
+  connections. `DB_POOL_MODE=transaction` is rejected by Django system checks.
+- **Status:** Direct and session pooling are supported and verified.
+  Transaction pooling is deliberately fail-closed until the tenant context is
+  redesigned and tested through a real pooler. See
+  [PGBOUNCER_MULTI_SCHEMA.md](PGBOUNCER_MULTI_SCHEMA.md).
 
 ## 3. Audit log retention and cold storage
 
 - **Purpose:** Comply with retention policy; avoid unbounded growth of `audit_log` (per tenant).
-- **Design:** (1) Define retention (e.g. 90 days hot, then archive). (2) Celery task or management command: for each tenant schema, export rows older than N days to cold storage (e.g. S3, Parquet), then DELETE or TRUNCATE partition. (3) Document retention in [AUDIT_TRAIL_TRIGGER_BASED.md](AUDIT_TRAIL_TRIGGER_BASED.md) and in legal/compliance docs.
-- **Optional:** Partition `audit_log` by month for efficient truncate/archive.
+- **Status:** Implemented as signed deterministic gzip JSONL archives,
+  archive verification, exact-ID approval-gated purge, second-check legal
+  holds, and operator-visible archive/hold records. See
+  [AUDIT_RETENTION.md](AUDIT_RETENTION.md).
+- **Partitioning decision:** Not performed automatically. Converting an existing
+  PostgreSQL table requires a deployment-specific table swap and lock window;
+  application startup DDL would be less reliable than bounded signed archives.
 
 **Retention policy template (per tenant):**
 
@@ -38,7 +52,8 @@ Optional items from RUNMYCAMPUS_SINGLE_PLAN_COMPLETE (Part 3.4 / 4.x). Primary i
 - **Purpose:** Notify security/ops when high-impact changes occur (e.g. SiteSettings change, superuser creation).
 - **Implemented:** Set env var `GLOBAL_CHANGE_ALERT_WEBHOOK_URL`; on SiteSettings `post_save` a background thread POSTs JSON to that URL. See siteconfig.models `_emit_global_change_alert`.
 - **Design:** (1) Django signals (e.g. `post_save` on SiteSettings, or on User when `is_superuser` set). (2) In the signal handler, enqueue a task or call a webhook (e.g. Slack, PagerDuty). (3) Include change summary and actor; do not log secrets. Document in REPORTS/AUDIT_LOG.md or this doc.
-- **Optional:** Extend to tenant-level “sensitive” actions (e.g. role escalation) if required.
+- **Status:** Implemented for high/critical audit events and tenant membership
+  role escalation/revocation, in addition to global changes.
 
 ## 5. Module and workflow map (concise)
 
@@ -47,4 +62,6 @@ Optional items from RUNMYCAMPUS_SINGLE_PLAN_COMPLETE (Part 3.4 / 4.x). Primary i
 
 ---
 
-**Status:** All items above are **optional**. Implement when compliance or operations require them.
+**Status:** Repository-actionable items are implemented. Transaction pooling,
+live cold-storage durability, and any PostgreSQL table repartitioning remain
+deployment evidence gates, not hidden application defaults.

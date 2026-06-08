@@ -19,6 +19,7 @@ fi
 
 .venv/bin/python manage.py migrate --noinput
 .venv/bin/python manage.py check
+.venv/bin/python manage.py profile_edge_hardware
 
 if [[ "${RMC_ENSURE_SUPERUSER:-1}" == "1" ]]; then
   .venv/bin/python manage.py ensure_superuser --no-input || true
@@ -36,6 +37,8 @@ echo "Optional Ollama on this hub:"
 echo "  ollama serve"
 echo "  ollama create ai-center-master -f ai/Modelfile"
 echo "  export OLLAMA_BASE_URL=http://127.0.0.1:11434"
+echo "  export EDGE_MODEL_CERTIFICATION_SIGNING_KEY=<secret-from-vault>"
+echo "  .venv/bin/python manage.py certify_edge_ai --model qwen2.5:1.5b --concurrency 1 --runs 3 --strict-signing --output var/evidence/edge/model.json"
 echo ""
 echo "mDNS (hybrid clients): service _runmycampus-hub._tcp.local. — see docs/LOCAL_HUB_MODE.md"
 echo "Set SMS_OFFLINE_CONFIG.hubBaseUrl on tablets to http://<hub-ip>:8000 when cloud is down."

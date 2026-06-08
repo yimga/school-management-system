@@ -16,6 +16,8 @@
     "perf": "npm run check:images -- && echo 'Lighthouse: run in Chrome DevTools (Lighthouse tab) or npm run lighthouse. See docs/PERFORMANCE_BUDGET.md'",
     "lighthouse": "npx @lhci/cli@0.13.x autorun --config=lighthouserc.js",
     "vendor:dexie": "node -e \"require('fs').mkdirSync('static/js/vendor',{recursive:true})\" && npx copyfiles -f node_modules/dexie/dist/dexie.min.js static/js/vendor/",
+    "vendor:tesseract": "python scripts/vendor_tesseract_ocr.py",
+    "smoke:tesseract-browser": "node scripts/smoke_tesseract_browser_ocr.mjs",
     "sweep:abrupt-end:routes": "python scripts/generate_control_plane_sweep_routes.py --write && python scripts/generate_portal_tenant_sweep_routes.py --write",
     "sweep:abrupt-end": "bash scripts/run_platform_abrupt_end_sweep.sh",
     "sweep:abrupt-end:tenant-studio": "bash scripts/run_tenant_studio_abrupt_end_sweep.sh",
@@ -28,6 +30,15 @@
     "verify:five-pillar": "python scripts/verify_five_pillar_platform_completion.py --write --run-tests",
     "verify:six-pillar": "python scripts/verify_six_pillar_global_dominance.py --write --run-tests",
     "verify:ecosystem-sovereignty": "python scripts/verify_ecosystem_sovereignty_matrix.py --write --run-tests",
+    "verify:sovereign-platform": "python scripts/verify_sovereign_platform_contract.py",
+    "verify:edge-hardware": "python scripts/verify_edge_hardware_certification.py",
+    "verify:offline-ocr": "python scripts/verify_offline_ocr_proposal.py",
+    "verify:tenant-rag": "python scripts/verify_tenant_rag_bundles.py",
+    "verify:database-tenancy": "python scripts/verify_database_tenancy_contract.py",
+    "verify:sync-semantics": "python scripts/verify_sync_semantics.py",
+    "verify:layout-observability": "python scripts/verify_layout_observability.py",
+    "verify:intelligence-promotion": "python scripts/verify_intelligence_promotion.py",
+    "verify:sovereign-optionals": "python scripts/verify_sovereign_optionals.py",
     "verify:zero-latency-mandate": "python scripts/verify_zero_latency_mandate.py",
     "verify:zero-latency-mandate:seed": "python scripts/verify_zero_latency_mandate.py --no-prior --write-baselines",
     "verify:geos-99": "python scripts/verify_greatest_education_os_matrix.py --write && python scripts/verify_greatest_education_os_matrix.py --require-composite-99 && python scripts/verify_email_delivery_surface.py && python scripts/verify_geos_locale_chrome_coverage.py && python scripts/verify_geos_lane2_scaffold.py",
@@ -88,9 +99,11 @@
     "verify:social": "python scripts/verify_social_media_engine.py --write --run-tests"
   },
   "dependencies": {
+    "@tesseract.js-data/eng": "1.0.0",
     "dexie": "^4.0.10",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "tesseract.js": "7.0.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",

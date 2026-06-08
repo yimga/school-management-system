@@ -1,0 +1,231 @@
+{
+  "schema_version": 1,
+  "evidence_dimensions": [
+    "task_quality",
+    "privacy_security",
+    "accessibility",
+    "tenant_isolation",
+    "auditability",
+    "resource_budget",
+    "kill_switch",
+    "rollback",
+    "degraded_behavior",
+    "operator_evidence"
+  ],
+  "stages": [
+    "disabled",
+    "repository_verified",
+    "internal_pilot",
+    "limited_production",
+    "general_availability"
+  ],
+  "features": [
+    {
+      "feature_id": "governed_ai_gateway",
+      "owner": "services.ai_helpers -> services.ai_gateway",
+      "implementation_status": "implemented",
+      "maximum_stage": "general_availability",
+      "repository_sources": {
+        "task_quality": ["services/tests/test_ai_copilot_reply_format.py"],
+        "privacy_security": ["services/tests/test_ai_copilot_rbac.py"],
+        "accessibility": ["tests/e2e/help-ai-center-a11y.spec.js"],
+        "tenant_isolation": ["services/tests/test_ai_copilot_rbac.py"],
+        "auditability": ["services/ai_gateway.py"],
+        "resource_budget": ["services/ai_gateway.py"],
+        "kill_switch": ["config/settings.py"],
+        "rollback": ["services/ai_gateway.py"],
+        "degraded_behavior": ["services/ai_gateway.py"],
+        "operator_evidence": ["apps/siteconfig/views_ai_governance.py"]
+      },
+      "controls": {
+        "kill_switch": {"source": "config/settings.py", "token": "AI_GATEWAY_ENABLED"},
+        "rollback": {"source": "services/ai_gateway.py", "token": "_rules_invoke_result"},
+        "degraded_behavior": {"source": "services/ai_gateway.py", "token": "\"degraded\""}
+      }
+    },
+    {
+      "feature_id": "edge_ai",
+      "owner": "services.edge_model_certification",
+      "implementation_status": "implemented",
+      "maximum_stage": "internal_pilot",
+      "repository_sources": {
+        "task_quality": ["var/evidence/edge/phase1_qwen25_15b.json"],
+        "privacy_security": ["config/edge_model_catalog.json"],
+        "accessibility": ["docs/AI_DEPLOYMENT_POSTURE.md"],
+        "tenant_isolation": ["services/tests/test_ai_copilot_rbac.py"],
+        "auditability": ["services/edge_model_certification.py"],
+        "resource_budget": ["services/edge_hardware.py"],
+        "kill_switch": ["config/settings.py"],
+        "rollback": ["config/edge_model_catalog.json"],
+        "degraded_behavior": ["services/ai_gateway.py"],
+        "operator_evidence": ["apps/platform_runtime/management/commands/certify_edge_ai.py"]
+      },
+      "controls": {
+        "kill_switch": {"source": "config/settings.py", "token": "AI_GATEWAY_ENABLED"},
+        "rollback": {"source": "config/edge_model_catalog.json", "token": "\"rollback_tier\": \"rules\""},
+        "degraded_behavior": {"source": "services/ai_gateway.py", "token": "_rules_invoke_result"}
+      }
+    },
+    {
+      "feature_id": "marksheet_ocr",
+      "owner": "apps.evals proposal workflow",
+      "implementation_status": "implemented",
+      "maximum_stage": "internal_pilot",
+      "repository_sources": {
+        "task_quality": ["var/evidence/ocr/browser_tesseract_smoke.json"],
+        "privacy_security": ["apps/evals/tests/test_grade_approval_workflow.py"],
+        "accessibility": ["templates/teacher/marks_entry.html"],
+        "tenant_isolation": ["apps/evals/tests/test_import_and_helper_hardening.py"],
+        "auditability": ["apps/evals/tests/test_grade_approval_workflow.py"],
+        "resource_budget": ["scripts/smoke_tesseract_browser_ocr.mjs"],
+        "kill_switch": ["apps/evals/views.py"],
+        "rollback": ["apps/evals/views.py"],
+        "degraded_behavior": ["templates/teacher/marks_entry.html"],
+        "operator_evidence": ["docs/MARKSHEET_OCR_SETUP.md"]
+      },
+      "controls": {
+        "kill_switch": {"source": "apps/evals/views.py", "token": "marksheet_ocr_enabled"},
+        "rollback": {"source": "apps/evals/views.py", "token": "MARKSHEET_OCR_PENDING_SESSION_KEY"},
+        "degraded_behavior": {"source": "templates/teacher/marks_entry.html", "token": "Tesseract"}
+      }
+    },
+    {
+      "feature_id": "portable_tenant_rag",
+      "owner": "apps.siteconfig.models.AIEmbeddingStore",
+      "implementation_status": "implemented",
+      "maximum_stage": "internal_pilot",
+      "repository_sources": {
+        "task_quality": ["services/tests/test_ai_memory.py"],
+        "privacy_security": ["services/tests/test_tenant_rag_bundle.py"],
+        "accessibility": ["docs/TENANT_RAG_BUNDLES.md"],
+        "tenant_isolation": ["services/tests/test_tenant_rag_bundle.py"],
+        "auditability": ["services/tenant_rag_bundle.py"],
+        "resource_budget": ["apps/analytics/semantic_search.py"],
+        "kill_switch": ["config/settings.py"],
+        "rollback": ["services/tenant_rag_bundle.py"],
+        "degraded_behavior": ["services/ai_memory.py"],
+        "operator_evidence": ["apps/siteconfig/management/commands/import_tenant_rag_bundle.py"]
+      },
+      "controls": {
+        "kill_switch": {"source": "config/settings.py", "token": "AI_GATEWAY_ENABLED"},
+        "rollback": {"source": "services/tenant_rag_bundle.py", "token": "tombstone"},
+        "degraded_behavior": {"source": "services/ai_memory.py", "token": "return []"}
+      }
+    },
+    {
+      "feature_id": "local_first_sync",
+      "owner": "apps.sync_engine.policy_registry",
+      "implementation_status": "implemented",
+      "maximum_stage": "internal_pilot",
+      "repository_sources": {
+        "task_quality": ["apps/sync_engine/tests/test_crdt_wire_protocol.py"],
+        "privacy_security": ["apps/sync_engine/tests/test_crdt_view_governance.py"],
+        "accessibility": ["docs/LOCAL_FIRST_SYNC_SEMANTICS.md"],
+        "tenant_isolation": ["apps/sync_engine/tests/test_crdt_view_governance.py"],
+        "auditability": ["apps/sync_engine/event_envelope.py"],
+        "resource_budget": ["apps/sync_engine/delta_bundle.py"],
+        "kill_switch": ["apps/platform_runtime/offline_mode_bundle.py"],
+        "rollback": ["apps/sync_engine/policy_registry.py"],
+        "degraded_behavior": ["apps/platform_runtime/offline_queue.py"],
+        "operator_evidence": ["apps/sync_engine/management/commands/verify_sync_semantics.py"]
+      },
+      "controls": {
+        "kill_switch": {"source": "apps/platform_runtime/offline_mode_bundle.py", "token": "offline_mode_module_enabled"},
+        "rollback": {"source": "apps/sync_engine/policy_registry.py", "token": "manual_review"},
+        "degraded_behavior": {"source": "apps/platform_runtime/offline_queue.py", "token": "show_both"}
+      }
+    },
+    {
+      "feature_id": "responsive_layout_observability",
+      "owner": "apps.platform_runtime.layout_observability",
+      "implementation_status": "implemented",
+      "maximum_stage": "internal_pilot",
+      "repository_sources": {
+        "task_quality": ["tests/js/rmc_layout_observer.test.ts"],
+        "privacy_security": ["apps/platform_runtime/tests/test_layout_observability.py"],
+        "accessibility": ["static/js/rmc-layout-observer.js"],
+        "tenant_isolation": ["apps/platform_runtime/layout_observability.py"],
+        "auditability": ["apps/platform_runtime/rum_aggregate.py"],
+        "resource_budget": ["static/js/rmc-layout-observer.js"],
+        "kill_switch": ["config/settings.py"],
+        "rollback": ["templates/partials/rmc_viewport_engine.html"],
+        "degraded_behavior": ["static/css/rmc-shell-scroll-contract.css"],
+        "operator_evidence": ["docs/LAYOUT_OBSERVABILITY.md"]
+      },
+      "controls": {
+        "kill_switch": {"source": "config/settings.py", "token": "RMC_LAYOUT_OBSERVABILITY_ENABLED"},
+        "rollback": {"source": "templates/partials/rmc_viewport_engine.html", "token": "rmc_layout_observability_enabled"},
+        "degraded_behavior": {"source": "static/css/rmc-shell-scroll-contract.css", "token": "100dvh"}
+      }
+    },
+    {
+      "feature_id": "predictive_at_risk_model",
+      "owner": "apps.analytics model registry",
+      "implementation_status": "implemented",
+      "maximum_stage": "internal_pilot",
+      "repository_sources": {
+        "task_quality": ["apps/analytics/tests/test_verify_ai_promotion_readiness.py"],
+        "privacy_security": ["apps/analytics/tests/test_at_risk_readiness.py"],
+        "accessibility": ["docs/AT_RISK_MODEL_PRODUCTION_HANDBOOK_2026_05_16.md"],
+        "tenant_isolation": ["apps/analytics/tests/test_at_risk_readiness.py"],
+        "auditability": ["apps/analytics/management/commands/verify_ai_promotion_readiness.py"],
+        "resource_budget": ["apps/analytics/at_risk_readiness.py"],
+        "kill_switch": ["apps/analytics/at_risk_readiness.py"],
+        "rollback": ["docs/AT_RISK_MODEL_PRODUCTION_HANDBOOK_2026_05_16.md"],
+        "degraded_behavior": ["apps/analytics/at_risk_readiness.py"],
+        "operator_evidence": ["apps/analytics/management/commands/verify_ai_promotion_readiness.py"]
+      },
+      "controls": {
+        "kill_switch": {"source": "apps/analytics/at_risk_readiness.py", "token": "AT_RISK_MODEL_PATH"},
+        "rollback": {"source": "docs/AT_RISK_MODEL_PRODUCTION_HANDBOOK_2026_05_16.md", "token": "rollback"},
+        "degraded_behavior": {"source": "apps/analytics/at_risk_readiness.py", "token": "heuristic"}
+      }
+    },
+    {
+      "feature_id": "browser_slm",
+      "owner": "apps.platform_runtime.browser_inference",
+      "implementation_status": "implemented",
+      "maximum_stage": "repository_verified",
+      "repository_sources": {
+        "task_quality": ["apps/platform_runtime/tests/test_local_ai_contracts.py"],
+        "privacy_security": ["apps/platform_runtime/browser_inference.py"],
+        "accessibility": ["templates/partials/cockpit/_ai_copilot_rail.html"],
+        "tenant_isolation": ["apps/platform_runtime/views_local_ai.py"],
+        "auditability": ["docs/BROWSER_INFERENCE.md"],
+        "resource_budget": ["static/js/rmc-local-ai-accessibility.js"],
+        "kill_switch": ["config/settings.py"],
+        "rollback": ["static/js/rmc-browser-inference-worker.js"],
+        "degraded_behavior": ["static/js/rmc-local-ai-accessibility.js"],
+        "operator_evidence": ["docs/BROWSER_INFERENCE.md"]
+      },
+      "controls": {
+        "kill_switch": {"source": "config/settings.py", "token": "BROWSER_AI_ENABLED"},
+        "rollback": {"source": "static/js/rmc-browser-inference-worker.js", "token": "purge"},
+        "degraded_behavior": {"source": "static/js/rmc-local-ai-accessibility.js", "token": "text field"}
+      }
+    },
+    {
+      "feature_id": "voice_ai",
+      "owner": "services.local_voice",
+      "implementation_status": "implemented",
+      "maximum_stage": "repository_verified",
+      "repository_sources": {
+        "task_quality": ["services/tests/test_local_voice.py"],
+        "privacy_security": ["services/local_voice.py"],
+        "accessibility": ["templates/partials/cockpit/_ai_copilot_rail.html"],
+        "tenant_isolation": ["apps/platform_runtime/views_local_ai.py"],
+        "auditability": ["apps/platform_runtime/views_local_ai.py"],
+        "resource_budget": ["config/settings.py"],
+        "kill_switch": ["config/settings.py"],
+        "rollback": ["static/js/rmc-local-ai-accessibility.js"],
+        "degraded_behavior": ["docs/LOCAL_VOICE_ACCESSIBILITY.md"],
+        "operator_evidence": ["docs/LOCAL_VOICE_ACCESSIBILITY.md"]
+      },
+      "controls": {
+        "kill_switch": {"source": "config/settings.py", "token": "LOCAL_VOICE_ENABLED"},
+        "rollback": {"source": "static/js/rmc-local-ai-accessibility.js", "token": "Use the text field"},
+        "degraded_behavior": {"source": "docs/LOCAL_VOICE_ACCESSIBILITY.md", "token": "keyboard and text path"}
+      }
+    }
+  ]
+}

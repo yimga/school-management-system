@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Tuple
 
 from django.utils import timezone
 
+from apps.platform_runtime.layout_observability import sanitize_layout_observation
 from apps.platform_runtime.models import PlatformEventLog
 
 _METRIC_KEYS = ("lcp", "cls", "inp", "fcp", "ttfb", "fid", "tbt", "nav")
@@ -45,6 +46,15 @@ def summarize_rum_web_vitals(
 
     paths_count: Dict[str, int] = {}
     series: Dict[str, List[float]] = {k: [] for k in _METRIC_KEYS}
+    layout_summary: Dict[str, Any] = {
+        "sample_count": 0,
+        "overflow_beacon_count": 0,
+        "observed_count": 0,
+        "overflow_count": 0,
+        "max_inline_overflow_px": 0,
+        "max_block_overflow_px": 0,
+        "viewport_classes": {"A": 0, "B": 0, "C": 0, "U": 0},
+    }
 
     for row in rows:
         payload = row.payload or {}
@@ -53,18 +63,38 @@ def summarize_rum_web_vitals(
         path = str(payload.get("path") or "")[:256] or "(empty)"
         paths_count[path] = paths_count.get(path, 0) + 1
         m = payload.get("metrics")
-        if not isinstance(m, dict):
-            continue
-        for key in _METRIC_KEYS:
-            v = m.get(key)
-            if v is None:
-                continue
-            try:
-                fv = float(v)
-            except (TypeError, ValueError):
-                continue
-            if -1e9 < fv < 1e9:
-                series[key].append(fv)
+        if isinstance(m, dict):
+            for key in _METRIC_KEYS:
+                v = m.get(key)
+                if v is None:
+                    continue
+                try:
+                    fv = float(v)
+                except (TypeError, ValueError):
+                    continue
+                if -1e9 < fv < 1e9:
+                    series[key].append(fv)
+        layout = sanitize_layout_observation(payload.get("layout"))
+        if layout:
+            layout_summary["sample_count"] += 1
+            observed = max(0, int(layout.get("observed_count") or 0))
+            overflow = max(0, int(layout.get("overflow_count") or 0))
+            layout_summary["observed_count"] += observed
+            layout_summary["overflow_count"] += overflow
+            if overflow:
+                layout_summary["overflow_beacon_count"] += 1
+            layout_summary["max_inline_overflow_px"] = max(
+                layout_summary["max_inline_overflow_px"],
+                max(0, int(layout.get("max_inline_overflow_px") or 0)),
+            )
+            layout_summary["max_block_overflow_px"] = max(
+                layout_summary["max_block_overflow_px"],
+                max(0, int(layout.get("max_block_overflow_px") or 0)),
+            )
+            viewport_class = str(layout.get("viewport_class") or "U")
+            if viewport_class not in layout_summary["viewport_classes"]:
+                viewport_class = "U"
+            layout_summary["viewport_classes"][viewport_class] += 1
 
     paths_top: List[Tuple[str, int]] = sorted(
         paths_count.items(), key=lambda x: -x[1]
@@ -88,4 +118,5 @@ def summarize_rum_web_vitals(
         "beacon_count": len(rows),
         "paths_top": [{"path": p, "count": c} for p, c in paths_top],
         "metrics": metrics_summary,
+        "layout": layout_summary,
     }

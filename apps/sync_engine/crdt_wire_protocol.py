@@ -17,8 +17,8 @@ Supported CRDT types in this protocol:
 * ``ORSET``— Observed-Remove Set. Adds carry a unique tag; removes carry
              the tag-set of observed adds. Concurrent add-then-remove
              keeps the element only if the remove observed all adds.
-* ``GCOUNTER`` — Grow-Only Counter (per-actor cells). Merge = component-
-             wise max. The value is the sum of cells.
+* ``GCOUNTER`` — Grow-Only Counter with absolute per-actor cells. Merge =
+             component-wise max, so retry is idempotent.
 
 All ops are pure-Python — no DB writes — so they can be tested in
 SimpleTestCase and run inside service workers / Tauri.
@@ -63,9 +63,16 @@ class HLC:
         if len(parts) != 3:
             raise ValueError(f"HLC wire format requires 3 colon-separated parts, got: {raw!r}")
         try:
-            return cls(physical_ms=int(parts[0]), logical=int(parts[1]), actor_id=parts[2])
+            physical_ms = int(parts[0])
+            logical = int(parts[1])
         except (ValueError, TypeError) as exc:
             raise ValueError(f"HLC parse failed for {raw!r}: {exc}") from exc
+        actor_id = parts[2].strip()
+        if physical_ms < 0 or logical < 0:
+            raise ValueError("HLC physical_ms and logical must be non-negative")
+        if not actor_id or len(actor_id) > 128:
+            raise ValueError("HLC actor_id must be 1-128 characters")
+        return cls(physical_ms=physical_ms, logical=logical, actor_id=actor_id)
 
 
 def hlc_tick(prev: HLC, *, now_ms: int, actor_id: str) -> HLC:
@@ -145,22 +152,36 @@ def orset_merge(
     "present" iff its tag set is non-empty after the merge.
     """
     new_state = {k: set(v) for k, v in state.items()}
+    removed_key = f"__removed__:{op.element}"
+    removed = new_state.setdefault(removed_key, set())
     bucket = new_state.setdefault(op.element, set())
     if op.kind == "ORSET-ADD":
-        bucket.add(op.tag)
+        if not op.tag:
+            raise ValueError("OR-Set add requires a non-empty tag")
+        if op.tag not in removed:
+            bucket.add(op.tag)
     elif op.kind == "ORSET-REMOVE":
         for observed in op.observed_tags:
             bucket.discard(observed)
+            removed.add(observed)
         if not bucket:
             del new_state[op.element]
     else:
         raise ValueError(f"unknown OR-Set op kind: {op.kind!r}")
+    if not bucket:
+        new_state.pop(op.element, None)
+    if not removed:
+        new_state.pop(removed_key, None)
     return new_state
 
 
 def orset_materialize(state: dict[str, set[str]]) -> frozenset[str]:
     """Return the set of currently-present elements from the tag-set state."""
-    return frozenset(k for k, tags in state.items() if tags)
+    return frozenset(
+        key
+        for key, tags in state.items()
+        if tags and not key.startswith("__removed__:")
+    )
 
 
 # ============================================================================
@@ -170,19 +191,19 @@ def orset_materialize(state: dict[str, set[str]]) -> frozenset[str]:
 
 @dataclass(frozen=True)
 class GCounterOp:
-    """Increment on a per-actor cell of a G-Counter."""
+    """Absolute value of one actor cell in a state-based G-Counter."""
 
     kind: str  # "GCOUNTER"
     counter_key: str
     actor_id: str
-    delta: int  # non-negative
+    value: int  # non-negative, monotonically increasing
 
     def to_wire(self) -> dict[str, Any]:
         return {
             "kind": "GCOUNTER",
             "counter_key": self.counter_key,
             "actor_id": self.actor_id,
-            "delta": int(self.delta),
+            "value": int(self.value),
         }
 
 
@@ -190,13 +211,15 @@ def gcounter_merge(
     state: dict[str, int],
     op: GCounterOp,
 ) -> dict[str, int]:
-    """Apply an increment to per-actor cells. Negative deltas are rejected
-    (a G-Counter is grow-only; use a PN-Counter when decrements are needed).
+    """Merge an absolute actor-cell value using component-wise max.
+
+    Retrying the same operation is idempotent. Negative values are rejected
+    because a G-Counter is grow-only; use a PN-Counter for decrements.
     """
-    if op.delta < 0:
-        raise ValueError(f"GCounterOp delta must be >= 0, got {op.delta}")
+    if op.value < 0:
+        raise ValueError(f"GCounterOp value must be >= 0, got {op.value}")
     new_state = dict(state)
-    new_state[op.actor_id] = max(new_state.get(op.actor_id, 0), new_state.get(op.actor_id, 0) + op.delta)
+    new_state[op.actor_id] = max(new_state.get(op.actor_id, 0), op.value)
     return new_state
 
 
@@ -231,10 +254,14 @@ def parse_wire_op(raw: dict[str, Any]) -> LWWOp | ORSetOp | GCounterOp:
             observed_tags=tuple(raw.get("observed_tags") or ()),
         )
     if kind == "GCOUNTER":
+        if "value" not in raw:
+            raise ValueError(
+                "GCOUNTER requires absolute value; delta-only operations are not replay-safe"
+            )
         return GCounterOp(
             kind="GCOUNTER",
             counter_key=str(raw["counter_key"]),
             actor_id=str(raw["actor_id"]),
-            delta=int(raw["delta"]),
+            value=int(raw["value"]),
         )
     raise ValueError(f"unknown CRDT op kind: {kind!r}")

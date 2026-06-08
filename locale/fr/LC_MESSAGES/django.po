@@ -47622,3 +47622,519 @@ msgstr ""
 
 msgid "Writer file (ODT, DOCX, RTF, TXT)"
 msgstr ""
+
+msgid "%(email)s is already verified — nothing to resend."
+msgstr ""
+
+msgid "%(region)s — %(count)s schools"
+msgstr ""
+
+msgid "Access expires"
+msgstr ""
+
+msgid "Access logged"
+msgstr ""
+
+msgid "Article slug (optional)"
+msgstr ""
+
+msgid "Auditor access grants"
+msgstr ""
+
+msgid "Birth year"
+msgstr ""
+
+msgid "Category slug"
+msgstr ""
+
+msgid ""
+"Check the address with the school, then resend (or copy the link and send it"
+" another way)."
+msgstr ""
+
+msgid ""
+"Choose a password to finish setting up your account. After this you'll be "
+"signed in and can access your dashboard — and use this password to sign in "
+"any time from here on."
+msgstr ""
+
+msgid "Choose article…"
+msgstr ""
+
+msgid "Choose office document…"
+msgstr ""
+
+msgid "Click a pin for school details · filter by status chips"
+msgstr ""
+
+msgid "Cluster"
+msgstr ""
+
+msgid ""
+"Comma- or newline-separated IPs / CIDR ranges. Leave blank for no network "
+"restriction. Unparseable entries are dropped. A geo-fenced link is refused "
+"from any other address."
+msgstr ""
+
+msgid "Copy the verification link to send it another way"
+msgstr ""
+
+msgid "Copy this link now. For security it is shown only once."
+msgstr ""
+
+msgid "Corridor not yet researched — currency/rails are placeholder"
+msgstr ""
+
+msgid "Country readiness"
+msgstr ""
+
+msgid "Create magic link"
+msgstr ""
+
+msgid "Delivered"
+msgstr ""
+
+msgid "Denied by geo-fence"
+msgstr ""
+
+msgid ""
+"Download ODT, edit offline in LibreOffice, then re-upload here. The article "
+"moves to Updated — pending review."
+msgstr ""
+
+msgid "Drag to rotate · scroll to zoom"
+msgstr ""
+
+msgid "Dry run (preview only)"
+msgstr ""
+
+msgid "Dry-run ODT generation"
+msgstr ""
+
+msgid "Dry-run import"
+msgstr ""
+
+msgid "Edited document"
+msgstr ""
+
+msgid "Email health"
+msgstr ""
+
+msgid "Engine"
+msgstr ""
+
+msgid "English-fallback"
+msgstr ""
+
+msgid "Existing grants"
+msgstr ""
+
+msgid "Filter country / currency"
+msgstr ""
+
+msgid "Formats"
+msgstr ""
+
+msgid "Generate KB ODT"
+msgstr ""
+
+msgid "Generate ODT after import"
+msgstr ""
+
+msgid "Geo-fence"
+msgstr ""
+
+msgid "Geo-fence — IP allowlist"
+msgstr ""
+
+msgid "Geo-fenced to:"
+msgstr ""
+
+msgid "Globe tour"
+msgstr ""
+
+msgid "Grant details"
+msgstr ""
+
+msgid "Guardian contact"
+msgstr ""
+
+msgid "Highest-leverage adapters (countries unblocked if promoted to live)"
+msgstr ""
+
+msgid "Hover a region to highlight · click to fly there"
+msgstr ""
+
+msgid "How to use the globe"
+msgstr ""
+
+msgid "Import docs to KB"
+msgstr ""
+
+msgid "Import docs/ → KB"
+msgstr ""
+
+msgid "Include repo-root markdown"
+msgstr ""
+
+msgid "Initials"
+msgstr ""
+
+msgid "Inspection"
+msgstr ""
+
+msgid "Inspection link"
+msgstr ""
+
+msgid "Inspection unavailable"
+msgstr ""
+
+msgid "Inspector"
+msgstr ""
+
+msgid "Inspector label"
+msgstr ""
+
+msgid "Interact"
+msgstr ""
+
+msgid ""
+"Interactive globe unavailable — showing regional map. Visit online once to "
+"cache the 3D globe for offline use, or connect to retry."
+msgstr ""
+
+msgid "Internal note"
+msgstr ""
+
+msgid "Issue an inspection grant"
+msgstr ""
+
+msgid ""
+"JavaScript is needed to verify you’re human. If it’s turned off, use “Reset "
+"your password” below to sign in."
+msgstr ""
+
+msgid "KB articles, office templates, ODT import, and unified search."
+msgstr ""
+
+msgid "KB bulk operations"
+msgstr ""
+
+msgid "Last command output"
+msgstr ""
+
+msgid ""
+"Launch-readiness for all {{ n }} countries — what a tenant configures vs. "
+"what the platform must finish first."
+msgstr ""
+
+msgid "Leave blank for all published articles"
+msgstr ""
+
+msgid "Leave this field blank"
+msgstr ""
+
+msgid "Link"
+msgstr ""
+
+msgid "Link article to office document"
+msgstr ""
+
+msgid "Linked office doc"
+msgstr ""
+
+msgid "Linked office document"
+msgstr ""
+
+msgid "Locale & translation"
+msgstr ""
+
+msgid "Locale variants, canonical anchors, and group publish."
+msgstr ""
+
+msgid "Localization: "
+msgstr ""
+
+msgid "Magic link created"
+msgstr ""
+
+msgid "Masked roster"
+msgstr ""
+
+msgid ""
+"Mint a revocable, time-bounded magic link for an external inspector. They "
+"see only PII-masked, read-only data; every view is logged."
+msgstr ""
+
+msgid "Missing:"
+msgstr ""
+
+msgid "No IP restriction (usable from any network)."
+msgstr ""
+
+msgid "No countries match the filter."
+msgstr ""
+
+msgid "No grants yet. Issue one on the left."
+msgstr ""
+
+msgid "No stale verifications to resend."
+msgstr ""
+
+msgid "No student records are available within this grant's scope."
+msgstr ""
+
+msgid "ODT"
+msgstr ""
+
+msgid "ODT engine"
+msgstr ""
+
+msgid ""
+"Of {{ summary.total_countries|default:250 }} ISO countries, only <strong>{{ "
+"d }}</strong> have a researched payment corridor (real currency + dominant "
+"rails). The rest are placeholder stubs — defining a corridor is "
+"<em>data</em> work, distinct from the <em>adapter</em> work of promoting a "
+"PSP to live."
+msgstr ""
+
+msgid "Office export"
+msgstr ""
+
+msgid "One-click import docs/ to KB and regenerate ODT for articles."
+msgstr ""
+
+msgid ""
+"One-click import from docs/ and regenerate LibreOffice ODT for published "
+"articles."
+msgstr ""
+
+msgid "Optional Collabora/LibreOffice file paired with this article."
+msgstr ""
+
+msgid "Overwrite existing ODT"
+msgstr ""
+
+msgid "Overwrite existing slugs"
+msgstr ""
+
+msgid "PII masked"
+msgstr ""
+
+msgid "Platform action"
+msgstr ""
+
+msgid "Please complete the verification challenge to continue."
+msgstr ""
+
+msgid "Published: %(title)s"
+msgstr ""
+
+msgid "Rails"
+msgstr ""
+
+msgid "Re-import ODT"
+msgstr ""
+
+msgid "Re-sent %(n)s stale verification link(s)."
+msgstr ""
+
+msgid "Read-only roster"
+msgstr ""
+
+msgid "Read-only · PII-masked inspection"
+msgstr ""
+
+msgid "Readiness distribution"
+msgstr ""
+
+msgid "Records"
+msgstr ""
+
+msgid "Regenerate ODT from article content"
+msgstr ""
+
+msgid "Regenerated ODT for %(ok)s of %(total)s selected articles."
+msgstr ""
+
+msgid "Resend all stale"
+msgstr ""
+
+msgid "Reset view"
+msgstr ""
+
+msgid "Reset your password instead."
+msgstr ""
+
+msgid "Run ODT generation"
+msgstr ""
+
+msgid "Run import"
+msgstr ""
+
+msgid "Search articles and office documents"
+msgstr ""
+
+msgid "Search articles and office documents…"
+msgstr ""
+
+msgid "Select a school…"
+msgstr ""
+
+msgid "Send failed"
+msgstr ""
+
+msgid "Set your password"
+msgstr ""
+
+msgid "Shortcuts: T tour · R reset · Esc clear filters"
+msgstr ""
+
+msgid "Show defined only"
+msgstr ""
+
+msgid "Showing results for “{{ q }}”."
+msgstr ""
+
+msgid ""
+"Staff only — pair a KB article with its Collabora/LibreOffice source file."
+msgstr ""
+
+msgid "Staff: ODT round-trip"
+msgstr ""
+
+msgid "Stop"
+msgstr ""
+
+msgid "Student roster (masked)"
+msgstr ""
+
+msgid "Tenant action"
+msgstr ""
+
+msgid "That signup verification no longer exists."
+msgstr ""
+
+msgid ""
+"This view exposes masked, read-only data only. Every access is recorded "
+"against this grant. If this link should no longer work, contact the issuing "
+"institution to revoke it."
+msgstr ""
+
+msgid ""
+"Too many failed sign-in attempts. Please try again in about %(minutes)d "
+"minute(s), or reset your password."
+msgstr ""
+
+msgid "Total signups"
+msgstr ""
+
+msgid "Tour"
+msgstr ""
+
+msgid "Trouble verifying?"
+msgstr ""
+
+msgid "Trouble with the verification?"
+msgstr ""
+
+msgid "Unknown action."
+msgstr ""
+
+msgid "Unknown bulk action."
+msgstr ""
+
+msgid "Unlink"
+msgstr ""
+
+msgid "Valid for (hours)"
+msgstr ""
+
+msgid "Verification link %(verb)s to %(email)s."
+msgstr ""
+
+msgid "Verified rate"
+msgstr ""
+
+msgid "Verified ✓"
+msgstr ""
+
+msgid "Verifying you’re human…"
+msgstr ""
+
+msgid "Verifying… one moment."
+msgstr ""
+
+msgid "Zero-decimal currency — charge whole units, not cents"
+msgstr ""
+
+msgid "any network"
+msgstr ""
+
+msgid "countries shown"
+msgstr ""
+
+msgid "defined corridors"
+msgstr ""
+
+msgid "e.g. Ofsted Lead Inspector"
+msgstr ""
+
+msgid "e.g. demo-school"
+msgstr ""
+
+msgid "linked"
+msgstr ""
+
+msgid ""
+"live payment rails — until a PSP adapter is live, no country is fully "
+"config-only."
+msgstr ""
+
+msgid "localized"
+msgstr ""
+
+msgid "med"
+msgstr ""
+
+msgid "placeholder"
+msgstr ""
+
+msgid "re-sent"
+msgstr ""
+
+msgid "regenerated and re-sent"
+msgstr ""
+
+msgid "stub"
+msgstr ""
+
+msgid "students:read"
+msgstr ""
+
+msgid ""
+"{{ n }} signup has been pending more than {{ hours }}h. {% plural %} {{ n }}"
+" signups have been pending more than {{ hours }}h."
+msgstr ""
+
+msgid ""
+"{{ n }} unverified signup had a <strong>bouncing</strong> email address — "
+"the verification link almost certainly never arrived. {% plural %} {{ n }} "
+"unverified signups had a <strong>bouncing</strong> email address — the "
+"verification links almost certainly never arrived."
+msgstr ""
+
+msgid "Allow this one local AI or voice action. Nothing is saved."
+msgstr ""
+
+msgid "Draft on this device"
+msgstr ""
+
+msgid "Read aloud"
+msgstr ""
+
+msgid "Remove local model"
+msgstr ""
+
+msgid "Speak"
+msgstr ""

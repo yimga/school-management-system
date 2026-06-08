@@ -96,6 +96,25 @@ class ORSetTests(SimpleTestCase):
         state = orset_merge(state, ORSetOp(kind="ORSET-REMOVE", set_key="s", element="x", tag="", observed_tags=("t1",)))
         self.assertEqual(orset_materialize(state), frozenset({"x"}), "concurrent unobserved add survives remove")
 
+    def test_remove_before_observed_add_stays_removed(self):
+        remove = ORSetOp(
+            kind="ORSET-REMOVE",
+            set_key="s",
+            element="x",
+            tag="",
+            observed_tags=("t1",),
+        )
+        add = ORSetOp(
+            kind="ORSET-ADD",
+            set_key="s",
+            element="x",
+            tag="t1",
+        )
+        remove_then_add = orset_merge(orset_merge({}, remove), add)
+        add_then_remove = orset_merge(orset_merge({}, add), remove)
+        self.assertEqual(orset_materialize(remove_then_add), frozenset())
+        self.assertEqual(remove_then_add, add_then_remove)
+
     def test_full_remove_drops_element(self):
         state = {}
         state = orset_merge(state, ORSetOp(kind="ORSET-ADD", set_key="s", element="x", tag="t1"))
@@ -118,18 +137,32 @@ class GCounterTests(SimpleTestCase):
         self.assertEqual(gcounter_value({}), 0)
 
     def test_increment(self):
-        state = gcounter_merge({}, GCounterOp(kind="GCOUNTER", counter_key="c", actor_id="a", delta=5))
+        state = gcounter_merge({}, GCounterOp(kind="GCOUNTER", counter_key="c", actor_id="a", value=5))
         self.assertEqual(gcounter_value(state), 5)
 
-    def test_negative_delta_rejected(self):
+    def test_negative_value_rejected(self):
         with self.assertRaises(ValueError):
-            gcounter_merge({}, GCounterOp(kind="GCOUNTER", counter_key="c", actor_id="a", delta=-1))
+            gcounter_merge({}, GCounterOp(kind="GCOUNTER", counter_key="c", actor_id="a", value=-1))
 
     def test_two_actors_sum(self):
         state = {}
-        state = gcounter_merge(state, GCounterOp(kind="GCOUNTER", counter_key="c", actor_id="a", delta=3))
-        state = gcounter_merge(state, GCounterOp(kind="GCOUNTER", counter_key="c", actor_id="b", delta=4))
+        state = gcounter_merge(state, GCounterOp(kind="GCOUNTER", counter_key="c", actor_id="a", value=3))
+        state = gcounter_merge(state, GCounterOp(kind="GCOUNTER", counter_key="c", actor_id="b", value=4))
         self.assertEqual(gcounter_value(state), 7)
+
+    def test_replay_is_idempotent_and_stale_cell_does_not_regress(self):
+        op = GCounterOp(
+            kind="GCOUNTER", counter_key="c", actor_id="a", value=5
+        )
+        state = gcounter_merge({}, op)
+        state = gcounter_merge(state, op)
+        state = gcounter_merge(
+            state,
+            GCounterOp(
+                kind="GCOUNTER", counter_key="c", actor_id="a", value=3
+            ),
+        )
+        self.assertEqual(state, {"a": 5})
 
 
 class ParseWireOpTests(SimpleTestCase):
@@ -146,10 +179,21 @@ class ParseWireOpTests(SimpleTestCase):
         self.assertEqual(op.kind, "ORSET-ADD")
 
     def test_parse_gcounter(self):
-        raw = {"kind": "GCOUNTER", "counter_key": "c", "actor_id": "a", "delta": 5}
+        raw = {"kind": "GCOUNTER", "counter_key": "c", "actor_id": "a", "value": 5}
         op = parse_wire_op(raw)
         self.assertIsInstance(op, GCounterOp)
-        self.assertEqual(op.delta, 5)
+        self.assertEqual(op.value, 5)
+
+    def test_parse_rejects_non_idempotent_delta_only_counter(self):
+        with self.assertRaisesMessage(ValueError, "absolute value"):
+            parse_wire_op(
+                {
+                    "kind": "GCOUNTER",
+                    "counter_key": "c",
+                    "actor_id": "a",
+                    "delta": 5,
+                }
+            )
 
     def test_parse_unknown_raises(self):
         with self.assertRaises(ValueError):

@@ -131,3 +131,16 @@ def get_embedding_provider() -> EmbeddingProvider:
         model = getattr(settings, "AI_EMBEDDING_OLLAMA_MODEL", None) or os.environ.get("AI_EMBEDDING_OLLAMA_MODEL") or "nomic-embed-text"
         return OllamaEmbeddingProvider(base_url, model)
     return OllamaEmbeddingProvider("http://localhost:11434", "nomic-embed-text")
+
+
+def embedding_provider_descriptor(provider: EmbeddingProvider | None = None) -> str:
+    """Return a stable backend:model identifier for persisted vectors."""
+    provider = provider or get_embedding_provider()
+    model = str(getattr(provider, "model", "") or "").strip()
+    if isinstance(provider, OpenAICompatibleEmbeddingProvider):
+        backend = "openai_compatible"
+    elif isinstance(provider, OllamaEmbeddingProvider):
+        backend = "ollama"
+    else:
+        backend = provider.__class__.__name__.lower()
+    return f"{backend}:{model}" if model else backend

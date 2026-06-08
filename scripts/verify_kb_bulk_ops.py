@@ -50,9 +50,15 @@ def main() -> int:
         if not settings.configured:
             os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
             django.setup()
+        from django.conf import settings as dj_settings
         from django.urls import reverse
 
-        reverse("manager_kb_bulk_ops")
+        old = dj_settings.ROOT_URLCONF
+        dj_settings.ROOT_URLCONF = "config.manager_urls"
+        try:
+            reverse("manager_kb_bulk_ops")
+        finally:
+            dj_settings.ROOT_URLCONF = old
     except Exception as exc:
         errors.append(f"url reverse manager_kb_bulk_ops failed: {exc}")
 

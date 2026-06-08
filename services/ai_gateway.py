@@ -480,43 +480,59 @@ def _call_litellm(prompt: str, metadata: dict[str, Any] | None = None, model_key
     url = f"{proxy_url}/v1/chat/completions" if "/v1/" not in proxy_url else f"{proxy_url}/chat/completions"
     if not url.startswith("http"):
         url = f"https://{url}"
-    payload = {
-        "model": model,
-        "messages": [{"role": "user", "content": prompt}],
-        # OpenAI GPT-5.x rejects max_tokens; max_completion_tokens works across current models.
-        "max_completion_tokens": 2048,
-        "temperature": 0.3,
-    }
     headers = {"Content-Type": "application/json"}
     api_key = litellm_api_key()
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode("utf-8"),
-        headers=headers,
-        method="POST",
-    )
     timeout = timeout_sec if timeout_sec is not None else _request_timeout(metadata)
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            raw = resp.read().decode("utf-8")
-        body = json.loads(raw)
-        choices = body.get("choices") or []
-        msg = choices[0].get("message", {}) if choices else {}
-        text = (msg.get("content") or "").strip()
-        return text or None, {"provider": "litellm", "tier": "litellm", "model": model}
-    except urllib.error.HTTPError as e:
-        logger.warning("LiteLLM HTTP error %s: %s", e.code, url)
-        return None, {"provider": "litellm", "error": f"http_{e.code}"}
-    except urllib.error.URLError as e:
-        logger.debug("LiteLLM request failed: %s", getattr(e, "reason", e))
-        return None, {"provider": "litellm", "error": "unavailable"}
-    except (json.JSONDecodeError, UnicodeDecodeError) as e:
-        logger.warning("LiteLLM response parse failed: %s", e)
-        return None, {"provider": "litellm", "error": "invalid_response"}
-    except TimeoutError:
-        return None, {"provider": "litellm", "error": "timeout"}
+    base_messages = [{"role": "user", "content": prompt}]
+
+    def _post(extra: dict[str, Any]) -> tuple[str | None, dict[str, Any], int | None]:
+        """One completion attempt. Third element is the HTTP status (None for
+        non-HTTP failures so the caller knows a param-retry cannot help)."""
+        payload = {"model": model, "messages": base_messages, **extra}
+        req = urllib.request.Request(
+            url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST"
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                raw = resp.read().decode("utf-8")
+            body = json.loads(raw)
+            choices = body.get("choices") or []
+            msg = choices[0].get("message", {}) if choices else {}
+            text = (msg.get("content") or "").strip()
+            return text or None, {"provider": "litellm", "tier": "litellm", "model": model}, None
+        except urllib.error.HTTPError as e:
+            return None, {"provider": "litellm", "error": f"http_{e.code}"}, e.code
+        except urllib.error.URLError as e:
+            logger.debug("LiteLLM request failed: %s", getattr(e, "reason", e))
+            return None, {"provider": "litellm", "error": "unavailable"}, None
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            logger.warning("LiteLLM response parse failed: %s", e)
+            return None, {"provider": "litellm", "error": "invalid_response"}, None
+        except TimeoutError:
+            return None, {"provider": "litellm", "error": "timeout"}, None
+
+    # Parameter-shape fallback chain. A model your key supports can still 400 on
+    # param rules: reasoning models (gpt-5 / o-series) reject a non-default
+    # temperature; legacy models want max_tokens not max_completion_tokens. Only a
+    # 400 triggers the next shape — 401/404/429/5xx and non-HTTP errors return as-is
+    # (retrying params would not help and would just add latency).
+    attempts = (
+        {"max_completion_tokens": 2048, "temperature": 0.3},
+        {"max_completion_tokens": 2048},  # drop temperature (reasoning models)
+        {"max_tokens": 2048},             # legacy token-param name
+    )
+    text, meta, code = None, {"provider": "litellm", "error": "unavailable"}, None
+    for extra in attempts:
+        text, meta, code = _post(extra)
+        if text is not None or code is None:
+            return text, meta
+        if code != 400:
+            logger.warning("LiteLLM HTTP error %s: %s", code, url)
+            return text, meta
+    logger.warning("LiteLLM HTTP 400 after parameter-adaptation retries: %s", url)
+    return text, meta
 
 
 def _call_removed_cloud_provider(

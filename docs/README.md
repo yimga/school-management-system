@@ -14,6 +14,8 @@
 
 **Prefer coding over reading:** run `python scripts/verify_sot_pillar_evidence.py` and targeted `pytest` after changes. Use [TEST_DATABASE.md](TEST_DATABASE.md) for DB-backed tests.
 
+**AI truth hierarchy:** execution status stays in the master SOT. Runtime routing and deployment decisions live in [AI_DEPLOYMENT_POSTURE.md](AI_DEPLOYMENT_POSTURE.md). [AI_PLATFORM_WIDE_STATUS_2026_05_14.md](AI_PLATFORM_WIDE_STATUS_2026_05_14.md) is a dated surface inventory, not a second execution plan. Offline/hub behavior lives in [LOCAL_HUB_MODE.md](LOCAL_HUB_MODE.md); browser-offline operations are PWA/Dexie sync, not a committed on-device LLM.
+
 **Phases 3–11 gate bundle (linters + static audits, no DB):** `python scripts/verify_phases_3_11_gates.py` — see [PHASES_3_11_GATE_VERIFICATION.md](PHASES_3_11_GATE_VERIFICATION.md).
 
 **Gate-map maintenance (contributors):** canonical appendix rows live in [gate_map_appendix_config.json](gate_map_appendix_config.json); regenerate/check with `python scripts/generate_gate_map_appendix.py --write` / `--check`.

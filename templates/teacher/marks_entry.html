@@ -93,18 +93,35 @@
           Marksheet OCR uploads are controlled from Site Settings. Contact an admin to enable this feature.
         </div>
       {% endif %}
-      <form method="post" enctype="multipart/form-data" class="mb-3">
+      <form method="post" enctype="multipart/form-data" class="mb-3" id="marks-ocr-source-form">
         {% csrf_token %}
         {{ upload_form.subject_assignment_id }}
         <div class="mb-2">
           {{ upload_form.marksheet_file }}
         </div>
         <button class="btn btn-outline-primary" type="submit" {% if not marksheet_ocr_enabled or not marksheet_ocr_ready %}disabled{% endif %}>
-          Parse & Apply
+          Create server review proposal
+        </button>
+        <button
+          class="btn btn-outline-secondary ms-2"
+          type="button"
+          id="marks-device-ocr-button"
+          data-worker-path="{% static 'js/vendor/tesseract/worker.min.js' %}"
+          data-core-path="{% static 'js/vendor/tesseract/' %}"
+          data-lang-path="{% static 'js/vendor/tesseract/' %}"
+          {% if not marksheet_ocr_enabled %}disabled{% endif %}
+        >
+          Run on this device
         </button>
         {% if marksheet_mobile_upload_allowed %}
           <small class="text-muted ms-2">Works on mobile - choose or capture a photo directly.</small>
         {% endif %}
+        <div class="form-text">
+          Device OCR downloads about 22 MB of self-hosted runtime and language
+          assets on first use. The image stays in this browser. OCR only fills a
+          review proposal; it never saves a grade.
+        </div>
+        <div class="small mt-2" id="marks-device-ocr-status" role="status" aria-live="polite"></div>
       </form>
       {% if upload_feedback %}
         <div class="alert alert-{{ upload_feedback.level }} mb-3">
@@ -114,15 +131,18 @@
       {% if upload_summary.processed %}
         <p class="small text-muted mb-3">
           Processed {{ upload_summary.processed }} row{{ upload_summary.processed|pluralize }} at {{ upload_confidence|format_number:0 }}% confidence.
-          {% if upload_summary.applied %}
-            Auto-applied {{ upload_summary.applied }} row{{ upload_summary.applied|pluralize }}.
-          {% endif %}
           {% if upload_manual_review_pending %}
             Manual verification is required before committing changes.
           {% endif %}
         </p>
       {% endif %}
       {% if upload_preview %}
+        {% if upload_manual_review_pending %}
+          <form method="post" class="mt-3" id="marks-ocr-apply-form">
+            {% csrf_token %}
+            {{ upload_form.subject_assignment_id }}
+            <input type="hidden" name="confirm_pending" value="1">
+        {% endif %}
         <div class="alert alert-info mb-3">
           <strong>Delta mode:</strong> {% if upload_summary.delta_mode %}ON (only fills missing marks){% else %}OFF (updates all marks){% endif %}
           {% if upload_summary.field_confidences %}
@@ -160,8 +180,10 @@
                             step="0.01" 
                             class="form-control form-control-sm d-inline-block" 
                             style="width: 80px;"
-                            name="ocr_correct_{{ row.code }}_{{ field }}"
+                            name="ocr_correct_{{ forloop.parentloop.counter0 }}_{{ field }}"
                             value="{{ value }}"
+                            min="0"
+                            max="20"
                             placeholder="—"
                           >
                           {% if field in row.existing_scores %}
@@ -198,12 +220,14 @@
           </table>
         </div>
         {% if upload_manual_review_pending %}
-          <form method="post" class="mt-3" id="marks-ocr-apply-form">
-            {% csrf_token %}
-            {{ upload_form.subject_assignment_id }}
-            <input type="hidden" name="confirm_pending" value="1">
-            <button class="btn btn-primary" type="submit" data-action="marks-ocr-apply" data-task-step="marks:ocr-commit">Apply parsed marks</button>
-            <span class="ms-2 text-muted">Review and correct values above, then click to apply.</span>
+            <div class="form-check mt-3">
+              <input class="form-check-input" type="checkbox" value="1" name="confirm_human_review" id="confirm-human-ocr-review" required>
+              <label class="form-check-label" for="confirm-human-ocr-review">
+                I reviewed the student matches and every proposed score.
+              </label>
+            </div>
+            <button class="btn btn-primary mt-2" type="submit" data-action="marks-ocr-apply" data-task-step="marks:ocr-commit">Apply teacher-confirmed proposal</button>
+            <span class="ms-2 text-muted">This explicit confirmation is required.</span>
           </form>
         {% endif %}
       {% endif %}
@@ -242,6 +266,7 @@
     <div class="card-body table-responsive">
       <form method="post" id="marks-entry-form"
             data-rmc-offline-form="grading" data-offline-action-type="grading"
+            data-rmc-ocr-delta-mode="{% if marksheet_ocr_delta_mode %}1{% else %}0{% endif %}"
             {% if year %}data-rmc-year-id="{{ year.id }}"{% endif %}
             {% if term %}data-rmc-term-id="{{ term.id }}"{% endif %}
             data-draft-key="marks_{{ sa.id }}" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced marks">
@@ -266,6 +291,7 @@
             {% for s in students %}
               {% with e=existing|get_item:s.id %}
               <tr class="{% if e|evaluation_incomplete:required_fields %}table-warning{% endif %}"
+                  data-rmc-student-code="{{ s.student_code|upper }}"
                   data-rmc-row-detail="1"
                   tabindex="0"
                   data-rmc-row-title="{{ s.last_name }}, {{ s.first_name }}"
@@ -277,11 +303,11 @@
                     <span>{{ s.last_name }} {{ s.first_name }} <span class="text-muted">({{ s.student_code }})</span></span>
                   </span>
                 </td>
-                <td class="num"><input class="mark-cell" name="seq1_{{ s.id }}" value="{% if e %}{{ e.seq1_score }}{% endif %}" inputmode="decimal" {% if locked %}disabled{% endif %}></td>
-                <td class="num"><input class="mark-cell" name="seq2_{{ s.id }}" value="{% if e %}{{ e.seq2_score }}{% endif %}" inputmode="decimal" {% if locked %}disabled{% endif %}></td>
-                <td class="num"><input class="mark-cell" name="exam_{{ s.id }}" value="{% if e %}{{ e.exam_score }}{% endif %}" inputmode="decimal" {% if locked %}disabled{% endif %}></td>
-                <td class="num"><input class="mark-cell" name="mock_{{ s.id }}" value="{% if e %}{{ e.mock_score }}{% endif %}" inputmode="decimal" {% if locked %}disabled{% endif %}></td>
-                <td class="num"><input class="mark-cell" name="practical_{{ s.id }}" value="{% if e %}{{ e.practical_score }}{% endif %}" inputmode="decimal" {% if locked %}disabled{% endif %}></td>
+                <td class="num"><input class="mark-cell" name="seq1_{{ s.id }}" data-rmc-ocr-field="seq1_score" value="{% if e %}{{ e.seq1_score }}{% endif %}" inputmode="decimal" min="0" max="20" {% if locked %}disabled{% endif %}></td>
+                <td class="num"><input class="mark-cell" name="seq2_{{ s.id }}" data-rmc-ocr-field="seq2_score" value="{% if e %}{{ e.seq2_score }}{% endif %}" inputmode="decimal" min="0" max="20" {% if locked %}disabled{% endif %}></td>
+                <td class="num"><input class="mark-cell" name="exam_{{ s.id }}" data-rmc-ocr-field="exam_score" value="{% if e %}{{ e.exam_score }}{% endif %}" inputmode="decimal" min="0" max="20" {% if locked %}disabled{% endif %}></td>
+                <td class="num"><input class="mark-cell" name="mock_{{ s.id }}" data-rmc-ocr-field="mock_score" value="{% if e %}{{ e.mock_score }}{% endif %}" inputmode="decimal" min="0" max="20" {% if locked %}disabled{% endif %}></td>
+                <td class="num"><input class="mark-cell" name="practical_{{ s.id }}" data-rmc-ocr-field="practical_score" value="{% if e %}{{ e.practical_score }}{% endif %}" inputmode="decimal" min="0" max="20" {% if locked %}disabled{% endif %}></td>
                 <td><input class="form-control form-control-sm" name="remarks_{{ s.id }}" value="{% if e %}{{ e.remarks }}{% endif %}" {% if locked %}disabled{% endif %}></td>
               </tr>
               {% endwith %}
@@ -303,6 +329,10 @@
   {% comment %} FormDraftSave.init is called by the page script after the library loads. {% endcomment %}
 {% endif %}
 {% include "components/was_this_helpful.html" with feedback_id="teacher-marks-entry" %}
+{% if marksheet_ocr_enabled %}
+<script src="{% static 'js/vendor/tesseract/tesseract.min.js' %}" defer></script>
+<script src="{% static 'js/rmc-marksheet-device-ocr.js' %}" defer></script>
+{% endif %}
 <script src="{% static 'js/_pages/teacher__marks_entry.js' %}"></script>
 {% comment %} v4.00.10: progressive WAL enhancement for bulk gradebook. No-op when window.rmcWAL is absent. {% endcomment %}
 <script src="{% static 'js/_pages/rmc-gradebook-wal-enhance.js' %}" defer></script>

@@ -1,5 +1,5 @@
 {
-  "last_reviewed": "2026-06-04",
+  "last_reviewed": "2026-06-08",
   "allowed": [
     "AGENTS.md",
     ".coveragerc",
@@ -39,6 +39,7 @@
     "tsconfig.json",
     "vite.analytics.config.ts",
     "vite.lux.config.ts",
+    "vite.worldGlobe.config.ts",
     "vitest.config.ts"
   ]
 }

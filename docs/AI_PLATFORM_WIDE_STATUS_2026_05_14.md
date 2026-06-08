@@ -1,12 +1,16 @@
 # AI Platform-Wide Status — 2026-05-14
 
-**Purpose.** This document is the single source of truth for every AI
-surface on the platform: where it lives in the codebase, what it does,
-how it is gated, and what governance applies. When in doubt about
-"is the AI for X wired?", check here first; it is regenerated as part
-of each AI-touching wave.
+**Purpose.** This is the dated AI surface inventory captured on
+2026-05-14: where the then-current surfaces lived, what they did, and
+how they were gated. It is not the execution or deployment source of
+truth. Use `RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md` for status,
+`AI_DEPLOYMENT_POSTURE.md` for current routing/deployment decisions,
+and generated route/code inventories for current endpoint counts.
 
-**Last verified:** 2026-05-14 (wave `sms-v2.10.0-ai-surfaces-closeout`).
+**Inventory snapshot:** 2026-05-14 (wave `sms-v2.10.0-ai-surfaces-closeout`).
+**SOT role reconciled:** 2026-06-07 (batch 1661). Later AI waves are
+recorded in the master SOT; do not infer current completeness from this
+snapshot alone.
 
 ---
 
@@ -21,7 +25,10 @@ services/ai_helpers.py            ← non-migration callers go here first
    ↓
 services/ai_gateway.py            ← TaskType-routed dispatch
    ↓
-tier policy: ollama → vllm → litellm → anthropic → rules
+services/ai_deployment_posture.py ← profile-aware tier policy
+   ↓
+online: litellm → ollama → rules (when LiteLLM is configured)
+edge:   ollama → rules
    ↓
 audit + metric (AIActionAuditLog + AIGatewayMetric)
 ```
@@ -229,10 +236,10 @@ has three AI hooks:
 
 ---
 
-## 11. What is *not* yet implemented
+## 11. Historical gaps at snapshot time
 
-These are tracked, deliberately out-of-scope for the current wave, or
-external dependencies:
+These rows describe the 2026-05-14 snapshot only. They are not a live
+backlog. Check the master SOT and current code before scheduling work.
 
 | Gap | Owner | Why deferred |
 |---|---|---|

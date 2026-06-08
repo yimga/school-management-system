@@ -8,7 +8,7 @@
      LWW       — Last-Write-Wins register (HLC-ordered).
      ORSET     — Observed-Remove Set (add carries uuid tag; remove carries
                  the observed tag set).
-     GCOUNTER  — Grow-only counter (per-actor cells).
+     GCOUNTER  — Grow-only counter (absolute per-actor cells).
 
    The client buffers ops locally until pushOps() is called or until an
    auto-flush threshold is reached. pushOps() POSTs to /api/v1/crdt/apply/
@@ -28,8 +28,8 @@
   // ============================================================
 
   function HLC(physicalMs, logical, actorId) {
-    this.physicalMs = physicalMs | 0;
-    this.logical = logical | 0;
+    this.physicalMs = Math.max(0, Math.trunc(Number(physicalMs) || 0));
+    this.logical = Math.max(0, Math.trunc(Number(logical) || 0));
     this.actorId = String(actorId || "");
   }
 
@@ -62,7 +62,7 @@
   };
 
   function hlcTick(prev, nowMs, actorId) {
-    var now = nowMs | 0;
+    var now = Math.max(0, Math.trunc(Number(nowMs) || 0));
     if (prev && now > prev.physicalMs) {
       return new HLC(now, 0, actorId);
     }
@@ -93,7 +93,8 @@
 
   function CRDTClient(opts) {
     opts = opts || {};
-    this.actorId = String(opts.actorId || "anon");
+    this.actorId = String(opts.actorId || ("browser-" + newTag()));
+    this.deviceId = String(opts.deviceId || this.actorId || "browser").slice(0, 64);
     var defaultEndpoint =
       (window.RMCPlatformSurface && window.RMCPlatformSurface.url("crdt_apply")) || "";
     this.endpoint = String(opts.endpoint || defaultEndpoint);
@@ -102,6 +103,7 @@
     this._pending = [];
     // ORSet observed-tag bookkeeping: setKey -> element -> [tags]
     this._observedTags = {};
+    this._counterCells = {};
   }
 
   CRDTClient.prototype._tick = function () {
@@ -123,22 +125,32 @@
   };
 
   // LWW register: assign a value.
-  CRDTClient.prototype.lwwSet = function (key, value) {
+  CRDTClient.prototype.lwwSet = function (entity, key, value) {
     var hlc = this._tick();
-    var op = { kind: "LWW", key: String(key), value: value, hlc: hlc.toWire() };
+    var normalizedEntity = String(entity || "");
+    var op = {
+      kind: "LWW",
+      entity: normalizedEntity,
+      key: normalizedEntity + ":" + String(key),
+      value: value,
+      hlc: hlc.toWire(),
+    };
     this._queue(op);
     return op;
   };
 
   // ORSet: add an element.
-  CRDTClient.prototype.orsetAdd = function (setKey, element) {
+  CRDTClient.prototype.orsetAdd = function (entity, setKey, element) {
+    var normalizedEntity = String(entity || "");
+    var namespacedKey = normalizedEntity + ":" + String(setKey);
     var tag = newTag();
-    var setBucket = this._observedTags[setKey] || (this._observedTags[setKey] = {});
+    var setBucket = this._observedTags[namespacedKey] || (this._observedTags[namespacedKey] = {});
     var tagList = setBucket[element] || (setBucket[element] = []);
     tagList.push(tag);
     var op = {
       kind: "ORSET-ADD",
-      set_key: String(setKey),
+      entity: normalizedEntity,
+      set_key: namespacedKey,
       element: String(element),
       tag: tag,
       observed_tags: [],
@@ -149,8 +161,10 @@
 
   // ORSet: remove an element. Carries all locally-observed tags so concurrent
   // adds elsewhere survive (CRDT semantics).
-  CRDTClient.prototype.orsetRemove = function (setKey, element) {
-    var setBucket = this._observedTags[setKey] || {};
+  CRDTClient.prototype.orsetRemove = function (entity, setKey, element) {
+    var normalizedEntity = String(entity || "");
+    var namespacedKey = normalizedEntity + ":" + String(setKey);
+    var setBucket = this._observedTags[namespacedKey] || {};
     var observed = (setBucket[element] || []).slice();
     if (observed.length === 0) {
       // No locally-observed adds; emit a no-op remove that the server will
@@ -159,7 +173,8 @@
     }
     var op = {
       kind: "ORSET-REMOVE",
-      set_key: String(setKey),
+      entity: normalizedEntity,
+      set_key: namespacedKey,
       element: String(element),
       tag: "",
       observed_tags: observed,
@@ -171,15 +186,21 @@
     return op;
   };
 
-  // GCounter: increment by a non-negative delta.
-  CRDTClient.prototype.gcounterIncrement = function (counterKey, delta) {
+  // GCounter: publish the actor's absolute cell value. Component-wise max on
+  // the server makes replay idempotent.
+  CRDTClient.prototype.gcounterIncrement = function (entity, counterKey, delta) {
+    var normalizedEntity = String(entity || "");
+    var namespacedKey = normalizedEntity + ":" + String(counterKey);
     var d = Math.max(0, delta | 0);
     if (d === 0) { return null; }
+    var nextValue = (this._counterCells[namespacedKey] || 0) + d;
+    this._counterCells[namespacedKey] = nextValue;
     var op = {
       kind: "GCOUNTER",
-      counter_key: String(counterKey),
+      entity: normalizedEntity,
+      counter_key: namespacedKey,
       actor_id: this.actorId,
-      delta: d,
+      value: nextValue,
     };
     this._queue(op);
     return op;
@@ -215,7 +236,7 @@
             body: JSON.stringify(payload),
           });
         };
-    return poster(this.endpoint, { ops: batch }).then(function (resp) {
+    return poster(this.endpoint, { ops: batch, device_id: this.deviceId }).then(function (resp) {
       if (!resp.ok) {
         var err = new Error("crdt push failed: HTTP " + resp.status);
         err.status = resp.status;

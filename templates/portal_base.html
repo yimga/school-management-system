@@ -625,6 +625,7 @@
     </div>
     <script src="{% static 'js/_pages/rmc-copilot-rail.js' %}" defer></script>
     <script src="{% static 'js/rmc-copilot-rail.js' %}" defer></script>
+    <script src="{% static 'js/rmc-local-ai-accessibility.js' %}" defer></script>
     {% endif %}
     {% if proactive_help_nudge and not tp_v3_tenant_shell %}
     {% include "partials/help_proactive_nudge.html" %}
@@ -637,8 +638,6 @@
     {% if show_module_inline_help_assistant and show_kb_ai_assistant_panel %}
     {% include "partials/help_module_inline_assistant.html" %}
     {% endif %}
-
-    {% include 'components/rum_beacon.html' %}
 
     {% if SITE and SITE.is_preview %}
     {% comment %} preview-highlights.css retired 2026-05-12 (pass 2 css cleanup); rules folded into design-system-unified.css {% endcomment %}

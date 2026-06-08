@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "localhost_only": true,
+  "runtime": "tesseract.js@7.0.0",
+  "recognized_text": "STD001 12 13 14",
+  "confidence": 83,
+  "has_blocks": true,
+  "error": ""
+}

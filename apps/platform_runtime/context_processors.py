@@ -40,14 +40,29 @@ def rum_ingest_context(request):
     Expose RUM endpoint + token to templates when RUM_INGEST_KEY is configured (>= 16 chars).
     """
     key = (getattr(settings, "RUM_INGEST_KEY", None) or "").strip()
+    layout_enabled = bool(
+        getattr(settings, "RMC_LAYOUT_OBSERVABILITY_ENABLED", True)
+    )
     if len(key) < 16:
-        return {"rum_ingest_url": None, "rum_ingest_key": None}
+        return {
+            "rum_ingest_url": None,
+            "rum_ingest_key": None,
+            "rmc_layout_observability_enabled": layout_enabled,
+        }
     try:
         path = reverse("rum_ingest")
     except NoReverseMatch:
-        return {"rum_ingest_url": None, "rum_ingest_key": None}
+        return {
+            "rum_ingest_url": None,
+            "rum_ingest_key": None,
+            "rmc_layout_observability_enabled": layout_enabled,
+        }
     url = request.build_absolute_uri(path)
-    return {"rum_ingest_url": url, "rum_ingest_key": key}
+    return {
+        "rum_ingest_url": url,
+        "rum_ingest_key": key,
+        "rmc_layout_observability_enabled": layout_enabled,
+    }
 
 
 def demo_sandbox_banner(request):

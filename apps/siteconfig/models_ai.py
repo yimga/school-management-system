@@ -99,16 +99,38 @@ class AIEmbeddingStore(models.Model):
     school_id = models.UUIDField(db_index=True, null=True, blank=True)
     conversation_id = models.CharField(max_length=64, blank=True, db_index=True)
     scope = models.CharField(max_length=32, default="chat", db_index=True)
+    document_id = models.CharField(max_length=128, blank=True, db_index=True)
     text_hash = models.CharField(max_length=64, db_index=True)
+    embedding_model = models.CharField(max_length=128, blank=True, db_index=True)
+    embedding_dimensions = models.PositiveIntegerField(null=True, blank=True)
     embedding = models.JSONField(
         default=list, help_text="List of floats from Ollama embeddings API"
     )
+    lifecycle_status = models.CharField(
+        max_length=16,
+        choices=(("active", "Active"), ("tombstone", "Tombstone")),
+        default="active",
+        db_index=True,
+    )
+    retention_until = models.DateTimeField(null=True, blank=True, db_index=True)
+    source_updated_at = models.DateTimeField(null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "siteconfig_aiembeddingstore"
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(
+                fields=["school_id", "scope", "document_id"],
+                name="aiembed_tenant_doc_idx",
+            ),
+            models.Index(
+                fields=["school_id", "scope", "lifecycle_status"],
+                name="aiembed_tenant_life_idx",
+            ),
+        ]
         verbose_name = "AI embedding store"
         verbose_name_plural = "AI embedding stores"
         app_label = "siteconfig"

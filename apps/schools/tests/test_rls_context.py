@@ -12,6 +12,7 @@ from unittest.mock import patch
 from django.db import connection
 
 from apps.schools.rls_context import (
+    quarantine_rls_connection,
     reset_rls_bypass,
     reset_rls_school_id,
     rls_bypass,
@@ -42,6 +43,12 @@ class RlsContextContractTests(unittest.TestCase):
         """reset_rls_school_id() is safe to call when nothing was set."""
         reset_rls_school_id()
         reset_rls_school_id()
+
+    def test_quarantine_closes_connection(self):
+        with patch.object(connection, "close") as close:
+            quarantine_rls_connection("reset failed")
+
+        close.assert_called_once_with()
 
     def test_set_rls_bypass_callable_no_raise(self):
         """set_rls_bypass() does not raise (no-op on non-postgres)."""

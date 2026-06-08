@@ -39,8 +39,28 @@ from apps.platform_runtime.views_platform_health import (
     platform_health_center,
     platform_health_recheck,
 )
+from apps.platform_runtime.views_local_ai import (
+    browser_inference_config_view,
+    local_voice_synthesize_view,
+    local_voice_transcribe_view,
+)
 
 urlpatterns = [
+    path(  # rbac-allow: authenticated-tenant-local-browser-ai-config
+        "local-ai/browser-config/",
+        browser_inference_config_view,
+        name="browser_inference_config",
+    ),
+    path(  # rbac-allow: authenticated-tenant-explicit-consent-local-stt
+        "local-ai/voice/transcribe/",
+        local_voice_transcribe_view,
+        name="local_voice_transcribe",
+    ),
+    path(  # rbac-allow: authenticated-tenant-explicit-consent-local-tts
+        "local-ai/voice/synthesize/",
+        local_voice_synthesize_view,
+        name="local_voice_synthesize",
+    ),
     path(
         "lifecycle/",
         tenant_lifecycle_dashboard,

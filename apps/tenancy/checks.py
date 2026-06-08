@@ -28,6 +28,7 @@ SCHEMA_TENANT_ONLY_APPS = {
     "apps.school_events",
     "apps.schoolops",
 }
+SUPPORTED_DB_POOL_MODES = {"direct", "session", "transaction"}
 
 
 @register()
@@ -110,6 +111,52 @@ def tenancy_strategy_checks(app_configs, **kwargs):
                 )
             )
 
+    return errors
+
+
+@register()
+def database_pooling_checks(app_configs, **kwargs):
+    errors = []
+    pool_mode = str(getattr(settings, "DB_POOL_MODE", "direct") or "").strip().lower()
+    default_db = settings.DATABASES.get("default") or {}
+    engine = str(default_db.get("ENGINE") or "")
+    if pool_mode not in SUPPORTED_DB_POOL_MODES:
+        errors.append(
+            Error(
+                f"DB_POOL_MODE={pool_mode!r} is invalid.",
+                hint="Use direct, session, or transaction.",
+                id="tenancy.E008",
+            )
+        )
+        return errors
+    if pool_mode == "transaction" and "postgresql" in engine:
+        errors.append(
+            Error(
+                "PgBouncer transaction pooling is incompatible with the current tenant-context implementation.",
+                hint=(
+                    "Use DB_POOL_MODE=direct or session. Both RLS mode "
+                    "(app.current_school_id) and schema mode (search_path) "
+                    "currently require server-session state."
+                ),
+                id="tenancy.E009",
+            )
+        )
+        if int(default_db.get("CONN_MAX_AGE") or 0) != 0:
+            errors.append(
+                Error(
+                    "Transaction-pooled connections must not be persistent in Django.",
+                    hint="Set DB_CONN_MAX_AGE=0.",
+                    id="tenancy.E010",
+                )
+            )
+        if not bool(default_db.get("DISABLE_SERVER_SIDE_CURSORS", False)):
+            errors.append(
+                Error(
+                    "Transaction pooling requires server-side cursors to be disabled.",
+                    hint="Set DB_DISABLE_SERVER_SIDE_CURSORS=1.",
+                    id="tenancy.E011",
+                )
+            )
     return errors
 
 

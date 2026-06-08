@@ -81,7 +81,7 @@ def optimize_route(route_id, *, persist: bool = False, start_stop_id=None) -> di
     """Optimise a Route's stops; optionally persist the new `sequence` values."""
     from apps.schoolops.models import Route, Stop
 
-    route = Route.objects.filter(pk=route_id).first()
+    route = Route.objects.filter(pk=route_id).first()  # tenant-isolation-allow: pk-route-lookup-view-layer-school-bind
     if route is None:
         return {"ok": False, "error": "Route not found."}
     stops = list(Stop.objects.filter(route=route).order_by("sequence", "id"))

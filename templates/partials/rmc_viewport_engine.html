@@ -12,6 +12,10 @@ minified each) and ensures the architecture binds on every shell uniformly.
 {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-viewport-engine.css' %}">
 <script src="{% static 'js/rmc-viewport-engine.js' %}"></script>
+{% if rmc_layout_observability_enabled %}
+<script src="{% static 'js/rmc-layout-observer.js' %}" defer></script>
+{% endif %}
+{% include "components/rum_beacon.html" %}
 {% if request.user.is_authenticated and request.public_host_kind != 'manager' %}
 <script src="{% static 'js/rmc-wal-stream.js' %}" defer></script>
 <script src="{% static 'js/rmc-stream-mount.js' %}" defer></script>

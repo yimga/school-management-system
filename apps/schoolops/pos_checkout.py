@@ -64,7 +64,9 @@ def student_allergen_terms(student) -> set[str]:
         return set()
     terms: set[str] = set()
     for row in HealthRecord.objects.filter(
-        student_id=student.pk, record_type__icontains="allerg"
+        school_id=student.school_id,
+        student_id=student.pk,
+        record_type__icontains="allerg",
     ):
         terms |= _tokenize(row.notes)
     if hasattr(student, "tags"):

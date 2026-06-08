@@ -51836,3 +51836,558 @@ msgstr "Workflows healthy"
 
 msgid "Writer file (ODT, DOCX, RTF, TXT)"
 msgstr "Writer file (ODT, DOCX, RTF, TXT)"
+
+msgid "%(email)s is already verified — nothing to resend."
+msgstr "%(email)s is already verified — nothing to resend."
+
+msgid "%(region)s — %(count)s schools"
+msgstr "%(region)s — %(count)s schools"
+
+msgid "Access expires"
+msgstr "Access expires"
+
+msgid "Access logged"
+msgstr "Access logged"
+
+msgid "Article slug (optional)"
+msgstr "Article slug (optional)"
+
+msgid "Auditor access grants"
+msgstr "Auditor access grants"
+
+msgid "Birth year"
+msgstr "Birth year"
+
+msgid "Category slug"
+msgstr "Category slug"
+
+msgid ""
+"Check the address with the school, then resend (or copy the link and send it"
+" another way)."
+msgstr ""
+"Check the address with the school, then resend (or copy the link and send it"
+" another way)."
+
+msgid ""
+"Choose a password to finish setting up your account. After this you'll be "
+"signed in and can access your dashboard — and use this password to sign in "
+"any time from here on."
+msgstr ""
+"Choose a password to finish setting up your account. After this you'll be "
+"signed in and can access your dashboard — and use this password to sign in "
+"any time from here on."
+
+msgid "Choose article…"
+msgstr "Choose article…"
+
+msgid "Choose office document…"
+msgstr "Choose office document…"
+
+msgid "Click a pin for school details · filter by status chips"
+msgstr "Click a pin for school details · filter by status chips"
+
+msgid "Cluster"
+msgstr "Cluster"
+
+msgid ""
+"Comma- or newline-separated IPs / CIDR ranges. Leave blank for no network "
+"restriction. Unparseable entries are dropped. A geo-fenced link is refused "
+"from any other address."
+msgstr ""
+"Comma- or newline-separated IPs / CIDR ranges. Leave blank for no network "
+"restriction. Unparseable entries are dropped. A geo-fenced link is refused "
+"from any other address."
+
+msgid "Copy the verification link to send it another way"
+msgstr "Copy the verification link to send it another way"
+
+msgid "Copy this link now. For security it is shown only once."
+msgstr "Copy this link now. For security it is shown only once."
+
+msgid "Corridor not yet researched — currency/rails are placeholder"
+msgstr "Corridor not yet researched — currency/rails are placeholder"
+
+msgid "Country readiness"
+msgstr "Country readiness"
+
+msgid "Create magic link"
+msgstr "Create magic link"
+
+msgid "Delivered"
+msgstr "Delivered"
+
+msgid "Denied by geo-fence"
+msgstr "Denied by geo-fence"
+
+msgid ""
+"Download ODT, edit offline in LibreOffice, then re-upload here. The article "
+"moves to Updated — pending review."
+msgstr ""
+"Download ODT, edit offline in LibreOffice, then re-upload here. The article "
+"moves to Updated — pending review."
+
+msgid "Drag to rotate · scroll to zoom"
+msgstr "Drag to rotate · scroll to zoom"
+
+msgid "Dry run (preview only)"
+msgstr "Dry run (preview only)"
+
+msgid "Dry-run ODT generation"
+msgstr "Dry-run ODT generation"
+
+msgid "Dry-run import"
+msgstr "Dry-run import"
+
+msgid "Edited document"
+msgstr "Edited document"
+
+msgid "Email health"
+msgstr "Email health"
+
+msgid "Engine"
+msgstr "Engine"
+
+msgid "English-fallback"
+msgstr "English-fallback"
+
+msgid "Existing grants"
+msgstr "Existing grants"
+
+msgid "Filter country / currency"
+msgstr "Filter country / currency"
+
+msgid "Formats"
+msgstr "Formats"
+
+msgid "Generate KB ODT"
+msgstr "Generate KB ODT"
+
+msgid "Generate ODT after import"
+msgstr "Generate ODT after import"
+
+msgid "Geo-fence"
+msgstr "Geo-fence"
+
+msgid "Geo-fence — IP allowlist"
+msgstr "Geo-fence — IP allowlist"
+
+msgid "Geo-fenced to:"
+msgstr "Geo-fenced to:"
+
+msgid "Globe tour"
+msgstr "Globe tour"
+
+msgid "Grant details"
+msgstr "Grant details"
+
+msgid "Guardian contact"
+msgstr "Guardian contact"
+
+msgid "Highest-leverage adapters (countries unblocked if promoted to live)"
+msgstr "Highest-leverage adapters (countries unblocked if promoted to live)"
+
+msgid "Hover a region to highlight · click to fly there"
+msgstr "Hover a region to highlight · click to fly there"
+
+msgid "How to use the globe"
+msgstr "How to use the globe"
+
+msgid "Import docs to KB"
+msgstr "Import docs to KB"
+
+msgid "Import docs/ → KB"
+msgstr "Import docs/ → KB"
+
+msgid "Include repo-root markdown"
+msgstr "Include repo-root markdown"
+
+msgid "Initials"
+msgstr "Initials"
+
+msgid "Inspection"
+msgstr "Inspection"
+
+msgid "Inspection link"
+msgstr "Inspection link"
+
+msgid "Inspection unavailable"
+msgstr "Inspection unavailable"
+
+msgid "Inspector"
+msgstr "Inspector"
+
+msgid "Inspector label"
+msgstr "Inspector label"
+
+msgid "Interact"
+msgstr "Interact"
+
+msgid ""
+"Interactive globe unavailable — showing regional map. Visit online once to "
+"cache the 3D globe for offline use, or connect to retry."
+msgstr ""
+"Interactive globe unavailable — showing regional map. Visit online once to "
+"cache the 3D globe for offline use, or connect to retry."
+
+msgid "Internal note"
+msgstr "Internal note"
+
+msgid "Issue an inspection grant"
+msgstr "Issue an inspection grant"
+
+msgid ""
+"JavaScript is needed to verify you’re human. If it’s turned off, use “Reset "
+"your password” below to sign in."
+msgstr ""
+"JavaScript is needed to verify you’re human. If it’s turned off, use “Reset "
+"your password” below to sign in."
+
+msgid "KB articles, office templates, ODT import, and unified search."
+msgstr "KB articles, office templates, ODT import, and unified search."
+
+msgid "KB bulk operations"
+msgstr "KB bulk operations"
+
+msgid "Last command output"
+msgstr "Last command output"
+
+msgid ""
+"Launch-readiness for all {{ n }} countries — what a tenant configures vs. "
+"what the platform must finish first."
+msgstr ""
+"Launch-readiness for all {{ n }} countries — what a tenant configures vs. "
+"what the platform must finish first."
+
+msgid "Leave blank for all published articles"
+msgstr "Leave blank for all published articles"
+
+msgid "Leave this field blank"
+msgstr "Leave this field blank"
+
+msgid "Link"
+msgstr "Link"
+
+msgid "Link article to office document"
+msgstr "Link article to office document"
+
+msgid "Linked office doc"
+msgstr "Linked office doc"
+
+msgid "Linked office document"
+msgstr "Linked office document"
+
+msgid "Locale & translation"
+msgstr "Locale & translation"
+
+msgid "Locale variants, canonical anchors, and group publish."
+msgstr "Locale variants, canonical anchors, and group publish."
+
+msgid "Localization: "
+msgstr "Localization: "
+
+msgid "Magic link created"
+msgstr "Magic link created"
+
+msgid "Masked roster"
+msgstr "Masked roster"
+
+msgid ""
+"Mint a revocable, time-bounded magic link for an external inspector. They "
+"see only PII-masked, read-only data; every view is logged."
+msgstr ""
+"Mint a revocable, time-bounded magic link for an external inspector. They "
+"see only PII-masked, read-only data; every view is logged."
+
+msgid "Missing:"
+msgstr "Missing:"
+
+msgid "No IP restriction (usable from any network)."
+msgstr "No IP restriction (usable from any network)."
+
+msgid "No countries match the filter."
+msgstr "No countries match the filter."
+
+msgid "No grants yet. Issue one on the left."
+msgstr "No grants yet. Issue one on the left."
+
+msgid "No stale verifications to resend."
+msgstr "No stale verifications to resend."
+
+msgid "No student records are available within this grant's scope."
+msgstr "No student records are available within this grant's scope."
+
+msgid "ODT"
+msgstr "ODT"
+
+msgid "ODT engine"
+msgstr "ODT engine"
+
+msgid ""
+"Of {{ summary.total_countries|default:250 }} ISO countries, only <strong>{{ "
+"d }}</strong> have a researched payment corridor (real currency + dominant "
+"rails). The rest are placeholder stubs — defining a corridor is "
+"<em>data</em> work, distinct from the <em>adapter</em> work of promoting a "
+"PSP to live."
+msgstr ""
+"Of {{ summary.total_countries|default:250 }} ISO countries, only <strong>{{ "
+"d }}</strong> have a researched payment corridor (real currency + dominant "
+"rails). The rest are placeholder stubs — defining a corridor is "
+"<em>data</em> work, distinct from the <em>adapter</em> work of promoting a "
+"PSP to live."
+
+msgid "Office export"
+msgstr "Office export"
+
+msgid "One-click import docs/ to KB and regenerate ODT for articles."
+msgstr "One-click import docs/ to KB and regenerate ODT for articles."
+
+msgid ""
+"One-click import from docs/ and regenerate LibreOffice ODT for published "
+"articles."
+msgstr ""
+"One-click import from docs/ and regenerate LibreOffice ODT for published "
+"articles."
+
+msgid "Optional Collabora/LibreOffice file paired with this article."
+msgstr "Optional Collabora/LibreOffice file paired with this article."
+
+msgid "Overwrite existing ODT"
+msgstr "Overwrite existing ODT"
+
+msgid "Overwrite existing slugs"
+msgstr "Overwrite existing slugs"
+
+msgid "PII masked"
+msgstr "PII masked"
+
+msgid "Platform action"
+msgstr "Platform action"
+
+msgid "Please complete the verification challenge to continue."
+msgstr "Please complete the verification challenge to continue."
+
+msgid "Published: %(title)s"
+msgstr "Published: %(title)s"
+
+msgid "Rails"
+msgstr "Rails"
+
+msgid "Re-import ODT"
+msgstr "Re-import ODT"
+
+msgid "Re-sent %(n)s stale verification link(s)."
+msgstr "Re-sent %(n)s stale verification link(s)."
+
+msgid "Read-only roster"
+msgstr "Read-only roster"
+
+msgid "Read-only · PII-masked inspection"
+msgstr "Read-only · PII-masked inspection"
+
+msgid "Readiness distribution"
+msgstr "Readiness distribution"
+
+msgid "Records"
+msgstr "Records"
+
+msgid "Regenerate ODT from article content"
+msgstr "Regenerate ODT from article content"
+
+msgid "Regenerated ODT for %(ok)s of %(total)s selected articles."
+msgstr "Regenerated ODT for %(ok)s of %(total)s selected articles."
+
+msgid "Resend all stale"
+msgstr "Resend all stale"
+
+msgid "Reset view"
+msgstr "Reset view"
+
+msgid "Reset your password instead."
+msgstr "Reset your password instead."
+
+msgid "Run ODT generation"
+msgstr "Run ODT generation"
+
+msgid "Run import"
+msgstr "Run import"
+
+msgid "Search articles and office documents"
+msgstr "Search articles and office documents"
+
+msgid "Search articles and office documents…"
+msgstr "Search articles and office documents…"
+
+msgid "Select a school…"
+msgstr "Select a school…"
+
+msgid "Send failed"
+msgstr "Send failed"
+
+msgid "Set your password"
+msgstr "Set your password"
+
+msgid "Shortcuts: T tour · R reset · Esc clear filters"
+msgstr "Shortcuts: T tour · R reset · Esc clear filters"
+
+msgid "Show defined only"
+msgstr "Show defined only"
+
+msgid "Showing results for “{{ q }}”."
+msgstr "Showing results for “{{ q }}”."
+
+msgid ""
+"Staff only — pair a KB article with its Collabora/LibreOffice source file."
+msgstr ""
+"Staff only — pair a KB article with its Collabora/LibreOffice source file."
+
+msgid "Staff: ODT round-trip"
+msgstr "Staff: ODT round-trip"
+
+msgid "Stop"
+msgstr "Stop"
+
+msgid "Student roster (masked)"
+msgstr "Student roster (masked)"
+
+msgid "Tenant action"
+msgstr "Tenant action"
+
+msgid "That signup verification no longer exists."
+msgstr "That signup verification no longer exists."
+
+msgid ""
+"This view exposes masked, read-only data only. Every access is recorded "
+"against this grant. If this link should no longer work, contact the issuing "
+"institution to revoke it."
+msgstr ""
+"This view exposes masked, read-only data only. Every access is recorded "
+"against this grant. If this link should no longer work, contact the issuing "
+"institution to revoke it."
+
+msgid ""
+"Too many failed sign-in attempts. Please try again in about %(minutes)d "
+"minute(s), or reset your password."
+msgstr ""
+"Too many failed sign-in attempts. Please try again in about %(minutes)d "
+"minute(s), or reset your password."
+
+msgid "Total signups"
+msgstr "Total signups"
+
+msgid "Tour"
+msgstr "Tour"
+
+msgid "Trouble verifying?"
+msgstr "Trouble verifying?"
+
+msgid "Trouble with the verification?"
+msgstr "Trouble with the verification?"
+
+msgid "Unknown action."
+msgstr "Unknown action."
+
+msgid "Unknown bulk action."
+msgstr "Unknown bulk action."
+
+msgid "Unlink"
+msgstr "Unlink"
+
+msgid "Valid for (hours)"
+msgstr "Valid for (hours)"
+
+msgid "Verification link %(verb)s to %(email)s."
+msgstr "Verification link %(verb)s to %(email)s."
+
+msgid "Verified rate"
+msgstr "Verified rate"
+
+msgid "Verified ✓"
+msgstr "Verified ✓"
+
+msgid "Verifying you’re human…"
+msgstr "Verifying you’re human…"
+
+msgid "Verifying… one moment."
+msgstr "Verifying… one moment."
+
+msgid "Zero-decimal currency — charge whole units, not cents"
+msgstr "Zero-decimal currency — charge whole units, not cents"
+
+msgid "any network"
+msgstr "any network"
+
+msgid "countries shown"
+msgstr "countries shown"
+
+msgid "defined corridors"
+msgstr "defined corridors"
+
+msgid "e.g. Ofsted Lead Inspector"
+msgstr "e.g. Ofsted Lead Inspector"
+
+msgid "e.g. demo-school"
+msgstr "e.g. demo-school"
+
+msgid "linked"
+msgstr "linked"
+
+msgid ""
+"live payment rails — until a PSP adapter is live, no country is fully "
+"config-only."
+msgstr ""
+"live payment rails — until a PSP adapter is live, no country is fully "
+"config-only."
+
+msgid "localized"
+msgstr "localized"
+
+msgid "med"
+msgstr "med"
+
+msgid "placeholder"
+msgstr "placeholder"
+
+msgid "re-sent"
+msgstr "re-sent"
+
+msgid "regenerated and re-sent"
+msgstr "regenerated and re-sent"
+
+msgid "stub"
+msgstr "stub"
+
+msgid "students:read"
+msgstr "students:read"
+
+msgid ""
+"{{ n }} signup has been pending more than {{ hours }}h. {% plural %} {{ n }}"
+" signups have been pending more than {{ hours }}h."
+msgstr ""
+"{{ n }} signup has been pending more than {{ hours }}h. {% plural %} {{ n }}"
+" signups have been pending more than {{ hours }}h."
+
+msgid ""
+"{{ n }} unverified signup had a <strong>bouncing</strong> email address — "
+"the verification link almost certainly never arrived. {% plural %} {{ n }} "
+"unverified signups had a <strong>bouncing</strong> email address — the "
+"verification links almost certainly never arrived."
+msgstr ""
+"{{ n }} unverified signup had a <strong>bouncing</strong> email address — "
+"the verification link almost certainly never arrived. {% plural %} {{ n }} "
+"unverified signups had a <strong>bouncing</strong> email address — the "
+"verification links almost certainly never arrived."
+
+msgid "Allow this one local AI or voice action. Nothing is saved."
+msgstr "Allow this one local AI or voice action. Nothing is saved."
+
+msgid "Draft on this device"
+msgstr "Draft on this device"
+
+msgid "Read aloud"
+msgstr "Read aloud"
+
+msgid "Remove local model"
+msgstr "Remove local model"
+
+msgid "Speak"
+msgstr "Speak"

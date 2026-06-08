@@ -27,12 +27,15 @@ from __future__ import annotations
 import hashlib
 import logging
 import math
+import uuid
 from typing import Any
 
 from django.conf import settings
 from django.db import connection
+from django.db.models import Q
+from django.utils import timezone
 
-from services.embeddings import get_embedding_provider
+from services.embeddings import embedding_provider_descriptor, get_embedding_provider
 
 logger = logging.getLogger("apps.analytics.semantic_search")
 
@@ -52,7 +55,7 @@ def _pgvector_enabled() -> bool:
 
 
 def _pgvector_search(
-    q_vec: list[float], *, school_id, top_k: int,
+    q_vec: list[float], *, school_id, top_k: int, embedding_model: str = "",
 ) -> list[dict]:
     """Cosine-rank via pgvector `<=>` operator. Returns up to top_k rows.
 
@@ -69,11 +72,21 @@ def _pgvector_search(
             FROM siteconfig_aiembeddingstore
             WHERE scope = %s
               AND school_id = %s
+              AND lifecycle_status = 'active'
+              AND (retention_until IS NULL OR retention_until > CURRENT_TIMESTAMP)
+              AND (embedding_model = '' OR embedding_model = %s)
               AND embedding_vec IS NOT NULL
             ORDER BY embedding_vec <=> %s::vector
             LIMIT %s
             """,
-            [placeholder, _STUDENT_SCOPE, str(school_id), placeholder, top_k],
+            [
+                placeholder,
+                _STUDENT_SCOPE,
+                str(school_id),
+                embedding_model,
+                placeholder,
+                top_k,
+            ],
         )
         rows = cur.fetchall()
     ranked = []
@@ -104,7 +117,7 @@ def _summarise_student(student) -> str:
     parts: list[str] = []
     full_name = f"{student.first_name} {student.last_name}".strip()
     if full_name:
-        parts.append(f"Student: {full_name}")
+        parts.append(f"{full_name}. Student")
     classroom = getattr(student, "classroom", None)
     if classroom is not None and getattr(classroom, "name", None):
         parts.append(f"class {classroom.name}")
@@ -144,6 +157,12 @@ def index_student(student) -> bool:
         text_hash=text_hash,
         defaults={
             "embedding": embedding,
+            "embedding_model": embedding_provider_descriptor(provider),
+            "embedding_dimensions": len(embedding),
+            "document_id": f"student:{student.pk}",
+            "lifecycle_status": "active",
+            "retention_until": None,
+            "source_updated_at": timezone.now(),
             "metadata": {
                 "student_id": str(student.pk),
                 "school_id": str(school_id) if school_id else "",
@@ -181,20 +200,38 @@ def search_students(
     # instead of O(n) Python cosine loop.
     if _pgvector_enabled():
         try:
-            return _pgvector_search(q_vec, school_id=school_id, top_k=top_k)
+            return _pgvector_search(
+                q_vec,
+                school_id=school_id,
+                top_k=top_k,
+                embedding_model=embedding_provider_descriptor(provider),
+            )
         except Exception as exc:  # noqa: BLE001 — fall back to JSON path on any DB error
             logger.warning(
                 "semantic_search: pgvector path failed (%s); falling back to JSON.",
                 exc,
             )
+    try:
+        school_id = uuid.UUID(str(school_id))
+    except (TypeError, ValueError, AttributeError):
+        return []
     # tenant-isolation-allow: AIEmbeddingStore filtered by school_id below — explicit single-tenant scope.
+    model_id = embedding_provider_descriptor(provider)
     rows = AIEmbeddingStore.objects.filter(
         scope=_STUDENT_SCOPE, school_id=school_id,
+        lifecycle_status="active",
+    ).filter(
+        Q(retention_until__isnull=True) | Q(retention_until__gt=timezone.now())
+    ).filter(
+        Q(embedding_model="") | Q(embedding_model=model_id)
     ).values("embedding", "metadata")
     ranked = []
     for row in rows:
-        score = _cosine(q_vec, row.get("embedding") or [])
-        if score <= 0:
+        stored_vector = row.get("embedding") or []
+        if not stored_vector or len(stored_vector) != len(q_vec):
+            continue
+        score = _cosine(q_vec, stored_vector)
+        if score < 0:
             continue
         meta = row.get("metadata") or {}
         ranked.append({

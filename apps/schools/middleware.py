@@ -862,11 +862,15 @@ class TenantMiddleware(MiddlewareMixin):
         """Reset RLS GUC so the session does not leak to other requests (e.g. connection pool)."""
         if getattr(request, "_rls_school_id_set", False):
             try:
-                from apps.schools.rls_context import reset_rls_school_id
+                from apps.schools.rls_context import (
+                    quarantine_rls_connection,
+                    reset_rls_school_id,
+                )
 
                 reset_rls_school_id()
             except DatabaseError as e:
                 logger.debug("Could not reset app.current_school_id: %s", e)
+                quarantine_rls_connection(str(e))
             request._rls_school_id_set = False
         return response
 
@@ -876,11 +880,15 @@ def _reset_rls_school_id_if_set(request):
     if not getattr(request, "_rls_school_id_set", False):
         return
     try:
-        from apps.schools.rls_context import reset_rls_school_id
+        from apps.schools.rls_context import (
+            quarantine_rls_connection,
+            reset_rls_school_id,
+        )
 
         reset_rls_school_id()
     except DatabaseError as e:
         logger.debug("Could not reset app.current_school_id (finally): %s", e)
+        quarantine_rls_connection(str(e))
     request._rls_school_id_set = False
 
 

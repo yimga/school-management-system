@@ -11,6 +11,35 @@
     return window.SMS_OFFLINE_CONFIG || {};
   }
 
+  var CAUSAL_COUNTER_KEY = 'rmc_offline_lamport_v1';
+  var CAUSAL_REPLICA_KEY = 'rmc_offline_replica_v1';
+
+  function causalReplicaId() {
+    try {
+      var existing = localStorage.getItem(CAUSAL_REPLICA_KEY);
+      if (existing) return existing;
+      var created = (window.crypto && typeof window.crypto.randomUUID === 'function')
+        ? window.crypto.randomUUID()
+        : 'browser-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+      localStorage.setItem(CAUSAL_REPLICA_KEY, created);
+      return created;
+    } catch (e) {
+      return 'browser-session';
+    }
+  }
+
+  function nextCausalClock() {
+    var logical = 1;
+    try {
+      logical = Math.max(
+        0,
+        Math.trunc(Number(localStorage.getItem(CAUSAL_COUNTER_KEY)) || 0)
+      ) + 1;
+      localStorage.setItem(CAUSAL_COUNTER_KEY, String(logical));
+    } catch (e) { /* storage unavailable */ }
+    return '0:' + logical + ':' + causalReplicaId();
+  }
+
   /** Canonical offline event_envelope (batch 1532 — queued sync, not CRDT). */
   function buildOfflineEnvelope(opts) {
     var o = opts || {};
@@ -22,6 +51,7 @@
       attribute_value: o.attribute_value,
       deterministic_timestamp: o.deterministic_timestamp || new Date().toISOString(),
       client_id: o.client_id || '',
+      causal_clock: o.causal_clock || nextCausalClock(),
     };
   }
 

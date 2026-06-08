@@ -10,7 +10,7 @@ RunMyCampus supports **two connectivity profiles** with one codebase:
 | --- | --- | --- | --- | --- |
 | **Online (SaaS)** | `online` (default) | Render (`*.runmycampus.com`) | Queue on device → sync when Render is reachable | Cloud API via `LITELLM_*` and/or **rules** fallback (no extra VM) |
 | **Edge (LAN hub)** | `edge` | Django on school LAN | Same PWA queue → sync to **hub** URL | Optional **Ollama on hub**; else rules on hub |
-| **Hybrid** | `hybrid` | Render + optional hub | Cloud primary; SW may retry `hub_base_url` when cloud fetch fails | Cloud when up; hub Ollama when on LAN |
+| **Hybrid** | `hybrid` | Render + optional hub | Cloud primary; SW may retry `hub_base_url` when cloud fetch fails | Cloud AI on Render; hub Ollama only when the request is served by the hub origin or a managed tunnel |
 
 **Offline mode is school operations** (attendance, grades, forms, payments) — **not** on-device LLM. Teachers need connectivity to **their origin** (Render or hub) to sync; the browser can queue work while offline.
 
@@ -103,7 +103,16 @@ Or manually:
 4. Per-tenant **Feature Control** → `hub_base_url` (or bundle apply with `--hub-base-url`).
 5. Service worker retries hub when main-origin fetch fails (`SMS_OFFLINE_CONFIG.hubBaseUrl`).
 
-**Note:** Cookies are per-origin; users may need to use hub URL directly when cloud is down for extended periods.
+**Network boundary:** A Render process cannot call a private campus address such as
+`192.168.x.x` unless an authenticated, operator-managed tunnel or reverse
+connection exists. The current service-worker fallback changes the browser's
+application origin; it does not make the Render-side AI gateway able to reach
+campus Ollama. For hub AI, users must be served by the hub origin or an
+explicitly designed tunnel/proxy.
+
+**Authentication boundary:** Cookies are per-origin; users may need to sign in
+to the hub URL directly when cloud is down for extended periods. Automatic
+cross-origin session continuity is not claimed.
 
 ---
 
@@ -140,6 +149,8 @@ python scripts/verify_online_edge_dual_mode.py
 | Online + cloud configured | Selected tasks may use `litellm` tier (PII-gated). |
 | Online + no cloud | **Intelligent rules** + KB RAG (`AI_ALLOW_RULES_FALLBACK=1`). |
 | Edge hub + Ollama | Live model when device reaches hub. |
+| Hybrid browser using Render origin | Render gateway only; no direct call to private campus Ollama. |
+| Hybrid browser using hub origin | Hub gateway may use local Ollama. |
 | Browser offline | No new AI; queued **school ops** only. |
 
 `general_chat` remains **`ollama` → `rules`** by default; add cloud tiers only via `AI_GATEWAY_TASK_TIERS` after legal review.

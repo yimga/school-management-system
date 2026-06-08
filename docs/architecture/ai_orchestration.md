@@ -1,12 +1,12 @@
 # AI orchestration (internal-first)
 
-All LLM usage goes through a single orchestration layer. **No browser or front-end may call Ollama, vLLM, or any model provider directly.** All product AI traffic goes through the RunMyCampus AI Gateway when `AI_GATEWAY_ENABLED` is True. Scope and phased rollout are tracked only in the **RunMyCampus Open-Source AI Adoption Blueprint** (single plan; no separate backlog file).
+All LLM usage goes through a single orchestration layer. **No browser or front-end may call Ollama, vLLM, or any model provider directly.** All product AI traffic goes through the RunMyCampus AI Gateway when `AI_GATEWAY_ENABLED` is True. Current deployment routing is canonical in [AI_DEPLOYMENT_POSTURE.md](../AI_DEPLOYMENT_POSTURE.md); execution status is tracked only in the master SOT.
 
 ## AI Gateway (task-based routing)
 
 - **Entry:** `services.ai_gateway.invoke(task_type, prompt, user_query=..., metadata=..., response_schema=...)` → `(result, meta)`.
 - **Task types:** config_explain, setup_recommend, workflow_draft, policy_explain, doc_classify, semantic_search, migration_mapping (plus migration_fingerprint, migration_parity), admin_copilot, support_suggest, narrative, general_chat, and domain-guided tasks: interop_assistant, runtime_config_explain, observability_assistant, billing_usage_explain, trust_compliance_assistant, studio_os_assistant (see `TaskType` in `services/ai_gateway.py`).
-- **Tiers:** **Defaults:** Ollama then rules for every task (`DEFAULT_TASK_TIERS` in `services/ai_gateway.py`). **Optional:** vLLM / LiteLLM only when added per task via Django `AI_GATEWAY_TASK_TIERS` (merge override).
+- **Tiers:** `services.ai_deployment_posture.merge_effective_task_tiers()` applies the serving profile: online with LiteLLM configured uses LiteLLM → Ollama → rules; edge uses Ollama → rules; per-task Django `AI_GATEWAY_TASK_TIERS` may override. A Render request cannot reach a private campus Ollama address without a separately managed tunnel.
 - **Structured output:** For workflow_draft, policy_explain, migration_mapping, doc_classify the gateway validates responses via `services.ai_schemas` and returns typed objects or fallback text.
 - **Audit:** Every invoke logs task_type, tier, model, latency_ms, tenant_id, school_id, outcome (success/failure/fallback). Data-tier check: premium (**LiteLLM** only) is skipped when sensitivity disallows it or the prompt payload contains detected PII. **`general_chat` uses Ollama + rules only** (no Google Gemini or other cloud LLM in that path).
 
@@ -51,7 +51,8 @@ No `openai`, `anthropic`, or `google.generativeai` SDK imports in app code for c
 ## Embeddings and semantic search
 
 - **Router:** `services.embeddings.get_embedding_provider()` returns Ollama or OpenAI-compatible provider per `AI_EMBEDDING_BACKEND`.
-- **Retrieval guardrails:** `AIMemoryService.search_similar(...)` includes tenant scoping, global fallback for shared knowledge, metadata-based role/staff visibility filtering, and for **`policy`** scope a **tenant-first ranking boost** when `school_id` is set (school-specific policy bundles rank above global rows at equal embedding similarity). Product HTTP RAG entrypoints now use `global_only=True` when `request.school` is missing, so non-tenant requests see only platform-global rows instead of an unscoped cross-tenant sweep.
+- **Retrieval guardrails:** `AIMemoryService.search_similar(...)` includes tenant scoping, global fallback for shared knowledge, metadata-based role/staff visibility filtering, tombstone and retention enforcement, embedding-model compatibility, and for **`policy`** scope a **tenant-first ranking boost** when `school_id` is set (school-specific policy bundles rank above global rows at equal embedding similarity). Product HTTP RAG entrypoints use `global_only=True` when `request.school` is missing, so non-tenant requests see only platform-global rows instead of an unscoped cross-tenant sweep.
+- **Portable tenant bundles:** `services.tenant_rag_bundle` exports and imports signed, school-bound records through the same `AIEmbeddingStore` contract. Bundles preserve document/chunk identity, model/dimensions, scope, retention, source timestamps, metadata, and tombstones. They do not create a parallel vector database; operational details are in `docs/TENANT_RAG_BUNDLES.md`.
 - **Storage:** `services.ai_memory.AIMemoryService` uses the router for `store`; `get_embedding_for_text()` for query embedding. Index: policies, blueprints, docs, config (per blueprint).
 
 ### Retrieval indexing (ingestion)

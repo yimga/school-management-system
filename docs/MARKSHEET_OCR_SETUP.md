@@ -1,37 +1,75 @@
-# Marksheet OCR & Manual Review
+# Marksheet OCR And Mandatory Review
 
-## 1. Verify the Tesseract runtime
+OCR always creates a proposal. Confidence never authorizes a grade write. A
+teacher must review the student matches and every score, then explicitly confirm
+the server proposal or use the existing **Save All Marks** action for a device
+proposal.
 
-1. Install Tesseract before the OCR helpers can run:
-   - **Windows**: download the installer from https://github.com/tesseract-ocr/tesseract/releases and add the installation folder (e.g., `C:\Program Files\Tesseract-OCR`) to your `PATH`.
-   - **macOS**: `brew install tesseract`.
-   - **Linux**: `sudo apt install tesseract-ocr` (or the equivalent for your distro).
-2. Run `tesseract --version` on the host to confirm the binary is reachable. The teacher upload page also displays whether the backend currently resolves the command.
-3. If the binary is not on `PATH`, set the absolute path via:
-   - The environment variable `MARKSHEET_OCR_COMMAND`, or
-   - The **Site Settings → Marksheet OCR & Mobile Upload → Tesseract command** field (this overrides the env var for the school).
+## Server Runtime
 
-## 2. Admin controls
+1. Install Tesseract on the server:
+   - Windows: install from the official Tesseract project and add the binary to
+     `PATH`.
+   - macOS: `brew install tesseract`.
+   - Ubuntu/Debian: `sudo apt install tesseract-ocr`.
+2. Run `tesseract --version`.
+3. If the binary is not on `PATH`, set `MARKSHEET_OCR_COMMAND` or configure the
+   Tesseract command in Site Settings.
 
-In **Site Settings → Marksheet OCR & Mobile Upload** you can:
+The server runtime is a fallback. Device OCR does not require a server
+Tesseract installation.
 
-| Control | Purpose |
+## Admin Controls
+
+| Control | Current purpose |
 | --- | --- |
-| Enable marksheet OCR uploads | Turns the OCR card on/off for teachers. |
-| OCR confidence threshold (%) | The minimum confidence before marks are applied automatically. |
-| Force manual review | When enabled, parsed sheets always require confirmation even if the confidence is high. |
-| Allow mobile uploads | Reveals the “choose or capture photo” hint for teachers on phones. |
-| Tesseract command | Path to the binary when the host doesn’t expose `tesseract` via `PATH`. |
+| Enable marksheet OCR uploads | Enables both proposal paths for teachers. |
+| OCR confidence threshold | Compatibility/display threshold only; it never bypasses teacher review. |
+| Force manual review | Retained for compatibility. Manual review is mandatory for grade OCR. |
+| Allow mobile uploads | Shows camera/file guidance on supported devices. |
+| Tesseract command | Selects the server-side Tesseract binary. |
 
-## 3. Teacher workflow
+## Teacher Workflow
 
-1. Teachers select the class, then upload a PNG/JPG marksheet. Mobile browsers can capture a fresh photo.
-2. The backend extracts rows and shows a preview table (student code, parsed scores, extracted line).
-3. If the confidence falls below the threshold or manual review is forced, the system retains the parsed rows and shows an “Apply parsed marks” button.
-   - This staged data is held in the teacher’s session until they confirm or cancel, so they can review before persisting.
-4. When everything looks correct, clicking **Apply parsed marks** writes the deltas (`seq1`, `seq2`, `exam`, etc.) to the matching students and clears the pending preview (a `GradeAudit` entry is created with change type `OCR Upload` for traceability).
+1. Select the class and subject, then choose a PNG, JPG, or WebP image up to
+   8 MB.
+2. Choose one proposal path:
+   - **Create server review proposal** runs the configured server Tesseract
+     provider.
+   - **Run on this device** runs pinned, self-hosted Tesseract.js. The first run
+     downloads about 22 MB of runtime and English language assets. The image
+     stays in the browser.
+3. Review every matched student and score.
+4. Complete the write through the canonical path:
+   - Server proposal: check the review attestation and click
+     **Apply teacher-confirmed proposal**.
+   - Device proposal: review the highlighted gradebook cells and click
+     **Save All Marks**.
 
-## 4. Troubleshooting
-* If you see “Tesseract is not available…” the backend couldn’t locate the native binary. Install Tesseract and/or set `MARKSHEET_OCR_COMMAND`.
-* Parsing results will print a warning if no numeric rows are recognized—adjust the sheet layout or lighting and re-upload.
-* For low confidence returns, the preview table highlights unmatched rows; reviewing and confirming ensures only verified data is committed.
+Device OCR retains confidence and source bounding boxes in the proposal. It has
+no submit, fetch, or grade-write capability. Offline grade saves use the
+existing encrypted grade WAL/outbox, tenant binding, idempotency, and manual
+conflict policy.
+
+## Offline And Retention
+
+- The service worker caches the self-hosted OCR files after the first successful
+  device run, allowing later runs without internet.
+- Server proposals are held in the authenticated teacher session.
+- Device proposal evidence is held in tab-scoped session storage. The image is
+  not persisted by RunMyCampus.
+- Confirmed server writes create the normal OCR grade audit record. Device
+  proposals use the normal grade save/WAL audit path.
+
+## Verification
+
+Run:
+
+```powershell
+python scripts/vendor_tesseract_ocr.py
+python scripts/verify_offline_ocr_proposal.py
+```
+
+The composite gate validates asset checksums, the no-auto-write contract,
+Django integration tests, browser unit tests, and a localhost-only Chromium OCR
+smoke with external network requests blocked.

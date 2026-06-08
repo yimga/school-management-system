@@ -1,45 +1,21 @@
-"""v4.00.13 — CRDT ops POST view.
-
-Closes the v4.00.12 follow-on gap: the CRDT wire protocol existed but no
-Django view applied submitted ops to per-tenant state. This view accepts a
-JSON body of ops, parses each via ``parse_wire_op``, merges into the
-per-tenant state at ``school.settings["crdt_state"]``, and returns the
-materialized view to the client.
-
-Idempotent — same op list applied twice converges to the same state. The
-per-tenant state has 3 sections matching the protocol kinds:
-
-    school.settings["crdt_state"] = {
-        "lww":    {key: {value, hlc}},       # last-write-wins registers
-        "orset":  {set_key: {element: [tags]}},   # observed-remove sets
-        "gcounter": {counter_key: {actor_id: int}},  # grow-only counters
-    }
-
-The view does NOT enforce a particular wire schema for higher-level
-entity types — that's the caller's contract. This is the merge engine.
-"""
+"""Governed CRDT operation endpoint for approved low-risk sync namespaces."""
 
 from __future__ import annotations
 
 import json
-import logging
 from typing import Any
 
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import HttpRequest, JsonResponse
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_protect
-from django.contrib.auth.decorators import login_required
 from django.views import View
-
-logger = logging.getLogger(__name__)
+from django.views.decorators.csrf import csrf_protect
 
 
 @method_decorator([login_required, csrf_protect], name="dispatch")
 class CRDTOpsApplyView(View):
-    """POST /api/v1/crdt/apply/  body: {"ops": [<op>, ...]}.
-
-    # rbac-allow: authenticated-user-crdt-apply
-    """
+    """POST approved CRDT operations into tenant-bound state."""
 
     max_ops_per_request = 200
 
@@ -53,7 +29,10 @@ class CRDTOpsApplyView(View):
         if not isinstance(ops_raw, list):
             return JsonResponse({"error": "ops_must_be_list"}, status=400)
         if len(ops_raw) > self.max_ops_per_request:
-            return JsonResponse({"error": "too_many_ops", "limit": self.max_ops_per_request}, status=400)
+            return JsonResponse(
+                {"error": "too_many_ops", "limit": self.max_ops_per_request},
+                status=400,
+            )
 
         tenant = getattr(request, "tenant", None) or getattr(request, "school", None)
         if tenant is None or getattr(tenant, "pk", None) is None:
@@ -61,6 +40,7 @@ class CRDTOpsApplyView(View):
 
         from apps.sync_engine.crdt_wire_protocol import (
             GCounterOp,
+            HLC,
             LWWOp,
             ORSetOp,
             gcounter_merge,
@@ -70,65 +50,137 @@ class CRDTOpsApplyView(View):
             orset_merge,
             parse_wire_op,
         )
+        from apps.sync_engine.policy_registry import POLICY_VERSION, validate_crdt_kind
 
-        state = self._read_state(tenant)
         applied = 0
         rejected: list[dict[str, Any]] = []
+        actor_id = self._bound_actor_id(request, payload)
 
-        for index, raw in enumerate(ops_raw):
-            try:
-                op = parse_wire_op(raw)
-            except ValueError as exc:
-                rejected.append({"index": index, "reason": str(exc)})
-                continue
-            try:
-                if isinstance(op, LWWOp):
-                    current = state["lww"].get(op.key)
-                    if current is None:
-                        winner = op
-                    else:
-                        winner = lww_merge(
-                            self._deserialize_lww(current, op.key), op,
+        with transaction.atomic():
+            locked_tenant = (
+                type(tenant)._default_manager.select_for_update().get(pk=tenant.pk)
+            )
+            state = self._read_state(locked_tenant)
+            for index, raw in enumerate(ops_raw):
+                try:
+                    if not isinstance(raw, dict):
+                        raise ValueError("op must be a dict")
+                    entity = str(raw.get("entity") or "").strip().lower()
+                    validate_crdt_kind(entity, raw.get("kind"))
+                    op = parse_wire_op(raw)
+                    self._validate_key_namespace(entity, op)
+
+                    if isinstance(op, LWWOp):
+                        bound_op = LWWOp(
+                            kind=op.kind,
+                            key=op.key,
+                            value=op.value,
+                            hlc=HLC(
+                                physical_ms=op.hlc.physical_ms,
+                                logical=op.hlc.logical,
+                                actor_id=actor_id,
+                            ),
                         )
-                    state["lww"][op.key] = {"value": winner.value, "hlc": winner.hlc.to_wire()}
-                elif isinstance(op, ORSetOp):
-                    set_state_raw = state["orset"].get(op.set_key) or {}
-                    set_state = {k: set(v) for k, v in set_state_raw.items() if isinstance(v, list)}
-                    new_set_state = orset_merge(set_state, op)
-                    state["orset"][op.set_key] = {k: sorted(v) for k, v in new_set_state.items()}
-                elif isinstance(op, GCounterOp):
-                    counter_state = dict(state["gcounter"].get(op.counter_key) or {})
-                    new_counter = gcounter_merge(counter_state, op)
-                    state["gcounter"][op.counter_key] = new_counter
-                applied += 1
-            except ValueError as exc:
-                rejected.append({"index": index, "reason": str(exc)})
-                continue
+                        current = state["lww"].get(bound_op.key)
+                        winner = (
+                            bound_op
+                            if current is None
+                            else lww_merge(
+                                self._deserialize_lww(current, bound_op.key),
+                                bound_op,
+                            )
+                        )
+                        state["lww"][bound_op.key] = {
+                            "value": winner.value,
+                            "hlc": winner.hlc.to_wire(),
+                        }
+                    elif isinstance(op, ORSetOp):
+                        raw_set = state["orset"].get(op.set_key) or {}
+                        set_state = {
+                            key: set(tags)
+                            for key, tags in raw_set.items()
+                            if isinstance(tags, list)
+                        }
+                        merged = orset_merge(set_state, op)
+                        state["orset"][op.set_key] = {
+                            key: sorted(tags) for key, tags in merged.items()
+                        }
+                    elif isinstance(op, GCounterOp):
+                        bound_op = GCounterOp(
+                            kind=op.kind,
+                            counter_key=op.counter_key,
+                            actor_id=actor_id,
+                            value=op.value,
+                        )
+                        counter_state = dict(
+                            state["gcounter"].get(bound_op.counter_key) or {}
+                        )
+                        state["gcounter"][bound_op.counter_key] = gcounter_merge(
+                            counter_state, bound_op
+                        )
+                    applied += 1
+                except (KeyError, TypeError, ValueError) as exc:
+                    rejected.append({"index": index, "reason": str(exc)})
 
-        self._write_state(tenant, state)
+            state["policy_version"] = POLICY_VERSION
+            self._write_state(locked_tenant, state)
 
-        # Build a compact materialized view so clients can sync UI immediately.
         materialized = {
-            "lww":      {k: v["value"] for k, v in state["lww"].items()},
-            "orset":    {k: sorted(orset_materialize({e: set(tags) for e, tags in v.items()}))
-                         for k, v in state["orset"].items()},
-            "gcounter": {k: gcounter_value(v) for k, v in state["gcounter"].items()},
+            "lww": {
+                key: value["value"] for key, value in state["lww"].items()
+            },
+            "orset": {
+                key: sorted(
+                    orset_materialize(
+                        {element: set(tags) for element, tags in value.items()}
+                    )
+                )
+                for key, value in state["orset"].items()
+            },
+            "gcounter": {
+                key: gcounter_value(value)
+                for key, value in state["gcounter"].items()
+            },
         }
-        return JsonResponse({
-            "applied": applied,
-            "rejected": rejected,
-            "materialized": materialized,
-        })
+        return JsonResponse(
+            {
+                "applied": applied,
+                "rejected": rejected,
+                "materialized": materialized,
+                "policy_version": POLICY_VERSION,
+            }
+        )
+
+    def _bound_actor_id(
+        self, request: HttpRequest, payload: dict[str, Any]
+    ) -> str:
+        device_id = str(payload.get("device_id") or "browser").strip()[:64]
+        safe_device = "".join(
+            char for char in device_id if char.isalnum() or char in "._-"
+        ) or "browser"
+        return f"u{request.user.pk}:{safe_device}"
+
+    def _validate_key_namespace(self, entity: str, op: Any) -> None:
+        key = (
+            getattr(op, "key", None)
+            or getattr(op, "set_key", None)
+            or getattr(op, "counter_key", None)
+            or ""
+        )
+        if not str(key).startswith(f"{entity}:"):
+            raise ValueError(f"crdt_key_must_start_with:{entity}:")
 
     def _deserialize_lww(self, current: dict[str, Any], key: str):
         from apps.sync_engine.crdt_wire_protocol import HLC, LWWOp
 
         return LWWOp(
-            kind="LWW", key=key, value=current.get("value"),
-            hlc=HLC.from_wire(str(current.get("hlc") or "0:0:")),
+            kind="LWW",
+            key=key,
+            value=current.get("value"),
+            hlc=HLC.from_wire(str(current.get("hlc") or "0:0:legacy")),
         )
 
-    def _read_state(self, tenant: Any) -> dict[str, dict[str, Any]]:
+    def _read_state(self, tenant: Any) -> dict[str, Any]:
         settings = getattr(tenant, "settings", None) or {}
         if not isinstance(settings, dict):
             settings = {}
@@ -136,18 +188,16 @@ class CRDTOpsApplyView(View):
         if not isinstance(crdt, dict):
             crdt = {}
         return {
-            "lww":      dict(crdt.get("lww") or {}),
-            "orset":    dict(crdt.get("orset") or {}),
+            "lww": dict(crdt.get("lww") or {}),
+            "orset": dict(crdt.get("orset") or {}),
             "gcounter": dict(crdt.get("gcounter") or {}),
+            "policy_version": int(crdt.get("policy_version") or 0),
         }
 
-    def _write_state(self, tenant: Any, state: dict[str, dict[str, Any]]) -> None:
-        try:
-            settings = getattr(tenant, "settings", None) or {}
-            if not isinstance(settings, dict):
-                settings = {}
-            settings["crdt_state"] = state
-            tenant.settings = settings
-            tenant.save(update_fields=["settings"])
-        except Exception as exc:  # noqa: BLE001 — never break the request
-            logger.warning("crdt apply: persist failed: %s", exc)
+    def _write_state(self, tenant: Any, state: dict[str, Any]) -> None:
+        settings = getattr(tenant, "settings", None) or {}
+        if not isinstance(settings, dict):
+            settings = {}
+        settings["crdt_state"] = state
+        tenant.settings = settings
+        tenant.save(update_fields=["settings"])

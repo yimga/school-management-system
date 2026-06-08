@@ -10,7 +10,10 @@ from apps.analytics.models import GradeImportJob
 from apps.evals.views import (
     _deserialize_pending_entries,
     _extract_corrected_ocr_entries,
+    _validate_ocr_entries,
 )
+from apps.evals.forms import MarkSheetUploadForm
+from apps.evals.ocr import _parse_text
 
 
 class OCRPendingEntryHelperTests(TestCase):
@@ -51,6 +54,44 @@ class OCRPendingEntryHelperTests(TestCase):
         self.assertIsNotNone(corrected)
         self.assertEqual(str(corrected[0]["scores"]["seq1_score"]), "15.5")
         self.assertNotIn("seq2_score", corrected[0]["scores"])
+
+    def test_extract_corrected_ocr_entries_accepts_indexed_fields(self):
+        original_entries = [
+            {
+                "student_code": "STD/1",
+                "scores": {"seq1_score": 10},
+                "line_text": "STD/1 line",
+                "field_confidences": {},
+            }
+        ]
+        corrected = _extract_corrected_ocr_entries(
+            {"ocr_correct_0_seq1_score": "14.25"},
+            original_entries,
+        )
+        self.assertEqual(str(corrected[0]["scores"]["seq1_score"]), "14.25")
+
+    def test_ocr_validation_rejects_out_of_range_scores(self):
+        errors = _validate_ocr_entries(
+            [{"student_code": "STD-1", "scores": {"exam_score": "20.01"}}]
+        )
+        self.assertEqual(errors, ["STD-1 exam_score: score must be 0 to 20"])
+
+    def test_parse_text_does_not_treat_digits_in_student_code_as_score(self):
+        rows = _parse_text("STD001 12 13 14")
+        self.assertEqual(rows[0]["student_code"], "STD001")
+        self.assertEqual(str(rows[0]["scores"]["seq1_score"]), "12")
+        self.assertEqual(str(rows[0]["scores"]["exam_score"]), "14")
+
+    def test_marksheet_form_rejects_non_image_upload(self):
+        upload = SimpleUploadedFile(
+            "marks.txt", b"STD001 12 13", content_type="text/plain"
+        )
+        form = MarkSheetUploadForm(
+            data={"subject_assignment_id": "1"},
+            files={"marksheet_file": upload},
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("PNG, JPG, or WebP", form.errors["marksheet_file"][0])
 
 
 class GradeImportAPIViewHardeningTests(TestCase):

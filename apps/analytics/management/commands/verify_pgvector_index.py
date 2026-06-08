@@ -97,7 +97,9 @@ class Command(BaseCommand):
 
         # tenant-isolation-allow: public-schema embedding store; sizing only.
         try:
-            return AIEmbeddingStore.objects.exclude(embedding=[]).count()
+            return AIEmbeddingStore.objects.filter(
+                lifecycle_status="active"
+            ).exclude(embedding=[]).count()
         except Exception:  # noqa: BLE001 — table may not exist on fresh DBs
             return 0
 
@@ -188,12 +190,15 @@ class Command(BaseCommand):
 
     def _row_stats(self) -> dict:
         with connection.cursor() as cur:
-            cur.execute(f"SELECT COUNT(*) FROM {_TABLE}")
+            cur.execute(
+                f"SELECT COUNT(*) FROM {_TABLE} WHERE lifecycle_status = 'active'"
+            )
             total = cur.fetchone()[0]
             try:
                 cur.execute(
                     f"SELECT COUNT(*) FROM {_TABLE} "
-                    f"WHERE embedding_vec IS NULL AND embedding IS NOT NULL"
+                    f"WHERE lifecycle_status = 'active' "
+                    f"AND embedding_vec IS NULL AND embedding IS NOT NULL"
                 )
                 null_vec_with_json = cur.fetchone()[0]
             except Exception:  # noqa: BLE001 — column may be absent

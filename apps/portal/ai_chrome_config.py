@@ -173,6 +173,15 @@ def resolve_ai_chrome_config(request) -> dict[str, Any]:
             "studio_os:copilot_rail_send_stream", urlconf=urlconf
         ),
         "ai_stream": _reverse("portal:ai_stream", urlconf=urlconf),
+        "browser_inference_config": _reverse(
+            "browser_inference_config", urlconf=urlconf
+        ),
+        "local_voice_transcribe": _reverse(
+            "local_voice_transcribe", urlconf=urlconf
+        ),
+        "local_voice_synthesize": _reverse(
+            "local_voice_synthesize", urlconf=urlconf
+        ),
     }
 
     max_chars_raw = ui.get("floating_max_message_chars", flags.get("ai_copilot_max_message_chars", 500))
@@ -209,6 +218,10 @@ def resolve_ai_chrome_config(request) -> dict[str, Any]:
             ),
             "backend_enabled": backend_enabled,
             "rules_fallback_enabled": rules_fallback,
+            "browser_inference": bool(
+                getattr(settings, "BROWSER_AI_ENABLED", False)
+            ),
+            "local_voice": bool(getattr(settings, "LOCAL_VOICE_ENABLED", False)),
         },
         "ui": {
             "floating_panel_title": str(
@@ -232,6 +245,14 @@ def resolve_ai_chrome_config(request) -> dict[str, Any]:
             "degraded": bool(status.get("degraded")),
             "provider": status.get("provider"),
             "posture_label": status.get("posture_label"),
+        },
+        "local_ai": {
+            "voice_languages": list(
+                getattr(settings, "LOCAL_VOICE_LANGUAGES", ["en"])
+            ),
+            "voice_max_audio_bytes": int(
+                getattr(settings, "LOCAL_VOICE_MAX_AUDIO_BYTES", 2_000_000)
+            ),
         },
     }
 

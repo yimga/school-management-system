@@ -48,6 +48,15 @@ class OfflineQueueHelpersTests(TestCase):
         self.assertEqual(len(merged), 1)
         self.assertEqual(merged[0]["v"], "b")
 
+    def test_protected_grade_versions_are_never_hidden(self):
+        rows = [
+            {"entity": "grade", "id": "9", "revision": 1, "score": 15},
+            {"entity": "grade_entry", "id": "9", "revision": 2, "score": 18},
+        ]
+        merged = merge_conflict_records(rows, strategy="last_write_wins")
+        self.assertEqual(merged[0]["score"], 15)
+        self.assertEqual(merged[0]["_alternate_versions"][0]["score"], 18)
+
 
 class OfflineActionQueueTests(TestCase):
     """Durable OfflineAction: enqueue, process, conflict, tenant scope, payment receipt."""

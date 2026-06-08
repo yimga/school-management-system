@@ -1,6 +1,8 @@
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from unittest.mock import patch
 
 from apps.accounts.models import User
 from apps.academics.models import (
@@ -12,7 +14,7 @@ from apps.academics.models import (
     Subject,
     SubjectAssignment,
 )
-from apps.evals.models import GradeApprovalRequest, TeacherAssignment
+from apps.evals.models import Evaluation, GradeApprovalRequest, TeacherAssignment
 from apps.people.models import TeacherProfile, StudentProfile
 from apps.platform_runtime.helpers import (
     get_platform_site_settings_record,
@@ -124,6 +126,75 @@ class GradeApprovalWorkflowTestCase(TestCase):
         self.client.post(reverse("evals:teacher_marks_entry"), data=data)
         # Model MaxValueValidator(20) rejects 25; save fails, so no approval request is created
         self.assertEqual(GradeApprovalRequest.objects.count(), 0)
+
+    def test_ocr_upload_never_writes_until_teacher_confirms(self):
+        flags = {
+            **dict(self.site_settings.get_backend_feature_flags()),
+            "marksheet_ocr_enabled": True,
+            "marksheet_ocr_manual_review_required": False,
+            "marksheet_ocr_confidence_threshold": 1,
+            "marksheet_ocr_delta_mode": True,
+        }
+        self.site_settings.apply_feature_control_state(
+            backend_feature_flags=flags,
+            field_updates={},
+        )
+        invalidate_effective_site_settings_cache()
+        self.client.login(username="teacher", password="pass")
+        upload = SimpleUploadedFile(
+            "marks.png", b"not-read-because-ocr-is-mocked", content_type="image/png"
+        )
+        result = {
+            "success": True,
+            "entries": [
+                {
+                    "student_code": self.student.student_code,
+                    "scores": {"seq1_score": "18"},
+                    "line_text": "STU001 18",
+                    "field_confidences": {"seq1_score": 99},
+                }
+            ],
+            "confidence": 99,
+            "field_confidences": {"seq1_score": 99},
+        }
+        with (
+            patch("apps.evals.views.is_tesseract_available", return_value=(True, "5")),
+            patch("apps.evals.views.process_marksheet_upload", return_value=result),
+            patch("apps.evals.views._apply_ocr_entries") as apply_mock,
+        ):
+            response = self.client.post(
+                reverse("evals:teacher_marks_entry"),
+                {
+                    "subject_assignment_id": str(self.subject_assignment.id),
+                    "marksheet_file": upload,
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "OCR created a proposal only")
+        apply_mock.assert_not_called()
+        self.assertEqual(Evaluation.objects.count(), 0)
+
+        no_attestation = self.client.post(
+            reverse("evals:teacher_marks_entry"),
+            {
+                "subject_assignment_id": str(self.subject_assignment.id),
+                "confirm_pending": "1",
+            },
+        )
+        self.assertContains(no_attestation, "Confirm that you reviewed")
+        self.assertEqual(Evaluation.objects.count(), 0)
+
+        confirmed = self.client.post(
+            reverse("evals:teacher_marks_entry"),
+            {
+                "subject_assignment_id": str(self.subject_assignment.id),
+                "confirm_pending": "1",
+                "confirm_human_review": "1",
+            },
+        )
+        self.assertEqual(confirmed.status_code, 200)
+        evaluation = Evaluation.objects.get(student=self.student)
+        self.assertEqual(str(evaluation.seq1_score), "18.00")
 
     def test_grade_approval_list_accessible_by_reviewers(self):
         GradeApprovalRequest.objects.create(

@@ -1,93 +1,97 @@
-"""
-Purge old compliance data based on retention policy.
-Usage:
-    manage.py purge_compliance_data [--dry-run] [--region=GDPR]
-
-Retention windows are controlled by DATA_RETENTION settings. Use default keys
-(audit_log_days, access_log_days, session_days, report_days) or region-specific
-keys when --region is set (e.g. GDPR_audit_log_days). Respects compliance_region
-by using per-region retention when provided.
-"""
+"""Apply compliance retention using signed archive-before-purge bundles."""
 
 from datetime import timedelta
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
-from apps.compliance.models_audit import (
-    AuditLog,
-    AccessLog,
-    UserActivitySession,
-    ComplianceReport,
+from apps.compliance.audit_retention import (
+    archive_and_optionally_purge,
+    retention_queryset,
 )
-from apps.platform_runtime.append_only import AppendOnlyManager
+from apps.compliance.models_audit import (
+    AccessLog,
+    AuditLog,
+    ComplianceReport,
+    UserActivitySession,
+)
 
 
 class Command(BaseCommand):
-    help = "Purge compliance data according to retention policy"
+    help = "Archive compliance data and optionally purge with explicit approval"
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--dry-run", action="store_true", help="Show counts only, do not delete"
+            "--dry-run", action="store_true", help="Show counts only"
         )
         parser.add_argument(
             "--region",
-            type=str,
             default="",
-            help="Compliance region (e.g. GDPR, FERPA, NDPR). Uses region-prefixed keys in DATA_RETENTION when set.",
+            help="Use region-prefixed DATA_RETENTION keys (for example GDPR)",
         )
+        parser.add_argument(
+            "--purge",
+            action="store_true",
+            help="Purge exact rows only after their archive verifies",
+        )
+        parser.add_argument("--approval-token", default="")
 
     def handle(self, *args, **options):
+        if options["purge"] and options["dry_run"]:
+            raise CommandError("--purge and --dry-run cannot be combined.")
         retention = getattr(settings, "DATA_RETENTION", {})
-        now = timezone.now()
-        region = (options.get("region") or "").strip().upper()
+        region = options["region"].strip().upper()
         prefix = f"{region}_" if region else ""
-
         targets = [
             (AuditLog, "timestamp", "audit_log_days"),
             (AccessLog, "timestamp", "access_log_days"),
             (UserActivitySession, "login_timestamp", "session_days"),
             (ComplianceReport, "generated_at", "report_days"),
         ]
-
-        for model, field_name, key in targets:
+        now = timezone.now()
+        for model, timestamp_field, key in targets:
             days = int(retention.get(prefix + key, retention.get(key, 0)))
             if days <= 0:
                 self.stdout.write(
-                    self.style.WARNING(f"Skipping {model.__name__}: retention disabled")
+                    self.style.WARNING(f"{model.__name__}: retention disabled")
                 )
                 continue
-
-            # v4.01 — append-only audit models (AuditLog) deliberately block ORM
-            # delete. Purging audit logs is legally sensitive and belongs to an
-            # approval-gated raw-SQL path (cf. migration_cloud
-            # purge_audit_events_pre_approved), NOT this scheduled command.
-            # Previously this CRASHED on the first append-only target (AuditLog
-            # raised AppendOnlyDeleteError), so the legitimate non-append-only
-            # purges below never ran. Skip + report instead of crashing.
-            if isinstance(getattr(model, "objects", None), AppendOnlyManager):
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"Skipping {model.__name__}: append-only — use the approval-gated audit-retention purge."
-                    )
-                )
-                continue
-
             cutoff = now - timedelta(days=days)
-            qs = model.objects.filter(**{f"{field_name}__lt": cutoff})
-
-            count = qs.count()
+            eligible, held_count = retention_queryset(
+                model, timestamp_field, cutoff
+            )
             if options["dry_run"]:
                 self.stdout.write(
-                    f"{model.__name__}: would delete {count} records older than {days} days"
+                    f"{model.__name__}: would archive {eligible.count()} records; "
+                    f"{held_count} protected by legal hold"
                 )
-            else:
-                deleted, _ = qs.delete()
+                continue
+            try:
+                result = archive_and_optionally_purge(
+                    model,
+                    timestamp_field,
+                    cutoff,
+                    purge=options["purge"],
+                    approval_token=options["approval_token"],
+                )
+            except (ImproperlyConfigured, PermissionDenied, OSError) as exc:
+                raise CommandError(str(exc)) from exc
+            if result.archive:
+                operation = "archived and purged" if options["purge"] else "archived"
                 self.stdout.write(
                     self.style.SUCCESS(
-                        f"{model.__name__}: deleted {deleted} records older than {days} days"
+                        f"{model.__name__}: {operation} {result.eligible_count} "
+                        f"records as {result.archive.archive_id}"
                     )
                 )
-
-        self.stdout.write(self.style.SUCCESS("Purge complete"))
+            else:
+                self.stdout.write(f"{model.__name__}: no eligible records")
+            if result.held_count:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"{model.__name__}: {result.held_count} records retained by legal hold"
+                    )
+                )
+        self.stdout.write(self.style.SUCCESS("Compliance retention complete"))

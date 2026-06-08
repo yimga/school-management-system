@@ -261,13 +261,21 @@ def _apply_ocr_entries(
         student = student_lookup.get(entry.get("student_code", "").upper())
         if not student:
             continue
-        evaluation, _ = Evaluation.objects.get_or_create(
+        evaluation = Evaluation.objects.filter(
+            school_id=year.school_id,
             academic_year=year,
             term=term,
             subject_assignment=sa,
             student=student,
-            defaults={"teacher": teacher},
-        )
+        ).first()
+        if evaluation is None:
+            evaluation = Evaluation(
+                academic_year=year,
+                term=term,
+                subject_assignment=sa,
+                student=student,
+                teacher=teacher,
+            )
         changes = {}
         for field, value in entry.get("scores", {}).items():
             if value is None:
@@ -389,12 +397,15 @@ def _extract_corrected_ocr_entries(post_data, original_entries):
     Returns corrected entries or None if no corrections found.
     """
     corrected = []
-    for entry in original_entries:
+    for index, entry in enumerate(original_entries):
         student_code = entry.get("student_code", "").upper()
         corrected_scores = {}
         for field in FIELD_ORDER:
-            key = f"ocr_correct_{student_code}_{field}"
-            value_str = post_data.get(key, "").strip()
+            index_key = f"ocr_correct_{index}_{field}"
+            legacy_key = f"ocr_correct_{student_code}_{field}"
+            value_str = str(
+                post_data.get(index_key, post_data.get(legacy_key, "")) or ""
+            ).strip()
             if value_str:
                 try:
                     corrected_scores[field] = Decimal(value_str)
@@ -420,6 +431,21 @@ def _extract_corrected_ocr_entries(post_data, original_entries):
         )
         else None
     )
+
+
+def _validate_ocr_entries(entries):
+    errors = []
+    for entry in entries:
+        student_code = str(entry.get("student_code") or "").strip() or "unknown"
+        for field, value in (entry.get("scores") or {}).items():
+            try:
+                score = Decimal(str(value))
+            except (InvalidOperation, TypeError, ValueError):
+                errors.append(f"{student_code} {field}: invalid number")
+                continue
+            if score < 0 or score > 20:
+                errors.append(f"{student_code} {field}: score must be 0 to 20")
+    return errors
 
 
 def _pending_ocr_for(session, teacher_id, subject_assignment_id):
@@ -1706,6 +1732,12 @@ def teacher_marks_entry(request: HttpRequest):
                 "level": "warning",
                 "message": "No OCR preview is staged for this assignment.",
             }
+        elif request.POST.get("confirm_human_review") != "1":
+            upload_feedback = {
+                "level": "warning",
+                "message": "Confirm that you reviewed the OCR proposal before applying it.",
+            }
+            upload_manual_review_pending = True
         else:
             # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             entries = _deserialize_pending_entries(pending_data["entries"])
@@ -1715,6 +1747,7 @@ def teacher_marks_entry(request: HttpRequest):
             # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             corrected_entries = _extract_corrected_ocr_entries(request.POST, entries)
             entries_to_apply = corrected_entries if corrected_entries else entries
+            validation_errors = _validate_ocr_entries(entries_to_apply)
 
             # Build existing evaluations for delta preview
             # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
@@ -1735,31 +1768,47 @@ def teacher_marks_entry(request: HttpRequest):
                 entries_to_apply, student_lookup, existing_evals
             )
             delta_mode = flags.get("marksheet_ocr_delta_mode", True)
-            applied = _apply_ocr_entries(
-                entries_to_apply,
-                student_lookup,
-                sa,
-                year,
-                active_term,
-                teacher,
-                delta_mode=delta_mode,
-            )
-            upload_summary = {
-                "processed": len(entries_to_apply),
-                "confidence": upload_confidence,
-                "applied": len(applied),
-                "delta_mode": delta_mode,
-            }
-            upload_feedback = {
-                "level": "success" if applied else "info",
-                "message": (
-                    f"Applied {len(applied)} parsed entries at {upload_confidence:.0f}% confidence (delta mode: {'on' if delta_mode else 'off'})."
-                    if applied
-                    else "No matching students were updated."
-                ),
-            }
-            messages.success(request, "OCR preview applied successfully.")
-            _clear_pending_ocr(request.session)
+            if validation_errors:
+                upload_summary = {
+                    "processed": len(entries_to_apply),
+                    "confidence": upload_confidence,
+                    "delta_mode": delta_mode,
+                }
+                upload_feedback = {
+                    "level": "danger",
+                    "message": "Correct invalid OCR values before applying: "
+                    + "; ".join(validation_errors[:5]),
+                }
+                upload_manual_review_pending = True
+            else:
+                applied = _apply_ocr_entries(
+                    entries_to_apply,
+                    student_lookup,
+                    sa,
+                    year,
+                    active_term,
+                    teacher,
+                    delta_mode=delta_mode,
+                )
+                upload_summary = {
+                    "processed": len(entries_to_apply),
+                    "confidence": upload_confidence,
+                    "applied": len(applied),
+                    "delta_mode": delta_mode,
+                }
+                upload_feedback = {
+                    "level": "success" if applied else "info",
+                    "message": (
+                        f"Applied {len(applied)} teacher-confirmed entries "
+                        f"(delta mode: {'on' if delta_mode else 'off'})."
+                        if applied
+                        else "No matching students were updated."
+                    ),
+                }
+                messages.success(
+                    request, "Teacher-confirmed OCR proposal applied successfully."
+                )
+                _clear_pending_ocr(request.session)
     elif request.method == "POST" and marksheet_file:
         upload_form = MarkSheetUploadForm(request.POST, request.FILES)
         if not sa:
@@ -1819,43 +1868,24 @@ def teacher_marks_entry(request: HttpRequest):
                 }
 
             upload_preview = _build_ocr_preview(entries, student_lookup, existing_evals)
-            threshold = flags.get("marksheet_ocr_confidence_threshold", 70) or 70
             delta_mode = flags.get(
                 "marksheet_ocr_delta_mode", True
             )  # Only fill missing by default
-            upload_manual_review_pending = (
-                bool(flags.get("marksheet_ocr_manual_review_required", True))
-                or upload_confidence < threshold
-            )
+            upload_manual_review_pending = bool(entries)
             upload_summary = {
                 "processed": len(entries),
                 "confidence": upload_confidence,
                 "field_confidences": field_confidences,
                 "delta_mode": delta_mode,
             }
-            if entries and not upload_manual_review_pending:
-                applied = _apply_ocr_entries(
-                    entries,
-                    student_lookup,
-                    sa,
-                    year,
-                    active_term,
-                    teacher,
-                    delta_mode=delta_mode,
-                )
-                upload_summary["applied"] = len(applied)
-                upload_feedback = {
-                    "level": "success",
-                    "message": f"Applied {len(applied)} parsed entries at {upload_confidence:.0f}% confidence (delta mode: {'on' if delta_mode else 'off'}).",
-                }
-                messages.success(request, "OCR upload applied successfully.")
-                _clear_pending_ocr(request.session)
-            elif entries:
+            if entries:
                 upload_feedback = {
                     "level": "info",
-                    "message": "Parsed marks need manual verification before they are applied.",
+                    "message": (
+                        "OCR created a proposal only. Review and correct every value "
+                        "before explicitly applying it."
+                    ),
                 }
-                # Include field_confidences in session for preview
                 _set_pending_ocr(
                     request.session,
                     teacher.id,
@@ -2015,6 +2045,7 @@ def teacher_marks_entry(request: HttpRequest):
             "marksheet_ocr_ready": marksheet_ocr_ready,
             "marksheet_ocr_version": marksheet_ocr_version,
             "marksheet_ocr_command": marksheet_ocr_command_display,
+            "marksheet_ocr_delta_mode": flags.get("marksheet_ocr_delta_mode", True),
             "grade_approval_enabled": grade_approval_enabled,
             "grade_approval_requests": grade_approval_requests,
             "grade_approval_roles": grade_approver_roles(

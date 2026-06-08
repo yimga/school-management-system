@@ -1,0 +1,962 @@
+{
+  "blocked_count": 0,
+  "decisions": [
+    {
+      "blockers": [],
+      "controls": {
+        "degraded_behavior": {
+          "source": "services/ai_gateway.py",
+          "token": "\"degraded\""
+        },
+        "kill_switch": {
+          "source": "config/settings.py",
+          "token": "AI_GATEWAY_ENABLED"
+        },
+        "rollback": {
+          "source": "services/ai_gateway.py",
+          "token": "_rules_invoke_result"
+        }
+      },
+      "eligible": true,
+      "evidence": {
+        "accessibility": {
+          "scope": "repository",
+          "source": [
+            "tests/e2e/help-ai-center-a11y.spec.js"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "auditability": {
+          "scope": "repository",
+          "source": [
+            "services/ai_gateway.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "degraded_behavior": {
+          "scope": "repository",
+          "source": [
+            "services/ai_gateway.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "kill_switch": {
+          "scope": "repository",
+          "source": [
+            "config/settings.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "operator_evidence": {
+          "scope": "repository",
+          "source": [
+            "apps/siteconfig/views_ai_governance.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "privacy_security": {
+          "scope": "repository",
+          "source": [
+            "services/tests/test_ai_copilot_rbac.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "resource_budget": {
+          "scope": "repository",
+          "source": [
+            "services/ai_gateway.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "rollback": {
+          "scope": "repository",
+          "source": [
+            "services/ai_gateway.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "task_quality": {
+          "scope": "repository",
+          "source": [
+            "services/tests/test_ai_copilot_reply_format.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "tenant_isolation": {
+          "scope": "repository",
+          "source": [
+            "services/tests/test_ai_copilot_rbac.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        }
+      },
+      "feature_id": "governed_ai_gateway",
+      "implementation_status": "implemented",
+      "maximum_stage": "general_availability",
+      "owner": "services.ai_helpers -> services.ai_gateway",
+      "target_stage": "repository_verified",
+      "verdict": "eligible"
+    },
+    {
+      "blockers": [],
+      "controls": {
+        "degraded_behavior": {
+          "source": "services/ai_gateway.py",
+          "token": "_rules_invoke_result"
+        },
+        "kill_switch": {
+          "source": "config/settings.py",
+          "token": "AI_GATEWAY_ENABLED"
+        },
+        "rollback": {
+          "source": "config/edge_model_catalog.json",
+          "token": "\"rollback_tier\": \"rules\""
+        }
+      },
+      "eligible": true,
+      "evidence": {
+        "accessibility": {
+          "scope": "repository",
+          "source": [
+            "docs/AI_DEPLOYMENT_POSTURE.md"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "auditability": {
+          "scope": "repository",
+          "source": [
+            "services/edge_model_certification.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "degraded_behavior": {
+          "scope": "repository",
+          "source": [
+            "services/ai_gateway.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "kill_switch": {
+          "scope": "repository",
+          "source": [
+            "config/settings.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "operator_evidence": {
+          "scope": "repository",
+          "source": [
+            "apps/platform_runtime/management/commands/certify_edge_ai.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "privacy_security": {
+          "scope": "repository",
+          "source": [
+            "config/edge_model_catalog.json"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "resource_budget": {
+          "scope": "repository",
+          "source": [
+            "services/edge_hardware.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "rollback": {
+          "scope": "repository",
+          "source": [
+            "config/edge_model_catalog.json"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "task_quality": {
+          "scope": "repository",
+          "source": [
+            "var/evidence/edge/phase1_qwen25_15b.json"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "tenant_isolation": {
+          "scope": "repository",
+          "source": [
+            "services/tests/test_ai_copilot_rbac.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        }
+      },
+      "feature_id": "edge_ai",
+      "implementation_status": "implemented",
+      "maximum_stage": "internal_pilot",
+      "owner": "services.edge_model_certification",
+      "target_stage": "repository_verified",
+      "verdict": "eligible"
+    },
+    {
+      "blockers": [],
+      "controls": {
+        "degraded_behavior": {
+          "source": "templates/teacher/marks_entry.html",
+          "token": "Tesseract"
+        },
+        "kill_switch": {
+          "source": "apps/evals/views.py",
+          "token": "marksheet_ocr_enabled"
+        },
+        "rollback": {
+          "source": "apps/evals/views.py",
+          "token": "MARKSHEET_OCR_PENDING_SESSION_KEY"
+        }
+      },
+      "eligible": true,
+      "evidence": {
+        "accessibility": {
+          "scope": "repository",
+          "source": [
+            "templates/teacher/marks_entry.html"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "auditability": {
+          "scope": "repository",
+          "source": [
+            "apps/evals/tests/test_grade_approval_workflow.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "degraded_behavior": {
+          "scope": "repository",
+          "source": [
+            "templates/teacher/marks_entry.html"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "kill_switch": {
+          "scope": "repository",
+          "source": [
+            "apps/evals/views.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "operator_evidence": {
+          "scope": "repository",
+          "source": [
+            "docs/MARKSHEET_OCR_SETUP.md"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "privacy_security": {
+          "scope": "repository",
+          "source": [
+            "apps/evals/tests/test_grade_approval_workflow.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "resource_budget": {
+          "scope": "repository",
+          "source": [
+            "scripts/smoke_tesseract_browser_ocr.mjs"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "rollback": {
+          "scope": "repository",
+          "source": [
+            "apps/evals/views.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "task_quality": {
+          "scope": "repository",
+          "source": [
+            "var/evidence/ocr/browser_tesseract_smoke.json"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "tenant_isolation": {
+          "scope": "repository",
+          "source": [
+            "apps/evals/tests/test_import_and_helper_hardening.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        }
+      },
+      "feature_id": "marksheet_ocr",
+      "implementation_status": "implemented",
+      "maximum_stage": "internal_pilot",
+      "owner": "apps.evals proposal workflow",
+      "target_stage": "repository_verified",
+      "verdict": "eligible"
+    },
+    {
+      "blockers": [],
+      "controls": {
+        "degraded_behavior": {
+          "source": "services/ai_memory.py",
+          "token": "return []"
+        },
+        "kill_switch": {
+          "source": "config/settings.py",
+          "token": "AI_GATEWAY_ENABLED"
+        },
+        "rollback": {
+          "source": "services/tenant_rag_bundle.py",
+          "token": "tombstone"
+        }
+      },
+      "eligible": true,
+      "evidence": {
+        "accessibility": {
+          "scope": "repository",
+          "source": [
+            "docs/TENANT_RAG_BUNDLES.md"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "auditability": {
+          "scope": "repository",
+          "source": [
+            "services/tenant_rag_bundle.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "degraded_behavior": {
+          "scope": "repository",
+          "source": [
+            "services/ai_memory.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "kill_switch": {
+          "scope": "repository",
+          "source": [
+            "config/settings.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "operator_evidence": {
+          "scope": "repository",
+          "source": [
+            "apps/siteconfig/management/commands/import_tenant_rag_bundle.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "privacy_security": {
+          "scope": "repository",
+          "source": [
+            "services/tests/test_tenant_rag_bundle.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "resource_budget": {
+          "scope": "repository",
+          "source": [
+            "apps/analytics/semantic_search.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "rollback": {
+          "scope": "repository",
+          "source": [
+            "services/tenant_rag_bundle.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "task_quality": {
+          "scope": "repository",
+          "source": [
+            "services/tests/test_ai_memory.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "tenant_isolation": {
+          "scope": "repository",
+          "source": [
+            "services/tests/test_tenant_rag_bundle.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        }
+      },
+      "feature_id": "portable_tenant_rag",
+      "implementation_status": "implemented",
+      "maximum_stage": "internal_pilot",
+      "owner": "apps.siteconfig.models.AIEmbeddingStore",
+      "target_stage": "repository_verified",
+      "verdict": "eligible"
+    },
+    {
+      "blockers": [],
+      "controls": {
+        "degraded_behavior": {
+          "source": "apps/platform_runtime/offline_queue.py",
+          "token": "show_both"
+        },
+        "kill_switch": {
+          "source": "apps/platform_runtime/offline_mode_bundle.py",
+          "token": "offline_mode_module_enabled"
+        },
+        "rollback": {
+          "source": "apps/sync_engine/policy_registry.py",
+          "token": "manual_review"
+        }
+      },
+      "eligible": true,
+      "evidence": {
+        "accessibility": {
+          "scope": "repository",
+          "source": [
+            "docs/LOCAL_FIRST_SYNC_SEMANTICS.md"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "auditability": {
+          "scope": "repository",
+          "source": [
+            "apps/sync_engine/event_envelope.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "degraded_behavior": {
+          "scope": "repository",
+          "source": [
+            "apps/platform_runtime/offline_queue.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "kill_switch": {
+          "scope": "repository",
+          "source": [
+            "apps/platform_runtime/offline_mode_bundle.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "operator_evidence": {
+          "scope": "repository",
+          "source": [
+            "apps/sync_engine/management/commands/verify_sync_semantics.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "privacy_security": {
+          "scope": "repository",
+          "source": [
+            "apps/sync_engine/tests/test_crdt_view_governance.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "resource_budget": {
+          "scope": "repository",
+          "source": [
+            "apps/sync_engine/delta_bundle.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "rollback": {
+          "scope": "repository",
+          "source": [
+            "apps/sync_engine/policy_registry.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "task_quality": {
+          "scope": "repository",
+          "source": [
+            "apps/sync_engine/tests/test_crdt_wire_protocol.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "tenant_isolation": {
+          "scope": "repository",
+          "source": [
+            "apps/sync_engine/tests/test_crdt_view_governance.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        }
+      },
+      "feature_id": "local_first_sync",
+      "implementation_status": "implemented",
+      "maximum_stage": "internal_pilot",
+      "owner": "apps.sync_engine.policy_registry",
+      "target_stage": "repository_verified",
+      "verdict": "eligible"
+    },
+    {
+      "blockers": [],
+      "controls": {
+        "degraded_behavior": {
+          "source": "static/css/rmc-shell-scroll-contract.css",
+          "token": "100dvh"
+        },
+        "kill_switch": {
+          "source": "config/settings.py",
+          "token": "RMC_LAYOUT_OBSERVABILITY_ENABLED"
+        },
+        "rollback": {
+          "source": "templates/partials/rmc_viewport_engine.html",
+          "token": "rmc_layout_observability_enabled"
+        }
+      },
+      "eligible": true,
+      "evidence": {
+        "accessibility": {
+          "scope": "repository",
+          "source": [
+            "static/js/rmc-layout-observer.js"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "auditability": {
+          "scope": "repository",
+          "source": [
+            "apps/platform_runtime/rum_aggregate.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "degraded_behavior": {
+          "scope": "repository",
+          "source": [
+            "static/css/rmc-shell-scroll-contract.css"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "kill_switch": {
+          "scope": "repository",
+          "source": [
+            "config/settings.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "operator_evidence": {
+          "scope": "repository",
+          "source": [
+            "docs/LAYOUT_OBSERVABILITY.md"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "privacy_security": {
+          "scope": "repository",
+          "source": [
+            "apps/platform_runtime/tests/test_layout_observability.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "resource_budget": {
+          "scope": "repository",
+          "source": [
+            "static/js/rmc-layout-observer.js"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "rollback": {
+          "scope": "repository",
+          "source": [
+            "templates/partials/rmc_viewport_engine.html"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "task_quality": {
+          "scope": "repository",
+          "source": [
+            "tests/js/rmc_layout_observer.test.ts"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "tenant_isolation": {
+          "scope": "repository",
+          "source": [
+            "apps/platform_runtime/layout_observability.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        }
+      },
+      "feature_id": "responsive_layout_observability",
+      "implementation_status": "implemented",
+      "maximum_stage": "internal_pilot",
+      "owner": "apps.platform_runtime.layout_observability",
+      "target_stage": "repository_verified",
+      "verdict": "eligible"
+    },
+    {
+      "blockers": [],
+      "controls": {
+        "degraded_behavior": {
+          "source": "apps/analytics/at_risk_readiness.py",
+          "token": "heuristic"
+        },
+        "kill_switch": {
+          "source": "apps/analytics/at_risk_readiness.py",
+          "token": "AT_RISK_MODEL_PATH"
+        },
+        "rollback": {
+          "source": "docs/AT_RISK_MODEL_PRODUCTION_HANDBOOK_2026_05_16.md",
+          "token": "rollback"
+        }
+      },
+      "eligible": true,
+      "evidence": {
+        "accessibility": {
+          "scope": "repository",
+          "source": [
+            "docs/AT_RISK_MODEL_PRODUCTION_HANDBOOK_2026_05_16.md"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "auditability": {
+          "scope": "repository",
+          "source": [
+            "apps/analytics/management/commands/verify_ai_promotion_readiness.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "degraded_behavior": {
+          "scope": "repository",
+          "source": [
+            "apps/analytics/at_risk_readiness.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "kill_switch": {
+          "scope": "repository",
+          "source": [
+            "apps/analytics/at_risk_readiness.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "operator_evidence": {
+          "scope": "repository",
+          "source": [
+            "apps/analytics/management/commands/verify_ai_promotion_readiness.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "privacy_security": {
+          "scope": "repository",
+          "source": [
+            "apps/analytics/tests/test_at_risk_readiness.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "resource_budget": {
+          "scope": "repository",
+          "source": [
+            "apps/analytics/at_risk_readiness.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "rollback": {
+          "scope": "repository",
+          "source": [
+            "docs/AT_RISK_MODEL_PRODUCTION_HANDBOOK_2026_05_16.md"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "task_quality": {
+          "scope": "repository",
+          "source": [
+            "apps/analytics/tests/test_verify_ai_promotion_readiness.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "tenant_isolation": {
+          "scope": "repository",
+          "source": [
+            "apps/analytics/tests/test_at_risk_readiness.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        }
+      },
+      "feature_id": "predictive_at_risk_model",
+      "implementation_status": "implemented",
+      "maximum_stage": "internal_pilot",
+      "owner": "apps.analytics model registry",
+      "target_stage": "repository_verified",
+      "verdict": "eligible"
+    },
+    {
+      "blockers": [],
+      "controls": {
+        "degraded_behavior": {
+          "source": "static/js/rmc-local-ai-accessibility.js",
+          "token": "text field"
+        },
+        "kill_switch": {
+          "source": "config/settings.py",
+          "token": "BROWSER_AI_ENABLED"
+        },
+        "rollback": {
+          "source": "static/js/rmc-browser-inference-worker.js",
+          "token": "purge"
+        }
+      },
+      "eligible": true,
+      "evidence": {
+        "accessibility": {
+          "scope": "repository",
+          "source": [
+            "templates/partials/cockpit/_ai_copilot_rail.html"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "auditability": {
+          "scope": "repository",
+          "source": [
+            "docs/BROWSER_INFERENCE.md"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "degraded_behavior": {
+          "scope": "repository",
+          "source": [
+            "static/js/rmc-local-ai-accessibility.js"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "kill_switch": {
+          "scope": "repository",
+          "source": [
+            "config/settings.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "operator_evidence": {
+          "scope": "repository",
+          "source": [
+            "docs/BROWSER_INFERENCE.md"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "privacy_security": {
+          "scope": "repository",
+          "source": [
+            "apps/platform_runtime/browser_inference.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "resource_budget": {
+          "scope": "repository",
+          "source": [
+            "static/js/rmc-local-ai-accessibility.js"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "rollback": {
+          "scope": "repository",
+          "source": [
+            "static/js/rmc-browser-inference-worker.js"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "task_quality": {
+          "scope": "repository",
+          "source": [
+            "apps/platform_runtime/tests/test_local_ai_contracts.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "tenant_isolation": {
+          "scope": "repository",
+          "source": [
+            "apps/platform_runtime/views_local_ai.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        }
+      },
+      "feature_id": "browser_slm",
+      "implementation_status": "implemented",
+      "maximum_stage": "repository_verified",
+      "owner": "apps.platform_runtime.browser_inference",
+      "target_stage": "repository_verified",
+      "verdict": "eligible"
+    },
+    {
+      "blockers": [],
+      "controls": {
+        "degraded_behavior": {
+          "source": "docs/LOCAL_VOICE_ACCESSIBILITY.md",
+          "token": "keyboard and text path"
+        },
+        "kill_switch": {
+          "source": "config/settings.py",
+          "token": "LOCAL_VOICE_ENABLED"
+        },
+        "rollback": {
+          "source": "static/js/rmc-local-ai-accessibility.js",
+          "token": "Use the text field"
+        }
+      },
+      "eligible": true,
+      "evidence": {
+        "accessibility": {
+          "scope": "repository",
+          "source": [
+            "templates/partials/cockpit/_ai_copilot_rail.html"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "auditability": {
+          "scope": "repository",
+          "source": [
+            "apps/platform_runtime/views_local_ai.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "degraded_behavior": {
+          "scope": "repository",
+          "source": [
+            "docs/LOCAL_VOICE_ACCESSIBILITY.md"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "kill_switch": {
+          "scope": "repository",
+          "source": [
+            "config/settings.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "operator_evidence": {
+          "scope": "repository",
+          "source": [
+            "docs/LOCAL_VOICE_ACCESSIBILITY.md"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "privacy_security": {
+          "scope": "repository",
+          "source": [
+            "services/local_voice.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "resource_budget": {
+          "scope": "repository",
+          "source": [
+            "config/settings.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "rollback": {
+          "scope": "repository",
+          "source": [
+            "static/js/rmc-local-ai-accessibility.js"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "task_quality": {
+          "scope": "repository",
+          "source": [
+            "services/tests/test_local_voice.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        },
+        "tenant_isolation": {
+          "scope": "repository",
+          "source": [
+            "apps/platform_runtime/views_local_ai.py"
+          ],
+          "status": "passed",
+          "verified_by": "repository_contract"
+        }
+      },
+      "feature_id": "voice_ai",
+      "implementation_status": "implemented",
+      "maximum_stage": "repository_verified",
+      "owner": "services.local_voice",
+      "target_stage": "repository_verified",
+      "verdict": "eligible"
+    }
+  ],
+  "eligible_count": 9,
+  "schema_version": 1,
+  "target_stage": "repository_verified"
+}

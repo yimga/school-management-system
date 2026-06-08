@@ -18,6 +18,9 @@ class RlsContextResetGuardTests(unittest.TestCase):
                 "apps.schools.rls_context.reset_rls_school_id",
                 side_effect=OperationalError("boom"),
             ) as reset_school,
+            patch(
+                "apps.schools.rls_context.quarantine_rls_connection"
+            ) as quarantine,
             self.assertLogs("apps.schools.rls_context", level="DEBUG") as captured,
         ):
             with rls_school("school-1"):
@@ -25,6 +28,7 @@ class RlsContextResetGuardTests(unittest.TestCase):
 
         set_school.assert_called_once_with("school-1")
         reset_school.assert_called_once_with()
+        quarantine.assert_called_once_with("boom")
         self.assertTrue(
             any("RLS reset app.current_school_id: boom" in message for message in captured.output)
         )
@@ -40,6 +44,9 @@ class RlsContextResetGuardTests(unittest.TestCase):
                 "apps.schools.rls_context.reset_rls_school_id",
                 side_effect=ProgrammingError("bad reset"),
             ) as reset_school,
+            patch(
+                "apps.schools.rls_context.quarantine_rls_connection"
+            ) as quarantine,
             self.assertLogs("apps.schools.rls_context", level="DEBUG") as captured,
         ):
             with rls_school("school-1"):
@@ -47,6 +54,7 @@ class RlsContextResetGuardTests(unittest.TestCase):
 
         set_school.assert_called_once_with("school-1")
         reset_school.assert_called_once_with()
+        quarantine.assert_called_once_with("bad reset")
         self.assertTrue(
             any(
                 "RLS reset app.current_school_id: bad reset" in message
@@ -65,6 +73,9 @@ class RlsContextResetGuardTests(unittest.TestCase):
                 "apps.schools.rls_context.reset_rls_bypass",
                 side_effect=DatabaseError("boom"),
             ) as reset_bypass,
+            patch(
+                "apps.schools.rls_context.quarantine_rls_connection"
+            ) as quarantine,
             self.assertLogs("apps.schools.rls_context", level="DEBUG") as captured,
         ):
             with rls_bypass():
@@ -72,6 +83,7 @@ class RlsContextResetGuardTests(unittest.TestCase):
 
         set_bypass.assert_called_once_with()
         reset_bypass.assert_called_once_with()
+        quarantine.assert_called_once_with("boom")
         self.assertTrue(
             any("RLS reset app.rls_bypass: boom" in m for m in captured.output)
         )
@@ -87,6 +99,9 @@ class RlsContextResetGuardTests(unittest.TestCase):
                 "apps.schools.rls_context.reset_rls_bypass",
                 side_effect=OperationalError("bypass reset"),
             ) as reset_bypass,
+            patch(
+                "apps.schools.rls_context.quarantine_rls_connection"
+            ) as quarantine,
             self.assertLogs("apps.schools.rls_context", level="DEBUG") as captured,
         ):
             with rls_bypass():
@@ -94,6 +109,7 @@ class RlsContextResetGuardTests(unittest.TestCase):
 
         set_bypass.assert_called_once_with()
         reset_bypass.assert_called_once_with()
+        quarantine.assert_called_once_with("bypass reset")
         self.assertTrue(
             any("RLS reset app.rls_bypass: bypass reset" in m for m in captured.output)
         )
@@ -109,6 +125,9 @@ class RlsContextResetGuardTests(unittest.TestCase):
                 "apps.schools.rls_context.reset_rls_bypass",
                 side_effect=ProgrammingError("bad bypass reset"),
             ) as reset_bypass,
+            patch(
+                "apps.schools.rls_context.quarantine_rls_connection"
+            ) as quarantine,
             self.assertLogs("apps.schools.rls_context", level="DEBUG") as captured,
         ):
             with rls_bypass():
@@ -116,6 +135,7 @@ class RlsContextResetGuardTests(unittest.TestCase):
 
         set_bypass.assert_called_once_with()
         reset_bypass.assert_called_once_with()
+        quarantine.assert_called_once_with("bad bypass reset")
         self.assertTrue(
             any(
                 "RLS reset app.rls_bypass: bad bypass reset" in m for m in captured.output

@@ -10,6 +10,8 @@ from typing import Any, Iterator
 
 from django.conf import settings
 
+from apps.sync_engine.policy_registry import POLICY_VERSION
+
 
 BUNDLE_MEDIA_TYPE = "application/x-rmc-sync-bundle+ndjson"
 BUNDLE_VERSION = 1
@@ -32,10 +34,13 @@ def export_delta_bundle(*, school_id: int, rows: list[dict[str, Any]], device_id
         "device_id": (device_id or "")[:128],
         "exported_at": int(time.time()),
         "row_count": len(rows),
+        "policy_version": POLICY_VERSION,
     }
     body_lines = [json.dumps(header, separators=(",", ":"), sort_keys=True)]
     for row in rows:
-        body_lines.append(json.dumps(row, separators=(",", ":"), default=str))
+        body_lines.append(
+            json.dumps(row, separators=(",", ":"), sort_keys=True, default=str)
+        )
     payload = "\n".join(body_lines).encode("utf-8")
     sig = hmac.new(_signing_key(), payload, hashlib.sha256).hexdigest()
     trailer = json.dumps({"signature": sig}, separators=(",", ":"))
@@ -67,11 +72,23 @@ def verify_and_parse_bundle(data: bytes, *, expected_school_id: int | None = Non
     actual_sig = hmac.new(_signing_key(), payload_text, hashlib.sha256).hexdigest()
     if not hmac.compare_digest(expected_sig, actual_sig):
         return [], ["signature_mismatch"]
-    parsed = [json.loads(ln) for ln in raw_lines[:-1]]
+    try:
+        parsed = [json.loads(ln) for ln in raw_lines[:-1]]
+    except json.JSONDecodeError:
+        return [], ["invalid_bundle_json"]
     header = parsed[0]
+    if int(header.get("bundle_version") or 0) != BUNDLE_VERSION:
+        return [], ["unsupported_bundle_version"]
     if expected_school_id is not None and int(header.get("school_id") or 0) != int(expected_school_id):
         return [], ["school_mismatch"]
-    return parsed[1:], errors
+    rows = parsed[1:]
+    try:
+        declared_count = int(header["row_count"])
+    except (KeyError, TypeError, ValueError):
+        return [], ["invalid_row_count"]
+    if declared_count != len(rows):
+        return [], ["row_count_mismatch"]
+    return rows, errors
 
 
 __all__ = [

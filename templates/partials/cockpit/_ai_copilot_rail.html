@@ -359,6 +359,19 @@
                   class="lx-copilot__input"
                   data-rmc-copilot-input
                   placeholder="{{ cockpit.ai_copilot_rail.input_placeholder|default:_('Ask anything about your platform…') }}"></textarea>
+        <div class="lx-copilot__local-ai" data-rmc-local-ai hidden>
+          <label>
+            <input type="checkbox" data-rmc-local-ai-consent>
+            {% trans "Allow this one local AI or voice action. Nothing is saved." %}
+          </label>
+          <div class="lx-copilot__row">
+            <button type="button" data-rmc-browser-draft hidden>{% trans "Draft on this device" %}</button>
+            <button type="button" data-rmc-browser-purge hidden>{% trans "Remove local model" %}</button>
+            <button type="button" data-rmc-voice-record hidden>{% trans "Speak" %}</button>
+            <button type="button" data-rmc-voice-read hidden>{% trans "Read aloud" %}</button>
+          </div>
+          <span role="status" aria-live="polite" data-rmc-local-ai-status></span>
+        </div>
         <div class="lx-copilot__row">
           <span class="lx-copilot__cmdk" aria-hidden="true">{{ cockpit.ai_copilot_rail.cmdk_hint|default:_("⌘ K · command palette") }}</span>
           <button class="lx-copilot__send" type="button">{{ cockpit.ai_copilot_rail.send_label|default:_("Send →") }}</button>

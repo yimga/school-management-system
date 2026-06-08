@@ -1,0 +1,126 @@
+{
+  "body": {
+    "admission": {
+      "admitted_for_pilot": true,
+      "model_id": "llama3.1:8b",
+      "production_certified": false,
+      "reasons": []
+    },
+    "benchmark": {
+      "concurrency": 2,
+      "failure_rate": 0.0,
+      "failures": 0,
+      "latency_p50_ms": 40936.61,
+      "latency_p95_ms": 61739.26,
+      "performance_checks": {
+        "failure_rate": true,
+        "minimum_concurrency": true,
+        "minimum_runs": true,
+        "p50_latency": false,
+        "p95_latency": false
+      },
+      "performance_gate_passed": false,
+      "runs": 4,
+      "samples": [
+        {
+          "eval_count": 64,
+          "eval_duration_ns": 18338303500,
+          "latency_ms": 41527.3,
+          "ok": true
+        },
+        {
+          "eval_count": 64,
+          "eval_duration_ns": 18586860700,
+          "latency_ms": 61739.26,
+          "ok": true
+        },
+        {
+          "eval_count": 64,
+          "eval_duration_ns": 18429523200,
+          "latency_ms": 40345.91,
+          "ok": true
+        },
+        {
+          "eval_count": 60,
+          "eval_duration_ns": 17700559700,
+          "latency_ms": 39390.29,
+          "ok": true
+        }
+      ],
+      "successes": 4
+    },
+    "catalog_model": {
+      "architectures": [
+        "x86_64",
+        "arm64"
+      ],
+      "forbidden_tasks": [
+        "final_grading",
+        "finance_approval",
+        "identity_grants",
+        "compliance_decisions"
+      ],
+      "intended_tasks": [
+        "drafting",
+        "translation",
+        "local_help"
+      ],
+      "license": "Llama 3.1 Community License",
+      "max_context_tokens": 2048,
+      "minimum_free_storage_gib": 12,
+      "minimum_memory_gib": 16,
+      "model_id": "llama3.1:8b",
+      "pilot_performance_limits": {
+        "max_failure_rate": 0.05,
+        "max_p50_latency_ms": 15000,
+        "max_p95_latency_ms": 25000,
+        "minimum_concurrency": 2,
+        "minimum_runs": 4
+      },
+      "recommended_memory_gib": 32,
+      "rollback_tier": "rules",
+      "status": "candidate"
+    },
+    "certification": {
+      "live_model_evidence": true,
+      "production_certified": false,
+      "remaining_external_evidence": [
+        "sustained thermal run",
+        "power-loss restart recovery",
+        "operator rollback drill",
+        "task-specific quality review"
+      ],
+      "repo_contract_complete": true
+    },
+    "created_at_unix": 1780886824,
+    "hardware": {
+      "architecture": "x86_64",
+      "capability_profile": "standard_edge",
+      "cpu_limit_source": "host",
+      "effective_cpu_count": 12.0,
+      "effective_memory_bytes": 33918377984,
+      "logical_cpu_count": 12,
+      "memory_limit_source": "host",
+      "recommendation_only": true,
+      "recommended_web_workers": 7,
+      "storage_free_bytes": 1279811485696,
+      "storage_path": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system",
+      "supports_edge_ai_pilot": true,
+      "warnings": []
+    },
+    "runtime": {
+      "artifact_size_bytes": 4920753328,
+      "digest": "46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e",
+      "model_id": "llama3.1:8b",
+      "runtime_size_bytes": 5156888576,
+      "runtime_vram_bytes": 5156888576
+    },
+    "schema_version": 1
+  },
+  "integrity": {
+    "algorithm": "HMAC-SHA256",
+    "body_sha256": "4b95ae12d9157f6684a083d7965478680e1aa731921448c1f8140dbe9f75f8b2",
+    "key_id": "edge-model-certification-key",
+    "signature": "c00c929ab37d54b57f70950ea5e68c358fc1b98e192f30a81294fe6196dbca91"
+  }
+}

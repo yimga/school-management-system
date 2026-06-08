@@ -68,7 +68,10 @@ class Command(BaseCommand):
                     "Run `migrate_embeddings_to_pgvector` first."
                 )
 
-            cur.execute(f"SELECT COUNT(*) FROM {_TABLE} WHERE embedding_vec IS NOT NULL")
+            cur.execute(
+                f"SELECT COUNT(*) FROM {_TABLE} "
+                f"WHERE lifecycle_status = 'active' AND embedding_vec IS NOT NULL"
+            )
             row_count = cur.fetchone()[0]
 
         lists = opts.get("lists") or self._auto_lists(row_count)

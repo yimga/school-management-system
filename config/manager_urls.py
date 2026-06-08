@@ -386,6 +386,13 @@ def _manager_search_static_catalog(urlconf=None):
             "meta": ["Readiness", "PSP", "SOC2", "Pilots"],
         },
         {
+            "title": "Country readiness",
+            "description": "All 250 countries: tenant-configures vs. platform-builds, payment rails, locale, board.",
+            "url": url("manager_country_readiness"),
+            "type": "report",
+            "meta": ["Readiness", "Countries", "Payments", "Localization"],
+        },
+        {
             "title": "Open report library",
             "description": "Report packs, letters, and report card builder hub.",
             "url": f"{url('studio_os:output')}?pane=reports",
@@ -692,6 +699,11 @@ urlpatterns = [
         "lane2-readiness/",
         __import__("config.manager_lane2_readiness", fromlist=["manager_lane2_readiness"]).manager_lane2_readiness,
         name="manager_lane2_readiness",
+    ),
+    path(
+        "country-readiness/",
+        __import__("config.manager_country_readiness", fromlist=["manager_country_readiness"]).manager_country_readiness,
+        name="manager_country_readiness",
     ),
     # v2.94 — cross-school integrations rollup for the operations team.
     path(

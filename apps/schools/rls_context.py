@@ -106,6 +106,12 @@ def reset_rls_bypass():
     reset_rls_bypass_var()
 
 
+def quarantine_rls_connection(reason: str) -> None:
+    """Close a connection whose tenant session state could not be reset."""
+    logger.error("Closing DB connection after RLS cleanup failure: %s", reason)
+    connection.close()
+
+
 @contextmanager
 def rls_school(school_id):
     """
@@ -124,6 +130,7 @@ def rls_school(school_id):
             reset_rls_school_id()
         except (OperationalError, ProgrammingError, DatabaseError) as e:
             logger.debug("RLS reset app.current_school_id: %s", e)
+            quarantine_rls_connection(str(e))
 
 
 @contextmanager
@@ -143,3 +150,4 @@ def rls_bypass():
             reset_rls_bypass()
         except (OperationalError, ProgrammingError, DatabaseError) as e:
             logger.debug("RLS reset app.rls_bypass: %s", e)
+            quarantine_rls_connection(str(e))

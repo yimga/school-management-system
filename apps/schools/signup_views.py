@@ -1228,7 +1228,7 @@ def _bind_tenant_invite_if_present(request: HttpRequest, school) -> None:
     if not token:
         return
     try:
-        invite = TenantInvite.objects.filter(
+        invite = TenantInvite.objects.filter(  # tenant-isolation-allow: public-invite-token-pre-tenant-signup
             token=token, accepted_at__isnull=True, revoked_at__isnull=True
         ).first()
     except (ValueError, TypeError):
@@ -1266,7 +1266,9 @@ def accept_school_invite(request: HttpRequest):
         except (ValueError, TypeError):
             token_uuid = None
         if token_uuid is not None:
-            invite = TenantInvite.objects.filter(token=token_uuid).first()
+            invite = TenantInvite.objects.filter(  # tenant-isolation-allow: public-invite-token-pre-tenant-signup
+                token=token_uuid
+            ).first()
     if invite is None or not invite.is_pending:
         return render(
             request, "schools/accept_invite.html", {"invalid": True}, status=400

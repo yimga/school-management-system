@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "platform_goal": "An open, composable education operating system that gives every tenant a locally governed experience without forking the product.",
+  "operating_model": {
+    "linux": "Portable across x86_64 and ARM64, open standards, composable services, no device or vendor lock-in.",
+    "aws": "A small set of governed primitives, explicit deployment profiles, regional cells, measurable capacity, and operator-grade observability.",
+    "salesforce": "Tenant metadata, policy, vocabulary, permissions, workflow, and localization configure behavior without tenant code forks.",
+    "shopify": "Versioned capability packages, marketplace extensions, stable contracts, safe activation, and reversible rollout.",
+    "local": "Language, terminology, jurisdiction, calendar, grading, currency, workflow, residency, connectivity, and support posture are resolved per tenant."
+  },
+  "canonical_owners": {
+    "ai_routing": "services.ai_helpers -> services.ai_gateway",
+    "edge_inference": "Ollama reached by the Django server through the AI gateway",
+    "tenant_rls_context": "app.current_school_id",
+    "rag_store": "apps.siteconfig.models.AIEmbeddingStore",
+    "offline_mutations": "existing offline queue, WAL, idempotency, and conflict-review contracts",
+    "sync_conflicts": "apps.sync_engine typed strategies and CRDTs",
+    "layout": "existing shell, responsive CSS, table grammar, and row-detail drawers",
+    "intelligence_promotion": "config/intelligence_feature_catalog.json evaluated by apps.platform_runtime.intelligence_promotion"
+  },
+  "optional_completion": {
+    "browser_inference": "Repository integration complete; disabled until an operator stages a same-origin checksum-pinned pack and pilot evidence.",
+    "local_voice": "Repository integration complete; disabled until operator-approved LAN endpoints and language evidence exist.",
+    "audit_retention": "Signed archive-before-purge, exact-row verification, approval token, and legal holds.",
+    "ai_task_routing": "Per-task tiers, LiteLLM-compatible self-hosting, and tenant premium caps are implemented.",
+    "sensitive_alerts": "High/critical audit events and tenant role changes emit governed alerts.",
+    "module_map": "docs/MODULE_WORKFLOW_MAP.md",
+    "transaction_pooling": "Unsupported and rejected fail-closed; direct or session pooling is required."
+  },
+  "forbidden_parallel_architectures": [
+    "apps/glocal_kernel",
+    "runmycampus/settings_generic_hardware.py"
+  ],
+  "forbidden_active_code_tokens": [
+    "request.jwt.claim.tenant_id",
+    "Xenova/Qwen1.5-0.5B-Chat",
+    "pipeline('text-generation', 'Xenova/"
+  ],
+  "required_pooling_posture": "session-pooling or unpooled endpoint",
+  "required_product_truths": [
+    "Browser inference is optional and evidence-gated.",
+    "OCR proposes; an authorized human confirms final grades.",
+    "CRDT convergence does not guarantee preservation of every concurrent intent.",
+    "Hardware support is capability-based, not tied to a named board.",
+    "Cloud, LAN, guided, and browser tiers may share contracts but not identical quality.",
+    "Repository evidence cannot promote an intelligence feature into pilot or production."
+  ]
+}

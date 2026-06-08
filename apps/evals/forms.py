@@ -279,7 +279,12 @@ class BatchFillMissingForm(forms.Form):
 class MarkSheetUploadForm(forms.Form):
     subject_assignment_id = forms.IntegerField(widget=forms.HiddenInput())
     marksheet_file = forms.FileField(
-        widget=forms.ClearableFileInput(attrs={"class": "form-control"}),
+        widget=forms.ClearableFileInput(
+            attrs={
+                "class": "form-control",
+                "accept": "image/png,image/jpeg,image/webp",
+            }
+        ),
         help_text="Upload a PNG/JPG marksheet. Mobile browsers can capture new photos as needed.",
     )
 
@@ -289,6 +294,9 @@ class MarkSheetUploadForm(forms.Form):
             raise forms.ValidationError("Please upload a marksheet image.")
         if file.size > 8 * 1024 * 1024:
             raise forms.ValidationError("File too large (max 8 MB).")
+        content_type = str(getattr(file, "content_type", "") or "").lower()
+        if content_type not in {"image/png", "image/jpeg", "image/webp"}:
+            raise forms.ValidationError("Use a PNG, JPG, or WebP marksheet image.")
         return file
 
 

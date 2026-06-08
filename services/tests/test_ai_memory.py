@@ -1,6 +1,8 @@
+from datetime import timedelta
 from uuid import uuid4
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.utils import timezone
 
 from apps.siteconfig.models import AIEmbeddingStore
 from services.ai_memory import AIMemoryService
@@ -140,6 +142,74 @@ class AIMemoryServiceTests(TestCase):
         )
 
         self.assertEqual({row["conversation_id"] for row in results}, {"global-config"})
+
+    def test_search_excludes_tombstones_and_expired_rows(self):
+        school_id = uuid4()
+        AIEmbeddingStore.objects.create(
+            school_id=school_id,
+            conversation_id="deleted",
+            document_id="deleted",
+            scope="help",
+            text_hash="deleted",
+            embedding=[1.0, 0.0],
+            lifecycle_status="tombstone",
+        )
+        AIEmbeddingStore.objects.create(
+            school_id=school_id,
+            conversation_id="expired",
+            document_id="expired",
+            scope="help",
+            text_hash="expired",
+            embedding=[1.0, 0.0],
+            retention_until=timezone.now() - timedelta(seconds=1),
+        )
+        AIEmbeddingStore.objects.create(
+            school_id=school_id,
+            conversation_id="active",
+            document_id="active",
+            scope="help",
+            text_hash="active",
+            embedding=[1.0, 0.0],
+        )
+
+        results = AIMemoryService.search_similar(
+            str(school_id), "help", [1.0, 0.0], limit=10
+        )
+
+        self.assertEqual([row["conversation_id"] for row in results], ["active"])
+
+    @override_settings(AI_EMBEDDING_OLLAMA_MODEL="current-model")
+    def test_search_excludes_vectors_from_incompatible_embedding_model(self):
+        school_id = uuid4()
+        AIEmbeddingStore.objects.create(
+            school_id=school_id,
+            conversation_id="wrong-model",
+            document_id="wrong-model",
+            scope="help",
+            text_hash="wrong-model",
+            embedding_model="ollama:retired-model",
+            embedding_dimensions=2,
+            embedding=[1.0, 0.0],
+        )
+        AIEmbeddingStore.objects.create(
+            school_id=school_id,
+            conversation_id="current-model",
+            document_id="current-model",
+            scope="help",
+            text_hash="current-model",
+            embedding_model="ollama:current-model",
+            embedding_dimensions=2,
+            embedding=[0.9, 0.1],
+        )
+
+        results = AIMemoryService.search_similar(
+            str(school_id), "help", [1.0, 0.0], limit=10
+        )
+
+        self.assertEqual(
+            [row["conversation_id"] for row in results],
+            ["current-model"],
+        )
 
 
 class RagRetrievalEvalTests(TestCase):

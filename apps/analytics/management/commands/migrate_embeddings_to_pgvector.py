@@ -192,7 +192,9 @@ class Command(BaseCommand):
         from apps.siteconfig.models import AIEmbeddingStore
         # tenant-isolation-allow: public-schema embedding store; row count for sizing.
         try:
-            return AIEmbeddingStore.objects.exclude(embedding=[]).count()
+            return AIEmbeddingStore.objects.filter(
+                lifecycle_status="active"
+            ).exclude(embedding=[]).count()
         except Exception:  # noqa: BLE001 — sizing is non-critical
             return 0
 
@@ -238,6 +240,7 @@ class Command(BaseCommand):
                         WITH batch AS (
                             SELECT id FROM siteconfig_aiembeddingstore
                             WHERE embedding_vec IS NULL
+                              AND lifecycle_status = 'active'
                               AND embedding IS NOT NULL
                               AND jsonb_typeof(embedding::jsonb) = 'array'
                             ORDER BY id
@@ -312,7 +315,9 @@ class Command(BaseCommand):
         from apps.siteconfig.models import AIEmbeddingStore
 
         # tenant-isolation-allow: AIEmbeddingStore is public schema; need first non-empty row only.
-        row = AIEmbeddingStore.objects.exclude(embedding=[]).only("embedding").first()
+        row = AIEmbeddingStore.objects.filter(
+            lifecycle_status="active"
+        ).exclude(embedding=[]).only("embedding").first()
         if not row or not row.embedding:
             return None
         try:

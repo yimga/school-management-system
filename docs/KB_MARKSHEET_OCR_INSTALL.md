@@ -1,51 +1,66 @@
-# Knowledge Base: Marksheet OCR Setup & Mobile Guidance
+# Knowledge Base: Marksheet OCR
 
-## 1. Purpose
-This KB page explains how schools install/configure the Tesseract OCR binary so teachers can upload handwritten marksheets, and how mobile users complete the workflow.
+## What It Does
 
-## 2. Server-side Requirements
+Marksheet OCR reads student codes and scores from a PNG, JPG, or WebP image. It
+only creates a proposal. A teacher must review the proposal before any grade is
+saved.
 
-### 2.1. Install Tesseract on the Host
-| Platform | Command | Notes |
-| --- | --- | --- |
-| **Windows** | 1. Download [Tesseract installer](https://github.com/tesseract-ocr/tesseract/releases/latest).<br>2. Run installer (default path `C:\Program Files\Tesseract-OCR`).<br>3. Add that folder to `PATH`. | Restart the application pool/service after installation so the backend sees `tesseract`. |
-| **macOS** | `brew install tesseract` | Use `brew --prefix tesseract` to confirm the binary location. |
-| **Ubuntu/Debian** | `sudo apt update && sudo apt install -y tesseract-ocr` | Install language packs if you need languages beyond English (e.g., `tesseract-ocr-fra`). |
-| **CentOS/RHEL** | `sudo dnf install -y tesseract` | Enable EPEL if missing. |
+## Device OCR
 
-### 2.2. Configure the Command Path
-1. Set the environment variable `MARKSHEET_OCR_COMMAND` to the absolute binary path (e.g., `/usr/local/bin/tesseract` or `C:\Program Files\Tesseract-OCR\tesseract.exe`).  
-2. Alternatively, open **Site Settings → Marksheet OCR & Mobile Upload** and populate **Tesseract command** with the same absolute path.  
-3. Restart any worker processes (Django, Celery, etc.) so they load the updated env var/setting.
+1. Open **Marks Entry** and load the class roster.
+2. Choose the marksheet image.
+3. Click **Run on this device**.
+4. On first use, allow the browser to download about 22 MB of self-hosted OCR
+   runtime and English language data.
+5. Review the highlighted cells. Existing marks are preserved when delta mode
+   is enabled.
+6. Click **Save All Marks** after reviewing every proposed value.
 
-### 2.3. Confirm Readiness
-- Visit **Marks Entry → Upload Marksheet (OCR)** as a teacher.  
-- The card will show **“Using <command> (vX.X.X)”** if Tesseract is available.  
-- If the badge says “Blocked” or shows a warning, re-check the path and restart the service.
+The image remains in the browser. After the first successful load, the service
+worker cache allows the local runtime to work without internet. If the save is
+offline, the existing encrypted grade queue handles reconnection, idempotency,
+tenant validation, and conflict review.
 
-## 3. Teacher Workflow (Desktop & Mobile)
+## Server OCR
 
-### 3.1. Preparing the Sheet
-1. Use a clean, high-contrast handwritten marksheet template with student codes in the leftmost column and the related score columns separated by whitespace or columns.  
-2. Scan or photograph at 300 DPI if possible; avoid glare and skew.
+Install Tesseract when schools also need the server proposal path:
 
-### 3.2. Desktop Upload
-1. Pick the desired class/subject and click **Upload Marksheet (OCR)**.  
-2. Choose the PNG/JPG file (max 8 MB).  
-3. Click **Parse & Apply**.  
-4. Review the preview table—each row shows extracted code, matched student name (if available), scores, and the auto-graded line.  
-5. If the card requests manual verification (low confidence or forced), click **Apply parsed marks** after confirming the values. The system records a `GradeAudit` entry with `change_type = OCR Upload`.
+| Platform | Installation |
+| --- | --- |
+| Windows | Install from the official Tesseract project and add it to `PATH`. |
+| macOS | `brew install tesseract` |
+| Ubuntu/Debian | `sudo apt install -y tesseract-ocr` |
+| CentOS/RHEL | `sudo dnf install -y tesseract` |
 
-### 3.3. Mobile Upload
-1. From any modern mobile browser, open the same marks entry page.  
-2. Tap **Choose File** and either capture a live photo or select an existing image (the hint “Works on mobile – choose or capture a photo directly” confirms support).  
-3. Follow the same preview/confirmation steps as desktop.  
+Set `MARKSHEET_OCR_COMMAND` when the binary is not on `PATH`, or configure the
+same value in Site Settings.
 
-### 3.4. Audit Trace & Troubleshooting
-- Every OCR-applied save adds a `GradeAudit` entry labeled **OCR Upload**; admins can filter the audit trail by that change type for traceability.  
-- If no rows match the parse, check the student codes and retake the photo (better lighting, avoid cursive).  
-- For low-confidence results, the system keeps the preview in the teacher’s session until they either confirm (Apply) or upload a new sheet.
+Teacher steps:
 
-## 4. Support Contacts
-- If Tesseract is unavailable on your server, contact the devops/IT team with the installer link and the `MARKSHEET_OCR_COMMAND` path.  
-- Provide a screenshot of the warning on the marks entry card so we can diagnose missing binaries or permission issues.
+1. Choose the image.
+2. Click **Create server review proposal**.
+3. Correct the staged values.
+4. Check **I reviewed the student matches and every proposed score**.
+5. Click **Apply teacher-confirmed proposal**.
+
+Server confidence cannot bypass these steps.
+
+## Troubleshooting
+
+- Use a high-contrast image with the student code first on each row.
+- Keep each score between 0 and 20.
+- If device OCR reports uncached assets while offline, connect once and run it
+  successfully before retrying offline.
+- If server OCR is unavailable, check `tesseract --version` and
+  `MARKSHEET_OCR_COMMAND`.
+- Unmatched student codes are never applied.
+
+## Operator Verification
+
+```powershell
+python scripts/verify_offline_ocr_proposal.py
+```
+
+The gate checks the pinned asset manifest, human-confirmation enforcement,
+browser proposal behavior, and a real Chromium OCR run restricted to localhost.
