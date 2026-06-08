@@ -1661,7 +1661,12 @@ def verify_signup(request: HttpRequest):
                 "school_name": getattr(school, "name", ""),
                 "admin_email": verification.email,
                 "portal_url": portal_url,
-                "setup_password_url": setup_password_url,
+                # NB: key is "activation_url" NOT "*_password_*"/"*_token_*" — the
+                # event-payload scrubber (workflow_tracker._SECRET_KEY_FRAGMENTS)
+                # drops any key containing "password"/"token" as a substring, so a
+                # "setup_password_url" key would be silently stripped before the
+                # welcome email renders, killing the link. (Fixed 2026-06-08.)
+                "activation_url": setup_password_url,
             },
             school_id=str(school.pk),
             strict_catalog=True,

@@ -119,6 +119,10 @@
                   <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
                 </div>
                 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+                <p class="small text-muted mb-2">
+                  {% trans "Trouble with the verification?" %}
+                  <a href="{% url 'accounts:password_reset' %}">{% trans "Reset your password instead." %}</a>
+                </p>
                 {% endif %}
                 <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
               </form>

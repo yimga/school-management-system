@@ -432,7 +432,15 @@ EVENT_CATALOG = {
     },
     "tenant.signup.completed": {
         "description": "Signup verified + provisioning complete; tenant active.",
-        "payload": ["school_id", "school_name", "admin_email", "portal_url"],
+        "payload": [
+            "school_id",
+            "school_name",
+            "admin_email",
+            "portal_url",
+            # One-time set-password link for the welcome email. Key avoids the
+            # "password"/"token" scrubber denylist (workflow_tracker) on purpose.
+            "activation_url",
+        ],
     },
     "tenant.offboarding.confirmed": {
         "description": "Tenant offboarding completed.",

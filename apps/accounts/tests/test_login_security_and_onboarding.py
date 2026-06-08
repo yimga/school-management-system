@@ -168,7 +168,7 @@ class WelcomeEmailSetupLinkTests(SimpleTestCase):
     def test_html_surfaces_setup_link(self):
         out = render_to_string(
             "emails/tenant_admin_signup_completed.html",
-            {"school_name": "Gilead Tech", "setup_password_url": "https://t.example/set"},
+            {"school_name": "Gilead Tech", "activation_url": "https://t.example/set"},
         )
         self.assertIn("https://t.example/set", out)
         self.assertIn("Set your password", out)
@@ -184,9 +184,69 @@ class WelcomeEmailSetupLinkTests(SimpleTestCase):
     def test_txt_surfaces_setup_link(self):
         out = render_to_string(
             "emails/tenant_admin_signup_completed.txt",
-            {"school_name": "Gilead Tech", "setup_password_url": "https://t.example/set"},
+            {"school_name": "Gilead Tech", "activation_url": "https://t.example/set"},
         )
         self.assertIn("https://t.example/set", out)
+
+
+class WelcomeEmailScrubberRegressionTests(SimpleTestCase):
+    """B1 guard: the welcome-email payload runs through the secret scrubber,
+    which drops keys containing 'password'/'token'. The link MUST be carried on
+    a key the scrubber keeps, or the welcome email silently loses it."""
+
+    def test_activation_url_survives_the_payload_scrubber(self):
+        from apps.platform_runtime.platform_email_matrix import _scrub_payload
+
+        scrubbed = _scrub_payload(
+            {"activation_url": "https://t.example/x", "admin_email": "a@b.com"}
+        )
+        self.assertEqual(scrubbed.get("activation_url"), "https://t.example/x")
+
+    def test_the_old_password_keyed_name_would_be_stripped(self):
+        # Documents WHY the key is named activation_url and not setup_password_url.
+        from apps.platform_runtime.platform_email_matrix import _scrub_payload
+
+        scrubbed = _scrub_payload({"setup_password_url": "https://t.example/x"})
+        self.assertNotIn("setup_password_url", scrubbed)
+
+    def test_link_renders_end_to_end_through_scrubbed_context(self):
+        from apps.platform_runtime.platform_email_matrix import _scrub_payload
+
+        ctx = _scrub_payload(
+            {"school_name": "Gilead Tech", "activation_url": "https://t.example/set"}
+        )
+        out = render_to_string("emails/tenant_admin_signup_completed.txt", ctx)
+        self.assertIn("https://t.example/set", out)
+
+
+class SignupVerificationConsoleHelperTests(SimpleTestCase):
+    def test_to_hash_matches_email_delivery_recipient_hash(self):
+        from apps.schools.super_views_signup_verifications import _to_hash
+        from apps.schoolops.email_delivery import _hash_recipient
+
+        self.assertEqual(_to_hash("Owner@School.COM "), _hash_recipient("owner@school.com"))
+
+    def test_verify_url_shape(self):
+        from apps.schools import super_views_signup_verifications as svv
+
+        url = svv._verify_url("abc-123")
+        self.assertIn("/verify-signup/?token=abc-123", url)
+
+    def test_status_of(self):
+        from apps.schools.super_views_signup_verifications import _status_of
+        from types import SimpleNamespace
+
+        now = __import__("django.utils.timezone", fromlist=["now"]).now()
+        future = now + __import__("datetime").timedelta(days=1)
+        past = now - __import__("datetime").timedelta(days=1)
+        self.assertEqual(_status_of(SimpleNamespace(verified_at=now, expires_at=future), now), "verified")
+        self.assertEqual(_status_of(SimpleNamespace(verified_at=None, expires_at=past), now), "expired")
+        self.assertEqual(_status_of(SimpleNamespace(verified_at=None, expires_at=future), now), "pending")
+
+    def test_email_health_degrades_gracefully(self):
+        from apps.schools.super_views_signup_verifications import _email_health_for
+
+        self.assertEqual(_email_health_for([]), {})
 
 
 class ProvisionSetupUrlTests(SimpleTestCase):

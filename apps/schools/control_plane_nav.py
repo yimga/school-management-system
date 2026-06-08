@@ -638,6 +638,18 @@ def build_control_plane_nav(request):
                 "icon": "bi-building",
             },
             {
+                "id": "super_signup_verifications",
+                "label": "Signup verifications",
+                "url_name": "super:signup_verifications",
+                "icon": "bi-envelope-check",
+            },
+            {
+                "id": "super_invite_school",
+                "label": "Invite a school",
+                "url_name": "super:invite_school",
+                "icon": "bi-send",
+            },
+            {
                 "id": "super_offboarding_queue",
                 "label": "Offboarding queue",
                 "url_name": "super:offboarding_queue",

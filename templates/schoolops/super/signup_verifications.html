@@ -17,12 +17,90 @@
         {% endblocktrans %}
       </p>
     </div>
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:invite_school' %}">
+      <i class="bi bi-send me-1"></i>{% trans "Invite a school" %}
+    </a>
   </header>
 
   {% if messages %}
     {% for message in messages %}
     <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} py-2">{{ message }}</div>
     {% endfor %}
+  {% endif %}
+
+  {# ── Signup funnel band ───────────────────────────────────────────────── #}
+  <div class="row g-2 mb-3 text-center">
+    <div class="col-6 col-md">
+      <div class="rmc-card py-2 h-100">
+        <div class="h3 mb-0">{{ counts.total }}</div>
+        <div class="small text-muted">{% trans "Total signups" %}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="rmc-card py-2 h-100">
+        <div class="h3 mb-0 text-secondary">{{ counts.pending }}</div>
+        <div class="small text-muted">{% trans "Pending" %}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="rmc-card py-2 h-100">
+        <div class="h3 mb-0 text-warning">{{ counts.stale }}</div>
+        <div class="small text-muted">{% trans "Stale" %}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="rmc-card py-2 h-100">
+        <div class="h3 mb-0 text-danger">{{ counts.expired }}</div>
+        <div class="small text-muted">{% trans "Expired" %}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="rmc-card py-2 h-100">
+        <div class="h3 mb-0 text-success">{{ counts.verified }}</div>
+        <div class="small text-muted">{% trans "Verified" %}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="rmc-card py-2 h-100">
+        <div class="h3 mb-0 text-primary">{{ conversion_pct }}%</div>
+        <div class="small text-muted">{% trans "Verified rate" %}</div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Deliverability alert: links that bounced never reached the inbox ──── #}
+  {% if bounced_count %}
+  <div class="alert alert-danger d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
+    <span>
+      <i class="bi bi-exclamation-octagon me-1"></i>
+      {% blocktrans trimmed count n=bounced_count %}
+      {{ n }} unverified signup had a <strong>bouncing</strong> email address — the verification link almost certainly never arrived.
+      {% plural %}
+      {{ n }} unverified signups had a <strong>bouncing</strong> email address — the verification links almost certainly never arrived.
+      {% endblocktrans %}
+      {% trans "Check the address with the school, then resend (or copy the link and send it another way)." %}
+    </span>
+  </div>
+  {% endif %}
+
+  {# ── Stale callout + bulk resend ──────────────────────────────────────── #}
+  {% if counts.stale %}
+  <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
+    <span>
+      <i class="bi bi-clock-history me-1"></i>
+      {% blocktrans trimmed count n=counts.stale with hours=stale_after_hours %}
+      {{ n }} signup has been pending more than {{ hours }}h.
+      {% plural %}
+      {{ n }} signups have been pending more than {{ hours }}h.
+      {% endblocktrans %}
+    </span>
+    <form method="post" action="{% url 'super:signup_verifications' %}" class="m-0">
+      {% csrf_token %}
+      <button type="submit" name="action" value="resend_stale" class="btn btn-sm btn-warning">
+        <i class="bi bi-arrow-repeat me-1"></i>{% trans "Resend all stale" %}
+      </button>
+    </form>
+  </div>
   {% endif %}
 
   <nav class="d-flex flex-wrap gap-2 mb-3" aria-label="{% trans 'Filter by status' %}">
@@ -41,6 +119,7 @@
           <th scope="col">{% trans "School" %}</th>
           <th scope="col">{% trans "Admin email" %}</th>
           <th scope="col">{% trans "Status" %}</th>
+          <th scope="col">{% trans "Email health" %}</th>
           <th scope="col">{% trans "Created" %}</th>
           <th scope="col">{% trans "Expires" %}</th>
           <th scope="col" class="text-end">{% trans "Actions" %}</th>
@@ -65,22 +144,34 @@
               <span class="badge bg-secondary">{% trans "Pending" %}</span>
             {% endif %}
           </td>
+          <td>
+            {% if row.health.state == 'delivered' %}
+              <span class="badge bg-success-subtle text-success" title="{{ row.health.when|date:'Y-m-d H:i' }}">{% trans "Delivered" %}</span>
+            {% elif row.health.state == 'bounced' %}
+              <span class="badge bg-danger" title="{{ row.health.detail }} · {{ row.health.when|date:'Y-m-d H:i' }}">{% trans "Bounced" %}</span>
+            {% elif row.health.state == 'failed' %}
+              <span class="badge bg-warning text-dark" title="{{ row.health.when|date:'Y-m-d H:i' }}">{% trans "Send failed" %}</span>
+            {% else %}
+              <span class="text-muted small">—</span>
+            {% endif %}
+          </td>
           <td><span class="small text-muted">{{ row.created_at|date:"Y-m-d H:i" }}</span></td>
           <td><span class="small text-muted">{{ row.expires_at|date:"Y-m-d H:i" }}</span></td>
           <td class="text-end">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-copy-link="{{ row.verify_url }}" title="{% trans 'Copy the verification link to send it another way' %}">
+              <i class="bi bi-clipboard"></i>
+            </button>
             {% if row.status != 'verified' %}
             <form method="post" action="{% url 'super:signup_verification_action' row.id %}" class="d-inline">
               {% csrf_token %}
               <button type="submit" name="action" value="resend" class="btn btn-sm btn-outline-primary">{% trans "Resend" %}</button>
               <button type="submit" name="action" value="regenerate" class="btn btn-sm btn-outline-warning">{% trans "Regenerate" %}</button>
             </form>
-            {% else %}
-            <span class="text-muted small">—</span>
             {% endif %}
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="6" class="text-center text-muted py-4">{% trans "No signup verifications match this filter." %}</td></tr>
+        <tr><td colspan="7" class="text-center text-muted py-4">{% trans "No signup verifications match this filter." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -89,4 +180,29 @@
   <p class="text-muted small mb-0">{% blocktrans trimmed with n=row_limit %}Showing the most recent {{ n }} signups.{% endblocktrans %}</p>
   {% endif %}
 </section>
+
+<script nonce="{{ csp_nonce }}">
+(function () {
+  document.querySelectorAll('[data-copy-link]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var url = btn.getAttribute('data-copy-link');
+      if (!url || !navigator.clipboard) { return; }
+      navigator.clipboard.writeText(url).then(function () {
+        var icon = btn.querySelector('i');
+        if (icon) {
+          var prev = icon.className;
+          icon.className = 'bi bi-clipboard-check';
+          btn.classList.add('btn-success');
+          btn.classList.remove('btn-outline-secondary');
+          setTimeout(function () {
+            icon.className = prev;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-secondary');
+          }, 1500);
+        }
+      });
+    });
+  });
+})();
+</script>
 {% endblock %}

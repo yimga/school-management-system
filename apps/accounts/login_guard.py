@@ -42,6 +42,31 @@ def _cooloff_seconds() -> int:
     return int(getattr(settings, "LOGIN_LOCKOUT_COOLOFF_SECONDS", 900))  # magic-number-allow: 15-min default cooloff
 
 
+_backend_warned = False
+
+
+def _warn_if_per_process_cache() -> None:
+    """One-time warning when the cache is LocMemCache (per-gunicorn-worker).
+
+    With a per-process cache the lockout counter is NOT shared across workers,
+    so the effective threshold is multiplied by the worker count. A shared
+    cache (set ``REDIS_URL``) makes the lockout globally correct.
+    """
+    global _backend_warned
+    if _backend_warned:
+        return
+    _backend_warned = True
+    backend = str(
+        (getattr(settings, "CACHES", {}) or {}).get("default", {}).get("BACKEND", "")
+    ).lower()
+    if "locmem" in backend:
+        logger.warning(
+            "login_guard: cache backend is LocMemCache (per-process); lockout is "
+            "only globally enforced with a shared cache — set REDIS_URL for "
+            "multi-worker deployments."
+        )
+
+
 def client_ip(request) -> str:
     """Best-effort client IP. Leftmost X-Forwarded-For is proxy-trusted only."""
     xff = (request.META.get("HTTP_X_FORWARDED_FOR") or "").strip()
@@ -78,6 +103,7 @@ def record_failed_attempt(request, username: str) -> int:
     """Increment the failed-attempt counter; return the new count (0 on error)."""
     if not _enabled():
         return 0
+    _warn_if_per_process_cache()
     key = _key(request, username)
     try:
         # add() seeds the key+TTL only if absent, so the window is anchored to

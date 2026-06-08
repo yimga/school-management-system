@@ -1,15 +1,26 @@
 """Operator console for signup email-verification management (2026-06-06).
 
-Staff-only surface on the manager host that lets operators see every pending /
-expired / stale signup verification and act on it directly:
+Staff-only surface on the manager host — a verification & onboarding command
+centre that lets operators see every pending / expired / stale signup
+verification, understand WHY a tenant hasn't verified (email bounced? in spam?),
+and act on it directly:
 
   * GET  /super/signup-verifications/                      — console list
+  * POST /super/signup-verifications/                      — bulk: resend_stale
   * POST /super/signup-verifications/<uuid:pk>/action/     — resend | regenerate
 
 ``resend``     re-sends the current verification link (extending the 2-day
               window if it had already expired, so the resent link works).
 ``regenerate`` rotates the token (old links die) AND refreshes the window,
               then sends — the right tool when a link may have leaked.
+``resend_stale`` (bulk) re-sends every pending verification older than the
+              stale threshold, refreshing any that have lapsed.
+
+100X (2026-06-08): per-row email-deliverability health (cross-referenced from
+``EmailDeliveryEvent`` by recipient hash — surfaces bounces so operators see
+why a link never arrived), a signup funnel band with conversion %, a one-click
+copy-the-verify-link action (resend through any channel, bypassing spam), and a
+bulk "resend all stale" action.
 
 The verify link lives on the PUBLIC site (``/verify-signup/``), which does not
 route on the manager host, so we pass ``settings.RMC_PUBLIC_SITE_URL`` to the
@@ -18,6 +29,7 @@ is intentionally bypassed here (every action is logged + audited instead).
 """
 from __future__ import annotations
 
+import hashlib
 import logging
 
 from django.conf import settings
@@ -39,11 +51,20 @@ logger = logging.getLogger(__name__)
 _STALE_AFTER_HOURS = 24
 _CONSOLE_ROW_LIMIT = 300
 _VERIFY_WINDOW_DAYS = 2
+_BULK_RESEND_CAP = 100  # magic-number-allow: bulk resend-stale safety cap
+_DELIVERY_LOOKBACK_DAYS = 30
+_DELIVERY_EVENT_SCAN_CAP = 1000  # magic-number-allow: delivery-event batch scan cap
+_TO_HASH_LEN = 12  # mirrors apps.schoolops.email_delivery._TO_HASH_LEN
 
 
 def _public_base_url() -> str:
     """Public site origin for the verify link (manager host can't route it)."""
     return (getattr(settings, "RMC_PUBLIC_SITE_URL", "") or "https://runmycampus.com").rstrip("/")
+
+
+def _verify_url(token) -> str:
+    """The clickable verification link an operator can copy + send anywhere."""
+    return f"{_public_base_url()}/verify-signup/?token={token}"
 
 
 def _status_of(v, now) -> str:
@@ -54,9 +75,71 @@ def _status_of(v, now) -> str:
     return "pending"
 
 
+def _to_hash(email: str) -> str:
+    """sha256(email.lower())[:12] — mirrors email_delivery._hash_recipient so we
+    can correlate a recipient with their EmailDeliveryEvent rows."""
+    norm = (email or "").strip().lower().encode("utf-8")
+    return hashlib.sha256(norm).hexdigest()[:_TO_HASH_LEN]
+
+
+def _email_health_for(emails) -> dict:
+    """Map ``email -> {state, when, detail}`` from the most recent delivery event.
+
+    ``state`` ∈ {delivered, bounced, failed}. Reflects the latest email of any
+    kind sent to that address (a recent bounce is a strong signal the
+    verification link never arrived). Degrades to ``{}`` on any error.
+    """
+    health: dict = {}
+    try:
+        from apps.schoolops.models_email_delivery import EmailDeliveryEvent
+    except Exception:  # noqa: BLE001 - optional cross-reference, never fatal
+        return health
+    hash_to_email: dict = {}
+    for e in emails:
+        if e:
+            hash_to_email.setdefault(_to_hash(e), e)
+    if not hash_to_email:
+        return health
+    cutoff = timezone.now() - timezone.timedelta(days=_DELIVERY_LOOKBACK_DAYS)
+    try:
+        events = list(
+            # tenant-isolation-allow: platform email-delivery log keyed by recipient hash, not tenant-scoped
+            EmailDeliveryEvent.objects.filter(
+                to_hash__in=list(hash_to_email.keys()), created_at__gte=cutoff
+            )
+            .order_by("-created_at")
+            .values("to_hash", "ok", "bounced", "bounce_kind", "created_at")[
+                :_DELIVERY_EVENT_SCAN_CAP
+            ]
+        )
+    except Exception:  # noqa: BLE001 - delivery log is best-effort context
+        return health
+    seen: set = set()
+    for ev in events:
+        h = ev["to_hash"]
+        if h in seen:
+            continue
+        seen.add(h)
+        email = hash_to_email.get(h)
+        if not email:
+            continue
+        if ev["bounced"]:
+            state = "bounced"
+        elif ev["ok"]:
+            state = "delivered"
+        else:
+            state = "failed"
+        health[email] = {
+            "state": state,
+            "when": ev["created_at"],
+            "detail": ev.get("bounce_kind") or "",
+        }
+    return health
+
+
 @method_decorator(staff_member_required, name="dispatch")
 class SignupVerificationConsoleView(View):
-    """List signup verifications with status + per-row resend/regenerate."""
+    """List signup verifications with status, deliverability + resend/regenerate."""
 
     template_name = "schoolops/super/signup_verifications.html"
 
@@ -98,18 +181,66 @@ class SignupVerificationConsoleView(View):
                     "created_at": v.created_at,
                     "expires_at": v.expires_at,
                     "verified_at": v.verified_at,
+                    "verify_url": _verify_url(v.token),
                 }
             )
+
+        # Email-deliverability health for the rows on screen (batch one query).
+        health = _email_health_for([r["email"] for r in rows])
+        bounced_count = 0
+        for r in rows:
+            r["health"] = health.get(r["email"])
+            if r["health"] and r["health"]["state"] == "bounced" and r["status"] != "verified":
+                bounced_count += 1
+
+        total = counts["total"] or 0
+        conversion_pct = round((counts["verified"] / total) * 100) if total else 0
 
         context = {
             "page_title": "Signup verifications",
             "rows": rows,
             "counts": counts,
+            "conversion_pct": conversion_pct,
+            "bounced_count": bounced_count,
             "status_filter": status_filter,
             "stale_after_hours": _STALE_AFTER_HOURS,
             "row_limit": _CONSOLE_ROW_LIMIT,
         }
         return render(request, self.template_name, context)
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        """Bulk actions on the list surface (currently: resend every stale link)."""
+        action = (request.POST.get("action") or "").strip().lower()
+        back = redirect("super:signup_verifications")
+        if action != "resend_stale":
+            messages.error(request, "Unknown bulk action.")
+            return back
+
+        now = timezone.now()
+        stale_cutoff = now - timezone.timedelta(hours=_STALE_AFTER_HOURS)
+        stale = (
+            # tenant-isolation-allow: platform-operator-bulk-resend-of-all-stale-tenant-signups
+            SignupVerification.objects.select_related("school")
+            .filter(verified_at__isnull=True, created_at__lt=stale_cutoff)
+            .order_by("created_at")[:_BULK_RESEND_CAP]
+        )
+        sent = 0
+        for v in stale:
+            if v.expires_at and v.expires_at < now:
+                v.expires_at = now + timezone.timedelta(days=_VERIFY_WINDOW_DAYS)
+                v.save(update_fields=["expires_at"])
+            _send_signup_verification_email(request, v, base_url=_public_base_url())
+            sent += 1
+        logger.info(
+            "super.signup_verification.resend_stale by=%s count=%s",
+            getattr(request.user, "id", None),
+            sent,
+        )
+        if sent:
+            messages.success(request, f"Re-sent {sent} stale verification link(s).")
+        else:
+            messages.info(request, "No stale verifications to resend.")
+        return back
 
 
 @method_decorator(staff_member_required, name="dispatch")
