@@ -100,10 +100,16 @@
                   </p>
                   {% endif %}
                   <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
+                  {# Guarded: the resend route lives in the public/marketing urlconf, #}
+                  {# not the manager host's — a bare {% url %} NoReverseMatch-es and #}
+                  {# 500s the entire manager login page (prod outage 2026-06-08). #}
+                  {% url 'resend_signup_verification' as resend_url %}
+                  {% if resend_url %}
                   <p class="small text-center text-muted mt-2 mb-0">
                     {% trans "Just signed up and didn’t get your verification email?" %}
-                    <a href="{% url 'resend_signup_verification' %}">{% trans "Resend it" %}</a>
+                    <a href="{{ resend_url }}">{% trans "Resend it" %}</a>
                   </p>
+                  {% endif %}
                 </form>
               </div>
             </div>

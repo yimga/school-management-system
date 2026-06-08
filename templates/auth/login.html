@@ -154,10 +154,16 @@
               <p class="small text-center mt-2 mb-0">
                 <a href="{% url 'accounts:password_reset' %}" data-rmc-parent-password-reset="1">{% trans "Forgot password?" %}</a>
               </p>
+              {# Resend link only on hosts whose urlconf carries the public route #}
+              {# (it lives in the marketing urlconf, not the tenant/manager one) — #}
+              {# a bare {% url %} would NoReverseMatch and 500 the whole login page. #}
+              {% url 'resend_signup_verification' as resend_url %}
+              {% if resend_url %}
               <p class="small text-center text-muted mt-1 mb-0">
                 {% trans "Just signed up and didn’t get your verification email?" %}
-                <a href="{% url 'resend_signup_verification' %}">{% trans "Resend it" %}</a>
+                <a href="{{ resend_url }}">{% trans "Resend it" %}</a>
               </p>
+              {% endif %}
 
               <p class="small text-muted mt-3 mb-0">
                 {% trans "Teachers land on the teacher dashboard, admins land on the console, and parents claim invites to link students." %}
