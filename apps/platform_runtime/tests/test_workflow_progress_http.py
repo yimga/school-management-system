@@ -127,6 +127,8 @@ class WorkflowProgressActiveApiTests(SimpleTestCase):
         self.assertEqual(resp.status_code, 401)
 
     def test_stream_anonymous_401(self):
+        from asgiref.sync import async_to_sync
+
         from apps.platform_runtime.views_workflow_progress import stream_view
 
         req = RequestFactory().get(
@@ -134,7 +136,7 @@ class WorkflowProgressActiveApiTests(SimpleTestCase):
             HTTP_ACCEPT="text/event-stream",
         )
         req.user = AnonymousUser()
-        resp = stream_view(req)
+        resp = async_to_sync(stream_view)(req)
         self.assertEqual(resp.status_code, 401)
 
 

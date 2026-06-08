@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import json
-import time
-from pathlib import Path
 
 from django.db import DatabaseError
 from django.http import HttpResponse, JsonResponse
@@ -29,34 +27,6 @@ _RETRY_AFTER_SECONDS = 30
 _UNAVAILABLE_MESSAGE = (
     "The database is temporarily unavailable. Please wait a moment and try again."
 )
-
-_DEBUG_LOG_PATH = Path(__file__).resolve().parents[2] / "debug-a48ae2.log"
-
-
-def _agent_debug_log(
-    location: str,
-    message: str,
-    data: dict,
-    hypothesis_id: str,
-    *,
-    run_id: str = "pre-fix",
-) -> None:
-    # #region agent log
-    payload = {
-        "sessionId": "a48ae2",
-        "runId": run_id,
-        "hypothesisId": hypothesis_id,
-        "location": location,
-        "message": message,
-        "data": data,
-        "timestamp": int(time.time() * 1000),
-    }
-    try:
-        with _DEBUG_LOG_PATH.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(payload, separators=(",", ":")) + "\n")
-    except OSError:
-        pass
-    # #endregion
 
 
 def _message_matches_transient_markers(exc: BaseException) -> bool:
@@ -85,18 +55,6 @@ def is_transient_database_error(exc: BaseException) -> bool:
     while current is not None and id(current) not in seen:
         seen.add(id(current))
         if _single_exception_is_transient(current):
-            # #region agent log
-            _agent_debug_log(
-                "transient_db.py:is_transient_database_error",
-                "transient db error detected",
-                {
-                    "exc_type": type(current).__name__,
-                    "message": str(current)[:160],
-                    "root_type": type(exc).__name__,
-                },
-                "H3",
-            )
-            # #endregion
             return True
         current = current.__cause__ or current.__context__
     return False
@@ -188,15 +146,6 @@ def build_transient_db_unavailable_response(request, *, source: str = "middlewar
         "retryable": True,
         "detail": _UNAVAILABLE_MESSAGE,
     }
-
-    # #region agent log
-    _agent_debug_log(
-        "transient_db.py:build_transient_db_unavailable_response",
-        "building db-free 503",
-        {"path": path, "source": source, "wants_json": request_wants_json(request)},
-        "H4",
-    )
-    # #endregion
 
     if is_workflow_progress_path(path):
         wants_sse = "stream" in path or "text/event-stream" in (

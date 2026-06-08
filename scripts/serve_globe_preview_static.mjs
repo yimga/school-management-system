@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 /** Static server for globe preview Playwright (repo root on :8765). */
-const http = require('node:http');
-const fs = require('node:fs');
-const path = require('node:path');
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const PORT = Number(process.env.GLOBE_PREVIEW_PORT || 8765);
 const HOST = process.env.GLOBE_PREVIEW_HOST || '127.0.0.1';
