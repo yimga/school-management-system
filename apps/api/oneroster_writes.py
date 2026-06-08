@@ -18,12 +18,10 @@ Spec contract
   update. Body returns the persisted shape.
 * Auth: bearer token (same gate as read endpoints).
 
-Honest scope
-------------
-classes writes accept the envelope, validate it, and apply the title
-update only when the corresponding model is identifiable in the
-codebase. enrollments / academicSessions writes are still deferred to
-the next wave (they need DRF-style class/user relation handling).
+Class writes resolve tenant academic setup before creating a classroom.
+Enrollment writes bind existing student profiles to tenant classrooms.
+Academic-session writes remain read-only because changing calendars requires
+the governed academic-year workflow rather than a generic roster upsert.
 """
 from __future__ import annotations
 
@@ -302,13 +300,15 @@ def _upsert_class(sourced_id: str, body: dict[str, Any]) -> tuple[dict[str, Any]
     is set; otherwise by ``(school, name)``.
     """
     try:
-        from apps.academics.models import Classroom
+        from apps.academics.models import AcademicYear, Classroom, Department
         from apps.schools.models import School
     except Exception as exc:  # noqa: BLE001
         return {"error": f"models_unavailable: {exc}"}, 500
 
     title = (body.get("title") or "").strip()[:120]
-    course_code = (body.get("classCode") or body.get("courseCode") or "").strip()[:40]
+    course_code = (
+        body.get("classCode") or body.get("courseCode") or sourced_id or ""
+    ).strip()[:30]
     school_id = (body.get("school") or body.get("schoolSourcedId") or "").strip().lower()
     if not title:
         return {"error": "missing_title"}, 400
@@ -316,20 +316,51 @@ def _upsert_class(sourced_id: str, body: dict[str, Any]) -> tuple[dict[str, Any]
         return {"error": "missing_school_sourced_id"}, 400
     school = School.objects.filter(slug=school_id).first()  # tenant-isolation-allow: roster-write-resolve-school-by-sourced-id
     if school is None:
+        try:
+            school = School.objects.filter(pk=uuid.UUID(school_id)).first()  # tenant-isolation-allow: roster-write-resolve-school-by-sourced-id
+        except (TypeError, ValueError, AttributeError):
+            school = None
+    if school is None:
         return {"error": "school_not_found"}, 404
 
     with _PROCESS_LOCK:
+        academic_year = (
+            AcademicYear.objects.filter(school=school, is_active=True)
+            .order_by("-start_date")
+            .first()
+            or AcademicYear.objects.filter(school=school)
+            .order_by("-start_date")
+            .first()
+        )
+        if academic_year is None:
+            return {"error": "academic_year_not_found"}, 409
+        department = Department.objects.filter(school=school).order_by("pk").first()
+        if department is None:
+            department, _ = Department.objects.get_or_create(
+                school=school,
+                code=f"{school.slug or str(school.pk)}-GEN"[:30],
+                defaults={"name": "General"},
+            )
+        defaults = {
+            "name": title,
+            "academic_year": academic_year,
+            "department": department,
+        }
         if course_code:
             obj, created = Classroom.objects.get_or_create(  # tenant-isolation-allow: roster-write-classroom-keyed-by-school-and-code
                 school=school,
                 code=course_code,
-                defaults={"name": title},
+                defaults=defaults,
             )
         else:
             obj, created = Classroom.objects.get_or_create(  # tenant-isolation-allow: roster-write-classroom-keyed-by-school-and-name
                 school=school,
                 name=title,
-                defaults={"code": ""},
+                defaults={
+                    "code": sourced_id[:30],
+                    "academic_year": academic_year,
+                    "department": department,
+                },
             )
         changed = False
         if obj.name != title:
@@ -351,6 +382,78 @@ def _upsert_class(sourced_id: str, body: dict[str, Any]) -> tuple[dict[str, Any]
         }
     }
     return payload, 201 if created else 200
+
+
+@transaction.atomic
+def _upsert_enrollment(
+    sourced_id: str,
+    body: dict[str, Any],
+) -> tuple[dict[str, Any], int]:
+    from django.contrib.auth import get_user_model
+
+    from apps.academics.models import Classroom
+    from apps.people.models import StudentProfile
+
+    role = str(body.get("role") or "student").strip().lower()
+    if role != "student":
+        return {"error": "unsupported_enrollment_role"}, 422
+    user_sourced_id = str(body.get("userSourcedId") or "").strip()
+    class_sourced_id = str(body.get("classSourcedId") or "").strip()
+    if not user_sourced_id or not class_sourced_id:
+        return {"error": "missing_user_or_class_sourced_id"}, 400
+
+    User = get_user_model()
+    user = User.objects.filter(pk=user_sourced_id).first()  # tenant-isolation-allow: roster-write-explicit-user-sourced-id
+    classroom = Classroom.objects.filter(pk=class_sourced_id).select_related(  # tenant-isolation-allow: roster-write-explicit-class-sourced-id
+        "school",
+        "academic_year",
+    ).first()
+    if user is None:
+        return {"error": "user_not_found"}, 404
+    if classroom is None:
+        return {"error": "class_not_found"}, 404
+
+    student = StudentProfile.objects.filter(user=user).first()  # tenant-isolation-allow: roster-write-explicit-user-profile
+    if student is None:
+        return {"error": "student_profile_not_found"}, 404
+    if (
+        student.school_id
+        and classroom.school_id
+        and student.school_id != classroom.school_id
+    ):
+        return {"error": "tenant_mismatch"}, 409
+
+    previous_classroom_id = student.classroom_id
+    changed_fields: list[str] = []
+    if student.classroom_id != classroom.pk:
+        student.classroom = classroom
+        changed_fields.append("classroom")
+    if student.school_id is None and classroom.school_id is not None:
+        student.school_id = classroom.school_id
+        changed_fields.append("school")
+    if student.academic_year_id != classroom.academic_year_id:
+        student.academic_year_id = classroom.academic_year_id
+        changed_fields.append("academic_year")
+    if changed_fields:
+        student.save(update_fields=[*changed_fields, "updated_at"])
+
+    payload = {
+        "enrollment": {
+            "sourcedId": sourced_id or f"student-profile-{student.pk}",
+            "status": (
+                "active"
+                if str(body.get("status") or "active").lower() != "tobedeleted"
+                else "tobedeleted"
+            ),
+            "role": "student",
+            "userSourcedId": str(user.pk),
+            "classSourcedId": str(classroom.pk),
+            "schoolSourcedId": str(classroom.school_id or ""),
+            "beginDate": str(body.get("beginDate") or ""),
+            "endDate": str(body.get("endDate") or ""),
+        }
+    }
+    return payload, 201 if previous_classroom_id is None else 200
 
 
 # ----- generic dispatcher -------------------------------------------------

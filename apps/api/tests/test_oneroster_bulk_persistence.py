@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import uuid
+from datetime import date
 
 from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.academics.models import AcademicYear, Classroom, Department
+from apps.people.models import StudentProfile
 from apps.schools.models import School, SchoolMembership
 
 
@@ -158,3 +161,89 @@ class OneRosterBulkPersistenceTests(TestCase):
 
         self.assertEqual(response.status_code, 201)
         self.assertTrue(School.objects.filter(slug="resource-school").exists())
+
+    def test_classes_bulk_creates_classroom(self):
+        AcademicYear.objects.create(
+            school=self.school,
+            name="2025/2026",
+            start_date=date(2025, 9, 1),
+            end_date=date(2026, 6, 30),
+            is_active=True,
+        )
+        url = reverse("api:api-roster-v1p2-classes-bulk")
+        response = self.client.post(
+            url,
+            data={
+                "classes": [
+                    {
+                        "sourcedId": "class-bio-101",
+                        "title": "Biology 101",
+                        "classCode": "BIO101",
+                        "schoolSourcedId": self.school.slug,
+                    }
+                ]
+            },
+            content_type="application/json",
+            **self.headers,
+        )
+        self.assertEqual(response.status_code, 207)
+        payload = response.json()
+        self.assertEqual(payload["summary"]["created"], 1)
+        self.assertTrue(
+            Classroom.objects.filter(school=self.school, code="BIO101").exists()
+        )
+
+    def test_enrollments_bulk_binds_student_to_classroom(self):
+        year = AcademicYear.objects.create(
+            school=self.school,
+            name="2025/2026",
+            start_date=date(2025, 9, 1),
+            end_date=date(2026, 6, 30),
+            is_active=True,
+        )
+        department = Department.objects.create(
+            school=self.school,
+            code="SCI",
+            name="Science",
+        )
+        classroom = Classroom.objects.create(
+            school=self.school,
+            academic_year=year,
+            department=department,
+            name="Biology 101",
+            code="BIO101",
+        )
+        user = User.objects.create_user(
+            username="enroll.student",
+            password="unused",
+            role=User.Role.STUDENT,
+        )
+        student = StudentProfile.objects.create(
+            school=self.school,
+            user=user,
+            first_name="Enroll",
+            last_name="Student",
+            student_code="ENR-001",
+            academic_year=year,
+        )
+        url = reverse("api:api-roster-v1p2-enrollments-bulk")
+        response = self.client.post(
+            url,
+            data={
+                "enrollments": [
+                    {
+                        "sourcedId": "enr-001",
+                        "role": "student",
+                        "userSourcedId": str(user.pk),
+                        "classSourcedId": str(classroom.pk),
+                    }
+                ]
+            },
+            content_type="application/json",
+            **self.headers,
+        )
+        self.assertEqual(response.status_code, 207)
+        payload = response.json()
+        self.assertEqual(payload["summary"]["created"], 1)
+        student.refresh_from_db()
+        self.assertEqual(student.classroom_id, classroom.pk)

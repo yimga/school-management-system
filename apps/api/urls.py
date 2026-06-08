@@ -100,6 +100,7 @@ from apps.portal.views_admissions_intake import (
 from apps.portal.views_wedges import api_wedge_list, api_wedge_detail
 from apps.api import oneroster as _oneroster
 from apps.api import oneroster_csv_importer as _oneroster_csv
+from apps.api import oneroster_w1_extensions as _oneroster_w1_extensions
 from apps.api import oneroster_writes as _oneroster_writes
 from apps.api import oneroster_results as _oneroster_results
 from apps.api import oneroster_demographics as _oneroster_demographics
@@ -607,6 +608,7 @@ urlpatterns = [
     path("roster/v1p2/teachers/", _oneroster.teachers, name="api-roster-v1p2-teachers"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
     # v4.00.77 — staff convenience endpoint (users w/ administrator/staff role).
     path("roster/v1p2/staff/", _oneroster.staff, name="api-roster-v1p2-staff"),
+    path("roster/v1p2/classes/bulk/", _oneroster_w1_extensions.classes_bulk_post, name="api-roster-v1p2-classes-bulk"),
     path("roster/v1p2/classes/", _oneroster.classes, name="api-roster-v1p2-classes"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
     # v4.00.75 — single-class detail endpoint per spec § 4.13.
     path("roster/v1p2/classes/<str:sourced_id>/", _oneroster_writes.class_resource, name="api-roster-v1p2-class-detail"),
@@ -620,6 +622,7 @@ urlpatterns = [
     # v4.00.74 — courses GET endpoint per spec § 4.13.
     path("roster/v1p2/courses/", _oneroster.courses, name="api-roster-v1p2-courses"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
     # v4.00.76 — enrollments GET endpoint per spec § 4.13.
+    path("roster/v1p2/enrollments/bulk/", _oneroster_w1_extensions.enrollments_bulk_post, name="api-roster-v1p2-enrollments-bulk"),
     path("roster/v1p2/enrollments/", _oneroster.enrollments, name="api-roster-v1p2-enrollments"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
     # v4.00.79 Wave 11 T2 — Categories GET (list + detail) per Result Service
     # spec § 4.13.6 on the Roster Service path. Synthesizes from LineItem
