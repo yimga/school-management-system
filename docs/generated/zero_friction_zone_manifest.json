@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-08T23:44:23.143706+00:00",
+  "generated_at": "2026-06-08T23:46:17.105626+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASE-0",
   "zone_count": 15,
   "zones_audited": 15,
@@ -208,14 +208,14 @@
         "scripts"
       ],
       "file_counts_by_suffix": {
-        "py": 957,
+        "py": 958,
         "ts": 1,
         "json": 12,
         "js": 4,
         "mjs": 6,
         "md": 1
       },
-      "total_files": 981,
+      "total_files": 982,
       "audited": true
     },
     {

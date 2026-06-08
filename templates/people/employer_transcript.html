@@ -4,8 +4,10 @@
 {% load region_format %}
 {% block title %}{% trans_term "Transcript" key="transcript" %} — {{ student.get_full_name }}{% endblock %}
 {% block content %}
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans_term "Transcript" key="transcript" %} — {{ student.get_full_name }}</h1>
-<div class="container-fluid py-2 rmc-print-v2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate">
+<div class="container-fluid py-2 rmc-print-v2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% comment %} v3.57.7+ (2026-05-21): civic brand block per rmc-print-v2 grammar
      so PDF / print renders of this employer transcript carry the wordmark + motto +
      crest header. Translated title pre-resolved to avoid lazy-callable leak. {% endcomment %}
@@ -23,7 +25,7 @@
       <p class="mb-2"><strong>{% trans "Annual average" %}:</strong> {{ context.annual_average|floatformat:2|default:"—" }}</p>
       <p class="mb-2"><strong>{% trans "Promotion status" %}:</strong> {{ context.promotion_status|default:"—" }}</p>
       {% if context.term_rows %}
-      <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
+      <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans_term "Transcript" key="transcript" %}</caption>
         <thead><tr><th>{% trans_term "Term" key="term" %}</th><th>{% trans "Average" %}</th></tr></thead>
         <tbody>

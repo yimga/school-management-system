@@ -378,6 +378,16 @@ def build_register() -> dict:
                         "templates/student360/student_360_page.html",
                     )
                 ),
+                "people_compliance_social_wave20_burndown": all(
+                    "next_action_strip" in _read(rel)
+                    for rel in (
+                        "templates/compliance/dashboard.html",
+                        "templates/compliance/data_rights_queue.html",
+                        "templates/compliance/auditor/console.html",
+                        "templates/people/employer_dashboard.html",
+                        "templates/social_media/proud_campus_feed.html",
+                    )
+                ),
             },
             "residual": [
                 f"{ledger.get('high_friction_count', '?')} templates still above friction threshold (incremental ledger burndown)",

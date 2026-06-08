@@ -4,7 +4,11 @@
 {% block title %}{% trans "Data Quality Center" %}{% endblock %}
 
 {% block content %}
-<div class="container py-4" data-rmc-page="data-quality-center" data-page-archetype="operator-report">
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div data-rmc-scroll-policy="paginate" class="container py-4" data-rmc-page="data-quality-center" data-page-archetype="operator-report">
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
     <div>
       <h1 class="h3 mb-1">{% trans "Data Quality Center" %}</h1>

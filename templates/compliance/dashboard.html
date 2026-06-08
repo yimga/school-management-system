@@ -12,6 +12,10 @@
 {% endblock %}
 
 {% block backend_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {# table-pagination-allow: compliance-dashboard-widget-top-N bounded-by-rule-registry-and-recent-window #}
 <div class="compliance-dashboard" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
 {% phase8_dashboard_declaration "compliance/dashboard.html" %}
@@ -129,7 +133,7 @@
     <div class="section-two-col">
         <div class="section">
             <h2>{% trans "Model Changes (Last 7 Days)" %}</h2>
-            <table class="data-table table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+            <table class="data-table table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "Model Changes (Last 7 Days)" %}</caption>
                 <thead>
                     <tr>
@@ -174,7 +178,7 @@
     <!-- Recent Audit Logs -->
     <div class="section">
         <h2>{% trans "Recent Audit Activity" %}</h2>
-        <table class="data-table table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+        <table class="data-table table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Recent Audit Activity" %}</caption>
             <thead>
                 <tr>
@@ -374,4 +378,5 @@
 
 {% comment %} AI Copilot Assistant {% endcomment %}
 {% include 'components/ai_copilot.html' %}
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

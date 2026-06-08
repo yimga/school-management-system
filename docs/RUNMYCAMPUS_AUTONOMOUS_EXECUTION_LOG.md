@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Zero-Friction wave 20 people/compliance/social_media (2026-06-08)
+
+**A. Scope:** Compliance dashboards, employer portal, proud-campus feed (follow-up to wave 19; people roster backends already wave 15).
+
+**B. Shipped:** `codemod_zero_friction_wave20_people_compliance_social.py` (15 templates); ledger **1262→1249** high-friction count.
+
+**C. Proof:** **ZERO_FRICTION_JOURNEYS_PASS**; SW **`sms-v4.03.24-people-compliance-social-wave20-2026-06-08`**.
+
+**D. Honest:** Phase 6 still PARTIAL (~1,249); studio_os/authentication/student zones next.
+
 ## Slice - Zero-Friction wave 19 schools/platform_runtime/student360 (2026-06-08)
 
 **A. Scope:** Manager super consoles, platform runtime hubs, student360 pages (follow-up to wave 18).
