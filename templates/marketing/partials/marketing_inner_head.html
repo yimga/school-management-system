@@ -1,4 +1,4 @@
-{% load i18n static %}
+{% load i18n static marketing_public_urls %}
     {% if marketing_show_marketing_nav_chips %}
     <div class="page-nav-scroll">
       {% for item in marketing_nav %}
@@ -7,15 +7,15 @@
     </div>
     {% else %}
     <nav class="marketing-hub-strip small text-muted mb-2 d-flex flex-wrap gap-2 align-items-center" aria-label="{% trans 'Key hubs' %}">
-      <a href="{% url 'marketing_solutions' %}">{% trans "Solutions" %}</a>
+      <a href="{% marketing_public_href 'marketing_solutions' %}">{% trans "Solutions" %}</a>
       <span aria-hidden="true">·</span>
-      <a href="{% url 'marketing_platform' %}">{% trans "Platform" %}</a>
+      <a href="{% marketing_public_href 'marketing_platform' %}">{% trans "Platform" %}</a>
       <span aria-hidden="true">·</span>
-      <a href="{% url 'marketing_trust_dedicated' %}">{% trans "Trust" %}</a>
+      <a href="{% marketing_public_href 'marketing_trust_dedicated' %}">{% trans "Trust" %}</a>
       <span aria-hidden="true">·</span>
-      <a href="{% url 'marketing_resources' %}">{% trans "Resources" %}</a>
+      <a href="{% marketing_public_href 'marketing_resources' %}">{% trans "Resources" %}</a>
       <span aria-hidden="true">·</span>
-      <a href="{% url 'marketing_pricing' %}">{% trans "Pricing" %}</a>
+      <a href="{% marketing_public_href 'marketing_pricing' %}">{% trans "Pricing" %}</a>
     </nav>
     {% endif %}
 
@@ -28,8 +28,8 @@
       <h1 class="detail-headline">{{ page.headline }}</h1>
       <p class="detail-subheadline">{{ page.subheadline }}</p>
       <div class="hero-cta">
-        <a href="{% url 'marketing_demo' %}" class="btn btn-light" data-cta="demo" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "Book demo" %}</a>
-        <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-outline-light" data-cta="secondary" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "See product tour" %}</a>
+        <a href="{% marketing_public_href 'marketing_demo' %}" class="btn btn-light" data-cta="demo" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "Book demo" %}</a>
+        <a href="{% marketing_public_href 'marketing_resources_product_tour' %}" class="btn btn-outline-light" data-cta="secondary" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "See product tour" %}</a>
         <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light">{% trans "Login" %}</a>
       </div>
     </section>

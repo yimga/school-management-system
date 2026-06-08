@@ -2439,6 +2439,33 @@ body.auth-page,
   font-weight: 600;
 }
 
+/* Password show/hide toggle (auth onboarding + account forms) */
+.rmc-password-field .input-group .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.rmc-password-field__toggle {
+  border-color: var(--hairline);
+  color: var(--text-secondary);
+  transition: color var(--dur-fast) var(--ease-apple),
+    background-color var(--dur-fast) var(--ease-apple);
+}
+.rmc-password-field__toggle:hover,
+.rmc-password-field__toggle:focus-visible {
+  color: var(--text-primary);
+  background: var(--surface-bg-subtle);
+}
+.rmc-password-field--sm .rmc-password-field__toggle {
+  padding: 0.25rem 0.5rem;
+  font-size: var(--type-size-caption);
+}
+.rmc-password-field__help--portal-muted {
+  font-size: var(--type-size-caption);
+  line-height: 1.5;
+  color: var(--admin-content-text-muted);
+  margin-top: 6px;
+}
+
 /* Quick-link chips on the family/admin info side (auth/login.html .quick-link) */
 .quick-link {
   display: inline-flex;

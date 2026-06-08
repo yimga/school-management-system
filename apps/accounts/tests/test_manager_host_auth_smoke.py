@@ -14,6 +14,8 @@ class ManagerHostAuthSmokeTests(TestCase):
         url = reverse("accounts:login")
         r = self.client.get(url, HTTP_HOST=self.host)
         self.assertEqual(r.status_code, 200)
+        self.assertIn(b"data-rmc-password-toggle", r.content)
+        self.assertIn(b"rmc-password-toggle.js", r.content)
 
     def test_password_change_requires_login_on_manager_host(self):
         url = reverse("accounts:password_change")

@@ -22,34 +22,10 @@
         {% if form.non_field_errors %}
           <div class="alert alert-danger mb-3">{{ form.non_field_errors }}</div>
         {% endif %}
-        <div class="mb-3">
-          <label for="id_new_password1" class="form-label">{% trans "New password" %}</label>
-          <input type="password"
-                 name="new_password1"
-                 id="id_new_password1"
-                 class="form-control"
-                 required
-                 autocomplete="new-password"
-                 autofocus>
-          {% if form.new_password1.help_text %}
-            <div class="form-help-muted">{{ form.new_password1.help_text|safe }}</div>
-          {% endif %}
-          {% if form.new_password1.errors %}
-            <div class="invalid-feedback d-block">{{ form.new_password1.errors.0 }}</div>
-          {% endif %}
-        </div>
-        <div class="mb-4">
-          <label for="id_new_password2" class="form-label">{% trans "Confirm new password" %}</label>
-          <input type="password"
-                 name="new_password2"
-                 id="id_new_password2"
-                 class="form-control"
-                 required
-                 autocomplete="new-password">
-          {% if form.new_password2.errors %}
-            <div class="invalid-feedback d-block">{{ form.new_password2.errors.0 }}</div>
-          {% endif %}
-        </div>
+        {% trans "New password" as guardian_pwd1_label %}
+        {% trans "Confirm new password" as guardian_pwd2_label %}
+        {% include "components/rmc_password_field.html" with field_id="id_new_password1" field_name="new_password1" label=guardian_pwd1_label autocomplete="new-password" autofocus=True help_text=form.new_password1.help_text error=form.new_password1.errors.0 %}
+        {% include "components/rmc_password_field.html" with field_id="id_new_password2" field_name="new_password2" label=guardian_pwd2_label autocomplete="new-password" wrap_class="mb-4" error=form.new_password2.errors.0 %}
         <button type="submit" class="btn btn-primary auth-submit">
           <i class="bi bi-check2-circle me-1"></i>
           {% trans "Finish setup & sign in" %}
@@ -73,4 +49,5 @@
     {% endif %}
   </div>
 </section>
+{% if validlink %}{% include "components/rmc_password_toggle_script.html" %}{% endif %}
 {% endblock %}

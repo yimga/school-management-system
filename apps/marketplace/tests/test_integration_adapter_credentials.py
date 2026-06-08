@@ -153,6 +153,7 @@ class IntegrationCredentialEditorTests(TestCase):
             response = marketplace_integration_credentials(request)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"payments:paystack", response.content)
+        self.assertIn(b"data-rmc-password-toggle", response.content)
 
 
 class CatalogNativeCoverageTests(TestCase):

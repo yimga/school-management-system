@@ -58,6 +58,7 @@
 
   <form method="post" novalidate>
     {% csrf_token %}
+    {% trans "Show secret" as toggle_show_secret %}{% trans "Hide secret" as toggle_hide_secret %}
 
     {% if form.non_field_errors %}
     <div role="alert" class="rmc-form-errors">{{ form.non_field_errors }}</div>
@@ -73,9 +74,13 @@
         {% if field.name == "webhook_secret_postmark" or field.name == "webhook_secret_sendgrid" or field.name == "webhook_secret_ses" or field.name == "webhook_secret_mailgun" %}
         {% else %}
         <div class="rmc-email-config__field">
+          {% if field.field.widget.input_type == "password" %}
+          {% include "components/rmc_password_field.html" with field_name=field.html_name field_id=field.id_for_label label=field.label wrap_class="mb-0" required=False autocomplete="new-password" help_text=field.help_text toggle_label_show=toggle_show_secret toggle_label_hide=toggle_hide_secret %}
+          {% else %}
           {{ field.label_tag }}
           {{ field }}
           {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+          {% endif %}
           {% if field.errors %}<div class="rmc-field-errors" role="alert">{{ field.errors }}</div>{% endif %}
         </div>
         {% endif %}
@@ -112,9 +117,13 @@
       {% for field in form %}
         {% if field.name == "webhook_secret_postmark" or field.name == "webhook_secret_sendgrid" or field.name == "webhook_secret_ses" or field.name == "webhook_secret_mailgun" %}
         <div class="rmc-email-config__field">
+          {% if field.field.widget.input_type == "password" %}
+          {% include "components/rmc_password_field.html" with field_name=field.html_name field_id=field.id_for_label label=field.label wrap_class="mb-0" required=False autocomplete="new-password" help_text=field.help_text toggle_label_show=toggle_show_secret toggle_label_hide=toggle_hide_secret %}
+          {% else %}
           {{ field.label_tag }}
           {{ field }}
           {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+          {% endif %}
           {% if field.errors %}<div class="rmc-field-errors" role="alert">{{ field.errors }}</div>{% endif %}
         </div>
         {% endif %}
@@ -141,3 +150,4 @@
   </form>
 </main>
 {% endblock %}
+{% block extrajs %}{% include "components/rmc_password_toggle_script.html" %}{% endblock %}

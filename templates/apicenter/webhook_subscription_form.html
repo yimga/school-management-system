@@ -23,10 +23,10 @@
           <label for="description" class="form-label">{% trans "Description" %}</label>
           <input type="text" class="form-control" id="description" name="description" value="{{ subscription.description|default:'' }}" maxlength="255">
         </div>
-        <div class="mb-3">
-          <label for="secret" class="form-label">{% trans "Secret (HMAC signing)" %}</label>
-          <input type="password" class="form-control" id="secret" name="secret" placeholder="{% if is_edit %}{% trans 'Leave blank to keep current' %}{% endif %}">
-        </div>
+        {% trans "Show secret" as toggle_show_secret %}{% trans "Hide secret" as toggle_hide_secret %}
+        {% trans "Secret (HMAC signing)" as webhook_secret_label %}
+        {% if is_edit %}{% trans "Leave blank to keep current" as webhook_secret_ph %}{% endif %}
+        {% include "components/rmc_password_field.html" with field_name="secret" field_id="secret" label=webhook_secret_label required=False placeholder=webhook_secret_ph|default:"" toggle_label_show=toggle_show_secret toggle_label_hide=toggle_hide_secret %}
         {% if is_edit %}
         <div class="mb-3 form-check">
           <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="on" {% if subscription.is_active %}checked{% endif %}>
@@ -39,4 +39,5 @@
     </div>
   </form>
 </div>
+{% include "components/rmc_password_toggle_script.html" %}
 {% endblock %}

@@ -521,6 +521,44 @@ def complete_provisioning_for_school(
     return result
 
 
+def kick_complete_provisioning_background(
+    school_id: str, contact_email: str = "", **kwargs
+) -> None:
+    """Best-effort daemon-thread completion so verify_signup stays fast (<1s)."""
+    import threading
+
+    from django.db import close_old_connections, transaction
+
+    sid = str(school_id)
+    email = (contact_email or "").strip()
+    kw = dict(kwargs)
+
+    def _run() -> None:
+        try:
+            from .models import School
+
+            school = School.objects.filter(id=sid).only("is_active").first()
+            if school and not school.is_active:
+                complete_provisioning_for_school(sid, contact_email=email, **kw)
+        except Exception:  # noqa: BLE001 - background kick must never crash verify
+            logger.warning(
+                "kick_complete_provisioning_background failed school_id=%s",
+                sid,
+                exc_info=True,
+            )
+        finally:
+            close_old_connections()
+
+    def _start() -> None:
+        threading.Thread(
+            target=_run,
+            daemon=True,
+            name=f"provision-kick-{sid[:8]}",
+        ).start()
+
+    transaction.on_commit(_start)
+
+
 def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     from .models import School
 

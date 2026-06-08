@@ -25,7 +25,10 @@
       <span>{% trans "STARTTLS" %}</span>
     </label>
     <label>{% trans "Username" %}<input class="form-control" name="host_user" value="{{ email_delivery.host_user|default:'' }}"></label>
-    <label>{% trans "Password" %}<input class="form-control" name="host_password" type="password" autocomplete="new-password" placeholder="{% if email_delivery.has_password %}{% trans 'Leave blank to keep' %}{% endif %}"></label>
+    {% trans "Show secret" as toggle_show_secret %}{% trans "Hide secret" as toggle_hide_secret %}
+    {% trans "Password" as smtp_password_label %}
+    {% if email_delivery.has_password %}{% trans "Leave blank to keep" as smtp_password_ph %}{% endif %}
+    {% include "components/rmc_password_field.html" with field_name="host_password" field_id="host_password" label=smtp_password_label required=False autocomplete="new-password" placeholder=smtp_password_ph|default:"" toggle_label_show=toggle_show_secret toggle_label_hide=toggle_hide_secret %}
     <label>{% trans "From email" %}<input class="form-control" name="default_from_email" value="{{ email_delivery.default_from_email|default:'' }}"></label>
     <div class="d-flex gap-2">
       <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
@@ -35,4 +38,5 @@
   {% endif %}
 </main>
 <script nonce="{{ csp_nonce }}" src="{% static 'js/rmc-infrastructure-email.js' %}"></script>
+{% include "components/rmc_password_toggle_script.html" %}
 {% endblock %}

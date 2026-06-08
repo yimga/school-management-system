@@ -24,12 +24,15 @@
       <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Base URL (Canvas/Moodle)" %}
         <input name="base_url" type="url" placeholder="https://canvas.school.edu" style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
       </label>
-      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary); grid-column: span 2;">{% trans "Access token" %}
-        <input name="access_token" type="password" required style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
-      </label>
-      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Refresh token (optional)" %}
-        <input name="refresh_token" type="password" style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
-      </label>
+      {% trans "Show secret" as toggle_show_secret %}{% trans "Hide secret" as toggle_hide_secret %}
+      <div style="grid-column: span 2;">
+        {% trans "Access token" as lms_access_token_label %}
+        {% include "components/rmc_password_field.html" with field_name="access_token" field_id="lms_access_token" label=lms_access_token_label wrap_class="mb-0" monospace=True toggle_label_show=toggle_show_secret toggle_label_hide=toggle_hide_secret %}
+      </div>
+      <div>
+        {% trans "Refresh token (optional)" as lms_refresh_token_label %}
+        {% include "components/rmc_password_field.html" with field_name="refresh_token" field_id="lms_refresh_token" label=lms_refresh_token_label wrap_class="mb-0" required=False monospace=True toggle_label_show=toggle_show_secret toggle_label_hide=toggle_hide_secret %}
+      </div>
       <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Scope (optional)" %}
         <input name="scope" type="text" style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
       </label>
@@ -105,3 +108,4 @@
   </div>
 </div>
 {% endblock %}
+{% block extrajs %}{% include "components/rmc_password_toggle_script.html" %}{% endblock %}

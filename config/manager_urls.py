@@ -22,6 +22,7 @@ from apps.schools.models import School
 from apps.schools.marketing_views import marketing_page
 from apps.schools.provision_email_urls import build_public_site_url
 from apps.schools.section8_views import find_school, global_login_discovery
+from apps.siteconfig.views_tour import tour_steps_public_api
 from apps.schools.control_plane import (
     require_control_plane_access,
     user_has_control_plane_access,
@@ -32,6 +33,16 @@ from config.admin import platform_admin_site
 def redirect_signup_flow_to_public(request):
     """Signup verify/resend belong on the public marketing host, not manager."""
     return redirect(build_public_site_url(request.get_full_path()), permanent=False)
+
+
+def redirect_marketing_demo_to_public(request):
+    """Demo booking lives on runmycampus.com; manager legal pages still link to it."""
+    return redirect(build_public_site_url("/demo/"), permanent=False)
+
+
+def redirect_marketing_product_tour_to_public(request):
+    """Product tour lives on the public marketing host."""
+    return redirect(build_public_site_url("/resources/product-tour/"), permanent=False)
 
 # Shared error handlers (avoid circular import via config.urls during urlconf load).
 from config.error_handlers import (
@@ -955,6 +966,17 @@ urlpatterns = [
         "payroll/<path:remaining>",
         manager_legacy_surface_redirect,
         {"surface": "payroll"},
+    ),
+    path(
+        "api/tour-steps/public/",
+        tour_steps_public_api,
+        name="tour_steps_public_api",
+    ),
+    path("demo/", redirect_marketing_demo_to_public, name="marketing_demo"),
+    path(
+        "resources/product-tour/",
+        redirect_marketing_product_tour_to_public,
+        name="marketing_resources_product_tour",
     ),
     path(
         "privacy/", marketing_page, {"page_slug": "privacy"}, name="marketing_privacy"

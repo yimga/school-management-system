@@ -1635,14 +1635,20 @@ def verify_signup(request: HttpRequest):
     try:
         from apps.schools.tasks import dispatch_provision_school
 
-        dispatch_provision_school(
+        dispatch = dispatch_provision_school(
             str(school.id), contact_email=verification.email,
         )
-        # Broker-less deploys run provisioning inline (CELERY_TASK_ALWAYS_EAGER).
-        # A failure inside the task's atomic() poisons the request transaction
-        # even when CELERY_TASK_EAGER_PROPAGATES=False — reset so the owner
-        # redirect + onboarding wizard still complete (2026-06-08 prod logs).
-        reset_broken_database_state()
+        # Reset only when provisioning ran in-request (sync fallback or eager Celery).
+        # Queue-only dispatch must not call connections.close_all() here — verify
+        # still needs the DB for the admin_user lookup + onboarding redirect.
+        if not dispatch.get("queued") or dispatch.get("fallback"):
+            reset_broken_database_state()
+        if dispatch.get("queued") and not dispatch.get("fallback"):
+            from apps.schools.tasks import kick_complete_provisioning_background
+
+            kick_complete_provisioning_background(
+                str(school.id), contact_email=verification.email
+            )
     except (ImportError, AttributeError, TypeError, ValueError, OSError) as exc:
         logger.warning(
             "signup verify dispatch_provision_school failed school_id=%s err=%s",

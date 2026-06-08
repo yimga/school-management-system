@@ -28,8 +28,9 @@
         <div class="card-body">
           <form method="post" class="small">
             {% csrf_token %}
-            <label class="form-label">{% trans "District / app bearer token" %}</label>
-            <input type="password" name="clever_bearer" class="form-control form-control-sm mb-2" autocomplete="off">
+            {% trans "Show secret" as toggle_show_secret %}{% trans "Hide secret" as toggle_hide_secret %}
+            {% trans "District / app bearer token" as clever_bearer_label %}
+            {% include "components/rmc_password_field.html" with field_name="clever_bearer" field_id="clever_bearer" label=clever_bearer_label wrap_class="mb-2" size_sm=True required=False autocomplete="off" toggle_label_show=toggle_show_secret toggle_label_hide=toggle_hide_secret %}
             <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "GET users, schools, sections" %}</button>
           </form>
         </div>
@@ -41,8 +42,8 @@
         <div class="card-body">
           <form method="post" class="small">
             {% csrf_token %}
-            <label class="form-label">{% trans "Bearer token" %}</label>
-            <input type="password" name="classlink_bearer" class="form-control form-control-sm mb-2" autocomplete="off">
+            {% trans "Bearer token" as classlink_bearer_label %}
+            {% include "components/rmc_password_field.html" with field_name="classlink_bearer" field_id="classlink_bearer" label=classlink_bearer_label wrap_class="mb-2" size_sm=True required=False autocomplete="off" toggle_label_show=toggle_show_secret toggle_label_hide=toggle_hide_secret %}
             <label class="form-label">{% trans "District base URL (optional)" %}</label>
             <input type="text" name="classlink_base_url" class="form-control form-control-sm mb-2" placeholder="https://…/v1p1">
             <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "Ping + courses" %}</button>
@@ -59,7 +60,10 @@
         {% csrf_token %}
         <div class="row g-2">
           <div class="col-md-6"><input type="text" name="clever_client_id" class="form-control form-control-sm" placeholder="client_id"></div>
-          <div class="col-md-6"><input type="password" name="clever_client_secret" class="form-control form-control-sm" placeholder="client_secret"></div>
+          <div class="col-md-6">
+            {% trans "Client secret" as clever_client_secret_label %}
+            {% include "components/rmc_password_field.html" with field_name="clever_client_secret" field_id="clever_client_secret" label=clever_client_secret_label wrap_class="mb-0" size_sm=True required=False autocomplete="off" placeholder="client_secret" toggle_label_show=toggle_show_secret toggle_label_hide=toggle_hide_secret %}
+          </div>
           <div class="col-md-6"><input type="text" name="clever_auth_code" class="form-control form-control-sm" placeholder="authorization code"></div>
           <div class="col-md-6"><input type="text" name="clever_redirect_uri" class="form-control form-control-sm" placeholder="redirect_uri"></div>
         </div>
@@ -82,3 +86,4 @@
   {% endif %}
 </div>
 {% endblock %}
+{% block extrajs %}{% include "components/rmc_password_toggle_script.html" %}{% endblock %}

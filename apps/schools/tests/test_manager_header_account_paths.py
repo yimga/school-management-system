@@ -21,6 +21,9 @@ class ManagerHeaderAccountPathTests(SimpleTestCase):
             "/kb/",
             "/feedback-loop/",
             "/help-center/",
+            "/demo/",
+            "/resources/product-tour/",
+            "/privacy/",
         ):
             self.assertTrue(
                 any(path.startswith(prefix) for prefix in MANAGER_HOST_ALLOWED_PREFIXES),

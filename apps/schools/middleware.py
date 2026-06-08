@@ -113,6 +113,8 @@ MANAGER_HOST_ALLOWED_PREFIXES = (
     "/privacy/",
     "/terms/",
     "/cookie-policy/",
+    "/demo/",
+    "/resources/",
     "/static/",
     "/media/",
     "/favicon.ico",
@@ -162,6 +164,8 @@ MANAGER_HOST_PUBLIC_ACCESS_PREFIXES = (
     "/privacy/",
     "/terms/",
     "/cookie-policy/",
+    "/demo/",
+    "/resources/",
 )
 
 PUBLIC_ONLY_PREFIXES = (

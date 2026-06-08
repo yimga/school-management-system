@@ -117,10 +117,8 @@
                   <label class="form-label" for="login-username">{% trans "Email or username" %}</label>
                   <input id="login-username" class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" placeholder="{{ LOGIN_EMAIL_PLACEHOLDER|default:'School Email' }}" required autofocus>
                 </div>
-                <div class="mb-3">
-                  <label class="form-label" for="login-password">{% trans "Password" %}</label>
-                  <input id="login-password" class="form-control" type="password" name="password" autocomplete="current-password" required>
-                </div>
+                {% trans "Password" as login_password_label %}
+                {% include "components/rmc_password_field.html" with field_id="login-password" field_name="password" label=login_password_label autocomplete="current-password" %}
                 {% if pow_required and pow_challenge %}
                 <div class="mb-3" id="rmc-pow"
                      data-salt="{{ pow_challenge.salt }}" data-bits="{{ pow_challenge.bits }}"
@@ -253,4 +251,5 @@
     </div>
   </section>
   {% endif %}
+{% include "components/rmc_password_toggle_script.html" %}
 {% endblock %}

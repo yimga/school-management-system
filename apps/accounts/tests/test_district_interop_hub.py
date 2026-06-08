@@ -47,6 +47,7 @@ class DistrictInteropHubTests(TestCase):
         self.assertIn(b"Interop workbench", resp.content)
         self.assertIn(b"Connector access log", resp.content)
         self.assertIn(b"Native Clever", resp.content)
+        self.assertEqual(resp.content.count(b"data-rmc-password-toggle"), 3)
 
     @override_settings(ALLOWED_HOSTS=["*"])
     @patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "example.com"}, clear=False)

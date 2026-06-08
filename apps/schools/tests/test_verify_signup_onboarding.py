@@ -56,11 +56,14 @@ class VerifySignupOnboardingTests(TestCase):
         # run yet, so it creates NOTHING in-request (the prod failure mode).
         with mock.patch(
             "apps.schools.tasks.dispatch_provision_school",
-            return_value={"queued": True},
+            return_value={"queued": True, "fallback": False, "job_id": "job-1"},
         ):
-            resp = self.client.get(
-                reverse("verify_signup") + f"?token={verification.token}"
-            )
+            with mock.patch(
+                "apps.schools.tasks.kick_complete_provisioning_background"
+            ):
+                resp = self.client.get(
+                    reverse("verify_signup") + f"?token={verification.token}"
+                )
 
         # verify_signup must create the owner row up-front itself...
         owner = User.objects.filter(email=verification.email).first()
@@ -89,6 +92,22 @@ class VerifySignupOnboardingTests(TestCase):
         self.assertFalse(created2)
         self.assertEqual(
             get_user_model().objects.filter(email=verification.email).count(), 1
+        )
+
+    def test_async_provisioning_kicks_background_completion(self):
+        school, verification = self._pending()
+        with mock.patch(
+            "apps.schools.tasks.dispatch_provision_school",
+            return_value={"queued": True, "fallback": False, "job_id": "job-1"},
+        ):
+            with mock.patch(
+                "apps.schools.tasks.kick_complete_provisioning_background"
+            ) as kick:
+                self.client.get(
+                    reverse("verify_signup") + f"?token={verification.token}"
+                )
+        kick.assert_called_once_with(
+            str(school.id), contact_email=verification.email
         )
 
 

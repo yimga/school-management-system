@@ -23,10 +23,9 @@
       {% endfor %}
     </select>
   </div>
-  <div class="mb-3">
-    <label class="form-label" for="api_token">{% trans "API token (optional)" %}</label>
-    <input class="form-control" type="password" id="api_token" name="api_token" autocomplete="off">
-  </div>
+  {% trans "Show secret" as toggle_show_secret %}{% trans "Hide secret" as toggle_hide_secret %}
+  {% trans "API token (optional)" as api_token_label %}
+  {% include "components/rmc_password_field.html" with field_name="api_token" field_id="api_token" label=api_token_label required=False autocomplete="off" toggle_label_show=toggle_show_secret toggle_label_hide=toggle_hide_secret %}
   <div class="form-check mb-3">
     <input class="form-check-input" type="checkbox" id="authorization_confirmed" name="authorization_confirmed" required>
     <label class="form-check-label" for="authorization_confirmed">{% trans "I confirm I am authorized to access this source system on behalf of my school." %}</label>
@@ -38,3 +37,4 @@
   <button type="submit" class="btn btn-primary">{% trans "Verify and continue" %}</button>
 </form>
 {% endblock %}
+{% block extrajs %}{% include "components/rmc_password_toggle_script.html" %}{% endblock %}

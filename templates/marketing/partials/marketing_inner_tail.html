@@ -1,4 +1,4 @@
-{% load i18n static %}
+{% load i18n static marketing_public_urls %}
     {% if not page_extras.suppress_footer_clusters %}
     <section class="section-shell">
       <h2 class="section-heading">{% trans "Why teams standardize here" %}</h2>
@@ -36,7 +36,7 @@
         </ul>
         {% if topical_nav_total|default:0 > topical_nav|length %}
         <p class="text-center mt-4 mb-0">
-          <a href="{% url 'marketing_solutions' %}" class="fw-semibold">{% trans "View all solutions" %}</a>
+          <a href="{% marketing_public_href 'marketing_solutions' %}" class="fw-semibold">{% trans "View all solutions" %}</a>
         </p>
         {% endif %}
       </div>
@@ -57,7 +57,7 @@
       </div>
       {% if topical_nav_total|default:0 > topical_nav|length %}
       <p class="text-center mt-3 mb-0">
-        <a href="{% url 'marketing_solutions' %}" class="fw-semibold">{% trans "View all solutions" %}</a>
+        <a href="{% marketing_public_href 'marketing_solutions' %}" class="fw-semibold">{% trans "View all solutions" %}</a>
       </p>
       {% endif %}
     </section>
@@ -68,8 +68,8 @@
       <h2 class="h4 mb-2">{% trans "See it with your team" %}</h2>
       <p>{% trans "Book a guided walkthrough, validate your architecture, and align rollout with the right operating model." %}</p>
       <div class="d-flex flex-wrap gap-2 align-items-center">
-        <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="demo" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "Book demo" %}</a>
-        <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-outline-secondary" data-cta="secondary" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "See product tour" %}</a>
+        <a href="{% marketing_public_href 'marketing_demo' %}" class="btn btn-primary" data-cta="demo" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "Book demo" %}</a>
+        <a href="{% marketing_public_href 'marketing_resources_product_tour' %}" class="btn btn-outline-secondary" data-cta="secondary" data-page="{{ active_nav_slug|default:page.slug }}">{% trans "See product tour" %}</a>
         <a href="{% url 'global_login_discovery' %}" class="link-secondary small ms-lg-2">{% trans "Login" %}</a>
       </div>
     </section>

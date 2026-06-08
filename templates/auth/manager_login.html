@@ -67,10 +67,8 @@
                     <label class="form-label" for="id_username">{% trans "Email or username" %}</label>
                     <input class="form-control" type="text" name="username" id="id_username" autocomplete="username" value="{{ request.POST.username|default:'' }}" required autofocus aria-required="true">
                   </div>
-                  <div class="mb-3">
-                    <label class="form-label" for="id_password">{% trans "Password" %}</label>
-                    <input class="form-control" type="password" name="password" id="id_password" autocomplete="current-password" required aria-required="true">
-                  </div>
+                  {% trans "Password" as manager_password_label %}
+                  {% include "components/rmc_password_field.html" with field_id="id_password" field_name="password" label=manager_password_label autocomplete="current-password" %}
                   {% if pow_required and pow_challenge %}
                   <div class="mb-3" id="rmc-pow"
                        data-salt="{{ pow_challenge.salt }}" data-bits="{{ pow_challenge.bits }}"
@@ -128,4 +126,9 @@
 
   {% include "partials/manager_login_footer.html" %}
 </main>
+{% endblock %}
+
+{% block extrajs %}
+{{ block.super }}
+{% include "components/rmc_password_toggle_script.html" %}
 {% endblock %}

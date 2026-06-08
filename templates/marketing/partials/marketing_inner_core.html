@@ -1,4 +1,4 @@
-{% load i18n static %}
+{% load i18n static marketing_public_urls %}
 {% load terminology_tags %}
 {% load region_format %}
     {% if active_nav_slug == 'resources' and page_extras.resources_hub_cards %}
@@ -282,8 +282,8 @@
         {% elif active_nav_slug == 'resources-blog' %}
         <div class="segment-card p-4 text-center">
           <p class="mb-3 text-muted">{% trans "Insights are on the way—browse product surfaces through a guided tour while editorial ramps." %}</p>
-          <a href="{% url 'marketing_demo' %}" class="btn btn-primary me-2">{% trans "Book demo" %}</a>
-          <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-outline-primary">{% trans "Product tour" %}</a>
+          <a href="{% marketing_public_href 'marketing_demo' %}" class="btn btn-primary me-2">{% trans "Book demo" %}</a>
+          <a href="{% marketing_public_href 'marketing_resources_product_tour' %}" class="btn btn-outline-primary">{% trans "Product tour" %}</a>
         </div>
         {% else %}
         <div class="segment-card p-4 text-center">
