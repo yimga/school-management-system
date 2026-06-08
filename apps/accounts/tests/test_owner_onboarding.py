@@ -145,36 +145,37 @@ class OwnerOnboardingFlowTests(TestCase):
         self.school.refresh_from_db()
         self.assertTrue(self.school.settings["owner_onboarding"]["completed"])
 
-    def test_done_nudge_requeues_provisioning_when_inactive(self):
+    def test_done_kick_completes_provisioning_when_inactive(self):
         self._login_past_mfa()
         with mock.patch(
-            "apps.schools.tasks.dispatch_provision_school",
-            return_value={"queued": True, "job_id": "j-1"},
-        ) as dispatch:
+            "apps.schools.tasks.complete_provisioning_for_school",
+            return_value={"queued": True, "sync_completed": True, "is_active": False},
+        ) as complete:
             r = self.client.get(reverse("accounts:owner_onboarding_done"))
         self.assertEqual(r.status_code, 200)
-        dispatch.assert_called_once_with(
+        complete.assert_called_once_with(
             str(self.school.pk), contact_email=self.user.email
         )
 
-    def test_done_recheck_runs_sync_provisioning(self):
+    def test_done_recheck_runs_complete_provisioning(self):
         self._login_past_mfa()
 
         def _activate(school_id, contact_email="", **kwargs):
             s = School.objects.get(pk=school_id)
             s.is_active = True
             s.save(update_fields=["is_active"])
+            return {"is_active": True, "sync_completed": True}
 
         with mock.patch(
-            "apps.schools.tasks.provision_school_sync",
+            "apps.schools.tasks.complete_provisioning_for_school",
             side_effect=_activate,
-        ) as sync:
+        ) as complete:
             r = self.client.post(
                 reverse("accounts:owner_onboarding_done"),
                 {"recheck_provision": "1"},
             )
         self.assertEqual(r.status_code, 302)
-        sync.assert_called_once_with(
+        complete.assert_called_once_with(
             str(self.school.pk), contact_email=self.user.email
         )
         self.school.refresh_from_db()

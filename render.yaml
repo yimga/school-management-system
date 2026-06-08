@@ -138,11 +138,9 @@ services:
         sync: false
       - key: RMC_PUBLIC_SITE_URL
         value: "https://runmycampus.com"
-      # Async transactional sends become durable Celery tasks when the worker
-      # is always-on (audit C2). Leave "0" on free tier (daemon-thread + queued
-      # marker row); flip to "1" once the worker is a paid always-on plan.
+      # Durable Celery mail tasks — requires always-on worker (starter below).
       - key: SCHOOLOPS_EMAIL_ASYNC_USE_CELERY
-        value: "0"
+        value: "1"
       # Tenant lifecycle / offboarding (Lane 2) — explicit defaults; see docs/TENANT_OFFBOARDING.md
       - key: TENANT_SELF_SERVICE_OFFBOARDING_ENABLED
         value: "1"
@@ -160,7 +158,8 @@ services:
   - type: worker
     name: school-management-system-worker
     env: python
-    plan: free
+    # Starter keeps the worker awake so signup provisioning + welcome mail run.
+    plan: starter
     buildCommand: "./build.sh"
     startCommand: ".venv/bin/celery -A config worker -l info --concurrency=${CELERY_WORKER_CONCURRENCY:-2}"
     envVars:
@@ -223,7 +222,7 @@ services:
       - key: RMC_PUBLIC_SITE_URL
         value: "https://runmycampus.com"
       - key: SCHOOLOPS_EMAIL_ASYNC_USE_CELERY
-        value: "0"
+        value: "1"
       - key: TENANT_SELF_SERVICE_OFFBOARDING_ENABLED
         value: "1"
       - key: TENANT_AUTO_PURGE_ENABLED
@@ -239,7 +238,7 @@ services:
   - type: worker
     name: school-management-system-beat
     env: python
-    plan: free
+    plan: starter
     buildCommand: "./build.sh"
     startCommand: ".venv/bin/celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler"
     envVars:

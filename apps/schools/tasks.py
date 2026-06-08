@@ -484,6 +484,43 @@ def dispatch_provision_school(
         }
 
 
+def complete_provisioning_for_school(
+    school_id: str, contact_email: str = "", **kwargs
+) -> dict:
+    """
+    Queue provisioning when Celery is available, then run sync in-process if the
+    school is still inactive. Owner-critical paths use this so signup does not
+    stall when the worker is asleep or the queue succeeds but nothing consumes it.
+    """
+    from .models import School
+
+    result = dict(
+        dispatch_provision_school(str(school_id), contact_email=contact_email, **kwargs)
+    )
+    school = School.objects.filter(id=school_id).only("is_active").first()
+    if result.get("fallback"):
+        result["sync_completed"] = True
+        result["is_active"] = bool(school and school.is_active)
+        return result
+    if school and not school.is_active:
+        try:
+            provision_school_sync(str(school_id), contact_email=contact_email, **kwargs)
+            result["sync_completed"] = True
+        except _PROVISIONING_FAILURES as exc:
+            result["sync_completed"] = False
+            result["sync_error"] = str(exc)[:200]
+            logger.warning(
+                "complete_provisioning sync failed for school %s: %s",
+                school_id,
+                exc,
+            )
+        school.refresh_from_db(fields=["is_active"])
+    else:
+        result["sync_completed"] = False
+    result["is_active"] = bool(school and school.is_active)
+    return result
+
+
 def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     from .models import School
 

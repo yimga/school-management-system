@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.test import TestCase
 
 from apps.schools.models import School
-from apps.schools.tasks import dispatch_provision_school
+from apps.schools.tasks import complete_provisioning_for_school, dispatch_provision_school
 
 
 class ProvisioningDispatchTests(TestCase):
@@ -26,3 +26,32 @@ class ProvisioningDispatchTests(TestCase):
         self.assertFalse(result["queued"])
         self.assertIsNone(result["job_id"])
         self.assertTrue(school.is_active)
+
+    def test_complete_provisioning_syncs_when_queue_leaves_school_inactive(self):
+        school = School.objects.create(
+            name="Sync After Queue",
+            slug="sync-after-queue",
+            subdomain="sync-after-queue",
+            is_active=False,
+        )
+
+        with patch(
+            "apps.schools.tasks.provision_school_task.delay",
+            return_value=type("R", (), {"id": "job-99"})(),
+        ):
+            with patch(
+                "apps.schools.tasks.provision_school_sync",
+                wraps=lambda sid, **kw: School.objects.filter(pk=sid).update(
+                    is_active=True
+                ),
+            ) as sync:
+                result = complete_provisioning_for_school(
+                    str(school.id), contact_email="owner@example.com"
+                )
+
+        self.assertTrue(result["queued"])
+        self.assertTrue(result["sync_completed"])
+        sync.assert_called_once()
+        school.refresh_from_db()
+        self.assertTrue(school.is_active)
+        self.assertTrue(result["is_active"])

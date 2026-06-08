@@ -285,20 +285,31 @@ def _reprovision_verified_school(request, verification, back):
         return back
     try:
         from apps.schools.models import SchoolProvisioningEvent
-        from apps.schools.tasks import dispatch_provision_school
+        from apps.schools.tasks import complete_provisioning_for_school
 
-        dispatch = dispatch_provision_school(
+        result = complete_provisioning_for_school(
             str(school.id), contact_email=verification.email
         )
+        school.refresh_from_db(fields=["is_active"])
         SchoolProvisioningEvent.log_event(
             school=school,
-            event_type=SchoolProvisioningEvent.EventType.QUEUED,
+            event_type=(
+                SchoolProvisioningEvent.EventType.COMPLETED
+                if getattr(school, "is_active", False)
+                else SchoolProvisioningEvent.EventType.QUEUED
+            ),
             status=SchoolProvisioningEvent.Status.INFO,
-            message="Operator re-queued provisioning.",
+            message=(
+                "Operator reprovision completed in-request."
+                if getattr(school, "is_active", False)
+                else "Operator re-queued provisioning."
+            ),
             payload={
-                "job_id": dispatch.get("job_id") or "",
+                "job_id": result.get("job_id") or "",
                 "operator_id": str(getattr(request.user, "id", "") or ""),
-                "fallback": bool(dispatch.get("fallback")),
+                "fallback": bool(result.get("fallback")),
+                "sync_completed": bool(result.get("sync_completed")),
+                "is_active": bool(result.get("is_active")),
             },
             created_by=request.user
             if getattr(request, "user", None) and request.user.is_authenticated
@@ -311,19 +322,30 @@ def _reprovision_verified_school(request, verification, back):
         )
         messages.error(
             request,
-            _("Could not queue provisioning — check worker logs and try again."),
+            _("Could not run provisioning — check worker logs and try again."),
         )
         return back
     logger.info(
-        "super.signup_verification.reprovision by=%s school_id=%s",
+        "super.signup_verification.reprovision by=%s school_id=%s active=%s",
         getattr(request.user, "id", None),
         getattr(school, "id", None),
+        getattr(school, "is_active", False),
     )
-    messages.success(
-        request,
-        _("Provisioning re-queued for %(name)s — welcome mail sends when it completes.")
-        % {"name": getattr(school, "name", "") or school.slug},
-    )
+    if getattr(school, "is_active", False):
+        messages.success(
+            request,
+            _("%(name)s is live — welcome mail was sent if SMTP is configured.")
+            % {"name": getattr(school, "name", "") or school.slug},
+        )
+    else:
+        messages.warning(
+            request,
+            _(
+                "Provisioning ran but %(name)s is still inactive — "
+                "check provisioning events and worker logs."
+            )
+            % {"name": getattr(school, "name", "") or school.slug},
+        )
     return back
 
 

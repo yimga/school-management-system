@@ -1617,8 +1617,20 @@ def verify_signup(request: HttpRequest):
             logger.warning("verify_signup_ensure_admin_transient_db: %s", exc)
             return _verify_signup_retryable_unavailable(request)
         raise
-    except (ImportError, AttributeError, TypeError, ValueError, IntegrityError):
+    except (ImportError, AttributeError, TypeError, ValueError, IntegrityError) as exc:
         logger.warning("verify_signup_ensure_admin_user_failed", exc_info=True)
+        try:
+            from apps.schools.models import SchoolProvisioningEvent
+
+            SchoolProvisioningEvent.log_event(
+                school=school,
+                event_type=SchoolProvisioningEvent.EventType.FAILED,
+                status=SchoolProvisioningEvent.Status.ERROR,
+                message="Bootstrap owner account could not be created after verification",
+                payload={"error_type": type(exc).__name__, "error": str(exc)[:500]},
+            )
+        except (ImportError, AttributeError, TypeError, ValueError, OSError):
+            pass
 
     try:
         from apps.schools.tasks import dispatch_provision_school
