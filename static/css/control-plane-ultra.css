@@ -286,6 +286,27 @@ body.control-plane-shell .admin-login-card .btn-primary:focus-visible {
   box-shadow: var(--rmc-lit-2d2e46bc50);
 }
 
+body.control-plane-shell .manager-login-card .manager-login-recovery,
+body.control-plane-shell .admin-login-card .manager-login-recovery {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-size: var(--type-size-caption, 0.8125rem);
+  line-height: 1.45;
+}
+body.control-plane-shell .manager-login-card .manager-login-recovery a,
+body.control-plane-shell .admin-login-card .manager-login-recovery a {
+  color: color-mix(in oklab, var(--school-primary) 88%, #fff);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+body.control-plane-shell .manager-login-card .manager-login-recovery a:hover,
+body.control-plane-shell .admin-login-card .manager-login-recovery a:hover,
+body.control-plane-shell .manager-login-card .manager-login-recovery a:focus-visible,
+body.control-plane-shell .admin-login-card .manager-login-recovery a:focus-visible {
+  color: #fff;
+}
+
 body.control-plane-shell .manager-login-footer a,
 body.control-plane-shell .admin-login-footer a,
 body.control-plane-shell .admin-login-reset a {

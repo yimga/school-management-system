@@ -100,10 +100,12 @@
                   </p>
                   {% endif %}
                   <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
-                  <p class="small text-center mt-2 mb-0">
-                    {# School owners who land here by mistake recover on the public host — #}
-                    {# same User row, but manager middleware + MFA gates stay out of the way. #}
+                  <p class="small manager-login-recovery mt-2 mb-0">
                     <a href="{{ password_reset_public_url|default:'https://runmycampus.com/authentication/password_reset/' }}">{% trans "Forgot password?" %}</a>
+                  </p>
+                  <p class="small manager-login-recovery text-muted mb-0">
+                    {% trans "School admin (not platform operator)?" %}
+                    <a href="{{ public_site_url|default:'https://runmycampus.com' }}/authentication/login/">{% trans "Sign in on runmycampus.com" %}</a>
                   </p>
                   {# Guarded: the resend route lives in the public/marketing urlconf, #}
                   {# not the manager host's — a bare {% url %} NoReverseMatch-es and #}
