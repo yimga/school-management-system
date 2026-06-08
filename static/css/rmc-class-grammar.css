@@ -2422,6 +2422,45 @@
   vertical-align: baseline;
 }
 
+/* rmc-page-explain-strip — shell-level route help + workflow tags (operator + tenant) */
+.rmc-page-explain-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.5rem 1rem;
+  margin-block-end: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.5rem);
+  background: var(--surface-canvas);
+}
+
+.rmc-page-explain-strip__lead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  width: 100%;
+}
+
+.rmc-page-explain-strip__copy {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+}
+
+.rmc-page-explain-strip__title {
+  color: var(--text-primary);
+}
+
+.rmc-page-explain-strip__tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
 /* Bootstrap .text-muted → design-token contrast (batch 1225 sweep) */
 .rmc-text-muted,
 .text-muted {

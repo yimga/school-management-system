@@ -1,0 +1,30 @@
+{% load i18n rmc_explain_tags %}
+{% comment %}
+  Shell-level page explainer — operator + tenant authenticated surfaces.
+  Renders route help, workflow taxonomy chips, and seeds auto field-tag manifest.
+{% endcomment %}
+{% if rmc_page_explain_enabled %}
+<section class="rmc-page-explain-strip rmc-reveal" aria-label="{% trans 'Page guidance' %}" data-rmc-page-explain="1">
+  <div class="rmc-page-explain-strip__lead">
+    {% if rmc_page_help.title or rmc_page_help.body %}
+    <div class="rmc-page-explain-strip__copy">
+      <span class="rmc-page-explain-strip__label text-secondary small">{% trans "About this page" %}</span>
+      {% if rmc_page_help.title %}
+      <span class="rmc-page-explain-strip__title fw-semibold">{{ rmc_page_help.title }}</span>
+      {% endif %}
+      {% if rmc_page_help.body %}
+      {% rmc_info_tag title=rmc_page_help.title body=rmc_page_help.body placement="bottom" %}
+      {% endif %}
+    </div>
+    {% endif %}
+    {% if rmc_page_workflow_tags %}
+    <div class="rmc-page-explain-strip__tags rmc-workflow-guidance" role="list" aria-label="{% trans 'Workflow tags' %}">
+      {% for tag in rmc_page_workflow_tags %}
+      {% include "components/workflow_info_tag.html" with tag=tag %}
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% include "partials/rmc_page_field_manifest.html" %}
+{% endif %}

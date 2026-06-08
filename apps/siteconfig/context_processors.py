@@ -1666,3 +1666,10 @@ def analytics_viz_context(request):
         "ENABLE_UNIFIED_ANALYTICS_VIZ": enabled,
         "ANALYTICS_VIZ_API_URL": api_url,
     }
+
+
+def page_explain_context(request):
+    """Route help, workflow tags, and field manifest for rmc_page_explain_strip."""
+    from apps.siteconfig.page_explain import build_page_explain_context
+
+    return build_page_explain_context(request)

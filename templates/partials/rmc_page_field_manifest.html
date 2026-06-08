@@ -1,0 +1,7 @@
+{% if rmc_page_field_manifest %}
+<script type="application/json" id="rmc-page-field-manifest" nonce="{{ csp_nonce }}">[
+{% for row in rmc_page_field_manifest %}
+  {"entity":"{{ row.entity|escapejs }}","field":"{{ row.field|escapejs }}","names":{{ row.names|safe }}}{% if not forloop.last %},{% endif %}
+{% endfor %}
+]</script>
+{% endif %}

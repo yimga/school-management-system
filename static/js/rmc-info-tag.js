@@ -51,4 +51,5 @@
   } else {
     init();
   }
+  document.addEventListener("rmc-info-tag-auto-ready", init);
 })();

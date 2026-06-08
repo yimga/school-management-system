@@ -11,8 +11,10 @@ from typing import Any
 
 from django.utils.translation import gettext_lazy as _
 
+from apps.siteconfig.ui_field_help_catalog import UI_FIELD_HELP_CATALOG
+
 # key: "entity.field" or "surface.feature"
-UI_FIELD_HELP: dict[str, dict[str, str]] = {
+_UI_FIELD_HELP_BASE: dict[str, dict[str, str]] = {
     "invoice.status": {
         "title": _("Invoice status"),
         "body": _(
@@ -57,6 +59,26 @@ UI_FIELD_HELP: dict[str, dict[str, str]] = {
     },
 }
 
+UI_FIELD_HELP: dict[str, dict[str, str]] = {**_UI_FIELD_HELP_BASE, **UI_FIELD_HELP_CATALOG}
+
+_PLATFORM_CATALOG_LOADED = False
+
+
+def _ensure_platform_catalog() -> None:
+    global _PLATFORM_CATALOG_LOADED
+    if _PLATFORM_CATALOG_LOADED:
+        return
+    from apps.siteconfig.ui_field_help_platform_500x import get_platform_500x_catalog
+
+    UI_FIELD_HELP.update(get_platform_500x_catalog())
+    _PLATFORM_CATALOG_LOADED = True
+
+
+def catalog_entry_count() -> int:
+    """Total static help keys (base + hand catalog + 500X platform generator)."""
+    _ensure_platform_catalog()
+    return len(UI_FIELD_HELP)
+
 
 def _catalog_lookup(entity_code: str, field_name: str) -> dict[str, str]:
     try:
@@ -92,6 +114,7 @@ def get_ui_field_help(entity_code: str, field_name: str = "", *, feature: str = 
 
     Prefer explicit *feature* (surface.feature) when set; else entity.field.
     """
+    _ensure_platform_catalog()
     key = ""
     if feature:
         key = feature if "." in feature else f"surface.{feature}"

@@ -527,6 +527,7 @@ TEMPLATES = [
                 "apps.feedback.context_processors.support_links",  # Host-aware help / feature / contact URLs
                 "apps.siteconfig.context_processors.ai_copilot_settings",  # AI Copilot API key
                 "apps.siteconfig.context_processors.platform_surface_settings",  # Platform URL cascade
+                "apps.siteconfig.context_processors.page_explain_context",  # Page explain strip + field manifest
                 "apps.policies.context_processors.tenant_policy_context",  # tenant_ctx + global_env (Policy Registry)
                 "apps.platform_runtime.context_processors.click_tracking_context",
                 "apps.platform_runtime.context_processors.rum_ingest_context",
