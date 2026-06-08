@@ -619,6 +619,8 @@ DB_POOL_MODE = (
 )
 # Default 120s — Render Postgres drops idle SSL sockets; 600s pools often hit "unexpected eof".
 _DB_CONN_MAX_AGE = int((os.getenv("DB_CONN_MAX_AGE") or "120").strip() or "120")
+# Fail fast on dead sockets instead of hanging gthread workers (Render health probe = 5s).
+_DB_CONNECT_TIMEOUT = int((os.getenv("DB_CONNECT_TIMEOUT") or "10").strip() or "10")
 _DB_DISABLE_SS_CURSORS = (os.getenv("DB_DISABLE_SERVER_SIDE_CURSORS") or "").strip().lower() in (
     "1",
     "true",
@@ -803,6 +805,28 @@ for db_config in DATABASES.values():
     engine = db_config.get("ENGINE", "")
     if "postgresql" in engine:
         db_config["CONN_HEALTH_CHECKS"] = True
+        _pg_opts = db_config.setdefault("OPTIONS", {})
+        _pg_opts.setdefault("connect_timeout", _DB_CONNECT_TIMEOUT)
+        # TCP keepalive — detect dead SSL peers before reuse (psycopg connection kwargs).
+        if (os.getenv("DB_TCP_KEEPALIVES") or "1").strip().lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        ):
+            _pg_opts.setdefault("keepalives", 1)
+            _pg_opts.setdefault(
+                "keepalives_idle",
+                int((os.getenv("DB_KEEPALIVES_IDLE") or "30").strip() or "30"),
+            )
+            _pg_opts.setdefault(
+                "keepalives_interval",
+                int((os.getenv("DB_KEEPALIVES_INTERVAL") or "10").strip() or "10"),
+            )
+            _pg_opts.setdefault(
+                "keepalives_count",
+                int((os.getenv("DB_KEEPALIVES_COUNT") or "5").strip() or "5"),
+            )
 
 # Tests + SQLite: persistent connections worsen "database is locked" on Windows when
 # using file-backed test DBs (--keepdb, DJANGO_TEST_DB_FILE). Release after each request.

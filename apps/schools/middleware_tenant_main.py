@@ -83,6 +83,13 @@ class HealthAwareTenantMainMiddleware(TenantMainMiddleware):
         )
 
     def _process_health_probe(self, request):
+        """Route probe paths without Postgres — Render allows only 5s for /health/."""
+        from django.conf import settings
+
+        public_urlconf = getattr(settings, "PUBLIC_SCHEMA_URLCONF", None)
+        if public_urlconf:
+            request.urlconf = public_urlconf
+            return None
         try:
             connection.set_schema_to_public()
             self.setup_url_routing(request, force_public=True)

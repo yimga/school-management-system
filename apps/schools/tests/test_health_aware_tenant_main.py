@@ -40,13 +40,24 @@ class HealthAwareTenantMainMiddlewareTests(SimpleTestCase):
         self.assertIsNone(result)
         mock_probe.assert_called_once_with(request)
 
-    def test_health_path_returns_degraded_200_on_transient_db(self):
+    def test_health_probe_uses_public_urlconf_without_db(self):
+        request = self.rf.get("/health/")
+        mock_conn = MagicMock()
+        with patch("apps.schools.middleware_tenant_main.connection", mock_conn):
+            with patch("django.conf.settings.PUBLIC_SCHEMA_URLCONF", "config.public_urls"):
+                result = self.middleware._process_health_probe(request)
+        self.assertIsNone(result)
+        self.assertEqual(request.urlconf, "config.public_urls")
+        mock_conn.set_schema_to_public.assert_not_called()
+
+    def test_health_path_returns_degraded_200_when_no_public_urlconf_and_db_fails(self):
         request = self.rf.get("/health/")
         exc = OperationalError("consuming input failed: SSL error: unexpected eof while reading")
         mock_conn = MagicMock()
         mock_conn.set_schema_to_public.side_effect = exc
         with patch("apps.schools.middleware_tenant_main.connection", mock_conn):
-            response = self.middleware._process_health_probe(request)
+            with patch("django.conf.settings.PUBLIC_SCHEMA_URLCONF", None):
+                response = self.middleware._process_health_probe(request)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Retry-After"], "30")
         import json

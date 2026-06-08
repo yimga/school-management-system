@@ -28,6 +28,10 @@ services:
           property: connectionString
       - key: DEBUG
         value: "0"
+      - key: DB_CONN_MAX_AGE
+        value: "120"
+      - key: DB_CONNECT_TIMEOUT
+        value: "10"
       - key: GUNICORN_TIMEOUT
         value: "120"
       - key: GUNICORN_WORKER_CLASS
@@ -176,6 +180,10 @@ services:
         fromDatabase:
           name: school-management-db
           property: connectionString
+      - key: DB_CONN_MAX_AGE
+        value: "120"
+      - key: DB_CONNECT_TIMEOUT
+        value: "10"
       - key: REDIS_URL
         fromService:
           type: redis
