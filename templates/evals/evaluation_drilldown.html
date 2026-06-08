@@ -5,6 +5,10 @@
 {% block title %}{% trans "Evaluation drill-down" %} #{{ evaluation.id }}{% endblock %}
 
 {% block backend_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="container py-4" data-page="evals-drilldown" data-rmc-scroll-policy="paginate">
   <nav aria-label="breadcrumb" class="small mb-3">
     <ol class="breadcrumb mb-0">

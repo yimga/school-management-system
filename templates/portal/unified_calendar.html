@@ -4,7 +4,11 @@
 {% term "teacher" capitalize=True as ucal_teacher_sg %}
 {% block title %}{% trans "Calendar" %} – {{ site.site_name|default:"Portal" }}{% endblock %}
 {% block content %}
-<div class="container py-4">
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div data-rmc-scroll-policy="paginate" class="container py-4">
   <div class="d-flex justify-content-between align-items-end mb-3 flex-wrap gap-2">
     <div>
       {% comment %} Aesthetic-v2 page-header grammar. Styled by patterns.css. {% endcomment %}

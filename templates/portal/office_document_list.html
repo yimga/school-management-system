@@ -2,6 +2,10 @@
 {% load i18n static glocal_tags %}
 {% block title %}Office Documents{% endblock %}
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="container py-4" data-page-archetype="task-list" data-rmc-scroll-policy="paginate">
   <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h1 class="h4 mb-0">{% trans "Office Documents" %}</h1>
@@ -13,7 +17,7 @@
   {% if not collabora_enabled %}
   <div class="alert alert-warning">{% trans "Collabora is not configured. Set" %} <code>COLLABORA_BASE_URL</code>. {% trans "PDF/DOCX download still works via LibreOffice headless." %}</div>
   {% endif %}
-  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
+  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
     <caption class="visually-hidden">{% trans "Office Documents" %}</caption>
     <thead><tr><th>Title</th><th>Audience</th><th>Updated</th><th></th></tr></thead>
     <tbody>

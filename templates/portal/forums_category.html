@@ -2,13 +2,17 @@
 {% load i18n %}
 {% block title %}{{ category.name }}{% endblock %}
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <nav aria-label="{% trans 'Breadcrumb' %}" class="mb-2">
   <a href="{% url 'portal:forum_home' %}">{% trans "Forums" %}</a> / {{ category.name }}
 </nav>
 <h1 class="mb-3">{{ category.name }}</h1>
 {% if category.description %}<p class="text-muted">{{ category.description }}</p>{% endif %}
 <a class="btn btn-primary mb-3" href="{% url 'portal:forum_new_topic' %}?category={{ category.slug }}">{% trans "New topic" %}</a>
-<div class="list-group">
+<div data-rmc-scroll-policy="paginate" class="list-group">
   {% for topic in topics %}
   <a class="list-group-item list-group-item-action" href="{% url 'portal:forum_topic' topic_id=topic.pk %}">
     <h6 class="mb-1">{{ topic.title }}</h6>

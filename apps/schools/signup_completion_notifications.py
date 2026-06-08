@@ -1,7 +1,8 @@
 """Signup completion emails and portal-ready notifications (2026-06-08).
 
-Centralizes the post-verify / post-provision communication contract so owners
-receive ONE accurate email with their tenant portal URL after the campus is live.
+Platform-wide contract for every tenant: verify → provision → portal-ready
+comms (email, inbox, SMS, web push) + first-login corner nudge. Not scoped to
+individual incident schools.
 """
 
 from __future__ import annotations

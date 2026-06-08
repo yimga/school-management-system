@@ -5,6 +5,10 @@
 {% block title %}{% trans "Grade import" %}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main id="main-content" role="main" class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
 <h1>{% trans "Bulk grade import" %}</h1>
 <p class="help">

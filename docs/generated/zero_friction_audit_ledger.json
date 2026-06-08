@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-08T23:32:22.915802+00:00",
+  "generated_at": "2026-06-08T23:36:29.130071+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASE-0",
   "role_passes": [
     "principal_architect",
@@ -20,7 +20,7 @@
   "gap_summary": {
     "missing_row_detail_drawer": 46,
     "missing_pagination_or_scroll_policy": 38,
-    "missing_smart_action_surface": 19,
+    "missing_smart_action_surface": 18,
     "table_columns_6_exceeds_5": 12,
     "table_columns_9_exceeds_5": 3,
     "table_columns_7_exceeds_5": 3,
@@ -30,7 +30,7 @@
     "table_columns_12_exceeds_5": 1
   },
   "high_friction_threshold": 20,
-  "high_friction_count": 1599,
+  "high_friction_count": 1531,
   "top_100_routes": [
     {
       "path": "templates/academics/syllabus_approval_queue.html",
@@ -137,112 +137,6 @@
       }
     },
     {
-      "path": "templates/evals/extend_deadline.html",
-      "zone": "evals",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
-        "scroll_folds": 3,
-        "empty_error_states": 3,
-        "offline_survivability": 4,
-        "recovery": 3
-      },
-      "friction_total": 23,
-      "daily_use_weight": 9,
-      "priority_score": 207,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
-        "has_scroll_policy_paginate": false
-      }
-    },
-    {
-      "path": "templates/evals/grade_import_upload.html",
-      "zone": "evals",
-      "friction_dimensions": {
-        "clicks_to_complete": 4,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
-        "scroll_folds": 2,
-        "empty_error_states": 3,
-        "offline_survivability": 4,
-        "recovery": 3
-      },
-      "friction_total": 23,
-      "daily_use_weight": 9,
-      "priority_score": 207,
-      "gaps": [
-        "missing_smart_action_surface"
-      ],
-      "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
-        "has_scroll_policy_paginate": true
-      }
-    },
-    {
-      "path": "templates/evals/grade_import_upload_v2.html",
-      "zone": "evals",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 2,
-        "scroll_folds": 2,
-        "empty_error_states": 3,
-        "offline_survivability": 4,
-        "recovery": 3
-      },
-      "friction_total": 23,
-      "daily_use_weight": 9,
-      "priority_score": 207,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": true,
-        "th_count": 5,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": true,
-        "has_scroll_policy_paginate": true
-      }
-    },
-    {
-      "path": "templates/evals/import_job_monitor.html",
-      "zone": "evals",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
-        "scroll_folds": 3,
-        "empty_error_states": 3,
-        "offline_survivability": 4,
-        "recovery": 3
-      },
-      "friction_total": 23,
-      "daily_use_weight": 9,
-      "priority_score": 207,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
-        "has_scroll_policy_paginate": false
-      }
-    },
-    {
       "path": "templates/teacher/marks_entry.html",
       "zone": "teacher",
       "friction_dimensions": {
@@ -291,58 +185,6 @@
         "has_pagination": false,
         "has_next_action_strip": true,
         "has_row_detail_drawer": true,
-        "has_scroll_policy_paginate": true
-      }
-    },
-    {
-      "path": "templates/evals/compliance_dashboard.html",
-      "zone": "evals",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 2,
-        "scroll_folds": 2,
-        "empty_error_states": 2,
-        "offline_survivability": 4,
-        "recovery": 3
-      },
-      "friction_total": 22,
-      "daily_use_weight": 9,
-      "priority_score": 198,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": true,
-        "th_count": 5,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": true,
-        "has_scroll_policy_paginate": true
-      }
-    },
-    {
-      "path": "templates/evals/evaluation_drilldown.html",
-      "zone": "evals",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
-        "scroll_folds": 2,
-        "empty_error_states": 3,
-        "offline_survivability": 4,
-        "recovery": 3
-      },
-      "friction_total": 22,
-      "daily_use_weight": 9,
-      "priority_score": 198,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
         "has_scroll_policy_paginate": true
       }
     },
@@ -1391,162 +1233,6 @@
       }
     },
     {
-      "path": "templates/evals/audit_trail.html",
-      "zone": "evals",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
-        "scroll_folds": 2,
-        "empty_error_states": 2,
-        "offline_survivability": 4,
-        "recovery": 3
-      },
-      "friction_total": 21,
-      "daily_use_weight": 9,
-      "priority_score": 189,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
-        "has_scroll_policy_paginate": true
-      }
-    },
-    {
-      "path": "templates/evals/bulk_grade_entry.html",
-      "zone": "evals",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
-        "scroll_folds": 3,
-        "empty_error_states": 3,
-        "offline_survivability": 2,
-        "recovery": 3
-      },
-      "friction_total": 21,
-      "daily_use_weight": 9,
-      "priority_score": 189,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
-        "has_scroll_policy_paginate": false
-      }
-    },
-    {
-      "path": "templates/evals/class_ranking.html",
-      "zone": "evals",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 2,
-        "scroll_folds": 2,
-        "empty_error_states": 3,
-        "offline_survivability": 2,
-        "recovery": 3
-      },
-      "friction_total": 21,
-      "daily_use_weight": 9,
-      "priority_score": 189,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": true,
-        "th_count": 3,
-        "has_pagination": true,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": true,
-        "has_scroll_policy_paginate": true
-      }
-    },
-    {
-      "path": "templates/evals/evidence_upload.html",
-      "zone": "evals",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 2,
-        "scroll_folds": 2,
-        "empty_error_states": 3,
-        "offline_survivability": 2,
-        "recovery": 3
-      },
-      "friction_total": 21,
-      "daily_use_weight": 9,
-      "priority_score": 189,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": true,
-        "th_count": 4,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": true,
-        "has_scroll_policy_paginate": true
-      }
-    },
-    {
-      "path": "templates/evals/grade_approval_detail.html",
-      "zone": "evals",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 2,
-        "scroll_folds": 2,
-        "empty_error_states": 3,
-        "offline_survivability": 2,
-        "recovery": 3
-      },
-      "friction_total": 21,
-      "daily_use_weight": 9,
-      "priority_score": 189,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": true,
-        "th_count": 5,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": true,
-        "has_scroll_policy_paginate": true
-      }
-    },
-    {
-      "path": "templates/evals/school_ranking.html",
-      "zone": "evals",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 2,
-        "scroll_folds": 3,
-        "empty_error_states": 2,
-        "offline_survivability": 2,
-        "recovery": 3
-      },
-      "friction_total": 21,
-      "daily_use_weight": 9,
-      "priority_score": 189,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": true,
-        "th_count": 4,
-        "has_pagination": true,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": true,
-        "has_scroll_policy_paginate": false
-      }
-    },
-    {
       "path": "templates/people/employer_confirm_hours.html",
       "zone": "people",
       "friction_dimensions": {
@@ -1915,80 +1601,106 @@
       }
     },
     {
-      "path": "templates/evals/evaluation_admin.html",
+      "path": "templates/evals/class_ranking.html",
       "zone": "evals",
       "friction_dimensions": {
         "clicks_to_complete": 3,
         "manual_fields": 3,
         "navigation_depth": 3,
         "column_clutter": 2,
-        "scroll_folds": 2,
-        "empty_error_states": 2,
-        "offline_survivability": 2,
-        "recovery": 3
-      },
-      "friction_total": 20,
-      "daily_use_weight": 9,
-      "priority_score": 180,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": true,
-        "th_count": 5,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": true,
-        "has_scroll_policy_paginate": true
-      }
-    },
-    {
-      "path": "templates/evals/grade_approval_list.html",
-      "zone": "evals",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 2,
-        "scroll_folds": 2,
-        "empty_error_states": 2,
-        "offline_survivability": 2,
-        "recovery": 3
-      },
-      "friction_total": 20,
-      "daily_use_weight": 9,
-      "priority_score": 180,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": true,
-        "th_count": 5,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": true,
-        "has_scroll_policy_paginate": true
-      }
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "zone": "evals",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
         "scroll_folds": 2,
         "empty_error_states": 3,
         "offline_survivability": 2,
-        "recovery": 3
+        "recovery": 2
       },
       "friction_total": 20,
       "daily_use_weight": 9,
       "priority_score": 180,
       "gaps": [],
       "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
+        "has_rmc_data_table": true,
+        "th_count": 3,
+        "has_pagination": true,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/evidence_upload.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 20,
+      "daily_use_weight": 9,
+      "priority_score": 180,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 4,
         "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/grade_approval_detail.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 20,
+      "daily_use_weight": 9,
+      "priority_score": 180,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/grade_import_upload_v2.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 20,
+      "daily_use_weight": 9,
+      "priority_score": 180,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": true,
         "has_scroll_policy_paginate": true
       }
     },
@@ -2335,6 +2047,266 @@
       }
     },
     {
+      "path": "templates/evals/bulk_grade_entry.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/compliance_dashboard.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/evaluation_admin.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/evaluation_drilldown.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/extend_deadline.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/grade_approval_list.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/grade_import_upload.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/import_job_monitor.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/resolve_offline_conflict.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/evals/school_ranking.html",
+      "zone": "evals",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 4,
+        "has_pagination": true,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
       "path": "templates/parent/claim_invite.html",
       "zone": "parent",
       "friction_dimensions": {
@@ -2648,6 +2620,32 @@
     },
     {
       "path": "templates/accounts/claim_invite.html",
+      "zone": "accounts",
+      "friction_dimensions": {
+        "clicks_to_complete": 4,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 3,
+        "empty_error_states": 3,
+        "offline_survivability": 4,
+        "recovery": 3
+      },
+      "friction_total": 24,
+      "daily_use_weight": 7,
+      "priority_score": 168,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": false,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/accounts/documentation.html",
       "zone": "accounts",
       "friction_dimensions": {
         "clicks_to_complete": 4,

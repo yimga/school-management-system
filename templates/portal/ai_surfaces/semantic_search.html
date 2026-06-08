@@ -3,7 +3,11 @@
 {% load terminology_tags %}
 {% block title %}{% term "student" capitalize=True %} {% trans "search" %}{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div data-rmc-scroll-policy="paginate" class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
   <div>
     <div class="eyebrow">{% trans "AI-powered" %}</div>
     <h1 class="page-h1 mb-0">{% trans "Search" %} {% term_lower "students" %}</h1>
@@ -70,9 +74,9 @@
       {% blocktrans count counter=results|length %}Top {{ counter }} result.{% plural %}Top {{ counter }} results.{% endblocktrans %}
     </p>
   {% else %}
-    <div class="alert alert-info">
+    {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("
       {% blocktrans %}No matches found. Try a different phrasing — search is semantic, so "kids missing class often" works as well as a name.{% endblocktrans %}
-    </div>
+    ") message=_("Nothing here yet — check back after your school adds data.") %}
   {% endif %}
 {% else %}
   <div class="alert alert-info">

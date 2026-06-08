@@ -11,13 +11,15 @@
 {% endblock %}
 
 {% block content %}
+{% include "components/next_action_strip.html" %}
+
 <div
   class="portal-kb-article-read-shell"
   data-page-critical-read="kb-article"
   data-sms-offline-read-cache-key="portal_kb_article"
   tabindex="-1"
 >
-<div class="container-fluid mt-3 mb-5 kb-article-page">
+<div class="container-fluid mt-3 mb-5 kb-article-page" data-rmc-scroll-policy="paginate">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">

@@ -2,13 +2,17 @@
 {% load i18n %}
 {% block title %}{% trans "New forum topic" %}{% endblock %}
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <h1 class="mb-3">{% trans "Start a discussion" %}</h1>
 {% include "partials/help_deflection_strip.html" with deflection_surface="forum_new_topic" %}
 {% include "portal/partials/forum_compose_ai_assistant.html" %}
 {% if suggested_kb %}
 <aside class="forum-kb-suggestions card card-body mb-3" aria-label="{% trans 'Suggested guides' %}">
   <h2 class="h6">{% trans "Before you post — these guides may help" %}</h2>
-  <div class="list-group list-group-flush">
+  <div data-rmc-scroll-policy="paginate" class="list-group list-group-flush">
     {% for item in suggested_kb %}
     <a class="list-group-item list-group-item-action" href="{{ item.url }}">{{ item.title }}</a>
     {% endfor %}

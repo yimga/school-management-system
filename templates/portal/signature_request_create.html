@@ -4,8 +4,12 @@
 {% block title %}{% trans "Create signature request" %}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% comment %} Pass 8 Wave 2: migrated to components/form_field + form_actions partials. 5
-   hand-rolled <div class="col-*"> field blocks replaced with form_field includes.
+   hand-rolled <div data-rmc-scroll-policy="paginate" class="col-*"> field blocks replaced with form_field includes.
    Removed visually-hidden injected h1 (page_header partial owns the H1). {% endcomment %}
 <div class="container py-4" data-page-archetype="record-detail">
   <div class="row justify-content-center">

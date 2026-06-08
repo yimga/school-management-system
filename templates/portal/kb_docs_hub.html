@@ -2,6 +2,10 @@
 {% load i18n static %}
 {% block title %}{% trans "Documentation hub" %}{% endblock %}
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="container py-4" data-page-archetype="operational-workbench" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required">
   <nav class="rmc-section-nav mb-3" aria-label="{% trans 'Documentation sections' %}">
     <a class="rmc-section-nav__link" href="#kb-articles" data-rmc-section-anchor>{% trans "Articles" %}</a>
@@ -45,7 +49,7 @@
   <section id="kb-articles" class="mb-4">
     <h2 class="h5">{% trans "Recent articles" %} <span class="badge text-bg-secondary">{{ article_count }}</span></h2>
     <div class="table-responsive">
-      <table class="table table-sm rmc-data-table align-middle" data-rmc-row-detail-table="1">
+      <table class="table table-sm rmc-data-table align-middle" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Recent knowledge base articles" %}</caption>
         <thead><tr><th>{% trans "Title" %}</th><th>{% trans "Category" %}</th><th>{% trans "Linked office doc" %}</th><th></th></tr></thead>
         <tbody>
@@ -76,7 +80,7 @@
   <section id="office-docs">
     <h2 class="h5">{% trans "Office documents" %}</h2>
     <div class="table-responsive">
-      <table class="table table-sm rmc-data-table align-middle" data-rmc-row-detail-table="1">
+      <table class="table table-sm rmc-data-table align-middle" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Hosted office documents" %}</caption>
         <thead><tr><th>{% trans "Title" %}</th><th>{% trans "Audience" %}</th><th>{% trans "Updated" %}</th><th></th></tr></thead>
         <tbody>

@@ -326,6 +326,19 @@ def build_register() -> dict:
                         "templates/people/backend_guardian_list.html",
                     )
                 ),
+                "portal_evals_wave16_burndown": all(
+                    "next_action_strip" in _read(rel)
+                    for rel in (
+                        "templates/evals/evaluation_admin.html",
+                        "templates/evals/compliance_dashboard.html",
+                        "templates/evals/grade_approval_list.html",
+                        "templates/portal/kb_home.html",
+                        "templates/portal/support_help_hub.html",
+                        "templates/portal/unified_calendar.html",
+                        "templates/portal/at_risk_labeling/queue.html",
+                        "templates/portal/signature_requests_manage.html",
+                    )
+                ),
             },
             "residual": [
                 f"{ledger.get('high_friction_count', '?')} templates still above friction threshold (incremental ledger burndown)",

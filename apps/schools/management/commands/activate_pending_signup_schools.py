@@ -8,7 +8,8 @@ from django.core.management.base import BaseCommand
 class Command(BaseCommand):
     help = (
         "Run provisioning for verified signup schools that are still inactive. "
-        "Use after deploy to recover stuck tenants (e.g. st-jude)."
+        "Platform-wide recovery after deploy: use --all-verified-inactive to "
+        "reprovision every stuck tenant, or --slug=<slug> for one school."
     )
 
     def add_arguments(self, parser):
@@ -56,6 +57,13 @@ class Command(BaseCommand):
             self.stdout.write("No matching inactive schools.")
             return
 
+        if options["all_verified_inactive"] and not options["dry_run"]:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"Platform-wide backfill: provisioning {len(schools)} "
+                    "verified inactive school(s)."
+                )
+            )
         for school in schools:
             verif = (
                 SignupVerification.objects.filter(

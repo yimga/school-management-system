@@ -5,6 +5,10 @@
 {% block title %}{% trans "Offline sync queue" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {# table-pagination-allow: per-user-queue-view-layer-row-cap natural-drain-not-list-view #}
 {# table-column-budget-allow: offline-sync-multi-section-operator-conditional-columns — idempotency in row drawer meta #}
 <div class="container py-4" data-rmc-offline-sync-queue="1" data-rmc-os-center="offline_sync_center" data-task="offline_sync" data-task-step="portal:offline-sync-queue" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">

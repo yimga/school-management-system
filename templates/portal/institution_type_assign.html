@@ -3,7 +3,9 @@
 {% block title %}{% trans "Institution type" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid rmc-page" style="max-width: 880px;">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid rmc-page" style="max-width: 880px;" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <header class="rmc-page__header" style="margin-bottom: 16px;">
     <h1 class="rmc-page__title" style="font-size: var(--type-size-headline-m); letter-spacing: -0.01em;">{% trans "Institution type assignment" %}</h1>
     <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 64ch;">

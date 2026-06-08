@@ -27,6 +27,8 @@ Use with `ENVIRONMENT_VARIABLES.md` and the provider runbook. This is a **govern
 
 ## Post-deploy (operational)
 
+- [ ] **Signup backfill (platform-wide):** After any deploy touching signup/provision/completion channels, run `python manage.py activate_pending_signup_schools --all-verified-inactive --dry-run`, then `--all-verified-inactive` on the production shell. Applies to every verified school still `is_active=False`, not only incident tenants. Per-school: `--slug=<slug>` or Manager → Signup verifications.
+- [ ] **Web Push (optional):** Set `WEB_PUSH_VAPID_PUBLIC_KEY`, `WEB_PUSH_VAPID_PRIVATE_KEY`, and `WEB_PUSH_VAPID_CLAIMS_EMAIL` so portal-ready browser push works for all tenants after owners grant permission.
 - [ ] Error notifications path documented (log drain, email, Pager—whatever the org uses).
 - [ ] Backups: confirm provider backup schedule; document restore test cadence in `DEPLOYMENT_ROLLBACK.md`.
 

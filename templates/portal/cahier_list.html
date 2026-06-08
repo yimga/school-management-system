@@ -2,6 +2,10 @@
 {% load i18n static glocal_tags %}
 {% block title %}Cahier de Texte{% endblock %}
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Cahier de Texte</h1>
 {% include "widgets/dashboard_hero.html" with hero=hero %}
@@ -45,7 +49,7 @@
     <h5 class="card-title">My entries</h5>
     {% if entries %}
     <div class="table-responsive">
-      <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
+      <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "My entries" %}</caption>
         <thead><tr><th>Date</th><th>Class / Subject</th><th>Title</th><th>Status</th></tr></thead>
         <tbody>
@@ -73,4 +77,5 @@
   </div>
 </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

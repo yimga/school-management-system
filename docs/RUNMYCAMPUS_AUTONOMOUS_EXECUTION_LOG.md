@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Zero-Friction wave 16 portal/evals zone (2026-06-08)
+
+**A. Scope:** Portal KB/support/signatures + evals grading friction burndown (follow-up to wave 15 backend zone).
+
+**B. Shipped:** `codemod_zero_friction_wave16_portal_evals.py` (84 templates); ledger **1599→1531** high-friction count; register flag `portal_evals_wave16_burndown`.
+
+**C. Proof:** **ZERO_FRICTION_JOURNEYS_PASS**; SW **`sms-v4.03.20-portal-evals-wave16-2026-06-08`**.
+
+**D. Honest:** Phase 6 still PARTIAL (~1,531); finance/analytics/siteconfig zones next. Render stuck-tenant recovery still ops-only — send exact slug for tailored `activate_pending_signup_schools` one-liner.
+
 ## Slice - Zero-Friction wave 15 backend zone (2026-06-08)
 
 **A. Scope:** Backend / people roster friction burndown (school command center + roster CRUD).

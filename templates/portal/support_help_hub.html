@@ -7,6 +7,10 @@
 {% block page_archetype %}support-hub{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
@@ -16,7 +20,7 @@
 </div>
 
 {% if not school %}
-<div class="alert alert-info">{% trans "No school context on this request. Sign in from your school portal link to see your tickets and contacts." %}</div>
+{% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("{% trans "No school context on this request. Sign in from your school portal link to see your tickets and contacts." %}") message=_("Nothing here yet — check back after your school adds data.") %}
 {% endif %}
 
 <div class="row g-3 mb-4 rmc-reveal-stagger">
@@ -87,7 +91,7 @@
   <div class="card-body p-0">
     {% if my_tickets %}
     <div class="table-responsive">
-      <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
+      <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Escalation" %}</caption>
         <thead class="table-light">
           <tr>

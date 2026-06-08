@@ -7,6 +7,10 @@
 {% blocktrans asvar rc_title with t=rc_student_sg %}Take {{ t }} attendance{% endblocktrans %}
 {% block title %}{{ rc_title }}{% endblock %}
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div data-rmc-scroll-policy="paginate">
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ rc_title }}</h1>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
@@ -87,7 +91,7 @@
                data-attendance-scope="student"
                data-attendance-classroom-id="{{ classroom.id }}"
                data-attendance-status-choices='{{ status_choices_json|default:"[]" }}'>
-            <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1">
+            <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{{ classroom.name }} – {{ date_value }}</caption>
               <thead class="table-light">
                 <tr>
@@ -132,4 +136,5 @@
   {% comment %} v4.00.7: progressive WAL enhancement. No-op when window.rmcWAL is absent. {% endcomment %}
   <script src="{% static 'js/_pages/rmc-attendance-wal-enhance.js' %}" defer></script>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

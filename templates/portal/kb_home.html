@@ -6,6 +6,8 @@
 {% block title %}Knowledge Base - Help Center{% endblock %}
 
 {% block content %}
+{% include "components/next_action_strip.html" %}
+
 {% comment %} Phase H: KB home read-shell skip target (distinct from portal #main-content). {% endcomment %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#kb-main-content" style="z-index: 1080;">{% trans "Skip to Knowledge Base content" %}</a>
 <div
@@ -17,7 +19,7 @@
 >
 <script src="{% static 'js/_pages/portal__kb_home.js' %}"></script>
 
-<div class="container-fluid py-2 mb-4 rounded-3" style="background: linear-gradient(135deg, var(--school-primary, #4f46e5), var(--school-accent, #10b981)); color: var(--text-on-brand);" data-dashboard-column="hero" data-widget-id="kb-hero">
+<div class="container-fluid py-2 mb-4 rounded-3" style="background: linear-gradient(135deg, var(--school-primary, #4f46e5), var(--school-accent, #10b981)); color: var(--text-on-brand);" data-dashboard-column="hero" data-widget-id="kb-hero" data-rmc-scroll-policy="paginate">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-8">

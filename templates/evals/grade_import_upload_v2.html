@@ -8,7 +8,9 @@
 {% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid mt-4" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid mt-4" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
     <div class="row">
         <div class="col-12">
             <h1 class="mb-4">

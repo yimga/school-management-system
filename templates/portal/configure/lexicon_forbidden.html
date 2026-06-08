@@ -2,7 +2,11 @@
 {% load i18n %}
 {% block title %}{% trans "Permission required" %}{% endblock %}
 {% block content %}
-<div class="container py-5">
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div data-rmc-scroll-policy="paginate" class="container py-5">
   <h1 class="h3">{% trans "Permission required" %}</h1>
   <p class="text-muted">{% blocktrans %}Only school administrators and principals can edit terminology. Ask your school admin if you need to change a term.{% endblocktrans %}</p>
 </div>
