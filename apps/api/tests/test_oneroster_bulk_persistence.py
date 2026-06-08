@@ -171,30 +171,43 @@ class OneRosterBulkPersistenceTests(TestCase):
             is_active=True,
         )
         url = reverse("api:api-roster-v1p2-classes-bulk")
+        idempotency_key = uuid.uuid4().hex
+        request_body = {
+            "classes": [
+                {
+                    "sourcedId": "class-bio-101",
+                    "title": "Biology 101",
+                    "classCode": "BIO101",
+                    "schoolSourcedId": self.school.slug,
+                }
+            ]
+        }
         response = self.client.post(
             url,
-            data={
-                "classes": [
-                    {
-                        "sourcedId": "class-bio-101",
-                        "title": "Biology 101",
-                        "classCode": "BIO101",
-                        "schoolSourcedId": self.school.slug,
-                    }
-                ]
-            },
+            data=request_body,
             content_type="application/json",
-            HTTP_IDEMPOTENCY_KEY=uuid.uuid4().hex,
+            HTTP_IDEMPOTENCY_KEY=idempotency_key,
+            **self.headers,
+        )
+        replay = self.client.post(
+            url,
+            data=request_body,
+            content_type="application/json",
+            HTTP_IDEMPOTENCY_KEY=idempotency_key,
             **self.headers,
         )
         self.assertEqual(response.status_code, 207)
+        self.assertEqual(replay.status_code, 207)
+        self.assertEqual(replay["Idempotency-Replay"], "true")
         payload = response.json()
         self.assertEqual(payload["summary"]["created"], 1)
-        classroom = Classroom.objects.filter(
+        classrooms = Classroom.objects.filter(
             school=self.school,
             name="Biology 101",
-        ).first()
+        )
+        classroom = classrooms.first()
         self.assertIsNotNone(classroom)
+        self.assertEqual(classrooms.count(), 1)
         self.assertTrue(str(classroom.code).endswith("BIO101"))
 
     def test_enrollments_bulk_binds_student_to_classroom(self):
@@ -252,3 +265,17 @@ class OneRosterBulkPersistenceTests(TestCase):
         self.assertEqual(payload["summary"]["created"], 1)
         student.refresh_from_db()
         self.assertEqual(student.classroom_id, classroom.pk)
+
+        read_response = self.client.get(
+            reverse("api:api-roster-v1p2-enrollments"),
+            **self.headers,
+        )
+        self.assertEqual(read_response.status_code, 200)
+        enrollment_rows = read_response.json()["enrollments"]
+        self.assertTrue(
+            any(
+                row["userSourcedId"] == str(user.pk)
+                and row["classSourcedId"] == str(classroom.pk)
+                for row in enrollment_rows
+            )
+        )
