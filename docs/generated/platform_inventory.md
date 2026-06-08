@@ -1,24 +1,24 @@
 # Platform Inventory
 
 - Installed app modules: `54`
-- Python files: `6221`
-- HTML templates: `1645`
+- Python files: `6233`
+- HTML templates: `1646`
 - Markdown files: `1602`
 - Migration files: `991`
-- Management commands: `284` (full list in JSON key `management_commands_list`)
+- Management commands: `285` (full list in JSON key `management_commands_list`)
 - `SiteSettings` refs (gross scan): `2469`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `214`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `161`
 - `get_solo()` refs: `213`
-- `except Exception`: `2550`
+- `except Exception`: `2551`
 - `cursor.execute()` (gross): `413`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `44`
 - `csrf_exempt` (substring, gross): `680`
 - `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `110`
 - `AllowAny`: `173`
-- `print()` (gross all `.py`): `4242`
-- `print()` (`apps` product paths): `0`; `scripts/`: `4057`
-- `gilead` matches (gross corpus): `16835` across `231` files
+- `print()` (gross all `.py`): `4264`
+- `print()` (`apps` product paths): `0`; `scripts/`: `4079`
+- `gilead` matches (gross corpus): `16841` across `234` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -26,7 +26,7 @@ Gross totals include migrations and broad file pools; use **scoped** lines aroun
 
 ## Management Commands (full list)
 
-Total: `284` commands. First 25 by app/command:
+Total: `285` commands. First 25 by app/command:
 
 - `academics` / `export_certification_pack` — `apps/academics/management/commands/export_certification_pack.py`
 - `academics` / `fix_term_positions` — `apps/academics/management/commands/fix_term_positions.py`
@@ -53,7 +53,7 @@ Total: `284` commands. First 25 by app/command:
 - `analytics` / `ai_narrate_risk_digest` — `apps/analytics/management/commands/ai_narrate_risk_digest.py`
 - `analytics` / `bootstrap_at_risk_registry` — `apps/analytics/management/commands/bootstrap_at_risk_registry.py`
 - `analytics` / `build_student_embeddings` — `apps/analytics/management/commands/build_student_embeddings.py`
-- … and 259 more (see `platform_inventory.json` key `management_commands_list`).
+- … and 260 more (see `platform_inventory.json` key `management_commands_list`).
 
 ## Public Endpoint Review
 
@@ -78,7 +78,7 @@ Total: `284` commands. First 25 by app/command:
 ## Largest Python Files
 
 - `apps/siteconfig/_seed_country_localization.py`: `16897` lines / `1225749` bytes
-- `apps/siteconfig/forms_cockpit.py`: `5088` lines / `206605` bytes
+- `apps/siteconfig/forms_cockpit.py`: `5127` lines / `208363` bytes
 - `config/settings.py`: `3504` lines / `170709` bytes
 - `apps/schools/marketing_views.py`: `4175` lines / `167786` bytes
 - `apps/api/saml.py`: `3487` lines / `147039` bytes

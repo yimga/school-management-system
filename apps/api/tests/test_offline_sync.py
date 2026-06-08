@@ -201,3 +201,39 @@ class OfflinePaymentSyncBatchTests(TestCase):
         intent = OfflinePaymentIntent.objects.get(invoice=self.invoice)
         self.assertEqual(intent.amount, Decimal("50.00"))
         self.assertEqual(intent.payment_method, PaymentMethodCode.CASH)
+
+
+class OfflineQueueEncryptionKeyAPITestCase(TestCase):
+    """Session-scoped queue encryption key for SW AES-GCM at rest (batch 1651)."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="queue_enc_user",
+            password="testpass123",
+        )
+        site = get_platform_site_settings_record(create=True)
+        bff = dict(site.get_backend_feature_flags())
+        bff["enable_offline_queue_encryption"] = True
+        site.apply_feature_control_state(
+            backend_feature_flags=bff,
+            field_updates={"enable_offline_mode": True},
+        )
+
+    def test_encryption_key_requires_session(self):
+        self.client.force_login(self.user)
+        url = reverse("api:offline-encryption-key")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("key_b64", data)
+        self.assertTrue(len(data["key_b64"]) >= 40)
+
+    def test_encryption_key_disabled_when_flag_off(self):
+        site = get_platform_site_settings_record(create=True)
+        bff = dict(site.get_backend_feature_flags())
+        bff["enable_offline_queue_encryption"] = False
+        site.apply_feature_control_state(backend_feature_flags=bff, field_updates={})
+        self.client.force_login(self.user)
+        url = reverse("api:offline-encryption-key")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)

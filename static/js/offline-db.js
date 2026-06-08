@@ -7,7 +7,7 @@
   'use strict';
 
   var DB_NAME = 'sms-offline-mirror';
-  var DB_VERSION = 3;
+  var DB_VERSION = 4;
   var db = null;
 
   function getDexie() {
@@ -35,6 +35,7 @@
         classrooms: 'id, school_id, updated_at',
         ocr_corrections: 'original, corrected, updated_at',
         outbox: 'id, ts, action_type, synced',
+        kb_articles: 'id, slug, locale, updated_at',
       });
       return db.open().then(function () { return db; });
     } catch (err) {
@@ -116,6 +117,7 @@
         database.classrooms.clear(),
         database.ocr_corrections.clear(),
         database.outbox.clear(),
+        database.kb_articles.clear(),
       ]);
     });
   }
@@ -206,6 +208,19 @@
         id: item.id,
         student_id: item.student_id || (item.student && item.student.id) || item.student,
         subject_assignment_id: item.subject_assignment_id || (item.subject_assignment && item.subject_assignment.id) || item.subject_assignment,
+        updated_at: item.updated_at || null,
+      };
+    },
+    kb_article: function (item) {
+      return {
+        id: item.id,
+        slug: item.slug || String(item.id),
+        title: item.title || '',
+        summary: item.summary || '',
+        content: item.content || '',
+        locale: item.locale || 'en',
+        locale_group_id: item.locale_group_id || '',
+        has_odt: !!item.has_odt,
         updated_at: item.updated_at || null,
       };
     },

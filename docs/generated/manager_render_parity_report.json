@@ -6,14 +6,16 @@
     "RENDER_PARITY_BASE_URL": {
       "url": "https://school-management-system-2kzk.onrender.com",
       "ok": true,
-      "commit_sha": "bb75e2eb56be66637ee6cbc01b31802c1579219f",
+      "commit_sha": "680796575f475acdfb23a2dc137f344c808f58fe",
       "build_time": "unknown",
       "probe_path": "/-/version/"
     },
     "MANAGER_PARITY_BASE_URL": {
       "url": "https://manager.runmycampus.com",
-      "ok": false,
-      "error": "https://manager.runmycampus.com/-/version/: <urlopen error [Errno 11001] getaddrinfo failed>; https://manager.runmycampus.com/api/system/version/ content-type='text/html; charset=utf-8' body[:120]='\\n<!doctype html>\\n<html lang=\"en\" dir=\"ltr\" data-rmc-auth-landing=\"1\" data-rmc-regional-ui=\"1\" data-theme=\"light\" data-bs'; https://manager.runmycampus.com/version.json content-type='text/html; charset=utf-8' body[:120]='\\n<!doctype html>\\n<html lang=\"en\" dir=\"ltr\" data-rmc-auth-landing=\"1\" data-rmc-regional-ui=\"1\" data-theme=\"light\" data-bs'"
+      "ok": true,
+      "commit_sha": "680796575f475acdfb23a2dc137f344c808f58fe",
+      "build_time": "unknown",
+      "probe_path": "/-/version/"
     }
   }
 }

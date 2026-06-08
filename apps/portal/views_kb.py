@@ -373,6 +373,11 @@ def kb_article(request, article_slug):
         "comments": comments,
         "related_articles": related_articles,
         "is_operator_help": is_operator_help_request(request),
+        "can_reimport_odt": (
+            request.user.is_authenticated
+            and request.user.is_staff
+            and article.status in {"PUBLISHED", "UPDATED"}
+        ),
     }
     from apps.portal.operator_kb_render import render_kb_if_operator
 

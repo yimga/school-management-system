@@ -1,0 +1,86 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Documentation hub" %}{% endblock %}
+{% block content %}
+<div class="container py-4" data-page-archetype="operational-workbench" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required">
+  <nav class="rmc-section-nav mb-3" aria-label="{% trans 'Documentation sections' %}">
+    <a class="rmc-section-nav__link" href="#kb-articles" data-rmc-section-anchor>{% trans "Articles" %}</a>
+    <a class="rmc-section-nav__link" href="#office-docs" data-rmc-section-anchor>{% trans "Office documents" %}</a>
+    <a class="rmc-section-nav__link" href="#compose-actions" data-rmc-section-anchor>{% trans "Compose" %}</a>
+  </nav>
+
+  <header class="mb-4">
+    <h1 class="h3 mb-2">{% trans "Documentation hub" %}</h1>
+    <p class="text-secondary mb-0">
+      {% trans "Knowledge base articles, LibreOffice templates, and round-trip ODT import — for your school and platform operators." %}
+    </p>
+  </header>
+
+  <section id="compose-actions" class="mb-4">
+    <h2 class="h5">{% trans "Compose & import" %}</h2>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-primary" href="{% url 'kb:kb_office_upload' %}">{% trans "Upload office file" %}</a>
+      <a class="btn btn-outline-primary" href="{% url 'kb:kb_article_submit' %}">{% trans "Submit KB article" %}</a>
+      <a class="btn btn-outline-secondary" href="{% url 'kb:kb_home' %}">{% trans "Browse KB home" %}</a>
+      <a class="btn btn-outline-secondary" href="{% url 'kb:office_document_list' %}">{% trans "Office document list" %}</a>
+    </div>
+    {% if not collabora_enabled %}
+    <p class="small text-secondary mt-2 mb-0">
+      {% trans "Live browser editing needs Collabora (COLLABORA_BASE_URL). Headless PDF/DOCX export works without it." %}
+    </p>
+    {% endif %}
+  </section>
+
+  <section id="kb-articles" class="mb-4">
+    <h2 class="h5">{% trans "Recent articles" %} <span class="badge text-bg-secondary">{{ article_count }}</span></h2>
+    <div class="table-responsive">
+      <table class="table table-sm rmc-data-table align-middle">
+        <caption class="visually-hidden">{% trans "Recent knowledge base articles" %}</caption>
+        <thead><tr><th>{% trans "Title" %}</th><th>{% trans "Category" %}</th><th></th></tr></thead>
+        <tbody>
+          {% for article in recent_articles %}
+          <tr>
+            <td>{{ article.title }}</td>
+            <td>{{ article.category.name }}</td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'kb:kb_article' article.slug %}">{% trans "Read" %}</a>
+              {% if article.odt_file %}
+              <a class="btn btn-sm btn-outline-success" href="{% url 'kb:kb_article_download_odt' article.slug %}">ODT</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3">{% include "components/tp_empty.html" with tp_empty_title=_("No articles yet") tp_empty_hint=_("Submit an article or import an ODT file.") %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="office-docs">
+    <h2 class="h5">{% trans "Office documents" %}</h2>
+    <div class="table-responsive">
+      <table class="table table-sm rmc-data-table align-middle">
+        <caption class="visually-hidden">{% trans "Hosted office documents" %}</caption>
+        <thead><tr><th>{% trans "Title" %}</th><th>{% trans "Audience" %}</th><th>{% trans "Updated" %}</th><th></th></tr></thead>
+        <tbody>
+          {% for doc in office_documents %}
+          <tr>
+            <td>{{ doc.title }}</td>
+            <td>{{ doc.help_audience }}</td>
+            <td>{{ doc.updated_at|date:"SHORT_DATE_FORMAT" }}</td>
+            <td class="text-end text-nowrap">
+              <a class="btn btn-sm btn-primary" href="{% url 'kb:office_document_open' doc.id %}">{% trans "Open" %}</a>
+              <a class="btn btn-sm btn-outline-danger" href="{% url 'kb:office_document_preview_pdf' doc.id %}" target="_blank" rel="noopener">PDF</a>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'kb:office_document_download' doc.id %}?format=docx">DOCX</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4">{% include "components/tp_empty.html" with tp_empty_title=_("No office documents") tp_empty_hint=_("Upload ODT, DOCX, ODS, or ODP files to share templates.") %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

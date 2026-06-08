@@ -96,13 +96,15 @@ function auditFn({ SECTIONS, EPS, width }) {
   }
 
   const mapCell = document.querySelector('.lx-world__map');
-  const mapSvg = document.querySelector('.lx-world__svg');
-  if (mapCell && mapSvg) {
+  const mapSvg = document.querySelector('.lx-world__svg-fallback');
+  const mapGlobe = document.querySelector('.lx-world__globe');
+  if (mapCell && (mapSvg || mapGlobe)) {
     const c = mapCell.getBoundingClientRect();
-    const s = mapSvg.getBoundingClientRect();
+    const vis = mapGlobe || mapSvg;
+    const s = vis.getBoundingClientRect();
     out.map = { cellH: +c.height.toFixed(1), svgH: +s.height.toFixed(1) };
-    if (s.height > c.height + 4) out.violations.push(`MAP-BALLOON: svg h=${s.height.toFixed(0)} > cell h=${c.height.toFixed(0)}`);
-    if (s.bottom > c.bottom + 4) out.violations.push(`MAP-SPILL: svg bottom=${s.bottom.toFixed(0)} > cell bottom=${c.bottom.toFixed(0)}`);
+    if (s.height > c.height + 4) out.violations.push(`MAP-BALLOON: map h=${s.height.toFixed(0)} > cell h=${c.height.toFixed(0)}`);
+    if (s.bottom > c.bottom + 4) out.violations.push(`MAP-SPILL: map bottom=${s.bottom.toFixed(0)} > cell bottom=${c.bottom.toFixed(0)}`);
     if (c.height > 340) out.violations.push(`MAP-TALL: cell h=${c.height.toFixed(0)} > 340 cap`);
   }
 

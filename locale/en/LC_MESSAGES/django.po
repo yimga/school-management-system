@@ -51688,3 +51688,151 @@ msgstr "rising"
 
 msgid "steady"
 msgstr "steady"
+
+msgid ""
+"Add office templates (ODT, DOCX, spreadsheets, slides) or import a Writer "
+"file into the knowledge base for review."
+msgstr ""
+"Add office templates (ODT, DOCX, spreadsheets, slides) or import a Writer "
+"file into the knowledge base for review."
+
+msgid "Article title"
+msgstr "Article title"
+
+msgid "Back to documentation hub"
+msgstr "Back to documentation hub"
+
+msgid "Browse KB home"
+msgstr "Browse KB home"
+
+msgid "Collabora is not configured. Set"
+msgstr "Collabora is not configured. Set"
+
+msgid ""
+"Collabora not configured — use headless PDF/DOCX export or set "
+"COLLABORA_BASE_URL for live editing."
+msgstr ""
+"Collabora not configured — use headless PDF/DOCX export or set "
+"COLLABORA_BASE_URL for live editing."
+
+msgid "Compose"
+msgstr "Compose"
+
+msgid "Compose & import"
+msgstr "Compose & import"
+
+msgid "Documentation hub"
+msgstr "Documentation hub"
+
+msgid "Documentation sections"
+msgstr "Documentation sections"
+
+msgid ""
+"Drag to rotate the globe; scroll to zoom. Markers show tenant status by "
+"region."
+msgstr ""
+"Drag to rotate the globe; scroll to zoom. Markers show tenant status by "
+"region."
+
+msgid "Hosted office documents"
+msgstr "Hosted office documents"
+
+msgid "Import ODT to KB"
+msgstr "Import ODT to KB"
+
+msgid "Import as pending KB article"
+msgstr "Import as pending KB article"
+
+msgid "Import pending article"
+msgstr "Import pending article"
+
+msgid "Import to KB (ODT)"
+msgstr "Import to KB (ODT)"
+
+msgid ""
+"Knowledge base articles, LibreOffice templates, and round-trip ODT import — "
+"for your school and platform operators."
+msgstr ""
+"Knowledge base articles, LibreOffice templates, and round-trip ODT import — "
+"for your school and platform operators."
+
+msgid "LibreOffice templates, ODT import, PDF export."
+msgstr "LibreOffice templates, ODT import, PDF export."
+
+msgid ""
+"Live browser editing needs Collabora (COLLABORA_BASE_URL). Headless PDF/DOCX"
+" export works without it."
+msgstr ""
+"Live browser editing needs Collabora (COLLABORA_BASE_URL). Headless PDF/DOCX"
+" export works without it."
+
+msgid "Office + ODT import"
+msgstr "Office + ODT import"
+
+msgid "Office document"
+msgstr "Office document"
+
+msgid "Office document list"
+msgstr "Office document list"
+
+msgid "Office list"
+msgstr "Office list"
+
+msgid ""
+"Operator documentation: platform runbooks, office templates, and KB articles"
+" on the manager host."
+msgstr ""
+"Operator documentation: platform runbooks, office templates, and KB articles"
+" on the manager host."
+
+msgid "Outputs ready"
+msgstr "Outputs ready"
+
+msgid "PDF/DOCX download still works via LibreOffice headless."
+msgstr "PDF/DOCX download still works via LibreOffice headless."
+
+msgid "Recent articles"
+msgstr "Recent articles"
+
+msgid "Recent knowledge base articles"
+msgstr "Recent knowledge base articles"
+
+msgid "Select category"
+msgstr "Select category"
+
+msgid "Submit KB article"
+msgstr "Submit KB article"
+
+msgid "Submit article"
+msgstr "Submit article"
+
+msgid "Summary (optional)"
+msgstr "Summary (optional)"
+
+msgid "Upload / import"
+msgstr "Upload / import"
+
+msgid "Upload document"
+msgstr "Upload document"
+
+msgid "Upload office document"
+msgstr "Upload office document"
+
+msgid "Upload office file"
+msgstr "Upload office file"
+
+msgid "Upload or import"
+msgstr "Upload or import"
+
+msgid ""
+"Upload platform office templates or import Writer files into the operator "
+"knowledge base."
+msgstr ""
+"Upload platform office templates or import Writer files into the operator "
+"knowledge base."
+
+msgid "Workflows healthy"
+msgstr "Workflows healthy"
+
+msgid "Writer file (ODT, DOCX, RTF, TXT)"
+msgstr "Writer file (ODT, DOCX, RTF, TXT)"

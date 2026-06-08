@@ -168,8 +168,10 @@ class KBArticleAdmin(admin.ModelAdmin):
         "title_short",
         "category",
         "status",
+        "locale",
         "difficulty",
         "author",
+        "odt_present",
         "view_count",
         "helpful_percentage_display",
         "is_featured",
@@ -179,6 +181,8 @@ class KBArticleAdmin(admin.ModelAdmin):
         "status",
         "difficulty",
         "category",
+        "help_audience",
+        "locale",
         "is_featured",
         "published_at",
         "created_at",
@@ -195,7 +199,7 @@ class KBArticleAdmin(admin.ModelAdmin):
     ]
     list_editable = ["status", "is_featured", "help_audience"]
     filter_horizontal = ["related_articles", "contributors"]
-    actions = ["publish_articles", "archive_articles", "feature_articles"]
+    actions = ["publish_articles", "archive_articles", "feature_articles", "regenerate_odt_files"]
     inlines = [KBArticleAttachmentInline]
 
     fieldsets = (
@@ -222,6 +226,33 @@ class KBArticleAdmin(admin.ModelAdmin):
                     "help_audience",
                     "related_articles",
                 )
+            },
+        ),
+        (
+            _("Locale & translation"),
+            {
+                "fields": (
+                    "locale",
+                    "locale_group_id",
+                    "translation_of",
+                )
+            },
+        ),
+        (
+            _("Office export"),
+            {"fields": ("odt_file",)},
+        ),
+        (
+            _("Tenant scope"),
+            {
+                "fields": (
+                    "school",
+                    "is_global_article",
+                    "country_code",
+                    "education_type",
+                    "plan_tier",
+                ),
+                "classes": ("collapse",),
             },
         ),
         (
@@ -255,6 +286,12 @@ class KBArticleAdmin(admin.ModelAdmin):
 
     title_short.short_description = _("Title")
 
+    def odt_present(self, obj):
+        return bool(obj.odt_file)
+
+    odt_present.boolean = True
+    odt_present.short_description = _("ODT")
+
     def helpful_percentage_display(self, obj):
         percentage = obj.helpful_percentage
         color = "green" if percentage >= 70 else "orange" if percentage >= 50 else "red"
@@ -285,6 +322,21 @@ class KBArticleAdmin(admin.ModelAdmin):
         self.message_user(request, _("Selected articles have been featured."))
 
     feature_articles.short_description = _("Feature selected articles")
+
+    def regenerate_odt_files(self, request, queryset):
+        from apps.portal.kb_office_service import regenerate_kb_article_odt
+
+        ok = 0
+        for article in queryset:
+            if regenerate_kb_article_odt(article):
+                ok += 1
+        self.message_user(
+            request,
+            _("Regenerated ODT for %(ok)s of %(total)s selected articles.")
+            % {"ok": ok, "total": queryset.count()},
+        )
+
+    regenerate_odt_files.short_description = _("Regenerate ODT from article content")
 
 
 @admin.register(KBArticleAttachment)

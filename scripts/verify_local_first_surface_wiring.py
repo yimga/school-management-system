@@ -27,9 +27,8 @@ REQUIRED_MARKERS = (
     "templates/people/backend_applicant_create.html",
 )
 
-PORTAL_SNIPPETS = (
-    "deltaEndpointUrl",
-    "hydrateEndpoints",
+PORTAL_OFFLINE_WIRING = (
+    "partials/rmc_sms_offline_config.html",
     "rmc-offline-portal-forms.js",
 )
 
@@ -38,9 +37,15 @@ def main() -> int:
     findings: list[str] = []
 
     portal = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8", errors="replace")
-    for needle in PORTAL_SNIPPETS:
+    for needle in PORTAL_OFFLINE_WIRING:
         if needle not in portal:
             findings.append(f"portal_base.html missing {needle}")
+
+    psc = (ROOT / "apps/siteconfig/platform_surface_config.py").read_text(
+        encoding="utf-8", errors="replace"
+    )
+    if "deltaEndpointUrl" not in psc or "hydrateEndpoints" not in psc:
+        findings.append("platform_surface_config missing deltaEndpointUrl/hydrateEndpoints")
 
     js = (ROOT / "static/js/rmc-offline-portal-forms.js").read_text(encoding="utf-8", errors="replace")
     if "function wireFieldCapture" not in js:

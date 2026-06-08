@@ -253,6 +253,7 @@ class PrefetchUrlsAPI(APIView):
             "IT_ADMIN",
             "CENSOR",
             "BURSAR",
+            "SUPERADMIN",
         ):
             urls = [
                 base + "/api/dashboard/admin/",
@@ -260,7 +261,21 @@ class PrefetchUrlsAPI(APIView):
                 base + "/api/attendance/",
                 base + "/api/entities/classrooms/",
                 base + "/portal/calendar/",
+                base + "/portal/api/v1/kb/offline-pack/",
+                base + "/portal/kb/docs-hub/",
             ]
+            if role == "SUPERADMIN" or getattr(request, "public_host_kind", "") == "manager":
+                urls.extend(
+                    [
+                        base + "/static/js/rmc-world-globe-loader.js",
+                        base + "/static/js/rmc-world-globe-bridge.js",
+                        base + "/static/js/dist/world-globe.vendor-three.js",
+                        base + "/static/js/dist/world-globe.vendor-gl.js",
+                        base + "/static/js/dist/world-globe.mount.js",
+                        base + "/static/geo/world-countries-110m.json",
+                        base + "/static/img/globe/earth-night-1k.jpg",
+                    ]
+                )
         elif role == User.Role.PARENT:
             urls = [base + "/api/dashboard/parent/"]
         elif role == User.Role.STUDENT:
@@ -331,3 +346,41 @@ class QueueMetricsAPI(APIView):
         key = tenant_cache_key(QUEUE_METRICS_CACHE_KEY, request)
         cache.set(key, payload, QUEUE_METRICS_CACHE_TIMEOUT)
         return Response({"ok": True})
+
+
+@extend_schema(
+    tags=["Offline Sync"],
+    summary="Session-scoped AES key for offline queue encryption at rest",
+    description=(
+        "Returns a base64-encoded 32-byte key derived from the Django secret and "
+        "the current session. Used by the service worker to AES-GCM-seal queued "
+        "mutation bodies in IndexedDB."
+    ),
+    responses={
+        200: inline_serializer(
+            name="OfflineQueueEncryptionKey",
+            fields={"key_b64": serializers.CharField()},
+        ),
+        403: OpenApiResponse(description="Offline sync disabled or encryption not enabled"),
+    },
+)
+class OfflineQueueEncryptionKeyAPI(APIView):
+    """GET: session-bound queue encryption key (never logged)."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from apps.api.offline_encryption import offline_queue_key_b64
+
+        offline_settings = _offline_runtime_settings(request)
+        if not bool(offline_settings.get("enable_offline_mode", False)):
+            return Response({"detail": "offline disabled"}, status=status.HTTP_403_FORBIDDEN)
+        flags = offline_settings.get("backend_feature_flags") or {}
+        if flags.get("enable_offline_queue_encryption") is False:
+            return Response({"detail": "encryption disabled"}, status=status.HTTP_403_FORBIDDEN)
+        session_key = getattr(request.session, "session_key", None) or ""
+        if not session_key:
+            return Response({"detail": "no session"}, status=status.HTTP_403_FORBIDDEN)
+        return Response(
+            {"key_b64": offline_queue_key_b64(user_id=request.user.pk, session_key=session_key)}
+        )

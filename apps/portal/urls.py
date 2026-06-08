@@ -69,6 +69,7 @@ from .views_support import (
     support_ticket_detail,
 )
 from .views_support_quick import kb_search_inline, support_quick_create
+from . import views_kb_offline
 from .views_offline_sync import (
     api_offline_apply_batch,
     api_offline_enqueue,
@@ -294,6 +295,7 @@ urlpatterns = [
     path("support/", support_request, name="support_request"),
     path("support/quick-create/", support_quick_create, name="support_quick_create"),
     path("api/v1/kb/search/", kb_search_inline, name="kb_search_inline"),
+    path("api/v1/kb/offline-pack/", views_kb_offline.api_kb_offline_pack, name="kb_offline_pack"),
     path("offline/sync-queue/", offline_sync_queue, name="offline_sync_queue"),
     path("offline/conflicts/", offline_sync_conflicts, name="offline_sync_conflicts"),
     path("api/offline/enqueue/", api_offline_enqueue, name="api_offline_enqueue"),

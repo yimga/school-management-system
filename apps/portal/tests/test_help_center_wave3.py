@@ -79,7 +79,7 @@ class HelpCenterWave3Tests(TestCase):
 
     def test_create_locale_variant(self):
         from apps.portal.models_kb import KBCategory
-        from apps.portal.kb_locale_ops import create_locale_variant
+        from apps.portal.kb_locale_ops import create_locale_variant, publish_locale_article
 
         cat = KBCategory.objects.create(name="Loc", slug="loc-cat", is_active=True)
         canonical = KBArticle.objects.create(
@@ -92,6 +92,9 @@ class HelpCenterWave3Tests(TestCase):
         variant = create_locale_variant(canonical, locale="fr")
         self.assertEqual(variant.locale, "fr")
         self.assertEqual(variant.translation_of_id, canonical.pk)
+        publish_locale_article(variant)
+        variant.refresh_from_db()
+        self.assertEqual(variant.status, "PUBLISHED")
 
     def test_module_inline_assistant_on_finance_dashboard(self):
         from apps.portal.help_proactive_inline import module_inline_assistant_for_request

@@ -72,6 +72,7 @@ from apps.schoolops.views_email_health import (
     EmailHealthStreamView,
     SmtpProbeJsonView,
 )
+from apps.siteconfig.views_globe_api import GlobeStreamView, globe_live_api, globe_markers_api
 from apps.schoolops.views_email_webhook import EmailProviderWebhookView
 from .views_signup_diagnostics import SignupDiagnosticsView
 from .super_views_signup_verifications import (
@@ -1238,6 +1239,21 @@ urlpatterns = [
         name="signup_diagnostics",
     ),  # rbac-allow: super-staff-signup-flow-diagnostics
     # v3.58.x Wave 9 Agent M — email reliability completion track.
+    path(
+        "api/globe/markers/",
+        globe_markers_api,
+        name="api_globe_markers",
+    ),  # rbac-allow: super-staff-globe-markers-api
+    path(
+        "api/globe/live/",
+        globe_live_api,
+        name="api_globe_live",
+    ),  # rbac-allow: super-staff-globe-live-api
+    path(
+        "api/globe/stream/",
+        GlobeStreamView.as_view(),
+        name="api_globe_stream",
+    ),  # rbac-allow: super-staff-globe-live-stream
     path(
         "email/health/stream/",
         EmailHealthStreamView.as_view(),

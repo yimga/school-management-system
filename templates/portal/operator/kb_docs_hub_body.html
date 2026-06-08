@@ -1,0 +1,29 @@
+{% load i18n static %}
+<link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
+<div class="rmc-kb-operator" data-rmc-scroll-policy="paginate">
+  <p class="text-secondary">{% trans "Operator documentation: platform runbooks, office templates, and KB articles on the manager host." %}</p>
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <a class="btn btn-primary btn-sm" href="{% url 'kb:kb_office_upload' %}">{% trans "Upload / import" %}</a>
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'kb:kb_article_submit' %}">{% trans "Submit article" %}</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'kb:office_document_list' %}">{% trans "Office list" %}</a>
+  </div>
+  {% if not collabora_enabled %}
+  <div class="alert alert-warning py-2">{% trans "Collabora not configured — use headless PDF/DOCX export or set COLLABORA_BASE_URL for live editing." %}</div>
+  {% endif %}
+  <h2 class="h6">{% trans "Articles" %} ({{ article_count }})</h2>
+  <ul class="list-unstyled mb-3">
+    {% for article in recent_articles %}
+    <li class="mb-1"><a href="{% url 'kb:kb_article' article.slug %}">{{ article.title }}</a></li>
+    {% empty %}<li class="text-tertiary">{% trans "None yet." %}</li>{% endfor %}
+  </ul>
+  <h2 class="h6">{% trans "Office documents" %}</h2>
+  <ul class="list-unstyled">
+    {% for doc in office_documents %}
+    <li class="mb-1">
+      {{ doc.title }}
+      <a class="btn btn-link btn-sm p-0" href="{% url 'kb:office_document_open' doc.id %}">{% trans "Open" %}</a>
+      <a class="btn btn-link btn-sm p-0" href="{% url 'kb:office_document_preview_pdf' doc.id %}" target="_blank" rel="noopener">PDF</a>
+    </li>
+    {% empty %}<li class="text-tertiary">{% trans "None yet." %}</li>{% endfor %}
+  </ul>
+</div>

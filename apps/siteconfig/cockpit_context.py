@@ -139,6 +139,42 @@ def _deep_merge(base: Any, override: Any) -> Any:
     return override
 
 
+def _ensure_world_map_globe_json(cockpit: dict[str, Any]) -> None:
+    """Serialize globe_payload for CSP-safe template bootstrap; sync auto-rotate."""
+    lwm = cockpit.get("live_world_map") or {}
+    if not isinstance(lwm, dict) or not lwm.get("enabled"):
+        return
+    import json
+
+    from apps.siteconfig.world_map_geo import build_globe_payload, enrich_regional_breakdown
+
+    if lwm.get("globe_payload_json") and not lwm.get("globe_payload"):
+        try:
+            payload = json.loads(lwm["globe_payload_json"])
+        except (TypeError, ValueError):
+            payload = build_globe_payload([])
+    else:
+        payload = lwm.get("globe_payload") or build_globe_payload([])
+
+    if "globe_auto_rotate" in lwm:
+        payload["auto_rotate"] = bool(lwm.get("globe_auto_rotate"))
+    elif "auto_rotate" not in payload:
+        payload["auto_rotate"] = True
+
+    layout = (lwm.get("layout") or payload.get("layout") or "hero").strip().lower()
+    payload["layout"] = layout if layout in ("hero", "side") else "hero"
+    payload["tour_enabled"] = bool(lwm.get("tour_enabled", payload.get("tour_enabled", True)))
+
+    breakdown = lwm.get("regional_breakdown")
+    if isinstance(breakdown, list) and breakdown:
+        lwm["regional_breakdown"] = enrich_regional_breakdown(breakdown)
+
+    lwm["globe_payload"] = payload
+    lwm["globe_payload_json"] = json.dumps(payload)
+    lwm["svg_country_labels"] = payload.get("country_labels") or []
+    cockpit["live_world_map"] = lwm
+
+
 def _cockpit_preview_route(request) -> bool:
     path = (getattr(request, "path", "") or "").lower()
     return "/siteconfig/super/configure/cockpit/previews/" in path
@@ -931,6 +967,8 @@ def cockpit_context(request) -> dict[str, Any]:
             )
         except Exception:
             pass
+
+        _ensure_world_map_globe_json(manager_cockpit)
 
         rmc_page_help_on_copilot_rail = bool(
             (manager_cockpit.get("ai_copilot_rail") or {}).get("enabled")

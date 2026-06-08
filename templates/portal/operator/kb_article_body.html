@@ -12,6 +12,7 @@
     </ol>
   </nav>
   {% include "portal/partials/kb_ai_assistant_panel.html" with kb_article_slug=article.slug kb_article_title=article.title %}
+  {% include "portal/partials/kb_article_staff_reimport.html" %}
   <article class="card border-0 shadow-sm">
     <div class="card-body">
       <h1 class="h3 mb-3" id="kb-article-heading">{{ article.title }}</h1>

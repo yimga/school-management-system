@@ -179,9 +179,16 @@
 // Evaluation post-save, CA-mark input UI + migration 0050, monetization
 // admin inspector. theme-experience-premium
 // v4.01.57: workflow progress strip syncs all inline hosts (header + canvas).
-const CACHE_VERSION = "sms-v4.02.64-marketplace-lane2-closeout-2026-06-07";
+// v4.02.68: Global Footprint phase-3 closeout — city-level pins from settings.location; lazy rmc-world-globe-loader.js; operator globe_auto_rotate toggle synced via _ensure_world_map_globe_json.
+const CACHE_VERSION = "sms-v4.02.81-globe-svg-stage-mount-2026-06-07";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
+
+try {
+  importScripts("/static/js/rmc-offline-queue-crypto.js");
+} catch (_importErr) {
+  /* crypto helper optional at parse time; queue falls back to legacy encoding */
+}
 
 const SYNC_DB_NAME = "sms-offline-sync-db";
 const SYNC_DB_VERSION = 1;
@@ -296,6 +303,15 @@ const STATIC_ASSETS = [
   "/static/js/_pages/rmc-attendance-wal-enhance.js",
   "/static/js/_pages/rmc-ai-stream-bridge.js",
   "/static/js/_pages/rmc-gradebook-wal-enhance.js",
+  // v4.02.66: Global Footprint interactive globe (manager landing).
+  "/static/js/rmc-offline-queue-crypto.js",
+  "/static/js/rmc-world-globe-loader.js",
+  "/static/js/rmc-world-globe-bridge.js",
+  "/static/js/dist/world-globe.vendor-three.js",
+  "/static/js/dist/world-globe.vendor-gl.js",
+  "/static/js/dist/world-globe.mount.js",
+  "/static/geo/world-countries-110m.json",
+  "/static/img/globe/earth-night-1k.jpg",
   "/static/css/rmc-help-center-engage.css",
   "/static/css/rmc-kb-operator.css",
   "/static/images/logo.png",
@@ -364,6 +380,9 @@ self.addEventListener("message", (event) => {
   const data = event.data || {};
   if (data.type === "SET_OFFLINE_CONFIG" && data.payload && typeof data.payload === "object") {
     OFFLINE_CONFIG = { ...OFFLINE_CONFIG, ...data.payload };
+    if (typeof RmcOfflineQueueCrypto !== "undefined" && RmcOfflineQueueCrypto.resetKeyCache) {
+      RmcOfflineQueueCrypto.resetKeyCache();
+    }
     return;
   }
   if (data.type === "SKIP_WAITING") {
@@ -454,19 +473,22 @@ self.addEventListener("message", (event) => {
           .concat(attendance || [], grade || [], api || [])
           .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
           .slice(0, limit);
-        const items = all.map((it) => {
-          const url = it.requestUrl && it.requestUrl.startsWith("http") ? it.requestUrl : origin + (it.requestUrl || "");
-          const path = url.replace(origin, "") || "/";
-          let body = it.body;
-          if (typeof body === "string") body = maybeDecryptBody(body);
-          return { id: it.id, method: it.method || "POST", path, body };
+        return Promise.all(
+          all.map(async (it) => {
+            const url = it.requestUrl && it.requestUrl.startsWith("http") ? it.requestUrl : origin + (it.requestUrl || "");
+            const path = url.replace(origin, "") || "/";
+            let body = it.body;
+            if (typeof body === "string") body = await maybeDecryptBody(body);
+            return { id: it.id, method: it.method || "POST", path, body };
+          }),
+        ).then((items) => {
+          const source = event.source;
+          if (source) {
+            try {
+              source.postMessage({ type: "queue-items", items });
+            } catch (_err) {}
+          }
         });
-        const source = event.source;
-        if (source) {
-          try {
-            source.postMessage({ type: "queue-items", items });
-          } catch (_err) {}
-        }
       }),
     );
   }
@@ -839,7 +861,7 @@ async function replayQueue(syncType) {
       continue;
     }
     const url = item.requestUrl && item.requestUrl.startsWith("http") ? item.requestUrl : origin + (item.requestUrl || "");
-    const body = typeof item.body === "string" ? maybeDecryptBody(item.body) : (item.body || "");
+    const body = typeof item.body === "string" ? await maybeDecryptBody(item.body) : (item.body || "");
     const headers = { "Content-Type": "application/json" };
     if (item.headers && typeof item.headers === "object") {
       Object.keys(item.headers).forEach((k) => {
@@ -917,7 +939,7 @@ async function replayQueueLimit(syncType, limit) {
   const origin = self.location.origin;
   for (const item of toReplay) {
     const url = item.requestUrl && item.requestUrl.startsWith("http") ? item.requestUrl : origin + (item.requestUrl || "");
-    const body = typeof item.body === "string" ? maybeDecryptBody(item.body) : (item.body || "");
+    const body = typeof item.body === "string" ? await maybeDecryptBody(item.body) : (item.body || "");
     const headers = { "Content-Type": "application/json" };
     if (item.headers && typeof item.headers === "object") {
       Object.keys(item.headers).forEach((k) => {
@@ -987,17 +1009,42 @@ function openSyncDb() {
   });
 }
 
-/** Optional encryption: when OFFLINE_CONFIG.enableQueueEncryption and queueEncryptionKey are set, encrypt item.body before storing. */
-function maybeEncryptBody(body) {
-  if (!OFFLINE_CONFIG.enableQueueEncryption || !OFFLINE_CONFIG.queueEncryptionKey || typeof body !== "string") return body;
+/** Optional encryption: AES-GCM when queueEncryptionKey is set (batch 1651). */
+function queueKeyB64() {
+  if (!OFFLINE_CONFIG.enableQueueEncryption || !OFFLINE_CONFIG.queueEncryptionKey) return "";
+  return OFFLINE_CONFIG.queueEncryptionKey;
+}
+
+async function maybeEncryptBody(body) {
+  if (!OFFLINE_CONFIG.enableQueueEncryption || typeof body !== "string") return body;
+  const keyB64 = queueKeyB64();
+  if (!keyB64) return body;
+  if (typeof RmcOfflineQueueCrypto !== "undefined") {
+    try {
+      return await RmcOfflineQueueCrypto.encryptBody(body, keyB64);
+    } catch (_err) {
+      /* fall through */
+    }
+  }
   try {
     return btoa(encodeURIComponent(body));
   } catch (_) {
     return body;
   }
 }
-function maybeDecryptBody(body) {
-  if (!OFFLINE_CONFIG.enableQueueEncryption || !OFFLINE_CONFIG.queueEncryptionKey || typeof body !== "string") return body;
+
+async function maybeDecryptBody(body) {
+  if (typeof body !== "string") return body;
+  if (!OFFLINE_CONFIG.enableQueueEncryption) return body;
+  const keyB64 = queueKeyB64();
+  if (!keyB64) return body;
+  if (typeof RmcOfflineQueueCrypto !== "undefined") {
+    try {
+      return await RmcOfflineQueueCrypto.decryptBody(body, keyB64);
+    } catch (_err) {
+      /* fall through */
+    }
+  }
   try {
     return decodeURIComponent(atob(body));
   } catch (_) {
@@ -1007,7 +1054,7 @@ function maybeDecryptBody(body) {
 
 async function enqueueSyncItem(item) {
   const toStore = { ...item };
-  if (typeof toStore.body === "string") toStore.body = maybeEncryptBody(toStore.body);
+  if (typeof toStore.body === "string") toStore.body = await maybeEncryptBody(toStore.body);
   const db = await openSyncDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(SYNC_STORE, "readwrite");

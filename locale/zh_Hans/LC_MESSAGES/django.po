@@ -46049,3 +46049,137 @@ msgstr ""
 
 msgid "steady"
 msgstr ""
+
+msgid ""
+"Add office templates (ODT, DOCX, spreadsheets, slides) or import a Writer "
+"file into the knowledge base for review."
+msgstr ""
+
+msgid "Article title"
+msgstr ""
+
+msgid "Back to documentation hub"
+msgstr ""
+
+msgid "Browse KB home"
+msgstr ""
+
+msgid "Collabora is not configured. Set"
+msgstr ""
+
+msgid ""
+"Collabora not configured — use headless PDF/DOCX export or set "
+"COLLABORA_BASE_URL for live editing."
+msgstr ""
+
+msgid "Compose"
+msgstr ""
+
+msgid "Compose & import"
+msgstr ""
+
+msgid "Documentation hub"
+msgstr ""
+
+msgid "Documentation sections"
+msgstr ""
+
+msgid ""
+"Drag to rotate the globe; scroll to zoom. Markers show tenant status by "
+"region."
+msgstr ""
+
+msgid "Hosted office documents"
+msgstr ""
+
+msgid "Import ODT to KB"
+msgstr ""
+
+msgid "Import as pending KB article"
+msgstr ""
+
+msgid "Import pending article"
+msgstr ""
+
+msgid "Import to KB (ODT)"
+msgstr ""
+
+msgid ""
+"Knowledge base articles, LibreOffice templates, and round-trip ODT import — "
+"for your school and platform operators."
+msgstr ""
+
+msgid "LibreOffice templates, ODT import, PDF export."
+msgstr ""
+
+msgid ""
+"Live browser editing needs Collabora (COLLABORA_BASE_URL). Headless PDF/DOCX"
+" export works without it."
+msgstr ""
+
+msgid "Office + ODT import"
+msgstr ""
+
+msgid "Office document"
+msgstr ""
+
+msgid "Office document list"
+msgstr ""
+
+msgid "Office list"
+msgstr ""
+
+msgid ""
+"Operator documentation: platform runbooks, office templates, and KB articles"
+" on the manager host."
+msgstr ""
+
+msgid "Outputs ready"
+msgstr ""
+
+msgid "PDF/DOCX download still works via LibreOffice headless."
+msgstr ""
+
+msgid "Recent articles"
+msgstr ""
+
+msgid "Recent knowledge base articles"
+msgstr ""
+
+msgid "Select category"
+msgstr ""
+
+msgid "Submit KB article"
+msgstr ""
+
+msgid "Submit article"
+msgstr ""
+
+msgid "Summary (optional)"
+msgstr ""
+
+msgid "Upload / import"
+msgstr ""
+
+msgid "Upload document"
+msgstr ""
+
+msgid "Upload office document"
+msgstr ""
+
+msgid "Upload office file"
+msgstr ""
+
+msgid "Upload or import"
+msgstr ""
+
+msgid ""
+"Upload platform office templates or import Writer files into the operator "
+"knowledge base."
+msgstr ""
+
+msgid "Workflows healthy"
+msgstr ""
+
+msgid "Writer file (ODT, DOCX, RTF, TXT)"
+msgstr ""

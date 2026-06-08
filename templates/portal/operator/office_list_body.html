@@ -1,6 +1,10 @@
 {% load i18n static %}
 <link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
 <div class="rmc-kb-operator">
+  <div class="d-flex flex-wrap gap-2 mb-2">
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'kb:kb_docs_hub' %}">{% trans "Documentation hub" %}</a>
+    <a class="btn btn-sm btn-primary" href="{% url 'kb:kb_office_upload' %}">{% trans "Upload" %}</a>
+  </div>
   {% if not collabora_enabled %}
   <div class="alert alert-warning">{% trans "Collabora is not configured (COLLABORA_BASE_URL)." %}</div>
   {% endif %}
@@ -11,7 +15,10 @@
       <tr>
         <td>{{ doc.title }}</td>
         <td>{{ doc.help_audience }}</td>
-        <td><a class="btn btn-sm btn-primary" href="{% url 'kb:office_document_open' doc.id %}">{% trans "Open" %}</a></td>
+        <td class="text-nowrap">
+          <a class="btn btn-sm btn-primary" href="{% url 'kb:office_document_open' doc.id %}">{% trans "Open" %}</a>
+          <a class="btn btn-sm btn-outline-danger" href="{% url 'kb:office_document_preview_pdf' doc.id %}" target="_blank" rel="noopener">PDF</a>
+        </td>
       </tr>
       {% empty %}
       <tr><td colspan="3" class="text-tertiary">{% trans "No office documents." %}</td></tr>

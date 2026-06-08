@@ -81,25 +81,38 @@ def _ai_copilot_demo() -> dict[str, Any]:
 # ============================================================
 
 def _world_map_demo() -> dict[str, Any]:
+    import json
+
+    from apps.siteconfig.cockpit_panels_realdata_service import _world_map_tenant_dots
+    from apps.siteconfig.world_map_geo import build_globe_markers, build_globe_payload, enrich_regional_breakdown
+
+    demo_rows = [
+        {"country_code": "US", "is_frozen": False, "name": "Brookline Prep", "settings": {"location": {"city": "New York"}}},
+        {"country_code": "US", "is_frozen": False, "name": "Pacific Academy", "settings": {"location": {"city": "Los Angeles"}}},
+        {"country_code": "NG", "is_frozen": False, "name": "Saint Sebastien Academy", "settings": {"location": {"city": "Lagos"}}},
+        {"country_code": "GB", "is_active": False, "name": "Thames College", "settings": {"location": {"city": "London"}}},
+        {"country_code": "IN", "is_frozen": True, "name": "Delhi Tech High", "settings": {"location": {"city": "New Delhi"}}},
+    ]
+    markers = build_globe_markers(demo_rows)
+    globe_payload = build_globe_payload(markers, layout="hero", tour_enabled=True)
     return {
         "enabled": True,
         "eyebrow": _("Global footprint"),
         "schools_live": "127",
         "schools_live_label": _("schools live"),
         "subline": _("Across 14 districts · 9 countries · 3 time zones live"),
-        "regional_breakdown": [
-            {"label": _("North America"), "count": "62", "dot_color_token": "var(--success, #22c55e)"},
-            {"label": _("West Africa"), "count": "31", "dot_color_token": "var(--info, #60a5fa)"},
-            {"label": _("Europe"), "count": "22", "dot_color_token": "var(--warning, #f59e0b)"},
-            {"label": _("Asia · Oceania"), "count": "12", "dot_color_token": "var(--text-secondary, #64748b)"},
-        ],
-        "tenant_dots": [
-            {"cx": 180, "cy": 110, "color_token": "var(--success, #22c55e)", "ring_color": "rgba(34,197,94,0.32)", "delay_s": 0.0},
-            {"cx": 280, "cy": 180, "color_token": "var(--success, #22c55e)", "ring_color": "rgba(34,197,94,0.32)", "delay_s": 0.4},
-            {"cx": 350, "cy": 220, "color_token": "var(--info, #60a5fa)", "ring_color": "rgba(96,165,250,0.32)", "delay_s": 0.8},
-            {"cx": 470, "cy": 160, "color_token": "var(--warning, #f59e0b)", "ring_color": "rgba(245,158,11,0.32)", "delay_s": 1.2},
-            {"cx": 560, "cy": 240, "color_token": "var(--info, #60a5fa)", "ring_color": "rgba(96,165,250,0.32)", "delay_s": 1.6},
-        ],
+        "layout": "hero",
+        "tour_enabled": True,
+        "regional_breakdown": enrich_regional_breakdown([
+            {"label": _("North America"), "count": "62", "dot_color_token": "emerald"},
+            {"label": _("West Africa"), "count": "31", "dot_color_token": "indigo"},
+            {"label": _("Europe"), "count": "22", "dot_color_token": "amber"},
+            {"label": _("Asia · Oceania"), "count": "12", "dot_color_token": "rose"},
+        ]),
+        "tenant_dots": _world_map_tenant_dots(demo_rows),
+        "globe_payload": globe_payload,
+        "globe_payload_json": json.dumps(globe_payload),
+        "svg_country_labels": globe_payload.get("country_labels") or [],
     }
 
 

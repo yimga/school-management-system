@@ -32,6 +32,7 @@ the operator's cockpit_payload overlay. Operator overrides still win.
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 from datetime import timedelta
 from typing import Any
@@ -280,23 +281,17 @@ _WORLD_SPREAD_UNIT = [
 ]
 
 
-def _world_map_tenant_dots(active_schools) -> list[dict[str, Any]]:
-    """Per-tenant pulse dots for the live world map — geo-clustered by region
-    and COLOUR-CODED BY LIFECYCLE STATUS so operators can read the fleet at a
-    glance (the mockup's blinking-dot behaviour):
+# Max schools rendered on globe/SVG (clustering handles zoomed-out display).
+GLOBE_SCHOOL_ROW_CAP = 500
 
-        active / live  → emerald   frozen → blue   suspended → amber
 
-    Visual-only + capped so a large fleet stays legible; positions are
-    deterministic (stable across requests).
-    """
-    CAP = 120
+def _world_map_school_rows(active_schools) -> list[dict[str, Any]]:
+    """Cross-tenant school rows for the live world map (capped, status-aware)."""
+    cap = GLOBE_SCHOOL_ROW_CAP
     rows: list[dict[str, Any]] = list(
-        active_schools.values("country_code", "is_frozen")[:CAP]
+        active_schools.values("id", "slug", "name", "country_code", "is_frozen", "settings")[:cap]
     )
-    # Suspended (is_active=False, not soft-deleted) — guarded so a schema
-    # mismatch can never take the whole map down with it.
-    remaining = max(0, CAP - len(rows))
+    remaining = max(0, cap - len(rows))
     if remaining:
         try:
             from apps.schools.models import School
@@ -304,10 +299,24 @@ def _world_map_tenant_dots(active_schools) -> list[dict[str, Any]]:
             rows += [
                 {**r, "is_active": False}
                 for r in School.objects.filter(is_active=False, deleted_at__isnull=True)
-                .values("country_code", "is_frozen")[:remaining]
+                .values("id", "slug", "name", "country_code", "is_frozen", "settings")[:remaining]
             ]
         except Exception:
             logger.debug("panels: world_map suspended-dots query skipped", exc_info=True)
+    return rows
+
+
+def _world_map_globe_payload(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Interactive 3D globe bundle (lat/lng markers + dark cockpit theme)."""
+    from apps.siteconfig.world_map_geo import build_globe_markers, build_globe_payload
+
+    markers = build_globe_markers(rows)
+    return build_globe_payload(markers)
+
+
+def _world_map_tenant_dots(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Legacy SVG cx/cy dots — kept for preview HTML + graceful no-JS fallback."""
+    from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
     per_region: dict[str, int] = {}
     dots: list[dict[str, Any]] = []
@@ -317,9 +326,6 @@ def _world_map_tenant_dots(active_schools) -> list[dict[str, Any]]:
         region = _WORLD_BUCKET_FOR.get(cc, "Other")
         n = per_region.get(region, 0)
         per_region[region] = n + 1
-        # Cap visible pins per region to the spread pattern so they never
-        # overlap into a blob; the true per-region total still shows in the
-        # regional_breakdown legend rows.
         if n >= slots:
             continue
         cx0, cy0 = _WORLD_REGION_CENTERS.get(region, _WORLD_REGION_CENTERS["Other"])
@@ -329,19 +335,85 @@ def _world_map_tenant_dots(active_schools) -> list[dict[str, Any]]:
         cy = max(16.0, min(264.0, cy0 + uy * ry))
         if r.get("is_frozen"):
             color, ring_color, status_label = "#93c5fd", "#3b82f6", _("Frozen")
+            status_key = "frozen"
         elif r.get("is_active") is False:
             color, ring_color, status_label = "#fcd34d", "#f59e0b", _("Suspended")
+            status_key = "suspended"
         else:
             color, ring_color, status_label = "#6ee7b7", "#10b981", _("Active")
+            status_key = "active"
+        country_name = GlobalGeoCatalog.country_name(cc) if cc else ""
+        city = ""
+        settings = r.get("settings")
+        if isinstance(settings, dict):
+            location = settings.get("location")
+            if isinstance(location, dict):
+                city = (location.get("city") or location.get("label") or "").strip()
+        place_parts = [p for p in (city, country_name or cc, region) if p]
+        school_name = (r.get("name") or r.get("slug") or "").strip()
+        location_title = " · ".join(place_parts) if place_parts else str(status_label)
+        if school_name:
+            location_title = f"{school_name}: {location_title}"
         dots.append({
             "cx": round(cx, 1),
             "cy": round(cy, 1),
             "color_token": color,
             "ring_color": ring_color,
             "status_label": status_label,
+            "status": status_key,
+            "region": region,
+            "country_code": cc,
+            "country_name": country_name,
+            "location_title": location_title,
             "delay_s": round((i % 12) * 0.18, 2),
         })
     return dots
+
+
+def _world_map_footprint_stats(active_schools) -> dict[str, Any]:
+    """Live platform counts + regional legend rows (active schools only)."""
+    from django.utils.translation import ngettext
+
+    from apps.siteconfig.world_map_geo import enrich_regional_breakdown
+
+    total = active_schools.count()
+    buckets = {
+        "North America": 0,
+        "West Africa": 0,
+        "Europe": 0,
+        "Asia · Oceania": 0,
+        "Other": 0,
+    }
+    distinct_countries: set[str] = set()
+    for cc in active_schools.values_list("country_code", flat=True):
+        cc_upper = (cc or "").upper()
+        region = _WORLD_BUCKET_FOR.get(cc_upper, "Other")
+        buckets[region] = buckets.get(region, 0) + 1
+        if cc_upper.strip():
+            distinct_countries.add(cc_upper.strip())
+    regional_rows = [{"region": r, "count": c} for r, c in buckets.items() if c > 0]
+    regional_rows.sort(key=lambda row: row["count"], reverse=True)
+    dot_tokens = ("indigo", "emerald", "amber", "rose")
+    n_regions = len(regional_rows)
+    n_countries = len(distinct_countries)
+    if n_countries:
+        reg_txt = ngettext("%(n)d region", "%(n)d regions", n_regions) % {"n": n_regions}
+        cty_txt = ngettext("%(n)d country", "%(n)d countries", n_countries) % {"n": n_countries}
+        subline = _("Across %(reg)s · %(cty)s today") % {"reg": reg_txt, "cty": cty_txt}
+    else:
+        subline = _("Across all regions")
+    return {
+        "schools_live": total,
+        "subline": subline,
+        "regional_breakdown": enrich_regional_breakdown([
+            {
+                "label": row["region"],
+                "count": str(row["count"]),
+                "dot_color_token": dot_tokens[idx % len(dot_tokens)],
+            }
+            for idx, row in enumerate(regional_rows)
+        ]),
+    }
 
 
 def _resolve_world_map() -> dict[str, Any] | None:
@@ -353,70 +425,23 @@ def _resolve_world_map() -> dict[str, Any] | None:
         total = active_schools.count()
         if total == 0:
             return None
-        # Group by 5 wide regions via country_code prefix. The bucket map below
-        # is a coarse hand-curated grouping — fine-grained ISO→region work is
-        # the registries app's job and is deferred to a future wave.
-        buckets = {
-            "North America": 0,
-            "West Africa": 0,
-            "Europe": 0,
-            "Asia · Oceania": 0,
-            "Other": 0,
-        }
-        bucket_for = {
-            "US": "North America", "CA": "North America", "MX": "North America",
-            "NG": "West Africa", "GH": "West Africa", "CM": "West Africa",
-            "SL": "West Africa", "CI": "West Africa", "SN": "West Africa",
-            "GB": "Europe", "FR": "Europe", "DE": "Europe", "IE": "Europe",
-            "AU": "Asia · Oceania", "NZ": "Asia · Oceania", "IN": "Asia · Oceania",
-            "SG": "Asia · Oceania", "PH": "Asia · Oceania",
-        }
-        # v4.02.x ENRICH: count distinct real countries in the SAME pass so the
-        # subline reports a true footprint ("Across N regions · M countries
-        # today") instead of a static label. Blank country_code rows (schools
-        # created without a country) still bucket to "Other" but do NOT count
-        # toward distinct-countries — keeping the number honest.
-        distinct_countries: set[str] = set()
-        # tenant-isolation-allow: platform-cockpit-cross-tenant-world-map
-        for cc in active_schools.values_list("country_code", flat=True):
-            cc_upper = (cc or "").upper()
-            region = bucket_for.get(cc_upper, "Other")
-            buckets[region] = buckets.get(region, 0) + 1
-            if cc_upper.strip():
-                distinct_countries.add(cc_upper.strip())
-        regional_rows = [
-            {"region": r, "count": c}
-            for r, c in buckets.items() if c > 0
-        ]
-        regional_rows.sort(key=lambda row: row["count"], reverse=True)
-        dot_tokens = ("indigo", "emerald", "amber", "rose")
-        # Honest subline: only report counts we actually have. When NO school
-        # carries a country_code (distinct_countries == 0) we fall back to the
-        # neutral "Across all regions" rather than printing "0 countries".
-        n_regions = len(regional_rows)
-        n_countries = len(distinct_countries)
-        if n_countries:
-            from django.utils.translation import ngettext
-            reg_txt = ngettext("%(n)d region", "%(n)d regions", n_regions) % {"n": n_regions}
-            cty_txt = ngettext("%(n)d country", "%(n)d countries", n_countries) % {"n": n_countries}
-            subline = _("Across %(reg)s · %(cty)s today") % {"reg": reg_txt, "cty": cty_txt}
-        else:
-            subline = _("Across all regions")
+        stats = _world_map_footprint_stats(active_schools)
+        map_rows = _world_map_school_rows(active_schools)
+        globe_payload = _world_map_globe_payload(map_rows)
+
         return {
             "enabled": True,
             "eyebrow": _("Global footprint"),
-            "schools_live": str(total),
+            "schools_live": str(stats["schools_live"]),
             "schools_live_label": _("schools live"),
-            "subline": subline,
-            "regional_breakdown": [
-                {
-                    "label": row["region"],
-                    "count": row["count"],
-                    "dot_color_token": dot_tokens[idx % len(dot_tokens)],
-                }
-                for idx, row in enumerate(regional_rows)
-            ],
-            "tenant_dots": _world_map_tenant_dots(active_schools),
+            "subline": stats["subline"],
+            "layout": "hero",
+            "tour_enabled": True,
+            "regional_breakdown": stats["regional_breakdown"],
+            "tenant_dots": _world_map_tenant_dots(map_rows),
+            "globe_payload": globe_payload,
+            "globe_payload_json": json.dumps(globe_payload),
+            "svg_country_labels": globe_payload.get("country_labels") or [],
         }
     except Exception:
         logger.warning("panels: world_map resolver failed", exc_info=True)

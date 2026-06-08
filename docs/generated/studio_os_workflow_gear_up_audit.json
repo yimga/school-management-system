@@ -2,8 +2,8 @@
   "doc": "studio_os_workflow_gear_up_audit",
   "phase": 7,
   "phase_label": "Studio OS Workflow Gear-Up audit",
-  "generated_at": "2026-05-22T12:34:48Z",
-  "wave_under_audit": "v3.54.0 (Studio OS next-realm) + closeout in v3.55.x / v3.57.x",
+  "generated_at": "2026-06-07T13:40:00Z",
+  "wave_under_audit": "v3.54.0 (Studio OS next-realm) + closeout batches 1635 / 1644",
   "scope": "Section-by-section workflow readiness audit of the 6 Studio OS sections (Overview / Experience / Automation / Output / Launch / Control). Read-only static walk; no Django boot; complements docs/generated/studio_os_code_truth_inventory.json (v3.54.0) and the 6 v3.54 next-realm audit JSONs without duplicating their per-panel deep-dives.",
   "method": {
     "code_walk": [
@@ -43,12 +43,10 @@
       "deferral_id": "D1",
       "memory_label": "output_readiness_summary service",
       "expected_consumer": "templates/studio_os/partials/output_readiness_preview_pane.html + workspace/output_canvas.html",
-      "current_state": "PARTIAL",
-      "evidence": "apps/studio_os/services.py:1319-1373 — get_output_readiness_summary() exists and returns packs_total/packs_with_deps/packs_missing_deps/documents_total/documents_published/service_online. packs_* keys are wired through get_output_dependency_graph(); documents_* keys are best-effort try-import of apps.reports.models.{Report,ReportPack}.",
+      "current_state": "DONE",
+      "evidence": "apps/studio_os/services.py get_output_readiness_summary(); views.py studio_shell mode=='output' wires output_readiness_summary; get_studio_mode_hero_context output branch surfaces packs_missing_deps health badge via mode_hero_shell.html.",
       "still_missing": [
-        "Per-pack listing (only aggregate counts surface)",
-        "Document-published counter depends on Report.is_published — defensive try/except keeps it at 0 when the field is absent",
-        "No call from views.py — the helper is defined but not wired into studio_shell context for mode=='output'; the preview pane consumes whatever output_* context already exists"
+        "Per-pack listing in preview pane (aggregate counts only — optional depth)"
       ],
       "verification_status": "code_truth_confirmed"
     },
@@ -57,22 +55,18 @@
       "memory_label": "automation workflow-health extension (paused / failing counts)",
       "expected_consumer": "automation_workflow_health body + cockpit rail",
       "current_state": "DONE",
-      "evidence": "apps/studio_os/services.py:1189-1237 — get_automation_workflow_health_summary now returns pack_count + template_count + paused_count + failing_count (paused_count via WorkflowPack.is_active=False; failing_count via apps.orchestration.models.ProcessRun.status='failed'). v3.54.0 comment at line 1196-1197 documents the extension.",
-      "still_missing": [
-        "Helper still defensive — when WorkflowPack lacks is_active or ProcessRun import fails, both counters silently return 0 (operator cannot distinguish 'zero failing' from 'feature absent'). A service_online discriminator would close the loop."
-      ],
+      "evidence": "apps/studio_os/services.py get_automation_workflow_health_summary(request) — pack_count, template_count, paused_count, failing_count, service_online; tenant-scoped via WorkflowPackAssignment; hero badge via get_studio_mode_hero_context automation branch (batch 1644).",
+      "still_missing": [],
       "verification_status": "code_truth_confirmed"
     },
     {
       "deferral_id": "D3",
       "memory_label": "launch_timeline / approvals / risk (get_launch_readiness_summary)",
       "expected_consumer": "templates/studio_os/partials/launch_readiness_preview_pane.html + launch canvas",
-      "current_state": "PARTIAL",
-      "evidence": "apps/studio_os/services.py:1376-1416 — get_launch_readiness_summary returns timeline=[] / approvals_pending=<count> / risk_summary='' / service_online=<bool>. Only approvals_pending is real (from apps.accounts.models_workflow.ApprovalWorkflow). timeline and risk_summary are honest empty stubs.",
+      "current_state": "DONE",
+      "evidence": "apps/studio_os/services.py get_launch_readiness_summary(request) — timeline + risk_summary from setup-studio payload; views.py mode=='launch' wires launch_readiness_summary; launch.html uses mode_hero_shell.html.",
       "still_missing": [
-        "Timeline data source — no source identified; v3.54 audit acknowledged this is backend deferred",
-        "Risk summary computation — no source identified; renders empty string by design",
-        "Helper still not wired into views.py::studio_shell mode=='launch' branch (verified absent from views.py:1492-1500 region) — preview pane lives in launch_canvas but receives no launch_readiness_summary context var"
+        "Richer timeline visualization (data present; UI depth optional)"
       ],
       "verification_status": "code_truth_confirmed"
     },
@@ -80,11 +74,10 @@
       "deferral_id": "D4",
       "memory_label": "real signal counts for overview_signals",
       "expected_consumer": "templates/studio_os/partials/cockpit_signal_strip.html + overview_command_cockpit.html",
-      "current_state": "PARTIAL",
-      "evidence": "apps/studio_os/services.py:1251-1316 — get_overview_signals returns a 5-key dict. 3 of 5 are real: pending_launches (School.objects.all()[:50] walk + get_setup_studio_payload.launch_ready check), active_automations (WorkflowPack.is_active=True count, falls back to total count), output_readiness_pct (derived from get_output_dependency_graph). 2 of 5 are honest None: draft_experiences (no source wired), open_blockers (no source wired). Comment at services.py:1314-1315 explicitly acknowledges 'Draft experiences + open blockers: not yet implemented backend-side.'",
+      "current_state": "DONE",
+      "evidence": "apps/studio_os/services.py get_overview_signals — draft_experiences (preview_mode_enabled), open_blockers (PlatformIncident open statuses), pending_launches, active_automations, output_readiness_pct all wired (batch 1635).",
       "still_missing": [
-        "draft_experiences — no theme/experience drafts model wired; would need ThemeRevision or ExperiencePackDraft table",
-        "open_blockers — no aggregated blockers source; v3.54 next-realm audit recommended pulling from launch_payload.launch_blockers + feature_control_audit warnings + automation conflicts"
+        "Overview workflow information-tag chips (step-count / typical-time) — optional UX per batch 1636; distinct from student InformationTag model"
       ],
       "verification_status": "code_truth_confirmed"
     }

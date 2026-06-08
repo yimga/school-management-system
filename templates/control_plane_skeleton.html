@@ -282,6 +282,13 @@
     {% include "partials/rmc_tour_bootstrap.html" %}
     {% if request.user.is_authenticated %}
     {% include "partials/rmc_platform_surface_page_data.html" %}
+    {% comment %} v4.02.70: operator PWA + offline config (globe/KB static precache on manager host). {% endcomment %}
+    {% include "partials/rmc_sms_offline_config.html" %}
+    <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-service-worker-url">{
+      "url": "{% static 'js/service-worker.js' %}"
+    }</script>
+    <script src="{% static 'js/rmc-service-worker-registration.js' %}"></script>
+    <script src="{% static 'js/rmc-kb-offline-cache.js' %}" defer></script>
     {% include "partials/rmc_ai_chrome_page_data.html" %}
     {% include "partials/rmc_assist_dock_labels.html" %}
     {% endif %}

@@ -55,8 +55,13 @@
 
 
 
-<div class="rmc-cockpit-ticker" role="region" aria-label="Live platform activity"
-     style="--rmc-cockpit-ticker-seconds: 60s;">
+
+
+
+
+<div class="cp-live-strip" aria-label="Live operator activity" data-rmc-cp-live-strip="1">
+<div class="rmc-cockpit-ticker cp-activity-ticker" role="region" aria-label="Live platform activity"
+     style="--rmc-cockpit-ticker-seconds: 40s;">
   <span class="rmc-cockpit-ticker__badge">LIVE</span>
   <div class="rmc-cockpit-ticker__viewport">
     <div class="rmc-cockpit-ticker__track">
@@ -138,6 +143,9 @@
     </div>
   </div>
 </div>
+</div>
+
+
 
 
 
@@ -152,66 +160,181 @@
     <span class="rmc-cockpit-pulse__live-dot" aria-hidden="true"></span>
     Platform pulse · live
   </div>
-  <div class="rmc-cockpit-pulse__cards">
+  <div class="rmc-cockpit-pulse__cards" data-rmc-cp-pulse-rail="1" data-rmc-scroll-policy="discovery">
     
-    <article class="rmc-cockpit-pulse-card">
+    
+    <article class="rmc-cockpit-pulse-card rmc-stat-card--mono rmc-cockpit-pulse-card--with-spark" data-rmc-cp-pulse-drill="1" tabindex="0" role="button" aria-label="Schools: 168">
       <div class="rmc-cockpit-pulse-card__head">
         <span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--ok" aria-hidden="true"></span>
         Schools
       </div>
-      <div class="rmc-cockpit-pulse-card__value">168</div>
+      <div class="rmc-cockpit-pulse-card__value rmc-stat-card__count--mono">168</div>
       <div class="rmc-cockpit-pulse-card__label">Healthy</div>
       <div class="rmc-cockpit-pulse-card__delta rmc-cockpit-pulse-card__delta--up">▲ +3 this week</div>
+      
+      <div class="rmc-cockpit-pulse-card__spark" aria-hidden="true">
+        
+
+<div class="rmc-sparkline rmc-sparkline--up"
+     data-rmc-sparkline-points="158,160,162,164,166,167,168"
+     aria-label="Schools"
+     role="img">
+  <svg class="rmc-sparkline__svg"
+       viewBox="0 0 56 18"
+       preserveAspectRatio="none"
+       aria-hidden="true">
+    
+  </svg>
+</div>
+
+      </div>
+      
+      
     </article>
     
-    <article class="rmc-cockpit-pulse-card">
+    <article class="rmc-cockpit-pulse-card rmc-stat-card--mono rmc-cockpit-pulse-card--with-spark" data-rmc-cp-pulse-drill="1" tabindex="0" role="button" aria-label="Incidents: 12">
       <div class="rmc-cockpit-pulse-card__head">
         <span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--warn" aria-hidden="true"></span>
         Incidents
       </div>
-      <div class="rmc-cockpit-pulse-card__value">12</div>
+      <div class="rmc-cockpit-pulse-card__value rmc-stat-card__count--mono">12</div>
       <div class="rmc-cockpit-pulse-card__label">Open</div>
       <div class="rmc-cockpit-pulse-card__delta rmc-cockpit-pulse-card__delta--up">▲ 4 vs 7d avg</div>
+      
+      <div class="rmc-cockpit-pulse-card__spark" aria-hidden="true">
+        
+
+<div class="rmc-sparkline rmc-sparkline--up"
+     data-rmc-sparkline-points="8,9,9,10,11,11,12"
+     aria-label="Incidents"
+     role="img">
+  <svg class="rmc-sparkline__svg"
+       viewBox="0 0 56 18"
+       preserveAspectRatio="none"
+       aria-hidden="true">
+    
+  </svg>
+</div>
+
+      </div>
+      
+      
     </article>
     
-    <article class="rmc-cockpit-pulse-card">
+    <article class="rmc-cockpit-pulse-card rmc-stat-card--mono rmc-cockpit-pulse-card--with-spark" data-rmc-cp-pulse-drill="1" tabindex="0" role="button" aria-label="Countries: 2 / 249">
       <div class="rmc-cockpit-pulse-card__head">
         <span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--info" aria-hidden="true"></span>
         Countries
       </div>
-      <div class="rmc-cockpit-pulse-card__value">2 / 249</div>
+      <div class="rmc-cockpit-pulse-card__value rmc-stat-card__count--mono">2 / 249</div>
       <div class="rmc-cockpit-pulse-card__label">Live coverage</div>
       <div class="rmc-cockpit-pulse-card__delta">→ no change</div>
+      
+      <div class="rmc-cockpit-pulse-card__spark" aria-hidden="true">
+        
+
+<div class="rmc-sparkline rmc-sparkline--flat"
+     data-rmc-sparkline-points="2,2,2,2,2,2,2"
+     aria-label="Countries"
+     role="img">
+  <svg class="rmc-sparkline__svg"
+       viewBox="0 0 56 18"
+       preserveAspectRatio="none"
+       aria-hidden="true">
+    
+  </svg>
+</div>
+
+      </div>
+      
+      
     </article>
     
-    <article class="rmc-cockpit-pulse-card">
+    <article class="rmc-cockpit-pulse-card rmc-stat-card--mono rmc-cockpit-pulse-card--with-spark" data-rmc-cp-pulse-drill="1" tabindex="0" role="button" aria-label="MRR: $42k">
       <div class="rmc-cockpit-pulse-card__head">
         <span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--ok" aria-hidden="true"></span>
         MRR
       </div>
-      <div class="rmc-cockpit-pulse-card__value">$42k</div>
+      <div class="rmc-cockpit-pulse-card__value rmc-stat-card__count--mono">$42k</div>
       <div class="rmc-cockpit-pulse-card__label">Recurring</div>
       <div class="rmc-cockpit-pulse-card__delta rmc-cockpit-pulse-card__delta--up">▲ +$420 wk</div>
+      
+      <div class="rmc-cockpit-pulse-card__spark" aria-hidden="true">
+        
+
+<div class="rmc-sparkline rmc-sparkline--up"
+     data-rmc-sparkline-points="39000,39800,40100,40800,41200,41600,42000"
+     aria-label="MRR"
+     role="img">
+  <svg class="rmc-sparkline__svg"
+       viewBox="0 0 56 18"
+       preserveAspectRatio="none"
+       aria-hidden="true">
+    
+  </svg>
+</div>
+
+      </div>
+      
+      
     </article>
     
-    <article class="rmc-cockpit-pulse-card">
+    <article class="rmc-cockpit-pulse-card rmc-stat-card--mono rmc-cockpit-pulse-card--with-spark" data-rmc-cp-pulse-drill="1" tabindex="0" role="button" aria-label="Webhooks: 0">
       <div class="rmc-cockpit-pulse-card__head">
         <span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--ok" aria-hidden="true"></span>
         Webhooks
       </div>
-      <div class="rmc-cockpit-pulse-card__value">0</div>
+      <div class="rmc-cockpit-pulse-card__value rmc-stat-card__count--mono">0</div>
       <div class="rmc-cockpit-pulse-card__label">Drift</div>
       <div class="rmc-cockpit-pulse-card__delta">— stable</div>
+      
+      <div class="rmc-cockpit-pulse-card__spark" aria-hidden="true">
+        
+
+<div class="rmc-sparkline rmc-sparkline--flat"
+     data-rmc-sparkline-points="0,0,0,0,0,0,0"
+     aria-label="Webhooks"
+     role="img">
+  <svg class="rmc-sparkline__svg"
+       viewBox="0 0 56 18"
+       preserveAspectRatio="none"
+       aria-hidden="true">
+    
+  </svg>
+</div>
+
+      </div>
+      
+      
     </article>
     
-    <article class="rmc-cockpit-pulse-card">
+    <article class="rmc-cockpit-pulse-card rmc-stat-card--mono rmc-cockpit-pulse-card--with-spark" data-rmc-cp-pulse-drill="1" tabindex="0" role="button" aria-label="Pipeline: 3">
       <div class="rmc-cockpit-pulse-card__head">
         <span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--info" aria-hidden="true"></span>
         Pipeline
       </div>
-      <div class="rmc-cockpit-pulse-card__value">3</div>
+      <div class="rmc-cockpit-pulse-card__value rmc-stat-card__count--mono">3</div>
       <div class="rmc-cockpit-pulse-card__label">Onboarding</div>
       <div class="rmc-cockpit-pulse-card__delta rmc-cockpit-pulse-card__delta--up">▲ 1 new today</div>
+      
+      <div class="rmc-cockpit-pulse-card__spark" aria-hidden="true">
+        
+
+<div class="rmc-sparkline rmc-sparkline--up"
+     data-rmc-sparkline-points="1,1,2,2,2,2,3"
+     aria-label="Pipeline"
+     role="img">
+  <svg class="rmc-sparkline__svg"
+       viewBox="0 0 56 18"
+       preserveAspectRatio="none"
+       aria-hidden="true">
+    
+  </svg>
+</div>
+
+      </div>
+      
+      
     </article>
     
   </div>
@@ -225,65 +348,53 @@
 
 <section class="lx-card lx-world" aria-label="Live world map of tenant locations">
   <div class="lx-world__map">
-    <svg class="lx-world__svg" viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <radialGradient id="lx-globe-bg" cx="50%" cy="40%" r="60%">
-          <stop offset="0%" stop-color="rgba(99,102,241,0.18)"/>
-          <stop offset="100%" stop-color="rgba(99,102,241,0.02)"/>
-        </radialGradient>
-        <radialGradient id="lx-heat-1" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="rgba(99,102,241,0.45)"/>
-          <stop offset="100%" stop-color="rgba(99,102,241,0)"/>
-        </radialGradient>
-        <radialGradient id="lx-heat-2" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="rgba(16,185,129,0.40)"/>
-          <stop offset="100%" stop-color="rgba(16,185,129,0)"/>
-        </radialGradient>
-      </defs>
-      <rect x="0" y="0" width="600" height="280" fill="url(#lx-globe-bg)" rx="14"/>
-      <g fill="rgba(148,163,184,0.15)" stroke="rgba(148,163,184,0.30)" stroke-width="0.6">
-        <path d="M48,90 Q70,72 100,80 Q124,86 140,108 Q156,128 142,148 Q130,162 100,160 Q72,158 60,142 Q42,120 48,90 Z"/>
-        <path d="M170,72 Q210,64 246,80 Q282,98 290,128 Q294,158 268,176 Q236,192 200,178 Q166,168 158,140 Q152,108 170,72 Z"/>
-        <path d="M310,86 Q350,72 396,82 Q436,92 458,120 Q470,140 460,164 Q448,184 410,188 Q368,192 336,172 Q304,148 302,118 Q302,98 310,86 Z"/>
-        <path d="M480,108 Q510,104 538,118 Q558,128 564,148 Q568,170 552,184 Q524,200 502,188 Q478,176 474,152 Q472,124 480,108 Z"/>
-        <path d="M140,196 Q172,188 198,200 Q220,210 222,224 Q220,238 196,242 Q168,246 148,234 Q132,222 140,196 Z"/>
-        <path d="M376,206 Q408,200 432,212 Q452,222 450,238 Q446,254 420,256 Q394,258 378,246 Q362,232 376,206 Z"/>
-      </g>
-      <circle cx="120" cy="120" r="60" fill="url(#lx-heat-1)"/>
-      <circle cx="240" cy="130" r="70" fill="url(#lx-heat-2)"/>
-      <circle cx="400" cy="140" r="80" fill="url(#lx-heat-1)"/>
+    <div class="lx-world__globe" id="rmc-world-globe" data-rmc-world-globe="1" data-rmc-schools-list-url="/super/schools/">
       
-      <g>
-        <circle class="lx-world__ring" cx="180" cy="110" r="4" fill="none" stroke="rgba(34,197,94,0.32)" stroke-width="1.5"/>
-        <circle class="lx-world__dot" cx="180" cy="110" r="4" fill="var(--success, #22c55e)" stroke="#fff" stroke-width="0.6"/>
-      </g>
-      
-      <g>
-        <circle class="lx-world__ring" cx="280" cy="180" r="4" fill="none" stroke="rgba(34,197,94,0.32)" stroke-width="1.5"/>
-        <circle class="lx-world__dot" cx="280" cy="180" r="4" fill="var(--success, #22c55e)" stroke="#fff" stroke-width="0.6"/>
-      </g>
-      
-      <g>
-        <circle class="lx-world__ring" cx="350" cy="220" r="4" fill="none" stroke="rgba(96,165,250,0.32)" stroke-width="1.5"/>
-        <circle class="lx-world__dot" cx="350" cy="220" r="4" fill="var(--info, #60a5fa)" stroke="#fff" stroke-width="0.6"/>
-      </g>
-      
-      <g>
-        <circle class="lx-world__ring" cx="470" cy="160" r="4" fill="none" stroke="rgba(245,158,11,0.32)" stroke-width="1.5"/>
-        <circle class="lx-world__dot" cx="470" cy="160" r="4" fill="var(--warning, #f59e0b)" stroke="#fff" stroke-width="0.6"/>
-      </g>
-      
-      <g>
-        <circle class="lx-world__ring" cx="560" cy="240" r="4" fill="none" stroke="rgba(96,165,250,0.32)" stroke-width="1.5"/>
-        <circle class="lx-world__dot" cx="560" cy="240" r="4" fill="var(--info, #60a5fa)" stroke="#fff" stroke-width="0.6"/>
-      </g>
-      
-      <g stroke="rgba(99,102,241,0.10)" stroke-width="0.5" fill="none">
-        <ellipse cx="300" cy="140" rx="280" ry="120"/>
-        <ellipse cx="300" cy="140" rx="220" ry="90"/>
-        <ellipse cx="300" cy="140" rx="160" ry="60"/>
-      </g>
-    </svg>
+      <svg class="lx-world__svg lx-world__svg-fallback" viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <radialGradient id="lx-globe-bg" cx="50%" cy="40%" r="60%">
+            <stop offset="0%" stop-color="rgba(99,102,241,0.18)"/>
+            <stop offset="100%" stop-color="rgba(99,102,241,0.02)"/>
+          </radialGradient>
+        </defs>
+        <rect x="0" y="0" width="600" height="280" fill="url(#lx-globe-bg)" rx="14"/>
+        <g fill="rgba(148,163,184,0.15)" stroke="rgba(148,163,184,0.30)" stroke-width="0.6">
+          <path d="M48,90 Q70,72 100,80 Q124,86 140,108 Q156,128 142,148 Q130,162 100,160 Q72,158 60,142 Q42,120 48,90 Z"/>
+          <path d="M170,72 Q210,64 246,80 Q282,98 290,128 Q294,158 268,176 Q236,192 200,178 Q166,168 158,140 Q152,108 170,72 Z"/>
+          <path d="M310,86 Q350,72 396,82 Q436,92 458,120 Q470,140 460,164 Q448,184 410,188 Q368,192 336,172 Q304,148 302,118 Q302,98 310,86 Z"/>
+          <path d="M480,108 Q510,104 538,118 Q558,128 564,148 Q568,170 552,184 Q524,200 502,188 Q478,176 474,152 Q472,124 480,108 Z"/>
+        </g>
+        
+        <g>
+          <circle class="lx-world__ring" cx="180" cy="110" r="4" fill="none" stroke="rgba(34,197,94,0.32)" stroke-width="1.5" style="animation-delay: 0s"/>
+          <circle class="lx-world__dot" cx="180" cy="110" r="4" fill="var(--success, #22c55e)" stroke="#fff" stroke-width="0.6" style="animation-delay: 0s"><title></title></circle>
+        </g>
+        
+        <g>
+          <circle class="lx-world__ring" cx="280" cy="180" r="4" fill="none" stroke="rgba(34,197,94,0.32)" stroke-width="1.5" style="animation-delay: 0.4s"/>
+          <circle class="lx-world__dot" cx="280" cy="180" r="4" fill="var(--success, #22c55e)" stroke="#fff" stroke-width="0.6" style="animation-delay: 0.4s"><title></title></circle>
+        </g>
+        
+        <g>
+          <circle class="lx-world__ring" cx="350" cy="220" r="4" fill="none" stroke="rgba(96,165,250,0.32)" stroke-width="1.5" style="animation-delay: 0.8s"/>
+          <circle class="lx-world__dot" cx="350" cy="220" r="4" fill="var(--info, #60a5fa)" stroke="#fff" stroke-width="0.6" style="animation-delay: 0.8s"><title></title></circle>
+        </g>
+        
+        <g>
+          <circle class="lx-world__ring" cx="470" cy="160" r="4" fill="none" stroke="rgba(245,158,11,0.32)" stroke-width="1.5" style="animation-delay: 1.2s"/>
+          <circle class="lx-world__dot" cx="470" cy="160" r="4" fill="var(--warning, #f59e0b)" stroke="#fff" stroke-width="0.6" style="animation-delay: 1.2s"><title></title></circle>
+        </g>
+        
+        <g>
+          <circle class="lx-world__ring" cx="560" cy="240" r="4" fill="none" stroke="rgba(96,165,250,0.32)" stroke-width="1.5" style="animation-delay: 1.6s"/>
+          <circle class="lx-world__dot" cx="560" cy="240" r="4" fill="var(--info, #60a5fa)" stroke="#fff" stroke-width="0.6" style="animation-delay: 1.6s"><title></title></circle>
+        </g>
+        
+      </svg>
+    </div>
+    
+    <script nonce="" type="application/json" id="rmc-world-globe-data">{"markers": [{"lat": 40.71, "lng": -74.01, "country_code": "US", "status": "active", "color": "#6ee7b7", "ring_color": "#10b981", "label": "Active", "region": "North America", "delay_s": 0.0}, {"lat": 34.05, "lng": -118.24, "country_code": "US", "status": "active", "color": "#6ee7b7", "ring_color": "#10b981", "label": "Active", "region": "North America", "delay_s": 0.4}, {"lat": 6.52, "lng": 3.38, "country_code": "NG", "status": "active", "color": "#6ee7b7", "ring_color": "#10b981", "label": "Active", "region": "West Africa", "delay_s": 0.8}, {"lat": 51.51, "lng": -0.13, "country_code": "GB", "status": "suspended", "color": "#fcd34d", "ring_color": "#f59e0b", "label": "Suspended", "region": "Europe", "delay_s": 1.2}, {"lat": 28.61, "lng": 77.21, "country_code": "IN", "status": "frozen", "color": "#93c5fd", "ring_color": "#3b82f6", "label": "Frozen", "region": "Asia \u00b7 Oceania", "delay_s": 1.6}], "theme": {"atmosphere": "rgba(99,102,241,0.35)", "globeColor": "#0f1530", "globeEmissive": "#1e1b4b", "polygonCap": "rgba(148,163,184,0.10)", "polygonSide": "rgba(99,102,241,0.14)", "polygonStroke": "rgba(148,163,184,0.22)"}, "geo_url": "/static/geo/world-countries-110m.json", "auto_rotate": true, "auto_rotate_speed": 0.35}</script>
+    
   </div>
   <div class="lx-world__legend">
     <div class="lx-card__eyebrow">Global footprint</div>
@@ -313,8 +424,17 @@
       <strong>12</strong>
     </div>
     
+    <div class="lx-world__status-key" aria-label="Tenant status colour key">
+      <span class="lx-world__status-chip"><span class="lx-world__status-swatch" style="background:#6ee7b7;/* inline-style-allow: cockpit-status-key-fixed-semantic-swatch (matches always-dark world-pulse legend dots) */"></span>Active</span>
+      <span class="lx-world__status-chip"><span class="lx-world__status-swatch" style="background:#fcd34d;/* inline-style-allow: cockpit-status-key-fixed-semantic-swatch (matches always-dark world-pulse legend dots) */"></span>Suspended</span>
+      <span class="lx-world__status-chip"><span class="lx-world__status-swatch" style="background:#93c5fd;/* inline-style-allow: cockpit-status-key-fixed-semantic-swatch (matches always-dark world-pulse legend dots) */"></span>Frozen</span>
+    </div>
+    <p class="lx-world__globe-hint visually-hidden-focusable"><small>Drag to rotate the globe; scroll to zoom. Markers show tenant status by region.</small></p>
   </div>
 </section>
+
+<script src="/static/js/dist/world-globe.mount.js" defer></script>
+
 
 
   <!-- ===== cockpit partial: _forecast_lane.html | RENDERED CORRECTLY ===== -->
@@ -333,60 +453,69 @@
       <div class="lx-forecast__label">MRR · 7-day forecast</div>
       <div class="lx-forecast__value">$45.8k</div>
       <div class="lx-forecast__pred">steady · 92% confidence</div>
+      
       <svg class="lx-forecast__svg" viewBox="0 0 240 56" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M130,70 C160,55 190,50 220,48 L250,46 L250,68 L220,68 C190,68 160,68 130,68 Z" fill="rgba(34,197,94,0.10)"/>
+        <path d="M120,28 Q150,18 180,16 Q210,14 240,12 L240,32 Q210,30 180,28 Q150,26 120,28 Z" fill="rgba(34,197,94,0.10)"/>
         
-        <polyline points="10,90 40,82 70,88 100,76 130,70 " fill="none" stroke="#22c55e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="0,42 20,40 40,38 60,34 80,32 100,28 120,26 " fill="none" stroke="#22c55e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         
         
-        <polyline points="130,70 160,65 190,60 220,58 250,56 " fill="none" stroke="#22c55e" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+        <polyline points="120,26 140,22 160,20 180,18 200,16 220,14 240,12 " fill="none" stroke="#22c55e" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
         
-        <line x1="130" y1="6" x2="130" y2="50" stroke="rgba(148,163,184,0.5)" stroke-width="0.8" stroke-dasharray="2 3"/>
+        <line x1="120" y1="6" x2="120" y2="50" stroke="rgba(148,163,184,0.5)" stroke-width="0.8" stroke-dasharray="2 3"/>
       </svg>
       <div class="lx-forecast__caption">
         <span>today</span>
         <span class="lx-forecast__caption-em">+7 days</span>
       </div>
+      
+      
     </div>
     
     <div class="lx-forecast__card lx-forecast__card--new_schools">
       <div class="lx-forecast__label">New schools · 7-day forecast</div>
       <div class="lx-forecast__value">4–6</div>
       <div class="lx-forecast__pred">expected · 88% confidence</div>
+      
       <svg class="lx-forecast__svg" viewBox="0 0 240 56" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M130,68 C160,52 190,46 220,44 L250,40 L250,64 L220,64 C190,64 160,64 130,64 Z" fill="rgba(96,165,250,0.10)"/>
+        <path d="M120,32 Q150,26 180,22 Q210,18 240,16 L240,38 Q210,38 180,36 Q150,34 120,32 Z" fill="rgba(99,102,241,0.12)"/>
         
-        <polyline points="10,88 40,80 70,84 100,72 130,68 " fill="none" stroke="#60a5fa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="0,44 20,42 40,40 60,38 80,36 100,34 120,32 " fill="none" stroke="#6366f1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         
         
-        <polyline points="130,68 160,62 190,58 220,54 250,50 " fill="none" stroke="#60a5fa" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+        <polyline points="120,32 140,30 160,26 180,22 200,20 220,18 240,16 " fill="none" stroke="#6366f1" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
         
-        <line x1="130" y1="6" x2="130" y2="50" stroke="rgba(148,163,184,0.5)" stroke-width="0.8" stroke-dasharray="2 3"/>
+        <line x1="120" y1="6" x2="120" y2="50" stroke="rgba(148,163,184,0.5)" stroke-width="0.8" stroke-dasharray="2 3"/>
       </svg>
       <div class="lx-forecast__caption">
         <span>today</span>
         <span class="lx-forecast__caption-em">+7 days</span>
       </div>
+      
+      
     </div>
     
     <div class="lx-forecast__card lx-forecast__card--incidents">
       <div class="lx-forecast__label">Incidents · 7-day forecast</div>
       <div class="lx-forecast__value">3</div>
       <div class="lx-forecast__pred">low · 95% confidence</div>
+      
       <svg class="lx-forecast__svg" viewBox="0 0 240 56" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M130,84 C160,76 190,72 220,70 L250,68 L250,90 L220,90 C190,90 160,90 130,90 Z" fill="rgba(245,158,11,0.10)"/>
+        <path d="M120,28 Q150,24 180,28 Q210,30 240,26 L240,46 Q210,44 180,46 Q150,46 120,42 Z" fill="rgba(245,158,11,0.12)"/>
         
-        <polyline points="10,84 40,90 70,86 100,88 130,84 " fill="none" stroke="#f59e0b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="0,30 20,32 40,26 60,28 80,24 100,30 120,28 " fill="none" stroke="#f59e0b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         
         
-        <polyline points="130,84 160,86 190,82 220,80 250,78 " fill="none" stroke="#f59e0b" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+        <polyline points="120,28 140,28 160,26 180,28 200,30 220,28 240,26 " fill="none" stroke="#f59e0b" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
         
-        <line x1="130" y1="6" x2="130" y2="50" stroke="rgba(148,163,184,0.5)" stroke-width="0.8" stroke-dasharray="2 3"/>
+        <line x1="120" y1="6" x2="120" y2="50" stroke="rgba(148,163,184,0.5)" stroke-width="0.8" stroke-dasharray="2 3"/>
       </svg>
       <div class="lx-forecast__caption">
         <span>today</span>
         <span class="lx-forecast__caption-em">+7 days</span>
       </div>
+      
+      
     </div>
     
   </div>
@@ -455,127 +584,728 @@
     </div>
     <div class="lx-card__meta">60 of 127 · refreshed 12s ago</div>
   </div>
-  <div class="lx-heatmap__grid" role="list">
+  
+  <div class="lx-heatmap__grid rmc-heatmap" role="list" data-rmc-heatmap-grid>
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 01"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 01"
+           data-rmc-tooltip-text="Tenant 01"
+           data-rmc-heatmap-tooltip="Tenant 01"
+           data-cell-value="1,180 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-01"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 02"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 02"
+           data-rmc-tooltip-text="Tenant 02"
+           data-rmc-heatmap-tooltip="Tenant 02"
+           data-cell-value="1,217 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-02"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 03"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 03"
+           data-rmc-tooltip-text="Tenant 03"
+           data-rmc-heatmap-tooltip="Tenant 03"
+           data-cell-value="1,254 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-03"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 04"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 04"
+           data-rmc-tooltip-text="Tenant 04"
+           data-rmc-heatmap-tooltip="Tenant 04"
+           data-cell-value="1,291 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-04"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 05"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 05"
+           data-rmc-tooltip-text="Tenant 05"
+           data-rmc-heatmap-tooltip="Tenant 05"
+           data-cell-value="1,328 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-05"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 06"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 06"
+           data-rmc-tooltip-text="Tenant 06"
+           data-rmc-heatmap-tooltip="Tenant 06"
+           data-cell-value="1,365 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-06"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 07"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 07"
+           data-rmc-tooltip-text="Tenant 07"
+           data-rmc-heatmap-tooltip="Tenant 07"
+           data-cell-value="1,191 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-07"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 08"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 08"
+           data-rmc-tooltip-text="Tenant 08"
+           data-rmc-heatmap-tooltip="Tenant 08"
+           data-cell-value="1,228 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-08"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 09"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 09"
+           data-rmc-tooltip-text="Tenant 09"
+           data-rmc-heatmap-tooltip="Tenant 09"
+           data-cell-value="1,265 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-09"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 10"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 10"
+           data-rmc-tooltip-text="Tenant 10"
+           data-rmc-heatmap-tooltip="Tenant 10"
+           data-cell-value="1,302 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-10"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 11"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 11"
+           data-rmc-tooltip-text="Tenant 11"
+           data-rmc-heatmap-tooltip="Tenant 11"
+           data-cell-value="1,339 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-11"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 12"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 12"
+           data-rmc-tooltip-text="Tenant 12"
+           data-rmc-heatmap-tooltip="Tenant 12"
+           data-cell-value="1,376 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-12"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 13"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 13"
+           data-rmc-tooltip-text="Tenant 13"
+           data-rmc-heatmap-tooltip="Tenant 13"
+           data-cell-value="1,202 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-13"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 14"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 14"
+           data-rmc-tooltip-text="Tenant 14"
+           data-rmc-heatmap-tooltip="Tenant 14"
+           data-cell-value="1,239 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-14"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 15"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 15"
+           data-rmc-tooltip-text="Tenant 15"
+           data-rmc-heatmap-tooltip="Tenant 15"
+           data-cell-value="1,276 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-15"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 16"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 16"
+           data-rmc-tooltip-text="Tenant 16"
+           data-rmc-heatmap-tooltip="Tenant 16"
+           data-cell-value="1,313 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-16"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 17"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 17"
+           data-rmc-tooltip-text="Tenant 17"
+           data-rmc-heatmap-tooltip="Tenant 17"
+           data-cell-value="1,350 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-17"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 18"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 18"
+           data-rmc-tooltip-text="Tenant 18"
+           data-rmc-heatmap-tooltip="Tenant 18"
+           data-cell-value="1,387 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-18"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 19"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 19"
+           data-rmc-tooltip-text="Tenant 19"
+           data-rmc-heatmap-tooltip="Tenant 19"
+           data-cell-value="1,213 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-19"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 20"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 20"
+           data-rmc-tooltip-text="Tenant 20"
+           data-rmc-heatmap-tooltip="Tenant 20"
+           data-cell-value="1,250 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-20"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 21"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 21"
+           data-rmc-tooltip-text="Tenant 21"
+           data-rmc-heatmap-tooltip="Tenant 21"
+           data-cell-value="1,287 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-21"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 22"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 22"
+           data-rmc-tooltip-text="Tenant 22"
+           data-rmc-heatmap-tooltip="Tenant 22"
+           data-cell-value="1,324 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-22"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 23"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 23"
+           data-rmc-tooltip-text="Tenant 23"
+           data-rmc-heatmap-tooltip="Tenant 23"
+           data-cell-value="1,361 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-23"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 24"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 24"
+           data-rmc-tooltip-text="Tenant 24"
+           data-rmc-heatmap-tooltip="Tenant 24"
+           data-cell-value="1,187 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-24"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 25"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 25"
+           data-rmc-tooltip-text="Tenant 25"
+           data-rmc-heatmap-tooltip="Tenant 25"
+           data-cell-value="1,224 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-25"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 26"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 26"
+           data-rmc-tooltip-text="Tenant 26"
+           data-rmc-heatmap-tooltip="Tenant 26"
+           data-cell-value="1,261 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-26"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 27"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 27"
+           data-rmc-tooltip-text="Tenant 27"
+           data-rmc-heatmap-tooltip="Tenant 27"
+           data-cell-value="1,298 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-27"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 28"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 28"
+           data-rmc-tooltip-text="Tenant 28"
+           data-rmc-heatmap-tooltip="Tenant 28"
+           data-cell-value="1,335 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-28"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 29"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 29"
+           data-rmc-tooltip-text="Tenant 29"
+           data-rmc-heatmap-tooltip="Tenant 29"
+           data-cell-value="1,372 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-29"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 30"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 30"
+           data-rmc-tooltip-text="Tenant 30"
+           data-rmc-heatmap-tooltip="Tenant 30"
+           data-cell-value="1,198 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-30"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 31"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 31"
+           data-rmc-tooltip-text="Tenant 31"
+           data-rmc-heatmap-tooltip="Tenant 31"
+           data-cell-value="1,235 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-31"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 32"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 32"
+           data-rmc-tooltip-text="Tenant 32"
+           data-rmc-heatmap-tooltip="Tenant 32"
+           data-cell-value="1,272 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-32"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 33"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 33"
+           data-rmc-tooltip-text="Tenant 33"
+           data-rmc-heatmap-tooltip="Tenant 33"
+           data-cell-value="1,309 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-33"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 34"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 34"
+           data-rmc-tooltip-text="Tenant 34"
+           data-rmc-heatmap-tooltip="Tenant 34"
+           data-cell-value="1,346 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-34"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 35"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 35"
+           data-rmc-tooltip-text="Tenant 35"
+           data-rmc-heatmap-tooltip="Tenant 35"
+           data-cell-value="1,383 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-35"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 36"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 36"
+           data-rmc-tooltip-text="Tenant 36"
+           data-rmc-heatmap-tooltip="Tenant 36"
+           data-cell-value="1,209 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-36"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 37"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 37"
+           data-rmc-tooltip-text="Tenant 37"
+           data-rmc-heatmap-tooltip="Tenant 37"
+           data-cell-value="1,246 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-37"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--healthy" role="listitem" data-label="Tenant 38"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--healthy rmc-heatmap__tile rmc-heatmap__tile--healthy"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 38"
+           data-rmc-tooltip-text="Tenant 38"
+           data-rmc-heatmap-tooltip="Tenant 38"
+           data-cell-value="1,283 active"
+           data-cell-secondary="+3.1% WoW"
+           data-tenant-slug="tenant-38"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 39"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay rmc-heatmap__tile rmc-heatmap__tile--okay"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 39"
+           data-rmc-tooltip-text="Tenant 39"
+           data-rmc-heatmap-tooltip="Tenant 39"
+           data-cell-value="680 active"
+           data-cell-secondary="+0.4% WoW"
+           data-tenant-slug="tenant-39"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 40"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay rmc-heatmap__tile rmc-heatmap__tile--okay"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 40"
+           data-rmc-tooltip-text="Tenant 40"
+           data-rmc-heatmap-tooltip="Tenant 40"
+           data-cell-value="717 active"
+           data-cell-secondary="+0.4% WoW"
+           data-tenant-slug="tenant-40"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 41"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay rmc-heatmap__tile rmc-heatmap__tile--okay"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 41"
+           data-rmc-tooltip-text="Tenant 41"
+           data-rmc-heatmap-tooltip="Tenant 41"
+           data-cell-value="543 active"
+           data-cell-secondary="+0.4% WoW"
+           data-tenant-slug="tenant-41"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 42"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay rmc-heatmap__tile rmc-heatmap__tile--okay"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 42"
+           data-rmc-tooltip-text="Tenant 42"
+           data-rmc-heatmap-tooltip="Tenant 42"
+           data-cell-value="580 active"
+           data-cell-secondary="+0.4% WoW"
+           data-tenant-slug="tenant-42"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 43"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay rmc-heatmap__tile rmc-heatmap__tile--okay"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 43"
+           data-rmc-tooltip-text="Tenant 43"
+           data-rmc-heatmap-tooltip="Tenant 43"
+           data-cell-value="617 active"
+           data-cell-secondary="+0.4% WoW"
+           data-tenant-slug="tenant-43"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 44"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay rmc-heatmap__tile rmc-heatmap__tile--okay"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 44"
+           data-rmc-tooltip-text="Tenant 44"
+           data-rmc-heatmap-tooltip="Tenant 44"
+           data-cell-value="654 active"
+           data-cell-secondary="+0.4% WoW"
+           data-tenant-slug="tenant-44"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 45"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay rmc-heatmap__tile rmc-heatmap__tile--okay"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 45"
+           data-rmc-tooltip-text="Tenant 45"
+           data-rmc-heatmap-tooltip="Tenant 45"
+           data-cell-value="691 active"
+           data-cell-secondary="+0.4% WoW"
+           data-tenant-slug="tenant-45"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 46"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay rmc-heatmap__tile rmc-heatmap__tile--okay"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 46"
+           data-rmc-tooltip-text="Tenant 46"
+           data-rmc-heatmap-tooltip="Tenant 46"
+           data-cell-value="728 active"
+           data-cell-secondary="+0.4% WoW"
+           data-tenant-slug="tenant-46"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 47"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay rmc-heatmap__tile rmc-heatmap__tile--okay"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 47"
+           data-rmc-tooltip-text="Tenant 47"
+           data-rmc-heatmap-tooltip="Tenant 47"
+           data-cell-value="554 active"
+           data-cell-secondary="+0.4% WoW"
+           data-tenant-slug="tenant-47"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 48"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay rmc-heatmap__tile rmc-heatmap__tile--okay"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 48"
+           data-rmc-tooltip-text="Tenant 48"
+           data-rmc-heatmap-tooltip="Tenant 48"
+           data-cell-value="591 active"
+           data-cell-secondary="+0.4% WoW"
+           data-tenant-slug="tenant-48"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 49"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay rmc-heatmap__tile rmc-heatmap__tile--okay"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 49"
+           data-rmc-tooltip-text="Tenant 49"
+           data-rmc-heatmap-tooltip="Tenant 49"
+           data-cell-value="628 active"
+           data-cell-secondary="+0.4% WoW"
+           data-tenant-slug="tenant-49"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--okay" role="listitem" data-label="Tenant 50"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--okay rmc-heatmap__tile rmc-heatmap__tile--okay"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 50"
+           data-rmc-tooltip-text="Tenant 50"
+           data-rmc-heatmap-tooltip="Tenant 50"
+           data-cell-value="665 active"
+           data-cell-secondary="+0.4% WoW"
+           data-tenant-slug="tenant-50"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--warn" role="listitem" data-label="Tenant 51"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--warn rmc-heatmap__tile rmc-heatmap__tile--watch"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 51"
+           data-rmc-tooltip-text="Tenant 51"
+           data-rmc-heatmap-tooltip="Tenant 51"
+           data-cell-value="402 active"
+           data-cell-secondary="-1.8% WoW"
+           data-tenant-slug="tenant-51"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--warn" role="listitem" data-label="Tenant 52"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--warn rmc-heatmap__tile rmc-heatmap__tile--watch"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 52"
+           data-rmc-tooltip-text="Tenant 52"
+           data-rmc-heatmap-tooltip="Tenant 52"
+           data-cell-value="439 active"
+           data-cell-secondary="-1.8% WoW"
+           data-tenant-slug="tenant-52"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--warn" role="listitem" data-label="Tenant 53"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--warn rmc-heatmap__tile rmc-heatmap__tile--watch"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 53"
+           data-rmc-tooltip-text="Tenant 53"
+           data-rmc-heatmap-tooltip="Tenant 53"
+           data-cell-value="265 active"
+           data-cell-secondary="-1.8% WoW"
+           data-tenant-slug="tenant-53"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--warn" role="listitem" data-label="Tenant 54"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--warn rmc-heatmap__tile rmc-heatmap__tile--watch"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 54"
+           data-rmc-tooltip-text="Tenant 54"
+           data-rmc-heatmap-tooltip="Tenant 54"
+           data-cell-value="302 active"
+           data-cell-secondary="-1.8% WoW"
+           data-tenant-slug="tenant-54"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--warn" role="listitem" data-label="Tenant 55"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--warn rmc-heatmap__tile rmc-heatmap__tile--watch"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 55"
+           data-rmc-tooltip-text="Tenant 55"
+           data-rmc-heatmap-tooltip="Tenant 55"
+           data-cell-value="339 active"
+           data-cell-secondary="-1.8% WoW"
+           data-tenant-slug="tenant-55"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--danger" role="listitem" data-label="Tenant 56"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--danger rmc-heatmap__tile rmc-heatmap__tile--critical"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 56"
+           data-rmc-tooltip-text="Tenant 56"
+           data-rmc-heatmap-tooltip="Tenant 56"
+           data-cell-value="226 active"
+           data-cell-secondary="-6.2% WoW"
+           data-tenant-slug="tenant-56"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--danger" role="listitem" data-label="Tenant 57"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--danger rmc-heatmap__tile rmc-heatmap__tile--critical"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 57"
+           data-rmc-tooltip-text="Tenant 57"
+           data-rmc-heatmap-tooltip="Tenant 57"
+           data-cell-value="263 active"
+           data-cell-secondary="-6.2% WoW"
+           data-tenant-slug="tenant-57"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--idle" role="listitem" data-label="Tenant 58"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--idle rmc-heatmap__tile rmc-heatmap__tile--idle"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 58"
+           data-rmc-tooltip-text="Tenant 58"
+           data-rmc-heatmap-tooltip="Tenant 58"
+           data-cell-value="pilot · 0 active"
+           data-cell-secondary="no traffic"
+           data-tenant-slug="tenant-58"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--idle" role="listitem" data-label="Tenant 59"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--idle rmc-heatmap__tile rmc-heatmap__tile--idle"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 59"
+           data-rmc-tooltip-text="Tenant 59"
+           data-rmc-heatmap-tooltip="Tenant 59"
+           data-cell-value="pilot · 0 active"
+           data-cell-secondary="no traffic"
+           data-tenant-slug="tenant-59"></div>
+      
     
-      <div class="lx-heatmap__tile lx-heatmap__tile--idle" role="listitem" data-label="Tenant 60"></div>
+      
+      <div class="lx-heatmap__tile lx-heatmap__tile--idle rmc-heatmap__tile rmc-heatmap__tile--idle"
+           role="listitem"
+           tabindex="0"
+           data-label="Tenant 60"
+           data-rmc-tooltip-text="Tenant 60"
+           data-rmc-heatmap-tooltip="Tenant 60"
+           data-cell-value="pilot · 0 active"
+           data-cell-secondary="no traffic"
+           data-tenant-slug="tenant-60"></div>
+      
     
   </div>
   <div class="lx-heatmap__legend" aria-label="Heatmap legend">
@@ -686,6 +1416,8 @@
       </div>
     
   </div>
+  
+  
 </section>
 
 
@@ -714,7 +1446,8 @@
     </thead>
     <tbody>
       
-      <tr>
+      
+      <tr class="lx-audit__row lx-audit__row--ok">
         <td class="lx-audit__time">14:38:02</td>
         <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--ok" aria-hidden="true"></span>ops-admin-7a</td>
         <td class="lx-audit__event">key.rotate</td>
@@ -722,7 +1455,8 @@
         <td><span class="lx-audit__sev-label lx-audit__sev-label--ok">OK</span></td>
       </tr>
       
-      <tr>
+      
+      <tr class="lx-audit__row lx-audit__row--info">
         <td class="lx-audit__time">14:21:55</td>
         <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--info" aria-hidden="true"></span>ops-admin-2c</td>
         <td class="lx-audit__event">maa.sign</td>
@@ -730,7 +1464,8 @@
         <td><span class="lx-audit__sev-label lx-audit__sev-label--info">INFO</span></td>
       </tr>
       
-      <tr>
+      
+      <tr class="lx-audit__row lx-audit__row--warn">
         <td class="lx-audit__time">13:52:11</td>
         <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--warn" aria-hidden="true"></span>auto-task</td>
         <td class="lx-audit__event">webhook.delivery.replay</td>
@@ -738,7 +1473,8 @@
         <td><span class="lx-audit__sev-label lx-audit__sev-label--warn">WATCH</span></td>
       </tr>
       
-      <tr>
+      
+      <tr class="lx-audit__row lx-audit__row--ok">
         <td class="lx-audit__time">13:38:44</td>
         <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--ok" aria-hidden="true"></span>ops-admin-1d</td>
         <td class="lx-audit__event">token.mint</td>
@@ -746,7 +1482,8 @@
         <td><span class="lx-audit__sev-label lx-audit__sev-label--ok">OK</span></td>
       </tr>
       
-      <tr>
+      
+      <tr class="lx-audit__row lx-audit__row--ok">
         <td class="lx-audit__time">12:14:09</td>
         <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--ok" aria-hidden="true"></span>auto-task</td>
         <td class="lx-audit__event">audit.chain.verify</td>
@@ -754,7 +1491,8 @@
         <td><span class="lx-audit__sev-label lx-audit__sev-label--ok">OK</span></td>
       </tr>
       
-      <tr>
+      
+      <tr class="lx-audit__row lx-audit__row--danger">
         <td class="lx-audit__time">10:02:18</td>
         <td class="lx-audit__actor"><span class="lx-audit__sev lx-audit__sev--danger" aria-hidden="true"></span>ops-admin-5b</td>
         <td class="lx-audit__event">webhook.subscription.deleted</td>
@@ -830,7 +1568,7 @@
 
 
 
-<div class="cp-presence" role="status" aria-label="Operators online and platform status">
+<div class="cp-presence" role="status" aria-label="Operators online and platform status" title="7 operators online · All systems handling well">
   
   <span class="cp-presence__avatars" aria-hidden="true">
     

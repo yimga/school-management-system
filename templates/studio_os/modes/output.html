@@ -8,6 +8,11 @@
 {% endblock %}
 
 {% block studio_canvas %}
-{% include "studio_os/partials/studio_guidance_panel.html" %}
-{% include "studio_os/partials/output_mode_canvas.html" %}
+<section data-page-archetype="studio-os-output" aria-labelledby="studio-output-hero">
+  <div id="studio-output-hero">
+    {% include "studio_os/partials/mode_hero_shell.html" %}
+  </div>
+  {% include "studio_os/partials/studio_guidance_panel.html" %}
+  {% include "studio_os/partials/output_mode_canvas.html" %}
+</section>
 {% endblock %}

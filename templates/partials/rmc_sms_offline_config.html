@@ -5,4 +5,5 @@
 {% if SMS_OFFLINE_CONFIG_JSON %}
 <script nonce="{{ csp_nonce }}" type="application/json" id="sms-offline-config">{{ SMS_OFFLINE_CONFIG_JSON|safe }}</script>
 <script src="{% static 'js/sms-offline-config-loader.js' %}"></script>
+<script src="{% static 'js/rmc-offline-encryption-bootstrap.js' %}" defer nonce="{{ csp_nonce }}"></script>
 {% endif %}

@@ -1,5 +1,187 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Global Footprint offline blank-screen fix (2026-06-07)
+
+**A. Claim:** Offline SVG fallback must never render a blank map panel.
+
+**B. Shipped:** Globe **opacity 1 by default** (SVG visible under skeleton); **default land fill/stroke** in CSS before JS palette; loader **`ensureSvgVisible`** + **`navigator.onLine`** skip WebGL; **`markOfflineFallback`** tears down blank WebGL canvas; texture **probe onerror** → SVG; SW **v4.02.79**.
+
+**C. Proof:** **WORLD_GLOBE_*** + **GLOBAL_FOOTPRINT_GLOCAL_OFFLINE_INTEGRATION_PASS**.
+
+**D. SOT:** batch **1657** extended (offline blank guard).
+
+## Slice — Global Footprint audit closeout batch 1657 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1657** — close all globe audit gaps; implement deferred optionals before next slice.
+
+**B. Shipped:** zoom debounce re-cluster; live `tour_waypoints`; bridge payload merge + SVG label sync; SSE revision fix; preview generator; prefetch earth texture; template `data-rmc-country`; SW **v4.02.78**.
+
+**C. Proof:** **WORLD_GLOBE_*** + **GLOBAL_FOOTPRINT_GLOCAL_OFFLINE_INTEGRATION_PASS**; **16/16** `test_globe_10x`.
+
+**D. SOT:** batch **1657** **DONE (repo-scope)**.
+
+**E. Honest:** Playwright globe layout still **PARTIAL**.
+
+**F. Next:** green `run_globe_layout_playwright.sh`; proceed to next §11.4 head.
+
+## Slice — Global Footprint live realtime batch 1656 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1656** — globe live-sync with platform DB; fast auto-refresh as fleet grows.
+
+**B. Shipped:** `/super/api/globe/live/` bundle + `revision`; 5s SSE + poll fallback + reconnect; `refreshLive`/`applyLiveBundle`; legend counts/subline sync; cap 500 schools; SW **v4.02.77**.
+
+**C. Proof:** **WORLD_GLOBE_*** PASS; **13/13** `test_globe_10x`.
+
+**D. SOT:** batch **1656** **DONE (repo-scope)**.
+
+---
+
+## Slice — Global Footprint colorful polish batch 1655 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1655** — ship all optional globe polish: region-colored offline SVG, zoom-faded country labels, self-hosted night-earth texture; close API refresh gap.
+
+**B. Shipped:** `REGION_PALETTE` + pulse rings; `syncMapLabels` altitude fade; `earth-night-1k.jpg` + generator script; SVG land/region/country label parity + `applySvgPalette`; `svg_country_labels`; markers API `country_labels`; SW **v4.02.76**.
+
+**C. Proof:** **WORLD_GLOBE_FOOTPRINT_PASS** + **WORLD_GLOBE_10X_PASS** + **WORLD_GLOBE_ONLINE_OFFLINE_PARITY_PASS** + **GLOBAL_FOOTPRINT_GLOCAL_OFFLINE_INTEGRATION_PASS**; **12/12** `test_globe_10x`.
+
+**D. SOT:** batch **1655** **DONE (repo-scope)**.
+
+**E. Honest:** Playwright globe layout still **PARTIAL**.
+
+---
+
+## Slice — Global Footprint labels + online/offline parity batch 1654 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1654** — region/country labeling on WebGL + SVG fallback; bridge offline parity; preview sync; audit until green.
+
+**B. Shipped:** `region_labels` / `iso3_region_map` / `country_name` in geo payload; `labelsData` on globe; SVG region labels + dot `data-rmc-*` attrs; bridge `highlightSvgRegion` + offline sheet/filter; `verify_world_globe_online_offline_parity.py`; preview hero parity; SW **v4.02.74**.
+
+**C. Proof:** **WORLD_GLOBE_FOOTPRINT_PASS** + **WORLD_GLOBE_10X_PASS** + **WORLD_GLOBE_ONLINE_OFFLINE_PARITY_PASS** + **GLOBAL_FOOTPRINT_GLOCAL_OFFLINE_INTEGRATION_PASS**; template render safety **0**; **6/6** `test_globe_10x`.
+
+**D. SOT:** batch **1654** **DONE (repo-scope)**.
+
+---
+
+## Slice — Global Footprint 10x phases A–E batch 1653 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1653** — ship phases A–E (hero layout, legend sync, clustering API, SSE freshness, arcs/tour) + audit closeout.
+
+**B. Shipped:** `.lx-world--hero` layout + skeleton; `rmc-world-globe-bridge.js` (legend fly-to, status filters, bottom sheet, SSE); `window.RMCWorldGlobe` API (`flyToRegion`, `setStatusFilter`, `startTour`, `refreshMarkers`); `views_globe_api.py` markers + stream endpoints; `cluster_markers`/`filter_markers`; HQ arcs + tour waypoints; operator `lwm_layout` + `lwm_tour_enabled`; **`verify_world_globe_10x.py`**; SW **v4.02.73**.
+
+**C. Proof:** **WORLD_GLOBE_10X_PASS**; **WORLD_GLOBE_FOOTPRINT_PASS**; **GLOBAL_FOOTPRINT_GLOCAL_OFFLINE_INTEGRATION_PASS**; **16/16** globe tests OK; template render safety **0**.
+
+**D. SOT:** batch **1653** **DONE (repo-scope)**.
+
+**E. Honest:** Playwright globe layout still **PARTIAL**; SSE requires staff session on manager host; earth night texture deferred.
+
+**F. Next:** green `run_globe_layout_playwright.sh` on isolated DB; optional self-hosted earth texture asset.
+
+## Slice — Residual closeout batch 1651 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1651** — close honest residuals: queue encryption at rest, globe bundle split, Collabora offline posture, Playwright globe layout runner, Lane 2 local smoke.
+
+**B. Shipped:** AES-GCM **`rmc-offline-queue-crypto.js`** + session key API **`/api/offline/encryption-key/`** + **`rmc-offline-encryption-bootstrap.js`** + offline bundle **`enable_offline_queue_encryption`**; globe **ES module code-split** (`world-globe.mount.js` 2.4KB + `vendor-three`/`vendor-gl` chunks); **`verify_offline_queue_encryption_at_rest.py`** + **`verify_collabora_offline_posture.py`**; **`run_globe_layout_playwright.sh`** (isolated `db_playwright_globe.sqlite3`); **`run_lane2_local_smoke.sh`**; SW **v4.02.71**.
+
+**C. Proof:** **OFFLINE_QUEUE_ENCRYPTION_AT_REST_PASS**; **COLLABORA_OFFLINE_POSTURE_PASS**; **WORLD_GLOBE_FOOTPRINT_PASS**; **2/2** encryption key API tests OK.
+
+**D. SOT:** batch **1651** **DONE (repo-scope)** / Playwright globe layout **PARTIAL** until `run_globe_layout_playwright.sh` green on your machine (fresh migrate on isolated DB).
+
+**E. Honest:** Collabora **live** WOPI still needs `COLLABORA_BASE_URL`; Lane **1172/1173** real iOS/Android pilot external; `vendor-three` chunk still ~1.8MB (split defers initial parse to module graph).
+
+**F. Next:** run `bash scripts/run_globe_layout_playwright.sh` after migrate completes; optional dynamic `import()` inside mount for further three.js trimming.
+
+## Slice — Global Footprint + glocal + offline + KB integration batch 1650 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1650** — wire Global Footprint globe with local-first, glocal shell, sovereign offline mode, and KB/LibreOffice tooling for seamless online/offline tenant + operator experience.
+
+**B. Shipped:** globe loader offline/low-bandwidth guards + offline notice; `operatorControlPlaneShell` + manager SW registration; `api_kb_offline_pack` + Dexie `kb_articles` + `rmc-kb-offline-cache.js`; KB ODT reimport `field_capture`; prefetch URLs for KB + globe assets; `verify_global_footprint_glocal_offline_integration.py` + CI job; fixed `verify_local_first_surface_wiring` SOT check.
+
+**C. Proof:** **GLOBAL_FOOTPRINT_GLOCAL_OFFLINE_INTEGRATION_PASS**; **WORLD_GLOBE_FOOTPRINT_PASS**; **LOCAL_FIRST_COMPLETION_PASS**; **2/2** KB offline pack tests; SW **v4.02.70**.
+
+**D. SOT:** batch **1650** **DONE (repo-scope)**. **E. Honest:** Collabora live edit = network; Playwright `/super/` DB error; Lane 2 device proof external.
+
+**F. Next:** fix local `/super/` OperationalError for Playwright globe layout proof; optional globe bundle split.
+
+## Slice — Preview Shell tenant CSS wiring batch 1649 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1649** — wire tenant v3 100x preview CSS in `portal_base.html` (smallest failing named verifier).
+
+**B. Shipped:** tenant-host-gated links for `rmc-tenant-header-100x.css`, `rmc-tenant-canvas-100x.css`, `rmc-tenant-v3-100x-role-home.css`, `rmc-civic-footer.css` in `portal_base.html`.
+
+**C. Proof:** **PREVIEW_SHELL_TENANT_V3_PARITY_PASS**; **16/16** `test_tenant_role_home_parity` OK; SW **v4.02.69**.
+
+**D. SOT:** batch **1649** **DONE (repo-scope)**. **E. Honest:** completion bundle still trips Windows Unicode in platform shell parity stderr; Globe Playwright needs DB + auth refresh.
+
+**F. Next:** Globe Playwright layout audit on manager landing when env ready; or next §11.4 slice.
+
+## Slice — KB admin locale/ODT batch 1648 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1648** — KBArticleAdmin locale/translation + ODT fieldsets; admin regenerate ODT action (post-1647 deferral).
+
+**B. Shipped:** `admin_kb.py` locale/ODT/tenant fieldsets + `odt_present` column + `regenerate_odt_files` action; `regenerate_kb_article_odt()` service helper.
+
+**C. Proof:** **KB_ODT_ROUND_TRIP_VERIFY: PASS**; **HELP_CENTER_TIERS_PASS (142)**; **4/4** round-trip tests OK.
+
+**D. SOT:** batch **1648** **DONE (repo-scope)**. **E. Honest:** Collabora = `COLLABORA_BASE_URL`; `import_docs_to_kb` bulk CLI unchanged.
+
+**F. Next:** Lane 2 external (**1199** hosted SHA, **1175** pilot school) or next §11.4 product slice when scoped.
+
+## Slice — KB ODT round-trip + locale publish batch 1647 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1647** — staff ODT round-trip on published KB articles + manager locale publish UI depth (post-1646).
+
+**B. Shipped:** `reimport_odt_into_kb_article`; `kb_article_reimport_odt` route; staff reimport partial on article pages; `publish_locale_article` + `publish_one` + `missing_locales` on locale families; docs-hub link from locale families.
+
+**C. Proof:** **KB_ODT_ROUND_TRIP_VERIFY: PASS**; **KB_LIBREOFFICE_10X_VERIFY: PASS**; **HELP_CENTER_TIERS_PASS (139)**; **12/12** round-trip + wave3 tests OK.
+
+**D. SOT:** batch **1647** **DONE (repo-scope)**. **E. Honest:** Collabora live edit = `COLLABORA_BASE_URL`; CLI bulk `generate_kb_odt` / `import_docs_to_kb` unchanged.
+
+**F. Next:** batch **1648** **DONE** — see admin locale/ODT slice above. Lane 2 external (**1199**, **1175**) when operator-ready.
+
+## Slice — KB/LibreOffice 10x batch 1646 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1646** — documentation hub + office compose/import for tenant + operator surfaces.
+
+**B. Shipped:** `kb_office_service.py`, `views_kb_docs.py`, `convert_odt_to_html`; routes `kb_docs_hub`, `kb_office_upload`, `office_document_download`, `office_document_preview_pdf`; templates hub/upload + operator bodies; help_center + kb_home + office list wiring.
+
+**C. Proof:** `verify_kb_libreoffice_10x.py` → **KB_LIBREOFFICE_10X_VERIFY: PASS**; `verify_kb_libreoffice_stack.py` OK; `test_kb_docs_hub_10x` unit tests green.
+
+**D. Honest residual:** Collabora live edit = `COLLABORA_BASE_URL` (PATH Tier 2); CLI bulk `generate_kb_odt` / `import_docs_to_kb` UI optional next.
+
+**E. SOT:** batch **1646** DONE; repo remainder callout refreshed (**1175**/**1199** repo-scope DONE).
+
+**F. Next:** batch **1647** candidate — staff ODT round-trip on published articles + manager KB locale publish UI depth, or RLS MEDIUM follow-ups (**1242**).
+
+## Slice — Global Footprint 3D globe batch 1645 phase-3 closeout (2026-06-07)
+
+**A. Claim:** §11.4 batch **1645** phase 3 — city-level pins, lazy loader, operator auto-rotate toggle, layout-audit attempt.
+
+**B. Shipped:** `world_map_geo._resolve_school_coords` (`settings.location` → `city_id` → catalog search → centroid); realdata `settings` on school rows; `lwm_globe_auto_rotate` cockpit field; `rmc-world-globe-loader.js`; `_ensure_world_map_globe_json` auto-rotate sync; mount tooltip shows city when present.
+
+**C. Proof:** **WORLD_GLOBE_FOOTPRINT_PASS**; **CP_200X_LANDING_CONTRACT_PASS**; **11/11** globe tests OK; template render safety **0**; SW **`sms-v4.02.68-world-globe-phase3-closeout-2026-06-07`**. Playwright layout audit: **3 skipped** (local SQLite missing `accounts_user` — refresh auth after `migrate` on shared dev DB).
+
+**D. SOT:** batch **1645** **DONE (repo-scope)**. **E. Honest:** bundle ~1.8MB; Playwright live proof blocked on local DB migrate/auth export until operator runs against populated `db_working.sqlite3`.
+
+## Slice — Global Footprint 3D globe batch 1645 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1645** — replace Global footprint stylized SVG with interactive globe.gl globe; lat/lng school markers; dark cockpit theme; full wiring + verifier.
+
+**B. Shipped:** `world_map_geo.py`; `_live_world_map.html` globe mount + JSON bootstrap + SVG fallback; `world-globe.mount.js` Vite bundle; `world-countries-110m.json`; `rmc-cp-200x.css` globe cell; layout-audit e2e selector update; `verify_world_globe_footprint.py`.
+
+**C. Proof:** **WORLD_GLOBE_FOOTPRINT_PASS**; **CP_200X_LANDING_CONTRACT_PASS**; **9/9** globe tests OK; template render safety **0**; SW monotonic **`sms-v4.02.67-world-globe-footprint-closeout-2026-06-07`**. Closeout pass: `country_code` on markers + schools-list click-through; defaults always ship `globe_payload_json`; SW precache globe + geo JSON.
+
+**D. SOT:** batch **1645** **DONE (repo-scope)**. **E. Honest:** superseded by phase-3 closeout above.
+
+## Slice — Studio OS gear-up residual batch 1644 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1644** — finish cut-short Studio OS gear-up (hero shell parity, workflow-health syntax, audit refresh).
+
+**B. Shipped:** `mode_hero_shell.html` on Experience + Automation tenant modes; `get_studio_mode_hero_context` automation pane URLs + health badge; `get_automation_workflow_health_summary` try/except fix; refreshed `studio_os_workflow_gear_up_audit.json` deferrals.
+
+**C. Proof:** **35/35** studio_os cockpit/toolbar/shell tests OK; **verify_service_worker_version --check-monotonic** OK; SW **`sms-v4.02.65-studio-os-gear-up-closeout-2026-06-07`**.
+
+**D. SOT:** batch **1644** **DONE (repo-scope)**. **E. Honest:** overview workflow info-tag chips optional; **1175**/**1199** external Lane 2.
+
 ## Slice — Lane 2 + marketplace gap closure batch 1643 (2026-06-07)
 
 **A. Claim:** §11.4 batch **1643** — credential editor UI; pilot intake form + export; hosted version JSON reachability (**1175**/**1199** repo-scope).

@@ -127,6 +127,13 @@
     <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
     <link rel="stylesheet" href="{% static 'css/migration-cloud-ui.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-nav-sidebar.css' %}">
+    {% comment %} v4.02.69: tenant v3 100x preview shell CSS (batch 1649). {% endcomment %}
+    {% if request.public_host_kind != 'manager' %}
+    <link rel="stylesheet" href="{% static 'css/rmc-tenant-header-100x.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-tenant-canvas-100x.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-tenant-v3-100x-role-home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
+    {% endif %}
     {% comment %} v4.02.9: tenant workspace Tools edge-tray (tenant host) + manager portal bridge operator tray. {% endcomment %}
     {% include "partials/rmc_tenant_tools_styles.html" %}
     {% include "partials/rmc_operator_tools_styles.html" %}
@@ -486,6 +493,7 @@
        rmc-command-palette.js; header search filtering + sidebar resize/collapse
        = static/js/portal-shell-bootstrap.js. {% endcomment %}
 
+    {% comment %} v4.02.70: SMS offline config island — deltaEndpointUrl + hydrateEndpoints via platform_surface_config SOT. {% endcomment %}
     {% include "partials/rmc_sms_offline_config.html" %}
 
     {% if SHOW_OFFLINE_STATUS_BAR %}
@@ -501,6 +509,7 @@
        the attendance roll-call form when the page loads offline. Only
        activates on pages that opt in via data-attendance-offline-hydrator. {% endcomment %}
     <script src="{% static 'js/attendance-offline-hydrator.js' %}"></script>
+    <script src="{% static 'js/rmc-kb-offline-cache.js' %}" defer></script>
     {% endif %}
     <script src="{% static 'js/critical-read-degraded.js' %}"></script>
     {% comment %} Pass 8 Wave 2: wire components/confirm_modal.html — replaces 4 sites that

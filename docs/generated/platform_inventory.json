@@ -3,16 +3,16 @@
     "allow_any": 173,
     "csrf_exempt": 680,
     "cursor_execute": 413,
-    "except_exception": 2550,
+    "except_exception": 2551,
     "get_solo": 213,
-    "gilead": 16835,
-    "gilead_files": 231,
-    "html_files": 1645,
-    "management_commands": 284,
+    "gilead": 16841,
+    "gilead_files": 234,
+    "html_files": 1646,
+    "management_commands": 285,
     "markdown_files": 1602,
     "migration_files": 991,
-    "print_calls": 4242,
-    "python_files": 6221,
+    "print_calls": 4264,
+    "python_files": 6233,
     "site_settings": 2469
   },
   "doc_drift": {
@@ -28,8 +28,8 @@
       "path": "apps/siteconfig/_seed_country_localization.py"
     },
     {
-      "bytes": 206605,
-      "lines": 5088,
+      "bytes": 208363,
+      "lines": 5127,
       "path": "apps/siteconfig/forms_cockpit.py"
     },
     {
@@ -921,6 +921,11 @@
     },
     {
       "app": "platform_runtime",
+      "command": "export_pilot_defect_backlog",
+      "path": "apps/platform_runtime/management/commands/export_pilot_defect_backlog.py"
+    },
+    {
+      "app": "platform_runtime",
       "command": "platform_inventory",
       "path": "apps/platform_runtime/management/commands/platform_inventory.py"
     },
@@ -1550,7 +1555,7 @@
     "cursor_execute_apps_config_py_excl_migrations": 44,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 4057,
+    "print_calls_scripts_py": 4079,
     "site_settings_refs_apps_py_excl_migrations": 214,
     "site_settings_refs_apps_py_excl_migrations_tests": 161
   },

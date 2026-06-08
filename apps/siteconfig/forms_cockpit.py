@@ -2602,6 +2602,31 @@ class CockpitPayloadForm(forms.ModelForm):
             "e.g. '+3 wk-on-wk'). Rows without a region label are skipped."
         ),
     )
+    lwm_globe_auto_rotate = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Live world map: globe auto-rotate"),
+        help_text=_(
+            "When enabled, the 3D globe slowly spins until the operator interacts. "
+            "Honours prefers-reduced-motion in the browser."
+        ),
+        initial=True,
+    )
+    lwm_layout = forms.ChoiceField(
+        required=False,
+        choices=(("hero", _("Hero (full-width globe)")), ("side", _("Side-by-side"))),
+        widget=forms.Select,
+        label=_("Live world map: layout"),
+        help_text=_("Hero layout floats the legend over the globe for maximum map presence."),
+        initial="hero",
+    )
+    lwm_tour_enabled = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Live world map: region tour"),
+        help_text=_("Enable the auto-tour and Tour/Stop controls on the globe panel."),
+        initial=True,
+    )
 
     # 10) manager_200x.audit_feed
     auf_label = forms.CharField(
@@ -3720,6 +3745,9 @@ class CockpitPayloadForm(forms.ModelForm):
         "lwm_label",
         "lwm_hero_value",
         "lwm_regional_rows",
+        "lwm_globe_auto_rotate",
+        "lwm_layout",
+        "lwm_tour_enabled",
     )
     AUDIT_FEED_FIELDS: tuple[str, ...] = (
         "auf_label",
@@ -4097,6 +4125,11 @@ class CockpitPayloadForm(forms.ModelForm):
         self.fields["lwm_regional_rows"].initial = _serialize_regional_rows(
             world_map.get("regional_breakdown")
         )
+        self.fields["lwm_globe_auto_rotate"].initial = bool(
+            world_map.get("globe_auto_rotate", True)
+        )
+        self.fields["lwm_layout"].initial = world_map.get("layout") or "hero"
+        self.fields["lwm_tour_enabled"].initial = bool(world_map.get("tour_enabled", True))
 
         # manager_200x.audit_feed
         audit = payload.get("audit_feed") or {}
@@ -4630,7 +4663,13 @@ class CockpitPayloadForm(forms.ModelForm):
                 world_overlay["schools_live_label"] = tail.strip()
         lwm_regional = _parse_regional_rows(cleaned.get("lwm_regional_rows") or "")
         if lwm_regional:
-            world_overlay["regional_breakdown"] = lwm_regional
+            from apps.siteconfig.world_map_geo import enrich_regional_breakdown
+
+            world_overlay["regional_breakdown"] = enrich_regional_breakdown(lwm_regional)
+        world_overlay["globe_auto_rotate"] = bool(cleaned.get("lwm_globe_auto_rotate"))
+        layout = (cleaned.get("lwm_layout") or "hero").strip().lower()
+        world_overlay["layout"] = layout if layout in ("hero", "side") else "hero"
+        world_overlay["tour_enabled"] = bool(cleaned.get("lwm_tour_enabled"))
         if world_overlay:
             payload.setdefault("live_world_map", {}).update(world_overlay)
 

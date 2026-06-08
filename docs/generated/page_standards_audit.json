@@ -1,14 +1,13 @@
 {
   "summary": {
-    "templates_scanned": 1503,
-    "pages_with_findings": 28,
-    "finding_total": 28,
+    "templates_scanned": 1622,
+    "pages_with_findings": 33,
+    "finding_total": 33,
     "by_finding": {
-      "missing_h1": 11,
-      "inline_script_count": 10,
+      "inline_script_count": 18,
+      "missing_h1": 9,
+      "multiple_h1": 3,
       "marketing_form_missing_honeypot": 2,
-      "multiple_h1": 2,
-      "missing_main_landmark": 2,
       "form_missing_csrf_token": 1
     }
   },
@@ -286,6 +285,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\accounts\\guardian_setup.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\accounts\\import_hub.html",
       "is_partial": false,
       "is_marketing": false,
@@ -525,7 +532,7 @@
       "is_marketing": false,
       "extends_base": false,
       "findings": [],
-      "inline_style_count": 2
+      "inline_style_count": 1
     },
     {
       "path": "templates\\accounts\\password_change_done.html",
@@ -907,6 +914,14 @@
     },
     {
       "path": "templates\\admin\\includes\\admin_change_form_header.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\admin\\includes\\admin_change_form_rail.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -1482,6 +1497,22 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\apicenter\\super\\ai_center_agentic.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\apicenter\\super\\ai_center_destructive.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 1
+    },
+    {
       "path": "templates\\apicenter\\super\\ai_center_faq_candidates.html",
       "is_partial": false,
       "is_marketing": false,
@@ -1523,6 +1554,14 @@
     },
     {
       "path": "templates\\apicenter\\super\\ai_center_kb_drafts.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\apicenter\\super\\ai_center_kb_tools.html",
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
@@ -1613,6 +1652,78 @@
       "findings": [
         "missing_h1"
       ],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\assist_dock\\partials\\impersonation_banner.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\assist_dock\\power\\impersonate.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\assist_dock\\power\\impersonation_picker.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\assist_dock\\power\\inspect.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\assist_dock\\power\\presence.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\assist_dock\\power\\settings.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\assist_dock\\power\\share.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\assist_dock\\power\\theme.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\assist_dock\\power\\translate.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
       "inline_style_count": 0
     },
     {
@@ -1793,6 +1904,22 @@
     },
     {
       "path": "templates\\communication\\narrative_list.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\communication\\preferences\\consent_centre.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 15
+    },
+    {
+      "path": "templates\\communication\\super\\delivery_receipts.html",
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
@@ -2208,6 +2335,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\components\\header_theme_chip.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\components\\header_weather_widget.html",
       "is_partial": true,
       "is_marketing": false,
@@ -2416,6 +2551,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\components\\rmc_empty_state_card.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\components\\rmc_iso_empty_panel.html",
       "is_partial": true,
       "is_marketing": false,
@@ -2513,6 +2656,22 @@
     },
     {
       "path": "templates\\components\\rmc_success_check.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\components\\rmc_workflow_progress_strip.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\components\\rmc_workflow_tenant_trust_strip.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -2728,6 +2887,14 @@
       "inline_style_count": 2
     },
     {
+      "path": "templates\\customersuccess\\guided_onboarding_embed.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\customersuccess\\super_dashboard.html",
       "is_partial": false,
       "is_marketing": false,
@@ -2792,6 +2959,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\emails\\_legal_footer.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 4
+    },
+    {
       "path": "templates\\emails\\base_branded.html",
       "is_partial": true,
       "is_marketing": false,
@@ -2806,6 +2981,30 @@
       "extends_base": false,
       "findings": [],
       "inline_style_count": 37
+    },
+    {
+      "path": "templates\\emails\\newsletter_confirmed.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 2
+    },
+    {
+      "path": "templates\\emails\\newsletter_verify.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 4
+    },
+    {
+      "path": "templates\\emails\\operator_tenant_signup_created.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 10
     },
     {
       "path": "templates\\emails\\password_reset.html",
@@ -2872,6 +3071,22 @@
       "inline_style_count": 15
     },
     {
+      "path": "templates\\emails\\tenant_admin_signup_completed.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 7
+    },
+    {
+      "path": "templates\\emails\\tenant_admin_signup_verification.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 5
+    },
+    {
       "path": "templates\\emails\\welcome.html",
       "is_partial": true,
       "is_marketing": false,
@@ -2931,7 +3146,7 @@
       "path": "templates\\errors\\429.html",
       "is_partial": true,
       "is_marketing": false,
-      "extends_base": true,
+      "extends_base": false,
       "findings": [],
       "inline_style_count": 0
     },
@@ -2998,6 +3213,16 @@
       "extends_base": true,
       "findings": [],
       "inline_style_count": 0
+    },
+    {
+      "path": "templates\\evals\\bulk_grade_entry.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [
+        "inline_script_count:1"
+      ],
+      "inline_style_count": 1
     },
     {
       "path": "templates\\evals\\class_ranking.html",
@@ -3320,6 +3545,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\finance\\marketplace_integration_credentials.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\finance\\offline_payment_intent_queue.html",
       "is_partial": false,
       "is_marketing": false,
@@ -3600,6 +3833,24 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\lti_admin\\tool_registration.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\lux_workspace\\demo.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [
+        "missing_h1"
+      ],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\maintenance.html",
       "is_partial": false,
       "is_marketing": false,
@@ -3620,9 +3871,7 @@
       "is_partial": false,
       "is_marketing": true,
       "extends_base": true,
-      "findings": [
-        "missing_h1"
-      ],
+      "findings": [],
       "inline_style_count": 0
     },
     {
@@ -3646,9 +3895,7 @@
       "is_partial": false,
       "is_marketing": true,
       "extends_base": true,
-      "findings": [
-        "missing_h1"
-      ],
+      "findings": [],
       "inline_style_count": 0
     },
     {
@@ -3661,6 +3908,14 @@
     },
     {
       "path": "templates\\marketing\\components\\_bell_clock_sticky.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\components\\_channel_rails_strip.html",
       "is_partial": true,
       "is_marketing": true,
       "extends_base": false,
@@ -3772,6 +4027,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\marketing\\components\\_image_slot.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\marketing\\components\\_lane_academics_matrix.html",
       "is_partial": true,
       "is_marketing": true,
@@ -3870,6 +4133,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\marketing\\components\\_outcome_stat_band.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\marketing\\components\\_persona_tabs.html",
       "is_partial": true,
       "is_marketing": true,
@@ -3926,6 +4197,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\marketing\\components\\_product_tour.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\marketing\\components\\_proof_quote.html",
       "is_partial": true,
       "is_marketing": true,
@@ -3943,6 +4222,14 @@
     },
     {
       "path": "templates\\marketing\\components\\_rotating_headline.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\components\\_testimonial_band.html",
       "is_partial": true,
       "is_marketing": true,
       "extends_base": false,
@@ -3970,9 +4257,15 @@
       "is_partial": false,
       "is_marketing": true,
       "extends_base": true,
-      "findings": [
-        "missing_h1"
-      ],
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\enterprise_ledger.html",
+      "is_partial": false,
+      "is_marketing": true,
+      "extends_base": true,
+      "findings": [],
       "inline_style_count": 0
     },
     {
@@ -3998,9 +4291,7 @@
       "is_partial": false,
       "is_marketing": true,
       "extends_base": true,
-      "findings": [
-        "missing_h1"
-      ],
+      "findings": [],
       "inline_style_count": 0
     },
     {
@@ -4109,6 +4400,14 @@
     },
     {
       "path": "templates\\marketing\\marketing_setup_simulator.html",
+      "is_partial": false,
+      "is_marketing": true,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\pages\\competitor_compare.html",
       "is_partial": false,
       "is_marketing": true,
       "extends_base": true,
@@ -4414,6 +4713,22 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\marketing\\partials\\_consent_banner.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\partials\\_intl_seo_head.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\marketing\\partials\\_mkt_gradebook_interactive.html",
       "is_partial": true,
       "is_marketing": true,
@@ -4614,6 +4929,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\marketing\\partials\\sections\\_enterprise_constellation.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\marketing\\partials\\sections\\_entitlement_calculator.html",
       "is_partial": true,
       "is_marketing": true,
@@ -4638,7 +4961,39 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\marketing\\partials\\sections\\_hero_edge_map.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\partials\\sections\\_hero_speed_duel.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\partials\\sections\\_published_pricing_tiers.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\marketing\\partials\\sections\\_rugged_engine.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 6
+    },
+    {
+      "path": "templates\\marketing\\partials\\sections\\_simulations_hub.html",
       "is_partial": true,
       "is_marketing": true,
       "extends_base": false,
@@ -4647,6 +5002,22 @@
     },
     {
       "path": "templates\\marketing\\partials\\sections\\_sovereign_kernel.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\partials\\sections\\_viewport_trinity.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\partials\\sections\\_zero_ui_lab.html",
       "is_partial": true,
       "is_marketing": true,
       "extends_base": false,
@@ -4706,9 +5077,7 @@
       "is_partial": false,
       "is_marketing": true,
       "extends_base": true,
-      "findings": [
-        "missing_h1"
-      ],
+      "findings": [],
       "inline_style_count": 0
     },
     {
@@ -4744,6 +5113,14 @@
       "inline_style_count": 2
     },
     {
+      "path": "templates\\marketing\\viz\\enterprise_constellation.svg.html",
+      "is_partial": false,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\marketing\\viz\\gradebook_frameworks.svg.html",
       "is_partial": false,
       "is_marketing": true,
@@ -4764,6 +5141,14 @@
       "is_partial": false,
       "is_marketing": true,
       "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\zero_ui_lab.html",
+      "is_partial": false,
+      "is_marketing": true,
+      "extends_base": true,
       "findings": [],
       "inline_style_count": 0
     },
@@ -5408,6 +5793,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\migration_cloud\\operator\\dlq_list.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\migration_cloud\\operator\\dsar_runbook.html",
       "is_partial": false,
       "is_marketing": false,
@@ -5528,6 +5921,22 @@
       "extends_base": true,
       "findings": [],
       "inline_style_count": 0
+    },
+    {
+      "path": "templates\\migration_cloud\\super\\lms_diagnostics.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 88
+    },
+    {
+      "path": "templates\\migration_cloud\\super\\lms_diagnostics_retention_preview.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 50
     },
     {
       "path": "templates\\migration_cloud\\super\\maa_v2_promotion.html",
@@ -5746,6 +6155,30 @@
       "inline_style_count": 3
     },
     {
+      "path": "templates\\partials\\cockpit\\_activity_ticker_drawer.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\cockpit\\_activity_ticker_inline.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\cockpit\\_activity_ticker_landing_strip.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\cockpit\\_activity_timeline.html",
       "is_partial": true,
       "is_marketing": false,
@@ -5882,6 +6315,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\cockpit\\_footer_temporal_dock.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\cockpit\\_forecast_lane.html",
       "is_partial": true,
       "is_marketing": false,
@@ -5919,7 +6360,7 @@
       "is_marketing": false,
       "extends_base": false,
       "findings": [],
-      "inline_style_count": 0
+      "inline_style_count": 5
     },
     {
       "path": "templates\\partials\\cockpit\\_newsletter_band.html",
@@ -5946,6 +6387,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\cockpit\\_operator_incident_banner.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\cockpit\\_operator_notebook.html",
       "is_partial": true,
       "is_marketing": false,
@@ -5955,6 +6404,14 @@
     },
     {
       "path": "templates\\partials\\cockpit\\_operator_presence.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\cockpit\\_page_actions.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -6194,6 +6651,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\control_plane_unified_header.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\copilot_context_lens_sheet.html",
       "is_partial": true,
       "is_marketing": false,
@@ -6426,6 +6891,14 @@
       "inline_style_count": 4
     },
     {
+      "path": "templates\\partials\\rmc_ai_chrome_page_data.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\rmc_analytics_viz_assets.html",
       "is_partial": true,
       "is_marketing": false,
@@ -6451,6 +6924,22 @@
     },
     {
       "path": "templates\\partials\\rmc_assist_dock_labels.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_assist_dock_shortcut_bridge.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_assist_dock_slots.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -6490,7 +6979,23 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\rmc_conditional_feature_boot.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\rmc_dashboard_corporate_os_styles.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_deferred_stylesheet.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -6578,6 +7083,30 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\rmc_nav_sidebar_page_data.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_nav_sidebar_resize_handle.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_nav_sidebar_toolbar.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\rmc_notification_corner_boot.html",
       "is_partial": true,
       "is_marketing": false,
@@ -6588,7 +7117,39 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\rmc_operator_footer_civic.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\rmc_operator_footer_compact.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_operator_tools_page_data.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_operator_tools_scripts.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_operator_tools_styles.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -6604,6 +7165,16 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\rmc_page_personality.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [
+        "inline_script_count:1"
+      ],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\rmc_platform_chrome_scripts.html",
       "is_partial": true,
       "is_marketing": false,
@@ -6613,6 +7184,22 @@
     },
     {
       "path": "templates\\partials\\rmc_platform_chrome_styles.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_platform_shell_beautify_styles.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_platform_surface_page_data.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -6692,7 +7279,49 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\rmc_sms_offline_config.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\rmc_social_meta.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_support_quick_create.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [
+        "inline_script_count:1"
+      ],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_tenant_tools_page_data.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_tenant_tools_scripts.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_tenant_tools_styles.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -6717,6 +7346,14 @@
     },
     {
       "path": "templates\\partials\\rmc_theme_personality_overrides.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_tools_tray_context_stack.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -7129,7 +7766,7 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 0
+      "inline_style_count": 1
     },
     {
       "path": "templates\\people\\backend_student_list.html",
@@ -7396,6 +8033,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\platform_runtime\\platform_health_center.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\platform_runtime\\registry_health.html",
       "is_partial": false,
       "is_marketing": false,
@@ -7450,6 +8095,32 @@
       "extends_base": true,
       "findings": [],
       "inline_style_count": 0
+    },
+    {
+      "path": "templates\\platform_runtime\\workflow_flight_deck.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\portal\\agentic_actions.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\portal\\ai_line_intents.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [
+        "inline_script_count:1"
+      ],
+      "inline_style_count": 14
     },
     {
       "path": "templates\\portal\\ai_surfaces\\grade_outlook.html",
@@ -7712,6 +8383,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\portal\\institution_type_assign.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 18
+    },
+    {
       "path": "templates\\portal\\kb_article.html",
       "is_partial": false,
       "is_marketing": false,
@@ -7736,12 +8415,28 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\portal\\kb_docs_hub.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\portal\\kb_home.html",
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
       "inline_style_count": 3
+    },
+    {
+      "path": "templates\\portal\\kb_office_upload.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 1
     },
     {
       "path": "templates\\portal\\kb_search.html",
@@ -7816,7 +8511,23 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\portal\\operator\\kb_docs_hub_body.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\portal\\operator\\kb_home_body.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\portal\\operator\\kb_office_upload_body.html",
       "is_partial": false,
       "is_marketing": false,
       "extends_base": false,
@@ -7865,6 +8576,14 @@
     },
     {
       "path": "templates\\portal\\partials\\kb_ai_assistant_panel.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\portal\\partials\\kb_article_staff_reimport.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -8500,12 +9219,28 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\schoolops\\super\\invite_school.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\schoolops\\super\\signup_diagnostics.html",
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
       "inline_style_count": 3
+    },
+    {
+      "path": "templates\\schoolops\\super\\signup_verifications.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
     },
     {
       "path": "templates\\schools\\404_tenant.html",
@@ -8601,6 +9336,16 @@
       "is_marketing": false,
       "extends_base": false,
       "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\schools\\accept_invite.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [
+        "multiple_h1:2"
+      ],
       "inline_style_count": 0
     },
     {
@@ -8740,6 +9485,22 @@
       "inline_style_count": 1
     },
     {
+      "path": "templates\\schools\\group_console.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 1
+    },
+    {
+      "path": "templates\\schools\\group_console_upgrade.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 1
+    },
+    {
       "path": "templates\\schools\\manager_feature_gap_register.html",
       "is_partial": false,
       "is_marketing": false,
@@ -8824,7 +9585,9 @@
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
-      "findings": [],
+      "findings": [
+        "missing_h1"
+      ],
       "inline_style_count": 0
     },
     {
@@ -9045,6 +9808,14 @@
     },
     {
       "path": "templates\\schools\\public_verify_hub.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\schools\\resend_verification.html",
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
@@ -9620,6 +10391,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\schools\\super_support_auto_rules.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\schools\\super_support_csat_dashboard.html",
       "is_partial": false,
       "is_marketing": false,
@@ -9632,8 +10411,18 @@
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
-      "findings": [],
+      "findings": [
+        "inline_script_count:1"
+      ],
       "inline_style_count": 3
+    },
+    {
+      "path": "templates\\schools\\super_support_on_call.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
     },
     {
       "path": "templates\\schools\\super_support_queue_fragment.html",
@@ -9924,6 +10713,14 @@
       "inline_style_count": 1
     },
     {
+      "path": "templates\\setup_studio\\partials\\wizard_nl_intake.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\setup_studio\\partials\\wizard_state_restore_banner.html",
       "is_partial": true,
       "is_marketing": false,
@@ -9952,9 +10749,7 @@
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
-      "findings": [
-        "missing_main_landmark"
-      ],
+      "findings": [],
       "inline_style_count": 0
     },
     {
@@ -10084,7 +10879,9 @@
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
-      "findings": [],
+      "findings": [
+        "missing_h1"
+      ],
       "inline_style_count": 0
     },
     {
@@ -10565,7 +11362,7 @@
       "is_marketing": false,
       "extends_base": false,
       "findings": [],
-      "inline_style_count": 15
+      "inline_style_count": 14
     },
     {
       "path": "templates\\siteconfig\\partials\\tenant_studio_day1_act1_brand.html",
@@ -10669,6 +11466,24 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\siteconfig\\public_status.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\siteconfig\\public_status_history.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [
+        "inline_script_count:1"
+      ],
       "inline_style_count": 0
     },
     {
@@ -10816,6 +11631,14 @@
       "inline_style_count": 1
     },
     {
+      "path": "templates\\siteconfig\\super\\cockpit_shell_configure.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\siteconfig\\super\\marketing_voice_configure.html",
       "is_partial": false,
       "is_marketing": false,
@@ -10838,9 +11661,7 @@
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
-      "findings": [
-        "missing_main_landmark"
-      ],
+      "findings": [],
       "inline_style_count": 0
     },
     {
@@ -11073,7 +11894,7 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 0
+      "inline_style_count": 1
     },
     {
       "path": "templates\\student360\\transcript_archive.html",
@@ -11822,12 +12643,152 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\super\\ai_line_intent_coverage.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 40
+    },
+    {
       "path": "templates\\super\\founder_dashboard.html",
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
       "inline_style_count": 0
+    },
+    {
+      "path": "templates\\super\\integrations\\idempotency_audit.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 44
+    },
+    {
+      "path": "templates\\super\\integrations\\lms_audit_exports.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 28
+    },
+    {
+      "path": "templates\\super\\integrations\\lms_audit_index.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 60
+    },
+    {
+      "path": "templates\\super\\integrations\\lms_index.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 24
+    },
+    {
+      "path": "templates\\super\\integrations\\lms_provider.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 55
+    },
+    {
+      "path": "templates\\super\\sso\\bindings_index.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 39
+    },
+    {
+      "path": "templates\\super\\wedges\\_surface_base.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 13
+    },
+    {
+      "path": "templates\\super\\wedges\\detail.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [
+        "inline_script_count:1"
+      ],
+      "inline_style_count": 50
+    },
+    {
+      "path": "templates\\super\\wedges\\index.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [
+        "inline_script_count:1"
+      ],
+      "inline_style_count": 41
+    },
+    {
+      "path": "templates\\super\\wedges\\surface_countries.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 14
+    },
+    {
+      "path": "templates\\super\\wedges\\surface_grading.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 14
+    },
+    {
+      "path": "templates\\super\\wedges\\surface_institution_types.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 19
+    },
+    {
+      "path": "templates\\super\\wedges\\surface_integrations.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 9
+    },
+    {
+      "path": "templates\\super\\wedges\\surface_multicampus_academics.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 36
+    },
+    {
+      "path": "templates\\super\\wedges\\surface_multicampus_billing.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 35
+    },
+    {
+      "path": "templates\\super\\wedges\\surface_multicampus_extension.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 48
     },
     {
       "path": "templates\\teacher\\attendance.html",
@@ -11843,7 +12804,7 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 4
+      "inline_style_count": 6
     },
     {
       "path": "templates\\teacher\\disciplinary.html",

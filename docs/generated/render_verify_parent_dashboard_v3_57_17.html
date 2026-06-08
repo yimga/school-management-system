@@ -65,7 +65,9 @@
 
 
 
-<section class="tp-pt-thread" aria-label="Teacher thread" data-rmc-tp-pt-thread>
+
+
+<section class="tp-pt-thread" aria-label="Teacher thread" data-rmc-tp-pt-thread data-rmc-cockpit-section="parent_teacher_thread">
   <header class="tp-pt-thread__head">
     <h3 class="tp-pt-thread__title">Teacher thread</h3>
     <span class="tp-pt-thread__teacher">Mr. Adekunle</span>
@@ -118,9 +120,18 @@
 
 
 
-<section class="tp-cal-weather" aria-label="This week" data-rmc-tp-cal-weather>
+<section class="tp-cal-weather" aria-label="This week" data-rmc-tp-cal-weather data-rmc-cockpit-section="calendar_weather"
+         data-local-timezone="UTC"
+         data-global-timezone="UTC">
   <header class="tp-cal-weather__head">
-    <h3 class="tp-cal-weather__title">This week</h3>
+    <div class="tp-cal-weather__head-main">
+      <h3 class="tp-cal-weather__title">This week</h3>
+      <p class="tp-cal-weather__now" data-rmc-cal-weather-now aria-live="polite">
+        
+        
+        
+      </p>
+    </div>
   </header>
   <ol class="tp-cal-weather__strip" role="list">
     
@@ -166,6 +177,7 @@
     
   </ol>
 </section>
+<script src="/static/js/rmc-calendar-weather-clock.js" defer></script>
 
 
 
@@ -174,7 +186,7 @@
 
 
 
-<section class="tp-fin-timeline" aria-label="Financial timeline" data-rmc-tp-fin-timeline>
+<section class="tp-fin-timeline" aria-label="Financial timeline" data-rmc-tp-fin-timeline data-rmc-cockpit-section="financial_timeline">
   <header class="tp-fin-timeline__head">
     <h3 class="tp-fin-timeline__title">Financial timeline</h3>
     
@@ -250,7 +262,7 @@
 
 
 
-<section class="tp-life-events" aria-label="Life events" data-rmc-tp-life-events>
+<section class="tp-life-events" aria-label="Life events" data-rmc-tp-life-events data-rmc-cockpit-section="life_event_timeline">
   <header class="tp-life-events__head">
     <h3 class="tp-life-events__title">Life events</h3>
   </header>
@@ -321,8 +333,32 @@
 
 
 
-  <!-- ===== cockpit partial: _sibling_compare.html | RENDERED EMPTY (gate not met) ===== -->
-  <div class="render-verify-empty" style="border:1px dashed #c1c7d0;padding:.5rem .75rem;margin:.5rem 0;background:#fafbfc;color:#5e6c84;font:13px/1.4 system-ui"><strong>_sibling_compare.html</strong>: gate not met (cockpit section present but `enabled=False` or empty list).</div>
+  <!-- ===== cockpit partial: _sibling_compare.html | RENDERED CORRECTLY ===== -->
+
+
+
+
+
+<section class="tp-sibling-compare tp-sibling-compare--consent-pending"
+         aria-label="Sibling compare"
+         data-rmc-tp-sibling-compare
+         data-rmc-tp-sibling-compare-state="consent-pending"
+         data-rmc-cockpit-section="sibling_compare">
+  <header class="tp-sibling-compare__head">
+    <h3 class="tp-sibling-compare__title">Sibling compare</h3>
+    
+  </header>
+  <p class="tp-sibling-compare__denied">No sibling data visible. You can opt in at any time from Family settings.</p>
+  <button type="button"
+          class="tp-sibling-compare__cta"
+          data-rmc-tp-sibling-compare-cta="1"
+          aria-haspopup="dialog">
+    Compare now
+  </button>
+</section>
+
+
+
   </main>
 </body>
 </html>

@@ -8,6 +8,9 @@
   border-radius: var(--token-radius-sm, 0.375rem);
   color: var(--text-primary, var(--color-base-700, #2c241d));
   text-decoration: none;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .studio-os__control-rail a.control-rail-link:hover {

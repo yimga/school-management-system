@@ -256,3 +256,9 @@ def convert_impress_to_pptx(source_path: str) -> bytes:
 def convert_impress_to_odp(source_path: str) -> bytes:
     """Convert presentation sources to ODP."""
     return _convert_with_libreoffice(source_path, "odp")
+
+
+def convert_odt_to_html(source_path: str) -> str:
+    """Convert Writer-family documents to HTML via LibreOffice headless."""
+    raw = _convert_with_libreoffice(source_path, "html")
+    return raw.decode("utf-8", errors="replace")

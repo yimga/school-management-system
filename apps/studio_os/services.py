@@ -504,6 +504,10 @@ def get_studio_mode_hero_context(
     legacy_urls: dict[str, str] | None = None,
     launch_payload: dict[str, Any] | None = None,
     theme_contrast_report: dict[str, Any] | None = None,
+    output_readiness_summary: dict[str, Any] | None = None,
+    automation_primary_url: str | None = None,
+    automation_secondary_url: str | None = None,
+    automation_health_summary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Template kwargs for studio_os/partials/_mode_hero.html on manager + tenant shells."""
     from django.utils.translation import gettext as _
@@ -567,12 +571,37 @@ def get_studio_mode_hero_context(
                 "Workflows, approvals, simulation, and staged activation. "
                 "Run outcomes in the canvas; use the sidebar to jump between tools."
             ),
-            "primary_cta_url": legacy_urls.get("workflow_hub") or "",
+            "primary_cta_url": automation_primary_url
+            or legacy_urls.get("workflow_hub")
+            or "",
             "primary_cta_label": _("Workflow center"),
-            "secondary_cta_url": legacy_urls.get("workflow_flow_gallery") or "",
-            "secondary_cta_label": _("Flow gallery"),
+            "secondary_cta_url": automation_secondary_url
+            or legacy_urls.get("workflow_flow_gallery")
+            or "",
+            "secondary_cta_label": _("Simulation engine"),
         }
-        if needs_tenant:
+        summary = (
+            automation_health_summary
+            if isinstance(automation_health_summary, dict)
+            else {}
+        )
+        if summary.get("service_online"):
+            failing = int(summary.get("failing_count") or 0)
+            paused = int(summary.get("paused_count") or 0)
+            if failing:
+                hero["mode_health_label"] = _("{count} failed runs").format(
+                    count=failing
+                )
+                hero["mode_health_status"] = "warn"
+            elif paused:
+                hero["mode_health_label"] = _("{count} paused packs").format(
+                    count=paused
+                )
+                hero["mode_health_status"] = "warn"
+            else:
+                hero["mode_health_label"] = _("Workflows healthy")
+                hero["mode_health_status"] = "ok"
+        elif needs_tenant:
             hero["mode_health_label"] = _("Select tenant for workflow context")
             hero["mode_health_status"] = "warn"
         return hero
@@ -586,10 +615,25 @@ def get_studio_mode_hero_context(
             ),
             "primary_cta_url": legacy_urls.get("report_library") or "",
             "primary_cta_label": _("Report library"),
-            "secondary_cta_url": legacy_urls.get("document_library") or "",
-            "secondary_cta_label": _("Document library"),
+            "secondary_cta_url": legacy_urls.get("reportcard_builder") or "",
+            "secondary_cta_label": _("Report builder"),
         }
-        if needs_tenant:
+        summary = (
+            output_readiness_summary
+            if isinstance(output_readiness_summary, dict)
+            else {}
+        )
+        if summary.get("service_online"):
+            missing = int(summary.get("packs_missing_deps") or 0)
+            if missing:
+                hero["mode_health_label"] = _("{count} packs need dependencies").format(
+                    count=missing
+                )
+                hero["mode_health_status"] = "warn"
+            else:
+                hero["mode_health_label"] = _("Outputs ready")
+                hero["mode_health_status"] = "ok"
+        elif needs_tenant:
             hero["mode_health_label"] = _("Select tenant for output preview")
             hero["mode_health_status"] = "warn"
         return hero
@@ -1186,23 +1230,61 @@ def get_automation_dependency_graph() -> list[dict[str, Any]]:
         return []
 
 
-def get_automation_workflow_health_summary() -> dict[str, int]:
+def get_automation_workflow_health_summary(
+    request: Any | None = None,
+) -> dict[str, Any]:
     """
     §4.3 Automation Studio optional: high-level workflow health metrics.
 
     Returns a lightweight summary for the Automation rail card:
-    - pack_count: number of WorkflowPack records
+    - pack_count: number of WorkflowPack records (tenant: assigned packs)
     - template_count: number of WorkflowTemplate records
-    - paused_count: WorkflowPack records flagged inactive (v3.54.0)
-    - failing_count: WorkflowDelivery records in failed terminal state (v3.54.0)
+    - paused_count: inactive packs (tenant: assigned inactive packs)
+    - failing_count: ProcessRun rows in failed terminal state (tenant-scoped when school set)
+    - service_online: True when at least one metric source resolved (False = unknown, not zero)
     """
+    empty: dict[str, Any] = {
+        "pack_count": 0,
+        "template_count": 0,
+        "paused_count": 0,
+        "failing_count": 0,
+        "service_online": False,
+    }
+    school = getattr(request, "school", None) if request is not None else None
     try:
-        from apps.runtime_blueprints.models import WorkflowPack, WorkflowTemplate
+        from apps.runtime_blueprints.models import (
+            WorkflowPack,
+            WorkflowPackAssignment,
+            WorkflowTemplate,
+        )
+
+        if school is not None:
+            assignments = WorkflowPackAssignment.objects.filter(school=school)
+            pack_ids = list(assignments.values_list("pack_id", flat=True))
+            pack_count = len(pack_ids)
+            paused_count = int(
+                WorkflowPack.objects.filter(id__in=pack_ids, is_active=False).count()
+            )
+            template_count = int(WorkflowTemplate.objects.all().count())
+            failing_count = 0
+            try:
+                from apps.orchestration.models import ProcessRun  # type: ignore[import-not-found]
+
+                failing_count = int(
+                    ProcessRun.objects.filter(status__iexact="failed").count()
+                )
+            except _STUDIO_SOFT_FAILURES:
+                failing_count = 0
+            return {
+                "pack_count": pack_count,
+                "template_count": template_count,
+                "paused_count": paused_count,
+                "failing_count": failing_count,
+                "service_online": True,
+            }
 
         pack_count = int(WorkflowPack.objects.all().count())
         template_count = int(WorkflowTemplate.objects.all().count())
-        # v3.54.0: paused + failing extension. Best-effort — different
-        # WorkflowPack schemas across waves may not have `is_active`; defensive.
         paused_count = 0
         try:
             paused_count = int(
@@ -1210,8 +1292,6 @@ def get_automation_workflow_health_summary() -> dict[str, int]:
             )
         except _STUDIO_SOFT_FAILURES:
             paused_count = 0
-        # Failing count: try common delivery-table names. Defensive lookup —
-        # absence reports 0, not crash.
         failing_count = 0
         try:
             from apps.orchestration.models import ProcessRun  # type: ignore[import-not-found]
@@ -1226,15 +1306,11 @@ def get_automation_workflow_health_summary() -> dict[str, int]:
             "template_count": template_count,
             "paused_count": paused_count,
             "failing_count": failing_count,
+            "service_online": True,
         }
     except _STUDIO_SOFT_FAILURES as e:
         logger.warning("get_automation_workflow_health_summary: %s", e)
-        return {
-            "pack_count": 0,
-            "template_count": 0,
-            "paused_count": 0,
-            "failing_count": 0,
-        }
+        return empty
 
 
 # ---------------------------------------------------------------------------

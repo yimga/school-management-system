@@ -3,9 +3,15 @@
 {% block title %}Office Documents{% endblock %}
 {% block content %}
 <div class="container py-4" data-page-archetype="task-list" data-rmc-scroll-policy="paginate">
-  <h1 class="h4 mb-3">Office Documents</h1>
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 mb-0">{% trans "Office Documents" %}</h1>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'kb:kb_docs_hub' %}">{% trans "Documentation hub" %}</a>
+      <a class="btn btn-sm btn-primary" href="{% url 'kb:kb_office_upload' %}">{% trans "Upload" %}</a>
+    </div>
+  </div>
   {% if not collabora_enabled %}
-  <div class="alert alert-warning">Collabora is not configured. Set <code>COLLABORA_BASE_URL</code>.</div>
+  <div class="alert alert-warning">{% trans "Collabora is not configured. Set" %} <code>COLLABORA_BASE_URL</code>. {% trans "PDF/DOCX download still works via LibreOffice headless." %}</div>
   {% endif %}
   <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
     <caption class="visually-hidden">{% trans "Office Documents" %}</caption>
@@ -20,7 +26,11 @@
         <td data-label="{% trans 'Title' %}">{{ doc.title }}</td>
         <td data-label="{% trans 'Audience' %}">{{ doc.help_audience }}</td>
         <td data-label="{% trans 'Updated' %}">{{ doc.updated_at }}</td>
-        <td data-label="{% trans 'Actions' %}"><a class="btn btn-sm btn-primary" href="{% url 'kb:office_document_open' doc.id %}">{% trans "Open" %}</a></td>
+        <td data-label="{% trans 'Actions' %}" class="text-nowrap">
+          <a class="btn btn-sm btn-primary" href="{% url 'kb:office_document_open' doc.id %}">{% trans "Open" %}</a>
+          <a class="btn btn-sm btn-outline-danger" href="{% url 'kb:office_document_preview_pdf' doc.id %}" target="_blank" rel="noopener">PDF</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'kb:office_document_download' doc.id %}?format=docx">DOCX</a>
+        </td>
       </tr>
       {% empty %}
       <tr><td colspan="4">{% include "components/tp_empty.html" with tp_empty_title=_("No documents") tp_empty_hint=_("Office documents will appear here when published.") %}</td></tr>

@@ -1,0 +1,19 @@
+{% load i18n %}
+{% if can_reimport_odt %}
+<div class="card shadow-sm mb-3 border-warning-subtle">
+  <div class="card-header py-2">
+    <h6 class="mb-0"><i class="bi bi-arrow-repeat me-1"></i>{% trans "Staff: ODT round-trip" %}</h6>
+  </div>
+  <div class="card-body py-3">
+    <p class="small text-muted mb-2">{% trans "Download ODT, edit offline in LibreOffice, then re-upload here. The article moves to Updated — pending review." %}</p>
+    <form method="post" action="{% url 'kb:kb_article_reimport_odt' article.slug %}" enctype="multipart/form-data" class="d-flex flex-wrap gap-2 align-items-end" data-rmc-offline-form="field_capture">
+      {% csrf_token %}
+      <div>
+        <label class="form-label small mb-1" for="kb-reimport-file">{% trans "Edited document" %}</label>
+        <input type="file" class="form-control form-control-sm" id="kb-reimport-file" name="file" accept=".odt,.doc,.docx,.rtf,.txt,.html,.htm" required>
+      </div>
+      <button type="submit" class="btn btn-sm btn-warning">{% trans "Re-import ODT" %}</button>
+    </form>
+  </div>
+</div>
+{% endif %}

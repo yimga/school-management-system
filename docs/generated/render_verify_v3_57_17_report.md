@@ -20,8 +20,8 @@ Rationale:
 
 | File | Bytes | Rendered-html newlines |
 | --- | --- | --- |
-| `render_verify_super_dashboard_v3_57_17.html` | 39,462 | 784 |
-| `render_verify_parent_dashboard_v3_57_17.html` | 13,172 | 275 |
+| `render_verify_super_dashboard_v3_57_17.html` | 65,527 | 1,522 |
+| `render_verify_parent_dashboard_v3_57_17.html` | 14,118 | 310 |
 
 ## Manager landing — per-section render result
 
@@ -29,16 +29,16 @@ Rationale:
 
 | Section | Status | Bytes |
 | --- | --- | --- |
-| `_activity_ticker.html` | RENDERED CORRECTLY | 4,647 |
-| `_platform_pulse.html` | RENDERED CORRECTLY | 3,139 |
-| `_live_world_map.html` | RENDERED CORRECTLY | 4,893 |
-| `_forecast_lane.html` | RENDERED CORRECTLY | 3,766 |
+| `_activity_ticker.html` | RENDERED CORRECTLY | 4,770 |
+| `_platform_pulse.html` | RENDERED CORRECTLY | 6,590 |
+| `_live_world_map.html` | RENDERED CORRECTLY | 6,812 |
+| `_forecast_lane.html` | RENDERED CORRECTLY | 3,904 |
 | `_slo_clocks.html` | RENDERED CORRECTLY | 1,270 |
-| `_tenant_heatmap.html` | RENDERED CORRECTLY | 7,534 |
-| `_revenue_waterfall.html` | RENDERED CORRECTLY | 4,112 |
-| `_audit_feed.html` | RENDERED CORRECTLY | 3,108 |
+| `_tenant_heatmap.html` | RENDERED CORRECTLY | 26,878 |
+| `_revenue_waterfall.html` | RENDERED CORRECTLY | 4,118 |
+| `_audit_feed.html` | RENDERED CORRECTLY | 3,398 |
 | `_trust_nutrition.html` | RENDERED CORRECTLY | 1,815 |
-| `_operator_presence.html` | RENDERED CORRECTLY | 573 |
+| `_operator_presence.html` | RENDERED CORRECTLY | 629 |
 
 
 ## Tenant parent landing — per-section render result
@@ -52,12 +52,12 @@ Rationale:
 | `_upcoming_events_strip.html` | RENDERED EMPTY (gate not met) | 3 |
 | `_activity_timeline.html` | RENDERED EMPTY (gate not met) | 3 |
 | `_achievements_card.html` | RENDERED EMPTY (gate not met) | 3 |
-| `_teacher_spotlight_card.html` | RENDERED EMPTY (gate not met) | 3 |
-| `_parent_teacher_thread.html` | RENDERED CORRECTLY | 1,620 |
-| `_calendar_weather.html` | RENDERED CORRECTLY | 1,159 |
-| `_financial_timeline.html` | RENDERED CORRECTLY | 2,282 |
-| `_life_event_timeline.html` | RENDERED CORRECTLY | 1,732 |
-| `_sibling_compare.html` | RENDERED EMPTY (gate not met) | 3 |
+| `_teacher_spotlight_card.html` | RENDERED EMPTY (gate not met) | 5 |
+| `_parent_teacher_thread.html` | RENDERED CORRECTLY | 1,671 |
+| `_calendar_weather.html` | RENDERED CORRECTLY | 1,522 |
+| `_financial_timeline.html` | RENDERED CORRECTLY | 2,328 |
+| `_life_event_timeline.html` | RENDERED CORRECTLY | 1,779 |
+| `_sibling_compare.html` | RENDERED CORRECTLY | 695 |
 
 
 ## Top-line verdict

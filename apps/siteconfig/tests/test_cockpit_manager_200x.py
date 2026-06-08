@@ -104,9 +104,41 @@ def _enabled_payload(section: str) -> dict[str, Any]:
     if section == "ai_copilot_rail":
         base["insight_text"] = "Test insight"
     elif section == "live_world_map":
+        import json
+
+        from apps.siteconfig.world_map_geo import build_globe_payload, enrich_regional_breakdown
+
+        gp = build_globe_payload([{
+            "lat": 40.71,
+            "lng": -74.01,
+            "country_code": "US",
+            "country_name": "United States",
+            "status": "active",
+            "color": "#6ee7b7",
+            "ring_color": "#10b981",
+            "label": "Active",
+            "region": "North America",
+            "city": "New York",
+            "name": "Test School",
+        }])
         base["schools_live"] = "127"
-        base["tenant_dots"] = [{"cx": 100, "cy": 100, "color_token": "#a5b4fc", "ring_color": "#6366f1", "delay_s": 0.0}]
-        base["regional_breakdown"] = [{"label": "Region", "count": "42", "dot_color_token": "indigo"}]
+        base["layout"] = "hero"
+        base["tenant_dots"] = [{
+            "cx": 112.0,
+            "cy": 115.0,
+            "color_token": "#6ee7b7",
+            "ring_color": "#10b981",
+            "status": "active",
+            "region": "North America",
+            "country_code": "US",
+            "location_title": "Test School: New York · US · North America",
+            "delay_s": 0.0,
+        }]
+        base["regional_breakdown"] = enrich_regional_breakdown([
+            {"label": "North America", "count": "42", "dot_color_token": "indigo"},
+        ])
+        base["globe_payload"] = gp
+        base["globe_payload_json"] = json.dumps(gp)
     elif section == "forecast_lane":
         base["cards"] = [{
             "slug": "mrr",

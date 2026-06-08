@@ -53,6 +53,13 @@
                     <i class="bi bi-search"></i> Search
                 </button>
             </form>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'kb:kb_docs_hub' %}">{% trans "Documentation hub" %} — {% trans "Office + ODT import" %}</a>
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'kb:office_document_list' %}">{% trans "Office documents" %}</a>
+                {% if user.is_authenticated %}
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'kb:kb_office_upload' %}">{% trans "Upload / import" %}</a>
+                {% endif %}
+            </div>
         </div>
     </div>
 

@@ -9,6 +9,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_FILES = [
     "apps/portal/kb_context.py",
+    "apps/portal/kb_office_service.py",
+    "apps/portal/views_kb_docs.py",
     "apps/portal/views_office.py",
     "apps/portal/document_service.py",
     "docker-compose.collabora.yml",

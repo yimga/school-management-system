@@ -3,7 +3,7 @@ URL patterns for FAQ and Knowledge Base
 """
 
 from django.urls import path
-from . import views_kb, views_office
+from . import views_kb, views_kb_docs, views_office
 
 app_name = "kb"
 
@@ -33,6 +33,11 @@ urlpatterns = [
         name="kb_article_download_pdf",
     ),
     path(
+        "article/<slug:article_slug>/reimport-odt/",
+        views_kb_docs.kb_article_reimport_odt,
+        name="kb_article_reimport_odt",
+    ),
+    path(
         "article/<slug:article_slug>/vote/",
         views_kb.kb_article_vote,
         name="kb_article_vote",
@@ -44,12 +49,25 @@ urlpatterns = [
     ),
     path("article/submit/", views_kb.kb_article_submit, name="kb_article_submit"),
 
+    # Documentation hub + LibreOffice compose (10x)
+    path("docs-hub/", views_kb_docs.kb_docs_hub, name="kb_docs_hub"),
+    path("compose/upload/", views_kb_docs.kb_office_upload, name="kb_office_upload"),
     # Office docs / Collabora (T4)
     path("office/", views_office.office_document_list, name="office_document_list"),
     path(
         "office/<int:document_id>/open/",
         views_office.office_document_open,
         name="office_document_open",
+    ),
+    path(
+        "office/<int:document_id>/download/",
+        views_kb_docs.office_document_download,
+        name="office_document_download",
+    ),
+    path(
+        "office/<int:document_id>/preview.pdf",
+        views_kb_docs.office_document_preview_pdf,
+        name="office_document_preview_pdf",
     ),
     path(  # rbac-allow: WOPI protocol — auth via Collabora-issued access_token query parameter
         "wopi/files/<int:document_id>",

@@ -238,18 +238,61 @@
    ============================================================ */
 .lx-world {
   display: grid;
-  /* FIX(world-map leak): minmax(0,…) so the SVG can never force the track to overflow */
-  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
-  gap: 24px;
+  grid-template-columns: minmax(0, 2.2fr) minmax(0, 0.82fr);
+  gap: 20px;
   align-items: stretch;
   min-width: 0;
-  /* v4.02.x presence pass: more generous padding so the footprint reads as a
-     hero panel, not a thin strip. */
   padding: 24px 26px;
   background:
     radial-gradient(960px 480px at 100% 0%, rgba(99,102,241,0.12), transparent 62%), /* off-token-allow: dark-chrome-world-glow */
     radial-gradient(720px 420px at 0% 100%, rgba(16,185,129,0.07), transparent 60%), /* off-token-allow: dark-chrome-world-glow */
     var(--surface-elevated);
+}
+/* Phase A — hero layout: globe column + legend column (no overlap). */
+.lx-world--hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) min(300px, 32%);
+  gap: 0;
+  padding: 0;
+  min-height: 480px;
+  overflow: hidden;
+  align-items: stretch;
+}
+.lx-world--hero .lx-world__map {
+  grid-column: 1;
+  grid-row: 1;
+  min-height: 480px;
+  max-height: min(72vh, 680px);
+  border-radius: var(--radius-lg, 16px) 0 0 var(--radius-lg, 16px);
+  background: radial-gradient(120% 110% at 42% 38%, rgba(99,102,241,0.14), transparent 68%); /* off-token-allow: dark-chrome-world-panel */
+}
+.lx-world--hero .lx-world__globe,
+.lx-world--hero .lx-world__globe-skeleton {
+  inset: 0;
+}
+.lx-world--hero .lx-world__legend-panel {
+  position: relative;
+  top: auto;
+  right: auto;
+  grid-column: 2;
+  grid-row: 1;
+  z-index: 1;
+  width: auto;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  align-self: stretch;
+  border-radius: 0 var(--radius-lg, 16px) var(--radius-lg, 16px) 0;
+  border-left: 1px solid var(--hairline);
+  box-shadow: none;
+  backdrop-filter: none;
+  background: color-mix(in srgb, var(--surface-elevated) 96%, transparent);
+  padding: 18px 20px;
+  overflow-y: auto;
+}
+.lx-world--side {
+  /* legacy side-by-side — grid above */
 }
 /* FIX(world-map leak): bound the map cell. Its height tracks the legend column
    (grid stretch) + a sane floor/ceiling — NOT the SVG's intrinsic aspect ratio,
@@ -262,20 +305,234 @@
 .lx-world__map {
   position: relative;
   min-width: 0;
-  min-height: 300px;
-  max-height: 480px;
+  min-height: 420px;
+  max-height: 620px;
+  align-self: stretch;
   border-radius: var(--radius-md, 12px);
   overflow: hidden;
-  /* Frame the globe so it reads as a premium inset panel even when the
-     letterboxed SVG (preserveAspectRatio: meet) leaves margin top/bottom. */
   background: radial-gradient(130% 130% at 50% 0%, rgba(99,102,241,0.10), transparent 70%); /* off-token-allow: dark-chrome-world-panel */
   box-shadow:
     inset 0 0 0 1px var(--hairline),
     inset 0 -56px 96px -48px rgba(0,0,0,0.45); /* off-token-allow: dark-chrome-world-panel-vignette */
 }
+.lx-world__globe-skeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  opacity: 1;
+  transition: opacity var(--motion-fast, 180ms) var(--ease-out, ease-out);
+}
+.lx-world__map:has(.lx-world__globe-stage.lx-world__globe--webgl-ready) .lx-world__globe-skeleton,
+.lx-world__map:has(.lx-world__globe-stage.lx-world__globe--fallback) .lx-world__globe-skeleton,
+.lx-world__map:has(.lx-world__globe--webgl-ready) .lx-world__globe-skeleton,
+.lx-world__map:has(.lx-world__globe--fallback) .lx-world__globe-skeleton {
+  opacity: 0;
+  pointer-events: none;
+}
+.lx-world__globe-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity var(--motion-normal, 280ms) var(--ease-out, ease-out);
+}
+.lx-world__globe-stage.lx-world__globe--webgl-ready,
+.lx-world__globe-stage.lx-world__globe--fallback,
+.lx-world__globe {
+  opacity: 1;
+}
+.lx-world__globe--webgl-ready,
+.lx-world__globe--fallback {
+  opacity: 1;
+}
+.lx-world__map-chrome {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.lx-world__freshness {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm, 8px);
+  background: color-mix(in srgb, var(--surface-elevated) 90%, transparent);
+  border: 1px solid var(--hairline);
+  color: var(--text-secondary);
+}
+.lx-world__freshness--live {
+  color: rgba(110, 231, 183, 0.95);
+  border-color: rgba(52, 211, 153, 0.35);
+}
+.lx-world__tour-controls {
+  display: flex;
+  gap: 6px;
+}
+.lx-world__tour-btn {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.lx-world__tour-caption {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 3;
+  margin: 0;
+  max-width: min(420px, 70%);
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm, 8px);
+  background: color-mix(in srgb, var(--surface-elevated) 88%, transparent);
+  border: 1px solid var(--hairline);
+}
+.lx-world__operator-guide {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.lx-world__operator-guide-title {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.lx-world__operator-guide-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 4px;
+}
+.lx-world__legend-row {
+  cursor: pointer;
+  transition: background var(--motion-fast, 180ms) var(--ease-out, ease-out);
+}
+.lx-world__legend-row--active,
+.lx-world__legend-row:hover,
+.lx-world__legend-row:focus-visible {
+  background: color-mix(in srgb, var(--surface-elevated) 92%, rgba(99,102,241,0.18));
+  outline: none;
+}
+.lx-world__status-chip {
+  cursor: pointer;
+  transition: box-shadow var(--motion-fast, 180ms) var(--ease-out, ease-out);
+}
+.lx-world__status-chip--active {
+  box-shadow: inset 0 0 0 1px rgba(99,102,241,0.45);
+}
+.lx-world__sheet-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.lx-world__sheet-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 13px;
+}
 /* FIX(world-map leak): absolutely-position the SVG so it FILLS the bounded cell
-   instead of driving its height. */
+   instead of driving its height. Globe canvas uses the same contract. */
 .lx-world__svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.lx-world__svg-land {
+  fill: rgba(148, 163, 184, 0.11);
+  stroke: rgba(99, 102, 241, 0.22);
+  stroke-width: 0.6;
+  transition: fill var(--motion-fast, 180ms) var(--ease-out, ease-out),
+    opacity var(--motion-fast, 180ms) var(--ease-out, ease-out);
+}
+.lx-world__svg-region-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  transition: fill var(--motion-fast, 180ms) var(--ease-out, ease-out),
+    opacity var(--motion-fast, 180ms) var(--ease-out, ease-out);
+}
+.lx-world__svg-region-label--active {
+  font-weight: 700;
+}
+.lx-world__svg-country-label {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+  transition: opacity var(--motion-fast, 180ms) var(--ease-out, ease-out);
+}
+.lx-world__dot-group {
+  transition: opacity var(--motion-fast, 180ms) var(--ease-out, ease-out);
+}
+.lx-world__globe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.lx-world__globe canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+.lx-world__globe-stage:has(.lx-world__globe[data-rmc-world-globe-inited="1"]):not(.lx-world__globe--offline):not([data-rmc-globe-mode="svg-offline"]) .lx-world__svg-fallback {
+  display: none;
+}
+.lx-world__globe-stage.lx-world__globe--offline .lx-world__svg-fallback,
+.lx-world__globe-stage[data-rmc-globe-mode="svg-offline"] .lx-world__svg-fallback,
+.lx-world__globe--offline .lx-world__svg-fallback,
+.lx-world__globe[data-rmc-globe-mode="svg-offline"] .lx-world__svg-fallback {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 1;
+}
+.lx-world__globe-stage.lx-world__globe--offline .lx-world__globe canvas,
+.lx-world__globe-stage[data-rmc-globe-mode="svg-offline"] .lx-world__globe canvas,
+.lx-world__globe--offline canvas,
+.lx-world__globe[data-rmc-globe-mode="svg-offline"] canvas {
+  display: none !important;
+}
+.lx-world__globe-tip {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--rmc-cockpit-chrome-surface, #0f1530); /* off-token-allow: dark-chrome-globe-tooltip */
+  border: 1px solid var(--hairline);
+  color: var(--text-primary, #f8fafc);
+  font-size: 11px;
+  line-height: 1.35;
+  box-shadow: var(--elev-2, 0 8px 24px rgba(0, 0, 0, 0.35));
+}
+.lx-world__globe-tip strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.lx-world__globe-tip span {
+  color: var(--text-secondary, #94a3b8);
+}
+.lx-world__offline-note {
+  margin-top: var(--space-2, 0.5rem);
+  color: var(--text-secondary, #94a3b8);
+}
 .lx-world__legend {
   display: flex;
   flex-direction: column;
@@ -333,7 +590,36 @@
    fixed height. */
 @media (max-width: 1100px) {
   .lx-world { grid-template-columns: 1fr; gap: 18px; padding: 20px; }
-  .lx-world__map { min-height: 260px; max-height: 340px; }
+  .lx-world--hero {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    padding: 0;
+    min-height: 400px;
+  }
+  .lx-world--hero .lx-world__map {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 320px;
+    max-height: 440px;
+    border-radius: 0;
+  }
+  .lx-world--hero .lx-world__legend-panel {
+    grid-column: 1;
+    grid-row: 2;
+    position: static;
+    width: auto;
+    max-height: none;
+    height: auto;
+    margin: 0 16px 16px;
+    border-left: none;
+    border-radius: var(--radius-md, 12px);
+    border: 1px solid var(--hairline);
+  }
+  .lx-world--hero .lx-world__globe,
+  .lx-world--hero .lx-world__globe-skeleton {
+    inset: 0;
+  }
+  .lx-world__map { min-height: 320px; max-height: 440px; }
   .lx-world__legend { justify-content: flex-start; }
 }
 

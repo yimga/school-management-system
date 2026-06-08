@@ -36,6 +36,7 @@ _API_URL_CATALOG: tuple[tuple[str, str, str | None], ...] = (
     ("offline_delta", "api:offline-delta", None),
     ("offline_replay_batch", "api:offline-replay-batch", None),
     ("offline_queue_metrics", "api:offline-queue-metrics", None),
+    ("offline_encryption_key", "api:offline-encryption-key", None),
     ("offline_prefetch_urls", "api:offline-prefetch-urls", None),
     ("entity_students", "api:entity-student-list", None),
     ("entity_students_bulk_preview", "api:entity-student-bulk-preview", None),
@@ -60,6 +61,7 @@ _API_URL_CATALOG: tuple[tuple[str, str, str | None], ...] = (
     ("me_switch_school", "api_v1:me-switch-school", None),
     ("crdt_apply", "api_v1:crdt-apply", None),
     ("kb_search", "portal:kb_search_inline", None),
+    ("kb_offline_pack", "portal:kb_offline_pack", None),
     ("support_quick_create", "portal:support_quick_create", None),
     ("activities", "api_activities", None),
     ("admin_dashboard", "api:admin-dashboard", None),
@@ -197,6 +199,7 @@ def _offline_urls_for_request(request) -> dict[str, str | None]:
         ("delta", "api:offline-delta"),
         ("replay_batch", "api:offline-replay-batch"),
         ("queue_metrics", "api:offline-queue-metrics"),
+        ("encryption_key", "api:offline-encryption-key"),
         ("prefetch_urls", "api:offline-prefetch-urls"),
     )
     out: dict[str, str | None] = {}
@@ -211,6 +214,7 @@ def _hydrate_endpoints(request) -> list[dict[str, str]]:
         ("entity_students", "students", "student"),
         ("attendance", "attendance", "attendance"),
         ("entity_classrooms", "classrooms", "classroom"),
+        ("kb_offline_pack", "kb_articles", "kb_article"),
     )
     endpoints: list[dict[str, str]] = []
     for key, store, normalizer in catalog:
@@ -245,6 +249,7 @@ def resolve_sms_offline_config(
         getattr(dj_settings, "RMC_DEPLOYMENT_PROFILE", None) or "online"
     ).strip().lower()
     ai_needs_network = deployment not in ("edge",)
+    host_kind = getattr(request, "public_host_kind", "") or ""
 
     def _yn(key: str, default: bool = True) -> bool:
         return bool(_flag(flags, key, default))
@@ -290,6 +295,7 @@ def resolve_sms_offline_config(
         "aiNeedsNetwork": ai_needs_network,
         "prefetchAtHour": flags.get("prefetch_at_hour"),
         "parentPortalShell": parent_shell,
+        "operatorControlPlaneShell": host_kind == "manager",
         "csrfTokenUrl": api_urls.get("csrf_token") or "",
         # Path the service worker watches to purge the authenticated read-cache
         # (DYNAMIC_CACHE) on logout — prevents the previous user's cached PII
@@ -301,6 +307,11 @@ def resolve_sms_offline_config(
         "currentUserId": str(
             getattr(getattr(request, "user", None), "pk", "") or ""
         ),
+        "encryptOutbox": _yn("enable_offline_queue_encryption", True),
+        "enableQueueEncryption": _yn("enable_offline_queue_encryption", True),
+        "encryptionKeyUrl": offline_urls.get("encryption_key")
+        or api_urls.get("offline_encryption_key")
+        or "",
     }
 
 

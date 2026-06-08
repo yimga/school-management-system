@@ -9,7 +9,9 @@
 // brief notice and auto-reload after a short pause.
 (function () {
   var cfg = window.SMS_OFFLINE_CONFIG || {};
-  var swEligible = cfg.pwaEnabled && (cfg.enabled || cfg.parentPortalShell);
+  var swEligible =
+    cfg.pwaEnabled &&
+    (cfg.enabled || cfg.parentPortalShell || cfg.operatorControlPlaneShell);
   if (!('serviceWorker' in navigator) || !swEligible) return;
 
   var swEl = document.getElementById('rmc-service-worker-url');
@@ -24,7 +26,8 @@
   if (!swUrl) return;
 
   function pushConfigToWorker(registration) {
-    var payload = { type: 'SET_OFFLINE_CONFIG', payload: cfg };
+    var liveCfg = window.SMS_OFFLINE_CONFIG || cfg;
+    var payload = { type: 'SET_OFFLINE_CONFIG', payload: liveCfg };
     if (registration.active) registration.active.postMessage(payload);
     if (registration.waiting) registration.waiting.postMessage(payload);
     if (registration.installing) registration.installing.postMessage(payload);
@@ -108,39 +111,48 @@
   }
 
   window.addEventListener('load', function () {
-    // updateViaCache: 'none' forces the browser to ALWAYS fetch service-worker.js
-    // from the network on registration (not from the HTTP cache). Without this,
-    // the SW file can stay cached for up to 24 hours, which means template /
-    // CSS / JS fixes never reach users even after we bump CACHE_VERSION.
-    navigator.serviceWorker.register(swUrl, { updateViaCache: 'none' })
-      .then(function (registration) {
-        pushConfigToWorker(registration);
+    function registerSw() {
+      var liveCfg = window.SMS_OFFLINE_CONFIG || {};
+      // updateViaCache: 'none' forces the browser to ALWAYS fetch service-worker.js
+      // from the network on registration (not from the HTTP cache). Without this,
+      // the SW file can stay cached for up to 24 hours, which means template /
+      // CSS / JS fixes never reach users even after we bump CACHE_VERSION.
+      navigator.serviceWorker.register(swUrl, { updateViaCache: 'none' })
+        .then(function (registration) {
+          pushConfigToWorker(registration);
 
-        // Aggressively check for an update on every page load. Cheap (one
-        // HEAD/GET of service-worker.js); critical for getting fixes out.
-        try { registration.update(); } catch (_e) {}
+          // Aggressively check for an update on every page load. Cheap (one
+          // HEAD/GET of service-worker.js); critical for getting fixes out.
+          try { registration.update(); } catch (_e) {}
 
-        if (cfg.requestPersistentStorage && navigator.storage && navigator.storage.persist) {
-          navigator.storage.persist().catch(function () {});
-        }
+          if (liveCfg.requestPersistentStorage && navigator.storage && navigator.storage.persist) {
+            navigator.storage.persist().catch(function () {});
+          }
 
-        // A SW was already waiting when we arrived — surface it.
-        if (registration.waiting) {
-          handleWaiting(registration);
-        }
+          // A SW was already waiting when we arrived — surface it.
+          if (registration.waiting) {
+            handleWaiting(registration);
+          }
 
-        registration.addEventListener('updatefound', function () {
-          var newWorker = registration.installing;
-          if (!newWorker) return;
-          newWorker.addEventListener('statechange', function () {
-            if (newWorker.state === 'installed') {
-              handleWaiting(registration);
-            }
+          registration.addEventListener('updatefound', function () {
+            var newWorker = registration.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener('statechange', function () {
+              if (newWorker.state === 'installed') {
+                handleWaiting(registration);
+              }
+            });
           });
+        })
+        .catch(function (error) {
+          try { console.warn('Service Worker registration failed:', error); } catch (_e) {}
         });
-      })
-      .catch(function (error) {
-        try { console.warn('Service Worker registration failed:', error); } catch (_e) {}
-      });
+    }
+
+    if (cfg.encryptOutbox && cfg.encryptionKeyUrl) {
+      window.addEventListener('rmc-offline-config-ready', registerSw, { once: true });
+    } else {
+      registerSw();
+    }
   });
 })();

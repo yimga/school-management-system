@@ -402,6 +402,27 @@ jobs:
         # World Engine §11: committed django.po must match scan; polib compile path green.
         run: python scripts/verify_world_engine_i18n_ci.py
 
+  global-footprint-glocal-offline:
+    name: "Global Footprint + glocal + offline integration"
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run integration verifiers
+        run: |
+          npm ci
+          npm run build:world-globe
+          python scripts/verify_world_globe_footprint.py
+          python scripts/verify_world_globe_10x.py
+          python scripts/verify_global_footprint_glocal_offline_integration.py
+          python manage.py test apps.siteconfig.tests.test_globe_10x apps.siteconfig.tests.test_world_map_geo apps.siteconfig.tests.test_world_globe_wiring --verbosity=1 --no-input
+          python scripts/verify_offline_queue_encryption_at_rest.py
+          python scripts/verify_collabora_offline_posture.py
+
   service-worker-version:
     name: "PWA: service-worker CACHE_VERSION shape + monotonicity"
     runs-on: ubuntu-latest

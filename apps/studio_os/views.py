@@ -1120,7 +1120,7 @@ def studio_automation_workflow_health(request):
         return redirect(reverse("accounts:backend_dashboard"))
     from apps.studio_os.services import get_automation_workflow_health_summary
 
-    summary = get_automation_workflow_health_summary()
+    summary = get_automation_workflow_health_summary(request)
     workflow_center_pane_url = ""
     try:
         workflow_center_pane_url = reverse("studio_os:automation") + "?pane=workflow"
@@ -1251,7 +1251,9 @@ def _studio_subpage_context(request, current_mode: str | None) -> dict:
         try:
             from apps.studio_os.services import get_automation_workflow_health_summary
 
-            ctx["automation_health_summary"] = get_automation_workflow_health_summary()
+            ctx["automation_health_summary"] = get_automation_workflow_health_summary(
+                request
+            )
         except (ImportError, AttributeError, TypeError, ValueError):
             ctx["automation_health_summary"] = {}
         ctx["automation_simulation_summary"] = _(
@@ -1689,7 +1691,7 @@ def studio_shell(request, mode=None):
         )
         graph = get_automation_dependency_graph()
         context["automation_dependency_graph"] = graph
-        summary = get_automation_workflow_health_summary()
+        summary = get_automation_workflow_health_summary(request)
         context["automation_health_summary"] = summary
         wf_pane = f"{auto_base}?pane=workflow" if auto_base else ""
         context["automation_workflow_center_pane_url"] = wf_pane
@@ -2118,18 +2120,23 @@ def studio_shell(request, mode=None):
 
     apply_studio_guidance_to_context(context, mode=mode)
 
+    if mode:
+        context["studio_mode_hero"] = get_studio_mode_hero_context(
+            mode,
+            request,
+            legacy_urls=legacy_urls,
+            launch_payload=context.get("launch_payload"),
+            theme_contrast_report=context.get("theme_contrast_report"),
+            output_readiness_summary=context.get("output_readiness_summary"),
+            automation_primary_url=context.get("automation_workflow_center_pane_url"),
+            automation_secondary_url=context.get("automation_simulation_pane_url"),
+            automation_health_summary=context.get("automation_health_summary"),
+        )
+
     if use_control_plane_shell(request):
         context["studio_operator_toolbar"] = get_studio_operator_toolbar(
             request, current_mode=mode
         )
-        if mode:
-            context["studio_mode_hero"] = get_studio_mode_hero_context(
-                mode,
-                request,
-                legacy_urls=legacy_urls,
-                launch_payload=context.get("launch_payload"),
-                theme_contrast_report=context.get("theme_contrast_report"),
-            )
         template = "studio_os/shell_control_plane.html"
     else:
         template = f"studio_os/modes/{mode}.html" if mode else "studio_os/shell.html"

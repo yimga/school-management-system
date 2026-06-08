@@ -74,19 +74,27 @@ def _manager_ai_copilot_defaults() -> dict[str, Any]:
 # ============================================================
 
 def _manager_world_map_defaults() -> dict[str, Any]:
-    """Live world map (stylized continents + tenant dots + heatmap halos).
+    """Live world map — interactive 3D globe + regional legend.
 
     Shape:
         enabled              bool
-        eyebrow              str    — small eyebrow above the count
-        schools_live         str    — big "127" mega-number (string for "—" honesty)
-        schools_live_label   str    — "schools live" suffix
-        subline              str    — italic line below ("Across X districts · Y countries")
-        regional_breakdown   list   — legend rows
-            [{label: str, count: str, dot_color_token: str}]
-        tenant_dots          list   — pulse dots on the map (visual only)
-            [{cx: int, cy: int, color_token: str, ring_color: str, delay_s: float}]
+        eyebrow              str
+        schools_live         str
+        schools_live_label   str
+        subline              str
+        regional_breakdown   list
+        tenant_dots          list   — SVG fallback pins (cx/cy)
+        globe_payload        dict   — lat/lng markers + theme for WebGL globe
+        globe_payload_json   str    — CSP-safe JSON bootstrap for mount.js
+        globe_auto_rotate    bool   — operator toggle for idle spin (synced into payload)
+        layout               str    — hero | side (batch 1653)
+        tour_enabled         bool   — auto-tour + tour controls
     """
+    import json
+
+    from apps.siteconfig.world_map_geo import build_globe_payload
+
+    globe_payload = build_globe_payload([], layout="hero", tour_enabled=True)
     return {
         "enabled": True,  # v3.58.10: surface live world map on landing by default
         "eyebrow": _("Global footprint"),
@@ -95,6 +103,11 @@ def _manager_world_map_defaults() -> dict[str, Any]:
         "subline": "",
         "regional_breakdown": [],
         "tenant_dots": [],
+        "globe_auto_rotate": True,
+        "layout": "hero",
+        "tour_enabled": True,
+        "globe_payload": globe_payload,
+        "globe_payload_json": json.dumps(globe_payload),
     }
 
 

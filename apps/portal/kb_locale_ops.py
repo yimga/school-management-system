@@ -66,6 +66,13 @@ def create_locale_variant(
     return variant
 
 
+def publish_locale_article(article: Any, *, author: Any | None = None) -> Any:
+    """Publish a single locale variant (batch 1647)."""
+    from apps.portal.kb_hitl_publish import publish_kb_article
+
+    return publish_kb_article(article, author=author)
+
+
 def publish_locale_group(
     group_id: str,
     *,
