@@ -1623,26 +1623,18 @@ def verify_signup(request: HttpRequest):
             return _verify_signup_retryable_unavailable(request)
         raise
 
-    # Build the one-time password-setup link (token-authed; host-independent).
-    # ``next`` lands the owner on the provisioning/dashboard surface after they
-    # choose a password and are auto-logged-in by LegacySetupView.
+    # Build the one-time onboarding link (token-authed; host-independent). It
+    # opens the guided first-run wizard — a welcoming "create your account"
+    # step (password + name) → school setup → launchpad — instead of dropping
+    # the new owner on a bare set-password/login page that reads as "you already
+    # have an account". The signed token is the auth, so it survives the
+    # public→tenant host hop.
     setup_password_url = ""
     if admin_user is not None:
         try:
-            from apps.schools.provision_email_urls import (
-                build_provision_setup_password_url,
-            )
+            from apps.schools.provision_email_urls import build_owner_onboarding_url
 
-            dashboard_next_path = "/"
-            for _name in ("tenant_provisioning_status", "school_studio"):
-                try:
-                    dashboard_next_path = reverse(_name, urlconf="config.tenant_urls")
-                    break
-                except NoReverseMatch:
-                    continue
-            setup_password_url = build_provision_setup_password_url(
-                school, admin_user, next_path=dashboard_next_path
-            )
+            setup_password_url = build_owner_onboarding_url(school, admin_user)
         except (ImportError, AttributeError, TypeError, ValueError):
             setup_password_url = ""
 
@@ -1683,7 +1675,17 @@ def verify_signup(request: HttpRequest):
     # redirect when the admin user cannot be resolved.
     if admin_user is not None and admin_user.is_active:
         try:
-            auth_login(request, admin_user)
+            # Must name a backend explicitly: with multiple AUTHENTICATION_BACKENDS
+            # configured, Django's login() raises ValueError unless told which one
+            # authed this user. ``admin_user`` is a plain ORM fetch (no ``.backend``
+            # attr), so without this the ValueError was swallowed below → the
+            # onboarding redirect (further down) was skipped and the new owner was
+            # dumped on the login wall — the exact dead-end this flow removes.
+            auth_login(
+                request,
+                admin_user,
+                backend="django.contrib.auth.backends.ModelBackend",
+            )
         except (ValueError, TypeError, AttributeError):
             admin_user = None
 

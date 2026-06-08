@@ -140,9 +140,23 @@ def send_welcome_email(school_id: str, contact_email: str) -> bool:
         .first()
     )
     if admin_user:
-        from apps.schools.provision_email_urls import build_provision_setup_password_url
+        # Point the CTA at the guided first-run onboarding wizard (same token
+        # machinery, but a welcoming "create your account" → school → launchpad
+        # flow) rather than the bare legacy set-password page. Keeps this email
+        # consistent with the verify-signup redirect; falls back to the legacy
+        # setup link only if the onboarding URL can't be built.
+        try:
+            from apps.schools.provision_email_urls import build_owner_onboarding_url
 
-        setup_password_url = build_provision_setup_password_url(school, admin_user)
+            setup_password_url = build_owner_onboarding_url(school, admin_user)
+        except (ImportError, AttributeError, TypeError, ValueError):
+            setup_password_url = ""
+        if not setup_password_url:
+            from apps.schools.provision_email_urls import (
+                build_provision_setup_password_url,
+            )
+
+            setup_password_url = build_provision_setup_password_url(school, admin_user)
     html = render_welcome_email_html(
         school,
         contact_email,

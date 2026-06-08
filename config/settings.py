@@ -829,6 +829,9 @@ AUTH_USER_MODEL = "accounts.User"
 # The standard ModelBackend stays in the list to handle native users.
 AUTHENTICATION_BACKENDS = [
     "apps.accounts.auth_backends_legacy.LegacyHashUpgradeBackend",
+    # Accept the EMAIL the owner signed up with (not just the derived username).
+    "apps.accounts.auth_backends_email.EmailOrUsernameModelBackend",
+    # Kept last so post_reset_login_backend="...ModelBackend" stays resolvable.
     "django.contrib.auth.backends.ModelBackend",
 ]
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 
+from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm
 from django.db.models import Q
@@ -17,9 +18,20 @@ class PortalPasswordResetForm(PasswordResetForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["email"].label = "Username or email"
-        self.fields["email"].widget.attrs.setdefault(
-            "placeholder", "parent.username or you@school.edu"
+        # The inherited field is an EmailField, which would REJECT a bare
+        # username at validation before ``get_users`` ever runs — making the
+        # "username or email" promise (and never-activated-owner recovery via
+        # username) a lie. Swap to a plain CharField so usernames validate;
+        # ``get_users`` already matches on both columns case-insensitively.
+        self.fields["email"] = forms.CharField(
+            label="Username or email",
+            max_length=254,  # magic-number-allow: Django EmailField default max length
+            widget=forms.TextInput(
+                attrs={
+                    "autocomplete": "username",
+                    "placeholder": "parent.username or you@school.edu",
+                }
+            ),
         )
 
     def send_mail(
@@ -84,4 +96,9 @@ class PortalPasswordResetForm(PasswordResetForm):
         matches = active.filter(
             Q(email__iexact=identifier) | Q(username__iexact=identifier)
         )
-        return [user for user in matches if user.has_usable_password()]
+        # Include never-activated owners (created with set_unusable_password at
+        # provisioning) — Django's default filter drops them, which silently
+        # locks out exactly the new-owner population. The reset-confirm view lets
+        # them set a password regardless of current state, so this is their
+        # recovery path when the original onboarding link expired.
+        return list(matches)

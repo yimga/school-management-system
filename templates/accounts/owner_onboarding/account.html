@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Welcome — finish setting up your account" %}{% endblock %}
+
+{% block content %}
+<section class="auth-shell" aria-labelledby="ob-title">
+  <div class="auth-card">
+    {% if validlink %}
+      <p class="text-muted small mb-1">{% blocktrans %}Step {{ step }} of {{ total_steps }}{% endblocktrans %}</p>
+      <div class="progress mb-3" style="height: 6px;" role="progressbar" aria-label="{% trans 'Onboarding progress' %}" aria-valuenow="{{ step }}" aria-valuemin="0" aria-valuemax="{{ total_steps }}">
+        <div class="progress-bar bg-primary" style="width: {% widthratio step total_steps 100 %}%"></div>
+      </div>
+      <h1 id="ob-title">{% blocktrans with name=school.name|default:"RunMyCampus" %}Welcome to {{ name }}!{% endblocktrans %}</h1>
+      <p class="auth-sub">{% trans "Let’s finish creating your account. Tell us your name and choose a password — then you’ll be signed in." %}</p>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="alert alert-danger mb-3">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="row g-2 mb-3">
+          <div class="col">
+            <label for="id_first_name" class="form-label">{% trans "First name" %}</label>
+            <input type="text" name="first_name" id="id_first_name" class="form-control" required autofocus autocomplete="given-name" value="{{ form.first_name.value|default:'' }}">
+            {% if form.first_name.errors %}<div class="invalid-feedback d-block">{{ form.first_name.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="col">
+            <label for="id_last_name" class="form-label">{% trans "Last name" %}</label>
+            <input type="text" name="last_name" id="id_last_name" class="form-control" required autocomplete="family-name" value="{{ form.last_name.value|default:'' }}">
+            {% if form.last_name.errors %}<div class="invalid-feedback d-block">{{ form.last_name.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="id_new_password1" class="form-label">{% trans "Create a password" %}</label>
+          <input type="password" name="new_password1" id="id_new_password1" class="form-control" required autocomplete="new-password">
+          {% if form.new_password1.help_text %}<div class="form-help-muted">{{ form.new_password1.help_text|safe }}</div>{% endif %}
+          {% if form.new_password1.errors %}<div class="invalid-feedback d-block">{{ form.new_password1.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="mb-4">
+          <label for="id_new_password2" class="form-label">{% trans "Confirm password" %}</label>
+          <input type="password" name="new_password2" id="id_new_password2" class="form-control" required autocomplete="new-password">
+          {% if form.new_password2.errors %}<div class="invalid-feedback d-block">{{ form.new_password2.errors.0 }}</div>{% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary auth-submit">
+          <i class="bi bi-arrow-right-circle me-1"></i>{% trans "Continue" %}
+        </button>
+      </form>
+    {% else %}
+      <div class="auth-badge auth-badge-error" aria-hidden="true"><i class="bi bi-exclamation-circle"></i></div>
+      <h2 id="ob-title">{% trans "This setup link has expired." %}</h2>
+      <p class="auth-sub">{% trans "Setup links are valid for a limited time and can be used once. Request a fresh one to continue." %}</p>
+      {% url 'resend_signup_verification' as resend_url %}
+      <a href="{% if resend_url %}{{ resend_url }}{% else %}{% url 'accounts:login' %}{% endif %}" class="btn btn-primary auth-submit">
+        <i class="bi bi-arrow-clockwise me-1"></i>{% trans "Get a new link" %}
+      </a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

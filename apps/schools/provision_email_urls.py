@@ -52,3 +52,22 @@ def build_provision_setup_password_url(school, user, next_path: str = "") -> str
         separator = "&" if "?" in url else "?"
         url = f"{url}{separator}{urlencode({'next': next_path})}"
     return url
+
+
+def build_owner_onboarding_url(school, user) -> str:
+    """One-time link into the guided first-run onboarding wizard (step 1).
+
+    Reuses the password-reset-confirm token, so the signed link is the auth and
+    survives the public→tenant host hop. Lands the new owner on a welcoming
+    "create your account" step (password + name), NOT a bare login/reset page.
+    """
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    try:
+        path = reverse(
+            "accounts:owner_onboarding_account",
+            kwargs={"uidb64": uid, "token": token},
+        )
+    except NoReverseMatch:
+        return ""
+    return build_tenant_authentication_url(school, path)

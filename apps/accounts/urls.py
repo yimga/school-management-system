@@ -69,6 +69,11 @@ from .views_certification import (
     certification_session_override,
 )
 from .views_legacy_setup import LegacySetupView
+from .views_owner_onboarding import (
+    OwnerOnboardingAccountView,
+    owner_onboarding_done,
+    owner_onboarding_school,
+)
 from .guardian_invite import GuardianSetupView
 from apps.schools.super_views_operator_team import operator_invite_accept
 from .views_mfa import mfa_setup, mfa_verify, dismiss_mfa_banner
@@ -553,6 +558,24 @@ urlpatterns = [
         "legacy-setup/<uidb64>/<token>/",
         LegacySetupView.as_view(),
         name="legacy_setup",
+    ),
+    # Guided first-run onboarding for a brand-new school owner. Step 1 is
+    # token-authed (reuses the reset-confirm token); steps 2-3 are login-gated.
+    # rbac-allow: token-authenticated first-run owner onboarding; must be anonymous-reachable
+    path(
+        "onboarding/account/<uidb64>/<token>/",
+        OwnerOnboardingAccountView.as_view(),
+        name="owner_onboarding_account",
+    ),
+    path(
+        "onboarding/school/",
+        owner_onboarding_school,
+        name="owner_onboarding_school",
+    ),
+    path(
+        "onboarding/done/",
+        owner_onboarding_done,
+        name="owner_onboarding_done",
     ),
     # rbac-allow: token-authenticated one-time guardian set-password; must be anonymous-reachable
     path(

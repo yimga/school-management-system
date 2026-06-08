@@ -114,7 +114,7 @@
                 </div>
                 {% endif %}
                 <div class="mb-3">
-                  <label class="form-label" for="login-username">{% trans "Username" %}</label>
+                  <label class="form-label" for="login-username">{% trans "Email or username" %}</label>
                   <input id="login-username" class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" placeholder="{{ LOGIN_EMAIL_PLACEHOLDER|default:'School Email' }}" required autofocus>
                 </div>
                 <div class="mb-3">
@@ -153,6 +153,10 @@
               </form>
               <p class="small text-center mt-2 mb-0">
                 <a href="{% url 'accounts:password_reset' %}" data-rmc-parent-password-reset="1">{% trans "Forgot password?" %}</a>
+              </p>
+              <p class="small text-center text-muted mt-1 mb-0">
+                {% trans "Just signed up and didn’t get your verification email?" %}
+                <a href="{% url 'resend_signup_verification' %}">{% trans "Resend it" %}</a>
               </p>
 
               <p class="small text-muted mt-3 mb-0">
