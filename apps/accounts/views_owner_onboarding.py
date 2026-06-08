@@ -80,6 +80,29 @@ def _dashboard_redirect():
     return redirect("accounts:redirect")
 
 
+def _post_onboarding_dashboard_href(request, school) -> str:
+    """Dashboard CTA after wizard — never deep-link an inactive tenant subdomain."""
+    from django.urls import reverse
+
+    from apps.schools.provision_email_urls import school_subdomain_redirect_is_safe
+    from apps.schools.tenant_url import build_tenant_backend_url, is_base_domain
+
+    if school and school_subdomain_redirect_is_safe(school):
+        try:
+            if is_base_domain(request):
+                return build_tenant_backend_url(request, school)
+        except (AttributeError, ImportError, TypeError, ValueError):
+            pass
+        try:
+            return reverse("accounts:redirect")
+        except Exception:  # noqa: BLE001 - template fallback must not 500
+            pass
+    try:
+        return reverse("accounts:owner_onboarding_done")
+    except Exception:  # noqa: BLE001
+        return "/authentication/onboarding/done/"
+
+
 # ── Step 1: Create your account (token-authed) ──────────────────────────────
 class OwnerAccountSetupForm(SetPasswordForm):
     """Set-password form that also captures the owner's name."""
@@ -166,8 +189,20 @@ def owner_onboarding_done(request):
     # refresh (the page is useful — invite team / open Studio / dashboard).
     if not onboarding_state(school).get("completed"):
         _set_onboarding(school, completed=True, step="done")
+        try:
+            from apps.schools.activation_gate import clear_activation_gate
+
+            clear_activation_gate(school)
+        except ImportError:
+            pass
     return render(
         request,
         "accounts/owner_onboarding/done.html",
-        {"school": school, "step": 3, "total_steps": _TOTAL_STEPS},
+        {
+            "school": school,
+            "step": 3,
+            "total_steps": _TOTAL_STEPS,
+            "school_is_live": bool(getattr(school, "is_active", False)),
+            "dashboard_href": _post_onboarding_dashboard_href(request, school),
+        },
     )

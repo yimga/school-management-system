@@ -1142,9 +1142,53 @@ def _do_provision_tracked(
     # module-level constants above so callers can filter the timeline
     # without re-typing the string literals.
     if (contact_email or "").strip():
-        from apps.schools.welcome_email import send_welcome_email
+        from django.contrib.auth import get_user_model
 
-        sent = send_welcome_email(str(school.id), contact_email)
+        from apps.platform_runtime.event_bus import publish_event
+        from apps.schools.provision_email_urls import (
+            build_owner_onboarding_url,
+            build_public_login_url,
+        )
+
+        admin_user = (
+            get_user_model()
+            .objects.filter(email__iexact=contact_email.strip())
+            .order_by("pk")
+            .first()
+        )
+        activation_url = (
+            build_owner_onboarding_url(school, admin_user) if admin_user else ""
+        )
+        sent = False
+        try:
+            row = publish_event(
+                "tenant.signup.completed",
+                {
+                    "school_id": str(school.pk),
+                    "school_name": getattr(school, "name", ""),
+                    "admin_email": contact_email.strip(),
+                    "portal_url": build_public_login_url(),
+                    "activation_url": activation_url,
+                },
+                school_id=str(school.pk),
+                strict_catalog=True,
+                source="schools.provision_school",
+                idempotency_key=f"tenant-signup-completed:{school.pk}",
+            )
+            sent = row is not None
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            OSError,
+            RuntimeError,
+        ) as exc:
+            logger.warning(
+                "tenant.signup.completed publish failed for school %s: %s",
+                school_id,
+                type(exc).__name__,
+            )
         recipient_domain = (
             contact_email.split("@", 1)[-1] if "@" in contact_email else ""
         )
@@ -1155,13 +1199,13 @@ def _do_provision_tracked(
             message=(
                 "Welcome email sent."
                 if sent
-                else "Welcome email not sent (check EMAIL_*); provisioning still completed."
+                else "Welcome email not sent (matrix publish failed); provisioning still completed."
             ),
             payload={"recipient_domain": recipient_domain},
         )
         if not sent:
             logger.warning(
-                "Welcome email not sent for school %s (check EMAIL_* on Celery worker)",
+                "Welcome email not sent for school %s (tenant.signup.completed publish failed)",
                 school_id,
             )
 

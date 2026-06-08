@@ -203,6 +203,27 @@ class OwnerOnboardingPublicHostRenderTests(TestCase):
             ).startswith("/authentication/onboarding/account/")
         )
 
+    def test_account_set_password_step_renders_on_public_host(self):
+        """Full PasswordResetConfirmView dance on the public urlconf — catches
+        NoReverseMatch in base.html (command_bar_actions was the 2026-06-08 prod
+        500 that walled owners out of the wizard → login/MFA dead-end)."""
+        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = default_token_generator.make_token(self.user)
+        url = reverse(
+            "accounts:owner_onboarding_account", kwargs={"uidb64": uid, "token": token}
+        )
+        r = self.client.get(url)
+        self.assertEqual(r.status_code, 302)
+        sentinel = r.url
+        self.assertIn("/set-password/", sentinel)
+        r2 = self.client.get(sentinel)
+        self.assertEqual(
+            r2.status_code,
+            200,
+            msg="set-password step must render on public host, not 500",
+        )
+        self.assertIn(b"Create a password", r2.content)
+
 
 class EmailOrUsernameLoginTests(TestCase):
     def setUp(self):

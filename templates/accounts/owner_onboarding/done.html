@@ -19,10 +19,16 @@
       <a href="{{ studio_url }}" class="btn btn-outline-primary"><i class="bi bi-palette me-1"></i>{% trans "Open School Studio (branding)" %}</a>
       {% endif %}
     </div>
-    {% url 'accounts:redirect' as dash_url %}
-    <a href="{% if dash_url %}{{ dash_url }}{% else %}/{% endif %}" class="btn btn-primary auth-submit mt-3">
+    {% if school_is_live %}
+    <a href="{{ dashboard_href }}" class="btn btn-primary auth-submit mt-3">
       <i class="bi bi-speedometer2 me-1"></i>{% trans "Go to my dashboard" %}
     </a>
+    {% else %}
+    <p class="text-muted small mt-3 mb-2">{% trans "We're finishing the last setup steps for your campus. This page will refresh when your portal is ready — or check your email for the portal link." %}</p>
+    <a href="{{ dashboard_href }}" class="btn btn-outline-primary auth-submit mt-1">
+      <i class="bi bi-arrow-clockwise me-1"></i>{% trans "Check again" %}
+    </a>
+    {% endif %}
   </div>
 </section>
 {% endblock %}

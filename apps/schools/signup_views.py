@@ -1210,7 +1210,11 @@ def onboarding_wizard(request: HttpRequest):
 @require_GET
 def _redirect_verified_admin_to_tenant_surface(request: HttpRequest, school, url_name: str):
     """After verify on the public host, send the admin to the tenant subdomain."""
+    from apps.schools.provision_email_urls import school_subdomain_redirect_is_safe
     from apps.schools.tenant_url import build_tenant_backend_url
+
+    if not school_subdomain_redirect_is_safe(school):
+        return None
 
     try:
         path = reverse(url_name, urlconf="config.tenant_urls")
@@ -1306,14 +1310,23 @@ def _send_signup_verification_email(
     timeout. The try/except only guards the synchronous envelope-construction
     path.
 
-    ``base_url`` overrides the link host. The public signup/resend paths leave
-    it empty (link built from the request host = the public site). The OPERATOR
-    console runs on the manager host, where ``/verify-signup/`` does not route,
-    so it passes the public site URL to keep the link clickable.
+    ``base_url`` overrides the link host. When empty, the link always targets
+    the public marketing host (``build_public_site_url``) — never the request
+    host — so a mistaken manager-host signup still emits a clickable verify
+    link. The operator console may pass ``base_url`` explicitly (same public
+    origin).
     """
     school_name = getattr(verification.school, "name", "") or "your school"
-    base = (base_url or request.build_absolute_uri("/")).rstrip("/")
-    verify_url = f"{base}/verify-signup/?token={verification.token}"
+    if base_url:
+        verify_url = (
+            f"{base_url.rstrip('/')}/verify-signup/?token={verification.token}"
+        )
+    else:
+        from apps.schools.provision_email_urls import build_public_site_url
+
+        verify_url = build_public_site_url(
+            f"/verify-signup/?token={verification.token}"
+        )
     subject = f"Verify your school: {school_name}"
     body = (
         f"Hello,\n\n"
@@ -1476,9 +1489,8 @@ def _verify_signup_retryable_unavailable(request: HttpRequest):
 
 def verify_signup(request: HttpRequest):
     """
-    GET ?token=xxx: look up SignupVerification, run provisioning (which marks
-    school.is_active=True on success AND sends the welcome email), mark
-    verification used, redirect to login.
+    GET ?token=xxx: look up SignupVerification, run provisioning, mark
+    verification used, redirect into the public-host onboarding wizard.
 
     v4.00.98 fix: do NOT set ``school.is_active = True`` before dispatching
     provisioning.  ``_do_provision`` short-circuits on ``school.is_active``
@@ -1614,6 +1626,11 @@ def verify_signup(request: HttpRequest):
         dispatch_provision_school(
             str(school.id), contact_email=verification.email,
         )
+        # Broker-less deploys run provisioning inline (CELERY_TASK_ALWAYS_EAGER).
+        # A failure inside the task's atomic() poisons the request transaction
+        # even when CELERY_TASK_EAGER_PROPAGATES=False — reset so the owner
+        # redirect + onboarding wizard still complete (2026-06-08 prod logs).
+        reset_broken_database_state()
     except (ImportError, AttributeError, TypeError, ValueError, OSError) as exc:
         logger.warning(
             "signup verify dispatch_provision_school failed school_id=%s err=%s",
@@ -1664,37 +1681,10 @@ def verify_signup(request: HttpRequest):
         except (ImportError, AttributeError, TypeError, ValueError):
             setup_password_url = ""
 
-    # v4.00.98 Phase 5 — fan out tenant.signup.completed through the matrix.
-    # Sends the welcome email to the tenant admin (now AFTER provisioning, so
-    # the school really is ready and the email can carry the setup link).
-    try:
-        from apps.platform_runtime.event_bus import publish_event
-        from django.conf import settings as _dj_settings
-
-        portal_url = (
-            f"https://manager.{getattr(_dj_settings, 'MULTI_TENANT_BASE_DOMAIN', 'runmycampus.com')}/"
-        )
-        publish_event(
-            "tenant.signup.completed",
-            {
-                "school_id": str(school.pk),
-                "school_name": getattr(school, "name", ""),
-                "admin_email": verification.email,
-                "portal_url": portal_url,
-                # NB: key is "activation_url" NOT "*_password_*"/"*_token_*" — the
-                # event-payload scrubber (workflow_tracker._SECRET_KEY_FRAGMENTS)
-                # drops any key containing "password"/"token" as a substring, so a
-                # "setup_password_url" key would be silently stripped before the
-                # welcome email renders, killing the link. (Fixed 2026-06-08.)
-                "activation_url": setup_password_url,
-            },
-            school_id=str(school.pk),
-            strict_catalog=True,
-            source="schools.verify_signup",
-        )
-    except (ImportError, AttributeError, TypeError, ValueError, OSError, RuntimeError, DatabaseError):
-        reset_broken_database_state()
-        logger.warning("verify_signup_publish_event_failed", exc_info=True)
+    # Welcome email is sent once from ``_do_provision`` after the school is active
+    # (``send_welcome_email`` → public-host onboarding URL). Do NOT publish
+    # ``tenant.signup.completed`` here: that fired the matrix welcome email
+    # prematurely (before provisioning) and duplicated ``send_welcome_email``.
 
     # Magic-link login — verifying the email proves ownership, so log the
     # newly-provisioned admin in directly. Falls back to the legacy login
@@ -1786,14 +1776,18 @@ def verify_signup(request: HttpRequest):
         return redirect("/")
 
     # No admin user resolved (async provisioning still running): a passwordless
-    # account can't satisfy the login page, so prefer a self-service password
-    # set; the welcome email also carries the one-time setup link.
-    login_url = (settings.LOGIN_URL or "/authentication/login/").lstrip("/")
-    try:
-        next_path = reverse("accounts:backend_dashboard")
-    except NoReverseMatch:
-        next_path = "/"
-    return redirect(f"/{login_url}?next={next_path}")
+    # account can't satisfy the login page — show a recovery screen instead.
+    return render(
+        request,
+        "schools/verify_signup.html",
+        {
+            "error": (
+                "We verified your email but could not finish account setup yet. "
+                "Please wait a moment and open the link again, or resend a fresh link."
+            ),
+        },
+        status=503,
+    )
 
 
 @require_POST
@@ -2265,3 +2259,156 @@ def signup_slug_check(request: HttpRequest) -> JsonResponse:
             "suggestions": suggestions,
         }
     )
+
+
+# Words that describe the *kind* of school — handy as an optional suffix but
+# rarely the memorable part of a web address on their own.
+_SLUG_TYPE_WORDS = (
+    "school",
+    "schools",
+    "academy",
+    "academies",
+    "college",
+    "institute",
+    "institution",
+    "university",
+    "prep",
+    "preparatory",
+    "montessori",
+    "grammar",
+    "seminary",
+    "polytechnic",
+)
+# Connector / filler words dropped when choosing the anchor.
+_SLUG_STOPWORDS = (
+    "the",
+    "of",
+    "and",
+    "for",
+    "a",
+    "an",
+    "at",
+    "in",
+    "on",
+    "de",
+    "la",
+    "el",
+)
+# Long descriptor words shortened into a tidier variant.
+_SLUG_ABBREV = {
+    "international": "intl",
+    "elementary": "elem",
+    "secondary": "sec",
+    "primary": "prim",
+    "junior": "jr",
+    "senior": "sr",
+    "incorporated": "inc",
+    "community": "comm",
+    "technology": "tech",
+    "technical": "tech",
+}
+_SLUG_SUGGEST_MIN = 3
+_SLUG_SUGGEST_MAX = 120
+
+
+def build_slug_suggestions(name: str, country_code: str = "") -> list[str]:
+    """Creative, memorable web-address candidates derived from a school name.
+
+    "Smart & short": lead with the most memorable anchor word, then a few
+    clean variants (anchor+type, compact, abbreviated descriptor, optional
+    country tag), and finally the full verbatim slug as a familiar fallback.
+
+    Pure string logic — NO database access — so it is cheap, deterministic and
+    unit-testable. Returns an ORDERED, de-duplicated list of valid slug strings
+    (best/shortest first); the caller layers availability on top.
+    """
+    from django.utils.text import slugify as _dj_slugify
+
+    full = _dj_slugify(name or "")[:_SLUG_SUGGEST_MAX]
+    tokens = [t for t in full.split("-") if t]
+    if not tokens:
+        return []
+
+    significant = [
+        t
+        for t in tokens
+        if t not in _SLUG_STOPWORDS and t not in _SLUG_TYPE_WORDS
+    ]
+    type_word = next((t for t in tokens if t in _SLUG_TYPE_WORDS), "")
+
+    # Anchor: keep a leading "st"/"saint" glued to the next word (st-marys),
+    # otherwise the first meaningful word is the most memorable handle.
+    if significant:
+        if significant[0] in ("st", "saint") and len(significant) > 1:
+            anchor = "st-" + significant[1]
+            second = significant[2] if len(significant) > 2 else ""
+        else:
+            anchor = significant[0]
+            second = significant[1] if len(significant) > 1 else ""
+    else:
+        anchor = tokens[0]
+        second = tokens[1] if len(tokens) > 1 else ""
+
+    ordered: list[str] = []
+
+    def _add(candidate: str) -> None:
+        cand = _dj_slugify(candidate or "")[:_SLUG_SUGGEST_MAX]
+        if (
+            _SLUG_SUGGEST_MIN <= len(cand)
+            and cand not in _RESERVED_SLUGS
+            and cand not in ordered
+        ):
+            ordered.append(cand)
+
+    _add(anchor)  # greenfield
+    if type_word:
+        _add(f"{anchor}-{type_word}")  # greenfield-academy
+        _add(f"{anchor}{type_word}")  # greenfieldacademy
+    if second:
+        _add(f"{anchor}-{_SLUG_ABBREV.get(second, second)}")  # greenfield-intl
+        _add(f"{anchor}-{second}")  # greenfield-international
+    cc = (country_code or "").strip().lower()
+    if len(cc) == 2 and cc.isalpha():
+        _add(f"{anchor}-{cc}")  # greenfield-ke
+    _add(full)  # greenfield-international-academy (familiar fallback)
+    return ordered
+
+
+@never_cache
+@require_GET
+@ratelimit(key="ip", rate="60/m", method="GET", block=True)
+def signup_slug_suggest(request: HttpRequest) -> JsonResponse:
+    """Live web-address suggestions from a school NAME (as the operator types).
+
+    Query params:
+        name         – the school name (required for a meaningful answer)
+        country_code – optional 2-letter ISO code; adds a country-tagged option
+
+    Response shape:
+        {
+          "name": <echoed>,
+          "suggestions": [{"slug": <str>, "available": <bool>}, ...]  # up to 4
+        }
+
+    Suggestion *generation* is DB-free; only a bounded number of availability
+    probes run (mirrors signup_slug_check's cost profile and 60/min/IP limit),
+    so the front door never becomes a query amplifier under shared-NAT load.
+    """
+    name = (request.GET.get("name") or "").strip()[:200]  # magic-number-allow: school-name-input-cap
+    country_code = (request.GET.get("country_code") or "").strip()[:2]
+    candidates = build_slug_suggestions(name, country_code)[:6]
+
+    results = []
+    for slug in candidates:
+        # tenant-isolation-allow: public-slug-availability-lookup-no-tenant-scope
+        taken = (
+            School.objects.filter(slug=slug).exists()
+            # tenant-isolation-allow: public-slug-availability-lookup-no-tenant-scope
+            or School.objects.filter(subdomain=slug).exists()
+        )
+        results.append({"slug": slug, "available": not taken})
+
+    # Surface available options first while preserving generation order within
+    # each group (Python's sort is stable) — the cleanest free slug leads.
+    results.sort(key=lambda item: not item["available"])
+    return JsonResponse({"name": name, "suggestions": results[:4]})

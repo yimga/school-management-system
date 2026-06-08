@@ -1115,8 +1115,18 @@ def redirect_view(request):
                     .first()
                 )
                 if m and m.school:
-                    target = build_tenant_backend_url(request, m.school)
-                    return redirect(target)
+                    from apps.schools.provision_email_urls import (
+                        school_subdomain_redirect_is_safe,
+                    )
+
+                    if school_subdomain_redirect_is_safe(m.school):
+                        target = build_tenant_backend_url(request, m.school)
+                        return redirect(target)
+                    # School still provisioning — tenant subdomain often 404s.
+                    try:
+                        return _redirect_with_params("accounts:owner_onboarding_done")
+                    except Exception:
+                        return redirect("/authentication/onboarding/done/")
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
             pass
 

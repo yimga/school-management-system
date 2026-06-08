@@ -222,6 +222,7 @@ class ModuleAccessMiddleware:
         "/ready",
         "/status/",
         "/metrics/",
+        "/authentication/onboarding/",
         "/siteconfig/preferences",  # Any authenticated user can manage own preferences (theme, dashboard, etc.)
         "/siteconfig/api/tour-",  # Guided tour + info-tag helpers (all portal roles)
     )

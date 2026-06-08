@@ -77,6 +77,8 @@ from apps.schools.section8_views import (
 )
 from apps.schools.signup_views import (
     signup_school,
+    signup_slug_check,
+    signup_slug_suggest,
     verify_signup,
     resend_signup_verification,
     api_trial_school,
@@ -87,6 +89,12 @@ from apps.schools.signup_views import (
 )
 from apps.siteconfig.views_tour import tour_steps_public_api
 from apps.siteconfig.views_verify import verify_student_id
+from apps.schools.activation_views import (
+    ACTIVATION_FIRST_ACTION_PATH,
+    ACTIVATION_FIRST_ACTION_URL_NAME,
+    activation_first_action,
+)
+from apps.siteconfig.command_bar_registry import CommandBarActionsView
 from apps.siteconfig.views_manifest import (
     platform_manifest as _platform_manifest,
     portal_manifest as _portal_manifest,
@@ -137,6 +145,23 @@ urlpatterns = [
         "manifest/icon-<int:size>-maskable.png",
         _manifest_icon_maskable,
         name="pwa_manifest_icon_maskable",
+    ),
+    # Universal Command Bar — authenticated owners hit the public host during
+    # signup verify + onboarding; base.html includes rmc_command_bar.html when
+    # request.user.is_authenticated, so this route must resolve here or the
+    # set-password step 500s with NoReverseMatch (2026-06-08 prod dead-end).
+    # # rbac-allow: command-bar-server-filters-actions-per-user-and-tenant
+    path(
+        "api/command-bar/actions/",
+        CommandBarActionsView.as_view(),
+        name="command_bar_actions",
+    ),
+    # Activation landing — conversion/activation middleware reverse() this name
+    # on the public host during first-run signup (before tenant subdomain live).
+    path(
+        ACTIVATION_FIRST_ACTION_PATH.lstrip("/"),
+        activation_first_action,
+        name=ACTIVATION_FIRST_ACTION_URL_NAME,
     ),
     path("-/version/", obs_views.public_version, name="public_version"),
     # SOT batch 1204 / 1199: CDN-safe aliases (identical JSON) on the public urlconf.
@@ -1164,6 +1189,12 @@ urlpatterns = [
     path("onboard/migrate/", onboard_migration_handoff, name="onboard_migration_handoff"),
     path("onboard/migrate/start/", onboard_migration_start, name="onboard_migration_start"),
     path("signup/", signup_school, name="signup_school"),
+    # Live web-address availability + creative suggestions for the signup form.
+    # These render on the PUBLIC host, so they MUST be registered here (not only
+    # in config/urls.py) — otherwise the fetch 404s per-host and the live pill /
+    # suggestion chips silently never fire in production.
+    path("signup/slug-check/", signup_slug_check, name="signup_slug_check"),
+    path("signup/slug-suggest/", signup_slug_suggest, name="signup_slug_suggest"),
     path(
         "verify-signup/resend/",
         resend_signup_verification,

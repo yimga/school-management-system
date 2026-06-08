@@ -389,10 +389,13 @@
     {% include "partials/rmc_platform_chrome_scripts.html" %}
     {% include "partials/rmc_isomorphic_grid_boot.html" %}
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
-    {% if request.user.is_authenticated %}
+    {% if request.user.is_authenticated and '/authentication/onboarding/' not in request.path %}
     {% include "partials/rmc_platform_surface_page_data.html" %}
     {% include "partials/rmc_ai_chrome_page_data.html" %}
+    {% url 'command_bar_actions' as command_bar_actions_url %}
+    {% if command_bar_actions_url %}
     {% include "partials/rmc_command_bar.html" %}
+    {% endif %}
     {% elif request.resolver_match.url_name == 'signup_school' %}
     {% include "partials/rmc_platform_surface_page_data.html" %}
     {% endif %}

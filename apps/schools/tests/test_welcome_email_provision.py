@@ -10,7 +10,9 @@ from django.test import TestCase, override_settings
 
 from apps.schools.models import School, SchoolProvisioningEvent
 from apps.schools.provision_email_urls import (
+    build_owner_onboarding_url,
     build_provision_setup_password_url,
+    build_public_site_url,
     build_tenant_authentication_url,
 )
 from apps.schools.welcome_email import render_welcome_email_html, send_welcome_email
@@ -39,13 +41,27 @@ class WelcomeEmailProvisionTests(TestCase):
         self.assertIn("mail-test-school.runmycampus.com", url)
         self.assertIn("/authentication/login/", url)
 
-    def test_build_provision_setup_password_url_contains_legacy_setup(self):
+    def test_build_provision_setup_password_url_uses_public_host(self):
         url = build_provision_setup_password_url(self.school, self.user)
-        self.assertIn("mail-test-school.runmycampus.com", url)
+        self.assertIn("runmycampus.com", url)
+        self.assertNotIn("mail-test-school.runmycampus.com", url)
         self.assertIn("/authentication/legacy-setup/", url)
 
+    def test_build_owner_onboarding_url_uses_public_host_not_subdomain(self):
+        """Welcome + matrix emails must NOT deep-link tenant subdomains — unrouted
+        on PaaS → school-not-found (2026-06-08 NewssBell prod report)."""
+        url = build_owner_onboarding_url(self.school, self.user)
+        self.assertTrue(url.startswith("https://runmycampus.com/"))
+        self.assertIn("/authentication/onboarding/account/", url)
+        self.assertNotIn("mail-test-school.", url)
+
+    def test_build_public_site_url_honors_rmc_public_site_url(self):
+        with override_settings(RMC_PUBLIC_SITE_URL="https://www.runmycampus.com"):
+            url = build_public_site_url("/verify-signup/")
+        self.assertEqual(url, "https://www.runmycampus.com/verify-signup/")
+
     def test_render_welcome_email_includes_set_password_cta(self):
-        setup = build_provision_setup_password_url(self.school, self.user)
+        setup = build_owner_onboarding_url(self.school, self.user)
         html = render_welcome_email_html(
             self.school,
             "principal@mailtest.test",
@@ -91,6 +107,8 @@ class WelcomeEmailEndToEndTests(TestCase):
         self.assertEqual(msg.content_subtype, "html")
         self.assertIn("Welcome E2E Academy", msg.body)
         self.assertIn("#4F46E5", msg.body)
+        self.assertIn("/authentication/onboarding/account/", msg.body)
+        self.assertNotIn("welcome-e2e-academy.runmycampus.com", msg.body)
 
     def test_send_welcome_email_no_recipient_returns_false(self):
         self.assertFalse(send_welcome_email(str(self.school.id), ""))
@@ -120,16 +138,34 @@ class WelcomeEmailEventAuditTests(TestCase):
             subdomain="audit-trail-school",
         )
 
-    def _drive_welcome_email_branch(self, *, send_succeeds: bool) -> None:
-        """Mirror the code path in ``apps/schools/tasks.py::_do_provision``."""
+    def _drive_welcome_email_branch(self, *, publish_succeeds: bool) -> None:
+        """Mirror the welcome-email tail of ``apps/schools/tasks.py::_do_provision``."""
         from apps.schools.tasks import _record_school_event
 
         contact_email = "audit@audittrail.test"
+        fake_row = object() if publish_succeeds else None
         with patch(
-            "apps.schools.welcome_email.send_welcome_email",
-            return_value=send_succeeds,
-        ) as patched:
-            sent = patched(str(self.school.id), contact_email)
+            "apps.platform_runtime.event_bus.publish_event",
+            return_value=fake_row,
+        ):
+            from apps.platform_runtime.event_bus import publish_event
+            from apps.schools.provision_email_urls import build_public_login_url
+
+            row = publish_event(
+                "tenant.signup.completed",
+                {
+                    "school_id": str(self.school.pk),
+                    "school_name": self.school.name,
+                    "admin_email": contact_email,
+                    "portal_url": build_public_login_url(),
+                    "activation_url": "",
+                },
+                school_id=str(self.school.pk),
+                strict_catalog=True,
+                source="test",
+                idempotency_key=f"tenant-signup-completed:{self.school.pk}",
+            )
+            sent = row is not None
             recipient_domain = (
                 contact_email.split("@", 1)[-1] if "@" in contact_email else ""
             )
@@ -145,7 +181,7 @@ class WelcomeEmailEventAuditTests(TestCase):
                 message=(
                     "Welcome email sent."
                     if sent
-                    else "Welcome email not sent (check EMAIL_*); provisioning still completed."
+                    else "Welcome email not sent (matrix publish failed); provisioning still completed."
                 ),
                 payload={"recipient_domain": recipient_domain},
             )
@@ -155,7 +191,7 @@ class WelcomeEmailEventAuditTests(TestCase):
         # constants — callers should NOT re-type the string literals.
         from apps.schools.tasks import EVENT_WELCOME_EMAIL_SENT
 
-        self._drive_welcome_email_branch(send_succeeds=True)
+        self._drive_welcome_email_branch(publish_succeeds=True)
         ev = SchoolProvisioningEvent.objects.filter(
             school=self.school, event_type=EVENT_WELCOME_EMAIL_SENT
         ).first()
@@ -167,13 +203,13 @@ class WelcomeEmailEventAuditTests(TestCase):
     def test_welcome_email_failed_event_recorded_on_failure(self):
         from apps.schools.tasks import EVENT_WELCOME_EMAIL_FAILED
 
-        self._drive_welcome_email_branch(send_succeeds=False)
+        self._drive_welcome_email_branch(publish_succeeds=False)
         ev = SchoolProvisioningEvent.objects.filter(
             school=self.school, event_type=EVENT_WELCOME_EMAIL_FAILED
         ).first()
         self.assertIsNotNone(ev)
         self.assertEqual(ev.status, "WARNING")
-        self.assertIn("check EMAIL_*", ev.message)
+        self.assertIn("matrix publish failed", ev.message)
 
 
 @override_settings(

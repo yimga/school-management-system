@@ -67,6 +67,8 @@ MANAGER_AUTH_ALLOWED_PREFIXES = (
 )
 MANAGER_HOST_ALLOWED_PREFIXES = (
     *MANAGER_AUTH_ALLOWED_PREFIXES,
+    # First-run owner onboarding (token-authed) — parity with MANAGER_HOST_PUBLIC_ACCESS_PREFIXES.
+    "/authentication/onboarding/",
     # Tenant-primary surface: must be allowlisted here so ReservedPublicHostAccessMiddleware
     # does not redirect to "/"; ManagerTenantPrimarySurfaceBlockMiddleware then redirects
     # authenticated users to the control-plane dashboard.

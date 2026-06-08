@@ -27,16 +27,10 @@ def _regional_from_email(school) -> str:
 
 
 def _login_url(school) -> str:
-    """Login URL for the school tenant host."""
-    from django.urls import reverse
+    """Login URL on the public site (subdomain login 404s until DNS + is_active)."""
+    from apps.schools.provision_email_urls import build_public_login_url
 
-    from apps.schools.provision_email_urls import build_tenant_authentication_url
-
-    try:
-        path = reverse("accounts:login")
-    except NoReverseMatch:
-        path = "/authentication/login/"
-    return build_tenant_authentication_url(school, path)
+    return build_public_login_url()
 
 
 def render_welcome_email_html(

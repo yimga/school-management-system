@@ -20,12 +20,18 @@ from apps.observability.models import PlatformIncident
 from apps.platform_runtime.views_administration import internal_admin_alias_redirect
 from apps.schools.models import School
 from apps.schools.marketing_views import marketing_page
+from apps.schools.provision_email_urls import build_public_site_url
 from apps.schools.section8_views import find_school, global_login_discovery
 from apps.schools.control_plane import (
     require_control_plane_access,
     user_has_control_plane_access,
 )
 from config.admin import platform_admin_site
+
+
+def redirect_signup_flow_to_public(request):
+    """Signup verify/resend belong on the public marketing host, not manager."""
+    return redirect(build_public_site_url(request.get_full_path()), permanent=False)
 
 # Shared error handlers (avoid circular import via config.urls during urlconf load).
 from config.error_handlers import (
@@ -736,6 +742,14 @@ urlpatterns = [
     path(
         "authentication/",
         include(("apps.accounts.urls", "accounts"), namespace="accounts"),
+    ),
+    # Public signup flows mounted for urlconf parity; redirect to runmycampus.com
+    # so mistaken manager-host links still work (defense-in-depth).
+    path("verify-signup/", redirect_signup_flow_to_public, name="verify_signup"),
+    path(
+        "verify-signup/resend/",
+        redirect_signup_flow_to_public,
+        name="resend_signup_verification",
     ),
     path("super/", include(("apps.schools.super_urls", "super"), namespace="super")),
     path(

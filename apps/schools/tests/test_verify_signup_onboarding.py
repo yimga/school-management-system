@@ -132,6 +132,26 @@ class OnboardingHostRoutingTests(TestCase):
         # Sanity: other /authentication/ paths stay manager-only (no over-reach).
         self.assertTrue(_is_manager_only_path("/authentication/profile/"))
 
+    def test_command_bar_actions_resolves_on_public_host(self):
+        from django.urls import reverse
+
+        with override_settings(ROOT_URLCONF="config.public_urls"):
+            self.assertEqual(
+                reverse("command_bar_actions"), "/api/command-bar/actions/"
+            )
+
+    @override_settings(
+        MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+        ROOT_URLCONF="config.manager_urls",
+    )
+    def test_manager_verify_signup_redirects_to_public_host(self):
+        resp = self.client.get(
+            "/verify-signup/?token=00000000-0000-0000-0000-000000000001"
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(resp.url.startswith("https://runmycampus.com/verify-signup/"))
+        self.assertNotIn("manager.", resp.url)
+
     def test_onboarding_is_anonymous_safe_on_manager_host(self):
         # Defense-in-depth: if it ever lands on manager, served anonymously
         # (token-authed) instead of bounced to the control-plane login.

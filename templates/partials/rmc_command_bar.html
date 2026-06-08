@@ -16,7 +16,8 @@
      aria-label="{% trans 'Command bar' %}"
      aria-hidden="true"
      data-state="closed"
-     data-actions-url="{% url 'command_bar_actions' %}">
+     {% url 'command_bar_actions' as command_bar_actions_url %}
+     {% if command_bar_actions_url %}data-actions-url="{{ command_bar_actions_url }}"{% endif %}>
   <div class="rmc-command-bar__backdrop" aria-hidden="true"></div>
   <div class="rmc-command-bar__panel" role="combobox" aria-expanded="false" aria-controls="rmc-command-bar-list" aria-haspopup="listbox">
     <div class="rmc-command-bar__searchwrap">
