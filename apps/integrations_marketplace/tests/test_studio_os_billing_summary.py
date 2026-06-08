@@ -14,9 +14,12 @@ from apps.schools.models import School
 
 class StudioOSBillingSummaryTests(TestCase):
     def setUp(self):
+        # Superuser bypasses ModuleAccessMiddleware for integrations_marketplace
+        # (unknown module namespace is default-deny for staff-only users).
         self.staff = User.objects.create_user(
             username="billing.operator",
             is_staff=True,
+            is_superuser=True,
         )
         self.client.force_login(self.staff)
         self.school = School.objects.create(
