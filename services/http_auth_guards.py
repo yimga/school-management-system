@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from functools import wraps
 
+from asgiref.sync import iscoroutinefunction, markcoroutinefunction, sync_to_async
 from django.conf import settings
 from django.contrib.auth.views import redirect_to_login
 from django.http import HttpResponse, JsonResponse
@@ -45,19 +46,43 @@ def request_prefers_api_auth_response(request) -> bool:
 
 
 def login_required_api(view_func=None, *, sse: bool = False):
-    """Require auth; return 401 for API/SSE clients instead of redirecting."""
+    """Require auth; return 401 for API/SSE clients instead of redirecting.
+
+    Async-aware: when wrapping an ``async def`` view (e.g. an ASGI SSE stream),
+    returns an async wrapper so Django runs it on the event loop without a
+    sync/async adapter. Sync views keep the original sync wrapper unchanged.
+    """
+
+    def _unauthenticated_response(request):
+        if sse or request_prefers_api_auth_response(request):
+            return HttpResponse(status=401)
+        return redirect_to_login(
+            request.get_full_path(),
+            login_url=settings.LOGIN_URL,
+        )
 
     def decorator(fn):
+        if iscoroutinefunction(fn):
+
+            @wraps(fn)
+            async def awrapper(request, *args, **kwargs):
+                # request.user is a lazy object whose evaluation may hit the DB;
+                # resolve it off the event loop to avoid SynchronousOnlyOperation.
+                is_authenticated = await sync_to_async(
+                    lambda: bool(getattr(request.user, "is_authenticated", False))
+                )()
+                if is_authenticated:
+                    return await fn(request, *args, **kwargs)
+                return _unauthenticated_response(request)
+
+            markcoroutinefunction(awrapper)
+            return awrapper
+
         @wraps(fn)
         def wrapper(request, *args, **kwargs):
             if getattr(request.user, "is_authenticated", False):
                 return fn(request, *args, **kwargs)
-            if sse or request_prefers_api_auth_response(request):
-                return HttpResponse(status=401)
-            return redirect_to_login(
-                request.get_full_path(),
-                login_url=settings.LOGIN_URL,
-            )
+            return _unauthenticated_response(request)
 
         return wrapper
 

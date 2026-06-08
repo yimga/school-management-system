@@ -14,6 +14,10 @@ dj-database-url>=2.1
 # Production server & static
 whitenoise>=6.6
 gunicorn>=21.2,<25
+# ASGI worker for async SSE streaming (gunicorn -k uvicorn.workers.UvicornWorker).
+# Open-source (BSD). Lets long-lived SSE run as coroutines instead of pinning
+# gthread worker threads. See docs/ASGI_STREAMING.md.
+uvicorn[standard]>=0.30
 
 # PDF & documents (WeasyPrint needs Pillow; reportlab for programmatic PDFs)
 WeasyPrint>=61.0
