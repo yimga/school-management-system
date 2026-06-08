@@ -149,6 +149,61 @@ class OwnerOnboardingFlowTests(TestCase):
         )  # completed → dashboard, not deeper into the wizard
 
 
+@override_settings(ROOT_URLCONF="config.public_urls")
+class OwnerOnboardingPublicHostRenderTests(TestCase):
+    """The wizard now runs on the PUBLIC host (the verify link's host), not the
+    tenant host it was first designed for. Every prior flow test resolves
+    ``{% url %}`` against the monolithic test urlconf (``config.urls``), which
+    has EVERY route — so it cannot catch a reverse that is missing only on the
+    public host. That blind spot is exactly what 500'd the login page (a bare
+    ``{% url 'resend_signup_verification' %}`` that reverses in dev's combined
+    urlconf but NoReverseMatch'd per-host in prod).
+
+    These tests render the two later wizard templates (which extend ``base.html``
+    and carry the cross-host launchpad links) with ``ROOT_URLCONF`` pinned to
+    ``config.public_urls``, so any reverse that does not resolve on the public
+    host raises NoReverseMatch here instead of in front of a new owner."""
+
+    def setUp(self):
+        # A real request (not render_to_string) so base.html's context
+        # processors run AND request.urlconf resolves to the public host.
+        self.user, self.school = _make_owner(
+            username="render", email="render@cedar.test"
+        )
+        self.client.force_login(
+            self.user, backend="django.contrib.auth.backends.ModelBackend"
+        )
+
+    def test_school_step_renders_on_public_host(self):
+        # 200 here means every {% url %} in school.html + base.html resolves on
+        # the public urlconf — a per-host NoReverseMatch would surface as a 500.
+        r = self.client.get(reverse("accounts:owner_onboarding_school"))
+        self.assertEqual(r.status_code, 200)
+
+    def test_done_launchpad_renders_on_public_host(self):
+        # done.html reverses accounts:tenant_identity_invite / school_studio /
+        # accounts:redirect — the guarded ``{% url as %}`` pattern must keep this
+        # from 500-ing even when a target is tenant-only and absent on public.
+        r = self.client.get(reverse("accounts:owner_onboarding_done"))
+        self.assertEqual(r.status_code, 200)
+        self.assertIn(b"dashboard", r.content.lower())
+
+    def test_account_step_bare_reverses_resolve_on_public_host(self):
+        # account.html's only non-guarded reverse is the accounts:login fallback;
+        # accounts is mounted at /authentication/ on the public host, so it must
+        # resolve there. (Full CBV render needs reset-token form context; this
+        # pins the reverse that would 500 the page if accounts were unmounted.)
+        from django.urls import reverse
+
+        self.assertTrue(reverse("accounts:login").startswith("/authentication/"))
+        self.assertTrue(
+            reverse(
+                "accounts:owner_onboarding_account",
+                kwargs={"uidb64": "abc", "token": "x-y"},
+            ).startswith("/authentication/onboarding/account/")
+        )
+
+
 class EmailOrUsernameLoginTests(TestCase):
     def setUp(self):
         self.user, _ = _make_owner(
