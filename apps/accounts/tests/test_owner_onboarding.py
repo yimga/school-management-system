@@ -110,10 +110,13 @@ class OwnerOnboardingFlowTests(TestCase):
 
     def test_school_step_saves_and_advances(self):
         self._login_past_mfa()
-        r = self.client.post(
-            reverse("accounts:owner_onboarding_school"),
-            {"school_name": "Cedar Academy", "primary_color": "#112233"},
-        )
+        with mock.patch(
+            "apps.accounts.views_owner_onboarding._finish_provisioning_before_done"
+        ):
+            r = self.client.post(
+                reverse("accounts:owner_onboarding_school"),
+                {"school_name": "Cedar Academy", "primary_color": "#112233"},
+            )
         self.assertEqual(r.status_code, 302)
         self.assertEqual(r.url, reverse("accounts:owner_onboarding_done"))
         self.school.refresh_from_db()
@@ -123,10 +126,13 @@ class OwnerOnboardingFlowTests(TestCase):
 
     def test_school_step_skip_changes_nothing(self):
         self._login_past_mfa()
-        r = self.client.post(
-            reverse("accounts:owner_onboarding_school"),
-            {"school_name": "Should Not Apply", "skip": "1"},
-        )
+        with mock.patch(
+            "apps.accounts.views_owner_onboarding._finish_provisioning_before_done"
+        ):
+            r = self.client.post(
+                reverse("accounts:owner_onboarding_school"),
+                {"school_name": "Should Not Apply", "skip": "1"},
+            )
         self.assertEqual(r.status_code, 302)
         self.assertEqual(r.url, reverse("accounts:owner_onboarding_done"))
         self.school.refresh_from_db()
@@ -145,13 +151,52 @@ class OwnerOnboardingFlowTests(TestCase):
             "apps.schools.tasks.dispatch_provision_school",
             return_value={"queued": True, "job_id": "j-1"},
         ) as dispatch:
-            r = self.client.get(
-                reverse("accounts:owner_onboarding_done") + "?nudge=1"
-            )
+            r = self.client.get(reverse("accounts:owner_onboarding_done"))
         self.assertEqual(r.status_code, 200)
         dispatch.assert_called_once_with(
             str(self.school.pk), contact_email=self.user.email
         )
+
+    def test_done_recheck_runs_sync_provisioning(self):
+        self._login_past_mfa()
+
+        def _activate(school_id, contact_email="", **kwargs):
+            s = School.objects.get(pk=school_id)
+            s.is_active = True
+            s.save(update_fields=["is_active"])
+
+        with mock.patch(
+            "apps.schools.tasks.provision_school_sync",
+            side_effect=_activate,
+        ) as sync:
+            r = self.client.post(
+                reverse("accounts:owner_onboarding_done"),
+                {"recheck_provision": "1"},
+            )
+        self.assertEqual(r.status_code, 302)
+        sync.assert_called_once_with(
+            str(self.school.pk), contact_email=self.user.email
+        )
+        self.school.refresh_from_db()
+        self.assertTrue(self.school.is_active)
+
+    def test_account_step_rejects_weak_password(self):
+        url = self._account_url()
+        r = self.client.get(url)
+        sentinel = r.url
+        self.client.get(sentinel)
+        r2 = self.client.post(
+            sentinel,
+            {
+                "first_name": "Jane",
+                "last_name": "Doe",
+                "new_password1": "123",
+                "new_password2": "123",
+            },
+        )
+        self.assertEqual(r2.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.has_usable_password())
 
     def test_completed_owner_is_bounced_out_of_wizard(self):
         self.school.settings = {"owner_onboarding": {"completed": True}}
@@ -239,6 +284,8 @@ class OwnerOnboardingPublicHostRenderTests(TestCase):
             msg="set-password step must render on public host, not 500",
         )
         self.assertIn(b"Create a password", r2.content)
+        self.assertIn(b"data-rmc-password-toggle", r2.content)
+        self.assertEqual(r2.content.count(b"data-rmc-password-toggle"), 2)
 
 
 class EmailOrUsernameLoginTests(TestCase):

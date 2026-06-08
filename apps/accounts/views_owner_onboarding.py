@@ -25,10 +25,13 @@ import time
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth import password_validation
 from django.contrib.auth.views import PasswordResetConfirmView
+from django.contrib import messages
 from django.shortcuts import redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _l
+from django.views.decorators.http import require_http_methods
 
 logger = logging.getLogger(__name__)
 
@@ -99,25 +102,19 @@ def _post_onboarding_dashboard_href(request, school) -> str:
         except Exception:  # noqa: BLE001 - template fallback must not 500
             pass
     try:
-        href = reverse("accounts:owner_onboarding_done")
+        return reverse("accounts:owner_onboarding_done")
     except Exception:  # noqa: BLE001
-        href = "/authentication/onboarding/done/"
-    if school and not getattr(school, "is_active", False):
-        sep = "&" if "?" in href else "?"
-        href = f"{href}{sep}nudge=1"
-    return href
+        return "/authentication/onboarding/done/"
 
 
 def _maybe_nudge_provisioning(request, school, user) -> None:
-    """Re-queue provisioning when the owner checks again (rate-limited per session)."""
+    """Queue provisioning on the done page (rate-limited). Prefer POST recheck for sync."""
     if not school or getattr(school, "is_active", False):
         return
-    if (request.GET.get("nudge") or "").strip() != "1":
-        return
-    session_key = f"owner_provision_nudge:{school.pk}"
+    session_key = f"owner_provision_queue:{school.pk}"
     now_ts = time.time()
     last_ts = request.session.get(session_key)
-    if last_ts and (now_ts - float(last_ts)) < 60:  # magic-number-allow: provision-nudge-cooldown-seconds
+    if last_ts and (now_ts - float(last_ts)) < 60:  # magic-number-allow: provision-queue-cooldown-seconds
         return
     request.session[session_key] = now_ts
     contact_email = (getattr(user, "email", "") or "").strip()
@@ -126,11 +123,47 @@ def _maybe_nudge_provisioning(request, school, user) -> None:
 
         dispatch_provision_school(str(school.pk), contact_email=contact_email)
         logger.info(
-            "owner_onboarding_provision_nudge school_id=%s",
+            "owner_onboarding_provision_queue school_id=%s",
             getattr(school, "pk", None),
         )
-    except Exception:  # noqa: BLE001 - nudge must never block the launchpad
-        logger.warning("owner_onboarding_provision_nudge_failed", exc_info=True)
+    except Exception:  # noqa: BLE001 - queue kick must never block the launchpad
+        logger.warning("owner_onboarding_provision_queue_failed", exc_info=True)
+
+
+def _run_sync_provisioning(request, school, user) -> bool:
+    """Run provisioning in-request so Check again actually completes setup."""
+    if not school or getattr(school, "is_active", False):
+        return True
+    session_key = f"owner_provision_sync:{school.pk}"
+    now_ts = time.time()
+    last_ts = request.session.get(session_key)
+    if last_ts and (now_ts - float(last_ts)) < 30:  # magic-number-allow: provision-sync-cooldown-seconds
+        return False
+    request.session[session_key] = now_ts
+    contact_email = (getattr(user, "email", "") or "").strip()
+    try:
+        from apps.schools.tasks import provision_school_sync
+
+        provision_school_sync(str(school.pk), contact_email=contact_email)
+        school.refresh_from_db(fields=["is_active", "settings", "updated_at"])
+        logger.info(
+            "owner_onboarding_provision_sync school_id=%s active=%s",
+            getattr(school, "pk", None),
+            getattr(school, "is_active", False),
+        )
+        return bool(getattr(school, "is_active", False))
+    except Exception:  # noqa: BLE001 - surface message to owner, never 500 the launchpad
+        logger.warning("owner_onboarding_provision_sync_failed", exc_info=True)
+        return False
+
+
+def _finish_provisioning_before_done(request, school, user) -> None:
+    """After the school step, try to finish provisioning before showing the launchpad."""
+    if not school or getattr(school, "is_active", False):
+        return
+    if _run_sync_provisioning(request, school, user):
+        return
+    _maybe_nudge_provisioning(request, school, user)
 
 
 # ── Step 1: Create your account (token-authed) ──────────────────────────────
@@ -141,6 +174,10 @@ class OwnerAccountSetupForm(SetPasswordForm):
     last_name = forms.CharField(label=_l("Last name"), max_length=150, strip=True)  # magic-number-allow: AbstractUser name field length
 
     field_order = ["first_name", "last_name", "new_password1", "new_password2"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["new_password1"].help_text = password_validation.password_validators_help_text_html()
 
     def save(self, commit=True):
         self.user.first_name = (self.cleaned_data.get("first_name") or "").strip()
@@ -200,6 +237,7 @@ def owner_onboarding_school(request):
                 except Exception:  # noqa: BLE001 - never block the wizard on a save error
                     logger.warning("owner_onboarding_school_save_failed", exc_info=True)
         _set_onboarding(school, step="done")
+        _finish_provisioning_before_done(request, school, request.user)
         return redirect("accounts:owner_onboarding_done")
 
     return render(
@@ -211,6 +249,7 @@ def owner_onboarding_school(request):
 
 # ── Step 3: You're all set (launchpad) ──────────────────────────────────────
 @login_required
+@require_http_methods(["GET", "POST"])
 def owner_onboarding_done(request):
     school = _owner_school(request.user)
     if school is None:
@@ -225,7 +264,30 @@ def owner_onboarding_done(request):
             clear_activation_gate(school)
         except ImportError:
             pass
-    _maybe_nudge_provisioning(request, school, request.user)
+
+    if request.method == "POST" and (request.POST.get("recheck_provision") or "").strip() == "1":
+        if getattr(school, "is_active", False):
+            messages.info(request, _l("Your portal is already live."))
+        elif _run_sync_provisioning(request, school, request.user):
+            messages.success(
+                request,
+                _l("Your campus portal is ready — open your dashboard below."),
+            )
+        else:
+            messages.warning(
+                request,
+                _l(
+                    "Setup is still finishing. We will email you at %(email)s when "
+                    "your portal is ready, or try again in a minute."
+                )
+                % {"email": (getattr(request.user, "email", "") or "").strip() or _l("your address")},
+            )
+        return redirect("accounts:owner_onboarding_done")
+
+    if not getattr(school, "is_active", False):
+        _maybe_nudge_provisioning(request, school, request.user)
+
+    school.refresh_from_db(fields=["is_active", "name", "settings"])
     return render(
         request,
         "accounts/owner_onboarding/done.html",
@@ -235,5 +297,6 @@ def owner_onboarding_done(request):
             "total_steps": _TOTAL_STEPS,
             "school_is_live": bool(getattr(school, "is_active", False)),
             "dashboard_href": _post_onboarding_dashboard_href(request, school),
+            "owner_email": (getattr(request.user, "email", "") or "").strip(),
         },
     )

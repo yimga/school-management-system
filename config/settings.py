@@ -872,6 +872,23 @@ PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.ScryptPasswordHasher",
 ]
 
+# Django global_settings ships AUTH_PASSWORD_VALIDATORS=[] — must define explicitly.
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": int(os.getenv("AUTH_PASSWORD_MIN_LENGTH", "8"))},
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
+
 # --- Migration-cloud "password preservation moat" encryption key ---
 # Used by apps.accounts.legacy_hashes.encryption to encrypt the three
 # legacy_* User columns at rest. In production set DJANGO_CRYPTOGRAPHY_KEY
