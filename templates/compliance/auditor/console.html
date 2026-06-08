@@ -1,0 +1,144 @@
+{% extends "backend_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Auditor access grants" %}{% endblock %}
+{% block backend_title %}{% trans "Auditor access grants" %}{% endblock %}
+
+{% block backend_page %}
+<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+
+  {% if fresh_grant %}
+  <div class="alert alert-success" role="status">
+    <h2 class="h6 mb-1">{% trans "Magic link created" %} — {{ fresh_grant.inspector }}</h2>
+    <p class="mb-2 small text-muted">{% trans "Copy this link now. For security it is shown only once." %}</p>
+    <div class="input-group input-group-sm mb-2">
+      <input type="text" class="form-control" readonly
+             value="{% url 'compliance:auditor_inspect' %}?token={{ fresh_grant.token }}"
+             aria-label="{% trans 'Inspection link' %}"
+             data-rmc-copy-source="auditor-fresh-link">
+    </div>
+    {% if fresh_grant.ip_allowlist %}
+    <p class="mb-0 small">{% trans "Geo-fenced to:" %}
+      {% for net in fresh_grant.ip_allowlist %}<code>{{ net }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}
+    </p>
+    {% else %}
+    <p class="mb-0 small text-muted">{% trans "No IP restriction (usable from any network)." %}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="row g-3">
+    <div class="col-12 col-xl-5">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h1 class="h5 mb-3">{% trans "Issue an inspection grant" %}</h1>
+          <p class="text-muted small">{% blocktrans %}Mint a revocable, time-bounded magic link for an external inspector. They see only PII-masked, read-only data; every view is logged.{% endblocktrans %}</p>
+          <form method="post" action="">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+
+            <div class="mb-3">
+              <label class="form-label" for="aud-school">{% trans "School" %}</label>
+              <select class="form-select" id="aud-school" name="school" required aria-required="true">
+                <option value="">{% trans "Select a school…" %}</option>
+                {% for s in schools %}
+                <option value="{{ s.id }}">{{ s.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="aud-label">{% trans "Inspector label" %}</label>
+              <input type="text" class="form-control" id="aud-label" name="inspector_label"
+                     placeholder="{% trans 'e.g. Ofsted Lead Inspector' %}" autocomplete="off">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="aud-email">{% trans "Inspector email" %} <span class="text-muted">({% trans "optional" %})</span></label>
+              <input type="email" class="form-control" id="aud-email" name="inspector_email" autocomplete="off">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="aud-ttl">{% trans "Valid for (hours)" %}</label>
+              <input type="number" class="form-control" id="aud-ttl" name="ttl_hours"
+                     value="72" min="1" inputmode="numeric">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="aud-allowlist">{% trans "Geo-fence — IP allowlist" %} <span class="text-muted">({% trans "optional" %})</span></label>
+              <textarea class="form-control" id="aud-allowlist" name="ip_allowlist" rows="2"
+                        placeholder="203.0.113.0/24, 198.51.100.7"
+                        aria-describedby="aud-allowlist-help"></textarea>
+              <div class="form-text" id="aud-allowlist-help">{% blocktrans %}Comma- or newline-separated IPs / CIDR ranges. Leave blank for no network restriction. Unparseable entries are dropped. A geo-fenced link is refused from any other address.{% endblocktrans %}</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="aud-note">{% trans "Internal note" %} <span class="text-muted">({% trans "optional" %})</span></label>
+              <input type="text" class="form-control" id="aud-note" name="note" maxlength="255" autocomplete="off">
+            </div>
+
+            <button type="submit" class="btn btn-primary">{% trans "Create magic link" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-xl-7">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h5 mb-3">{% trans "Existing grants" %}</h2>
+          {% if grants %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th scope="col">{% trans "Inspector" %}</th>
+                  <th scope="col">{% trans "School" %}</th>
+                  <th scope="col">{% trans "Status" %}</th>
+                  <th scope="col">{% trans "Geo-fence" %}</th>
+                  <th scope="col" class="text-end">{% trans "Views" %}</th>
+                  <th scope="col"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for g in grants %}
+                <tr>
+                  <td>{{ g.inspector }}</td>
+                  <td class="text-muted small">{{ g.school }}</td>
+                  <td>
+                    {% if g.revoked %}<span class="badge bg-secondary">{% trans "Revoked" %}</span>
+                    {% elif g.valid %}<span class="badge bg-success">{% trans "Active" %}</span>
+                    {% else %}<span class="badge bg-warning text-dark">{% trans "Expired" %}</span>{% endif %}
+                  </td>
+                  <td class="small">
+                    {% if g.ip_allowlist %}
+                      {% for net in g.ip_allowlist %}<code>{{ net }}</code>{% if not forloop.last %}<br>{% endif %}{% endfor %}
+                    {% else %}<span class="text-muted">{% trans "any network" %}</span>{% endif %}
+                  </td>
+                  <td class="text-end">
+                    {{ g.views }}{% if g.denied_views %} <span class="text-danger" title="{% trans 'Denied by geo-fence' %}">(+{{ g.denied_views }}⊘)</span>{% endif %}
+                  </td>
+                  <td class="text-end">
+                    {% if g.valid and not g.revoked %}
+                    <form method="post" action="" class="d-inline">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="revoke">
+                      <input type="hidden" name="grant_id" value="{{ g.id }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Revoke" %}</button>
+                    </form>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-muted mb-0">{% trans "No grants yet. Issue one on the left." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

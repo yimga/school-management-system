@@ -52,6 +52,38 @@ class AuditorAccessTests(TestCase):
         self.assertNotIn("Okoro", blob)
         self.assertNotIn("788000111", blob)
 
+    def test_inspect_html_default_renders_masked_roster(self):
+        from apps.compliance.views_auditor import auditor_inspect
+        from django.test import RequestFactory
+
+        grant, token = auditor_access.create_grant(
+            school_id=self.school.id, inspector_label="Ofsted Lead"
+        )
+        rf = RequestFactory()
+        resp = auditor_inspect(rf.get(f"/c/auditor/?token={token}"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("text/html", resp["Content-Type"])
+        body = resp.content.decode()
+        self.assertIn("A.O.", body)  # masked initials render
+        self.assertIn("2014", body)  # birth year only
+        self.assertNotIn("Amara", body)  # full name never leaks
+        self.assertNotIn("788000111", body)
+
+    def test_inspect_json_when_format_param(self):
+        import json as _json
+
+        from apps.compliance.views_auditor import auditor_inspect
+        from django.test import RequestFactory
+
+        grant, token = auditor_access.create_grant(school_id=self.school.id)
+        rf = RequestFactory()
+        resp = auditor_inspect(rf.get(f"/c/auditor/?token={token}&format=json"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("application/json", resp["Content-Type"])
+        data = _json.loads(resp.content)
+        self.assertTrue(data["ok"])
+        self.assertEqual(data["students"][0]["initials"], "A.O.")
+
     def test_create_resolve_and_log(self):
         grant, token = auditor_access.create_grant(
             school_id=self.school.id, inspector_label="Ofsted Lead", ttl_hours=48
@@ -107,6 +139,124 @@ class AuditorInspectViewTests(TestCase):
         self.assertEqual(AuditorAccessLog.objects.filter(grant=grant).count(), 1)
         bad = auditor_inspect(rf.get("/compliance/auditor/inspect/?token=bogus"))
         self.assertEqual(bad.status_code, 403)
+
+    def test_bad_token_renders_html_denied_page(self):
+        from apps.compliance.views_auditor import auditor_inspect
+        from django.test import RequestFactory
+
+        rf = RequestFactory()
+        resp = auditor_inspect(rf.get("/c/auditor/?token=bogus"))
+        self.assertEqual(resp.status_code, 403)
+        self.assertIn("text/html", resp["Content-Type"])
+        self.assertIn("Inspection unavailable", resp.content.decode())
+
+
+class AuditorConsoleTests(TestCase):
+    databases = {"default"}
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        uid = uuid.uuid4().hex[:8]
+        self.school = School.objects.create(
+            name=f"AUDC {uid}", slug=f"audc-{uid}", subdomain=f"audc{uid}", is_active=True
+        )
+        User = get_user_model()
+        self.staff = User.objects.create_user(
+            username=f"ops{uid}", email=f"ops{uid}@x.test", password="x", is_staff=True
+        )
+
+    def _staff_request(self, method, data=None):
+        from django.contrib.sessions.backends.db import SessionStore
+        from django.test import RequestFactory
+
+        rf = RequestFactory()
+        if method == "get":
+            req = rf.get("/compliance/auditor/grants/", data or {})
+        else:
+            req = rf.post("/compliance/auditor/grants/", data or {})
+        req.user = self.staff
+        req.session = SessionStore()
+        req.session.create()
+        return req
+
+    def test_console_create_via_form_redirects_and_stashes_link(self):
+        from apps.compliance.models import AuditorAccessGrant
+        from apps.compliance.views_auditor import AuditorGrantConsoleView
+
+        req = self._staff_request(
+            "post",
+            {
+                "action": "create",
+                "school": str(self.school.id),
+                "inspector_label": "State Inspector",
+                "ttl_hours": "48",
+                "ip_allowlist": "198.51.100.0/24, garbage",
+            },
+        )
+        resp = AuditorGrantConsoleView.as_view()(req)
+        self.assertEqual(resp.status_code, 302)  # PRG
+        grant = AuditorAccessGrant.objects.get(school_id=self.school.id)
+        self.assertEqual(grant.ip_allowlist, ["198.51.100.0/24"])  # garbage dropped
+        stashed = req.session["auditor_fresh_grant"]
+        self.assertEqual(stashed["grant_id"], str(grant.id))
+        self.assertTrue(stashed["token"])
+
+    def test_console_create_json_returns_token(self):
+        import json as _json
+
+        from apps.compliance.views_auditor import AuditorGrantConsoleView
+
+        req = self._staff_request(
+            "post",
+            {"action": "create", "school": str(self.school.id), "format": "json"},
+        )
+        resp = AuditorGrantConsoleView.as_view()(req)
+        self.assertEqual(resp.status_code, 200)
+        data = _json.loads(resp.content)
+        self.assertTrue(data["ok"])
+        self.assertTrue(data["token"])
+
+    def test_console_list_json_surfaces_allowlist_and_denied_counts(self):
+        import json as _json
+
+        from apps.compliance.views_auditor import AuditorGrantConsoleView
+
+        grant, _ = auditor_access.create_grant(
+            school_id=self.school.id, ip_allowlist=["198.51.100.7"]
+        )
+        auditor_access.log_access(
+            grant, resource="auditor:roster", ip_address="203.0.113.1",
+            allowed=False, denied_reason="ip-not-in-allowlist",
+        )
+        req = self._staff_request("get", {"format": "json"})
+        resp = AuditorGrantConsoleView.as_view()(req)
+        data = _json.loads(resp.content)
+        row = next(r for r in data["grants"] if r["id"] == str(grant.id))
+        self.assertEqual(row["ip_allowlist"], ["198.51.100.7/32"])  # canonical host net
+        self.assertEqual(row["denied_views"], 1)
+
+    def test_console_get_renders_html_with_geofence_field(self):
+        from apps.compliance.views_auditor import AuditorGrantConsoleView
+
+        req = self._staff_request("get")
+        resp = AuditorGrantConsoleView.as_view()(req)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode()
+        self.assertIn('name="ip_allowlist"', body)  # geo-fence field is wired in
+        self.assertIn("Geo-fence", body)
+
+    def test_console_revoke_via_form_redirects(self):
+        from apps.compliance.views_auditor import AuditorGrantConsoleView
+
+        grant, _ = auditor_access.create_grant(school_id=self.school.id)
+        req = self._staff_request(
+            "post", {"action": "revoke", "grant_id": str(grant.id)}
+        )
+        resp = AuditorGrantConsoleView.as_view()(req)
+        self.assertEqual(resp.status_code, 302)
+        grant.refresh_from_db()
+        self.assertTrue(grant.is_revoked)
 
 
 class AuditorGeoFenceTests(TestCase):

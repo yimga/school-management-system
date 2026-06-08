@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+{% load i18n static %}
+{% comment %}
+Standalone, dependency-free auditor inspection page (Wave E).
+
+Reached on a PUBLIC, token-gated path (the signed magic link IS the auth). It must
+NOT extend the dashboard shell — the visitor is an external inspector with no
+account, and we render only PII-masked, read-only projections. Colours defer to
+the semantic token system (theme-aware) with system-colour fallbacks, so the page
+is dark-mode-safe with zero hardcoded literals. Rendered via render_to_string
+(no request context processors) so no auth/cockpit context is ever touched.
+{% endcomment %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{% trans "Inspection" %} — {% trans "Read-only roster" %}</title>
+  <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+  <style>
+    :root { color-scheme: light dark; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--surface-canvas, Canvas);
+      color: var(--text-primary, CanvasText);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      padding: clamp(1rem, 4vw, 2.5rem);
+    }
+    .aud-wrap { max-width: 1040px; margin: 0 auto; }
+    .aud-eyebrow {
+      text-transform: uppercase; letter-spacing: 0.08em;
+      font-size: 0.75rem; font-weight: 600;
+      color: var(--text-tertiary, GrayText);
+      margin: 0 0 0.4rem;
+    }
+    .aud-title { margin: 0 0 0.75rem; font-size: clamp(1.4rem, 3.4vw, 2rem); font-weight: 700; }
+    .aud-card {
+      background: var(--surface-elevated, Canvas);
+      border: 1px solid var(--hairline, GrayText);
+      border-radius: var(--radius-lg, 12px);
+      box-shadow: var(--elev-1, none);
+      padding: clamp(1rem, 3vw, 1.75rem);
+      margin-bottom: 1.25rem;
+    }
+    .aud-meta { display: flex; flex-wrap: wrap; gap: 1rem 2rem; margin: 0; padding: 0; list-style: none; }
+    .aud-meta dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary, GrayText); margin-bottom: 0.15rem; }
+    .aud-meta dd { margin: 0; font-weight: 600; }
+    .aud-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+    .aud-badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-size: 0.75rem; font-weight: 600;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--hairline, GrayText);
+      border-radius: var(--radius-pill, 999px);
+      color: var(--text-secondary, CanvasText);
+    }
+    .aud-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    .aud-table caption { text-align: left; font-weight: 700; margin-bottom: 0.6rem; }
+    .aud-table th, .aud-table td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--hairline, GrayText); }
+    .aud-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary, GrayText); }
+    .aud-table tbody tr:last-child td { border-bottom: 0; }
+    .aud-withheld { color: var(--text-tertiary, GrayText); font-style: italic; }
+    .aud-empty { color: var(--text-secondary, CanvasText); padding: 1rem 0; }
+    .aud-foot { font-size: 0.78rem; color: var(--text-tertiary, GrayText); margin-top: 1.5rem; }
+  </style>
+</head>
+<body>
+  <main class="aud-wrap">
+    <p class="aud-eyebrow">{% trans "Read-only · PII-masked inspection" %}</p>
+    <h1 class="aud-title">{{ inspector }}</h1>
+
+    <section class="aud-card" aria-label="{% trans 'Grant details' %}">
+      <dl class="aud-meta">
+        <div>
+          <dt>{% trans "Scope" %}</dt>
+          <dd>{% for s in scope %}{{ s }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans "students:read" %}{% endfor %}</dd>
+        </div>
+        <div>
+          <dt>{% trans "Access expires" %}</dt>
+          <dd>{{ expires_at }}</dd>
+        </div>
+        <div>
+          <dt>{% trans "Records" %}</dt>
+          <dd>{{ students|length }}</dd>
+        </div>
+      </dl>
+      <div class="aud-badges">
+        <span class="aud-badge">{% trans "Read-only" %}</span>
+        <span class="aud-badge">{% trans "PII masked" %}</span>
+        <span class="aud-badge">{% trans "Access logged" %}</span>
+      </div>
+    </section>
+
+    <section class="aud-card" aria-label="{% trans 'Masked roster' %}">
+      {% if students %}
+      <table class="aud-table">
+        <caption>{% trans "Student roster (masked)" %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Initials" %}</th>
+            <th scope="col">{% trans "Birth year" %}</th>
+            <th scope="col">{% trans "Class" %}</th>
+            <th scope="col">{% trans "Guardian contact" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for student in students %}
+          <tr>
+            <td>{{ student.initials }}</td>
+            <td>{{ student.birth_year|default:"—" }}</td>
+            <td>{{ student.class|default:"—" }}</td>
+            <td class="aud-withheld">{{ student.guardian_contact|default:"withheld" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="aud-empty">{% trans "No student records are available within this grant's scope." %}</p>
+      {% endif %}
+    </section>
+
+    <p class="aud-foot">{% trans "This view exposes masked, read-only data only. Every access is recorded against this grant. If this link should no longer work, contact the issuing institution to revoke it." %}</p>
+  </main>
+</body>
+</html>
