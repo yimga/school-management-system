@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-08T18:29:48.276924+00:00",
+  "generated_at": "2026-06-08T23:14:11.947471+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASES-0-8",
   "summary": {
     "phases_total": 9,
@@ -9,7 +9,7 @@
     "not_done": 0,
     "repo_scope_complete": true
   },
-  "service_worker_version": "sms-v4.03.06-zero-friction-sweep-wave12-2026-06-08",
+  "service_worker_version": "sms-v4.03.16-signup-portal-channels-2026-06-08",
   "phases": [
     {
       "phase": 0,
@@ -33,7 +33,11 @@
         "smart_action_hub_portal": true,
         "layout_sentinel_wired": true,
         "zero_click_css": true,
-        "five_col_templates_adopted": 161
+        "five_col_templates_adopted": 161,
+        "info_tag_page_explain_strip": true,
+        "info_tag_auto_js": false,
+        "info_tag_verifier": true,
+        "sovereign_50x_route_help": true
       }
     },
     {

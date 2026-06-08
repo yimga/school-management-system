@@ -248,6 +248,20 @@ def notify_tenant_signup_completed(
             delivery_event_id=str(delivery.get("delivery_event_id") or ""),
             delivered=delivered,
         )
+        try:
+            from apps.schools.signup_portal_channel_notifications import (
+                dispatch_portal_ready_channels,
+            )
+
+            dispatch_portal_ready_channels(
+                school,
+                email,
+                payload,
+                admin_user=admin_user,
+                force=force,
+            )
+        except Exception:  # noqa: BLE001 — channels are best-effort
+            logger.warning("portal_ready_channel_dispatch_failed", exc_info=True)
     return delivered or dispatched
 
 

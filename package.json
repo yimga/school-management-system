@@ -7,6 +7,7 @@
     "test:e2e": "playwright test",
     "test:e2e:marketing": "playwright test tests/e2e/marketing-smoke.spec.js",
     "test:e2e:migration-cloud": "playwright test tests/e2e/migration-cloud.spec.js",
+    "test:e2e:signup-production": "playwright test tests/e2e/signup-production-smoke.spec.js",
     "test:e2e:ui": "playwright test --ui",
     "test:visual:qa": "node node_modules/playwright/cli.js test tests/e2e/ux-visual-qa.spec.js",
     "test:visual:qa:full": "bash scripts/run_visual_qa.sh",

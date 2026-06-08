@@ -97,6 +97,14 @@ def build_register() -> dict:
                 in _read("templates/partials/rmc_platform_chrome_scripts.html"),
                 "zero_click_css": _exists("static/css/rmc-zero-click-protocol.css"),
                 "five_col_templates_adopted": _five_col_adopted_count(),
+                "info_tag_page_explain_strip": _exists(
+                    "templates/components/rmc_page_explain_strip.html"
+                ),
+                "info_tag_auto_js": "rmc-info-tag-auto.js"
+                in _read("templates/portal_base.html"),
+                "info_tag_verifier": _exists("scripts/verify_info_tag_coverage.py"),
+                "sovereign_50x_route_help": "ROUTE_HELP_SOVEREIGN_50X"
+                in _read("apps/siteconfig/ui_route_help.py"),
             },
         },
         {

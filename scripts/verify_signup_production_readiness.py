@@ -6,6 +6,7 @@ Pass 2 — Portal-ready email payload includes tenant_portal_url + account_ready
 Pass 3 — Active tenant subdomain resolves in middleware (not school-not-found).
 Pass 4 — Tenant-host membership guard blocks cross-tenant authenticated access.
 Pass 5 — Runtime integration: inactive→active + notification idempotency.
+Pass 6 — In-app inbox + SMS portal-ready channels wired.
 
 Usage:
   python scripts/verify_signup_production_readiness.py --strict
@@ -26,6 +27,7 @@ BASELINE = REPO_ROOT / "var" / "security-audit-baseline-signup-production-readin
 
 TASKS = REPO_ROOT / "apps" / "schools" / "tasks.py"
 NOTIFY = REPO_ROOT / "apps" / "schools" / "signup_completion_notifications.py"
+CHANNELS = REPO_ROOT / "apps" / "schools" / "signup_portal_channel_notifications.py"
 MIDDLEWARE = REPO_ROOT / "apps" / "schools" / "middleware.py"
 EMAIL_HTML = REPO_ROOT / "templates" / "emails" / "tenant_admin_signup_completed.html"
 ONBOARDING = REPO_ROOT / "apps" / "accounts" / "views_owner_onboarding.py"
@@ -265,6 +267,54 @@ def pass5_runtime_integration() -> list[dict[str, str]]:
     return findings
 
 
+def pass6_portal_ready_channels() -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    if not CHANNELS.is_file():
+        findings.append(
+            _finding(
+                "pass6",
+                "signup_portal_channel_notifications_module_missing",
+                path="apps/schools/signup_portal_channel_notifications.py",
+            )
+        )
+        return findings
+    channels = CHANNELS.read_text(encoding="utf-8")
+    notify = NOTIFY.read_text(encoding="utf-8")
+    for needle in (
+        "ensure_portal_ready_in_app_notification",
+        "notify_portal_ready_sms",
+        "dispatch_portal_ready_channels",
+        "Notification",
+        "send_sms",
+    ):
+        if needle not in channels:
+            findings.append(
+                _finding(
+                    "pass6",
+                    f"portal_channels_missing:{needle}",
+                    path="apps/schools/signup_portal_channel_notifications.py",
+                )
+            )
+    if "dispatch_portal_ready_channels" not in notify:
+        findings.append(
+            _finding(
+                "pass6",
+                "signup_completion_must_dispatch_portal_ready_channels",
+                path="apps/schools/signup_completion_notifications.py",
+            )
+        )
+    e2e = REPO_ROOT / "tests" / "e2e" / "signup-production-smoke.spec.js"
+    if not e2e.is_file():
+        findings.append(
+            _finding(
+                "pass6",
+                "signup_production_smoke_e2e_missing",
+                path="tests/e2e/signup-production-smoke.spec.js",
+            )
+        )
+    return findings
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--strict", action="store_true")
@@ -277,11 +327,12 @@ def main(argv: list[str] | None = None) -> int:
     findings.extend(pass3_active_subdomain_resolution())
     findings.extend(pass4_tenant_membership_guard())
     findings.extend(pass5_runtime_integration())
+    findings.extend(pass6_portal_ready_channels())
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "finding_count": len(findings),
-        "passes": 5,
+        "passes": 6,
         "findings": findings,
     }
     if args.write_baseline:

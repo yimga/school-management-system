@@ -2,13 +2,23 @@
 
 ## Slice - Signup production E2E closeout (2026-06-08)
 
-**A. Scope:** End-to-end signup→provision→portal email→subdomain routing→tenant login isolation; operator recovery for stuck tenants (st-jude, NewssBell).
+**A. Scope:** Portal email, tenant isolation, operator recovery for production signup (`USE_DJANGO_TENANTS=1`).
 
-**B. Shipped:** `TenantHostMembershipMiddleware`; delivery-aware `signup_completion_notifications`; inactive subdomain setup page; multi-school login redirect; operator resend portal email; `activate_pending_signup_schools` command; provisioning-failed operator matrix row; owner onboarding timeline; CI `verify_signup_production_readiness.py`; SW v4.03.15.
+**B. Shipped:** `signup_completion_notifications.py` delivery-aware idempotency; `TenantHostMembershipMiddleware`; inactive subdomain setup page; operator resend + `activate_pending_signup_schools`; owner onboarding provisioning timeline; `scripts/verify_signup_production_readiness.py` passes 1–5; SW **`sms-v4.03.15-signup-production-e2e-2026-06-08`**.
 
-**C. Proof:** **SIGNUP_PRODUCTION_READINESS_PASS**; signup + operator verification tests green.
+**C. Proof:** **SIGNUP_PRODUCTION_READINESS_PASS** (passes 1–5); **17/17** signup/pending/operator verification tests OK.
 
-**D. Post-deploy:** Run `activate_pending_signup_schools --slug=st-jude` on Render after deploy; confirm worker + `SCHOOLOOPS_EMAIL_ASYNC_USE_CELERY=1` (already in render.yaml).
+**D. Honest:** Live Render needs Celery/worker + `activate_pending_signup_schools --slug=…` for stuck tenants.
+
+## Slice - Signup portal-ready channels follow-up (2026-06-08)
+
+**A. Scope:** In-app inbox + SMS + Playwright smoke after batch 1661 email path.
+
+**B. Shipped:** `signup_portal_channel_notifications.py` (finance.Notification inbox + best-effort SMS via `send_sms`); wired from `notify_tenant_signup_completed`; `tests/e2e/signup-production-smoke.spec.js`; verifier pass6; `npm run test:e2e:signup-production`.
+
+**C. Proof:** **3/3** `test_signup_portal_channel_notifications` OK; pass6 **0 findings**.
+
+**D. Honest:** Web push not implemented; SMS only when phone in user attrs or `school.settings`; live Render E2E needs `SIGNUP_E2E_BASE_URL` + `E2E_*` credentials.
 
 ## Slice - Zero-Friction sweep wave 12 — migration_cloud + siteconfig metadata (2026-06-08)
 
