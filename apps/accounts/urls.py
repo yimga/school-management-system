@@ -97,6 +97,7 @@ from .views_security import (
     sessions_revoke,
 )
 from .views_web_push import (
+    web_push_nudge_portal_ready,
     web_push_subscribe,
     web_push_unsubscribe,
     web_push_vapid_public_key,
@@ -655,6 +656,11 @@ urlpatterns = [
         "web-push/unsubscribe/",
         web_push_unsubscribe,
         name="web_push_unsubscribe",
+    ),
+    path(
+        "web-push/nudge-portal-ready/",
+        web_push_nudge_portal_ready,
+        name="web_push_nudge_portal_ready",
     ),
     path(
         "profile/security/activity/",

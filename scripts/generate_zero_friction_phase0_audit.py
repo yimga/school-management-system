@@ -259,14 +259,14 @@ def _inherits_smart_hub(text: str) -> bool:
 
 
 def _inherits_portal_offline(text: str, zone: str) -> bool:
-    if zone not in {"teacher", "parent", "portal", "academics", "evals", "student"}:
-        return False
     if (
         "data-rmc-offline" in text
         or "data-sms-offline-read-cache-key" in text
         or "data-page-critical-read" in text
     ):
         return True
+    if zone not in {"teacher", "parent", "portal", "academics", "evals", "student"}:
+        return False
     return _extends_parent_shell(text) == "portal_base.html"
 
 

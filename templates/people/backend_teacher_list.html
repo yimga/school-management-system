@@ -9,7 +9,9 @@
 {% block backend_title %}{{ teacher_pl }} - Backend{% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_teacher_create' as create_url %}
@@ -44,7 +46,7 @@
         <div class="card-body">
           {% if teachers %}
           <div class="table-responsive rmc-data-table-wrapper">
-            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Teachers" data-rmc-row-detail-table="1">
+            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Teachers" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
               <thead>
                 <tr>
                   <th scope="col">Staff ID</th>

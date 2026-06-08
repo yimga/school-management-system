@@ -388,10 +388,14 @@ def notification_corner_dismiss(request):
     notification_id = body.get("notification_id")
     try:
         from apps.finance.models import Notification
+        from apps.schools.portal_ready_corner_notifications import (
+            mark_portal_ready_corner_dismissed,
+        )
 
         qs = Notification.objects.filter(recipient=request.user, is_read=False)
         if notification_id:
             qs = qs.filter(pk=notification_id)
+            mark_portal_ready_corner_dismissed(request, str(notification_id))
         else:
             qs = qs.filter(title=POSTURE_NOTIFICATION_TITLE)
         qs.update(is_read=True)
@@ -404,6 +408,9 @@ def notification_corner_dismiss(request):
 @require_POST
 def notification_corner_mark_read(request):
     from apps.accounts.security_posture_notifications import POSTURE_NOTIFICATION_TITLE
+    from apps.schools.portal_ready_corner_notifications import (
+        mark_portal_ready_corner_dismissed,
+    )
 
     try:
         body = json.loads(request.body.decode("utf-8") or "{}")
@@ -416,9 +423,12 @@ def notification_corner_mark_read(request):
         qs = Notification.objects.filter(recipient=request.user, is_read=False)
         if notification_id:
             qs = qs.filter(pk=notification_id)
+            mark_portal_ready_corner_dismissed(request, str(notification_id))
         else:
             qs = qs.filter(title=POSTURE_NOTIFICATION_TITLE)
-        qs.update(is_read=True)
+        updated = qs.update(is_read=True)
+        if notification_id and updated:
+            mark_portal_ready_corner_dismissed(request, str(notification_id))
     except (DatabaseError, ImportError, AttributeError, TypeError, ValueError):
         pass
     return JsonResponse({"ok": True})

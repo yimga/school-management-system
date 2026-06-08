@@ -43,6 +43,24 @@ def web_push_subscribe(request):
 
 @login_required
 @require_POST
+def web_push_nudge_portal_ready(request):
+    """One-time push after subscribe when portal-ready inbox row is still unread."""
+    session_key = "rmc_portal_ready_push_nudged"
+    if request.session.get(session_key):
+        return JsonResponse({"ok": True, "sent": 0})
+    from apps.schools.portal_ready_corner_notifications import (
+        nudge_portal_ready_web_push,
+    )
+
+    sent = nudge_portal_ready_web_push(request.user)
+    if sent:
+        request.session[session_key] = True
+        request.session.modified = True
+    return JsonResponse({"ok": True, "sent": sent})
+
+
+@login_required
+@require_POST
 def web_push_unsubscribe(request):
     try:
         payload = json.loads(request.body.decode("utf-8") or "{}")

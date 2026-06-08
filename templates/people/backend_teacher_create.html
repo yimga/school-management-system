@@ -5,7 +5,9 @@
 {% block backend_title %}Create Teacher - Backend{% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid py-2" data-page-archetype="record-detail">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_teacher_list' as list_url %}

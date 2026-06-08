@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Zero-Friction wave 15 backend zone (2026-06-08)
+
+**A. Scope:** Backend / people roster friction burndown (school command center + roster CRUD).
+
+**B. Shipped:** `codemod_zero_friction_wave15_backend.py` (12 templates); offline-marker scorer fix; ledger **1611→1599**.
+
+**C. Proof:** **ZERO_FRICTION_JOURNEYS_PASS**; SW **`sms-v4.03.19-backend-wave15-2026-06-08`**.
+
+**D. Honest:** Phase 6 still PARTIAL (~1,599); portal/evals waves next.
+
 ## Slice - Zero-Friction wave 14 parent zone (2026-06-08)
 
 **A. Scope:** Parent portal friction burndown (follow-up to wave 13 teacher zone).

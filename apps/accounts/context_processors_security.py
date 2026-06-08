@@ -18,6 +18,9 @@ from apps.accounts.security_posture_notifications import (
     is_session_modal_acknowledged,
     security_posture_zone,
 )
+from apps.schools.portal_ready_corner_notifications import (
+    portal_ready_corner_for_request,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +91,10 @@ def account_security_context(request):
             "security_posture_session_modal_ack": is_session_modal_acknowledged(
                 request
             ),
-            "rmc_corner_notifications": corner_notifications_for_request(request),
+            "rmc_corner_notifications": (
+                portal_ready_corner_for_request(request)
+                + corner_notifications_for_request(request)
+            ),
         }
     except _SOFT:
         logger.debug("account_security_context skipped", exc_info=True)

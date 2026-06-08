@@ -71,7 +71,12 @@
       })
       .then(function (subscription) {
         if (!subscription || !subscription.toJSON) return;
-        return postJson(boot.subscribeUrl, subscription.toJSON());
+        return postJson(boot.subscribeUrl, subscription.toJSON()).then(function () {
+          if (boot.nudgePortalReadyUrl) {
+            return postJson(boot.nudgePortalReadyUrl, {});
+          }
+          return null;
+        });
       })
       .catch(function () {
         /* subscription is best-effort */

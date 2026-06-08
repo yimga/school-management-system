@@ -7,7 +7,9 @@
 {% block title %}{% term "student" plural=True capitalize=True %} - {% trans "Backend" %}{% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid py-2" data-page-archetype="task-list" data-rmc-scroll-policy="paginate" data-rmc-copilot-page-lens="tenant-student-roster">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-page-archetype="task-list" data-rmc-scroll-policy="paginate" data-rmc-copilot-page-lens="tenant-student-roster" data-page-critical-read="1">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_student_create' as create_url %}
@@ -86,7 +88,7 @@
           {% include "partials/rmc_list_bulk_toolbar.html" %}
           <!-- table-column-budget-allow: roster-admin-bulk-checkbox-eight-column-set -->
           <div class="table-responsive rmc-data-table-wrapper">
-            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Students" data-rmc-row-detail-table="1" data-rmc-list-bulk="1" data-rmc-bulk-export-base="{{ student_list_base_url }}" data-rmc-bulk-actions='[{"id":"ask","label":"{% trans "Ask copilot"|escapejs %}","kind":"copilot","variant":"primary"},{"id":"export-selected","label":"{% trans "Export selected CSV"|escapejs %}","kind":"export-ids","href":"{{ student_list_base_url|escapejs }}"},{"id":"status-returning","label":"{% trans "Mark returning"|escapejs %}","kind":"post","url":"{{ student_bulk_status_url|escapejs }}","payload":{"status":"RETURNING"},"confirm":"{% trans "Set {count} student(s) to Returning?"|escapejs %}"},{"id":"status-probation","label":"{% trans "Mark probation"|escapejs %}","kind":"post","variant":"danger","url":"{{ student_bulk_status_url|escapejs }}","payload":{"status":"PROBATION"},"confirm":"{% trans "Set {count} student(s) to Probation?"|escapejs %}"},{"id":"status-alumni","label":"{% trans "Mark alumni"|escapejs %}","kind":"post","variant":"danger","url":"{{ student_bulk_status_url|escapejs }}","payload":{"status":"ALUMNI"},"confirm":"{% trans "Set {count} student(s) to Alumni?"|escapejs %}"}]'>
+            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Students" data-rmc-row-detail-table="1" data-rmc-list-bulk="1" data-rmc-bulk-export-base="{{ student_list_base_url }}" data-rmc-bulk-actions='[{"id":"ask","label":"{% trans "Ask copilot"|escapejs %}","kind":"copilot","variant":"primary"},{"id":"export-selected","label":"{% trans "Export selected CSV"|escapejs %}","kind":"export-ids","href":"{{ student_list_base_url|escapejs }}"},{"id":"status-returning","label":"{% trans "Mark returning"|escapejs %}","kind":"post","url":"{{ student_bulk_status_url|escapejs }}","payload":{"status":"RETURNING"},"confirm":"{% trans "Set {count} student(s) to Returning?"|escapejs %}"},{"id":"status-probation","label":"{% trans "Mark probation"|escapejs %}","kind":"post","variant":"danger","url":"{{ student_bulk_status_url|escapejs }}","payload":{"status":"PROBATION"},"confirm":"{% trans "Set {count} student(s) to Probation?"|escapejs %}"},{"id":"status-alumni","label":"{% trans "Mark alumni"|escapejs %}","kind":"post","variant":"danger","url":"{{ student_bulk_status_url|escapejs }}","payload":{"status":"ALUMNI"},"confirm":"{% trans "Set {count} student(s) to Alumni?"|escapejs %}"}]' data-rmc-table-5col="1">
               <thead>
                 <tr>
                   <th scope="col" class="rmc-list-bulk-th"><input type="checkbox" class="rmc-bulk-check" data-rmc-bulk-select-all aria-label="{% trans 'Select all students on this page' %}"></th>
@@ -163,4 +165,5 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

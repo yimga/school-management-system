@@ -3,7 +3,9 @@
 {% load terminology_tags %}
 {% block backend_title %}{% trans_term "Classroom" key="classroom" %} — {{ classroom.name }}{% endblock %}
 {% block backend_page %}
-<div class="container-fluid py-2" data-page-archetype="record-detail">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <nav class="mb-3" aria-label="{% trans 'Breadcrumb' %}">
     <ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="{% url 'accounts:backend_classroom_list' %}">{% trans_term "Classrooms" key="classroom" plural=True %}</a></li>

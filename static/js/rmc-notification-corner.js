@@ -114,6 +114,28 @@
     node.appendChild(actions);
     container.appendChild(node);
 
+    if (
+      opts.browser_notify &&
+      typeof Notification !== 'undefined' &&
+      Notification.permission === 'granted'
+    ) {
+      try {
+        var browserTag = 'rmc-portal-ready-' + (opts.id || 'default');
+        var browserNote = new Notification(opts.title || 'RunMyCampus', {
+          body: opts.message || '',
+          tag: browserTag,
+          icon: '/static/images/icon-192.png',
+        });
+        browserNote.onclick = function () {
+          window.focus();
+          if (opts.href) window.location.href = opts.href;
+          browserNote.close();
+        };
+      } catch (_browserErr) {
+        /* local Notification is best-effort */
+      }
+    }
+
     window.requestAnimationFrame(function () {
       node.classList.add('is-visible');
     });

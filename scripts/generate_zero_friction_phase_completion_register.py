@@ -316,6 +316,16 @@ def build_register() -> dict:
                         "workflow_center.html",
                     )
                 ),
+                "backend_zone_wave15_burndown": all(
+                    "next_action_strip" in _read(rel)
+                    for rel in (
+                        "templates/accounts/backend_dashboard.html",
+                        "templates/people/backend_student_list.html",
+                        "templates/people/backend_teacher_list.html",
+                        "templates/people/backend_classroom_list.html",
+                        "templates/people/backend_guardian_list.html",
+                    )
+                ),
             },
             "residual": [
                 f"{ledger.get('high_friction_count', '?')} templates still above friction threshold (incremental ledger burndown)",
