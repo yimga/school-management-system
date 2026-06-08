@@ -125,6 +125,7 @@ def send_welcome_email(school_id: str, contact_email: str) -> bool:
         if isinstance(cfg, dict) and cfg.get("welcome_block"):
             dynamic_block = str(cfg["welcome_block"])
     setup_password_url = ""
+    login_url_override = None
     from django.contrib.auth import get_user_model
 
     admin_user = (
@@ -134,28 +135,36 @@ def send_welcome_email(school_id: str, contact_email: str) -> bool:
         .first()
     )
     if admin_user:
-        # Point the CTA at the guided first-run onboarding wizard (same token
-        # machinery, but a welcoming "create your account" → school → launchpad
-        # flow) rather than the bare legacy set-password page. Keeps this email
-        # consistent with the verify-signup redirect; falls back to the legacy
-        # setup link only if the onboarding URL can't be built.
-        try:
-            from apps.schools.provision_email_urls import build_owner_onboarding_url
-
-            setup_password_url = build_owner_onboarding_url(school, admin_user)
-        except (ImportError, AttributeError, TypeError, ValueError):
-            setup_password_url = ""
-        if not setup_password_url:
+        account_ready = admin_user.has_usable_password()
+        if getattr(school, "is_active", False) and account_ready:
             from apps.schools.provision_email_urls import (
-                build_provision_setup_password_url,
+                build_tenant_authentication_url,
             )
 
-            setup_password_url = build_provision_setup_password_url(school, admin_user)
+            login_url_override = build_tenant_authentication_url(
+                school, "/authentication/login/"
+            )
+        elif not account_ready:
+            try:
+                from apps.schools.provision_email_urls import build_owner_onboarding_url
+
+                setup_password_url = build_owner_onboarding_url(school, admin_user)
+            except (ImportError, AttributeError, TypeError, ValueError):
+                setup_password_url = ""
+            if not setup_password_url:
+                from apps.schools.provision_email_urls import (
+                    build_provision_setup_password_url,
+                )
+
+                setup_password_url = build_provision_setup_password_url(
+                    school, admin_user
+                )
     html = render_welcome_email_html(
         school,
         contact_email,
         dynamic_block=dynamic_block,
         setup_password_url=setup_password_url or None,
+        login_url=login_url_override,
     )
     subject = f"Your school is ready — {getattr(school, 'name', 'Your School')}"
     from_email = _regional_from_email(school)

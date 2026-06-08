@@ -1117,22 +1117,21 @@ def redirect_view(request):
 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
 
             if is_base_domain(request):
-                m = (
-                    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-                    SchoolMembership.objects.filter(user=user)
-                    .select_related("school")
-                    .order_by("-is_primary")
-                    .first()
+                from apps.schools.provision_email_urls import (
+                    school_subdomain_redirect_is_safe,
                 )
-                if m and m.school:
-                    from apps.schools.provision_email_urls import (
-                        school_subdomain_redirect_is_safe,
-                    )
+                from apps.schools.tenant_login_redirect import (
+                    redirect_to_school_picker,
+                    resolve_post_login_tenant_membership,
+                )
 
+                m = resolve_post_login_tenant_membership(user, request)
+                if m is None and SchoolMembership.objects.filter(user=user).count() > 1:
+                    return redirect_to_school_picker(request)
+                if m and m.school:
                     if school_subdomain_redirect_is_safe(m.school):
                         target = build_tenant_backend_url(request, m.school)
                         return redirect(target)
-                    # School still provisioning — tenant subdomain often 404s.
                     try:
                         return _redirect_with_params("accounts:owner_onboarding_done")
                     except Exception:
@@ -3494,14 +3493,26 @@ def login_view(request):
                     )
 
                     if is_base_domain(request):
-                        m = (
-                            # tenant-isolation-allow: post-login redirect — picking the user's primary tenant subdomain to redirect to
-                            SchoolMembership.objects.filter(user=user)
-                            .select_related("school")
-                            .order_by("-is_primary")
-                            .first()
+                        from apps.schools.provision_email_urls import (
+                            school_subdomain_redirect_is_safe,
                         )
+                        from apps.schools.tenant_login_redirect import (
+                            redirect_to_school_picker,
+                            resolve_post_login_tenant_membership,
+                        )
+
+                        m = resolve_post_login_tenant_membership(user, request)
+                        if (
+                            m is None
+                            and SchoolMembership.objects.filter(user=user).count() > 1
+                        ):
+                            return redirect_to_school_picker(request)
                         if m and m.school:
+                            if not school_subdomain_redirect_is_safe(m.school):
+                                try:
+                                    return redirect(reverse("accounts:owner_onboarding_done"))
+                                except Exception:
+                                    return redirect("/authentication/onboarding/done/")
                             if next_url:
                                 from django.utils.http import (
                                     url_has_allowed_host_and_scheme,

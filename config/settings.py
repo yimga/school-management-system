@@ -371,6 +371,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "apps.schools.middleware.TenantHostMembershipMiddleware",
     # v4.01.15 — Workflow Progress Bus envelopes for mutating operator/tenant HTTP writes.
     "apps.platform_runtime.workflow_request_middleware.WorkflowProgressRequestMiddleware",
     # v4.00.98 — stop 302 redirect storms on login/public shells for SSE/fetch.
@@ -3573,6 +3574,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django.middleware.common.CommonMiddleware",
         "django.middleware.csrf.CsrfViewMiddleware",
         "django.contrib.auth.middleware.AuthenticationMiddleware",
+        "apps.schools.middleware.TenantHostMembershipMiddleware",
         "apps.platform_runtime.middleware_unauthenticated_api_guard.UnauthenticatedApiGuardMiddleware",
         # v4.00.96 Wave F3 — per-user locale preference (django-tenants path).
         "apps.assist_dock.middleware.AssistDockLocaleMiddleware",

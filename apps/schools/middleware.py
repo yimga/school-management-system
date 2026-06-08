@@ -437,6 +437,52 @@ def _redirect_unknown_school_slug(request, slug: str | None = None):
     return HttpResponseRedirect(f"{scheme}://{base_domain}/school-not-found/{query}")
 
 
+def _response_for_unknown_tenant_host(request, slug: str | None = None):
+    """Pending schools get an in-place setup page on their subdomain."""
+    token = (slug or "").strip()
+    if token:
+        try:
+            from apps.schools.pending_tenant_discovery import (
+                lookup_school_by_slug_or_subdomain,
+                pending_school_public_context,
+                pending_school_state,
+            )
+        except ImportError:
+            lookup_school_by_slug_or_subdomain = None  # type: ignore[assignment]
+        if lookup_school_by_slug_or_subdomain is not None:
+            school = lookup_school_by_slug_or_subdomain(token)
+            if school is not None and pending_school_state(school):
+                from django.shortcuts import render
+
+                ctx = pending_school_public_context(school)
+                ctx["school"] = school
+                return render(
+                    request,
+                    "schools/tenant_setup_in_progress.html",
+                    ctx,
+                    status=202,
+                )
+    return _redirect_unknown_school_slug(request, slug)
+
+
+class TenantHostMembershipMiddleware(MiddlewareMixin):
+    """
+    Enforce tenant-host membership after AuthenticationMiddleware.
+
+    Must run AFTER ``AuthenticationMiddleware`` so ``request.user`` is populated.
+    Works for both RLS (``TenantMiddleware``) and django-tenants stacks.
+    """
+
+    def process_request(self, request):
+        school = getattr(request, "school", None)
+        if not school:
+            return None
+        blocked = _enforce_tenant_host_membership(request, school)
+        if blocked is not None:
+            return blocked
+        return None
+
+
 def _extract_subdomain(host: str, base_domain: str | None) -> str | None:
     """
     Extract subdomain from host. E.g. ghs-limbe.yoursystem.com -> ghs-limbe.
@@ -565,7 +611,7 @@ class ReservedPublicHostAccessMiddleware(MiddlewareMixin):
                         subdomain__iexact=slug, is_active=True
                     ).first()
             if not school:
-                return _redirect_unknown_school_slug(request, slug)
+                return _response_for_unknown_tenant_host(request, slug)
             inner = _strip_tenant_path_prefix(path, slug or "")
             return HttpResponsePermanentRedirect(
                 build_tenant_backend_url(request, school, path=inner)
@@ -778,7 +824,64 @@ class TenantSchoolNotFoundMiddleware(MiddlewareMixin):
         if _is_base_domain(host, base_domain):
             return None
         subdomain = _extract_subdomain(host, base_domain or None)
-        return _redirect_unknown_school_slug(request, subdomain)
+        return _response_for_unknown_tenant_host(request, subdomain)
+
+
+def _enforce_tenant_host_membership(request, school):
+    """
+    On a tenant subdomain, authenticated users must belong to that school.
+
+    Platform operators (control-plane access) may cross for support; everyone
+    else is redirected to the public login host.
+    """
+    user = getattr(request, "user", None)
+    if not school or not user or not getattr(user, "is_authenticated", False):
+        return None
+    if getattr(user, "is_superuser", False):
+        return None
+    try:
+        from apps.schools.control_plane import user_has_control_plane_access
+
+        if user_has_control_plane_access(user):
+            return None
+    except ImportError:
+        pass
+    path = (getattr(request, "path", "") or "").strip()
+    allowed_prefixes = (
+        "/authentication/login/",
+        "/authentication/logout/",
+        "/authentication/password_reset/",
+        "/authentication/reset/",
+        "/authentication/onboarding/",
+        "/verify-signup/",
+        "/static/",
+        "/media/",
+        "/health",
+        "/healthz/",
+        "/favicon.ico",
+    )
+    for prefix in allowed_prefixes:
+        if path == prefix.rstrip("/") or path.startswith(prefix):
+            return None
+    try:
+        from apps.schools.models import SchoolMembership
+
+        if SchoolMembership.objects.filter(user=user, school=school).exists():
+            return None
+    except (DatabaseError, ImportError, AttributeError, TypeError, ValueError):
+        return None
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    from django.urls import reverse
+
+    from apps.schools.provision_email_urls import build_public_site_url
+
+    messages.warning(
+        request,
+        "You do not have access to this school's portal. Sign in with your school account.",
+    )
+    request.session.pop("school_id", None)
+    return redirect(build_public_site_url(reverse("accounts:login")))
 
 
 class TenantMiddleware(MiddlewareMixin):
@@ -814,7 +917,7 @@ class TenantMiddleware(MiddlewareMixin):
                         subdomain__iexact=slug, is_active=True
                     ).first()
             if not school:
-                return _redirect_unknown_school_slug(request, slug)
+                return _response_for_unknown_tenant_host(request, slug)
             from apps.schools.tenant_url import build_tenant_backend_url
 
             inner_path = _strip_tenant_path_prefix(path, slug or "")
@@ -848,7 +951,7 @@ class TenantMiddleware(MiddlewareMixin):
         # Unknown tenant host (subdomain/custom host not in DB): redirect to branded public 404 page.
         if school is None and not _is_base_domain(host, base_domain):
             subdomain = _extract_subdomain(host, base_domain or None)
-            return _redirect_unknown_school_slug(request, subdomain)
+            return _response_for_unknown_tenant_host(request, subdomain)
 
         request.school = school
         # Tenant backend admin dashboard: on tenant subdomain /admin/ -> redirect to tenant Backend URL

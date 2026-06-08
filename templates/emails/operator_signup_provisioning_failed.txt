@@ -1,0 +1,14 @@
+Signup provisioning failed on RunMyCampus
+===========================================
+
+A verified signup could not finish provisioning.
+
+School:      {{ school_name|default:"(unknown)" }}
+Slug:        {{ slug|default:"(unknown)" }}
+Owner email: {{ admin_email|default:"(unknown)" }}
+Error:       {{ error_summary|default:"(see provisioning events)" }}
+
+Open Signup verifications on the manager console and use Retry provisioning,
+or Resend portal-ready email once the tenant is live.
+
+— RunMyCampus platform

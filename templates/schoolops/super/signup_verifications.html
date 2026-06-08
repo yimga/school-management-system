@@ -184,6 +184,13 @@
               {% csrf_token %}
               <button type="submit" name="action" value="reprovision" class="btn btn-sm btn-outline-primary">{% trans "Retry provisioning" %}</button>
             </form>
+            {% elif row.school_active %}
+            <form method="post" action="{% url 'super:signup_verification_action' row.id %}" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" name="action" value="resend_completion" class="btn btn-sm btn-outline-secondary" title="{% trans 'Resend portal login email' %}">
+                {% if row.completion_delivered %}{% trans "Resend portal email" %}{% else %}{% trans "Send portal email" %}{% endif %}
+              </button>
+            </form>
             {% endif %}
           </td>
         </tr>

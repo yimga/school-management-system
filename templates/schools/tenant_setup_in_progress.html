@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Campus setup in progress" %}{% endblock %}
+
+{% block content %}
+<section class="rmc-card mx-auto my-5" style="max-width: 42rem;">
+  <header class="text-center mb-4">
+    <div class="display-6 text-primary mb-2" aria-hidden="true"><i class="bi bi-hourglass-split"></i></div>
+    <h1 class="h3">{% blocktrans with name=pending_school_name %}Setting up {{ name }}{% endblocktrans %}</h1>
+    <p class="text-muted mb-0">
+      {% if pending_state == 'awaiting_verification' %}
+      {% trans "We received your signup — verify your email to continue." %}
+      {% else %}
+      {% trans "Your campus portal is being activated. This usually takes about a minute." %}
+      {% endif %}
+    </p>
+  </header>
+
+  <div class="d-grid gap-2">
+    {% if pending_recovery_links.continue_setup_url %}
+    <a class="btn btn-primary" href="{{ pending_recovery_links.continue_setup_url }}">{% trans "Continue setup" %}</a>
+    {% endif %}
+    {% if pending_recovery_links.onboarding_done_url %}
+    <a class="btn btn-outline-primary" href="{{ pending_recovery_links.onboarding_done_url }}">{% trans "Check setup status" %}</a>
+    {% endif %}
+    <a class="btn btn-outline-secondary" href="{{ pending_recovery_links.login_url }}">{% trans "Sign in on RunMyCampus" %}</a>
+    {% if pending_state == 'awaiting_verification' and pending_recovery_links.resend_verification_url %}
+    <a class="btn btn-link" href="{{ pending_recovery_links.resend_verification_url }}">{% trans "Resend verification email" %}</a>
+    {% endif %}
+  </div>
+
+  <p class="text-muted small text-center mt-4 mb-0">
+    {% trans "You can bookmark this address — your portal will load here automatically when ready." %}
+  </p>
+</section>
+{% endblock %}

@@ -19,6 +19,8 @@ on:
       - "var/security-audit-baseline-ai-copilot-rbac-coverage.json"
       - "scripts/verify_tenant_control_plane_rbac.py"
       - "var/security-audit-baseline-tenant-control-plane-rbac.json"
+      - "scripts/verify_signup_production_readiness.py"
+      - "var/security-audit-baseline-signup-production-readiness.json"
       - "services/ai_copilot_rbac.py"
       - "scripts/scan_sentry_boundary.py"
       - "scripts/scan_print_statements.py"
@@ -182,6 +184,20 @@ jobs:
       - name: Verify tenant/control-plane RBAC (5 passes)
         run: |
           python scripts/verify_tenant_control_plane_rbac.py --strict
+
+  signup-production-readiness:
+    name: Signup production readiness (5-pass)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify signup production readiness (5 passes)
+        run: |
+          python scripts/verify_signup_production_readiness.py --strict
 
   sentry-boundary:
     name: Sentry SDK import boundary

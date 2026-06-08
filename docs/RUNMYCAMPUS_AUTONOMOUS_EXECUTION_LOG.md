@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Signup production E2E closeout (2026-06-08)
+
+**A. Scope:** End-to-end signup→provision→portal email→subdomain routing→tenant login isolation; operator recovery for stuck tenants (st-jude, NewssBell).
+
+**B. Shipped:** `TenantHostMembershipMiddleware`; delivery-aware `signup_completion_notifications`; inactive subdomain setup page; multi-school login redirect; operator resend portal email; `activate_pending_signup_schools` command; provisioning-failed operator matrix row; owner onboarding timeline; CI `verify_signup_production_readiness.py`; SW v4.03.15.
+
+**C. Proof:** **SIGNUP_PRODUCTION_READINESS_PASS**; signup + operator verification tests green.
+
+**D. Post-deploy:** Run `activate_pending_signup_schools --slug=st-jude` on Render after deploy; confirm worker + `SCHOOLOOPS_EMAIL_ASYNC_USE_CELERY=1` (already in render.yaml).
+
 ## Slice - Zero-Friction sweep wave 12 — migration_cloud + siteconfig metadata (2026-06-08)
 
 **A. Scope:** Clear mechanical gaps in `templates/migration_cloud/**` and top-level

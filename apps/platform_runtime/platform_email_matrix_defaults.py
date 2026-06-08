@@ -59,6 +59,17 @@ def _register_default_email_rows() -> int:
             description="Signup created 24h+ ago with no verification click.",
         ),
         EmailMatrixRow(
+            event_type="tenant.signup.provisioning_failed",
+            classification=CLASSIFICATION_OPERATOR,
+            subject_template="[RMC] Signup provisioning failed: {{ school_name|default:'(unknown)' }}",
+            body_template="emails/operator_signup_provisioning_failed.txt",
+            recipient_resolver=resolve_operator_inbox,
+            priority=PRIORITY_OPERATOR_ALERT,
+            cooldown_minutes=30,
+            user_unsubscribable=False,
+            description="Provisioning failed after email verification — operator action required.",
+        ),
+        EmailMatrixRow(
             event_type="tenant.payment.failed",
             classification=CLASSIFICATION_OPERATOR,
             subject_template="[RMC] Payment failed for tenant {{ school_name|default:'(unknown)' }}",

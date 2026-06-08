@@ -52,6 +52,16 @@
       <i class="bi bi-speedometer2 me-1"></i>{% trans "Go to my dashboard" %}
     </a>
     {% else %}
+    {% if provisioning_events %}
+    <div class="text-start mt-3">
+      <h2 class="h6">{% trans "Setup progress" %}</h2>
+      <ul class="list-unstyled small text-muted mb-0">
+        {% for event in provisioning_events %}
+        <li class="mb-1"><span class="text-body">{{ event.message|default:event.event_type }}</span> · {{ event.created_at|date:"M j, H:i" }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
     <p class="text-muted small mt-3 mb-2">{% trans "We're finishing the last setup steps for your campus. This page refreshes automatically — or use Check again to run setup now." %}</p>
     {% if owner_email %}
     <p class="text-muted small mb-2">{% blocktrans with email=owner_email %}When your portal is ready we'll email <strong>{{ email }}</strong>. Sign in later with that email and the password you just created.{% endblocktrans %}</p>

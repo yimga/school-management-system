@@ -68,6 +68,17 @@ def _verify_url(token) -> str:
     return f"{_public_base_url()}/verify-signup/?token={token}"
 
 
+def _completion_email_delivered(school) -> bool:
+    try:
+        from apps.schools.signup_completion_notifications import (
+            signup_completion_was_delivered,
+        )
+
+        return signup_completion_was_delivered(school)
+    except ImportError:
+        return False
+
+
 def _audit_resend(school, action: str, actor_id) -> None:
     """Best-effort durable audit row for a verification-email (re)send action."""
     try:
@@ -199,6 +210,7 @@ class SignupVerificationConsoleView(View):
                     "expires_at": v.expires_at,
                     "verified_at": v.verified_at,
                     "verify_url": _verify_url(v.token),
+                    "completion_delivered": _completion_email_delivered(v.school),
                 }
             )
 
@@ -332,6 +344,14 @@ def _reprovision_verified_school(request, verification, back):
         getattr(school, "is_active", False),
     )
     if getattr(school, "is_active", False):
+        try:
+            from apps.schools.signup_completion_notifications import (
+                finalize_tenant_activation,
+            )
+
+            finalize_tenant_activation(school, verification.email)
+        except ImportError:
+            pass
         messages.success(
             request,
             _("%(name)s is live — welcome mail was sent if SMTP is configured.")
@@ -345,6 +365,48 @@ def _reprovision_verified_school(request, verification, back):
                 "check provisioning events and worker logs."
             )
             % {"name": getattr(school, "name", "") or school.slug},
+        )
+    return back
+
+
+def _resend_portal_ready_email(request, verification, back):
+    """Force a portal-ready completion email for a live verified tenant."""
+    if verification.verified_at is None:
+        messages.error(request, _("Verify the signup before resending the portal email."))
+        return back
+    school = verification.school
+    if school is None:
+        messages.error(request, _("That school record no longer exists."))
+        return back
+    if not getattr(school, "is_active", False):
+        messages.warning(
+            request,
+            _(
+                "The campus is still provisioning — use Retry provisioning first, "
+                "then resend the portal email."
+            ),
+        )
+        return back
+    try:
+        from apps.schools.signup_completion_notifications import (
+            notify_tenant_signup_completed,
+        )
+
+        ok = notify_tenant_signup_completed(
+            school, verification.email, force=True
+        )
+    except ImportError:
+        ok = False
+    if ok:
+        messages.success(
+            request,
+            _("Portal-ready email re-sent to %(email)s.")
+            % {"email": verification.email},
+        )
+    else:
+        messages.error(
+            request,
+            _("Could not send the portal email — check SMTP / worker logs."),
         )
     return back
 
@@ -369,6 +431,9 @@ class SignupVerificationActionView(View):
 
         if action == "reprovision":
             return _reprovision_verified_school(request, verification, back)
+
+        if action == "resend_completion":
+            return _resend_portal_ready_email(request, verification, back)
 
         if verification.verified_at is not None:
             messages.info(

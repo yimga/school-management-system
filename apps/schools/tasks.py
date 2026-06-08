@@ -391,6 +391,19 @@ def provision_school_sync(school_id: str, contact_email: str = "", **kwargs):
             message="Provisioning failed",
             payload={"error": str(exc)},
         )
+        try:
+            from apps.schools.models import School
+            from apps.schools.signup_completion_notifications import (
+                notify_provisioning_failed_operator,
+            )
+
+            school = School.objects.filter(id=school_id).first()
+            if school:
+                notify_provisioning_failed_operator(
+                    school, contact_email, error=str(exc)
+                )
+        except (ImportError, AttributeError, TypeError, ValueError):
+            pass
         raise
 
 
@@ -1163,6 +1176,18 @@ def _do_provision_tracked(
         school.is_active = True
         school.save(update_fields=["is_active", "settings", "updated_at"])
         try:
+            from apps.schools.signup_completion_notifications import (
+                finalize_tenant_activation,
+            )
+
+            finalize_tenant_activation(
+                school,
+                contact_email,
+                admin_user=admin_user,
+            )
+        except ImportError:
+            pass
+        try:
             from apps.finance.payment_provision import bind_tenant_payment_policy_safe
 
             bind_tenant_payment_policy_safe(school)
@@ -1211,76 +1236,35 @@ def _do_provision_tracked(
             pass
     logger.info("School %s provisioning complete", school_id)
 
-    # Phase Welcome: send in-process so the same worker/env that finished
-    # provisioning holds SMTP credentials (avoids a second queued task with no EMAIL_*).
-    # v4.00.2 audit: record WELCOME_EMAIL_{SENT,FAILED} events via the
-    # module-level constants above so callers can filter the timeline
-    # without re-typing the string literals.
+    # Legacy tail: provisioning events for observability (email handled by
+    # finalize_tenant_activation → notify_tenant_signup_completed).
     if (contact_email or "").strip():
-        from django.contrib.auth import get_user_model
-
-        from apps.platform_runtime.event_bus import publish_event
-        from apps.schools.provision_email_urls import (
-            build_owner_onboarding_url,
-            build_public_login_url,
-        )
-
-        admin_user = (
-            get_user_model()
-            .objects.filter(email__iexact=contact_email.strip())
-            .order_by("pk")
-            .first()
-        )
-        activation_url = (
-            build_owner_onboarding_url(school, admin_user) if admin_user else ""
-        )
-        sent = False
-        try:
-            row = publish_event(
-                "tenant.signup.completed",
-                {
-                    "school_id": str(school.pk),
-                    "school_name": getattr(school, "name", ""),
-                    "admin_email": contact_email.strip(),
-                    "portal_url": build_public_login_url(),
-                    "activation_url": activation_url,
-                },
-                school_id=str(school.pk),
-                strict_catalog=True,
-                source="schools.provision_school",
-                idempotency_key=f"tenant-signup-completed:{school.pk}",
-            )
-            sent = row is not None
-        except (
-            ImportError,
-            AttributeError,
-            TypeError,
-            ValueError,
-            OSError,
-            RuntimeError,
-        ) as exc:
-            logger.warning(
-                "tenant.signup.completed publish failed for school %s: %s",
-                school_id,
-                type(exc).__name__,
-            )
         recipient_domain = (
             contact_email.split("@", 1)[-1] if "@" in contact_email else ""
         )
+        state = ((school.settings or {}).get("signup_notifications") or {})
+        try:
+            from apps.schools.signup_completion_notifications import (
+                signup_completion_was_delivered,
+            )
+
+            sent = signup_completion_was_delivered(school)
+        except ImportError:
+            sent = bool(state.get("completed_delivered_at") or state.get("completed_at"))
         _record_school_event(
             school,
             event_type=EVENT_WELCOME_EMAIL_SENT if sent else EVENT_WELCOME_EMAIL_FAILED,
             status="SUCCESS" if sent else "WARNING",
             message=(
-                "Welcome email sent."
+                "Portal-ready email sent."
                 if sent
-                else "Welcome email not sent (matrix publish failed); provisioning still completed."
+                else "Portal-ready email not confirmed; check signup_notifications state."
             ),
             payload={"recipient_domain": recipient_domain},
         )
         if not sent:
             logger.warning(
-                "Welcome email not sent for school %s (tenant.signup.completed publish failed)",
+                "Portal-ready email not confirmed for school %s",
                 school_id,
             )
 
@@ -1303,6 +1287,19 @@ try:
                 message="Provisioning failed",
                 payload={"error": str(exc)},
             )
+            try:
+                from apps.schools.models import School
+                from apps.schools.signup_completion_notifications import (
+                    notify_provisioning_failed_operator,
+                )
+
+                school = School.objects.filter(id=school_id).first()
+                if school:
+                    notify_provisioning_failed_operator(
+                        school, contact_email, error=str(exc)
+                    )
+            except (ImportError, AttributeError, TypeError, ValueError):
+                pass
             raise self.retry(exc=exc)
 
     @shared_task(name="schools.purge_tenant_media_task")

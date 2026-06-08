@@ -133,3 +133,19 @@ class OperatorSignupVerificationTests(TestCase):
         complete.assert_called_once_with(
             str(self.school.id), contact_email=self.verif.email
         )
+
+    def test_resend_completion_on_live_school(self):
+        self.verif.verified_at = timezone.now()
+        self.verif.save(update_fields=["verified_at"])
+        self.school.is_active = True
+        self.school.save(update_fields=["is_active"])
+        with mock.patch(
+            "apps.schools.signup_completion_notifications.notify_tenant_signup_completed",
+            return_value=True,
+        ) as notify:
+            resp = SignupVerificationActionView.as_view()(
+                self._req("post", {"action": "resend_completion"}), pk=self.verif.pk
+            )
+        self.assertEqual(resp.status_code, 302)
+        notify.assert_called_once()
+        self.assertTrue(notify.call_args.kwargs.get("force"))

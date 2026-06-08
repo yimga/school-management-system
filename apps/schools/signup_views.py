@@ -1770,6 +1770,8 @@ def verify_signup(request: HttpRequest):
             bind_lifecycle_school_session(request, school)
         except ImportError:
             pass
+        request.session["signup_school_id"] = str(school.pk)
+        request.session.modified = True
         # v3.17 (2026-05-17): if the new admin asked to migrate from another
         # platform during onboarding, route them to the handoff page before
         # the dashboard so they land in Migration Cloud with their vendor +

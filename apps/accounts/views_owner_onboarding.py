@@ -23,6 +23,7 @@ import re
 import time
 
 from django import forms
+from django.db import DatabaseError
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth import password_validation
@@ -154,6 +155,20 @@ def _kick_provisioning_on_done_page(request, school, user) -> None:
     _run_owner_provisioning(request, school, user, cooldown_seconds=0)
 
 
+def _provisioning_timeline(school, *, limit: int = 8):
+    if not school:
+        return []
+    try:
+        from apps.schools.models import SchoolProvisioningEvent
+
+        return list(
+            SchoolProvisioningEvent.objects.filter(school=school)
+            .order_by("-created_at")[:limit]
+        )
+    except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+        return []
+
+
 def _finish_provisioning_before_done(request, school, user) -> None:
     """After the school step, try to finish provisioning before showing the launchpad."""
     if not school or getattr(school, "is_active", False):
@@ -193,8 +208,11 @@ class OwnerOnboardingAccountView(PasswordResetConfirmView):
     def form_valid(self, form):
         response = super().form_valid(form)
         user = getattr(self, "user", None)
+        school = _owner_school(user) if user is not None else None
         if user is not None:
-            _set_onboarding(_owner_school(user), step="school", completed=False)
+            _set_onboarding(school, step="school", completed=False)
+        if school is not None:
+            _run_owner_provisioning(self.request, school, user, cooldown_seconds=0)
         return response
 
     def get_context_data(self, **kwargs):
@@ -270,6 +288,18 @@ def owner_onboarding_done(request):
                 request,
                 _l("Your campus portal is ready — open your dashboard below."),
             )
+            try:
+                from apps.schools.signup_completion_notifications import (
+                    notify_tenant_signup_completed,
+                )
+
+                notify_tenant_signup_completed(
+                    school,
+                    getattr(request.user, "email", "") or "",
+                    admin_user=request.user,
+                )
+            except ImportError:
+                pass
         else:
             messages.warning(
                 request,
@@ -284,7 +314,20 @@ def owner_onboarding_done(request):
     if not getattr(school, "is_active", False):
         _kick_provisioning_on_done_page(request, school, request.user)
 
-    school.refresh_from_db(fields=["is_active", "name", "settings"])
+    school.refresh_from_db(fields=["is_active", "name", "settings", "updated_at"])
+    if getattr(school, "is_active", False):
+        try:
+            from apps.schools.signup_completion_notifications import (
+                notify_tenant_signup_completed,
+            )
+
+            notify_tenant_signup_completed(
+                school,
+                getattr(request.user, "email", "") or "",
+                admin_user=request.user,
+            )
+        except ImportError:
+            pass
     return render(
         request,
         "accounts/owner_onboarding/done.html",
@@ -295,5 +338,6 @@ def owner_onboarding_done(request):
             "school_is_live": bool(getattr(school, "is_active", False)),
             "dashboard_href": _post_onboarding_dashboard_href(request, school),
             "owner_email": (getattr(request.user, "email", "") or "").strip(),
+            "provisioning_events": _provisioning_timeline(school),
         },
     )

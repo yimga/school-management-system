@@ -130,9 +130,16 @@ def pending_school_public_context(school) -> dict[str, Any]:
 
 
 def _portal_url_for_school(request, school) -> str:
+    from apps.schools.provision_email_urls import (
+        build_public_login_url,
+        build_tenant_authentication_url,
+        school_subdomain_redirect_is_safe,
+    )
     from apps.schools.section8_views import _build_school_portal_url
 
     state = pending_school_state(school)
+    if not state and school_subdomain_redirect_is_safe(school):
+        return build_tenant_authentication_url(school, "/authentication/login/")
     if state:
         owner = _primary_owner_user(school)
         if owner is not None:

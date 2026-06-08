@@ -1,8 +1,11 @@
 Welcome to RunMyCampus, {{ school_name|default:"your school" }}!
 
-Your school is now provisioned and ready to go.
+Your school is provisioned and your campus portal is ready.
 
-{% if activation_url %}To finish setting up your account, choose a password (then you'll land straight in your dashboard):
+{% if account_ready and tenant_portal_url %}Sign in at your private campus URL:
+{{ tenant_portal_url }}
+
+You can also sign in at {{ portal_url|default:"https://runmycampus.com/authentication/login/" }} using the email and password you created during setup.{% elif activation_url %}To finish setting up your account, choose a password (then you'll land straight in your dashboard):
 {{ activation_url }}
 
 For your security this link can be used once. If it expires, use "Forgot password?" at https://runmycampus.com/authentication/login/ to set one.{% else %}Sign in at: {{ portal_url|default:"https://runmycampus.com/authentication/login/" }}{% endif %}

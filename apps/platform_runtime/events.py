@@ -437,8 +437,10 @@ EVENT_CATALOG = {
             "school_name",
             "admin_email",
             "portal_url",
-            # One-time set-password link for the welcome email. Key avoids the
-            # "password"/"token" scrubber denylist (workflow_tracker) on purpose.
+            "tenant_portal_url",
+            "account_ready",
+            "subdomain",
+            # One-time set-password link when the owner has not chosen a password yet.
             "activation_url",
         ],
     },
