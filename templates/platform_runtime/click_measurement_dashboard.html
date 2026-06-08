@@ -5,6 +5,10 @@
 {% block title %}{% trans "Click measurement" %}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="container-lg py-4" data-page-archetype="analytics" data-rmc-scroll-policy="paginate">
   <header class="mb-4">
     <h1 class="h3 mb-2">{% trans "Workflow click measurement" %}</h1>

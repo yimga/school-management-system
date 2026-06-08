@@ -8,13 +8,17 @@
 {% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% comment %}Wave L7 (v3.61.8 — 2026-05-22): post-signup success state upgraded to a
    confidence-building "what happens next" view. Shows the workspace URL
    the new admin will land on, a 3-step activation timeline, and (when
    migration intent was captured at signup) a migration-aware CTA so
    they know their MigrationBundle is already drafted.{% endcomment %}
 <section class="auth-shell rmc-signup-done" aria-labelledby="signup-done-title">
-  <div class="auth-card rmc-signup-done__card">
+  <div data-rmc-scroll-policy="paginate" class="auth-card rmc-signup-done__card">
     <div class="rmc-signup-done__icon" aria-hidden="true">
       <i class="bi bi-envelope-check"></i>
     </div>

@@ -21,10 +21,12 @@
 {% endblock %}
 
 {% block cp_content %}
+{% include "components/next_action_strip.html" %}
+
   <link rel="stylesheet" href="{% static 'css/studio-guidance.css' %}">
   <link rel="stylesheet" href="{% static 'css/tenant-studio-wizard.css' %}">
 
-  <div class="container-fluid py-4 tenant-studio-wizard" data-rmc-scroll-policy="paginate" data-page-archetype="setup-studio" data-ux-qa-marker="tenant-studio">
+  <div class="container-fluid py-4 tenant-studio-wizard" data-rmc-scroll-policy="paginate" data-page-archetype="setup-studio" data-ux-qa-marker="tenant-studio" data-page-critical-read="1">
     <section class="cp-hero cp-hero-compact mb-4">
       <div class="cp-hero-grid">
         <div>

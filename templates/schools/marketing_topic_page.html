@@ -8,6 +8,10 @@
   {% if breadcrumb_schema_json %}<script type="application/ld+json">{{ breadcrumb_schema_json|safe }}</script>{% endif %}
 {% endblock %}
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="container py-4 py-lg-5 page-stack">
   <p class="text-uppercase small text-muted mb-2">RunMyCampus Solutions</p>
   <h1 class="display-6 fw-bold mb-3">{{ topic.headline }}</h1>
@@ -49,7 +53,7 @@
     <h2 class="section-heading">{% trans "Product in context" %}</h2>
     <p class="section-lead">{% trans "This solution is delivered through RunMyCampus modules: admissions, academics, finance, communication, and compliance—all in one platform." %}</p>
     {% if topic.product_image_url %}
-      <div class="mb-3">
+      <div data-rmc-scroll-policy="paginate" class="mb-3">
         <img src="{{ topic.product_image_url }}" alt="" width="800" height="450" loading="lazy" decoding="async" class="img-fluid rounded">
       </div>
     {% endif %}

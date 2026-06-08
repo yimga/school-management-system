@@ -141,6 +141,13 @@ services:
       # Durable Celery mail tasks — requires always-on worker (starter below).
       - key: SCHOOLOPS_EMAIL_ASYNC_USE_CELERY
         value: "1"
+      # Web Push (optional) — portal-ready browser notifications after owner subscribes.
+      - key: WEB_PUSH_VAPID_PUBLIC_KEY
+        sync: false
+      - key: WEB_PUSH_VAPID_PRIVATE_KEY
+        sync: false
+      - key: WEB_PUSH_VAPID_CLAIMS_EMAIL
+        value: "mailto:ops@runmycampus.com"
       # Tenant lifecycle / offboarding (Lane 2) — explicit defaults; see docs/TENANT_OFFBOARDING.md
       - key: TENANT_SELF_SERVICE_OFFBOARDING_ENABLED
         value: "1"

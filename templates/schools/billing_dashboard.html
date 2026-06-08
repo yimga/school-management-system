@@ -5,9 +5,11 @@
 {% block cp_title %}{% trans "Platform billing" %}{% endblock %}
 {% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
+{% include "components/next_action_strip.html" %}
+
 {# table-pagination-allow: billing-dashboard-5-widget-top-N each-tile-is-bounded-summary #}
 {% url 'super:dashboard' as dashboard_url %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-decision-engine="surface" data-apple-class-billing-ux="platform" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-decision-engine="surface" data-apple-class-billing-ux="platform" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% phase8_dashboard_declaration "schools/billing_dashboard.html" %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="platform_billing" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=usage_url primary_label=_("Usage API") secondary_url=dashboard_url secondary_label=_("Back to dashboard") %}
   {% include "components/world_class_summary_strip.html" with readiness=subscription_count readiness_label=_("Subscriptions") risk=processor_event_count risk_label=_("Processor sync events") next_step=_("Usage") next_step_label=_("Inspect meters") blockers=_("PSP") blockers_label=_("External readiness") %}
@@ -124,7 +126,7 @@
         <div class="card-header">{% trans "Active subscriptions" %}</div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-family table-sm align-middle mb-0 rmc-data-table">
+            <table class="table table-family table-sm align-middle mb-0 rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "Active subscriptions" %}</caption>
               <thead>
                 <tr>
@@ -159,7 +161,7 @@
         <div class="card-header">{% trans "Free trial watchlist" %}</div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-family table-sm align-middle mb-0 rmc-data-table">
+            <table class="table table-family table-sm align-middle mb-0 rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "Free trial watchlist" %}</caption>
               <thead>
                 <tr>
@@ -194,7 +196,7 @@
     <div class="card-header">{% trans "Processor sync ledger" %}</div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-family table-sm align-middle mb-0 rmc-data-table">
+        <table class="table table-family table-sm align-middle mb-0 rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Processor sync ledger" %}</caption>
           <thead>
             <tr>
@@ -234,7 +236,7 @@
     <div class="card-header">{% trans "Scheduled revenue-share payouts" %}</div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-family table-sm align-middle mb-0 rmc-data-table">
+        <table class="table table-family table-sm align-middle mb-0 rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Scheduled revenue-share payouts" %}</caption>
           <thead>
             <tr>
@@ -274,7 +276,7 @@
     <div class="card-header">{% trans "Recent platform ledger" %}</div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-family table-sm align-middle mb-0 rmc-data-table">
+        <table class="table table-family table-sm align-middle mb-0 rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Recent platform ledger" %}</caption>
           <thead>
             <tr>
@@ -308,4 +310,5 @@
   </div>
   </details>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

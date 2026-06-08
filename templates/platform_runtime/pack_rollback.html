@@ -1,6 +1,10 @@
 {% extends "control_plane_base.html" %}
 {% block cp_title %}Rollback Pack{% endblock %}
 {% block cp_content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="cp-page" data-page-marker="rmc-pack-rollback">
   <header class="cp-page-header"><p class="cp-eyebrow">Rollback</p><h1>{{ installation.pack_key }}</h1><p>Rollback avoids destructive school-data deletion.</p></header>
   {% if result %}<article class="cp-card rmc-reveal"><h2>Result</h2><p>OK: {{ result.ok }}</p><p>{{ result.errors|join:", " }}</p></article>{% endif %}

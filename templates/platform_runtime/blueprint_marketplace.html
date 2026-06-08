@@ -6,6 +6,10 @@
 
 {% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="operational-workbench" data-rmc-blueprint-marketplace="{{ page_marker }}" data-apple-class-governed-installation="1" data-rmc-operational-workbench="1">
   {% url 'configuration:center' as wcx_config_url %}
   {% url 'configuration:blueprint_installations' as wcx_installations_url %}

@@ -4,8 +4,12 @@
 {% block title %}{% trans "Feature Gap Register" %}{% endblock %}
 
 {% block cp_content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main id="main" class="container-fluid py-2" data-rmc-page="feature-gap-register" data-page-archetype="operator-report">
-  <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+  <div data-rmc-scroll-policy="paginate" class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
     <div>
       <h1 class="h3 mb-1">{% trans "Feature Gap Register" %}</h1>
       <p class="text-tertiary mb-0">

@@ -3,6 +3,10 @@
 {% block cp_title %}{% trans "Change Requests" %}{% endblock %}
 {% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="cp-page" data-page-marker="rmc-configuration-change-requests" data-apple-class-governed-installation="1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-rmc-operational-workbench="1">
   {% url 'configuration:center' as wcx_config_url %}
   {% url 'configuration:registry_health' as wcx_registry_health_url %}

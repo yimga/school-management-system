@@ -1,5 +1,25 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Zero-Friction wave 19 schools/platform_runtime/student360 (2026-06-08)
+
+**A. Scope:** Manager super consoles, platform runtime hubs, student360 pages (follow-up to wave 18).
+
+**B. Shipped:** `codemod_zero_friction_wave19_schools_platform_student360.py` (162 templates); ledger **1366→1262** high-friction count.
+
+**C. Proof:** **ZERO_FRICTION_JOURNEYS_PASS**; SW **`sms-v4.03.23-schools-platform-student360-wave19-2026-06-08`**.
+
+**D. Honest:** Phase 6 still PARTIAL (~1,262); people/compliance/social_media zones next.
+
+## Slice - Signup production final audit batch 1672 (2026-06-08)
+
+**A. Scope:** Last aggressive signup→verify→provision→portal gap closeout (all current + future tenants).
+
+**B. Shipped:** Verifier **pass7** (corner toast + web-push nudge wiring); `RequireMFAMiddleware` bypass path normalization (`/authentication/redirect` no longer blocked by trailing-slash mismatch); operator `force=True` resend clears email + in-app/SMS/web-push idempotency stamps; onboarding journey tests aligned with MFA bypass + provisioning mock; `WEB_PUSH_VAPID_*` on Render web service.
+
+**C. Proof:** **SIGNUP_PRODUCTION_READINESS_PASS** (7 passes); **32/32** signup battery OK.
+
+**D. Honest:** Live Playwright (`npm run test:e2e:signup-production`) still needs `SIGNUP_E2E_BASE_URL` on Render; post-deploy backfill: `python manage.py activate_pending_signup_schools --all-verified-inactive`.
+
 ## Slice - Zero-Friction wave 18 migration/schoolops/accounts (2026-06-08)
 
 **A. Scope:** Migration Cloud operator consoles, schoolops ops hubs, accounts identity/migration pages (follow-up to wave 17).

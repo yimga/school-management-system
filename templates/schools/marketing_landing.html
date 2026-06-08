@@ -25,9 +25,13 @@
   {% if organization_schema_json %}<script type="application/ld+json">{{ organization_schema_json|safe }}</script>{% endif %}
 {% endblock %}
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {# table-pagination-allow: marketing-landing-static-comparison-table editorial-not-data-listing #}
 <noscript></noscript>
-<div class="marketing-home mkt-narrative-phase10 mkt-global-os" id="mkt-narrative-root" data-scroll-story="true" data-phase10-marketing-narrative="true" data-marketing-hero-variant="{{ hero_variant|default:'A' }}" data-marketing-cta-variant="{{ marketing_cta_variant|default:'default' }}" data-marketing-experiment="hero={{ hero_variant|default:'A' }};cta={{ marketing_cta_variant|default:'default' }}">
+<div data-rmc-scroll-policy="paginate" class="marketing-home mkt-narrative-phase10 mkt-global-os" id="mkt-narrative-root" data-scroll-story="true" data-phase10-marketing-narrative="true" data-marketing-hero-variant="{{ hero_variant|default:'A' }}" data-marketing-cta-variant="{{ marketing_cta_variant|default:'default' }}" data-marketing-experiment="hero={{ hero_variant|default:'A' }};cta={{ marketing_cta_variant|default:'default' }}">
   {% comment %} Skip link lives once on marketing/base_marketing.html (#main-content); duplicate skip targets confuse axe/link-name rules. {% endcomment %}
   <div id="mkt-scroll-progress" class="mkt-scroll-progress" role="presentation" aria-hidden="true">
     <div id="mkt-scroll-progress-fill" class="mkt-scroll-progress-fill"></div>
@@ -754,7 +758,7 @@
       {% endfor %}
     </div>
     <div class="table-responsive mt-4 mkt-home-price-matrix">
-      <table class="table table-family table-striped table-sm align-middle text-center rmc-data-table">
+      <table class="table table-family table-striped table-sm align-middle text-center rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{{ plan.plan }}</caption>
         <thead><tr><th scope="col">{% trans "Capability" %}</th><th scope="col">{% trans "Starter" %}</th><th scope="col">{% trans "Growth" %}</th><th scope="col">{% trans "Enterprise" %}</th></tr></thead>
         <tbody>
@@ -938,4 +942,5 @@
 <script src="{% static 'marketing/js/marketing-landing-scroll.js' %}" defer></script>
 <script src="{% static 'js/_pages/rmc-marketing-sticky-cta.js' %}" defer></script>
 <script src="{% static 'js/_pages/schools__marketing_landing.js' %}"></script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

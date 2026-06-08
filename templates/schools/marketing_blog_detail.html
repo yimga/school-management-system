@@ -7,8 +7,12 @@
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
 {% endblock %}
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="py-2 py-lg-3">
-  <div class="page-stack">
+  <div data-rmc-scroll-policy="paginate" class="page-stack">
     {% if marketing_show_marketing_nav_chips %}
     <div class="page-nav-scroll">
       {% for item in marketing_nav %}

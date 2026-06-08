@@ -10,7 +10,9 @@
 </nav>
 {% endblock %}
 {% block cp_content %}
-<div class="container-fluid py-3" data-page-archetype="catalog" data-rmc-scroll-policy="paginate">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-3" data-page-archetype="catalog" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <h1 class="h4 mb-2">{% trans "Ministry / accreditation report stubs" %}</h1>
   <p class="small">{% trans "By institution type — RFP and ministry narrative." %}</p>
   {% include "schools/partials/wedge_super_premium_proof.html" %}

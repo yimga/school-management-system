@@ -4,9 +4,13 @@
 {% block title %}{% trans "Feedback loop · live usage" %}{% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main id="main" class="container-fluid py-2" data-rmc-page="feedback-loop" data-page-archetype="operator-report">
   <header class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
-    <div>
+    <div data-rmc-scroll-policy="paginate">
       <h1 class="h3 mb-1">{% trans "Feedback loop · live usage" %}</h1>
       <p class="text-tertiary mb-0">
         {% trans "Live consumption view of friction events, feedback submissions, and AI assistant interactions across the platform." %}

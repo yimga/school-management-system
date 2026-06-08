@@ -2,7 +2,11 @@
 {% load i18n %}
 {% block title %}{% trans "Resend verification" %}{% endblock %}
 {% block content %}
-<div class="container py-5">
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div data-rmc-scroll-policy="paginate" class="container py-5">
   <div class="row justify-content-center">
     <div class="col-md-6">
       <h1 class="h3 mb-3">{% trans "Resend verification link" %}</h1>

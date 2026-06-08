@@ -17,13 +17,17 @@
 {% endblock %}
 {% block extrajs %}{{ block.super }}{% if product_tour %}<script src="{% static 'marketing/js/mkt-product-tour.js' %}" defer></script>{% endif %}{% endblock %}
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
   {% comment %}Marketing's canonical h1 is the visible hero on each page (editorial
   surface), so no hidden duplicate is injected here — that produced a double-h1 on the
   32 pages that carry their own visible hero h1. Overridable for any rare page with no
   visible heading.{% endcomment %}
   {% block document_sr_h1 %}{% endblock %}
 <section class="py-2 py-lg-3">
-  <div class="page-stack mkt-personality-shell mkt-personality-shell--{{ marketing_personality_id|default:'platform-hub' }}{% block marketing_page_stack_class %}{% endblock %}">
+  <div data-rmc-scroll-policy="paginate" class="page-stack mkt-personality-shell mkt-personality-shell--{{ marketing_personality_id|default:'platform-hub' }}{% block marketing_page_stack_class %}{% endblock %}">
     {% comment %} v2.37 — hero figure adoption; renders for the 7 known surfaces only. {% endcomment %}
     {% if page.slug == "platform" or page.slug == "solutions" or page.slug == "pricing" or page.slug == "why-switch" or page.slug == "why" or page.slug == "migrate" or page.slug == "trust" %}
       {% include "components/marketing_hero_image.html" with hero_slug=page.slug priority=True %}

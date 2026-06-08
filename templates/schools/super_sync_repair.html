@@ -7,7 +7,9 @@
 {% block cp_title %}Sync Repair — {{ school.name }}{% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% include "studio_os/components/page_header.html" with title="Emergency Sync Repair" subtitle=school.name action_url=dashboard_url action_text="Back to Super Dashboard" %}
   <p class="text-muted small">School: <strong>{{ school.name }}</strong> ({{ school.id }})</p>
 
@@ -56,7 +58,7 @@
     </table>
   </div>
   {% else %}
-  <div class="alert alert-info">No sync conflicts for this school.</div>
+  {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("No sync conflicts for this school.") message=_("Nothing here yet — check back after your school adds data.") %}
   {% endif %}
 </div>
 {% include "partials/portal_row_detail_drawer_bundle.html" %}

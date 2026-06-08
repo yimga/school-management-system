@@ -13,7 +13,9 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="reference">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-page-archetype="reference" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <header class="mb-4">
     <p class="text-uppercase small mb-1">{% trans "Control plane" %}</p>
     <h1 class="h2 mb-2">{% trans "Operator policy & governance" %}</h1>

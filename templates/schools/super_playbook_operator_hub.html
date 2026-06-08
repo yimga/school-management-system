@@ -15,8 +15,10 @@
 {% endblock %}
 
 {% block cp_content %}
+{% include "components/next_action_strip.html" %}
+
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#playbook-operator-hub-main">{% trans "Skip to playbook operator hub content" %}</a>
-<div id="playbook-operator-hub-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
+<div id="playbook-operator-hub-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %} data-page-critical-read="1">
 {% phase8_dashboard_declaration "schools/super_playbook_operator_hub.html" %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="playbook_operator_hub" center_eyebrow=_("Platform operators") center_title="Playbook operator hub" center_purpose="Migration playbooks, execution audit, and curated operator deep links." primary_url=dashboard_url primary_label="Back to dashboard" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
 

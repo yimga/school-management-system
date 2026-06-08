@@ -8,6 +8,10 @@
 <link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
 {% endblock %}
 {% block backend_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="page-shell container-fluid py-3" data-page-marker="rmc-tenant-pack-setup" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-apple-class-tenant-school-admin="1">
   {% include "components/rmc_operational_center_frame.html" with os_center_key="tenant_pack_setup" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="/school/setup/packs/?simulate=1" primary_label="Simulate selected pack" secondary_url="/school/settings/" secondary_label="School configuration" %}
   {% include "components/world_class_guided_stepper.html" %}
@@ -15,7 +19,7 @@
   {% if result %}<section class="panel"><h1>Result</h1><p>OK: {{ result.ok }}</p><p>{{ result.errors|join:", " }}</p><p>{{ result.status }}</p></section>{% endif %}
   <section class="panel rmc-reveal">
     <h2>Recommended packs</h2>
-    <div class="grid">
+    <div data-rmc-scroll-policy="paginate" class="grid">
       {% for pack in packs %}
         <article class="card rmc-wcx-surface rmc-reveal" data-world-class-tenant-card="1">
           <h3>{{ pack.name }}</h3>

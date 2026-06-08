@@ -1,13 +1,17 @@
 {% extends "control_plane_base.html" %}
 {% block cp_title %}Pack Preview{% endblock %}
 {% block cp_content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="cp-page" data-page-marker="rmc-pack-preview">
   <header class="cp-page-header">
     <p class="cp-eyebrow">Preview</p>
     <h1>{{ preview.pack_name }}</h1>
     <p>Can apply: {{ preview.can_apply }}. Tenant: {{ preview.tenant_name }}</p>
   </header>
-  <div class="cp-grid cp-grid-2">
+  <div data-rmc-scroll-policy="paginate" class="cp-grid cp-grid-2">
     <article class="cp-card rmc-reveal"><h2>Changes</h2><ul>{% for row in preview.included_changes %}<li>{{ row.section }}: {{ row.target }}</li>{% endfor %}</ul></article>
     <article class="cp-card rmc-reveal"><h2>Blockers</h2><ul>{% for row in preview.conflicts %}<li>{{ row.code }} - {{ row.message }}</li>{% empty %}<li>No conflicts</li>{% endfor %}</ul></article>
     <article class="cp-card rmc-reveal"><h2>External Required</h2><ul>{% for row in preview.external_required %}<li>{{ row }}</li>{% empty %}<li>None</li>{% endfor %}</ul></article>

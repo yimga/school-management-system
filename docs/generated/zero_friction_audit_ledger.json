@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-08T23:43:12.350375+00:00",
+  "generated_at": "2026-06-08T23:44:28.891026+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASE-0",
   "role_passes": [
     "principal_architect",
@@ -18,19 +18,17 @@
   ],
   "template_rows_scored": 1638,
   "gap_summary": {
-    "missing_row_detail_drawer": 44,
-    "missing_pagination_or_scroll_policy": 38,
+    "missing_row_detail_drawer": 37,
+    "missing_pagination_or_scroll_policy": 35,
     "missing_smart_action_surface": 18,
-    "table_columns_6_exceeds_5": 12,
+    "table_columns_6_exceeds_5": 11,
     "table_columns_9_exceeds_5": 3,
-    "table_columns_7_exceeds_5": 3,
+    "table_columns_7_exceeds_5": 2,
     "table_columns_8_exceeds_5": 1,
-    "table_columns_11_exceeds_5": 1,
-    "table_columns_10_exceeds_5": 1,
-    "table_columns_12_exceeds_5": 1
+    "table_columns_11_exceeds_5": 1
   },
   "high_friction_threshold": 20,
-  "high_friction_count": 1366,
+  "high_friction_count": 1262,
   "top_100_routes": [
     {
       "path": "templates/academics/syllabus_approval_queue.html",

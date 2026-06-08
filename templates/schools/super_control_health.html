@@ -18,7 +18,9 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% phase8_dashboard_declaration "schools/super_control_health.html" %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="control_health" center_eyebrow=_("Platform operators") center_title=_("Control Plane Health") center_purpose=_("Single entry for runbooks, SLOs, incidents, and school health. Use these links for operational visibility and response.") primary_url=dashboard_url primary_label=_("Back to Dashboard") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   <div class="card shadow-sm border-secondary" style="background: var(--cp-panel-bg, rgba(8,16,30,0.6)); border-color: var(--cp-panel-border) !important;">

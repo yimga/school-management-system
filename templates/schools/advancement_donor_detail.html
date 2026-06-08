@@ -2,7 +2,9 @@
 {% load i18n %}
 {% block backend_title %}{{ donor.display_name }}{% endblock %}
 {% block backend_page %}
-<div class="container-fluid py-2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% include "studio_os/components/page_header.html" with title=donor.display_name subtitle="Donor detail & gifts" action_url=edit_url action_text="Edit donor" %}
   <p class="text-muted small">{{ donor.email|default:"No email" }} · Ref: {{ donor.external_ref|default:"—" }}</p>
   {% if donor.notes %}<p class="card card-body bg-light">{{ donor.notes }}</p>{% endif %}
@@ -34,7 +36,7 @@
 
   <h6>Gifts</h6>
   <div class="table-responsive">
-    <table class="table table-sm table-family align-middle rmc-data-table">
+    <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Gifts" %}</caption>
       <thead><tr><th>Date</th><th>Amount</th><th>Campaign</th><th>Notes</th><th></th></tr></thead>
       <tbody>
@@ -63,4 +65,5 @@
   </div>
   <p class="mt-3"><a href="{{ list_url }}">← All donors</a></p>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

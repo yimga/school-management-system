@@ -15,7 +15,9 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-security-surface="1" data-rmc-scroll-policy="paginate">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-security-surface="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% trans "Security surface audit" as page_title %}
   {% trans "Summary from docs/generated/security_surface_audit.json — run scripts/audit_security_surface.py to refresh." as page_subtitle %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="security_surface_dashboard" center_eyebrow=_("Platform operators") center_title=page_title center_purpose=page_subtitle primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}

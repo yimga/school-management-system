@@ -4,13 +4,17 @@
 {% block title %}{% trans "Email delivery" %} — {% trans "Infrastructure" %}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main id="main-content" class="rmc-page-stack">
   <header class="rmc-page-header">
     <h1 class="h2">{% trans "Email & notifications" %}</h1>
     <p class="rmc-muted">{% trans "Configure your school's SMTP server. Credentials stay on the server — never on devices." %}</p>
   </header>
   {% if not allow_tenant_override %}
-  <div class="alert alert-warning" role="status">{% trans "Platform operator has disabled tenant SMTP overrides." %}</div>
+  <div data-rmc-scroll-policy="paginate" class="alert alert-warning" role="status">{% trans "Platform operator has disabled tenant SMTP overrides." %}</div>
   {% else %}
   <form id="rmc-infra-email-form" class="rmc-form-stack" method="post" action="">
     {% csrf_token %}

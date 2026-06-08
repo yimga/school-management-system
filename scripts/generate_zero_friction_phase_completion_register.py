@@ -366,6 +366,18 @@ def build_register() -> dict:
                         "templates/accounts/my_delegations.html",
                     )
                 ),
+                "schools_platform_student360_wave19_burndown": all(
+                    "next_action_strip" in _read(rel)
+                    for rel in (
+                        "templates/schools/super_schools_list.html",
+                        "templates/schools/super_blueprints_catalog.html",
+                        "templates/schools/super_migration_cloud.html",
+                        "templates/platform_runtime/pack_installations.html",
+                        "templates/platform_runtime/registry_health.html",
+                        "templates/platform_runtime/configuration_center.html",
+                        "templates/student360/student_360_page.html",
+                    )
+                ),
             },
             "residual": [
                 f"{ledger.get('high_friction_count', '?')} templates still above friction threshold (incremental ledger burndown)",

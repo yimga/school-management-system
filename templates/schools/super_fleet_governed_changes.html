@@ -14,7 +14,9 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% include "components/rmc_operational_center_frame.html" with os_center_key="fleet_governed_changes" center_eyebrow=_("Platform operators") center_title=_("Fleet governed changes") center_purpose=_("Draft → approval → apply spine. Execution stays on existing rollout/staging UIs; use the apply path on each row, then update status in platform admin.") primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
 
   {% if not changes %}

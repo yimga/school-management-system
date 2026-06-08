@@ -40,7 +40,11 @@
 {% block marketing_main_extra_classes %}container-fluid px-0 py-0{% endblock %}
 
 {% block content %}
-<div data-mkt-edition="editorial" data-mkt-schoolhouse="true" data-mkt-personality="home" class="mkt-edt-root mkt-v3-root mkt-personality-shell mkt-personality-shell--home" id="mkt-edt-root" data-marketing-tour-context="marketing_home">
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div data-rmc-scroll-policy="paginate" data-mkt-edition="editorial" data-mkt-schoolhouse="true" data-mkt-personality="home" class="mkt-edt-root mkt-v3-root mkt-personality-shell mkt-personality-shell--home" id="mkt-edt-root" data-marketing-tour-context="marketing_home">
 
   {% comment %} ───────── 1. HERO ───────── {% endcomment %}
   <section class="mkt-edt-section mkt-edt-hero mkt-edt-hero--edge" aria-labelledby="hero-headline" data-tour="mkt-hero">

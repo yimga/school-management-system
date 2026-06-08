@@ -1,13 +1,17 @@
 {% extends "control_plane_base.html" %}
 {% block cp_title %}Pack Impact{% endblock %}
 {% block cp_content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="cp-page" data-page-marker="rmc-pack-impact">
   <header class="cp-page-header">
     <p class="cp-eyebrow">Impact analysis</p>
     <h1>{{ impact.pack_key }}</h1>
     <p>{{ impact.impact_categories|join:", " }}</p>
   </header>
-  <div class="cp-grid cp-grid-2">
+  <div data-rmc-scroll-policy="paginate" class="cp-grid cp-grid-2">
     <article class="cp-card rmc-reveal"><h2>Roles</h2><p>{{ impact.affected_roles|join:", " }}</p></article>
     <article class="cp-card rmc-reveal"><h2>Workflows</h2><p>{{ impact.affected_workflows|join:", " }}</p></article>
     <article class="cp-card rmc-reveal"><h2>Dashboards</h2><p>{{ impact.affected_dashboards|join:", " }}</p></article>

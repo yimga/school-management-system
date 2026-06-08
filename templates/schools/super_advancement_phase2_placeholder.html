@@ -15,7 +15,9 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3" data-page-archetype="setup-flow" data-rmc-scroll-policy="paginate">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-3" data-page-archetype="setup-flow" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <h1 class="h4 mb-1 fw-bold">{% trans "Phase 2: Donors & gifts (CRM v1)" %}</h1>
     <p class="small mb-0">{% trans "Per-school donors and gift lines; campaigns/receipts workflow next." %}</p>

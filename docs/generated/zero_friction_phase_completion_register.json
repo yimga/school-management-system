@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-08T23:43:31.127914+00:00",
+  "generated_at": "2026-06-08T23:44:46.206205+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASES-0-8",
   "summary": {
     "phases_total": 9,
@@ -9,7 +9,7 @@
     "not_done": 0,
     "repo_scope_complete": true
   },
-  "service_worker_version": "sms-v4.03.22-migration-schoolops-accounts-wave18-2026-06-08",
+  "service_worker_version": "sms-v4.03.23-schools-platform-student360-wave19-2026-06-08",
   "phases": [
     {
       "phase": 0,
@@ -33,7 +33,7 @@
         "smart_action_hub_portal": true,
         "layout_sentinel_wired": true,
         "zero_click_css": true,
-        "five_col_templates_adopted": 188,
+        "five_col_templates_adopted": 196,
         "info_tag_page_explain_strip": true,
         "info_tag_auto_js": true,
         "info_tag_verifier": true,
@@ -98,8 +98,8 @@
       "status": "PARTIAL",
       "proof_verifier": "verify_zero_friction_journeys.py",
       "evidence": {
-        "high_friction_template_count": 1366,
-        "burndown_templates_with_5col": 188,
+        "high_friction_template_count": 1262,
+        "burndown_templates_with_5col": 196,
         "top_route_head": "templates/academics/syllabus_approval_queue.html",
         "p0_templates_burndown": true,
         "teacher_zone_scroll_complete": true,
@@ -115,10 +115,11 @@
         "backend_zone_wave15_burndown": true,
         "portal_evals_wave16_burndown": true,
         "finance_analytics_siteconfig_wave17_burndown": true,
-        "migration_schoolops_accounts_wave18_burndown": true
+        "migration_schoolops_accounts_wave18_burndown": true,
+        "schools_platform_student360_wave19_burndown": true
       },
       "residual": [
-        "1366 templates still above friction threshold (incremental ledger burndown)"
+        "1262 templates still above friction threshold (incremental ledger burndown)"
       ]
     },
     {

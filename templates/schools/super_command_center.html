@@ -20,8 +20,10 @@
 {% endblock %}
 
 {% block cp_content %}
+{% include "components/next_action_strip.html" %}
+
   <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#command-center-main">{% trans "Skip to operational queues" %}</a>
-  <div id="command-center-main" class="container-fluid py-2 control-plane-shell" data-rmc-scroll-policy="paginate" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
+  <div id="command-center-main" class="container-fluid py-2 control-plane-shell" data-rmc-scroll-policy="paginate" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-page-critical-read="1">
   {% if operator_command_center_links %}
   <div class="card shadow-sm border-0 page-family-content-card mb-3">
     <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>

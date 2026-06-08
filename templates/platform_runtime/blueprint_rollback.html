@@ -5,6 +5,10 @@
 {% block cp_title %}{% trans "Rollback Blueprint" %}{% endblock %}
 
 {% block cp_content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="container-fluid py-3" data-rmc-blueprint-rollback="{{ installation.pk }}">
   <header class="mb-4">
     <p class="small text-muted mb-1"><a href="{% url 'configuration:blueprint_installation_detail' installation.pk %}">{% trans "Installation detail" %}</a></p>
@@ -12,7 +16,7 @@
     <p class="text-muted mb-0">{% trans "Rollback restores the stored settings snapshot and deactivates package markers. It does not delete school operational data." %}</p>
   </header>
   {% if result %}
-  <div class="alert {% if result.ok %}alert-success{% else %}alert-warning{% endif %}">{{ result }}</div>
+  <div data-rmc-scroll-policy="paginate" class="alert {% if result.ok %}alert-success{% else %}alert-warning{% endif %}">{{ result }}</div>
   {% endif %}
   <div class="card border-0 shadow-sm"><div class="card-body">
     <dl class="row small">

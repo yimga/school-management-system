@@ -5,7 +5,9 @@
 {% block cp_title %}{% trans "Offboarding queue" %}{% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-archetype="decision-console">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-archetype="decision-console" data-page-critical-read="1">
   <h1 class="h5">{% trans "Offboarding queue" %}</h1>
   <p class="small text-secondary mb-2">
     {% trans "Schools with self-service or operator-scheduled purge." %}

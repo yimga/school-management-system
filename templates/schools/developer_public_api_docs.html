@@ -5,10 +5,14 @@
   <meta name="description" content="{% trans 'Versioned API discovery, rate limits, OpenAPI after login, sandbox.' %}">
 {% endblock %}
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="proof-page developer-surface">
   {% include "developer/_nav.html" %}
   <header class="proof-hero rmc-reveal">
-    <div class="proof-hero-grid">
+    <div data-rmc-scroll-policy="paginate" class="proof-hero-grid">
       <div>
         <div class="proof-kicker"><i class="bi bi-braces"></i> {% trans "Public API" %}</div>
         <h1 class="proof-hero-title">{% trans "Developer public API" %}</h1>
