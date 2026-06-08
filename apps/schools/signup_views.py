@@ -1651,6 +1651,27 @@ def verify_signup(request: HttpRequest):
             exc_info=True,
         )
         try:
+            from apps.schools.tasks import complete_provisioning_for_school
+
+            complete_provisioning_for_school(
+                str(school.id), contact_email=verification.email
+            )
+            reset_broken_database_state()
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            OSError,
+            RuntimeError,
+        ) as sync_exc:
+            logger.warning(
+                "signup verify complete_provisioning fallback failed school_id=%s err=%s",
+                school.id,
+                type(sync_exc).__name__,
+                exc_info=True,
+            )
+        try:
             from apps.schools.models import SchoolProvisioningEvent
 
             SchoolProvisioningEvent.log_event(
@@ -1899,7 +1920,7 @@ def api_trial_school(request: HttpRequest):
         except (ImportError, AttributeError, TypeError, ValueError):
             pass
 
-    from apps.schools.tasks import dispatch_provision_school
+    from apps.schools.tasks import complete_provisioning_for_school
     from apps.schools.models import SchoolProvisioningEvent
 
     SchoolProvisioningEvent.log_event(
@@ -1912,20 +1933,29 @@ def api_trial_school(request: HttpRequest):
         if getattr(request, "user", None) and request.user.is_authenticated
         else None,
     )
-    dispatch = dispatch_provision_school(str(school.id), contact_email=contact_email)
+    dispatch = complete_provisioning_for_school(
+        str(school.id), contact_email=contact_email
+    )
+    school.refresh_from_db(fields=["is_active"])
     job_id = dispatch.get("job_id")
-    payload = {"job_id": job_id or ""}
+    payload = {"job_id": job_id or "", "is_active": bool(getattr(school, "is_active", False))}
     if dispatch.get("fallback") and dispatch.get("reason"):
         payload["fallback_reason"] = dispatch["reason"]
+    if dispatch.get("sync_completed"):
+        payload["sync_completed"] = True
     SchoolProvisioningEvent.log_event(
         school=school,
-        event_type=SchoolProvisioningEvent.EventType.QUEUED,
-        status=(
-            SchoolProvisioningEvent.Status.WARNING
-            if dispatch.get("fallback")
-            else SchoolProvisioningEvent.Status.INFO
+        event_type=(
+            SchoolProvisioningEvent.EventType.COMPLETED
+            if getattr(school, "is_active", False)
+            else SchoolProvisioningEvent.EventType.QUEUED
         ),
-        message=dispatch.get("message") or "Provisioning queued.",
+        status=SchoolProvisioningEvent.Status.INFO,
+        message=(
+            "Trial provisioning completed."
+            if getattr(school, "is_active", False)
+            else (dispatch.get("message") or "Provisioning queued.")
+        ),
         payload=payload,
         created_by=None,
     )

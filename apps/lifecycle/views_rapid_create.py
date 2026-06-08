@@ -368,10 +368,10 @@ class RapidCreateView(View):
                 STATE_PROVISIONING,
                 record_unified_transition,
             )
-            from apps.schools.tasks import dispatch_provision_school
+            from apps.schools.tasks import complete_provisioning_for_school
 
             contact = getattr(request.user, "email", None) or ""
-            dispatch_provision_school(str(school.id), contact_email=contact)
+            complete_provisioning_for_school(str(school.id), contact_email=contact)
             record_unified_transition(
                 school,
                 STATE_PROVISIONING,

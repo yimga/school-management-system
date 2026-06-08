@@ -507,27 +507,38 @@ def api_create_school(request):
             else None,
         )
 
-    from apps.schools.tasks import dispatch_provision_school
+    from apps.schools.tasks import complete_provisioning_for_school
 
     with workflow_step(wf_run, "enqueue_provision", payload={"school_id": str(school.id)}):
-        dispatch = dispatch_provision_school(
+        dispatch = complete_provisioning_for_school(
             str(school.id),
             contact_email=contact_email,
             seed_demo_personas=seed_demo_personas,
         )
+    school.refresh_from_db(fields=["is_active"])
     job_id = dispatch.get("job_id")
-    payload = {"job_id": job_id or ""}
+    payload = {"job_id": job_id or "", "is_active": bool(getattr(school, "is_active", False))}
     if dispatch.get("fallback") and dispatch.get("reason"):
         payload["fallback_reason"] = dispatch["reason"]
+    if dispatch.get("sync_completed"):
+        payload["sync_completed"] = True
     SchoolProvisioningEvent.log_event(
         school=school,
-        event_type=SchoolProvisioningEvent.EventType.QUEUED,
+        event_type=(
+            SchoolProvisioningEvent.EventType.COMPLETED
+            if getattr(school, "is_active", False)
+            else SchoolProvisioningEvent.EventType.QUEUED
+        ),
         status=(
             SchoolProvisioningEvent.Status.WARNING
-            if dispatch.get("fallback")
+            if dispatch.get("fallback") and not getattr(school, "is_active", False)
             else SchoolProvisioningEvent.Status.INFO
         ),
-        message=dispatch.get("message") or "Provisioning queued.",
+        message=(
+            "Provisioning completed."
+            if getattr(school, "is_active", False)
+            else (dispatch.get("message") or "Provisioning queued.")
+        ),
         payload=payload,
         created_by=request.user
         if getattr(request, "user", None) and request.user.is_authenticated

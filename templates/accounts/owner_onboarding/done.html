@@ -14,8 +14,20 @@
 <section class="auth-shell" aria-labelledby="ob-title">
   <div class="auth-card text-center">
     <div class="auth-badge" aria-hidden="true"><i class="bi bi-check2-circle"></i></div>
-    <h1 id="ob-title">{% blocktrans with name=school.name|default:"Your school" %}{{ name }} is ready 🎉{% endblocktrans %}</h1>
-    <p class="auth-sub">{% trans "Your account is set up. Here are a couple of good next steps — or jump straight to your dashboard." %}</p>
+    <h1 id="ob-title">
+      {% if school_is_live %}
+      {% blocktrans with name=school.name|default:"Your school" %}{{ name }} is ready 🎉{% endblocktrans %}
+      {% else %}
+      {% blocktrans with name=school.name|default:"Your school" %}Almost there — finishing setup for {{ name }}{% endblocktrans %}
+      {% endif %}
+    </h1>
+    <p class="auth-sub">
+      {% if school_is_live %}
+      {% trans "Your account is set up. Here are a couple of good next steps — or jump straight to your dashboard." %}
+      {% else %}
+      {% trans "Your account is set up. We're activating your campus portal now — this usually takes a minute." %}
+      {% endif %}
+    </p>
 
     {% if messages %}
     <div class="text-start mt-3">
