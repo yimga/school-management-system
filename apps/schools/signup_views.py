@@ -15,7 +15,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login as auth_login
 from django.core.exceptions import ValidationError
-from django.db import DatabaseError
+from django.db import DatabaseError, IntegrityError
 from django.db.transaction import TransactionManagementError
 from django.core.mail import send_mail  # noqa: F401 — retained for legacy callsites
 # v3.57.x Wave 8 Agent C — route signup verification email through the
@@ -1374,7 +1374,7 @@ def resend_signup_verification(request: HttpRequest):
         return render(request, "schools/resend_verification.html", {})
 
     email = (request.POST.get("email") or "").strip().lower()
-    if not email or "@" not in email or len(email) > 254:
+    if not email or "@" not in email or len(email) > 254:  # magic-number-allow: RFC 5321 max email length
         return render(
             request,
             "schools/resend_verification.html",
@@ -1582,6 +1582,27 @@ def verify_signup(request: HttpRequest):
     # is the auth, so it survives the public→tenant host hop where a session
     # cookie would not — closing the bug where verify dumped owners on a login
     # page their passwordless account could never satisfy.
+    # Create the owner account up-front (idempotent), BEFORE dispatching
+    # provisioning. On a broker-backed deploy provisioning is queued on a Celery
+    # worker that hasn't run yet, so without this the owner row wouldn't exist
+    # when we build the onboarding link below → ``admin_user`` would be None →
+    # the new owner is dumped on the login page instead of the guided wizard
+    # (the exact dead-end this flow removes). The provisioning task reuses this
+    # same row. (2026-06-08: this is why it worked in dev — broker-less = sync
+    # provisioning created the user in-request — but failed in prod.)
+    try:
+        from apps.schools.tasks import ensure_admin_user_for_school
+
+        ensure_admin_user_for_school(school, verification.email)
+    except (DatabaseError, TransactionManagementError) as exc:
+        reset_broken_database_state()
+        if isinstance(exc, TransactionManagementError) or is_transient_database_error(exc):
+            logger.warning("verify_signup_ensure_admin_transient_db: %s", exc)
+            return _verify_signup_retryable_unavailable(request)
+        raise
+    except (ImportError, AttributeError, TypeError, ValueError, IntegrityError):
+        logger.warning("verify_signup_ensure_admin_user_failed", exc_info=True)
+
     try:
         from apps.schools.tasks import dispatch_provision_school
 

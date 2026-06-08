@@ -394,6 +394,54 @@ def provision_school_sync(school_id: str, contact_email: str = "", **kwargs):
         raise
 
 
+def ensure_admin_user_for_school(school, contact_email: str):
+    """Find-or-create the school's bootstrap ADMIN owner + primary membership.
+
+    Idempotent, and deliberately callable from BOTH the (possibly async)
+    provisioning task AND synchronously from the signup-verify view. The verify
+    view needs the owner row to EXIST so it can hand the new owner a token-authed
+    onboarding link — but on a broker-backed deploy provisioning is queued on a
+    Celery worker that may not have run yet, so the owner wouldn't exist at
+    redirect time and would be dumped on the login page (the dead-end this flow
+    removes). Whichever path runs first creates the row; the other finds it.
+    Returns ``(admin_user, created)`` (``(None, False)`` when no email).
+    """
+    from .models import SchoolMembership
+
+    if not (contact_email or "").strip():
+        return None, False
+    contact_email = contact_email.strip()
+    # tenant-isolation-allow: bootstrap-owner-lookup-by-email-pre-membership
+    admin_user = User.objects.filter(email=contact_email).first()
+    created = False
+    if not admin_user:
+        username = contact_email.split("@")[0][:150] or f"admin_{school.slug}"  # magic-number-allow: string-truncation-cap
+        # tenant-isolation-allow: bootstrap-owner-username-uniqueness-check
+        if User.objects.filter(username=username).exists():
+            username = f"{username}_{school.slug}"[:150]  # magic-number-allow: string-truncation-cap
+        admin_user = User.objects.create_user(
+            username=username,
+            email=contact_email,
+            # Strong random value even though password login is disabled below.
+            password=secrets.token_urlsafe(32),  # magic-number-allow: token-byte-length
+            role=User.Role.ADMIN,
+        )
+        admin_user.set_unusable_password()
+        admin_user.save()
+        created = True
+        logger.info(
+            "Created admin user %s for school %s",
+            admin_user.username,
+            getattr(school, "id", None),
+        )
+    SchoolMembership.objects.get_or_create(
+        user=admin_user,
+        school=school,
+        defaults={"role": User.Role.ADMIN, "is_primary": True},
+    )
+    return admin_user, created
+
+
 def dispatch_provision_school(
     school_id: str, contact_email: str = "", **kwargs
 ) -> dict:
@@ -504,7 +552,6 @@ def _do_provision_tracked(
     # crashed synchronous provisioning (the broker-unavailable fallback path,
     # e.g. when no Celery worker is running) with a NameError on
     # ``resolve_profile_for_school``. Re-declare the same local imports here.
-    from .models import SchoolMembership
     from apps.academics.models import AcademicYear, Term, Subject
     from apps.siteconfig.education_profile_engine import resolve_profile_for_school
     from django.utils import timezone
@@ -532,31 +579,13 @@ def _do_provision_tracked(
 
     pulse(wf_run, "admin_user")
 
-    # Create default admin user if contact_email provided and no user exists
+    # Create default admin user if contact_email provided and no user exists.
+    # Shared with the signup-verify view via ensure_admin_user_for_school so the
+    # owner row is identical no matter which path (sync provisioning here, or the
+    # verify view up-front) creates it first.
     admin_user = None
     if contact_email:
-        admin_user = User.objects.filter(email=contact_email).first()  # tenant-isolation-allow: celery-platform-provisioning-beat-cross-tenant
-        if not admin_user:
-            username = contact_email.split("@")[0][:150] or f"admin_{school.slug}"  # magic-number-allow: string-truncation-cap
-            if User.objects.filter(username=username).exists():  # tenant-isolation-allow: celery-platform-provisioning-beat-cross-tenant
-                username = f"{username}_{school.slug}"[:150]  # magic-number-allow: string-truncation-cap
-            admin_user = User.objects.create_user(
-                username=username,
-                email=contact_email,
-                # Keep a strong random value even though we disable password login.
-                password=secrets.token_urlsafe(32),
-                role=User.Role.ADMIN,
-            )
-            admin_user.set_unusable_password()
-            admin_user.save()
-            logger.info(
-                "Created admin user %s for school %s", admin_user.username, school_id
-            )
-        SchoolMembership.objects.get_or_create(
-            user=admin_user,
-            school=school,
-            defaults={"role": User.Role.ADMIN, "is_primary": True},
-        )
+        admin_user, _ = ensure_admin_user_for_school(school, contact_email)
         try:
             from apps.registries.services import (
                 apply_wedge_14_22_sector_access_roles_to_user,
