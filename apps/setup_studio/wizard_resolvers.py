@@ -222,15 +222,29 @@ def write_pwa_manifest(*, school: Any, wizard_key: str, step_key: str, payload: 
 
 
 def list_countries(*, request: Any, school: Any) -> list[dict[str, Any]]:
+    # Canonical full ISO catalog (~249, name-sorted). NB: the old
+    # ``apps.siteconfig.country_registry.list_active_countries`` import never
+    # existed in the tree, so this resolver ALWAYS hit the except and returned a
+    # hardcoded 31-country list — most countries were missing from the wizard's
+    # country <select>. Route through GlobalGeoCatalog like every other picker.
     try:
-        from apps.siteconfig.country_registry import list_active_countries  # type: ignore
-        countries = list_active_countries() or []
-        return [
-            {"value": c.get("code"), "label_token": c.get("name_token") or f"countries.{c.get('code')}", "metadata": c}
-            for c in countries if c.get("code")
-        ]
-    except (ImportError, AttributeError):
+        from apps.siteconfig.global_catalog import GlobalGeoCatalog
+
+        rows = GlobalGeoCatalog.list_countries() or []
+        out = []
+        for row in rows:
+            cc = str(row.get("code_alpha2", "")).upper()
+            if cc:
+                out.append({
+                    "value": cc,
+                    "label_token": f"countries.{cc}",
+                    "metadata": {"name": str(row.get("name", ""))},
+                })
+        if out:
+            return out
+    except (ImportError, AttributeError, TypeError, ValueError):
         pass
+    # Last-resort fallback only when the catalog deps are unavailable.
     return [
         {"value": cc, "label_token": f"countries.{cc}", "metadata": {}}
         for cc in [
@@ -242,6 +256,25 @@ def list_countries(*, request: Any, school: Any) -> list[dict[str, Any]]:
 
 
 def list_settlement_currencies(*, request: Any, school: Any) -> list[dict[str, Any]]:
+    # Full ISO 4217 catalog (~180) via pycountry, so a school whose settlement
+    # currency isn't in the legacy 27-item list can still select it.
+    try:
+        import pycountry
+
+        out = []
+        for cur in pycountry.currencies:
+            code = str(getattr(cur, "alpha_3", "") or "").upper()
+            if code:
+                out.append({
+                    "value": code,
+                    "label_token": f"currencies.{code}",
+                    "metadata": {"name": str(getattr(cur, "name", ""))},
+                })
+        if out:
+            out.sort(key=lambda d: d["value"])
+            return out
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
     return [
         {"value": code, "label_token": f"currencies.{code}", "metadata": {}}
         for code in [

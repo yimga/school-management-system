@@ -737,7 +737,7 @@ def get_education_levels_for_country(country_code: str | None) -> list[dict]:
             ),
             "country_labels": row.country_labels or {},
         }
-        for row in qs[:80]
+        for row in qs
     ]
 
 
@@ -755,7 +755,7 @@ def get_education_system_types_for_country(country_code: str | None) -> list[dic
                 (country_code or "").upper(), row.name
             ),
         }
-        for row in qs[:50]
+        for row in qs
     ]
 
 
@@ -1044,7 +1044,7 @@ def get_institution_types_for_country(country_code: str | None) -> list[dict]:
                 (country_code or "").upper(), row.name
             ),
         }
-        for row in qs[:40]
+        for row in qs
     ]
 
 
@@ -1057,7 +1057,7 @@ def get_document_types(country_code: str | None = None) -> list[dict]:
         qs = qs.filter(country_code__in=[(country_code or "").upper()[:2], ""])
     return [
         {"code": row.code, "name": row.name, "category": row.category}
-        for row in qs[:60]
+        for row in qs
     ]
 
 
@@ -1070,7 +1070,7 @@ def get_fee_categories(country_code: str | None = None) -> list[dict]:
         qs = qs.filter(country_code__in=[(country_code or "").upper()[:2], ""])
     return [
         {"code": row.code, "name": row.name, "category": row.category}
-        for row in qs[:60]
+        for row in qs
     ]
 
 
@@ -1088,7 +1088,7 @@ def get_grade_scale_families(country_code: str | None = None) -> list[dict]:
             "family": row.family,
             "range_definition": row.range_definition or {},
         }
-        for row in qs[:40]
+        for row in qs
     ]
 
 
@@ -1096,7 +1096,7 @@ def get_locales_for_country(country_code: str | None = None) -> list[dict]:
     """Locales for tenant setup."""
     qs = LocaleRegistry.objects.filter(is_active=True).order_by("sort_order", "name")
     return [
-        {"code": row.code, "name": row.name, "is_rtl": row.is_rtl} for row in qs[:50]
+        {"code": row.code, "name": row.name, "is_rtl": row.is_rtl} for row in qs
     ]
 
 
@@ -1113,7 +1113,7 @@ def get_calendar_systems_for_country(country_code: str | None = None) -> list[di
             "name": row.name,
             "term_count_per_year": row.term_count_per_year,
         }
-        for row in qs[:30]
+        for row in qs
     ]
 
 
@@ -1126,7 +1126,7 @@ def get_terminology_packs_for_country(country_code: str | None = None) -> list[d
         qs = qs.filter(country_code__in=[(country_code or "").upper()[:2], ""])
     return [
         {"code": row.code, "name": row.name, "terminology": row.terminology or {}}
-        for row in qs[:30]
+        for row in qs
     ]
 
 

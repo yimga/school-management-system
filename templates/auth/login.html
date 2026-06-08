@@ -198,7 +198,10 @@
               {% if is_manager_host %}
                 <a class="btn btn-outline-primary" href="{{ public_site_url|default:'https://runmycampus.com' }}/discover/">{% trans "Find your school" %}</a>
               {% else %}
-                <a class="btn btn-outline-primary" href="{% url 'portal:link_child' %}">{% trans "Claim an invite" %}</a>
+                {# portal: is absent from the public-host urlconf — guard or this 500s the page. #}
+                {% url 'portal:link_child' as claim_invite_url %}
+                {% if not claim_invite_url %}{% url 'accounts:claim_invite' as claim_invite_url %}{% endif %}
+                {% if claim_invite_url %}<a class="btn btn-outline-primary" href="{{ claim_invite_url }}">{% trans "Claim an invite" %}</a>{% endif %}
               {% endif %}
             </div>
 
@@ -216,15 +219,20 @@
                     {% trans "Control plane" %}
                   </a>
                 {% else %}
-                  <a class="quick-link" href="{% url 'portal:parent_dashboard' %}">{% trans "Parent portal" %}</a>
-                  <a class="quick-link" href="{% url 'siteconfig:user_preferences' %}">{% trans "Preferences" %}</a>
-                  <a
+                  {# portal:/siteconfig:/studio_os: are tenant-host routes, absent from the #}
+                  {# public-host urlconf — guard each so the public login page can't 500. #}
+                  {% url 'portal:parent_dashboard' as parent_dash_url %}
+                  {% if parent_dash_url %}<a class="quick-link" href="{{ parent_dash_url }}">{% trans "Parent portal" %}</a>{% endif %}
+                  {% url 'siteconfig:user_preferences' as prefs_url %}
+                  {% if prefs_url %}<a class="quick-link" href="{{ prefs_url }}">{% trans "Preferences" %}</a>{% endif %}
+                  {% url 'studio_os:experience' as studio_exp_url %}
+                  {% if studio_exp_url %}<a
                     class="quick-link quick-link-muted"
-                    href="{% url 'studio_os:experience' %}"
+                    href="{{ studio_exp_url }}"
                     title="{% trans "Admins only: Site Settings & theme packs" %}"
                   >
                     {% trans "Site Settings (admin only)" %}
-                  </a>
+                  </a>{% endif %}
                 {% endif %}
               </div>
               <p class="small text-muted mt-3 mb-0">

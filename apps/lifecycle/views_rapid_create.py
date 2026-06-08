@@ -392,12 +392,15 @@ class RapidCreateView(View):
 
 
 def _country_choices() -> list[tuple[str, str]]:
-    """Operator country list — short, common-first; falls through to free text."""
+    """Operator country list — the FULL ISO catalog (name-sorted); falls through
+    to free text on failure. Do NOT cap this: a prior ``[:60]`` slice truncated
+    the alphabetical catalog at ~Costa Rica, so most countries silently vanished
+    from the operator's Create-School picker (same bug as the signup [:120])."""
     try:
         from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
         rows = GlobalGeoCatalog.list_countries() or []
         return [(str(r.get("code_alpha2", "")).upper(), str(r.get("name", "")))
-                for r in rows if r.get("code_alpha2")][:60]
+                for r in rows if r.get("code_alpha2")]
     except Exception:  # noqa: BLE001
         return []
