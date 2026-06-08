@@ -62,7 +62,7 @@ def is_transient_database_error(exc: BaseException) -> bool:
 
 def reset_broken_database_state() -> None:
     """Clear broken atomic/rollback state and drop dead pooled connections."""
-    from django.db import connection, transaction
+    from django.db import connection, connections, transaction
 
     try:
         if connection.in_atomic_block:
@@ -73,6 +73,11 @@ def reset_broken_database_state() -> None:
         pass
     try:
         connection.close_if_unusable_or_obsolete()
+    except Exception:
+        pass
+    # Purge every alias — django-tenants SET search_path can leave a dead socket on default.
+    try:
+        connections.close_all()
     except Exception:
         pass
 

@@ -1217,6 +1217,44 @@ See register section **`procurement_enterprise_sales`**.
 
 ## At a glance
 
+**Aggressive completion gap closure - batch 1673 (2026-06-08):**
+**DONE (repository scope; external evidence remains gated).** Re-ran the
+research-driven plan against live routes, persistence code, scheduled
+inference, operator panels, test infrastructure, stale implementation labels,
+and every optional mechanism certified in batch 1672. The audit found and
+closed four real repository gaps: (1) OneRoster v1.2 bulk users, classes, and
+student enrollments now persist platform records instead of returning
+validation-only acknowledgements; class/enrollment routes are reachable before
+catch-all routes, require write scope and `Idempotency-Key`, reject mismatched
+replays, preserve per-row 207 outcomes, enforce school ownership, and project
+written student enrollments through the read endpoint; (2) nightly at-risk
+inference uses the canonical predictor rather than a duplicate scoring path;
+(3) Studio OS billing summary reports live active subscriptions, monthly
+recurring revenue by currency, expiring trials, and repeated dunning attempts;
+(4) SQLite gate runs use an interprocess lease with dead/stale-owner recovery
+and unique fresh database allocation. Hostel/cafeteria migration landers,
+presence mirroring, metadata registration, token rotation, and bounded-context
+comments were reconciled with the behavior already in the tree.
+
+**Proof:** 14/14 focused OneRoster, write-scope, billing, and inference tests
+PASS, including class replay deduplication and enrollment read-after-write;
+3/3 SQLite lease contract tests PASS; 96 sync tests PASS; 44 database-tenancy
+tests PASS with two expected PostgreSQL-only skips; 22 promotion/layout core,
+7 RUM aggregation, 9 CLS budget, and 2 browser layout-observer tests PASS.
+`SOVEREIGN_PLATFORM_CONTRACT_PASS`, `SOVEREIGN_OPTIONALS_PASS`,
+`SYNC_SEMANTICS_PASS`, database pooling verification, and intelligence
+promotion (`eligible=9`, `blocked=0`) remain green. `manage.py check`,
+`makemigrations --check --dry-run`, targeted Python compilation/Ruff,
+settings-registry coverage, PII logging, strict broad-except, SOT evidence,
+documentation density, and diff-whitespace gates are clean.
+
+**Honest external gates:** live HSM/KMS providers and credentials, native
+Clever/ClassLink credentials, production PostgreSQL RLS rollout, real
+PgBouncer/load evidence, immutable archive operations, staged browser models,
+configured LAN speech endpoints, physical-device/accessibility pilots, and
+pilot/production promotion are deployment evidence, not repository code.
+Reserved providers continue to fail closed; no synthetic completion is claimed.
+
 **Aggressive optional-completion re-audit - batch 1672 (2026-06-08):**
 **DONE (repository scope; external activation remains gated).** Re-audited the
 research plan, live code, prior phase evidence, optional hardening document, and

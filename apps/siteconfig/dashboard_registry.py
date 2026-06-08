@@ -81,7 +81,7 @@ def get_tenant_dashboard_registry(
         except OPTIONAL_DASHBOARD_ERRORS:
             pass
     metadata = get_dashboard_widget_metadata(widget_ids) if widget_ids else {}
-    # Register usage for metadata catalog (plan todo 4: hooks in dashboard definitions)
+    # Register dashboard field usage in the metadata catalog.
     consumer = f"dashboard:{page or 'backend'}"
     if role:
         consumer = f"{consumer}:{role}"

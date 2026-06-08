@@ -2,7 +2,7 @@
   "allow_marker": "# money-float-allow: <reason>",
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-06-08T09:58:17+00:00",
+  "generated_at": "2026-06-08T13:01:33+00:00",
   "money_keywords": [
     "amount",
     "total",

@@ -1,1 +1,1 @@
-# Bounded-context: blueprints, starter stacks, runtime composition (metadata-driven plan todo 2).
+# Bounded context for blueprints, starter stacks, and runtime composition.

@@ -103,3 +103,16 @@ class HealthAwareTenantMainMiddlewareTests(SimpleTestCase):
     def test_degraded_payload_shape(self):
         response = health_probe_degraded_response()
         self.assertEqual(response.status_code, 200)
+
+    def test_transient_db_retries_once_before_503(self):
+        request = self.rf.get("/authentication/login/")
+        exc = OperationalError(
+            "consuming input failed: SSL error: unexpected eof while reading"
+        )
+        with patch.object(
+            TenantMainMiddleware,
+            "process_request",
+            side_effect=[exc, None],
+        ):
+            response = self.middleware.process_request(request)
+        self.assertIsNone(response)

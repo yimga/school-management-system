@@ -1,1 +1,1 @@
-# Bounded-context: plans, trials, add-ons, feature caps (metadata-driven plan todo 2).
+# Bounded context for plans, trials, add-ons, and feature caps.

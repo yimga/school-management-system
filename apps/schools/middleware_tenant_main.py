@@ -59,23 +59,28 @@ class HealthAwareTenantMainMiddleware(TenantMainMiddleware):
         path = getattr(request, "path", "") or ""
         if is_health_probe_path(path):
             return self._process_health_probe(request)
-        try:
-            return super().process_request(request)
-        except Exception as exc:
-            if not is_transient_database_error(exc):
-                raise
-            logger.warning(
-                "tenant_main_transient_db path=%s error=%s",
-                path,
-                str(exc)[:200],
-            )
-            reset_broken_database_state()
-            if is_health_probe_path(path):
-                return health_probe_degraded_response()
-            return build_transient_db_unavailable_response(
-                request,
-                source="tenant_main_middleware",
-            )
+        for attempt in range(2):
+            try:
+                return super().process_request(request)
+            except Exception as exc:
+                if not is_transient_database_error(exc):
+                    raise
+                logger.warning(
+                    "tenant_main_transient_db path=%s attempt=%s error=%s",
+                    path,
+                    attempt + 1,
+                    str(exc)[:200],
+                )
+                reset_broken_database_state()
+                if attempt == 0:
+                    continue
+                break
+        if is_health_probe_path(path):
+            return health_probe_degraded_response()
+        return build_transient_db_unavailable_response(
+            request,
+            source="tenant_main_middleware",
+        )
 
     def _process_health_probe(self, request):
         try:

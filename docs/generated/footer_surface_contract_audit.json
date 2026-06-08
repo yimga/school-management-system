@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-06-08T12:29:50.552346+00:00",
-  "pass": false,
+  "generated_at": "2026-06-08T13:03:23.581681+00:00",
+  "pass": true,
   "templates_scanned": 1469,
   "rows": [
     {
@@ -330,7 +330,7 @@
     {
       "check_id": "require_rmc-footer-surfaces._templates_portal_base.html",
       "description": "templates/portal_base.html wires 'rmc-footer-surfaces.css'",
-      "status": "FAIL",
+      "status": "PASS",
       "proof": "templates/portal_base.html"
     },
     {

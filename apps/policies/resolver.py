@@ -612,7 +612,7 @@ def get_effective_policy(
     if isinstance(features, dict):
         out["features"] = {**out["features"], **features}
 
-    # Register usage for metadata catalog (plan todo 4: hooks in policy definitions)
+    # Register effective-policy field usage in the metadata catalog.
     try:
         from apps.metadata.usage_registry import register_usage
 

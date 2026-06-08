@@ -617,7 +617,8 @@ if _RMC_TEST_LOCAL_SQLITE:
 DB_POOL_MODE = (
     os.getenv("DB_POOL_MODE", "direct").strip().lower() or "direct"
 )
-_DB_CONN_MAX_AGE = int((os.getenv("DB_CONN_MAX_AGE") or "600").strip() or "600")
+# Default 120s — Render Postgres drops idle SSL sockets; 600s pools often hit "unexpected eof".
+_DB_CONN_MAX_AGE = int((os.getenv("DB_CONN_MAX_AGE") or "120").strip() or "120")
 _DB_DISABLE_SS_CURSORS = (os.getenv("DB_DISABLE_SERVER_SIDE_CURSORS") or "").strip().lower() in (
     "1",
     "true",
@@ -690,7 +691,7 @@ if PREVIEW_DATABASE_URL and not (
 ):
     _preview_db = dj_database_url.config(
         default=PREVIEW_DATABASE_URL,
-        conn_max_age=600,
+        conn_max_age=_DB_CONN_MAX_AGE,
         ssl_require=not DEBUG,
     )
     if not _preview_db.get("ENGINE"):
@@ -725,7 +726,7 @@ if not RUNNING_TESTS:
         _alias = f"replica_{_region}"
         try:
             _replica_db = dj_database_url.config(
-                default=_url, conn_max_age=600, ssl_require=not DEBUG
+                default=_url, conn_max_age=_DB_CONN_MAX_AGE, ssl_require=not DEBUG
             )
         except Exception:  # noqa: BLE001 — bad URL: skip, don't crash boot
             continue
@@ -793,10 +794,9 @@ if RUNNING_TESTS:
             _opts = _db_config.setdefault("OPTIONS", {})
             _opts["timeout"] = max(float(_opts.get("timeout", 30.0)), 90.0)
 
-# PERFORMANCE: Enable persistent database connections (600 seconds = 10 minutes)
-# Reduces overhead of creating new connection for each request
+# Persistent connections — honor DB_CONN_MAX_AGE (CONN_HEALTH_CHECKS below validates reuse).
 for db_config in DATABASES.values():
-    db_config["CONN_MAX_AGE"] = 600
+    db_config["CONN_MAX_AGE"] = _DB_CONN_MAX_AGE
 
 # Drop stale pooled Postgres connections before reuse (Render SSL EOF / recovery blips).
 for db_config in DATABASES.values():

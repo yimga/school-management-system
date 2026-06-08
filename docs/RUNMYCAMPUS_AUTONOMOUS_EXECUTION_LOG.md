@@ -1,5 +1,28 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Aggressive completion gap closure batch 1673 (2026-06-08)
+
+**A. Scope:** Re-audit the completed sovereign-platform plan against live code,
+not prior completion labels, and implement every repository-actionable required
+or optional gap.
+
+**B. Shipped:** real OneRoster v1.2 user/class/student-enrollment bulk
+persistence with route precedence, tenant binding, write scope, per-row
+outcomes, replay-safe idempotency, and enrollment read projection; canonical
+nightly risk prediction; live Studio OS billing aggregates; interprocess SQLite
+gate lease; stale migration/presence/metadata/token-rotation truth cleanup.
+
+**C. Proof:** 14 focused closure tests PASS; 3 SQLite lease tests PASS; 96 sync,
+44 database-tenancy, 22 promotion/layout core, 7 RUM, 9 CLS, and 2 browser
+layout tests PASS. Sovereign platform, sovereign optionals, sync semantics,
+pooling, and nine-family promotion gates PASS. Django checks, migration drift,
+targeted compile/Ruff, registry, PII, broad-except, and whitespace gates clean.
+
+**D. External-only:** real HSM/KMS and SIS credentials, PostgreSQL/PgBouncer
+deployment and load proof, immutable archive operations, staged browser/LAN
+models, physical-device/accessibility pilots, and higher promotion stages.
+These remain fail-closed and are not represented as repository completion.
+
 ## Slice - Aggressive optional-completion re-audit batch 1672 (2026-06-08)
 
 **A. Scope:** Re-open every optional, deferred, advisory, and blocked item in the

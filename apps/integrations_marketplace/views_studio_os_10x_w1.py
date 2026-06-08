@@ -282,7 +282,7 @@ def tenant_retention_override(request: HttpRequest) -> JsonResponse:
 
 
 # ---------------------------------------------------------------------------
-# A12 — token rotation timeline (placeholder structured event list)
+# A12 — token rotation timeline
 # ---------------------------------------------------------------------------
 @require_GET
 @staff_required
