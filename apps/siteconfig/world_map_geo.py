@@ -137,6 +137,37 @@ def _location_dict(row: dict[str, Any]) -> dict[str, Any]:
     return loc if isinstance(loc, dict) else {}
 
 
+def resolve_school_country_alpha2(row: dict[str, Any]) -> str:
+    """Resolve ISO alpha-2 from school.country_code or settings.location hints."""
+    raw = (row.get("country_code") or "").strip()
+    if raw:
+        a2 = GlobalGeoCatalog.alpha2_for_country(raw.upper())
+        if a2:
+            return a2
+        if len(raw) == 2:
+            return raw.upper()
+
+    loc = _location_dict(row)
+    for key in ("country_code", "country", "country_id"):
+        val = (loc.get(key) or "").strip()
+        if not val:
+            continue
+        a2 = GlobalGeoCatalog.alpha2_for_country(val.upper())
+        if a2:
+            return a2
+        if len(val) == 2:
+            return val.upper()
+        name_key = val.casefold()
+        for country_row in GlobalGeoCatalog.list_countries():
+            if (country_row.get("name") or "").casefold() == name_key:
+                return GlobalGeoCatalog.alpha2_for_country(country_row["code"])
+    return ""
+
+
+def region_for_country(alpha2: str) -> str:
+    return _WORLD_BUCKET_FOR.get((alpha2 or "").upper(), "Other")
+
+
 def _float_or_none(val: Any) -> float | None:
     if val is None or val == "":
         return None
@@ -148,7 +179,7 @@ def _float_or_none(val: Any) -> float | None:
 
 def _resolve_school_coords(row: dict[str, Any]) -> tuple[float, float, str | None, bool] | None:
     """Return (lat, lng, city_label, precise) or None when geography is unknown."""
-    cc = (row.get("country_code") or "").upper().strip()
+    cc = resolve_school_country_alpha2(row)
     loc = _location_dict(row)
     city_label = (loc.get("city") or loc.get("label") or "").strip() or None
 
@@ -226,7 +257,7 @@ def build_globe_markers(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     per_country: dict[str, int] = {}
     markers: list[dict[str, Any]] = []
     for i, row in enumerate(rows):
-        cc = (row.get("country_code") or "").upper().strip()
+        cc = resolve_school_country_alpha2(row)
         resolved = _resolve_school_coords(row)
         if resolved is None:
             continue
@@ -237,7 +268,7 @@ def build_globe_markers(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         jitter_scale = (_JITTER_PRECISE_DEG / _JITTER_DEG) if precise else 1.0
         status = _status_for_row(row)
         palette = STATUS_COLORS[status]
-        region = _WORLD_BUCKET_FOR.get(cc, "Other")
+        region = region_for_country(cc)
         country_name = GlobalGeoCatalog.country_name(cc) if cc else ""
         marker: dict[str, Any] = {
             "lat": round(lat0 + dlat * jitter_scale, 5),

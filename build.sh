@@ -21,6 +21,16 @@ echo "Installing dependencies..."
 python3 -m pip install --upgrade pip --no-cache-dir
 python3 -m pip install -r requirements.txt --no-cache-dir
 
+# World Footprint WebGL bundle (static/js/dist is gitignored — must build on deploy).
+echo "Building world globe bundle..."
+if ! command -v npm >/dev/null 2>&1; then
+  echo "ERROR: npm is required to build static/js/dist/world-globe.* for the manager globe."
+  exit 1
+fi
+npm ci --no-audit --no-fund 2>/dev/null || npm install --no-audit --no-fund
+npm run build:world-globe
+python3 scripts/generate_globe_earth_night_texture.py
+
 # Set Django settings module for production build
 export DJANGO_SETTINGS_MODULE=config.settings
 

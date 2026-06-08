@@ -262,14 +262,6 @@ _WORLD_REGION_SPREAD = {
     "Asia · Oceania": (56, 32),
     "Other": (170, 78),
 }
-_WORLD_BUCKET_FOR = {
-    "US": "North America", "CA": "North America", "MX": "North America",
-    "NG": "West Africa", "GH": "West Africa", "CM": "West Africa",
-    "SL": "West Africa", "CI": "West Africa", "SN": "West Africa",
-    "GB": "Europe", "FR": "Europe", "DE": "Europe", "IE": "Europe",
-    "AU": "Asia · Oceania", "NZ": "Asia · Oceania", "IN": "Asia · Oceania",
-    "SG": "Asia · Oceania", "PH": "Asia · Oceania",
-}
 # Low-discrepancy unit offsets (centred in [-1,1]) — spread points evenly with
 # no Math.random jitter (deterministic across requests). One dot per slot keeps
 # pins from overlapping; we cap visible dots per region to this pattern length.
@@ -317,13 +309,14 @@ def _world_map_globe_payload(rows: list[dict[str, Any]]) -> dict[str, Any]:
 def _world_map_tenant_dots(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Legacy SVG cx/cy dots — kept for preview HTML + graceful no-JS fallback."""
     from apps.siteconfig.global_catalog import GlobalGeoCatalog
+    from apps.siteconfig.world_map_geo import region_for_country, resolve_school_country_alpha2
 
     per_region: dict[str, int] = {}
     dots: list[dict[str, Any]] = []
     slots = len(_WORLD_SPREAD_UNIT)
     for i, r in enumerate(rows):
-        cc = (r.get("country_code") or "").upper()
-        region = _WORLD_BUCKET_FOR.get(cc, "Other")
+        cc = resolve_school_country_alpha2(r)
+        region = region_for_country(cc)
         n = per_region.get(region, 0)
         per_region[region] = n + 1
         if n >= slots:
@@ -374,7 +367,7 @@ def _world_map_footprint_stats(active_schools) -> dict[str, Any]:
     """Live platform counts + regional legend rows (active schools only)."""
     from django.utils.translation import ngettext
 
-    from apps.siteconfig.world_map_geo import enrich_regional_breakdown
+    from apps.siteconfig.world_map_geo import enrich_regional_breakdown, region_for_country, resolve_school_country_alpha2
 
     total = active_schools.count()
     buckets = {
@@ -385,12 +378,12 @@ def _world_map_footprint_stats(active_schools) -> dict[str, Any]:
         "Other": 0,
     }
     distinct_countries: set[str] = set()
-    for cc in active_schools.values_list("country_code", flat=True):
-        cc_upper = (cc or "").upper()
-        region = _WORLD_BUCKET_FOR.get(cc_upper, "Other")
+    for row in active_schools.values("country_code", "settings"):
+        cc = resolve_school_country_alpha2(row)
+        region = region_for_country(cc)
         buckets[region] = buckets.get(region, 0) + 1
-        if cc_upper.strip():
-            distinct_countries.add(cc_upper.strip())
+        if cc:
+            distinct_countries.add(cc)
     regional_rows = [{"region": r, "count": c} for r, c in buckets.items() if c > 0]
     regional_rows.sort(key=lambda row: row["count"], reverse=True)
     dot_tokens = ("indigo", "emerald", "amber", "rose")

@@ -5,6 +5,8 @@ from apps.siteconfig.world_map_geo import (
     STATUS_COLORS,
     build_globe_markers,
     build_globe_payload,
+    region_for_country,
+    resolve_school_country_alpha2,
 )
 
 
@@ -53,6 +55,18 @@ class WorldMapGeoTests(SimpleTestCase):
     def test_unknown_country_skipped_without_crash(self):
         rows = [{"country_code": "", "is_frozen": False}]
         self.assertEqual(build_globe_markers(rows), [])
+
+    def test_resolve_country_from_location_name_sierra_leone(self):
+        row = {
+            "country_code": "",
+            "settings": {"location": {"country": "Sierra Leone", "latitude": 8.48, "longitude": -13.23}},
+        }
+        self.assertEqual(resolve_school_country_alpha2(row), "SL")
+        self.assertEqual(region_for_country("SL"), "West Africa")
+        markers = build_globe_markers([{**row, "is_frozen": False}])
+        self.assertEqual(len(markers), 1)
+        self.assertEqual(markers[0]["region"], "West Africa")
+        self.assertEqual(markers[0]["country_name"], "Sierra Leone")
 
     def test_globe_payload_includes_theme_and_geo_url(self):
         payload = build_globe_payload([], auto_rotate=False)

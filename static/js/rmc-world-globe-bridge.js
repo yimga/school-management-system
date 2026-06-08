@@ -567,6 +567,19 @@
     wireTourControls();
     wireSvgDots();
     applySvgPalette();
+    if (isOfflineGlobeMode()) {
+      var payload = parsePayload();
+      var activeRegion = null;
+      if (payload && Array.isArray(payload.markers)) {
+        var seen = {};
+        payload.markers.forEach(function (m) {
+          if (m && m.region) seen[m.region] = true;
+        });
+        var keys = Object.keys(seen);
+        if (keys.length === 1) activeRegion = keys[0];
+      }
+      if (activeRegion) highlightSvgRegion(activeRegion);
+    }
     hideSkeleton();
     if (isOfflineGlobeMode()) {
       setFreshness("Offline map");
