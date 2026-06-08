@@ -23,6 +23,8 @@ CONVERSION_LOCK_AUTH_PREFIXES_STRICT: tuple[str, ...] = (
     "/authentication/redirect/",
     "/authentication/school-picker/",
     "/authentication/switch-portal-role/",
+    "/authentication/password_reset/",
+    "/authentication/reset/",
     "/authentication/mfa/",
     "/authentication/end-impersonation/",
     "/authentication/impersonate/",

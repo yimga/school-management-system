@@ -56,6 +56,8 @@ MANAGER_AUTH_ALLOWED_PREFIXES = (
     "/authentication/login/",
     "/authentication/logout/",
     "/authentication/redirect/",
+    "/authentication/password_reset/",
+    "/authentication/reset/",
     "/authentication/profile/",
     "/authentication/documentation/",
     "/authentication/notifications/",

@@ -3522,8 +3522,20 @@ def login_view(request):
             context["public_site_url"] = build_public_absolute_url(request, "/")
         except ACCOUNTS_SOFT_FAILURES:
             context["public_site_url"] = settings.PUBLIC_SITE_URL
+        try:
+            from apps.schools.provision_email_urls import build_public_site_url
+
+            context["password_reset_public_url"] = build_public_site_url(
+                "/authentication/password_reset/"
+            )
+        except ACCOUNTS_SOFT_FAILURES:
+            context["password_reset_public_url"] = (
+                f"{(context.get('public_site_url') or 'https://runmycampus.com').rstrip('/')}"
+                "/authentication/password_reset/"
+            )
     else:
         context["public_site_url"] = None
+        context["password_reset_public_url"] = None
     template = (
         "auth/manager_login.html"
         if getattr(request, "public_host_kind", None) == "manager"

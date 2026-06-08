@@ -5,7 +5,7 @@ Your school is now provisioned and ready to go.
 {% if activation_url %}To finish setting up your account, choose a password (then you'll land straight in your dashboard):
 {{ activation_url }}
 
-For your security this link can be used once. If it expires, use "Forgot password?" on the sign-in page.{% else %}Sign in at: {{ portal_url|default:"https://runmycampus.com/authentication/login/" }}{% endif %}
+For your security this link can be used once. If it expires, use "Forgot password?" at https://runmycampus.com/authentication/login/ to set one.{% else %}Sign in at: {{ portal_url|default:"https://runmycampus.com/authentication/login/" }}{% endif %}
 
 A few things to do first:
   * Invite your staff

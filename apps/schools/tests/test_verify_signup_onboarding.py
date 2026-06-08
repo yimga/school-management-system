@@ -166,3 +166,32 @@ class OnboardingHostRoutingTests(TestCase):
                 allowed_prefixes=MANAGER_HOST_PUBLIC_ACCESS_PREFIXES,
             )
         )
+
+    def test_password_reset_allowed_on_manager_host(self):
+        from apps.schools.middleware import (
+            MANAGER_AUTH_ALLOWED_PREFIXES,
+            _path_allowed_for_reserved_host,
+        )
+
+        self.assertTrue(
+            _path_allowed_for_reserved_host(
+                "/authentication/password_reset/",
+                allowed_prefixes=MANAGER_AUTH_ALLOWED_PREFIXES,
+            )
+        )
+        self.assertTrue(
+            _path_allowed_for_reserved_host(
+                "/authentication/reset/abc/def/",
+                allowed_prefixes=MANAGER_AUTH_ALLOWED_PREFIXES,
+            )
+        )
+
+    def test_password_reset_allowed_under_conversion_lock(self):
+        from apps.schools.conversion_lock_paths import (
+            CONVERSION_LOCK_AUTH_PREFIXES_STRICT,
+        )
+
+        self.assertIn(
+            "/authentication/password_reset/", CONVERSION_LOCK_AUTH_PREFIXES_STRICT
+        )
+        self.assertIn("/authentication/reset/", CONVERSION_LOCK_AUTH_PREFIXES_STRICT)
