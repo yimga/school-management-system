@@ -1,8 +1,8 @@
 """Hostel lander — persists canonical hostel-room rows into ``apps.schoolops.HostelRoom``.
 
-Migration scope: room catalog. Per-student room assignments are
-deferred to the dynamic_field path until a `HostelAssignment` lander
-ships; this lander owns the room catalog so re-imports stay clean.
+Migration scope: room catalog. Per-student room assignments are handled by the
+sibling ``hostel_assignments`` lander; this lander owns the room catalog so
+re-imports stay clean.
 
 Canonical row shape::
 

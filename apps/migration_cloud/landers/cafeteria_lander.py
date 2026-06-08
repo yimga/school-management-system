@@ -1,9 +1,8 @@
 """Cafeteria lander — persists canonical cafeteria-menu rows into ``apps.schoolops.CanteenMeal``.
 
-Migration scope: meal catalog (the menu of meals offered). Per-student
-meal plans and balances are deferred to the dynamic_field path until a
-dedicated MealPlanBalance lander ships; this lander owns the catalog so
-re-imports stay clean.
+Migration scope: meal catalog (the menu of meals offered). Per-student meal
+plans and balances are handled by the sibling ``cafeteria_assignments`` lander;
+this lander owns the catalog so re-imports stay clean.
 
 Canonical row shape::
 

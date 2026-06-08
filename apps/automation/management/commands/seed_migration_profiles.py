@@ -433,7 +433,7 @@ MIGRATION_PROFILES = [
     {
         "slug": "roster_import",
         "name": "Roster import (classroom + subject + term)",
-        "description": "Composite import: creates Classroom, Subject, and Term rows in one wizard step. SubjectAssignment links are deferred to pass 8.B.",
+        "description": "Composite import: creates Classroom, Subject, Term, Specialty, and SubjectAssignment rows in one wizard step.",
         "format": MigrationProfile.Format.CSV,
         "domain": MigrationProfile.Domain.STUDENTS,
         "source_system": None,

@@ -184,14 +184,18 @@ class OneRosterBulkPersistenceTests(TestCase):
                 ]
             },
             content_type="application/json",
+            HTTP_IDEMPOTENCY_KEY=uuid.uuid4().hex,
             **self.headers,
         )
         self.assertEqual(response.status_code, 207)
         payload = response.json()
         self.assertEqual(payload["summary"]["created"], 1)
-        self.assertTrue(
-            Classroom.objects.filter(school=self.school, code="BIO101").exists()
-        )
+        classroom = Classroom.objects.filter(
+            school=self.school,
+            name="Biology 101",
+        ).first()
+        self.assertIsNotNone(classroom)
+        self.assertTrue(str(classroom.code).endswith("BIO101"))
 
     def test_enrollments_bulk_binds_student_to_classroom(self):
         year = AcademicYear.objects.create(
@@ -240,6 +244,7 @@ class OneRosterBulkPersistenceTests(TestCase):
                 ]
             },
             content_type="application/json",
+            HTTP_IDEMPOTENCY_KEY=uuid.uuid4().hex,
             **self.headers,
         )
         self.assertEqual(response.status_code, 207)

@@ -4,10 +4,9 @@ Records which authenticated users are currently looking at each page.
 Other operators on the same page show up as small avatars on the
 presence chip; clicking opens a list.
 
-In-memory, per-process, Lock-protected. Heartbeat from JS every 30s
-keeps the entry alive; entries older than ``PRESENCE_TTL_SECONDS``
-are swept on read. Cross-worker fanout is deferred to a later wave
-(would need Redis pub/sub or a DB-backed presence row).
+The in-memory, lock-protected hot path is mirrored to ``PresencePing`` rows so
+other workers can merge fresh presence. Heartbeat from JS every 30s keeps the
+entry alive; entries older than ``PRESENCE_TTL_SECONDS`` are swept on read.
 """
 
 from __future__ import annotations

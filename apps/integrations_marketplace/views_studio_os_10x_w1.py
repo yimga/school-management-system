@@ -26,7 +26,9 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from collections import defaultdict
+from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 from typing import Any
 
 from django.contrib.auth.decorators import user_passes_test
@@ -302,15 +304,66 @@ def token_rotation_timeline(request: HttpRequest) -> JsonResponse:
 @require_GET
 @staff_required
 def billing_summary(request: HttpRequest) -> JsonResponse:
+    from django.utils import timezone as django_timezone
+
+    from apps.billing.models import TenantSubscription
+
+    today = django_timezone.localdate()
+    trial_cutoff = today + timedelta(days=7)
+    active_statuses = {
+        TenantSubscription.Status.TRIALING,
+        TenantSubscription.Status.ACTIVE,
+        TenantSubscription.Status.PAST_DUE,
+        TenantSubscription.Status.SUSPENDED,
+    }
+    subscriptions = list(
+        TenantSubscription.objects.filter(  # tenant-isolation-allow: operator-platform-billing-summary
+            status__in=active_statuses
+        ).select_related("billing_account")
+    )
+    monthly_by_currency: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
+    trial_expiring = 0
+    dunning_failed = 0
+    for subscription in subscriptions:
+        amount = subscription.base_amount + subscription.addons_amount
+        if subscription.billing_cycle == TenantSubscription.BillingCycle.ANNUAL:
+            amount /= Decimal("12")
+        currency = (
+            getattr(subscription.billing_account, "currency_code", "") or "USD"
+        ).upper()
+        monthly_by_currency[currency] += amount
+        if (
+            subscription.status == TenantSubscription.Status.TRIALING
+            and subscription.trial_end_date
+            and today <= subscription.trial_end_date <= trial_cutoff
+        ):
+            trial_expiring += 1
+        metadata = (
+            subscription.metadata if isinstance(subscription.metadata, dict) else {}
+        )
+        try:
+            dunning_attempts = int(metadata.get("dunning_attempts") or 0)
+        except (TypeError, ValueError):
+            dunning_attempts = 0
+        if dunning_attempts >= 3:
+            dunning_failed += 1
+
+    revenue = {
+        currency: f"{amount.quantize(Decimal('0.01'))}"
+        for currency, amount in sorted(monthly_by_currency.items())
+    }
     return _ok({
         "surface": "billing_summary",
         "panels": [
-            {"slug": "active_subscriptions", "label": "Active subscriptions",    "value": "see /billing/subscriptions/"},
-            {"slug": "monthly_revenue",      "label": "Monthly revenue (USD)",   "value": "see /billing/revenue/"},
-            {"slug": "trial_expiring_7d",    "label": "Trials expiring in 7d",   "value": "see /billing/trials/"},
-            {"slug": "dunning_failed_3plus", "label": "Dunning attempts ≥3",     "value": "see /billing/dunning/"},
+            {"slug": "active_subscriptions", "label": "Active subscriptions", "value": len(subscriptions)},
+            {"slug": "monthly_revenue", "label": "Monthly recurring revenue", "value": revenue},
+            {"slug": "trial_expiring_7d", "label": "Trials expiring in 7d", "value": trial_expiring},
+            {"slug": "dunning_failed_3plus", "label": "Dunning attempts >=3", "value": dunning_failed},
         ],
-        "note": "v4.00.91 W1 A13 scaffold — billing app integration deferred to Wave 2",
+        "active_subscription_count": len(subscriptions),
+        "monthly_revenue_by_currency": revenue,
+        "trial_expiring_7d_count": trial_expiring,
+        "dunning_failed_3plus_count": dunning_failed,
     })
 
 

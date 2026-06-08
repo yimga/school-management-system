@@ -607,6 +607,29 @@ def _iter_enrollments() -> Iterable[dict[str, Any]]:
         except Exception as exc:  # noqa: BLE001
             logger.debug("oneroster enrollments: %s.%s not iterable: %s", module_path, class_name, exc)
             continue
+    try:
+        from apps.people.models import StudentProfile
+
+        qs = StudentProfile.objects.filter(  # tenant-isolation-allow: roster-cross-tenant-explicit-platform-scope
+            user__isnull=False,
+            classroom__isnull=False,
+            is_active=True,
+        ).select_related("user", "classroom", "school")
+        for student in qs[:1000]:
+            yield {
+                "sourcedId": f"student-profile-{student.pk}",
+                "status": "active",
+                "role": "student",
+                "userSourcedId": str(student.user_id),
+                "classSourcedId": str(student.classroom_id),
+                "schoolSourcedId": str(student.school_id or ""),
+                "beginDate": (
+                    student.joined_date.isoformat() if student.joined_date else ""
+                ),
+                "endDate": "",
+            }
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("oneroster enrollments: student profile fallback failed: %s", exc)
 
 
 def _iter_enrollments_with_window(request: HttpRequest):

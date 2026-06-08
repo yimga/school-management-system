@@ -19,6 +19,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Iterable
 
+from django.core.cache import cache
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 
@@ -207,6 +208,45 @@ def _bulk_write_response(
     )
 
 
+def _bulk_idempotency(
+    request: HttpRequest,
+    *,
+    operation: str,
+) -> tuple[str, dict[str, Any] | None, JsonResponse | None]:
+    key = request.META.get("HTTP_IDEMPOTENCY_KEY", "").strip()[:200]
+    if not key:
+        return "", None, JsonResponse(
+            {"error": "missing_idempotency_key"},
+            status=428,
+        )
+    digest = hashlib.sha256(request.body or b"").hexdigest()
+    cache_key = f"oneroster:w1-bulk:{operation}:{key}"
+    cached = cache.get(cache_key)
+    if isinstance(cached, dict):
+        if cached.get("digest") != digest:
+            return key, None, JsonResponse(
+                {"error": "idempotency_key_payload_mismatch"},
+                status=409,
+            )
+        return key, cached, None
+    return key, {"cache_key": cache_key, "digest": digest}, None
+
+
+def _persist_bulk_idempotency(
+    state: dict[str, Any],
+    response: JsonResponse,
+) -> None:
+    cache.set(
+        state["cache_key"],
+        {
+            "digest": state["digest"],
+            "body": json.loads(response.content),
+            "status": response.status_code,
+        },
+        timeout=60 * 60 * 24,
+    )
+
+
 @require_POST
 @track_workflow(
     "oneroster_classes_bulk_post",
@@ -223,11 +263,23 @@ def classes_bulk_post(request: HttpRequest) -> HttpResponse:
     rows, err = _bulk_post_payload(request)
     if err is not None:
         return err
-    return _bulk_write_response(
+    _, state, idem_error = _bulk_idempotency(
+        request,
+        operation="classes_bulk_post",
+    )
+    if idem_error is not None:
+        return idem_error
+    if state and "body" in state:
+        response = JsonResponse(state["body"], status=int(state["status"]))
+        response["Idempotency-Replay"] = "true"
+        return response
+    response = _bulk_write_response(
         operation="classes_bulk_post",
         rows=rows,
         upsert=_upsert_class,
     )
+    _persist_bulk_idempotency(state or {}, response)
+    return response
 
 
 @require_POST
@@ -246,11 +298,23 @@ def enrollments_bulk_post(request: HttpRequest) -> HttpResponse:
     rows, err = _bulk_post_payload(request)
     if err is not None:
         return err
-    return _bulk_write_response(
+    _, state, idem_error = _bulk_idempotency(
+        request,
+        operation="enrollments_bulk_post",
+    )
+    if idem_error is not None:
+        return idem_error
+    if state and "body" in state:
+        response = JsonResponse(state["body"], status=int(state["status"]))
+        response["Idempotency-Replay"] = "true"
+        return response
+    response = _bulk_write_response(
         operation="enrollments_bulk_post",
         rows=rows,
         upsert=_upsert_enrollment,
     )
+    _persist_bulk_idempotency(state or {}, response)
+    return response
 
 
 # ============================================================================

@@ -32,6 +32,7 @@ import threading
 import uuid
 from typing import Any, Callable
 
+from django.core.exceptions import ValidationError
 from django.core.cache import cache
 from django.db import transaction
 from django.http import HttpRequest, JsonResponse
@@ -347,11 +348,20 @@ def _upsert_class(sourced_id: str, body: dict[str, Any]) -> tuple[dict[str, Any]
             "department": department,
         }
         if course_code:
-            obj, created = Classroom.objects.get_or_create(  # tenant-isolation-allow: roster-write-classroom-keyed-by-school-and-code
+            obj = Classroom.objects.filter(  # tenant-isolation-allow: roster-write-classroom-keyed-by-school-and-code
                 school=school,
                 code=course_code,
-                defaults=defaults,
-            )
+            ).first()
+            created = obj is None
+            if obj is None:
+                storage_code = course_code
+                if Classroom.objects.filter(code=course_code).exists():
+                    storage_code = f"{school.slug}-{course_code}"[:30]
+                obj, created = Classroom.objects.get_or_create(
+                    school=school,
+                    code=storage_code,
+                    defaults=defaults,
+                )
         else:
             obj, created = Classroom.objects.get_or_create(  # tenant-isolation-allow: roster-write-classroom-keyed-by-school-and-name
                 school=school,
@@ -366,9 +376,6 @@ def _upsert_class(sourced_id: str, body: dict[str, Any]) -> tuple[dict[str, Any]
         if obj.name != title:
             obj.name = title
             changed = True
-        if course_code and obj.code != course_code:
-            obj.code = course_code
-            changed = True
         if changed:
             obj.save(update_fields=[f for f in ("name", "code") if hasattr(obj, f)])
 
@@ -377,7 +384,7 @@ def _upsert_class(sourced_id: str, body: dict[str, Any]) -> tuple[dict[str, Any]
             "sourcedId": str(obj.pk),
             "status": "active",
             "title": obj.name,
-            "classCode": getattr(obj, "code", ""),
+            "classCode": course_code or getattr(obj, "code", ""),
             "school": school.slug,
         }
     }
@@ -403,11 +410,17 @@ def _upsert_enrollment(
         return {"error": "missing_user_or_class_sourced_id"}, 400
 
     User = get_user_model()
-    user = User.objects.filter(pk=user_sourced_id).first()  # tenant-isolation-allow: roster-write-explicit-user-sourced-id
-    classroom = Classroom.objects.filter(pk=class_sourced_id).select_related(  # tenant-isolation-allow: roster-write-explicit-class-sourced-id
-        "school",
-        "academic_year",
-    ).first()
+    try:
+        user = User.objects.filter(pk=user_sourced_id).first()  # tenant-isolation-allow: roster-write-explicit-user-sourced-id
+    except (TypeError, ValueError, ValidationError):
+        user = None
+    try:
+        classroom = Classroom.objects.filter(pk=class_sourced_id).select_related(  # tenant-isolation-allow: roster-write-explicit-class-sourced-id
+            "school",
+            "academic_year",
+        ).first()
+    except (TypeError, ValueError, ValidationError):
+        classroom = None
     if user is None:
         return {"error": "user_not_found"}, 404
     if classroom is None:
@@ -424,14 +437,18 @@ def _upsert_enrollment(
         return {"error": "tenant_mismatch"}, 409
 
     previous_classroom_id = student.classroom_id
+    is_delete = str(body.get("status") or "active").lower() == "tobedeleted"
     changed_fields: list[str] = []
-    if student.classroom_id != classroom.pk:
+    if is_delete and student.classroom_id == classroom.pk:
+        student.classroom = None
+        changed_fields.append("classroom")
+    elif not is_delete and student.classroom_id != classroom.pk:
         student.classroom = classroom
         changed_fields.append("classroom")
-    if student.school_id is None and classroom.school_id is not None:
+    if not is_delete and student.school_id is None and classroom.school_id is not None:
         student.school_id = classroom.school_id
         changed_fields.append("school")
-    if student.academic_year_id != classroom.academic_year_id:
+    if not is_delete and student.academic_year_id != classroom.academic_year_id:
         student.academic_year_id = classroom.academic_year_id
         changed_fields.append("academic_year")
     if changed_fields:
@@ -440,11 +457,7 @@ def _upsert_enrollment(
     payload = {
         "enrollment": {
             "sourcedId": sourced_id or f"student-profile-{student.pk}",
-            "status": (
-                "active"
-                if str(body.get("status") or "active").lower() != "tobedeleted"
-                else "tobedeleted"
-            ),
+            "status": "tobedeleted" if is_delete else "active",
             "role": "student",
             "userSourcedId": str(user.pk),
             "classSourcedId": str(classroom.pk),

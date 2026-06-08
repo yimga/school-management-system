@@ -7,12 +7,10 @@ Classmates currently online — initials only, never full names.
 Configurability:
   cockpit.realtime_presence:
     enabled, title, online_count, total_count,
-    presence: [{initials, online, tone}],
-    a8_wire_pending  # websocket presence channel deferred to A8
+    presence: [{initials, online, tone}]
 {% endcomment %}
 {% if cockpit.realtime_presence.enabled %}
 {% with rp=cockpit.realtime_presence %}
-{% comment %} a8-wire-pending: websocket presence channel {% endcomment %}
 <section class="tp-presence" aria-label="{{ rp.title }}" data-rmc-tp-presence data-rmc-cockpit-section="realtime_presence">
   <header class="tp-presence__head">
     <h3 class="tp-presence__title">{{ rp.title|default:_("Classmates online") }}</h3>
