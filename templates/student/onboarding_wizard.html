@@ -7,7 +7,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="wizard-container">
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div data-rmc-scroll-policy="paginate" class="wizard-container">
   <div class="mb-4">
     <h1 class="mb-1">Student Pre-Registration</h1>
     <div class="text-muted">Complete your registration in a few simple steps.</div>

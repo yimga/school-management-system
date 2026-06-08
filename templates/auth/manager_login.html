@@ -18,8 +18,12 @@
 {% block cp_shell_sidebar %}{% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="manager-login-landing cp-surface cp-ultra-login" id="cp-main-content" role="main" aria-label="{% trans 'Control plane sign-in' %}">
-  <div class="manager-login-landing__stage">
+  <div data-rmc-scroll-policy="paginate" class="manager-login-landing__stage">
     <section class="manager-login-landing__signin" aria-labelledby="manager-login-heading">
       <div class="container py-3 py-md-4 mx-auto cp-login-container">
         <div class="manager-login-hero mx-auto">

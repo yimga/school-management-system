@@ -189,6 +189,12 @@ def main(argv: list[str] | None = None) -> int:
         ("templates/people/employer_dashboard.html", "next_action_strip"),
         ("templates/social_media/proud_campus_feed.html", "next_action_strip"),
         ("templates/compliance/dashboard.html", "data-page-critical-read"),
+        ("templates/studio_os/shell.html", "next_action_strip"),
+        ("templates/studio_os/modes/launch.html", "next_action_strip"),
+        ("templates/studio_os/shell_control_plane.html", "next_action_strip"),
+        ("templates/auth/login.html", "next_action_strip"),
+        ("templates/student/learning_home.html", "next_action_strip"),
+        ("templates/student/workflow_center.html", "data-page-critical-read"),
     ):
         if needle not in _read(rel):
             errors.append(f"{rel} missing {needle}")

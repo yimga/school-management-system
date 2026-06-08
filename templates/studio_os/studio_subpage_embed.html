@@ -4,6 +4,10 @@
 {% block title %}{{ studio_embed_title }}{% endblock %}
 
 {% block studio_embed_content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ studio_embed_title }}</h1>
   {% include studio_subpage_canvas_partial %}
 {% endblock %}

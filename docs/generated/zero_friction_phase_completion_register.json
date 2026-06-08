@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-08T23:46:38.319231+00:00",
+  "generated_at": "2026-06-08T23:48:05.757287+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASES-0-8",
   "summary": {
     "phases_total": 9,
@@ -9,7 +9,7 @@
     "not_done": 0,
     "repo_scope_complete": true
   },
-  "service_worker_version": "sms-v4.03.24-people-compliance-social-wave20-2026-06-08",
+  "service_worker_version": "sms-v4.03.25-studio-auth-student-wave21-2026-06-08",
   "phases": [
     {
       "phase": 0,
@@ -98,7 +98,7 @@
       "status": "PARTIAL",
       "proof_verifier": "verify_zero_friction_journeys.py",
       "evidence": {
-        "high_friction_template_count": 1249,
+        "high_friction_template_count": 1235,
         "burndown_templates_with_5col": 198,
         "top_route_head": "templates/academics/syllabus_approval_queue.html",
         "p0_templates_burndown": true,
@@ -117,10 +117,11 @@
         "finance_analytics_siteconfig_wave17_burndown": true,
         "migration_schoolops_accounts_wave18_burndown": true,
         "schools_platform_student360_wave19_burndown": true,
-        "people_compliance_social_wave20_burndown": true
+        "people_compliance_social_wave20_burndown": true,
+        "studio_auth_student_wave21_burndown": true
       },
       "residual": [
-        "1249 templates still above friction threshold (incremental ledger burndown)"
+        "1235 templates still above friction threshold (incremental ledger burndown)"
       ]
     },
     {

@@ -388,6 +388,16 @@ def build_register() -> dict:
                         "templates/social_media/proud_campus_feed.html",
                     )
                 ),
+                "studio_auth_student_wave21_burndown": all(
+                    "next_action_strip" in _read(rel)
+                    for rel in (
+                        "templates/studio_os/shell.html",
+                        "templates/studio_os/modes/launch.html",
+                        "templates/studio_os/shell_control_plane.html",
+                        "templates/auth/login.html",
+                        "templates/student/learning_home.html",
+                    )
+                ),
             },
             "residual": [
                 f"{ledger.get('high_friction_count', '?')} templates still above friction threshold (incremental ledger burndown)",

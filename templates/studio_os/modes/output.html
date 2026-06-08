@@ -8,8 +8,12 @@
 {% endblock %}
 
 {% block studio_canvas %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section data-page-archetype="studio-os-output" aria-labelledby="studio-output-hero">
-  <div id="studio-output-hero">
+  <div data-rmc-scroll-policy="paginate" id="studio-output-hero">
     {% include "studio_os/partials/mode_hero_shell.html" %}
   </div>
   {% include "studio_os/partials/studio_guidance_panel.html" %}

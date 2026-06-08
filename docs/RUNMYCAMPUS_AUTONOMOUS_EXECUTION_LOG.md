@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Zero-Friction wave 21 studio_os/auth/student (2026-06-08)
+
+**A. Scope:** Studio OS shells/modes, tenant auth landings, student portal pages (follow-up to wave 20).
+
+**B. Shipped:** `codemod_zero_friction_wave21_studio_auth_student.py` (18 templates); `studio_canvas` block support; ledger **1249→1235** high-friction count.
+
+**C. Proof:** **ZERO_FRICTION_JOURNEYS_PASS**; SW **`sms-v4.03.25-studio-auth-student-wave21-2026-06-08`**.
+
+**D. Honest:** Phase 6 still PARTIAL (~1,235); studio_os partials/subpages + academics/dashboard root templates next.
+
 ## Slice - Zero-Friction wave 20 people/compliance/social_media (2026-06-08)
 
 **A. Scope:** Compliance dashboards, employer portal, proud-campus feed (follow-up to wave 19; people roster backends already wave 15).

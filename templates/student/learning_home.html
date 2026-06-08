@@ -13,13 +13,17 @@
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 {% endblock %}
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% include "partials/tenant/hero_greeting.html" %}
 {% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings.
 
    v3.58.x Wave 10 Agent T (2026-05-22): each cockpit section wrapped in the collapsable
    primitive so students can fold sections they don't need. State persists per-section
    via localStorage. Inner partials keep their cockpit.<section>.enabled self-gate. {% endcomment %}
-<div class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="student">
+<div data-rmc-scroll-policy="paginate" class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="student">
   {% comment %} v3.59.x Wave A (2026-05-22): year-progress strip sits above the cockpit sections per v3 100x preview. {% endcomment %}
   {% include "partials/cockpit/_year_progress.html" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Today snapshot") key="student__today_snapshot" include_partial="partials/cockpit/_today_snapshot.html" chrome="section" %}

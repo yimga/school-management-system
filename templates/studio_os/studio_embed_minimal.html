@@ -17,7 +17,11 @@
 </head>
 <body class="studio-embed-body">
   <main id="studio-embed-main" class="studio-embed-main" role="main" tabindex="-1">
-    {% block studio_embed_content %}{% endblock %}
+    {% block studio_embed_content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+{% endblock %}
   </main>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
   <script src="{% static 'js/rmc-scroll-container.js' %}"></script>
