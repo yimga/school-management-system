@@ -78,6 +78,7 @@ from apps.schools.section8_views import (
 from apps.schools.signup_views import (
     signup_school,
     verify_signup,
+    resend_signup_verification,
     api_trial_school,
     onboarding_wizard,
     onboard_migration_handoff,
@@ -1163,6 +1164,11 @@ urlpatterns = [
     path("onboard/migrate/", onboard_migration_handoff, name="onboard_migration_handoff"),
     path("onboard/migrate/start/", onboard_migration_start, name="onboard_migration_start"),
     path("signup/", signup_school, name="signup_school"),
+    path(
+        "verify-signup/resend/",
+        resend_signup_verification,
+        name="resend_signup_verification",
+    ),
     path("verify-signup/", verify_signup, name="verify_signup"),
     path("verify/<str:token>/", verify_student_id, name="verify_student_id"),
     path(

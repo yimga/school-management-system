@@ -20,6 +20,18 @@ class ResendVerificationTests(TestCase):
     def setUp(self):
         cache.clear()  # cooldown/daily-cap counters are cache-backed
 
+    def test_public_urlconf_exposes_resend_and_verify_signup_error_page(self):
+        """runmycampus.com uses config.public_urls — verify-signup must reverse resend."""
+        from django.urls import reverse
+
+        reverse("resend_signup_verification", urlconf="config.public_urls")
+        with self.settings(ROOT_URLCONF="config.public_urls"):
+            resp = self.client.get(
+                reverse("verify_signup") + "?token=00000000-0000-0000-0000-000000000000"
+            )
+        self.assertEqual(resp.status_code, 400)
+        self.assertContains(resp, "Resend my verification link", status_code=400)
+
     def _pending(self, email="owner@cedar.test", expired=False):
         school = School.objects.create(
             name="Cedar School",
