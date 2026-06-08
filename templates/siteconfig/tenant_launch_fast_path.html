@@ -2,7 +2,11 @@
 {% load i18n static %}
 {% block title %}{% trans "Fast path to launch" %}{% endblock %}
 {% block content %}
-<div class="container py-3 rmc-iso-wizard-shell" style="max-width: 48rem;"
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div data-rmc-scroll-policy="paginate" class="container py-3 rmc-iso-wizard-shell" style="max-width: 48rem;"
      data-rmc-isomorphic-wizard="1"
      data-rmc-launch-fast-path="1">
   <header class="mb-4">

@@ -10,7 +10,11 @@
 {% endblock %}
 
 {% block content %}
-<div data-page-header="billing-plan-readonly">
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div data-rmc-scroll-policy="paginate" data-page-header="billing-plan-readonly">
   <nav class="ds-action-bar d-flex flex-wrap gap-2 mb-2" role="toolbar" aria-label="{% trans 'Page actions' %}">
     <a href="{% url 'configuration:center' %}" class="btn btn-sm btn-outline-secondary ds-btn">{% trans "Configuration center" %}</a>
   </nav>

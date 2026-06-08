@@ -5,8 +5,10 @@
 {% load region_format phase8_tags %}
 {% block title %}At-Risk Dashboard{% endblock %}
 {% block content %}
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">At-Risk Dashboard</h1>
-<div class="container-fluid" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
+<div class="container-fluid" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% phase8_dashboard_declaration "analytics/at_risk_dashboard.html" %}
   {% url 'analytics:dashboard' as back_url %}
   {% include "studio_os/components/page_header.html" with title=_("At-Risk Dashboard") subtitle=_("Risk score 0–100: Red 80+, Amber 50–79, Green 0–49. Run nightly task to refresh scores.") action_url=back_url action_text=_("Back to Analytics") %}

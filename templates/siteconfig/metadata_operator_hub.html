@@ -26,7 +26,9 @@
 </div>
 {% endblock %}
 {% block cp_content %}
-<div class="container-fluid py-3" data-page-archetype="operator-hub" data-shell-surface="metadata-lineage-operator-hub">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-3" data-page-archetype="operator-hub" data-shell-surface="metadata-lineage-operator-hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <h1 class="h4 mb-2">{% trans "Metadata & lineage" %}</h1>
   <p class="small mb-3">
     {% trans "Read-first operator entry: search governance, open lineage, then use the entity table or full platform catalog. Django admin remains for row CRUD and deep audit when needed." %}

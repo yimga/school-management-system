@@ -5,6 +5,10 @@
 {% block title %}{% trans "Portal preferences" %} - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% trans "Per-user appearance and portal defaults for this account. Changes apply on your next page load." as prefs_shell_banner_body %}
 {% include "partials/shell_chrome_contextual_info_banner.html" with chrome_banner_title="Portal preferences" chrome_banner_body=prefs_shell_banner_body %}
 {% include "siteconfig/partials/user_preferences_body.html" %}

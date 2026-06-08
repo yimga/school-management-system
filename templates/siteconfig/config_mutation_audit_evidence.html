@@ -24,7 +24,9 @@
 </div>
 {% endblock %}
 {% block cp_content %}
-<div class="container-fluid py-3 ui-premium-surface" data-page-archetype="operator-report" data-shell-surface="config-mutation-audit-evidence" data-cp-evidence-surface="config-mutation-audit" data-rmc-operator-evidence-surface="1" data-admin-replacement-category="audit_rollback_staging_evidence" data-rmc-component-audit="1" data-rmc-scroll-policy="paginate">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-3 ui-premium-surface" data-page-archetype="operator-report" data-shell-surface="config-mutation-audit-evidence" data-cp-evidence-surface="config-mutation-audit" data-rmc-operator-evidence-surface="1" data-admin-replacement-category="audit_rollback_staging_evidence" data-rmc-component-audit="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <h1 class="h4 mb-2">{% trans "Config mutation audit (evidence)" %}</h1>
   <p class="small mb-3">
     {% trans "Read-only view of the latest config mutation log rows. Use Django admin for row-level changes or deep filters." %}

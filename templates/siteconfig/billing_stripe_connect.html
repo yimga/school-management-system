@@ -4,6 +4,10 @@
 {% block title %}{% trans "Stripe Connect" %} — {% trans "School payouts" %}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main id="main-content" class="rmc-page-stack" data-rmc-scroll-policy="paginate">
   <header class="rmc-page-header">
     <nav class="mb-2">

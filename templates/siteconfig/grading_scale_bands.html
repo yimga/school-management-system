@@ -6,13 +6,15 @@
 {% block backend_title %}{% trans "Grading scale bands" %}{% endblock %}
 
 {% block backend_page %}
+{% include "components/next_action_strip.html" %}
+
   <div
     class="container-fluid py-2"
     data-page-archetype="operational-workbench" data-rmc-operational-workbench="1"
     data-shell-surface="grading-scale-bands"
     data-cp-evidence-surface="grading-scale-bands"
     data-rmc-grading-scale-bands="1"
-   data-rmc-scroll-policy="paginate">
+   data-rmc-scroll-policy="paginate" data-page-critical-read="1">
     <div class="card shadow-sm mb-3">
       <div class="card-body">
         <h1 class="h5 mb-2">{% trans "Effective DB grading scale" %}</h1>

@@ -4,8 +4,10 @@
 {% block title %}{% trans "Package rollback" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Installed metadata packages" %}{% endblock %}
 {% block backend_page %}
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Package rollback" %} — {{ school.name }}</h1>
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <div class="alert alert-light border mb-3" data-phase9-pack-staged-rollout>
     <div class="small fw-semibold mb-1">{% trans "Staged rollout & rollback rules" %}</div>
     <ul class="small mb-2 ps-3">

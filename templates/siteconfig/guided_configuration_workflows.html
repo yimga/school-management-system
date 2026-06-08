@@ -4,5 +4,9 @@
 {% block title %}{% trans "Guided configuration" %}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% include "siteconfig/partials/guided_configuration_workflows_body.html" %}
 {% endblock %}

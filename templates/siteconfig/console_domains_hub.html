@@ -5,10 +5,14 @@
 {% block title %}{% trans "Configuration Control Center" %}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% include "partials/help_module_inline_assistant.html" %}
 {% phase8_dashboard_declaration "siteconfig/console_domains_hub.html" %}
 <span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
-<div data-page-header="configuration-control-center">
+<div data-rmc-scroll-policy="paginate" data-page-header="configuration-control-center">
   <nav class="ds-action-bar visually-hidden" aria-hidden="true" data-rmc-action-bar-delegated="1"></nav>
   {% include "siteconfig/partials/console_domains_hub_body.html" %}
 </div>

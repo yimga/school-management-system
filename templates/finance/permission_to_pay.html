@@ -2,7 +2,9 @@
 {% load i18n %}
 {% block title %}{% trans "Permission to pay" %}{% endblock %}
 {% block content %}
-<div class="container-fluid py-3">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-3" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <h1 class="h4">{% trans "Permission to pay" %}</h1>
   <p class="text-muted">
     {% trans "Bundles event permission and payment authorisation into a single workflow. Amounts at or above the per-tenant threshold require guardian approval before payment can be authorised." %}

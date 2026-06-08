@@ -331,9 +331,10 @@ class ModuleAccessMiddleware:
         return "text/html" in accept or "*/*" in accept
 
     def _is_bypass_path(self, path: str) -> bool:
-        if path in self.BYPASS_PATHS:
+        norm = (path or "").rstrip("/") or "/"
+        if norm in {(p or "").rstrip("/") or "/" for p in self.BYPASS_PATHS}:
             return True
-        return any(path.startswith(prefix) for prefix in self.BYPASS_PREFIXES)
+        return any(norm.startswith(prefix) for prefix in self.BYPASS_PREFIXES)
 
     # Fallback map for path prefixes when URL has no namespace/app_name (avoids bypassing module RBAC)
     PATH_PREFIX_TO_MODULE = (
@@ -635,12 +636,15 @@ class RequireMFAMiddleware:
 
     def __init__(self, get_response):
         self.get_response = get_response
+        self._bypass_paths_normalized = {
+            (p or "").rstrip("/") or "/" for p in self.BYPASS_PATHS
+        }
 
     def __call__(self, request):
         path = (request.path or "").rstrip("/") or "/"
         if (
             any(path.startswith(p) for p in self.BYPASS_PREFIXES)
-            or path in self.BYPASS_PATHS
+            or path in self._bypass_paths_normalized
         ):
             return self.get_response(request)
         # Allow MFA setup, verify, and passkey endpoints so user can complete setup

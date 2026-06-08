@@ -4,7 +4,9 @@
 {% block title %}{% trans "Tenant diagnostics" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid py-2" data-page="zero-ticket-hub">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-page="zero-ticket-hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <header class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
     <div>
       <h1 class="h3 mb-1">{% trans "Tenant Health & Diagnostic Canvas" %}</h1>

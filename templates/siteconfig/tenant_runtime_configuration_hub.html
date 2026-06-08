@@ -8,9 +8,13 @@
 {% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% phase8_dashboard_declaration "siteconfig/tenant_runtime_configuration_hub.html" %}
 <span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
-<div data-siteconfig-surface="tenant-runtime-hub" data-page-header="tenant-runtime-configuration">
+<div data-rmc-scroll-policy="paginate" data-siteconfig-surface="tenant-runtime-hub" data-page-header="tenant-runtime-configuration">
   <nav class="ds-action-bar d-flex flex-wrap gap-2 mb-2" role="toolbar" aria-label="{% trans 'Page actions' %}">
     {% if guided_configuration_url %}
     <a href="{{ guided_configuration_url }}" class="btn btn-sm btn-outline-primary ds-btn">{% trans "Guided configuration" %}</a>

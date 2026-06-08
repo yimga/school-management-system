@@ -7,6 +7,10 @@
 {% block body_extra_class %}theme-experience-full-width{% endblock %}
 
 {% block backend_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Theme & Experience" %} – {{ SITE.site_name|default:"Site" }}</h1>
 {% include "siteconfig/partials/theme_colors_page_body.html" %}
 {% endblock %}

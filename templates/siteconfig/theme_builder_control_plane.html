@@ -13,6 +13,10 @@
 {% block cp_workspace_header %}{% endblock %}
 
 {% block cp_content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
   <section class="container-fluid py-3" data-rmc-theme-builder="1" data-rmc-plane="platform" data-page-archetype="theme-builder">
     <header class="mb-3 rmc-reveal">
       <p class="small text-muted mb-1">
@@ -20,7 +24,7 @@
         <span class="mx-1" aria-hidden="true">/</span>
         {% trans "Visual builder" %}
       </p>
-      <div class="d-flex flex-wrap align-items-end justify-content-between gap-2">
+      <div data-rmc-scroll-policy="paginate" class="d-flex flex-wrap align-items-end justify-content-between gap-2">
         <div>
           <span class="badge text-bg-primary mb-2">{{ theme_builder_plane_label }}</span>
           <h1 class="h3 mb-1">{% trans "Theme builder" %}</h1>

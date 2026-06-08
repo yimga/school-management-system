@@ -4,5 +4,9 @@
 {% block title %}Automation builder{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% include "siteconfig/partials/school_automation_builder_body.html" %}
 {% endblock %}

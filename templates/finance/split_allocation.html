@@ -4,8 +4,10 @@
 {% block title %}Split payment allocation{% endblock %}
 
 {% block content %}
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Split payment allocation</h1>
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 {% url 'finance:payments' as finance_payments_url %}
 {% include "studio_os/components/page_header.html" with title="Split payment allocation" subtitle="Record one payment split across fee types (Tuition, Sports, Workshop, etc.)." action_url=finance_payments_url action_text="Back to Payments" %}
 

@@ -7,5 +7,9 @@
 <link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
 {% endblock %}
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% include "siteconfig/partials/report_templates_catalog_evidence_body.html" %}
 {% endblock %}

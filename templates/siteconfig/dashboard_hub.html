@@ -4,6 +4,10 @@
 {% block title %}{% trans "Configuration Center" %}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% phase8_dashboard_declaration "siteconfig/dashboard_hub.html" %}
 <span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
 {% include "siteconfig/partials/dashboard_hub_body.html" %}

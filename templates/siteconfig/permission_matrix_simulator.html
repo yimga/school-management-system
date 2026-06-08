@@ -4,7 +4,9 @@
 {% block title %}{% trans "Permission matrix simulator" %}{% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid py-2" data-page="permission-matrix-simulator" data-rmc-scroll-policy="paginate">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-page="permission-matrix-simulator" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <header class="mb-4">
     <h1 class="h3 mb-1">{% trans "Permission Matrix Simulator" %}</h1>
     <p class="text-secondary mb-0">{% trans "Select a role profile to see why each capability is visible or hidden, before changing live access." %}</p>

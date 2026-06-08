@@ -9,7 +9,9 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2 hub-page professional-page">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2 hub-page professional-page" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% if backend_url %}
   <p class="mb-3">
     <a href="{{ backend_url }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Back to backend" %}</a>

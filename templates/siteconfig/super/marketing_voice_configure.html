@@ -26,7 +26,9 @@ Mirrors the Wave 13 CountryRegistry admin change_form side-by-side layout
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-3" data-page-archetype="configuration-form" data-rmc-page="marketing-voice-configure">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-3" data-page-archetype="configuration-form" data-rmc-page="marketing-voice-configure" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <header class="mb-4 pb-3 border-bottom">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
       <div>

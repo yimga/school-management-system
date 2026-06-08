@@ -156,6 +156,16 @@ def main(argv: list[str] | None = None) -> int:
         ("templates/portal/signature_requests_manage.html", "next_action_strip"),
         ("templates/portal/kb_home.html", "data-page-critical-read"),
         ("templates/evals/evaluation_admin.html", "data-page-critical-read"),
+        ("templates/finance/payments.html", "next_action_strip"),
+        ("templates/finance/invoices.html", "next_action_strip"),
+        ("templates/finance/dashboard.html", "next_action_strip"),
+        ("templates/analytics/dashboard.html", "next_action_strip"),
+        ("templates/analytics/at_risk_dashboard.html", "next_action_strip"),
+        ("templates/siteconfig/sync_center.html", "next_action_strip"),
+        ("templates/siteconfig/entity_catalog_overview.html", "next_action_strip"),
+        ("templates/siteconfig/grading_scale_bands.html", "next_action_strip"),
+        ("templates/finance/payments.html", "data-page-critical-read"),
+        ("templates/siteconfig/metadata_dynamic_fields_operator.html", "next_action_strip"),
     ):
         if needle not in _read(rel):
             errors.append(f"{rel} missing {needle}")

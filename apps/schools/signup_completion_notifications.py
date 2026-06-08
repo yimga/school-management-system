@@ -199,6 +199,12 @@ def notify_tenant_signup_completed(
         state.pop("completed_dispatched_at", None)
         state.pop("completed_delivered_at", None)
         state.pop("completion_delivery_event_id", None)
+        for channel_key in (
+            "in_app_dispatched_at",
+            "sms_dispatched_at",
+            "web_push_dispatched_at",
+        ):
+            state.pop(channel_key, None)
         _save_notification_state(school, state)
 
     admin_user = admin_user or _resolve_admin_user(school, email)

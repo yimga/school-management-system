@@ -6,7 +6,8 @@ Pass 2 — Portal-ready email payload includes tenant_portal_url + account_ready
 Pass 3 — Active tenant subdomain resolves in middleware (not school-not-found).
 Pass 4 — Tenant-host membership guard blocks cross-tenant authenticated access.
 Pass 5 — Runtime integration: inactive→active + notification idempotency.
-Pass 6 — In-app inbox + SMS portal-ready channels wired.
+Pass 6 — In-app inbox + SMS + web push portal-ready channels wired.
+Pass 7 — First-visit corner toast + web-push nudge after subscribe.
 
 Usage:
   python scripts/verify_signup_production_readiness.py --strict
@@ -28,6 +29,7 @@ BASELINE = REPO_ROOT / "var" / "security-audit-baseline-signup-production-readin
 TASKS = REPO_ROOT / "apps" / "schools" / "tasks.py"
 NOTIFY = REPO_ROOT / "apps" / "schools" / "signup_completion_notifications.py"
 CHANNELS = REPO_ROOT / "apps" / "schools" / "signup_portal_channel_notifications.py"
+CORNER = REPO_ROOT / "apps" / "schools" / "portal_ready_corner_notifications.py"
 MIDDLEWARE = REPO_ROOT / "apps" / "schools" / "middleware.py"
 EMAIL_HTML = REPO_ROOT / "templates" / "emails" / "tenant_admin_signup_completed.html"
 ONBOARDING = REPO_ROOT / "apps" / "accounts" / "views_owner_onboarding.py"
@@ -347,6 +349,121 @@ def pass6_portal_ready_channels() -> list[dict[str, str]]:
     return findings
 
 
+def pass7_first_visit_corner_and_nudge() -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    if not CORNER.is_file():
+        findings.append(
+            _finding(
+                "pass7",
+                "portal_ready_corner_notifications_module_missing",
+                path="apps/schools/portal_ready_corner_notifications.py",
+            )
+        )
+        return findings
+    corner = CORNER.read_text(encoding="utf-8")
+    for needle in (
+        "portal_ready_corner_for_request",
+        "mark_portal_ready_corner_dismissed",
+        "nudge_portal_ready_web_push",
+        "PORTAL_READY_INBOX_TITLE",
+        "browser_notify",
+    ):
+        if needle not in corner:
+            findings.append(
+                _finding(
+                    "pass7",
+                    f"portal_corner_missing:{needle}",
+                    path="apps/schools/portal_ready_corner_notifications.py",
+                )
+            )
+
+    ctx = (REPO_ROOT / "apps" / "accounts" / "context_processors_security.py").read_text(
+        encoding="utf-8"
+    )
+    if "portal_ready_corner_for_request" not in ctx:
+        findings.append(
+            _finding(
+                "pass7",
+                "context_processor_must_merge_portal_ready_corner",
+                path="apps/accounts/context_processors_security.py",
+            )
+        )
+
+    security_views = (REPO_ROOT / "apps" / "accounts" / "views_security.py").read_text(
+        encoding="utf-8"
+    )
+    if "mark_portal_ready_corner_dismissed" not in security_views:
+        findings.append(
+            _finding(
+                "pass7",
+                "corner_dismiss_must_wire_in_views_security",
+                path="apps/accounts/views_security.py",
+            )
+        )
+
+    urls = (REPO_ROOT / "apps" / "accounts" / "urls.py").read_text(encoding="utf-8")
+    if "web_push_nudge_portal_ready" not in urls:
+        findings.append(
+            _finding(
+                "pass7",
+                "web_push_nudge_route_missing",
+                path="apps/accounts/urls.py",
+            )
+        )
+
+    portal_base = REPO_ROOT / "templates" / "portal_base.html"
+    if portal_base.is_file():
+        pb = portal_base.read_text(encoding="utf-8")
+        if "rmc_web_push_boot.html" not in pb:
+            findings.append(
+                _finding(
+                    "pass7",
+                    "portal_base_missing_web_push_boot",
+                    path="templates/portal_base.html",
+                )
+            )
+    else:
+        findings.append(
+            _finding("pass7", "portal_base_missing", path="templates/portal_base.html")
+        )
+
+    corner_js = REPO_ROOT / "static" / "js" / "rmc-notification-corner.js"
+    if corner_js.is_file():
+        js = corner_js.read_text(encoding="utf-8")
+        if "browser_notify" not in js:
+            findings.append(
+                _finding(
+                    "pass7",
+                    "notification_corner_missing_browser_notify",
+                    path="static/js/rmc-notification-corner.js",
+                )
+            )
+    else:
+        findings.append(
+            _finding(
+                "pass7",
+                "notification_corner_js_missing",
+                path="static/js/rmc-notification-corner.js",
+            )
+        )
+
+    notify = NOTIFY.read_text(encoding="utf-8")
+    for channel_key in (
+        "in_app_dispatched_at",
+        "sms_dispatched_at",
+        "web_push_dispatched_at",
+    ):
+        if channel_key not in notify:
+            findings.append(
+                _finding(
+                    "pass7",
+                    f"force_resend_must_clear:{channel_key}",
+                    path="apps/schools/signup_completion_notifications.py",
+                )
+            )
+    return findings
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--strict", action="store_true")
@@ -360,11 +477,12 @@ def main(argv: list[str] | None = None) -> int:
     findings.extend(pass4_tenant_membership_guard())
     findings.extend(pass5_runtime_integration())
     findings.extend(pass6_portal_ready_channels())
+    findings.extend(pass7_first_visit_corner_and_nudge())
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "finding_count": len(findings),
-        "passes": 6,
+        "passes": 7,
         "findings": findings,
     }
     if args.write_baseline:

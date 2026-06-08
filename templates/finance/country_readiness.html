@@ -4,6 +4,10 @@
 {% block title %}{% trans "Country readiness" %}{% endblock %}
 
 {% block cp_content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main id="main" class="container-fluid py-2" data-decision-engine="surface" data-rmc-page="country-readiness" data-page-archetype="operator-report" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "finance/country_readiness.html" %}
   <header class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">

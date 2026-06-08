@@ -27,7 +27,9 @@
 </div>
 {% endblock %}
 {% block cp_content %}
-<div class="container-fluid py-3" data-page-archetype="operator-report" data-shell-surface="metadata-dynamic-fields-operator" data-admin-replacement-category="metadata_dynamic_field_operator" data-rmc-scroll-policy="paginate">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-3" data-page-archetype="operator-report" data-shell-surface="metadata-dynamic-fields-operator" data-admin-replacement-category="metadata_dynamic_field_operator" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <h1 class="h4 mb-2">{% trans "Dynamic field definitions" %}</h1>
   <p class="small mb-2">
     {% trans "Read-only list of EAV / dynamic field definitions and aggregate value counts. Create and edit rows in Django admin; prefer this view for triage and coverage." %}

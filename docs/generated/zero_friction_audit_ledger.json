@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-08T23:36:29.130071+00:00",
+  "generated_at": "2026-06-08T23:41:39.599070+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASE-0",
   "role_passes": [
     "principal_architect",
@@ -30,7 +30,7 @@
     "table_columns_12_exceeds_5": 1
   },
   "high_friction_threshold": 20,
-  "high_friction_count": 1531,
+  "high_friction_count": 1461,
   "top_100_routes": [
     {
       "path": "templates/academics/syllabus_approval_queue.html",

@@ -3,8 +3,12 @@
 {% load i18n static %}
 {% block title %}{% trans "Insights Center — governed reports" %}{% endblock %}
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% csrf_token %}
-<div class="container-lg py-4" data-rmc-governed-report-builder="1" data-rmc-os-center="insights_builder" data-task="governed_report_export" data-task-step="analytics:governed-builder-page">
+<div data-rmc-scroll-policy="paginate" class="container-lg py-4" data-rmc-governed-report-builder="1" data-rmc-os-center="insights_builder" data-task="governed_report_export" data-task-step="analytics:governed-builder-page">
   {% trans "Insights" as gb_eyebrow %}
   {% trans "Allowlisted datasets only — ORM compilation, preview, save, export. No raw SQL." as gb_purpose %}
   {% include "components/rmc_os_page_header.html" with os_center_key="insights_builder" center_eyebrow=gb_eyebrow center_title=_("Insights Center — governed reports") center_purpose=gb_purpose %}

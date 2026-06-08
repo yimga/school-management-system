@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from unittest import mock
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.test import Client, TestCase, override_settings
@@ -74,7 +76,8 @@ class SignupOnboardingJourneyTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.assertIn("live-school.runmycampus.com", resp.url)
 
-    def test_onboarding_done_shows_wait_state_when_not_live(self):
+    @mock.patch("apps.accounts.views_owner_onboarding._kick_provisioning_on_done_page")
+    def test_onboarding_done_shows_wait_state_when_not_live(self, _kick_mock):
         user, school = _owner_with_school(active=False)
         self.client.force_login(
             user, backend="django.contrib.auth.backends.ModelBackend"
@@ -95,8 +98,9 @@ class SignupOnboardingJourneyTests(TestCase):
         url = reverse(
             "accounts:owner_onboarding_account", kwargs={"uidb64": uid, "token": token}
         )
-        r = Client(HTTP_HOST="runmycampus.com").get(url)
+        client = Client(HTTP_HOST="runmycampus.com")
+        r = client.get(url)
         self.assertEqual(r.status_code, 302)
-        r2 = Client(HTTP_HOST="runmycampus.com").get(r.url)
+        r2 = client.get(r.url)
         self.assertEqual(r2.status_code, 200)
         self.assertIn(b"Create a password", r2.content)

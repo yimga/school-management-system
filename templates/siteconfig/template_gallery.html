@@ -2,7 +2,9 @@
 {% load i18n static %}
 {% block title %}{% trans "Template gallery" %} | RunMyCampus{% endblock %}
 {% block backend_page %}
-<div class="container-fluid py-2">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <div class="d-flex align-items-center justify-content-between mb-4">
     <h1 class="h4 mb-0">{% trans "Template gallery" %}</h1>
     <a href="{{ theme_colors_url }}" class="btn btn-outline-primary btn-sm">{% trans "Theme & Experience" %}</a>

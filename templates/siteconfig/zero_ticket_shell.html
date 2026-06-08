@@ -4,7 +4,7 @@
 {% block cp_page_archetype %}diagnostic-workbench{% endblock %}
 
 {% block cp_shell_sidebar %}
-<div id="cp-sidebar-col" class="rmc-nav-sidebar__mount" data-shell-sidebar="{{ rmc_shell.shell_sidebar_control_plane|default:'control-plane' }}" data-shell-sidebar-mount="desktop">
+<div data-rmc-scroll-policy="paginate" id="cp-sidebar-col" class="rmc-nav-sidebar__mount" data-shell-sidebar="{{ rmc_shell.shell_sidebar_control_plane|default:'control-plane' }}" data-shell-sidebar-mount="desktop">
   {% include "partials/rmc_nav_sidebar_toolbar.html" %}
   <div class="cp-sidebar-inner cp-sidebar-inner--surface d-flex flex-column flex-grow-1 min-h-0 p-2">
     <nav class="cp-sidebar-nav cp-sidebar-nav--focused flex-grow-1 min-h-0 overflow-auto" id="cpSidebarNav" aria-label="{% trans 'Diagnostics navigation' %}" data-sidebar-nav="true" data-rmc-zero-ticket-nav="1">
@@ -55,5 +55,9 @@
 {% block rmc_zero_click_strip %}{% endblock %}
 
 {% block cp_content %}
-{% block backend_page %}{% endblock %}
+{% block backend_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+{% endblock %}
 {% endblock %}

@@ -2,7 +2,11 @@
 {% load i18n static %}
 {% block title %}{% trans "Event-scale analytics" %}{% endblock %}
 {% block content %}
-<div class="container-lg py-4">
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div data-rmc-scroll-policy="paginate" class="container-lg py-4">
   <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <div>
       <h1 class="h4 mb-0">{% trans "Event-scale analytics" %}</h1>

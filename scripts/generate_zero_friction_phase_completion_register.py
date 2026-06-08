@@ -339,6 +339,20 @@ def build_register() -> dict:
                         "templates/portal/signature_requests_manage.html",
                     )
                 ),
+                "finance_analytics_siteconfig_wave17_burndown": all(
+                    "next_action_strip" in _read(rel)
+                    for rel in (
+                        "templates/finance/payments.html",
+                        "templates/finance/invoices.html",
+                        "templates/finance/dashboard.html",
+                        "templates/analytics/dashboard.html",
+                        "templates/analytics/at_risk_dashboard.html",
+                        "templates/siteconfig/sync_center.html",
+                        "templates/siteconfig/entity_catalog_overview.html",
+                        "templates/siteconfig/grading_scale_bands.html",
+                        "templates/siteconfig/metadata_dynamic_fields_operator.html",
+                    )
+                ),
             },
             "residual": [
                 f"{ledger.get('high_friction_count', '?')} templates still above friction threshold (incremental ledger burndown)",

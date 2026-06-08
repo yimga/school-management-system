@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Zero-Friction wave 17 finance/analytics/siteconfig (2026-06-08)
+
+**A. Scope:** Finance payments/invoices, analytics dashboards, siteconfig operator hubs (follow-up to wave 16 portal/evals).
+
+**B. Shipped:** `codemod_zero_friction_wave17_finance_analytics_siteconfig.py` (114 templates); `cp_content` block support; ledger **1531→1461** high-friction count.
+
+**C. Proof:** **ZERO_FRICTION_JOURNEYS_PASS**; SW **`sms-v4.03.21-finance-analytics-siteconfig-wave17-2026-06-08`**.
+
+**D. Honest:** Phase 6 still PARTIAL (~1,461); migration_cloud/schoolops/accounts zones next.
+
 ## Slice - Zero-Friction wave 16 portal/evals zone (2026-06-08)
 
 **A. Scope:** Portal KB/support/signatures + evals grading friction burndown (follow-up to wave 15 backend zone).
