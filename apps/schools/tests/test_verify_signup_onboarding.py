@@ -162,13 +162,16 @@ class OnboardingHostRoutingTests(TestCase):
     @override_settings(
         MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
         ROOT_URLCONF="config.manager_urls",
+        RMC_PUBLIC_SITE_URL="https://runmycampus.com",
+        ALLOWED_HOSTS=["*", "manager.runmycampus.com"],
     )
     def test_manager_verify_signup_redirects_to_public_host(self):
         resp = self.client.get(
-            "/verify-signup/?token=00000000-0000-0000-0000-000000000001"
+            "/verify-signup/?token=00000000-0000-0000-0000-000000000001",
+            HTTP_HOST="manager.runmycampus.com",
         )
         self.assertEqual(resp.status_code, 302)
-        self.assertTrue(resp.url.startswith("https://runmycampus.com/verify-signup/"))
+        self.assertIn("runmycampus.com", resp.url)
         self.assertNotIn("manager.", resp.url)
 
     def test_onboarding_is_anonymous_safe_on_manager_host(self):

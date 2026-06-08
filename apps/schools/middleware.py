@@ -52,6 +52,17 @@ MANAGER_ONLY_PREFIXES = (
     "/siteconfig/",
     "/backend/",
 )
+# Tenant-facing auth + signup verify must stay on the public marketing host
+# (runmycampus.com). Redirecting these to manager.runmycampus.com sends new
+# school owners to the operator console — a critical RBAC boundary violation.
+PUBLIC_TENANT_AUTH_PREFIXES = (
+    "/authentication/login/",
+    "/authentication/logout/",
+    "/authentication/password_reset/",
+    "/authentication/reset/",
+    "/authentication/onboarding/",
+    "/verify-signup/",
+)
 MANAGER_AUTH_ALLOWED_PREFIXES = (
     "/authentication/login/",
     "/authentication/logout/",
@@ -75,6 +86,8 @@ MANAGER_HOST_ALLOWED_PREFIXES = (
     # does not redirect to "/"; ManagerTenantPrimarySurfaceBlockMiddleware then redirects
     # authenticated users to the control-plane dashboard.
     "/authentication/backend/",
+    "/verify-signup/",
+    "/signup/",
     "/help/",
     "/help-center/",
     "/feature-center/",
@@ -128,6 +141,8 @@ MANAGER_HOST_PUBLIC_ACCESS_PREFIXES = (
     # anonymously here too as defense-in-depth, so if the flow ever lands on the
     # manager host the control-plane gate doesn't force an operator login.
     "/authentication/onboarding/",
+    "/verify-signup/",
+    "/signup/",
     "/help/",
     "/help-center/",
     "/feature-center/",
@@ -366,13 +381,13 @@ def _path_allowed_for_reserved_host(
 
 def _is_manager_only_path(path: str) -> bool:
     path = (path or "").strip()
-    # First-run OWNER onboarding is a public, token-authed flow (set password +
-    # name → school → done). It must stay on the public site: if it were treated
-    # as manager-only, the base host would 302 it to manager.<base>, where the
-    # control-plane gate forces an operator login the brand-new owner can't pass
-    # (their base-host session doesn't cross hosts) — the reported dead-end.
-    if path.startswith("/authentication/onboarding/"):
-        return False
+    for prefix in PUBLIC_TENANT_AUTH_PREFIXES:
+        if (
+            path == prefix
+            or path.startswith(prefix.rstrip("/") + "/")
+            or path.startswith(prefix)
+        ):
+            return False
     for prefix in MANAGER_ONLY_PREFIXES:
         if (
             path == prefix
@@ -584,6 +599,10 @@ class ReservedPublicHostAccessMiddleware(MiddlewareMixin):
         if kind == "manager":
             if path in ("", "/"):
                 return None
+            if path.startswith("/verify-signup/") or path.startswith("/signup/"):
+                from apps.schools.provision_email_urls import build_public_site_url
+
+                return redirect(build_public_site_url(request.get_full_path()))
             if not _path_allowed_for_reserved_host(
                 path, allowed_prefixes=MANAGER_HOST_ALLOWED_PREFIXES
             ):

@@ -1505,6 +1505,16 @@ def verify_signup(request: HttpRequest):
         reset_broken_database_state,
     )
 
+    # Signup verify is public-host only; manager links must bounce to runmycampus.com.
+    try:
+        from apps.accounts.manager_login_next import request_is_manager_host
+        from apps.schools.provision_email_urls import build_public_site_url
+
+        if request_is_manager_host(request):
+            return redirect(build_public_site_url(request.get_full_path()))
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+
     token_str = (request.GET.get("token") or "").strip()
     if not token_str:
         return render(

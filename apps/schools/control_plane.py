@@ -40,6 +40,34 @@ def _operator_roles() -> frozenset[str]:
     return frozenset(part.strip().upper() for part in raw.split(",") if part.strip())
 
 
+def _user_has_active_operator_profile(user) -> bool:
+    try:
+        from apps.platform_runtime.models_operator_identity import (
+            PlatformOperatorProfile,
+        )
+
+        profile = PlatformOperatorProfile.objects.filter(user_id=user.pk).first()
+        return bool(
+            profile
+            and profile.status
+            in (
+                PlatformOperatorProfile.Status.ACTIVE,
+                PlatformOperatorProfile.Status.INVITED,
+            )
+        )
+    except (DatabaseError, ImportError, AttributeError, TypeError, ValueError):
+        return False
+
+
+def _user_has_tenant_membership(user) -> bool:
+    try:
+        from apps.schools.models import SchoolMembership
+
+        return SchoolMembership.objects.filter(user=user).exists()
+    except (DatabaseError, ImportError, AttributeError, TypeError, ValueError):
+        return False
+
+
 def user_has_control_plane_access(user) -> bool:
     """
     Return True only for platform operators.
@@ -49,30 +77,23 @@ def user_has_control_plane_access(user) -> bool:
 
     Operator-eligible identities:
       - Django superusers (``is_superuser=True``)
-      - Users whose role is in CONTROL_PLANE_OPERATOR_ROLES (env-driven; see
-        ``_operator_roles`` for the cascade).
-      - Users with an active ``PlatformOperatorProfile`` (invited/active tiers).
+      - Users with an active ``PlatformOperatorProfile`` (invited/active tiers)
+      - Users whose role is in CONTROL_PLANE_OPERATOR_ROLES **and who are not
+        tenant-scoped** (no ``SchoolMembership``). Self-service signup owners
+        carry ``ADMIN`` but are tenant staff — they must never pass via role
+        alone even when ``CONTROL_PLANE_OPERATOR_ROLES`` includes ``ADMIN``.
     """
     if not getattr(user, "is_authenticated", False):
         return False
     if getattr(user, "is_superuser", False):
         return True
+    if _user_has_active_operator_profile(user):
+        return True
+    if _user_has_tenant_membership(user):
+        return False
     role = (getattr(user, "role", "") or "").upper()
     if bool(role) and role in _operator_roles():
         return True
-    try:
-        from apps.platform_runtime.models_operator_identity import (
-            PlatformOperatorProfile,
-        )
-
-        profile = PlatformOperatorProfile.objects.filter(user_id=user.pk).first()
-        if profile and profile.status in (
-            PlatformOperatorProfile.Status.ACTIVE,
-            PlatformOperatorProfile.Status.INVITED,
-        ):
-            return True
-    except (DatabaseError, ImportError, AttributeError, TypeError, ValueError):
-        pass
     return False
 
 
