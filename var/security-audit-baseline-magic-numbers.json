@@ -97,7 +97,7 @@
   "excluded_path_fragments": [
     "management/commands/"
   ],
-  "finding_count": 874,
+  "finding_count": 884,
   "findings": [
     {
       "line": 123,
@@ -2470,6 +2470,12 @@
       "value": -12000
     },
     {
+      "line": 88,
+      "path": "apps/platform_runtime/pilot_defect_closure.py",
+      "snippet": "title=(title or \"\").strip()[:240],",
+      "value": 240
+    },
+    {
       "line": 277,
       "path": "apps/platform_runtime/platform_email_matrix.py",
       "snippet": "ttl = max(1, int(cooldown_minutes)) * 60 if cooldown_minutes else 3600",
@@ -2608,31 +2614,43 @@
       "value": 190
     },
     {
-      "line": 306,
+      "line": 358,
       "path": "apps/portal/admin_kb.py",
       "snippet": "size_kb = obj.file_size / 1024",
       "value": 1024
     },
     {
-      "line": 307,
+      "line": 359,
       "path": "apps/portal/admin_kb.py",
       "snippet": "if size_kb < 1024:",
       "value": 1024
     },
     {
-      "line": 309,
+      "line": 361,
       "path": "apps/portal/admin_kb.py",
       "snippet": "return f\"{size_kb / 1024:.1f} MB\"",
       "value": 1024
     },
     {
-      "line": 402,
+      "line": 380,
+      "path": "apps/portal/ai_provider.py",
+      "snippet": "return max(60, min(int(raw), 3600))",
+      "value": 3600
+    },
+    {
+      "line": 382,
+      "path": "apps/portal/ai_provider.py",
+      "snippet": "return 600",
+      "value": 600
+    },
+    {
+      "line": 436,
       "path": "apps/portal/ai_provider.py",
       "snippet": "f\"Request received: {query[:180]}\"",
       "value": 180
     },
     {
-      "line": 796,
+      "line": 850,
       "path": "apps/portal/ai_provider.py",
       "snippet": "f\"Support ticket \u2014 Subject: {subject[:200]}. Body: {body[:800]}.\\n\"",
       "value": 800
@@ -2708,6 +2726,18 @@
       "path": "apps/portal/kb_locale_ops.py",
       "snippet": "base_slug = slugify(canonical.slug or canonical.title)[:160] or f\"article-{canonical.pk}\"",
       "value": 160
+    },
+    {
+      "line": 288,
+      "path": "apps/portal/kb_office_service.py",
+      "snippet": "article_summary = (summary or plain[:280]).strip()",
+      "value": 280
+    },
+    {
+      "line": 335,
+      "path": "apps/portal/kb_office_service.py",
+      "snippet": "article_summary = (summary or plain[:280] or article.summary or \"\").strip()",
+      "value": 280
     },
     {
       "line": 253,
@@ -2920,10 +2950,22 @@
       "value": 180
     },
     {
-      "line": 649,
+      "line": 654,
       "path": "apps/portal/views_kb.py",
       "snippet": "articles.sort(key=lambda a: position.get(a.pk, 10_000))",
       "value": 10000
+    },
+    {
+      "line": 45,
+      "path": "apps/portal/views_kb_offline.py",
+      "snippet": "\"title\": (article.title or \"\")[:240],",
+      "value": 240
+    },
+    {
+      "line": 47,
+      "path": "apps/portal/views_kb_offline.py",
+      "snippet": "\"content\": (article.content or \"\")[:12000],",
+      "value": 12000
     },
     {
       "line": 32,
@@ -3928,313 +3970,253 @@
       "value": 600
     },
     {
-      "line": 495,
+      "line": 531,
       "path": "apps/siteconfig/cockpit_context.py",
       "snippet": "\"interval_ms\": 7000,",
       "value": 7000
     },
     {
-      "line": 197,
+      "line": 210,
       "path": "apps/siteconfig/cockpit_manager_200x.py",
       "snippet": "\"default_width\": 280,",
       "value": 280
     },
     {
-      "line": 199,
+      "line": 212,
       "path": "apps/siteconfig/cockpit_manager_200x.py",
       "snippet": "\"max_width\": 420,",
       "value": 420
     },
     {
-      "line": 97,
-      "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
-      "snippet": "{\"cx\": 180, \"cy\": 110, \"color_token\": \"var(--success, #22c55e)\", \"ring_color\": \"rgba(34,197,94,0.32)\", \"delay_s\": 0.0},",
-      "value": 110
-    },
-    {
-      "line": 97,
-      "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
-      "snippet": "{\"cx\": 180, \"cy\": 110, \"color_token\": \"var(--success, #22c55e)\", \"ring_color\": \"rgba(34,197,94,0.32)\", \"delay_s\": 0.0},",
-      "value": 180
-    },
-    {
-      "line": 98,
-      "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
-      "snippet": "{\"cx\": 280, \"cy\": 180, \"color_token\": \"var(--success, #22c55e)\", \"ring_color\": \"rgba(34,197,94,0.32)\", \"delay_s\": 0.4},",
-      "value": 180
-    },
-    {
-      "line": 98,
-      "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
-      "snippet": "{\"cx\": 280, \"cy\": 180, \"color_token\": \"var(--success, #22c55e)\", \"ring_color\": \"rgba(34,197,94,0.32)\", \"delay_s\": 0.4},",
-      "value": 280
-    },
-    {
-      "line": 99,
-      "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
-      "snippet": "{\"cx\": 350, \"cy\": 220, \"color_token\": \"var(--info, #60a5fa)\", \"ring_color\": \"rgba(96,165,250,0.32)\", \"delay_s\": 0.8},",
-      "value": 220
-    },
-    {
-      "line": 99,
-      "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
-      "snippet": "{\"cx\": 350, \"cy\": 220, \"color_token\": \"var(--info, #60a5fa)\", \"ring_color\": \"rgba(96,165,250,0.32)\", \"delay_s\": 0.8},",
-      "value": 350
-    },
-    {
-      "line": 100,
-      "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
-      "snippet": "{\"cx\": 470, \"cy\": 160, \"color_token\": \"var(--warning, #f59e0b)\", \"ring_color\": \"rgba(245,158,11,0.32)\", \"delay_s\": 1.2},",
-      "value": 160
-    },
-    {
-      "line": 100,
-      "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
-      "snippet": "{\"cx\": 470, \"cy\": 160, \"color_token\": \"var(--warning, #f59e0b)\", \"ring_color\": \"rgba(245,158,11,0.32)\", \"delay_s\": 1.2},",
-      "value": 470
-    },
-    {
-      "line": 101,
-      "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
-      "snippet": "{\"cx\": 560, \"cy\": 240, \"color_token\": \"var(--info, #60a5fa)\", \"ring_color\": \"rgba(96,165,250,0.32)\", \"delay_s\": 1.6},",
-      "value": 240
-    },
-    {
-      "line": 101,
-      "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
-      "snippet": "{\"cx\": 560, \"cy\": 240, \"color_token\": \"var(--info, #60a5fa)\", \"ring_color\": \"rgba(96,165,250,0.32)\", \"delay_s\": 1.6},",
-      "value": 560
-    },
-    {
-      "line": 142,
+      "line": 155,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 26], [140, 22], [160, 20], [180, 18], [200, 16], [220, 14], [240, 12]],",
       "value": 140
     },
     {
-      "line": 142,
+      "line": 155,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 26], [140, 22], [160, 20], [180, 18], [200, 16], [220, 14], [240, 12]],",
       "value": 160
     },
     {
-      "line": 142,
+      "line": 155,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 26], [140, 22], [160, 20], [180, 18], [200, 16], [220, 14], [240, 12]],",
       "value": 180
     },
     {
-      "line": 142,
+      "line": 155,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 26], [140, 22], [160, 20], [180, 18], [200, 16], [220, 14], [240, 12]],",
       "value": 220
     },
     {
-      "line": 142,
+      "line": 155,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 26], [140, 22], [160, 20], [180, 18], [200, 16], [220, 14], [240, 12]],",
       "value": 240
     },
     {
-      "line": 156,
+      "line": 169,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 32], [140, 30], [160, 26], [180, 22], [200, 20], [220, 18], [240, 16]],",
       "value": 140
     },
     {
-      "line": 156,
+      "line": 169,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 32], [140, 30], [160, 26], [180, 22], [200, 20], [220, 18], [240, 16]],",
       "value": 160
     },
     {
-      "line": 156,
+      "line": 169,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 32], [140, 30], [160, 26], [180, 22], [200, 20], [220, 18], [240, 16]],",
       "value": 180
     },
     {
-      "line": 156,
+      "line": 169,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 32], [140, 30], [160, 26], [180, 22], [200, 20], [220, 18], [240, 16]],",
       "value": 220
     },
     {
-      "line": 156,
+      "line": 169,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 32], [140, 30], [160, 26], [180, 22], [200, 20], [220, 18], [240, 16]],",
       "value": 240
     },
     {
-      "line": 170,
+      "line": 183,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 28], [140, 28], [160, 26], [180, 28], [200, 30], [220, 28], [240, 26]],",
       "value": 140
     },
     {
-      "line": 170,
+      "line": 183,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 28], [140, 28], [160, 26], [180, 28], [200, 30], [220, 28], [240, 26]],",
       "value": 160
     },
     {
-      "line": 170,
+      "line": 183,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 28], [140, 28], [160, 26], [180, 28], [200, 30], [220, 28], [240, 26]],",
       "value": 180
     },
     {
-      "line": 170,
+      "line": 183,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 28], [140, 28], [160, 26], [180, 28], [200, 30], [220, 28], [240, 26]],",
       "value": 220
     },
     {
-      "line": 170,
+      "line": 183,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 28], [140, 28], [160, 26], [180, 28], [200, 30], [220, 28], [240, 26]],",
       "value": 240
     },
     {
-      "line": 217,
+      "line": 230,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "base_actives = {\"healthy\": 1180, \"okay\": 540, \"warn\": 240, \"danger\": 90, \"idle\": 0}",
       "value": 240
     },
     {
-      "line": 217,
+      "line": 230,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "base_actives = {\"healthy\": 1180, \"okay\": 540, \"warn\": 240, \"danger\": 90, \"idle\": 0}",
       "value": 540
     },
     {
-      "line": 217,
+      "line": 230,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "base_actives = {\"healthy\": 1180, \"okay\": 540, \"warn\": 240, \"danger\": 90, \"idle\": 0}",
       "value": 1180
     },
     {
-      "line": 229,
+      "line": 242,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "offset = (i * 37) % 211",
       "value": 211
     },
     {
-      "line": 263,
+      "line": 276,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"slug\": \"start\", \"label\": _(\"Starting MRR\"), \"value\": \"$39.2k\", \"x\": 40, \"y\": 80, \"width\": 100, \"height\": 140, \"gradient_id\": \"lx-wf-anchor\", \"value_color\": \"var(--text-primary)\"},",
       "value": 140
     },
     {
-      "line": 265,
+      "line": 278,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"slug\": \"expansion\", \"label\": _(\"Expansion\"), \"value\": \"+$1.6k\", \"x\": 360, \"y\": 48, \"width\": 100, \"height\": 18, \"gradient_id\": \"lx-wf-up\", \"value_color\": \"var(--success, #22c55e)\"},",
       "value": 360
     },
     {
-      "line": 266,
+      "line": 279,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"slug\": \"churn\", \"label\": _(\"Churn\"), \"value\": \"-$2.5k\", \"x\": 520, \"y\": 66, \"width\": 100, \"height\": 32, \"gradient_id\": \"lx-wf-down\", \"value_color\": \"var(--danger, #ef4444)\"},",
       "value": 520
     },
     {
-      "line": 267,
+      "line": 280,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"slug\": \"end\", \"label\": _(\"Ending MRR\"), \"value\": \"$42.1k\", \"x\": 680, \"y\": 70, \"width\": 100, \"height\": 150, \"gradient_id\": \"lx-wf-anchor\", \"value_color\": \"var(--text-primary)\"},",
       "value": 150
     },
     {
-      "line": 267,
+      "line": 280,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"slug\": \"end\", \"label\": _(\"Ending MRR\"), \"value\": \"$42.1k\", \"x\": 680, \"y\": 70, \"width\": 100, \"height\": 150, \"gradient_id\": \"lx-wf-anchor\", \"value_color\": \"var(--text-primary)\"},",
       "value": 680
     },
     {
-      "line": 270,
+      "line": 283,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"x1\": 140, \"y1\": 80, \"x2\": 200, \"y2\": 60},",
       "value": 140
     },
     {
-      "line": 271,
+      "line": 284,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"x1\": 300, \"y1\": 60, \"x2\": 360, \"y2\": 48},",
       "value": 360
     },
     {
-      "line": 272,
+      "line": 285,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"x1\": 460, \"y1\": 48, \"x2\": 520, \"y2\": 66},",
       "value": 460
     },
     {
-      "line": 272,
+      "line": 285,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"x1\": 460, \"y1\": 48, \"x2\": 520, \"y2\": 66},",
       "value": 520
     },
     {
-      "line": 273,
+      "line": 286,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"x1\": 620, \"y1\": 66, \"x2\": 680, \"y2\": 70},",
       "value": 620
     },
     {
-      "line": 273,
+      "line": 286,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"x1\": 620, \"y1\": 66, \"x2\": 680, \"y2\": 70},",
       "value": 680
     },
     {
-      "line": 248,
+      "line": 249,
       "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
       "snippet": "\"North America\": (112, 115),",
       "value": 112
     },
     {
-      "line": 248,
+      "line": 249,
       "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
       "snippet": "\"North America\": (112, 115),",
       "value": 115
     },
     {
-      "line": 249,
+      "line": 250,
       "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
       "snippet": "\"Europe\": (214, 108),",
       "value": 108
     },
     {
-      "line": 249,
+      "line": 250,
       "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
       "snippet": "\"Europe\": (214, 108),",
       "value": 214
     },
     {
-      "line": 250,
+      "line": 251,
       "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
       "snippet": "\"West Africa\": (244, 150),",
       "value": 150
     },
     {
-      "line": 250,
+      "line": 251,
       "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
       "snippet": "\"West Africa\": (244, 150),",
       "value": 244
     },
     {
-      "line": 251,
+      "line": 252,
       "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
       "snippet": "\"Asia \u00b7 Oceania\": (416, 136),",
       "value": 136
     },
     {
-      "line": 252,
+      "line": 253,
       "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
       "snippet": "\"Other\": (300, 150),",
       "value": 150
     },
     {
-      "line": 262,
+      "line": 263,
       "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
       "snippet": "\"Other\": (170, 78),",
       "value": 170
@@ -4264,43 +4246,43 @@
       "value": 240
     },
     {
-      "line": 2827,
+      "line": 2852,
       "path": "apps/siteconfig/forms_cockpit.py",
       "snippet": "max_length=240,",
       "value": 240
     },
     {
-      "line": 2982,
+      "line": 3007,
       "path": "apps/siteconfig/forms_cockpit.py",
       "snippet": "max_length=160,",
       "value": 160
     },
     {
-      "line": 3324,
+      "line": 3349,
       "path": "apps/siteconfig/forms_cockpit.py",
       "snippet": "max_length=600,",
       "value": 600
     },
     {
-      "line": 3408,
+      "line": 3433,
       "path": "apps/siteconfig/forms_cockpit.py",
       "snippet": "max_length=240,",
       "value": 240
     },
     {
-      "line": 3520,
+      "line": 3545,
       "path": "apps/siteconfig/forms_cockpit.py",
       "snippet": "max_length=320,",
       "value": 320
     },
     {
-      "line": 3581,
+      "line": 3606,
       "path": "apps/siteconfig/forms_cockpit.py",
       "snippet": "max_length=240,",
       "value": 240
     },
     {
-      "line": 4464,
+      "line": 4497,
       "path": "apps/siteconfig/forms_cockpit.py",
       "snippet": "\"interval_ms\": cleaned.get(\"testimonial_interval_ms\") or 7000,",
       "value": 7000
@@ -4792,6 +4774,60 @@
       "value": 4000
     },
     {
+      "line": 95,
+      "path": "apps/siteconfig/world_map_geo.py",
+      "snippet": "\"North America\": {\"svg_x\": 112, \"svg_y\": 96},",
+      "value": 112
+    },
+    {
+      "line": 96,
+      "path": "apps/siteconfig/world_map_geo.py",
+      "snippet": "\"Europe\": {\"svg_x\": 214, \"svg_y\": 92},",
+      "value": 214
+    },
+    {
+      "line": 97,
+      "path": "apps/siteconfig/world_map_geo.py",
+      "snippet": "\"West Africa\": {\"svg_x\": 244, \"svg_y\": 132},",
+      "value": 132
+    },
+    {
+      "line": 97,
+      "path": "apps/siteconfig/world_map_geo.py",
+      "snippet": "\"West Africa\": {\"svg_x\": 244, \"svg_y\": 132},",
+      "value": 244
+    },
+    {
+      "line": 98,
+      "path": "apps/siteconfig/world_map_geo.py",
+      "snippet": "\"Asia \u00b7 Oceania\": {\"svg_x\": 416, \"svg_y\": 118},",
+      "value": 118
+    },
+    {
+      "line": 99,
+      "path": "apps/siteconfig/world_map_geo.py",
+      "snippet": "\"Other\": {\"svg_x\": 300, \"svg_y\": 148},",
+      "value": 148
+    },
+    {
+      "line": 399,
+      "path": "apps/siteconfig/world_map_geo.py",
+      "snippet": "\"dwell_ms\": 3200,",
+      "value": 3200
+    },
+    {
+      "line": 543,
+      "path": "apps/siteconfig/world_map_geo.py",
+      "snippet": "\"poll_interval_ms\": 5000,",
+      "value": 5000
+    },
+    {
+      "line": 544,
+      "path": "apps/siteconfig/world_map_geo.py",
+      "snippet": "\"sse_reconnect_ms\": 4000,",
+      "value": 4000
+    },
+    {
       "line": 106,
       "path": "apps/social_media/models.py",
       "snippet": "self.audit_log = entries[-200:]",
@@ -4906,13 +4942,37 @@
       "value": 280
     },
     {
+      "line": 1552,
+      "path": "apps/studio_os/services.py",
+      "snippet": ")[:240]",
+      "value": 240
+    },
+    {
+      "line": 1554,
+      "path": "apps/studio_os/services.py",
+      "snippet": "summary[\"risk_summary\"] = str(first)[:240]",
+      "value": 240
+    },
+    {
+      "line": 1556,
+      "path": "apps/studio_os/services.py",
+      "snippet": "summary[\"risk_summary\"] = str(payload.get(\"health_summary\"))[:240]",
+      "value": 240
+    },
+    {
+      "line": 1593,
+      "path": "apps/studio_os/services.py",
+      "snippet": "\"detail\": str(run.error_message)[:180],",
+      "value": 180
+    },
+    {
       "line": 696,
       "path": "apps/studio_os/views.py",
       "snippet": "focus = (request.GET.get(\"pack\") or \"\").strip()[:160]",
       "value": 160
     },
     {
-      "line": 1833,
+      "line": 1843,
       "path": "apps/studio_os/views.py",
       "snippet": "context[\"output_focus_pack_code\"] = _focus_pack[:160] if _focus_pack else \"\"",
       "value": 160
@@ -5128,12 +5188,6 @@
       "value": 1200
     },
     {
-      "line": 169,
-      "path": "services/ai_deployment_posture.py",
-      "snippet": "resp.read(4096)",
-      "value": 4096
-    },
-    {
       "line": 319,
       "path": "services/ai_gateway.py",
       "snippet": "cache.set(cache_key, bucket, timeout=86400 * 3)",
@@ -5320,6 +5374,12 @@
       "value": 4000
     },
     {
+      "line": 71,
+      "path": "services/sse_response.py",
+      "snippet": "busy_retry_ms: int = 30000,",
+      "value": 30000
+    },
+    {
       "line": 30,
       "path": "services/teacher_comms.py",
       "snippet": "MAX_PROMPT_CHARS = 4000",
@@ -5344,7 +5404,7 @@
       "value": 2500
     }
   ],
-  "generated_at": "2026-06-07T10:05:14+00:00",
+  "generated_at": "2026-06-08T02:39:43+00:00",
   "rule": "Integer literals with abs(value) >= 100 in production code should route through the 7-layer configurability contract (RuntimeDefaults / constants.py / SiteSettings)",
   "scan_dirs": [
     "apps",
