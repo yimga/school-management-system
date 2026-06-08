@@ -353,6 +353,19 @@ def build_register() -> dict:
                         "templates/siteconfig/metadata_dynamic_fields_operator.html",
                     )
                 ),
+                "migration_schoolops_accounts_wave18_burndown": all(
+                    "next_action_strip" in _read(rel)
+                    for rel in (
+                        "templates/migration_cloud/operator/command_center.html",
+                        "templates/migration_cloud/operator/dlq_list.html",
+                        "templates/migration_cloud/connector/mapping.html",
+                        "templates/schoolops/ops_hub.html",
+                        "templates/schoolops/super/signup_verifications.html",
+                        "templates/accounts/migration_run_list.html",
+                        "templates/accounts/tenant_activity_log.html",
+                        "templates/accounts/my_delegations.html",
+                    )
+                ),
             },
             "residual": [
                 f"{ledger.get('high_friction_count', '?')} templates still above friction threshold (incremental ledger burndown)",

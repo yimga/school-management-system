@@ -4,10 +4,14 @@
 {% block title %}{% trans "Edit profile" %} - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% comment %} Pass 8 Wave 2: migrated to components/form_field + form_actions. Profile photo
    field renders an inline preview when the user already has a photo — kept that
    wrapper since form_field handles the field, the preview is supplementary. {% endcomment %}
-  <div class="container py-4">
+  <div data-rmc-scroll-policy="paginate" class="container py-4">
     <div class="row justify-content-center">
       <div class="col-lg-6">
         <div class="card shadow-sm">

@@ -4,6 +4,10 @@
 {% block page_title %}{{ page_title|default:"Canonical template picker" }}{% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="rmc-page rmc-page--canonical-template-picker" id="main">
   <header class="rmc-page__header">
     <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_new' %}{% else %}{% url 'migration_cloud_super:bundle_new' %}{% endif %}"
@@ -12,7 +16,7 @@
     <p class="rmc-lede">
       {% trans "Twenty domains, one canonical CSV each. Fill in what you have, leave the rest blank, then upload through the intake wizard. The accelerator pre-classifies each file by name — don't rename them." %}
     </p>
-    <div class="rmc-page__actions">
+    <div data-rmc-scroll-policy="paginate" class="rmc-page__actions">
       <a class="rmc-btn rmc-btn--primary"
          href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:canonical_template_zip' %}{% else %}{% url 'migration_cloud_super:canonical_template_zip' %}{% endif %}"
          data-rmc-canonical-template-zip>

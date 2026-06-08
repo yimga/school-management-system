@@ -5,6 +5,10 @@
 {% block page_title %}{{ page_title|default:"Migration Cloud — webhook subscriptions" }}{% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="rmc-page rmc-page--operator-webhooks" id="main" data-rmc-scroll-policy="paginate">
   {% if header_migration_window_active %}
   <aside class="rmc-banner rmc-banner--info" role="status" aria-label="{% trans 'Webhook header migration' %}">

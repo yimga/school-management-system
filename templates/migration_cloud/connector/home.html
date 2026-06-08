@@ -1,7 +1,11 @@
 {% extends "migration_cloud/connector/_wizard_base.html" %}
 {% load i18n %}
 {% block connector_body %}
-<div class="d-flex gap-2 mb-4">
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div data-rmc-scroll-policy="paginate" class="d-flex gap-2 mb-4">
   <a class="btn btn-primary" href="{% url 'migration_cloud_connector:connector-connect' %}">{% trans "Connect source platform" %}</a>
   <a class="btn btn-outline-secondary" href="{% url 'migration_cloud_portal:bundle_new' %}">{% trans "Upload export file" %}</a>
 </div>

@@ -4,7 +4,9 @@
 {% block title %}Chat with {{ other_user.get_full_name|default:other_user.username }}{% endblock %}
 
 {% block content %}
-  <div class="container-fluid py-2">
+{% include "components/next_action_strip.html" %}
+
+  <div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <div class="d-flex align-items-center gap-2">
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}?tab=direct"><i class="bi bi-arrow-left me-1"></i>Messages</a>

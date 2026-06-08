@@ -166,6 +166,15 @@ def main(argv: list[str] | None = None) -> int:
         ("templates/siteconfig/grading_scale_bands.html", "next_action_strip"),
         ("templates/finance/payments.html", "data-page-critical-read"),
         ("templates/siteconfig/metadata_dynamic_fields_operator.html", "next_action_strip"),
+        ("templates/migration_cloud/operator/command_center.html", "next_action_strip"),
+        ("templates/migration_cloud/operator/dlq_list.html", "next_action_strip"),
+        ("templates/migration_cloud/connector/mapping.html", "next_action_strip"),
+        ("templates/schoolops/ops_hub.html", "next_action_strip"),
+        ("templates/schoolops/super/signup_verifications.html", "next_action_strip"),
+        ("templates/accounts/migration_run_list.html", "next_action_strip"),
+        ("templates/accounts/tenant_activity_log.html", "next_action_strip"),
+        ("templates/accounts/my_delegations.html", "next_action_strip"),
+        ("templates/accounts/migration_run_list.html", "data-page-critical-read"),
     ):
         if needle not in _read(rel):
             errors.append(f"{rel} missing {needle}")

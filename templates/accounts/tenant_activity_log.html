@@ -3,8 +3,10 @@
 {% block title %}{% trans "Activity log" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Platform activity (this school)" %}{% endblock %}
 {% block backend_page %}
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Activity log" %} — {{ school.name }}</h1>
-<div class="container-fluid py-2" data-rmc-scroll-policy="paginate">
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <p class="text-muted small mb-3">{% trans "Recent catalog events recorded for this tenant. Used for audits and operational awareness (N24 partial)." %}</p>
   <div class="table-responsive">
     <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">

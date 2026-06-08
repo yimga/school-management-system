@@ -4,6 +4,10 @@
 {% block page_title %}{{ page_title|default:"Migration Cloud — MAA v2.0 promotion status" }}{% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="rmc-page rmc-page--maa-v2-promotion" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <h1 class="rmc-h1">{% trans "MAA v2.0 promotion status" %}</h1>

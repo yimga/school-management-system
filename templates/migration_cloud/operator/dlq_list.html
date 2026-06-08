@@ -5,6 +5,10 @@
 {% block page_title %}{{ page_title|default:"Webhook Dead Letter Queue" }}{% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="rmc-page rmc-page--operator-dlq" id="main" data-rmc-scroll-policy="paginate" aria-labelledby="dlq-page-heading">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_log' %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_log' %}{% endif %}" aria-label="{% trans 'Back to webhook delivery log' %}">{% trans "← Back to delivery log" %}</a>

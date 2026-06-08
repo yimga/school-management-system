@@ -6,6 +6,10 @@
 {% block page_title %}{{ page_title|default:"Migration Cloud — Run Smoke Now" }}{% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="rmc-page rmc-page--operator-smoke-trigger" id="main">
   <header class="rmc-page__header">
     {% if command_center_url %}
@@ -56,7 +60,7 @@
       </label>
     </fieldset>
 
-    <div class="rmc-form__actions">
+    <div data-rmc-scroll-policy="paginate" class="rmc-form__actions">
       <button class="rmc-btn rmc-btn--primary" type="submit">{% trans "Run smoke now" %}</button>
       {% if history_url %}
         <a class="rmc-btn rmc-btn--ghost" href="{{ history_url }}">{% trans "View smoke history" %}</a>

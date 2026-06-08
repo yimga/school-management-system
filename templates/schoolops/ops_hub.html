@@ -3,7 +3,9 @@
 {% block title %}{% trans "Operations" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Operations hub" %}{% endblock %}
 {% block backend_page %}
-<div class="container-fluid py-2">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <p class="text-muted mb-3">{% trans "First-party ops modules (Wave 4). Enable each module in Module Market if a card shows inactive." %}</p>
   <div class="row g-3">
     {% for c in cards %}

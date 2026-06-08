@@ -4,6 +4,10 @@
 {% block title %}{% trans "Start a migration" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="container py-4 rmc-page rmc-page--migration-cloud-customer rmc-mc-customer-page" id="main" data-rmc-migration-cloud-surface>
   <header class="mb-4">
     <h1 class="h2 mb-1">{% trans "Start a migration" %}</h1>
@@ -12,7 +16,7 @@
     </p>
   </header>
 
-  <div class="card mb-4">
+  <div data-rmc-scroll-policy="paginate" class="card mb-4">
     <div class="card-body">
       <form method="post" action="{{ form_action }}" data-rmc-form="migration-intake-start">
         {% csrf_token %}

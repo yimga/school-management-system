@@ -10,7 +10,11 @@
 {% endblock %}
 
 {% block backend_page %}
-  <div class="container py-4 profile-shell rmc-account-shell rmc-account-shell--tenant" data-rmc-balanced-profile="1" data-rmc-section-nav="off">
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+  <div data-rmc-scroll-policy="paginate" class="container py-4 profile-shell rmc-account-shell rmc-account-shell--tenant" data-rmc-balanced-profile="1" data-rmc-section-nav="off">
     <div class="page-header rmc-account-page-header">
       <div>
         <div class="eyebrow">{% trans "Account" %}</div>

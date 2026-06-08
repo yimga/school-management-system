@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Zero-Friction wave 18 migration/schoolops/accounts (2026-06-08)
+
+**A. Scope:** Migration Cloud operator consoles, schoolops ops hubs, accounts identity/migration pages (follow-up to wave 17).
+
+**B. Shipped:** `codemod_zero_friction_wave18_migration_schoolops_accounts.py` (129 templates); `cp_shell_page` + `connector_body` blocks; ledger **1461→1366** high-friction count.
+
+**C. Proof:** **ZERO_FRICTION_JOURNEYS_PASS**; SW **`sms-v4.03.22-migration-schoolops-accounts-wave18-2026-06-08`**.
+
+**D. Honest:** Phase 6 still PARTIAL (~1,366); schools/platform_runtime/student360 zones next.
+
 ## Slice - Zero-Friction wave 17 finance/analytics/siteconfig (2026-06-08)
 
 **A. Scope:** Finance payments/invoices, analytics dashboards, siteconfig operator hubs (follow-up to wave 16 portal/evals).

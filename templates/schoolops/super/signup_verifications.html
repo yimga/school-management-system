@@ -4,9 +4,13 @@
 {% block cp_title %}{% trans "Signup verifications" %}{% endblock %}
 
 {% block cp_content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="rmc-card mb-3" aria-labelledby="sv-heading">
   <header class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-    <div>
+    <div data-rmc-scroll-policy="paginate">
       <h1 id="sv-heading" class="h4 mb-1">{% trans "Signup verifications" %}</h1>
       <p class="text-muted small mb-0">
         {% blocktrans trimmed with hours=stale_after_hours %}

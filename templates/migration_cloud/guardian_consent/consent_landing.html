@@ -4,6 +4,10 @@
 {% block title %}{% trans "Migration consent" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="container py-4 rmc-page rmc-page--migration-cloud-customer rmc-mc-customer-page" id="main" data-rmc-migration-cloud-surface data-rmc-guardian-consent>
   <header class="mb-4">
     <h1 class="h2 mb-1">{% trans "Please review and respond" %}</h1>
@@ -12,7 +16,7 @@
     </p>
   </header>
 
-  <div class="alert alert-secondary" role="status">
+  <div data-rmc-scroll-policy="paginate" class="alert alert-secondary" role="status">
     <strong>{% trans "Privacy notice:" %}</strong>
     {% blocktrans %}When you choose Accept or Decline, we record your decision along with your IP address and browser type at that moment, for legal record. We do not place tracking cookies on your device for this page, and we do not share your information with third parties.{% endblocktrans %}
   </div>

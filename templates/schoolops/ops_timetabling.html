@@ -4,8 +4,10 @@
 {% block title %}{% trans "Timetabling" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Schedules" %}{% endblock %}
 {% block backend_page %}
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Timetabling" %} — {{ school.name }}</h1>
-<div class="container-fluid py-2" data-rmc-scroll-policy="paginate">
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <p class="small text-muted">{% trans "Draft and published master schedules. Generate or validate via API (scheduler) from integrations." %}</p>
   <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
@@ -22,4 +24,5 @@
     </tbody>
   </table>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

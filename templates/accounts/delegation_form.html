@@ -4,11 +4,15 @@
 {% block title %}{% if is_edit %}Edit delegation{% else %}Add delegation{% endif %} - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% comment %} Pass 8 Wave 2: migrated to components/form_field + form_actions partials. The
    custom scope-checkbox block is kept as-is since it iterates widget.choices
    directly (form_field assumes a single widget); only the surrounding label+help+errors
    chrome was moved into form-system grammar. {% endcomment %}
-  <div class="container py-4">
+  <div data-rmc-scroll-policy="paginate" class="container py-4">
     <div class="row justify-content-center">
       <div class="col-lg-8">
         <div class="card shadow-sm">

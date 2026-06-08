@@ -5,6 +5,10 @@
 {{ block.super }}
 {% endblock %}
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="rmc-page rmc-page--migration-connector" id="main" data-rmc-migration-connector-wizard data-rmc-migration-cloud-surface data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header mb-4">
     <h1 class="rmc-h1">{{ page_title }}</h1>

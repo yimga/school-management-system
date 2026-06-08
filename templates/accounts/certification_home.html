@@ -4,7 +4,9 @@
 {% block title %}Certification & Exams{% endblock %}
 
 {% block content %}
-<div class="container-fluid" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% phase8_dashboard_declaration "accounts/certification_home.html" %}
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2 mb-3">
     <div>

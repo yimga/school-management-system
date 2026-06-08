@@ -4,6 +4,10 @@
 {% block page_title %}{{ page_title|default:"Mint a Migration Cloud API token" }}{% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="rmc-page rmc-page--operator-token-mint" id="main">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_list' %}{% else %}{% url 'migration_cloud_super:operator_token_list' %}{% endif %}">{% trans "← Back to tokens" %}</a>
@@ -35,7 +39,7 @@
       </label>
       {% endfor %}
     </fieldset>
-    <div class="rmc-form__actions">
+    <div data-rmc-scroll-policy="paginate" class="rmc-form__actions">
       <button class="rmc-btn rmc-btn--primary" type="submit">{% trans "Mint token" %}</button>
     </div>
   </form>

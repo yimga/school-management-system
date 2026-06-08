@@ -17,6 +17,10 @@
 {% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="rmc-page rmc-page--operator-email-health" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <h1 class="rmc-h1">{% trans "Email delivery health" %}</h1>
@@ -148,7 +152,7 @@
       </div>
     </dl>
     {% if bounce_panel.window_30d.by_kind %}
-    <table class="rmc-data-table rmc-data-table--email-bounce-kinds" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <table class="rmc-data-table rmc-data-table--email-bounce-kinds" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="rmc-muted">{% trans "Bounce kinds (last 30 days)" %}</caption>
       <thead>
         <tr>
@@ -282,4 +286,5 @@
   });
 })();
 </script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

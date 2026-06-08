@@ -12,6 +12,10 @@
 {% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="rmc-page rmc-page--operator-meal-plan-analytics" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <h1 class="rmc-h1">{% trans "Meal plan low-balance analytics" %}</h1>
@@ -49,7 +53,7 @@
   <section class="rmc-card" aria-labelledby="top-tenants-heading">
     <h2 id="top-tenants-heading" class="rmc-h2">{% trans "Top tenants by notification volume" %}</h2>
     {% if top_tenants %}
-    <table class="rmc-data-table rmc-data-table--top-tenants" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <table class="rmc-data-table rmc-data-table--top-tenants" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead>
         <tr>
           <th>{% trans "Tenant" %}</th>
@@ -74,7 +78,7 @@
 
   <section class="rmc-card" aria-labelledby="per-locale-heading">
     <h2 id="per-locale-heading" class="rmc-h2">{% trans "Per-locale breakdown" %}</h2>
-    <table class="rmc-data-table rmc-data-table--per-locale" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <table class="rmc-data-table rmc-data-table--per-locale" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead>
         <tr>
           <th>{% trans "Locale" %}</th>
@@ -95,7 +99,7 @@
   <section class="rmc-card" aria-labelledby="rolling-window-heading">
     <h2 id="rolling-window-heading" class="rmc-h2">{% trans "Rolling 30-day per-tenant volume (all tenants)" %}</h2>
     {% if per_tenant_window %}
-    <table class="rmc-data-table rmc-data-table--rolling" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <table class="rmc-data-table rmc-data-table--rolling" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead>
         <tr>
           <th>{% trans "Tenant" %}</th>
@@ -118,4 +122,5 @@
     {% endif %}
   </section>
 </main>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

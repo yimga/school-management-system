@@ -1,6 +1,10 @@
 {% extends "migration_cloud/connector/_wizard_base.html" %}
 {% load i18n %}
 {% block connector_body %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <p>{% trans "Import status" %}: <strong>{{ import_run.status }}</strong></p>
 <p>{{ rollback_card.category_label }}</p>
 <form method="post" action="{% url 'migration_cloud_connector:connector-revoke' connection_id=connection.id %}">{% csrf_token %}

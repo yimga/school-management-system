@@ -4,6 +4,10 @@
 {% block page_title %}{{ page_title }}{% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="rmc-page rmc-page--migration-cloud-progress" id="main">
   <header class="rmc-page__header">
     <a class="rmc-back"
@@ -21,7 +25,7 @@
   <section class="rmc-banner rmc-banner--warning" role="alert">
     <strong>{% trans "Progress snapshot unavailable" %}.</strong>
     {% trans "Your bundle exists and your data is safe — we just couldn't compute the live timeline for it right now. Retry shortly or share the request ID below with support." %}
-    <div class="rmc-muted small mt-2">
+    <div data-rmc-scroll-policy="paginate" class="rmc-muted small mt-2">
       <span>{% trans "Bundle" %}: <code>{{ degraded_status.label|default:degraded_status.idempotency_key|default:bundle.pk }}</code></span>
       <span class="ms-2">{% trans "Status" %}: <code>{{ degraded_status.status }}</code></span>
       <span class="ms-2">{% trans "Request ID" %}: <code>{{ request_id }}</code></span>

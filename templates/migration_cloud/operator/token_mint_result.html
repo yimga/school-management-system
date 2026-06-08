@@ -4,6 +4,10 @@
 {% block page_title %}{{ page_title|default:"Token minted" }}{% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="rmc-page rmc-page--operator-token-mint-result" id="main">
   <header class="rmc-page__header">
     <h1 class="rmc-h1">
@@ -22,7 +26,7 @@
     <header class="rmc-card__header">
       <h2 class="rmc-h2">{% trans "Plaintext token" %}</h2>
     </header>
-    <div class="rmc-card__body">
+    <div data-rmc-scroll-policy="paginate" class="rmc-card__body">
       <pre class="rmc-code rmc-code--secret" id="plaintext-token-block"><code>{{ plaintext }}</code></pre>
       <button class="rmc-btn rmc-btn--ghost rmc-copy" type="button" data-rmc-copy-target="#plaintext-token-block">
         {% trans "Copy to clipboard" %}

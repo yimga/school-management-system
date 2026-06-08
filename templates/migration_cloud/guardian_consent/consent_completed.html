@@ -4,6 +4,10 @@
 {% block title %}{% trans "Migration consent" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="container py-4 rmc-page rmc-page--migration-cloud-customer rmc-mc-customer-page" id="main" data-rmc-migration-cloud-surface data-rmc-guardian-consent-completed>
   <header class="mb-4">
     <h1 class="h2 mb-1">{% trans "Migration consent" %}</h1>
@@ -17,7 +21,7 @@
   {% endcomment %}
 
   {% if message_key == "consented" %}
-    <div class="alert alert-success" role="status">
+    <div data-rmc-scroll-policy="paginate" class="alert alert-success" role="status">
       <h2 class="h5">{% trans "Thank you — your consent has been recorded." %}</h2>
       <p class="mb-0">{% trans "Your school will receive your decision and proceed with the migration. You may close this page." %}</p>
     </div>

@@ -4,6 +4,10 @@
 {% block page_title %}{% trans "LMS diag-action retention preview" %}{% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="rmc-page rmc-page--lms-diag-retention-preview" id="main">
   <header class="rmc-page__header">
     <h1 class="rmc-h1">{% trans "Diag-action retention preview" %}</h1>
@@ -17,7 +21,7 @@
 
   <section role="alert" style="margin-bottom:14px;padding:12px 16px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
     <strong style="color:var(--text-primary);">{% trans "Preview only — nothing was deleted." %}</strong>
-    <div style="margin-top:6px;color:var(--text-secondary);font-size:var(--type-size-caption);">
+    <div data-rmc-scroll-policy="paginate" style="margin-top:6px;color:var(--text-secondary);font-size:var(--type-size-caption);">
       {% trans "Use ?years=&lt;N&gt; to override the retention window for the forecast. The real Celery beat reads RMC_LMS_DIAG_ACTION_RETENTION_YEARS (default 7y FERPA)." %}
     </div>
   </section>

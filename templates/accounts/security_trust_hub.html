@@ -4,8 +4,10 @@
 {% block title %}{% trans "Security & trust" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
+{% include "components/next_action_strip.html" %}
+
 {% comment %} trust-hub-doc-anchors: NORTH_STAR_TRUST_AND_OPS.md THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md (verify_phase9_security_trust_conformance) {% endcomment %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 {% phase8_dashboard_declaration "accounts/security_trust_hub.html" %}
   <h1 class="h4 mb-1">{% trans "Security & trust" %}</h1>
   <p class="text-muted small mb-4">{% blocktrans with s=school.name %}Posture and controls for your account and <strong>{{ s }}</strong>. Provider credentials and AI keys stay server-side only.{% endblocktrans %}</p>

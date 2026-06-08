@@ -3,8 +3,10 @@
 {% block title %}{% trans "Inventory" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Inventory" %}{% endblock %}
 {% block backend_page %}
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Inventory" %} — {{ school.name }}</h1>
-<div class="container-fluid py-2" data-rmc-scroll-policy="paginate">
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <div class="card shadow-sm mb-4">
     <div class="card-body">
@@ -16,7 +18,7 @@
       </form>
     </div>
   </div>
-  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1"><thead><tr><th>{% trans "Name" %}</th><th>{% trans "Qty" %}</th><th>{% trans "Location" %}</th></tr></thead>
+  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1"><thead><tr><th>{% trans "Name" %}</th><th>{% trans "Qty" %}</th><th>{% trans "Location" %}</th></tr></thead>
     <caption class="visually-hidden">{% trans "Inventory" %} — {{ school.name }}</caption>
     <tbody>{% for it in items %}<tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ it.name }}" data-rmc-row-subtitle="{{ it.location|default:'—' }}"><td>{{ it.name }}</td><td>{{ it.quantity }}</td><td>{{ it.location|default:"—" }}</td></tr>{% empty %}<tr><td colspan="3" class="rmc-empty-state rmc-empty-state--row">
       <i class="bi bi-box-seam rmc-empty-state__icon" aria-hidden="true"></i>
@@ -25,4 +27,5 @@
     </td></tr>{% endfor %}</tbody>
   </table>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

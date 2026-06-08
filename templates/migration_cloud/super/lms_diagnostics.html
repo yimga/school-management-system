@@ -9,6 +9,10 @@
 {% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="rmc-page rmc-page--lms-diagnostics" id="main">
   <header class="rmc-page__header">
     <h1 class="rmc-h1">{% trans "LMS connector diagnostics" %}</h1>
@@ -28,7 +32,7 @@
   {% endif %}
 
   <section style="display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-bottom:18px;">
-    <div style="padding:10px 14px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
+    <div data-rmc-scroll-policy="paginate" style="padding:10px 14px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
       <div style="font-size:var(--type-size-micro);color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Configured" %}</div>
       <div style="font-size:var(--type-size-headline-m);font-weight:600;">{{ diag.totals.configured }}</div>
     </div>

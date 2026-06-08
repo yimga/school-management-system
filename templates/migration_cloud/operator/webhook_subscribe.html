@@ -4,6 +4,10 @@
 {% block page_title %}{{ page_title|default:"Register webhook subscription" }}{% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="rmc-page rmc-page--operator-webhook-subscribe" id="main">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_list' %}{% else %}{% url 'migration_cloud_super:operator_webhook_list' %}{% endif %}">{% trans "← Back to subscriptions" %}</a>
@@ -18,7 +22,7 @@
     <header class="rmc-card__header">
       <h2 class="rmc-h2">{% trans "Subscription created" %}</h2>
     </header>
-    <div class="rmc-card__body">
+    <div data-rmc-scroll-policy="paginate" class="rmc-card__body">
       <p class="rmc-lede rmc-lede--warn" role="alert">
         <strong>{% trans "This secret will not be shown again." %}</strong>
         {% trans "Copy it now. Use it to verify the X-RunMyCampus-Signature header on incoming deliveries. Legacy X-Migration-Cloud-* aliases are temporary during the cutover window." %}
