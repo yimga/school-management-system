@@ -5,7 +5,9 @@
 {% block title %}{% trans "Link a Child" %}{% endblock %}
 
 {% block content %}
-  <div data-page-archetype="setup-studio">
+{% include "components/next_action_strip.html" %}
+
+  <div data-rmc-scroll-policy="paginate" data-page-archetype="setup-studio">
   <div class="mb-4">
     <h1 class="mb-1">{% trans "Link a Child" %}</h1>
     <div class="text-muted">{% trans "Use the admission number you received from the school." %}</div>

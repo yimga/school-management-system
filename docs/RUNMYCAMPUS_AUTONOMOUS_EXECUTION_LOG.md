@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Zero-Friction wave 14 parent zone (2026-06-08)
+
+**A. Scope:** Parent portal friction burndown (follow-up to wave 13 teacher zone).
+
+**B. Shipped:** `codemod_zero_friction_wave14_parent.py` on 14 parent templates; ledger **1621→1611** high-friction count.
+
+**C. Proof:** **ZERO_FRICTION_JOURNEYS_PASS**; SW **`sms-v4.03.18-parent-wave14-2026-06-08`**.
+
+**D. Honest:** Phase 6 still PARTIAL; backend wave 15 queued.
+
 ## Slice - Multi-track end-to-end (wave 13 + web push + governance priority - 2026-06-08)
 
 **A. Scope:** User-requested follow-through on four recommended slices (teacher UX, web push, governance priority, signup channels completion).

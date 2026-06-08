@@ -304,6 +304,18 @@ def build_register() -> dict:
                         "dashboard.html",
                     )
                 ),
+                "parent_zone_wave14_burndown": all(
+                    "next_action_strip" in _read(f"templates/parent/{name}")
+                    for name in (
+                        "dashboard.html",
+                        "finance.html",
+                        "results.html",
+                        "wallet.html",
+                        "feed.html",
+                        "attendance_discipline.html",
+                        "workflow_center.html",
+                    )
+                ),
             },
             "residual": [
                 f"{ledger.get('high_friction_count', '?')} templates still above friction threshold (incremental ledger burndown)",

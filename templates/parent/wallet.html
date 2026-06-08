@@ -3,6 +3,8 @@
 {% term "parent" capitalize=True as w_parent_sg %}
 {% block title %}{% trans "My wallet" %}{% endblock %}
 {% block content %}
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "My wallet" %}</h1>
 <div class="container-fluid" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate">
   <nav aria-label="breadcrumb" class="mb-3">
@@ -32,7 +34,7 @@
     <div class="card-header">{% trans "Recent transactions" %}</div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
+        <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Recent transactions" %}</caption>
           <thead class="table-light"><tr><th>{% trans "Date" %}</th><th>{% trans "Type" %}</th><th>{% trans "Amount" %}</th><th>{% trans "Balance after" %}</th></tr></thead>
           <tbody>
@@ -56,4 +58,5 @@
   {% endif %}
   <a href="{% url 'portal:parent_finance' %}" class="btn btn-outline-secondary mt-3">{% trans "Back to Finance" %}</a>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

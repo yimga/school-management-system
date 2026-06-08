@@ -21,10 +21,12 @@
 {% endblock %}
 
 {% block content %}
+{% include "components/next_action_strip.html" %}
+
 {% include "partials/tenant/hero_greeting.html" %}
 {% if show_pwa_install_cta %}
 <section class="alert alert-light border shadow-sm mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2" role="region" aria-label="{% trans 'Install app' %}" data-rmc-pwa-install-cta="1">
-  <div>
+  <div data-rmc-scroll-policy="paginate">
     <strong><i class="bi bi-phone me-1" aria-hidden="true"></i>{% trans "Install on your phone" %}</strong>
     <span class="d-block small text-muted">{% trans "Add RunMyCampus to your home screen for faster fee payments and alerts." %}</span>
   </div>

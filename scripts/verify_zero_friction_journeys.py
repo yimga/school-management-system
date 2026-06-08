@@ -135,6 +135,12 @@ def main(argv: list[str] | None = None) -> int:
         ("templates/teacher/leave.html", 'data-rmc-table-5col="1"'),
         ("templates/teacher/marks_entry.html", 'data-rmc-table-5col="1"'),
         ("templates/teacher/pay_history.html", "portal_row_detail_drawer_bundle.html"),
+        ("templates/parent/dashboard.html", "next_action_strip"),
+        ("templates/parent/finance.html", "next_action_strip"),
+        ("templates/parent/results.html", "next_action_strip"),
+        ("templates/parent/wallet.html", "next_action_strip"),
+        ("templates/parent/attendance_discipline.html", 'data-rmc-table-5col="1"'),
+        ("templates/parent/feed.html", 'data-rmc-scroll-policy="paginate"'),
     ):
         if needle not in _read(rel):
             errors.append(f"{rel} missing {needle}")
