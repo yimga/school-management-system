@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Zero-Friction wave 22 academics/studio partials (2026-06-08)
+
+**A. Scope:** Academics syllabus/workflow pages + Studio OS partial/component canvases (follow-up to wave 21 shells).
+
+**B. Shipped:** `codemod_zero_friction_wave22_academics_studio_partials.py` (90 templates); partial-safe friction sentinels; smart-hub inheritance scorer for studio partials; ledger **1235→1146**.
+
+**C. Proof:** **ZERO_FRICTION_JOURNEYS_PASS**; SW **`sms-v4.03.26-academics-studio-partials-wave22-2026-06-08`**.
+
+**D. Honest:** Phase 6 still PARTIAL (~1,146); global partials/marketing/components zones dominate.
+
 ## Slice - Zero-Friction wave 21 studio_os/auth/student (2026-06-08)
 
 **A. Scope:** Studio OS shells/modes, tenant auth landings, student portal pages (follow-up to wave 20).

@@ -26,7 +26,8 @@ coordinator-task to wire output_readiness_summary as a single SOT.
          aria-labelledby="rmc-output-cockpit-title"
          data-rmc-output-cockpit="1">
   <header class="rmc-output-cockpit__header">
-    <div class="min-w-0">
+    <div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="min-w-0">
       <h2 class="rmc-output-cockpit__title" id="rmc-output-cockpit-title">
         {% trans "Output readiness" %}
       </h2>

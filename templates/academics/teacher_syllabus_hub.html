@@ -4,7 +4,11 @@
 {% block title %}Syllabus – {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block content %}
-  <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+  <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <div>
         <h1 class="h4 mb-1">Course syllabi</h1>
@@ -59,9 +63,9 @@
         {% endfor %}
       </div>
     {% else %}
-      <div class="alert alert-info">
+      {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("
         You have no class assignments for the current year. Assignments are managed by your school admin.
-      </div>
+      ") message=_("Nothing here yet — check back after your school adds data.") %}
     {% endif %}
   </div>
 {% endblock %}

@@ -8,6 +8,7 @@ Usage:
 {% endcomment %}
 {% load i18n %}
 {% if state == "loading" %}
+<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="studio-os-loading-state py-4 px-3 d-flex justify-content-center" role="status" aria-live="polite" aria-label="{% trans 'Loading' %}">
   {% include "components/_rmc_bell_clock_spinner.html" %}
 </div>

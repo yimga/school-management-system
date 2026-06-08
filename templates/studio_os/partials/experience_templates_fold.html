@@ -15,7 +15,8 @@
     <p class="rmc-studio-experience-templates-fold__subtitle">{% trans "Premium operating-experience templates — preview, apply, customize, and roll back. Tenant-safe templates are available immediately; operator-only templates live in the operator catalog." %}</p>
   </header>
 
-  <div class="rmc-studio-experience-templates-fold__actions">
+  <div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-studio-experience-templates-fold__actions">
     <a class="rmc-studio-experience-templates-fold__action" href="{{ experience_template_marketplace_urls.browse }}">{% trans "Browse all" %}</a>
     <a class="rmc-studio-experience-templates-fold__action" href="{{ experience_template_marketplace_urls.browse }}?category=tenant-admin">{% trans "School admin" %}</a>
     <a class="rmc-studio-experience-templates-fold__action" href="{{ experience_template_marketplace_urls.browse }}?category=teacher">{% trans "Teacher" %}</a>

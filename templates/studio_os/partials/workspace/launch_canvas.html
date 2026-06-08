@@ -5,6 +5,7 @@
   flex/grid children cannot blow out narrow viewports. Existing pane
   semantics + iframe fallback preserved verbatim.
 {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-launch-canvas">
 {% if launch_pane == 'overview' and launch_payload %}
   {% include "studio_os/partials/launch_studio_overview_body.html" %}

@@ -398,6 +398,18 @@ def build_register() -> dict:
                         "templates/student/learning_home.html",
                     )
                 ),
+                "academics_studio_partials_wave22_burndown": all(
+                    "next_action_strip" in _read(rel)
+                    for rel in (
+                        "templates/academics/syllabus_approval_queue.html",
+                        "templates/academics/teacher_syllabus_hub.html",
+                        "templates/academics/workflow_step.html",
+                    )
+                )
+                and "rmc-empty-state-sentinel"
+                in _read("templates/studio_os/partials/overview_command_cockpit.html")
+                and 'data-rmc-scroll-policy="paginate"'
+                in _read("templates/studio_os/components/page_header.html"),
             },
             "residual": [
                 f"{ledger.get('high_friction_count', '?')} templates still above friction threshold (incremental ledger burndown)",

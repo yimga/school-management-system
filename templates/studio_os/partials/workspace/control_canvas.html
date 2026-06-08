@@ -12,6 +12,7 @@ path — the v3.33 inline feature-control surface is preserved verbatim.
 
 {% comment %} ---- Existing inline feature control panel (v3.33 contract — preserved) ---- {% endcomment %}
 {% if control_panel_html %}
+<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="studio-os__control-in-shell" id="control-panel-wrap">{{ control_panel_html|safe }}</div>
 {% endif %}
 

@@ -22,7 +22,8 @@
 <aside class="rmc-cockpit__rail" role="complementary" aria-label="{% trans 'Studio co-pilot rail' %}" data-rmc-cockpit-region="rail">
 
   {% comment %} ---- Section 1: Context strip (server-rendered, JS overrides on hydrate) ---- {% endcomment %}
-  <div class="rmc-cockpit__rail-section rmc-copilot-rail__section" data-rmc-copilot-rail-context="1">
+  <div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-cockpit__rail-section rmc-copilot-rail__section" data-rmc-copilot-rail-context="1">
     <div class="rmc-cockpit__rail-section-title">{% trans "Co-pilot" %}</div>
     <div class="rmc-copilot-rail__context-strip" data-rmc-copilot-rail-context-strip="1">
       <span class="rmc-copilot-rail__context-mode" data-rmc-copilot-rail-mode="1">

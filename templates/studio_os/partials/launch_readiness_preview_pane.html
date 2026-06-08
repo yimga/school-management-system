@@ -18,7 +18,8 @@
   <ul class="rmc-launch-role-grid" role="list">
     {% for r in launch_role_previews %}
     <li class="rmc-launch-role-card">
-      <div class="rmc-launch-role-card__head">
+      <div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-launch-role-card__head">
         <i class="bi {% if r.icon %}{{ r.icon }}{% else %}bi-person-badge{% endif %} rmc-launch-role-card__icon" aria-hidden="true"></i>
         <span class="rmc-launch-role-card__label">{{ r.label|default:r.role|default:_("Role") }}</span>
         {% if r.status %}

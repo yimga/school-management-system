@@ -195,6 +195,12 @@ def main(argv: list[str] | None = None) -> int:
         ("templates/auth/login.html", "next_action_strip"),
         ("templates/student/learning_home.html", "next_action_strip"),
         ("templates/student/workflow_center.html", "data-page-critical-read"),
+        ("templates/academics/syllabus_approval_queue.html", "next_action_strip"),
+        ("templates/academics/teacher_syllabus_hub.html", "next_action_strip"),
+        ("templates/academics/workflow_step.html", "next_action_strip"),
+        ("templates/studio_os/partials/overview_command_cockpit.html", "rmc-empty-state-sentinel"),
+        ("templates/studio_os/components/page_header.html", 'data-rmc-scroll-policy="paginate"'),
+        ("templates/studio_os/partials/subpages/automation_visual_builder.html", "rmc-empty-state-sentinel"),
     ):
         if needle not in _read(rel):
             errors.append(f"{rel} missing {needle}")

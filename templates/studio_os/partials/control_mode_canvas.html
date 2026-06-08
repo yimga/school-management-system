@@ -14,7 +14,8 @@
     <span class="fw-semibold small">{% trans "Control Studio outcomes" %}</span>
     <span class="text-muted small">{% trans "Platform health, tenants, runtime, marketplace shortcuts." %}</span>
   </summary>
-  <div class="pt-2 pb-1">
+  <div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="pt-2 pb-1">
 {% endif %}
 <div class="studio-os__card mb-3 py-3 px-3{% if control_panel_html %} border-0 shadow-none mb-0 py-2 px-0{% endif %}" role="region" aria-labelledby="control-studio-outcomes-heading">
   <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2 mb-2">

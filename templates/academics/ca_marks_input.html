@@ -4,6 +4,10 @@
 {% block title %}{% trans "CA marks input" %}{% endblock %}
 
 {% block content %}
+<div data-rmc-scroll-policy="paginate" class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="container py-3" data-page-archetype="task-form">
   <header class="mb-3">
     <h1 class="h4 mb-1">{% trans "Continuous assessment marks" %}</h1>

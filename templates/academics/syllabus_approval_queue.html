@@ -5,6 +5,10 @@
 {% block title %}Syllabus approval queue – {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block backend_page %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {# semantic-btn-allow: bi-state-approval-queue approve-vs-return-for-revision #}
   <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
@@ -19,7 +23,7 @@
       <div class="card shadow-sm">
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+            <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "Syllabus approval queue" %}</caption>
               <thead>
                 <tr>
@@ -62,7 +66,8 @@
         </div>
       </div>
     {% else %}
-      <div class="alert alert-info">No syllabi pending approval.</div>
+      {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("No syllabi pending approval.") message=_("Nothing here yet — check back after your school adds data.") %}
     {% endif %}
   </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

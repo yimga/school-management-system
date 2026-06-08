@@ -5,6 +5,7 @@
 {% if automation_left_rail and request.public_host_kind != 'manager' %}
 {% include "studio_os/components/workspace_layout.html" with workspace_mode="automation" workspace_aria_label=_("Automation") workspace_rail_template="studio_os/partials/workspace/automation_rail.html" workspace_canvas_template="studio_os/partials/workspace/automation_canvas.html" %}
 {% else %}
+<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-studio-workspace rmc-studio-workspace--automation" data-studio-workspace-mode="automation" data-rmc-studio-workspace="1">
   {% if workflow_entries %}
   <nav class="rmc-studio-workspace__rail studio-os__automation-rail flex-shrink-0 mb-2 mb-lg-0" aria-label="{% trans 'Automation' %}">

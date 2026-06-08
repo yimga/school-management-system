@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-08T23:47:50.179026+00:00",
+  "generated_at": "2026-06-08T23:49:48.420904+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASE-0",
   "role_passes": [
     "principal_architect",
@@ -28,112 +28,8 @@
     "table_columns_11_exceeds_5": 1
   },
   "high_friction_threshold": 20,
-  "high_friction_count": 1235,
+  "high_friction_count": 1146,
   "top_100_routes": [
-    {
-      "path": "templates/academics/syllabus_approval_queue.html",
-      "zone": "academics",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 2,
-        "scroll_folds": 2,
-        "empty_error_states": 3,
-        "offline_survivability": 4,
-        "recovery": 3
-      },
-      "friction_total": 23,
-      "daily_use_weight": 9,
-      "priority_score": 207,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": true,
-        "th_count": 5,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": true,
-        "has_scroll_policy_paginate": true
-      }
-    },
-    {
-      "path": "templates/academics/workflow_done.html",
-      "zone": "academics",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
-        "scroll_folds": 3,
-        "empty_error_states": 3,
-        "offline_survivability": 4,
-        "recovery": 3
-      },
-      "friction_total": 23,
-      "daily_use_weight": 9,
-      "priority_score": 207,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
-        "has_scroll_policy_paginate": false
-      }
-    },
-    {
-      "path": "templates/academics/workflow_empty.html",
-      "zone": "academics",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
-        "scroll_folds": 3,
-        "empty_error_states": 3,
-        "offline_survivability": 4,
-        "recovery": 3
-      },
-      "friction_total": 23,
-      "daily_use_weight": 9,
-      "priority_score": 207,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
-        "has_scroll_policy_paginate": false
-      }
-    },
-    {
-      "path": "templates/academics/workflow_step.html",
-      "zone": "academics",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
-        "scroll_folds": 3,
-        "empty_error_states": 3,
-        "offline_survivability": 4,
-        "recovery": 3
-      },
-      "friction_total": 23,
-      "daily_use_weight": 9,
-      "priority_score": 207,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
-        "has_scroll_policy_paginate": false
-      }
-    },
     {
       "path": "templates/teacher/marks_entry.html",
       "zone": "teacher",
@@ -1075,136 +971,6 @@
       }
     },
     {
-      "path": "templates/academics/ca_marks_input.html",
-      "zone": "academics",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
-        "scroll_folds": 3,
-        "empty_error_states": 3,
-        "offline_survivability": 2,
-        "recovery": 3
-      },
-      "friction_total": 21,
-      "daily_use_weight": 9,
-      "priority_score": 189,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
-        "has_scroll_policy_paginate": false
-      }
-    },
-    {
-      "path": "templates/academics/syllabus_clone.html",
-      "zone": "academics",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
-        "scroll_folds": 3,
-        "empty_error_states": 3,
-        "offline_survivability": 2,
-        "recovery": 3
-      },
-      "friction_total": 21,
-      "daily_use_weight": 9,
-      "priority_score": 189,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
-        "has_scroll_policy_paginate": false
-      }
-    },
-    {
-      "path": "templates/academics/syllabus_preview.html",
-      "zone": "academics",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
-        "scroll_folds": 3,
-        "empty_error_states": 3,
-        "offline_survivability": 2,
-        "recovery": 3
-      },
-      "friction_total": 21,
-      "daily_use_weight": 9,
-      "priority_score": 189,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
-        "has_scroll_policy_paginate": false
-      }
-    },
-    {
-      "path": "templates/academics/syllabus_upload.html",
-      "zone": "academics",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
-        "scroll_folds": 3,
-        "empty_error_states": 3,
-        "offline_survivability": 2,
-        "recovery": 3
-      },
-      "friction_total": 21,
-      "daily_use_weight": 9,
-      "priority_score": 189,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
-        "has_scroll_policy_paginate": false
-      }
-    },
-    {
-      "path": "templates/academics/teacher_syllabus_hub.html",
-      "zone": "academics",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
-        "scroll_folds": 3,
-        "empty_error_states": 3,
-        "offline_survivability": 2,
-        "recovery": 3
-      },
-      "friction_total": 21,
-      "daily_use_weight": 9,
-      "priority_score": 189,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
-        "has_scroll_policy_paginate": false
-      }
-    },
-    {
       "path": "templates/portal/operator/kb_docs_hub_body.html",
       "zone": "portal",
       "friction_dimensions": {
@@ -1258,32 +1024,6 @@
         "has_next_action_strip": false,
         "has_row_detail_drawer": true,
         "has_scroll_policy_paginate": true
-      }
-    },
-    {
-      "path": "templates/academics/syllabus_builder.html",
-      "zone": "academics",
-      "friction_dimensions": {
-        "clicks_to_complete": 3,
-        "manual_fields": 3,
-        "navigation_depth": 3,
-        "column_clutter": 1,
-        "scroll_folds": 3,
-        "empty_error_states": 2,
-        "offline_survivability": 2,
-        "recovery": 3
-      },
-      "friction_total": 20,
-      "daily_use_weight": 9,
-      "priority_score": 180,
-      "gaps": [],
-      "signals": {
-        "has_rmc_data_table": false,
-        "th_count": 0,
-        "has_pagination": false,
-        "has_next_action_strip": false,
-        "has_row_detail_drawer": false,
-        "has_scroll_policy_paginate": false
       }
     },
     {
@@ -1546,6 +1286,214 @@
         "has_next_action_strip": false,
         "has_row_detail_drawer": false,
         "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/academics/ca_marks_input.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/academics/syllabus_approval_queue.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 2,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": true,
+        "th_count": 5,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": true,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/academics/syllabus_clone.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/academics/syllabus_preview.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/academics/syllabus_upload.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/academics/workflow_done.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/academics/workflow_empty.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/academics/workflow_step.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 3,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 19,
+      "daily_use_weight": 9,
+      "priority_score": 171,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
       }
     },
     {
@@ -2586,6 +2534,58 @@
         "has_next_action_strip": false,
         "has_row_detail_drawer": false,
         "has_scroll_policy_paginate": false
+      }
+    },
+    {
+      "path": "templates/academics/syllabus_builder.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 18,
+      "daily_use_weight": 9,
+      "priority_score": 162,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
+      }
+    },
+    {
+      "path": "templates/academics/teacher_syllabus_hub.html",
+      "zone": "academics",
+      "friction_dimensions": {
+        "clicks_to_complete": 3,
+        "manual_fields": 3,
+        "navigation_depth": 3,
+        "column_clutter": 1,
+        "scroll_folds": 2,
+        "empty_error_states": 2,
+        "offline_survivability": 2,
+        "recovery": 2
+      },
+      "friction_total": 18,
+      "daily_use_weight": 9,
+      "priority_score": 162,
+      "gaps": [],
+      "signals": {
+        "has_rmc_data_table": false,
+        "th_count": 0,
+        "has_pagination": false,
+        "has_next_action_strip": true,
+        "has_row_detail_drawer": false,
+        "has_scroll_policy_paginate": true
       }
     },
     {

@@ -6,6 +6,7 @@
    inside the workspace main column. .rmc-studio-experience-iframe-shell is
    defined in static/css/studio-experience-mode.css. {% endcomment %}
 {% if experience_left_rail %}
+<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-studio-experience-iframe-shell" data-rmc-studio-experience-iframe="1">
   <iframe id="studio-experience-iframe"
           title="{% trans 'Experience preview' %}"

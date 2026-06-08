@@ -1,6 +1,7 @@
 {% load i18n %}
 {% comment %} v3.54 (2026-05-21, Agent 3): wrap in .rmc-automation-graph-scroll. {% endcomment %}
 {% comment %} overflow-x: auto + overflow-y: visible (never Y-axis clip — v3.27.1 trap). {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="studio-os__card py-3 px-3 h-100">
   <div class="rmc-automation-graph-scroll" role="region" aria-label="{% trans 'Workflow pack dependency graph' %}" tabindex="0">
     {% if graph %}

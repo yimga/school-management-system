@@ -251,11 +251,25 @@ def _max_th_in_data_tables(text: str) -> int:
     return max_th
 
 
-def _inherits_smart_hub(text: str) -> bool:
+def _inherits_smart_hub(text: str, rel: str = "") -> bool:
     if "rmc_smart_action_hub" in text or "next_action_strip" in text:
         return True
     parent = _extends_parent_shell(text)
-    return parent in SMART_HUB_PARENT_SHELLS
+    if parent in SMART_HUB_PARENT_SHELLS:
+        return True
+    if rel.startswith("templates/studio_os/") and (
+        "/partials/" in rel or "/components/" in rel
+    ):
+        for shell_rel in (
+            "templates/studio_os/shell.html",
+            "templates/studio_os/shell_control_plane.html",
+        ):
+            shell = ROOT / shell_rel
+            if shell.is_file() and "next_action_strip" in shell.read_text(
+                encoding="utf-8", errors="replace"
+            ):
+                return True
+    return False
 
 
 def _inherits_portal_offline(text: str, zone: str) -> bool:
@@ -291,7 +305,7 @@ def _score_template(path: Path) -> dict[str, object]:
     has_row_drawer = "data-rmc-row-detail-table" in text
     has_scroll_policy = 'data-rmc-scroll-policy="paginate"' in text
     has_fold_nav = "rmc-page-fold-nav" in text or 'data-rmc-page-fold-nav="required"' in text
-    has_smart_hub = _inherits_smart_hub(text)
+    has_smart_hub = _inherits_smart_hub(text, rel)
     has_five_col = 'data-rmc-table-5col="1"' in text
 
     scores = {
