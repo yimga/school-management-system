@@ -184,7 +184,8 @@
 // v4.02.84: single-file world-globe.mount.js bundle + deploy staticfiles gate.
 // v4.02.86: globe online reconnect retry + bridge mode sync; offline prefetch single bundle.
 // v4.02.89: purge retired vendor chunks; loader normalized; preview uses loader offline events.
-const CACHE_VERSION = "sms-v4.02.91-login-pow-bot-defense-2026-06-08";
+// v4.02.92: workflow progress SSE WSGI sync stream + busy reconnect in rmc-workflow-progress.js
+const CACHE_VERSION = "sms-v4.02.92-workflow-progress-wsgi-sse-2026-06-08";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

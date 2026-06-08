@@ -175,7 +175,7 @@ test.describe("Workflow progress — operator shell (authenticated)", () => {
       waitUntil: "domcontentloaded",
       timeout: 60000,
     });
-    const strip = page.locator("[data-rmc-wfp-inline-strip]");
+    const strip = page.locator("[data-rmc-wfp-inline]");
     if ((await strip.count()) === 0) {
       test.skip(true, "inline strip not on this landing — optional chrome");
     }

@@ -494,6 +494,11 @@
           applySnapshot(JSON.parse(ev.data));
         } catch (_) { /* malformed frame — ignore */ }
       });
+      es.addEventListener("busy", function () {
+        es.close();
+        state.eventSource = null;
+        scheduleStreamReconnect(OUTAGE_BACKOFF_MS);
+      });
       es.addEventListener("bye", function () {
         // Server-side graceful close; reconnect after a small jitter.
         es.close();

@@ -275,12 +275,12 @@ anon_req = rf.get("/platform-runtime/workflow-progress/stream/")
 anon_req.user = AnonymousUser()
 from apps.platform_runtime.views_workflow_progress import stream_view as _stream_view
 
-# stream_view is now an async (ASGI) view — its decorated form is a coroutine.
-import asyncio as _asyncio
-
-anon_resp = _asyncio.run(_stream_view(anon_req))
+anon_resp = _stream_view(anon_req)
 expect("T6b.1 anonymous SSE returns 401 not 302", getattr(anon_resp, "status_code", None) == 401)
-expect("T6b.2 stream_view is async (ASGI)", _asyncio.iscoroutinefunction(_stream_view))
+expect(
+    "T6b.2 stream_view is sync (WSGI SSE)",
+    not __import__("asyncio").iscoroutinefunction(_stream_view),
+)
 
 
 # ── T6c ──────────────────────────────────────────────────────────────────
