@@ -49,12 +49,17 @@ def main() -> int:
             _fail(f"template missing {marker!r}")
 
     bundle = ROOT / "static/js/dist/world-globe.mount.js"
-    if not bundle.is_file() or bundle.stat().st_size < 1_000:
-        _fail("world-globe.mount.js missing or too small — run npm run build:world-globe")
-    for chunk in ("world-globe.vendor-three.js", "world-globe.vendor-gl.js"):
-        chunk_path = ROOT / "static/js/dist" / chunk
-        if not chunk_path.is_file() or chunk_path.stat().st_size < 10_000:
-            _fail(f"{chunk} missing — run npm run build:world-globe (code-split vendors)")
+    if not bundle.is_file() or bundle.stat().st_size < 500_000:
+        _fail("world-globe.mount.js missing or too small — run npm run build:world-globe (single-file bundle)")
+    head = bundle.read_text(encoding="utf-8", errors="replace")[:800]
+    if "./world-globe.vendor-" in head:
+        _fail("world-globe.mount.js must be a single-file bundle (no relative vendor chunk imports)")
+
+    dist = ROOT / "static/js/dist"
+    if dist.is_dir():
+        stale = [p.name for p in dist.iterdir() if p.is_file() and p.name.startswith("world-globe.vendor-")]
+        if stale:
+            _fail(f"retired vendor chunks in static/js/dist: {', '.join(stale)}")
 
     loader = ROOT / "static/js/rmc-world-globe-loader.js"
     if not loader.is_file() or loader.stat().st_size < 100:
@@ -114,7 +119,7 @@ def main() -> int:
     if "shouldSkipHeavyGlobe" not in loader:
         _fail("rmc-world-globe-loader.js missing offline/low-bandwidth skip guard")
     if "type = \"module\"" not in loader and "tag.type = \"module\"" not in loader:
-        _fail("globe loader must load mount bundle as ES module for code-split chunks")
+        _fail("globe loader must load mount bundle as ES module")
 
     if "data-rmc-offline-surface" not in tpl:
         _fail("template missing data-rmc-offline-surface on globe mount")

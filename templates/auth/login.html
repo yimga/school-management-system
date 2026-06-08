@@ -114,6 +114,12 @@
                   <label class="form-label" for="login-password">{% trans "Password" %}</label>
                   <input id="login-password" class="form-control" type="password" name="password" autocomplete="current-password" required>
                 </div>
+                {% if turnstile_required and turnstile_site_key %}
+                <div class="mb-3">
+                  <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
+                </div>
+                <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+                {% endif %}
                 <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
               </form>
               <p class="small text-center mt-2 mb-0">

@@ -33,8 +33,8 @@ def main() -> int:
 
     provider = ROOT / "apps/portal/ai_provider.py"
     pt = provider.read_text(encoding="utf-8")
-    if "probe_litellm_reachable" not in pt:
-        errors.append("ai_provider.probe must try litellm on online/hybrid")
+    if "diagnose_litellm_posture" not in pt:
+        errors.append("ai_provider.probe must diagnose litellm on online/hybrid")
 
     ai_center = ROOT / "templates/siteconfig/partials/ai_center_body.html"
     html = ai_center.read_text(encoding="utf-8")

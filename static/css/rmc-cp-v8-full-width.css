@@ -24,7 +24,7 @@ body.control-plane-shell .cp-page-body > .container-fluid,
 body.control-plane-shell .cp-page-body > .container {
   width: 100%;
   max-width: none;
-  padding-inline: clamp(12px, 1.5vw, 24px);
+  padding-inline: var(--rmc-shell-pad-x);
 }
 
 body.control-plane-shell .cp-hero-copy {
@@ -35,7 +35,7 @@ body.control-plane-shell .cp-hero-copy {
 body.control-plane-shell .rmc-cp-canvas-pulse {
   flex: 0 0 auto;
   min-width: 0;
-  padding: 0.5rem clamp(12px, 1.5vw, 20px) 0.65rem;
+  padding: 0.5rem var(--rmc-shell-pad-x) 0.65rem;
   border-bottom: 1px solid var(--hairline);
   background: var(--surface-canvas, var(--surface-bg));
 }

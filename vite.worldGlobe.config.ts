@@ -1,8 +1,33 @@
 import { defineConfig } from "vite";
-import { resolve } from "node:path";
+import { readdirSync, unlinkSync } from "node:fs";
+import { join, resolve } from "node:path";
 
-/** Code-split three.js + globe.gl from mount entry (batch 1651 perf slice). */
+const DIST_DIR = resolve(__dirname, "static/js/dist");
+const RETIRED_CHUNK_PREFIX = "world-globe.vendor-";
+
+/** Purge retired code-split vendor chunks before each build. */
+function purgeRetiredGlobeChunks() {
+  return {
+    name: "purge-retired-globe-chunks",
+    buildStart() {
+      let names: string[] = [];
+      try {
+        names = readdirSync(DIST_DIR);
+      } catch {
+        return;
+      }
+      for (const name of names) {
+        if (name.startsWith(RETIRED_CHUNK_PREFIX)) {
+          unlinkSync(join(DIST_DIR, name));
+        }
+      }
+    },
+  };
+}
+
+/** Single-file ES bundle — production manifest hashing must not break relative chunk imports. */
 export default defineConfig({
+  plugins: [purgeRetiredGlobeChunks()],
   build: {
     outDir: "static/js/dist",
     emptyOutDir: false,
@@ -11,11 +36,7 @@ export default defineConfig({
       output: {
         format: "es",
         entryFileNames: "world-globe.mount.js",
-        chunkFileNames: "world-globe.[name].js",
-        manualChunks(id) {
-          if (id.includes("node_modules/three")) return "vendor-three";
-          if (id.includes("node_modules/globe.gl")) return "vendor-gl";
-        },
+        inlineDynamicImports: true,
       },
     },
   },

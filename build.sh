@@ -27,15 +27,18 @@ if ! command -v npm >/dev/null 2>&1; then
   echo "ERROR: npm is required to build static/js/dist/world-globe.* for the manager globe."
   exit 1
 fi
+python3 scripts/purge_retired_globe_vendor_chunks.py
 npm ci --no-audit --no-fund 2>/dev/null || npm install --no-audit --no-fund
 npm run build:world-globe
 python3 scripts/generate_globe_earth_night_texture.py
+python3 scripts/verify_world_globe_staticfiles_deploy.py --source
 
 # Set Django settings module for production build
 export DJANGO_SETTINGS_MODULE=config.settings
 
 # Never run makemigrations in CI/production.
 python3 manage.py collectstatic --noinput
+python3 scripts/verify_world_globe_staticfiles_deploy.py --staticfiles
 
 # Render dashboard often overrides startCommand to bare `.venv/bin/gunicorn ...`.
 # Wrap the venv entrypoint so every deploy still loads config/gunicorn.conf.py

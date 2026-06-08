@@ -269,8 +269,6 @@ class PrefetchUrlsAPI(APIView):
                     [
                         base + "/static/js/rmc-world-globe-loader.js",
                         base + "/static/js/rmc-world-globe-bridge.js",
-                        base + "/static/js/dist/world-globe.vendor-three.js",
-                        base + "/static/js/dist/world-globe.vendor-gl.js",
                         base + "/static/js/dist/world-globe.mount.js",
                         base + "/static/geo/world-countries-110m.json",
                         base + "/static/img/globe/earth-night-1k.jpg",

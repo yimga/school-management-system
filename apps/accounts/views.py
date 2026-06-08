@@ -3158,6 +3158,18 @@ def auth_root_redirect(request):
     return redirect(target)
 
 
+def _login_challenge_required(request) -> bool:
+    """True when the Turnstile widget should render (configured + a prior fail)."""
+    try:
+        from apps.accounts.turnstile import turnstile_enabled
+    except ImportError:
+        return False
+    return (
+        turnstile_enabled()
+        and int(request.session.get("auth_failed_attempts", 0) or 0) >= 1
+    )
+
+
 @ratelimit(key="ip", rate="5/m", method="POST", block=True)
 @trace_view("auth.login")
 def login_view(request):
@@ -3183,11 +3195,48 @@ def login_view(request):
             ):
                 next_url = ""
 
-        user = authenticate(
-            request,
-            username=request.POST.get("username"),
-            password=request.POST.get("password"),
-        )
+        # Brute-force / bot defense, layered on the per-IP @ratelimit above:
+        #  1. login_guard — always-on cache lockout after N failed attempts.
+        #  2. Cloudflare Turnstile — once configured, a challenge after the
+        #     first failed attempt. Both fail open so an outage never blocks
+        #     legitimate sign-in.
+        from apps.accounts import login_guard
+        from apps.accounts.turnstile import turnstile_enabled, verify_turnstile
+
+        username = request.POST.get("username")
+        guard_ip = login_guard.client_ip(request)
+        user = None
+        login_block_reason = None
+
+        locked, retry_after = login_guard.lockout_state(request, username)
+        if locked:
+            login_block_reason = "locked"
+            retry_minutes = max(1, (retry_after + 59) // 60)
+            messages.error(
+                request,
+                _(
+                    "Too many failed sign-in attempts. Please try again in "
+                    "about %(minutes)d minute(s), or reset your password."
+                )
+                % {"minutes": retry_minutes},
+            )
+        else:
+            failed_so_far = int(request.session.get("auth_failed_attempts", 0) or 0)
+            challenge_required = turnstile_enabled() and failed_so_far >= 1
+            if challenge_required and not verify_turnstile(
+                request.POST.get("cf-turnstile-response", ""), guard_ip
+            ):
+                login_block_reason = "challenge"
+                messages.error(
+                    request,
+                    _("Please complete the verification challenge to continue."),
+                )
+            else:
+                user = authenticate(
+                    request,
+                    username=username,
+                    password=request.POST.get("password"),
+                )
         if user:
             # Pillar 1 (Identity): per-tenant passkey-only enforcement.
             # If the user's role is in PASSKEY_ONLY_ROLES, refuse password
@@ -3220,6 +3269,10 @@ def login_view(request):
                 return redirect(login_url)
 
             login(request, user)
+
+            # Successful sign-in clears the brute-force counters.
+            login_guard.clear_attempts(request, username)
+            request.session["auth_failed_attempts"] = 0
 
             # Tenant-aware: ensure session school_id and membership (Phase 2).
             school = getattr(request, "school", None)
@@ -3388,10 +3441,20 @@ def login_view(request):
                 return redirect(next_url)
             return redirect(reverse("accounts:redirect"))
 
-        messages.error(request, _("Invalid username or password."))
+        # Reached only when sign-in did not succeed. Count a genuine credential
+        # failure — locked / challenge-failed requests already flashed their own
+        # message and must NOT be tallied as a password attempt.
+        if login_block_reason is None:
+            login_guard.record_failed_attempt(request, username)
+            request.session["auth_failed_attempts"] = (
+                int(request.session.get("auth_failed_attempts", 0) or 0) + 1
+            )
+            messages.error(request, _("Invalid username or password."))
     context = {
         "LOGIN_SSO_INTEGRATIONS": _get_login_sso_integrations(request),
         "is_manager_host": getattr(request, "public_host_kind", None) == "manager",
+        "turnstile_site_key": getattr(settings, "TURNSTILE_SITE_KEY", ""),
+        "turnstile_required": _login_challenge_required(request),
     }
     if getattr(request, "public_host_kind", None) == "manager":
         try:

@@ -100,4 +100,7 @@ node scripts/seed_manager_playwright_auth.js
 echo "globe-layout-playwright: Playwright control-plane-layout-audit"
 npx playwright test tests/e2e/control-plane-layout-audit.spec.js --project=manager-chromium --workers=1
 
+echo "globe-layout-playwright: Playwright world-globe-online-offline"
+npx playwright test tests/e2e/world-globe-online-offline.spec.js --project=manager-chromium --workers=1
+
 echo "GLOBE_LAYOUT_PLAYWRIGHT_PASS"

@@ -199,8 +199,27 @@ if [[ "${RUN_SEED_GLOBAL_WEATHER_LOCATIONS:-0}" == "1" ]]; then
   run "${PYTHON_BIN}" manage.py seed_global_weather_locations
 fi
 
+# World Footprint WebGL bundle (gitignored under static/js/dist/) — rebuild if build.sh skipped it.
+GLOBE_SRC="static/js/dist/world-globe.mount.js"
+globe_source_ok() {
+  [[ -f "${GLOBE_SRC}" ]] && [[ "$(wc -c < "${GLOBE_SRC}")" -ge 500000 ]]
+}
+if ! globe_source_ok; then
+  echo "[predeploy] world globe bundle missing or too small — rebuilding"
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "[predeploy] FATAL: npm is required to build static/js/dist/world-globe.mount.js"
+    exit 1
+  fi
+  npm ci --no-audit --no-fund 2>/dev/null || npm install --no-audit --no-fund
+  run "${PYTHON_BIN}" scripts/purge_retired_globe_vendor_chunks.py
+  npm run build:world-globe
+  run "${PYTHON_BIN}" scripts/generate_globe_earth_night_texture.py
+  run "${PYTHON_BIN}" scripts/verify_world_globe_staticfiles_deploy.py --source
+fi
+
 # Collect static files (required for WhiteNoise/serving)
 run "${PYTHON_BIN}" manage.py collectstatic --noinput --clear
+run "${PYTHON_BIN}" scripts/verify_world_globe_staticfiles_deploy.py --staticfiles
 
 # Phase I: DB health check before traffic (so orchestrator only routes when DB is ready)
 if [[ -f "scripts/release/run_health_check.sh" ]]; then

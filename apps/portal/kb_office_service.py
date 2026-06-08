@@ -89,9 +89,7 @@ def validate_office_extension(filename: str) -> str:
     return ext
 
 
-def office_documents_for_request(request, *, limit: int = 50):
-    from apps.portal.models_kb import HostedOfficeDocument
-
+def office_documents_queryset_for_request(request):
     is_op = is_operator_help_request(request)
     qs = HostedOfficeDocument.objects.all()
     if is_op:
@@ -103,37 +101,101 @@ def office_documents_for_request(request, *, limit: int = 50):
             qs = qs.filter(school__in=[school, None])
         else:
             qs = qs.filter(school__isnull=True)
-    return qs.order_by("-updated_at")[:limit]
+    return qs.order_by("-updated_at")
+
+
+def office_documents_for_request(request, *, limit: int = 50):
+    return office_documents_queryset_for_request(request)[:limit]
+
+
+def search_office_documents(queryset, query: str, *, limit: int = 25):
+    q = (query or "").strip()
+    if not q:
+        return []
+    return list(queryset.filter(title__icontains=q)[:limit])
+
+
+def _article_office_scope_compatible(article: KBArticle, office_doc: HostedOfficeDocument) -> bool:
+    if article.school_id is None and office_doc.school_id is None:
+        return True
+    return article.school_id == office_doc.school_id
+
+
+def link_kb_article_to_office_document(
+    article: KBArticle,
+    office_doc: HostedOfficeDocument,
+) -> None:
+    if not _article_office_scope_compatible(article, office_doc):
+        raise ValueError("Article and office document must belong to the same school scope.")
+    article.linked_office_document = office_doc
+    article.save(update_fields=["linked_office_document"])
+
+
+def unlink_kb_article_office_document(article: KBArticle) -> None:
+    article.linked_office_document = None
+    article.save(update_fields=["linked_office_document"])
 
 
 def kb_articles_for_docs_hub(request, *, limit: int = 12):
     base = published_kb_queryset()
     base = filter_kb_articles_for_host(base, is_operator=is_operator_help_request(request))
     base = filter_kb_articles_by_school(base, request)
-    return base.order_by("-published_at")[:limit]
+    return base.select_related("linked_office_document", "category").order_by(
+        "-published_at"
+    )[:limit]
 
 
 def build_docs_hub_context(request) -> dict:
+    from apps.portal.kb_search import search_kb_articles
+
     is_op = is_operator_help_request(request)
-    articles = list(kb_articles_for_docs_hub(request, limit=12))
-    office_docs = list(office_documents_for_request(request, limit=25))
-    article_count = (
-        filter_kb_articles_by_school(
-            filter_kb_articles_for_host(
-                published_kb_queryset(), is_operator=is_op
-            ),
-            request,
-        ).count()
+    query = (request.GET.get("q") or "").strip()
+    article_base = filter_kb_articles_by_school(
+        filter_kb_articles_for_host(published_kb_queryset(), is_operator=is_op),
+        request,
+    ).select_related("linked_office_document", "category")
+    office_qs = office_documents_queryset_for_request(request)
+
+    if query:
+        search_article_hits = search_kb_articles(article_base, query, limit=25)
+        search_articles = [row[0] for row in search_article_hits]
+        search_office_docs = search_office_documents(office_qs, query, limit=25)
+        articles = search_articles
+        office_docs = search_office_docs
+    else:
+        search_article_hits = []
+        search_articles = []
+        search_office_docs = []
+        articles = list(kb_articles_for_docs_hub(request, limit=12))
+        office_docs = list(office_documents_for_request(request, limit=25))
+
+    article_count = article_base.count()
+    staff_may_link = (
+        getattr(request.user, "is_authenticated", False)
+        and getattr(request.user, "is_staff", False)
     )
+    linkable_articles = []
+    if staff_may_link:
+        linkable_articles = list(
+            KBArticle.objects.exclude(status="ARCHIVED")
+            .select_related("linked_office_document")
+            .order_by("-updated_at")[:50]
+        )
     return {
         "is_operator_help": is_op,
         "featured_articles": articles[:6],
         "recent_articles": articles,
         "office_documents": office_docs,
         "article_count": article_count,
-        "office_document_count": len(office_docs),
+        "office_document_count": office_qs.count(),
         "collabora_enabled": bool((__import__("os").getenv("COLLABORA_BASE_URL") or "").strip()),
         "libreoffice_headless": True,
+        "search_query": query,
+        "search_article_hits": search_article_hits,
+        "search_office_docs": search_office_docs,
+        "staff_may_link": staff_may_link,
+        "linkable_articles": linkable_articles,
+        "all_office_docs_for_link": list(office_qs[:100]) if staff_may_link else [],
     }
 
 

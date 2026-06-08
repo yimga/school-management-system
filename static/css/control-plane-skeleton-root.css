@@ -16,9 +16,6 @@ html[data-surface="control-plane"] {
      content strip surrounded by empty light space). Default to fluid (`none`)
      so the layout fills the viewport; operators who want a centered max
      can override via tenant CSS. */
-  --rmc-shell-max-width: none;
-  --rmc-shell-gutter: clamp(0.75rem, 1.2vw, 1.25rem);
-  --rmc-shell-rhythm-y: clamp(0.75rem, 1.5vw, 1.25rem);
 }
 
 html[data-surface="control-plane"],
@@ -34,10 +31,10 @@ html[data-surface="control-plane"] body [role="main"] {
 }
 
 html[data-surface="control-plane"] .cp-layout {
-  padding-inline: var(--rmc-shell-gutter);
+  padding-inline: var(--rmc-shell-pad-x);
   padding-block: var(--rmc-shell-rhythm-y);
   max-width: var(--rmc-shell-max-width);
-  margin-inline: auto;
+  margin-inline: 0;
   overflow-x: clip;
 }
 

@@ -56,6 +56,15 @@ def _build_policy(nonce: str = "") -> str:
     if nonce:
         directives["script-src"].append(f"'nonce-{nonce}'")
 
+    # Cloudflare Turnstile (login bot-challenge) loads an external script AND
+    # renders inside an iframe — allow its origin in script-src + frame-src,
+    # but ONLY when a site key is configured so the default policy stays tight.
+    if (getattr(settings, "TURNSTILE_SITE_KEY", "") or "").strip():
+        for _directive in ("script-src", "frame-src"):
+            directives.setdefault(_directive, ["'self'"])
+            if "https://challenges.cloudflare.com" not in directives[_directive]:
+                directives[_directive].append("https://challenges.cloudflare.com")
+
     extras = {
         "script-src": getattr(settings, "CSP_EXTRA_SCRIPT_SRC", ()) or (),
         "style-src": getattr(settings, "CSP_EXTRA_STYLE_SRC", ()) or (),

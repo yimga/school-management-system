@@ -85,6 +85,8 @@ def main() -> int:
         findings.append("PrefetchUrlsAPI missing KB offline pack URL")
     if "world-globe" not in prefetch and "rmc-world-globe-loader" not in prefetch:
         findings.append("PrefetchUrlsAPI missing globe static assets for operators")
+    if "world-globe.vendor-three" in prefetch or "world-globe.vendor-gl" in prefetch:
+        findings.append("PrefetchUrlsAPI still references retired world-globe vendor chunks")
 
     sw_reg = _text("static/js/rmc-service-worker-registration.js")
     if "operatorControlPlaneShell" not in sw_reg:

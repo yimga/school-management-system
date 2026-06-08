@@ -45,6 +45,11 @@
         · {% trans "Gateway tiers" %}: <code>{{ provider_status.gateway_tier_chain|join:", " }}</code>
         {% if provider_status.rules_fallback_enabled %}· {% trans "Guided fallback enabled" %}{% endif %}
       </small>
+      {% if provider_status.provider_error_hint %}
+      <small class="d-block text-warning mt-1" data-rmc-ai-health-hint>
+        ⚠ {{ provider_status.provider_error_hint }}
+      </small>
+      {% endif %}
     </span>
     <small class="text-muted mb-0 d-none" data-rmc-ai-browser-offline>
       {% trans "Browser offline — attendance and grades can still queue when offline mode is on; live AI answers need connectivity to your school server (Render or LAN hub)." %}

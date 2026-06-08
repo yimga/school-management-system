@@ -62,12 +62,29 @@ module.exports = defineConfig({
       },
     },
     {
+      name: 'globe-preview-chromium',
+      testMatch: ['**/world-globe-preview-offline.spec.js'],
+      use: {
+        channel: 'chromium',
+        baseURL: process.env.GLOBE_PREVIEW_BASE_URL || 'http://127.0.0.1:8765',
+        serviceWorkers: 'block',
+      },
+      webServer: {
+        command: 'node scripts/serve_globe_preview_static.mjs',
+        cwd: __dirname,
+        url: 'http://127.0.0.1:8765/artifacts/global-footprint-section-preview.html',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120000,
+      },
+    },
+    {
       name: 'manager-chromium',
       testMatch: [
         '**/manager-bulk-confirm-dialog.spec.js',
         '**/manager-surface-parity.spec.js',
         '**/manager-theme-visibility.spec.js',
         '**/control-plane-layout-audit.spec.js',
+        '**/world-globe-online-offline.spec.js',
       ],
       use: {
         channel: 'chromium',

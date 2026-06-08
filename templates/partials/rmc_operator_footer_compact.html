@@ -18,6 +18,8 @@ Row 2: stat · trust icons · copyright · legal (all production data preserved)
           <span class="rmc-civic-footer__est">· {% trans "Corporate gateway" %}</span>
         </span>
       </div>
+      {% comment %} v4.02.x: clock / weather centered on the ribbon (parity with civic footer). {% endcomment %}
+      {% include "partials/cockpit/_footer_temporal_dock.html" %}
       <div class="cp-footer-ribbon__actions rmc-civic-footer__strip" role="navigation" aria-label="{% trans 'Operator gateway shortcuts' %}">
         <a class="rmc-civic-footer__appbadge cp-footer-pill cp-footer-pill--live" href="{% marketing_public_href 'status' %}" data-mkt-status aria-label="{% trans 'Platform status' %}">
           <span class="cp-footer-pill__dot rmc-civic-footer__appbadge-glyph" aria-hidden="true"></span>

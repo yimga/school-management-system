@@ -20,7 +20,7 @@
   var freshnessEl = document.getElementById("rmc-world-globe-freshness");
   var liveRegion = document.getElementById("rmc-world-globe-live-region");
   var eventSource = null;
-  var bridgeBooted = false;
+  var bridgeWired = false;
   var offlineStatusFilter = null;
   var pollTimer = null;
   var sseReconnectTimer = null;
@@ -559,14 +559,18 @@
     if (detail.bundle) applyLiveChrome(detail.bundle);
   });
 
-  function bootBridge() {
-    if (bridgeBooted) return;
-    bridgeBooted = true;
+  function wireBridgeOnce() {
+    if (bridgeWired) return;
+    bridgeWired = true;
     wireLegendRows();
     wireStatusFilters();
     wireTourControls();
     wireSvgDots();
     applySvgPalette();
+  }
+
+  function syncGlobeModeChrome() {
+    hideSkeleton();
     if (isOfflineGlobeMode()) {
       var payload = parsePayload();
       var activeRegion = null;
@@ -579,16 +583,25 @@
         if (keys.length === 1) activeRegion = keys[0];
       }
       if (activeRegion) highlightSvgRegion(activeRegion);
-    }
-    hideSkeleton();
-    if (isOfflineGlobeMode()) {
+      stopPollFallback();
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
+      if (sseReconnectTimer) {
+        window.clearTimeout(sseReconnectTimer);
+        sseReconnectTimer = null;
+      }
       setFreshness("Offline map");
       var note = document.getElementById("rmc-world-globe-offline-note");
       if (note) note.hidden = false;
-      var payload = parsePayload();
+      payload = parsePayload();
       var count = payload && payload.markers ? payload.markers.length : 0;
       announce(count + " schools on regional map (offline).");
     } else {
+      stopSvgRegionTour();
+      var offlineNote = document.getElementById("rmc-world-globe-offline-note");
+      if (offlineNote) offlineNote.hidden = true;
       connectStream();
       setFreshness("Live");
       triggerLiveRefresh(true);
@@ -598,6 +611,11 @@
     }
   }
 
+  function bootBridge() {
+    wireBridgeOnce();
+    syncGlobeModeChrome();
+  }
+
   document.addEventListener("rmc:globe-marker-open", function (ev) {
     var detail = ev.detail || {};
     if (detail.marker) renderSheet(detail.marker);
@@ -605,6 +623,13 @@
 
   document.addEventListener("rmc:globe-ready", bootBridge);
   document.addEventListener("rmc:globe-offline-fallback", bootBridge);
+
+  if (typeof window !== "undefined") {
+    window.addEventListener("online", function () {
+      if (!bridgeWired) return;
+      syncGlobeModeChrome();
+    });
+  }
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {

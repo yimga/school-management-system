@@ -51,6 +51,11 @@ urlpatterns = [
 
     # Documentation hub + LibreOffice compose (10x)
     path("docs-hub/", views_kb_docs.kb_docs_hub, name="kb_docs_hub"),
+    path(
+        "docs-hub/link/",
+        views_kb_docs.kb_link_office_document,
+        name="kb_link_office_document",
+    ),
     path("compose/upload/", views_kb_docs.kb_office_upload, name="kb_office_upload"),
     # Office docs / Collabora (T4)
     path("office/", views_office.office_document_list, name="office_document_list"),

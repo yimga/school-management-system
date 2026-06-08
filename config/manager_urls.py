@@ -641,6 +641,14 @@ urlpatterns = [
         name="manager_kb_locale_families",
     ),
     path(
+        "help-center/kb-bulk-ops/",
+        __import__(
+            "config.manager_kb_bulk_ops",
+            fromlist=["manager_kb_bulk_ops"],
+        ).manager_kb_bulk_ops,
+        name="manager_kb_bulk_ops",
+    ),
+    path(
         "feature-center/",
         __import__(
             "config.manager_help_engagement", fromlist=["manager_feature_center"]

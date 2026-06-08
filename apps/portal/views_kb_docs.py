@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods
 
 from apps.portal.kb_context import filter_by_target_roles, is_operator_help_request
@@ -15,12 +16,14 @@ from apps.portal.kb_office_service import (
     build_docs_hub_context,
     create_hosted_office_document,
     import_writer_file_to_kb_article,
+    link_kb_article_to_office_document,
     office_document_export_bytes,
     reimport_odt_into_kb_article,
     resolve_default_help_audience,
+    unlink_kb_article_office_document,
     validate_office_extension,
 )
-from apps.portal.models_kb import HelpAudience, KBArticle, KBCategory, UserContribution
+from apps.portal.models_kb import HelpAudience, HostedOfficeDocument, KBArticle, KBCategory, UserContribution
 from apps.portal.operator_kb_render import render_kb_if_operator
 from apps.portal.views_office import _doc_for_request
 
@@ -201,3 +204,49 @@ def kb_article_reimport_odt(request, article_slug: str):
         messages.error(request, "Re-import failed. Check file type and try again.")
 
     return redirect("kb:kb_article", article_slug=article.slug)
+
+
+def _staff_may_link_kb(request, article: KBArticle) -> bool:
+    if not getattr(request.user, "is_authenticated", False) or not request.user.is_staff:
+        return False
+    is_op = is_operator_help_request(request)
+    school = getattr(request, "school", None)
+    if is_op:
+        return article.school_id is None or bool(article.is_global_article)
+    if school is not None:
+        return article.school_id in (None, school.id)
+    return bool(getattr(request.user, "is_superuser", False))
+
+
+@login_required
+@require_http_methods(["POST"])
+def kb_link_office_document(request):
+    article_id = request.POST.get("article_id")
+    office_document_id = request.POST.get("office_document_id")
+    action = (request.POST.get("action") or "link").strip().lower()
+    article = get_object_or_404(KBArticle.objects.exclude(status="ARCHIVED"), pk=article_id)
+    if not _staff_may_link_kb(request, article):
+        messages.error(request, "You do not have permission to link this article.")
+        return redirect("kb:kb_docs_hub")
+
+    try:
+        if action == "unlink":
+            unlink_kb_article_office_document(article)
+            messages.success(request, f"Unlinked office document from “{article.title}”.")
+        else:
+            office_doc = get_object_or_404(HostedOfficeDocument, pk=office_document_id)
+            link_kb_article_to_office_document(article, office_doc)
+            messages.success(
+                request,
+                f"Linked “{article.title}” to office document “{office_doc.title}”.",
+            )
+    except ValueError as exc:
+        messages.error(request, str(exc))
+    except Exception as exc:
+        logger.warning("kb_link_office_document failed article=%s: %s", article_id, exc)
+        messages.error(request, "Link action failed.")
+
+    q = (request.POST.get("q") or request.GET.get("q") or "").strip()
+    if q:
+        return redirect(f"{reverse('kb:kb_docs_hub')}?q={q}")
+    return redirect("kb:kb_docs_hub")

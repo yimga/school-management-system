@@ -32,6 +32,7 @@ import logging
 
 from django.contrib.auth.views import PasswordResetConfirmView
 from django.urls import reverse_lazy
+from django.utils.http import url_has_allowed_host_and_scheme
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +53,34 @@ class LegacySetupView(PasswordResetConfirmView):
 
     template_name = "accounts/legacy_setup.html"
     success_url = reverse_lazy("accounts:login")
+    # Log the user in immediately after they choose a password — the token they
+    # just consumed already proved ownership, so a second trip through the login
+    # form would be redundant (and impossible for a brand-new signup admin whose
+    # account is created with set_unusable_password). Multiple auth backends are
+    # configured, so name the one to attribute the session to.
+    post_reset_login = True
+    post_reset_login_backend = "django.contrib.auth.backends.ModelBackend"
     # Django stores the validated user on self.user after dispatch; we
     # rely on the parent's token-validation contract.
+
+    def dispatch(self, request, *args, **kwargs):
+        # Capture a same-host ``?next=`` into the session BEFORE the parent's
+        # token→"set-password" internal redirect drops the query string, so
+        # get_success_url can honor it after the password is saved.
+        next_url = request.GET.get("next")
+        if next_url and url_has_allowed_host_and_scheme(
+            next_url, allowed_hosts={request.get_host()}
+        ):
+            request.session["legacy_setup_next"] = next_url
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        next_url = self.request.session.pop("legacy_setup_next", "")
+        if next_url and url_has_allowed_host_and_scheme(
+            next_url, allowed_hosts={self.request.get_host()}
+        ):
+            return next_url
+        return str(self.success_url)
 
     def form_valid(self, form):
         response = super().form_valid(form)

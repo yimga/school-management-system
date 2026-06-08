@@ -382,7 +382,39 @@ def build_posture_fields(
         "gateway_tier_chain": tier_chain,
         "operator_setup_kind": operator_setup_kind(profile),
         "ai_needs_network": True,
+        "provider_error": provider_error,
+        "provider_error_hint": litellm_error_hint(provider_error),
     }
+
+
+def litellm_error_hint(error: str | None) -> str:
+    """Operator-facing, secret-free explanation of a LiteLLM posture error code."""
+    if not error:
+        return ""
+    if error == "not_configured":
+        return "Set LITELLM_PROXY_URL (and LITELLM_API_KEY) on the server to enable cloud AI."
+    if error == "model_not_listed":
+        return (
+            f"The configured model ({litellm_model()}) is not offered by this "
+            "endpoint. Set LITELLM_MODEL to a model your key can call."
+        )
+    if error in ("http_401", "http_403"):
+        return "LITELLM_API_KEY is missing or not authorised for this endpoint."
+    if error == "http_404":
+        return (
+            f"The endpoint rejected the model ({litellm_model()}) as unknown. "
+            "Fix LITELLM_MODEL or LITELLM_PROXY_URL."
+        )
+    if error == "http_429":
+        return "The cloud provider is rate-limiting requests; try again shortly."
+    if error.startswith("http_5"):
+        return "The cloud provider returned a server error; it may be temporarily down."
+    if error == "timeout":
+        return (
+            "The provider did not answer within the probe window. On a slow host, "
+            "raise LITELLM_PROBE_TIMEOUT_SECONDS."
+        )
+    return "Cloud AI is unavailable; check server AI configuration."
 
 
 def enrich_public_provider_status(
@@ -399,6 +431,7 @@ def enrich_public_provider_status(
     provider = str(health.get("provider") or "none")
     rules_enabled = bool(base.get("rules_fallback_enabled"))
     fallback_active = bool(health.get("fallback_active", base.get("fallback_active")))
+    provider_error = health.get("provider_error", base.get("provider_error"))
 
     posture = build_posture_fields(
         deployment_profile=profile,
@@ -408,6 +441,7 @@ def enrich_public_provider_status(
         ollama_configured=ollama_configured,
         rules_fallback_enabled=rules_enabled,
         fallback_active=fallback_active,
+        provider_error=provider_error,
     )
 
     providers = dict(base.get("providers") or {})

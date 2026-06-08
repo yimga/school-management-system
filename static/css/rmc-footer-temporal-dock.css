@@ -1,20 +1,18 @@
 /* ===========================================================================
-   Footer temporal dock — v4.02.x (2026-06-06)
+   Footer temporal dock — v4.02.90 (2026-06-02)
    Clock + weather moved OUT of the platform header and CENTERED on the footer
    line (owner request: ambient temporal belongs on the footer, reclaim header
    height). Markup: partials/cockpit/_footer_temporal_dock.html wrapping
    components/header_weather_widget.html with HEADER_CONTEXT_DROPUP=True.
 
-   Two surfaces, one look:
-   - Operator civic footer (.rmc-operator-footer-civic, dark): the dock is
-     ABSOLUTELY centered on the primary ribbon line so it sits dead-center
-     between the brand (left) and the gateway pills (right) regardless of their
-     widths — and costs the ribbon zero extra height.
-   - Tenant dashboard footer ([data-rmc-footer-surface="tenant-standard"]): the
-     dock is a centered tier row.
+   Surfaces (one look, dead-center on the primary ribbon):
+   - operator-civic  (.rmc-operator-footer-civic)
+   - operator-compact (.rmc-operator-footer-compact — login ribbon parity)
+   - tenant-standard ([data-rmc-footer-surface="tenant-standard"])
 
-   The chip is styled to MATCH the existing .cp-footer-pill (semantic tokens), so
-   it stays legible on the dark operator footer AND the lighter tenant footer.
+   Clickability: chip sits above ribbon siblings (z-index), pointer-events
+   enabled, dropup menu uses fixed Popper + high z-index so footer overflow
+   never clips the panel.
    =========================================================================== */
 
 .rmc-footer-temporal {
@@ -22,11 +20,15 @@
   align-items: center;
   justify-content: center;
   min-width: 0;
+  pointer-events: auto;
 }
 
 /* Position context so the dropup menu anchors to the chip (self-sufficient —
    does not rely on the header-context-dock CSS that the header used to load). */
-.header-context-dock--footer { position: relative; }
+.header-context-dock--footer {
+  position: relative;
+  z-index: 2;
+}
 
 /* —— The compact dock chip (footer variant) —— */
 .header-context-dock--footer .header-context-dock__trigger {
@@ -42,43 +44,111 @@
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap; /* horizontal-overflow-risk-allow: short-temporal-chip */
+  cursor: pointer;
   transition: border-color var(--motion-fast, 140ms) var(--ease-standard, ease),
-    color var(--motion-fast, 140ms) var(--ease-standard, ease);
+    color var(--motion-fast, 140ms) var(--ease-standard, ease),
+    background var(--motion-fast, 140ms) var(--ease-standard, ease);
 }
 .header-context-dock--footer .header-context-dock__trigger:hover,
 .header-context-dock--footer .header-context-dock__trigger:focus-visible {
   border-color: var(--school-primary, var(--primary));
   color: var(--text-primary);
+  background: var(--surface-popover, var(--surface-elevated));
+}
+/* Neutralize Bootstrap header-only btn-outline-light on footer surfaces. */
+.header-context-dock--footer .header-context-dock__trigger.btn-outline-light {
+  --bs-btn-color: var(--text-secondary);
+  --bs-btn-border-color: var(--hairline);
+  --bs-btn-hover-color: var(--text-primary);
+  --bs-btn-hover-bg: var(--surface-popover, var(--surface-elevated));
+  --bs-btn-hover-border-color: var(--school-primary, var(--primary));
+  --bs-btn-active-color: var(--text-primary);
+  --bs-btn-active-bg: var(--surface-popover, var(--surface-elevated));
+  --bs-btn-active-border-color: var(--school-primary, var(--primary));
 }
 /* Drop the Bootstrap dropdown caret in the footer — the chip is the affordance. */
 .header-context-dock--footer .header-context-dock__trigger.dropdown-toggle::after {
   display: none;
 }
 .header-context-dock--footer .header-context-dock__clock { font-size: 12px; opacity: 0.9; }
+.header-context-dock--footer .header-context-dock__time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
 .header-context-dock--footer .header-context-dock__weather {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Panel opens UPWARD (dropup) so it never falls off the bottom of the viewport. */
 .header-context-dock--footer .header-context-dock__menu {
   top: auto;
   bottom: 100%;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
   margin-top: 0;
   margin-bottom: 6px;
+  min-width: 16.5rem;
+  max-width: min(22rem, calc(100vw - 1rem));
+  padding: 0.55rem;
+  border-radius: var(--radius-lg, 12px);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-2, 0 10px 22px rgba(15, 23, 42, 0.16));
+  background: var(--surface-popover, var(--surface-elevated, #fff));
+  color: var(--text-primary);
+  z-index: 1060;
+}
+.header-context-dock--footer .header-context-dock__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.35rem 0.2rem;
+}
+.header-context-dock--footer .header-context-dock__row + .header-context-dock__row {
+  border-top: 1px solid var(--hairline);
+}
+.header-context-dock--footer .header-context-dock__label {
+  color: var(--text-secondary);
+  font-size: var(--type-size-eyebrow, 11px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-label */
+}
+.header-context-dock--footer .header-context-dock__value {
+  min-width: 0;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: bounded-data-values */
+  color: var(--text-primary);
 }
 
-/* —— Operator civic footer: dead-center on the primary ribbon line —— */
-:is(.rmc-operator-footer-civic, [data-rmc-footer-surface="operator-civic"]) .cp-footer-ribbon--primary {
+/* —— Operator civic + compact footers: dead-center on the primary ribbon —— */
+:is(
+  .rmc-operator-footer-civic,
+  .rmc-operator-footer-compact,
+  [data-rmc-footer-surface="operator-civic"],
+  [data-rmc-footer-surface="operator-compact"]
+) .cp-footer-ribbon--primary {
   position: relative;
+  overflow: visible;
 }
-:is(.rmc-operator-footer-civic, [data-rmc-footer-surface="operator-civic"]) .cp-footer-ribbon--primary > .rmc-footer-temporal {
+:is(
+  .rmc-operator-footer-civic,
+  .rmc-operator-footer-compact,
+  [data-rmc-footer-surface="operator-civic"],
+  [data-rmc-footer-surface="operator-compact"]
+) .cp-footer-ribbon--primary > .rmc-footer-temporal {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1;
+  z-index: 3;
 }
 
 /* —— Tenant dashboard footer: centered tier row —— */
@@ -88,11 +158,26 @@
   justify-content: center;
   margin: 2px 0;
 }
+[data-rmc-footer-surface="tenant-standard"] .header-context-dock--footer .header-context-dock__menu {
+  left: 50%;
+  transform: translateX(-50%);
+}
 
-/* —— Narrow screens: the absolute-center would collide with the brand/pills, so
-      drop the dock to its own centered wrapped row beneath them. —— */
+/* Footer shells must not clip the upward-opening panel. */
+.rmc-app-shell__footer:has([data-rmc-footer-temporal="1"]),
+[data-rmc-shell-footer="portal"]:has([data-rmc-footer-temporal="1"]),
+.cp-corporate-footer:has([data-rmc-footer-temporal="1"]) {
+  overflow: visible;
+}
+
+/* —— Narrow screens: absolute-center would collide with brand/pills —— */
 @media (max-width: 991.98px) {
-  :is(.rmc-operator-footer-civic, [data-rmc-footer-surface="operator-civic"]) .cp-footer-ribbon--primary > .rmc-footer-temporal {
+  :is(
+    .rmc-operator-footer-civic,
+    .rmc-operator-footer-compact,
+    [data-rmc-footer-surface="operator-civic"],
+    [data-rmc-footer-surface="operator-compact"]
+  ) .cp-footer-ribbon--primary > .rmc-footer-temporal {
     position: static;
     transform: none;
     order: 9;

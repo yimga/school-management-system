@@ -964,6 +964,25 @@ if DEFENDER_ENABLED:
     )
     MIDDLEWARE.insert(_auth_idx, "defender.middleware.FailedLoginMiddleware")
 
+# Always-on login lockout (apps.accounts.login_guard) — dependency-free
+# brute-force / credential-stuffing defense layered on the per-IP @ratelimit.
+# Uses the Django cache; fails open on cache outage. No Redis or extra package
+# required (unlike django-defender above, which stays available via its env flag
+# for operators who want distributed lockout).
+LOGIN_LOCKOUT_ENABLED = os.getenv("LOGIN_LOCKOUT_ENABLED", "1") in ("1", "true", "yes")
+LOGIN_LOCKOUT_THRESHOLD = int(os.getenv("LOGIN_LOCKOUT_THRESHOLD", "5"))
+LOGIN_LOCKOUT_COOLOFF_SECONDS = int(os.getenv("LOGIN_LOCKOUT_COOLOFF_SECONDS", str(60 * 15)))
+
+# Cloudflare Turnstile login bot-challenge (apps.accounts.turnstile). Inert
+# until BOTH keys are set, so sign-in keeps working before Cloudflare is wired.
+# When enabled, the challenge appears after the first failed sign-in attempt.
+TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY", "").strip()
+TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "").strip()
+TURNSTILE_VERIFY_URL = os.getenv(
+    "TURNSTILE_VERIFY_URL",
+    "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+)
+
 # --- Site behavior ---
 MAINTENANCE_MODE = False
 
@@ -3100,6 +3119,16 @@ RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION = os.getenv(
 LITELLM_PROXY_URL = (os.getenv("LITELLM_PROXY_URL", "") or "").strip().rstrip("/")
 LITELLM_MODEL = (os.getenv("LITELLM_MODEL", "") or "gpt-5.4-mini").strip()
 LITELLM_API_KEY = (os.getenv("LITELLM_API_KEY", "") or "").strip()
+# Cloud-AI health-probe tuning (see services/ai_deployment_posture.py):
+#  - PROBE_TIMEOUT_SECONDS: raise on slow/free-tier hosts so a stalled worker does
+#    not false-flag a healthy provider as down (clamped 1..30; default 4).
+#  - HEALTH_DEEP_PROBE=1: issue a 1-token completion so the badge proves *chat*
+#    works (catches wrong-model http_404 / bad-key http_401 a models-list cannot).
+#  - LASTGOOD_GRACE_SECONDS: how long a clean probe keeps the provider "sticky"
+#    through a transient timeout (clamped 60..3600; default 600).
+LITELLM_PROBE_TIMEOUT_SECONDS = (os.getenv("LITELLM_PROBE_TIMEOUT_SECONDS", "") or "").strip()
+LITELLM_HEALTH_DEEP_PROBE = (os.getenv("LITELLM_HEALTH_DEEP_PROBE", "") or "").strip()
+LITELLM_LASTGOOD_GRACE_SECONDS = (os.getenv("LITELLM_LASTGOOD_GRACE_SECONDS", "") or "").strip()
 
 # Support ticket AI: prepend tenant KB/FAQ excerpts to ``support_suggest`` prompts (1 = on).
 SUPPORT_AI_KB_CONTEXT = os.getenv("SUPPORT_AI_KB_CONTEXT", "1").strip().lower() in (

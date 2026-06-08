@@ -35,6 +35,7 @@ def main() -> int:
 
     url_checks = [
         ("apps/portal/urls_kb.py", "kb_docs_hub"),
+        ("apps/portal/urls_kb.py", "kb_link_office_document"),
         ("apps/portal/urls_kb.py", "kb_office_upload"),
         ("apps/portal/urls_kb.py", "office_document_download"),
         ("apps/portal/urls_kb.py", "office_document_preview_pdf"),
@@ -46,9 +47,13 @@ def main() -> int:
 
     service_checks = [
         ("apps/portal/kb_office_service.py", "build_docs_hub_context"),
+        ("apps/portal/kb_office_service.py", "search_office_documents"),
+        ("apps/portal/kb_office_service.py", "link_kb_article_to_office_document"),
         ("apps/portal/kb_office_service.py", "import_writer_file_to_kb_article"),
         ("apps/portal/kb_office_service.py", "office_document_export_bytes"),
+        ("apps/portal/models_kb.py", "linked_office_document"),
         ("apps/portal/document_conversion.py", "convert_odt_to_html"),
+        ("apps/portal/views_kb_docs.py", "kb_link_office_document"),
         ("apps/portal/views_kb_docs.py", "render_kb_if_operator"),
     ]
     for rel, needle in service_checks:
@@ -56,6 +61,8 @@ def main() -> int:
             errors.append(f"{rel} missing {needle}")
 
     template_checks = [
+        ("templates/portal/kb_docs_hub.html", 'name="q"'),
+        ("templates/portal/kb_docs_hub.html", "kb_link_office_document"),
         ("templates/portal/kb_docs_hub.html", "kb:kb_office_upload"),
         ("templates/portal/kb_docs_hub.html", "office_document_preview_pdf"),
         ("templates/portal/kb_office_upload.html", "import_kb"),
@@ -83,6 +90,7 @@ def main() -> int:
 
         for name in (
             "kb:kb_docs_hub",
+            "kb:kb_link_office_document",
             "kb:kb_office_upload",
             "kb:office_document_download",
             "kb:office_document_preview_pdf",

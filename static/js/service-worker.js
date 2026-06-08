@@ -181,7 +181,10 @@
 // v4.01.57: workflow progress strip syncs all inline hosts (header + canvas).
 // v4.02.68: Global Footprint phase-3 closeout — city-level pins from settings.location; lazy rmc-world-globe-loader.js; operator globe_auto_rotate toggle synced via _ensure_world_map_globe_json.
 // v4.02.83: production deploy builds world-globe dist; Sierra Leone country-name resolution + offline region highlight.
-const CACHE_VERSION = "sms-v4.02.83-globe-prod-deploy-fix-2026-06-08";
+// v4.02.84: single-file world-globe.mount.js bundle + deploy staticfiles gate.
+// v4.02.86: globe online reconnect retry + bridge mode sync; offline prefetch single bundle.
+// v4.02.89: purge retired vendor chunks; loader normalized; preview uses loader offline events.
+const CACHE_VERSION = "sms-v4.02.90-footer-temporal-dock-parity-2026-06-02";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -308,8 +311,6 @@ const STATIC_ASSETS = [
   "/static/js/rmc-offline-queue-crypto.js",
   "/static/js/rmc-world-globe-loader.js",
   "/static/js/rmc-world-globe-bridge.js",
-  "/static/js/dist/world-globe.vendor-three.js",
-  "/static/js/dist/world-globe.vendor-gl.js",
   "/static/js/dist/world-globe.mount.js",
   "/static/geo/world-countries-110m.json",
   "/static/img/globe/earth-night-1k.jpg",

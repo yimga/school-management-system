@@ -1,0 +1,100 @@
+{% load i18n %}
+<div class="rmc-help-center" data-rmc-page="kb-bulk-ops" data-rmc-scroll-policy="paginate">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h2 class="h4 mb-1"><i class="bi bi-cloud-upload me-2"></i>{% trans "KB bulk operations" %}</h2>
+      <p class="small text-tertiary mb-0">{% trans "One-click import from docs/ and regenerate LibreOffice ODT for published articles." %}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-sm btn-outline-primary" href="{{ docs_hub_url }}">{% trans "Documentation hub" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ locale_families_url }}">{% trans "Locale families" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ help_center_url }}">{% trans "Help hub" %}</a>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header fw-semibold">{% trans "Import docs/ → KB" %}</div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="import_docs">
+            <div class="mb-2">
+              <label class="form-label" for="import-category">{% trans "Category slug" %}</label>
+              <input class="form-control form-control-sm" id="import-category" name="category" value="system-admin" maxlength="80">
+            </div>
+            <div class="mb-2">
+              <label class="form-label" for="import-odt-engine">{% trans "ODT engine" %}</label>
+              <select class="form-select form-select-sm" id="import-odt-engine" name="odt_engine">
+                <option value="auto">auto</option>
+                <option value="libreoffice">libreoffice</option>
+                <option value="pandoc">pandoc</option>
+              </select>
+            </div>
+            <div class="form-check mb-1">
+              <input class="form-check-input" type="checkbox" name="dry_run" id="import-dry-run">
+              <label class="form-check-label" for="import-dry-run">{% trans "Dry run (preview only)" %}</label>
+            </div>
+            <div class="form-check mb-1">
+              <input class="form-check-input" type="checkbox" name="overwrite" id="import-overwrite">
+              <label class="form-check-label" for="import-overwrite">{% trans "Overwrite existing slugs" %}</label>
+            </div>
+            <div class="form-check mb-1">
+              <input class="form-check-input" type="checkbox" name="include_root" id="import-include-root">
+              <label class="form-check-label" for="import-include-root">{% trans "Include repo-root markdown" %}</label>
+            </div>
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" name="generate_odt" id="import-generate-odt">
+              <label class="form-check-label" for="import-generate-odt">{% trans "Generate ODT after import" %}</label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">{% trans "Run import" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header fw-semibold">{% trans "Generate KB ODT" %}</div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="generate_odt">
+            <div class="mb-2">
+              <label class="form-label" for="odt-slug">{% trans "Article slug (optional)" %}</label>
+              <input class="form-control form-control-sm" id="odt-slug" name="article_slug" placeholder="{% trans 'Leave blank for all published articles' %}">
+            </div>
+            <div class="mb-2">
+              <label class="form-label" for="odt-formats">{% trans "Formats" %}</label>
+              <input class="form-control form-control-sm" id="odt-formats" name="formats" value="odt" maxlength="40">
+            </div>
+            <div class="mb-2">
+              <label class="form-label" for="odt-engine">{% trans "Engine" %}</label>
+              <select class="form-select form-select-sm" id="odt-engine" name="engine">
+                <option value="auto">auto</option>
+                <option value="libreoffice">libreoffice</option>
+                <option value="pandoc">pandoc</option>
+              </select>
+            </div>
+            <div class="form-check mb-1">
+              <input class="form-check-input" type="checkbox" name="dry_run" id="odt-dry-run">
+              <label class="form-check-label" for="odt-dry-run">{% trans "Dry run" %}</label>
+            </div>
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" name="overwrite" id="odt-overwrite">
+              <label class="form-check-label" for="odt-overwrite">{% trans "Overwrite existing ODT" %}</label>
+            </div>
+            <button type="submit" class="btn btn-success btn-sm">{% trans "Run ODT generation" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if last_output %}
+  <section class="mt-4" id="bulk-output">
+    <h3 class="h6">{% trans "Last command output" %}</h3>
+    <pre class="small bg-body-secondary p-3 rounded mb-0" style="max-height: 20rem; overflow: auto;">{{ last_output }}</pre>
+  </section>
+  {% endif %}
+</div>

@@ -264,6 +264,14 @@
   --sidebar-width-default: var(--token-sidebar-width-default);
   --sidebar-width-wide: var(--token-sidebar-width-wide);
 
+  /* Shell canvas rhythm — tight horizontal inset so dashboards use the full main column
+     between sidebar rails (operator control plane + tenant portal + manager admin). */
+  --rmc-shell-max-width: none;
+  --rmc-shell-pad-x: clamp(10px, 0.75vw, 14px);
+  --rmc-shell-pad-y: clamp(8px, 0.9vw, 14px);
+  --rmc-shell-gutter: clamp(6px, 0.45vw, 10px);
+  --rmc-shell-rhythm-y: clamp(8px, 0.9vw, 14px);
+
   /* ========== Phase 2 — semantic design system (--ds-*) ==========
      Single grammar for cards, surfaces, alerts, chips. Alias platform/luxury/tokens.
      Components: design-system-phase2-enforcement.css + card-grammar / form-system / table-system. */
@@ -4823,6 +4831,19 @@ html[data-rmc-reveal-armed] .rmc-reveal--scale.is-revealed {
 .content-max-narrow {
   max-inline-size: min(960px, 100%);
   margin-inline: auto;
+}
+
+/* Dashboard shells: bleed wide layouts to sidebar-adjacent rails (not reading opt-ins). */
+:is(
+    body.control-plane-shell,
+    body.admin-manager-shell,
+    body.portal-body-with-layout,
+    body.backend-shell,
+    body.base-document-shell
+  )
+  :is(.content-max-960, .content-max-1200, .cp-page) {
+  max-inline-size: 100%;
+  margin-inline: 0;
 }
 
 /* ---- Quieter primary-nav active pill ------------------------------------ */

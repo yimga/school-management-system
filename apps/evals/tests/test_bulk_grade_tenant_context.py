@@ -88,3 +88,28 @@ class BulkGradeTenantContextTests(TestCase):
                     schema_name=None,
                     school_id=None,
                 )
+
+    def test_process_bulk_grades_accepts_explicit_school_id_under_rls(self):
+        with rls_bypass():
+            school = School.objects.create(
+                name="Explicit RLS School",
+                slug="explicit-rls-school",
+                subdomain="explicit-rls-school",
+                is_active=True,
+            )
+
+        with patch("apps.evals.tasks._requires_explicit_rls_context", return_value=True):
+            with patch("apps.evals.tasks._run_bulk_grades", return_value={"processed": 0}) as run_mock:
+                with patch(
+                    "apps.schools.celery_tasks._run_with_tenant_context",
+                    side_effect=lambda schema_name=None, school_id=None, runnable=None, **kw: runnable(),
+                ) as ctx_mock:
+                    process_bulk_grades.run(
+                        student_ids=[],
+                        academic_year_id=None,
+                        term_id=None,
+                        schema_name=None,
+                        school_id=str(school.pk),
+                    )
+                    ctx_mock.assert_called_once()
+                    run_mock.assert_called_once()

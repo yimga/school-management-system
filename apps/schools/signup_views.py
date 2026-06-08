@@ -1558,31 +1558,6 @@ def verify_signup(request: HttpRequest):
     except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
         reset_broken_database_state()
 
-    # v4.00.98 Phase 5 — fan out tenant.signup.completed through the matrix.
-    # Sends the welcome email to the tenant admin. Best-effort.
-    try:
-        from apps.platform_runtime.event_bus import publish_event
-        from django.conf import settings as _dj_settings
-
-        portal_url = (
-            f"https://manager.{getattr(_dj_settings, 'MULTI_TENANT_BASE_DOMAIN', 'runmycampus.com')}/"
-        )
-        publish_event(
-            "tenant.signup.completed",
-            {
-                "school_id": str(school.pk),
-                "school_name": getattr(school, "name", ""),
-                "admin_email": verification.email,
-                "portal_url": portal_url,
-            },
-            school_id=str(school.pk),
-            strict_catalog=True,
-            source="schools.verify_signup",
-        )
-    except (ImportError, AttributeError, TypeError, ValueError, OSError, RuntimeError, DatabaseError):
-        reset_broken_database_state()
-        logger.warning("verify_signup_publish_event_failed", exc_info=True)
-
     # v3.58.x Wave 9 Agent K — route provisioning through the canonical
     # ``dispatch_provision_school`` so it queues via Celery when the
     # broker is reachable (returning immediately to the operator) and
@@ -1598,6 +1573,13 @@ def verify_signup(request: HttpRequest):
     # so the offboarding queue / timeline surfaces the failure. The user
     # is still logged in (auth on success was already proven by email
     # verification), but the timeline now reflects reality.
+    #
+    # 2026-06-08 fix (onboarding dead-end): provisioning now runs BEFORE the
+    # welcome email + redirect so the freshly-created admin user exists and we
+    # can hand the new owner a token-authed "set your password" link. The token
+    # is the auth, so it survives the public→tenant host hop where a session
+    # cookie would not — closing the bug where verify dumped owners on a login
+    # page their passwordless account could never satisfy.
     try:
         from apps.schools.tasks import dispatch_provision_school
 
@@ -1624,11 +1606,9 @@ def verify_signup(request: HttpRequest):
         except (ImportError, AttributeError, TypeError, ValueError, OSError):
             pass
 
-    # Pass 7: magic-link login — verifying the email proves ownership, so log the
-    # newly-provisioned admin in directly instead of bouncing through a password
-    # form they cannot satisfy (admin user is created with set_unusable_password
-    # in apps/schools/tasks.py). Falls back to the legacy login redirect when the
-    # admin user cannot be resolved.
+    # Resolve the freshly-provisioned admin user. Synchronous provisioning
+    # creates it in-request; an async/Celery dispatch may not have created it
+    # yet → ``admin_user`` stays None and we degrade gracefully below.
     User = get_user_model()
     try:
         admin_user = (
@@ -1640,6 +1620,60 @@ def verify_signup(request: HttpRequest):
             logger.warning("verify_signup_admin_lookup_transient_db: %s", exc)
             return _verify_signup_retryable_unavailable(request)
         raise
+
+    # Build the one-time password-setup link (token-authed; host-independent).
+    # ``next`` lands the owner on the provisioning/dashboard surface after they
+    # choose a password and are auto-logged-in by LegacySetupView.
+    setup_password_url = ""
+    if admin_user is not None:
+        try:
+            from apps.schools.provision_email_urls import (
+                build_provision_setup_password_url,
+            )
+
+            dashboard_next_path = "/"
+            for _name in ("tenant_provisioning_status", "school_studio"):
+                try:
+                    dashboard_next_path = reverse(_name, urlconf="config.tenant_urls")
+                    break
+                except NoReverseMatch:
+                    continue
+            setup_password_url = build_provision_setup_password_url(
+                school, admin_user, next_path=dashboard_next_path
+            )
+        except (ImportError, AttributeError, TypeError, ValueError):
+            setup_password_url = ""
+
+    # v4.00.98 Phase 5 — fan out tenant.signup.completed through the matrix.
+    # Sends the welcome email to the tenant admin (now AFTER provisioning, so
+    # the school really is ready and the email can carry the setup link).
+    try:
+        from apps.platform_runtime.event_bus import publish_event
+        from django.conf import settings as _dj_settings
+
+        portal_url = (
+            f"https://manager.{getattr(_dj_settings, 'MULTI_TENANT_BASE_DOMAIN', 'runmycampus.com')}/"
+        )
+        publish_event(
+            "tenant.signup.completed",
+            {
+                "school_id": str(school.pk),
+                "school_name": getattr(school, "name", ""),
+                "admin_email": verification.email,
+                "portal_url": portal_url,
+                "setup_password_url": setup_password_url,
+            },
+            school_id=str(school.pk),
+            strict_catalog=True,
+            source="schools.verify_signup",
+        )
+    except (ImportError, AttributeError, TypeError, ValueError, OSError, RuntimeError, DatabaseError):
+        reset_broken_database_state()
+        logger.warning("verify_signup_publish_event_failed", exc_info=True)
+
+    # Magic-link login — verifying the email proves ownership, so log the
+    # newly-provisioned admin in directly. Falls back to the legacy login
+    # redirect when the admin user cannot be resolved.
     if admin_user is not None and admin_user.is_active:
         try:
             auth_login(request, admin_user)
@@ -1679,6 +1713,15 @@ def verify_signup(request: HttpRequest):
             )
         except (ImportError, ValueError, TypeError, OSError):
             pass
+        # Primary: send them to the token-authed "set your password" page (works
+        # across the public→tenant host boundary; they choose a password so
+        # future logins work, then auto-land on the dashboard). This replaces
+        # the old cross-host redirect chain that bounced the passwordless
+        # account into a login wall it could never satisfy.
+        if setup_password_url:
+            return redirect(setup_password_url)
+
+        # Fallback (no setup URL resolvable): original tenant-surface chain.
         for url_name in (
             "tenant_provisioning_status",
             "school_studio",
@@ -1692,6 +1735,9 @@ def verify_signup(request: HttpRequest):
                 return target
         return redirect("/")
 
+    # No admin user resolved (async provisioning still running): a passwordless
+    # account can't satisfy the login page, so prefer a self-service password
+    # set; the welcome email also carries the one-time setup link.
     login_url = (settings.LOGIN_URL or "/authentication/login/").lstrip("/")
     try:
         next_path = reverse("accounts:backend_dashboard")

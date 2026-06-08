@@ -51,6 +51,8 @@ REQUIRED_MARKERS = [
     ("templates/admin/base.html", "rmc_operator_footer_civic.html"),
     ("templates/admin/base.html", "control_plane_unified_header.html"),
     ("templates/admin/base_site.html", "rmc-footer-surfaces.css"),
+    ("templates/admin/base_site.html", "rmc-footer-temporal-dock.css"),
+    ("templates/partials/rmc_operator_footer_compact.html", "_footer_temporal_dock.html"),
     ("templates/base.html", "rmc-footer-surfaces.css"),
     ("templates/portal_base.html", "PORTAL_FOOTER_PARTIAL"),
     ("templates/portal_base.html", "rmc-footer-surfaces.css"),

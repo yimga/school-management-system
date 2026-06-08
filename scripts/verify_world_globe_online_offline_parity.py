@@ -55,6 +55,8 @@ def main() -> int:
         "Offline map",
         "startSvgRegionTour",
         "stopSvgRegionTour",
+        "syncGlobeModeChrome",
+        "wireBridgeOnce",
     ):
         if token not in bridge:
             _fail(f"bridge missing live refresh token {token!r}")
@@ -62,7 +64,7 @@ def main() -> int:
     loader = (ROOT / "static/js/rmc-world-globe-loader.js").read_text(encoding="utf-8")
     if "rmc:globe-offline-fallback" not in loader:
         _fail("loader must dispatch rmc:globe-offline-fallback")
-    for token in ("ensureSvgVisible", "isNavigatorOffline", "isSvgOfflineMode", "markOfflineFallback", "removeMountScript", "globeStage"):
+    for token in ("ensureSvgVisible", "isNavigatorOffline", "isSvgOfflineMode", "markOfflineFallback", "removeMountScript", "globeStage", "retryMountWhenOnline", "clearOfflineModeForRetry"):
         if token not in loader:
             _fail(f"loader missing offline blank-screen token {token!r}")
 

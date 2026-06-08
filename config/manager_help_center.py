@@ -159,10 +159,28 @@ def _help_center_sections() -> list[dict]:
                     "accounts:user_documentation",
                 ),
                 card(
+                    _("Documentation hub"),
+                    _("KB articles, office templates, ODT import, and unified search."),
+                    "bi-journals",
+                    "kb:kb_docs_hub",
+                ),
+                card(
                     _("Office documents"),
                     _("Collabora-hosted runbooks when configured."),
                     "bi-file-earmark-word",
                     "kb:office_document_list",
+                ),
+                card(
+                    _("KB translation families"),
+                    _("Locale variants, canonical anchors, and group publish."),
+                    "bi-translate",
+                    "manager_kb_locale_families",
+                ),
+                card(
+                    _("KB bulk operations"),
+                    _("One-click import docs/ to KB and regenerate ODT for articles."),
+                    "bi-cloud-upload",
+                    "manager_kb_bulk_ops",
                 ),
                 card(
                     _("What's new"),

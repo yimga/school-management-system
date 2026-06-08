@@ -17,6 +17,7 @@
     class="btn btn-outline-light btn-sm header-context-dock__trigger dropdown-toggle"
     type="button"
     data-bs-toggle="dropdown"
+    {% if HEADER_CONTEXT_DROPUP %}data-bs-popper-config='{"strategy":"fixed","placement":"top"}'{% endif %}
     aria-expanded="false"
     aria-label="{% trans 'Open date, time, and weather panel' %}"
   >
@@ -29,7 +30,7 @@
     </span>
     {% endif %}
   </button>
-  <div class="dropdown-menu dropdown-menu-end header-context-dock__menu">
+  <div class="dropdown-menu{% if not HEADER_CONTEXT_DROPUP %} dropdown-menu-end{% endif %} header-context-dock__menu">
     {% if show_datetime %}
     <div class="header-context-dock__row">
       <span class="header-context-dock__label">{% trans "Local" %}</span>

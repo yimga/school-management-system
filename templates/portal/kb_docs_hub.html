@@ -14,6 +14,17 @@
     <p class="text-secondary mb-0">
       {% trans "Knowledge base articles, LibreOffice templates, and round-trip ODT import — for your school and platform operators." %}
     </p>
+    <form class="mt-3 d-flex flex-wrap gap-2" method="get" action="{% url 'kb:kb_docs_hub' %}" role="search">
+      <label class="visually-hidden" for="docs-hub-search">{% trans "Search articles and office documents" %}</label>
+      <input class="form-control" id="docs-hub-search" type="search" name="q" value="{{ search_query }}" placeholder="{% trans 'Search articles and office documents…' %}" maxlength="200">
+      <button class="btn btn-primary" type="submit">{% trans "Search" %}</button>
+      {% if search_query %}
+      <a class="btn btn-outline-secondary" href="{% url 'kb:kb_docs_hub' %}">{% trans "Clear" %}</a>
+      {% endif %}
+    </form>
+    {% if search_query %}
+    <p class="small text-secondary mt-2 mb-0">{% blocktrans with q=search_query %}Showing results for “{{ q }}”.{% endblocktrans %}</p>
+    {% endif %}
   </header>
 
   <section id="compose-actions" class="mb-4">
@@ -36,12 +47,17 @@
     <div class="table-responsive">
       <table class="table table-sm rmc-data-table align-middle">
         <caption class="visually-hidden">{% trans "Recent knowledge base articles" %}</caption>
-        <thead><tr><th>{% trans "Title" %}</th><th>{% trans "Category" %}</th><th></th></tr></thead>
+        <thead><tr><th>{% trans "Title" %}</th><th>{% trans "Category" %}</th><th>{% trans "Linked office doc" %}</th><th></th></tr></thead>
         <tbody>
           {% for article in recent_articles %}
           <tr>
             <td>{{ article.title }}</td>
             <td>{{ article.category.name }}</td>
+            <td>
+              {% if article.linked_office_document %}
+              <a href="{% url 'kb:office_document_open' article.linked_office_document.id %}">{{ article.linked_office_document.title }}</a>
+              {% else %}<span class="text-tertiary">—</span>{% endif %}
+            </td>
             <td class="text-end">
               <a class="btn btn-sm btn-outline-primary" href="{% url 'kb:kb_article' article.slug %}">{% trans "Read" %}</a>
               {% if article.odt_file %}
@@ -50,7 +66,7 @@
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="3">{% include "components/tp_empty.html" with tp_empty_title=_("No articles yet") tp_empty_hint=_("Submit an article or import an ODT file.") %}</td></tr>
+          <tr><td colspan="4">{% include "components/tp_empty.html" with tp_empty_title=_("No articles yet") tp_empty_hint=_("Submit an article or import an ODT file.") %}</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -82,5 +98,38 @@
       </table>
     </div>
   </section>
+
+  {% if staff_may_link and all_office_docs_for_link %}
+  <section id="article-office-linker" class="mb-4">
+    <h2 class="h5">{% trans "Link article to office document" %}</h2>
+    <p class="small text-secondary">{% trans "Staff only — pair a KB article with its Collabora/LibreOffice source file." %}</p>
+    <form method="post" action="{% url 'kb:kb_link_office_document' %}" class="row g-2 align-items-end">
+      {% csrf_token %}
+      {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+      <div class="col-md-4">
+        <label class="form-label" for="link-article">{% trans "Article" %}</label>
+        <select class="form-select form-select-sm" id="link-article" name="article_id" required>
+          <option value="">{% trans "Choose article…" %}</option>
+          {% for art in linkable_articles %}
+          <option value="{{ art.pk }}">{{ art.title }}{% if art.linked_office_document %} ({% trans "linked" %}){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="link-office">{% trans "Office document" %}</label>
+        <select class="form-select form-select-sm" id="link-office" name="office_document_id">
+          <option value="">{% trans "Choose office document…" %}</option>
+          {% for doc in all_office_docs_for_link %}
+          <option value="{{ doc.pk }}">{{ doc.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4 d-flex flex-wrap gap-2">
+        <button type="submit" name="action" value="link" class="btn btn-sm btn-primary">{% trans "Link" %}</button>
+        <button type="submit" name="action" value="unlink" class="btn btn-sm btn-outline-secondary">{% trans "Unlink" %}</button>
+      </div>
+    </form>
+  </section>
+  {% endif %}
 </div>
 {% endblock %}

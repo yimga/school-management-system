@@ -365,6 +365,42 @@ def invalidate_ollama_connection_cache() -> None:
         pass
 
 
+# Anti-flap: remember the last time LiteLLM answered cleanly so a single timed-out
+# probe on a stalled free-tier worker does not flip the operator UI to "unavailable".
+_LITELLM_GOOD_CACHE_KEY = "ai:health:litellm-last-good"
+
+
+def _litellm_lastgood_grace_seconds() -> int:
+    raw = (
+        getattr(settings, "LITELLM_LASTGOOD_GRACE_SECONDS", None)
+        or os.environ.get("LITELLM_LASTGOOD_GRACE_SECONDS")
+        or "600"
+    )
+    try:
+        return max(60, min(int(raw), 3600))
+    except (TypeError, ValueError):
+        return 600
+
+
+def _remember_litellm_good() -> None:
+    try:
+        from django.core.cache import cache
+
+        cache.set(_LITELLM_GOOD_CACHE_KEY, 1, _litellm_lastgood_grace_seconds())
+    except (AttributeError, OSError, RuntimeError, TypeError, ValueError):
+        pass
+
+
+def _litellm_recently_good() -> bool:
+    """True when LiteLLM answered cleanly within the grace window (cache key alive)."""
+    try:
+        from django.core.cache import cache
+
+        return cache.get(_LITELLM_GOOD_CACHE_KEY) is not None
+    except (AttributeError, OSError, RuntimeError, TypeError, ValueError):
+        return False
+
+
 def _ollama_config() -> tuple[str, str]:
     conn = resolve_ollama_connection()
     return conn["generate_endpoint"], conn["model"]
@@ -484,9 +520,9 @@ def probe_ai_provider_reachable() -> dict[str, Any]:
 
     from services.ai_deployment_posture import (
         build_posture_fields,
+        diagnose_litellm_posture,
         is_litellm_configured,
         normalize_deployment_profile,
-        probe_litellm_reachable,
     )
 
     cache_key = "ai:health:provider-reachability"
@@ -513,15 +549,31 @@ def probe_ai_provider_reachable() -> dict[str, Any]:
         "litellm_configured": is_litellm_configured(),
     }
 
+    provider_error: str | None = None
     if profile in {"online", "hybrid"} and is_litellm_configured():
-        ok, latency_ms = probe_litellm_reachable()
-        if ok:
+        diag = diagnose_litellm_posture()
+        if diag.get("reachable"):
+            _remember_litellm_good()
             result.update({
                 "reachable": True,
                 "provider": "litellm",
-                "latency_ms": latency_ms,
+                "latency_ms": diag.get("latency_ms"),
                 "degraded": False,
             })
+        else:
+            provider_error = diag.get("error")
+            # Anti-flap: a transient timeout should not downgrade a provider that
+            # answered cleanly moments ago (free-tier workers stall under load).
+            # Definitive errors (http_4xx, model_not_listed) are NOT sticky — they
+            # need an operator config fix, so they fall through to rules honestly.
+            if provider_error == "timeout" and _litellm_recently_good():
+                result.update({
+                    "reachable": True,
+                    "provider": "litellm",
+                    "latency_ms": diag.get("latency_ms"),
+                    "degraded": True,
+                    "sticky_last_good": True,
+                })
 
     if not result["reachable"] and "ollama" in preference and status.get("ollama", {}).get("configured"):
         conn = resolve_ollama_connection()
@@ -554,6 +606,9 @@ def probe_ai_provider_reachable() -> dict[str, Any]:
             "degraded": True,
         })
 
+    if provider_error:
+        result["provider_error"] = provider_error
+
     result.update(
         build_posture_fields(
             deployment_profile=profile,
@@ -563,6 +618,7 @@ def probe_ai_provider_reachable() -> dict[str, Any]:
             ollama_configured=bool(status.get("ollama_configured")),
             rules_fallback_enabled=rules_enabled,
             fallback_active=bool(result.get("fallback_active")),
+            provider_error=provider_error,
         )
     )
 

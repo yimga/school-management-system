@@ -389,6 +389,15 @@ class KBArticle(models.Model):
         related_name="translations",
         verbose_name=_("Translation of"),
     )
+    linked_office_document = models.ForeignKey(
+        "HostedOfficeDocument",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="linked_kb_articles",
+        verbose_name=_("Linked office document"),
+        help_text=_("Optional Collabora/LibreOffice file paired with this article."),
+    )
 
     # Regional metadata: filter help content by tenant or GeoIP region (e.g. Cameroon vs Canada)
     country_code = models.CharField(

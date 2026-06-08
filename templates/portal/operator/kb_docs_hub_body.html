@@ -2,6 +2,11 @@
 <link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
 <div class="rmc-kb-operator" data-rmc-scroll-policy="paginate">
   <p class="text-secondary">{% trans "Operator documentation: platform runbooks, office templates, and KB articles on the manager host." %}</p>
+  <form class="mb-3 d-flex flex-wrap gap-2" method="get" action="{% url 'kb:kb_docs_hub' %}" role="search">
+    <input class="form-control form-control-sm" type="search" name="q" value="{{ search_query }}" placeholder="{% trans 'Search articles and office documents…' %}" maxlength="200">
+    <button class="btn btn-primary btn-sm" type="submit">{% trans "Search" %}</button>
+    {% if search_query %}<a class="btn btn-outline-secondary btn-sm" href="{% url 'kb:kb_docs_hub' %}">{% trans "Clear" %}</a>{% endif %}
+  </form>
   <div class="d-flex flex-wrap gap-2 mb-3">
     <a class="btn btn-primary btn-sm" href="{% url 'kb:kb_office_upload' %}">{% trans "Upload / import" %}</a>
     <a class="btn btn-outline-primary btn-sm" href="{% url 'kb:kb_article_submit' %}">{% trans "Submit article" %}</a>
@@ -13,7 +18,12 @@
   <h2 class="h6">{% trans "Articles" %} ({{ article_count }})</h2>
   <ul class="list-unstyled mb-3">
     {% for article in recent_articles %}
-    <li class="mb-1"><a href="{% url 'kb:kb_article' article.slug %}">{{ article.title }}</a></li>
+    <li class="mb-1">
+      <a href="{% url 'kb:kb_article' article.slug %}">{{ article.title }}</a>
+      {% if article.linked_office_document %}
+      <span class="small text-secondary">→ <a href="{% url 'kb:office_document_open' article.linked_office_document.id %}">{{ article.linked_office_document.title }}</a></span>
+      {% endif %}
+    </li>
     {% empty %}<li class="text-tertiary">{% trans "None yet." %}</li>{% endfor %}
   </ul>
   <h2 class="h6">{% trans "Office documents" %}</h2>

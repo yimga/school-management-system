@@ -5,8 +5,6 @@
  */
 
 :root {
-  --rmc-shell-pad-x: clamp(12px, 1.4vw, 24px);
-  --rmc-shell-pad-y: clamp(10px, 1.2vw, 18px);
   --rmc-shell-card-radius: var(--radius-lg, 16px);
   --rmc-mkt-content-max: min(72rem, 100%);
 }
@@ -18,7 +16,8 @@ body.control-plane-shell .cp-shell-content,
 body.admin-manager-shell .cp-shell-content {
   width: 100%;
   max-width: none;
-  padding-inline: var(--rmc-shell-pad-x);
+  /* Horizontal inset is owned by #cp-main-content / .cp-page-body / .page-wrap only. */
+  padding-inline: 0;
   padding-block: var(--rmc-shell-pad-y);
 }
 
@@ -68,7 +67,7 @@ body.backend-shell .portal-main {
   width: 100%;
 }
 
-body.portal-body-with-layout .container-fluid,
+/* Tenant canvas inset: .page-wrap / .cp-page-body only — not every .container-fluid (preserves header + nested grids). */
 body.base-document-shell .container-fluid,
 body.backend-shell .container-fluid {
   padding-inline: var(--rmc-shell-pad-x);
@@ -79,7 +78,7 @@ body.portal-body-with-layout.host-kind-manager .rmc-app-shell__canvas-body,
 body.portal-body-with-layout.host-kind-manager .cp-shell-content {
   width: 100%;
   max-width: none;
-  padding-inline: var(--rmc-shell-pad-x);
+  padding-inline: 0;
   padding-block: var(--rmc-shell-pad-y);
 }
 
@@ -111,12 +110,57 @@ html[data-rmc-studio-embed="1"] .card {
   border: 1px solid var(--hairline);
 }
 
+/* --- Edge canvas: one horizontal inset layer (direct wrappers only; nested grids keep Bootstrap gutters) --- */
+body.control-plane-shell .cp-layout.rmc-shell-canvas-container.container-fluid,
+body.admin-manager-shell .cp-layout.rmc-shell-canvas-container.container-fluid {
+  padding-inline: 0 !important;
+  padding-block: 0 !important;
+}
+
+body.control-plane-shell #cp-main-content,
+body.admin-manager-shell #cp-main-content,
+body.control-plane-shell .cp-page-body,
+body.admin-manager-shell .cp-page-body {
+  padding-inline: var(--rmc-shell-pad-x);
+}
+
+body.portal-body-with-layout .portal-main-col > .page-wrap,
+body.manager-portal-bridge .portal-main-col > .page-wrap {
+  padding-block: var(--rmc-shell-rhythm-y);
+  padding-inline: var(--rmc-shell-pad-x);
+  max-width: none;
+  margin-inline: 0;
+}
+
+:is(
+    body.control-plane-shell,
+    body.admin-manager-shell,
+    body.portal-body-with-layout,
+    body.backend-shell,
+    body.base-document-shell
+  )
+  :is(#cp-main-content, #main-content, .cp-page-body, .portal-page-body, .page-wrap)
+  > :is(.container-fluid, .container) {
+  padding-inline: 0;
+}
+
+/* Reading-width opt-ins stay centered on dashboard shells (explicit class only). */
+:is(
+    body.control-plane-shell,
+    body.admin-manager-shell,
+    body.portal-body-with-layout,
+    body.backend-shell
+  )
+  :is(.content-max-narrow, .content-max-520, .content-max-640) {
+  max-inline-size: revert;
+  margin-inline: auto;
+}
+
 @media (max-width: 991.98px) {
   body.control-plane-shell .rmc-app-shell__canvas-body,
   body.admin-manager-shell .rmc-app-shell__canvas-body,
   body.control-plane-shell .cp-shell-content,
   body.admin-manager-shell .cp-shell-content,
-  body.portal-body-with-layout .container-fluid,
   body.base-document-shell .container-fluid,
   body.backend-shell .container-fluid,
   html[data-surface="marketing"] .mkt-page-wrap,

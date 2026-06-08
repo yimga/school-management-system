@@ -35,7 +35,7 @@ body.control-plane-shell .cp-layout {
 }
 
 body.control-plane-shell #cp-main-content {
-  padding: 20px clamp(16px, 2vw, 24px) 32px;
+  padding: var(--rmc-shell-rhythm-y) var(--rmc-shell-pad-x) 32px;
   display: flex;
   flex-direction: column;
   gap: 8px;
