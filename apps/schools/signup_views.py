@@ -69,16 +69,21 @@ def _signup_countries() -> list[dict[str, str]]:
         timezone     dominant IANA timezone for the country
         curriculum   curriculum hint (empty by default)
 
-    Capped at 120 rows per spec. Returns an empty list on ANY failure
-    (catalog deps unavailable, DB unreachable, etc.) — the signup
-    template's free-text input fallback activates in that case.
+    Lists ALL ISO 3166-1 countries (name-sorted by the catalog). Returns an
+    empty list on ANY failure (catalog deps unavailable, DB unreachable, etc.)
+    — the signup template's free-text input fallback activates in that case.
+
+    NB: do NOT re-introduce a row cap here. A prior ``rows[:120]`` slice
+    silently truncated the name-sorted catalog at the 120th country (~Kuwait),
+    so every country after it (Kyrgyzstan→Zimbabwe) vanished from the signup
+    dropdown. There are only ~249 countries; render them all.
     """
     try:
         from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
         rows = GlobalGeoCatalog.list_countries() or []
         out: list[dict[str, str]] = []
-        for row in rows[:120]:
+        for row in rows:
             alpha2 = str(row.get("code_alpha2") or "").upper().strip()
             if not alpha2:
                 continue
@@ -1168,7 +1173,7 @@ def onboarding_wizard(request: HttpRequest):
             "wizard_total_steps": ONBOARDING_TOTAL_STEPS,
             "trial_endpoint": reverse("api_trial_school"),
             "signup_url": signup_url,
-            "countries": countries[:120],
+            "countries": countries,  # full ISO list — do NOT slice (the [:120] cap truncated at ~Kuwait)
             "default_country_code": default_country,
             "plans": plans,
             "templates": templates,
