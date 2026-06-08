@@ -118,6 +118,10 @@ MANAGER_HOST_ALLOWED_PREFIXES = (
 
 MANAGER_HOST_PUBLIC_ACCESS_PREFIXES = (
     *MANAGER_AUTH_ALLOWED_PREFIXES,
+    # First-run owner onboarding (token-authed; not an operator surface). Served
+    # anonymously here too as defense-in-depth, so if the flow ever lands on the
+    # manager host the control-plane gate doesn't force an operator login.
+    "/authentication/onboarding/",
     "/help/",
     "/help-center/",
     "/feature-center/",
@@ -354,6 +358,13 @@ def _path_allowed_for_reserved_host(
 
 def _is_manager_only_path(path: str) -> bool:
     path = (path or "").strip()
+    # First-run OWNER onboarding is a public, token-authed flow (set password +
+    # name → school → done). It must stay on the public site: if it were treated
+    # as manager-only, the base host would 302 it to manager.<base>, where the
+    # control-plane gate forces an operator login the brand-new owner can't pass
+    # (their base-host session doesn't cross hosts) — the reported dead-end.
+    if path.startswith("/authentication/onboarding/"):
+        return False
     for prefix in MANAGER_ONLY_PREFIXES:
         if (
             path == prefix

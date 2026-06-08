@@ -113,3 +113,36 @@ class OnboardingGateAllowlistTests(TestCase):
         self.assertIn(
             "/authentication/onboarding/", RequireMFAMiddleware.BYPASS_PREFIXES
         )
+
+
+class OnboardingHostRoutingTests(TestCase):
+    """The wizard must be served on the PUBLIC site for an anonymous, token-authed
+    owner — NOT 302'd to the manager host, where ManagerHostControlPlaneRequired
+    forces an operator login (the exact reported dead-end:
+    manager.../login/?next=/mfa/setup/?next=/activation/first-action/)."""
+
+    def test_onboarding_is_not_manager_only(self):
+        # Base host serves it directly (not redirected to manager.<base>).
+        from apps.schools.middleware import _is_manager_only_path
+
+        self.assertFalse(
+            _is_manager_only_path("/authentication/onboarding/account/abc/def/")
+        )
+        self.assertFalse(_is_manager_only_path("/authentication/onboarding/school/"))
+        # Sanity: other /authentication/ paths stay manager-only (no over-reach).
+        self.assertTrue(_is_manager_only_path("/authentication/profile/"))
+
+    def test_onboarding_is_anonymous_safe_on_manager_host(self):
+        # Defense-in-depth: if it ever lands on manager, served anonymously
+        # (token-authed) instead of bounced to the control-plane login.
+        from apps.schools.middleware import (
+            MANAGER_HOST_PUBLIC_ACCESS_PREFIXES,
+            _path_allowed_for_reserved_host,
+        )
+
+        self.assertTrue(
+            _path_allowed_for_reserved_host(
+                "/authentication/onboarding/account/abc/def/",
+                allowed_prefixes=MANAGER_HOST_PUBLIC_ACCESS_PREFIXES,
+            )
+        )
