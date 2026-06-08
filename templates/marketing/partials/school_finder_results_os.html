@@ -5,9 +5,9 @@
   <a href="{{ school.portal_url }}" class="rmc-os-finder-result__item">
     <span>
       <span class="fw-semibold d-block">{{ school.name }}</span>
-      <span class="rmc-os-finder-result__slug">{{ school.slug }}{% if school.subdomain %} · {{ school.subdomain }}{% endif %}</span>
+      <span class="rmc-os-finder-result__slug">{{ school.slug }}{% if school.subdomain %} · {{ school.subdomain }}{% endif %}{% if school.pending %} · {% trans "Setup in progress" %}{% endif %}</span>
     </span>
-    <span class="fw-semibold">{% trans "Open portal" %} →</span>
+    <span class="fw-semibold">{% if school.pending %}{% trans "Continue setup" %} →{% else %}{% trans "Open portal" %} →{% endif %}</span>
   </a>
   {% endfor %}
 </div>

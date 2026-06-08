@@ -27,6 +27,23 @@
     </div>
     <div class="col-lg-6">
       <h1 class="h3 mb-4">{% trans "Find your school" %}</h1>
+      {% if pending_school %}
+      <div class="alert alert-info text-start mb-4">
+        <h2 class="h6 mb-2">{% trans "Campus setup in progress" %}</h2>
+        <p class="mb-2">{% blocktrans with campus=pending_school.name %}We found {{ campus }} for this email, but the private portal is not live yet.{% endblocktrans %}</p>
+        {% if pending_state == "awaiting_verification" %}
+        <a class="btn btn-sm btn-primary" href="{{ pending_recovery_links.resend_verification_url }}">{% trans "Resend verification email" %}</a>
+        {% else %}
+        <div class="d-flex flex-wrap gap-2">
+          {% if pending_recovery_links.continue_setup_url %}
+          <a class="btn btn-sm btn-primary" href="{{ pending_recovery_links.continue_setup_url }}">{% trans "Continue setup" %}</a>
+          {% endif %}
+          <a class="btn btn-sm btn-outline-primary" href="{{ pending_recovery_links.login_url }}">{% trans "Sign in" %}</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ pending_recovery_links.onboarding_done_url }}">{% trans "Check provisioning status" %}</a>
+        </div>
+        {% endif %}
+      </div>
+      {% else %}
       <p class="text-muted">Enter your email to be redirected to your school portal.</p>
       {% if error %}<div class="alert alert-warning">{{ error }}</div>{% endif %}
       <form method="post" action="{% url 'global_login_discovery' %}">
@@ -41,6 +58,7 @@
       <p class="mt-4 small text-muted">
         <a href="{% url 'onboard_wizard' %}">Get started</a> - Create a new school.
       </p>
+      {% endif %}
     </div>
     <div class="col-lg-6 mt-4 mt-lg-0">
       {% include "schools/partials/school_finder_bento.html" with finder_id="discovery-school-finder-results" input_id="discovery-school-finder-input" query=query results=results %}

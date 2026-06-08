@@ -4,7 +4,6 @@ Dedicated error views for multi-tenant flows (e.g. School Not Found 404).
 
 import os
 
-from django.db.models import Q
 from django.shortcuts import render
 
 
@@ -39,32 +38,25 @@ def school_not_found_public(request):
     """
     Branded root-domain 404 page for unknown tenant subdomains.
     """
-    from apps.schools.models import School
-    from apps.schools.section8_views import _build_school_portal_url
+    from apps.schools.pending_tenant_discovery import (
+        lookup_school_by_slug_or_subdomain,
+        pending_school_public_context,
+        search_schools_for_public_finder,
+    )
 
     query = (request.GET.get("slug") or request.GET.get("q") or "").strip()
-    results = []
-    if len(query) >= 2:
-        schools = (
-            School.objects.filter(is_active=True)
-            .filter(
-                Q(name__icontains=query)
-                | Q(slug__icontains=query)
-                | Q(subdomain__icontains=query)
-            )
-            .order_by("name")[:8]
-        )
-        for school in schools:
-            results.append(
-                {
-                    "name": _school_display_name_for_public(school),
-                    "slug": school.slug,
-                    "portal_url": _build_school_portal_url(request, school),
-                }
-            )
+    pending_ctx: dict = {}
+    if query:
+        matched = lookup_school_by_slug_or_subdomain(query)
+        if matched is not None:
+            pending_ctx = pending_school_public_context(matched)
+
+    results = search_schools_for_public_finder(request, query)
+
+    context = {"query": query, "results": results, **pending_ctx}
     return render(
         request,
         "schools/school_not_found.html",
-        {"query": query, "results": results},
-        status=404,
+        context,
+        status=404 if not pending_ctx else 200,
     )

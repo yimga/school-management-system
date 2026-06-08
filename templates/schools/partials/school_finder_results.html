@@ -5,9 +5,11 @@
   <a href="{{ school.portal_url }}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between rounded-3 mb-2 border">
     <span>
       <span class="fw-semibold d-block">{{ school.name }}</span>
-      <span class="text-muted small">{{ school.slug }}</span>
+      <span class="text-muted small">{{ school.slug }}{% if school.pending %} · {% trans "Setup in progress" %}{% endif %}</span>
     </span>
-    <span class="text-primary fw-semibold">{% trans "Open" %} &rarr;</span>
+    <span class="text-primary fw-semibold">
+      {% if school.pending %}{% trans "Continue setup" %}{% else %}{% trans "Open" %}{% endif %} &rarr;
+    </span>
   </a>
   {% endfor %}
 </div>

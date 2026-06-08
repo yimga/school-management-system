@@ -384,16 +384,35 @@ def global_login_discovery(request):
         )
     from .models import SchoolMembership
     from apps.schools.domain_resolution_service import get_canonical_base_domain
+    from apps.schools.pending_tenant_discovery import (
+        build_pending_recovery_links,
+        pending_school_state,
+    )
 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
 
     memberships = SchoolMembership.objects.filter(
         user__email__iexact=email,
-        school__is_active=True,
-    ).select_related("school")[:1]
-    membership = memberships.first()
+    ).select_related("school").order_by("-is_primary", "school__name")[:5]
+    membership = next((m for m in memberships if m.school.is_active), None)
+    if membership is None and memberships:
+        membership = memberships[0]
     if membership:
         _discovery_rate_limit_incr(request)
         school = membership.school
+        if not school.is_active:
+            state = pending_school_state(school)
+            links = build_pending_recovery_links(school)
+            return render(
+                request,
+                "schools/global_login_discovery.html",
+                {
+                    "email": email,
+                    "role_checklists": checklist_cards,
+                    "pending_school": school,
+                    "pending_state": state,
+                    "pending_recovery_links": links,
+                },
+            )
         base = get_canonical_base_domain() or request.get_host().split(":")[0]
         if school.subdomain:
             scheme = "https" if request.is_secure() else "http"
@@ -438,30 +457,13 @@ def find_school(request):
     - HTMX GET (?q=...): return live search result fragment.
     """
     _record_discovery_funnel_event(request)
-    from apps.schools.models import School
+    from apps.schools.pending_tenant_discovery import search_schools_for_public_finder
 
     rate_limited = _find_school_rate_limited(request)
     query = (request.GET.get("q") or "").strip()
     results = []
     if not rate_limited and len(query) >= 2:
-        schools = (
-            School.objects.filter(is_active=True)
-            .filter(
-                Q(name__icontains=query)
-                | Q(slug__icontains=query)
-                | Q(subdomain__icontains=query)
-            )
-            .order_by("name")[:8]
-        )
-        for school in schools:
-            results.append(
-                {
-                    "name": school.name,
-                    "slug": school.slug,
-                    "subdomain": getattr(school, "subdomain", "") or "",
-                    "portal_url": _build_school_portal_url(request, school),
-                }
-            )
+        results = search_schools_for_public_finder(request, query)
 
     if request.headers.get("HX-Request", "").lower() == "true":
         return render(
