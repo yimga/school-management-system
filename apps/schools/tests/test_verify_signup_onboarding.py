@@ -70,6 +70,12 @@ class VerifySignupOnboardingTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.assertIn("/authentication/onboarding/account/", resp.url)
         self.assertNotIn("/authentication/login", resp.url)
+        # The redirect MUST be relative (stay on the public host that always
+        # resolves), NOT an absolute tenant-subdomain URL — the subdomain isn't
+        # live until async provisioning activates the school, and redirecting
+        # there is what bounced owners to the school-not-found → login wall.
+        self.assertTrue(resp.url.startswith("/authentication/onboarding/account/"))
+        self.assertFalse(resp.url.lower().startswith("http"))
 
     def test_owner_creation_is_idempotent_when_user_already_exists(self):
         # A retry / double-click must not create a second account or crash.
@@ -83,4 +89,27 @@ class VerifySignupOnboardingTests(TestCase):
         self.assertFalse(created2)
         self.assertEqual(
             get_user_model().objects.filter(email=verification.email).count(), 1
+        )
+
+
+class OnboardingGateAllowlistTests(TestCase):
+    """The onboarding wizard must survive the two gates that otherwise eject a
+    brand-new, passwordless owner: the strict conversion lock and the MFA-setup
+    requirement. Without these the wizard redirects to /activation/first-action/
+    → /authentication/mfa/setup/ → the manager login wall."""
+
+    def test_onboarding_allowlisted_in_strict_conversion_lock(self):
+        from apps.schools.conversion_lock_paths import (
+            CONVERSION_LOCK_AUTH_PREFIXES_STRICT,
+        )
+
+        self.assertIn(
+            "/authentication/onboarding/", CONVERSION_LOCK_AUTH_PREFIXES_STRICT
+        )
+
+    def test_onboarding_bypasses_mfa_setup_gate(self):
+        from apps.accounts.middleware import RequireMFAMiddleware
+
+        self.assertIn(
+            "/authentication/onboarding/", RequireMFAMiddleware.BYPASS_PREFIXES
         )

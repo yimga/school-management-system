@@ -1748,11 +1748,26 @@ def verify_signup(request: HttpRequest):
             )
         except (ImportError, ValueError, TypeError, OSError):
             pass
-        # Primary: send them to the token-authed "set your password" page (works
-        # across the public→tenant host boundary; they choose a password so
-        # future logins work, then auto-land on the dashboard). This replaces
-        # the old cross-host redirect chain that bounced the passwordless
-        # account into a login wall it could never satisfy.
+        # Send the new owner straight into the guided onboarding wizard (set
+        # password + name → school → done) as a RELATIVE redirect, so it stays
+        # on the host the verify link was on (the public site, which ALWAYS
+        # resolves). Do NOT redirect to the absolute tenant-subdomain URL here:
+        # on the async/prod path the subdomain isn't live until the Celery
+        # worker flips school.is_active, so it would bounce to school-not-found
+        # → /activation/first-action/ → MFA → the manager login wall (the exact
+        # 10x-reported dead-end). The onboarding prefix is allowlisted in the
+        # conversion lock + MFA bypass so the wizard can't be ejected mid-setup.
+        # The welcome email keeps the absolute tenant link for later (post-activation).
+        onboarding_path = ""
+        try:
+            from apps.schools.provision_email_urls import build_owner_onboarding_path
+
+            onboarding_path = build_owner_onboarding_path(admin_user)
+        except (ImportError, AttributeError, TypeError, ValueError):
+            onboarding_path = ""
+        if onboarding_path:
+            return redirect(onboarding_path)
+        # Fallback: absolute tenant onboarding URL (resolves once tenant is live).
         if setup_password_url:
             return redirect(setup_password_url)
 

@@ -92,19 +92,19 @@ class OwnerOnboardingFlowTests(TestCase):
         self.school.refresh_from_db()
         self.assertEqual(self.school.settings["owner_onboarding"]["step"], "school")
 
-    def test_step_two_gates_on_mfa_and_preserves_resume_target(self):
-        # A brand-new ADMIN owner has no MFA device; the platform mandates it for
-        # ADMIN. So step 2 must bounce them to MFA setup — but with ?next pointing
-        # back at the wizard so it RESUMES after setup (which marks the session
-        # verified). This locks the secure-interruption-then-resume contract.
+    def test_wizard_is_reachable_without_mfa_interruption(self):
+        # A brand-new owner has NO MFA device and NO password-set flow behind
+        # them yet. Forcing /authentication/mfa/setup/ in front of the wizard is
+        # the dead-end that walled owners out (prod: verify → school-not-found →
+        # activation → mfa → manager login). /authentication/onboarding/ is now
+        # in RequireMFAMiddleware.BYPASS_PREFIXES + the strict conversion-lock
+        # allowlist, so step 2 renders directly. MFA is offered AFTER the wizard.
         self.client.force_login(
             self.user, backend="django.contrib.auth.backends.ModelBackend"
         )
-        step_two = reverse("accounts:owner_onboarding_school")
-        r = self.client.get(step_two)
-        self.assertEqual(r.status_code, 302)
-        self.assertIn(reverse("accounts:mfa_setup"), r.url)
-        self.assertIn(step_two, r.url)  # ?next= preserves the wizard step
+        r = self.client.get(reverse("accounts:owner_onboarding_school"))
+        self.assertEqual(r.status_code, 200)  # renders, does NOT bounce to MFA
+        self.assertNotIn("/mfa/", getattr(r, "url", "") or "")
 
     def test_school_step_saves_and_advances(self):
         self._login_past_mfa()

@@ -54,12 +54,36 @@ def build_provision_setup_password_url(school, user, next_path: str = "") -> str
     return url
 
 
+def build_owner_onboarding_path(user) -> str:
+    """RELATIVE onboarding path (no host) for an in-request redirect.
+
+    Use this for the immediate post-verify redirect so the wizard stays on the
+    host the verify link was on (the public site, which ALWAYS resolves). The
+    absolute tenant-subdomain variant (``build_owner_onboarding_url``) must NOT
+    be used for that redirect: the subdomain doesn't resolve until async
+    provisioning flips ``is_active=True``, so on a broker-backed deploy the
+    owner races the Celery worker and gets bounced to a "school not found" →
+    login wall. The signed token is the auth, so a relative path is sufficient.
+    """
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    try:
+        return reverse(
+            "accounts:owner_onboarding_account",
+            kwargs={"uidb64": uid, "token": token},
+        )
+    except NoReverseMatch:
+        return ""
+
+
 def build_owner_onboarding_url(school, user) -> str:
-    """One-time link into the guided first-run onboarding wizard (step 1).
+    """One-time ABSOLUTE link into the guided first-run onboarding wizard.
 
     Reuses the password-reset-confirm token, so the signed link is the auth and
-    survives the public→tenant host hop. Lands the new owner on a welcoming
-    "create your account" step (password + name), NOT a bare login/reset page.
+    survives the public→tenant host hop. Used for the WELCOME EMAIL (clicked
+    later, once provisioning has activated the tenant subdomain). For the
+    immediate in-request redirect, use ``build_owner_onboarding_path`` instead
+    (the subdomain isn't live yet at verify time on the async path).
     """
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)

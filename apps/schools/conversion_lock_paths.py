@@ -27,6 +27,11 @@ CONVERSION_LOCK_AUTH_PREFIXES_STRICT: tuple[str, ...] = (
     "/authentication/end-impersonation/",
     "/authentication/impersonate/",
     "/authentication/claim-invite/",
+    # First-run owner onboarding (set password + name → school → done). A brand-
+    # new owner hasn't completed "first action" yet, so without this the lock
+    # would eject them OUT of the very wizard that sets their password, into
+    # /activation/first-action/ (login+MFA wall). Token-authed, so safe to allow.
+    "/authentication/onboarding/",
     "/authentication/oidc/",
     "/authentication/saml/",
 )
