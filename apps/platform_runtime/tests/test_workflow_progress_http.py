@@ -47,6 +47,34 @@ class TransientDatabaseGuardTests(SimpleTestCase):
         exc = OperationalError("the connection is closed")
         self.assertTrue(is_transient_database_error(exc))
 
+    def test_detects_raw_psycopg_ssl_eof(self):
+        from apps.platform_runtime.transient_db import is_transient_database_error
+
+        try:
+            from psycopg import OperationalError as PsycopgOperationalError
+        except ImportError:
+            self.skipTest("psycopg not installed")
+        exc = PsycopgOperationalError(
+            "consuming input failed: SSL error: unexpected eof while reading"
+        )
+        self.assertTrue(is_transient_database_error(exc))
+
+    def test_detects_chained_psycopg_cause(self):
+        from django.db.utils import OperationalError
+
+        from apps.platform_runtime.transient_db import is_transient_database_error
+
+        try:
+            from psycopg import OperationalError as PsycopgOperationalError
+        except ImportError:
+            self.skipTest("psycopg not installed")
+        inner = PsycopgOperationalError(
+            "connection failed: FATAL:  the database system is in recovery mode"
+        )
+        outer = OperationalError("connection failed: wrapper")
+        outer.__cause__ = inner
+        self.assertTrue(is_transient_database_error(outer))
+
     def test_middleware_maps_workflow_path_to_503(self):
         from django.db.utils import OperationalError
 
@@ -67,10 +95,7 @@ class TransientDatabaseGuardTests(SimpleTestCase):
         self.assertEqual(resp["Retry-After"], "30")
 
     def test_middleware_maps_super_path_to_503_html(self):
-        from unittest.mock import patch
-
         from django.db.utils import OperationalError
-        from django.http import HttpResponse
 
         from apps.platform_runtime.middleware_transient_db import (
             TransientDatabaseUnavailableMiddleware,
@@ -78,18 +103,15 @@ class TransientDatabaseGuardTests(SimpleTestCase):
 
         req = RequestFactory().get("/super/")
         exc = OperationalError("the connection is closed")
-        with patch(
-            "apps.platform_runtime.middleware_transient_db.render",
-            return_value=HttpResponse("unavailable", status=503),
-        ) as mock_render:
-            resp = TransientDatabaseUnavailableMiddleware(
-                lambda get_response: None
-            ).process_exception(req, exc)
+        resp = TransientDatabaseUnavailableMiddleware(
+            lambda get_response: None
+        ).process_exception(req, exc)
         self.assertIsNotNone(resp)
         self.assertEqual(resp.status_code, 503)
         self.assertEqual(resp["Retry-After"], "30")
-        mock_render.assert_called_once()
-        self.assertEqual(mock_render.call_args[0][1], "errors/503_control_plane.html")
+        self.assertIn(b"503", resp.content)
+        self.assertIn(b"Try again", resp.content)
+        self.assertNotIn(b"platform_surface", resp.content.lower())
 
 
 class WorkflowProgressActiveApiTests(SimpleTestCase):

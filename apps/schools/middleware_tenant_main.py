@@ -8,7 +8,11 @@ from django.db import connection, DatabaseError
 from django.http import JsonResponse
 from django_tenants.middleware.main import TenantMainMiddleware
 
-from apps.platform_runtime.transient_db import is_transient_database_error
+from apps.platform_runtime.transient_db import (
+    build_transient_db_unavailable_response,
+    is_transient_database_error,
+    reset_broken_database_state,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -57,22 +61,27 @@ class HealthAwareTenantMainMiddleware(TenantMainMiddleware):
             return self._process_health_probe(request)
         try:
             return super().process_request(request)
-        except DatabaseError as exc:
-            if is_transient_database_error(exc):
-                logger.warning(
-                    "tenant_main_transient_db path=%s error=%s",
-                    path,
-                    str(exc)[:200],
-                )
-                if is_health_probe_path(path):
-                    return health_probe_degraded_response()
-            raise
+        except Exception as exc:
+            if not is_transient_database_error(exc):
+                raise
+            logger.warning(
+                "tenant_main_transient_db path=%s error=%s",
+                path,
+                str(exc)[:200],
+            )
+            reset_broken_database_state()
+            if is_health_probe_path(path):
+                return health_probe_degraded_response()
+            return build_transient_db_unavailable_response(
+                request,
+                source="tenant_main_middleware",
+            )
 
     def _process_health_probe(self, request):
         try:
             connection.set_schema_to_public()
             self.setup_url_routing(request, force_public=True)
-        except DatabaseError as exc:
+        except Exception as exc:
             if is_transient_database_error(exc):
                 logger.warning(
                     "health_probe_transient_db path=%s error=%s",

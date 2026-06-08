@@ -798,6 +798,12 @@ if RUNNING_TESTS:
 for db_config in DATABASES.values():
     db_config["CONN_MAX_AGE"] = 600
 
+# Drop stale pooled Postgres connections before reuse (Render SSL EOF / recovery blips).
+for db_config in DATABASES.values():
+    engine = db_config.get("ENGINE", "")
+    if "postgresql" in engine:
+        db_config["CONN_HEALTH_CHECKS"] = True
+
 # Tests + SQLite: persistent connections worsen "database is locked" on Windows when
 # using file-backed test DBs (--keepdb, DJANGO_TEST_DB_FILE). Release after each request.
 if RUNNING_TESTS:

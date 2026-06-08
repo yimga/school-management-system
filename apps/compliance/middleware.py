@@ -200,7 +200,16 @@ class AuditLoggingMiddleware(MiddlewareMixin):
             # e.g. database router prevents user FK assignment (multi-DB)
             logger.debug("AccessLog skipped (router/relation): %s", e)
         except (DatabaseError, TransactionManagementError) as e:
+            from apps.platform_runtime.transient_db import is_transient_database_error
+
             _reset_db_state()
+            if is_transient_database_error(e):
+                logger.warning(
+                    "AccessLog skipped during transient db outage path=%s error=%s",
+                    request.path or "/",
+                    str(e)[:200],
+                )
+                return response
             log_view_exception(request, "Failed to log access", extra={"error": str(e)})
             # Avoid traceback spam when table is missing (e.g. migrations not run yet)
             if isinstance(e, OperationalError) and (
@@ -252,7 +261,16 @@ class AuditLoggingMiddleware(MiddlewareMixin):
         except ValueError as e:
             logger.debug("AccessLog exception skipped (router/relation): %s", e)
         except (DatabaseError, TransactionManagementError) as e:
+            from apps.platform_runtime.transient_db import is_transient_database_error
+
             _reset_db_state()
+            if is_transient_database_error(e):
+                logger.warning(
+                    "AccessLog exception skipped during transient db outage path=%s error=%s",
+                    request.path or "/",
+                    str(e)[:200],
+                )
+                return None
             log_view_exception(
                 request, "Failed to log exception", extra={"error": str(e)}
             )

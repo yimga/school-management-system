@@ -55,16 +55,50 @@ class HealthAwareTenantMainMiddlewareTests(SimpleTestCase):
         self.assertEqual(payload["status"], "degraded")
         self.assertEqual(payload["database"], "unavailable")
 
-    def test_non_health_transient_db_still_raises(self):
-        request = self.rf.get("/super/")
-        exc = OperationalError("consuming input failed: SSL error: unexpected eof while reading")
+    def test_non_health_transient_db_returns_503(self):
+        request = self.rf.get("/authentication/login/")
+        exc = OperationalError(
+            "consuming input failed: SSL error: unexpected eof while reading"
+        )
         with patch.object(
             TenantMainMiddleware,
             "process_request",
             side_effect=exc,
         ):
-            with self.assertRaises(OperationalError):
-                self.middleware.process_request(request)
+            response = self.middleware.process_request(request)
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response["Retry-After"], "30")
+        self.assertIn(b"temporarily unavailable", response.content)
+
+    def test_recovery_mode_on_super_returns_503(self):
+        request = self.rf.get("/super/")
+        exc = OperationalError(
+            'connection failed: connection to server at "10.227.203.193", port 5432 failed: '
+            "FATAL:  the database system is in recovery mode"
+        )
+        with patch.object(
+            TenantMainMiddleware,
+            "process_request",
+            side_effect=exc,
+        ):
+            response = self.middleware.process_request(request)
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response["Retry-After"], "30")
+        request = self.rf.get("/authentication/login/")
+        try:
+            from psycopg import OperationalError as PsycopgOperationalError
+        except ImportError:
+            self.skipTest("psycopg not installed")
+        exc = PsycopgOperationalError(
+            "consuming input failed: SSL error: unexpected eof while reading"
+        )
+        with patch.object(
+            TenantMainMiddleware,
+            "process_request",
+            side_effect=exc,
+        ):
+            response = self.middleware.process_request(request)
+        self.assertEqual(response.status_code, 503)
 
     def test_degraded_payload_shape(self):
         response = health_probe_degraded_response()
