@@ -1,8 +1,8 @@
 # Platform Inventory
 
 - Installed app modules: `54`
-- Python files: `6359`
-- HTML templates: `1656`
+- Python files: `6365`
+- HTML templates: `1659`
 - Markdown files: `1612`
 - Migration files: `1001`
 - Management commands: `298` (full list in JSON key `management_commands_list`)
@@ -10,7 +10,7 @@
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `214`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `161`
 - `get_solo()` refs: `213`
-- `except Exception`: `2581`
+- `except Exception`: `2584`
 - `cursor.execute()` (gross): `414`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `45`
 - `csrf_exempt` (substring, gross): `682`
