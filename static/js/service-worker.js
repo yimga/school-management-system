@@ -180,7 +180,8 @@
 // admin inspector. theme-experience-premium
 // v4.01.57: workflow progress strip syncs all inline hosts (header + canvas).
 // v4.02.68: Global Footprint phase-3 closeout — city-level pins from settings.location; lazy rmc-world-globe-loader.js; operator globe_auto_rotate toggle synced via _ensure_world_map_globe_json.
-const CACHE_VERSION = "sms-v4.02.81-globe-svg-stage-mount-2026-06-07";
+// v4.02.82: operator-theme-coherence CSS bundle merged onto main (dual-plane manager/admin fix).
+const CACHE_VERSION = "sms-v4.02.82-operator-theme-coherence-merge-2026-06-07";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
