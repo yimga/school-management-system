@@ -1052,13 +1052,23 @@ def redirect_view(request):
     if not user.is_authenticated:
         return redirect(reverse("accounts:login"))
 
-    # Manager host is dedicated to super-admin operations.
+    # Manager host is for platform operators; tenant staff belong on the public host.
     try:
         from apps.schools.host_routing import public_host_kind
 
         host = (request.get_host() or "").split(":")[0].lower()
         if public_host_kind(host) == "manager":
-            return redirect("super:dashboard")
+            from apps.accounts.manager_login_next import (
+                build_public_post_login_url,
+                tenant_staff_should_use_public_host,
+            )
+            from apps.schools.control_plane import user_has_control_plane_access
+
+            if tenant_staff_should_use_public_host(user):
+                return redirect(build_public_post_login_url())
+            if user_has_control_plane_access(user):
+                return redirect("super:dashboard")
+            return redirect(build_public_post_login_url())
     except (ImportError, AttributeError, TypeError, ValueError):
         pass
 
@@ -3188,6 +3198,25 @@ def login_view(request):
     if login_lang:
         translation.activate(login_lang)
 
+    from apps.accounts.manager_login_next import request_is_manager_host
+
+    is_manager_host = request_is_manager_host(request)
+    if request.method == "GET" and is_manager_host:
+        next_raw = (request.GET.get("next") or "").strip()
+        if next_raw:
+            from apps.accounts.manager_login_next import is_toxic_login_next_for_manager
+
+            if is_toxic_login_next_for_manager(next_raw):
+                messages.info(
+                    request,
+                    _(
+                        "School accounts sign in at runmycampus.com, not the manager "
+                        "console. If you are setting up a new school, use "
+                        "“Sign in on runmycampus.com” below."
+                    ),
+                )
+                return redirect(reverse("accounts:login"))
+
     if request.method == "POST":
         # Store role intent for post-login redirect (Student / Staff / Parent).
         role_param = (
@@ -3204,6 +3233,10 @@ def login_view(request):
                 next_url, allowed_hosts={request.get_host()}
             ):
                 next_url = ""
+        if is_manager_host:
+            from apps.accounts.manager_login_next import sanitize_manager_login_next
+
+            next_url = sanitize_manager_login_next(next_url)
 
         # Brute-force / bot defense, layered on the per-IP @ratelimit above:
         #  1. login_guard — always-on cache lockout after N failed attempts.
@@ -3373,6 +3406,23 @@ def login_view(request):
                         request.session["password_change_next"] = next_url
                 messages.warning(request, _("You must set a new password to continue."))
                 return redirect(password_change_url)
+
+            # Tenant staff must not follow manager-host MFA / activation next chains.
+            if is_manager_host:
+                from apps.accounts.manager_login_next import (
+                    build_public_post_login_url,
+                    tenant_staff_should_use_public_host,
+                )
+
+                if tenant_staff_should_use_public_host(user):
+                    messages.info(
+                        request,
+                        _(
+                            "This console is for platform operators. "
+                            "Taking you to your school account on runmycampus.com."
+                        ),
+                    )
+                    return redirect(build_public_post_login_url())
 
             # MFA enforcement: if required or configured, route to setup/verify first.
             try:
