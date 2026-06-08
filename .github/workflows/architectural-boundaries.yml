@@ -17,6 +17,8 @@ on:
       - "scripts/scan_ai_gateway_boundary.py"
       - "scripts/verify_ai_copilot_rbac_coverage.py"
       - "var/security-audit-baseline-ai-copilot-rbac-coverage.json"
+      - "scripts/verify_tenant_control_plane_rbac.py"
+      - "var/security-audit-baseline-tenant-control-plane-rbac.json"
       - "services/ai_copilot_rbac.py"
       - "scripts/scan_sentry_boundary.py"
       - "scripts/scan_print_statements.py"
@@ -166,6 +168,20 @@ jobs:
       - name: Verify copilot RBAC coverage
         run: |
           python scripts/verify_ai_copilot_rbac_coverage.py --strict
+
+  tenant-control-plane-rbac:
+    name: Tenant vs control-plane RBAC boundary (5-pass)
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify tenant/control-plane RBAC (5 passes)
+        run: |
+          python scripts/verify_tenant_control_plane_rbac.py --strict
 
   sentry-boundary:
     name: Sentry SDK import boundary

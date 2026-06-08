@@ -1388,6 +1388,15 @@ def resend_signup_verification(request: HttpRequest):
         "verified yet, we've sent a fresh verification link. Please check your "
         "inbox (and your spam folder)."
     )
+    try:
+        from apps.accounts.manager_login_next import request_is_manager_host
+        from apps.schools.provision_email_urls import build_public_site_url
+
+        if request_is_manager_host(request):
+            return redirect(build_public_site_url(request.get_full_path()))
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+
     if request.method == "GET":
         return render(request, "schools/resend_verification.html", {})
 

@@ -177,6 +177,23 @@ def _operator_role_allowlist() -> frozenset[str]:
     return _operator_roles()
 
 
+def _tenant_scoped_non_operator_user_ids():
+    """Users with SchoolMembership who are not superuser and lack operator profile."""
+    from apps.schools.models import SchoolMembership
+
+    return (
+        SchoolMembership.objects.filter(user__is_superuser=False)
+        .exclude(
+            user__platform_operator_profile__status__in=(
+                "active",
+                "invited",
+                "suspended",
+            )
+        )
+        .values_list("user_id", flat=True)
+    )
+
+
 def queryset_platform_operators() -> QuerySet:
     """Users eligible for the operator plane (roster / session filters)."""
     User = get_user_model()
@@ -187,7 +204,12 @@ def queryset_platform_operators() -> QuerySet:
     q |= Q(platform_operator_profile__status="active")
     q |= Q(platform_operator_profile__status="invited")
     q |= Q(platform_operator_profile__status="suspended")
-    return User.objects.filter(q).distinct().order_by("username")
+    return (
+        User.objects.filter(q)
+        .exclude(pk__in=_tenant_scoped_non_operator_user_ids())
+        .distinct()
+        .order_by("username")
+    )
 
 
 def user_is_platform_operator(user) -> bool:
@@ -196,11 +218,15 @@ def user_is_platform_operator(user) -> bool:
         return False
     if getattr(user, "is_superuser", False):
         return True
+    profile = get_operator_profile(user)
+    if profile is not None and profile.status in ("active", "invited", "suspended"):
+        return True
+    from apps.schools.control_plane import user_is_tenant_scoped_staff
+
+    if user_is_tenant_scoped_staff(user):
+        return False
     role = (getattr(user, "role", "") or "").upper()
     if role and role in _operator_role_allowlist():
-        return True
-    profile = getattr(user, "platform_operator_profile", None)
-    if profile is not None and profile.status in ("active", "invited", "suspended"):
         return True
     return False
 
@@ -229,6 +255,10 @@ def user_effective_platform_scopes(user) -> frozenset[str]:
         extra = profile.extra_scopes or []
         if isinstance(extra, list):
             scopes.update(str(c) for c in extra if c in ALL_PLATFORM_SCOPES)
+    from apps.schools.control_plane import user_is_tenant_scoped_staff
+
+    if user_is_tenant_scoped_staff(user):
+        return frozenset(scopes)
     role = (getattr(user, "role", "") or "").upper()
     if role in _operator_role_allowlist():
         scopes.update(_tier_scopes_map().get("principal", frozenset()))

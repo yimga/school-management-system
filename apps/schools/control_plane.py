@@ -68,6 +68,11 @@ def _user_has_tenant_membership(user) -> bool:
         return False
 
 
+def user_is_tenant_scoped_staff(user) -> bool:
+    """True when the user belongs to at least one school (tenant staff)."""
+    return _user_has_tenant_membership(user)
+
+
 def user_has_control_plane_access(user) -> bool:
     """
     Return True only for platform operators.
