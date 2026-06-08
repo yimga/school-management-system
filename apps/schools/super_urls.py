@@ -1207,7 +1207,7 @@ urlpatterns = [
         name="signup_verifications",
     ),  # rbac-allow: super-staff-signup-verification-console
     path(
-        "signup-verifications/<uuid:pk>/action/",
+        "signup-verifications/<int:pk>/action/",
         SignupVerificationActionView.as_view(),
         name="signup_verification_action",
     ),  # rbac-allow: super-staff-signup-verification-action

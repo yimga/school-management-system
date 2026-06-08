@@ -57,6 +57,22 @@ class OperatorSignupVerificationTests(TestCase):
         self.assertEqual(ctx["counts"]["total"], 1)
         self.assertEqual(ctx["counts"]["expired"], 1)
 
+    def test_console_renders_real_template_with_a_row(self):
+        """Regression: the console must render the ACTUAL template when rows exist.
+
+        The bug this guards (2026-06-08 prod 500): the per-row template reverses
+        `super:signup_verification_action row.id`, but the URL was declared `<uuid:pk>`
+        while SignupVerification's pk is an integer auto-field → NoReverseMatch → 500.
+        It only fired with at least one row on screen, so the render-mocked test above
+        (and the empty local DB) never caught it. This test renders for real."""
+        resp = SignupVerificationConsoleView.as_view()(self._req("get"))
+        self.assertEqual(resp.status_code, 200)
+        # The resend/regenerate form action URL must be present and well-formed.
+        self.assertIn(
+            f"/super/signup-verifications/{self.verif.pk}/action/",
+            resp.content.decode(),
+        )
+
     def test_resend_extends_expiry_keeps_token(self):
         old_token = self.verif.token
         with mock.patch(
