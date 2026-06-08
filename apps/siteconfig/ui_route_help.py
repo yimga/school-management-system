@@ -10,51 +10,13 @@ from typing import Any
 
 from django.utils.translation import gettext_lazy as _
 
-# url_name (with optional namespace) → page help
+# Hand-tuned overrides (wins over workflow + sovereign 50X when keys collide)
 ROUTE_HELP_OVERRIDES: dict[str, dict[str, Any]] = {
-    "schoolops:email_configure": {
-        "title": _("Email configuration"),
-        "body": _(
-            "Set platform SMTP relay and defaults for tenant notification delivery. "
-            "Secrets are encrypted at rest."
-        ),
-        "surface": "operator",
-        "fields": ("smtp_host", "smtp_port", "smtp_username", "smtp_password", "from_email"),
-    },
-    "finance:marketplace_integration_credentials": {
-        "title": _("Integration credentials"),
-        "body": _(
-            "Store adapter secrets for marketplace apps. Rotate after vendor or staff changes."
-        ),
-        "surface": "tenant",
-        "fields": ("api_key", "client_secret", "webhook_secret", "token"),
-    },
-    "accounts:district_interop_hub": {
-        "title": _("District interoperability"),
-        "body": _(
-            "Connect LMS and roster systems across schools in your district. "
-            "Each connector scopes to authorized tenants."
-        ),
-        "surface": "operator",
-        "fields": ("lms_url", "client_id", "client_secret", "api_token"),
-    },
-    "finance:invoices": {
-        "title": _("Invoices"),
-        "body": _("Search, filter, and export fee invoices. Status drives reminders and parent visibility."),
-        "surface": "tenant",
-        "fields": ("reference", "status", "due_date"),
-    },
     "people:backend_applicant_list": {
         "title": _("Applicants"),
         "body": _("Admissions pipeline from enquiry through enrollment."),
         "surface": "tenant",
         "fields": ("stage", "status"),
-    },
-    "super:signup_verifications": {
-        "title": _("Signup verifications"),
-        "body": _("Review new school signups and retry provisioning when setup stalls."),
-        "surface": "operator",
-        "fields": (),
     },
 }
 
@@ -170,11 +132,21 @@ def _workflow_route_help() -> dict[str, dict[str, Any]]:
 _WORKFLOW_ROUTE_HELP: dict[str, dict[str, Any]] | None = None
 
 
+def sovereign_route_entry_count() -> int:
+    """High-friction route explainers (SOVEREIGN 50X program)."""
+    from apps.siteconfig.ui_route_help_sovereign_50x import ROUTE_HELP_SOVEREIGN_50X
+
+    return len(ROUTE_HELP_SOVEREIGN_50X)
+
+
 def _merged_route_index() -> dict[str, dict[str, Any]]:
     global _WORKFLOW_ROUTE_HELP
     if _WORKFLOW_ROUTE_HELP is None:
         _WORKFLOW_ROUTE_HELP = _workflow_route_help()
+    from apps.siteconfig.ui_route_help_sovereign_50x import ROUTE_HELP_SOVEREIGN_50X
+
     merged = dict(_WORKFLOW_ROUTE_HELP)
+    merged.update(ROUTE_HELP_SOVEREIGN_50X)
     merged.update(ROUTE_HELP_OVERRIDES)
     return merged
 

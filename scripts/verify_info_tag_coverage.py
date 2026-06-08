@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Verify 100X info-tag rollout: catalog size, shell wiring, context processor, auto JS.
+Verify 500X field catalog + 50X route explainers + shell wiring for page explain strips.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 MIN_CATALOG_KEYS = 500
+MIN_SOVEREIGN_ROUTE_KEYS = 50
 
 REQUIRED_SHELL_INCLUDES = (
     ROOT / "templates/base.html",
@@ -42,10 +43,19 @@ def main() -> int:
     django.setup()
 
     from apps.siteconfig.ui_field_help import catalog_entry_count
+    from apps.siteconfig.ui_route_help import sovereign_route_entry_count
 
     count = catalog_entry_count()
     if count < MIN_CATALOG_KEYS:
         return _fail(f"catalog has {count} keys; need >= {MIN_CATALOG_KEYS}")
+
+    route_count = sovereign_route_entry_count()
+    if route_count < MIN_SOVEREIGN_ROUTE_KEYS:
+        return _fail(f"sovereign route help has {route_count} keys; need >= {MIN_SOVEREIGN_ROUTE_KEYS}")
+
+    route_help_src = (ROOT / "apps/siteconfig/ui_route_help.py").read_text(encoding="utf-8")
+    if "ROUTE_HELP_SOVEREIGN_50X" not in route_help_src:
+        return _fail("ui_route_help.py does not merge ROUTE_HELP_SOVEREIGN_50X")
 
     settings_path = ROOT / "config" / "settings.py"
     settings_text = settings_path.read_text(encoding="utf-8")
@@ -69,7 +79,7 @@ def main() -> int:
     if not auto_js.is_file():
         return _fail("static/js/rmc-info-tag-auto.js missing")
 
-    print(f"INFO_TAG_COVERAGE_PASS catalog_keys={count}")
+    print(f"INFO_TAG_COVERAGE_PASS catalog_keys={count} sovereign_routes={route_count}")
     return 0
 
 

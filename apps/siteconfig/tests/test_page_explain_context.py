@@ -7,12 +7,15 @@ from django.test import RequestFactory, SimpleTestCase, TestCase
 
 from apps.siteconfig.page_explain import build_page_explain_context, build_field_manifest
 from apps.siteconfig.ui_field_help import catalog_entry_count
-from apps.siteconfig.ui_route_help import resolve_route_help
+from apps.siteconfig.ui_route_help import resolve_route_help, sovereign_route_entry_count
 
 
 class CatalogSizeTests(SimpleTestCase):
     def test_catalog_meets_500x_minimum(self):
         self.assertGreaterEqual(catalog_entry_count(), 500)
+
+    def test_sovereign_route_help_meets_50x_minimum(self):
+        self.assertGreaterEqual(sovereign_route_entry_count(), 50)
 
 
 class PageExplainContextTests(TestCase):
@@ -71,3 +74,18 @@ class PageExplainContextTests(TestCase):
         manifest = build_field_manifest(request, help_payload)
         fields = {row["field"] for row in manifest}
         self.assertIn("smtp_host", fields)
+
+    def test_sovereign_50x_super_schools_list(self):
+        request = self._request("/super/schools/")
+        request.public_host_kind = "manager"
+        request.resolver_match = type(
+            "M",
+            (),
+            {
+                "namespace": "super",
+                "url_name": "schools_list",
+                "view_name": "super:schools_list",
+            },
+        )()
+        help_payload = resolve_route_help(request)
+        self.assertIn("360", str(help_payload.get("body", "")))

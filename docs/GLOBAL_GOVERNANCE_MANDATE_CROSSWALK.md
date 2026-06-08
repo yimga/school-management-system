@@ -41,7 +41,30 @@ Maps external global-governance audit prompts to RunMyCampus repo truth. **Schoo
 - Mandatory org membership for standalone schools
 - Single-database district models that collapse legal separation
 
+## PROTOCOL SOVEREIGN-MAPPING-2026 (architecture overhaul prompt)
+
+External “Sovereign Mapping” briefs map to **repo-owned programs** — not a single markdown plan file.
+
+| Pasted target | Canonical plan / ledger | Primary artifacts | Status |
+|---------------|-------------------------|-------------------|--------|
+| Multi-click noise / attendance drudgery | **Zero-Friction OS** phases 1–2, 6 | `docs/generated/zero_friction_phase_completion_register.json`, `verify_zero_friction_journeys.py`, codemod waves 3–12 | **PARTIAL** (1627 templates still above friction threshold) |
+| 44px header + `100dvh` shells | SOT batches **1623**, **1551**; Sovereign **P6** | `rmc-nav-sidebar.css`, `layout_personality_matrix.py`, `LAYOUT_OBSERVABILITY.md` | **DONE** (repo-scope) |
+| 5-column grids + row drawer | Zero-Friction **phase 1** | `truncate_table_columns`, `rmc-portal-row-detail-drawer.js`, `data-rmc-table-5col` | **DONE** (161 templates adopted; burndown continues) |
+| Cloud → Ollama → browser AI | Sovereign **P0–P2, P7**; `AI_DEPLOYMENT_POSTURE.md` | `services.ai_helpers`, `config/sovereign_platform_contract.json`, batches **1661–1670** | **DONE** (repo); browser SLM **blocked** until evidence |
+| Postgres RLS + overflow sentinel | Sovereign **P4–P6**; tenant scanners | `app.current_school_id`, `scan_tenant_queryset_safety.py`, `rmc-layout-health-sentinel.js` | **PARTIAL** (RLS live CI deploy-gated) |
+| **Comprehension / info tags (500X + 50X routes)** | SOT batch **1254** + commit `d5ac435d` + **50X routes** | `ui_field_help_platform_500x.py` (676 keys), `ui_route_help_sovereign_50x.py` (≥50 routes), `rmc_page_explain_strip.html`, `verify_info_tag_coverage.py` | **DONE** (repo-scope) |
+
+**Cursor plans (supporting, not duplicate SOT):**
+
+- [`.cursor/plans/global_governance_audit_582fd47d.plan.md`](../.cursor/plans/global_governance_audit_582fd47d.plan.md) — 249-country governance (Phase 0 todos pending)
+- [`.cursor/plans/world_engine_execution_directive_26f59778.plan.md`](../.cursor/plans/world_engine_execution_directive_26f59778.plan.md) — scalability / three realms
+- [`config/sovereign_platform_contract.json`](../config/sovereign_platform_contract.json) — reject list for anti-patterns in the pasted prompt
+
+**Anti-patterns from the pasted prompt (rejected per batch 1662):** global ResizeObserver font compression, parallel `glocal_kernel`, autonomous AI grading, universal LWW merge, transaction pooling without session endpoint.
+
 ## Proof
 
 - Completion register: `docs/generated/global_governance_completion_register.json`
 - Blind-spot verifier: `python scripts/verify_global_operational_blind_spots.py --allow-pending --write`
+- Info-tag gate: `python scripts/verify_info_tag_coverage.py` → `INFO_TAG_COVERAGE_PASS`
+- Zero-Friction bundle: `python scripts/verify_zero_friction_phases_0_8.py`
