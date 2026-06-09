@@ -254,6 +254,15 @@ def public_health(request):
             "gunicorn_timeout": os.environ.get("GUNICORN_TIMEOUT", ""),
             "gunicorn_worker_class": os.environ.get("GUNICORN_WORKER_CLASS", ""),
             "web_concurrency": os.environ.get("WEB_CONCURRENCY", ""),
+            # Resource-aware sizing actually applied by config/gunicorn.conf.py
+            # (services/web_runtime.py). Lets you confirm autoscaling on the live
+            # box: workers/threads chosen, which budget bound them, recycle
+            # budget, and whether preload is active.
+            "web_workers_resolved": os.environ.get("RMC_WEB_RESOLVED_WORKERS", ""),
+            "web_threads_resolved": os.environ.get("RMC_WEB_RESOLVED_THREADS", ""),
+            "web_max_requests": os.environ.get("RMC_WEB_RESOLVED_MAX_REQUESTS", ""),
+            "web_preload": os.environ.get("RMC_WEB_RESOLVED_PRELOAD", ""),
+            "web_sizing_decided_by": os.environ.get("RMC_WEB_SIZING_DECIDED_BY", ""),
             # Deploy integrity: workflow progress strip partial required by shell includes.
             "wfp_strip_template_present": deploy_probe["present_on_disk"],
             "render_git_commit": deploy_probe["render_git_commit"],

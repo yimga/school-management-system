@@ -36,16 +36,46 @@ services:
         value: "120"
       - key: GUNICORN_WORKER_CLASS
         value: "gthread"
-      - key: WEB_CONCURRENCY
-        value: "2"
-        # Dashboard value must be digits only (e.g. "2") — never paste inline comments.
+      # ── Resource-aware autoscaling (services/web_runtime.py) ───────────────
+      # Workers are computed from the container's DETECTED RAM/CPU (cgroup-aware)
+      # bounded by the DB connection budget below — not a fixed number. On this
+      # Standard plan (2GB/1CPU) that resolves to ~2 workers (memory-bound),
+      # matching the previous hand-tuned value, but it auto-adjusts if you change
+      # the instance size. To pin an explicit count, set GUNICORN_WORKERS=<n>
+      # (digits only); to disable autoscaling, set GUNICORN_AUTOSCALE=0.
+      - key: GUNICORN_AUTOSCALE
+        value: "1"
+      - key: GUNICORN_PER_WORKER_MB
+        value: "600"
+      - key: GUNICORN_MEM_HEADROOM_MB
+        value: "400"
+      - key: GUNICORN_MAX_WORKERS
+        value: "4"
+      # Basic Postgres has a small connection cap. workers*threads is held below
+      # this so the app never trips "FATAL: too many connections". Celery
+      # worker+beat consume their own connections separately — keep this < the
+      # DB max minus that reserve. Raise only after upgrading the DB tier.
+      - key: DB_MAX_APP_CONNECTIONS
+        value: "12"
       - key: GUNICORN_THREADS
         value: "4"
       # SSE streams may use at most (GUNICORN_THREADS - SSE_THREAD_RESERVE)
       # threads per worker; the reserve guarantees /health/ always has one.
-      # Per worker: 2 SSE slots + 2 reserved. Across 2 workers: 4 SSE slots.
       - key: SSE_THREAD_RESERVE
         value: "2"
+      # ── Crash-loop guards (the 502/503 fix) ────────────────────────────────
+      # Recycle each worker every ~MAX_REQUESTS (+jitter so they don't all
+      # recycle at once) to bound slow memory growth -> stops OOM (502) loops.
+      - key: GUNICORN_MAX_REQUESTS
+        value: "400"
+      - key: GUNICORN_MAX_REQUESTS_JITTER
+        value: "80"
+      # Fork workers from a preloaded master (copy-on-write) -> less RAM/worker.
+      - key: GUNICORN_PRELOAD
+        value: "1"
+      # Give in-flight requests time to finish when a worker recycles/restarts.
+      - key: GUNICORN_GRACEFUL_TIMEOUT
+        value: "30"
       - key: RUN_STARTUP_SCHEMA_CHECK
         value: "0"
       - key: PYTHON_VERSION

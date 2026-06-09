@@ -30,7 +30,10 @@ fi
 
 # Ensure PORT is set for config (Render sets it; default for local)
 export PORT="${PORT:-10000}"
-export WEB_CONCURRENCY="${WEB_CONCURRENCY:-1}"
+# Worker count is decided by config/gunicorn.conf.py (resource-aware autoscaling
+# in services/web_runtime.py). Do NOT default WEB_CONCURRENCY here — that would
+# pin it to 1 and shadow autoscaling. A value the operator explicitly sets still
+# flows through (honored only when GUNICORN_AUTOSCALE=0).
 export GUNICORN_THREADS="${GUNICORN_THREADS:-4}"
 export GUNICORN_WORKER_CLASS="${GUNICORN_WORKER_CLASS:-gthread}"
 # Surfaced on /health/ — missing value means Render dashboard overrode startCommand.
@@ -48,6 +51,6 @@ if [[ "${WEB_SERVER_MODE:-wsgi}" == "asgi" ]]; then
   echo "[web-start] ASGI mode enabled (uvicorn workers; gthread threads ignored)"
 fi
 
-echo "[web-start] starting ${APP_MODULE} via ${CONFIG_FILE} (bind 0.0.0.0:${PORT}, workers=${WEB_CONCURRENCY}, threads=${GUNICORN_THREADS}, class=${GUNICORN_WORKER_CLASS}, timeout=${GUNICORN_TIMEOUT})"
+echo "[web-start] starting ${APP_MODULE} via ${CONFIG_FILE} (bind 0.0.0.0:${PORT}, workers=auto[config/gunicorn.conf.py], threads=${GUNICORN_THREADS}, class=${GUNICORN_WORKER_CLASS}, timeout=${GUNICORN_TIMEOUT})"
 
 exec "${GUNICORN_BIN}" -c "${CONFIG_FILE}" "${APP_MODULE}"
