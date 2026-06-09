@@ -1282,17 +1282,15 @@ class RuntimeHelperResolutionTests(TestCase):
             field_updates={
                 "theme_pack": portal_pack,
                 "admin_theme_pack": admin_pack,
+                "primary_color": "#112233",
+                "accent_color": "#445566",
+                "use_dark_mode": True,
+                "skip_theme_publish_guard": True,
+                "default_dashboard_view": "ACADEMICS",
+                "default_refresh_rate": 90,
+                "report_downloads_enabled": False,
             },
             save=True,
-        )
-        _persist_runtime_test_state(
-            primary_color="#112233",
-            accent_color="#445566",
-            use_dark_mode=True,
-            skip_theme_publish_guard=True,
-            default_dashboard_view="ACADEMICS",
-            default_refresh_rate=90,
-            report_downloads_enabled=False,
         )
         site.refresh_from_db()
 
