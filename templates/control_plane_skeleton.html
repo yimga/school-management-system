@@ -165,6 +165,9 @@
     <link rel="stylesheet" href="{% static 'css/rmc-list-bulk-select.css' %}">
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-nav-sidebar.css' %}">
+    {% comment %} Styles the in-content next-action strip (.rmc-nas-*); without it
+       the strip rendered as raw stacked text/links on control-plane pages. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
   </head>
   <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}"{% if not request.user.is_authenticated %} data-rmc-auth-landing="1"{% endif %} data-rmc-back-to-top-policy="always" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="{% block cp_scroll_mode %}canvas{% endblock %}" data-rmc-page-personality="{{ rmc_page_personality|default:'control-plane' }}" data-rmc-page-help="1"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %} data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
@@ -174,8 +177,10 @@
     {% block content %}
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
-
+    {% comment %} The next-action strip is rendered INSIDE the canvas content
+       (control_plane_base.html cp_content block, or each page's cp_content
+       override) — never here, above .rmc-app-shell, where it leaked as a
+       card above the header on every control-plane page. {% endcomment %}
     {% comment %} v3.55.0 (2026-05-21): .rmc-app-shell — platform-wide grid contract.
        header (row 1, static) + sidebar (col 1, own scroll) + canvas (col 2, own scroll).
        Legacy `cp-shell-content` class kept on canvas-body for back-compat with existing
