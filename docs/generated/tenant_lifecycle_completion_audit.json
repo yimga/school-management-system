@@ -1,0 +1,47 @@
+{
+  "generated_at": "2026-06-09T16:04:17.322988+00:00",
+  "phase_artifacts": {
+    "code_truth_inventory": true,
+    "forensic_gap_audit": true,
+    "architecture_deduplication": true
+  },
+  "verifier_checks": {
+    "provision_progress_surface": {
+      "pass": true,
+      "exit_code": 0,
+      "tail": "TENANT_PROVISION_PROGRESS_SURFACE_PASS"
+    },
+    "lifecycle_unified": {
+      "pass": true,
+      "exit_code": 0,
+      "tail": "BACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
+    },
+    "lifecycle_workflows": {
+      "pass": true,
+      "exit_code": 0,
+      "tail": "TENANT_LIFECYCLE_WORKFLOW_AUDIT_PASS\n  checks: 10"
+    },
+    "lifecycle_10x": {
+      "pass": true,
+      "exit_code": 0,
+      "tail": "TENANT_LIFECYCLE_10X_PASS\n  subprocess gates: 2\n  static markers: 5"
+    },
+    "offboarding_surface": {
+      "pass": true,
+      "exit_code": 0,
+      "tail": "PASS: tenant offboarding surface (extended)"
+    },
+    "lifecycle_completion_bundle": {
+      "pass": true,
+      "exit_code": 0,
+      "tail": "MPLETION_PASS\n  Lane 1: full audit + unified lifecycle wiring\n  Lane 2: checklist TENANT_LIFECYCLE_LANE2_OPERATOR_CHECKLIST.md\n  Lane 2: Render env SOT TENANT_OFFBOARDING.md (operator proof on deploy)"
+    }
+  },
+  "provisioning_tests_run": "workflow visibility, progress API, dispatch, pending tenant, crash resiliency, notifications",
+  "critical_provisioning_fix": "transaction.atomic removed from sync provision path; extended_steps (14) on progress API",
+  "remaining_repo_gaps": [],
+  "external_blockers": [
+    "ENV-001 Postgres schema purge proof",
+    "ENV-002 Celery-only async path"
+  ]
+}

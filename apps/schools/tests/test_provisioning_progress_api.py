@@ -36,6 +36,8 @@ class PublicPendingProvisionProgressTests(TestCase):
         self.assertIn("steps", payload)
         self.assertIn("workflow_key", payload)
         self.assertEqual(payload.get("workflow_key"), "tenant_school_provision")
+        self.assertEqual(len(payload.get("extended_steps") or []), 14)
+        self.assertEqual(payload.get("extended_step_count"), 14)
 
     def test_public_api_404_when_school_active(self):
         self.school.is_active = True

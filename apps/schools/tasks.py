@@ -484,18 +484,37 @@ def provision_school_sync(school_id: str, contact_email: str = "", **kwargs):
         )
         try:
             from apps.schools.models import School
-            from apps.schools.signup_completion_notifications import (
-                notify_provisioning_failed_operator,
-            )
 
             school = School.objects.filter(id=school_id).first()
             if school:
-                notify_provisioning_failed_operator(
+                _emit_provisioning_failed_notification(
                     school, contact_email, error=str(exc)
                 )
         except (ImportError, AttributeError, TypeError, ValueError):
             pass
         raise
+
+
+def _emit_provisioning_failed_notification(school, contact_email: str, *, error: str) -> None:
+    """NOTIF-001 facade — idempotent operator alert on provision failure."""
+    try:
+        from apps.platform_runtime.tenant_lifecycle_notifications import (
+            EVENT_PROVISIONING_FAILED,
+            emit_tenant_lifecycle_notification,
+        )
+
+        emit_tenant_lifecycle_notification(
+            school,
+            EVENT_PROVISIONING_FAILED,
+            contact_email=contact_email or "",
+            error=error or "",
+        )
+    except ImportError:
+        from apps.schools.signup_completion_notifications import (
+            notify_provisioning_failed_operator,
+        )
+
+        notify_provisioning_failed_operator(school, contact_email, error=error)
 
 
 def ensure_admin_user_for_school(school, contact_email: str):
@@ -544,13 +563,13 @@ def ensure_admin_user_for_school(school, contact_email: str):
         defaults={"role": User.Role.ADMIN, "is_primary": True},
     )
     if not membership_created:
-        SchoolMembership.objects.filter(pk=membership.pk).update(
+        SchoolMembership.objects.filter(pk=membership.pk, school=school).update(
             role=User.Role.ADMIN,
             is_primary=True,
         )
     # Repeat signups with the same email must not keep an older demo school
     # as primary — onboarding resolves is_primary=True first.
-    SchoolMembership.objects.filter(user=admin_user, is_primary=True).exclude(
+    SchoolMembership.objects.filter(user=admin_user, is_primary=True).exclude(  # tenant-isolation-allow: provision-demote-other-primary-memberships-same-user
         school=school
     ).update(is_primary=False)
     return admin_user, created
@@ -1406,13 +1425,10 @@ try:
             )
             try:
                 from apps.schools.models import School
-                from apps.schools.signup_completion_notifications import (
-                    notify_provisioning_failed_operator,
-                )
 
                 school = School.objects.filter(id=school_id).first()
                 if school:
-                    notify_provisioning_failed_operator(
+                    _emit_provisioning_failed_notification(
                         school, contact_email, error=str(exc)
                     )
             except (ImportError, AttributeError, TypeError, ValueError):

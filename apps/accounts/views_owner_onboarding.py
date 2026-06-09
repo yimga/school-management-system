@@ -67,7 +67,7 @@ def _owner_school(user):
         email = (getattr(user, "email", "") or "").strip()
         if email:
             verification = (
-                SignupVerification.objects.filter(email__iexact=email)
+                SignupVerification.objects.filter(email__iexact=email)  # tenant-isolation-allow: owner-onboarding-resolve-school-by-verified-email
                 .exclude(verified_at__isnull=True)
                 .select_related("school")
                 .order_by("-verified_at", "-id")
@@ -77,10 +77,10 @@ def _owner_school(user):
                 return verification.school
 
         m = (
-            SchoolMembership.objects.filter(user=user, is_primary=True)
+            SchoolMembership.objects.filter(user=user, is_primary=True)  # tenant-isolation-allow: owner-onboarding-primary-membership-by-user
             .select_related("school")
             .first()
-            or SchoolMembership.objects.filter(user=user)
+            or SchoolMembership.objects.filter(user=user)  # tenant-isolation-allow: owner-onboarding-fallback-membership-by-user
             .select_related("school")
             .order_by("-school__created_at")
             .first()

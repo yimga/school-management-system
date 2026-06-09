@@ -334,8 +334,21 @@ def finalize_tenant_activation(school, contact_email: str = "", **kwargs) -> Non
             getattr(school, "pk", None),
             exc_info=True,
         )
-    notify_tenant_signup_completed(
-        school,
-        contact_email,
-        admin_user=kwargs.get("admin_user"),
-    )
+    try:
+        from apps.platform_runtime.tenant_lifecycle_notifications import (
+            EVENT_TENANT_ACTIVATED,
+            emit_tenant_lifecycle_notification,
+        )
+
+        emit_tenant_lifecycle_notification(
+            school,
+            EVENT_TENANT_ACTIVATED,
+            contact_email=contact_email,
+            admin_user=kwargs.get("admin_user"),
+        )
+    except ImportError:
+        notify_tenant_signup_completed(
+            school,
+            contact_email,
+            admin_user=kwargs.get("admin_user"),
+        )

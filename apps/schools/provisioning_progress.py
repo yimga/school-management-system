@@ -26,6 +26,27 @@ PROVISION_STEP_KEYS: tuple[str, ...] = (
     "activate",
 )
 
+# PROV-003: 14-step operator model — workflow parents + SchoolProvisioningEvent hooks.
+# Keys are stable for UI/notification wiring; do not fork WorkflowRun.
+EXTENDED_PROVISION_STEP_SPECS: tuple[dict[str, str | None], ...] = (
+    {"key": "started", "label": _("Provisioning job started"), "workflow": None, "event": "STARTED"},
+    {"key": "admin_user", "label": _("Creating your administrator account"), "workflow": "admin_user", "event": None},
+    {"key": "profile", "label": _("Applying your school profile"), "workflow": "profile", "event": "PROFILE_APPLIED"},
+    {"key": "tenant_schema", "label": _("Preparing your campus workspace"), "workflow": "tenant_schema", "event": None},
+    {"key": "blueprint", "label": _("Recording your blueprint template"), "workflow": "seed_data", "event": "BLUEPRINT_TEMPLATE_RECORDED"},
+    {"key": "academic_year", "label": _("Creating your academic year"), "workflow": "seed_data", "event": "ACADEMIC_YEAR_READY"},
+    {"key": "academic_structure", "label": _("Building class structure"), "workflow": "seed_data", "event": "ACADEMIC_STRUCTURE_READY"},
+    {"key": "subjects", "label": _("Setting up subjects"), "workflow": "seed_data", "event": "SUBJECTS_READY"},
+    {"key": "classrooms", "label": _("Assigning classrooms"), "workflow": "seed_data", "event": "CLASSROOMS_READY"},
+    {"key": "sample_data", "label": _("Seeding sample data"), "workflow": "seed_data", "event": "SAMPLE_DATA_READY"},
+    {"key": "activate", "label": _("Activating your portal"), "workflow": "activate", "event": None},
+    {"key": "welcome_email", "label": _("Sending welcome email"), "workflow": "activate", "event": "WELCOME_EMAIL_SENT"},
+    {"key": "portal_ready", "label": _("Portal ready for sign-in"), "workflow": "activate", "event": "PORTAL_READY"},
+    {"key": "completed", "label": _("Provisioning complete"), "workflow": "activate", "event": "COMPLETED"},
+)
+
+EXTENDED_PROVISION_STEP_COUNT = len(EXTENDED_PROVISION_STEP_SPECS)
+
 _STEP_LABELS: dict[str, str] = {
     "admin_user": _("Creating your administrator account"),
     "profile": _("Applying your school profile"),
@@ -42,6 +63,93 @@ def _provisioning_settings(school) -> dict[str, Any]:
         return {}
     block = raw.get("provisioning")
     return block if isinstance(block, dict) else {}
+
+
+def _success_provisioning_events(school) -> set[str]:
+    if school is None:
+        return set()
+    try:
+        from apps.schools.models import SchoolProvisioningEvent
+
+        rows = SchoolProvisioningEvent.objects.filter(school=school).values_list(
+            "event_type", "status"
+        )
+        ok_status = {"SUCCESS", "INFO", "success", "info"}
+        return {
+            str(event_type)
+            for event_type, status in rows
+            if (status or "").upper() in {s.upper() for s in ok_status}
+        }
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return set()
+
+
+def _build_extended_steps(
+    school,
+    workflow_steps: list[dict[str, Any]],
+    *,
+    run_status: str = "",
+) -> list[dict[str, Any]]:
+    wf_map = {s.get("key"): s.get("state") for s in workflow_steps}
+    events = _success_provisioning_events(school)
+    if getattr(school, "is_active", False):
+        events.add("COMPLETED")
+        events.add("PORTAL_READY")
+
+    extended: list[dict[str, Any]] = []
+    active_assigned = False
+    run_failed = (run_status or "").lower() == "failed"
+
+    for spec in EXTENDED_PROVISION_STEP_SPECS:
+        key = str(spec["key"])
+        label = str(spec["label"])
+        workflow_parent = spec.get("workflow")
+        event_type = spec.get("event")
+        state = "pending"
+
+        if event_type and event_type in events:
+            state = "done"
+        elif workflow_parent:
+            parent_state = wf_map.get(workflow_parent, "pending")
+            if parent_state == "done":
+                state = "done"
+            elif parent_state == "failed":
+                state = "failed"
+            elif parent_state == "active" and not active_assigned:
+                state = "active"
+                active_assigned = True
+        elif key == "started" and ("STARTED" in events or wf_map):
+            state = "done"
+
+        extended.append(
+            {
+                "key": key,
+                "label": label,
+                "state": state,
+                "workflow_parent": workflow_parent,
+                "event_type": event_type,
+            }
+        )
+
+    if run_failed and not any(s["state"] == "failed" for s in extended):
+        for step in reversed(extended):
+            if step["state"] in ("active", "pending"):
+                step["state"] = "failed"
+                break
+
+    return extended
+
+
+def _progress_from_extended_steps(steps: list[dict[str, Any]]) -> int:
+    if not steps:
+        return 0
+    done = sum(1 for s in steps if s.get("state") == "done")
+    active = sum(1 for s in steps if s.get("state") == "active")
+    total = len(steps)
+    if done >= total:
+        return 100
+    pct = int(round(((done + (0.35 if active else 0)) / total) * 100))
+    return max(0, min(99, pct))
 
 
 def _step_label(key: str) -> str:
@@ -427,6 +535,15 @@ def resolve_provisioning_progress(
 
     blocking = _blocking_error(school, run)
 
+    extended_steps = _build_extended_steps(
+        school,
+        steps,
+        run_status=(getattr(run, "status", "") or "") if run is not None else status,
+    )
+    if status == "succeeded":
+        for step in extended_steps:
+            step["state"] = "done"
+
     payload: dict[str, Any] = {
         "ok": True,
         "workflow_key": PROVISION_WORKFLOW_KEY,
@@ -436,6 +553,8 @@ def resolve_provisioning_progress(
         "current_step_key": current_key or None,
         "current_step_label": current_label or None,
         "steps": steps,
+        "extended_steps": extended_steps,
+        "extended_step_count": EXTENDED_PROVISION_STEP_COUNT,
         "eta_seconds": eta,
         "last_error": blocking,
         "suggested_remediation": remediation,

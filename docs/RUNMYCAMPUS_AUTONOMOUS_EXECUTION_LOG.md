@@ -1,4 +1,14 @@
-﻿# RunMyCampus autonomous execution log
+# RunMyCampus autonomous execution log
+
+## Slice - Tenant lifecycle hardening A–Z (2026-06-09)
+
+**A. Scope:** Batch **1690** — phases A–V from tenant lifecycle audit (repo-contained).
+
+**B. Shipped:** PROV-001 transaction fix + pending setup UX; PROV-003 `extended_steps` (14); NOTIF-001 facade; Phase 6 crash-resiliency tests; Phase 12 adversarial offboarding tests; GATE-001 admin back-to-top placement; Phase 14 Playwright spec; audit generators + generated JSON/MD artifacts.
+
+**C. Proof:** `TENANT_LIFECYCLE_FULL_AUDIT_PASS`; `TENANT_LIFECYCLE_COMPLETION_PASS`; `verify_tenant_provision_progress_surface --strict`; Django **18/18** core lifecycle tests green.
+
+**D. Honest:** ENV-001/002 external; full ~54-module suite + Playwright need CI/live server; copilot-rail diff still uncommitted separately.
 
 ## Slice - Publisher install Playwright + developer API keys + API v1 detail manifest (2026-06-09)
 

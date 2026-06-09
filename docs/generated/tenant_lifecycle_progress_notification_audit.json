@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-06-09T16:03:23.691694+00:00",
+  "progress_components": {
+    "canonical_partial": "templates/components/rmc_tenant_provision_progress.html",
+    "js": "static/js/rmc-tenant-provision-progress.js",
+    "resolver": "apps/schools/provisioning_progress.py",
+    "surfaces": [
+      "templates/schools/tenant_setup_in_progress.html",
+      "templates/accounts/owner_onboarding/done.html",
+      "templates/schools/super_tenant_360.html",
+      "templates/siteconfig/tenant_provisioning_status.html"
+    ]
+  },
+  "notification_modules": {
+    "facade": "apps/platform_runtime/tenant_lifecycle_notifications.py",
+    "provisioning_complete": "apps/schools/signup_completion_notifications.py",
+    "offboarding": "apps/schools/tenant_offboarding_notifications.py",
+    "nudges": "apps/customersuccess/onboarding_day_n_nudges.py"
+  },
+  "gaps": [
+    {
+      "id": "PN-002",
+      "severity": "low",
+      "title": "Dedicated timeline/notification-history partials not split",
+      "recommendation": "Extend rmc_tenant_provision_progress; avoid parallel component forks."
+    }
+  ],
+  "accessibility": {
+    "progressbar_role": true,
+    "aria_valuenow": true,
+    "verifier": "scripts/verify_tenant_provision_progress_surface.py"
+  }
+}

@@ -29,7 +29,7 @@ def e2e_signup_verification_token(request):
     if not email:
         return JsonResponse({"ok": False, "error": "email required"}, status=400)
 
-    qs = SignupVerification.objects.filter(
+    qs = SignupVerification.objects.filter(  # tenant-isolation-allow: e2e-signup-helper-ci-gated-cross-tenant-lookup
         email__iexact=email,
         verified_at__isnull=True,
     ).select_related("school")

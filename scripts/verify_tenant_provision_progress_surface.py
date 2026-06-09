@@ -58,7 +58,7 @@ def run_scan() -> list[dict[str, str]]:
         findings.append(_finding("missing_resolver", "provisioning_progress.py"))
     else:
         rtxt = resolver.read_text(encoding="utf-8")
-        for needle in ("progress_percent", "current_step_label", "suggested_remediation", "portal_ready"):
+        for needle in ("progress_percent", "current_step_label", "suggested_remediation", "portal_ready", "extended_steps"):
             if needle not in rtxt:
                 findings.append(_finding("resolver_contract", f"missing:{needle}", path="apps/schools/provisioning_progress.py"))
 
