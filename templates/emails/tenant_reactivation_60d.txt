@@ -10,7 +10,7 @@ last signed in. We wanted to check in:
   * Do you need help importing data or setting up integrations?
 
 A quick reply (even one sentence) will help us understand. If you'd
-prefer to come back on your own: {{ portal_url|default:"https://manager.runmycampus.com/" }}
+prefer to come back on your own: {{ portal_url|default:"https://runmycampus.com/authentication/login/" }}
 
 To stop these reminders: {{ unsubscribe_url|default:"(URL not captured)" }}
 

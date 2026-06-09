@@ -16,7 +16,7 @@ signed in. Since then, we shipped:
 Want a 15-minute tour of what's new? Reply to this email and we'll
 schedule it.
 
-Or come back any time: {{ portal_url|default:"https://manager.runmycampus.com/" }}
+Or come back any time: {{ portal_url|default:"https://runmycampus.com/authentication/login/" }}
 
 To stop these reminders: {{ unsubscribe_url|default:"(URL not captured)" }}
 

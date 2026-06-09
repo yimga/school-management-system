@@ -32,6 +32,7 @@
 2. Email verification on the **public** host queues or sync-runs `complete_provisioning_for_school`.
 3. Owner onboarding launchpad (`/authentication/onboarding/done/`) polls `…/onboarding/done/status/` until `is_active` flips, then sends the portal-ready email.
 4. Stuck slugs: `python manage.py triage_signup_school <slug>` then `activate_pending_signup_schools --slug=<slug>` when verified-but-inactive.
+5. **Tenant emails:** win-back / reactivation messages use `build_public_login_url()` or the live tenant subdomain — never `manager.runmycampus.com` (`reactivation_engine._portal_url_for_reactivation`).
 
 ## Impersonation
 

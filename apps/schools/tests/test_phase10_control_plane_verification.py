@@ -5,7 +5,7 @@ See docs/architecture/phase10_superadmin_vs_tenant_ui.md § Verification checkli
 """
 
 from django.contrib.auth.models import AnonymousUser
-from django.test import RequestFactory, TestCase, override_settings
+from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import resolve, reverse
 
 from apps.accounts.models import User
@@ -20,9 +20,22 @@ class Phase10ManagerLoginVerificationTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
+    @override_settings(
+        ROOT_URLCONF="config.manager_urls",
+        RMC_PUBLIC_SITE_URL="https://runmycampus.com",
+    )
+    def test_unauthenticated_manager_login_redirects_to_public_host(self):
+        client = Client(HTTP_HOST="manager.runmycampus.com")
+        response = client.get(reverse("accounts:login"))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            response.url.startswith("https://runmycampus.com/authentication/login/")
+        )
+
     def test_manager_host_gets_manager_login_template(self):
         request = self.factory.get(
-            "/authentication/login/", HTTP_HOST="manager.runmycampus.com"
+            "/authentication/login/?next=/super/",
+            HTTP_HOST="manager.runmycampus.com",
         )
         request.session = {}
         request.user = AnonymousUser()
@@ -32,6 +45,21 @@ class Phase10ManagerLoginVerificationTests(TestCase):
         content = response.content.decode("utf-8", errors="replace")
         self.assertIn("Control plane sign-in", content)
         self.assertIn("RunMyCampus Manager", content)
+        self.assertIn("manager-login-heading", content)
+        self.assertIn("<head>", content)
+        self.assertIn('type="password"', content)
+        # shell_rmc_registry_html_attrs must not inject block tags inside <html>.
+        self.assertNotRegex(
+            content,
+            r"<html[^>]*\n\s*<div",
+            msg="invalid <div> inside <html> opening tag breaks manager DOM",
+        )
+        head_idx = content.find("<head>")
+        body_idx = content.find("<body")
+        login_idx = content.find("manager-login-heading")
+        self.assertGreater(head_idx, 0)
+        self.assertGreater(body_idx, head_idx)
+        self.assertGreater(login_idx, body_idx)
 
     def test_non_manager_host_gets_standard_login_template(self):
         request = self.factory.get(

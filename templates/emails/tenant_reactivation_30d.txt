@@ -10,7 +10,7 @@ Common reasons we hear:
   * "We're using the offline workflow"
   * "We need help with X" — reply to this email, we'll get on it
 
-Come back: {{ portal_url|default:"https://manager.runmycampus.com/" }}
+Come back: {{ portal_url|default:"https://runmycampus.com/authentication/login/" }}
 
 To stop these gentle reminders: {{ unsubscribe_url|default:"(URL not captured)" }}
 

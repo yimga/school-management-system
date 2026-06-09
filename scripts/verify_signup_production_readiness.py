@@ -12,6 +12,7 @@ Pass 8 — Welcome email uses public onboarding URL + HTML alternative (not raw 
 Pass 9 — Platform recovery CLI ``activate_pending_signup_schools`` (--all-verified-inactive).
 Pass 10 — Owner onboarding done JSON poll + triage_signup_school CLI.
 Pass 11 — Render ``SESSION_COOKIE_DOMAIN`` parent-domain contract for cross-host handoff.
+Pass 12 — Tenant transactional emails must not default portal links to manager host.
 
 Usage:
   python scripts/verify_signup_production_readiness.py --strict
@@ -693,6 +694,56 @@ def pass11_session_cookie_parent_domain() -> list[dict[str, str]]:
     return findings
 
 
+def pass12_tenant_email_no_manager_host() -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    reactivation = REPO_ROOT / "apps" / "platform_runtime" / "reactivation_engine.py"
+    if reactivation.is_file():
+        txt = reactivation.read_text(encoding="utf-8")
+        if "manager.runmycampus.com" in txt:
+            findings.append(
+                _finding(
+                    "pass12",
+                    "reactivation_engine_must_not_hardcode_manager_host",
+                    path="apps/platform_runtime/reactivation_engine.py",
+                )
+            )
+        if "_portal_url_for_reactivation" not in txt:
+            findings.append(
+                _finding(
+                    "pass12",
+                    "reactivation_engine_missing_portal_url_helper",
+                    path="apps/platform_runtime/reactivation_engine.py",
+                )
+            )
+    for name in (
+        "tenant_reactivation_30d.txt",
+        "tenant_reactivation_60d.txt",
+        "tenant_reactivation_90d.txt",
+        "tenant_reactivation_120d.txt",
+    ):
+        path = REPO_ROOT / "templates" / "emails" / name
+        if not path.is_file():
+            continue
+        if "manager.runmycampus.com" in path.read_text(encoding="utf-8"):
+            findings.append(
+                _finding(
+                    "pass12",
+                    "tenant_reactivation_template_defaults_manager_host",
+                    path=f"templates/emails/{name}",
+                )
+            )
+    welcome = REPO_ROOT / "apps" / "schools" / "welcome_email.py"
+    if welcome.is_file() and "manager.runmycampus.com" in welcome.read_text(encoding="utf-8"):
+        findings.append(
+            _finding(
+                "pass12",
+                "welcome_email_must_not_reference_manager_host",
+                path="apps/schools/welcome_email.py",
+            )
+        )
+    return findings
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--strict", action="store_true")
@@ -711,11 +762,12 @@ def main(argv: list[str] | None = None) -> int:
     findings.extend(pass9_platform_recovery_cli())
     findings.extend(pass10_onboarding_poll_and_triage())
     findings.extend(pass11_session_cookie_parent_domain())
+    findings.extend(pass12_tenant_email_no_manager_host())
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "finding_count": len(findings),
-        "passes": 11,
+        "passes": 12,
         "findings": findings,
     }
     if args.write_baseline:

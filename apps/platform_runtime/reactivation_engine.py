@@ -42,6 +42,22 @@ def _hash_email(email: str) -> str:
     return hashlib.sha256(email.lower().strip().encode("utf-8")).hexdigest()[:16]
 
 
+def _portal_url_for_reactivation(school) -> str:
+    """Tenant-facing return link — never the operator manager console."""
+    try:
+        from apps.schools.provision_email_urls import (
+            build_public_login_url,
+            build_tenant_authentication_url,
+            school_subdomain_redirect_is_safe,
+        )
+
+        if school and school_subdomain_redirect_is_safe(school):
+            return build_tenant_authentication_url(school, "/authentication/login/")
+        return build_public_login_url()
+    except ImportError:
+        return "https://runmycampus.com/authentication/login/"
+
+
 def _resolve_admin_email(school) -> str:
     """Best-effort recipient resolution. Prefers the verified signup email."""
 
@@ -188,7 +204,7 @@ def run_reactivation_sweep(*, dry_run: bool = False, limit_per_cadence: int = 20
                 "school_name": getattr(school, "name", ""),
                 "admin_email": admin_email,
                 "school_id": str(school.pk),
-                "portal_url": f"https://manager.runmycampus.com/",
+                "portal_url": _portal_url_for_reactivation(school),
                 "unsubscribe_url": _build_unsubscribe_url(admin_email),
             }
             event = f"tenant.reactivation.{cadence}"
