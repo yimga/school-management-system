@@ -1,18 +1,36 @@
-{% load i18n marketing_media %}
-<section class="mkt-ve-platform-strip mkt-edt-container" aria-label="{% trans 'Interactive illustration' %}">
-  <p class="mkt-edt-illustrative-pill">{% trans "Simulated data — illustrative only" %}</p>
-  {% if interactive == "gradebook" %}
-  {% include "marketing/partials/_mkt_gradebook_interactive.html" %}
-  {% elif interactive == "network" %}
-  {% include "marketing/partials/_mkt_network_interactive.html" %}
-  {% elif viz_key %}
-  {% marketing_viz viz_key %}
-  {% endif %}
-  {% if show_apm_strip and geo.apm_icons %}
-  <ul class="mkt-ve-apm-strip" aria-label="{% trans 'Illustrative payment methods' %}">
-    {% for icon in geo.apm_icons %}
-    <li class="mkt-ve-apm-strip__item">{{ icon.label }}</li>
-    {% endfor %}
-  </ul>
-  {% endif %}
-</section>
+{% load i18n marketing_media %}
+
+<section class="mkt-ve-platform-strip mkt-edt-container" aria-label="{% trans 'Interactive illustration' %}">
+
+  <p class="mkt-edt-illustrative-pill">{% trans "Simulated data — illustrative only" %}</p>
+
+  {% if interactive == "gradebook" %}
+
+  {% include "marketing/partials/_mkt_gradebook_interactive.html" %}
+
+  {% elif interactive == "network" %}
+
+  {% include "marketing/partials/_mkt_network_interactive.html" %}
+
+  {% elif viz_key %}
+
+  {% marketing_viz viz_key %}
+
+  {% endif %}
+
+  {% if show_apm_strip and geo.apm_icons %}
+
+  <ul class="mkt-ve-apm-strip" aria-label="{% trans 'Illustrative payment methods' %}">
+
+    {% for icon in geo.apm_icons %}
+
+    <li class="mkt-ve-apm-strip__item">{{ icon.label }}</li>
+
+    {% endfor %}
+
+  </ul>
+
+  {% endif %}
+
+</section>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

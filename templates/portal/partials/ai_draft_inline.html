@@ -14,6 +14,7 @@
      - `entitlement_ok`: bool, false renders nothing
 {% endcomment %}
 {% if entitlement_ok %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="ai-draft-inline mt-2"
      data-textarea-id="{{ textarea_id }}"
      data-draft-endpoint="{{ draft_endpoint }}"

@@ -1,6 +1,7 @@
 <section class="rmc-acx-dependency-graph" data-apple-class-dependency-graph="1" aria-labelledby="{{ graph_id|default:'apple-dependency-graph-title' }}">
   <h2 id="{{ graph_id|default:'apple-dependency-graph-title' }}" class="h6 mb-2">{{ title|default:"Dependency graph" }}</h2>
-  <div class="rmc-acx-dependency-graph__nodes">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-acx-dependency-graph__nodes">
     <span>{{ source|default:"Blueprint" }}</span>
     <span>{{ dependency|default:"Required pack" }}</span>
     <span>{{ target|default:"Tenant rollout" }}</span>

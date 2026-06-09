@@ -4,6 +4,11 @@
 {% block portal_title %}{% blocktrans %}Apply: {{ template_key }}{% endblocktrans %}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="rmc-template-apply" data-page-marker="rmc-template-apply" data-rmc-template-key="{{ template_key }}">
   <header class="rmc-template-apply__header">
     <h1>{% blocktrans %}Apply template — {{ template_key }}{% endblocktrans %}</h1>

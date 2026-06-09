@@ -16,7 +16,7 @@
 {% elif automation_explainer %}
   {% include "studio_os/partials/automation_explainer_in_canvas.html" with title=automation_explainer.title subtitle=automation_explainer.subtitle body=automation_explainer.body workflow_pane_url=automation_explainer.workflow_pane_url workflow_hint=automation_explainer.workflow_hint %}
 {% elif automation_iframe_src %}
-<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="d-flex flex-wrap align-items-center gap-2 mb-2 studio-os__output-native-fallback" role="region" aria-label="{% trans 'Automation view options' %}">
   <span class="small text-muted mb-0">{% trans "Prefer full window?" %}</span>
   <a id="studio-automation-open-full" class="btn btn-sm btn-outline-primary"

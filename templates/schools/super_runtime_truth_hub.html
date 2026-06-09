@@ -17,6 +17,7 @@
 {% include "components/next_action_strip.html" %}
 
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#runtime-truth-hub-main">{% trans "Skip to runtime truth hub content" %}</a>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="runtime-truth-hub-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %} data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 {% phase8_dashboard_declaration "schools/super_runtime_truth_hub.html" %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="runtime_truth_hub" center_eyebrow=_("Platform operators") center_title="Runtime truth hub" center_purpose="Read-only view of RuntimeDefaults.payload and the slim tenant settings row (platform singleton, Phase B bridge)." primary_url=dashboard_url primary_label="Back to dashboard" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}

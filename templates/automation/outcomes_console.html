@@ -5,6 +5,11 @@
 {% block backend_title %}{% trans "Automation outcomes" %}{% endblock %}
 
 {% block backend_page %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Automation outcomes" %}</h1>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-os-center="automation_studio_outcomes" data-rmc-scroll-policy="paginate">
   {% include "components/rmc_os_page_header.html" with os_center_key="automation_studio_outcomes" center_eyebrow=_("Automation") center_title=page_title center_purpose=page_subtitle %}
@@ -20,7 +25,7 @@
       {% if recent_runs %}
       <div class="table-responsive">
         <!-- large-collection-allow: dashboard-widget-capped-list -->
-<table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+<table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Recent migration runs" %}</caption>
           <thead class="table-light">
             <tr>
@@ -68,7 +73,7 @@
     <div class="card-body p-0">
       {% if recent_visual_runs %}
       <div class="table-responsive">
-        <table class="table table-hover mb-0 table-family align-middle rmc-data-table">
+        <table class="table table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Visual workflow runs (published flows)" %}</caption>
           <thead class="table-light">
             <tr>
@@ -110,7 +115,7 @@
     <div class="card-body p-0">
       {% if recent_logs %}
       <div class="table-responsive">
-        <table class="table table-hover mb-0 table-family align-middle rmc-data-table">
+        <table class="table table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Recent execution logs" %}</caption>
           <thead class="table-light">
             <tr>
@@ -145,4 +150,5 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

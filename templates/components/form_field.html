@@ -29,6 +29,7 @@
   Closes Forms-audit items #2 (error pattern), #3 (required marker), #5 (help text).
 {% endcomment %}
 
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="mb-3 form-field{% if field.errors %} has-error{% endif %}" data-form-field="{{ field.name }}">
   {% if show_label|default_if_none:True %}
     <label class="form-label {{ label_class|default:'' }}" for="{{ field.id_for_label }}">

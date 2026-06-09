@@ -12,6 +12,7 @@
 {% include "components/next_action_strip.html" %}
 
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Cash Office Closure</h1>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 {% url 'finance:payments' as cash_closure_back_url %}
 {% include "studio_os/components/page_header.html" with title="Cash Office Closure" subtitle="Daily reconciliation between cash desk receipts and bank deposit." action_url=cash_closure_back_url action_text="Back to Payments" %}

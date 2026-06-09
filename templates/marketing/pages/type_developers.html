@@ -7,7 +7,8 @@
 <article class="mkt-v3-page mkt-v3-page--developers">
   {% include "marketing/components/_personality_hero.html" with eyebrow=_("Developers & APIs") headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
   {% include "marketing/components/_personality_viz_panel.html" %}
-  <div class="mkt-edt-container mkt-v3-archetype__ctas rmc-reveal" data-mkt-reveal>
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-edt-container mkt-v3-archetype__ctas rmc-reveal" data-mkt-reveal>
     <a href="{% url 'developer_api' %}" class="mkt-edt-cta">{% trans "API reference" %}</a>
     <a href="{% url 'developer_hub' %}" class="mkt-edt-link">{% trans "Developer hub →" %}</a>
   </div>

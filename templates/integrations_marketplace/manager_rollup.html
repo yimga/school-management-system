@@ -4,6 +4,11 @@
 {% block title %}{% trans "Integrations rollup" %} · Manager{% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="container-fluid py-3" data-page-archetype="manager-integrations-rollup">
 
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
@@ -38,7 +43,7 @@
   </form>
 
   <div class="table-responsive">
-    <table class="table rmc-data-table align-middle" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <table class="table rmc-data-table align-middle" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead>
         <tr>
           <th scope="col">{% trans "School" %}</th>
@@ -75,4 +80,5 @@
   </div>
 
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

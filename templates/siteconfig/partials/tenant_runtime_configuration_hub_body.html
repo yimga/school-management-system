@@ -1,4 +1,5 @@
 {% load i18n static phase8_tags %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-3 cp-evidence-page" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface" data-siteconfig-surface="tenant-runtime-hub" data-phase-b-surface="runtime-snapshot" data-shell-surface="tenant-runtime-configuration" data-cp-evidence-surface="tenant-runtime-config">
   {% phase8_dashboard_declaration "siteconfig/tenant_runtime_configuration_hub.html" %}
   <h1 class="h3 mb-2">{% trans "Tenant runtime configuration" %}</h1>

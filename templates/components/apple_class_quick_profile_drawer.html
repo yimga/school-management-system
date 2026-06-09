@@ -1,5 +1,6 @@
 <aside class="rmc-acx-drawer" data-apple-class-quick-profile-drawer="1" role="dialog" aria-modal="true" aria-labelledby="{{ drawer_id|default:'apple-quick-profile-title' }}" aria-expanded="false" tabindex="-1">
-  <div class="rmc-acx-drawer__handle" aria-hidden="true"></div>
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-acx-drawer__handle" aria-hidden="true"></div>
   <div class="rmc-acx-drawer__header">
     <span class="rmc-acx-layer-label">{{ role|default:"Quick profile" }}</span>
     <h2 id="{{ drawer_id|default:'apple-quick-profile-title' }}" class="h5 mb-0">{{ title|default:"Selected record" }}</h2>

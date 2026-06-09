@@ -1,7 +1,8 @@
 {% load i18n %}
 {% if request.user.is_authenticated %}
 <section class="rmc-profile-security-hub content-card mb-3" id="profile-security-hub" data-rmc-section-anchor data-rmc-section-nav-label="{% trans 'Security center' %}" aria-labelledby="profile-security-hub-title">
-  <div class="rmc-profile-security-hub__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-profile-security-hub__head">
     <div>
       <div class="eyebrow text-muted small text-uppercase">{% trans "Account protection" %}</div>
       <h2 id="profile-security-hub-title" class="h6 mb-0">{% trans "Security center" %}</h2>

@@ -1,6 +1,7 @@
 {% load i18n static %}
 <section class="rmc-mfa-inline-wizard content-card mb-3" id="profile-mfa-wizard" data-rmc-section-anchor data-rmc-section-nav-label="{% trans 'Set up MFA' %}" aria-labelledby="profile-mfa-wizard-title">
-  <div class="rmc-mfa-inline-wizard__head d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-mfa-inline-wizard__head d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
     <div>
       <div class="eyebrow text-muted small text-uppercase">{% trans "Authenticator" %}</div>
       <h2 id="profile-mfa-wizard-title" class="h6 mb-0">{% trans "Set up MFA inline" %}</h2>

@@ -20,6 +20,7 @@
 {% include "components/next_action_strip.html" %}
 
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#platform-operator-hub-main">{% trans "Skip to platform operator hub" %}</a>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="platform-operator-hub-main" class="container-fluid py-3 cp-operator-hub" tabindex="-1" data-page-archetype="catalog" data-decision-engine="surface" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% phase8_dashboard_declaration "schools/super_platform_operator_hub.html" %}
   {% if operator_platform_operator_hub_links %}

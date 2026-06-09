@@ -3,6 +3,9 @@
 
 {% comment %} Platform backoffice: Configuration Control Center (siteconfig) app index — point to /super/ before per-model links. {% endcomment %}
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 {% if is_manager_host %}
 <div class="mb-4 mx-4 p-4 rounded-lg border text-sm max-w-5xl"
      style="border-color: color-mix(in srgb, var(--brand-primary, #c47f1c) 35%, transparent); background: color-mix(in srgb, var(--brand-primary, #c47f1c) 6%, transparent);"

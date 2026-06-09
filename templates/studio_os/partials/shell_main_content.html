@@ -1,6 +1,6 @@
 {% load i18n static %}
 {% load terminology_tags %}
-<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2 px-0 px-md-2 rmc-shell-content-grid" data-page-archetype="{% if current_mode == 'control' %}decision-console{% else %}studio-workspace{% endif %}" data-shell-studio-region="main" data-rmc-studio-os-embed="true" data-shell-host="{% if request.public_host_kind == 'manager' %}control-plane{% else %}tenant{% endif %}" data-rmc-shell-content-grid="1">
   <a href="#studio-canvas" class="visually-hidden-focusable btn btn-sm btn-outline-primary position-absolute top-0 start-0 m-2 px-3 py-2 rounded studio-os-skip-link">{% trans "Skip to Studio content" %}</a>
   {% comment %} Primary 8-pill nav is on control_plane_base (manager); do not duplicate here. {% endcomment %}

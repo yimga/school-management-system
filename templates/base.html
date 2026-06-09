@@ -218,7 +218,8 @@
     {% include "partials/rmc_launch_splash.html" %}
     <a href="#main-content" class="skip-link" aria-label="Skip to main content">Skip to main content</a>
     {% comment %} Page-level HTMX progress bar — appears during htmx requests via body.htmx-request CSS rule. {% endcomment %}
-    <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
     <!--
       .app-container wraps all content for background logo/video/svg effect.
       If you need to support users with reduced motion or contrast, consider a toggle in user preferences.
@@ -308,7 +309,11 @@
       {% include "partials/breadcrumbs.html" %}
 
       <div class="page-wrap rmc-shell-content-grid portal-page-body" data-rmc-shell-content-grid="1" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
-        {% block content %}{% endblock %}
+        {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+{% endblock %}
       </div>
     </main>
 

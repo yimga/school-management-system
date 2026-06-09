@@ -1,7 +1,8 @@
 {% load i18n %}
 {% if rmc_ai_system_health_insight or rmc_ai_system_onboarding_insight or rmc_ai_anomaly_nudge %}
 <section class="card border-0 shadow-sm mb-3" data-rmc-ai-system-layer="1" aria-label="{% trans 'System intelligence suggestions' %}">
-  <div class="card-body py-3">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="card-body py-3">
     <h2 class="h6 mb-2">{% trans "Intelligence suggestions (draft)" %}</h2>
     <p class="small text-muted mb-2">{% trans "Rules-based when AI is disabled; approve before acting." %}</p>
     {% if rmc_ai_system_health_insight %}

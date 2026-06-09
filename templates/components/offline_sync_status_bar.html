@@ -3,6 +3,7 @@
    Server-side initial label/visibility derived from `rmc_offline_sync_state` so users never see a
    stale "Checking..." if the JS hasn't booted yet. The JS reconciles in real time after load.{% endcomment %}
 {% with server_pending=rmc_offline_sync_state.pending|default:0 server_failed=rmc_offline_sync_state.failed|default:0 server_conflicts=rmc_offline_sync_state.conflicts|default:0 %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="rmc-offline-sync-bar"
      class="rmc-offline-sync-bar alert alert-secondary border-0 py-2 px-3 mb-3 shadow-sm sticky-top{% if not server_pending and not server_failed and not server_conflicts %} d-none{% endif %}"
      style="z-index: 1020;"

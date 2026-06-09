@@ -5,7 +5,7 @@
 Usage: {% include "studio_os/components/action_bar.html" with primary_url=url primary_text="Save" secondary_url=back_url secondary_text="Cancel" %}
 Or pass action_html for custom buttons.
 {% endcomment %}
-<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="studio-os-bottom-bar mt-3" role="toolbar" aria-label="{% trans 'Page actions' %}">
   <div class="d-flex flex-wrap gap-2 align-items-center">
     {% if primary_url and primary_text %}

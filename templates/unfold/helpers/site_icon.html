@@ -1,7 +1,8 @@
 {% load i18n %}
 {% comment %} Override: when no site_icon image, use SVG so "settings" never shows as text when Material Symbols font 404s. {% endcomment %}
 {% if site_icon %}
-    <div class="shrink-0">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="shrink-0">
         <{% if site_dropdown %}span{% else %}a href="{% url "admin:index" %}"{% endif %}>
         {% if site_icon.light and site_icon.dark %}
             <img src="{{ site_icon.dark }}" alt="{% trans 'Home' %}" class="h-[38px] hidden dark:block"/>

@@ -4,6 +4,7 @@
 {% block cp_page_archetype %}diagnostic-workbench{% endblock %}
 
 {% block cp_shell_sidebar %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div data-rmc-scroll-policy="paginate" id="cp-sidebar-col" class="rmc-nav-sidebar__mount" data-shell-sidebar="{{ rmc_shell.shell_sidebar_control_plane|default:'control-plane' }}" data-shell-sidebar-mount="desktop">
   {% include "partials/rmc_nav_sidebar_toolbar.html" %}
   <div class="cp-sidebar-inner cp-sidebar-inner--surface d-flex flex-column flex-grow-1 min-h-0 p-2">

@@ -4,7 +4,8 @@
   <h2 class="mkt-v3-section-headline">{% trans "Request a demo" %}</h2>
   <p class="mkt-v3-lead">{% trans "Tell us about your school—we reply within one business day with scheduling options. No purchase commitment required." %}</p>
   {% if request.GET.submitted %}
-    <div class="mkt-edt-alert mkt-edt-alert--success" role="alert" aria-live="polite">{% trans "Thanks! We've received your request and will be in touch soon." %}</div>
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-edt-alert mkt-edt-alert--success" role="alert" aria-live="polite">{% trans "Thanks! We've received your request and will be in touch soon." %}</div>
   {% elif request.GET.error %}
     <div class="mkt-edt-alert mkt-edt-alert--warning" role="alert" aria-live="polite">{% trans "Something went wrong. Please try again or contact us directly." %}</div>
   {% endif %}

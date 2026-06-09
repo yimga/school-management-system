@@ -4,6 +4,11 @@
 {% block backend_title %}{{ page_title }}{% endblock %}
 
 {% block backend_page %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ page_title }}</h1>
 {% trans "Back to console" as back_console %}
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-event-analytics="1">
@@ -93,7 +98,7 @@
     <div class="card-header"><h5 class="mb-0">{% trans "Domain volume by type" %} {% if filter_event_type %}<span class="badge bg-secondary">{{ filter_event_type }}</span>{% endif %}</h5></div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family align-middle rmc-data-table">
+        <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Domain volume by type" %} {% if filter_event_type %}{{ filter_event_type }}{% endif %}</caption>
           <thead class="table-light"><tr><th>{% trans "Type" %}</th><th>{% trans "Count" %}</th></tr></thead>
           <tbody>
@@ -112,7 +117,7 @@
     <div class="card-header"><h5 class="mb-0">{% trans "Domain status distribution (tenant)" %}</h5></div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family align-middle rmc-data-table">
+        <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Domain status distribution (tenant)" %}</caption>
           <thead class="table-light"><tr><th>{% trans "Status" %}</th><th>{% trans "Count" %}</th></tr></thead>
           <tbody>
@@ -131,7 +136,7 @@
     <div class="card-header"><h5 class="mb-0">{% trans "Platform volume by type" %}</h5></div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family align-middle rmc-data-table">
+        <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Platform volume by type" %}</caption>
           <thead class="table-light"><tr><th>{% trans "Type" %}</th><th>{% trans "Count" %}</th></tr></thead>
           <tbody>
@@ -150,7 +155,7 @@
     <div class="card-header"><h5 class="mb-0">{% trans "Newest domain events" %} (≤ {{ newest_limit }})</h5></div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family align-middle rmc-data-table">
+        <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Newest domain events" %} (≤ {{ newest_limit }})</caption>
           <thead class="table-light"><tr><th>{% trans "Type" %}</th><th>{% trans "Status" %}</th><th>{% trans "Created" %}</th></tr></thead>
           <tbody>
@@ -169,7 +174,7 @@
     <div class="card-header"><h5 class="mb-0">{% trans "Newest platform events" %} (≤ {{ newest_limit }})</h5></div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family align-middle rmc-data-table">
+        <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Newest platform events" %} (≤ {{ newest_limit }})</caption>
           <thead class="table-light"><tr><th>{% trans "Type" %}</th><th>{% trans "ID" %}</th><th>{% trans "Created" %}</th></tr></thead>
           <tbody>
@@ -184,4 +189,5 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

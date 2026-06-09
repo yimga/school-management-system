@@ -1,6 +1,7 @@
 {% load i18n %}
 {% if operator_incident_banner or tenant_incident_banner %}
 {% with banner=operator_incident_banner|default:tenant_incident_banner %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-cp-incident-banner rmc-cp-incident-banner--{{ banner.severity|default:'warn' }}"
      role="alert"
      data-rmc-cp-incident-banner="1"

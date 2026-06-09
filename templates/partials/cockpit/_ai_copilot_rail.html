@@ -43,7 +43,8 @@
        aria-label="{% trans 'AI copilot' %}"
        data-rmc-copilot-rail
        data-rmc-copilot-active-tab="chat"{% if rmc_copilot_page_help_url %} data-rmc-help-center-url="{{ rmc_copilot_page_help_url }}"{% endif %}>
-  <div class="lx-copilot">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-copilot">
     {% comment %} Collapsed state — 44px vertical icon rail. Each icon routes to a tab. {% endcomment %}
     <div class="lx-copilot__collapsed">
       <button class="lx-copilot__toggle" type="button"

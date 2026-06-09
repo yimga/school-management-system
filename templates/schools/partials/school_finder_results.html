@@ -1,5 +1,6 @@
 {% load i18n %}
 {% if results %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="list-group list-group-flush">
   {% for school in results %}
   <a href="{{ school.portal_url }}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between rounded-3 mb-2 border">

@@ -22,7 +22,8 @@ PII safety:
 {% if cockpit.quick_actions.enabled and cockpit.quick_actions.tiles %}
 {% with qa=cockpit.quick_actions %}
 <section aria-label="{% trans 'Quick actions' %}" data-rmc-cockpit-section="quick_actions_grid">
-  <div class="tp-section-label tp-section-label--tight">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="tp-section-label tp-section-label--tight">
     <div class="tp-section-label__title">{{ qa.section_label|default:_("Quick actions") }}</div>
   </div>
   <div class="tp-quick-grid">

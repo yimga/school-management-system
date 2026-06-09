@@ -1,6 +1,7 @@
 {% load static glocal_tags %}
 {% load i18n region_format %}
 {% comment %} Shared body: full portal page, embed=1 iframe, or Studio Output native (no iframe). {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2 py-lg-4 doc-library-page{% if studio_output_native %} studio-output-native-documents{% endif %}" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1"{% if studio_output_native %} data-studio-output-native="documents"{% endif %} data-rmc-scroll-policy="paginate">
   {% include "studio_os/components/page_header.html" with title="Document Library" subtitle="Manage school documents, lifecycle stages, and pack-driven retention." action_url=document_upload_url action_text="Upload Document" %}
   <div class="d-flex gap-2 mb-3 small flex-wrap">

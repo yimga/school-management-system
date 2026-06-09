@@ -2,7 +2,8 @@
 <section class="mkt-edt-container mkt-case-studies-honest rmc-reveal" aria-labelledby="case-studies-heading" data-mkt-case-studies-honest="1">
   <h2 id="case-studies-heading" class="mkt-v3-section-headline">{% trans "Implementation patterns (illustrative)" %}</h2>
   <p class="mkt-v3-lead mkt-v3-lead--compact">{% trans "Named by region and campus type—not anonymous placeholder quotes. Metrics are representative patterns from rollout programs unless a partner has approved a public case study." %}</p>
-  <div class="mkt-v3-segment-grid">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-v3-segment-grid">
     {% for case in page_extras.case_cards %}
     <article class="mkt-v3-segment-card mkt-case-card">
       {% if case.campus_type or case.country_label %}

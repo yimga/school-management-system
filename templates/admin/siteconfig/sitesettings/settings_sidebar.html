@@ -1,7 +1,8 @@
 {% load i18n %}
 {% comment %} Vertical sidebar for Site Settings (Phase 1.2). Phase 6.3: Smart Search above nav. {% endcomment %}
 <aside id="site-settings-sidebar" class="site-settings-sidebar flex-shrink-0 w-56 hidden lg:block" aria-label="{% trans 'Settings sections' %}">
-  <div class="site-settings-search-wrap mb-2">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="site-settings-search-wrap mb-2">
     <label for="site-settings-search" class="visually-hidden">{% trans "Search settings" %}</label>
     <input type="search"
            id="site-settings-search"

@@ -12,7 +12,8 @@
          data-rmc-workflow-next-action="1"
          data-rmc-workflow-state="{{ state }}"
          aria-label="{% trans 'Next step in this workflow' %}">
-  <div class="rmc-workflow-next-action__inner">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-workflow-next-action__inner">
 
     <div class="rmc-workflow-next-action__heading">
       <span class="rmc-workflow-next-action__kicker">{% trans "Next step" %}</span>

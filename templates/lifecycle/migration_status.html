@@ -4,6 +4,11 @@
 {% block title %}{% trans "Migration status" %}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="container py-3" data-rmc-page-archetype="migration-status">
   <header class="mb-3">
     <h1 class="h4">{% trans "Migration status" %} — {{ school.name }}</h1>
@@ -28,7 +33,7 @@
   <h2 class="h6 mb-2">{% trans "Recent bundles" %}</h2>
   {% if snapshot.bundles %}
   <div class="table-responsive">
-    <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead><tr>
         <th>{% trans "Label" %}</th>
         <th>{% trans "Status" %}</th>
@@ -53,4 +58,5 @@
 
   <p class="small text-secondary mt-3">{% trans "Need to start a new import?" %} <a href="/portal/configure/migration/">{% trans "Open the migration wizard" %}</a></p>
 </section>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

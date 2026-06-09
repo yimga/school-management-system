@@ -7,6 +7,7 @@ Lists are derived from settings.LANGUAGES via `get_available_languages`.
 {% get_current_language as CURRENT_LANGUAGE %}
 {% get_available_languages as LANGUAGES_AVAILABLE %}
 {% get_language_info_list for LANGUAGES_AVAILABLE as LANG_LIST %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="dropdown mkt-lang-switcher">
   <button type="button"
           class="btn btn-link nav-link mkt-nav-utility py-1 px-2 small dropdown-toggle"

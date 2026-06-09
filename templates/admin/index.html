@@ -296,6 +296,9 @@
 {% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 <!-- Theme Toggle (WCAG 2.1.1 / 4.1.2: use a real <button> so keyboard + screen-reader users can activate) -->
 <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="{% trans 'Toggle theme' %}">
   <span id="theme-icon" aria-hidden="true">🌙</span>

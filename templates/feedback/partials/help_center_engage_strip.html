@@ -1,7 +1,8 @@
 {% load i18n %}
 {% comment %} Primary customer-voice CTAs — shared pattern with operator help center v2 {% endcomment %}
 <section class="mb-4" aria-label="{% trans 'Primary help actions' %}">
-  <div class="row g-3">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="row g-3">
     {% if support_links.feature_center and role != "parent" and role != "student" %}
     <div class="col-md-4">
       <a href="{{ support_links.feature_center }}" class="card shadow-sm h-100 text-decoration-none border-primary border-opacity-25">

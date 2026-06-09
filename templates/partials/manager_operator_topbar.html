@@ -2,7 +2,8 @@
 {% comment %} Manager operator header — platform brand, command search, utility cluster (one control row). {% endcomment %}
 <header class="rmc-platform-header rmc-control-plane-chrome__top" role="banner" data-rmc-platform-header="manager">
   <nav class="navbar navbar-expand-lg navbar-dark cp-navbar cp-navbar--surface statement-header flex-shrink-0 w-100" data-rmc-shell-header="control-plane" data-shell-nav-bridge="manager-operator" aria-label="{% trans 'Platform manager header' %}">
-    <div class="container-fluid px-3 rmc-platform-header__inner">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid px-3 rmc-platform-header__inner">
       {% url 'super:dashboard' as bm_dashboard_url %}
       {% url 'admin:index' as admin_home_url %}
       <div class="rmc-platform-header__brand">

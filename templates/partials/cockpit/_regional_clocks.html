@@ -9,7 +9,8 @@
 {% endcomment %}
 {% if cockpit.regional_clocks.enabled %}
 <section class="lx-card lx-clocks" aria-label="{% trans 'Regional clocks' %}" data-rmc-cockpit-section="regional_clocks">
-  <div class="lx-card__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-card__head">
     <div>
       <div class="lx-card__eyebrow">{{ cockpit.regional_clocks.eyebrow|default:_("Region · timezones") }}</div>
       <h3 class="lx-card__title">{{ cockpit.regional_clocks.title|default:_("Regional clocks") }}</h3>

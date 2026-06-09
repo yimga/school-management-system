@@ -5,7 +5,8 @@
          aria-label="{% trans 'Action required' %}"
          data-rmc-operator-queue-banner="1"
          data-rmc-smart-links-state="{{ operator_queue_smart_link_state }}">
-  <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
     <div>
       <h2 class="h6 mb-1">{% trans "Action required" %}</h2>
       {% if operator_queue_smart_link_state == "safeguarding.concern_open" %}

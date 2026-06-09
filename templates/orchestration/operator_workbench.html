@@ -23,6 +23,11 @@
 {% endblock %}
 
 {% block cp_content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
   <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#orchestration-workbench-main">{% trans "Skip to orchestration runs table" %}</a>
   <div id="orchestration-workbench-main" class="container-fluid py-2 control-plane-shell" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
 {% phase8_dashboard_declaration "orchestration/operator_workbench.html" %}
@@ -51,7 +56,7 @@
     <div class="card-body p-0">
       <div class="table-responsive">
         <!-- large-collection-allow: dashboard-widget-capped-list -->
-<table class="table table-sm align-middle mb-0 table-family rmc-data-table">
+<table class="table table-sm align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Orchestration workbench" %}</caption>
           <thead class="table-light">
             <tr>
@@ -97,4 +102,5 @@
     </div>
   </div>
   </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

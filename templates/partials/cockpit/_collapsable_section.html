@@ -36,7 +36,8 @@
     {% if meta %}<span class="rmc-collapsable__meta">{{ meta }}</span>{% endif %}
     <span class="rmc-collapsable__chevron" aria-hidden="true">&#9662;</span>
   </summary>
-  <div class="rmc-collapsable__body">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-collapsable__body">
     {% if include_partial %}{% include include_partial %}{% endif %}
   </div>
 </details>

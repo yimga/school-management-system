@@ -6,7 +6,8 @@
 <article class="mkt-v3-page mkt-v3-page--why-switch">
   {% include "marketing/components/_personality_hero.html" with eyebrow=_("Why switch") headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
   <p class="mkt-edt-container mkt-v3-page__platforms">{% trans "Coming from PowerSchool · Blackbaud · Veracross · Infinite Campus · spreadsheets" %}</p>
-  <div class="mkt-edt-container mkt-v3-archetype__ctas rmc-reveal" data-mkt-reveal>
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-edt-container mkt-v3-archetype__ctas rmc-reveal" data-mkt-reveal>
     <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a migration consult" %}</a>
     <a href="{% url 'marketing_pricing' %}" class="mkt-edt-link">{% trans "See pricing →" %}</a>
   </div>

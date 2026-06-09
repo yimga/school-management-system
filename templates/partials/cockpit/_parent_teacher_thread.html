@@ -25,7 +25,8 @@ Configurability:
     {% for m in th.messages %}
     <li class="tp-pt-thread__msg{% if m.mine %} tp-pt-thread__msg--mine{% endif %}">
       <span class="tp-pt-thread__avatar" aria-hidden="true">{{ m.author_initials|default:"··" }}</span>
-      <div class="tp-pt-thread__body">
+      <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="tp-pt-thread__body">
         <div class="tp-pt-thread__meta">
           <strong>{{ m.author_label }}</strong>
           {% if m.sent_iso %}<time datetime="{{ m.sent_iso }}">{{ m.sent_iso }}</time>{% endif %}

@@ -104,11 +104,15 @@ class WelcomeEmailEndToEndTests(TestCase):
         msg = mail.outbox[0]
         self.assertEqual(msg.to, ["admin@welcomee2e.test"])
         self.assertIn("Welcome E2E Academy", msg.subject)
-        self.assertEqual(msg.content_subtype, "html")
-        self.assertIn("Welcome E2E Academy", msg.body)
-        self.assertIn("#4F46E5", msg.body)
-        self.assertIn("/authentication/onboarding/account/", msg.body)
-        self.assertNotIn("welcome-e2e-academy.runmycampus.com", msg.body)
+        html_parts = [
+            part for part, mime in (msg.alternatives or []) if mime == "text/html"
+        ]
+        self.assertEqual(len(html_parts), 1, "welcome email must include HTML alternative")
+        html = html_parts[0]
+        self.assertIn("Welcome E2E Academy", html)
+        self.assertIn("#4F46E5", html)
+        self.assertIn("/authentication/onboarding/account/", html)
+        self.assertNotIn("welcome-e2e-academy.runmycampus.com", html)
 
     def test_send_welcome_email_no_recipient_returns_false(self):
         self.assertFalse(send_welcome_email(str(self.school.id), ""))

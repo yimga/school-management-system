@@ -4,6 +4,11 @@
 {% block title %}{% block backend_title %}Backend{% endblock %}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% comment %}
   WCAG 1.3.1 / 2.4.10: child pages override backend_main (via backend_base router)
   with their own descriptive h1. The fallback only covers direct backend_base rendering.

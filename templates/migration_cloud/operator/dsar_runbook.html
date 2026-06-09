@@ -6,6 +6,7 @@
 {% block page_title %}{{ page_title|default:"DSAR runbook" }}{% endblock %}
 
 {% block cp_shell_page %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
 {% include "components/next_action_strip.html" %}

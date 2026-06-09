@@ -4,6 +4,7 @@
   Populated by ``rmc-workflow-tenant-trust.js``.
 {% endcomment %}
 {% if request.user.is_authenticated and request.tenant %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-wfp-tenant-trust" data-rmc-wfp-tenant-trust hidden aria-live="polite">
   <span class="rmc-wfp-tenant-trust__label">{% trans "School workflows" %}</span>
   <span class="rmc-wfp-tenant-trust__body" data-rmc-wfp-tenant-trust-body></span>

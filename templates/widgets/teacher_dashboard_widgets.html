@@ -1,6 +1,7 @@
 {% if widget_data %}
 {% with widgets=display_widgets %}
-  <div class="row g-3 mb-4 rmc-reveal-stagger">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="row g-3 mb-4 rmc-reveal-stagger">
     {% if not widgets or "completion" in widgets %}
     <div class="col-md-6 col-lg-8 rmc-reveal">
       <div class="card h-100 border-0 shadow-sm">

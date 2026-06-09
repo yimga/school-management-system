@@ -1,5 +1,6 @@
 {% load i18n %}
 {% if institution_regional_callout %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="mkt-inst-audience-callout mkt-inst-audience-callout--regional border border-secondary border-opacity-25 rounded-3 px-4 py-3 mb-4" role="region" aria-label="{% trans 'Regional positioning' %}">
   <p class="small text-uppercase text-muted mb-1">{{ institution_regional_callout.eyebrow }}</p>
   <p class="mb-0 fw-semibold">{{ institution_regional_callout.body }}</p>

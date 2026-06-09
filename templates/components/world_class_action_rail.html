@@ -2,7 +2,8 @@
 <aside class="rmc-wcx-action-rail" data-world-class-action-rail="1" aria-label="{% trans 'Recommended actions' %}">
   <h2 class="h5">{% trans "Next best action" %}</h2>
   <p class="small text-muted">{{ guidance|default:_("Start with the primary action, then review blockers and supporting documentation.") }}</p>
-  <div class="rmc-wcx-action-rail__actions" data-world-class-primary-action-slot="1">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-wcx-action-rail__actions" data-world-class-primary-action-slot="1">
     {% if primary_url and primary_label %}<a class="btn btn-primary btn-sm" href="{{ primary_url }}">{{ primary_label }}</a>{% endif %}
     {% if support_url and support_label %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_url }}">{{ support_label }}</a>{% endif %}
     {% if docs_url and docs_label %}<a class="btn btn-link btn-sm" href="{{ docs_url }}">{{ docs_label }}</a>{% endif %}

@@ -1,5 +1,6 @@
 {% load i18n %}
 {% comment %} Isolated failure shell for one dashboard widget/chart — rest of cockpit stays live. {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div
   class="rmc-dashboard-widget-boundary"
   data-dashboard-widget="{{ widget_id|default:'panel' }}"

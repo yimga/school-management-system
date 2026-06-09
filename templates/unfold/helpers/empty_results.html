@@ -3,6 +3,7 @@
 {% url cl.opts|admin_urlname:"add" as add_url %}
 {% blocktranslate with name=cl.opts.verbose_name asvar title %}Add {{ name }}{% endblocktranslate %}
 
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="admin-empty-results admin-unfold-empty-results flex flex-col items-center px-8 {% if cl.search_fields %}rounded-b-default{% else %}rounded-default{% endif %} {% if cl.is_dataset %}py-16{% else %}py-24{% endif %}">
     {% if not cl.is_dataset %}
         <div class="border border-dashed flex h-24 items-center justify-center mb-8 rounded-full w-24 admin-unfold-empty-results-icon-shell">

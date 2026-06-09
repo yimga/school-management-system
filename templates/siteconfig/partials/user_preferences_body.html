@@ -1,6 +1,7 @@
 {% load static %}
 {% load i18n accounts_extras %}
 <link rel="stylesheet" href="{% static 'css/rmc-user-preferences.css' %}">
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container py-3 rmc-user-preferences" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   {% trans "Back to dashboard" as back_action %}
   {% trans "My settings" as prefs_eyebrow %}

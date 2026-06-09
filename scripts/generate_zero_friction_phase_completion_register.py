@@ -185,7 +185,10 @@ def build_register() -> dict:
         {
             "phase": 6,
             "label": "Zone burndown (Z1–Z5 template/app waves)",
-            "status": "PARTIAL",
+            "status": "DONE"
+            if ledger.get("high_friction_count", 1) == 0
+            and scanner.get("open_gaps", 1) == 0
+            else "PARTIAL",
             "proof_verifier": "verify_zero_friction_journeys.py",
             "evidence": {
                 "high_friction_template_count": ledger.get("high_friction_count"),
@@ -410,10 +413,22 @@ def build_register() -> dict:
                 in _read("templates/studio_os/partials/overview_command_cockpit.html")
                 and 'data-rmc-scroll-policy="paginate"'
                 in _read("templates/studio_os/components/page_header.html"),
+                "zero_friction_finale_sweep": (
+                    ledger.get("high_friction_count", 1) == 0
+                    and _exists("scripts/codemod_zero_friction_finale_sweep.py")
+                    and 'aria-describedby="rmc_smart_action_hub"'
+                    in _read("templates/marketing/zero_ui_lab.html")
+                    and 'aria-describedby="rmc_smart_action_hub"'
+                    in _read("templates/components/world_class_summary_strip.html")
+                ),
             },
-            "residual": [
-                f"{ledger.get('high_friction_count', '?')} templates still above friction threshold (incremental ledger burndown)",
-            ],
+            "residual": (
+                []
+                if ledger.get("high_friction_count", 1) == 0
+                else [
+                    f"{ledger.get('high_friction_count', '?')} templates still above friction threshold (incremental ledger burndown)",
+                ]
+            ),
         },
         {
             "phase": 7,

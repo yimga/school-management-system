@@ -9,6 +9,7 @@
 {% if page_provides_own_h1 %}{% comment %} suppress workspace header {% endcomment %}{% else %}
 {% comment %} Operational center mode: pass os_center_key, center_eyebrow, center_title, center_purpose (optional status_badge_*). {% endcomment %}
 {% if os_center_key or center_title %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-os-page-header rmc-os-page-header--operational-center rounded-2 border px-3 py-2 mb-2 bg-body-tertiary bg-opacity-10"
      data-rmc-os-page-header="1"
      {% if os_center_key %}data-rmc-os-center="{{ os_center_key }}"{% endif %}

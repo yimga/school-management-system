@@ -6,7 +6,8 @@
   data-shell-ops-section="audit-system-counts"
   aria-label="{% trans 'System and queue snapshot' %}"
 >
-  <div class="card-body py-2 px-3">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="card-body py-2 px-3">
     <div class="d-flex flex-wrap align-items-center gap-4 small">
       <div class="d-flex align-items-center gap-2" data-shell-ops-metric="pending-invites">
         <span class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.03em;">{% trans "Pending invites" %}</span>

@@ -15,7 +15,8 @@
   <section class="mkt-edt-container mkt-v3-page__section rmc-reveal" aria-labelledby="contact-routing-heading">
     <h2 id="contact-routing-heading" class="mkt-v3-section-headline">{% trans "Choose how you want to engage" %}</h2>
     <p class="mkt-v3-lead mkt-v3-lead--compact">{% trans "We route every message to the right team—expectations are labeled up front." %}</p>
-    <div class="mkt-v3-segment-grid">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-v3-segment-grid">
       {% for card in page_extras.contact_intent_cards %}
       <article class="mkt-v3-segment-card mkt-v3-segment-card--intent">
         <h2 class="h5">{{ card.title }}</h2>

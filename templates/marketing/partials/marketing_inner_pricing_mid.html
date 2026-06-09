@@ -3,7 +3,8 @@
     <section class="section-shell">
       <h2 class="section-heading">{% trans "Plan snapshot" %}</h2>
       <p class="section-lead">{% trans "Starter through Enterprise mapped to admissions depth, finance sophistication, offline resilience, and governance." %}</p>
-      <div class="pricing-grid">
+      <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="pricing-grid">
         {% for plan in pricing_snapshot %}
           <article class="pricing-card">
             <div>

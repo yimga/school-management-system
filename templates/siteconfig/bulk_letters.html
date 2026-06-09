@@ -15,7 +15,8 @@
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Bulk Letters" %} · {{ SITE.site_name|default:"Portal" }}</h1>
   {% url 'studio_os:output' as bulk_letters_report_library_url %}
   {% url 'kb:kb_search' as bulk_letters_kb_url %}
-  <div class="container-fluid py-3 cp-evidence-page" style="max-width: var(--rmc-report-measure);" data-page-archetype="operator-report" data-shell-surface="bulk-letters" data-cp-evidence-surface="bulk-letters" data-rmc-report-bulk-evidence="1072" data-rmc-operator-evidence-surface="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-3 cp-evidence-page" style="max-width: var(--rmc-report-measure);" data-page-archetype="operator-report" data-shell-surface="bulk-letters" data-cp-evidence-surface="bulk-letters" data-rmc-report-bulk-evidence="1072" data-rmc-operator-evidence-surface="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% include "partials/shell_chrome_page_heading_actions_strip.html" with page_heading_title=_('Bulk Letters (ODT)') page_heading_subtitle=_('Generate one LibreOffice Writer (ODT) letter per student in a classroom. Requires Pandoc.') page_action_primary_url=bulk_letters_report_library_url page_action_primary_label=_('Report Library') page_action_primary_icon="bi-journal-text" page_action_secondary_url=bulk_letters_kb_url|add:"?q=bulk+letters" page_action_secondary_label=_('Help') page_action_secondary_icon="bi-question-circle" page_action_secondary_title=_('Search help for bulk letters') %}
 
   {% if classroom_list %}

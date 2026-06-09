@@ -1,4 +1,5 @@
 {% load static i18n control_console phase8_tags %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2 hub-page professional-page" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface" data-rmc-os-center="configuration_center">
   {% phase8_dashboard_declaration "siteconfig/dashboard_hub.html" %}
   {% include "components/rmc_os_page_header.html" with os_center_key="configuration_center" center_eyebrow=_("Site settings") center_title=page_title center_purpose=page_subtitle %}

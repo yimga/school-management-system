@@ -10,6 +10,7 @@
 {% include "components/next_action_strip.html" %}
 
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-pulse-main">{% trans "Skip to pulse map content" %}</a>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="super-pulse-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-page-critical-read="1">
     {% phase8_dashboard_declaration "schools/super_pulse.html" %}
     {% url 'super:dashboard' as dashboard_url %}

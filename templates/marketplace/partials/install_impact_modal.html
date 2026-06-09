@@ -1,5 +1,6 @@
 {% load i18n static %}
 {% comment %} N17: install_impact_preview_url, install_post_url, super_requires_school {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="rmc-install-impact-boot" class="d-none" data-preview-url="{{ install_impact_preview_url }}" data-needs-school="{% if super_requires_school %}1{% else %}0{% endif %}"></div>
 <div class="modal fade" id="rmcInstallImpactModal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="rmcInstallImpactModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">

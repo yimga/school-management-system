@@ -1126,6 +1126,7 @@ def redirect_view(request):
                 )
 
                 m = resolve_post_login_tenant_membership(user, request)
+                # tenant-isolation-allow: login-flow-multi-tenant-picker-routing-user-scoped
                 if m is None and SchoolMembership.objects.filter(user=user).count() > 1:
                     return redirect_to_school_picker(request)
                 if m and m.school:
@@ -3502,6 +3503,7 @@ def login_view(request):
                         )
 
                         m = resolve_post_login_tenant_membership(user, request)
+                        # tenant-isolation-allow: login-flow-multi-tenant-picker-routing-user-scoped
                         if (
                             m is None
                             and SchoolMembership.objects.filter(user=user).count() > 1

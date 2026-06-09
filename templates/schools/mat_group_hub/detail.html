@@ -11,7 +11,8 @@
   </nav>
   <h1>{{ group.display_name }}</h1>
   <dl class="mat-detail-meta">
-    <div><dt>Group ID</dt><dd>{{ group.group_id }}</dd></div>
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div><dt>Group ID</dt><dd>{{ group.group_id }}</dd></div>
     <div><dt>Region</dt><dd>{{ group.region|default:"—" }}</dd></div>
     <div><dt>Operator</dt><dd>{{ group.operator_email|default:"—" }}</dd></div>
   </dl>

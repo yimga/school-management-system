@@ -3,6 +3,7 @@
   Sidebar structure: Start → School setup (with Advanced collapsed) → Libraries & help → [All applications collapsed].
   State: getQuickAccessState() for overview/setup/content; allAppsOpen false unless current path in app list.
 {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="nav-sidebar-apps" class="admin-sidebar-apps {% if platform_admin_sidebar_embed %}admin-sidebar-apps--embed{% else %}h-0 grow overflow-auto d-flex flex-column{% endif %}" role="navigation" aria-label="{% trans 'Applications' %}">
   {% if not platform_admin_sidebar_embed %}
   <div class="admin-sidebar-nav-block" id="admin-sidebar-pinned-wrap">

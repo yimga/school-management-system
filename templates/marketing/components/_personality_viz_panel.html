@@ -9,7 +9,8 @@
   {% if marketing_personality_seed_json %}data-mkt-personality-seed="{{ marketing_personality_seed_json|escapejs }}"{% endif %}
   aria-label="{% trans 'Live data preview' %}"
 >
-  <div class="mkt-personality-viz__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-personality-viz__head">
     <p class="mkt-personality-viz__eyebrow">{% trans "Live preview" %} · {{ marketing_personality.label|default:"RunMyCampus" }}</p>
     <p class="mkt-personality-viz__caption">{% trans "Illustrative campus data — updates with this workspace personality." %}</p>
   </div>

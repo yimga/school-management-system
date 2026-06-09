@@ -1,6 +1,7 @@
 {% load i18n static marketing_public_urls %}
     {% if marketing_show_marketing_nav_chips %}
-    <div class="page-nav-scroll">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="page-nav-scroll">
       {% for item in marketing_nav %}
         <a href="{{ item.path }}" class="btn btn-sm {% if item.slug == active_nav_slug %}btn-primary{% else %}btn-outline-secondary{% endif %}">{{ item.label }}</a>
       {% endfor %}

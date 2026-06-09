@@ -318,7 +318,8 @@
 {% block branding %}
   {% include 'components/admin_nav_bridge.html' %}
   {% if PREVIEW_MODE_ENABLED %}
-    <div class="preview-cue preview-cue--active">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="preview-cue preview-cue--active">
       <span>
         <strong>Preview mode</strong> &mdash; {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Sandbox data will not persist." }}
       </span>
@@ -577,4 +578,5 @@
   {% if request.user.is_authenticated %}{% include 'components/back_to_top.html' %}{% endif %}
   {% comment %} v4.01.46: terminal dual-plane pass after Unfold/admin late styles. {% endcomment %}
   {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

@@ -10,7 +10,8 @@
 {% endif %}
 {% if beachhead_checklist %}
 <section class="mb-4" aria-label="{% trans 'Operator checklist' %}" data-operator-checklist-wedge="{{ beachhead_wedge_id|default:'' }}">
-  <div class="card border-info">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="card border-info">
     <div class="card-header text-white bg-dark border-info">
       <h2 class="h6 mb-0">{% blocktrans with w=beachhead_wedge_id %}Operator checklist (wedge {{ w }}){% endblocktrans %}</h2>
     </div>

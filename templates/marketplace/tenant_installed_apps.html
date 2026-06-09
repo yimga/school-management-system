@@ -7,6 +7,11 @@
 {% block title %}{% trans "Installed apps" %}{% endblock %}
 
 {% block backend_page %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Installed apps" %}</h1>
 {% comment %} ds-action-bar {% endcomment %}{% comment %} data-page-header via studio_os/components/page_header.html {% endcomment %}
 <div class="container-fluid py-3" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-task="marketplace_install" data-task-step="marketplace:installed-list" data-rmc-zero-click="1">
@@ -104,7 +109,7 @@
               {% if i.scope_display_rows %}
               <p class="fw-semibold mb-1">{% trans "Declared scopes" %}</p>
               <div class="table-responsive mb-2">
-                <table class="table table-family table-sm table-bordered mb-0 rmc-data-table">
+                <table class="table table-family table-sm table-bordered mb-0 rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
                   <caption class="visually-hidden">{% trans "Install state, scopes, and tenant config" %}</caption>
                   <thead><tr><th>{% trans "Scope" %}</th><th>{% trans "Tier" %}</th><th>{% trans "Grant" %}</th></tr></thead>
                   <tbody>
@@ -166,4 +171,5 @@
   <script src="{% static 'js/_pages/marketplace__tenant_installed_apps.js' %}"></script>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

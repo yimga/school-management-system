@@ -26,7 +26,8 @@
   data-rmc-section-nav-curated="1"
 >
   <span class="rmc-section-nav__inline-label">{% trans "Jump to" %}</span>
-  <div class="rmc-surface-subnav" role="list">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-surface-subnav" role="list">
     {% for item in section_nav_items %}
     <a href="#{{ item.id }}" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>{{ item.label }}</a>
     {% endfor %}

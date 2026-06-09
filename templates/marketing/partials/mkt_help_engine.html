@@ -2,7 +2,8 @@
 <section class="mkt-help-engine rmc-reveal mb-4" data-mkt-reveal aria-labelledby="mkt-help-engine-title">
   <h2 id="mkt-help-engine-title" class="h4 mb-2">{% trans "Find answers before you open a ticket" %}</h2>
   <p class="text-secondary mb-3">{% trans "RunMyCampus publishes operational runbooks for schools and operators. Start here, then contact us if you still need a human." %}</p>
-  <div class="d-flex flex-wrap gap-2 mb-3">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="d-flex flex-wrap gap-2 mb-3">
     <a class="btn btn-primary" href="{% url 'public_support_hub' %}">{% trans "Support hub" %}</a>
     <a class="btn btn-outline-secondary" href="{% url 'marketing_contact' %}">{% trans "Contact sales" %}</a>
     <a class="btn btn-outline-secondary" href="{% url 'global_login_discovery' %}">{% trans "Find your school" %}</a>

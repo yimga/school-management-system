@@ -4,6 +4,11 @@
 {% block title %}Message Groups{% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="container-fluid" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   {% comment %} v4.01.35 — premium personality-aware hero. `.rmc-page-header-glow`
      carries the communication (rose) personality spine + eyebrow set by the
@@ -95,7 +100,7 @@
       <div class="table-responsive">
         {% comment %} Pass 8 Wave 2: standardized to design-system table grammar (.table-family .table-sticky-head
            .table-zebra .align-middle) so this list matches signature_requests_manage / invoices / etc. {% endcomment %}
-        <table class="table table-family table-sticky-head table-zebra table-hover align-middle rmc-data-table">
+        <table class="table table-family table-sticky-head table-zebra table-hover align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "My Groups" %}</caption>
           <thead class="table-light">
             <tr>
@@ -165,4 +170,5 @@
   </div>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

@@ -25,7 +25,8 @@
      - swipe down past 30% of height (mobile)
      - Escape key (native <dialog> behavior) {% endcomment %}
 <dialog class="rmc-sheet{% if sheet_variant %} {{ sheet_variant }}{% endif %}" id="{{ sheet_id }}" role="dialog" aria-modal="true"{% if sheet_aria_label %} aria-label="{{ sheet_aria_label }}"{% endif %}>
-  <div class="rmc-sheet__handle" aria-hidden="true"></div>
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-sheet__handle" aria-hidden="true"></div>
   {% if sheet_title or sheet_close_label or sheet_eyebrow or sheet_subtitle %}
     <header class="rmc-sheet__header">
       {% if sheet_icon %}<span class="rmc-sheet__icon" aria-hidden="true"><i class="bi {{ sheet_icon }}"></i></span>{% endif %}

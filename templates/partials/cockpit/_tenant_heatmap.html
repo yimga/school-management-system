@@ -20,7 +20,8 @@
 
 {% if cockpit.tenant_heatmap.enabled and cockpit.tenant_heatmap.tiles %}
 <section class="lx-card lx-heatmap" aria-label="{% trans 'Tenant heatmap by health' %}">
-  <div class="lx-card__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-card__head">
     <div>
       <div class="lx-card__eyebrow">{{ cockpit.tenant_heatmap.eyebrow|default:_("Tenants · health grid") }}</div>
       <h3 class="lx-card__title">

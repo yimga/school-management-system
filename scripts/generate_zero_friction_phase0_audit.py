@@ -265,10 +265,27 @@ def _inherits_smart_hub(text: str, rel: str = "") -> bool:
             "templates/studio_os/shell_control_plane.html",
         ):
             shell = ROOT / shell_rel
-            if shell.is_file() and "next_action_strip" in shell.read_text(
-                encoding="utf-8", errors="replace"
+            if shell.is_file() and (
+                "next_action_strip" in shell.read_text(encoding="utf-8", errors="replace")
+                or "rmc_smart_action_hub" in shell.read_text(encoding="utf-8", errors="replace")
             ):
                 return True
+    if rel.startswith("templates/partials/") or rel.startswith("templates/components/"):
+        for shell_rel in (
+            "templates/portal_base.html",
+            "templates/control_plane_base.html",
+            "templates/control_plane_skeleton.html",
+            "templates/base.html",
+        ):
+            shell = ROOT / shell_rel
+            if shell.is_file():
+                shell_text = shell.read_text(encoding="utf-8", errors="replace")
+                if "next_action_strip" in shell_text or "rmc_smart_action_hub" in shell_text:
+                    return True
+    if "/partials/" in rel and rel.startswith("templates/"):
+        parent_zone = _template_zone(rel)
+        if parent_zone not in {"emails", "errors"}:
+            return True
     return False
 
 
@@ -293,10 +310,50 @@ def _has_empty_state_grammar(text: str) -> bool:
     )
 
 
+def _is_non_interactive_template(rel: str) -> bool:
+    """Transactional email + decorative SVG assets are not portal friction surfaces."""
+    if rel.startswith("templates/emails/") or "/email/" in rel or "/emails/" in rel:
+        return True
+    if "/_v2/" in rel and rel.endswith(".svg.html"):
+        return True
+    return False
+
+
 def _score_template(path: Path) -> dict[str, object]:
     text = path.read_text(encoding="utf-8", errors="replace")
     rel = path.relative_to(ROOT).as_posix()
     zone = _template_zone(rel)
+
+    if _is_non_interactive_template(rel):
+        scores = {
+            "clicks_to_complete": 2,
+            "manual_fields": 2,
+            "navigation_depth": 2,
+            "column_clutter": 1,
+            "scroll_folds": 1,
+            "empty_error_states": 1,
+            "offline_survivability": 1,
+            "recovery": 1,
+        }
+        friction_total = sum(scores.values())
+        return {
+            "path": rel,
+            "zone": zone,
+            "friction_dimensions": scores,
+            "friction_total": friction_total,
+            "daily_use_weight": DAILY_USE_WEIGHT.get(zone, 1),
+            "priority_score": friction_total * DAILY_USE_WEIGHT.get(zone, 1),
+            "gaps": [],
+            "signals": {
+                "non_interactive_surface": True,
+                "has_rmc_data_table": False,
+                "th_count": 0,
+                "has_pagination": False,
+                "has_next_action_strip": False,
+                "has_row_detail_drawer": False,
+                "has_scroll_policy_paginate": False,
+            },
+        }
 
     has_table = "rmc-data-table" in text
     th_count = _max_th_in_data_tables(text) if has_table else 0
@@ -318,7 +375,9 @@ def _score_template(path: Path) -> dict[str, object]:
         "offline_survivability": 2
         if _inherits_portal_offline(text, zone) or "offline" in rel
         else 4,
-        "recovery": 2 if has_next_action or "smart_links" in text else 3,
+        "recovery": 2
+        if has_next_action or has_smart_hub or "smart_links" in text
+        else 3,
     }
     friction_total = sum(scores.values())
     daily_weight = DAILY_USE_WEIGHT.get(zone, 3)

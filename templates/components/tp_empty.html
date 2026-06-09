@@ -1,5 +1,6 @@
 {% load i18n %}
 {% comment %} DEPRECATED v4.01.06 — migrate callers to {% include "components/rmc_empty_state.html" with title="..." body="..." icon="bi-..." cta_label="..." cta_url="..." %}. Scheduled for retirement v4.02.0. {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="tp-empty" role="status"{% if tp_empty_id %} id="{{ tp_empty_id }}"{% endif %}>
   <div class="tp-empty__icon" aria-hidden="true">{{ tp_empty_icon|default:"∅" }}</div>
   <div class="tp-empty__title">{{ tp_empty_title|default:_("Nothing here yet") }}</div>

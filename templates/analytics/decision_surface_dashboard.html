@@ -2,6 +2,7 @@
 {% load i18n %}
 {% block title %}{{ surface_title }} — {% trans "Decision intelligence" %}{% endblock %}
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
 {% include "components/next_action_strip.html" %}
@@ -30,7 +31,8 @@
     </div>
     {% empty %}
     <div class="col-12">
-      {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("{% trans "No insights on this surface for current data." %}") message=_("Nothing here yet — check back after your school adds data.") %}
+      {% trans "No insights on this surface for current data." as decision_surface_empty_title %}
+      {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=decision_surface_empty_title message=_("Nothing here yet — check back after your school adds data.") %}
     </div>
     {% endfor %}
   </div>

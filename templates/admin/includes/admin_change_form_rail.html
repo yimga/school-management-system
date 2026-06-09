@@ -2,7 +2,8 @@
 {% comment %} v4.02.12 manager change-form context rail: on-this-page nav (filled by
    rmc-admin-workspace.js from the rendered fieldsets) + generic quick actions. {% endcomment %}
 <aside class="rmc-admin-context-rail" data-rmc-rail="1">
-  <div class="rmc-rail-card">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-rail-card">
     <div class="rmc-rail-h">{% trans "On this page" %}</div>
     <div class="rmc-rail-b">
       <nav class="rmc-onthispage" data-rmc-onthispage="1" aria-label="{% trans 'Form sections' %}"></nav>

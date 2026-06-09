@@ -28,7 +28,8 @@
     <span class="mkt-video-portal__overlay-text">{% trans "Play preview" %}</span>
   </button>
   {% else %}
-  <div
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div
     class="mkt-video-portal__media mkt-video-portal__poster"
     role="img"
     aria-label="{% if portal_label %}{{ portal_label }}{% else %}{% trans 'Animated product preview' %}{% endif %}"

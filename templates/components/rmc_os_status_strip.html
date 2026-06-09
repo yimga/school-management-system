@@ -1,6 +1,7 @@
 {% load i18n %}
 {% comment %}
-Use a real <section> landmark instead of <div role="region"> per ARIA 1.2 SC4.1.2:
+Use a real <section> landmark instead of <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div role="region"> per ARIA 1.2 SC4.1.2:
 semantic elements are preferred when an equivalent role exists.
 {% endcomment %}
 {% if strip_items or request.user.is_authenticated or platform_status_strip and platform_status_strip.show %}

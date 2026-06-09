@@ -2,7 +2,8 @@
 {% load region_format %}
 {% if widget_data %}
   {% admin_health as health %}
-  <div class="row g-3 mb-4 rmc-reveal-stagger">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="row g-3 mb-4 rmc-reveal-stagger">
     {% with attendance=widget_data.attendance performance=widget_data.performance finance=widget_data.finance events=widget_data.events %}
       <div class="col-lg-6 col-xl-3 rmc-reveal">
         <div class="card h-100 border-primary shadow-sm">

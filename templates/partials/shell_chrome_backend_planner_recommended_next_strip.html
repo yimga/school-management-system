@@ -6,7 +6,8 @@
   data-shell-ops-section="planner-recommended-next"
   aria-label="{% trans 'Recommended next steps' %}"
 >
-  <div class="backend-planner-section-head d-flex align-items-center justify-content-between">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="backend-planner-section-head d-flex align-items-center justify-content-between">
     <span class="small fw-semibold text-muted">{% trans "Recommended next" %}</span>
     {% if finance_requests_count %}
     <a class="badge text-bg-warning text-decoration-none" href="{{ finance_request_link }}">{% trans "Finance" %} {{ finance_requests_count }}</a>

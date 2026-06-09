@@ -1,5 +1,6 @@
 {% load static i18n phase8_tags %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Configuration Center — dashboards by role" %}</h1>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2 professional-page" data-decision-engine="surface" data-rmc-os-center="configuration_center_dashboards" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "siteconfig/dashboard_configuration_hub.html" %}
   {% url 'siteconfig:dashboard_hub' as cfg_hub_url %}

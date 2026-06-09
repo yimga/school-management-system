@@ -7,6 +7,7 @@
 {% blocktrans asvar rct_title with t=rct_teacher_sg_lc %}Take {{ t }} attendance{% endblocktrans %}
 {% block title %}{{ rct_title }}{% endblock %}
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
 {% include "components/next_action_strip.html" %}

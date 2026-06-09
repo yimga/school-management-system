@@ -1,7 +1,8 @@
 {% load i18n terminology_tags %}
 {% comment %}Merged from portal/support_help_hub — tickets, school contact, escalation on unified Help center.{% endcomment %}
 <section class="rmc-help-support-lane mb-4" id="help-support-lane" data-rmc-help-section="support">
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <div>
       <h2 class="h5 mb-1">{% trans "Support & school contact" %}</h2>
       <p class="text-muted small mb-0">{% trans "Platform tickets, school office, and configured escalation — one hub." %}</p>
@@ -10,7 +11,8 @@
   </div>
 
   {% if not support_hub.school %}
-  <div class="alert alert-info">{% trans "No school context on this request. Sign in from your school portal link to see your tickets and contacts." %}</div>
+  {% trans "No school context on this request. Sign in from your school portal link to see your tickets and contacts." as support_no_school_title %}
+  {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=support_no_school_title message=_("Nothing here yet — check back after your school adds data.") %}
   {% endif %}
 
   <div class="row g-3 mb-3">
@@ -42,7 +44,7 @@
         <div class="card-body p-0">
           {% if support_hub.my_tickets %}
           <div class="table-responsive">
-            <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table">
+            <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "Platform support tickets" %}</caption>
               <thead class="table-light">
                 <tr>

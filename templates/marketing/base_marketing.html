@@ -78,13 +78,16 @@
 
   <main id="main-content" class="mkt-main {% block marketing_main_extra_classes %}container py-4{% endblock %}" role="main" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
     {% if messages %}
-      <div class="mb-3">
+      <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mb-3">
         {% for message in messages %}
           <div class="alert alert-{{ message.tags|default:'info' }} mb-2 ds-alert" role="alert">{{ message }}</div>
         {% endfor %}
       </div>
     {% endif %}
-    {% block content %}{% endblock %}
+    {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+{% endblock %}
   </main>
 
   {% include 'marketing/marketing_footer.html' %}

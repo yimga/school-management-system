@@ -3,7 +3,8 @@
          data-rmc-workflow-playbook
          data-playbook-mode="{{ playbook_mode|default:'onboarding' }}"
          data-playbook-url="{{ playbook_api_url }}">
-  <div class="card-header py-2 fw-semibold">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="card-header py-2 fw-semibold">
     <i class="bi bi-journal-text me-1" aria-hidden="true"></i>{{ playbook_title|default:_("Playbook assistant") }}
   </div>
   <div class="card-body pt-2">

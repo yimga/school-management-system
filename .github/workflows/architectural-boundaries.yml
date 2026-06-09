@@ -186,7 +186,7 @@ jobs:
           python scripts/verify_tenant_control_plane_rbac.py --strict
 
   signup-production-readiness:
-    name: Signup production readiness (5-pass)
+    name: Signup production readiness (9-pass)
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -195,7 +195,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Verify signup production readiness (5 passes)
+      - name: Verify signup production readiness (9 passes)
         run: |
           python scripts/verify_signup_production_readiness.py --strict
 

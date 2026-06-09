@@ -16,6 +16,7 @@
 {% block cp_content %}
 {% include "components/next_action_strip.html" %}
 
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-page-critical-read="1">
   {% trans "Productized /api/ai/* endpoints" as gw_subtitle %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="ai_gateway_console" center_eyebrow=_("Platform operators") center_title=_("AI gateway console") center_purpose=gw_subtitle primary_url=dashboard_url primary_label=_("Back to dashboard") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}

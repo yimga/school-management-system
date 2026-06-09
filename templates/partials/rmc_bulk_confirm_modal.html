@@ -3,7 +3,8 @@
   <form method="dialog" class="confirm-dialog" data-rmc-confirm-dialog>
     <h3 id="rmc-bulk-confirm-title" class="confirm-title" data-rmc-bulk-confirm-title>{% trans "Confirm bulk action" %}</h3>
     <p class="confirm-message" data-rmc-bulk-confirm-message></p>
-    <div class="mb-3" data-rmc-bulk-confirm-phrase-wrap hidden>
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mb-3" data-rmc-bulk-confirm-phrase-wrap hidden>
       <label class="form-label small" for="rmc-bulk-confirm-phrase-input" data-rmc-bulk-confirm-phrase-label></label>
       <input type="text" class="form-control form-control-sm font-monospace" id="rmc-bulk-confirm-phrase-input" data-rmc-bulk-confirm-phrase-input autocomplete="off" spellcheck="false">
     </div>

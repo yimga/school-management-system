@@ -181,6 +181,7 @@ def _tenant_scoped_non_operator_user_ids():
     """Users with SchoolMembership who are not superuser and lack operator profile."""
     from apps.schools.models import SchoolMembership
 
+    # tenant-isolation-allow: operator-roster-cross-tenant-membership-enumeration-staff-only
     return (
         SchoolMembership.objects.filter(user__is_superuser=False)
         .exclude(

@@ -4,6 +4,11 @@
 {% block portal_title %}{% blocktrans %}Local-first templates for {{ country }}{% endblocktrans %}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="rmc-template-local" data-page-marker="rmc-template-local-catalog" data-rmc-country="{{ country }}">
   <header class="rmc-template-local__header">
     <h1>{% blocktrans %}Local-first templates for {{ country }}{% endblocktrans %}</h1>

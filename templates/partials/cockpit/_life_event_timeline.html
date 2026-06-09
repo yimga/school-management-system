@@ -15,7 +15,8 @@ Graduations, birthdays, milestones. Event tones:
     {% for e in le.events %}
     <li class="tp-life-events__event{% if e.tone %} tp-life-events__event--{{ e.tone }}{% endif %}">
       <span class="tp-life-events__icon" aria-hidden="true">{{ e.icon|default:"★" }}</span>
-      <div class="tp-life-events__body">
+      <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="tp-life-events__body">
         <div class="tp-life-events__row">
           <strong>{{ e.title }}</strong>
           {% if e.day_label %}<span class="tp-life-events__day">{{ e.day_label }}</span>{% endif %}

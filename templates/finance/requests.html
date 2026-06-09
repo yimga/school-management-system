@@ -8,6 +8,7 @@
 {% include "components/next_action_strip.html" %}
 
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Finance Access Requests" %}</h1>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 {% trans "Back to Finance" as back_action %}
 {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
@@ -85,9 +86,8 @@
           </table>
         </div>
       {% else %}
-        {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("
-          {% trans "No finance access requests at the moment." %}
-        ") message=_("Nothing here yet — check back after your school adds data.") %}
+        {% trans "No finance access requests at the moment." as finance_requests_empty_title %}
+        {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=finance_requests_empty_title message=_("Nothing here yet — check back after your school adds data.") %}
       {% endif %}
       {% if page_obj and page_obj.paginator.num_pages > 1 %}
       {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}

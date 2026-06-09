@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Five-pass signup → provision → portal-ready production audit.
+"""Eight-pass signup → provision → portal-ready production audit.
 
 Pass 1 — Provisioning activates school + signup_completion_notifications wired.
 Pass 2 — Portal-ready email payload includes tenant_portal_url + account_ready.
@@ -8,6 +8,8 @@ Pass 4 — Tenant-host membership guard blocks cross-tenant authenticated access
 Pass 5 — Runtime integration: inactive→active + notification idempotency.
 Pass 6 — In-app inbox + SMS + web push portal-ready channels wired.
 Pass 7 — First-visit corner toast + web-push nudge after subscribe.
+Pass 8 — Welcome email uses public onboarding URL + HTML alternative (not raw subdomain).
+Pass 9 — Platform recovery CLI ``activate_pending_signup_schools`` (--all-verified-inactive).
 
 Usage:
   python scripts/verify_signup_production_readiness.py --strict
@@ -464,6 +466,101 @@ def pass7_first_visit_corner_and_nudge() -> list[dict[str, str]]:
     return findings
 
 
+def pass8_welcome_email_public_host_contract() -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    welcome = REPO_ROOT / "apps" / "schools" / "welcome_email.py"
+    urls = REPO_ROOT / "apps" / "schools" / "provision_email_urls.py"
+    if not welcome.is_file():
+        findings.append(
+            _finding(
+                "pass8",
+                "welcome_email_module_missing",
+                path="apps/schools/welcome_email.py",
+            )
+        )
+        return findings
+    welcome_txt = welcome.read_text(encoding="utf-8")
+    urls_txt = urls.read_text(encoding="utf-8") if urls.is_file() else ""
+    for needle in (
+        "build_owner_onboarding_url",
+        "html_body=html",
+        "send_transactional",
+        "build_public_login_url",
+    ):
+        if needle not in welcome_txt:
+            findings.append(
+                _finding(
+                    "pass8",
+                    f"welcome_email_missing:{needle}",
+                    path="apps/schools/welcome_email.py",
+                )
+            )
+    for needle in (
+        "build_owner_onboarding_url",
+        "school_subdomain_redirect_is_safe",
+        "build_public_login_url",
+    ):
+        if needle not in urls_txt:
+            findings.append(
+                _finding(
+                    "pass8",
+                    f"provision_email_urls_missing:{needle}",
+                    path="apps/schools/provision_email_urls.py",
+                )
+            )
+    return findings
+
+
+def pass9_platform_recovery_cli() -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    cmd = (
+        REPO_ROOT
+        / "apps"
+        / "schools"
+        / "management"
+        / "commands"
+        / "activate_pending_signup_schools.py"
+    )
+    if not cmd.is_file():
+        findings.append(
+            _finding(
+                "pass9",
+                "activate_pending_signup_schools_command_missing",
+                path="apps/schools/management/commands/activate_pending_signup_schools.py",
+            )
+        )
+        return findings
+    txt = cmd.read_text(encoding="utf-8")
+    for needle in (
+        "--all-verified-inactive",
+        "complete_provisioning_for_school",
+        "verified_at__isnull=False",
+        "--dry-run",
+    ):
+        if needle not in txt:
+            findings.append(
+                _finding(
+                    "pass9",
+                    f"recovery_cli_missing:{needle}",
+                    path="apps/schools/management/commands/activate_pending_signup_schools.py",
+                )
+            )
+    checklist = (
+        REPO_ROOT / "docs" / "deployment" / "PRODUCTION_DEPLOYMENT_CHECKLIST.md"
+    )
+    if checklist.is_file():
+        doc = checklist.read_text(encoding="utf-8")
+        if "activate_pending_signup_schools" not in doc:
+            findings.append(
+                _finding(
+                    "pass9",
+                    "deploy_checklist_must_document_activate_pending_signup_schools",
+                    path="docs/deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md",
+                )
+            )
+    return findings
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--strict", action="store_true")
@@ -478,11 +575,13 @@ def main(argv: list[str] | None = None) -> int:
     findings.extend(pass5_runtime_integration())
     findings.extend(pass6_portal_ready_channels())
     findings.extend(pass7_first_visit_corner_and_nudge())
+    findings.extend(pass8_welcome_email_public_host_contract())
+    findings.extend(pass9_platform_recovery_cli())
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "finding_count": len(findings),
-        "passes": 7,
+        "passes": 9,
         "findings": findings,
     }
     if args.write_baseline:

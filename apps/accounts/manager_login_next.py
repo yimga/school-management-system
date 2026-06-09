@@ -100,6 +100,7 @@ def tenant_staff_should_use_public_host(user) -> bool:
     try:
         from apps.schools.models import SchoolMembership
 
+        # tenant-isolation-allow: login-flow-user-membership-existence-before-tenant-bind
         return SchoolMembership.objects.filter(user=user).exists()
     except (ImportError, AttributeError, DatabaseError, TypeError, ValueError):
         return False

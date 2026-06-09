@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-08T23:49:46.177405+00:00",
+  "generated_at": "2026-06-09T00:26:21.225913+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASE-0",
   "zone_count": 15,
   "zones_audited": 15,
@@ -74,12 +74,12 @@
         "apps"
       ],
       "file_counts_by_suffix": {
-        "py": 5262,
+        "py": 5263,
         "md": 3,
         "json": 51,
         "js": 1
       },
-      "total_files": 5317,
+      "total_files": 5318,
       "audited": true
     },
     {
@@ -208,14 +208,14 @@
         "scripts"
       ],
       "file_counts_by_suffix": {
-        "py": 960,
+        "py": 961,
         "ts": 1,
         "json": 12,
         "js": 4,
         "mjs": 6,
         "md": 1
       },
-      "total_files": 984,
+      "total_files": 985,
       "audited": true
     },
     {

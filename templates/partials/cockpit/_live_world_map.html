@@ -5,7 +5,8 @@
 {% if cockpit.live_world_map.enabled %}
 {% with lwm_layout=cockpit.live_world_map.layout|default:"hero" %}
 <section class="lx-card lx-world lx-world--{{ lwm_layout }}" aria-label="{% trans 'Live world map of tenant locations' %}" data-rmc-page-fold-nav="required">
-  <div class="lx-world__map">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-world__map">
     <div class="lx-world__globe-skeleton rmc-skeleton" aria-hidden="true" aria-busy="true"></div>
     <div
       class="lx-world__globe-stage"

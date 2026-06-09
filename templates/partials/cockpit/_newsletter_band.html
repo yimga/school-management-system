@@ -26,7 +26,8 @@ Security:
 {% if cockpit.newsletter_band.enabled %}
   {% with n=cockpit.newsletter_band %}
   <section class="rmc-newsletter-band" aria-label="{% trans 'Subscribe to family digest' %}" data-rmc-cockpit-section="newsletter_band">
-    <div class="rmc-newsletter-band__copy">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-newsletter-band__copy">
       <strong>{{ n.title|default:_("Stay in the loop · weekly family digest") }}</strong>
       <span>{{ n.subtitle|default:_("Term highlights · upcoming events · 1 email every Sunday") }}</span>
     </div>

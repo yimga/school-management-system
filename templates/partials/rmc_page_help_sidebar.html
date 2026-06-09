@@ -9,6 +9,7 @@
 {% endcomment %}
 {% if not rmc_page_help_on_copilot_rail %}
 {% if show_contextual_help_drawer or request.user.is_authenticated %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-sidebar-page-help" data-rmc-sidebar-page-help="1">
   <button type="button"
           class="rmc-sidebar-page-help__btn"

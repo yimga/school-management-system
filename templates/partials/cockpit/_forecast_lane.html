@@ -15,7 +15,8 @@
 
 {% if cockpit.forecast_lane.enabled and cockpit.forecast_lane.cards %}
 <section class="lx-forecast-section" aria-label="{% trans 'Seven-day forecast' %}">
-  <div class="lx-forecast__heading">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-forecast__heading">
     <span class="lx-forecast__live-dot" aria-hidden="true"></span>
     {{ cockpit.forecast_lane.label|default:_("Forecast · next 7 days") }}
   </div>

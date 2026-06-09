@@ -9,6 +9,11 @@
 {% endblock %}
 
 {% block cp_content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <main class="rmc-wizard-shell rmc-wizard-shell--operator">
   <header class="rmc-wizard-pane__head">
     <h1 class="rmc-wizard-pane__title">{% trans "Operator setup wizards" %}</h1>

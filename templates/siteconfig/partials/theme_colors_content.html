@@ -4,7 +4,8 @@
 <form method="post" action="{% url 'siteconfig:theme_colors' %}{% if back_url %}?next={{ back_url|urlencode }}{% endif %}" id="theme-colors-form">
   {% csrf_token %}
   <input type="hidden" name="preview_confirmed" id="theme-preview-confirmed" value="0">
-  <div class="card border theme-state-strip mb-2">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="card border theme-state-strip mb-2">
     <div class="card-body py-2">
       <span id="theme-draft-status-badge" class="badge text-bg-success-subtle">{% trans "Saved state" %}</span>
       <span id="theme-contrast-status-badge" class="badge {% if theme_contrast_report.status == 'ok' %}text-bg-success-subtle{% else %}text-bg-warning{% endif %}">{% if theme_contrast_report.status == "ok" %}{% trans "Contrast: pass" %}{% else %}{% trans "Contrast: check" %}{% endif %}</span>

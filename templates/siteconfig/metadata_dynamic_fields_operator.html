@@ -14,6 +14,7 @@
 </nav>
 {% endblock %}
 {% block breadcrumb_actions %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="btn-group btn-group-sm">
   {% if entity_catalog_url %}
   <a class="btn btn-outline-light" href="{{ entity_catalog_url }}">{% trans "Entity catalog" %}</a>

@@ -13,7 +13,8 @@
   {% endif %}
   {% if page_extras.company_pillars %}
   <section class="mkt-edt-container mkt-v3-page__section rmc-reveal">
-    <div class="mkt-v3-segment-grid">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-v3-segment-grid">
       {% for pillar in page_extras.company_pillars %}
       <article class="mkt-v3-segment-card">
         <h2 class="h5">{{ pillar.title }}</h2>

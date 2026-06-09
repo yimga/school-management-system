@@ -1,5 +1,6 @@
 {% load i18n static %}
 <link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-kb-operator">
   <h2 class="h5">{{ faq.question }}</h2>
   <div class="rmc-kb-operator__article-body mb-4">{{ faq.answer|linebreaks }}</div>

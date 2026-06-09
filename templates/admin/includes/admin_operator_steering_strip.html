@@ -2,6 +2,7 @@
 {% comment %} Unified dismissible steering: operator path + outcome deck + changelist CP hints + bridged super links. {% endcomment %}
 {% if is_manager_host %}
 {% with has_outcome=admin_outcome_deck has_hint=admin_steering_hint has_paired=RMC_OPERATOR_PAIRED_LINKS %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="rmc-admin-steering-strip"
      class="rmc-admin-steering-strip mb-3 rounded-lg border border-primary-500/25 bg-primary-500/8 px-3 py-2 text-sm dark:border-primary-400/35 dark:bg-primary-500/12"
      role="region"

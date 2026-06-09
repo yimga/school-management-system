@@ -5,7 +5,8 @@
 {% if announcements %}
   {% for announcement in announcements %}
     {% if announcement.is_active %}
-      <div class="announcement-banner {{ announcement.banner_type|default:'info' }}" id="announcement-{{ announcement.id }}">
+      <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="announcement-banner {{ announcement.banner_type|default:'info' }}" id="announcement-{{ announcement.id }}">
         <div class="announcement-content">
           <div class="announcement-title">
             <i class="bi bi-megaphone-fill me-2"></i>{{ announcement.title }}

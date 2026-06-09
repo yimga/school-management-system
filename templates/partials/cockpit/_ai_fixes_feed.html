@@ -19,7 +19,8 @@
 {% comment %} a8-wire-pending: ai-fixes-feed — A8 owns CONTENT wiring; this partial renders the surface only. {% endcomment %}
 {% if cockpit.ai_fixes_feed.enabled %}
 <section class="lx-card lx-aifix" aria-label="{% trans 'AI-suggested fixes feed' %}">
-  <div class="lx-card__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-card__head">
     <div>
       <div class="lx-card__eyebrow">{{ cockpit.ai_fixes_feed.eyebrow|default:_("AI · suggested fixes") }}</div>
       <h3 class="lx-card__title">

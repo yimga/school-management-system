@@ -1,5 +1,6 @@
 {% load i18n static phase8_tags %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Feature Control Panel" %}</h1>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-decision-engine="surface"></div>
 {% phase8_dashboard_declaration "siteconfig/feature_control_panel.html" %}
 {% include "siteconfig/feature_control_panel_content.html" %}

@@ -13,7 +13,8 @@ Optional: page_size, page_size_options - current value and list e.g. [20, 50, 10
    per the v3.57.1 shell wiring) wins on conflicting properties without
    breaking existing pages that haven't adopted yet. {% endcomment %}
 <nav class="pagination-wrapper rmc-pagination mt-3 ui-premium-surface form-system" aria-label="Pagination" data-rmc-component="pagination">
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
     <div class="pagination-info rmc-pagination__count text-muted small">
       Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
       ({{ page_obj.paginator.count }} total)

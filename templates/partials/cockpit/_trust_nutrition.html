@@ -16,7 +16,8 @@
 
 {% if cockpit.trust_nutrition.enabled and cockpit.trust_nutrition.rows %}
 <section class="lx-card lx-trust" aria-label="{% trans 'Trust nutrition label' %}">
-  <div class="lx-trust__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-trust__head">
     <h3>{{ cockpit.trust_nutrition.title|default:_("Trust nutrition") }}</h3>
     {% if cockpit.trust_nutrition.caption %}<small>{{ cockpit.trust_nutrition.caption }}</small>{% endif %}
   </div>

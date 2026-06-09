@@ -37,7 +37,8 @@ actual rows wait for ``opt_in=True`` on a per-parent record.
   <ul class="tp-sibling-compare__metrics" role="list">
     {% for m in sc.metrics %}
     <li class="tp-sibling-compare__metric">
-      <div class="tp-sibling-compare__metric-label">{{ m.metric_label }}</div>
+      <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="tp-sibling-compare__metric-label">{{ m.metric_label }}</div>
       <div class="tp-sibling-compare__siblings">
         {% for sib in m.siblings %}
         <div class="tp-sibling-compare__sibling">

@@ -6,6 +6,7 @@ secondary_label, secondary_url. Illustration options: no_data, no_results,
 connection_lost, permission, first_run, inbox. When illustration is set, SVG
 renders in place of the icon. All variables optional; icon defaults to bi-inbox.
 {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-empty" role="status" aria-live="polite">
   <div class="rmc-empty__icon rmc-empty__illustration-slot" aria-hidden="true">
     {% if illustration == "no_data" %}{% include "components/illustrations/_empty_no_data.html" %}

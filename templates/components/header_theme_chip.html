@@ -13,6 +13,7 @@
     data-rmc-aesthetic-current
 {% endcomment %}
 {% if request.user.is_authenticated or PUBLIC_BRAND_MODE %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-header-theme-chip{% if theme_chip_layout == 'dropdown' %} rmc-header-theme-chip--dropdown{% endif %}{% if theme_chip_layout == 'nav-drawer' %} rmc-header-theme-chip--nav-drawer{% endif %}" data-rmc-header-theme-chip="1" role="group" aria-label="{% trans 'Appearance and aesthetic' %}">
   <div class="rmc-header-theme-chip__group rmc-theme-toggle-row" role="group" aria-label="{% trans 'Appearance' %}">
     <span class="visually-hidden" data-rmc-theme-current aria-live="polite"></span>

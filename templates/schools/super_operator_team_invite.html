@@ -17,6 +17,7 @@
 {% block cp_content %}
 {% include "components/next_action_strip.html" %}
 
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page-archetype="task-form" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% include "components/rmc_operational_center_frame.html" with os_center_key="operator_team_invite" center_eyebrow=_("Platform operators") center_title=_("Invite platform operator") center_purpose=_("Send a time-limited link so a new operator can accept and join the control plane.") primary_url=roster_url primary_label=_("Back to roster") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
 

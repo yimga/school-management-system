@@ -15,3 +15,4 @@ interpolated into CSS syntax directly.
 {% if rmc_theme_personality_overrides %}
 <style data-rmc-personality-override nonce="{{ request.csp_nonce|default:'' }}">{{ rmc_theme_personality_overrides|safe }}</style>
 {% endif %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

@@ -5,7 +5,8 @@
 {% endcomment %}
 {% if rmc_page_explain_enabled %}
 <section class="rmc-page-explain-strip rmc-reveal" aria-label="{% trans 'Page guidance' %}" data-rmc-page-explain="1">
-  <div class="rmc-page-explain-strip__lead">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-page-explain-strip__lead">
     {% if rmc_page_help.title or rmc_page_help.body %}
     <div class="rmc-page-explain-strip__copy">
       <span class="rmc-page-explain-strip__label text-secondary small">{% trans "About this page" %}</span>

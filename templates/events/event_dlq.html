@@ -4,6 +4,11 @@
 {% block backend_title %}{{ page_title }}{% endblock %}
 
 {% block backend_page %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ page_title }}</h1>
 {% trans "Back to console" as back_console %}
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-event-dlq="1" data-rmc-os-center="event_timeline_dlq" data-rmc-scroll-policy="paginate">
@@ -42,7 +47,7 @@
     <div class="card-body p-0">
       {% if domain_rows %}
       <div class="table-responsive">
-        <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+        <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Domain webhook DLQ" %}</caption>
           <thead class="table-light">
             <tr>
@@ -77,7 +82,7 @@
     <div class="card-body p-0">
       {% if platform_rows %}
       <div class="table-responsive">
-        <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+        <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Platform webhook DLQ" %}</caption>
           <thead class="table-light">
             <tr>
@@ -124,7 +129,7 @@
     <div class="card-body p-0">
       {% if audit_rows %}
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family align-middle rmc-data-table">
+        <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Recent remediation audit" %}</caption>
           <thead class="table-light">
             <tr>
@@ -156,4 +161,5 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

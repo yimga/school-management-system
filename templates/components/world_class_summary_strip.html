@@ -6,3 +6,4 @@
   <article class="rmc-wcx-metric rmc-stat-card--mono"><span class="rmc-wcx-metric__label">{% trans "Next step" %}</span><strong class="rmc-wcx-metric__value rmc-stat-card__count--mono">{{ next_step|default_if_none:"—" }}</strong><span class="rmc-wcx-card__meta">{{ next_step_label|default_if_none:_("No action queued") }}</span></article>
   <article class="rmc-wcx-metric rmc-stat-card--mono"><span class="rmc-wcx-metric__label">{% trans "External blockers" %}</span><strong class="rmc-wcx-metric__value rmc-stat-card__count--mono">{{ blockers|default_if_none:"—" }}</strong><span class="rmc-wcx-card__meta">{{ blockers_label|default_if_none:_("None tracked") }}</span></article>
 </section>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

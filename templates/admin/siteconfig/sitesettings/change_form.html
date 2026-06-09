@@ -2,7 +2,8 @@
 {% load static i18n unfold %}
 
 {% block form_before %}
-  <div id="site-settings-unsaved-indicator" class="hidden rounded-lg border px-3 py-1.5 text-sm font-medium shadow-sm bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200 mb-4" role="status" aria-live="polite">{% trans "Unsaved changes" %}</div>
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div id="site-settings-unsaved-indicator" class="hidden rounded-lg border px-3 py-1.5 text-sm font-medium shadow-sm bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200 mb-4" role="status" aria-live="polite">{% trans "Unsaved changes" %}</div>
   <span id="site-settings-preview-url" data-url="{% url 'siteconfig:preview_from_form' %}" class="hidden" aria-hidden="true"></span>
   {% comment %} P3: SiteSettings is tenant_admin-only; `super:` URLs are not in tenant urlconf — link siteconfig + Studio surfaces that resolve on school hosts. {% endcomment %}
   <section class="mb-5 rounded-lg border border-base-200 dark:border-base-700 bg-base-50 dark:bg-base-900/30 px-4 py-3" role="region" aria-labelledby="site-settings-cp-escape-heading">

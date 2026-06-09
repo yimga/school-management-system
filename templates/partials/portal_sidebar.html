@@ -15,6 +15,7 @@ SiteSettings.cockpit_payload.
 
 {% comment %} v4.02.5: collapse/rail toggle lives in rmc_nav_sidebar_toolbar (portal_base mount). {% endcomment %}
 {% if sidebar_record_context %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="sidebar-record-context rmc-glass-surface mb-3 p-2 small" role="region" aria-label="{% trans 'Record quick links' %}">
   <div class="text-uppercase text-muted fw-semibold" style="font-size:var(--type-size-micro);letter-spacing:0.04em;">{{ sidebar_record_context.title }}</div>
   <div class="fw-semibold mb-2 text-truncate" title="{{ sidebar_record_context.subtitle }}">{{ sidebar_record_context.subtitle }}</div>

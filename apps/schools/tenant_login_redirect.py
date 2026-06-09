@@ -17,6 +17,7 @@ def resolve_post_login_tenant_membership(user, request):
     from apps.schools.models import SchoolMembership
     from apps.schools.provision_email_urls import school_subdomain_redirect_is_safe
 
+    # tenant-isolation-allow: login-flow-post-auth-tenant-membership-resolution-user-scoped
     qs = (
         SchoolMembership.objects.filter(user=user)
         .select_related("school")

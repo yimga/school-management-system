@@ -19,6 +19,7 @@
 
 {% operator_console_strip %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-schools-list-main">{% trans "Skip to schools list" %}</a>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="super-schools-list-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-copilot-page-lens="operator-schools-roster" data-rmc-copilot-lens-count="{{ page.paginator.count|default:0 }}" data-page-critical-read="1">
   {% if operator_super_schools_list_links %}
   <div class="card shadow-sm border-0 page-family-content-card mb-3">

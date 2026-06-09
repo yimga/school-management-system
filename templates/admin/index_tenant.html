@@ -6,6 +6,9 @@
 {% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 <div class="tenant-admin-index">
   {% if PREVIEW_MODE_ENABLED %}
   <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between mb-3">

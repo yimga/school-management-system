@@ -8,7 +8,8 @@
 {% endcomment %}
 {% if cockpit.enrollment_forecast.enabled|default:True %}
 <section class="lx-card rmc-enrollment-forecast" aria-label="{% trans 'Enrollment forecast' %}" data-rmc-cockpit-section="enrollment_forecast">
-  <div class="lx-card__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-card__head">
     <div>
       <div class="lx-card__eyebrow">{{ cockpit.enrollment_forecast.eyebrow|default:_("Enrollment") }}</div>
       <h3 class="lx-card__title">{{ cockpit.enrollment_forecast.title|default:_("Forecast") }}</h3>

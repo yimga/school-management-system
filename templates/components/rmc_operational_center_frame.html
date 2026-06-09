@@ -5,7 +5,8 @@
          data-rmc-static-chrome="1"
          {% if os_center_key %}data-rmc-os-center="{{ os_center_key }}"{% endif %}
          aria-labelledby="rmc-ops-center-title">
-  <div class="cp-steering rmc-operational-center-frame__steering">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="cp-steering rmc-operational-center-frame__steering">
     <div class="cp-steering__icon" aria-hidden="true">◇</div>
     <div class="cp-steering__body">
       {% if center_eyebrow %}

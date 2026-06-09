@@ -11,6 +11,9 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-institution-premium.css' %}">
 {% endblock %}
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 <section class="container py-4 py-lg-5 page-stack mkt-institution-premium mkt-inst-audience--{{ institution_segment_slug|default:'segment' }}" data-mkt-buyer-world="{{ institution_segment_slug|default:'segment' }}">
   <header class="mkt-inst-hero mb-4 pb-3 border-bottom border-secondary border-opacity-25">
     <p class="text-uppercase small text-muted mb-2">{% trans "RunMyCampus Solutions" %}</p>

@@ -7,7 +7,8 @@
   <ol class="list-group list-group-numbered {% if not compact %}list-group-flush border border-secondary border-opacity-25 rounded overflow-hidden{% endif %}">
     {% for step in operator_control_model %}
     <li class="list-group-item d-flex flex-column gap-2 {% if not compact %}bg-dark bg-opacity-25 border-secondary border-opacity-25{% endif %}">
-      <div class="fw-semibold">{{ step.title }}</div>
+      <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="fw-semibold">{{ step.title }}</div>
       <p class="small {% if compact %}text-muted{% else %}text-secondary{% endif %} mb-0">{{ step.description }}</p>
       <div class="d-flex flex-wrap align-items-center gap-2">
         <a href="{{ step.primary.url }}" class="btn btn-sm {% if compact %}btn-primary{% else %}btn-outline-light{% endif %}" data-operator-stability="{{ step.primary.stability }}">{{ step.primary.label }}</a>

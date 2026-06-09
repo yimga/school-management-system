@@ -1,6 +1,7 @@
 {% load i18n static %}
 <section class="rmc-account-auth-shell rmc-account-auth-shell--verify" data-rmc-auth-manager-shell="mfa-verify" aria-labelledby="mfa-title">
-  <div class="rmc-account-auth-shell__primary">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-account-auth-shell__primary">
     <div class="content-card rmc-account-mfa-card">
       {% if messages %}
         <div class="rmc-account-auth-message-stack">

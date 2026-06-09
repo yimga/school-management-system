@@ -49,7 +49,8 @@
 
 {% if cockpit.trust_pillars_alerts.enabled and cockpit.trust_pillars_alerts.pillars %}
 <section class="lx-card lx-trust-pillars" aria-label="{% trans 'Trust pillars alerts feed' %}" tabindex="-1">
-  <div class="lx-card__head lx-trust-pillars__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-card__head lx-trust-pillars__head">
     <div>
       <div class="lx-card__eyebrow">{{ cockpit.trust_pillars_alerts.eyebrow|default:_("Trust pillars · alerts") }}</div>
       <h3 class="lx-card__title lx-trust-pillars__title">

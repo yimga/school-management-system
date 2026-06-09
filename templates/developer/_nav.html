@@ -1,6 +1,7 @@
 {% load i18n %}
 <nav class="developer-section-nav rmc-reveal" aria-label="{% trans 'Developer section' %}">
-  <div class="developer-section-nav__inner">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="developer-section-nav__inner">
 {% for item in developer_nav %}
       <a href="{{ item.href }}"
          class="developer-section-nav__link{% if item.name == active_developer_nav %} is-active{% endif %}">

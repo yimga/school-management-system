@@ -8,7 +8,8 @@
     <p class="mkt-v3-eyebrow">{% trans "Education OS" %}</p>
     <h1 class="mkt-v3-section-headline">{{ page.headline }}</h1>
     <p class="mkt-v3-lead">{{ page.subheadline }}</p>
-    <div class="mkt-v3-archetype__ctas">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-v3-archetype__ctas">
       <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
       <a href="{% url 'marketing_platform' %}" class="mkt-edt-link">{% trans "Platform hub →" %}</a>
     </div>

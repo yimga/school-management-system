@@ -13,6 +13,11 @@
 
 {% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="container-fluid py-2 control-plane-shell rmc-cp-compact" data-page-archetype="operational-workbench" data-rmc-section-nav="off" data-rmc-scroll-policy="paginate" data-rmc-operational-workbench="1" data-rmc-marketplace-workbench="1">
   {% url 'super:marketplace_governance' as governance_url %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="compatibility_matrix" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#compat-table" primary_label=_("Browse matrix") secondary_url=governance_url secondary_label=_("Governance") jump_a_id="compat-glance" jump_a_label=_("At a glance") jump_b_id="compat-table" jump_b_label=_("Matrix") %}
@@ -37,7 +42,7 @@
       <h2 class="cp-panel-title">{% trans "App × compatibility" %}</h2>
     </div>
     <div class="table-responsive rmc-cp-compact__table-wrap">
-      <table class="table table-sm table-hover mb-0 table-family rmc-data-table align-middle" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+      <table class="table table-sm table-hover mb-0 table-family rmc-data-table align-middle" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "App × compatibility" %}</caption>
         <thead>
           <tr>
@@ -74,4 +79,5 @@
     {% include "components/pagination.html" %}
   </section>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

@@ -1,6 +1,11 @@
 {% extends "admin/base_site.html" %}
 {% comment %} Archetype: admin v1 backoffice catalog (preview_app_shell_admin_v1_200x) {% endcomment %}
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="cp-page-h1-row rmc-reveal" data-rmc-reveal>
   {% block archetype_page_title %}{% endblock %}
 </div>

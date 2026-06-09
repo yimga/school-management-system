@@ -1,5 +1,6 @@
 {% load i18n static %}
 <link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-kb-operator">
   <div class="d-flex flex-wrap gap-2 mb-2">
     <a class="btn btn-sm btn-outline-secondary" href="{% url 'kb:kb_docs_hub' %}">{% trans "Documentation hub" %}</a>

@@ -17,7 +17,8 @@
 
 {% if cockpit.nps_ticker.enabled %}
 <section class="lx-card lx-nps" aria-label="{% trans 'NPS sentiment ticker' %}">
-  <div class="lx-card__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-card__head">
     <div class="lx-card__eyebrow">{{ cockpit.nps_ticker.eyebrow|default:_("Net promoter · rolling 30d") }}</div>
     {% if cockpit.nps_ticker.delta_text %}
       <div class="lx-nps__delta lx-nps__delta--{{ cockpit.nps_ticker.delta_tone|default:'flat' }}">{{ cockpit.nps_ticker.delta_text }}</div>

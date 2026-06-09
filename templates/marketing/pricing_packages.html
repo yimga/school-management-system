@@ -6,6 +6,9 @@
 <link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
 {% endblock %}
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
   {% include "components/rmc_operational_center_frame.html" with os_center_key="pricing_packages" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="/book-demo/" primary_label=_("Book demo") secondary_url="/trust/" secondary_label=_("Review trust posture") %}
   {% include "components/world_class_summary_strip.html" with readiness="Package fit" readiness_label=_("Compare modules") risk=_("PSP external") risk_label=_("No live payment claim") next_step=_("Demo") next_step_label=_("Guided buyer action") blockers=_("Settlement") blockers_label=_("External proof required") %}

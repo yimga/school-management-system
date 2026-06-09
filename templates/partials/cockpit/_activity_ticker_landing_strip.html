@@ -6,6 +6,7 @@ Self-gates like _activity_ticker.html.
 {% if request.user.is_authenticated %}
 {% if request.public_host_kind == 'manager' %}
 {% if cockpit.activity_ticker.cards and cockpit.activity_ticker.enabled|default_if_none:True %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-cp-landing-ticker" data-rmc-cp-landing-ticker="1" aria-label="{% trans 'Live operator activity feed' %}">
   {% include "partials/cockpit/_activity_ticker.html" %}
 </div>

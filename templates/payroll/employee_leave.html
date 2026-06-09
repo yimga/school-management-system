@@ -4,6 +4,11 @@
 {% block title %}Leave Requests{% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
   <div>
     <h1 class="mb-0">Leave Requests</h1>
@@ -51,7 +56,7 @@
       <div class="card-body">
         <h5 class="mb-3">History</h5>
         <div class="table-responsive">
-          <table class="table table-sm align-middle table-family rmc-data-table">
+          <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "History" %}</caption>
             <thead>
               <tr>
@@ -79,4 +84,5 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

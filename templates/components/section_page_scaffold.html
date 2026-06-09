@@ -31,7 +31,8 @@ Context variables (all optional except page_title):
 {% endif %}
 
 <header class="rmc-page-hero" data-page-archetype="{{ page_archetype|default:'standard' }}">
-  <div class="container">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container">
     {% if breadcrumbs %}
       <nav class="rmc-page-hero__breadcrumb mb-2" aria-label="{% trans 'Breadcrumb' %}">
         <ol class="breadcrumb mb-0">

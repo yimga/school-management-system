@@ -1,5 +1,6 @@
 {% load i18n unfold %}
 {% comment %}Sidebar column: stays LEFT of main (width controlled by admin-sidebar-scroll.css #page > div:first-child). {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="relative z-60 admin-sidebar-column">
     <div class="fixed w-[288px] max-xl:hidden xl:relative xl:block {% element_classes 'navigation_wrapper' %}" x-bind:class="{'xl:!hidden': sidebarDesktopOpen === false, 'max-xl:!block': sidebarMobileOpen === true}">
         <div class="bg-base-50 relative z-30 dark:bg-base-900">

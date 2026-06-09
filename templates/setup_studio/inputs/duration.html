@@ -2,7 +2,8 @@
 <fieldset class="rmc-wizard-field">
   <legend class="rmc-wizard-field__label">{{ step_label }}</legend>
   {% if step_description %}<p class="rmc-wizard-field__helper">{{ step_description }}</p>{% endif %}
-  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2);">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2);">
     <label>
       <span class="rmc-wizard-field__helper">{% trans "Days" %}</span>
       <input type="number" name="days" min="0" value="{{ prior_answer.days|default:0 }}">

@@ -58,6 +58,7 @@
 {% if cockpit.activity_ticker.cards %}
 {% with seconds=cockpit.activity_ticker.scroll_seconds|default:40 badge_label=cockpit.activity_ticker.live_badge_label|default:_("LIVE") %}
 {% if cockpit.activity_ticker.enabled|default_if_none:True %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="cp-live-strip" aria-label="{% trans 'Live operator activity' %}" data-rmc-cp-live-strip="1">
 <div class="rmc-cockpit-ticker cp-activity-ticker" role="region" aria-label="{% trans 'Live platform activity' %}"
      style="--rmc-cockpit-ticker-seconds: {{ seconds }}s;">

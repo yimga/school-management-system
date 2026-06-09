@@ -29,6 +29,7 @@
 {% block content %}
 {% include "components/next_action_strip.html" %}
 
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2 px-0 px-md-2 rmc-shell-content-grid" data-rmc-page="studio-os" data-rmc-studio-workspace="1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-shell-layout="{{ rmc_shell.layout_token|default:'studio-os' }}" data-shell-host="{{ rmc_shell.shell_data_studio_host|default:'tenant' }}" data-rmc-nav-family="{{ rmc_shell.nav_family }}" data-studio-os-surface="tenant-shell" data-rmc-shell-content-grid="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <a href="#studio-canvas" class="visually-hidden-focusable btn btn-sm btn-outline-primary position-absolute top-0 start-0 m-2 px-3 py-2 rounded z-1" style="z-index: 1060;">{% trans "Skip to Studio content" %}</a>
   {% comment %} On manager host Studio uses shell_control_plane → control_plane_base (8-pill nav there). Tenant: no PRIMARY nav. {% endcomment %}

@@ -7,7 +7,8 @@
   data-rmc-tenant-role="{{ tenant_experience_command.role }}"
   aria-label="{% trans 'Tenant command summary' %}"
 >
-  <div class="tp-experience-command__score">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="tp-experience-command__score">
     <span class="tp-experience-command__eyebrow">{{ tenant_experience_command.score_label }}</span>
     <strong>{{ tenant_experience_command.score }}%</strong>
     <span>{{ tenant_experience_command.school.detail }}</span>

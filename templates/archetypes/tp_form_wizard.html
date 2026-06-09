@@ -1,6 +1,11 @@
 {% extends "portal_base.html" %}
 {% comment %} Archetype: tenant portal v3 form / wizard (bounded steps, no infinite scroll) {% endcomment %}
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="tp-form-wizard rmc-reveal" data-rmc-reveal data-page-archetype="form-wizard">
   {% block archetype_form_wizard_body %}{% endblock %}
 </div>

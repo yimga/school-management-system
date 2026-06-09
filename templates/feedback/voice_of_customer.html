@@ -2,6 +2,11 @@
 {% load i18n glocal_tags %}
 {% block cp_title %}Voice of Customer{% endblock %}
 {% block cp_content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div data-rmc-scroll-policy="paginate">
 {% if feedback_schema_pending %}
 <div class="alert alert-warning mb-3" role="status">
@@ -60,7 +65,7 @@
     <div class="card">
       <div class="card-header fw-semibold">Triage Queue</div>
       <div class="table-responsive">
-        <table class="table table-sm align-middle table-family rmc-data-table mb-0" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+        <table class="table table-sm align-middle table-family rmc-data-table mb-0" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <thead><tr><th>Title</th><th>School</th><th>Role</th><th>Module</th><th>Source</th><th>Support</th><th>Severity</th><th>Status</th><th>Action</th></tr></thead>
           <tbody>
           {% for item in feedback_items %}
@@ -115,4 +120,5 @@
   </section>
 </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

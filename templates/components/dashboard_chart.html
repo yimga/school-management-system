@@ -4,6 +4,7 @@
   Optional: chart_data (JSON), chart_data_url (fetch URL), show_export, aria_label, fill_container (when True, chart fills wrapper; omit fixed canvas height)
   Use with dashboard-charts-shared.js and dashboard-charts.css
 {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="card dashboard-chart-card" data-chart-id="{{ chart_id }}" data-chart-type="{{ chart_type }}"{% if fill_container %} data-chart-fill-container="true"{% endif %}>
   <div class="card-body">
     <div class="dashboard-chart-header">

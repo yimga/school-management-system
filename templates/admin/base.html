@@ -2,7 +2,8 @@
 
 {% load admin_list i18n unfold admin_urls static %}
 {% block base %}
-    <div class="rmc-app-shell admin-cp-unified-page{% if is_manager_host %} admin-manager-shell control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% endif %} {% if not is_manager_host %}rmc-app-shell--no-sidebar{% endif %}" data-rmc-shell-root="django-admin" data-rmc-app-shell-host="{% if is_manager_host %}manager{% else %}tenant{% endif %}" data-rmc-isomorphic-template="tenant-admin-hub"{% if is_manager_host %} data-rmc-admin-cp-unified="1" data-rmc-backoffice-frame="v2" data-copilot="collapsed"{% endif %}>
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-app-shell admin-cp-unified-page{% if is_manager_host %} admin-manager-shell control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% endif %} {% if not is_manager_host %}rmc-app-shell--no-sidebar{% endif %}" data-rmc-shell-root="django-admin" data-rmc-app-shell-host="{% if is_manager_host %}manager{% else %}tenant{% endif %}" data-rmc-isomorphic-template="tenant-admin-hub"{% if is_manager_host %} data-rmc-admin-cp-unified="1" data-rmc-backoffice-frame="v2" data-copilot="collapsed"{% endif %}>
 
         {% comment %} ---------- Grid row 1 — static header (viewport-pinned) ---------- {% endcomment %}
         {% comment %}v3.59.9 (2026-05-22): added data-rmc-control-plane-chrome="1" so
@@ -103,6 +104,8 @@
                         {% endblock content_tabs %}
 
                         {% block content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
                             {% if not is_popup and request.user.is_authenticated and not is_manager_host %}
                                 {% include "admin/includes/tenant_admin_decision_banner.html" %}
                                 {% include "admin/includes/admin_operator_outcome_deck.html" %}

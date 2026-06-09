@@ -8,7 +8,7 @@
 {% if launch_role_previews %}
 {% include "studio_os/partials/launch_readiness_preview_pane.html" %}
 {% else %}
-<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="studio-os__launch-role-preview rmc-launch-canvas" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   <div class="studio-os__card mb-3">
     <h2 class="h5 mb-2 text-break">{% trans "Preview by role" %}</h2>

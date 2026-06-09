@@ -12,7 +12,8 @@
       {% endfor %}
     </p>
   {% endif %}
-  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px;">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px;">
     {% for r in rows %}
       <article style="border: 1px solid var(--hairline); border-radius: 10px; padding: 12px; background: var(--surface-elevated);">
         <div style="font-size: var(--type-size-micro); color: var(--text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">#{{ r.id }} · {{ r.category|default:"—" }}</div>

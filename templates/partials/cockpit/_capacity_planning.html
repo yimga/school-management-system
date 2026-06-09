@@ -11,7 +11,8 @@
 {% endcomment %}
 {% if cockpit.capacity_planning.enabled %}
 <section class="lx-card lx-capacity" aria-label="{% trans 'Capacity planning' %}" data-rmc-cockpit-section="capacity_planning">
-  <div class="lx-card__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-card__head">
     <div>
       <div class="lx-card__eyebrow">{{ cockpit.capacity_planning.eyebrow|default:_("Capacity · forward 90d") }}</div>
       <h3 class="lx-card__title">{{ cockpit.capacity_planning.title|default:_("Capacity planning") }}</h3>

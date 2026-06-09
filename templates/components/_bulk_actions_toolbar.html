@@ -32,7 +32,8 @@
 <aside class="rmc-bulk-toolbar" data-rmc-bulk-toolbar-for="{{ bulk_table_id }}" role="region" aria-label="{% trans 'Bulk actions' %}">
   <span><strong data-rmc-bulk-count>0</strong> {% trans "selected" %}</span>
   <span class="rmc-bulk-toolbar__sep" aria-hidden="true"></span>
-  <div class="rmc-bulk-toolbar__actions">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-bulk-toolbar__actions">
     {% for action in bulk_actions %}
       <button type="button"
               class="rmc-bulk-toolbar__action{% if action.variant == 'danger' %} rmc-bulk-toolbar__action--danger{% endif %}"

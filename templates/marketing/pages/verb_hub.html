@@ -4,6 +4,9 @@
 {% block marketing_main_extra_classes %}container-fluid px-0 py-0{% endblock %}
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">{% endblock %}
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 <div class="mkt-v3-root mkt-v3-verb-hub" data-mkt-verb="{{ marketing_verb }}">
   <section class="mkt-v3-section mkt-edt-container">
     <p class="mkt-v3-eyebrow">{% trans "RunMyCampus" %}</p>

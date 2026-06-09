@@ -14,6 +14,7 @@
 
    Renders nothing when both actions are disabled. {% endcomment %}
 {% if cockpit_shell.actions.export_pdf or cockpit_shell.actions.quick_action %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-cockpit-page-actions" data-rmc-cockpit-page-actions="1">
   {% if cockpit_shell.actions.export_pdf %}
     {% if cockpit_export_pdf_url %}

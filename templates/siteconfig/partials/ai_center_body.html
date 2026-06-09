@@ -1,5 +1,6 @@
 {% load i18n static %}
 {% url 'manager_support_request' as ai_escalate_url %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div
   class="{% if ai_center_shell == 'control-plane' %}container-fluid py-2{% else %}container py-3{% endif %}"
   data-page-archetype="ai-center"

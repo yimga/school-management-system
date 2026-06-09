@@ -1,4 +1,5 @@
 {% load i18n static %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div data-rmc-section-nav-skip aria-hidden="false">
 <section class="cp-section cp-section--platform-tags" id="rmc-admin-sec-tags" data-rmc-section-anchor aria-labelledby="cp-platform-tags-heading">
   <h2 class="cp-section__title" id="cp-platform-tags-heading">{% trans "Platform information tags" %}</h2>
@@ -51,7 +52,7 @@
           <a class="cp-btn cp-btn--primary" href="{% url 'admin:schools_school_add' %}">+ {% trans "Add school" %}</a>
         </div>
       </div>
-      <table class="cp-table rmc-data-table" data-rmc-scroll-policy="paginate">
+      <table class="cp-table rmc-data-table" data-rmc-scroll-policy="paginate" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
             <th>{% trans "Name" %}</th>

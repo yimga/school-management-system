@@ -4,7 +4,8 @@
   <h2 class="mkt-v3-section-headline">{% trans "Send a message" %}</h2>
   <p class="mkt-v3-lead mkt-v3-lead--compact">{% trans "Required fields are marked. We triage by inquiry type and respond within one business day for sales and implementation." %}</p>
   {% if request.GET.submitted %}
-    <div class="mkt-edt-alert mkt-edt-alert--success" role="alert" aria-live="polite">{% trans "Thanks—we received your note and will respond as soon as possible." %}</div>
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-edt-alert mkt-edt-alert--success" role="alert" aria-live="polite">{% trans "Thanks—we received your note and will respond as soon as possible." %}</div>
   {% elif request.GET.error %}
     <div class="mkt-edt-alert mkt-edt-alert--warning" role="alert" aria-live="polite">{% trans "Something went wrong. Please retry or email from your workspace if you are already a customer." %}</div>
   {% endif %}

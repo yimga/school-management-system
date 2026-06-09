@@ -7,7 +7,8 @@
   {% include "marketing/components/_personality_hero.html" with eyebrow=page.label headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
   {% include "marketing/components/_personality_viz_panel.html" %}
   {% if marketing_kb_hub %}
-  <div class="mkt-edt-container">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-edt-container">
     {% include "marketing/partials/mkt_help_hub.html" %}
   </div>
   {% elif show_mkt_help_engine %}

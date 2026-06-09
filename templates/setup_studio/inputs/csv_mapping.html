@@ -3,7 +3,8 @@
   <legend class="rmc-wizard-field__label">{{ step_label }}</legend>
   {% if step_description %}<p class="rmc-wizard-field__helper">{{ step_description }}</p>{% endif %}
   {% for source_col in resolved_options %}
-    <div class="rmc-wizard-csv-pair">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-wizard-csv-pair">
       <span><strong>{{ source_col.value }}</strong></span>
       <span aria-hidden="true">→</span>
       <select name="mapping_{{ forloop.counter0 }}">

@@ -3,7 +3,8 @@
 {% with strict=rmc_conversion_single_action_enforced|default:False %}
 {% if rmc_system_actions_available and rmc_system_actions %}
 <section class="rmc-next-action-strip" data-rmc-next-action-strip="1" data-rmc-next-action-strict="{% if strict %}1{% else %}0{% endif %}" aria-label="{% trans 'What to do next' %}">
-  <div class="rmc-nas-inner">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-nas-inner">
     <div class="rmc-nas-heading">
       <span class="rmc-nas-kicker">{% trans "Next up" %}</span>
       <span class="rmc-nas-hint text-muted">{% if strict %}{% trans "Your next step" %}{% else %}{% trans "Highest-impact moves right now" %}{% endif %}</span>

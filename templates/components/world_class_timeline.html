@@ -1,7 +1,8 @@
 {% load i18n %}
 <section class="rmc-wcx-timeline" data-world-class-timeline="1" aria-label="{% trans 'Audit timeline' %}">
   <h2 class="h5">{% trans "Audit timeline" %}</h2>
-  <div class="rmc-wcx-timeline__item"><strong>{% trans "Requested" %}</strong><p class="small text-muted mb-0">{% trans "Actor, tenant, reason, and proposed change captured." %}</p></div>
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-wcx-timeline__item"><strong>{% trans "Requested" %}</strong><p class="small text-muted mb-0">{% trans "Actor, tenant, reason, and proposed change captured." %}</p></div>
   <div class="rmc-wcx-timeline__item"><strong>{% trans "Reviewed" %}</strong><p class="small text-muted mb-0">{% trans "Approval state, risk, and dependency graph reviewed." %}</p></div>
   <div class="rmc-wcx-timeline__item"><strong>{% trans "Monitored" %}</strong><p class="small text-muted mb-0">{% trans "Health, rollback posture, and external blockers stay visible." %}</p></div>
 </section>

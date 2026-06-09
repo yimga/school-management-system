@@ -15,7 +15,8 @@
   {% if kb_article_slug %}data-kb-article-slug="{{ kb_article_slug }}"{% endif %}
   {% if kb_article_title %}data-kb-article-title="{{ kb_article_title }}"{% endif %}
   {% if support_session_rating_url %}data-support-session-rating-url="{{ support_session_rating_url }}"{% endif %}>
-  <div class="card-body">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="card-body">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
       <h2 class="h6 mb-0"><i class="bi bi-stars me-1"></i>{% trans "Ask with AI" %}</h2>
       {% if ai_center_url %}

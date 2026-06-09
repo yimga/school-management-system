@@ -30,7 +30,8 @@ PII safety:
 <section class="tp-year-progress"
          data-rmc-cockpit-section="year_progress"
          aria-label="{% blocktrans with label=yp.label|default:_('Academic year') %}{{ label }} progress{% endblocktrans %}">
-  <div class="tp-year-progress__body">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="tp-year-progress__body">
     <div class="tp-year-progress__head">
       <span class="tp-year-progress__title">
         {{ yp.label|default:_("Academic year") }}{% if yp.term_label %}

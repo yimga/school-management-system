@@ -9,7 +9,8 @@
 {% endcomment %}
 {% if cockpit.onboarding_pipeline.enabled %}
 <section class="lx-card lx-onboarding" aria-label="{% trans 'Onboarding pipeline' %}" data-rmc-cockpit-section="onboarding_pipeline">
-  <div class="lx-card__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-card__head">
     <div>
       <div class="lx-card__eyebrow">{{ cockpit.onboarding_pipeline.eyebrow|default:_("Onboarding · funnel") }}</div>
       <h3 class="lx-card__title">{{ cockpit.onboarding_pipeline.title|default:_("Onboarding pipeline") }}</h3>

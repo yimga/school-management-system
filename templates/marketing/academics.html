@@ -18,6 +18,9 @@
 {% block marketing_main_extra_classes %}mkt-personality-page mkt-personality-page--fluid px-0 py-0{% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 <article class="mkt-personality-page__viewport" data-mkt-personality-page="academics">
   <h1 class="visually-hidden">{% marketing_copy "txt_academics_headline" %}</h1>
   {% include "marketing/partials/sections/_fluid_classroom.html" %}

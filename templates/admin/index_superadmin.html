@@ -21,6 +21,9 @@
 {% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 <div class="cp-admin-v1-index cp-admin-index rmc-admin-catalog-index" data-rmc-os-shell="control-plane" data-page-archetype="operator-command-center" data-rmc-admin-catalog-index="1" data-rmc-page-fold-nav="required" data-rmc-section-nav="curated" data-rmc-scroll-policy="paginate">
 
   {% if PREVIEW_MODE_ENABLED %}

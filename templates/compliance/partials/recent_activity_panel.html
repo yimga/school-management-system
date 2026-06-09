@@ -4,7 +4,8 @@
    in the template context (a queryset/iterable of AuditLog rows). {% endcomment %}
 {% if recent_activity_logs is not None %}
 <section class="card mt-3" aria-labelledby="recent-activity-heading">
-  <div class="card-header d-flex justify-content-between align-items-center">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="card-header d-flex justify-content-between align-items-center">
     <h2 id="recent-activity-heading" class="h6 mb-0">{% trans "Recent activity (last 90 days)" %}</h2>
     <span class="badge bg-light text-muted">{{ recent_activity_logs|length }}</span>
   </div>

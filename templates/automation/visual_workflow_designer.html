@@ -2,6 +2,11 @@
 {% load i18n static %}
 {% block title %}{{ page_title }}{% endblock %}
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="container-fluid py-3" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-visual-workflow-canvas="1" data-rmc-os-center="automation_studio_canvas">
   {% trans "Automation Studio" as aw_eyebrow %}
   {% trans "Visual graph: trigger → condition → action. Validate before publish; simulate to dry-run without side effects." as aw_purpose %}

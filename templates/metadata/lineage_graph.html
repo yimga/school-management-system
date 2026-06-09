@@ -4,6 +4,11 @@
 {% block backend_title %}{% trans "Lineage graph" %}{% endblock %}
 
 {% block backend_page %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="container-fluid py-2" data-page-archetype="catalog" data-decision-engine="surface">
   {% phase8_dashboard_declaration "metadata/lineage_graph.html" %}
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
@@ -72,7 +77,7 @@
       <div class="card shadow-sm mb-3">
         <div class="card-header py-2 small fw-semibold">{% trans "Downstream" %} ({{ summary.consumer_count }})</div>
         <div class="card-body p-0">
-          <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table">
+          <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Downstream" %} ({{ summary.consumer_count }})</caption>
             <thead>
               <tr>
@@ -113,7 +118,7 @@
       <div class="card shadow-sm mb-3">
         <div class="card-header py-2 small fw-semibold">{% trans "Packages" %} ({{ packages|length }})</div>
         <div class="card-body p-0">
-          <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table">
+          <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Packages" %} ({{ packages|length }})</caption>
             <thead>
               <tr>
@@ -177,4 +182,5 @@
 </div>
 
 <script src="{% static 'js/_pages/metadata__lineage_graph.js' %}"></script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

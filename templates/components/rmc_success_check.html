@@ -4,6 +4,7 @@
      {% include "components/rmc_success_check.html" with size="lg" label="Saved" %}
    Sizes: sm | (default) | lg | xl  {% endcomment %}
 {% with size=size|default:'' %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-check{% if size %} rmc-check--{{ size }}{% endif %}"
      role="img"
      aria-label="{{ label|default:_('Done') }}">

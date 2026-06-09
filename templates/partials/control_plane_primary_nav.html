@@ -38,7 +38,8 @@
       <span class="cp-nav-pill__glyph" aria-hidden="true">⋯</span>
       <span class="rmc-text-container">{% trans "More" %}</span>
     </summary>
-    <div class="cp-primary-nav__more-menu" role="menu" aria-label="{% trans 'More navigation items' %}">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="cp-primary-nav__more-menu" role="menu" aria-label="{% trans 'More navigation items' %}">
       {% for item in PRIMARY_CONTROL_PLANE_NAV %}
       {% if forloop.counter > 5 %}
       <a href="{{ item.url }}"

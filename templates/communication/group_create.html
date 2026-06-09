@@ -4,6 +4,11 @@
 {% block title %}{% trans "Create message group" %}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% comment %} Pass 8 Wave 2: migrated to components/form_field + components/form_actions partials.
    Removed 6 hand-rolled mb-3 blocks + 2 hand-rolled action rows; ~50 lines of duplicated
    markup replaced. Field error / required-marker / help-text rendering now identical

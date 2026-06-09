@@ -7,6 +7,7 @@
 {% block content %}
 {% include "components/next_action_strip.html" %}
 
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-3 rmc-print-v2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% comment %} v3.57.7+ (2026-05-21): civic brand block per rmc-print-v2 grammar
      so PDF / print renders of this transcript archive carry the wordmark + motto +

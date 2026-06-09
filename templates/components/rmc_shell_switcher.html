@@ -3,6 +3,7 @@
    Same operating-vs-configuring split as platform's /super vs /admin. Drop into
    any tenant page header to give operators a one-tap mode toggle. {% endcomment %}
 {% with current_url=request.path %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-shell-switcher" role="group" aria-label="{% trans 'Workspace mode' %}">
   <a href="{% url 'portal_console' %}"
      class="rmc-shell-switcher__btn{% if current_url == '/portal/console/' or '/accounts/backend/' in current_url %} is-active{% endif %}"

@@ -2,3 +2,4 @@
 {% comment %} Non-blocking stylesheet load — keeps critical path to 3 CSS requests (bootstrap, design-tokens, critical bundle). {% endcomment %}
 <link rel="stylesheet" href="{% static stylesheet %}" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="{% static stylesheet %}"></noscript>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

@@ -15,7 +15,8 @@
 
 {% if cockpit.audit_feed.enabled and cockpit.audit_feed.events %}
 <section class="lx-card lx-audit" aria-label="{% trans 'Audit feed' %}">
-  <div class="lx-audit__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-audit__head">
     <div class="lx-audit__title">
       {{ cockpit.audit_feed.title|default:_("Audit feed") }}
       {% if cockpit.audit_feed.title_em %} <em>— {{ cockpit.audit_feed.title_em }}</em>{% endif %}

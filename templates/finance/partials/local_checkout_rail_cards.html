@@ -5,7 +5,8 @@
   {% if payment_corridor.currency_display %}
   <p class="small text-muted mb-2">{{ payment_corridor.currency_display }}</p>
   {% endif %}
-  <div class="d-flex flex-wrap gap-2">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="d-flex flex-wrap gap-2">
     {% for card in payment_corridor.checkout_rail_cards %}
     <div class="card border-0 shadow-sm flex-grow-1" style="min-width: 8rem; max-width: 14rem;">
       <div class="card-body py-2 px-3">

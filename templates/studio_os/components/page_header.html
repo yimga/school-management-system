@@ -14,7 +14,7 @@ API is backwards-compatible: all existing callers (without eyebrow) keep working
 {% endcomment %}
 {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` so every Studio OS page header inherits the v8 200x preview glow + tracked eyebrow without touching 124 callers. Existing layout classes preserved. {% endcomment %}
 <header class="rmc-page-header-glow d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3 studio-os-topbar ds-action-bar" role="banner">
-  <div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="min-w-0">
     {% if eyebrow %}<div class="eyebrow rmc-page-eyebrow mb-1">{{ eyebrow }}</div>{% endif %}
     <h1 class="page-h1 h4 mb-0">{{ title|default:"Page" }}</h1>

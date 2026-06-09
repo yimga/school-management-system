@@ -7,6 +7,11 @@
 
 {% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "observability/slo_dashboard.html" %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="slo_dashboard" center_eyebrow=_("Platform operators") center_title=_("Operational SLO dashboard") center_purpose=_("Regional webhook delivery and sync conflict SLOs.") primary_url=dashboard_url primary_label=_("Back to Dashboard") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
@@ -63,7 +68,7 @@
   <div class="card shadow-sm border-0">
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0 table-family table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+        <table class="table table-hover align-middle mb-0 table-family table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Active schools" %}</caption>
           <thead class="table-light">
             <tr>
@@ -103,4 +108,5 @@
     <a href="?format=json">{% trans "View as JSON" %}</a>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

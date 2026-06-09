@@ -28,7 +28,8 @@
 
 {% with metric_items|default:metrics as ticker_metrics %}
 <section class="rmc-metric-ticker" data-rmc-metric-ticker aria-label="{% trans 'Key metrics' %}">
-  <div class="rmc-metric-ticker__sentinel" aria-hidden="true"></div>
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-metric-ticker__sentinel" aria-hidden="true"></div>
   <div class="rmc-metric-ticker__full row g-3">
     {% for m in ticker_metrics %}
       <div class="col-12 col-md-6 col-lg-{% if ticker_metrics|length == 4 %}3{% elif ticker_metrics|length <= 3 %}4{% else %}3{% endif %}" data-rmc-kpi="{{ m.id|default:forloop.counter0 }}">

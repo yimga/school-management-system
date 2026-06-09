@@ -1,5 +1,6 @@
 {% load i18n static %}
 <link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-kb-operator">
   <form method="get" class="input-group mb-3" role="search">
     <input type="search" name="q" class="form-control" value="{{ search_query|default:'' }}" placeholder="{% trans 'Search FAQs…' %}">

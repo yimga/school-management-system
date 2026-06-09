@@ -1,5 +1,6 @@
 {% load i18n %}
 {% comment %} Primary + optional custom HTML. Strict mode: at most one btn-primary in this bar. {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-os-action-bar rmc-horizontal-nav-rail rmc-horizontal-nav-rail--actions mb-3" data-rmc-os-action-bar="1" role="toolbar" aria-label="{% trans 'Page actions' %}">
   {% if primary_url and primary_label %}
   <a href="{{ primary_url }}"

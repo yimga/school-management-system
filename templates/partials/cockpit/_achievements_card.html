@@ -23,7 +23,8 @@ PII safety:
 {% if cockpit.achievements.enabled and cockpit.achievements.list %}
 {% with ach=cockpit.achievements %}
 <section class="tp-achievements" aria-label="{% trans 'Achievements' %}" data-rmc-cockpit-section="achievements_card">
-  <div class="tp-achievements__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="tp-achievements__head">
     <h3 class="tp-achievements__title">{{ ach.title|default:_("Achievements") }}</h3>
     {% if ach.count_label %}<span class="tp-achievements__count">{{ ach.count_label }}</span>{% endif %}
   </div>

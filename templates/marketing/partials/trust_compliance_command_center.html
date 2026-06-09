@@ -13,7 +13,8 @@
   </header>
 
   {% if trust_proof_badges %}
-  <div class="mkt-trust-proof-strip mkt-trust-proof-strip--command" role="list" aria-label="{% trans 'Release evidence posture' %}">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-trust-proof-strip mkt-trust-proof-strip--command" role="list" aria-label="{% trans 'Release evidence posture' %}">
     {% for badge in trust_proof_badges %}
     <div class="mkt-trust-proof-badge mkt-trust-proof-badge--{{ badge.status }}" role="listitem">
       <span class="mkt-trust-proof-badge__label">{{ badge.label }}</span>

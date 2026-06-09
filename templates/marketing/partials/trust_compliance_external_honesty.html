@@ -4,7 +4,8 @@
   <p class="mkt-v3-lead">{% trans "We never imply SOC 2, PCI, or live payment settlement until externally verified and published for your deployment." %}</p>
 
   {% if trust_certification_honesty %}
-  <div class="mkt-trust-cert-grid" role="list" aria-label="{% trans 'Certification honesty' %}">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-trust-cert-grid" role="list" aria-label="{% trans 'Certification honesty' %}">
     {% for item in trust_certification_honesty %}
     <article class="mkt-trust-cert-card mkt-trust-cert-card--{{ item.status }}" role="listitem">
       <h3 class="mkt-trust-cert-card__label">{{ item.label }}</h3>

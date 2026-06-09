@@ -48,7 +48,8 @@
     {% if cockpit.operator_notebook.draggable %}
     <span class="lx-notebook__grip" aria-hidden="true" title="{% trans 'Drag to reposition' %}">⋮⋮</span>
     {% endif %}
-    <div class="lx-notebook__title">{{ cockpit.operator_notebook.title|default:_("Add to notebook") }}</div>
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-notebook__title">{{ cockpit.operator_notebook.title|default:_("Add to notebook") }}</div>
     <div class="lx-notebook__head-actions">
       <button type="button" class="lx-notebook__action lx-notebook__history-toggle"
               aria-label="{% trans 'Toggle recent notes' %}"

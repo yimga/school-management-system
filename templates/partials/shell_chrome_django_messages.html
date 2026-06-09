@@ -1,6 +1,7 @@
 {% load i18n %}
 {% comment %} Shared Django messages + optional announcement (portal). Preserve layout; data-shell-chrome* for contract tests. {% endcomment %}
 {% if messages %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div
   class="mb-3"
   data-shell-chrome="django-messages"

@@ -3,6 +3,11 @@
 {% load terminology_tags %}
 {% block title %}{% trans "Sales pipeline" %}{% endblock %}
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% url 'sales:pipeline_board' as sales_pipeline_url %}
 <div class="container py-3" style="max-width: 76rem" data-rmc-sales-command-center="1" data-rmc-scroll-policy="paginate">
   <div class="ds-action-bar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
@@ -86,7 +91,7 @@
     </div>
   </div>
   <div class="table-responsive border rounded">
-    <table class="table table-family table-sm mb-0 align-middle rmc-data-table">
+    <table class="table table-family table-sm mb-0 align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Sales pipeline" %}</caption>
       <thead class="table-light">
         <tr>
@@ -123,4 +128,5 @@
   <h2 class="h6 mt-4">{% trans "Stages" %}</h2>
   <p class="small text-muted mb-0">{% for s in stages %}<span class="me-2">{{ s.label }} ({{ s.key }})</span>{% empty %}{% trans "—" %}{% endfor %}</p>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

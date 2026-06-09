@@ -6,7 +6,8 @@
     <h2 id="mkt-tiers-heading" class="mkt-tiers__title">{% trans "Transparent, indicative pricing" %}</h2>
     <p class="mkt-tiers__lead">{% trans "Per student, per month — modular, so you only pay for what you switch on. Figures are indicative; use the calculator or talk to us for an exact quote." %}</p>
   </header>
-  <div class="mkt-tiers__grid">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-tiers__grid">
     {% for tier in tiers %}
     <article class="mkt-tiers__card{% if tier.key == 'growth' %} mkt-tiers__card--featured{% endif %}">
       {% if tier.key == 'growth' %}<span class="mkt-tiers__flag">{% trans "Most popular" %}</span>{% endif %}

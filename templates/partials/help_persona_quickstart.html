@@ -3,7 +3,8 @@
 {% if kb_search_url %}
 <section class="mb-4" aria-labelledby="rmc-persona-help-heading">
   <h3 id="rmc-persona-help-heading" class="h6 text-uppercase text-tertiary">{% trans "Quick start by role" %}</h3>
-  <div class="d-flex flex-wrap gap-2">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="d-flex flex-wrap gap-2">
     <a class="btn btn-sm btn-outline-secondary" href="{{ kb_search_url }}?persona=TEACHER">{% term "teacher" capitalize=True %}</a>
     <a class="btn btn-sm btn-outline-secondary" href="{{ kb_search_url }}?persona=PARENT">{% term "parent" capitalize=True %}</a>
     <a class="btn btn-sm btn-outline-secondary" href="{{ kb_search_url }}?persona=ADMIN">{% trans "Admin" %}</a>

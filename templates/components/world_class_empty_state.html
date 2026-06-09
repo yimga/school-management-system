@@ -3,7 +3,8 @@
 <section class="rmc-wcx-empty-state" data-world-class-empty-state="1" aria-labelledby="{{ empty_id|default:'world-class-empty-title' }}">
   <h2 id="{{ empty_id|default:'world-class-empty-title' }}" class="h5">{{ title|default:_("Nothing needs attention") }}</h2>
   <p class="small text-muted">{{ body|default:_("There are no records in this queue. Continue with the next guided action or review the audit trail.") }}</p>
-  <div data-world-class-primary-action-slot="1">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div data-world-class-primary-action-slot="1">
     {% if primary_url and primary_label %}<a class="btn btn-primary btn-sm" href="{{ primary_url }}">{{ primary_label }}</a>{% endif %}
     {% if secondary_url and secondary_label %}<a class="btn btn-outline-secondary btn-sm" href="{{ secondary_url }}">{{ secondary_label }}</a>{% endif %}
   </div>

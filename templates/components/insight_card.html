@@ -14,7 +14,8 @@
 <article class="insight-card {{ t }} h-100"
          data-rmc-insight-card="1"
          data-rmc-insight-tone="{{ t }}">
-  <div class="ico" aria-hidden="true">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="ico" aria-hidden="true">
     <i class="bi {% if icon %}bi-{{ icon }}{% elif t == 'warning' %}bi-clock-history{% elif t == 'danger' %}bi-exclamation-octagon{% elif t == 'success' %}bi-check2-circle{% else %}bi-info-circle{% endif %}"></i>
   </div>
   <div class="insight-card__body" style="flex:1;min-width:0">

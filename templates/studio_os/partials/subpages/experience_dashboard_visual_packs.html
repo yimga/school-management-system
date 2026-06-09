@@ -1,5 +1,5 @@
 {% load i18n static phase8_tags %}
-<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface">
   {% phase8_dashboard_declaration "studio_os/partials/subpages/experience_dashboard_visual_packs.html" %}
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}

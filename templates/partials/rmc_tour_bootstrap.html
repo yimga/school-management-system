@@ -10,3 +10,4 @@
 {% url 'siteconfig:tour_info_tag_api' as tour_info_api_url %}
 <script src="{% static 'js/rmc-info-tag.js' %}" defer{% if tour_info_api_url %} data-tour-info-api="{{ tour_info_api_url }}"{% endif %}></script>
 <script src="{% static 'js/rmc-info-tag-auto.js' %}" defer></script>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

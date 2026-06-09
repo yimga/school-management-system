@@ -8,7 +8,8 @@ social, contacts, stat_line, legal_links, copyright_holder, powered_by}.
 Falls back to SITE-model values when cockpit.footer.* is empty.
 {% endcomment %}
 <footer class="rmc-civic-footer" id="dashboardFooter" data-rmc-footer-surface="tenant-standard" role="contentinfo">
-  <div class="rmc-civic-footer__inner">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-civic-footer__inner">
 
     {% if PUBLIC_BRAND_MODE %}
       {% comment %} Minimal platform-only mode (white-label resellers) {% endcomment %}

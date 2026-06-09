@@ -7,7 +7,8 @@
    and links inline with the heading so it reads as section navigation rather than
    a separate decorative box.{% endcomment %}
 <section class="rmc-operator-console-strip mb-3" role="region" aria-labelledby="op-console-strip-h" data-decision-console="operator-strip">
-  <div class="rmc-operator-console-strip__row">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-operator-console-strip__row">
     <h2 id="op-console-strip-h" class="rmc-operator-console-strip__title">{% trans "Operator tools" %}<span class="rmc-operator-console-strip__title-em"> — {% trans "trace, impact, ship" %}</span></h2>
     <div class="rmc-operator-console-strip__links">
       {% for link in operator_quick_links %}

@@ -12,7 +12,8 @@
 {% if cockpit.slo_clocks.enabled and cockpit.slo_clocks.clocks %}
 <section class="lx-slo" aria-label="{% trans 'Live SLO clocks' %}">
   {% for clock in cockpit.slo_clocks.clocks %}
-  <div class="lx-slo__card">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-slo__card">
     <span class="lx-slo__dot lx-slo__dot--{{ clock.dot_status|default:'ok' }}" aria-hidden="true"></span>
     <div class="lx-slo__label">{{ clock.label }}</div>
     <div class="lx-slo__value">

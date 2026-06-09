@@ -21,6 +21,7 @@ Params (all optional except title):
   cta_id       — optional id on the CTA anchor (for JS wizard launchers)
   compact      — truthy → tighter padding for inline/small panels
 {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-empty-state{% if compact %} rmc-empty-state--compact{% endif %}" role="status" data-rmc-empty-state="1">
   <span class="rmc-empty-state__icon" aria-hidden="true">
     <i class="bi {{ icon|default:'bi-inbox' }}"></i>

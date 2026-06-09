@@ -6,7 +6,8 @@
    English label strings are now wrapped in {% trans %} for i18n parity. {% endcomment %}
 <section class="row g-3 mb-4" aria-label="{% trans 'Finance summary' %}">
   {% with summary=summary %}
-    <div class="col-12 col-md-6 col-lg-3" data-shell-kpi="finance-summary-receivables" data-widget-id="finance-summary-receivables">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="col-12 col-md-6 col-lg-3" data-shell-kpi="finance-summary-receivables" data-widget-id="finance-summary-receivables">
       <div class="kpi">
         <div class="d-flex align-items-start justify-content-between gap-2">
           <span class="label">{% trans "Accounts receivable" %}</span>

@@ -1,7 +1,8 @@
 {% load i18n %}
 <section class="mt-4">
   <h2 class="h5 mb-3">{% trans "Role-based quick start" %}</h2>
-  <div class="row g-3">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="row g-3">
     {% for card in role_checklists %}
     <div class="col-lg-4">
       <article class="card border-0 shadow-sm h-100">

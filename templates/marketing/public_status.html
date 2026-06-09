@@ -4,6 +4,9 @@
 {% block extrastyle %}{{ block.super }}{% endblock %}
 {% block marketing_main_extra_classes %}container py-4 rmc-os-page rmc-os-page--status{% endblock %}
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 {% include "marketing/partials/corporate_os_chrome.html" %}
 <article class="rmc-os-page__inner" data-rmc-os-status-page="1">
   <header class="rmc-os-hero">

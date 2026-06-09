@@ -4,7 +4,8 @@
     {% if active_nav_slug == 'resources' and page_extras.resources_hub_cards %}
     <section class="section-shell mkt-resources-hub-cards" aria-label="{% trans 'Resource areas' %}">
       <h2 class="section-heading">{% trans "Explore resource areas" %}</h2>
-      <div class="bento-grid">
+      <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="bento-grid">
         {% for card in page_extras.resources_hub_cards %}
         <article class="bento-panel h-100 d-flex flex-column">
           <h3 class="h6">{{ card.title }}</h3>

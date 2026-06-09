@@ -23,7 +23,8 @@ Event tones: "fee" | "payment" | "discount" | "balance"
     {% for e in ft.events %}
     <li class="tp-fin-timeline__event tp-fin-timeline__event--{{ e.tone|default:'fee' }}">
       <span class="tp-fin-timeline__dot" aria-hidden="true">{{ e.icon|default:"·" }}</span>
-      <div class="tp-fin-timeline__body">
+      <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="tp-fin-timeline__body">
         <div class="tp-fin-timeline__row">
           <strong>{{ e.label }}</strong>
           {% if e.amount_display %}<span class="tp-fin-timeline__amount">{{ e.amount_display }}</span>{% endif %}

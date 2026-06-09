@@ -1,5 +1,6 @@
 {% load unfold i18n admin_urls unfold %}
 {% comment %} Override: use SVG/emoji so sidebar toggle never shows "dock_to_right" when Material Symbols font 404s on production. {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="flex flex-row grow font-semibold items-center min-w-0 mr-3">
     {% if is_nav_sidebar_enabled %}
         <span class="cursor-pointer flex flex-row items-center" aria-label="{% trans 'Toggle sidebar' %}">

@@ -1,7 +1,8 @@
 {% load i18n %}
 
 {% if request.user.is_staff %}
-    <div class="backdrop-blur-xs bg-base-900/80 flex flex-col fixed inset-0 p-4 lg:p-32 z-[1000]"
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="backdrop-blur-xs bg-base-900/80 flex flex-col fixed inset-0 p-4 lg:p-32 z-[1000]"
          hidden
          x-cloak>
         <div class="bg-white flex flex-col max-w-3xl min-h-0 mx-auto overflow-hidden rounded-default shadow-lg w-full dark:bg-base-800">

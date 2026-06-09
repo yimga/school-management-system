@@ -45,7 +45,7 @@ Permission gating contract:
   {% if preview_pane_impact_summary or preview_pane_dependency_warnings or preview_pane_audit_label or preview_pane_rollback_plan or preview_pane_confirm_url %}
 
     {% if preview_pane_impact_summary %}
-    <div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-control-preview-pane__section">
       <p class="rmc-control-preview-pane__section-label">{% trans "Impact" %}</p>
       <p class="rmc-control-preview-pane__body">{{ preview_pane_impact_summary }}</p>

@@ -8,7 +8,8 @@
   data-app-slug="{{ listing.app.slug|lower }}"
   data-app-desc="{{ listing.app.description|default:''|lower }} {{ listing.short_description|default:''|lower }} {{ listing.category|default:''|lower }}"
 >
-  <div class="rmc-mkt-app-card__media">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-mkt-app-card__media">
     {% if listing.preview_image_url %}
     <img src="{{ listing.preview_image_url }}" alt="" class="rmc-mkt-app-card__img" loading="lazy" width="320" height="140">
     {% else %}

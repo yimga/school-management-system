@@ -3,6 +3,7 @@
 {% load terminology_tags %}
 {% block title %}{% term "student" capitalize=True %} {% trans "search" %}{% endblock %}
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
 {% include "components/next_action_strip.html" %}
@@ -74,13 +75,11 @@
       {% blocktrans count counter=results|length %}Top {{ counter }} result.{% plural %}Top {{ counter }} results.{% endblocktrans %}
     </p>
   {% else %}
-    {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("
-      {% blocktrans %}No matches found. Try a different phrasing — search is semantic, so "kids missing class often" works as well as a name.{% endblocktrans %}
-    ") message=_("Nothing here yet — check back after your school adds data.") %}
+    {% blocktrans asvar semantic_search_empty_title %}No matches found. Try a different phrasing — search is semantic, so "kids missing class often" works as well as a name.{% endblocktrans %}
+    {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=semantic_search_empty_title message=_("Nothing here yet — check back after your school adds data.") %}
   {% endif %}
 {% else %}
-  <div class="alert alert-info">
-    {% blocktrans count counter=min_query_len %}Type at least {{ counter }} character to search.{% plural %}Type at least {{ counter }} characters to search.{% endblocktrans %}
-  </div>
+  {% blocktrans count counter=min_query_len asvar semantic_search_min_query_title %}Type at least {{ counter }} character to search.{% plural %}Type at least {{ counter }} characters to search.{% endblocktrans %}
+  {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=semantic_search_min_query_title message=_("Nothing here yet — check back after your school adds data.") %}
 {% endif %}
 {% endblock %}

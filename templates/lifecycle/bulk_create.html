@@ -4,6 +4,11 @@
 {% block cp_title %}{% trans "Bulk school create" %}{% endblock %}
 
 {% block cp_content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-archetype="decision-console" data-decision-console="lifecycle-bulk-create">
   <header class="mb-3">
     <h1 class="h5 mb-1">{% trans "Bulk school create — CSV" %}</h1>
@@ -43,7 +48,7 @@
     {% blocktrans with v=valid_count i=invalid_count %}<strong>{{ v }}</strong> valid · <strong>{{ i }}</strong> invalid out of {{ valid_count|add:invalid_count }} parsed rows.{% endblocktrans %}
   </div>
   <div class="table-responsive mb-3">
-    <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead><tr>
         <th>{% trans "Line" %}</th>
         <th>{% trans "Name" %}</th>
@@ -85,7 +90,7 @@
     {% blocktrans with c=created_count f=failed_count %}<strong>{{ c }}</strong> created · <strong>{{ f }}</strong> failed.{% endblocktrans %}
   </div>
   <div class="table-responsive">
-    <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead><tr>
         <th>{% trans "Line" %}</th>
         <th>{% trans "Slug" %}</th>
@@ -104,4 +109,5 @@
   <a href="{% url 'super:provisioning_jobs' %}" class="btn btn-sm btn-outline-secondary mt-2">{% trans "Open provisioning jobs dashboard" %}</a>
   {% endif %}
 </section>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

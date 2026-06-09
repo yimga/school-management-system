@@ -1,6 +1,7 @@
 {% load i18n %}
 <section class="card border-0 shadow-sm mb-4" id="security-country-annex" data-mkt-security-country-annex="1" aria-labelledby="annex-heading">
-  <div class="card-body">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="card-body">
     <h2 id="annex-heading" class="h6">{% trans "Country annex preview" %}</h2>
     <p class="small text-muted">{% trans "Illustrative one-pager for procurement—full attestations ship in the complete security packet after your request." %}</p>
     {% if security_country_annex.illustrative %}

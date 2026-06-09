@@ -5,6 +5,11 @@
 {% block backend_title %}{% trans "Help Center" %}{% endblock %}
 
 {% block backend_page %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <link rel="stylesheet" href="{% static 'css/rmc-help-center-engage.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-help-unified-hub.css' %}">
 <div class="container-fluid py-2 rmc-help-center rmc-help-center--v2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-page="help-center" data-rmc-section-nav="curated" data-rmc-page-help-context-label="{% trans 'Help for this page:' %}">

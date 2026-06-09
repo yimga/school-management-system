@@ -27,7 +27,8 @@
 {% if outcome_groups %}
 <section class="mb-4" aria-labelledby="ccc-outcomes-heading">
   <h2 id="ccc-outcomes-heading" class="rmc-type-eyebrow mb-3">{% trans "Outcomes" %}</h2>
-  <div class="row g-3">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="row g-3">
     {% for group in outcome_groups %}
     <div class="col-12 col-md-6 col-xl-4">
       {% if ccc_outcome_compact %}

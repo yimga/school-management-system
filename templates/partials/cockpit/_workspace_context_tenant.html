@@ -36,6 +36,7 @@ PII safety:
 {% endcomment %}
 {% if cockpit.workspace_context_tenant.enabled %}
 {% with wc=cockpit.workspace_context_tenant %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="tp-child-context" data-rmc-tp-child-context data-rmc-cockpit-section="workspace_context_tenant">
   <div class="tp-child-context__label">
     <span>{{ wc.label|default:_("Active child") }}</span>

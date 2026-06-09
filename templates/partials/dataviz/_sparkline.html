@@ -14,6 +14,7 @@ Parameters:
 JS at static/js/_pages/rmc-data-viz.js renders the path on mount; the SSR
 fallback shows an empty SVG (graceful degradation — no visual break).
 {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-sparkline rmc-sparkline--{{ direction|default:'flat' }}"
      data-rmc-sparkline-points="{{ points }}"
      aria-label="{{ label|default:_('Trend') }}"

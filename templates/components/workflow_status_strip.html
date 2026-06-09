@@ -7,6 +7,7 @@
    PII safety: owner.label is a role/team label, never an email or username. {% endcomment %}
 {% if status %}
 {% with completion=status.completion|default:"in-progress" %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-workflow-status-strip"
      data-rmc-workflow-status-strip="1"
      data-rmc-workflow-completion="{{ completion }}"

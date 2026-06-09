@@ -4,6 +4,11 @@
 {% block title %}{% trans "Create class announcement" %}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% comment %} Pass 8 Wave 3: migrated to components/form_field + form_actions. Removed
    visually-hidden injected H1 (card-header h1 owns the page H1).
    The bg-secondary text-white card header is preserved since this template

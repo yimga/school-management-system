@@ -9,6 +9,7 @@
        iso_empty_action_label=_("Initialize first entry")
        iso_empty_icon="bi-journal-plus" %}
 {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-iso-panel-empty" role="status" aria-live="polite"{% if iso_empty_id %} id="{{ iso_empty_id }}"{% endif %}>
   {% if iso_empty_icon %}
   <div class="rmc-iso-panel-empty__icon" aria-hidden="true"><i class="bi {{ iso_empty_icon }}"></i></div>

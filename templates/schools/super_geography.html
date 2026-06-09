@@ -17,6 +17,7 @@
 {% block cp_content %}
 {% include "components/next_action_strip.html" %}
 
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-3" data-rmc-scroll-policy="paginate" role="main" aria-label="{% trans 'Region packs by continent' %}" data-page-archetype="catalog" data-page-critical-read="1">
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <h1 class="h4 mb-1 fw-bold">{% trans "Geography — Region packs by continent (Wedges 7–13)" %}</h1>

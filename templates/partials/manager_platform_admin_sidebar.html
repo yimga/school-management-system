@@ -10,7 +10,8 @@
      data-rmc-complete-sidebar="1"
      data-rmc-sidebar-luxury="10x">
   {% include "partials/cp_sidebar_operator_identity.html" %}
-  <div class="admin-sidebar-app-groups cp-admin-sidebar-apps" id="cp-admin-sidebar-apps" role="group" aria-label="{% trans 'Platform admin apps' %}">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="admin-sidebar-app-groups cp-admin-sidebar-apps" id="cp-admin-sidebar-apps" role="group" aria-label="{% trans 'Platform admin apps' %}">
     {% include "partials/manager_complete_sidebar_nav.html" %}
   </div>
 </nav>

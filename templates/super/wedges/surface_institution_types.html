@@ -8,7 +8,8 @@
     {% trans "Picker kind:" %} <code style="background: var(--surface-elevated); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--hairline);">{{ picker.kind }}</code>
     {% if picker.institution.code %}<span style="margin-left: 8px;">{% trans "institution code:" %} <code style="background: var(--surface-elevated); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--hairline);">{{ picker.institution.code }}</code></span>{% endif %}
   </p>
-  <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
     <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-caption);">
       <thead>
         <tr style="text-align: left; color: var(--text-secondary); font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em;">

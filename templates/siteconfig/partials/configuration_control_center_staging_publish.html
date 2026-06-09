@@ -10,7 +10,8 @@
     {% trans "Publish and rollback actions apply only on supported configuration paths. Who changed what is recorded when audit trails are enabled for the domain." %}
   </p>
   {% if ccc_staging_links %}
-  <div class="d-flex flex-wrap align-items-center gap-2">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="d-flex flex-wrap align-items-center gap-2">
     {% for item in ccc_staging_links %}
     <span class="d-inline-flex align-items-center gap-1 flex-wrap">
       <a href="{{ item.url }}" class="btn btn-sm {% if ccc_outcome_compact %}btn-outline-primary{% else %}btn-outline-light{% endif %}" data-operator-stability="{{ item.stability }}">{{ item.label }}</a>

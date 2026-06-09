@@ -25,7 +25,8 @@
 
 {% if cockpit.pulse_metrics.cards %}
 <section class="rmc-cockpit-pulse" aria-labelledby="rmc-cockpit-pulse-label">
-  <div class="rmc-cockpit-pulse__label" id="rmc-cockpit-pulse-label">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-cockpit-pulse__label" id="rmc-cockpit-pulse-label">
     {% if cockpit.pulse_metrics.show_live_dot|default:True %}<span class="rmc-cockpit-pulse__live-dot" aria-hidden="true"></span>{% endif %}
     {{ cockpit.pulse_metrics.label|default:_("Platform pulse · live") }}
   </div>

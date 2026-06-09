@@ -29,6 +29,9 @@
 {% block marketing_main_extra_classes %}mkt-intent-home px-0 py-0{% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 <div class="mkt-intent-home__stack" data-mkt-intent-home>
   {% include "marketing/partials/sections/_hero_speed_duel.html" %}
   {% include "marketing/partials/sections/_sovereign_kernel.html" %}

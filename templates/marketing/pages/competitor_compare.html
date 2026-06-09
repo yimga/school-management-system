@@ -8,7 +8,8 @@
     <p class="mkt-compare__eyebrow">{% trans "Honest comparison" %}</p>
     <h1 class="mkt-compare__headline">{{ hero_headline }}</h1>
     <p class="mkt-compare__intro">{{ intro }}</p>
-    <div class="mkt-compare__cta">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-compare__cta">
       <a href="{% url cta_route %}" class="mkt-edt-cta mkt-edt-cta--primary" data-cta="compare" data-page="compare-{{ slug }}">{{ cta_label }}</a>
       <a href="{% url 'marketing_pricing' %}" class="mkt-edt-cta mkt-edt-cta--ghost">{% trans "See pricing" %}</a>
     </div>

@@ -20,7 +20,8 @@ PII safety:
 {% with sb=cockpit.ai_study_buddy %}
 {% comment %} a8-wire-pending: real AI gateway call replaces the stub here {% endcomment %}
 <section class="tp-ai-buddy" aria-label="{{ sb.label }}" data-rmc-tp-ai-buddy data-rmc-cockpit-section="ai_study_buddy">
-  <div class="tp-ai-buddy__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="tp-ai-buddy__head">
     <span class="tp-ai-buddy__avatar" aria-hidden="true">★</span>
     <div class="tp-ai-buddy__title">
       <strong>{{ sb.label|default:_("Study buddy") }}</strong>

@@ -7,6 +7,7 @@
 {% include "components/next_action_strip.html" %}
 
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Timetabling" %} — {{ school.name }}</h1>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <p class="small text-muted">{% trans "Draft and published master schedules. Generate or validate via API (scheduler) from integrations." %}</p>

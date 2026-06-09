@@ -1,6 +1,7 @@
 {% load i18n %}
 {% comment %} 1031: Optional info / status banner with primary copy + optional action (portal + backend). {% endcomment %}
 {% if chrome_banner_title or chrome_banner_body %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div
   class="alert alert-{{ chrome_banner_level|default:'info' }} d-flex align-items-start gap-2 {% if chrome_banner_mb %}{{ chrome_banner_mb }}{% else %}mb-3{% endif %}"
   data-shell-chrome="contextual-info-banner"

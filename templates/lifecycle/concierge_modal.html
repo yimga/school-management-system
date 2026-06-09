@@ -20,7 +20,8 @@
 {% if user.is_authenticated and user.is_staff %}
 <aside class="rmc-lifecycle-concierge" role="region" aria-labelledby="lifecycle-concierge-h" data-lifecycle-concierge data-rmc-tenant-only>
   <button type="button" class="rmc-lifecycle-concierge__close" aria-label="{% trans 'Dismiss concierge' %}" data-lifecycle-concierge-dismiss>&times;</button>
-  <div class="rmc-lifecycle-concierge__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-lifecycle-concierge__head">
     <strong id="lifecycle-concierge-h" class="rmc-lifecycle-concierge__title">{% trans "Welcome — let's get you live" %}</strong>
     <span class="rmc-lifecycle-concierge__score"><strong>{{ lifecycle_readiness.unified_score }}%</strong> {% trans "to launch-ready" %}</span>
   </div>

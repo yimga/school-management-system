@@ -5,6 +5,11 @@
 {% block title %}{% trans "API keys" %}{% endblock %}
 
 {% block backend_page %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "API keys" %}</h1>
 <div class="container-fluid py-2" data-rmc-scroll-policy="paginate">
   <h4 class="mb-3">{% trans "API keys & quotas" %}</h4>
@@ -51,7 +56,7 @@
       <h5 class="card-title">{% trans "Keys" %}</h5>
       {% if api_keys %}
       <div class="table-responsive">
-        <table class="table table-sm table-family align-middle rmc-data-table">
+        <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Keys" %}</caption>
           <thead>
             <tr>
@@ -98,4 +103,5 @@
     <a href="{% url 'apicenter:dashboard' %}" class="btn btn-outline-primary">{% trans "Back to API Center" %}</a>
   </p>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

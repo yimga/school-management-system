@@ -2,6 +2,11 @@
 {% load i18n %}
 {% block title %}{% trans "LMS audit retention exports" %} — {{ block.super }}{% endblock %}
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="container-fluid rmc-page" style="max-width: 1280px;">
   <nav style="margin-bottom: 10px; font-size: var(--type-size-eyebrow); color: var(--text-secondary);">
     <a href="/portal/super/wedges/" style="color: var(--text-secondary); text-decoration: none;">{% trans "Wedge registry" %}</a>
@@ -40,7 +45,7 @@
 
   {% if files %}
     <section>
-      <table class="rmc-data-table" style="width: 100%; border-collapse: collapse;">
+      <table class="rmc-data-table" style="width: 100%; border-collapse: collapse;" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr style="text-align: left; font-size: var(--type-size-micro); color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">
             <th style="padding: 8px 10px; border-bottom: 1px solid var(--hairline);">{% trans "File" %}</th>
@@ -70,4 +75,5 @@
     <p style="color: var(--text-secondary);">{% trans "No exports found in the directory yet. The retention sweep writes one file per purge batch." %}</p>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

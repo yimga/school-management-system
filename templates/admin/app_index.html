@@ -6,6 +6,9 @@
 {% block bodyclass %}{{ block.super }} app-{{ app_label }}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 <div class="admin-app-index rmc-admin-app-index" data-rmc-scroll-policy="paginate">
   <div class="admin-app-index__back mb-2">
     <a href="{% url 'admin:index' %}" class="text-decoration-none small">

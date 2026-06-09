@@ -63,6 +63,7 @@ def _user_has_tenant_membership(user) -> bool:
     try:
         from apps.schools.models import SchoolMembership
 
+        # tenant-isolation-allow: operator-plane-user-membership-gate-before-tenant-bind
         return SchoolMembership.objects.filter(user=user).exists()
     except (DatabaseError, ImportError, AttributeError, TypeError, ValueError):
         return False

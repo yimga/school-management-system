@@ -9,6 +9,9 @@
 {% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 <section class="proof-page">
   {% comment %} v2.37 — editorial hero composition for the migrate surface. {% endcomment %}
   {% include "components/marketing_hero_image.html" with hero_slug="migrate" priority=True %}

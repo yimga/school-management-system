@@ -8,7 +8,8 @@
 {% if rmc_wf_auto %}
   {% with status=rmc_wf_auto|workflow_status_payload:request next_action=rmc_wf_auto|workflow_next_action_payload:request panel=rmc_wf_auto|workflow_help_panel_payload:request %}
     {% if status or next_action or panel %}
-    <div class="rmc-workflow-auto-chrome" data-rmc-workflow-auto-chrome="1" data-rmc-workflow-key="{{ rmc_wf_auto.key }}">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-workflow-auto-chrome" data-rmc-workflow-auto-chrome="1" data-rmc-workflow-key="{{ rmc_wf_auto.key }}">
       {% if status %}{% include "components/workflow_status_strip.html" %}{% endif %}
       {% if next_action %}{% include "components/workflow_next_action.html" %}{% endif %}
       {% if panel %}{% include "components/workflow_help_panel.html" %}{% endif %}

@@ -15,6 +15,7 @@ Run: python scripts/verify_zero_friction_journeys.py
 from __future__ import annotations
 
 import argparse
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -201,9 +202,26 @@ def main(argv: list[str] | None = None) -> int:
         ("templates/studio_os/partials/overview_command_cockpit.html", "rmc-empty-state-sentinel"),
         ("templates/studio_os/components/page_header.html", 'data-rmc-scroll-policy="paginate"'),
         ("templates/studio_os/partials/subpages/automation_visual_builder.html", "rmc-empty-state-sentinel"),
+        ("templates/marketing/zero_ui_lab.html", 'aria-describedby="rmc_smart_action_hub"'),
+        ("templates/components/world_class_summary_strip.html", 'aria-describedby="rmc_smart_action_hub"'),
+        ("templates/teacher/timetable.html", 'aria-describedby="rmc_smart_action_hub"'),
     ):
         if needle not in _read(rel):
             errors.append(f"{rel} missing {needle}")
+
+    finale_script = ROOT / "scripts/codemod_zero_friction_finale_sweep.py"
+    if not finale_script.is_file():
+        errors.append("missing scripts/codemod_zero_friction_finale_sweep.py")
+
+    ledger_path = ROOT / "docs/generated/zero_friction_audit_ledger.json"
+    if ledger_path.is_file():
+        ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+        if int(ledger.get("high_friction_count", -1)) != 0:
+            errors.append(
+                f"zero_friction_audit_ledger high_friction_count={ledger.get('high_friction_count')} (expected 0)"
+            )
+    else:
+        errors.append("missing docs/generated/zero_friction_audit_ledger.json")
 
     for path in (
         "apps/schools/session_school_bind.py",

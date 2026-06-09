@@ -4,6 +4,11 @@
 {% block portal_title %}{{ pack.name }}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="rmc-template-detail" data-page-marker="rmc-template-detail" data-rmc-template-palette="{{ overlay.palette_family }}">
   <header class="rmc-template-detail__header">
     <h1>{{ pack.name }}</h1>

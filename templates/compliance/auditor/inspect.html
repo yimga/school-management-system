@@ -74,7 +74,8 @@ is dark-mode-safe with zero hardcoded literals. Rendered via render_to_string
 
     <section class="aud-card" aria-label="{% trans 'Grant details' %}">
       <dl class="aud-meta">
-        <div>
+        <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div>
           <dt>{% trans "Scope" %}</dt>
           <dd>{% for s in scope %}{{ s }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans "students:read" %}{% endfor %}</dd>
         </div>

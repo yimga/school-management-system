@@ -17,7 +17,8 @@
      Self-gates on cockpit.workspace_context.enabled (configurable). {% endcomment %}
   {% include "partials/cockpit/_workspace_context.html" %}
 
-  <div class="cp-nav-recent d-none" id="cpNavRecentWrap" aria-hidden="true">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="cp-nav-recent d-none" id="cpNavRecentWrap" aria-hidden="true">
     <span class="cp-sidebar__section">{% trans "Recent" %}</span>
     <ul class="nav flex-column gap-1 ps-0 mt-1" id="cpNavRecentList" aria-label="{% trans 'Recently visited pages' %}"></ul>
   </div>

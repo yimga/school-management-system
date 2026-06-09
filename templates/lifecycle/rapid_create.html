@@ -16,6 +16,11 @@
 {% endblock %}
 
 {% block cp_content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <section class="container-fluid py-2 rmc-rapid-create" data-rmc-scroll-policy="paginate" data-page-archetype="decision-console" data-decision-console="lifecycle-rapid-create">
   <header class="rmc-rapid-create__header mb-3">
     <h1 class="h5 mb-1">{% trans "Rapid create" %}</h1>

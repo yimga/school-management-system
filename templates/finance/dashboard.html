@@ -18,6 +18,7 @@
 {% include "components/next_action_strip.html" %}
 
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Money Center" %}</h1>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-os-center="money_center" data-rmc-ux-role-dashboard="finance-workspace" data-apple-class-billing-ux="1" data-rmc-scroll-policy="paginate" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-page-critical-read="1">
 {% phase8_dashboard_declaration "finance/dashboard.html" %}
 {% url 'finance:invoices' as wcx_money_primary_url %}

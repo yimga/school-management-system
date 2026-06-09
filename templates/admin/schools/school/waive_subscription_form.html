@@ -2,6 +2,9 @@
 {% load i18n %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 <div class="module">
   <h2>{{ title }}</h2>
   <p>{% trans "Set billing to" %} <strong>{% trans "Complimentary (waived)" %}</strong> {% trans "for the selected school(s). A waiver note is required for compliance." %}</p>

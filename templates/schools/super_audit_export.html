@@ -16,6 +16,7 @@
 {% block cp_content %}
 {% include "components/next_action_strip.html" %}
 
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% trans "Export audit" as page_title %}
   {% trans "Security and admin audit log. Date range max 365 days. Rate limit: one export per 60 seconds." as page_subtitle %}

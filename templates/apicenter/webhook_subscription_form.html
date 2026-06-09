@@ -4,6 +4,11 @@
 {% block title %}{% if is_edit %}{% trans "Edit webhook" %}{% else %}{% trans "Create webhook" %}{% endif %}{% endblock %}
 
 {% block backend_page %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% if is_edit %}{% trans "Edit webhook" %}{% else %}{% trans "Create webhook" %}{% endif %}</h1>
 <div class="container-fluid py-2">
   <h4 class="mb-3">{% if is_edit %}{% trans "Edit webhook subscription" %}{% else %}{% trans "Create webhook subscription" %}{% endif %}</h4>

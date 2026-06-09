@@ -4,7 +4,8 @@
   <p class="alert alert-info mb-2">{% trans "Theme preview requires JavaScript. Use the form fields to change colors; save to see changes on the site." %}</p>
 </noscript>
 <section class="theme-preview-section">
-  <div class="theme-preview-card" data-current-role="{{ current_role }}">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="theme-preview-card" data-current-role="{{ current_role }}">
     <header>
       <h2>Live screen preview</h2>
       <p>Auto-updates while you edit Theme & Experience fields. Switch between desktop, tablet, and mobile layouts.</p>

@@ -10,7 +10,8 @@
   </p>
 
   <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 18px;">
-    <div class="rmc-stat-card" style="padding: 12px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-stat-card" style="padding: 12px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
       <div style="font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Evaluations" %}</div>
       <div style="font-size: var(--type-size-headline-m); font-weight: 700;">{{ tree.grade_rollup.evaluation_count|default:"0" }}</div>
     </div>

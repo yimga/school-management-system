@@ -1,5 +1,6 @@
 {% load i18n %}
 {% if marketing_region_show_affordance and not marketing_region_is_regional_page %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="mkt-region-affordance d-none d-lg-flex align-items-center gap-2" data-mkt-region-affordance="1">
   <span class="mkt-region-affordance__label small text-white-50">{% trans "Your region" %}</span>
   <a href="{{ marketing_region_landing_path }}" class="mkt-region-affordance__chip btn btn-sm btn-outline-light" data-cta="region-landing">

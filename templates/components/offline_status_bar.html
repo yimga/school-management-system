@@ -5,6 +5,7 @@
   "Sync now" triggers replay; "Last synced X ago" and "Resolve conflicts (N)" when applicable.
   Only rendered when SITE.enable_offline_mode is True; hidden when offline mode disabled.
 {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="sms-offline-status-bar" class="topbar-offline-status d-none d-inline-flex align-items-center gap-2 px-2 py-1 rounded-pill small text-white" role="status" aria-live="polite" style="min-width: 0; background: var(--hairline-strong);">
   <span id="sms-offline-status-dot" class="rounded-circle" style="width: 8px; height: 8px; flex-shrink: 0;"></span>
   <span id="sms-offline-status-text">Connected</span>

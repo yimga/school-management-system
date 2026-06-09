@@ -50,7 +50,8 @@ PII safety:
   {% if cockpit.community_band.achievement.enabled %}
     {% with ach=cockpit.community_band.achievement %}
     <article class="rmc-cband__card rmc-cband__card--achievement">
-      <div class="rmc-cband__head">
+      <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-cband__head">
         <h3 class="rmc-cband__title">🏅 {{ ach.title|default:cband_student_default }}</h3>
         {% if ach.period_label %}<span class="rmc-cband__chip">{{ ach.period_label }}</span>{% endif %}
       </div>

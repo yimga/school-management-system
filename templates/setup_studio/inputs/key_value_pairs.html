@@ -2,7 +2,8 @@
 <fieldset class="rmc-wizard-field">
   <legend class="rmc-wizard-field__label">{{ step_label }}</legend>
   {% if step_description %}<p class="rmc-wizard-field__helper">{{ step_description }}</p>{% endif %}
-  <div data-rmc-wizard-kv-rows>
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div data-rmc-wizard-kv-rows>
     {% for pair in prior_answer.pairs|default_if_none:'' %}
       <div class="rmc-wizard-kv-row">
         <input type="text" name="kv_key" value="{{ pair.key|default:'' }}" placeholder="{% trans 'Key' %}">

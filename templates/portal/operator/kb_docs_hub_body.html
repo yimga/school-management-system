@@ -1,5 +1,6 @@
 {% load i18n static %}
 <link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-kb-operator" data-rmc-scroll-policy="paginate">
   <p class="text-secondary">{% trans "Operator documentation: platform runbooks, office templates, and KB articles on the manager host." %}</p>
   <form class="mb-3 d-flex flex-wrap gap-2" method="get" action="{% url 'kb:kb_docs_hub' %}" role="search">

@@ -15,7 +15,8 @@
       {% if rmc_conversion_single_action_enforced|default:False %}
       <details class="rmc-conversion-more-actions border rounded px-2 py-1 bg-body-secondary bg-opacity-10">
         <summary class="small text-muted user-select-none cursor-pointer" >{% trans "More actions" %}</summary>
-        <div class="pt-2">
+        <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="pt-2">
           <a href="{{ secondary_url }}" class="btn btn-outline-secondary btn-sm ds-btn">{{ secondary_label }}</a>
         </div>
       </details>

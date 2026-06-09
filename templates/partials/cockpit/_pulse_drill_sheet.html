@@ -1,6 +1,7 @@
 {% load i18n static %}
 <dialog class="rmc-sheet" id="rmcCpPulseDrillSheet" role="dialog" aria-modal="true" aria-label="{% trans 'Pulse metric detail' %}">
-  <div class="rmc-sheet__handle" aria-hidden="true"></div>
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-sheet__handle" aria-hidden="true"></div>
   <header class="rmc-sheet__header">
     <h3 class="rmc-sheet__title" id="rmcCpPulseDrillTitle">{% trans "Metric detail" %}</h3>
     <button class="rmc-sheet__close" type="button" aria-label="{% trans 'Close' %}" data-rmc-sheet-close>&times;</button>

@@ -7,7 +7,8 @@
   {% include "marketing/components/_personality_hero.html" with eyebrow=page.label headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-archetype__hero" %}
   {% include "marketing/components/_personality_viz_panel.html" %}
   {% marketing_platform_visual_strip %}
-  <div class="mkt-edt-container mkt-v3-archetype__ctas rmc-reveal" data-mkt-reveal>
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-edt-container mkt-v3-archetype__ctas rmc-reveal" data-mkt-reveal>
     <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
     <a href="{% url 'marketing_platform' %}" class="mkt-edt-link">{% trans "Platform hub →" %}</a>
   </div>

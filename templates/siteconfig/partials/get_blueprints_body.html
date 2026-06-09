@@ -1,5 +1,6 @@
 {% load i18n static portal_filters %}
 <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Blueprints" %}</h1>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2 professional-page" data-page-archetype="catalog">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <p class="text-muted small mb-3"><a href="{% url 'siteconfig:dashboard_hub' %}">{% trans "Dashboard hub" %}</a> · <a href="{% url 'studio_os:automation' %}">{% trans "Workflow hub" %}</a>.</p>

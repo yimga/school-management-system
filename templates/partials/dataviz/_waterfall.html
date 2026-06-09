@@ -12,6 +12,7 @@ Parameters:
   aria_label — accessible label (default "Waterfall chart")
 {% endcomment %}
 {% if columns %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-waterfall" role="group" aria-label="{{ aria_label|default:_('Waterfall chart') }}">
   {% for col in columns %}
     <div class="rmc-waterfall__col">

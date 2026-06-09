@@ -5,7 +5,8 @@
   data-shell-chrome="page-heading-actions-strip"
   data-shell-page-heading-variant="{{ page_heading_variant|default:'default' }}"
 >
-  <div>
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div>
     <h1 class="h3 mb-1">{{ page_heading_title }}</h1>
     {% if page_heading_subtitle %}
     <p class="text-muted mb-0">{{ page_heading_subtitle }}</p>

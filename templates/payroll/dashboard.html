@@ -13,6 +13,11 @@
 {% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="payroll-dashboard-widgets">
 {% phase8_dashboard_declaration "payroll/dashboard.html" %}
 {% if phase7_de %}
@@ -64,7 +69,7 @@
   <div class="card-body">
     <h5 class="mb-2">Payroll Runs</h5>
     <div class="dashboard-card-scroll table-responsive">
-      <table class="table table-sm align-middle table-family rmc-data-table">
+      <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Payroll Runs" %}</caption>
         <thead>
           <tr>
@@ -108,4 +113,5 @@
 {% include "partials/rmc_chart_js_self_host.html" %}
 <script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
 <script src="{% static 'js/_pages/payroll__dashboard-2.js' %}"></script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

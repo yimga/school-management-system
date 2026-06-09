@@ -1,7 +1,8 @@
 {% load i18n static %}
 <link rel="stylesheet" href="{% static 'css/rmc-help-unified-hub.css' %}">
 <section class="mkt-help-hub rmc-reveal mb-4" data-mkt-reveal aria-labelledby="mkt-help-hub-title">
-  <div class="mkt-help-hub__hero card border-0 shadow-sm">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-help-hub__hero card border-0 shadow-sm">
     <div class="card-body">
       <h2 id="mkt-help-hub-title" class="h4 mb-2">{% trans "RunMyCampus Help Hub" %}</h2>
       <p class="text-secondary mb-3">

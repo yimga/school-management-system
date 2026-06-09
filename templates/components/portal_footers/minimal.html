@@ -1,6 +1,7 @@
 {% load static i18n %}
 <footer class="dashboard-footer dashboard-footer--minimal" id="dashboardFooter" data-portal-footer-variant="minimal" data-rmc-footer-surface="tenant-minimal">
-  <div class="footer-shell footer-shell--minimal" data-rmc-shell-footer="portal-minimal">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="footer-shell footer-shell--minimal" data-rmc-shell-footer="portal-minimal">
     <div class="footer-meta d-flex flex-wrap justify-content-between align-items-center gap-2 small">
       <span>&copy; {% now "Y" %} {{ SITE.company_name|default:SITE.site_name|default:"School" }}</span>
       {% if SITE.footer_support_hours %}

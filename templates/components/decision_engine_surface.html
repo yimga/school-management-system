@@ -1,7 +1,8 @@
 {% load i18n %}
 {% comment %} Phase 7 — Decision engine layout: headline → metrics → queue → next actions → activity {% endcomment %}
 <section class="decision-engine-surface" data-decision-engine="surface" aria-label="{% trans 'Operating summary' %}">
-  <div class="de-headline" data-decision-zone="headline">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="de-headline" data-decision-zone="headline">
     {% if de_eyebrow %}<p class="de-eyebrow">{{ de_eyebrow }}</p>{% endif %}
     <div class="de-headline-row">
       <div class="de-kpi">

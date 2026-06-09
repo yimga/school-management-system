@@ -1,7 +1,8 @@
 {% load i18n static %}
 {% if page_extras.stock_photo_url %}
 <section class="mkt-premium-stock section-shell" aria-label="{% trans 'Context photograph' %}">
-  <div class="mkt-premium-stock-frame">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-premium-stock-frame">
     <img src="{{ page_extras.stock_photo_url }}"
          alt="{{ page_extras.stock_photo_alt|default:page.label }}"
          class="mkt-premium-stock-img"

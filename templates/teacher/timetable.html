@@ -6,6 +6,7 @@
 {% block content %}
 {% include "components/next_action_strip.html" %}
 
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   <h1 class="visually-hidden" data-rmc-injected-h1="1">My Timetable</h1>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
@@ -13,13 +14,13 @@
   {% if not year or not term %}
     <div class="alert alert-warning">No active academic year or term is set. Ask an admin to set the current year and term.</div>
   {% elif not schedule %}
-    <div class="alert alert-info">
+    {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("
       No timetable is published for the current term yet. When the admin publishes a schedule for {{ year.name }} – {{ term.custom_label|default:term.name }}, your sessions will appear here.
-    </div>
+    ") message=_("Nothing here yet — check back after your school adds data.") %}
   {% elif not entries %}
-    <div class="alert alert-info">
+    {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("
       You have no assigned sessions in the current timetable. If you expect to see classes here, ask the admin to assign you in the schedule.
-    </div>
+    ") message=_("Nothing here yet — check back after your school adds data.") %}
   {% else %}
     <div class="card">
       <div

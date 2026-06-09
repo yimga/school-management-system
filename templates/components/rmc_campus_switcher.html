@@ -7,6 +7,7 @@
 {% if request.user.is_authenticated and not request.public_host_kind == 'manager' %}
 {% url 'api_v1:me-schools' as campus_me_schools_url %}
 {% url 'api_v1:me-switch-school' as campus_me_switch_url %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-campus-switcher d-none" id="rmc-campus-switcher" data-rmc-campus-switcher="1"
      data-schools-url="{{ campus_me_schools_url|escape }}"
      data-switch-url="{{ campus_me_switch_url|escape }}"

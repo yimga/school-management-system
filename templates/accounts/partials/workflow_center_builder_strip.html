@@ -20,7 +20,8 @@
     {% endfor %}
   </p>
   {% endif %}
-  <div class="d-flex flex-wrap gap-2 mt-2 align-items-center">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="d-flex flex-wrap gap-2 mt-2 align-items-center">
     {% if studio_simulation_url %}
     <a class="btn btn-sm btn-outline-primary" href="{{ studio_simulation_url }}">{% trans "Non-destructive simulation (Automation)" %}</a>
     {% endif %}

@@ -8,7 +8,8 @@
     {% trans "Deep dives for counsel, DPO, and accessibility reviewers—linked from one grid." %}
     {% endif %}
   </p>
-  <div class="mkt-trust-regulatory-grid">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-trust-regulatory-grid">
     {% for card in trust_regulatory_cards %}
     <article class="mkt-trust-regulatory-card{% if card.highlight %} mkt-trust-regulatory-card--highlight{% endif %}" data-trust-regulatory="{{ card.id }}">
       <h3 class="mkt-trust-regulatory-card__title">{{ card.title }}</h3>

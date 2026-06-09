@@ -12,6 +12,11 @@
 {% endblock %}
 
 {% block cp_content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="container-fluid py-2 control-plane-shell rmc-cp-compact" data-page-archetype="operational-workbench" data-decision-engine="surface" data-rmc-scroll-policy="paginate" data-rmc-operational-workbench="1" data-rmc-marketplace-workbench="1" data-rmc-page-fold-nav="required" data-rmc-section-nav="curated">
   {% phase8_dashboard_declaration "marketplace/installation_health.html" %}
   {% url 'super:marketplace_sandbox_inspector' as sandbox_url %}
@@ -33,7 +38,7 @@
       <h2 class="cp-panel-title">{% trans "Health status" %}</h2>
     </div>
     <div class="table-responsive rmc-cp-compact__table-wrap">
-      <table class="table table-sm table-hover mb-0 table-family rmc-data-table align-middle" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+      <table class="table table-sm table-hover mb-0 table-family rmc-data-table align-middle" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Health status" %}</caption>
         <thead>
           <tr>
@@ -82,4 +87,5 @@
     {% include "components/pagination.html" %}
   </section>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

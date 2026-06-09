@@ -1,5 +1,6 @@
 {% load i18n %}
 {% include "partials/rmc_bulk_confirm_modal.html" %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-list-bulk-bar" data-rmc-list-bulk-bar{% if bulk_bar_id %} data-rmc-bulk-bar-for="{{ bulk_bar_id }}"{% endif %} hidden role="region" aria-live="polite" aria-label="{% trans 'Bulk actions' %}">
   <div class="rmc-list-bulk-bar__inner">
     <span class="rmc-list-bulk-bar__count" data-rmc-bulk-count>0 {% trans "selected" %}</span>

@@ -9,7 +9,8 @@
 {% endcomment %}
 {% if cockpit.admissions_queue.enabled|default:True %}
 <section class="lx-card lx-admissions-queue" aria-label="{% trans 'Admissions queue depth' %}" data-rmc-cockpit-section="admissions_queue">
-  <div class="lx-card__head">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="lx-card__head">
     <div>
       <div class="lx-card__eyebrow">{{ cockpit.admissions_queue.eyebrow|default:_("Admissions") }}</div>
       <h3 class="lx-card__title">{{ cockpit.admissions_queue.title|default:_("Queue depth") }}</h3>

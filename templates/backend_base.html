@@ -2,7 +2,12 @@
 {% load i18n %}
 {% comment %}
   Router: child templates use {% block backend_page %} so they never replace
-  control_plane_base's outer {% block content %} shell on the manager host.
+  control_plane_base's outer {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+ shell on the manager host.
   Note: workflow auto-chrome is wired in the Tools tray only
   (partials/rmc_tools_tray_context_stack.html via tenant/operator tools scripts).
 {% endcomment %}

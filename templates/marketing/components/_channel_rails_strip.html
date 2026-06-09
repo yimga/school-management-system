@@ -2,7 +2,8 @@
 {% if rails %}
 <section class="mkt-rails mkt-rails--{{ rails_kind|default:'payments' }} mkt-edt-container rmc-reveal" aria-label="{% if rails_title %}{{ rails_title }}{% elif rails_kind == 'messaging' %}{% trans 'Parent communication channels' %}{% else %}{% trans 'Accepted payment rails' %}{% endif %}" data-mkt-reveal data-mkt-rails-kind="{{ rails_kind|default:'payments' }}">
   {% if rails_title %}<p class="mkt-rails__title">{{ rails_title }}</p>{% endif %}
-  <div class="mkt-rails__list">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-rails__list">
     {% for rail in rails %}
       {% if rail.note %}
       <div class="mkt-rails__chip mkt-rails__chip--note mkt-rails__chip--{{ rail.kind|default:'channel' }}">

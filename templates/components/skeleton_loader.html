@@ -4,6 +4,7 @@ Skeleton loader — announces busy state to assistive tech.
 Replace with the loaded content + set aria-busy="false" when ready.
 {% endcomment %}
 
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="skeleton-loader" role="status" aria-busy="true" aria-live="polite" aria-label="{% trans 'Loading…' %}">
   <span class="visually-hidden">{% trans "Loading…" %}</span>
   <div class="skeleton skeleton-text" aria-hidden="true"></div>

@@ -33,6 +33,9 @@
 {% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
     {% if is_manager_host and not is_popup %}
         {% include "admin/includes/admin_change_form_header.html" %}
     {% endif %}

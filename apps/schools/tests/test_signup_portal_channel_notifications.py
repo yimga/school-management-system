@@ -96,3 +96,19 @@ class SignupPortalChannelNotificationTests(TestCase):
         self.school.refresh_from_db(fields=["settings"])
         state = (self.school.settings or {}).get("signup_notifications") or {}
         self.assertTrue(state.get("sms_dispatched_at"))
+
+    @mock.patch("apps.platform_runtime.event_bus.publish_event")
+    @mock.patch("apps.schools.signup_portal_channel_notifications.dispatch_portal_ready_channels")
+    def test_force_resend_redispatches_all_channels(self, dispatch_mock, publish_event):
+        publish_event.return_value = object()
+        notify_tenant_signup_completed(
+            self.school, self.owner.email, admin_user=self.owner
+        )
+        dispatch_mock.reset_mock()
+        publish_event.reset_mock()
+        notify_tenant_signup_completed(
+            self.school, self.owner.email, admin_user=self.owner, force=True
+        )
+        dispatch_mock.assert_called_once()
+        self.assertTrue(dispatch_mock.call_args.kwargs.get("force"))
+        publish_event.assert_called_once()

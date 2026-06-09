@@ -2,7 +2,8 @@
 {% comment %}GDPR consent banner. Hidden by default; mkt-consent.js shows it only when no prior choice exists, and reopens it for [data-mkt-consent-open] triggers. Default-deny: analytics/marketing off until accepted.{% endcomment %}
 <aside class="mkt-consent" data-mkt-consent role="dialog" aria-modal="false"
        aria-label="{% trans 'Cookie and privacy preferences' %}" hidden aria-hidden="true">
-  <div class="mkt-consent__inner mkt-edt-container">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-consent__inner mkt-edt-container">
     <div class="mkt-consent__copy">
       <p class="mkt-consent__title">{% trans "We respect your privacy" %}</p>
       <p class="mkt-consent__text">

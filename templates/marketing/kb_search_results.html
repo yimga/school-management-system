@@ -2,6 +2,9 @@
 {% load i18n static %}
 {% block title %}{% trans "Help center search" %} | RunMyCampus{% endblock %}
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 <section class="mkt-section rmc-reveal" data-mkt-reveal>
   <h1 class="mkt-section-heading">{% trans "Knowledge base search" %}</h1>
   <form method="get" action="{% url 'marketing_kb_search' %}" class="input-group mb-4" role="search" id="mkt-kb-search-form">

@@ -22,7 +22,8 @@
   </style>
 </head>
 <body class="bg-light d-flex align-items-center min-vh-100">
-  <div class="container py-5">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container py-5">
     <section class="card shadow-sm mx-auto badge-verify-card" aria-label="{% trans 'Badge verification result' %}">
       <div class="card-body text-center p-4">
         {% if valid %}

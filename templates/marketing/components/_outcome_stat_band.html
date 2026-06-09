@@ -1,7 +1,8 @@
 {% load i18n %}
 {% if outcome_stats %}
 <section class="mkt-outcome-band rmc-reveal" data-mkt-reveal aria-label="{% trans 'Outcome statistics' %}">
-  <div class="mkt-edt-container mkt-outcome-band__inner">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-edt-container mkt-outcome-band__inner">
     <ul class="mkt-outcome-grid">
       {% for stat in outcome_stats %}
       <li class="mkt-outcome-stat">

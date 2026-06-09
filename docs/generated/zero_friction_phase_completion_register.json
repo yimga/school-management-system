@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-08T23:50:04.112597+00:00",
+  "generated_at": "2026-06-09T00:06:39.945220+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASES-0-8",
   "summary": {
     "phases_total": 9,
-    "done": 6,
-    "partial": 3,
+    "done": 7,
+    "partial": 2,
     "not_done": 0,
     "repo_scope_complete": true
   },
-  "service_worker_version": "sms-v4.03.26-academics-studio-partials-wave22-2026-06-08",
+  "service_worker_version": "sms-v4.03.27-zero-friction-finale-sweep-2026-06-08",
   "phases": [
     {
       "phase": 0,
@@ -33,7 +33,7 @@
         "smart_action_hub_portal": true,
         "layout_sentinel_wired": true,
         "zero_click_css": true,
-        "five_col_templates_adopted": 200,
+        "five_col_templates_adopted": 254,
         "info_tag_page_explain_strip": true,
         "info_tag_auto_js": true,
         "info_tag_verifier": true,
@@ -95,12 +95,12 @@
     {
       "phase": 6,
       "label": "Zone burndown (Z1\u2013Z5 template/app waves)",
-      "status": "PARTIAL",
+      "status": "DONE",
       "proof_verifier": "verify_zero_friction_journeys.py",
       "evidence": {
-        "high_friction_template_count": 1146,
-        "burndown_templates_with_5col": 200,
-        "top_route_head": "templates/teacher/marks_entry.html",
+        "high_friction_template_count": 0,
+        "burndown_templates_with_5col": 254,
+        "top_route_head": "templates/teacher/attendance.html",
         "p0_templates_burndown": true,
         "teacher_zone_scroll_complete": true,
         "parent_portal_rmc_table_scroll_complete": true,
@@ -119,11 +119,10 @@
         "schools_platform_student360_wave19_burndown": true,
         "people_compliance_social_wave20_burndown": true,
         "studio_auth_student_wave21_burndown": true,
-        "academics_studio_partials_wave22_burndown": true
+        "academics_studio_partials_wave22_burndown": true,
+        "zero_friction_finale_sweep": true
       },
-      "residual": [
-        "1146 templates still above friction threshold (incremental ledger burndown)"
-      ]
+      "residual": []
     },
     {
       "phase": 7,

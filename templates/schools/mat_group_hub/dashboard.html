@@ -33,7 +33,8 @@
           <span class="mat-hub-card__region">{{ entry.group.region|default:"—" }}</span>
         </header>
         <dl class="mat-hub-kpis">
-          <div><dt>Schools</dt><dd>{{ entry.snapshot.member_count }}</dd></div>
+          <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div><dt>Schools</dt><dd>{{ entry.snapshot.member_count }}</dd></div>
           <div><dt>Students</dt><dd>{{ entry.snapshot.total_students }}</dd></div>
           <div><dt>Staff</dt><dd>{{ entry.snapshot.total_staff }}</dd></div>
           <div><dt>Admissions Pipeline</dt><dd>{{ entry.snapshot.admissions_pipeline_count }}</dd></div>

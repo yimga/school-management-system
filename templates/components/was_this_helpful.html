@@ -2,6 +2,7 @@
 {% load i18n %}
 {% comment %} Phase 13: "Was this helpful?" at completion points. Include after a key action (e.g. after submitting grades, after generating invoices). {% endcomment %}
 {% comment %} Usage: {% include 'components/was_this_helpful.html' with feedback_id='eval-admin' feedback_label='Evaluation Manager' %} {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="was-this-helpful border-top pt-3 mt-3" role="region" aria-label="{% trans 'Feedback' %}">
   <p class="small text-muted mb-2">{% trans "Was this helpful?" %}</p>
   <div class="d-flex gap-2 flex-wrap">

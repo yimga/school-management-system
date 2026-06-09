@@ -1,7 +1,8 @@
 {% load i18n %}
 {% if community_lane.visible %}
 <section class="rmc-help-community-lane mb-4" aria-labelledby="help-community-lane-title">
-  <div class="card border-0 shadow-sm h-100">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="card border-0 shadow-sm h-100">
     <div class="card-body">
       <h2 id="help-community-lane-title" class="h6 mb-2"><i class="bi bi-people me-1"></i>{% trans "Community forums" %}</h2>
       <p class="small text-muted mb-2">{% trans "Discuss school life with parents, teachers, and staff — separate from private support tickets." %}</p>

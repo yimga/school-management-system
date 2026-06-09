@@ -41,7 +41,8 @@
 
   <fieldset class="mat-edit-fieldset">
     <legend>Group</legend>
-    <div class="mat-edit-row">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mat-edit-row">
       <label for="{{ form.group_id.id_for_label }}">Group ID</label>
       {{ form.group_id }}
       {% if form.group_id.help_text %}<small>{{ form.group_id.help_text }}</small>{% endif %}

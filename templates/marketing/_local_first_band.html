@@ -15,7 +15,8 @@
        aria-label="{% blocktrans with cn=marketing_local.country_name %}Local welcome for {{ cn }}{% endblocktrans %}"
        data-rmc-local-first-band="1"
        data-rmc-country="{{ marketing_local.country_code }}">
-  <div class="container mkt-local-first-band__inner">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container mkt-local-first-band__inner">
     <div class="mkt-local-first-band__lead">
       <span class="mkt-local-first-band__greeting">{{ marketing_local.greeting }}</span>
       <span class="mkt-local-first-band__divider" aria-hidden="true">·</span>

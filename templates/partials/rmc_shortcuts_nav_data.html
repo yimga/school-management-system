@@ -5,3 +5,4 @@
 {% url 'accounts:user_profile' as rmc_shortcut_configure_url %}
 <script type="application/json" id="rmc-shortcuts-nav">{"home":"{% if portal_home_url %}{{ portal_home_url|escapejs }}{% else %}{{ rmc_shortcut_home_url|escapejs }}{% endif %}","notifications":"{{ rmc_shortcut_notifications_url|escapejs }}","configure":"{{ rmc_shortcut_configure_url|escapejs }}"}</script>
 {% endif %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

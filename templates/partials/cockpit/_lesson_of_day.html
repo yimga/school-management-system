@@ -12,7 +12,8 @@ from raw student PII (teacher name is fine; child name omitted).
     <span class="tp-lesson__label">{{ lo.title|default:_("Lesson of the day") }}</span>
     {% if lo.time_window %}<span class="tp-lesson__time">{{ lo.time_window }}</span>{% endif %}
   </header>
-  <div class="tp-lesson__body">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="tp-lesson__body">
     {% if lo.subject %}<span class="tp-lesson__subject">{{ lo.subject }}</span>{% endif %}
     <h3 class="tp-lesson__title">{{ lo.lesson_title }}</h3>
     {% if lo.teacher_name %}<span class="tp-lesson__teacher">{{ lo.teacher_name }}</span>{% endif %}

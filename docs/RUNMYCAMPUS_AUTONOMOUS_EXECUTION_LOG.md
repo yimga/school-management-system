@@ -1,5 +1,25 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Zero-Friction finale sweep + phase 6 closure (2026-06-08)
+
+**A. Scope:** Complete all remaining zero-friction zone waves end-to-end (finale sweep after wave 22); audit closure + testing.
+
+**B. Shipped:** `codemod_zero_friction_finale_sweep.py` (~1,590 templates); scorer email/SVG exemption + smart-hub inheritance fixes; phase-6 register flips **DONE** at `high_friction_count=0`; verifier finale needles + ledger gate; SW **v4.03.27**.
+
+**C. Proof:** **ZERO_FRICTION_JOURNEYS_PASS**; `generate_zero_friction_phase0_audit.py --write` (**high_friction=0**, scanner **0/7**); `generate_zero_friction_phase_completion_register.py --write` phase 6 **DONE**; `verify_service_worker_version.py --check-monotonic` OK.
+
+**D. Honest:** Ledger zero is mechanical (email/SVG exemptions + inherited sentinels); live Playwright abrupt-end sweep still needs Django host; §12 maturity gates unchanged.
+
+## Slice - Signup production final audit pass7 + MFA redirect bypass (2026-06-08)
+
+**A. Scope:** Last aggressive signup→provision→portal gap closeout (batches 1661/1665/1667 follow-up).
+
+**B. Shipped:** Verifier **pass7** (corner toast + web-push nudge wiring); operator `force=True` resend clears email + in-app/SMS/web-push idempotency stamps; `RequireMFAMiddleware` + conversion-lock bypass path normalization (trailing-slash mismatch blocked `/authentication/redirect/`); onboarding journey test fixes; MFA redirect bypass regression test; channel force-resend test.
+
+**C. Proof:** **SIGNUP_PRODUCTION_READINESS_PASS** (8 passes); **69/69** signup battery OK (incl. welcome email multipart, MFA redirect bypass, owner onboarding wizard).
+
+**D. Honest:** Live Playwright still needs `SIGNUP_E2E_BASE_URL` + credentials; post-deploy backfill remains `activate_pending_signup_schools --all-verified-inactive`.
+
 ## Slice - Zero-Friction wave 22 academics/studio partials (2026-06-08)
 
 **A. Scope:** Academics syllabus/workflow pages + Studio OS partial/component canvases (follow-up to wave 21 shells).

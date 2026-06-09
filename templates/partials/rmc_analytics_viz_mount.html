@@ -5,6 +5,7 @@
   Pass tenant_id (slug) and optional min_height (default 24rem).
 {% endcomment %}
 {% if ENABLE_UNIFIED_ANALYTICS_VIZ %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div
   data-rmc-tenant-overview
   data-tenant-id="{{ tenant_id|default:'platform-overview' }}"

@@ -23,7 +23,8 @@
     {% trans "Receipt" as report_title %}
     {% include "partials/rmc_print_v2_brand_block.html" with report_title=report_title report_subtitle=payment.reference|default:payment.id report_meta_left=payment.paid_at|format_date report_meta_right=school %}
 
-    <div data-rmc-scroll-policy="paginate" class="section">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div data-rmc-scroll-policy="paginate" class="section">
       <strong>{% trans "Billed to" %}</strong>
       <div>{{ invoice.student|default:invoice.counterparty }}</div>
       <div>Invoice: {{ invoice.reference|default:invoice.id }}</div>

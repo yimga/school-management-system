@@ -3,6 +3,9 @@
 {% load phase8_tags %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 {% phase8_dashboard_declaration "admin/admin_dashboard.html" %}
 <span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
 {{ block.super }}

@@ -1,5 +1,6 @@
 {% load static %}
 <!-- Weather and daily message card -->
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="weather-widget-card" data-weather-widget data-weather-endpoint="{% url 'api_weather_context' %}">
   <div class="weather-widget-card__header">
     <div>

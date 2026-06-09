@@ -2,7 +2,8 @@
 {% comment %} Override: use SVG so "manage_search" never shows as text when Material Symbols font 404s on production. {% endcomment %}
 {% if sidebar_show_search %}
     {% if sidebar_command_search %}
-        <div class="mb-2.5 mx-3 relative" x-on:click="$dispatch('opencommand')">
+        <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mb-2.5 mx-3 relative" x-on:click="$dispatch('opencommand')">
             <div class="bg-white border border-base-200 cursor-pointer flex flex-row items-center px-3 rounded-default relative shadow-xs w-full focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-primary-600 dark:bg-base-900 dark:border-base-700">
                 <span class="flex items-center shrink-0 text-base-400" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>

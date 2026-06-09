@@ -1,6 +1,6 @@
 {% load i18n static %}
 {% if studio_operator_toolbar %}
-<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="studio-operator-toolbar mb-3" data-studio-operator-toolbar="1">
   <div class="studio-operator-toolbar__row d-flex flex-wrap align-items-end gap-3">
     <form method="post" action="{{ studio_operator_toolbar.set_school_url }}" class="studio-operator-toolbar__school-form d-flex flex-wrap align-items-end gap-2 flex-grow-1 min-w-0">

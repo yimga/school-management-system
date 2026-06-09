@@ -1,3 +1,4 @@
 {% load i18n unfold %}
 {% comment %}Project override: always use our custom admin app_list. Single sidebar for all admin pages. Ignores sidebar_navigation. {% endcomment %}
 {% include "admin/app_list.html" with app_list=available_apps show_changelinks=False %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

@@ -4,6 +4,11 @@
 {% block title %}{% trans "Billing estimate" %}{% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Billing estimate" %}</h1>
 <div class="container-lg py-4" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-tenant-billing-estimate="1">
   <div class="mb-3">

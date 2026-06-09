@@ -2,6 +2,7 @@
 {% if profile_security %}
 <link rel="stylesheet" href="{% static 'css/rmc-profile-security-gauge.css' %}">
 {% with ps=profile_security score=profile_security.security_score band=profile_security.strength_band %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-security-gauge content-card mb-3" data-strength-band="{{ band }}" style="--rmc-gauge-score: {{ score }};" id="profile-security-strength" data-rmc-section-anchor data-rmc-section-nav-label="{% trans 'Security strength' %}">
   <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
     <div>

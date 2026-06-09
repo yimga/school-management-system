@@ -8,7 +8,8 @@
 {% if resumable_wizards %}
   {% with variant=banner_variant|default:"full" %}
     <aside class="rmc-resumable-wizards rmc-resumable-wizards--{{ variant }} rmc-reveal" role="region" aria-label="{% trans 'Wizards in progress' %}">
-      <div class="rmc-resumable-wizards__head">
+      <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-resumable-wizards__head">
         <span class="rmc-resumable-wizards__badge" aria-hidden="true">{{ resumable_wizards|length }}</span>
         <strong class="rmc-resumable-wizards__title">{% blocktrans count counter=resumable_wizards|length %}You have {{ counter }} wizard in progress.{% plural %}You have {{ counter }} wizards in progress.{% endblocktrans %}</strong>
         <span class="rmc-resumable-wizards__hint">{% trans "Pick up where you left off." %}</span>

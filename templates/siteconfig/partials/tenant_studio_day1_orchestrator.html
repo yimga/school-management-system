@@ -7,7 +7,8 @@
   data-rmc-tenant-studio-day1-active-act="{{ day1_active_act|default:1 }}"
   aria-label="{% trans 'Day-1 brand session' %}">
   <link rel="stylesheet" href="{% static 'css/tenant-studio-day1.css' %}">
-  <div class="rmc-day1-hero" data-rmc-day1-hero="1">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-day1-hero" data-rmc-day1-hero="1">
     {% if day1_active_act == 1 or active_act == 1 %}
       {% include "siteconfig/partials/tenant_studio_day1_act1_brand.html" %}
     {% elif day1_active_act == 2 or active_act == 2 %}

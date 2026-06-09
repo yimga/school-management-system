@@ -2,6 +2,9 @@
 {% load i18n static %}
 {% block title %}{{ seo_title }}{% endblock %}
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 <div class="container py-5" style="max-width: 40rem">
   <header class="mb-4">
     <h1 class="h2">{% trans "Request security packet" %}</h1>

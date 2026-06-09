@@ -29,7 +29,8 @@
    The grid uses CSS Grid `grid-template-areas` so order in `cells` determines reading flow.
    Honors prefers-reduced-motion via no transform on hover. {% endcomment %}
 <section class="mkt-edt-section mkt-bento-section" {% if bento.aria_label_id %}aria-labelledby="{{ bento.aria_label_id }}"{% endif %} data-mkt-reveal>
-  <div class="mkt-edt-container">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-edt-container">
     {% if bento.eyebrow or bento.headline or bento.lead %}
       <header class="mkt-bento__intro">
         {% if bento.eyebrow %}<p class="mkt-edt-eyebrow">{{ bento.eyebrow }}</p>{% endif %}

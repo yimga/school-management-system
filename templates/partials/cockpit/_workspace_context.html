@@ -15,6 +15,7 @@
    `actor_display.role_label`. All sourced from a PII-safe view helper. {% endcomment %}
 
 {% if cockpit.workspace_context.enabled|default:False %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-cockpit-workspace" data-rmc-cockpit-workspace="1">
   <div class="rmc-cockpit-workspace__identity">
     <div class="rmc-cockpit-workspace__avatar" aria-hidden="true">{{ actor_display.initials|default:"··" }}</div>

@@ -3,7 +3,8 @@
   <legend class="rmc-wizard-field__label">{{ step_label }}</legend>
   {% if step_description %}<p class="rmc-wizard-field__helper">{{ step_description }}</p>{% endif %}
   {% for field in step.fields %}
-    <div class="rmc-wizard-field">
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-wizard-field">
       <label class="rmc-wizard-field__label" for="rmc-wizard-input-{{ field.name }}">{{ field.label_token|default:field.name }}</label>
       {% if field.type == "textarea" %}
         <textarea id="rmc-wizard-input-{{ field.name }}" name="{{ field.name }}" rows="4"

@@ -1,4 +1,5 @@
 {% load static i18n control_console phase8_tags %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page-archetype="decision-console" data-decision-engine="surface" data-shell-surface="config-control-center" data-cp-evidence-surface="configuration-control-center" aria-labelledby="ccc-heading" aria-describedby="ccc-desc">
   {% phase8_dashboard_declaration "siteconfig/partials/console_domains_hub_manager_body.html" %}
   {% operator_console_strip %}

@@ -2,6 +2,9 @@
 {% load i18n %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 <div class="colM">
   <h1>{% trans "Permanent delete requires offboarding workflow" %}</h1>
   <p>{% blocktrans with name=object.name %}Deleting school <strong>{{ name }}</strong> from Django admin bypasses inventory, schema drop, and audit receipts.{% endblocktrans %}</p>

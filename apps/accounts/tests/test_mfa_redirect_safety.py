@@ -1,9 +1,16 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.http import HttpResponse
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
+
+from apps.accounts.middleware import RequireMFAMiddleware
 
 
 User = get_user_model()
+
+
+def _ok_response(request):
+    return HttpResponse("ok")
 
 
 class MfaRedirectSafetyTests(TestCase):
@@ -22,3 +29,23 @@ class MfaRedirectSafetyTests(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/admin/")
+
+
+class RequireMfaPostLoginRedirectBypassTests(TestCase):
+    """ADMIN owners must reach redirect_view before MFA setup (signup/onboarding path)."""
+
+    def test_redirect_bypasses_mfa_gate_when_path_is_normalized(self):
+        user = User.objects.create_user(
+            username="new-owner",
+            email="new-owner@example.com",
+            password="password",
+            role="ADMIN",
+        )
+        factory = RequestFactory()
+        request = factory.get("/authentication/redirect/")
+        request.user = user
+        request.session = {}
+        middleware = RequireMFAMiddleware(_ok_response)
+        response = middleware(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"ok")

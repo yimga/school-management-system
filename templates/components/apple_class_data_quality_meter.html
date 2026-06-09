@@ -1,5 +1,6 @@
 <section class="rmc-acx-data-quality" data-apple-class-data-quality-meter="1" aria-labelledby="{{ meter_id|default:'apple-data-quality-title' }}">
-  <div class="d-flex justify-content-between gap-2 align-items-center">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="d-flex justify-content-between gap-2 align-items-center">
     <h2 id="{{ meter_id|default:'apple-data-quality-title' }}" class="h6 mb-0">{{ title|default:"Data quality" }}</h2>
     {% include "components/apple_class_status_pill.html" with status=status|default:"needs-review" label=status_label|default:"Needs review" %}
   </div>

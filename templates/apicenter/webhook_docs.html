@@ -5,6 +5,11 @@
 {% block title %}{% trans "Webhook docs" %}{% endblock %}
 
 {% block backend_page %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Webhook docs" %}</h1>
 <div class="container-fluid py-2" data-rmc-scroll-policy="paginate">
   <h4 class="mb-3">{% trans "Webhook documentation" %}</h4>
@@ -14,7 +19,7 @@
       <h5 class="card-title">{% trans "Subscriptions" %}</h5>
       <p class="card-text">{% trans "Subscribe to platform events (e.g. student_created, invoice_created). Manage endpoints below. Production callbacks should be idempotent and must not assume live payment settlement unless PSP webhooks confirm it." %}</p>
       <p><a href="{% url 'apicenter:webhook_subscription_create' %}" class="btn btn-sm btn-primary">{% trans "Create subscription" %}</a></p>
-      <table class="table table-sm table-family align-middle rmc-data-table">
+      <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Subscriptions" %}</caption>
         <thead><tr><th>URL</th><th>{% trans "Events" %}</th><th>{% trans "Active" %}</th><th>{% trans "Updated" %}</th><th></th></tr></thead>
         <tbody>
@@ -43,4 +48,5 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

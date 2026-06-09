@@ -2,7 +2,8 @@
 <section class="mkt-lane-finance rmc-reveal" data-mkt-reveal aria-labelledby="lane-finance-headline">
   <h2 id="lane-finance-headline" class="mkt-lane-finance__title">{% trans "Fee posture at a glance" %}</h2>
   <p class="mkt-lane-finance__lead">{% trans "Invoices, receipts, and arrears in one ledger view — amounts shown as illustrative samples." %}</p>
-  <div class="mkt-lane-finance__chart" role="img" aria-label="{% trans 'Illustrative monthly collections bar chart' %}">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-lane-finance__chart" role="img" aria-label="{% trans 'Illustrative monthly collections bar chart' %}">
     <div class="mkt-lane-finance__bar" style="--bar-h: 42%;" data-label="{% trans 'Jan' %}"></div>
     <div class="mkt-lane-finance__bar" style="--bar-h: 58%;" data-label="{% trans 'Feb' %}"></div>
     <div class="mkt-lane-finance__bar" style="--bar-h: 71%;" data-label="{% trans 'Mar' %}"></div>

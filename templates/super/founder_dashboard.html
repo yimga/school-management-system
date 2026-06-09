@@ -25,6 +25,9 @@
    (every operator page) — per-dashboard override removed to avoid a double row. {% endcomment %}
 
 {% block cp_content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
 {# table-pagination-allow: founder-dashboard-widget-top-N each-tile-is-bounded-summary #}
 {% url 'sales:pipeline_board' as sales_pipeline_url %}
 {% comment %} v3.57.18 (2026-05-22): founder landing receives the same cockpit chrome as
@@ -332,7 +335,7 @@
   <section class="mb-4 rmc-reveal" data-rmc-ux-section="latest-proof" aria-labelledby="slice-h">
     <h2 class="h5" id="slice-h">{% trans "North Star slices 15–24 (SOT)" %}</h2>
     <div class="table-responsive">
-      <table class="table table-family table-sm table-bordered align-middle rmc-data-table">
+      <table class="table table-family table-sm table-bordered align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "North Star slices 15–24 (SOT)" %}</caption>
         <thead class="table-light">
           <tr>
@@ -425,4 +428,5 @@
     {% trans "Generated audit file" %}: <code>{{ generated_audit_hint }}</code>
   </p>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

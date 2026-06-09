@@ -11,7 +11,8 @@
   {% include "marketing/components/_personality_hero.html" with eyebrow=_("Trust & compliance") headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
   {% include "marketing/components/_personality_viz_panel.html" %}
   {% include "marketing/components/_local_first_global_next.html" %}
-  <div class="mkt-edt-container mkt-v3-archetype__ctas rmc-reveal" data-mkt-reveal>
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="mkt-edt-container mkt-v3-archetype__ctas rmc-reveal" data-mkt-reveal>
     <a href="{% url 'marketing_security_packet_request' %}" class="mkt-edt-cta" data-cta="security-packet">{% trans "Request security packet" %}</a>
     <a href="{% url 'marketing_procurement_checklist' %}" class="mkt-edt-link">{% trans "Procurement checklist →" %}</a>
   </div>

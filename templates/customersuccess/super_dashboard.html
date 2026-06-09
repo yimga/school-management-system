@@ -14,6 +14,11 @@
 {% comment %} v4.02.x: LIVE marquee row is now the DEFAULT in control_plane_unified_header.html
    (every operator page) — per-dashboard override removed to avoid a double row. {% endcomment %}
 {% block cp_content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 {% comment %} v3.57.18 (2026-05-22): CS team's operator landing earns landing-peer parity
    with super_dashboard.html — gets platform_pulse + activity_ticker. Each partial
    self-gates on cockpit.<section>.enabled.
@@ -88,7 +93,7 @@
         <div class="card-header">Risk alerts</div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover mb-0 table-family align-middle rmc-data-table">
+            <table class="table table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "Risk alerts" %}</caption>
               <thead class="table-light"><tr><th>School</th><th>Severity</th><th>Reason</th><th>When</th></tr></thead>
               <tbody>
@@ -113,7 +118,7 @@
         <div class="card-header">Intervention suggestions</div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover mb-0 table-family align-middle rmc-data-table">
+            <table class="table table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "Intervention suggestions" %}</caption>
               <thead class="table-light"><tr><th>School</th><th>Category</th><th>Title</th><th>When</th></tr></thead>
               <tbody>
@@ -141,7 +146,7 @@
         <div class="card-header">Recent workflow failures</div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover mb-0 table-family align-middle rmc-data-table">
+            <table class="table table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "Recent workflow failures" %}</caption>
               <thead class="table-light"><tr><th>School</th><th>Workflow</th><th>Error</th><th>When</th></tr></thead>
               <tbody>
@@ -169,7 +174,7 @@
         <div class="card-header">School health scores (latest)</div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover mb-0 table-family align-middle rmc-data-table">
+            <table class="table table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "School health scores (latest)" %}</caption>
               <thead class="table-light"><tr><th>School</th><th>Score</th><th>Dimensions</th><th>Computed</th></tr></thead>
               <tbody>
@@ -198,4 +203,5 @@
     <code>/super/customer-success/api/benchmark/peer-metrics/?school_id=...</code>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

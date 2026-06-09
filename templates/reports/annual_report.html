@@ -15,7 +15,8 @@
   <nav class="ds-action-bar d-print-none mb-2" aria-label="{% trans 'Report actions' %}">
     <button type="button" class="btn btn-sm btn-primary ds-btn" onclick="window.print()">{% trans "Print or save as PDF" %}</button>
   </nav>
-  <div class="letterhead">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="letterhead">
     {% if SITE_LOGO_URL %}
       <img src="{{ SITE_LOGO_URL }}" alt="Logo" width="80" height="80" decoding="async" style="max-height: 80px; width: auto; object-fit: contain;" />
     {% endif %}

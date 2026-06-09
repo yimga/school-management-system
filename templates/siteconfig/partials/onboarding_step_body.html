@@ -1,4 +1,5 @@
 {% load i18n %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container py-3" style="max-width: 42rem;" data-shell-surface="school-activation-onboarding" data-rmc-onboarding="school-activation" data-rmc-onboarding-step="1">
   <p class="small mb-2"><a href="{% url 'siteconfig:onboarding' %}">{% trans "Back to full checklist" %}</a></p>
   <h1 class="h4 mb-2">{{ step.label }}</h1>

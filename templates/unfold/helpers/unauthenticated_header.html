@@ -1,5 +1,6 @@
 {% load i18n %}
 {% comment %} Override: proper "Back to site" link and theme switcher with text labels so it works when icon font fails to load. {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="absolute flex flex-row items-center justify-between left-0 m-4 right-0 top-0">
     <a href="{% url 'home' %}" class="flex font-medium gap-2 group items-center text-sm text-primary-600 dark:text-primary-500">
         <span class="material-symbols-outlined left-0 relative text-sm transition-all group-hover:-left-1" aria-hidden="true">arrow_back</span>

@@ -4,6 +4,11 @@
 {% block title %}{% trans "Status" %} — RunMyCampus{% endblock %}
 
 {% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
 <div class="container py-4" data-page="public-status">
   <h1 class="h3 mb-3">{% trans "Platform status & roadmap" %}</h1>
 
@@ -43,7 +48,7 @@
   <section aria-labelledby="top-hdr">
     <h2 id="top-hdr" class="h5">{% trans "Most-voted requests" %}</h2>
     {% if top_requests %}
-    <table class="table table-sm table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <table class="table table-sm table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead class="table-light">
         <tr><th>{% trans "Request" %}</th><th>{% trans "Status" %}</th><th>{% trans "Votes" %}</th><th>{% trans "Score" %}</th></tr>
       </thead>
@@ -63,4 +68,5 @@
     {% endif %}
   </section>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}
