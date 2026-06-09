@@ -155,6 +155,23 @@ def _build_context(
         elif completed_list:
             back_url = _make_url(audience, "wizard_step", wizard.wizard_key, completed_list[-1])
 
+    offline_intake_enabled = False
+    if school is not None:
+        try:
+            from apps.siteconfig.config_service import get_effective_site_settings
+
+            site_settings = get_effective_site_settings(request=request, school=school)
+            backend_flags = (
+                site_settings.get_backend_feature_flags()
+                if hasattr(site_settings, "get_backend_feature_flags")
+                else getattr(site_settings, "backend_feature_flags", {})
+            )
+            offline_intake_enabled = bool(
+                (backend_flags or {}).get("enable_offline_intake_wizard")
+            )
+        except (AttributeError, ImportError, TypeError, ValueError):
+            offline_intake_enabled = False
+
     return {
         "wizard": wizard,
         "step": step,
@@ -174,6 +191,7 @@ def _build_context(
         "back_url": back_url,
         "is_final_step": is_final_step,
         "estimated_seconds": step.estimated_seconds,
+        "offline_intake_enabled": offline_intake_enabled,
         "help_links": [],
     }
 

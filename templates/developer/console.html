@@ -26,6 +26,20 @@
     </div>
   </header>
 
+  <section class="proof-card rmc-reveal mb-4" id="developer-api-keys" data-rmc-developer-api-keys>
+    <h2 class="h5 mb-2">{% trans "API keys (authenticated)" %}</h2>
+    {% if can_manage_api_keys %}
+    <p class="text-muted small mb-3">{% trans "You are signed in as a control-plane operator. Create platform API keys on the manager API Center — secrets are shown once." %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{{ manager_api_keys_url }}" class="btn btn-light">{% trans "Open API Center keys" %}</a>
+      <a href="{{ links.api_center }}" class="btn btn-outline-light">{% trans "API Center dashboard" %}</a>
+    </div>
+    {% else %}
+    <p class="text-muted small mb-3">{% trans "Sign in on the manager control plane to mint API keys for integrations and CI." %}</p>
+    <a href="{{ manager_sign_in_url }}" class="btn btn-light">{% trans "Sign in on manager" %}</a>
+    {% endif %}
+  </section>
+
   <section class="proof-card-grid rmc-reveal">
     <article class="proof-card">
       <h3>{% trans "App registration & OAuth" %}</h3>
@@ -37,6 +51,8 @@
     <article class="proof-card">
       <h3>{% trans "API keys & scopes" %}</h3>
       <ul class="proof-bullet-list">
+        <li><a href="{{ links.api_keys }}">{% trans "Manage API keys" %}</a></li>
+        <li><a href="{{ links.webhook_create }}">{% trans "Create webhook subscription" %}</a></li>
         <li><a href="{{ links.integration_context }}"><code>GET /api/v1/platform/integration-context/</code></a></li>
         <li><a href="{{ links.scoped_ping }}"><code>GET /api/v1/platform/scoped-ping/</code></a></li>
       </ul>

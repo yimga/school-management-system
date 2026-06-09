@@ -3,9 +3,11 @@ from functools import partial
 from django.urls import include, path
 from django.views.generic import RedirectView
 from apps.marketplace import views as marketplace_views
+from apps.marketplace.publisher_access import require_verified_publisher_with_host
 from apps.marketplace.views_publisher import (
     publisher_app_detail as marketplace_publisher_app_detail,
     publisher_dashboard as marketplace_publisher_dashboard,
+    publisher_submit_for_review as marketplace_publisher_submit_for_review,
 )
 from apps.marketplace import views_developer_platform as marketplace_dev_views
 from apps.customersuccess import views_super as cs_views
@@ -687,28 +689,31 @@ urlpatterns = [
     ),
     path(
         "marketplace/publisher/metrics.json",
-        require_super_access_with_host(marketplace_dev_views.partner_dashboard_metrics),
+        require_verified_publisher_with_host(
+            marketplace_dev_views.partner_dashboard_metrics
+        ),
         name="marketplace_publisher_metrics",
     ),
     path(
         "marketplace/publisher/webhooks/",
-        require_super_access_with_host(marketplace_dev_views.publisher_webhook_log),
+        require_verified_publisher_with_host(marketplace_dev_views.publisher_webhook_log),
         name="marketplace_publisher_webhook_log",
     ),
-    # Publisher self-serve webhook CRUD + version publish.
     path(
         "marketplace/publisher/apps/<slug:app_slug>/webhooks/",
-        require_super_access_with_host(marketplace_dev_views.webhook_endpoints_view),
+        require_verified_publisher_with_host(marketplace_dev_views.webhook_endpoints_view),
         name="marketplace_webhook_endpoints",
     ),
     path(
         "marketplace/publisher/apps/<slug:app_slug>/webhooks/<int:endpoint_id>/edit/",
-        require_super_access_with_host(marketplace_dev_views.webhook_endpoint_edit_view),
+        require_verified_publisher_with_host(
+            marketplace_dev_views.webhook_endpoint_edit_view
+        ),
         name="marketplace_webhook_endpoint_edit",
     ),
     path(
         "marketplace/publisher/apps/<slug:app_slug>/versions/",
-        require_super_access_with_host(marketplace_dev_views.app_versions_view),
+        require_verified_publisher_with_host(marketplace_dev_views.app_versions_view),
         name="marketplace_app_versions",
     ),
     path(
@@ -740,6 +745,11 @@ urlpatterns = [
         "marketplace/publisher/",
         marketplace_publisher_dashboard,
         name="marketplace_publisher_dashboard",
+    ),
+    path(
+        "marketplace/publisher/<slug:slug>/submit/",
+        marketplace_publisher_submit_for_review,
+        name="marketplace_publisher_submit_for_review",
     ),
     path(
         "marketplace/publisher/<slug:slug>/",

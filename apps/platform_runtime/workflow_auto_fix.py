@@ -86,6 +86,40 @@ _TAXONOMY: tuple[tuple[re.Pattern[str], dict[str, Any]], ...] = (
             "suggested_next": "Click Apply to refresh + retry.",
         },
     ),
+    # Tenant provisioning (owner-safe auto-fix kinds)
+    (
+        re.compile(
+            r"(KombuOperationalError|BrokerNotAvailable|celery.*unavailable|queue unavailable)",
+            re.IGNORECASE,
+        ),
+        {
+            "remediation_key": "provisioning_queue_unavailable",
+            "human_action": "Setup could not reach the background worker. Tap Try again to re-run setup now.",
+            "auto_fix_available": True,
+            "auto_fix_kind": "requeue_provision",
+            "suggested_next": "Retry provisioning.",
+        },
+    ),
+    (
+        re.compile(r"(welcome.*email|send_welcome|SMTP|mail delivery)", re.IGNORECASE),
+        {
+            "remediation_key": "provisioning_welcome_email_failed",
+            "human_action": "Your portal is almost ready but the welcome email did not send. Tap Try again to resend it.",
+            "auto_fix_available": True,
+            "auto_fix_kind": "resend_welcome",
+            "suggested_next": "Resend welcome email.",
+        },
+    ),
+    (
+        re.compile(r"(DNS|subdomain|domain.*sync|nameserver)", re.IGNORECASE),
+        {
+            "remediation_key": "provisioning_dns_sync_failed",
+            "human_action": "Your portal address needs another DNS sync. Tap Try again to retry.",
+            "auto_fix_available": True,
+            "auto_fix_kind": "retry_dns_sync",
+            "suggested_next": "Retry DNS sync.",
+        },
+    ),
     # Network / upstream
     (
         re.compile(r"(ConnectionError|Timeout|ReadTimeout|ConnectTimeout)", re.IGNORECASE),

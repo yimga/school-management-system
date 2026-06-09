@@ -12,6 +12,7 @@ from apps.academics.timetable_solver import (
     detect_conflicts,
     generate_standard_week,
     solve,
+    solve_with_backtracking,
 )
 
 
@@ -216,3 +217,93 @@ class GreedySolverTests(SimpleTestCase):
         # Locked slot doesn't exist -> reported unplaced for the locked attempt.
         unplaced_reasons = " ".join(u["reason"] for u in result.unplaced)
         self.assertIn("locked slot", unplaced_reasons)
+
+
+class BacktrackingSolverTests(SimpleTestCase):
+
+    def test_places_every_weekly_occurrence(self):
+        result = solve_with_backtracking(
+            lessons=[
+                LessonRequest(
+                    lesson_id="math",
+                    class_id="c1",
+                    subject="Math",
+                    teacher_id="t1",
+                    weekly_periods=3,
+                ),
+            ],
+            teachers={"t1": _t("t1")},
+            rooms={"r1": _r("r1")},
+            slots=generate_standard_week(days=1, periods_per_day=3),
+        )
+        self.assertEqual(result.strategy, "csp_backtracking_v1")
+        self.assertEqual(len(result.placed), 3)
+        self.assertEqual(len({p.slot_id for p in result.placed}), 3)
+        self.assertTrue(all(p.class_id == "c1" for p in result.placed))
+        self.assertTrue(all(p.subject == "Math" for p in result.placed))
+
+    def test_honors_locked_slots_and_teacher_availability(self):
+        result = solve_with_backtracking(
+            lessons=[
+                LessonRequest(
+                    lesson_id="science",
+                    class_id="c1",
+                    subject="Science",
+                    teacher_id="t1",
+                    weekly_periods=2,
+                    locked_slot_ids=("D1-P2",),
+                ),
+            ],
+            teachers={
+                "t1": Resource(
+                    resource_id="t1",
+                    kind="teacher",
+                    display_name="Teacher",
+                    availability_slots=("D1-P2", "D1-P3"),
+                ),
+            },
+            rooms={"lab": _r("lab", "Science lab")},
+            slots=generate_standard_week(days=1, periods_per_day=3),
+        )
+        self.assertEqual(result.strategy, "csp_backtracking_v1")
+        self.assertEqual({p.slot_id for p in result.placed}, {"D1-P2", "D1-P3"})
+
+    def test_prevents_class_double_booking(self):
+        result = solve_with_backtracking(
+            lessons=[
+                LessonRequest("math", "c1", "Math", "t1"),
+                LessonRequest("english", "c1", "English", "t2"),
+            ],
+            teachers={"t1": _t("t1"), "t2": _t("t2")},
+            rooms={"r1": _r("r1"), "r2": _r("r2")},
+            slots=generate_standard_week(days=1, periods_per_day=2),
+        )
+        self.assertEqual(result.strategy, "csp_backtracking_v1")
+        self.assertEqual(len(result.placed), 2)
+        self.assertEqual(len({p.slot_id for p in result.placed}), 2)
+        self.assertEqual(result.conflicts, [])
+
+    def test_unsatisfiable_problem_falls_back_without_crashing(self):
+        result = solve_with_backtracking(
+            lessons=[
+                LessonRequest("math", "c1", "Math", "t1"),
+                LessonRequest("english", "c1", "English", "t2"),
+            ],
+            teachers={"t1": _t("t1"), "t2": _t("t2")},
+            rooms={"r1": _r("r1"), "r2": _r("r2")},
+            slots=generate_standard_week(days=1, periods_per_day=1),
+        )
+        self.assertEqual(result.strategy, "greedy_unsatisfiable_fallback_v1")
+        self.assertEqual(len(result.placed), 1)
+        self.assertEqual(len(result.unplaced), 1)
+
+    def test_search_cutoff_uses_distinct_fallback_strategy(self):
+        result = solve_with_backtracking(
+            lessons=[LessonRequest("math", "c1", "Math", "t1")],
+            teachers={"t1": _t("t1")},
+            rooms={"r1": _r("r1")},
+            slots=generate_standard_week(days=1, periods_per_day=1),
+            max_search_steps=1,
+        )
+        self.assertEqual(result.strategy, "greedy_search_cutoff_fallback_v1")
+        self.assertEqual(len(result.placed), 1)

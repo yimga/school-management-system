@@ -735,6 +735,20 @@ class DeveloperHubPublicUrlconfTests(MarketingPublicRouteTransactionCase):
         self.assertContains(resp, "RunMyCampus for developers")
         self.assertContains(resp, "developer-section-nav")
 
+    def test_developer_console_prompts_manager_sign_in_for_api_keys(self):
+        from django.test import Client
+
+        with patch.dict(
+            os.environ,
+            {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com", "MULTI_TENANT_LEGACY_BASE_DOMAINS": ""},
+            clear=False,
+        ):
+            resp = Client().get("/developer/console/", HTTP_HOST="runmycampus.com")
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "API keys (authenticated)")
+        self.assertContains(resp, "Sign in on manager")
+        self.assertContains(resp, "data-rmc-developer-api-keys")
+
     def test_developer_manifest_json_on_public_host(self):
         with patch.dict(
             os.environ,

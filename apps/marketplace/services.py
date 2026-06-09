@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from django.urls import NoReverseMatch, reverse
 
 from apps.platform_runtime.structured_logging import log_exception_with_context
 
@@ -81,6 +82,11 @@ def _ensure_submission_publisher(user):
     from apps.marketplace.models import PublisherOrganization
 
     if getattr(user, "email", ""):
+        publisher = PublisherOrganization.objects.filter(
+            verified_contact_email=user.email
+        ).first()
+        if publisher is not None:
+            return publisher
         publisher = PublisherOrganization.objects.filter(payout_email=user.email).first()
         if publisher is not None:
             return publisher
@@ -115,8 +121,14 @@ def upsert_marketplace_submission(*, user, payload: dict) -> dict:
             "version": payload["version"].strip()[:32],
             "manifest": manifest,
             "is_active": True,
+            "is_intentionally_free": bool(payload.get("is_intentionally_free", True)),
+            "pricing_model": (payload.get("pricing_model") or "free").strip().lower()[:32],
         },
     )
+
+    auto_submit = bool(payload.get("submit_for_review"))
+    if kind == MarketplaceApp.AppKind.THIRD_PARTY:
+        auto_submit = True
 
     listing, listing_created = MarketplaceListing.objects.update_or_create(
         app=app,
@@ -127,21 +139,39 @@ def upsert_marketplace_submission(*, user, payload: dict) -> dict:
             "preview_image_url": (payload.get("preview_image_url") or "").strip()[:500],
             "screenshot_urls": list(payload.get("screenshot_urls") or [])[:10],
             "status": MarketplaceListing.Status.PENDING_REVIEW
-            if not app_created
+            if auto_submit or not app_created
             else MarketplaceListing.Status.DRAFT,
             "security_review_status": MarketplaceListing.ReviewStatus.PENDING,
         },
     )
+
+    review_id = None
+    if auto_submit or not app_created:
+        try:
+            from apps.marketplace.partner_submission import submit_for_review
+
+            review = submit_for_review(app, requested_by=user)
+            review_id = review.pk
+        except (ImportError, ValueError, TypeError):
+            logger.warning("marketplace_submission_review_enqueue_failed", exc_info=True)
 
     return {
         "app_slug": app.slug,
         "app_id": app.pk,
         "listing_id": listing.pk,
         "status": listing.status,
+        "review_id": review_id,
         "created_app": app_created,
         "created_listing": listing_created,
-        "next_steps_url": "https://docs.runmycampus.com/marketplace/submission/",
+        "next_steps_url": _publisher_app_detail_url(app.slug) if review_id else "",
     }
+
+
+def _publisher_app_detail_url(slug: str) -> str:
+    try:
+        return reverse("super:marketplace_publisher_app_detail", kwargs={"slug": slug})
+    except NoReverseMatch:
+        return "https://docs.runmycampus.com/marketplace/submission/"
 
 
 def ensure_marketplace_listing(app, *, publisher=None):

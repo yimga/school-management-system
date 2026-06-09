@@ -442,6 +442,7 @@ PENDING_TENANT_AUTH_PREFIXES = (
     "/authentication/redirect/",
     "/authentication/mfa/",
     "/authentication/backend/",
+    "/api/pending-provision/",
 )
 
 
@@ -517,6 +518,14 @@ def _response_for_unknown_tenant_host(request, slug: str | None = None):
                     request.session["school_id"] = str(school.id)
                 ctx = pending_school_public_context(school)
                 ctx["school"] = school
+                try:
+                    from django.urls import reverse
+
+                    ctx["provision_progress_api_url"] = request.build_absolute_uri(
+                        reverse("api_public_pending_provision_progress")
+                    )
+                except Exception:
+                    ctx["provision_progress_api_url"] = "/api/pending-provision/progress/"
                 return render(
                     request,
                     "schools/tenant_setup_in_progress.html",

@@ -32,6 +32,87 @@ except ImportError:  # pragma: no cover - kombu is installed in production/test 
 User = get_user_model()
 
 
+def _merge_provisioning_settings(school, **updates) -> None:
+    """Persist Phase A/B flags under ``school.settings['provisioning']``."""
+    from django.utils import timezone
+
+    settings_blob = dict(getattr(school, "settings", None) or {})
+    prov = dict(settings_blob.get("provisioning") or {})
+    prov.update(updates)
+    if updates.get("phase_a_complete"):
+        prov.setdefault("phase_a_at", timezone.now().isoformat())
+    if updates.get("phase_b_complete"):
+        prov.setdefault("phase_b_at", timezone.now().isoformat())
+        prov["phase_b_step"] = "complete"
+    settings_blob["provisioning"] = prov
+    school.settings = settings_blob
+
+
+def _activate_portal_phase_a(
+    school,
+    *,
+    school_id: str,
+    contact_email: str,
+    admin_user,
+    wf_run,
+    pulse,
+) -> None:
+    """Phase A terminus — portal login enabled; Phase B seed may continue async."""
+    pulse(wf_run, "activate")
+    _merge_provisioning_settings(school, phase_a_complete=True)
+    school.is_active = True
+    school.save(update_fields=["is_active", "settings", "updated_at"])
+    try:
+        from apps.schools.signup_completion_notifications import finalize_tenant_activation
+
+        finalize_tenant_activation(school, contact_email, admin_user=admin_user)
+    except ImportError:
+        pass
+    try:
+        from apps.finance.payment_provision import bind_tenant_payment_policy_safe
+
+        bind_tenant_payment_policy_safe(school)
+    except ImportError:
+        pass
+    try:
+        from apps.platform_runtime.offline_mode_bundle import (
+            maybe_apply_offline_bundle_on_provision,
+        )
+
+        maybe_apply_offline_bundle_on_provision(school)
+    except ImportError:
+        pass
+    try:
+        from apps.policies.policy_registry import invalidate_policy_cache
+
+        invalidate_policy_cache(school)
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+    try:
+        from apps.schools.activation_gate import set_activation_gate_pending
+
+        set_activation_gate_pending(school)
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+    _record_school_event(
+        school,
+        event_type="PORTAL_READY",
+        status="SUCCESS",
+        message="Portal activated — optional setup may continue in background.",
+    )
+    try:
+        from apps.lifecycle.unified_lifecycle import record_unified_transition
+
+        record_unified_transition(
+            school,
+            "activating",
+            note="portal_phase_a_complete",
+            payload={"phase": "a"},
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+
+
 # v4.00.2 audit — provisioning event_type constants for sites that need to
 # filter the timeline. SchoolProvisioningEvent.event_type is a free-form
 # CharField (choices=EventType.choices is form-level only, not a DB
@@ -510,12 +591,20 @@ def complete_provisioning_for_school(
     result = dict(
         dispatch_provision_school(str(school_id), contact_email=contact_email, **kwargs)
     )
-    school = School.objects.filter(id=school_id).only("is_active").first()
+    school = School.objects.filter(id=school_id).only("is_active", "settings").first()
+    try:
+        from apps.schools.provisioning_progress import resolve_portal_ready
+
+        portal_ready = resolve_portal_ready(school) if school else False
+    except ImportError:
+        portal_ready = bool(school and school.is_active)
+
     if result.get("fallback"):
         result["sync_completed"] = True
-        result["is_active"] = bool(school and school.is_active)
+        result["portal_ready"] = portal_ready
+        result["is_active"] = portal_ready
         return result
-    if school and not school.is_active:
+    if school and not portal_ready:
         try:
             provision_school_sync(str(school_id), contact_email=contact_email, **kwargs)
             result["sync_completed"] = True
@@ -527,10 +616,17 @@ def complete_provisioning_for_school(
                 school_id,
                 exc,
             )
-        school.refresh_from_db(fields=["is_active"])
+        school.refresh_from_db(fields=["is_active", "settings"])
+        try:
+            from apps.schools.provisioning_progress import resolve_portal_ready
+
+            portal_ready = resolve_portal_ready(school)
+        except ImportError:
+            portal_ready = bool(school.is_active)
     else:
         result["sync_completed"] = False
-    result["is_active"] = bool(school and school.is_active)
+    result["portal_ready"] = portal_ready
+    result["is_active"] = portal_ready
     return result
 
 
@@ -659,6 +755,17 @@ def _do_provision_tracked(
         status="INFO",
         message="Provisioning job started.",
     )
+    try:
+        from apps.lifecycle.unified_lifecycle import record_unified_transition
+
+        record_unified_transition(
+            school,
+            "provisioning",
+            note="provision_job_started",
+            payload={"workflow_key": "tenant_school_provision"},
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
     try:
         from apps.platform_runtime.events import emit_platform_event
 
@@ -841,6 +948,18 @@ def _do_provision_tracked(
         ValueError,
     ):
         logger.exception("DNS auto-provision raised for school %s", school.id)
+
+    # Phase A: activate portal before heavy seed (owner may log in while Phase B runs).
+    _activate_portal_phase_a(
+        school,
+        school_id=school_id,
+        contact_email=contact_email,
+        admin_user=admin_user,
+        wf_run=wf_run,
+        pulse=pulse,
+    )
+    _merge_provisioning_settings(school, phase_b_step="seed_data")
+    school.save(update_fields=["settings", "updated_at"])
 
     pulse(wf_run, "seed_data")
 
@@ -1179,53 +1298,25 @@ def _do_provision_tracked(
         # Pass 7: seed demo users + a populated sample class when the user opted in.
         _maybe_seed_onboarding_sample_data(school)
 
-        pulse(wf_run, "activate")
-        school.is_active = True
-        school.save(update_fields=["is_active", "settings", "updated_at"])
-        try:
-            from apps.schools.signup_completion_notifications import (
-                finalize_tenant_activation,
-            )
-
-            finalize_tenant_activation(
-                school,
-                contact_email,
-                admin_user=admin_user,
-            )
-        except ImportError:
-            pass
-        try:
-            from apps.finance.payment_provision import bind_tenant_payment_policy_safe
-
-            bind_tenant_payment_policy_safe(school)
-        except ImportError:
-            pass
-        try:
-            from apps.platform_runtime.offline_mode_bundle import (
-                maybe_apply_offline_bundle_on_provision,
-            )
-
-            maybe_apply_offline_bundle_on_provision(school)
-        except ImportError:
-            pass
-        try:
-            from apps.policies.policy_registry import invalidate_policy_cache
-
-            invalidate_policy_cache(school)
-        except (ImportError, AttributeError, TypeError, ValueError):
-            pass
-        try:
-            from apps.schools.activation_gate import set_activation_gate_pending
-
-            set_activation_gate_pending(school)
-        except (ImportError, AttributeError, TypeError, ValueError):
-            pass
+        _merge_provisioning_settings(school, phase_b_complete=True)
+        school.save(update_fields=["settings", "updated_at"])
         _record_school_event(
             school,
             event_type="COMPLETED",
             status="SUCCESS",
             message="Provisioning completed successfully.",
         )
+        try:
+            from apps.lifecycle.unified_lifecycle import record_unified_transition
+
+            record_unified_transition(
+                school,
+                "live",
+                note="provisioning_phase_b_complete",
+                payload={"phase": "b"},
+            )
+        except (ImportError, AttributeError, TypeError, ValueError):
+            pass
         try:
             from apps.platform_runtime.events import emit_platform_event
 

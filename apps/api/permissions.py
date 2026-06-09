@@ -132,6 +132,63 @@ class RoleBasedPermission(permissions.BasePermission):
         return action in allowed
 
 
+V1_TENANT_CRUD_SCOPE_MAP: dict[tuple[str, str], str] = {
+    ("students", "list"): "students:read",
+    ("students", "retrieve"): "students:read",
+    ("students", "create"): "students:write",
+    ("students", "update"): "students:write",
+    ("students", "partial_update"): "students:write",
+    ("students", "destroy"): "students:write",
+    ("teachers", "list"): "users:read",
+    ("teachers", "retrieve"): "users:read",
+    ("teachers", "create"): "users:write",
+    ("teachers", "update"): "users:write",
+    ("teachers", "partial_update"): "users:write",
+    ("teachers", "destroy"): "users:write",
+    ("guardians", "list"): "guardians:read",
+    ("guardians", "retrieve"): "guardians:read",
+    ("guardians", "create"): "guardians:write",
+    ("guardians", "update"): "guardians:write",
+    ("guardians", "partial_update"): "guardians:write",
+    ("guardians", "destroy"): "guardians:write",
+    ("evaluations", "list"): "grades:read",
+    ("evaluations", "retrieve"): "grades:read",
+    ("evaluations", "create"): "grades:write",
+    ("evaluations", "update"): "grades:write",
+    ("evaluations", "partial_update"): "grades:write",
+    ("evaluations", "destroy"): "grades:write",
+    ("invoices", "list"): "finance:read",
+    ("invoices", "retrieve"): "finance:read",
+    ("invoices", "create"): "finance:write",
+    ("invoices", "update"): "finance:write",
+    ("invoices", "partial_update"): "finance:write",
+    ("invoices", "destroy"): "finance:write",
+    ("payments", "list"): "finance:read",
+    ("payments", "retrieve"): "finance:read",
+    ("payments", "create"): "finance:write",
+    ("payments", "update"): "finance:write",
+    ("payments", "partial_update"): "finance:write",
+    ("payments", "destroy"): "finance:write",
+}
+
+
+class MarketplaceAppScopedPermission(permissions.BasePermission):
+    """Enforce marketplace OAuth/API-key scopes when app context is present."""
+
+    message = "Insufficient marketplace app scope for this action."
+
+    def has_permission(self, request, view) -> bool:
+        if getattr(request, "app_installation", None) is None:
+            return True
+        scopes = getattr(request, "app_scope", None) or frozenset()
+        basename = getattr(view, "basename", "") or ""
+        action = getattr(view, "action", "") or ""
+        required = V1_TENANT_CRUD_SCOPE_MAP.get((basename, action))
+        if not required:
+            return False
+        return required in scopes
+
+
 class IsAdminLike(permissions.BasePermission):
     """Staff/superuser or admin-like role gate for sensitive endpoints."""
 

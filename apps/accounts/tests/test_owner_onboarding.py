@@ -196,6 +196,21 @@ class OwnerOnboardingFlowTests(TestCase):
         self.school.refresh_from_db()
         self.assertTrue(self.school.is_active)
 
+    def test_account_token_provision_progress_api_without_login(self):
+        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = default_token_generator.make_token(self.user)
+        url = reverse(
+            "accounts:owner_onboarding_account_provision_progress",
+            kwargs={"uidb64": uid, "token": token},
+        )
+        r = self.client.get(url)
+        self.assertEqual(r.status_code, 200)
+        payload = r.json()
+        self.assertTrue(payload.get("ok"))
+        self.assertIn("progress_percent", payload)
+        self.assertIn("steps", payload)
+        self.assertFalse(payload.get("portal_ready"))
+
     def test_provision_status_api_reports_inactive_then_live(self):
         self._login_past_mfa()
 
@@ -211,6 +226,9 @@ class OwnerOnboardingFlowTests(TestCase):
         payload = r.json()
         self.assertTrue(payload.get("ok"))
         self.assertFalse(payload.get("is_active"))
+        self.assertFalse(payload.get("portal_ready"))
+        self.assertIn("progress_percent", payload)
+        self.assertIn("steps", payload)
         self.assertEqual(payload.get("pending_state"), "provisioning")
 
         self.school.is_active = True

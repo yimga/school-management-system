@@ -14,28 +14,25 @@ surfaces render on manager.<base>, never on a school subdomain.
 
 from __future__ import annotations
 
+from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_GET
 
-from apps.schools.control_plane import require_super_access_with_host
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.urls import reverse
+from django.views.decorators.http import require_http_methods
+
+from apps.marketplace.publisher_access import (
+    publisher_for_user,
+    require_verified_publisher_with_host,
+)
 
 
-def _publisher_for_user(user):
-    try:
-        from apps.marketplace.models import PublisherOrganization
-    except ImportError:
-        return None
-    if not user.email:
-        return None
-    return PublisherOrganization.objects.filter(
-        verified_contact_email=user.email
-    ).first()
-
-
-@require_super_access_with_host
+@require_verified_publisher_with_host
 @require_GET
 def publisher_dashboard(request):
-    publisher = _publisher_for_user(request.user)
+    publisher = publisher_for_user(request.user)
     apps = []
     summary = None
     per_app_rows = []
@@ -71,10 +68,10 @@ def publisher_dashboard(request):
     )
 
 
-@require_super_access_with_host
+@require_verified_publisher_with_host
 @require_GET
 def publisher_app_detail(request, slug: str):
-    publisher = _publisher_for_user(request.user)
+    publisher = publisher_for_user(request.user)
     try:
         from apps.marketplace.models import MarketplaceApp
     except ImportError:
@@ -85,12 +82,41 @@ def publisher_app_detail(request, slug: str):
         from django.http import Http404
 
         raise Http404("Not your app.")
+    listing = getattr(app, "listing", None)
+    can_submit = False
+    try:
+        from apps.marketplace.models import MarketplaceListing
+
+        can_submit = bool(
+            listing and listing.status == MarketplaceListing.Status.DRAFT
+        )
+    except ImportError:
+        pass
     return render(
         request,
         "marketplace/publisher_app_detail.html",
         {
             "app": app,
-            "listing": getattr(app, "listing", None),
+            "listing": listing,
             "publisher": publisher,
+            "can_submit_for_review": can_submit,
         },
     )
+
+
+@require_verified_publisher_with_host
+@require_http_methods(["POST"])
+def publisher_submit_for_review(request, slug: str):
+    publisher = publisher_for_user(request.user)
+    try:
+        from apps.marketplace.models import MarketplaceApp
+        from apps.marketplace.partner_submission import submit_for_review
+    except ImportError:
+        messages.error(request, "Marketplace is unavailable.")
+        return redirect(reverse("super:marketplace_publisher_dashboard"))
+    app = get_object_or_404(MarketplaceApp, slug=slug)
+    if publisher is None or app.publisher_id != publisher.pk:
+        raise Http404("Not your app.")
+    submit_for_review(app, requested_by=request.user)
+    messages.success(request, "App submitted for security review.")
+    return redirect("super:marketplace_publisher_app_detail", slug=slug)

@@ -75,6 +75,18 @@ class ApiV1ManifestTests(TestCase):
             "/api/v1/student/passport/",
             ep.get("student_passport", ""),
         )
+        self.assertIn("/api/v1/people/students", ep.get("people_students", ""))
+        self.assertIn("/api/v1/people/teachers", ep.get("people_teachers", ""))
+        self.assertIn("/api/v1/people/guardians", ep.get("people_guardians", ""))
+        self.assertIn("/api/v1/evals/evaluations", ep.get("evals_evaluations", ""))
+        self.assertIn("/api/v1/finance/invoices", ep.get("finance_invoices", ""))
+        self.assertIn("/api/v1/finance/payments", ep.get("finance_payments", ""))
+        self.assertIn("/api/v1/people/students/", ep.get("people_students_detail", ""))
+        self.assertIn("/api/v1/people/teachers/", ep.get("people_teachers_detail", ""))
+        self.assertIn("/api/v1/people/guardians/", ep.get("people_guardians_detail", ""))
+        self.assertIn("/api/v1/evals/evaluations/", ep.get("evals_evaluations_detail", ""))
+        self.assertIn("/api/v1/finance/invoices/", ep.get("finance_invoices_detail", ""))
+        self.assertIn("/api/v1/finance/payments/", ep.get("finance_payments_detail", ""))
         self.assertIn("/api/v1/reports/emis/prepare", ep.get("reports_emis_prepare", ""))
         self.assertIn("/api/interop/edfi/", ep.get("interop_edfi", ""))
         self.assertIn("/api/interop/ceds/", ep.get("interop_ceds", ""))

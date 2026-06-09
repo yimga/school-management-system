@@ -1,0 +1,45 @@
+{% load i18n static %}
+{# Customer provisioning progress — workflow-driven bar + step train (owner + tenant wait pages). #}
+<div
+  class="rmc-provision-progress rmc-wfp-shell"
+  data-rmc-provision-progress="1"
+  data-rmc-provisioning-api="{{ provision_progress_api_url }}"
+  {% if provision_apply_fix_url %}data-rmc-provision-apply-fix="{{ provision_apply_fix_url }}"{% endif %}
+  {% if provision_dashboard_href %}data-rmc-provision-dashboard-href="{{ provision_dashboard_href }}"{% endif %}
+  data-rmc-copilot-context='{"surface":"tenant_provision"}'
+  aria-live="polite"
+>
+  <div class="rmc-provision-progress__header d-flex justify-content-between align-items-center gap-2 mb-2">
+    <span class="rmc-provision-progress__label small fw-semibold" data-rmc-provision-label>
+      {% trans "Setting up your campus" %}
+    </span>
+    <span class="rmc-provision-progress__pct small text-muted" data-rmc-provision-pct>0%</span>
+  </div>
+  <div
+    class="rmc-provision-progress__track rmc-wfp-track"
+    role="progressbar"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    aria-valuenow="0"
+    data-rmc-provision-bar
+  >
+    <div class="rmc-provision-progress__fill rmc-wfp-fill" data-rmc-provision-fill style="width: 0%;"></div>
+  </div>
+  <p class="rmc-provision-progress__step small text-muted mt-2 mb-3" data-rmc-provision-step>
+    {% trans "Preparing your workspace…" %}
+  </p>
+  <ol class="rmc-provision-progress__steps rmc-wfp-steps list-unstyled mb-0" data-rmc-provision-steps hidden></ol>
+  <div class="rmc-provision-progress__error alert alert-warning small mt-3 d-none" role="alert" data-rmc-provision-error-panel>
+    <strong>{% trans "Setup needs attention" %}</strong>
+    <div class="mt-1" data-rmc-provision-error-text></div>
+    <div class="d-flex flex-wrap gap-2 mt-2">
+      <button type="button" class="btn btn-sm btn-primary d-none" data-rmc-provision-retry>
+        {% trans "Try again" %}
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-provision-ask-assistant>
+        {% trans "Ask assistant" %}
+      </button>
+    </div>
+  </div>
+</div>
+<script src="{% static 'js/rmc-tenant-provision-progress.js' %}" defer></script>

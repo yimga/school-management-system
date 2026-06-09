@@ -1,6 +1,6 @@
 # Security surface audit (generated)
 
-**UTC** `2026-06-09T01:49:07.065225+00:00`  
+**UTC** `2026-06-09T10:47:01.128227+00:00`  
 
 Counts are **visibility only**; review classifications in JSON.
 
@@ -9,11 +9,11 @@ Counts are **visibility only**; review classifications in JSON.
 | allow_any | 40 |
 | csrf_exempt | 96 |
 | cursor_execute | 2 |
-| login_required | 687 |
+| login_required | 688 |
 | permission_classes | 66 |
 | require_http_methods | 671 |
 | staff_member_required | 122 |
 | subprocess | 576 |
 
-**Total hits:** 2260
+**Total hits:** 2261
 

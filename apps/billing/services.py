@@ -957,7 +957,54 @@ def apply_processor_snapshot(
                             "payment rail usage meter rollup skipped", exc_info=True
                         )
 
+        _promote_school_plan_from_processor_payload(
+            school,
+            subscription,
+            event_type=et,
+            payload=payload,
+        )
         return event, account, subscription
+
+
+def _promote_school_plan_from_processor_payload(
+    school,
+    subscription,
+    *,
+    event_type: str,
+    payload: dict | None,
+) -> None:
+    """After platform-plan checkout, align ``school.plan`` + subscription plan FK."""
+    if school is None or subscription is None:
+        return
+    et = str(event_type or "").strip().lower()
+    if et not in ("checkout.session.completed", "customer.subscription.updated"):
+        return
+    raw_payload = payload if isinstance(payload, dict) else {}
+    data = raw_payload.get("data") if isinstance(raw_payload.get("data"), dict) else {}
+    obj = data.get("object") if isinstance(data.get("object"), dict) else {}
+    metadata = obj.get("metadata") if isinstance(obj.get("metadata"), dict) else {}
+    if metadata.get("billing_context") == "marketplace_addon":
+        return
+    plan_code = str(metadata.get("plan_code") or "").strip()
+    if not plan_code:
+        return
+    try:
+        from apps.siteconfig.models import Plan
+
+        target = Plan.objects.filter(slug=plan_code, is_active=True).first()
+        if target is None:
+            return
+        school_changed: list[str] = []
+        if getattr(school, "plan_id", None) != target.pk:
+            school.plan = target
+            school_changed.append("plan")
+        if school_changed:
+            school.save(update_fields=school_changed + ["updated_at"])
+        if subscription.plan_id != target.pk:
+            subscription.plan = target
+            subscription.save(update_fields=["plan", "updated_at"])
+    except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+        logger.warning("billing_plan_promotion_failed", exc_info=True)
 
 
 _MARKETPLACE_PAYMENT_EVENTS = frozenset(

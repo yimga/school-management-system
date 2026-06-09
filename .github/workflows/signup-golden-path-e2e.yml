@@ -1,0 +1,108 @@
+name: Signup golden-path E2E
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/accounts/**"
+      - "apps/schools/**"
+      - "apps/siteconfig/views_billing_plan.py"
+      - "apps/marketplace/**"
+      - "apps/api/views_v1_tenant_crud.py"
+      - "apps/api/urls_v1.py"
+      - "apps/evals/api_views.py"
+      - "tests/e2e/signup-golden-path.spec.js"
+      - "tests/e2e/signup-cold-path.spec.js"
+      - "tests/e2e/signup-production-smoke.spec.js"
+      - "apps/schools/views_e2e_signup_helpers.py"
+      - ".github/workflows/signup-golden-path-e2e.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  signup-golden-path:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SECRET_KEY: "ci-signup-golden-path-not-production-64chars__________"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com"
+      DEBUG: "0"
+      DJANGO_SETTINGS_MODULE: "config.settings"
+      MULTI_TENANT_BASE_DOMAIN: "runmycampus.com"
+      VISUAL_QA_PORT: "8022"
+      SIGNUP_E2E_BASE_URL: "http://runmycampus.com:8022"
+      SIGNUP_E2E_LOCAL_DNS_MAP: "1"
+      E2E_USERNAME: "e2e-golden-owner@runmycampus.test"
+      E2E_PASSWORD: "E2eGolden!RmC9"
+      SIGNUP_E2E_GOLDEN_SLUG: "e2e-golden"
+      SIGNUP_E2E_INACTIVE_SLUG: "e2e-pending"
+      RMC_E2E_SIGNUP_HELPERS: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          npm ci
+          node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Migrate and seed E2E fixtures
+        run: |
+          python manage.py migrate --noinput
+          python manage.py seed_signup_e2e_fixtures --password "$E2E_PASSWORD"
+          python -c "
+          import os, django
+          os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+          django.setup()
+          from apps.schools.models import School
+          School.objects.get_or_create(slug='e2e-pending', defaults=dict(name='E2E Pending', subdomain='e2e-pending', is_active=False))
+          "
+
+      - name: Map hosts
+        run: |
+          sudo bash -c "echo '127.0.0.1 runmycampus.com e2e-golden.runmycampus.com e2e-pending.runmycampus.com' >> /etc/hosts"
+
+      - name: Start Django
+        run: |
+          mkdir -p artifacts/signup-golden-path
+          nohup python manage.py runserver "0.0.0.0:${VISUAL_QA_PORT}" --noreload \
+            > artifacts/signup-golden-path/runserver.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl --silent --fail "http://127.0.0.1:${VISUAL_QA_PORT}/healthz/" && break || sleep 2
+          done
+
+      - name: Playwright signup production smoke
+        run: npm run test:e2e:signup-production
+
+      - name: Playwright signup golden path
+        run: npm run test:e2e:signup-golden-path
+
+      - name: Playwright cold signup path
+        run: npm run test:e2e:signup-cold-path
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: signup-golden-path-artifacts
+          path: |
+            artifacts/signup-golden-path
+            test-results
+          if-no-files-found: ignore

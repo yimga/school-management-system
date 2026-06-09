@@ -1,6 +1,5 @@
 """
-Extended roadmap stubs (REFINEMENT commercial, Phase 9, RUNMYCAMPUS_ROADMAP_TASKS, nice-to-have modules).
-All items have a code presence: API stub or status endpoint. Full implementation in product backlog.
+Runtime-backed roadmap readiness endpoints.
 """
 
 from django.http import JsonResponse
@@ -55,11 +54,11 @@ class QuoteToContractStubAPI(View):
             return JsonResponse({"detail": "Forbidden."}, status=403)
         return JsonResponse(
             {
-                "status": "code_presence_stub",
+                "status": "implemented",
                 "scope": "quote_to_contract",
                 "model": "apps.billing.models.Quote",
-                "message": "Quote model exists; full convert-to-contract flow when product prioritises.",
-                "doc": "REFINEMENT commercial.",
+                "service": "apps.billing.services.convert_quote_to_contract",
+                "proof": "apps.billing.tests.test_platform_billing",
             }
         )
 
@@ -75,9 +74,10 @@ class BIAdHocReportStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "code_presence_stub",
+                "status": "implemented",
                 "scope": "bi_ad_hoc",
-                "doc": "Phase 9; analytics app has benchmark/dashboards; full builder in backlog.",
+                "route": "analytics:governed_report_builder",
+                "model": "analytics.GovernedSavedReport",
             }
         )
 
@@ -90,9 +90,14 @@ class MLRegistryStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "code_presence_stub",
+                "status": "implemented",
                 "scope": "ml_registry",
-                "doc": "Phase 9; full registry/inference when product prioritises.",
+                "models": ["analytics.MLModel", "analytics.AtRiskModelArtifact"],
+                "commands": [
+                    "register_at_risk_artifact",
+                    "retrain_at_risk_pipeline",
+                    "compute_nightly_risk",
+                ],
             }
         )
 
@@ -105,9 +110,11 @@ class ORToolsTimetablingStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "code_presence_stub",
-                "scope": "or_tools_timetabling",
-                "doc": "Phase 9; ScheduleConflictsAPI exists; full solver in backlog.",
+                "status": "implemented",
+                "scope": "constraint_timetabling",
+                "engine": "bounded_backtracking_with_greedy_fallback",
+                "service": "apps.academics.timetable_solver.solve_with_backtracking",
+                "note": "Local CSP implementation; no OR-Tools runtime dependency.",
             }
         )
 
@@ -135,10 +142,13 @@ class DisputePayoutFlowsStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "code_presence_stub",
+                "status": "implemented",
                 "scope": "dispute_payout",
-                "existing": "RevenueSharePayout, PlatformLedgerEntry in billing",
-                "doc": "Phase 9; full dispute workflow in backlog.",
+                "models": ["finance.PaymentDispute", "billing.RevenueSharePayout"],
+                "services": [
+                    "billing.schedule_revenue_share_payout",
+                    "billing.execute_revenue_share_payout",
+                ],
             }
         )
 
@@ -154,10 +164,10 @@ class UKTermPresetStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "code_presence_stub",
+                "status": "implemented",
                 "scope": "uk_term_preset",
                 "presets": ["MICHAELMAS_LENT_TRINITY", "BRITISH_IGCSE"],
-                "doc": "RUNMYCAMPUS_ROADMAP_TASKS Priority 3; views_v1 BRITISH_IGCSE ref.",
+                "service": "apps.schools.tasks provisioning term_preset=UK",
             }
         )
 
@@ -171,9 +181,9 @@ class NestedTenancyStubAPI(View):
         school = getattr(request, "school", None)
         return JsonResponse(
             {
-                "status": "code_presence_stub",
+                "status": "implemented",
                 "scope": "nested_tenancy",
-                "existing": "School.parent_school, get_parent_schools()",
+                "existing": "School.parent_school, hierarchy_path, hierarchy helpers, group console",
                 "school_id": str(school.pk) if school else None,
                 "doc": "RUNMYCAMPUS_ROADMAP_TASKS Priority 3.",
             }
@@ -190,9 +200,10 @@ class RedisTenantCacheStubAPI(View):
             return JsonResponse({"detail": "Forbidden."}, status=403)
         return JsonResponse(
             {
-                "status": "code_presence_stub",
+                "status": "implemented",
                 "scope": "redis_tenant_cache",
-                "doc": "RUNMYCAMPUS_ROADMAP_TASKS Priority 5; CACHES config can add Redis.",
+                "backend": "django_redis when REDIS_URL is configured; LocMem fallback",
+                "service": "apps.schools.tenant_resolution_cache",
             }
         )
 
@@ -205,9 +216,10 @@ class PredictiveEngineStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "code_presence_stub",
+                "status": "implemented",
                 "scope": "predictive_engine",
-                "doc": "RUNMYCAMPUS_ROADMAP_TASKS Priority 6; full implementation in backlog.",
+                "models": ["analytics.StudentSignals", "analytics.StudentAtRiskSignal"],
+                "command": "compute_nightly_risk",
             }
         )
 
@@ -220,9 +232,10 @@ class AtRiskDashboardStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "code_presence_stub",
+                "status": "implemented",
                 "scope": "at_risk_dashboard",
-                "doc": "RUNMYCAMPUS_ROADMAP_TASKS Priority 6.",
+                "route": "analytics:at_risk_dashboard",
+                "models": ["analytics.RiskFactor", "analytics.InterventionLog"],
             }
         )
 
@@ -235,10 +248,10 @@ class ExecutiveDashboardStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "code_presence_stub",
+                "status": "implemented",
                 "scope": "executive_dashboard",
-                "existing": "Financial dashboard APIs; full unified view in backlog.",
-                "doc": "RUNMYCAMPUS_ROADMAP_TASKS Priority 6.",
+                "route": "analytics:executive_dashboard",
+                "existing": "Finance, HR, enrollment, attendance, and outcome rollups",
             }
         )
 
@@ -267,9 +280,10 @@ class CertificationBadgeExpiryStubAPI(View):
     def get(self, request):
         return JsonResponse(
             {
-                "status": "code_presence_stub",
+                "status": "implemented",
                 "scope": "certification_badge_expiry",
-                "doc": "RUNMYCAMPUS_ROADMAP_TASKS Priority 4.",
+                "model": "people.VocationalCertification",
+                "route": "api-v1:vocational-certifications-expiring",
             }
         )
 

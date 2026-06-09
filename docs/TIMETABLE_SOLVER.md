@@ -1,16 +1,15 @@
 # Timetable Solver — Tenant Admin Guide
 
-**Wave N · v3.95.0 · 2026-05-26**
+**Wave N+1 closure · 2026-06-09**
 
-A greedy slot assigner + conflict detector for school timetables. Handles the 80% case (small school, ~30 classes, ~50 teachers, 30 slots/week); reports conflicts when it can't place a lesson so admins can iterate.
-
-This is **not** a full constraint-satisfaction solver — that's a research project and lands in Wave N+1.
+A bounded constraint-satisfaction solver plus deterministic greedy fallback for school timetables. It expands weekly lesson occurrences and enforces locked slots, teacher and room availability, room kinds, and class/teacher/room occupancy.
 
 ## Data shapes
 
 ```python
 from apps.academics.timetable_solver import (
-    LessonRequest, Resource, TimeSlot, solve, generate_standard_week,
+    LessonRequest, Resource, TimeSlot, solve_with_backtracking,
+    generate_standard_week,
 )
 
 slots = generate_standard_week(days=5, periods_per_day=6,
@@ -50,20 +49,24 @@ lessons = [
     ),
 ]
 
-result = solve(lessons, teachers, rooms, list(slots))
-# → SolverResult(placed=[...], unplaced=[...], conflicts=[])
+result = solve_with_backtracking(
+    lessons=lessons,
+    teachers=teachers,
+    rooms=rooms,
+    slots=slots,
+    soft_constraints={"prefer_morning": 0.5},
+)
+# → SolverResult(..., strategy="csp_backtracking_v1")
 ```
 
 ## Algorithm
 
-1. **Honor locked slots first** — `lesson.locked_slot_ids` reserves a specific (slot, teacher, room) triple.
-2. **Sort remaining by (-weekly_periods, lesson_id)** — busiest lessons placed first (most constrained).
-3. **For each lesson + each weekly period**, walk slots in order, picking the first that:
-   - the teacher is available for (matches `availability_slots`)
-   - has at least one matching room available (matches `required_room_kind` + preferred rooms first)
-   - doesn't clash with the class's existing placements
-
-Unplaceable lessons are reported with a human-readable reason.
+1. Expand every lesson into its requested weekly occurrences.
+2. Order occurrences by viable candidate count, then stable lesson/occurrence keys.
+3. Apply locked slots to their corresponding occurrences.
+4. Backtrack over teacher, slot, and matching-room candidates while enforcing occupancy.
+5. Order slots by bounded soft weights (`prefer_morning`, `avoid_first_period_for`, `avoid_last_period_for`).
+6. If the search limit is reached or the problem is unsatisfiable, return the greedy result with an explicit fallback strategy.
 
 ## Conflict detection
 
@@ -81,13 +84,12 @@ A lesson with `required_room_kind="lab"` will only place into rooms whose `resou
 
 Use `required_room_kind="any"` (default) to accept any room.
 
-## Limitations (Wave N+1)
+## Limitations
 
-- **Greedy only** — no backtracking. If the order matters and greedy can't solve, the operator gets an unplaced list.
-- **No soft constraints** — "preferred lunch slot for staff," "no double-period gaps for students," etc., are not yet modeled.
-- **No optimization** — the solver returns the first valid solution, not the best one.
-- **No UI** — the kernel is callable from Python; the operator UI lands in Wave N+1.
+- Soft constraints influence slot ordering; this is not a global optimality proof.
+- Search is bounded by `max_search_steps` to protect request latency.
+- The JSON build surface expects the caller to provide normalized lesson/resource/slot data.
 
 ## Tests
 
-[apps/academics/tests/test_timetable_solver.py](beta/school-management-system/apps/academics/tests/test_timetable_solver.py) — 15 unit tests covering placement, conflicts, locked slots, room-kind matching, teacher availability.
+[apps/academics/tests/test_timetable_solver.py](../apps/academics/tests/test_timetable_solver.py) — 20 tests covering greedy placement, conflicts, locked slots, availability, weekly occurrence expansion, backtracking, soft ordering, cutoff fallback, and HTTP option validation.

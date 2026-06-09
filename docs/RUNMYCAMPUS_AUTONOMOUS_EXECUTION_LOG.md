@@ -1,5 +1,45 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Publisher install Playwright + developer API keys + API v1 detail manifest (2026-06-09)
+
+**A. Scope:** Batch **1689** — three user-requested follow-through slices after 1688.
+
+**B. Shipped:** Governance console approve forms + HTML review-action redirect; marketplace publisher-install Playwright + seed command + CI workflow; developer console authenticated API-key entry + manager API Center URLs; API v1 CRUD **detail** manifest keys; governance test MFA/session hardening.
+
+**C. Proof:** Django **10/11** (`test_governance` approve/HTML/JSON, `test_manager_api_key_create_flow`, `test_api_v1_manifest`, developer console test); `verify_api_v1_named_routes_snapshot --check`.
+
+**D. Honest:** Playwright publisher-install canonical in CI (`marketplace-publisher-install-e2e.yml`); local run needs hosts map + seeds.
+
+## Slice - Category-leadership follow-through (cold signup + dev portal + publisher install + API manifest) (2026-06-09)
+
+**A. Scope:** Batch **1688** — four next-wave repo slices after 1687.
+
+**B. Shipped:** API v1 manifest people/evals/finance curation + router-aware route snapshot; cold-signup Playwright + CI-gated token helper; developer console/sandbox API Center links + `ensure_developer_sandbox_tenant`; publisher approve→install service E2E test.
+
+**C. Proof:** Django **8/8**; `verify_api_v1_named_routes_snapshot --check`.
+
+**D. Honest:** Lane 2 external gates unchanged; Playwright golden/cold paths canonical in CI workflow (`signup-golden-path-e2e.yml`).
+
+## Slice - Shopify/Salesforce repo slices (billing + golden-path CI + publisher + API v1) (2026-06-09)
+
+**A. Scope:** Batch **1687** — four in-repo category-leadership slices after provisioning zero-gap (1686).
+
+**B. Shipped:** owner billing plan context + Stripe webhook plan promotion; golden-path Playwright + CI workflow + `seed_signup_e2e_fixtures`; marketplace publisher RBAC + submit-for-review + service auto-queue; API v1 people/evals/finance CRUD routes + scope map; API v1 route snapshot regen.
+
+**C. Proof:** Django **13/13** green (`run_sqlite_memory_tests.py`); `verify_api_v1_named_routes_snapshot --check`.
+
+**D. Honest:** Lane 2 live payment corridors, developer portal UX, cold-signup golden path, and store publish remain external/next waves.
+
+## Slice - Customer provisioning progress + Phase A portal-ready (2026-06-09)
+
+**A. Scope:** Provisioning zero-gap program waves 0–6 — unified resolver, customer progress bar, owner-safe AI remediation, Phase A fast path, Tenant 360 parity, proof gates.
+
+**B. Shipped:** `provisioning_progress.py`; unified lifecycle enrichment; owner/tenant progress APIs + apply-fix; workflow fix handlers + auto-fix taxonomy; Phase A activation before seed in `tasks.py`; `rmc_tenant_provision_progress` component/JS on owner done + tenant provisioning status; Tenant 360 card; verifiers pass14–18 + two new scanners; SW v4.03.36.
+
+**C. Proof:** **SIGNUP_PRODUCTION_READINESS_PASS** (18); **TENANT_PROVISION_PROGRESS_SURFACE_PASS**; **SINGLE_LIFECYCLE_WRITER_PASS**; **TENANT_LIFECYCLE_AGGRESSIVE_AUDIT_PASS**.
+
+**D. Residual closeout (same day):** public `api_public_pending_provision_progress`; live bars on `tenant_setup_in_progress.html` + `account.html` (token poll pre-login); Playwright signup-production **3/3** with `SIGNUP_E2E_LOCAL_DNS_MAP=1`; Django tests via `run_sqlite_memory_tests.py` (5 green). **Ops only:** Render `activate_pending_signup_schools` / `triage_signup_school` after deploy.
+
 ## Slice - Tenant workspace slug-first login (2026-06-09)
 
 **A. Scope:** Finish tenant-workspace slice — slug handoff, branding, emails, docs, tests, commit.

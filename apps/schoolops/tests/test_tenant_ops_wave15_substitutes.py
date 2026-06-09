@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import date
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.messages.storage.fallback import FallbackStorage
@@ -10,6 +11,7 @@ from django.test import RequestFactory, TestCase
 
 from apps.people.models import TeacherProfile
 from apps.schoolops.models import SubstituteCover
+from apps.schoolops.substitute_handover import SubstituteBroadcastResult
 from apps.schoolops.views_tenant_ops import ops_substitutes
 from apps.schools.models import School
 
@@ -48,7 +50,7 @@ class TenantOpsWave15SubstitutesTests(TestCase):
             last_name="Cover",
         )
         TeacherProfile.objects.create(user=self.t1, school=self.school)
-        TeacherProfile.objects.create(user=self.t2, school=self.school)
+        TeacherProfile.objects.create(user=self.t2, school=self.school, phone="+15550002")
 
     def _req(self, method, path, data=None):
         if method == "GET":
@@ -87,3 +89,30 @@ class TenantOpsWave15SubstitutesTests(TestCase):
         self.school.save(update_fields=["features"])
         resp = ops_substitutes(self._req("GET", "/sub/"))
         self.assertEqual(resp.status_code, 403)
+
+    @patch("apps.schoolops.substitute_handover.broadcast_substitute_request")
+    def test_broadcast_uses_ranked_candidate_service(self, broadcast):
+        broadcast.return_value = [
+            SubstituteBroadcastResult(
+                candidate_id=str(self.t2.id),
+                channel="sms",
+                accepted=True,
+            )
+        ]
+        with self.settings(RMC_AUTO_ENQUEUE_OUTBOUND=False):
+            response = ops_substitutes(
+                self._req(
+                    "POST",
+                    "/sub/",
+                    {
+                        "action": "broadcast",
+                        "work_date": "2026-06-09",
+                        "absent_teacher_id": str(self.t1.id),
+                        "period_label": "P3",
+                    },
+                )
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Ranked candidates contacted")
+        self.assertEqual(SubstituteCover.objects.count(), 0)
+        broadcast.assert_called_once()

@@ -108,6 +108,37 @@
       </div>
     </div>
   </div>
+  <div class="card shadow-sm border-secondary mb-3" id="tenant-360-provisioning" data-rmc-tenant-360-provision="1">
+    <div class="card-header">{% trans "Provisioning & lifecycle" %}</div>
+    <div class="card-body">
+      {% if provisioning_progress %}
+      <p class="mb-2 small">
+        <strong>{% trans "Workflow" %}:</strong> {{ provisioning_progress.workflow_key }}
+        {% if provisioning_progress.workflow_run_id %}<span class="text-muted">#{{ provisioning_progress.workflow_run_id }}</span>{% endif %}
+        · <span class="badge text-bg-secondary">{{ provisioning_progress.status }}</span>
+        · {{ provisioning_progress.progress_percent }}%
+      </p>
+      {% if provisioning_progress.current_step_label %}
+      <p class="small text-muted mb-2">{{ provisioning_progress.current_step_label }}</p>
+      {% endif %}
+      <div class="progress mb-3" style="height: 0.5rem;" role="progressbar" aria-valuenow="{{ provisioning_progress.progress_percent }}" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar" style="width: {{ provisioning_progress.progress_percent }}%;"></div>
+      </div>
+      <ol class="list-unstyled small mb-3">
+        {% for step in provisioning_progress.steps %}
+        <li class="mb-1"><span class="badge text-bg-light text-dark">{{ step.state }}</span> {{ step.label }}</li>
+        {% endfor %}
+      </ol>
+      {% if provisioning_progress.last_error %}
+      <div class="alert alert-warning small">{{ provisioning_progress.last_error }}</div>
+      {% endif %}
+      {% endif %}
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'super:workflow_flight_deck' %}">{% trans "Open Flight Deck" %}</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:tenant_health' %}">{% trans "Tenant health" %}</a>
+      </div>
+    </div>
+  </div>
   {% if lifecycle_registration or lifecycle_enrollment %}
   <div class="card shadow-sm border-secondary mb-3" data-rmc-lifecycle-workflow-hub="1">
     <div class="card-header">{% trans "Registration & enrollment" %}</div>

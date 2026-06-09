@@ -31,8 +31,19 @@
         </div>
         <div class="col-md-2"><label class="form-label small">{% trans "Period / slot" %}</label><input class="form-control" name="period_label" maxlength="80" placeholder="{% trans 'Full day' %}"></div>
         <div class="col-md-6"><label class="form-label small">{% trans "Notes" %}</label><input class="form-control" name="notes" maxlength="500"></div>
-        <div class="col-12"><button type="submit" class="btn btn-primary">{% trans "Save" %}</button></div>
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" name="action" value="save" class="btn btn-primary">{% trans "Save" %}</button>
+          <button type="submit" name="action" value="broadcast" class="btn btn-outline-primary">{% trans "Find and broadcast" %}</button>
+        </div>
       </form>
+      {% endif %}
+      {% if broker_results %}
+      <p class="small text-muted mt-3 mb-0">
+        {% trans "Ranked candidates contacted:" %}
+        {% for result in broker_results %}
+          <span class="badge {% if result.accepted %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ result.channel }}</span>
+        {% endfor %}
+      </p>
       {% endif %}
     </div>
   </div>

@@ -3,7 +3,8 @@ RunMyCampus Standards Compliance: API v1 URL contract.
 Mount under path('api/v1/', include('apps.api.urls_v1')).
 """
 
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 from apps.api import views_v1, views_v1_intervention, views_v1_platform
 from apps.api.api_v1_manifest import api_v1_manifest
 from apps.api.views_webhook_catalog import WebhookEventTypesView
@@ -38,12 +39,29 @@ from apps.api.runtime_endpoints import (
 
 app_name = "api_v1"
 
+from apps.api.views_v1_tenant_crud import (
+    V1EvaluationViewSet,
+    V1GuardianViewSet,
+    V1InvoiceViewSet,
+    V1PaymentViewSet,
+    V1StudentViewSet,
+    V1TeacherViewSet,
+)
 from apps.sync_engine.views_crdt import CRDTOpsApplyView
 from apps.platform_runtime.views_operator_tenant_inspect import OperatorTenantInspectView
 
 
+_v1_crud_router = DefaultRouter()
+_v1_crud_router.register(r"people/students", V1StudentViewSet, basename="students")
+_v1_crud_router.register(r"people/teachers", V1TeacherViewSet, basename="teachers")
+_v1_crud_router.register(r"people/guardians", V1GuardianViewSet, basename="guardians")
+_v1_crud_router.register(r"evals/evaluations", V1EvaluationViewSet, basename="evaluations")
+_v1_crud_router.register(r"finance/invoices", V1InvoiceViewSet, basename="invoices")
+_v1_crud_router.register(r"finance/payments", V1PaymentViewSet, basename="payments")
+
 urlpatterns = [
     path("manifest.json", api_v1_manifest, name="manifest"),
+    path("", include(_v1_crud_router.urls)),
     # v4.00.13: CRDT ops merge endpoint (per-tenant LWW/ORSet/GCounter state).
     path("crdt/apply/", CRDTOpsApplyView.as_view(), name="crdt-apply"),
     # v4.00.0 zero-latency runtime endpoints (SWR-cached at the edge).

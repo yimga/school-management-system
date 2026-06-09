@@ -4036,7 +4036,11 @@ def marketing_sitemap_xml(request):
 
 
 def _developer_page_context(request, *, active_nav: str, **extra):
-    from apps.schools.developer_surface import developer_link_context, developer_nav_items
+    from apps.schools.developer_surface import (
+        developer_link_context,
+        developer_nav_items,
+        developer_operator_api_context,
+    )
 
     links = developer_link_context(request)
     return {
@@ -4044,6 +4048,7 @@ def _developer_page_context(request, *, active_nav: str, **extra):
         "developer_nav": developer_nav_items(request),
         "active_developer_nav": active_nav,
         "links": links,
+        **developer_operator_api_context(request),
         **extra,
     }
 
@@ -4157,6 +4162,11 @@ def developer_sandbox(request):
     """
     App sandbox (Section 6): proof-page shell + restricted iframe for third-party preview.
     """
+    from apps.schools.marketing_settings_helpers import derive_marketing_demo_tenant_url
+
+    demo_slug = "demo-school"
+    base_domain = get_canonical_base_domain() or request.get_host().split(":")[0]
+    demo_tenant_url = derive_marketing_demo_tenant_url("", demo_slug, base_domain)
     response = render(
         request,
         "developer/sandbox.html",
@@ -4168,7 +4178,8 @@ def developer_sandbox(request):
             subheadline=(
                 "Preview marketplace extensions in a restricted iframe before publish."
             ),
-            demo_school_slug="demo-school",
+            demo_school_slug=demo_slug,
+            demo_tenant_url=demo_tenant_url,
         ),
     )
     response["X-Frame-Options"] = "SAMEORIGIN"

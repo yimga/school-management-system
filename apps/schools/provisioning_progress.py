@@ -1,0 +1,372 @@
+"""
+Canonical tenant provisioning progress — single resolver for owner, tenant, and Tenant 360.
+
+Reads ``WorkflowRun`` + steps for ``tenant_school_provision``, falls back to
+``SchoolProvisioningEvent`` timeline, and merges ``resolve_unified_lifecycle``.
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Any, Optional
+
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
+logger = logging.getLogger(__name__)
+
+PROVISION_WORKFLOW_KEY = "tenant_school_provision"
+
+# Registry step keys (SOT: workflow_registry.tenant_school_provision)
+PROVISION_STEP_KEYS: tuple[str, ...] = (
+    "admin_user",
+    "profile",
+    "tenant_schema",
+    "seed_data",
+    "activate",
+)
+
+_STEP_LABELS: dict[str, str] = {
+    "admin_user": _("Creating your administrator account"),
+    "profile": _("Applying your school profile"),
+    "tenant_schema": _("Preparing your campus workspace"),
+    "seed_data": _("Setting up classes and subjects"),
+    "activate": _("Activating your portal"),
+    "phase_b": _("Finishing optional setup"),
+}
+
+
+def _provisioning_settings(school) -> dict[str, Any]:
+    raw = getattr(school, "settings", None) or {}
+    if not isinstance(raw, dict):
+        return {}
+    block = raw.get("provisioning")
+    return block if isinstance(block, dict) else {}
+
+
+def _step_label(key: str) -> str:
+    try:
+        from apps.platform_runtime.workflow_registry import WORKFLOWS
+
+        definition = WORKFLOWS.get(PROVISION_WORKFLOW_KEY)
+        if definition is not None:
+            for step in getattr(definition, "steps", ()) or ():
+                if getattr(step, "key", None) == key or getattr(step, "name", None) == key:
+                    title = getattr(step, "title", "") or getattr(step, "label", "")
+                    if title:
+                        return str(title)
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+    return str(_STEP_LABELS.get(key, key.replace("_", " ").title()))
+
+
+def _latest_workflow_run(school) -> Any | None:
+    if school is None:
+        return None
+    try:
+        from apps.platform_runtime.models import WorkflowRun
+
+        sid = str(getattr(school, "pk", "") or getattr(school, "id", "") or "")
+        if not sid:
+            return None
+        return (
+            WorkflowRun.objects.filter(
+                workflow_key=PROVISION_WORKFLOW_KEY,
+                school_id=sid,
+            )
+            .order_by("-started_at")
+            .first()
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return None
+
+
+def _map_step_state(db_status: str) -> str:
+    s = (db_status or "").strip().lower()
+    if s in ("done", "succeeded"):
+        return "done"
+    if s in ("running",):
+        return "active"
+    if s in ("failed",):
+        return "failed"
+    if s in ("skipped",):
+        return "done"
+    return "pending"
+
+
+def _steps_from_run(run: Any) -> list[dict[str, Any]]:
+    steps: list[dict[str, Any]] = []
+    try:
+        from apps.platform_runtime.models import WorkflowStep
+
+        db_steps = list(WorkflowStep.objects.filter(run=run).order_by("ordinal"))
+        by_name = {s.name: s for s in db_steps}
+    except (ImportError, AttributeError, TypeError, ValueError):
+        by_name = {}
+
+    current_name = (getattr(run, "current_step_name", "") or "").strip()
+    run_status = (getattr(run, "status", "") or "").strip().lower()
+    current_idx = (
+        PROVISION_STEP_KEYS.index(current_name)
+        if current_name in PROVISION_STEP_KEYS
+        else -1
+    )
+
+    for idx, key in enumerate(PROVISION_STEP_KEYS):
+        row = by_name.get(key)
+        if row is not None:
+            state = _map_step_state(getattr(row, "status", ""))
+        elif run_status == "succeeded":
+            state = "done"
+        elif current_name == key and run_status == "running":
+            state = "active"
+        elif current_idx >= 0 and idx < current_idx:
+            state = "done"
+        else:
+            state = "pending"
+        steps.append({"key": key, "label": _step_label(key), "state": state})
+    return steps
+
+
+def _default_steps(*, active_key: str = "") -> list[dict[str, Any]]:
+    steps = []
+    for key in PROVISION_STEP_KEYS:
+        if key == active_key:
+            state = "active"
+        elif active_key and key in PROVISION_STEP_KEYS and PROVISION_STEP_KEYS.index(
+            key
+        ) < PROVISION_STEP_KEYS.index(active_key):
+            state = "done"
+        else:
+            state = "pending"
+        steps.append({"key": key, "label": _step_label(key), "state": state})
+    return steps
+
+
+def _progress_from_steps(steps: list[dict[str, Any]]) -> int:
+    if not steps:
+        return 0
+    done = sum(1 for s in steps if s.get("state") == "done")
+    active = sum(1 for s in steps if s.get("state") == "active")
+    total = len(steps)
+    if done >= total:
+        return 100
+    pct = int(round(((done + (0.4 if active else 0)) / total) * 100))
+    return max(0, min(99, pct))
+
+
+def _last_provisioning_error(school) -> str:
+    if school is None:
+        return ""
+    try:
+        from apps.schools.models import SchoolProvisioningEvent
+
+        event = (
+            SchoolProvisioningEvent.objects.filter(
+                school=school,
+                event_type="FAILED",
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        if not event:
+            return ""
+        payload = getattr(event, "payload", None) or {}
+        if isinstance(payload, dict):
+            err = (payload.get("error") or "").strip()
+            if err:
+                return err[:500]
+        return (getattr(event, "message", "") or "").strip()[:500]
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return ""
+
+
+def _blocking_error(school, run: Any | None) -> str | None:
+    if run is not None:
+        status = (getattr(run, "status", "") or "").strip().lower()
+        if status == "failed":
+            err = getattr(run, "error_summary", None) or {}
+            if isinstance(err, dict):
+                msg = (err.get("message") or err.get("error") or "").strip()
+                if msg:
+                    return msg[:500]
+            remediation = getattr(run, "suggested_remediation", None) or {}
+            if isinstance(remediation, dict):
+                human = (remediation.get("human_action") or "").strip()
+                if human:
+                    return human[:500]
+    err = _last_provisioning_error(school)
+    return err or None
+
+
+def _suggested_remediation_payload(run: Any | None) -> dict[str, Any]:
+    empty = {
+        "human_action": "",
+        "auto_fix_available": False,
+        "auto_fix_kind": "",
+        "owner_may_apply": False,
+    }
+    if run is None:
+        return empty
+    raw = getattr(run, "suggested_remediation", None) or {}
+    if not isinstance(raw, dict):
+        return empty
+    kind = str(raw.get("auto_fix_kind", "") or "").strip()
+    owner_kinds = {
+        "requeue_provision",
+        "resend_welcome",
+        "retry_dns_sync",
+    }
+    return {
+        "human_action": str(raw.get("human_action", "") or "")[:500],
+        "auto_fix_available": bool(raw.get("auto_fix_available")),
+        "auto_fix_kind": kind,
+        "owner_may_apply": bool(raw.get("auto_fix_available"))
+        and kind in owner_kinds,
+    }
+
+
+def _eta_seconds(run: Any | None) -> int:
+    if run is None:
+        return 0
+    try:
+        from apps.platform_runtime.workflow_tracker import compute_progress_percent
+
+        ordinal = int(getattr(run, "current_step_ordinal", 0) or 0)
+        total = int(getattr(run, "total_steps", 0) or 0)
+        expected = int(getattr(run, "expected_duration_seconds", 180) or 180)
+        started = getattr(run, "started_at", None)
+        age = 0
+        if started is not None:
+            age = max(0, int((timezone.now() - started).total_seconds()))
+        pct = compute_progress_percent(
+            current_step_ordinal=ordinal,
+            total_steps=total,
+            age_seconds=age,
+            expected_duration_seconds=expected,
+        )
+        if pct >= 95:
+            return 15
+        if pct <= 0:
+            return expected
+        remaining = int(round(expected * (100 - pct) / 100))
+        return max(5, min(expected, remaining))
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return 60
+
+
+def resolve_portal_ready(school) -> bool:
+    """True when owner may open the tenant portal (Phase A complete or legacy is_active)."""
+    if school is None:
+        return False
+    prov = _provisioning_settings(school)
+    if prov.get("phase_a_complete"):
+        return True
+    return bool(getattr(school, "is_active", False))
+
+
+def resolve_phase_flags(school) -> dict[str, Any]:
+    prov = _provisioning_settings(school)
+    phase_a = bool(prov.get("phase_a_complete")) or bool(
+        getattr(school, "is_active", False)
+    )
+    phase_b_step = str(prov.get("phase_b_step") or "").strip()
+    if not phase_b_step and getattr(school, "is_active", False):
+        phase_b_step = "complete" if prov.get("phase_b_complete") else ""
+    return {
+        "portal_ready": resolve_portal_ready(school),
+        "phase_a_complete": phase_a,
+        "phase_b_step": phase_b_step or None,
+        "phase_b_complete": bool(prov.get("phase_b_complete")),
+    }
+
+
+def resolve_provisioning_progress(
+    school,
+    *,
+    request=None,
+    include_dashboard_href: bool = False,
+) -> dict[str, Any]:
+    """
+    Canonical JSON contract for owner poll, tenant API, and Tenant 360.
+    """
+    from apps.lifecycle.unified_lifecycle import resolve_unified_lifecycle
+
+    unified = resolve_unified_lifecycle(school)
+    flags = resolve_phase_flags(school)
+    run = _latest_workflow_run(school)
+
+    if run is not None:
+        steps = _steps_from_run(run)
+        if flags["phase_a_complete"] and not flags.get("phase_b_complete"):
+            steps.append(
+                {
+                    "key": "phase_b",
+                    "label": str(_STEP_LABELS["phase_b"]),
+                    "state": "active" if flags.get("phase_b_step") else "pending",
+                }
+            )
+        run_status = (getattr(run, "status", "") or "").strip().lower()
+        if run_status == "succeeded" or flags["portal_ready"]:
+            status = "succeeded" if flags.get("phase_b_complete") or run_status == "succeeded" else "running"
+        elif run_status == "failed":
+            status = "failed"
+        else:
+            status = "running"
+        current_key = (getattr(run, "current_step_name", "") or "").strip()
+        current_label = _step_label(current_key) if current_key else ""
+        progress_percent = _progress_from_steps(steps)
+        if status == "succeeded":
+            progress_percent = 100
+        workflow_run_id = getattr(run, "pk", None)
+        eta = _eta_seconds(run)
+        remediation = _suggested_remediation_payload(run)
+    else:
+        steps = _default_steps()
+        status = "succeeded" if getattr(school, "is_active", False) else "running"
+        current_key = ""
+        current_label = _step_label("admin_user") if status == "running" else ""
+        progress_percent = 100 if getattr(school, "is_active", False) else 5
+        workflow_run_id = None
+        eta = 90
+        remediation = _suggested_remediation_payload(None)
+        if status == "running" and steps:
+            steps[0]["state"] = "active"
+            current_key = "admin_user"
+
+    blocking = _blocking_error(school, run)
+
+    payload: dict[str, Any] = {
+        "ok": True,
+        "workflow_key": PROVISION_WORKFLOW_KEY,
+        "workflow_run_id": workflow_run_id,
+        "status": status,
+        "progress_percent": progress_percent,
+        "current_step_key": current_key or None,
+        "current_step_label": current_label or None,
+        "steps": steps,
+        "eta_seconds": eta,
+        "last_error": blocking,
+        "suggested_remediation": remediation,
+        "is_active": bool(getattr(school, "is_active", False)),
+        "portal_ready": flags["portal_ready"],
+        "phase_a_complete": flags["phase_a_complete"],
+        "phase_b_step": flags["phase_b_step"],
+        "phase_b_complete": flags["phase_b_complete"],
+        "blocking_error": blocking,
+        "unified": {
+            "state": unified.get("state"),
+            "label": unified.get("label"),
+            "provisioning_in_flight": unified.get("provisioning_in_flight"),
+        },
+    }
+
+    if include_dashboard_href and request is not None and flags["portal_ready"]:
+        try:
+            from apps.accounts.views_owner_onboarding import _post_onboarding_dashboard_href
+
+            payload["dashboard_href"] = _post_onboarding_dashboard_href(request, school)
+        except (ImportError, AttributeError, TypeError, ValueError):
+            pass
+
+    return payload

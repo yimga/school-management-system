@@ -15,7 +15,7 @@ from apps.marketplace.models import (
 )
 from apps.marketplace.services import install_app, submit_marketplace_review
 from apps.schools.models import School
-from apps.schools.tests.manager_client import login_manager_control_plane
+from apps.schools.tests.manager_client import bind_manager_session, login_manager_control_plane
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
@@ -64,6 +64,19 @@ class MarketplaceGovernanceTests(TestCase):
     def tearDown(self):
         self.env.stop()
 
+    def _login_manager(self) -> None:
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        TOTPDevice.objects.get_or_create(
+            user=self.manager,
+            name="governance-test",
+            defaults={"confirmed": True},
+        )
+        login_manager_control_plane(self.client, self.manager, password="pass1234")
+        self.client.session["mfa_verified"] = True
+        self.client.session.save()
+        bind_manager_session(self.client)
+
     def test_install_app_audit_includes_impact_snapshot(self):
         MarketplaceListing.objects.create(
             app=self.third_party_app,
@@ -110,16 +123,50 @@ class MarketplaceGovernanceTests(TestCase):
             requested_by=self.manager,
             notes="Security review queued",
         )
-        self.client.force_login(self.manager)
+        self._login_manager()
 
         response = self.client.get(
             reverse("super:marketplace_governance"), HTTP_HOST="manager.runmycampus.com"
         )
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.status_code,
+            200,
+            msg=response.get("Location", response.content[:300]),
+        )
         self.assertContains(response, "Marketplace governance")
         self.assertContains(response, "Pending reviews")
         self.assertContains(response, self.third_party_app.name)
+        self.assertContains(response, "data-rmc-mkt-review-approve")
+
+    def test_review_action_approves_listing_html_redirect(self):
+        listing = MarketplaceListing.objects.create(
+            app=self.third_party_app,
+            publisher=self.publisher,
+            status=MarketplaceListing.Status.DRAFT,
+            security_review_status=MarketplaceListing.ReviewStatus.APPROVED,
+        )
+        review = submit_marketplace_review(
+            listing,
+            review_type=MarketplaceReview.ReviewType.LISTING,
+            requested_by=self.manager,
+            notes="Ready for operator review",
+        )
+        self._login_manager()
+
+        response = self.client.post(
+            reverse("super:marketplace_review_action", args=[review.pk]),
+            {"action": "approve", "notes": "Approved from governance console"},
+            HTTP_HOST="manager.runmycampus.com",
+            HTTP_ACCEPT="text/html,application/xhtml+xml",
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/super/marketplace/", response["Location"])
+        review.refresh_from_db()
+        listing.refresh_from_db()
+        self.assertEqual(review.status, MarketplaceReview.Status.APPROVED)
+        self.assertEqual(listing.status, MarketplaceListing.Status.APPROVED)
 
     def test_review_action_approves_listing(self):
         listing = MarketplaceListing.objects.create(
@@ -134,12 +181,13 @@ class MarketplaceGovernanceTests(TestCase):
             requested_by=self.manager,
             notes="Ready for operator review",
         )
-        self.client.force_login(self.manager)
+        self._login_manager()
 
         response = self.client.post(
             reverse("super:marketplace_review_action", args=[review.pk]),
             {"action": "approve", "notes": "Listing approved for install"},
             HTTP_HOST="manager.runmycampus.com",
+            HTTP_ACCEPT="application/json",
         )
 
         self.assertEqual(response.status_code, 200)
@@ -160,7 +208,7 @@ class MarketplaceGovernanceTests(TestCase):
         # Manager host reads the manager-named session cookie; force_login only
         # writes the default cookie, so the install POST would be anonymous (200
         # via follow to login) and create nothing. Bind the manager session.
-        login_manager_control_plane(self.client, self.manager, password="pass1234")
+        self._login_manager()
 
         response = self.client.post(
             reverse("super:app_catalog"),

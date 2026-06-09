@@ -290,7 +290,8 @@ def _check_render_smoke() -> list[str]:
                 "cp-catalog-card",
                 "cp-header--consolidated",
                 "cp-live-strip",
-                "rmc-admin-v1-200x.css",
+                # Production manifest storage inserts a content hash before .css.
+                "rmc-admin-v1-200x",
             ),
         ),
         (

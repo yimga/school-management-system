@@ -23,11 +23,18 @@ from apps.siteconfig.billing_sku_registry import manifest_plan_entitlements_bloc
 # Placeholder tenant id for curated routes that include ``<uuid:id>`` (discovery template only).
 _MANIFEST_PLACEHOLDER_TENANT_UUID = uuid.UUID("00000000-0000-0000-0000-000000000042")
 _MANIFEST_PLACEHOLDER_STUDENT_GLOBAL_ID = uuid.UUID("00000000-0000-0000-0000-000000000099")
+_MANIFEST_PLACEHOLDER_RECORD_ID = "00000000-0000-0000-0000-000000000001"
 
 # Optional ``reverse(..., kwargs=…)`` for curated names whose patterns include path parameters.
-MANIFEST_CURATED_API_V1_REVERSE_KWARGS: dict[str, dict[str, uuid.UUID]] = {
+MANIFEST_CURATED_API_V1_REVERSE_KWARGS: dict[str, dict[str, uuid.UUID | str]] = {
     "tenants-modules": {"id": _MANIFEST_PLACEHOLDER_TENANT_UUID},
     "student-passport": {"global_id": _MANIFEST_PLACEHOLDER_STUDENT_GLOBAL_ID},
+    "students-detail": {"id": _MANIFEST_PLACEHOLDER_RECORD_ID},
+    "teachers-detail": {"pk": _MANIFEST_PLACEHOLDER_RECORD_ID},
+    "guardians-detail": {"pk": _MANIFEST_PLACEHOLDER_RECORD_ID},
+    "evaluations-detail": {"pk": _MANIFEST_PLACEHOLDER_RECORD_ID},
+    "invoices-detail": {"pk": _MANIFEST_PLACEHOLDER_RECORD_ID},
+    "payments-detail": {"pk": _MANIFEST_PLACEHOLDER_RECORD_ID},
 }
 
 # Curated v1 discovery entries: JSON object key → ``api_v1`` URL pattern ``name`` (see ``urls_v1.py``).
@@ -71,6 +78,18 @@ MANIFEST_CURATED_API_V1_URL_NAMES: tuple[tuple[str, str], ...] = (
     ("student_passport", "student-passport"),
     ("platform_integration_context", "platform-integration-context"),
     ("platform_scoped_ping", "platform-scoped-ping"),
+    ("people_students", "students-list"),
+    ("people_students_detail", "students-detail"),
+    ("people_teachers", "teachers-list"),
+    ("people_teachers_detail", "teachers-detail"),
+    ("people_guardians", "guardians-list"),
+    ("people_guardians_detail", "guardians-detail"),
+    ("evals_evaluations", "evaluations-list"),
+    ("evals_evaluations_detail", "evaluations-detail"),
+    ("finance_invoices", "invoices-list"),
+    ("finance_invoices_detail", "invoices-detail"),
+    ("finance_payments", "payments-list"),
+    ("finance_payments_detail", "payments-detail"),
 )
 
 

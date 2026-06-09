@@ -77,6 +77,7 @@ from apps.schools.marketing_views import (
     marketing_intent_homepage,
     marketing_personality_page,
 )
+from apps.schools.views_e2e_signup_helpers import e2e_signup_verification_token
 from apps.schools.signup_views import (
     signup_school,
     signup_slug_check,
@@ -154,6 +155,9 @@ def service_worker_asset_manifest(request):
         "js/dashboard-layout.js",
         "js/vendor/dexie.min.js",
         "js/offline-db.js",
+        "js/offline-crypto-wrapper.js",
+        "js/rmc-wizard-offline-intake.js",
+        "js/rmc-plickers-card-sweep.js",
         "js/form-draft-save.js",
         "js/sync-manager.js",
         "js/low-power.js",
@@ -1699,6 +1703,11 @@ urlpatterns = [
     path("onboard/migrate/start/", onboard_migration_start, name="onboard_migration_start"),
     path("signup/", signup_school, name="signup_school"),
     path("verify-signup/", verify_signup, name="verify_signup"),
+    path(  # rbac-allow: ci-e2e-gated-by-RMC_E2E_SIGNUP_HELPERS-env-only
+        "api/e2e/signup-verification-token/",
+        e2e_signup_verification_token,
+        name="e2e_signup_verification_token",
+    ),
     path("accept-invite/", accept_school_invite, name="accept_school_invite"),
     path("api/trial/", api_trial_school, name="api_trial_school"),
     path("lti/launch/<str:tool_id>/", lti_launch, name="lti_launch"),

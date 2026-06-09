@@ -264,6 +264,24 @@
 {% endif %}
 
 {% if sa and students %}
+  {% if plickers_card_sweep_enabled %}
+  <div class="card mb-3">
+    <div class="card-header">{% trans "No-device card sweep" %}</div>
+    <div class="card-body">
+      <p class="small text-muted">
+        {% trans "Show each student's QR card to the camera. Card rotation records A, B, C, or D. This creates highlighted proposals only." %}
+      </p>
+      <label class="form-label small" for="rmc-card-sweep-answer">{% trans "Correct answer" %}</label>
+      <select class="form-select form-select-sm d-inline-block w-auto" id="rmc-card-sweep-answer">
+        <option>A</option><option>B</option><option>C</option><option>D</option>
+      </select>
+      <button type="button" class="btn btn-outline-primary btn-sm ms-2" id="rmc-card-sweep-start">{% trans "Start camera sweep" %}</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm ms-1" id="rmc-card-sweep-stop" hidden>{% trans "Stop" %}</button>
+      <video id="rmc-card-sweep-video" class="d-block mt-3 mw-100 rounded" playsinline muted hidden></video>
+      <div class="small text-muted mt-2" id="rmc-card-sweep-status" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+  {% endif %}
   <div class="card">
     <div class="card-header">
       <b>{{ sa.subject.name }}</b> — {{ sa.classroom.name }} / {{ sa.specialty.name }} — coef {{ sa.coefficient }}
@@ -342,6 +360,9 @@
 <script src="{% static 'js/rmc-marksheet-device-ocr.js' %}" defer></script>
 {% endif %}
 <script src="{% static 'js/_pages/teacher__marks_entry.js' %}"></script>
+{% if plickers_card_sweep_enabled %}
+<script src="{% static 'js/rmc-plickers-card-sweep.js' %}" defer></script>
+{% endif %}
 {% comment %} v4.00.10: progressive WAL enhancement for bulk gradebook. No-op when window.rmcWAL is absent. {% endcomment %}
 <script src="{% static 'js/_pages/rmc-gradebook-wal-enhance.js' %}" defer></script>
 {% include "partials/portal_row_detail_drawer_bundle.html" %}

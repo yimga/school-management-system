@@ -18,6 +18,11 @@
       </div>
       <h1 id="ob-title">{% blocktrans with name=school.name|default:"RunMyCampus" %}Welcome to {{ name }}!{% endblocktrans %}</h1>
       <p class="auth-sub">{% trans "Let’s finish creating your account. Tell us your name and choose a password — then you’ll be signed in." %}</p>
+      {% if show_inline_provision_progress and provision_progress_api_url %}
+      <div class="text-start mb-3">
+        {% include "components/rmc_tenant_provision_progress.html" with provision_progress_api_url=provision_progress_api_url %}
+      </div>
+      {% endif %}
       <p class="form-help-muted text-start mb-3">{% trans "Your password must meet the requirements listed below — pick one you will use to sign in with your email." %}</p>
       <form method="post">
         {% csrf_token %}

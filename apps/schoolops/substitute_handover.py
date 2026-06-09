@@ -59,6 +59,23 @@ class HandoverPacket:
         return ref >= self.valid_until
 
 
+@dataclass(frozen=True)
+class SubstituteCandidate:
+    teacher_id: str
+    display_name: str
+    phone: str = ""
+    department_id: str = ""
+    active_cover_count: int = 0
+    priority: int = 0
+
+
+@dataclass(frozen=True)
+class SubstituteBroadcastResult:
+    candidate_id: str
+    channel: str
+    accepted: bool
+
+
 def _hash(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
 
@@ -113,10 +130,159 @@ def access_check(packet: HandoverPacket, *, now: datetime | None = None) -> bool
     return not packet.is_expired(now=now)
 
 
+def rank_substitute_candidates(
+    *,
+    absent_teacher_id: str,
+    candidates: list[SubstituteCandidate],
+    unavailable_ids: set[str] | None = None,
+    required_department_id: str = "",
+) -> list[SubstituteCandidate]:
+    unavailable = {str(value) for value in (unavailable_ids or set())}
+    ranked = [
+        candidate
+        for candidate in candidates
+        if candidate.teacher_id != str(absent_teacher_id)
+        and candidate.teacher_id not in unavailable
+        and candidate.phone
+    ]
+    ranked.sort(
+        key=lambda candidate: (
+            0
+            if required_department_id
+            and candidate.department_id == str(required_department_id)
+            else 1,
+            -candidate.priority,
+            candidate.active_cover_count,
+            candidate.display_name.casefold(),
+            candidate.teacher_id,
+        )
+    )
+    return ranked
+
+
+def find_substitute_candidates(
+    *,
+    school: Any,
+    absent_teacher_user_id: int,
+    work_date: Any,
+) -> list[SubstituteCandidate]:
+    from django.db.models import Count
+
+    from apps.people.models import TeacherProfile
+    from apps.schoolops.models import SubstituteCover
+
+    unavailable_ids = {
+        str(value)
+        for value in SubstituteCover.objects.filter(
+            school=school,
+            work_date=work_date,
+        ).values_list("absent_teacher_id", flat=True)
+    }
+    unavailable_ids.update(
+        str(value)
+        for value in SubstituteCover.objects.filter(
+            school=school,
+            work_date=work_date,
+            covering_teacher_id__isnull=False,
+        ).values_list("covering_teacher_id", flat=True)
+    )
+    active_counts = {
+        row["covering_teacher_id"]: row["total"]
+        for row in (
+            SubstituteCover.objects.filter(school=school)
+            .exclude(covering_teacher_id__isnull=True)
+            .values("covering_teacher_id")
+            .annotate(total=Count("id"))
+        )
+    }
+    profiles = (
+        TeacherProfile.objects.filter(school=school, is_active=True)
+        .select_related("user", "department")
+        .order_by("user__last_name", "user__first_name", "user_id")
+    )
+    candidates = []
+    for profile in profiles:
+        attrs = profile.custom_attributes or {}
+        candidates.append(
+            SubstituteCandidate(
+                teacher_id=str(profile.user_id),
+                display_name=profile.user.get_full_name() or profile.user.username,
+                phone=(profile.phone or "").strip(),
+                department_id=str(profile.department_id or ""),
+                active_cover_count=int(active_counts.get(profile.user_id, 0)),
+                priority=int(attrs.get("substitute_priority") or 0),
+            )
+        )
+    return rank_substitute_candidates(
+        absent_teacher_id=str(absent_teacher_user_id),
+        candidates=candidates,
+        unavailable_ids=unavailable_ids,
+    )
+
+
+def broadcast_substitute_request(
+    *,
+    school: Any,
+    candidates: list[SubstituteCandidate],
+    work_date: Any,
+    period_label: str = "",
+    limit: int = 5,
+    send_whatsapp_fn=None,
+    send_sms_fn=None,
+) -> list[SubstituteBroadcastResult]:
+    from apps.communication.notification_service import send_sms, send_whatsapp
+
+    whatsapp_sender = send_whatsapp_fn or send_whatsapp
+    sms_sender = send_sms_fn or send_sms
+    body = (
+        f"{getattr(school, 'name', 'School')} needs substitute cover on "
+        f"{work_date}{' for ' + period_label if period_label else ''}. "
+        "Reply to the school if you are available."
+    )
+    results = []
+    for candidate in candidates[: max(1, min(int(limit), 25))]:
+        idempotency_key = (
+            f"substitute:{getattr(school, 'pk', '')}:{work_date}:"
+            f"{candidate.teacher_id}:{period_label}"
+        )[:255]
+        accepted = bool(
+            whatsapp_sender(
+                school,
+                candidate.phone,
+                body=body,
+                idempotency_key=idempotency_key,
+            )
+        )
+        channel = "whatsapp"
+        if not accepted:
+            accepted = bool(
+                sms_sender(
+                    candidate.phone,
+                    body,
+                    school=school,
+                    idempotency_key=idempotency_key,
+                )
+            )
+            channel = "sms"
+        results.append(
+            SubstituteBroadcastResult(
+                candidate_id=candidate.teacher_id,
+                channel=channel,
+                accepted=accepted,
+            )
+        )
+    return results
+
+
 __all__ = [
     "HandoverPacket",
     "SubstituteHandoverError",
     "TeacherAbsenceTrigger",
+    "SubstituteBroadcastResult",
+    "SubstituteCandidate",
     "access_check",
+    "broadcast_substitute_request",
     "build_packet",
+    "find_substitute_candidates",
+    "rank_substitute_candidates",
 ]

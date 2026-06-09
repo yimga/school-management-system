@@ -92,12 +92,35 @@ def set_creation_path(school, path: str, *, save: bool = True) -> None:
         school.save(update_fields=["settings", "updated_at"])
 
 
+def _return_unified(school, payload: dict[str, Any]) -> dict[str, Any]:
+    """Attach provisioning progress signals for Tenant 360 and owner surfaces."""
+    if school is None:
+        return payload
+    try:
+        from apps.schools.provisioning_progress import (
+            _blocking_error,
+            _latest_workflow_run,
+            resolve_phase_flags,
+        )
+
+        payload.update(resolve_phase_flags(school))
+        payload["blocking_error"] = _blocking_error(school, _latest_workflow_run(school))
+    except ImportError:
+        payload.setdefault("portal_ready", bool(getattr(school, "is_active", False)))
+        payload.setdefault("phase_a_complete", bool(getattr(school, "is_active", False)))
+        payload.setdefault("phase_b_step", None)
+        payload.setdefault("phase_b_complete", False)
+        payload.setdefault("blocking_error", None)
+    return payload
+
+
 def resolve_unified_lifecycle(school) -> dict[str, Any]:
     """
     Return unified state + reasons + hints for UI and automation.
 
     Keys: state, label, reasons, creation_path, provisioning_in_flight,
-    wind_down_active, offboarding_status, spine_stage, can_launch, can_close.
+    wind_down_active, offboarding_status, spine_stage, can_launch, can_close,
+    portal_ready, phase_a_complete, phase_b_step, blocking_error.
     """
     empty = {
         "state": STATE_DRAFT,
@@ -140,52 +163,27 @@ def resolve_unified_lifecycle(school) -> dict[str, Any]:
     in_flight = provisioning_in_flight(school)
 
     if spine == SchoolLifecycleStage.Stage.OFFBOARDING_PURGED:
-        return {
-            "state": STATE_PURGED,
-            "label": str(_("Purged")),
-            "reasons": ["spine_purged"],
-            "creation_path": creation_path,
-            "provisioning_in_flight": False,
-            "wind_down_active": False,
-            "offboarding_status": self_status,
-            "spine_stage": spine,
-            "can_launch": False,
-            "can_close": False,
-        }
-
-    if getattr(school, "deleted_at", None):
-        reasons.append("school_soft_deleted")
-        return {
-            "state": STATE_CLOSED,
-            "label": str(_("Closed")),
-            "reasons": reasons,
-            "creation_path": creation_path,
-            "provisioning_in_flight": in_flight,
-            "wind_down_active": wind_down_active,
-            "offboarding_status": self_status,
-            "spine_stage": spine,
-            "can_launch": False,
-            "can_close": False,
-        }
-
-    if not getattr(school, "is_active", True):
-        if wind_down_active:
-            reasons.append("school_inactive_wind_down")
-            return {
-                "state": STATE_WIND_DOWN,
-                "label": str(_("Wind-down")),
-                "reasons": reasons,
+        return _return_unified(
+            school,
+            {
+                "state": STATE_PURGED,
+                "label": str(_("Purged")),
+                "reasons": ["spine_purged"],
                 "creation_path": creation_path,
-                "provisioning_in_flight": in_flight,
-                "wind_down_active": True,
+                "provisioning_in_flight": False,
+                "wind_down_active": False,
                 "offboarding_status": self_status,
                 "spine_stage": spine,
                 "can_launch": False,
-                "can_close": True,
-            }
-        if self_status:
-            reasons.append("school_inactive_offboarding")
-            return {
+                "can_close": False,
+            },
+        )
+
+    if getattr(school, "deleted_at", None):
+        reasons.append("school_soft_deleted")
+        return _return_unified(
+            school,
+            {
                 "state": STATE_CLOSED,
                 "label": str(_("Closed")),
                 "reasons": reasons,
@@ -196,20 +194,60 @@ def resolve_unified_lifecycle(school) -> dict[str, Any]:
                 "spine_stage": spine,
                 "can_launch": False,
                 "can_close": False,
-            }
+            },
+        )
+
+    if not getattr(school, "is_active", True):
+        if wind_down_active:
+            reasons.append("school_inactive_wind_down")
+            return _return_unified(
+                school,
+                {
+                    "state": STATE_WIND_DOWN,
+                    "label": str(_("Wind-down")),
+                    "reasons": reasons,
+                    "creation_path": creation_path,
+                    "provisioning_in_flight": in_flight,
+                    "wind_down_active": True,
+                    "offboarding_status": self_status,
+                    "spine_stage": spine,
+                    "can_launch": False,
+                    "can_close": True,
+                },
+            )
+        if self_status:
+            reasons.append("school_inactive_offboarding")
+            return _return_unified(
+                school,
+                {
+                    "state": STATE_CLOSED,
+                    "label": str(_("Closed")),
+                    "reasons": reasons,
+                    "creation_path": creation_path,
+                    "provisioning_in_flight": in_flight,
+                    "wind_down_active": wind_down_active,
+                    "offboarding_status": self_status,
+                    "spine_stage": spine,
+                    "can_launch": False,
+                    "can_close": False,
+                },
+            )
         reasons.append("signup_or_trial_draft")
-        return {
-            "state": STATE_DRAFT,
-            "label": str(_("Draft")),
-            "reasons": reasons,
-            "creation_path": creation_path,
-            "provisioning_in_flight": in_flight,
-            "wind_down_active": False,
-            "offboarding_status": self_status,
-            "spine_stage": spine,
-            "can_launch": False,
-            "can_close": False,
-        }
+        return _return_unified(
+            school,
+            {
+                "state": STATE_DRAFT,
+                "label": str(_("Draft")),
+                "reasons": reasons,
+                "creation_path": creation_path,
+                "provisioning_in_flight": in_flight,
+                "wind_down_active": False,
+                "offboarding_status": self_status,
+                "spine_stage": spine,
+                "can_launch": False,
+                "can_close": False,
+            },
+        )
 
     if wind_down_active or spine in (
         SchoolLifecycleStage.Stage.OFFBOARDING_REQUESTED,
@@ -217,75 +255,96 @@ def resolve_unified_lifecycle(school) -> dict[str, Any]:
         SchoolLifecycleStage.Stage.OFFBOARDING_GRACE,
     ):
         reasons.append("wind_down_or_offboarding")
-        return {
-            "state": STATE_WIND_DOWN,
-            "label": str(_("Wind-down")),
-            "reasons": reasons,
-            "creation_path": creation_path,
-            "provisioning_in_flight": in_flight,
-            "wind_down_active": True,
-            "offboarding_status": self_status,
-            "spine_stage": spine,
-            "can_launch": False,
-            "can_close": True,
-        }
+        return _return_unified(
+            school,
+            {
+                "state": STATE_WIND_DOWN,
+                "label": str(_("Wind-down")),
+                "reasons": reasons,
+                "creation_path": creation_path,
+                "provisioning_in_flight": in_flight,
+                "wind_down_active": True,
+                "offboarding_status": self_status,
+                "spine_stage": spine,
+                "can_launch": False,
+                "can_close": True,
+            },
+        )
+
+    try:
+        from apps.schools.provisioning_progress import resolve_portal_ready
+
+        portal_ready = resolve_portal_ready(school)
+    except ImportError:
+        portal_ready = bool(getattr(school, "is_active", False))
 
     if in_flight or (
-        not SchoolProvisioningEvent_completed(school) and not _is_live_spine(spine)
+        not SchoolProvisioningEvent_completed(school)
+        and not _is_live_spine(spine)
+        and not portal_ready
     ):
         if not getattr(school, "is_active", True):
             reasons.append("inactive_while_provisioning")
         else:
             reasons.append("provisioning_in_flight")
-        return {
-            "state": STATE_PROVISIONING,
-            "label": str(_("Provisioning")),
-            "reasons": reasons,
-            "creation_path": creation_path,
-            "provisioning_in_flight": True,
-            "wind_down_active": False,
-            "offboarding_status": self_status,
-            "spine_stage": spine,
-            "can_launch": False,
-            "can_close": False,
-        }
+        return _return_unified(
+            school,
+            {
+                "state": STATE_PROVISIONING,
+                "label": str(_("Provisioning")),
+                "reasons": reasons,
+                "creation_path": creation_path,
+                "provisioning_in_flight": True,
+                "wind_down_active": False,
+                "offboarding_status": self_status,
+                "spine_stage": spine,
+                "can_launch": False,
+                "can_close": False,
+            },
+        )
 
     if _is_live_spine(spine) or _is_live_by_signals(school):
         from apps.lifecycle.readiness import compute_unified_score
 
         readiness = compute_unified_score(school)
         can_launch = bool(readiness.launch_ready)
-        return {
-            "state": STATE_LIVE,
-            "label": str(_("Live")),
-            "reasons": reasons or ["operating"],
-            "creation_path": creation_path,
-            "provisioning_in_flight": False,
-            "wind_down_active": False,
-            "offboarding_status": self_status,
-            "spine_stage": spine,
-            "can_launch": can_launch,
-            "can_close": True,
-            "unified_score": readiness.unified_score,
-        }
+        return _return_unified(
+            school,
+            {
+                "state": STATE_LIVE,
+                "label": str(_("Live")),
+                "reasons": reasons or ["operating"],
+                "creation_path": creation_path,
+                "provisioning_in_flight": False,
+                "wind_down_active": False,
+                "offboarding_status": self_status,
+                "spine_stage": spine,
+                "can_launch": can_launch,
+                "can_close": True,
+                "unified_score": readiness.unified_score,
+            },
+        )
 
     reasons.append("activating")
     from apps.lifecycle.readiness import compute_unified_score
 
     readiness = compute_unified_score(school)
-    return {
-        "state": STATE_ACTIVATING,
-        "label": str(_("Activating")),
-        "reasons": reasons,
-        "creation_path": creation_path,
-        "provisioning_in_flight": False,
-        "wind_down_active": False,
-        "offboarding_status": self_status,
-        "spine_stage": spine,
-        "can_launch": bool(readiness.launch_ready),
-        "can_close": True,
-        "unified_score": readiness.unified_score,
-    }
+    return _return_unified(
+        school,
+        {
+            "state": STATE_ACTIVATING,
+            "label": str(_("Activating")),
+            "reasons": reasons,
+            "creation_path": creation_path,
+            "provisioning_in_flight": False,
+            "wind_down_active": False,
+            "offboarding_status": self_status,
+            "spine_stage": spine,
+            "can_launch": bool(readiness.launch_ready),
+            "can_close": True,
+            "unified_score": readiness.unified_score,
+        },
+    )
 
 
 def _is_live_spine(spine: str | None) -> bool:

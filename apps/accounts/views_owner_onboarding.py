@@ -26,8 +26,12 @@ from django import forms
 from django.db import DatabaseError
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth import get_user_model
 from django.contrib.auth import password_validation
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -221,6 +225,19 @@ def _provisioning_timeline(school, *, limit: int = 8):
         return []
 
 
+def _user_from_onboarding_token(uidb64: str, token: str):
+    """Validate owner onboarding reset token without requiring a session."""
+    User = get_user_model()
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        return None
+    if not default_token_generator.check_token(user, token):
+        return None
+    return user
+
+
 def _finish_provisioning_before_done(request, school, user) -> None:
     """After the school step, try to finish provisioning before showing the launchpad."""
     if not school or getattr(school, "is_active", False):
@@ -273,6 +290,32 @@ class OwnerOnboardingAccountView(PasswordResetConfirmView):
         ctx["school"] = school
         ctx["step"] = 1
         ctx["total_steps"] = _TOTAL_STEPS
+        portal_ready = False
+        provisioning_progress = None
+        if school is not None:
+            try:
+                from apps.schools.provisioning_progress import (
+                    resolve_portal_ready,
+                    resolve_provisioning_progress,
+                )
+
+                portal_ready = resolve_portal_ready(school)
+                if not portal_ready:
+                    provisioning_progress = resolve_provisioning_progress(school)
+            except ImportError:
+                portal_ready = bool(getattr(school, "is_active", False))
+        ctx["portal_ready"] = portal_ready
+        ctx["provisioning_progress"] = provisioning_progress
+        ctx["show_inline_provision_progress"] = bool(
+            school is not None and not portal_ready and provisioning_progress
+        )
+        uidb64 = self.kwargs.get("uidb64")
+        token = self.kwargs.get("token")
+        if ctx["show_inline_provision_progress"] and uidb64 and token:
+            ctx["provision_progress_api_url"] = reverse(
+                "accounts:owner_onboarding_account_provision_progress",
+                kwargs={"uidb64": uidb64, "token": token},
+            )
         return ctx
 
 
@@ -490,6 +533,30 @@ def _owner_provisioning_progress_payload(request, school) -> dict:
         )
     payload["events"] = events
     return payload
+
+
+@require_GET
+def owner_onboarding_account_provision_progress(request, uidb64, token):
+    """Token-authenticated progress poll for step 1 (pre-login account setup)."""
+    user = _user_from_onboarding_token(uidb64, token)
+    if user is None:
+        return JsonResponse({"ok": False, "error": "invalid_token"}, status=403)
+    school = _owner_school(user)
+    if school is None:
+        return JsonResponse({"ok": False, "error": "no_school"}, status=404)
+    from apps.schools.provisioning_progress import (
+        resolve_portal_ready,
+        resolve_provisioning_progress,
+    )
+
+    payload = resolve_provisioning_progress(
+        school,
+        request=request,
+        include_dashboard_href=False,
+    )
+    payload["portal_ready"] = resolve_portal_ready(school)
+    payload.pop("events", None)
+    return JsonResponse(payload)
 
 
 @login_required

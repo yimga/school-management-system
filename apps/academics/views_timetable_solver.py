@@ -42,11 +42,24 @@ class TimetableBuildView(View):
         # teachers + rooms + slots arrays) or invoke the helper that pulls
         # the data from the tenant's TimetableTemplate.
         problem = payload.get("problem")
-        soft_constraints = payload.get("soft_constraints") or {}
-        max_search_steps = int(payload.get("max_search_steps") or 50_000)
-
         if not isinstance(problem, dict):
             return JsonResponse({"error": "problem_must_be_dict"}, status=400)
+        soft_constraints = payload.get("soft_constraints") or {}
+        if not isinstance(soft_constraints, dict):
+            return JsonResponse({"error": "soft_constraints_must_be_dict"}, status=400)
+        try:
+            max_search_steps = int(payload.get("max_search_steps") or 50_000)
+            if not 1 <= max_search_steps <= 250_000:
+                raise ValueError("max_search_steps must be between 1 and 250000")
+            soft_constraints = {
+                key: float(value)
+                for key, value in soft_constraints.items()
+                if key in {"avoid_first_period_for", "avoid_last_period_for", "prefer_morning"}
+            }
+            if any(not 0.0 <= value <= 1.0 for value in soft_constraints.values()):
+                raise ValueError("soft constraint weights must be between 0 and 1")
+        except (TypeError, ValueError) as exc:
+            return JsonResponse({"error": "solver_options", "detail": str(exc)}, status=400)
 
         try:
             from apps.academics.timetable_solver import (
@@ -57,8 +70,8 @@ class TimetableBuildView(View):
             )
 
             lessons = [
-                LessonRequest(**self._sanitize_lesson(l))
-                for l in (problem.get("lessons") or [])
+                LessonRequest(**self._sanitize_lesson(lesson))
+                for lesson in (problem.get("lessons") or [])
             ]
             teachers = {
                 t["resource_id"]: Resource(**self._sanitize_resource(t))
@@ -96,6 +109,8 @@ class TimetableBuildView(View):
                     "teacher_id": p.teacher_id,
                     "room_id": p.room_id,
                     "slot_id": p.slot_id,
+                    "class_id": p.class_id,
+                    "subject": p.subject,
                 }
                 for p in result.placed
             ],

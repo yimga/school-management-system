@@ -18,6 +18,7 @@ from .services import (
     get_immutable_transcripts_for_student,
     create_immutable_transcript,
 )
+from .dual_identity import build_identity_matrix
 
 
 def _student_360_academic(student):
@@ -125,6 +126,7 @@ def student_360_page(request, student_id):
     timeline = get_student_timeline_feed(school.id, student_id, limit=50)
     academic = _student_360_academic(student)
     finance = _student_360_finance(student)
+    identity_matrix = build_identity_matrix(student)
     from apps.portal.views_passport import _staff_may_view_student
 
     return render(
@@ -136,6 +138,7 @@ def student_360_page(request, student_id):
             "timeline": timeline,
             "academic": academic,
             "finance": finance,
+            "identity_matrix": identity_matrix,
             "show_passport_vault_links": _staff_may_view_student(request, student),
             "information_tags": information_tags,
             "can_see_private_tags": can_see_private_tags,

@@ -1,17 +1,9 @@
-"""Wave N (v3.95.0 — 2026-05-26) — Timetable solver scaffold.
+"""Offline timetable solver and conflict detector.
 
-The competitive gap: full SIS competitors (SIMS, Arbor, Bromcom) ship a
-timetable builder; in EM schools, timetabling is still done in Excel +
-WhatsApp arguments. Owning this primitive removes a recurring objection.
-
-This module is the **conflict checker + greedy assigner kernel**. It does
-NOT implement a full constraint-satisfaction solver — that's a research
-project. The greedy solver handles the 80% case (small school, ~30 classes,
-~50 teachers, 30 slots/week) and reports conflicts when it can't place a
-lesson. Tenants can iterate manually.
-
-Real CSP work (backtracking, soft constraints, optimization) lands in
-Wave N+1 once the data model + UI are stable.
+The primary path is bounded backtracking over weekly lesson occurrences,
+locked slots, teacher/room availability, room kinds, and class/teacher/room
+occupancy. Soft weights order candidate slots. A deterministic greedy solver
+remains as the explicit cutoff/unsatisfiable fallback and reports conflicts.
 """
 
 from __future__ import annotations
@@ -74,6 +66,7 @@ class SolverResult:
     placed: list[PlacedLesson] = field(default_factory=list)
     unplaced: list[dict[str, Any]] = field(default_factory=list)
     conflicts: list[dict[str, Any]] = field(default_factory=list)
+    strategy: str = "greedy_v1"
 
 
 # ---------------------------------------------------------------------------
@@ -212,7 +205,7 @@ def solve(
 
     # Pass 2: free placement, sorted most-constrained first.
     free_lessons = sorted(
-        lessons, key=lambda l: (-l.weekly_periods, l.lesson_id),
+        lessons, key=lambda lesson: (-lesson.weekly_periods, lesson.lesson_id),
     )
     for lesson in free_lessons:
         already_placed = sum(
@@ -307,31 +300,15 @@ def solve_with_backtracking(
     max_search_steps: int = 50_000,
     soft_constraints: dict[str, float] | None = None,
 ) -> SolverResult:
-    """v4.00.12 — CSP backtracking solver with soft-constraint scoring.
-
-    Closes the v3.95.0 follow-on ("Real CSP work (backtracking, soft
-    constraints, optimization) lands in Wave N+1 once the data model + UI
-    are stable.").
-
-    Search strategy:
-    * Variable ordering: most-constrained-first (lessons with the smallest
-      domain of viable (teacher, slot) pairs are placed first).
-    * Domain ordering: best soft-score-first (slots scoring highest under
-      the soft constraints are tried first).
-    * Backtrack on dead end.
-    * Hard cutoff at ``max_search_steps`` — falls back to the greedy
-      ``solve`` result when exceeded.
-
-    Soft constraints (all optional, all in [0, 1]):
-    * ``avoid_first_period_for`` — penalty per lesson in slot p=1
-    * ``avoid_last_period_for``  — penalty per lesson in last slot
-    * ``prefer_morning``         — bonus when slot starts before 12:00
-    """
+    """Solve all requested weekly occurrences with bounded backtracking."""
     soft = soft_constraints or {}
-    placed: dict[str, PlacedLesson] = {}
-    teacher_used: dict[tuple[str, str], str] = {}   # (teacher_id, slot_id) → lesson_id
-    room_used:    dict[tuple[str, str], str] = {}   # (room_id, slot_id) → lesson_id
-    steps = [0]
+    slot_by_id = {slot.slot_id: slot for slot in slots}
+    placed: dict[tuple[str, int], PlacedLesson] = {}
+    teacher_used: set[tuple[str, str]] = set()
+    room_used: set[tuple[str, str]] = set()
+    class_used: set[tuple[str, str]] = set()
+    steps = 0
+    cutoff_reached = False
 
     def slot_score(slot: TimeSlot) -> float:
         score = 0.0
@@ -343,69 +320,117 @@ def solve_with_backtracking(
             score -= float(soft["avoid_last_period_for"])
         return score
 
-    ordered_slots = sorted(slots, key=slot_score, reverse=True)
+    ordered_slots = tuple(sorted(slots, key=slot_score, reverse=True))
+    occurrences: list[tuple[LessonRequest, int]] = []
+    for lesson in lessons:
+        occurrence_count = max(lesson.weekly_periods, len(lesson.locked_slot_ids), 0)
+        occurrences.extend((lesson, index) for index in range(occurrence_count))
 
-    def viable_count(lesson: LessonRequest) -> int:
+    def teacher_pool(lesson: LessonRequest) -> tuple[str, ...]:
+        if lesson.teacher_id:
+            return (lesson.teacher_id,)
+        return tuple(sorted(teachers))
+
+    def occurrence_slots(
+        lesson: LessonRequest,
+        occurrence_index: int,
+    ) -> tuple[TimeSlot, ...]:
+        if occurrence_index < len(lesson.locked_slot_ids):
+            locked = slot_by_id.get(lesson.locked_slot_ids[occurrence_index])
+            return (locked,) if locked is not None else ()
+        return ordered_slots
+
+    def viable_count(occurrence: tuple[LessonRequest, int]) -> int:
+        lesson, occurrence_index = occurrence
         count = 0
-        # LessonRequest only carries a single teacher_id; CSP still has
-        # flexibility in slot + room choice. The pool is the lesson's bound
-        # teacher (when present in the map) or every teacher if the lesson
-        # is teacher-flexible (empty teacher_id).
-        teacher_pool = (lesson.teacher_id,) if lesson.teacher_id else tuple(teachers.keys())
-        for t_id in teacher_pool:
-            if t_id not in teachers:
+        for teacher_id in teacher_pool(lesson):
+            teacher = teachers.get(teacher_id)
+            if teacher is None:
                 continue
-            for slot in ordered_slots:
-                if (t_id, slot.slot_id) in teacher_used:
+            for slot in occurrence_slots(lesson, occurrence_index):
+                if not _resource_available(teacher, slot.slot_id):
                     continue
-                count += 1
+                if _pick_room(lesson, rooms, slot.slot_id, set()) is not None:
+                    count += 1
         return count
 
-    remaining = sorted(lessons, key=viable_count)
+    remaining = sorted(
+        occurrences,
+        key=lambda occurrence: (
+            viable_count(occurrence),
+            occurrence[0].lesson_id,
+            occurrence[1],
+        ),
+    )
 
     def backtrack(index: int) -> bool:
-        if steps[0] > max_search_steps:
+        nonlocal cutoff_reached, steps
+        if steps >= max_search_steps:
+            cutoff_reached = True
             return False
-        steps[0] += 1
-        if index >= len(remaining):
+        steps += 1
+        if index == len(remaining):
             return True
-        lesson = remaining[index]
-        teacher_pool = (lesson.teacher_id,) if lesson.teacher_id else tuple(teachers.keys())
-        for t_id in teacher_pool:
-            if t_id not in teachers:
+        lesson, occurrence_index = remaining[index]
+        occurrence_key = (lesson.lesson_id, occurrence_index)
+        for teacher_id in teacher_pool(lesson):
+            teacher = teachers.get(teacher_id)
+            if teacher is None:
                 continue
-            for slot in ordered_slots:
-                if (t_id, slot.slot_id) in teacher_used:
+            for slot in occurrence_slots(lesson, occurrence_index):
+                if not _resource_available(teacher, slot.slot_id):
                     continue
-                room_pick = _pick_room(lesson, rooms, slot.slot_id, set(room_used.keys()))
+                if (teacher_id, slot.slot_id) in teacher_used:
+                    continue
+                if lesson.class_id and (lesson.class_id, slot.slot_id) in class_used:
+                    continue
+                room_pick = _pick_room(lesson, rooms, slot.slot_id, room_used)
                 if room_pick is None:
                     continue
-                teacher_used[(t_id, slot.slot_id)] = lesson.lesson_id
-                room_used[(room_pick.resource_id, slot.slot_id)] = lesson.lesson_id
-                placed[lesson.lesson_id] = PlacedLesson(
+                teacher_key = (teacher_id, slot.slot_id)
+                room_key = (room_pick.resource_id, slot.slot_id)
+                class_key = (lesson.class_id, slot.slot_id)
+                teacher_used.add(teacher_key)
+                room_used.add(room_key)
+                if lesson.class_id:
+                    class_used.add(class_key)
+                placed[occurrence_key] = PlacedLesson(
                     lesson_id=lesson.lesson_id,
-                    teacher_id=t_id,
+                    teacher_id=teacher_id,
                     room_id=room_pick.resource_id,
                     slot_id=slot.slot_id,
+                    class_id=lesson.class_id,
+                    subject=lesson.subject,
                 )
                 if backtrack(index + 1):
                     return True
-                # undo
-                del teacher_used[(t_id, slot.slot_id)]
-                del room_used[(room_pick.resource_id, slot.slot_id)]
-                del placed[lesson.lesson_id]
+                teacher_used.remove(teacher_key)
+                room_used.remove(room_key)
+                if lesson.class_id:
+                    class_used.remove(class_key)
+                del placed[occurrence_key]
         return False
 
     if backtrack(0):
+        placements = list(placed.values())
         return SolverResult(
-            placed=list(placed.values()),
+            placed=placements,
             unplaced=[],
-            conflicts=[],
+            conflicts=detect_conflicts(placements),
             strategy="csp_backtracking_v1",
         )
-    # Cutoff or unsolvable — fall back to the greedy solver as the v3.95.0
-    # contract: best-effort placement is better than empty.
-    return solve(lessons=lessons, teachers=teachers, rooms=rooms, slots=slots)
+    fallback = solve(
+        lessons=lessons,
+        teachers=teachers,
+        rooms=rooms,
+        slots=list(slots),
+    )
+    fallback.strategy = (
+        "greedy_search_cutoff_fallback_v1"
+        if cutoff_reached
+        else "greedy_unsatisfiable_fallback_v1"
+    )
+    return fallback
 
 
 def generate_standard_week(

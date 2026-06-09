@@ -106,12 +106,20 @@
         </div>
         <div class="cp-list">
           {% for review in pending_reviews_preview %}
-          <div class="cp-list-row">
+          <div class="cp-list-row d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div>
               <strong>{{ review.listing.app.name }}</strong>
               <div class="cp-list-meta">{{ review.review_type|title }} | {{ review.listing.publisher.name|default:"—" }} | v{{ review.app_version|default:review.listing.app.version }}</div>
             </div>
-            <span class="cp-status-badge cp-status-badge-{{ review.status }}">{{ review.status|title }}</span>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <span class="cp-status-badge cp-status-badge-{{ review.status }}">{{ review.status|title }}</span>
+              <form method="post" action="{% url 'super:marketplace_review_action' review.pk %}" class="d-inline" data-rmc-mkt-review-approve>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="approve">
+                <input type="hidden" name="notes" value="Approved from governance console">
+                <button type="submit" class="btn btn-sm btn-primary">{% trans "Approve" %}</button>
+              </form>
+            </div>
           </div>
           {% empty %}
           <div class="py-3 px-2">

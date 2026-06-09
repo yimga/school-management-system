@@ -31,9 +31,16 @@
     <p class="proof-panel-copy">
       {% trans "Provision a demo school for API and OAuth work. Full steps live in docs/developer/SANDBOX_QUICKSTART.md." %}
     </p>
-    <pre class="developer-code-slab"><code>python manage.py ensure_demo_environment --school-slug={{ demo_school_slug }}</code></pre>
+    <pre class="developer-code-slab"><code>python manage.py ensure_developer_sandbox_tenant --school-slug={{ demo_school_slug }}</code></pre>
+    {% if demo_tenant_url %}
+    <p class="proof-panel-copy">
+      <a class="btn btn-sm btn-outline-light" href="{{ demo_tenant_url }}" rel="noopener noreferrer">{% trans "Open sandbox tenant" %}</a>
+    </p>
+    {% endif %}
     <p class="proof-panel-copy small mb-0">
-      {% trans "Point the SDK at your tenant host after tokens are issued." %}
+      {% trans "Issue API keys and webhooks from the API Center after you sign in." %}
+      <a href="{{ links.api_keys }}">{% trans "API keys" %}</a> ·
+      <a href="{{ links.webhook_docs }}">{% trans "Webhooks" %}</a> ·
       <a href="{{ links.sdk }}">{% trans "SDK reference" %}</a>
     </p>
   </section>

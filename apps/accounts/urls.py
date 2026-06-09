@@ -71,7 +71,10 @@ from .views_certification import (
 from .views_legacy_setup import LegacySetupView
 from .views_owner_onboarding import (
     OwnerOnboardingAccountView,
+    owner_onboarding_account_provision_progress,
     owner_onboarding_done,
+    owner_onboarding_provision_apply_fix,
+    owner_onboarding_provision_progress,
     owner_onboarding_provision_status,
     owner_onboarding_school,
 )
@@ -570,6 +573,11 @@ urlpatterns = [
     # token-authed (reuses the reset-confirm token); steps 2-3 are login-gated.
     # rbac-allow: token-authenticated first-run owner onboarding; must be anonymous-reachable
     path(
+        "onboarding/account/<uidb64>/<token>/progress/",
+        owner_onboarding_account_provision_progress,
+        name="owner_onboarding_account_provision_progress",
+    ),
+    path(
         "onboarding/account/<uidb64>/<token>/",
         OwnerOnboardingAccountView.as_view(),
         name="owner_onboarding_account",
@@ -588,6 +596,16 @@ urlpatterns = [
         "onboarding/done/status/",
         owner_onboarding_provision_status,
         name="owner_onboarding_provision_status",
+    ),
+    path(
+        "onboarding/provision/progress/",
+        owner_onboarding_provision_progress,
+        name="owner_onboarding_provision_progress",
+    ),
+    path(
+        "onboarding/provision/apply-fix/",
+        owner_onboarding_provision_apply_fix,
+        name="owner_onboarding_provision_apply_fix",
     ),
     # rbac-allow: token-authenticated one-time guardian set-password; must be anonymous-reachable
     path(

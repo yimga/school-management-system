@@ -2046,6 +2046,9 @@ def teacher_marks_entry(request: HttpRequest):
             "marksheet_ocr_version": marksheet_ocr_version,
             "marksheet_ocr_command": marksheet_ocr_command_display,
             "marksheet_ocr_delta_mode": flags.get("marksheet_ocr_delta_mode", True),
+            "plickers_card_sweep_enabled": flags.get(
+                "plickers_card_sweep_enabled", True
+            ),
             "grade_approval_enabled": grade_approval_enabled,
             "grade_approval_requests": grade_approval_requests,
             "grade_approval_roles": grade_approver_roles(

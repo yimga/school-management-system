@@ -7,7 +7,7 @@
   'use strict';
 
   var DB_NAME = 'sms-offline-mirror';
-  var DB_VERSION = 4;
+  var DB_VERSION = 5;
   var db = null;
 
   function getDexie() {
@@ -36,6 +36,7 @@
         ocr_corrections: 'original, corrected, updated_at',
         outbox: 'id, ts, action_type, synced',
         kb_articles: 'id, slug, locale, updated_at',
+        wizard_drafts: 'key, school_id, wizard_key, step_key, updated_at',
       });
       return db.open().then(function () { return db; });
     } catch (err) {
@@ -118,6 +119,7 @@
         database.ocr_corrections.clear(),
         database.outbox.clear(),
         database.kb_articles.clear(),
+        database.wizard_drafts.clear(),
       ]);
     });
   }
@@ -256,6 +258,27 @@
     });
   }
 
+  function putWizardDraft(row) {
+    return open().then(function (database) {
+      if (!database || !database.wizard_drafts) return null;
+      return database.wizard_drafts.put(row).then(function () { return row; });
+    });
+  }
+
+  function getWizardDraft(key) {
+    return open().then(function (database) {
+      if (!database || !database.wizard_drafts) return null;
+      return database.wizard_drafts.get(String(key));
+    });
+  }
+
+  function deleteWizardDraft(key) {
+    return open().then(function (database) {
+      if (!database || !database.wizard_drafts) return;
+      return database.wizard_drafts.delete(String(key));
+    });
+  }
+
   global.SMSOfflineDB = {
     isAvailable: isAvailable,
     open: open,
@@ -273,5 +296,8 @@
     outboxPending: outboxPending,
     outboxMarkSynced: outboxMarkSynced,
     outboxDelete: outboxDelete,
+    putWizardDraft: putWizardDraft,
+    getWizardDraft: getWizardDraft,
+    deleteWizardDraft: deleteWizardDraft,
   };
 })(typeof window !== 'undefined' ? window : this);

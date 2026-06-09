@@ -34,6 +34,15 @@ def preview_auto_fix_kind(*, run: Any, kind: str) -> dict[str, Any]:
             "note": "Would mark run running and stamp retry metadata in payload_summary.",
         }
 
+    if kind in ("requeue_provision", "resend_welcome", "retry_dns_sync"):
+        return {
+            "ok": True,
+            "dry_run": True,
+            "would_apply": kind,
+            "workflow_key": workflow_key,
+            "note": "Owner-safe provisioning remediation (idempotent).",
+        }
+
     return {"ok": False, "dry_run": True, "reason": "unsupported_fix_kind", "kind": kind}
 
 
@@ -65,5 +74,46 @@ def apply_auto_fix_kind(*, run: Any, kind: str) -> dict[str, Any]:
             "applied": kind,
             "note": "Run marked for retry. Re-invoke the original action.",
         }
+
+    if kind == "requeue_provision" and workflow_key == "tenant_school_provision":
+        school_id = str(getattr(run, "school_id", "") or payload.get("school_id") or "")
+        if not school_id:
+            return {"ok": False, "reason": "missing_school_id", "kind": kind}
+        from apps.schools.tasks import dispatch_provision_school
+
+        contact = str(payload.get("contact_email") or "").strip()
+        dispatch_provision_school(school_id, contact_email=contact)
+        return {"ok": True, "applied": kind, "school_id": school_id}
+
+    if kind == "resend_welcome" and workflow_key == "tenant_school_provision":
+        school_id = str(getattr(run, "school_id", "") or payload.get("school_id") or "")
+        if not school_id:
+            return {"ok": False, "reason": "missing_school_id", "kind": kind}
+        from apps.schools.models import School
+        from apps.schools.welcome_email import send_welcome_email
+
+        school = School.objects.filter(pk=school_id).first()
+        if school is None:
+            return {"ok": False, "reason": "school_not_found", "kind": kind}
+        contact = str(payload.get("contact_email") or "").strip()
+        send_welcome_email(school, contact)
+        return {"ok": True, "applied": kind, "school_id": school_id}
+
+    if kind == "retry_dns_sync" and workflow_key == "tenant_school_provision":
+        school_id = str(getattr(run, "school_id", "") or payload.get("school_id") or "")
+        if not school_id:
+            return {"ok": False, "reason": "missing_school_id", "kind": kind}
+        from apps.schools.models import School
+        from apps.schools.tasks import _provision_dns_record, sync_school_domains_to_runtime
+
+        school = School.objects.filter(pk=school_id).first()
+        if school is None:
+            return {"ok": False, "reason": "school_not_found", "kind": kind}
+        try:
+            sync_school_domains_to_runtime(school)
+            _provision_dns_record(school)
+        except (OSError, ConnectionError, AttributeError, TypeError, ValueError) as exc:
+            return {"ok": False, "reason": str(exc)[:200], "kind": kind}
+        return {"ok": True, "applied": kind, "school_id": school_id}
 
     return {"ok": False, "reason": "unsupported_fix_kind", "kind": kind}

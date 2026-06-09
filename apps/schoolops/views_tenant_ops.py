@@ -386,7 +386,9 @@ def ops_substitutes(request):
         .order_by("user__last_name", "user__first_name", "user__username")[:500]
     )
 
+    broker_results = []
     if request.method == "POST":
+        action = (request.POST.get("action") or "save").strip().lower()
         wd = parse_date((request.POST.get("work_date") or "").strip())
         absent_id = request.POST.get("absent_teacher_id")
         cover_id = (request.POST.get("covering_teacher_id") or "").strip()
@@ -413,6 +415,35 @@ def ops_substitutes(request):
             messages.error(request, "Covering teacher must be on staff at this school.")
         elif cover_pk == absent_pk:
             messages.error(request, "Absent and covering teacher must differ.")
+        elif action == "broadcast":
+            from apps.schoolops.substitute_handover import (
+                broadcast_substitute_request,
+                find_substitute_candidates,
+            )
+
+            candidates = find_substitute_candidates(
+                school=school,
+                absent_teacher_user_id=absent_pk,
+                work_date=wd,
+            )
+            broker_results = broadcast_substitute_request(
+                school=school,
+                candidates=candidates,
+                work_date=wd,
+                period_label=(request.POST.get("period_label") or "").strip()[:80],
+            )
+            accepted = sum(1 for result in broker_results if result.accepted)
+            if broker_results:
+                messages.success(
+                    request,
+                    f"Substitute request sent or queued for {accepted} of "
+                    f"{len(broker_results)} ranked candidates.",
+                )
+            else:
+                messages.warning(
+                    request,
+                    "No available substitute candidates with a phone number were found.",
+                )
         else:
             try:
                 SubstituteCover.objects.create(
@@ -440,6 +471,7 @@ def ops_substitutes(request):
             "school": school,
             "covers": covers,
             "teachers": teachers_qs,
+            "broker_results": broker_results,
             "hub_url": reverse("accounts:ops_hub"),
         },
     )

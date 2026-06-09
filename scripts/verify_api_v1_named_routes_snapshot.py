@@ -51,11 +51,18 @@ def _collect_names(root: Path) -> list[str]:
     from apps.api.urls_v1 import urlpatterns
 
     names: list[str] = []
-    for p in urlpatterns:
-        n = getattr(p, "name", None)
-        if n:
-            names.append(n)
-    return sorted(names)
+
+    def _walk(patterns) -> None:
+        for pattern in patterns:
+            n = getattr(pattern, "name", None)
+            if n:
+                names.append(n)
+            nested = getattr(pattern, "url_patterns", None)
+            if nested:
+                _walk(nested)
+
+    _walk(urlpatterns)
+    return sorted(set(names))
 
 
 def _write_non_curated(names: list[str], non_curated_out: Path) -> None:

@@ -55,3 +55,24 @@ class ApiCenterOpenAndUsableTests(TransactionTestCase):
         with override_settings(ROOT_URLCONF="config.urls"):
             self.assertEqual(reverse("api-schema"), "/api/schema/")
             self.assertEqual(reverse("api-schema-ui"), "/api/schema/ui/")
+
+    def test_manager_api_key_create_flow(self):
+        from apps.apicenter.models import APIKey
+
+        create_url = reverse("apicenter:api_key_create")
+        keys_url = reverse("apicenter:api_keys")
+        response = self.client.post(
+            create_url,
+            {"name": "Developer console E2E"},
+            HTTP_HOST=_MGR_HOST,
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8", errors="replace")
+        self.assertIn("Developer console E2E", body)
+        self.assertTrue(
+            APIKey.objects.filter(name="Developer console E2E").exists()
+        )
+        list_response = self.client.get(keys_url, HTTP_HOST=_MGR_HOST)
+        self.assertEqual(list_response.status_code, 200)
+        self.assertContains(list_response, "Developer console E2E")

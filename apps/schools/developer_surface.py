@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from django.urls import NoReverseMatch, reverse
 
+from apps.schools.tenant_url import build_manager_absolute_url
+
 
 def _abs(request, path: str) -> str:
     return request.build_absolute_uri(path)
@@ -15,6 +17,18 @@ def _reverse_abs(request, name: str, *, urlconf: str | None = None) -> str:
         return request.build_absolute_uri(reverse(name, **kwargs))
     except NoReverseMatch:
         return ""
+
+
+def _manager_tool_abs(request, name: str, fallback: str = "") -> str:
+    try:
+        path = reverse(name, urlconf="config.manager_urls")
+    except NoReverseMatch:
+        path = fallback
+    if not path:
+        return ""
+    if not path.startswith("/"):
+        path = f"/{path}"
+    return build_manager_absolute_url(request, path)
 
 
 def developer_nav_items(request) -> list[dict]:
@@ -57,8 +71,10 @@ def developer_link_context(request) -> dict:
         "oauth_authorize": f"{base}/api/v1/oauth/authorize/",
         "integration_context": f"{base}/api/v1/platform/integration-context/",
         "scoped_ping": f"{base}/api/v1/platform/scoped-ping/",
-        "api_center": r("apicenter:dashboard", "/api-center/"),
-        "api_center_docs": r("apicenter:api_portal_docs", "/api-center/docs/"),
+        "api_center": _manager_tool_abs(request, "apicenter:dashboard", "/api-center/"),
+        "api_center_docs": _manager_tool_abs(
+            request, "apicenter:api_portal_docs", "/api-center/docs/"
+        ),
         "developer_hub": r("developer_hub", "/developer/"),
         "developer_console": r("developer_console", "/developer/console/"),
         "developer_portal": r("developer_portal", "/developer-portal/"),
@@ -75,5 +91,38 @@ def developer_link_context(request) -> dict:
         "admin_developer_applications": f"{base}/admin/apicenter/developerapplication/",
         "admin_marketplace_apps": f"{base}/admin/marketplace/marketplaceapp/",
         "admin_tenant_subscriptions": f"{base}/admin/billing/tenantsubscription/",
+        "api_keys": _manager_tool_abs(request, "apicenter:api_keys", "/api-center/keys/"),
+        "api_key_create": _manager_tool_abs(
+            request, "apicenter:api_key_create", "/api-center/keys/create/"
+        ),
+        "webhook_docs": _manager_tool_abs(
+            request, "apicenter:webhook_docs", "/api-center/webhooks/"
+        ),
+        "webhook_create": _manager_tool_abs(
+            request,
+            "apicenter:webhook_subscription_create",
+            "/api-center/webhooks/create/",
+        ),
+        "partner_sandbox": _manager_tool_abs(
+            request, "apicenter:partner_sandbox", "/api-center/sandbox/"
+        ),
         "sdk_repo": "https://github.com/yimga/school-management-system/tree/main/sdk",
+    }
+
+
+def developer_operator_api_context(request) -> dict:
+    """Authenticated control-plane operators can mint API keys on the manager host."""
+    from apps.schools.control_plane import user_has_control_plane_access
+
+    user = getattr(request, "user", None)
+    can_manage = bool(
+        user and user.is_authenticated and user_has_control_plane_access(user)
+    )
+    links = developer_link_context(request)
+    return {
+        "can_manage_api_keys": can_manage,
+        "manager_api_keys_url": links.get("api_keys", ""),
+        "manager_sign_in_url": build_manager_absolute_url(
+            request, "/authentication/login/"
+        ),
     }

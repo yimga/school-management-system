@@ -27,6 +27,7 @@ from apps.portal.views_ai_copilot import (
 )
 from apps.portal.views_configure import portal_configure_hub
 from apps.siteconfig.views_school_help_ai import school_help_ai
+from apps.schools.views_pending_provision import api_public_pending_provision_progress
 from apps.lifecycle.views_tenant_lifecycle import (
     api_tenant_launch_rail,
     api_tenant_lifecycle_hub,
@@ -316,6 +317,11 @@ urlpatterns = [
         "api/school/lifecycle/provisioning/",
         api_tenant_provisioning_status,
         name="api_tenant_provisioning_status",
+    ),
+    path(
+        "api/pending-provision/progress/",
+        api_public_pending_provision_progress,
+        name="api_public_pending_provision_progress",
     ),
     path(
         "api/school/lifecycle/launch-rail/",

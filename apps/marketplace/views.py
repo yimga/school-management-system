@@ -225,6 +225,23 @@ def governance_console(request):
     return render(request, "marketplace/governance_console.html", context)
 
 
+def _marketplace_review_action_wants_json(request) -> bool:
+    fmt = str(request.POST.get("format") or "").strip().lower()
+    if fmt == "html":
+        return False
+    if fmt == "json":
+        return True
+    accept = (request.headers.get("Accept") or "").lower()
+    if "text/html" in accept and "application/json" not in accept:
+        return False
+    return True
+
+
+def _marketplace_review_action_redirect(request, *, message: str):
+    messages.success(request, message)
+    return redirect("super:marketplace_governance")
+
+
 @login_required
 @user_passes_test(_control_plane_access)
 @require_POST
@@ -271,6 +288,10 @@ def marketplace_review_action(request, review_id):
             notes=notes or "Resubmitted for review.",
             findings_json=findings,
         )
+        if not _marketplace_review_action_wants_json(request):
+            return _marketplace_review_action_redirect(
+                request, message="Review resubmitted for operator queue."
+            )
         return JsonResponse(
             {
                 "status": "success",
@@ -283,6 +304,15 @@ def marketplace_review_action(request, review_id):
         listing = review.listing
         listing.kill_switch_active = not listing.kill_switch_active
         listing.save(update_fields=["kill_switch_active", "updated_at"])
+        if not _marketplace_review_action_wants_json(request):
+            return _marketplace_review_action_redirect(
+                request,
+                message=(
+                    "Kill switch deactivated."
+                    if not listing.kill_switch_active
+                    else "Kill switch activated."
+                ),
+            )
         return JsonResponse(
             {
                 "status": "success",
@@ -291,9 +321,22 @@ def marketplace_review_action(request, review_id):
             }
         )
     else:
+        if not _marketplace_review_action_wants_json(request):
+            messages.error(request, "Unsupported review action.")
+            return redirect("super:marketplace_governance")
         return JsonResponse(
             {"status": "error", "error": "Unsupported review action."}, status=400
         )
+
+    if not _marketplace_review_action_wants_json(request):
+        label = review.listing.app.name
+        if action == "approve":
+            msg = f"Approved {label} for tenant install."
+        elif action == "reject":
+            msg = f"Rejected {label}."
+        else:
+            msg = f"Recorded changes required for {label}."
+        return _marketplace_review_action_redirect(request, message=msg)
 
     return JsonResponse(
         {

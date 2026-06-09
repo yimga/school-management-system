@@ -1,5 +1,5 @@
 """
-Read-only tenant billing / plan summary (GTM). No payment capture or Stripe.
+Read-only tenant billing / plan summary (GTM). Stripe checkout + portal when configured.
 Shows the school's assigned Plan row plus live headcount vs plan limits when available.
 """
 
@@ -7,13 +7,8 @@ from __future__ import annotations
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
-from apps.siteconfig.control_plane_render import (
-    default_operator_breadcrumbs,
-    operator_cp_breadcrumb,
-    render_siteconfig_stem,
-)
-
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.decorators import permission_required
@@ -31,14 +26,15 @@ from apps.siteconfig.commercial_tiers import (
     plan_display_context,
     plan_slug_candidates_for_commercial_tier,
 )
+from apps.siteconfig.control_plane_render import (
+    default_operator_breadcrumbs,
+    operator_cp_breadcrumb,
+    render_siteconfig_stem,
+)
 from apps.siteconfig.models import Plan
 
 
 def _plan_catalog_advanced_url(request: HttpRequest) -> str | None:
-    """
-    Break-glass plan catalog: Django admin changelist when registered; otherwise
-    control-plane plans list (Plan CRUD is not on tenant/platform admin).
-    """
     user = getattr(request, "user", None)
     if user is None or not getattr(user, "is_superuser", False):
         return None
@@ -56,7 +52,6 @@ def _plan_catalog_advanced_url(request: HttpRequest) -> str | None:
 def _suggested_upgrade_plan_slug_for_checkout(
     school, subscription, account
 ) -> str | None:
-    """Pick a plan slug that has an active Stripe price row for the next commercial tier."""
     ctx = plan_display_context(school)
     nxt = next_commercial_tier(ctx.get("tier_key"))
     if not nxt:
@@ -91,68 +86,107 @@ def _suggested_upgrade_plan_slug_for_checkout(
     return priced[0] if priced else None
 
 
-@login_required
-@permission_required("settings.manage")
-@require_http_methods(["GET"])
-def billing_plan_readonly(request: HttpRequest) -> HttpResponse:
+def _billing_plan_context(request: HttpRequest) -> dict:
     school = getattr(request, "school", None)
     plan = getattr(school, "plan", None) if school is not None else None
-    if school is not None:
-        list(getattr(school, "addons", None) or [])
+    addons = list(getattr(school, "addons", None) or []) if school is not None else []
 
+    student_count = 0
+    teacher_count = 0
     if school is not None:
-        StudentProfile.objects.filter(
+        student_count = StudentProfile.objects.filter(
             school=school, is_active=True
         ).count()
-        TeacherProfile.objects.filter(school=school).count()
+        teacher_count = TeacherProfile.objects.filter(school=school).count()
 
-    _plan_catalog_advanced_url(request)
-
+    console_url = None
     try:
-        reverse("siteconfig:console_domains_hub")
+        console_url = reverse("siteconfig:console_domains_hub")
     except NoReverseMatch:
         pass
 
     plan_tier_ctx = plan_display_context(school)
-    next_commercial_tier(plan_tier_ctx.get("tier_key"))
+    upgrade_next_tier = next_commercial_tier(plan_tier_ctx.get("tier_key"))
+
+    app_catalog_url = None
     try:
-        reverse("tenant_app_catalog")
+        app_catalog_url = reverse("tenant_app_catalog")
     except NoReverseMatch:
         pass
 
+    checkout_start_url = None
+    customer_portal_url = None
+    billing_stripe_connect_url = None
     try:
-        reverse("siteconfig:billing_checkout_start")
-        reverse("siteconfig:billing_customer_portal")
+        checkout_start_url = reverse("siteconfig:billing_checkout_start")
+        customer_portal_url = reverse("siteconfig:billing_customer_portal")
+        billing_stripe_connect_url = reverse("siteconfig:billing_stripe_connect")
     except NoReverseMatch:
         pass
+
+    billing_account = None
+    platform_subscription = None
+    usage_meters: list = []
+    stripe_processor_configured = False
+    stripe_customer_linked = False
+    has_stripe_price_for_current_plan = False
+    upgrade_checkout_plan_code = None
 
     if school is not None:
         cfg = get_active_stripe_processor_config()
-        bool(cfg and stripe_secret_key(cfg))
-        account, subscription, _ = ensure_subscription_for_school(school)
-        bool((account.external_customer_ref or "").strip())
+        stripe_processor_configured = bool(cfg and stripe_secret_key(cfg))
+        billing_account, platform_subscription, _ = ensure_subscription_for_school(school)
+        stripe_customer_linked = bool(
+            (billing_account.external_customer_ref or "").strip()
+        )
         if plan is not None:
             slug = (plan.slug or "").strip()
-            cyc = getattr(subscription, "billing_cycle", None) or "MONTHLY"
-            cur = (account.currency_code or "USD").strip().upper()
-            (
-                active_stripe_price_for_plan(
-                    slug, billing_cycle=cyc, currency=cur
-                )
+            cyc = getattr(platform_subscription, "billing_cycle", None) or "MONTHLY"
+            cur = (billing_account.currency_code or "USD").strip().upper()
+            has_stripe_price_for_current_plan = (
+                active_stripe_price_for_plan(slug, billing_cycle=cyc, currency=cur)
                 is not None
                 or active_stripe_price_for_plan(slug, billing_cycle=cyc) is not None
             )
-        _suggested_upgrade_plan_slug_for_checkout(
-            school, subscription, account
+        upgrade_checkout_plan_code = _suggested_upgrade_plan_slug_for_checkout(
+            school, platform_subscription, billing_account
         )
-        list(
+        usage_meters = list(
             UsageMeter.objects.filter(school=school).order_by("-period_start")[:24]
         )
 
+    return {
+        "school": school,
+        "plan": plan,
+        "addons": addons,
+        "student_count": student_count,
+        "teacher_count": teacher_count,
+        "plan_tier_ctx": plan_tier_ctx,
+        "upgrade_next_tier": upgrade_next_tier,
+        "app_catalog_url": app_catalog_url,
+        "console_url": console_url,
+        "plan_catalog_advanced_url": _plan_catalog_advanced_url(request),
+        "checkout_start_url": checkout_start_url,
+        "customer_portal_url": customer_portal_url,
+        "billing_account": billing_account,
+        "platform_subscription": platform_subscription,
+        "usage_meters": usage_meters,
+        "stripe_processor_configured": stripe_processor_configured,
+        "stripe_customer_linked": stripe_customer_linked,
+        "has_stripe_price_for_current_plan": has_stripe_price_for_current_plan,
+        "upgrade_checkout_plan_code": upgrade_checkout_plan_code,
+        "billing_stripe_connect_url": billing_stripe_connect_url,
+    }
+
+
+@login_required
+@permission_required("settings.manage")
+@require_http_methods(["GET"])
+def billing_plan_readonly(request: HttpRequest) -> HttpResponse:
     return render_siteconfig_stem(
         request,
         "billing_plan_readonly",
-        None,
+        _billing_plan_context(request),
         cp_title=_("Billing plan"),
         breadcrumbs=default_operator_breadcrumbs(
             operator_cp_breadcrumb(_("Billing plan"), active=True),

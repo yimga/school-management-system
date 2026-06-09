@@ -3,7 +3,7 @@
 {% comment %} Phase 13: "Was this helpful?" at completion points. Include after a key action (e.g. after submitting grades, after generating invoices). {% endcomment %}
 {% comment %} Usage: {% include 'components/was_this_helpful.html' with feedback_id='eval-admin' feedback_label='Evaluation Manager' %} {% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="was-this-helpful border-top pt-3 mt-3" role="region" aria-label="{% trans 'Feedback' %}">
+<div class="was-this-helpful border-top pt-3 mt-3" role="region" aria-label="{% trans 'Feedback' %}" data-feedback-endpoint="{% url 'feedback:contextual' %}">
   <p class="small text-muted mb-2">{% trans "Was this helpful?" %}</p>
   <div class="d-flex gap-2 flex-wrap">
     <button type="button" class="btn btn-sm btn-outline-success was-helpful-btn" data-helpful="yes" data-feedback-id="{{ feedback_id|default:'page' }}" aria-label="{% trans 'Yes, helpful' %}">
@@ -16,5 +16,6 @@
   <p class="small text-muted mt-2 mb-0 d-none was-helpful-thanks">{% trans "Thanks for your feedback." %}</p>
 </div>
 <script type="application/json" id="page-data-components__was_this_helpful-1">{
-  "trans_thanks_for_your_feedback": "{% trans "Thanks for your feedback!" %}"
+  "trans_thanks_for_your_feedback": "{% trans "Thanks for your feedback!" %}",
+  "trans_feedback_will_improve": "{% trans "We'll use your feedback to improve." %}"
 }</script><script src="{% static 'js/_pages/components__was_this_helpful-1.js' %}"></script>

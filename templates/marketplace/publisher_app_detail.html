@@ -63,6 +63,15 @@
     <pre class="bg-light p-3 small rounded" style="max-height: 400px; overflow:auto;">{{ app.manifest|pprint }}</pre>
   </section>
 
+  {% if can_submit_for_review %}
+  <section class="mb-4 rmc-reveal">
+    <form method="post" action="{% url 'super:marketplace_publisher_submit_for_review' slug=app.slug %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary">{% trans "Submit for security review" %}</button>
+    </form>
+  </section>
+  {% endif %}
+
   <section class="mb-4 rmc-reveal">
     <h2 class="h6">{% trans "Update via API" %}</h2>
     <p class="small text-muted">{% trans "POST a new manifest to" %} <code>/api/v1/marketplace/submissions/</code> {% trans "with this slug to push a new version." %}</p>

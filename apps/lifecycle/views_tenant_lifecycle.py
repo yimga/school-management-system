@@ -77,7 +77,18 @@ def api_tenant_provisioning_status(request: HttpRequest) -> JsonResponse:
     if school is None or not can_access_tenant_lifecycle(request, school):
         return JsonResponse({"ok": False, "error": "no_school"}, status=403)
 
-    unified = resolve_unified_lifecycle(school)
+    from apps.schools.provisioning_progress import resolve_provisioning_progress
+
+    payload = resolve_provisioning_progress(
+        school,
+        request=request,
+        include_dashboard_href=True,
+    )
+    rail = build_launch_rail_payload(school, user=request.user)
+    payload["launch_rail_summary"] = {
+        "fast_path_percent": rail.get("fast_path_percent", 0),
+        "onboarding_percent": rail.get("onboarding_percent", 0),
+    }
     events = list(
         SchoolProvisioningEvent.objects.filter(school=school)
         .order_by("-created_at")[:12]
@@ -87,16 +98,7 @@ def api_tenant_provisioning_status(request: HttpRequest) -> JsonResponse:
         ts = row.get("created_at")
         if ts is not None:
             row["created_at"] = ts.isoformat()
-    rail = build_launch_rail_payload(school, user=request.user)
-    payload = {
-        "ok": True,
-        "unified": unified,
-        "events": events,
-        "launch_rail_summary": {
-            "fast_path_percent": rail.get("fast_path_percent", 0),
-            "onboarding_percent": rail.get("onboarding_percent", 0),
-        },
-    }
+    payload["timeline_events"] = events
     return JsonResponse(payload)
 
 

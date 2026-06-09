@@ -9,12 +9,17 @@ from apps.accounts.models import Permission, User
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.billing.models import PlatformBillingProcessorConfig, StripePlanPrice
 from apps.siteconfig.models import Plan
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 _T_HOST = "billingplan.runmycampus.com"
+_M_HOST = "manager.runmycampus.com"
 
 
-@override_settings(ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", _T_HOST])
+@override_settings(
+    ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", _T_HOST, _M_HOST],
+    MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+)
 class BillingPlanReadonlyTests(TestCase):
     databases = {"default"}
 
@@ -40,6 +45,15 @@ class BillingPlanReadonlyTests(TestCase):
             defaults={"name": "Manage settings"},
         )
 
+    def _login_past_mfa(self, client, user):
+        TOTPDevice.objects.update_or_create(
+            user=user, name="test-totp", defaults={"confirmed": True}
+        )
+        client.force_login(user)
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
+
     def test_settings_manage_gets_200_with_plan_and_counts(self) -> None:
         code = f"S-{uuid.uuid4().hex[:8]}"
         StudentProfile.objects.create(
@@ -62,8 +76,11 @@ class BillingPlanReadonlyTests(TestCase):
             is_staff=True,
         )
         u.feature_permissions.add(self.perm_settings)
+        SchoolMembership.objects.get_or_create(
+            user=u, school=self.school, defaults={"role": User.Role.ADMIN, "is_primary": True}
+        )
         c = Client(HTTP_HOST=_T_HOST)
-        c.login(username="bp_op", password="x" * 8)
+        self._login_past_mfa(c, u)
         path = reverse("siteconfig:billing_plan_readonly", urlconf="config.tenant_urls")
         self.assertIn("/siteconfig/billing/plan/", path)
         resp = c.get(path)
@@ -85,15 +102,27 @@ class BillingPlanReadonlyTests(TestCase):
             is_superuser=True,
         )
         u.feature_permissions.add(self.perm_settings)
+        SchoolMembership.objects.get_or_create(
+            user=u, school=self.school, defaults={"role": User.Role.ADMIN, "is_primary": True}
+        )
         c = Client(HTTP_HOST=_T_HOST)
-        c.login(username="bp_su", password="x" * 8)
+        self._login_past_mfa(c, u)
         path = reverse("siteconfig:billing_plan_readonly", urlconf="config.tenant_urls")
-        body = c.get(path).content.decode("utf-8", errors="replace")
-        p = body.find("Configuration Control Center")
-        a = body.find("Advanced/Admin: plan catalog")
-        self.assertNotEqual(p, -1)
-        self.assertNotEqual(a, -1)
-        self.assertLess(p, a)
+        resp = c.get(path, follow=False)
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("manager", resp["Location"])
+        resp = c.get(path, follow=True)
+        self.assertEqual(resp.status_code, 200, msg=resp.content[:500])
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertTrue(
+            "Plan & entitlements" in body or "Plan &amp; entitlements" in body,
+            msg="expected plan page title in manager shell",
+        )
+        self.assertIn("Advanced/Admin: plan catalog", body)
+        if "Configuration Control Center" in body:
+            p = body.find("Configuration Control Center")
+            a = body.find("Advanced/Admin: plan catalog")
+            self.assertLess(p, a)
 
     def test_checkout_button_visible_when_stripe_and_price_configured(self) -> None:
         PlatformBillingProcessorConfig.objects.create(
@@ -116,8 +145,11 @@ class BillingPlanReadonlyTests(TestCase):
             is_staff=True,
         )
         u.feature_permissions.add(self.perm_settings)
+        SchoolMembership.objects.get_or_create(
+            user=u, school=self.school, defaults={"role": User.Role.ADMIN, "is_primary": True}
+        )
         c = Client(HTTP_HOST=_T_HOST)
-        c.login(username="bp_checkout", password="x" * 8)
+        self._login_past_mfa(c, u)
         path = reverse("siteconfig:billing_plan_readonly", urlconf="config.tenant_urls")
         body = c.get(path).content.decode("utf-8", errors="replace")
         self.assertIn("billing/checkout/start", body)

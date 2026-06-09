@@ -75,6 +75,8 @@ from apps.schools.section8_views import (
     lti_deep_linking,
     jwks_json,
 )
+from apps.schools.views_pending_provision import api_public_pending_provision_progress
+from apps.schools.views_e2e_signup_helpers import e2e_signup_verification_token
 from apps.schools.signup_views import (
     signup_school,
     signup_slug_check,
@@ -170,6 +172,11 @@ urlpatterns = [
     path(
         "authentication/",
         include(("apps.accounts.urls", "accounts"), namespace="accounts"),
+    ),
+    path(
+        "api/pending-provision/progress/",
+        api_public_pending_provision_progress,
+        name="api_public_pending_provision_progress",
     ),
     path(
         "api/weather/context/",
@@ -1201,6 +1208,11 @@ urlpatterns = [
         name="resend_signup_verification",
     ),
     path("verify-signup/", verify_signup, name="verify_signup"),
+    path(  # rbac-allow: ci-e2e-gated-by-RMC_E2E_SIGNUP_HELPERS-env-only
+        "api/e2e/signup-verification-token/",
+        e2e_signup_verification_token,
+        name="e2e_signup_verification_token",
+    ),
     path("verify/<str:token>/", verify_student_id, name="verify_student_id"),
     path(
         "marketing/api/sandbox-validate/",

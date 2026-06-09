@@ -17,7 +17,7 @@
 
 <div data-rmc-scroll-policy="paginate" data-page-header="billing-plan-readonly">
   <nav class="ds-action-bar d-flex flex-wrap gap-2 mb-2" role="toolbar" aria-label="{% trans 'Page actions' %}">
-    <a href="{% url 'configuration:center' %}" class="btn btn-sm btn-outline-secondary ds-btn">{% trans "Configuration center" %}</a>
+    {% if console_url %}<a href="{{ console_url }}" class="btn btn-sm btn-outline-secondary ds-btn">{% trans "Configuration center" %}</a>{% endif %}
   </nav>
   {% include "siteconfig/partials/billing_plan_readonly_body.html" %}
 </div>

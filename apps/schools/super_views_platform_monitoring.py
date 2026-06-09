@@ -224,11 +224,18 @@ def super_tenant_360(request, school_id):
     unified_lifecycle = resolve_unified_lifecycle(school)
     lifecycle_registration = build_registration_track(school)
     lifecycle_enrollment = build_enrollment_track(school)
+    try:
+        from apps.schools.provisioning_progress import resolve_provisioning_progress
+
+        provisioning_progress = resolve_provisioning_progress(school)
+    except ImportError:
+        provisioning_progress = {}
     return render(
         request,
         "schools/super_tenant_360.html",
         {
             "school": school,
+            "provisioning_progress": provisioning_progress,
             "lifecycle": get_lifecycle_snapshot(school),
             "identity": identity,
             "blueprint_code": blueprint_code,
