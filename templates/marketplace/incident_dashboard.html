@@ -22,7 +22,7 @@
   {% load i18n %}
   {% phase8_dashboard_declaration "marketplace/incident_dashboard.html" %}
   {% url 'super:marketplace_installation_health' as health_url %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="incident_dashboard" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=support_url primary_label=_("Support dashboard") secondary_url=health_url secondary_label=_("Installation health") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="incident_dashboard" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=support_url primary_label=_("Support dashboard") secondary_url=health_url secondary_label=_("Installation health") tertiary_url=health_url tertiary_label=_("Admin bridge") %}
 
   <section class="cp-panel mb-4">
     <div class="cp-panel-header">

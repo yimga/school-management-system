@@ -18,15 +18,42 @@ REQUIRED_CSS = (
     "static/css/rmc-tenant-canvas-100x.css",
 )
 
+CONSOLIDATED_HEADER_PARTIAL = "templates/partials/control_plane_unified_header.html"
+ACTIVITY_TICKER_PARTIAL = "templates/partials/cockpit/_activity_ticker.html"
+NAV_ROW_MARKERS = ("cp-nav-row", "cp-header__row--inline-chrome")
+
 TEMPLATE_CHECKS: tuple[tuple[str, str, str], ...] = (
-    ("templates/control_plane_base.html", "cp-live-strip", "cp-live-strip before nav row"),
-    ("templates/control_plane_base.html", "cp-live-strip", "cp-live-strip wrapper"),
-    ("templates/admin/base.html", "cp-nav-row", "admin header nav row"),
-    ("templates/admin/base.html", "cp-live-strip", "admin header live strip"),
+    (CONSOLIDATED_HEADER_PARTIAL, "cp_shell_header_ticker", "consolidated header ticker block"),
+    (CONSOLIDATED_HEADER_PARTIAL, "cp-header__row--live", "consolidated header live row"),
+    (ACTIVITY_TICKER_PARTIAL, "cp-live-strip", "activity ticker live strip"),
+    (CONSOLIDATED_HEADER_PARTIAL, "cp-header__row--inline-chrome", "consolidated header nav fallback row"),
+    ("templates/control_plane_base.html", "control_plane_unified_header.html", "manager unified header include"),
+    ("templates/admin/base.html", "control_plane_unified_header.html", "admin manager unified header include"),
     ("templates/portal_base.html", "tenant_primary_nav.html", "tenant primary nav include"),
     ("templates/portal_base.html", "tp-sidebar-inner", "tenant sidebar inner"),
     ("templates/partials/tenant_primary_nav.html", "tp-primary-nav", "tenant primary nav partial"),
 )
+
+
+def _read(rel: str) -> str:
+    path = REPO / rel
+    return path.read_text(encoding="utf-8", errors="replace") if path.is_file() else ""
+
+
+def _consolidated_operator_stack() -> str:
+    return "\n".join(
+        _read(rel)
+        for rel in (
+            CONSOLIDATED_HEADER_PARTIAL,
+            ACTIVITY_TICKER_PARTIAL,
+            "templates/partials/control_plane_primary_nav.html",
+        )
+    )
+
+
+def _nav_row_pos(text: str) -> int:
+    positions = [text.find(marker) for marker in NAV_ROW_MARKERS if marker in text]
+    return min(positions) if positions else -1
 
 
 def main() -> int:
@@ -44,21 +71,30 @@ def main() -> int:
         if needle not in text:
             errors.append(f"{rel}: missing {label} ({needle})")
 
-    cp_base = (REPO / "templates/control_plane_base.html").read_text(encoding="utf-8", errors="replace")
-    nav_pos = cp_base.find("cp-nav-row")
-    live_pos = cp_base.find("cp-live-strip")
-    if nav_pos < 0 or live_pos < 0 or live_pos > nav_pos:
+    header = _read(CONSOLIDATED_HEADER_PARTIAL)
+    ticker = _read(ACTIVITY_TICKER_PARTIAL)
+    if "cp-live-strip" not in ticker:
+        errors.append("consolidated operator stack: missing cp-live-strip (_activity_ticker partial)")
+    live_row = header.find("cp-header__row--live")
+    nav_pos = _nav_row_pos(header)
+    if nav_pos < 0:
         errors.append(
-            "control_plane_base.html: cp-live-strip must precede cp-nav-row (v8 200x manager stack)"
+            "consolidated operator stack: missing nav row "
+            "(cp-nav-row legacy or cp-header__row--inline-chrome consolidated fallback)"
+        )
+    elif live_row < 0 or live_row > nav_pos:
+        errors.append(
+            "consolidated operator header: cp-header__row--live must precede nav fallback row "
+            "(v4.02.x consolidated header: utility → live marquee → <xl nav fallback)"
         )
 
-    admin_base = (REPO / "templates/admin/base.html").read_text(encoding="utf-8", errors="replace")
-    an = admin_base.find("cp-nav-row")
-    al = admin_base.find("cp-live-strip")
-    if an < 0 or al < 0 or an > al:
-        errors.append(
-            "admin/base.html: cp-nav-row must precede cp-live-strip (admin v1 200x: utility → nav → live strip)"
-        )
+    cp_base = _read("templates/control_plane_base.html")
+    if "control_plane_unified_header.html" not in cp_base:
+        errors.append("control_plane_base.html: missing control_plane_unified_header include")
+
+    admin_base = _read("templates/admin/base.html")
+    if "control_plane_unified_header.html" not in admin_base:
+        errors.append("admin/base.html: missing control_plane_unified_header include for manager host")
 
     previews = REPO / "docs/generated"
     for name in (

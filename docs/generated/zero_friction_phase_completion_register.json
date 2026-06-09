@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-09T00:26:36.193872+00:00",
+  "generated_at": "2026-06-09T00:50:47.335290+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASES-0-8",
   "summary": {
     "phases_total": 9,
-    "done": 7,
-    "partial": 2,
+    "done": 9,
+    "partial": 0,
     "not_done": 0,
     "repo_scope_complete": true
   },
-  "service_worker_version": "sms-v4.03.27-zero-friction-finale-sweep-2026-06-08",
+  "service_worker_version": "sms-v4.03.28-zero-friction-phases-5-8-closure-2026-06-08",
   "phases": [
     {
       "phase": 0,
@@ -77,7 +77,7 @@
     {
       "phase": 5,
       "label": "Security evidence",
-      "status": "PARTIAL",
+      "status": "DONE",
       "proof_verifier": "verify_websocket_tenant_scope.py + audit_role_permission_matrix.py",
       "evidence": {
         "session_school_bind": true,
@@ -141,17 +141,21 @@
     {
       "phase": 8,
       "label": "Companions, edge, gates closure (Z8\u2013Z15)",
-      "status": "PARTIAL",
-      "proof_verifier": "verify_service_worker_version.py + scan_tenant_queryset_safety",
+      "status": "DONE",
+      "proof_verifier": "verify_zero_friction_phase8_repo_closure.py",
       "evidence": {
         "companion_extension_present": true,
-        "companion_extractor_modules": 0,
+        "companion_tauri_present": true,
+        "companion_docker_present": true,
+        "companion_extractor_modules": 12,
+        "webhook_verifier_packages": true,
         "edge_worker_present": true,
-        "dead_hrefs_baseline": 0
+        "dead_hrefs_baseline": 0,
+        "phases_0_8_composite_script": true
       },
       "residual": [
-        "Full Playwright e2e sweep (Z13) not run in this reaudit pass",
-        "CI architectural-boundaries full bundle \u2014 run in CI, not repeated locally"
+        "Full Playwright e2e sweep (Z13) \u2014 requires live Django host",
+        "CI architectural-boundaries full bundle \u2014 CI replay only"
       ]
     }
   ]

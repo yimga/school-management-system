@@ -687,5 +687,6 @@
     {% include "partials/rmc_support_quick_create.html" %}
     {% comment %} v4.01.44: terminal dual-plane pass after late-loaded concierge/support CSS. {% endcomment %}
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
+    {% if request.user.is_authenticated %}{% include "components/back_to_top.html" %}{% endif %}
   </body>
 </html>

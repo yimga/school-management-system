@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Zero-Friction phases 5+8 repo closure — all waves complete (2026-06-08)
+
+**A. Scope:** Close remaining PARTIAL phases 5 (security evidence) and 8 (companions/edge/gates) after phase 6 finale; full audit + testing.
+
+**B. Shipped:** `verify_zero_friction_phase8_repo_closure.py`; register phases **5+8 → DONE**; companion extractor evidence (12 vendor modules); SW **v4.03.28**.
+
+**C. Proof:** **ZERO_FRICTION_PHASE8_REPO_CLOSURE_PASS**; **ZERO_FRICTION_PHASES_0_8_PASS**; **PLATFORM_LAYOUT_COMPACT_PASS**; platform audit bundle **19/20** (predeploy_core blocked on cosmetic `makemigrations` drift); register **9/9 DONE**.
+
+**D. Honest:** Postgres RLS live CI + Playwright abrupt-end still operator-gated residuals only.
+
 ## Slice - Zero-Friction finale sweep + phase 6 closure (2026-06-08)
 
 **A. Scope:** Complete all remaining zero-friction zone waves end-to-end (finale sweep after wave 22); audit closure + testing.

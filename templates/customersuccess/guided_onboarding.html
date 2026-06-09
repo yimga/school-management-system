@@ -16,7 +16,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-{# table-pagination-allow: wizard-step-checklist bounded-by-wizard-step-registry #}
+{% comment %} table-pagination-allow: wizard-step-checklist bounded-by-wizard-step-registry {% endcomment %}
 <div class="container-fluid py-4 setup-studio-shell" data-page-archetype="setup-studio" data-ux-qa-marker="setup-studio">
   <nav class="rmc-section-nav mb-3 d-flex flex-wrap gap-1 small" aria-label="{% trans 'On this page' %}" data-rmc-toc data-rmc-section-nav="curated">
     <a href="#section-launch-hero" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Launch hero" %}</a>

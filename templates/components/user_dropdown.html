@@ -132,7 +132,7 @@
         <i class="bi bi-person"></i> {% trans "Account" %}
       </li>
 
-      {# v4.01.43: theme + aesthetic live in profile dropdown (same menu as logout). #}
+      {% comment %} v4.01.43: theme + aesthetic live in profile dropdown (same menu as logout). {% endcomment %}
       <li class="dropdown-section-header">
         <i class="bi bi-palette"></i> {% trans "Appearance" %}
       </li>
@@ -148,7 +148,7 @@
         </a>
       </li>
       <li>
-        {# siteconfig: is absent from the public-host urlconf — guard or this 500s base.html. #}
+        {% comment %} siteconfig: is absent from the public-host urlconf — guard or this 500s base.html. {% endcomment %}
         {% url 'siteconfig:user_preferences' as user_prefs_url %}
         {% if user_prefs_url %}
         <a class="dropdown-item" href="{{ user_prefs_url }}">
@@ -222,8 +222,8 @@
         <i class="bi bi-question-circle"></i> {% trans "Help & Support" %}
       </li>
       <li>
-        {# feedback: is absent from the public-host urlconf — resolve into a var and #}
-        {# only render when it exists, so this can't 500 base.html on the public host. #}
+        {% comment %} feedback: is absent from the public-host urlconf — resolve into a var and {% endcomment %}
+        {% comment %} only render when it exists, so this can't 500 base.html on the public host. {% endcomment %}
         {% if request.public_host_kind == 'manager' %}
           {% url 'manager_help_center' as help_center_url %}
         {% else %}

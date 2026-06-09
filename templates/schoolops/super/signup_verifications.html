@@ -33,7 +33,7 @@
     {% endfor %}
   {% endif %}
 
-  {# ── Signup funnel band ───────────────────────────────────────────────── #}
+  {% comment %} ── Signup funnel band ───────────────────────────────────────────────── {% endcomment %}
   <div class="row g-2 mb-3 text-center">
     <div class="col-6 col-md">
       <div class="rmc-card py-2 h-100">
@@ -73,7 +73,7 @@
     </div>
   </div>
 
-  {# ── Deliverability alert: links that bounced never reached the inbox ──── #}
+  {% comment %} ── Deliverability alert: links that bounced never reached the inbox ──── {% endcomment %}
   {% if bounced_count %}
   <div class="alert alert-danger d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
     <span>
@@ -88,7 +88,7 @@
   </div>
   {% endif %}
 
-  {# ── Stale callout + bulk resend ──────────────────────────────────────── #}
+  {% comment %} ── Stale callout + bulk resend ──────────────────────────────────────── {% endcomment %}
   {% if counts.stale %}
   <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
     <span>

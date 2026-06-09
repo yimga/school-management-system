@@ -38,6 +38,7 @@
     "SECURITY.md",
     "tsconfig.json",
     "vite.analytics.config.ts",
+    "vite.social.config.ts",
     "vite.lux.config.ts",
     "vite.worldGlobe.config.ts",
     "vitest.config.ts"

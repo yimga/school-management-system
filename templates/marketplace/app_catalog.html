@@ -37,7 +37,7 @@
 {% phase8_dashboard_declaration "marketplace/app_catalog.html" %}
 
   {% url 'super:marketplace_governance' as marketplace_governance_url %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="app_catalog" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#catalog-browse" primary_label=_("Browse apps") secondary_url=marketplace_governance_url secondary_label=_("Governance console") jump_a_id="catalog-glance" jump_a_label=_("At a glance") jump_b_id="catalog-browse" jump_b_label=_("Browse apps") jump_c_id="catalog-guide" jump_c_label=_("Safety guide") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="app_catalog" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#catalog-browse" primary_label=_("Browse apps") secondary_url=marketplace_governance_url secondary_label=_("Governance console") tertiary_url=marketplace_governance_url tertiary_label=_("Admin bridge") jump_a_id="catalog-glance" jump_a_label=_("At a glance") jump_b_id="catalog-browse" jump_b_label=_("Browse apps") jump_c_id="catalog-guide" jump_c_label=_("Safety guide") %}
 
   <section id="catalog-glance" data-rmc-section-anchor class="rmc-reveal mb-3">
     {% include "components/world_class_summary_strip.html" with readiness="Sandbox" readiness_label=_("Install impact") risk=_("Scopes") risk_label=_("Permission review") next_step=_("Preview") next_step_label=_("Impact modal") blockers=_("Settlement") blockers_label=_("External honesty") %}

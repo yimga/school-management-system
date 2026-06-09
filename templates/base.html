@@ -411,5 +411,6 @@
     {% endif %}
     {% comment %} v4.01.46: terminal dual-plane pass after late body scripts. {% endcomment %}
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
+    {% if request.user.is_authenticated %}{% include "components/back_to_top.html" %}{% endif %}
     </div>
 </html>

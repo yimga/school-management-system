@@ -61,12 +61,12 @@
                   {% elif request.POST.next %}
                     <input type="hidden" name="next" value="{{ request.POST.next }}">
                   {% endif %}
-                  {# Bot honeypot: a real field hidden from people; automated submitters fill it. #}
+                  {% comment %} Bot honeypot: a real field hidden from people; automated submitters fill it. {% endcomment %}
                   <div class="visually-hidden" aria-hidden="true">
                     <label for="{{ honeypot_field }}">{% trans "Leave this field blank" %}</label>
                     <input type="text" name="{{ honeypot_field }}" id="{{ honeypot_field }}" tabindex="-1" autocomplete="off" value="">
                   </div>
-                  {# Timing trap: signed render time (rejects sub-second bot submissions). #}
+                  {% comment %} Timing trap: signed render time (rejects sub-second bot submissions). {% endcomment %}
                   <input type="hidden" name="form_ts" value="{{ form_ts }}">
                   <div class="mb-3">
                     <label class="form-label" for="id_username">{% trans "Email or username" %}</label>
@@ -110,9 +110,9 @@
                     {% trans "School admin (not platform operator)?" %}
                     <a href="{{ public_site_url|default:'https://runmycampus.com' }}/authentication/login/">{% trans "Sign in on runmycampus.com" %}</a>
                   </p>
-                  {# Guarded: the resend route lives in the public/marketing urlconf, #}
-                  {# not the manager host's — a bare {% url %} NoReverseMatch-es and #}
-                  {# 500s the entire manager login page (prod outage 2026-06-08). #}
+                  {% comment %} Guarded: the resend route lives in the public/marketing urlconf, {% endcomment %}
+                  {% comment %} not the manager host's — a bare {% url %} NoReverseMatch-es and {% endcomment %}
+                  {% comment %} 500s the entire manager login page (prod outage 2026-06-08). {% endcomment %}
                   {% url 'resend_signup_verification' as resend_url %}
                   {% if resend_url %}
                   <p class="small text-center text-muted mt-2 mb-0">

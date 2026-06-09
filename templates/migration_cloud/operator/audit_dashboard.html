@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{# table-column-budget-allow: migration-audit-dashboard-eight-column-lens #}
+{% comment %} table-column-budget-allow: migration-audit-dashboard-eight-column-lens {% endcomment %}
 {% load i18n glocal_tags %}
 
 <!-- v3.38.0 Agent 5 — tamper-evident audit log dashboard. This template renders the last 200 audit events. It NEVER renders: * raw actor emails (only the SHA-256 hex prefix) * raw subject IDs (only the SHA-256 hex prefix) * raw tenant slugs (only the 12-hex tenant_id_hash prefix) Payload summaries are re-sanitized in the view before render as defense-in-depth; if any sensitive-keyword key sneaked in, the row's payload column displays {"_error":"payload_rejected_at_render"}. -->

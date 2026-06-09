@@ -28,7 +28,7 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{# table-pagination-allow: founder-dashboard-widget-top-N each-tile-is-bounded-summary #}
+{% comment %} table-pagination-allow: founder-dashboard-widget-top-N each-tile-is-bounded-summary {% endcomment %}
 {% url 'sales:pipeline_board' as sales_pipeline_url %}
 {% comment %} v3.57.18 (2026-05-22): founder landing receives the same cockpit chrome as
    the manager landing (platform_pulse + activity_ticker). Per Agent Y audit, this is

@@ -69,7 +69,7 @@ backend-shell dashboard-page-backend
 
 {% include "components/next_action_strip.html" %}
 
-{# table-pagination-allow: dashboard-widget-top-N each-table-is-bounded-summary-not-list #}
+{% comment %} table-pagination-allow: dashboard-widget-top-N each-table-is-bounded-summary-not-list {% endcomment %}
   {% admin_health as health %}
   {% phase8_dashboard_declaration "accounts/backend_dashboard.html" %}
 

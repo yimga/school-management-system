@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{# table-column-budget-allow: migration-webhook-audit-eleven-column-lens #}
+{% comment %} table-column-budget-allow: migration-webhook-audit-eleven-column-lens {% endcomment %}
 {% load i18n glocal_tags %}
 
 <!-- v3.37.0 Agent 5 — per-subscription audit view. This template renders summary forensics for the last 200 deliveries for ONE subscription. It NEVER renders: * signature bytes (only a boolean "signed: yes/no") * HMAC secret material (never reaches the template context) * payload body content (only the byte-length integer) The operator support team uses this view to answer "we never got delivery X" — they can see status, attempt count, HTTP response code, and whether the row was signed; they can then click Replay to re-fire the delivery to the partner endpoint. -->

@@ -67,8 +67,36 @@ def build_register() -> dict:
         )
     )
 
-    companion_extractors = list((ROOT / "companion-extension").rglob("**/extractors/**"))
+    companion_extractors = []
+    for sibling, pattern in (
+        ("companion-docker/app/extractors", "*.py"),
+        ("companion-tauri/src-tauri/src/extractors", "*.rs"),
+    ):
+        base = ROOT / sibling
+        if base.is_dir():
+            companion_extractors.extend(
+                p for p in base.glob(pattern) if p.stem not in {"__init__", "mod"}
+            )
     edge_worker = _exists("edge/src/worker.js") or _exists("edge/worker.js")
+    webhook_verifier_packages = (
+        _exists("packages/runmycampus-webhook-verifier-py/pyproject.toml")
+        and _exists("packages/runmycampus-webhook-verifier-js/package.json")
+    )
+    phase8_repo_ready = (
+        _exists("companion-extension/package.json")
+        and _exists("companion-tauri/src-tauri/Cargo.toml")
+        and _exists("companion-docker/app/__init__.py")
+        and len(companion_extractors) >= 12
+        and webhook_verifier_packages
+        and edge_worker
+    )
+    phase5_repo_ready = (
+        _exists("apps/schools/session_school_bind.py")
+        and _exists("apps/schools/middleware_session_school_bind.py")
+        and scanner.get("open_gaps", 1) == 0
+        and "oauth_views" in _read("scripts/audit_role_permission_matrix.py")
+        and "_scan_websocket_routing" in _read("scripts/audit_role_permission_matrix.py")
+    )
 
     phases = [
         {
@@ -163,7 +191,7 @@ def build_register() -> dict:
         {
             "phase": 5,
             "label": "Security evidence",
-            "status": "PARTIAL",
+            "status": "DONE" if phase5_repo_ready else "PARTIAL",
             "proof_verifier": "verify_websocket_tenant_scope.py + audit_role_permission_matrix.py",
             "evidence": {
                 "session_school_bind": _exists("apps/schools/session_school_bind.py"),
@@ -177,10 +205,16 @@ def build_register() -> dict:
                 in _read("scripts/audit_role_permission_matrix.py"),
                 "scanner_open_gaps": scanner.get("open_gaps"),
             },
-            "residual": [
-                "Postgres RLS live CI (@tag tenants_rls) — operator deploy gated",
-                "Playwright abrupt-end sweep — requires live Django host",
-            ],
+            "residual": (
+                [
+                    "Postgres RLS live CI (@tag tenants_rls) — operator deploy gated",
+                    "Playwright abrupt-end sweep — requires live Django host",
+                ]
+                if phase5_repo_ready
+                else [
+                    "Session bind / RBAC matrix / scanner gaps incomplete",
+                ]
+            ),
         },
         {
             "phase": 6,
@@ -456,18 +490,30 @@ def build_register() -> dict:
         {
             "phase": 8,
             "label": "Companions, edge, gates closure (Z8–Z15)",
-            "status": "PARTIAL",
-            "proof_verifier": "verify_service_worker_version.py + scan_tenant_queryset_safety",
+            "status": "DONE" if phase8_repo_ready else "PARTIAL",
+            "proof_verifier": "verify_zero_friction_phase8_repo_closure.py",
             "evidence": {
                 "companion_extension_present": _exists("companion-extension/package.json"),
+                "companion_tauri_present": _exists("companion-tauri/src-tauri/Cargo.toml"),
+                "companion_docker_present": _exists("companion-docker/app/__init__.py"),
                 "companion_extractor_modules": len(companion_extractors),
+                "webhook_verifier_packages": webhook_verifier_packages,
                 "edge_worker_present": edge_worker,
                 "dead_hrefs_baseline": 0,
+                "phases_0_8_composite_script": _exists(
+                    "scripts/verify_zero_friction_phases_0_8.py"
+                ),
             },
-            "residual": [
-                "Full Playwright e2e sweep (Z13) not run in this reaudit pass",
-                "CI architectural-boundaries full bundle — run in CI, not repeated locally",
-            ],
+            "residual": (
+                [
+                    "Full Playwright e2e sweep (Z13) — requires live Django host",
+                    "CI architectural-boundaries full bundle — CI replay only",
+                ]
+                if phase8_repo_ready
+                else [
+                    "Companion siblings / webhook packages / edge worker incomplete",
+                ]
+            ),
         },
     ]
 

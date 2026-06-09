@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{# table-column-budget-allow: runtime-inspector-seven-column-lens #}
+{% comment %} table-column-budget-allow: runtime-inspector-seven-column-lens {% endcomment %}
 {% load i18n static %}
 {% load terminology_tags %}
 
@@ -18,7 +18,7 @@
 {% block cp_content %}
 {% include "components/next_action_strip.html" %}
 
-{# table-pagination-allow: runtime-inspector-field-registry bounded-by-RuntimeDefaults-typed-columns #}
+{% comment %} table-pagination-allow: runtime-inspector-field-registry bounded-by-RuntimeDefaults-typed-columns {% endcomment %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#runtime-inspector-main">{% trans "Skip to runtime inspector content" %}</a>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="runtime-inspector-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1"{% include "schools/partials/decision_architecture_attrs.html" %} data-rmc-scroll-policy="paginate" data-page-critical-read="1">

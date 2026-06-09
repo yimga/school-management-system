@@ -84,12 +84,12 @@
                 {% elif request.POST.next %}
                   <input type="hidden" name="next" value="{{ request.POST.next }}">
                 {% endif %}
-                {# Bot honeypot: a real field hidden from people; automated submitters fill it. #}
+                {% comment %} Bot honeypot: a real field hidden from people; automated submitters fill it. {% endcomment %}
                 <div class="visually-hidden" aria-hidden="true">
                   <label for="{{ honeypot_field }}">{% trans "Leave this field blank" %}</label>
                   <input type="text" name="{{ honeypot_field }}" id="{{ honeypot_field }}" tabindex="-1" autocomplete="off" value="">
                 </div>
-                {# Timing trap: signed render time (rejects sub-second bot submissions). #}
+                {% comment %} Timing trap: signed render time (rejects sub-second bot submissions). {% endcomment %}
                 <input type="hidden" name="form_ts" value="{{ form_ts }}">
                 <div class="mb-3">
                   <label class="form-label">{% trans "I am signing in as" %}</label>
@@ -157,9 +157,9 @@
               <p class="small text-center mt-2 mb-0">
                 <a href="{% url 'accounts:password_reset' %}" data-rmc-parent-password-reset="1">{% trans "Forgot password?" %}</a>
               </p>
-              {# Resend link only on hosts whose urlconf carries the public route #}
-              {# (it lives in the marketing urlconf, not the tenant/manager one) — #}
-              {# a bare {% url %} would NoReverseMatch and 500 the whole login page. #}
+              {% comment %} Resend link only on hosts whose urlconf carries the public route {% endcomment %}
+              {% comment %} (it lives in the marketing urlconf, not the tenant/manager one) — {% endcomment %}
+              {% comment %} a bare {% url %} would NoReverseMatch and 500 the whole login page. {% endcomment %}
               {% url 'resend_signup_verification' as resend_url %}
               {% if resend_url %}
               <p class="small text-center text-muted mt-1 mb-0">
@@ -201,7 +201,7 @@
               {% if is_manager_host %}
                 <a class="btn btn-outline-primary" href="{{ public_site_url|default:'https://runmycampus.com' }}/discover/">{% trans "Find your school" %}</a>
               {% else %}
-                {# portal: is absent from the public-host urlconf — guard or this 500s the page. #}
+                {% comment %} portal: is absent from the public-host urlconf — guard or this 500s the page. {% endcomment %}
                 {% url 'portal:link_child' as claim_invite_url %}
                 {% if not claim_invite_url %}{% url 'accounts:claim_invite' as claim_invite_url %}{% endif %}
                 {% if claim_invite_url %}<a class="btn btn-outline-primary" href="{{ claim_invite_url }}">{% trans "Claim an invite" %}</a>{% endif %}
@@ -222,8 +222,8 @@
                     {% trans "Control plane" %}
                   </a>
                 {% else %}
-                  {# portal:/siteconfig:/studio_os: are tenant-host routes, absent from the #}
-                  {# public-host urlconf — guard each so the public login page can't 500. #}
+                  {% comment %} portal:/siteconfig:/studio_os: are tenant-host routes, absent from the {% endcomment %}
+                  {% comment %} public-host urlconf — guard each so the public login page can't 500. {% endcomment %}
                   {% url 'portal:parent_dashboard' as parent_dash_url %}
                   {% if parent_dash_url %}<a class="quick-link" href="{{ parent_dash_url }}">{% trans "Parent portal" %}</a>{% endif %}
                   {% url 'siteconfig:user_preferences' as prefs_url %}

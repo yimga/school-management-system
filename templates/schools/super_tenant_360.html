@@ -22,7 +22,7 @@
 {% block cp_content %}
 {% include "components/next_action_strip.html" %}
 
-{# table-pagination-allow: tenant-360-record-detail single-tenant-summary-not-list-view #}
+{% comment %} table-pagination-allow: tenant-360-record-detail single-tenant-summary-not-list-view {% endcomment %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#tenant-360-main">{% trans "Skip to school 360 content" %}</a>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="tenant-360-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="record-detail" data-decision-engine="surface" data-page-critical-read="1">
