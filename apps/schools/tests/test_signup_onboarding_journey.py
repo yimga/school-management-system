@@ -86,10 +86,11 @@ class SignupOnboardingJourneyTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn(b"finishing the last setup steps", resp.content.lower())
 
-    def test_public_login_url_is_never_manager(self):
+    def test_public_discovery_url_is_never_manager_or_credential_login(self):
         url = build_public_login_url()
-        self.assertIn("runmycampus.com/authentication/login", url)
+        self.assertIn("runmycampus.com/discover", url)
         self.assertNotIn("manager.", url)
+        self.assertNotIn("/authentication/login", url)
 
     def test_account_set_password_renders_on_public_host(self):
         user, _school = _owner_with_school()

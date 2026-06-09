@@ -185,7 +185,8 @@
 // v4.02.86: globe online reconnect retry + bridge mode sync; offline prefetch single bundle.
 // v4.02.89: purge retired vendor chunks; loader normalized; preview uses loader offline events.
 // v4.02.92: workflow progress SSE WSGI sync stream + busy reconnect in rmc-workflow-progress.js
-const CACHE_VERSION = "sms-v4.03.37-apex-marketing-not-auth-2026-06-09";
+// v4.03.39: tenant 360 flight deck URL fix + cockpit live JSON refresh on /super/ landing.
+const CACHE_VERSION = "sms-v4.03.41-apex-no-credential-auth-2026-06-09";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

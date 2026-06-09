@@ -35,8 +35,14 @@ def build_public_site_url(path: str) -> str:
     return f"{base}{path}"
 
 
+def build_public_discovery_url() -> str:
+    """Campus discovery on the marketing apex — never a credential login form."""
+    return build_public_site_url("/discover/")
+
+
 def build_public_login_url() -> str:
-    return build_public_site_url("/authentication/login/")
+    """Backward-compatible alias: marketing host routes to discovery, not login."""
+    return build_public_discovery_url()
 
 
 def tenant_subdomain_host_exists(school) -> bool:

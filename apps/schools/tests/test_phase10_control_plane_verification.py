@@ -28,9 +28,7 @@ class Phase10ManagerLoginVerificationTests(TestCase):
         client = Client(HTTP_HOST="manager.runmycampus.com")
         response = client.get(reverse("accounts:login"))
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(
-            response.url.startswith("https://runmycampus.com/authentication/login/")
-        )
+        self.assertTrue(response.url.startswith("https://runmycampus.com/discover/"))
 
     def test_manager_host_gets_manager_login_template(self):
         request = self.factory.get(
@@ -60,6 +58,17 @@ class Phase10ManagerLoginVerificationTests(TestCase):
         self.assertGreater(head_idx, 0)
         self.assertGreater(body_idx, head_idx)
         self.assertGreater(login_idx, body_idx)
+
+    def test_marketing_apex_redirects_login_to_discovery(self):
+        request = self.factory.get(
+            "/authentication/login/", HTTP_HOST="runmycampus.com"
+        )
+        request.session = {}
+        request.user = AnonymousUser()
+        request.public_host_kind = "base"
+        response = login_view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/discover/", response["Location"])
 
     def test_non_manager_host_gets_standard_login_template(self):
         request = self.factory.get(

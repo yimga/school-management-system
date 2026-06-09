@@ -25,7 +25,8 @@
 | Control plane after auth | `https://manager.runmycampus.com/super/` (redirects to login with `next=/super/…`) |
 | Explicit operator login | `https://manager.runmycampus.com/authentication/login/?cp=1` |
 | School owner / staff (preferred) | `https://{slug}.runmycampus.com/authentication/login/` |
-| School owner / staff (discovery) | `https://runmycampus.com/discover/` or `/find/` → slug campus sign-in |
+| School owner / staff (discovery only on apex) | `https://runmycampus.com/discover/` or `/find/` → slug campus sign-in |
+| Credential auth blocked on apex | `/authentication/login/`, password reset, OIDC/SAML → **302 `/discover/`**; verifier: `python scripts/verify_apex_marketing_no_credential_auth.py` |
 
 ## Signup → portal (tenant)
 

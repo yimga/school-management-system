@@ -8,17 +8,15 @@ from apps.schools.models import School
 
 @override_settings(RMC_PUBLIC_SITE_URL="https://runmycampus.com")
 class ReactivationPortalUrlTests(TestCase):
-    def test_inactive_school_uses_public_login(self):
+    def test_inactive_school_with_slug_uses_tenant_campus_login(self):
         school = School.objects.create(
             name="St Jude",
             slug="st-jude",
             subdomain="st-jude",
             is_active=False,
         )
-        self.assertEqual(
-            _portal_url_for_reactivation(school),
-            "https://runmycampus.com/authentication/login/",
-        )
+        url = _portal_url_for_reactivation(school)
+        self.assertIn("st-jude.runmycampus.com/authentication/login", url)
 
     def test_active_school_uses_tenant_subdomain(self):
         school = School.objects.create(

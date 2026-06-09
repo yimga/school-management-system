@@ -68,6 +68,8 @@ APEX_TENANT_AUTH_DISCOVERY_PREFIXES = (
     "/authentication/logout",
     "/authentication/password_reset",
     "/authentication/reset/",
+    "/authentication/oidc",
+    "/authentication/saml",
 )
 MANAGER_AUTH_ALLOWED_PREFIXES = (
     "/authentication/login/",
@@ -513,10 +515,16 @@ def _response_for_unknown_tenant_host(request, slug: str | None = None):
             if school is not None and pending_school_state(school):
                 from django.shortcuts import render
 
+                from apps.schools.pending_tenant_discovery import (
+                    kick_pending_tenant_provisioning,
+                )
+
                 request.school = school
                 request.tenant_provisioning_pending = True
                 if getattr(request, "session", None) is not None:
                     request.session["school_id"] = str(school.id)
+                if pending_school_state(school) == "provisioning":
+                    kick_pending_tenant_provisioning(request, school)
                 ctx = pending_school_public_context(school)
                 ctx["school"] = school
                 try:

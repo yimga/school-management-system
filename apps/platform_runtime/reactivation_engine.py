@@ -48,14 +48,14 @@ def _portal_url_for_reactivation(school) -> str:
         from apps.schools.provision_email_urls import (
             build_public_login_url,
             build_tenant_authentication_url,
-            school_subdomain_redirect_is_safe,
+            tenant_subdomain_host_exists,
         )
 
-        if school and school_subdomain_redirect_is_safe(school):
+        if school and tenant_subdomain_host_exists(school):
             return build_tenant_authentication_url(school, "/authentication/login/")
         return build_public_login_url()
     except ImportError:
-        return "https://runmycampus.com/authentication/login/"
+        return "https://runmycampus.com/discover/"
 
 
 def _resolve_admin_email(school) -> str:

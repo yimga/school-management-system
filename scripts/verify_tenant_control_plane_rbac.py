@@ -36,10 +36,9 @@ MANAGER_URLS = REPO_ROOT / "config" / "manager_urls.py"
 APPS_DIR = REPO_ROOT / "apps"
 
 REQUIRED_PUBLIC_AUTH_PREFIXES = (
-    "/authentication/login/",
-    "/authentication/logout/",
-    "/authentication/password_reset/",
     "/authentication/onboarding/",
+    "/authentication/redirect/",
+    "/authentication/school-picker/",
     "/verify-signup/",
 )
 

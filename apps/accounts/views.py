@@ -4,7 +4,10 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.views import PasswordChangeView as DjangoPasswordChangeView
+from django.contrib.auth.views import (
+    PasswordChangeView as DjangoPasswordChangeView,
+    redirect_to_login,
+)
 from django.db import DatabaseError, OperationalError, ProgrammingError
 from django.db.models import Avg, Count, Q
 from django.conf import settings
@@ -1050,6 +1053,16 @@ def redirect_view(request):
     """
     user = request.user
     if not user.is_authenticated:
+        host_kind = getattr(request, "public_host_kind", None)
+        if host_kind is None:
+            try:
+                from apps.schools.host_routing import public_host_kind
+
+                host_kind = public_host_kind((request.get_host() or "").split(":")[0])
+            except (ImportError, AttributeError, TypeError, ValueError):
+                host_kind = None
+        if host_kind == "base":
+            return redirect(reverse("global_login_discovery"))
         return redirect(reverse("accounts:login"))
 
     # Manager host is for platform operators; tenant staff belong on the public host.
@@ -3650,9 +3663,28 @@ def logout_view(request):
     return redirect(reverse("accounts:login"))
 
 
-@login_required
 def school_picker(request):
     """Let user pick which school to use when they have multiple or no access on current host."""
+    host_kind = getattr(request, "public_host_kind", None)
+    if host_kind is None:
+        try:
+            from apps.schools.host_routing import public_host_kind
+
+            host_kind = public_host_kind((request.get_host() or "").split(":")[0])
+        except (ImportError, AttributeError, TypeError, ValueError):
+            host_kind = None
+    if not request.user.is_authenticated:
+        if host_kind == "base":
+            return redirect(reverse("global_login_discovery"))
+        return redirect_to_login(request.get_full_path(), login_url=reverse("accounts:login"))
+    if host_kind == "base":
+        from apps.schools.tenant_login_redirect import resolve_public_post_login_handoff
+
+        handoff = resolve_public_post_login_handoff(request, request.user)
+        if handoff is not None:
+            return handoff
+        return redirect(reverse("global_login_discovery"))
+
     from apps.schools.models import SchoolMembership
 
     memberships = (

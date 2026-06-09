@@ -72,13 +72,13 @@ class ManagerLoginViewNextTests(TestCase):
         )
         resp = client.get(toxic)
         self.assertEqual(resp.status_code, 302)
-        self.assertTrue(resp.url.startswith("https://runmycampus.com/authentication/login/"))
+        self.assertTrue(resp.url.startswith("https://runmycampus.com/discover/"))
 
     def test_unauthenticated_manager_login_redirects_to_public_host(self):
         client = Client(HTTP_HOST="manager.runmycampus.com")
         resp = client.get(reverse("accounts:login"))
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.url, "https://runmycampus.com/authentication/login/")
+        self.assertEqual(resp.url, "https://runmycampus.com/discover/")
 
     def test_operator_super_next_keeps_manager_login_surface(self):
         client = Client(HTTP_HOST="manager.runmycampus.com")

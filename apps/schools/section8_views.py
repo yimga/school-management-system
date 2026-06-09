@@ -216,10 +216,10 @@ def _role_onboarding_checklists() -> list[dict]:
                     "cta": "Start school setup",
                 },
                 {
-                    "title": "Verify access and permissions",
-                    "detail": "Confirm admin login and role access for your team.",
-                    "href": _safe_reverse("accounts:login"),
-                    "cta": "Open admin login",
+                    "title": "Find your campus sign-in",
+                    "detail": "Locate your school's workspace URL, then sign in on that campus address.",
+                    "href": _safe_reverse("global_login_discovery"),
+                    "cta": "Find your campus",
                 },
                 {
                     "title": "Activate finance and support controls",

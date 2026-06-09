@@ -822,6 +822,23 @@ def pass13_tenant_workspace_login_and_branding() -> list[dict[str, str]]:
                 path="apps/schools/provision_email_urls.py",
             )
         )
+    if "build_public_discovery_url" not in provision:
+        findings.append(
+            _finding(
+                "pass13",
+                "provision_email_urls_missing_public_discovery_builder",
+                path="apps/schools/provision_email_urls.py",
+            )
+        )
+    for prefix in ("/authentication/oidc", "/authentication/saml"):
+        if prefix not in mw:
+            findings.append(
+                _finding(
+                    "pass13",
+                    f"apex_discovery_missing_sso_prefix:{prefix}",
+                    path="apps/schools/middleware.py",
+                )
+            )
     return findings
 
 
