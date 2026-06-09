@@ -25,6 +25,33 @@ def normalize_slug_token(raw: str) -> str:
     return slugify((raw or "").strip())[:120]
 
 
+def list_active_schools_for_public_login(*, limit: int = 250) -> list[dict[str, str]]:
+    """Active tenant rows for the public login school picker (name + slug)."""
+    from apps.schools.models import School
+
+    rows: list[dict[str, str]] = []
+    qs = (
+        School.objects.filter(is_active=True)
+        .order_by("name")
+        .only("name", "slug", "subdomain")[:limit]
+    )
+    for school in qs:
+        token = (
+            (getattr(school, "subdomain", None) or getattr(school, "slug", None) or "")
+            .strip()
+            .lower()
+        )
+        if not token:
+            continue
+        rows.append(
+            {
+                "name": (school.name or token).strip(),
+                "slug": token,
+            }
+        )
+    return rows
+
+
 def lookup_school_by_slug_or_subdomain(token: str):
     """Case-insensitive slug or subdomain match, active or inactive."""
     from apps.schools.models import School
@@ -88,9 +115,18 @@ def _primary_owner_user(school):
 
 
 def build_pending_recovery_links(school) -> dict[str, str]:
-    """Public-host URLs for owners stuck before ``is_active=True``."""
+    """Recovery URLs for owners stuck before ``is_active=True``."""
+    from apps.schools.provision_email_urls import (
+        build_tenant_workspace_login_url,
+        tenant_subdomain_host_exists,
+    )
+
     links: dict[str, str] = {
-        "login_url": build_public_login_url(),
+        "login_url": (
+            build_tenant_workspace_login_url(school)
+            if tenant_subdomain_host_exists(school)
+            else build_public_login_url()
+        ),
     }
     try:
         links["resend_verification_url"] = build_public_site_url(
@@ -141,16 +177,23 @@ def _portal_url_for_school(request, school) -> str:
     if not state and school_subdomain_redirect_is_safe(school):
         return build_tenant_authentication_url(school, "/authentication/login/")
     if state:
-        owner = _primary_owner_user(school)
-        if owner is not None:
-            onboarding = build_owner_onboarding_url(school, owner)
-            if onboarding:
-                return onboarding
         if state == "awaiting_verification":
             try:
                 return build_public_site_url(reverse("resend_signup_verification"))
             except NoReverseMatch:
                 return build_public_site_url("/verify-signup/resend/")
+        from apps.schools.provision_email_urls import (
+            build_tenant_workspace_login_url,
+            tenant_subdomain_host_exists,
+        )
+
+        if tenant_subdomain_host_exists(school):
+            return build_tenant_workspace_login_url(school)
+        owner = _primary_owner_user(school)
+        if owner is not None:
+            onboarding = build_owner_onboarding_url(school, owner)
+            if onboarding:
+                return onboarding
         return build_public_login_url()
     return _build_school_portal_url(request, school)
 

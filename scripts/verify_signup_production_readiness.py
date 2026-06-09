@@ -13,6 +13,7 @@ Pass 9 — Platform recovery CLI ``activate_pending_signup_schools`` (--all-veri
 Pass 10 — Owner onboarding done JSON poll + triage_signup_school CLI.
 Pass 11 — Render ``SESSION_COOKIE_DOMAIN`` parent-domain contract for cross-host handoff.
 Pass 12 — Tenant transactional emails must not default portal links to manager host.
+Pass 13 — Pending tenants sign in on slug host; no platform logo on tenant brand mark.
 
 Usage:
   python scripts/verify_signup_production_readiness.py --strict
@@ -87,6 +88,8 @@ def pass2_portal_ready_email_contract() -> list[dict[str, str]]:
     notify = NOTIFY.read_text(encoding="utf-8")
     for needle in (
         "tenant_portal_url",
+        "build_tenant_workspace_login_url",
+        "tenant_subdomain_host_exists",
         "account_ready",
         "notify_tenant_signup_completed",
         "tenant.signup.completed",
@@ -592,9 +595,8 @@ def pass10_onboarding_poll_and_triage() -> list[dict[str, str]]:
     done_tpl = REPO_ROOT / "templates" / "accounts" / "owner_onboarding" / "done.html"
     done_txt = done_tpl.read_text(encoding="utf-8")
     for needle in (
-        "data-rmc-provisioning-poll",
-        "rmc-tenant-provisioning-status.js",
-        "provision_status_api_url",
+        "rmc_tenant_provision_progress.html",
+        "provision_progress_api_url",
     ):
         if needle not in done_txt:
             findings.append(
@@ -604,13 +606,21 @@ def pass10_onboarding_poll_and_triage() -> list[dict[str, str]]:
                     path="templates/accounts/owner_onboarding/done.html",
                 )
             )
-    poll_js = REPO_ROOT / "static" / "js" / "rmc-tenant-provisioning-status.js"
-    if "data.is_active" not in poll_js.read_text(encoding="utf-8"):
+    poll_js = REPO_ROOT / "static" / "js" / "rmc-tenant-provision-progress.js"
+    if not poll_js.is_file():
         findings.append(
             _finding(
                 "pass10",
-                "provisioning_poll_js_must_reload_on_is_active",
-                path="static/js/rmc-tenant-provisioning-status.js",
+                "rmc_tenant_provision_progress_js_missing",
+                path="static/js/rmc-tenant-provision-progress.js",
+            )
+        )
+    elif "progress_percent" not in poll_js.read_text(encoding="utf-8"):
+        findings.append(
+            _finding(
+                "pass10",
+                "provisioning_progress_js_must_update_bar",
+                path="static/js/rmc-tenant-provision-progress.js",
             )
         )
     triage = (
@@ -647,7 +657,12 @@ def pass10_onboarding_poll_and_triage() -> list[dict[str, str]]:
     boundary = REPO_ROOT / "docs" / "PLATFORM_BOUNDARY_OPERATOR_VS_TENANT.md"
     if boundary.is_file():
         doc = boundary.read_text(encoding="utf-8")
-        for needle in ("?cp=1", "triage_signup_school", "onboarding/done/status"):
+        for needle in (
+            "?cp=1",
+            "triage_signup_school",
+            "onboarding/done/status",
+            "slug-first",
+        ):
             if needle not in doc:
                 findings.append(
                     _finding(
@@ -744,6 +759,142 @@ def pass12_tenant_email_no_manager_host() -> list[dict[str, str]]:
     return findings
 
 
+def pass13_tenant_workspace_login_and_branding() -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    mw = MIDDLEWARE.read_text(encoding="utf-8")
+    for needle in (
+        "PENDING_TENANT_AUTH_PREFIXES",
+        "_bind_pending_school_for_tenant_auth",
+        "_path_allows_pending_tenant_auth",
+        "/authentication/redirect/",
+        "/authentication/school-picker/",
+    ):
+        if needle not in mw:
+            findings.append(
+                _finding(
+                    "pass13",
+                    f"middleware_missing:{needle}",
+                    path="apps/schools/middleware.py",
+                )
+            )
+    handoff = (
+        REPO_ROOT / "apps" / "schools" / "tenant_login_redirect.py"
+    ).read_text(encoding="utf-8")
+    if "build_public_handoff_to_tenant_workspace" not in handoff:
+        findings.append(
+            _finding(
+                "pass13",
+                "tenant_login_redirect_missing_workspace_handoff",
+                path="apps/schools/tenant_login_redirect.py",
+            )
+        )
+    views = (REPO_ROOT / "apps" / "accounts" / "views.py").read_text(encoding="utf-8")
+    for needle in ("redirect_to_tenant_workspace", "resolve_public_post_login_handoff"):
+        if needle not in views:
+            findings.append(
+                _finding(
+                    "pass13",
+                    f"accounts_views_missing:{needle}",
+                    path="apps/accounts/views.py",
+                )
+            )
+    brand = (
+        REPO_ROOT / "templates" / "components" / "rmc_brand_mark.html"
+    ).read_text(encoding="utf-8")
+    if "PUBLIC_BRAND_MODE" not in brand or "no platform logo" not in brand.lower():
+        findings.append(
+            _finding(
+                "pass13",
+                "rmc_brand_mark_must_gate_platform_logo_on_public_brand_mode",
+                path="templates/components/rmc_brand_mark.html",
+            )
+        )
+    provision = (
+        REPO_ROOT / "apps" / "schools" / "provision_email_urls.py"
+    ).read_text(encoding="utf-8")
+    if "build_tenant_workspace_login_url" not in provision:
+        findings.append(
+            _finding(
+                "pass13",
+                "provision_email_urls_missing_workspace_login_builder",
+                path="apps/schools/provision_email_urls.py",
+            )
+        )
+    return findings
+
+
+def pass14_customer_progress_component() -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    partial = REPO_ROOT / "templates" / "components" / "rmc_tenant_provision_progress.html"
+    js = REPO_ROOT / "static" / "js" / "rmc-tenant-provision-progress.js"
+    if not partial.is_file():
+        findings.append(_finding("pass14", "rmc_tenant_provision_progress_partial_missing", path=str(partial)))
+    if not js.is_file():
+        findings.append(_finding("pass14", "rmc_tenant_provision_progress_js_missing", path=str(js)))
+    done = REPO_ROOT / "templates" / "accounts" / "owner_onboarding" / "done.html"
+    if partial.is_file() and partial.name not in done.read_text(encoding="utf-8"):
+        findings.append(_finding("pass14", "owner_onboarding_done_missing_progress_partial", path="templates/accounts/owner_onboarding/done.html"))
+    return findings
+
+
+def pass15_status_api_parity() -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    resolver = REPO_ROOT / "apps" / "schools" / "provisioning_progress.py"
+    if not resolver.is_file():
+        findings.append(_finding("pass15", "provisioning_progress_resolver_missing", path=str(resolver)))
+        return findings
+    rtxt = resolver.read_text(encoding="utf-8")
+    for needle in ("progress_percent", "current_step_label", "workflow_run_id", "steps"):
+        if needle not in rtxt:
+            findings.append(_finding("pass15", f"resolver_missing:{needle}", path="apps/schools/provisioning_progress.py"))
+    onboarding = ONBOARDING.read_text(encoding="utf-8")
+    tenant = (REPO_ROOT / "apps" / "lifecycle" / "views_tenant_lifecycle.py").read_text(encoding="utf-8")
+    if "resolve_provisioning_progress" not in onboarding:
+        findings.append(_finding("pass15", "owner_api_must_call_resolver", path="apps/accounts/views_owner_onboarding.py"))
+    if "resolve_provisioning_progress" not in tenant:
+        findings.append(_finding("pass15", "tenant_api_must_call_resolver", path="apps/lifecycle/views_tenant_lifecycle.py"))
+    urls = REPO_ROOT / "apps" / "accounts" / "urls.py"
+    if "owner_onboarding_provision_progress" not in urls.read_text(encoding="utf-8"):
+        findings.append(_finding("pass15", "owner_progress_url_missing", path="apps/accounts/urls.py"))
+    return findings
+
+
+def pass16_workflow_registry_steps() -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    registry = (REPO_ROOT / "apps" / "platform_runtime" / "workflow_registry.py").read_text(encoding="utf-8")
+    progress = (REPO_ROOT / "apps" / "schools" / "provisioning_progress.py").read_text(encoding="utf-8")
+    for step in ("admin_user", "profile", "tenant_schema", "seed_data", "activate"):
+        if step not in registry or step not in progress:
+            findings.append(_finding("pass16", f"step_missing:{step}", path="apps/schools/provisioning_progress.py"))
+    return findings
+
+
+def pass17_owner_apply_fix_route() -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    urls = REPO_ROOT / "apps" / "accounts" / "urls.py"
+    onboarding = ONBOARDING.read_text(encoding="utf-8")
+    if "owner_onboarding_provision_apply_fix" not in urls.read_text(encoding="utf-8"):
+        findings.append(_finding("pass17", "apply_fix_url_missing", path="apps/accounts/urls.py"))
+    if "owner_onboarding_provision_apply_fix" not in onboarding:
+        findings.append(_finding("pass17", "apply_fix_view_missing", path="apps/accounts/views_owner_onboarding.py"))
+    handlers = (REPO_ROOT / "apps" / "platform_runtime" / "workflow_fix_handlers.py").read_text(encoding="utf-8")
+    if "requeue_provision" not in handlers:
+        findings.append(_finding("pass17", "requeue_provision_handler_missing", path="apps/platform_runtime/workflow_fix_handlers.py"))
+    return findings
+
+
+def pass18_failed_run_human_action() -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    auto_fix = (REPO_ROOT / "apps" / "platform_runtime" / "workflow_auto_fix.py").read_text(encoding="utf-8")
+    progress = (REPO_ROOT / "apps" / "schools" / "provisioning_progress.py").read_text(encoding="utf-8")
+    partial = (REPO_ROOT / "templates" / "components" / "rmc_tenant_provision_progress.html").read_text(encoding="utf-8")
+    if "human_action" not in auto_fix or "human_action" not in progress:
+        findings.append(_finding("pass18", "human_action_contract_missing", path="apps/schools/provisioning_progress.py"))
+    if "data-rmc-copilot-context" not in partial:
+        findings.append(_finding("pass18", "copilot_context_marker_missing", path="templates/components/rmc_tenant_provision_progress.html"))
+    return findings
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--strict", action="store_true")
@@ -763,11 +914,17 @@ def main(argv: list[str] | None = None) -> int:
     findings.extend(pass10_onboarding_poll_and_triage())
     findings.extend(pass11_session_cookie_parent_domain())
     findings.extend(pass12_tenant_email_no_manager_host())
+    findings.extend(pass13_tenant_workspace_login_and_branding())
+    findings.extend(pass14_customer_progress_component())
+    findings.extend(pass15_status_api_parity())
+    findings.extend(pass16_workflow_registry_steps())
+    findings.extend(pass17_owner_apply_fix_route())
+    findings.extend(pass18_failed_run_human_action())
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "finding_count": len(findings),
-        "passes": 12,
+        "passes": 18,
         "findings": findings,
     }
     if args.write_baseline:

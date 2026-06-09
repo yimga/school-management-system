@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %}
+Minimal tenant workspace chrome — school name only; no platform nav/footer.
+{% endcomment %}
+
+{% block navbar %}
+<nav class="navbar navbar-dark statement-header" aria-label="{% trans 'Campus' %}">
+  <div class="container d-flex align-items-center py-2">
+    {% with brand_label=SITE.site_name|default:school.name|default:"Your school" %}
+    {% include "components/rmc_brand_mark.html" with size=32 variant="lockup" label=brand_label href="#" %}
+    {% endwith %}
+  </div>
+</nav>
+{% endblock %}
+
+{% block footer %}{% endblock %}

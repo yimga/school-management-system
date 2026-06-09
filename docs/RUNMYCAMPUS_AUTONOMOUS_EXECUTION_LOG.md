@@ -1,5 +1,25 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Tenant workspace slug-first login (2026-06-09)
+
+**A. Scope:** Finish tenant-workspace slice — slug handoff, branding, emails, docs, tests, commit.
+
+**B. Shipped:** pending-subdomain auth; public login school picker + campus continue; minimal tenant shells; portal_url → slug in signup emails; onboarding done on tenant host; triage last_failure; favicon tenant-safe; SW v4.03.35; PLATFORM_BOUNDARY + SOT batch 1685.
+
+**C. Proof:** **SIGNUP_PRODUCTION_READINESS_PASS** (13); tenant-workspace handoff + pending discovery + owner onboarding tests.
+
+**D. Honest:** Render prod slugs (NewBell, st-jude) need post-deploy `triage_signup_school` — root cause is environment-specific.
+
+## Slice - Aggressive lifecycle gap closure + SOT reconciliation (2026-06-09)
+
+**A. Scope:** Re-audit every open lifecycle/optional claim against live code, implement all repository-actionable gaps, and reconcile the canonical plan/register/docs.
+
+**B. Shipped:** offline encrypted wizard drafts; CSP timetable repair; dual-identity Student 360 contexts; ranked substitute broadcast; fail-closed CFDI/NF-e adapters; browser card-sweep proposals; durable helpfulness telemetry; roadmap truth corrections; lifecycle and timetable documentation refresh; manifest-hash-safe preview-shell smoke.
+
+**C. Proof:** **PLATFORM_AUDIT_BUNDLE_PASS (21/21)**; **51/51** focused Django tests; Django check and migration drift clean; fiscal verification command; JavaScript syntax and behavioral probes; targeted Ruff/compile; all feature-register rows shipped with resolving proof.
+
+**D. Honest:** production e-invoice signing/stamping, messaging credentials, physical camera/device pilots, Playwright, PostgreSQL RLS, and production load remain external/operator evidence.
+
 ## Slice - Program exhaustion confirmation (2026-06-08)
 
 **A. Scope:** Re-audit after batch 1682; confirm zero forward-queue waves; fix flaky runtime contract test.

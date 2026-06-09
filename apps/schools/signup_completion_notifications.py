@@ -134,13 +134,19 @@ def build_signup_completed_payload(
         build_provision_setup_password_url,
         build_public_login_url,
         build_tenant_authentication_url,
+        build_tenant_workspace_login_url,
+        tenant_subdomain_host_exists,
     )
 
     admin_user = admin_user or _resolve_admin_user(school, contact_email)
     tenant_portal_url = build_tenant_authentication_url(
         school, "/authentication/login/"
     )
-    portal_url = build_public_login_url()
+    portal_url = (
+        build_tenant_workspace_login_url(school)
+        if tenant_subdomain_host_exists(school)
+        else build_public_login_url()
+    )
     activation_url = ""
     account_ready = bool(
         admin_user

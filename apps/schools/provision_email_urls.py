@@ -39,9 +39,26 @@ def build_public_login_url() -> str:
     return build_public_site_url("/authentication/login/")
 
 
+def tenant_subdomain_host_exists(school) -> bool:
+    """True when the school has a slug/subdomain that maps to a tenant host."""
+    if not school:
+        return False
+    token = (
+        (getattr(school, "subdomain", None) or getattr(school, "slug", None) or "")
+        .strip()
+        .lower()
+    )
+    return bool(token)
+
+
 def school_subdomain_redirect_is_safe(school) -> bool:
-    """True when the tenant subdomain is expected to resolve in middleware."""
+    """True when the tenant subdomain is live (``is_active``) for backend/dashboard."""
     return bool(school and getattr(school, "is_active", False))
+
+
+def build_tenant_workspace_login_url(school, path: str = "/authentication/login/") -> str:
+    """Canonical tenant-host sign-in URL (active or pending provisioning)."""
+    return build_tenant_authentication_url(school, path)
 
 
 def build_tenant_authentication_url(school, path: str) -> str:

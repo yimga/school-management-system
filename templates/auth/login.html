@@ -39,6 +39,9 @@
               <strong>RunMyCampus</strong>
               <small>{% trans "Platform & school management" %}</small>
               <small class="d-block mt-1 opacity-75">{% trans "You're signing in to manage schools and tenants" %}</small>
+            {% elif public_tenant_login_hub %}
+              <strong>{% trans "Sign in to your school" %}</strong>
+              <small>{% trans "Choose your campus below — staff, families, and admins sign in on your school's own address." %}</small>
             {% else %}
               <strong>{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% elif SITE.login_hero_heading %}{{ SITE.login_hero_heading }}{% else %}{{ SITE.site_name|default:"School Management System" }}{% endif %}</strong>
               <small>{% if PUBLIC_BRAND_MODE %}{% trans "Platform & school management" %}{% elif SITE.login_hero_subtext %}{{ SITE.login_hero_subtext }}{% else %}{{ SITE.tagline|default:"Sign in for staff, families, and admins" }}{% endif %}</small>
@@ -83,6 +86,28 @@
                   <input type="hidden" name="next" value="{{ request.GET.next }}">
                 {% elif request.POST.next %}
                   <input type="hidden" name="next" value="{{ request.POST.next }}">
+                {% endif %}
+                {% if public_tenant_login_hub and login_workspace_schools %}
+                <div class="mb-3">
+                  <label class="form-label" for="login-workspace">{% trans "Your school" %}</label>
+                  <select class="form-select" name="workspace_slug" id="login-workspace">
+                    <option value="">{% trans "Select your school…" %}</option>
+                    {% for row in login_workspace_schools %}
+                    <option value="{{ row.slug }}" {% if request.POST.workspace_slug == row.slug %}selected{% endif %}>{{ row.name }}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit" name="go_workspace" value="1" class="btn btn-outline-primary w-100 mt-2">
+                    {% trans "Continue to your campus sign-in" %}
+                  </button>
+                  <p class="small text-muted mb-0 mt-2">
+                    {% trans "Or use the form below after you have opened your campus page." %}
+                    {% url 'global_login_discovery' as discovery_url %}
+                    {% url 'find_school' as find_school_url %}
+                    {% if discovery_url %}<a href="{{ discovery_url }}">{% trans "Find by email" %}</a>{% endif %}
+                    {% if discovery_url and find_school_url %} · {% endif %}
+                    {% if find_school_url %}<a href="{{ find_school_url }}">{% trans "Search campuses" %}</a>{% endif %}
+                  </p>
+                </div>
                 {% endif %}
                 {% comment %} Bot honeypot: a real field hidden from people; automated submitters fill it. {% endcomment %}
                 <div class="visually-hidden" aria-hidden="true">
@@ -173,9 +198,11 @@
                 <br>
                 {% trans "New parents can claim an invite" %} <a href="{% url 'accounts:claim_invite' %}">{% trans "here" %}</a>.
               </p>
+              {% if is_manager_host and public_site_url %}
               <p class="small text-muted mt-3 mb-0 text-center">
-                <a href="{{ public_site_url|default:'https://runmycampus.com' }}" target="_blank" rel="noopener noreferrer" class="text-muted">{% blocktrans with brand=PUBLIC_BRAND_NAME|default:'RunMyCampus' %}Powered by {{ brand }}{% endblocktrans %}</a>
+                <a href="{{ public_site_url }}" class="text-muted">{% trans "School accounts sign in at runmycampus.com" %}</a>
               </p>
+              {% endif %}
             </div>
           </div>
         </div>

@@ -13,7 +13,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sessions.middleware import SessionMiddleware
 from unittest import mock
 
-from django.test import RequestFactory, TestCase, override_settings
+from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -41,7 +41,12 @@ def _make_owner(username="jane", email="jane@cedar.test", activated=False):
     return user, school
 
 
-@override_settings(RATELIMIT_ENABLE=False)
+@override_settings(
+    RATELIMIT_ENABLE=False,
+    ALLOWED_HOSTS=["*", "testserver"],
+    MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    SECURE_SSL_REDIRECT=False,
+)
 class OwnerOnboardingFlowTests(TestCase):
     def setUp(self):
         self.user, self.school = _make_owner()
@@ -53,7 +58,7 @@ class OwnerOnboardingFlowTests(TestCase):
             "accounts:owner_onboarding_account", kwargs={"uidb64": uid, "token": token}
         )
 
-    def _login_past_mfa(self):
+    def _login_past_mfa(self, client=None):
         """Log the owner in AND satisfy the platform's mandatory-MFA gate, so a
         test exercises the wizard's own logic rather than the MFA-setup redirect
         an ADMIN-role user without a device would otherwise hit (see
@@ -61,12 +66,19 @@ class OwnerOnboardingFlowTests(TestCase):
         from django_otp.plugins.otp_totp.models import TOTPDevice
 
         TOTPDevice.objects.create(user=self.user, name="test-totp", confirmed=True)
-        self.client.force_login(
+        target = client or self.client
+        target.force_login(
             self.user, backend="django.contrib.auth.backends.ModelBackend"
         )
-        session = self.client.session
+        session = target.session
         session["mfa_verified"] = True
         session.save()
+
+    def _tenant_client(self):
+        host = f"{self.school.subdomain}.runmycampus.com"
+        client = Client(HTTP_HOST=host)
+        self._login_past_mfa(client)
+        return client
 
     def test_account_step_sets_password_name_and_advances(self):
         # PasswordResetConfirmView swaps the token into the session then redirects
@@ -141,7 +153,10 @@ class OwnerOnboardingFlowTests(TestCase):
     def test_done_marks_completed(self):
         self._login_past_mfa()
         r = self.client.get(reverse("accounts:owner_onboarding_done"))
-        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.status_code, 302)
+        self.assertIn(self.school.subdomain, r.url)
+        r2 = self._tenant_client().get(reverse("accounts:owner_onboarding_done"))
+        self.assertEqual(r2.status_code, 200)
         self.school.refresh_from_db()
         self.assertTrue(self.school.settings["owner_onboarding"]["completed"])
 
@@ -151,7 +166,7 @@ class OwnerOnboardingFlowTests(TestCase):
             "apps.schools.tasks.complete_provisioning_for_school",
             return_value={"queued": True, "sync_completed": True, "is_active": False},
         ) as complete:
-            r = self.client.get(reverse("accounts:owner_onboarding_done"))
+            r = self._tenant_client().get(reverse("accounts:owner_onboarding_done"))
         self.assertEqual(r.status_code, 200)
         complete.assert_called_once_with(
             str(self.school.pk), contact_email=self.user.email
@@ -234,7 +249,12 @@ class OwnerOnboardingFlowTests(TestCase):
         )  # completed → dashboard, not deeper into the wizard
 
 
-@override_settings(ROOT_URLCONF="config.public_urls")
+@override_settings(
+    ROOT_URLCONF="config.public_urls",
+    ALLOWED_HOSTS=["*", "testserver"],
+    MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    SECURE_SSL_REDIRECT=False,
+)
 class OwnerOnboardingPublicHostRenderTests(TestCase):
     """The wizard now runs on the PUBLIC host (the verify link's host), not the
     tenant host it was first designed for. Every prior flow test resolves
@@ -266,12 +286,17 @@ class OwnerOnboardingPublicHostRenderTests(TestCase):
         self.assertEqual(r.status_code, 200)
 
     def test_done_launchpad_renders_on_public_host(self):
-        # done.html reverses accounts:tenant_identity_invite / school_studio /
-        # accounts:redirect — the guarded ``{% url as %}`` pattern must keep this
-        # from 500-ing even when a target is tenant-only and absent on public.
-        r = self.client.get(reverse("accounts:owner_onboarding_done"))
-        self.assertEqual(r.status_code, 200)
-        self.assertIn(b"dashboard", r.content.lower())
+        # Public host redirects to the tenant workspace; launchpad renders there.
+        r = self.client.get(reverse("accounts:owner_onboarding_done"), follow=False)
+        self.assertEqual(r.status_code, 302)
+        self.assertIn(self.school.subdomain.encode(), r.url.encode())
+        tenant_client = Client(HTTP_HOST=f"{self.school.subdomain}.runmycampus.com")
+        tenant_client.force_login(
+            self.user, backend="django.contrib.auth.backends.ModelBackend"
+        )
+        r2 = tenant_client.get(reverse("accounts:owner_onboarding_done"))
+        self.assertEqual(r2.status_code, 200)
+        self.assertIn(b"dashboard", r2.content.lower())
 
     def test_account_step_bare_reverses_resolve_on_public_host(self):
         # account.html's only non-guarded reverse is the accounts:login fallback;

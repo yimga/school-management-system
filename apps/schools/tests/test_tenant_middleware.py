@@ -10,7 +10,9 @@ from apps.schools.middleware import (
     LegacyBaseDomainRedirectMiddleware,
     ReservedPublicHostAccessMiddleware,
     TenantMiddleware,
+    TenantSchoolNotFoundMiddleware,
     UrlConfSwitcherMiddleware,
+    _bind_pending_school_for_tenant_auth,
 )
 from apps.schools.models import School, SchoolDomain
 
@@ -310,3 +312,43 @@ class LegacyAndReservedHostMiddlewareTests(TestCase):
             )
             response = self.reserved.process_request(request)
         self.assertIsNone(response)
+
+
+@override_settings(
+    ALLOWED_HOSTS=["*", "runmycampus.com", "pending-tenant.runmycampus.com"],
+    MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    SECURE_SSL_REDIRECT=False,
+)
+class PendingTenantAuthBypassTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.school = School.objects.create(
+            name="Pending Tenant",
+            slug="pending-tenant",
+            subdomain="pending-tenant",
+            is_active=False,
+        )
+        self.not_found_mw = TenantSchoolNotFoundMiddleware(lambda request: None)
+
+    def _request(self, path: str, host: str):
+        request = self.factory.get(path, HTTP_HOST=host)
+        SessionMiddleware(lambda r: None).process_request(request)
+        request.session.save()
+        return request
+
+    def test_bind_pending_school_on_login_path(self):
+        request = self._request(
+            "/authentication/login/", "pending-tenant.runmycampus.com"
+        )
+        bound = _bind_pending_school_for_tenant_auth(request, "pending-tenant")
+        self.assertTrue(bound)
+        self.assertEqual(request.school.id, self.school.id)
+        self.assertTrue(getattr(request, "tenant_provisioning_pending", False))
+
+    def test_not_found_middleware_allows_pending_login(self):
+        request = self._request(
+            "/authentication/login/", "pending-tenant.runmycampus.com"
+        )
+        response = self.not_found_mw.process_request(request)
+        self.assertIsNone(response)
+        self.assertEqual(request.school.id, self.school.id)

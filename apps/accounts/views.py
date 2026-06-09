@@ -1065,6 +1065,13 @@ def redirect_view(request):
             from apps.schools.control_plane import user_has_control_plane_access
 
             if tenant_staff_should_use_public_host(user):
+                from apps.schools.tenant_login_redirect import (
+                    resolve_public_post_login_handoff,
+                )
+
+                handoff = resolve_public_post_login_handoff(request, user)
+                if handoff is not None:
+                    return handoff
                 return redirect(build_public_post_login_url())
             if user_has_control_plane_access(user):
                 return redirect("super:dashboard")
@@ -1112,31 +1119,17 @@ def redirect_view(request):
     if not getattr(request, "school", None):
         try:
             # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-            from apps.schools.models import SchoolMembership
-            from apps.schools.tenant_url import is_base_domain, build_tenant_backend_url
+            from apps.schools.tenant_url import is_base_domain
 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
 
             if is_base_domain(request):
-                from apps.schools.provision_email_urls import (
-                    school_subdomain_redirect_is_safe,
-                )
                 from apps.schools.tenant_login_redirect import (
-                    redirect_to_school_picker,
-                    resolve_post_login_tenant_membership,
+                    resolve_public_post_login_handoff,
                 )
 
-                m = resolve_post_login_tenant_membership(user, request)
-                # tenant-isolation-allow: login-flow-multi-tenant-picker-routing-user-scoped
-                if m is None and SchoolMembership.objects.filter(user=user).count() > 1:
-                    return redirect_to_school_picker(request)
-                if m and m.school:
-                    if school_subdomain_redirect_is_safe(m.school):
-                        target = build_tenant_backend_url(request, m.school)
-                        return redirect(target)
-                    try:
-                        return _redirect_with_params("accounts:owner_onboarding_done")
-                    except NoReverseMatch:
-                        return redirect("/authentication/onboarding/done/")
+                handoff = resolve_public_post_login_handoff(request, user)
+                if handoff is not None:
+                    return handoff
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
             pass
 
@@ -3230,6 +3223,46 @@ def login_view(request):
             return redirect(build_public_login_redirect_url(request))
 
     if request.method == "POST":
+        workspace_slug = (request.POST.get("workspace_slug") or "").strip().lower()
+        if (
+            workspace_slug
+            and not is_manager_host
+            and (request.POST.get("go_workspace") or "").strip() == "1"
+        ):
+            try:
+                from urllib.parse import urlencode
+
+                from apps.schools.pending_tenant_discovery import (
+                    lookup_school_by_slug_or_subdomain,
+                )
+                from apps.schools.provision_email_urls import (
+                    build_tenant_authentication_url,
+                    tenant_subdomain_host_exists,
+                )
+
+                workspace_school = lookup_school_by_slug_or_subdomain(workspace_slug)
+                if workspace_school and tenant_subdomain_host_exists(workspace_school):
+                    login_path = "/authentication/login/"
+                    next_url = (
+                        request.POST.get("next") or request.GET.get("next") or ""
+                    ).strip()
+                    if next_url:
+                        from django.utils.http import url_has_allowed_host_and_scheme
+
+                        if url_has_allowed_host_and_scheme(
+                            next_url,
+                            allowed_hosts={
+                                request.get_host(),
+                                workspace_school.slug,
+                            },
+                        ):
+                            login_path = f"{login_path}?{urlencode({'next': next_url})}"
+                    return redirect(
+                        build_tenant_authentication_url(workspace_school, login_path)
+                    )
+            except (ImportError, AttributeError, TypeError, ValueError):
+                pass
+
         # Store role intent for post-login redirect (Student / Staff / Parent).
         role_param = (
             (request.POST.get("role") or request.GET.get("role") or "").strip().lower()
@@ -3510,23 +3543,22 @@ def login_view(request):
                             school_subdomain_redirect_is_safe,
                         )
                         from apps.schools.tenant_login_redirect import (
-                            redirect_to_school_picker,
                             resolve_post_login_tenant_membership,
+                            resolve_public_post_login_handoff,
                         )
 
+                        if not next_url:
+                            handoff = resolve_public_post_login_handoff(request, user)
+                            if handoff is not None:
+                                return handoff
                         m = resolve_post_login_tenant_membership(user, request)
-                        # tenant-isolation-allow: login-flow-multi-tenant-picker-routing-user-scoped
-                        if (
-                            m is None
-                            and SchoolMembership.objects.filter(user=user).count() > 1
-                        ):
-                            return redirect_to_school_picker(request)
                         if m and m.school:
                             if not school_subdomain_redirect_is_safe(m.school):
-                                try:
-                                    return redirect(reverse("accounts:owner_onboarding_done"))
-                                except NoReverseMatch:
-                                    return redirect("/authentication/onboarding/done/")
+                                from apps.schools.tenant_login_redirect import (
+                                    redirect_to_tenant_workspace,
+                                )
+
+                                return redirect_to_tenant_workspace(request, m.school)
                             if next_url:
                                 from django.utils.http import (
                                     url_has_allowed_host_and_scheme,
@@ -3611,6 +3643,18 @@ def login_view(request):
     else:
         context["public_site_url"] = None
         context["password_reset_public_url"] = None
+    context["public_tenant_login_hub"] = not is_manager_host
+    if context["public_tenant_login_hub"]:
+        try:
+            from apps.schools.pending_tenant_discovery import (
+                list_active_schools_for_public_login,
+            )
+
+            context["login_workspace_schools"] = list_active_schools_for_public_login()
+        except (ImportError, AttributeError, DatabaseError, TypeError, ValueError):
+            context["login_workspace_schools"] = []
+    else:
+        context["login_workspace_schools"] = []
     template = (
         "auth/manager_login.html"
         if getattr(request, "public_host_kind", None) == "manager"
@@ -3652,18 +3696,11 @@ def school_picker(request):
         for m in memberships:
             if str(m.school_id) == school_id:
                 request.session["school_id"] = school_id
-                next_url = (
-                    request.POST.get("next")
-                    or request.GET.get("next")
-                    or reverse("accounts:redirect")
+                from apps.schools.tenant_login_redirect import (
+                    redirect_to_tenant_workspace,
                 )
-                from django.utils.http import url_has_allowed_host_and_scheme
 
-                if url_has_allowed_host_and_scheme(
-                    next_url, allowed_hosts={request.get_host()}
-                ):
-                    return redirect(next_url)
-                return redirect("accounts:redirect")
+                return redirect_to_tenant_workspace(request, m.school)
         messages.warning(request, _("Invalid school."))
     context = {"memberships": memberships}
     if not memberships:

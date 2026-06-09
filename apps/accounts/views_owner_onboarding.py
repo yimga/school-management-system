@@ -143,14 +143,65 @@ def _run_owner_provisioning(
         return False
 
 
+def _last_provisioning_error(school) -> str:
+    if not school:
+        return ""
+    try:
+        from apps.schools.models import SchoolProvisioningEvent
+
+        event = (
+            SchoolProvisioningEvent.objects.filter(
+                school=school, event_type="FAILED"
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        if not event:
+            return ""
+        payload = getattr(event, "payload", None) or {}
+        if isinstance(payload, dict):
+            err = (payload.get("error") or "").strip()
+            if err:
+                return err[:500]
+        return (getattr(event, "message", "") or "").strip()[:500]
+    except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+        return ""
+
+
+def _recent_provision_failure(school, *, within_seconds: int = 120) -> bool:
+    if not school:
+        return False
+    try:
+        from django.utils import timezone
+
+        from apps.schools.models import SchoolProvisioningEvent
+
+        event = (
+            SchoolProvisioningEvent.objects.filter(
+                school=school, event_type="FAILED"
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        if not event or not getattr(event, "created_at", None):
+            return False
+        delta = timezone.now() - event.created_at
+        return delta.total_seconds() < within_seconds
+    except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+        return False
+
+
 def _kick_provisioning_on_done_page(request, school, user) -> None:
     """First visit and periodic refresh: queue + sync when the portal is still inactive."""
     if not school or getattr(school, "is_active", False):
         return
+    if _recent_provision_failure(school):
+        return
     session_key = f"owner_provision_kick:{school.pk}"
     now_ts = time.time()
+    cooldown = 120 if _last_provisioning_error(school) else 60  # magic-number-allow: provision-queue-cooldown-seconds
     last_ts = request.session.get(session_key)
-    if last_ts and (now_ts - float(last_ts)) < 60:  # magic-number-allow: provision-queue-cooldown-seconds
+    if last_ts and (now_ts - float(last_ts)) < cooldown:
         return
     request.session[session_key] = now_ts
     _run_owner_provisioning(request, school, user, cooldown_seconds=0)
@@ -268,6 +319,22 @@ def owner_onboarding_done(request):
     school = _owner_school(request.user)
     if school is None:
         return _dashboard_redirect()
+    if request.method == "GET":
+        try:
+            from apps.schools.provision_email_urls import (
+                build_tenant_authentication_url,
+                tenant_subdomain_host_exists,
+            )
+            from apps.schools.tenant_url import is_base_domain
+
+            if tenant_subdomain_host_exists(school) and is_base_domain(request):
+                request.school = school
+                return redirect(
+                    build_tenant_authentication_url(school, request.get_full_path())
+                )
+        except (ImportError, AttributeError, TypeError, ValueError):
+            pass
+    request.school = school
     # Idempotent: stamp "completed" once, but keep the launchpad reachable on a
     # refresh (the page is useful — invite team / open Studio / dashboard).
     if not onboarding_state(school).get("completed"):
@@ -279,8 +346,15 @@ def owner_onboarding_done(request):
         except ImportError:
             pass
 
+    try:
+        from apps.schools.provisioning_progress import resolve_portal_ready
+
+        portal_ready = resolve_portal_ready(school)
+    except ImportError:
+        portal_ready = bool(getattr(school, "is_active", False))
+
     if request.method == "POST" and (request.POST.get("recheck_provision") or "").strip() == "1":
-        if getattr(school, "is_active", False):
+        if portal_ready:
             messages.info(request, _l("Your portal is already live."))
         elif _run_owner_provisioning(
             request, school, request.user, cooldown_seconds=30
@@ -312,11 +386,17 @@ def owner_onboarding_done(request):
             )
         return redirect("accounts:owner_onboarding_done")
 
-    if not getattr(school, "is_active", False):
+    if not portal_ready:
         _kick_provisioning_on_done_page(request, school, request.user)
 
     school.refresh_from_db(fields=["is_active", "name", "settings", "updated_at"])
-    if getattr(school, "is_active", False):
+    try:
+        from apps.schools.provisioning_progress import resolve_portal_ready as _portal_ready
+
+        portal_ready = _portal_ready(school)
+    except ImportError:
+        portal_ready = bool(getattr(school, "is_active", False))
+    if portal_ready:
         try:
             from apps.schools.signup_completion_notifications import (
                 notify_tenant_signup_completed,
@@ -336,29 +416,36 @@ def owner_onboarding_done(request):
             "school": school,
             "step": 3,
             "total_steps": _TOTAL_STEPS,
-            "school_is_live": bool(getattr(school, "is_active", False)),
+            "school_is_live": portal_ready,
+            "portal_ready": portal_ready,
             "dashboard_href": _post_onboarding_dashboard_href(request, school),
             "owner_email": (getattr(request.user, "email", "") or "").strip(),
             "provisioning_events": _provisioning_timeline(school),
+            "last_provisioning_error": _last_provisioning_error(school),
             "provision_status_api_url": reverse(
-                "accounts:owner_onboarding_provision_status"
+                "accounts:owner_onboarding_provision_progress"
+            ),
+            "provision_progress_api_url": reverse(
+                "accounts:owner_onboarding_provision_progress"
+            ),
+            "provision_apply_fix_url": reverse(
+                "accounts:owner_onboarding_provision_apply_fix"
             ),
         },
     )
 
 
-@login_required
-@require_GET
-def owner_onboarding_provision_status(request):
-    """JSON poll for the owner launchpad while ``is_active`` is still false."""
-    school = _owner_school(request.user)
-    if school is None:
-        return JsonResponse({"ok": False, "error": "no_school"}, status=403)
+def _owner_provisioning_progress_payload(request, school) -> dict:
+    """Canonical provisioning JSON — ``resolve_provisioning_progress`` SOT."""
+    from apps.schools.provisioning_progress import (
+        resolve_portal_ready,
+        resolve_provisioning_progress,
+    )
 
-    if not getattr(school, "is_active", False):
+    if not resolve_portal_ready(school):
         _kick_provisioning_on_done_page(request, school, request.user)
         school.refresh_from_db(fields=["is_active", "name", "settings", "updated_at"])
-        if getattr(school, "is_active", False):
+        if resolve_portal_ready(school):
             try:
                 from apps.schools.signup_completion_notifications import (
                     notify_tenant_signup_completed,
@@ -372,14 +459,24 @@ def owner_onboarding_provision_status(request):
             except ImportError:
                 pass
 
+    payload = resolve_provisioning_progress(
+        school,
+        request=request,
+        include_dashboard_href=True,
+    )
     try:
         from apps.schools.pending_tenant_discovery import pending_school_state
 
-        pending_state = pending_school_state(school) or (
-            "live" if getattr(school, "is_active", False) else "provisioning"
+        payload["pending_state"] = pending_school_state(school) or (
+            "live" if payload.get("portal_ready") else "provisioning"
         )
     except ImportError:
-        pending_state = "live" if getattr(school, "is_active", False) else "provisioning"
+        payload["pending_state"] = (
+            "live" if payload.get("portal_ready") else "provisioning"
+        )
+    payload["school_name"] = (
+        getattr(school, "name", "") or getattr(school, "slug", "") or ""
+    ).strip()
 
     events = []
     for event in _provisioning_timeline(school, limit=6):
@@ -391,15 +488,59 @@ def owner_onboarding_provision_status(request):
                 "created_at": created.isoformat() if created is not None else "",
             }
         )
+    payload["events"] = events
+    return payload
 
-    is_live = bool(getattr(school, "is_active", False))
-    payload = {
-        "ok": True,
-        "is_active": is_live,
-        "pending_state": pending_state,
-        "school_name": (getattr(school, "name", "") or getattr(school, "slug", "") or "").strip(),
-        "events": events,
-    }
-    if is_live:
-        payload["dashboard_href"] = _post_onboarding_dashboard_href(request, school)
-    return JsonResponse(payload)
+
+@login_required
+@require_GET
+def owner_onboarding_provision_progress(request):
+    """Canonical customer provisioning progress API (bar + steps + remediation)."""
+    school = _owner_school(request.user)
+    if school is None:
+        return JsonResponse({"ok": False, "error": "no_school"}, status=403)
+    return JsonResponse(_owner_provisioning_progress_payload(request, school))
+
+
+@login_required
+@require_GET
+def owner_onboarding_provision_status(request):
+    """Legacy poll URL — identical JSON to ``owner_onboarding_provision_progress``."""
+    school = _owner_school(request.user)
+    if school is None:
+        return JsonResponse({"ok": False, "error": "no_school"}, status=403)
+    return JsonResponse(_owner_provisioning_progress_payload(request, school))
+
+
+@login_required
+@require_http_methods(["POST"])
+def owner_onboarding_provision_apply_fix(request):
+    """Owner-safe auto-fix for provisioning failures (narrow allowlist)."""
+    school = _owner_school(request.user)
+    if school is None:
+        return JsonResponse({"ok": False, "error": "no_school"}, status=403)
+
+    from apps.schools.provisioning_progress import (
+        _latest_workflow_run,
+        _suggested_remediation_payload,
+    )
+
+    run = _latest_workflow_run(school)
+    remediation = _suggested_remediation_payload(run)
+    kind = (
+        request.POST.get("auto_fix_kind") or remediation.get("auto_fix_kind") or ""
+    ).strip()
+    if not remediation.get("owner_may_apply") or not kind:
+        return JsonResponse({"ok": False, "error": "fix_not_allowed"}, status=403)
+    if run is None:
+        return JsonResponse({"ok": False, "error": "no_run"}, status=404)
+
+    from apps.platform_runtime.workflow_fix_handlers import apply_auto_fix_kind
+
+    result = apply_auto_fix_kind(run=run, kind=kind)
+    if not result.get("ok"):
+        return JsonResponse(
+            {"ok": False, "error": result.get("reason", "failed")},
+            status=400,
+        )
+    return JsonResponse({"ok": True, "applied": kind, "result": result})

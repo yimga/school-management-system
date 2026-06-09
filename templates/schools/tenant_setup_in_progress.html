@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "schools/tenant_minimal_shell.html" %}
 {% load i18n %}
 
 {% block title %}{% trans "Campus setup in progress" %}{% endblock %}
@@ -6,8 +6,6 @@
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
-
-{% include "components/next_action_strip.html" %}
 
 <section class="rmc-card mx-auto my-5" style="max-width: 42rem;">
   <header class="text-center mb-4">
@@ -29,7 +27,7 @@
     {% if pending_recovery_links.onboarding_done_url %}
     <a class="btn btn-outline-primary" href="{{ pending_recovery_links.onboarding_done_url }}">{% trans "Check setup status" %}</a>
     {% endif %}
-    <a class="btn btn-outline-secondary" href="{{ pending_recovery_links.login_url }}">{% trans "Sign in on RunMyCampus" %}</a>
+    <a class="btn btn-outline-secondary" href="{{ pending_recovery_links.login_url }}">{% trans "Sign in to your campus" %}</a>
     {% if pending_state == 'awaiting_verification' and pending_recovery_links.resend_verification_url %}
     <a class="btn btn-link" href="{{ pending_recovery_links.resend_verification_url }}">{% trans "Resend verification email" %}</a>
     {% endif %}

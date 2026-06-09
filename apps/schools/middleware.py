@@ -61,6 +61,8 @@ PUBLIC_TENANT_AUTH_PREFIXES = (
     "/authentication/password_reset/",
     "/authentication/reset/",
     "/authentication/onboarding/",
+    "/authentication/redirect/",
+    "/authentication/school-picker/",
     "/verify-signup/",
 )
 MANAGER_AUTH_ALLOWED_PREFIXES = (
@@ -431,6 +433,55 @@ def _redirect_to_manager_host(request, path: str | None = None):
     return HttpResponseRedirect(f"{scheme}://manager.{base_domain}{target_path}")
 
 
+PENDING_TENANT_AUTH_PREFIXES = (
+    "/authentication/login",
+    "/authentication/logout",
+    "/authentication/password_reset",
+    "/authentication/reset/",
+    "/authentication/onboarding/",
+    "/authentication/redirect/",
+    "/authentication/mfa/",
+    "/authentication/backend/",
+)
+
+
+def _path_allows_pending_tenant_auth(path: str) -> bool:
+    normalized = (path or "").strip().lower()
+    if not normalized:
+        return False
+    return any(
+        normalized == prefix.rstrip("/")
+        or normalized.startswith(prefix if prefix.endswith("/") else f"{prefix}/")
+        for prefix in PENDING_TENANT_AUTH_PREFIXES
+    )
+
+
+def _bind_pending_school_for_tenant_auth(request, subdomain: str | None):
+    """
+    Let owners sign in on ``{slug}.runmycampus.com`` while provisioning is pending.
+
+    Returns True when ``request.school`` was bound and the request should continue.
+    """
+    token = (subdomain or "").strip()
+    if not token or not _path_allows_pending_tenant_auth(request.path or ""):
+        return False
+    try:
+        from apps.schools.pending_tenant_discovery import (
+            lookup_school_by_slug_or_subdomain,
+            pending_school_state,
+        )
+    except ImportError:
+        return False
+    school = lookup_school_by_slug_or_subdomain(token)
+    if school is None or not pending_school_state(school):
+        return False
+    request.school = school
+    request.tenant_provisioning_pending = True
+    if getattr(request, "session", None) is not None:
+        request.session["school_id"] = str(school.id)
+    return True
+
+
 def _redirect_unknown_school_slug(request, slug: str | None = None):
     base_domain = _get_base_domain()
     if not base_domain:
@@ -460,6 +511,10 @@ def _response_for_unknown_tenant_host(request, slug: str | None = None):
             if school is not None and pending_school_state(school):
                 from django.shortcuts import render
 
+                request.school = school
+                request.tenant_provisioning_pending = True
+                if getattr(request, "session", None) is not None:
+                    request.session["school_id"] = str(school.id)
                 ctx = pending_school_public_context(school)
                 ctx["school"] = school
                 return render(
@@ -830,6 +885,8 @@ class TenantSchoolNotFoundMiddleware(MiddlewareMixin):
         if _is_base_domain(host, base_domain):
             return None
         subdomain = _extract_subdomain(host, base_domain or None)
+        if _bind_pending_school_for_tenant_auth(request, subdomain):
+            return None
         return _response_for_unknown_tenant_host(request, subdomain)
 
 
@@ -954,10 +1011,13 @@ class TenantMiddleware(MiddlewareMixin):
             logger.warning("Tenant resolution failed: %s", e, exc_info=True)
             school = None
 
-        # Unknown tenant host (subdomain/custom host not in DB): redirect to branded public 404 page.
+        # Unknown tenant host (subdomain/custom host not in DB): setup page or auth bypass.
         if school is None and not _is_base_domain(host, base_domain):
             subdomain = _extract_subdomain(host, base_domain or None)
-            return _response_for_unknown_tenant_host(request, subdomain)
+            if _bind_pending_school_for_tenant_auth(request, subdomain):
+                school = getattr(request, "school", None)
+            else:
+                return _response_for_unknown_tenant_host(request, subdomain)
 
         request.school = school
         # Tenant backend admin dashboard: on tenant subdomain /admin/ -> redirect to tenant Backend URL

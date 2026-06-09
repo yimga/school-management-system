@@ -70,3 +70,18 @@ class PendingTenantDiscoveryTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Campus setup in progress")
+
+    def test_pending_recovery_links_use_tenant_workspace_login(self):
+        from apps.schools.pending_tenant_discovery import build_pending_recovery_links
+
+        links = build_pending_recovery_links(self.school)
+        self.assertIn(
+            "newssbell-school-of-arts.runmycampus.com/authentication/login",
+            links["login_url"],
+        )
+
+    def test_inactive_subdomain_login_is_reachable(self):
+        client = Client(HTTP_HOST="newssbell-school-of-arts.runmycampus.com")
+        response = client.get("/authentication/login/", follow=False)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(response.status_code, 302)

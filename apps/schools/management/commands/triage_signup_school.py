@@ -69,8 +69,15 @@ class Command(BaseCommand):
         )
         events = list(
             SchoolProvisioningEvent.objects.filter(school=school)
-            .order_by("-created_at")[:5]
-            .values("event_type", "status", "message", "created_at")
+            .order_by("-created_at")[:8]
+            .values("event_type", "status", "message", "payload", "created_at")
+        )
+        failed = (
+            SchoolProvisioningEvent.objects.filter(
+                school=school, event_type="FAILED"
+            )
+            .order_by("-created_at")
+            .first()
         )
 
         self.stdout.write(self.style.SUCCESS(f"School: {school.name} ({school.slug})"))
@@ -92,10 +99,40 @@ class Command(BaseCommand):
         if events:
             self.stdout.write("  recent_provisioning_events:")
             for row in events:
+                err = ""
+                payload = row.get("payload") or {}
+                if isinstance(payload, dict) and payload.get("error"):
+                    err = f" error={payload.get('error')!r}"
                 self.stdout.write(
                     f"    - {row['created_at']} {row['event_type']} "
-                    f"({row['status']}) {row['message'] or ''}"
+                    f"({row['status']}) {row['message'] or ''}{err}"
                 )
+        if failed is not None:
+            payload = getattr(failed, "payload", None) or {}
+            if isinstance(payload, dict) and payload.get("error"):
+                self.stdout.write(
+                    self.style.ERROR(f"  last_failure: {payload.get('error')}")
+                )
+
+        try:
+            from django.conf import settings
+            from django.db import connection
+
+            self.stdout.write(
+                f"  runtime: USE_DJANGO_TENANTS={getattr(settings, 'USE_DJANGO_TENANTS', False)} "
+                f"db={connection.vendor}"
+            )
+            if connection.vendor != "postgresql" and getattr(
+                settings, "USE_DJANGO_TENANTS", False
+            ):
+                self.stdout.write(
+                    self.style.WARNING(
+                        "  django-tenants requires PostgreSQL on Render — "
+                        "SQLite dev skips Client/schema creation."
+                    )
+                )
+        except (ImportError, AttributeError, TypeError, ValueError):
+            pass
 
         if not school.is_active:
             if verif and verif.verified_at:

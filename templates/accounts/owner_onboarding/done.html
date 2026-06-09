@@ -1,29 +1,13 @@
-{% extends "base.html" %}
+{% extends "schools/tenant_minimal_shell.html" %}
 {% load i18n static %}
 
 {% block title %}{% trans "You’re all set" %}{% endblock %}
-
-{% block extrahead %}
-{{ block.super }}
-{% if not school_is_live %}
-<script src="{% static 'js/rmc-tenant-provisioning-status.js' %}" defer></script>
-{% endif %}
-{% endblock %}
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
-
-<section
-  class="auth-shell"
-  aria-labelledby="ob-title"
-  {% if not school_is_live %}
-  data-rmc-provisioning-poll="1"
-  data-rmc-provisioning-api="{{ provision_status_api_url }}"
-  {% endif %}
->
+<section class="auth-shell" aria-labelledby="ob-title">
   <div data-rmc-scroll-policy="paginate" class="auth-card text-center">
     <div class="auth-badge" aria-hidden="true"><i class="bi bi-check2-circle"></i></div>
     <h1 id="ob-title">
@@ -49,6 +33,18 @@
     </div>
     {% endif %}
 
+    {% if not school_is_live %}
+    <div class="text-start mt-3">
+      {% include "components/rmc_tenant_provision_progress.html" with provision_progress_api_url=provision_progress_api_url provision_apply_fix_url=provision_apply_fix_url provision_dashboard_href=dashboard_href %}
+    </div>
+    {% if last_provisioning_error %}
+    <div class="alert alert-warning text-start small mt-3 mb-0" role="status">
+      <strong>{% trans "Latest issue" %}</strong>
+      <div class="mt-1">{{ last_provisioning_error }}</div>
+    </div>
+    {% endif %}
+    {% endif %}
+
     <div class="d-grid gap-2 mt-3 text-start">
       {% url 'accounts:tenant_identity_invite' as invite_url %}
       {% if invite_url %}
@@ -65,16 +61,16 @@
     </a>
     {% else %}
     {% if provisioning_events %}
-    <div class="text-start mt-3">
-      <h2 class="h6">{% trans "Setup progress" %}</h2>
-      <ul class="list-unstyled small text-muted mb-0">
+    <details class="text-start mt-3">
+      <summary class="h6">{% trans "Detailed setup log" %}</summary>
+      <ul class="list-unstyled small text-muted mb-0 mt-2">
         {% for event in provisioning_events %}
         <li class="mb-1"><span class="text-body">{{ event.message|default:event.event_type }}</span> · {{ event.created_at|date:"M j, H:i" }}</li>
         {% endfor %}
       </ul>
-    </div>
+    </details>
     {% endif %}
-    <p class="text-muted small mt-3 mb-2">{% trans "We're finishing the last setup steps for your campus. This page updates automatically every few seconds — or use Check again to run setup now." %}</p>
+    <p class="text-muted small mt-3 mb-2">{% trans "This page updates automatically every few seconds — or use Check again to run setup now." %}</p>
     {% if owner_email %}
     <p class="text-muted small mb-2">{% blocktrans with email=owner_email %}When your portal is ready we'll email <strong>{{ email }}</strong>. Sign in later with that email and the password you just created.{% endblocktrans %}</p>
     {% endif %}

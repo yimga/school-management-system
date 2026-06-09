@@ -71,6 +71,7 @@ class SignupProductionReadinessTests(TestCase):
         )
         self.assertTrue(payload["account_ready"])
         self.assertIn("st-jude.runmycampus.com", payload["tenant_portal_url"])
+        self.assertIn("st-jude.runmycampus.com", payload["portal_url"])
         self.assertEqual(payload["activation_url"], "")
 
     def test_active_subdomain_resolves_not_school_not_found(self):
@@ -149,11 +150,11 @@ class SignupProductionReadinessTests(TestCase):
         self.assertEqual(response.status_code, 202)
         self.assertIn(b"Setting up", response.content)
 
-    def test_public_login_skips_inactive_subdomain_redirect(self):
+    def test_public_redirect_hands_off_to_tenant_workspace_when_pending(self):
         self.school.is_active = False
         self.school.save(update_fields=["is_active"])
         client = Client(HTTP_HOST="runmycampus.com")
         client.login(username="owner@stjude.test", password="OwnerPass123!")
         response = client.get("/authentication/redirect/", follow=False)
         self.assertEqual(response.status_code, 302)
-        self.assertNotIn("st-jude.runmycampus.com", response["Location"])
+        self.assertIn("st-jude.runmycampus.com", response["Location"])

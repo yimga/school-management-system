@@ -66,3 +66,86 @@ def redirect_to_school_picker(request, *, next_name: str = "accounts:redirect"):
     except Exception:
         next_path = "/authentication/redirect/"
     return redirect(f"{reverse('accounts:school_picker')}?next={next_path}")
+
+
+def build_public_handoff_to_tenant_workspace(request, school) -> str | None:
+    """
+    After public-host sign-in, send the user to their slug URL.
+
+    Session cookies on ``.runmycampus.com`` carry across hosts so the tenant
+    login page can finish routing (dashboard, onboarding, or picker).
+    """
+    if not school:
+        return None
+    from urllib.parse import urlencode
+
+    from apps.schools.provision_email_urls import (
+        build_tenant_authentication_url,
+        school_subdomain_redirect_is_safe,
+        tenant_subdomain_host_exists,
+    )
+    from apps.schools.tenant_url import build_tenant_backend_url
+
+    if not tenant_subdomain_host_exists(school):
+        return None
+    if school_subdomain_redirect_is_safe(school):
+        return build_tenant_backend_url(request, school)
+    try:
+        next_path = reverse("accounts:owner_onboarding_done")
+    except Exception:
+        next_path = "/authentication/onboarding/done/"
+    login_path = "/authentication/login/"
+    if next_path:
+        login_path = f"{login_path}?{urlencode({'next': next_path})}"
+    return build_tenant_authentication_url(school, login_path)
+
+
+def redirect_to_tenant_workspace(request, school):
+    """HTTP redirect to the school's workspace host."""
+    from django.shortcuts import redirect
+
+    target = build_public_handoff_to_tenant_workspace(request, school)
+    if target:
+        return redirect(target)
+    return redirect_to_school_picker(request)
+
+
+def resolve_public_post_login_handoff(request, user):
+    """
+    After sign-in on the public or manager host, route tenant members to their
+    slug URL (or school picker when multiple memberships exist).
+    """
+    from apps.schools.models import SchoolMembership
+    from apps.schools.provision_email_urls import school_subdomain_redirect_is_safe
+    from apps.schools.tenant_url import build_tenant_backend_url, is_base_domain
+
+    if not getattr(user, "is_authenticated", False):
+        return None
+    try:
+        host_ok = is_base_domain(request) or (
+            getattr(request, "public_host_kind", None) == "manager"
+        )
+        if not host_ok:
+            try:
+                from apps.schools.host_routing import public_host_kind
+
+                host = (request.get_host() or "").split(":")[0].lower()
+                host_ok = public_host_kind(host) == "manager"
+            except (ImportError, AttributeError, TypeError, ValueError):
+                host_ok = False
+        if not host_ok:
+            return None
+    except (AttributeError, ImportError, TypeError, ValueError):
+        return None
+
+    m = resolve_post_login_tenant_membership(user, request)
+    # tenant-isolation-allow: login-flow-multi-tenant-picker-routing-user-scoped
+    if m is None and SchoolMembership.objects.filter(user=user).count() > 1:
+        return redirect_to_school_picker(request)
+    if m and m.school:
+        if school_subdomain_redirect_is_safe(m.school):
+            from django.shortcuts import redirect
+
+            return redirect(build_tenant_backend_url(request, m.school))
+        return redirect_to_tenant_workspace(request, m.school)
+    return None
