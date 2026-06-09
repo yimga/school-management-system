@@ -52,18 +52,22 @@ MANAGER_ONLY_PREFIXES = (
     "/siteconfig/",
     "/backend/",
 )
-# Tenant-facing auth + signup verify must stay on the public marketing host
-# (runmycampus.com). Redirecting these to manager.runmycampus.com sends new
-# school owners to the operator console — a critical RBAC boundary violation.
+# Signup / first-run flows that must stay on the marketing apex (not manager host).
+# Tenant sign-in is slug-host only — ``/authentication/login/`` on runmycampus.com
+# redirects to ``/discover/`` (see ``APEX_TENANT_AUTH_DISCOVERY_PREFIXES``).
 PUBLIC_TENANT_AUTH_PREFIXES = (
-    "/authentication/login/",
-    "/authentication/logout/",
-    "/authentication/password_reset/",
-    "/authentication/reset/",
     "/authentication/onboarding/",
+    "/authentication/mfa/",
     "/authentication/redirect/",
     "/authentication/school-picker/",
     "/verify-signup/",
+)
+# Apex marketing host must never render tenant login forms; hand off to discovery.
+APEX_TENANT_AUTH_DISCOVERY_PREFIXES = (
+    "/authentication/login",
+    "/authentication/logout",
+    "/authentication/password_reset",
+    "/authentication/reset/",
 )
 MANAGER_AUTH_ALLOWED_PREFIXES = (
     "/authentication/login/",
@@ -387,6 +391,19 @@ def _path_allowed_for_reserved_host(
     return False
 
 
+def _apex_auth_path_redirects_to_discovery(path: str) -> bool:
+    normalized = (path or "").strip().lower()
+    if not normalized:
+        return False
+    for prefix in APEX_TENANT_AUTH_DISCOVERY_PREFIXES:
+        if (
+            normalized == prefix.rstrip("/")
+            or normalized.startswith(prefix if prefix.endswith("/") else f"{prefix}/")
+        ):
+            return True
+    return False
+
+
 def _is_manager_only_path(path: str) -> bool:
     path = (path or "").strip()
     for prefix in PUBLIC_TENANT_AUTH_PREFIXES:
@@ -404,22 +421,6 @@ def _is_manager_only_path(path: str) -> bool:
         ):
             return True
     return False
-
-
-def _is_render_probe_login_request(request, *, kind: str | None, path: str) -> bool:
-    """
-    Render health probes can be misconfigured to hit /authentication/login/.
-    Allow those probes to pass through with 200 instead of cross-host 302.
-    """
-    if kind != "base":
-        return False
-    if request.method not in ("GET", "HEAD"):
-        return False
-    normalized_path = (path or "").strip().lower()
-    if normalized_path not in {"/authentication/login", "/authentication/login/"}:
-        return False
-    user_agent = (request.META.get("HTTP_USER_AGENT") or "").strip().lower()
-    return user_agent.startswith("render/")
 
 
 def _redirect_to_manager_host(request, path: str | None = None):
@@ -687,10 +688,12 @@ class ReservedPublicHostAccessMiddleware(MiddlewareMixin):
                 build_tenant_backend_url(request, school, path=inner)
             )
 
-        # Root/base domain is marketing-first: move manager/auth/admin paths to manager host.
+        # Marketing apex is not a tenant sign-in surface — route to campus discovery.
+        if kind == "base" and _apex_auth_path_redirects_to_discovery(path):
+            return redirect("global_login_discovery")
+
+        # Root/base domain is marketing-first: move operator/auth/admin paths to manager host.
         if kind == "base" and _is_manager_only_path(path):
-            if _is_render_probe_login_request(request, kind=kind, path=path):
-                return JsonResponse({"status": "healthy"})
             forwarded = request.get_full_path()
             return _redirect_to_manager_host(request, path=forwarded)
 
@@ -953,7 +956,7 @@ def _enforce_tenant_host_membership(request, school):
         "You do not have access to this school's portal. Sign in with your school account.",
     )
     request.session.pop("school_id", None)
-    return redirect(build_public_site_url(reverse("accounts:login")))
+    return redirect(build_public_site_url(reverse("global_login_discovery")))
 
 
 class TenantMiddleware(MiddlewareMixin):

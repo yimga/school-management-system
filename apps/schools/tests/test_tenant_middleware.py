@@ -276,15 +276,16 @@ class LegacyAndReservedHostMiddlewareTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], "/verify/")
 
-    def test_base_public_login_stays_on_marketing_host(self):
-        """Tenant-facing login + school picker must not bounce to manager host."""
+    def test_base_login_redirects_to_campus_discovery(self):
+        """Marketing apex must not render tenant login — hand off to /discover/."""
         with patch.dict(
             os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False
         ):
             request = self._request("/authentication/login/", "runmycampus.com")
             request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
             response = self.reserved.process_request(request)
-        self.assertIsNone(response)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/discover/", response["Location"])
 
     def test_base_manager_auth_path_redirects_to_manager_for_browser(self):
         with patch.dict(
@@ -299,7 +300,7 @@ class LegacyAndReservedHostMiddlewareTests(TestCase):
             "https://manager.runmycampus.com/authentication/backend/",
         )
 
-    def test_render_probe_public_login_passes_through_on_render_host(self):
+    def test_render_host_login_redirects_to_discovery(self):
         with patch.dict(
             os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False
         ):
@@ -308,7 +309,8 @@ class LegacyAndReservedHostMiddlewareTests(TestCase):
             )
             request.META["HTTP_USER_AGENT"] = "Render/1.0"
             response = self.reserved.process_request(request)
-        self.assertIsNone(response)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/discover/", response["Location"])
 
     @override_settings(MULTI_TENANT_BASE_DOMAIN="runmycampus.com")
     def test_manager_host_allows_authentication_backend_path(self):

@@ -766,6 +766,8 @@ def pass13_tenant_workspace_login_and_branding() -> list[dict[str, str]]:
         "PENDING_TENANT_AUTH_PREFIXES",
         "_bind_pending_school_for_tenant_auth",
         "_path_allows_pending_tenant_auth",
+        "APEX_TENANT_AUTH_DISCOVERY_PREFIXES",
+        "_apex_auth_path_redirects_to_discovery",
         "/authentication/redirect/",
         "/authentication/school-picker/",
     ):

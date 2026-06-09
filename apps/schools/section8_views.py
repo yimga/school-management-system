@@ -412,15 +412,14 @@ def global_login_discovery(request):
                     "pending_recovery_links": links,
                 },
             )
-        base = get_canonical_base_domain() or request.get_host().split(":")[0]
-        if school.subdomain:
-            scheme = "https" if request.is_secure() else "http"
-            school_url = f"{scheme}://{school.subdomain}.{base}"
-            return redirect(school_url)
-        try:
-            return redirect(reverse("accounts:login") + "?next=/portal/")
-        except NoReverseMatch:
-            return redirect("accounts:login")
+        from apps.schools.provision_email_urls import build_tenant_authentication_url
+
+        campus_login = build_tenant_authentication_url(
+            school, "/authentication/login/"
+        )
+        if campus_login:
+            return redirect(campus_login)
+        return redirect("find_school")
     _discovery_rate_limit_incr(request)
     return render(
         request,

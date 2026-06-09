@@ -89,7 +89,7 @@ def build_public_login_redirect_url(request) -> str:
     role = (request.GET.get("role") or "").strip().lower()
     if role in ("student", "staff", "parent"):
         params["role"] = role
-    path = reverse("accounts:login")
+    path = reverse("global_login_discovery")
     if params:
         path = f"{path}?{urlencode(params)}"
     return build_public_site_url(path)
@@ -99,7 +99,8 @@ def should_show_manager_login_surface(request) -> bool:
     """
     The manager host login form is operator-only.
 
-    Unauthenticated school owners must sign in on runmycampus.com. Operators may
+    Unauthenticated school owners must use campus discovery on runmycampus.com.
+    Operators may
     use the manager form when ``cp=1`` is present or when ``next`` deep-links to
     ``/super/`` or ``/admin/`` (e.g. after ``redirect_to_login`` from ``/super/``).
     """

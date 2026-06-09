@@ -55,14 +55,16 @@ class TenantWorkspaceHandoffTests(TestCase):
         session["mfa_verified"] = True
         session.save()
 
-    def test_public_login_go_workspace_redirects_to_slug(self):
-        response = self.client.post(
-            reverse("accounts:login"),
-            {"workspace_slug": "handoff-school", "go_workspace": "1"},
-            follow=False,
-        )
+    def test_apex_login_redirects_to_discovery_not_tenant_form(self):
+        response = self.client.get(reverse("accounts:login"), follow=False)
         self.assertEqual(response.status_code, 302)
-        self.assertIn("handoff-school.runmycampus.com", response["Location"])
+        self.assertIn("/discover/", response["Location"])
+
+    def test_tenant_subdomain_still_serves_login_form(self):
+        client = Client(HTTP_HOST="handoff-school.runmycampus.com")
+        response = client.get(reverse("accounts:login"), follow=False)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Secure sign in", status_code=200)
 
     def test_school_picker_posts_to_tenant_workspace(self):
         other = School.objects.create(

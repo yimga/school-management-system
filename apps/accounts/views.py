@@ -3194,6 +3194,16 @@ def login_view(request):
     from apps.accounts.manager_login_next import request_is_manager_host
 
     is_manager_host = request_is_manager_host(request)
+    host_kind = getattr(request, "public_host_kind", None)
+    if host_kind is None:
+        try:
+            from apps.schools.host_routing import public_host_kind
+
+            host_kind = public_host_kind((request.get_host() or "").split(":")[0])
+        except (ImportError, AttributeError, TypeError, ValueError):
+            host_kind = None
+    if host_kind == "base" and not is_manager_host:
+        return redirect(reverse("global_login_discovery"))
     if request.method == "GET" and is_manager_host:
         from apps.accounts.manager_login_next import (
             build_public_login_redirect_url,
@@ -3206,9 +3216,9 @@ def login_view(request):
             messages.info(
                 request,
                 _(
-                    "School accounts sign in at runmycampus.com, not the manager "
-                    "console. If you are setting up a new school, use "
-                    "“Sign in on runmycampus.com” below."
+                    "School accounts sign in on your campus address "
+                    "(your-school.runmycampus.com), not the manager console. "
+                    "Use “Find your school” below to open the right campus."
                 ),
             )
             return redirect(build_public_login_redirect_url(request))
@@ -3217,52 +3227,12 @@ def login_view(request):
                 request,
                 _(
                     "RunMyCampus Manager is for platform operators only. "
-                    "School accounts sign in at runmycampus.com."
+                    "School accounts sign in on their campus subdomain."
                 ),
             )
             return redirect(build_public_login_redirect_url(request))
 
     if request.method == "POST":
-        workspace_slug = (request.POST.get("workspace_slug") or "").strip().lower()
-        if (
-            workspace_slug
-            and not is_manager_host
-            and (request.POST.get("go_workspace") or "").strip() == "1"
-        ):
-            try:
-                from urllib.parse import urlencode
-
-                from apps.schools.pending_tenant_discovery import (
-                    lookup_school_by_slug_or_subdomain,
-                )
-                from apps.schools.provision_email_urls import (
-                    build_tenant_authentication_url,
-                    tenant_subdomain_host_exists,
-                )
-
-                workspace_school = lookup_school_by_slug_or_subdomain(workspace_slug)
-                if workspace_school and tenant_subdomain_host_exists(workspace_school):
-                    login_path = "/authentication/login/"
-                    next_url = (
-                        request.POST.get("next") or request.GET.get("next") or ""
-                    ).strip()
-                    if next_url:
-                        from django.utils.http import url_has_allowed_host_and_scheme
-
-                        if url_has_allowed_host_and_scheme(
-                            next_url,
-                            allowed_hosts={
-                                request.get_host(),
-                                workspace_school.slug,
-                            },
-                        ):
-                            login_path = f"{login_path}?{urlencode({'next': next_url})}"
-                    return redirect(
-                        build_tenant_authentication_url(workspace_school, login_path)
-                    )
-            except (ImportError, AttributeError, TypeError, ValueError):
-                pass
-
         # Store role intent for post-login redirect (Student / Staff / Parent).
         role_param = (
             (request.POST.get("role") or request.GET.get("role") or "").strip().lower()
@@ -3643,18 +3613,8 @@ def login_view(request):
     else:
         context["public_site_url"] = None
         context["password_reset_public_url"] = None
-    context["public_tenant_login_hub"] = not is_manager_host
-    if context["public_tenant_login_hub"]:
-        try:
-            from apps.schools.pending_tenant_discovery import (
-                list_active_schools_for_public_login,
-            )
-
-            context["login_workspace_schools"] = list_active_schools_for_public_login()
-        except (ImportError, AttributeError, DatabaseError, TypeError, ValueError):
-            context["login_workspace_schools"] = []
-    else:
-        context["login_workspace_schools"] = []
+    context["public_tenant_login_hub"] = False
+    context["login_workspace_schools"] = []
     template = (
         "auth/manager_login.html"
         if getattr(request, "public_host_kind", None) == "manager"
@@ -3677,6 +3637,16 @@ def logout_view(request):
         except (ImportError, AttributeError, DatabaseError):
             pass
     logout(request)
+    host_kind = getattr(request, "public_host_kind", None)
+    if host_kind is None:
+        try:
+            from apps.schools.host_routing import public_host_kind
+
+            host_kind = public_host_kind((request.get_host() or "").split(":")[0])
+        except (ImportError, AttributeError, TypeError, ValueError):
+            host_kind = None
+    if host_kind == "base":
+        return redirect("marketing_landing")
     return redirect(reverse("accounts:login"))
 
 
