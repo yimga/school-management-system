@@ -184,7 +184,7 @@ class WelcomeEmailSetupLinkTests(SimpleTestCase):
             {"school_name": "Gilead Tech", "portal_url": "https://portal.example/"},
         )
         self.assertIn("https://portal.example/", out)
-        self.assertIn("Open your portal", out)
+        self.assertIn("Sign in to your campus", out)
 
     def test_txt_surfaces_setup_link(self):
         out = render_to_string(
