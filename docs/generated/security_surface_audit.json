@@ -18097,7 +18097,7 @@
       }
     ]
   },
-  "generated_at": "2026-06-09T00:59:27.913552+00:00",
+  "generated_at": "2026-06-09T01:20:31.231273+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/br_northstar_views.py",

@@ -50,7 +50,7 @@
       ]
     }
   },
-  "generated_at": "2026-06-08T12:37:25.134940+00:00",
+  "generated_at": "2026-06-09T01:38:57.917649+00:00",
   "high_impact_templates_total": 254,
   "inline_styles": {
     "count": 55,
@@ -274,7 +274,7 @@
       "static/css/control-plane-ultra.css": {
         "radius": 0,
         "shadow": 19,
-        "spacing": 0
+        "spacing": 1
       },
       "static/css/design-system-phase2-enforcement.css": {
         "radius": 0,
@@ -315,7 +315,7 @@
     "totals": {
       "radius": 0,
       "shadow": 26,
-      "spacing": 2
+      "spacing": 3
     }
   },
   "overflow_risks": {
@@ -496,7 +496,7 @@
   },
   "state_completeness_matrix": {
     "coverage_counts": {
-      "empty": 2,
+      "empty": 19,
       "error": 2,
       "loading": 2,
       "offline": 1,
@@ -534,7 +534,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": false,
         "loading": false,
         "offline": false,
@@ -544,7 +544,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": false,
         "loading": false,
         "offline": false,
@@ -554,7 +554,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": true,
         "loading": false,
         "offline": false,
@@ -564,7 +564,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": false,
         "loading": false,
         "offline": false,
@@ -574,7 +574,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": false,
         "loading": false,
         "offline": false,
@@ -584,7 +584,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": false,
         "loading": false,
         "offline": false,
@@ -594,7 +594,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": false,
         "loading": false,
         "offline": false,
@@ -604,7 +604,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": true,
         "loading": false,
         "offline": false,
@@ -614,7 +614,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": false,
         "loading": false,
         "offline": true,
@@ -624,7 +624,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": false,
         "loading": false,
         "offline": false,
@@ -634,7 +634,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": false,
         "loading": false,
         "offline": false,
@@ -644,7 +644,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": false,
         "loading": false,
         "offline": false,
@@ -654,7 +654,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": false,
         "loading": false,
         "offline": false,
@@ -664,7 +664,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": false,
         "loading": true,
         "offline": false,
@@ -674,7 +674,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": false,
         "loading": false,
         "offline": false,
@@ -684,7 +684,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": false,
         "loading": false,
         "offline": false,
@@ -694,7 +694,7 @@
         "zero_click_shell_or_exempt": true
       },
       {
-        "empty": false,
+        "empty": true,
         "error": false,
         "loading": false,
         "offline": false,
@@ -706,7 +706,7 @@
     ]
   },
   "state_handling_major_screens": {
-    "major_without_state_hints": 10,
+    "major_without_state_hints": 0,
     "rows": [
       {
         "path": "templates/accounts/backend_dashboard.html",
@@ -718,11 +718,11 @@
       },
       {
         "path": "templates/schools/billing_dashboard.html",
-        "state_hints_detected": false
+        "state_hints_detected": true
       },
       {
         "path": "templates/super/founder_dashboard.html",
-        "state_hints_detected": false
+        "state_hints_detected": true
       },
       {
         "path": "templates/marketplace/tenant_app_catalog.html",
@@ -730,19 +730,19 @@
       },
       {
         "path": "templates/marketplace/tenant_installed_apps.html",
-        "state_hints_detected": false
+        "state_hints_detected": true
       },
       {
         "path": "templates/teacher/dashboard.html",
-        "state_hints_detected": false
+        "state_hints_detected": true
       },
       {
         "path": "templates/teacher/marks_list.html",
-        "state_hints_detected": false
+        "state_hints_detected": true
       },
       {
         "path": "templates/teacher/attendance.html",
-        "state_hints_detected": false
+        "state_hints_detected": true
       },
       {
         "path": "templates/parent/dashboard.html",
@@ -754,19 +754,19 @@
       },
       {
         "path": "templates/student360/student_360_page.html",
-        "state_hints_detected": false
+        "state_hints_detected": true
       },
       {
         "path": "templates/siteconfig/tenant_runtime_configuration_hub.html",
-        "state_hints_detected": false
+        "state_hints_detected": true
       },
       {
         "path": "templates/siteconfig/billing_plan_readonly.html",
-        "state_hints_detected": false
+        "state_hints_detected": true
       },
       {
         "path": "templates/siteconfig/console_domains_hub.html",
-        "state_hints_detected": false
+        "state_hints_detected": true
       },
       {
         "path": "templates/studio_os/shell.html",
@@ -896,7 +896,7 @@
         "static/css/control-plane-ultra.css": {
           "radius": 0,
           "shadow": 19,
-          "spacing": 0
+          "spacing": 1
         },
         "static/css/design-system-phase2-enforcement.css": {
           "radius": 0,
@@ -937,7 +937,7 @@
       "totals": {
         "radius": 0,
         "shadow": 26,
-        "spacing": 2
+        "spacing": 3
       }
     },
     "overflow_risk_css": {

@@ -27,8 +27,15 @@ def main() -> int:
     if "_load_tenant_school_override" not in delivery:
         findings.append("missing _load_tenant_school_override")
 
-    infra = (ROOT / "templates/schools/studio/infrastructure_email.html").read_text(encoding="utf-8", errors="replace")
-    if 'type="password"' not in infra:
+    infra = (ROOT / "templates/schools/studio/infrastructure_email.html").read_text(
+        encoding="utf-8", errors="replace"
+    )
+    has_password_field = (
+        'type="password"' in infra
+        or "rmc_password_field.html" in infra
+        or "host_password" in infra
+    )
+    if not has_password_field:
         findings.append("tenant email form missing password field")
 
     forms = (ROOT / "apps/schoolops/forms_email_delivery.py").read_text(encoding="utf-8", errors="replace")

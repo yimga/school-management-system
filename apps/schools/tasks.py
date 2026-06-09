@@ -553,7 +553,14 @@ def kick_complete_provisioning_background(
             school = School.objects.filter(id=sid).only("is_active").first()
             if school and not school.is_active:
                 complete_provisioning_for_school(sid, contact_email=email, **kw)
-        except Exception:  # noqa: BLE001 - background kick must never crash verify
+        except (
+            DatabaseError,
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            OSError,
+        ):
             logger.warning(
                 "kick_complete_provisioning_background failed school_id=%s",
                 sid,

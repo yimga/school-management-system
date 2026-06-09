@@ -5,7 +5,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from django.test import SimpleTestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 
 from services.ai.gateway import process_platform_query
 from services.ai.tenant_isolation import (
@@ -14,9 +14,10 @@ from services.ai.tenant_isolation import (
     TenantContextEnforcer,
 )
 from services.ai.token_optimizer import ContextTokenCompressor
+from services.ai_copilot_rbac import CopilotRbacEnvelope
 
 
-class MultiTenantLeakTests(SimpleTestCase):
+class MultiTenantLeakTests(TestCase):
     def test_cross_tenant_row_blocked(self):
         user = SimpleNamespace(role="ADMIN", is_staff=False, is_superuser=False, pk=1)
         school = SimpleNamespace(pk="school-alpha", id="school-alpha")
@@ -45,14 +46,35 @@ class MultiTenantLeakTests(SimpleTestCase):
             "**Execution Path**: **Billing > Receipts**\n"
             "**Action Steps**:\n1. Open Receipts.\n"
         )
-        with patch("services.ai.gateway.retrieve_knowledge_snippets", side_effect=fake_retrieve):
-            with patch("services.ai_gateway.invoke", return_value=(structured, {"tier": "ollama"})):
-                out = process_platform_query(
-                    user,
-                    "/billing/",
-                    "payment receipt for School Beta",
-                    school=school_a,
-                )
+        rbac_ok = CopilotRbacEnvelope(
+            allowed=True,
+            denial_reason="",
+            permissions={"scope": "tenant"},
+            prompt="[RBAC test prompt]",
+            metadata={},
+        )
+        with patch(
+            "services.ai_copilot_rbac.prepare_engine_room_rbac",
+            return_value=rbac_ok,
+        ):
+            with patch(
+                "services.ai.gateway.permission_labels_for_user",
+                return_value=[],
+            ):
+                with patch(
+                    "services.ai.gateway.retrieve_knowledge_snippets",
+                    side_effect=fake_retrieve,
+                ):
+                    with patch(
+                        "services.ai_gateway.invoke",
+                        return_value=(structured, {"tier": "ollama"}),
+                    ):
+                        out = process_platform_query(
+                            user,
+                            "/billing/",
+                            "payment receipt for School Beta",
+                            school=school_a,
+                        )
         self.assertNotIn("Beta secret", out.get("response", ""))
         self.assertIn("Alpha", out.get("response", ""))
 

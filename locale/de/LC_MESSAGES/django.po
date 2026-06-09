@@ -46789,3 +46789,292 @@ msgstr ""
 
 msgid "{{ name }} is ready 🎉"
 msgstr ""
+
+msgid "%(name)s is already live — no reprovision needed."
+msgstr ""
+
+msgid "%(name)s is live — welcome mail was sent if SMTP is configured."
+msgstr ""
+
+msgid "About this page"
+msgstr ""
+
+msgid "Admissions pipeline from enquiry through enrollment."
+msgstr ""
+
+msgid "Almost there — finishing setup for {{ name }}"
+msgstr ""
+
+msgid "Annual avg"
+msgstr ""
+
+msgid "Campus setup in progress"
+msgstr ""
+
+msgid "Check again"
+msgstr ""
+
+msgid "Check provisioning status"
+msgstr ""
+
+msgid "Check setup status"
+msgstr ""
+
+msgid "Client secret"
+msgstr ""
+
+msgid "Confirmed hours"
+msgstr ""
+
+msgid "Continue setup"
+msgstr ""
+
+msgid "Could not run provisioning — check worker logs and try again."
+msgstr ""
+
+msgid "Could not send the portal email — check SMTP / worker logs."
+msgstr ""
+
+msgid "Current class"
+msgstr ""
+
+msgid "Day-to-day workflows for staff, teachers, and administrators."
+msgstr ""
+
+msgid "Delegate"
+msgstr ""
+
+msgid "Due & status"
+msgstr ""
+
+msgid "Ended"
+msgstr ""
+
+msgid ""
+"Finish owner onboarding or sign in on the public site while provisioning "
+"completes. Do not use the manager console."
+msgstr ""
+
+msgid "Forgot your password?"
+msgstr ""
+
+msgid "Hide password"
+msgstr ""
+
+msgid "Hide secret"
+msgstr ""
+
+msgid "Last confirmed"
+msgstr ""
+
+msgid "Live social feed for your school community."
+msgstr ""
+
+msgid "MoMo code"
+msgstr ""
+
+msgid "Moderation queue"
+msgstr ""
+
+msgid "More scores"
+msgstr ""
+
+msgid "Next class"
+msgstr ""
+
+msgid "Operator workspace"
+msgstr ""
+
+msgid "Outcome label"
+msgstr ""
+
+msgid "Page guidance"
+msgstr ""
+
+msgid "Parties"
+msgstr ""
+
+msgid "Period"
+msgstr ""
+
+msgid "Platform-wide tools for provisioning, billing, and migration."
+msgstr ""
+
+msgid "Portal-ready email re-sent to %(email)s."
+msgstr ""
+
+msgid "Promotion"
+msgstr ""
+
+msgid "Proud Campus"
+msgstr ""
+
+msgid ""
+"Provisioning ran but %(name)s is still inactive — check provisioning events "
+"and worker logs."
+msgstr ""
+
+msgid "Qty × unit"
+msgstr ""
+
+msgid "Resend portal email"
+msgstr ""
+
+msgid "Resend portal login email"
+msgstr ""
+
+msgid "Resend verification email"
+msgstr ""
+
+msgid "Reset it here"
+msgstr ""
+
+msgid "Retry provisioning"
+msgstr ""
+
+msgid ""
+"School accounts sign in at runmycampus.com, not the manager console. If you "
+"are setting up a new school, use “Sign in on runmycampus.com” below."
+msgstr ""
+
+msgid "School admin (not platform operator)?"
+msgstr ""
+
+msgid "Send portal email"
+msgstr ""
+
+msgid "Setting up {{ name }}"
+msgstr ""
+
+msgid "Setup in progress"
+msgstr ""
+
+msgid "Show password"
+msgstr ""
+
+msgid "Show secret"
+msgstr ""
+
+msgid "Sign in at runmycampus.com"
+msgstr ""
+
+msgid "Sign in on RunMyCampus"
+msgstr ""
+
+msgid "Sign in on runmycampus.com"
+msgstr ""
+
+msgid "Student 360 sections"
+msgstr ""
+
+msgid "Subjects"
+msgstr ""
+
+msgid "That school record no longer exists."
+msgstr ""
+
+msgid ""
+"The campus is still provisioning — use Retry provisioning first, then resend"
+" the portal email."
+msgstr ""
+
+msgid ""
+"This console is for platform operators. Taking you to your school account on"
+" runmycampus.com."
+msgstr ""
+
+msgid "Totals"
+msgstr ""
+
+msgid "Verify the signup before resending the portal email."
+msgstr ""
+
+msgid ""
+"Verify the signup first — provisioning starts after email verification."
+msgstr ""
+
+msgid ""
+"Verify your email to continue. Your campus subdomain activates after "
+"verification and provisioning finish."
+msgstr ""
+
+msgid ""
+"We found {{ campus }} for this email, but the private portal is not live "
+"yet."
+msgstr ""
+
+msgid "We received your signup — verify your email to continue."
+msgstr ""
+
+msgid ""
+"We're finishing the last setup steps for your campus. This page refreshes "
+"automatically — or use Check again to run setup now."
+msgstr ""
+
+msgid "Web address suggestions"
+msgstr ""
+
+msgid ""
+"When your portal is ready we'll email <strong>{{ email }}</strong>. Sign in "
+"later with that email and the password you just created."
+msgstr ""
+
+msgid "Workflow summary"
+msgstr ""
+
+msgid ""
+"You can bookmark this address — your portal will load here automatically "
+"when ready."
+msgstr ""
+
+msgid ""
+"Your account is set up. We're activating your campus portal now — this "
+"usually takes a minute."
+msgstr ""
+
+msgid ""
+"Your campus portal is being activated. This usually takes about a minute."
+msgstr ""
+
+msgid ""
+"Your password must meet the requirements listed below — pick one you will "
+"use to sign in with your email."
+msgstr ""
+
+msgid "Your school %(name)s is live. Sign in to open your portal."
+msgstr ""
+
+msgid "Your school %(name)s is live. Tap to open your portal."
+msgstr ""
+
+msgid "Your school %(name)s is ready. Set your password to sign in."
+msgstr ""
+
+msgid "Your school %(name)s is ready. Tap to set your password."
+msgstr ""
+
+msgid "helpful"
+msgstr ""
+
+msgid "outstanding returns"
+msgstr ""
+
+msgid "subjects"
+msgstr ""
+
+msgid "views"
+msgstr ""
+
+msgid ""
+"{{ campus }} is registered on RunMyCampus but is not live on its private "
+"portal yet."
+msgstr ""
+
+msgid "{{ steps }} step{% plural %}{{ steps }} steps"
+msgstr ""
+
+msgid "{{ t }} min read"
+msgstr ""
+
+msgid "~{{ mins }} min"
+msgstr ""

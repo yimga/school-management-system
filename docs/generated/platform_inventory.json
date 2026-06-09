@@ -1,18 +1,18 @@
 {
   "baseline_counts": {
     "allow_any": 173,
-    "csrf_exempt": 682,
+    "csrf_exempt": 701,
     "cursor_execute": 414,
-    "except_exception": 2584,
+    "except_exception": 2609,
     "get_solo": 213,
     "gilead": 16847,
     "gilead_files": 237,
-    "html_files": 1659,
-    "management_commands": 298,
+    "html_files": 1667,
+    "management_commands": 299,
     "markdown_files": 1612,
-    "migration_files": 1001,
-    "print_calls": 4339,
-    "python_files": 6365,
+    "migration_files": 1004,
+    "print_calls": 4418,
+    "python_files": 6427,
     "site_settings": 2470
   },
   "doc_drift": {
@@ -33,8 +33,8 @@
       "path": "apps/siteconfig/forms_cockpit.py"
     },
     {
-      "bytes": 176381,
-      "lines": 3622,
+      "bytes": 178821,
+      "lines": 3673,
       "path": "config/settings.py"
     },
     {
@@ -43,14 +43,14 @@
       "path": "apps/schools/marketing_views.py"
     },
     {
+      "bytes": 150650,
+      "lines": 3754,
+      "path": "apps/accounts/views.py"
+    },
+    {
       "bytes": 147039,
       "lines": 3487,
       "path": "apps/api/saml.py"
-    },
-    {
-      "bytes": 146477,
-      "lines": 3669,
-      "path": "apps/accounts/views.py"
     },
     {
       "bytes": 143830,
@@ -1156,6 +1156,11 @@
     },
     {
       "app": "schools",
+      "command": "activate_pending_signup_schools",
+      "path": "apps/schools/management/commands/activate_pending_signup_schools.py"
+    },
+    {
+      "app": "schools",
       "command": "align_tenant_config",
       "path": "apps/schools/management/commands/align_tenant_config.py"
     },
@@ -1620,7 +1625,7 @@
     "cursor_execute_apps_config_py_excl_migrations": 45,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 4152,
+    "print_calls_scripts_py": 4231,
     "site_settings_refs_apps_py_excl_migrations": 214,
     "site_settings_refs_apps_py_excl_migrations_tests": 161
   },

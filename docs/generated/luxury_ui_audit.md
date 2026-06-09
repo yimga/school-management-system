@@ -1,6 +1,6 @@
 # Luxury UI Surface Audit
 
-**Generated:** 2026-06-08T12:37:25.134940+00:00
+**Generated:** 2026-06-09T01:38:57.917649+00:00
 **Score:** 15/15
 **Verdict:** ULTRA-LUXURY
 
@@ -13,7 +13,7 @@
 - Missing ds-btn usage: 120 (violations: 0)
 - Shell consistency failures: 0
 - Overflow-prone CSS files: 5
-- Non-token literals (spacing/radius/shadow): {'spacing': 2, 'radius': 0, 'shadow': 26}
+- Non-token literals (spacing/radius/shadow): {'spacing': 3, 'radius': 0, 'shadow': 26}
 - Duplicate component-system conflicts: 0
 - Unsafe direct brand text color hits: 0
 - RTL violations: 0

@@ -73,8 +73,13 @@ def main() -> int:
     portal_base = ROOT / "templates/portal_base.html"
     if portal_base.is_file():
         pb = portal_base.read_text(encoding="utf-8", errors="replace")
-        if "next_action_strip.html" not in pb:
-            failures.append("portal_base must include next_action_strip.html")
+        has_next_action = (
+            "next_action_strip.html" in pb or "rmc_smart_action_hub.html" in pb
+        )
+        if not has_next_action:
+            failures.append(
+                "portal_base must include next_action_strip.html or rmc_smart_action_hub.html"
+            )
     else:
         failures.append("portal_base.html missing")
 

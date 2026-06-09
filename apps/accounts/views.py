@@ -1135,7 +1135,7 @@ def redirect_view(request):
                         return redirect(target)
                     try:
                         return _redirect_with_params("accounts:owner_onboarding_done")
-                    except Exception:
+                    except NoReverseMatch:
                         return redirect("/authentication/onboarding/done/")
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
             pass
@@ -3513,7 +3513,7 @@ def login_view(request):
                             if not school_subdomain_redirect_is_safe(m.school):
                                 try:
                                     return redirect(reverse("accounts:owner_onboarding_done"))
-                                except Exception:
+                                except NoReverseMatch:
                                     return redirect("/authentication/onboarding/done/")
                             if next_url:
                                 from django.utils.http import (
