@@ -211,6 +211,50 @@ class OwnerOnboardingFlowTests(TestCase):
         self.assertIn("steps", payload)
         self.assertFalse(payload.get("portal_ready"))
 
+    def test_set_password_progress_api_reads_session_token(self):
+        """Progress poll must work on the internal set-password URL (not 403)."""
+        from django.contrib.auth.views import INTERNAL_RESET_SESSION_TOKEN
+
+        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = default_token_generator.make_token(self.user)
+        url = reverse(
+            "accounts:owner_onboarding_account", kwargs={"uidb64": uid, "token": token}
+        )
+        r = self.client.get(url)
+        sentinel = r.url
+        self.client.get(sentinel)
+        session = self.client.session
+        session[INTERNAL_RESET_SESSION_TOKEN] = token
+        session.save()
+        progress_url = sentinel.rstrip("/") + "/progress/"
+        r2 = self.client.get(progress_url)
+        self.assertEqual(r2.status_code, 200, msg=r2.content[:200])
+        self.assertIn("progress_percent", r2.json())
+
+    def test_owner_school_prefers_latest_verified_signup(self):
+        from django.utils import timezone
+
+        from apps.accounts.views_owner_onboarding import _owner_school
+        from apps.schools.models import SignupVerification
+
+        old = School.objects.create(
+            name="NewBell School of Arts",
+            slug="newbell-old",
+            subdomain="newbell-old",
+            is_active=False,
+        )
+        SchoolMembership.objects.filter(user=self.user).update(is_primary=True)
+        SchoolMembership.objects.create(
+            user=self.user, school=old, role="ADMIN", is_primary=True
+        )
+        SignupVerification.objects.create(
+            school=self.school,
+            email=self.user.email,
+            verified_at=timezone.now(),
+        )
+        resolved = _owner_school(self.user)
+        self.assertEqual(resolved.pk, self.school.pk)
+
     def test_provision_status_api_reports_inactive_then_live(self):
         self._login_past_mfa()
 

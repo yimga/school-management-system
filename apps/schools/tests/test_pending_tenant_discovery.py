@@ -50,7 +50,29 @@ class PendingTenantDiscoveryTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Campus setup in progress")
         self.assertContains(response, "NewssBell School of Arts")
-        self.assertContains(response, "Continue setup")
+        self.assertNotContains(response, "Continue setup")
+
+    def test_continue_setup_shown_when_owner_has_no_password(self):
+        self.owner.set_unusable_password()
+        self.owner.save(update_fields=["password"])
+        from apps.schools.pending_tenant_discovery import build_pending_recovery_links
+
+        links = build_pending_recovery_links(self.school)
+        self.assertIn("continue_setup_url", links)
+        self.assertNotIn("login_url", links)
+
+    def test_inactive_subdomain_setup_page_live_workflow(self):
+        self.owner.set_password("Test1234!")
+        self.owner.save(update_fields=["password"])
+        client = Client(HTTP_HOST="newssbell-school-of-arts.runmycampus.com")
+        response = client.get("/", follow=False)
+        self.assertEqual(response.status_code, 202)
+        content = response.content.decode("utf-8")
+        self.assertIn("Setting up your campus", content)
+        self.assertIn("data-rmc-provision-steps", content)
+        self.assertNotIn("Continue setup", content)
+        self.assertNotIn("Check setup status", content)
+        self.assertNotIn("Sign in to your campus", content)
 
     def test_find_campus_lists_inactive_school_by_exact_slug(self):
         client = Client(HTTP_HOST="runmycampus.com")
@@ -59,7 +81,7 @@ class PendingTenantDiscoveryTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "NewssBell School of Arts")
-        self.assertContains(response, "Continue setup")
+        self.assertNotContains(response, "Continue setup")
 
     def test_email_discovery_finds_inactive_membership(self):
         client = Client(HTTP_HOST="runmycampus.com")
@@ -71,14 +93,22 @@ class PendingTenantDiscoveryTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Campus setup in progress")
 
-    def test_pending_recovery_links_use_tenant_workspace_login(self):
+    def test_pending_recovery_links_use_tenant_login_when_portal_ready(self):
         from apps.schools.pending_tenant_discovery import build_pending_recovery_links
 
+        self.school.is_active = True
+        self.school.save(update_fields=["is_active"])
         links = build_pending_recovery_links(self.school)
         self.assertIn(
             "newssbell-school-of-arts.runmycampus.com/authentication/login",
-            links["login_url"],
+            links.get("login_url", ""),
         )
+
+    def test_pending_recovery_links_hide_login_while_provisioning(self):
+        from apps.schools.pending_tenant_discovery import build_pending_recovery_links
+
+        links = build_pending_recovery_links(self.school)
+        self.assertNotIn("login_url", links)
 
     def test_inactive_subdomain_login_is_reachable(self):
         client = Client(HTTP_HOST="newssbell-school-of-arts.runmycampus.com")

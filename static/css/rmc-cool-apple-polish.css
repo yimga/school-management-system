@@ -340,6 +340,17 @@
     0 1px 2px rgba(0, 0, 0, 0.40);
 }
 
+/* Pending tenant setup — school name only until Studio upload */
+.rmc-brand-mark--pending-blank .rmc-brand-mark__squircle--blank {
+  background: transparent;
+  border: 1px dashed var(--hairline);
+  box-shadow: none;
+}
+
+.rmc-brand-mark--pending-blank .rmc-brand-mark__squircle--blank::before {
+  content: none;
+}
+
 /* ========================================================================== */
 /* TOPBAR FIXES — v2.56                                                        */
 /* ========================================================================== */

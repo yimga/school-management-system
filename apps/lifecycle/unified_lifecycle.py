@@ -14,6 +14,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
+from django.db import transaction
+from django.db.utils import DatabaseError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -414,30 +416,43 @@ def record_unified_transition(
     stage = stage_map.get(to_state)
     if not stage:
         return
-    if current_stage(school) in TERMINAL_STAGES and to_state != STATE_PURGED:
-        return
-    # Enforce the unified FSM before writing the spine. The validator
-    # previously existed but was never wired into any write path (dead
-    # code), so a buggy signal could record an illegal jump (e.g.
-    # draft→purged). Resolve the current unified state and refuse the
-    # write on an illegal transition — best-effort (log + skip), never
-    # raise, to preserve this function's "best-effort spine write"
-    # contract for its signal-layer callers.
     try:
-        current_state = resolve_unified_lifecycle(school).get("state", STATE_DRAFT)
-    except (RuntimeError, ValueError, TypeError, AttributeError):
-        current_state = STATE_DRAFT
-    if not validate_unified_transition(current_state, to_state):
+        with transaction.atomic():
+            if current_stage(school) in TERMINAL_STAGES and to_state != STATE_PURGED:
+                return
+            # Enforce the unified FSM before writing the spine. The validator
+            # previously existed but was never wired into any write path (dead
+            # code), so a buggy signal could record an illegal jump (e.g.
+            # draft→purged). Resolve the current unified state and refuse the
+            # write on an illegal transition — best-effort (log + skip), never
+            # raise, to preserve this function's "best-effort spine write"
+            # contract for its signal-layer callers.
+            try:
+                current_state = resolve_unified_lifecycle(school).get(
+                    "state", STATE_DRAFT
+                )
+            except (RuntimeError, ValueError, TypeError, AttributeError):
+                current_state = STATE_DRAFT
+            if not validate_unified_transition(current_state, to_state):
+                logger.warning(
+                    "unified lifecycle: refused illegal transition %s -> %s for school=%s",
+                    current_state,
+                    to_state,
+                    getattr(school, "pk", None),
+                )
+                return
+            merged = dict(payload or {})
+            merged["unified_state"] = to_state
+            record_stage(
+                school, stage, actor=actor, note=note or to_state, payload=merged
+            )
+    except DatabaseError:
         logger.warning(
-            "unified lifecycle: refused illegal transition %s -> %s for school=%s",
-            current_state,
-            to_state,
+            "record_unified_transition_db_failed school=%s to_state=%s",
             getattr(school, "pk", None),
+            to_state,
+            exc_info=True,
         )
-        return
-    merged = dict(payload or {})
-    merged["unified_state"] = to_state
-    record_stage(school, stage, actor=actor, note=note or to_state, payload=merged)
 
 
 def _billing_checklist_cleared(school, snap: dict) -> bool:

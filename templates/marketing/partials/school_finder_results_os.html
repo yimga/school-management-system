@@ -8,7 +8,7 @@
       <span class="fw-semibold d-block">{{ school.name }}</span>
       <span class="rmc-os-finder-result__slug">{{ school.slug }}{% if school.subdomain %} · {{ school.subdomain }}{% endif %}{% if school.pending %} · {% trans "Setup in progress" %}{% endif %}</span>
     </span>
-    <span class="fw-semibold">{% if school.pending %}{% trans "Continue setup" %} →{% else %}{% trans "Open portal" %} →{% endif %}</span>
+    <span class="fw-semibold">{% if school.pending %}{% if school.pending_state == 'awaiting_verification' %}{% trans "Verify email" %} →{% else %}{% trans "View setup progress" %} →{% endif %}{% else %}{% trans "Open portal" %} →{% endif %}</span>
   </a>
   {% endfor %}
 </div>

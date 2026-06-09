@@ -43,21 +43,46 @@ logger = logging.getLogger(__name__)
 
 _HEX_COLOR_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 _TOTAL_STEPS = 3
+_PASSWORD_RESET_SENTINEL = "set-password"
+
+
+def _resolve_onboarding_token(request, token: str) -> str:
+    """PasswordResetConfirmView redirects to token ``set-password``; read real token from session."""
+    token = (token or "").strip()
+    if token and token != _PASSWORD_RESET_SENTINEL:
+        return token
+    try:
+        from django.contrib.auth.views import INTERNAL_RESET_SESSION_TOKEN
+    except ImportError:
+        INTERNAL_RESET_SESSION_TOKEN = "_password_reset_token"  # noqa: N806
+    return (request.session.get(INTERNAL_RESET_SESSION_TOKEN) or token).strip()
 
 
 # ── State (School.settings["owner_onboarding"]) ─────────────────────────────
 def _owner_school(user):
     """The owner's primary school (or first membership)."""
     try:
-        from apps.schools.models import SchoolMembership
+        from apps.schools.models import SchoolMembership, SignupVerification
+
+        email = (getattr(user, "email", "") or "").strip()
+        if email:
+            verification = (
+                SignupVerification.objects.filter(email__iexact=email)
+                .exclude(verified_at__isnull=True)
+                .select_related("school")
+                .order_by("-verified_at", "-id")
+                .first()
+            )
+            if verification and verification.school_id:
+                return verification.school
 
         m = (
-            # tenant-isolation-allow: owner-onboarding resolves the signed-in owner's own school via membership
             SchoolMembership.objects.filter(user=user, is_primary=True)
             .select_related("school")
             .first()
             or SchoolMembership.objects.filter(user=user)
             .select_related("school")
+            .order_by("-school__created_at")
             .first()
         )
         return m.school if m else None
@@ -310,7 +335,7 @@ class OwnerOnboardingAccountView(PasswordResetConfirmView):
             school is not None and not portal_ready and provisioning_progress
         )
         uidb64 = self.kwargs.get("uidb64")
-        token = self.kwargs.get("token")
+        token = _resolve_onboarding_token(self.request, self.kwargs.get("token") or "")
         if ctx["show_inline_provision_progress"] and uidb64 and token:
             ctx["provision_progress_api_url"] = reverse(
                 "accounts:owner_onboarding_account_provision_progress",
@@ -538,6 +563,7 @@ def _owner_provisioning_progress_payload(request, school) -> dict:
 @require_GET
 def owner_onboarding_account_provision_progress(request, uidb64, token):
     """Token-authenticated progress poll for step 1 (pre-login account setup)."""
+    token = _resolve_onboarding_token(request, token)
     user = _user_from_onboarding_token(uidb64, token)
     if user is None:
         return JsonResponse({"ok": False, "error": "invalid_token"}, status=403)

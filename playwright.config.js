@@ -84,6 +84,7 @@ module.exports = defineConfig({
         '**/manager-surface-parity.spec.js',
         '**/manager-theme-visibility.spec.js',
         '**/control-plane-layout-audit.spec.js',
+        '**/copilot-rail-grid.spec.js',
         '**/world-globe-online-offline.spec.js',
       ],
       use: {

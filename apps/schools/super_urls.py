@@ -75,6 +75,7 @@ from apps.schoolops.views_email_health import (
     SmtpProbeJsonView,
 )
 from apps.siteconfig.views_globe_api import GlobeStreamView, globe_live_api, globe_markers_api
+from apps.siteconfig.views_cockpit_live import cockpit_live_json
 from apps.schoolops.views_email_webhook import EmailProviderWebhookView
 from .views_signup_diagnostics import SignupDiagnosticsView
 from .super_views_signup_verifications import (
@@ -1249,6 +1250,11 @@ urlpatterns = [
         name="signup_diagnostics",
     ),  # rbac-allow: super-staff-signup-flow-diagnostics
     # v3.58.x Wave 9 Agent M — email reliability completion track.
+    path(
+        "api/cockpit/live.json",
+        require_super_access_with_host(cockpit_live_json),
+        name="api_cockpit_live",
+    ),  # rbac-allow: super-staff-cockpit-live-json
     path(
         "api/globe/markers/",
         globe_markers_api,

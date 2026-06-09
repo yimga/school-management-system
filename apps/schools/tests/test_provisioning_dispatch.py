@@ -1,9 +1,14 @@
 from unittest.mock import patch
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from apps.schools.models import School
-from apps.schools.tasks import complete_provisioning_for_school, dispatch_provision_school
+from apps.schools.models import School, SchoolMembership
+from apps.schools.tasks import (
+    complete_provisioning_for_school,
+    dispatch_provision_school,
+    ensure_admin_user_for_school,
+)
 
 
 class ProvisioningDispatchTests(TestCase):
@@ -55,3 +60,71 @@ class ProvisioningDispatchTests(TestCase):
         school.refresh_from_db()
         self.assertTrue(school.is_active)
         self.assertTrue(result["is_active"])
+
+    def test_ensure_admin_user_promotes_new_school_to_primary(self):
+        User = get_user_model()
+        user = User.objects.create_user(
+            username="repeat@example.com",
+            email="repeat@example.com",
+            password="unused",
+        )
+        old = School.objects.create(
+            name="NewBell School of Arts",
+            slug="newbell-demo",
+            subdomain="newbell-demo",
+            is_active=False,
+        )
+        SchoolMembership.objects.create(
+            user=user, school=old, role=User.Role.ADMIN, is_primary=True
+        )
+        new = School.objects.create(
+            name="My Real School",
+            slug="my-real-school",
+            subdomain="my-real-school",
+            is_active=False,
+        )
+        ensure_admin_user_for_school(new, "repeat@example.com")
+        self.assertTrue(
+            SchoolMembership.objects.filter(
+                user=user, school=new, is_primary=True
+            ).exists()
+        )
+        self.assertFalse(
+            SchoolMembership.objects.filter(
+                user=user, school=old, is_primary=True
+            ).exists()
+        )
+
+    def test_ensure_admin_user_promotes_new_school_to_primary(self):
+        User = get_user_model()
+        user = User.objects.create_user(
+            username="repeat@example.com",
+            email="repeat@example.com",
+            password="unused",
+        )
+        old = School.objects.create(
+            name="NewBell School of Arts",
+            slug="newbell-demo",
+            subdomain="newbell-demo",
+            is_active=False,
+        )
+        SchoolMembership.objects.create(
+            user=user, school=old, role=User.Role.ADMIN, is_primary=True
+        )
+        new = School.objects.create(
+            name="My Real School",
+            slug="my-real-school",
+            subdomain="my-real-school",
+            is_active=False,
+        )
+        ensure_admin_user_for_school(new, "repeat@example.com")
+        self.assertTrue(
+            SchoolMembership.objects.filter(
+                user=user, school=new, is_primary=True
+            ).exists()
+        )
+        self.assertFalse(
+            SchoolMembership.objects.filter(
+                user=user, school=old, is_primary=True
+            ).exists()
+        )

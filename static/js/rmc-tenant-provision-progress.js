@@ -131,13 +131,24 @@
       }
 
       var ready = data.portal_ready === true || data.is_active === true;
-      if (ready && !redirected) {
-        var href = data.dashboard_href || dashboardHref;
-        if (href && data.status === "succeeded") {
-          redirected = true;
-          window.setTimeout(function () {
-            window.location.href = href;
-          }, 1200);
+      if (ready) {
+        var actionsEl = document.getElementById("rmc-provision-complete-actions");
+        if (actionsEl) {
+          actionsEl.hidden = false;
+        }
+        var loginBtn = document.querySelector("[data-rmc-provision-login]");
+        var tenantLogin = data.tenant_login_url || "";
+        if (loginBtn && tenantLogin) {
+          loginBtn.setAttribute("href", tenantLogin);
+        }
+        if (!redirected) {
+          var href = data.dashboard_href || dashboardHref;
+          if (href && data.status === "succeeded") {
+            redirected = true;
+            window.setTimeout(function () {
+              window.location.href = href;
+            }, 1200);
+          }
         }
       }
     }

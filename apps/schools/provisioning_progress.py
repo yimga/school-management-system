@@ -124,7 +124,10 @@ def _steps_from_run(run: Any) -> list[dict[str, Any]]:
             state = "done"
         else:
             state = "pending"
-        steps.append({"key": key, "label": _step_label(key), "state": state})
+        label = _step_label(key)
+        if row is not None and getattr(row, "label", ""):
+            label = str(row.label)
+        steps.append({"key": key, "label": label, "state": state})
     return steps
 
 
@@ -281,6 +284,96 @@ def resolve_phase_flags(school) -> dict[str, Any]:
     }
 
 
+def _provisioning_started_at(school):
+    if school is None:
+        return None
+    try:
+        from apps.schools.models import SchoolProvisioningEvent
+
+        event = (
+            SchoolProvisioningEvent.objects.filter(
+                school=school,
+                event_type="STARTED",
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        return getattr(event, "created_at", None) if event else None
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return None
+
+
+def _progress_while_run_not_yet_visible(school) -> dict[str, Any]:
+    """
+    Fallback when polling races the first ``begin_run`` commit or the job
+    just started — never emit a fake steady 5%.
+    """
+    if getattr(school, "is_active", False):
+        steps = _default_steps()
+        for step in steps:
+            step["state"] = "done"
+        return {
+            "status": "succeeded",
+            "progress_percent": 100,
+            "current_key": "",
+            "current_label": "",
+            "steps": steps,
+            "workflow_run_id": None,
+            "eta": 0,
+            "remediation": _suggested_remediation_payload(None),
+        }
+
+    blocking = _blocking_error(school, None)
+    if blocking:
+        steps = _default_steps()
+        return {
+            "status": "failed",
+            "progress_percent": 0,
+            "current_key": "",
+            "current_label": "",
+            "steps": steps,
+            "workflow_run_id": None,
+            "eta": 0,
+            "remediation": _suggested_remediation_payload(None),
+        }
+
+    started_at = _provisioning_started_at(school)
+    steps = _default_steps()
+    if started_at is not None:
+        age = max(0, int((timezone.now() - started_at).total_seconds()))
+        expected = 180  # magic-number-allow: provision-expected-duration-seconds
+        pct = min(85, max(8, int(round((age / expected) * 100))))
+        active_idx = min(len(PROVISION_STEP_KEYS) - 1, age // 36)
+        active_key = PROVISION_STEP_KEYS[active_idx]
+        for idx, step in enumerate(steps):
+            if idx < active_idx:
+                step["state"] = "done"
+            elif step["key"] == active_key:
+                step["state"] = "active"
+        return {
+            "status": "running",
+            "progress_percent": pct,
+            "current_key": active_key,
+            "current_label": _step_label(active_key),
+            "steps": steps,
+            "workflow_run_id": None,
+            "eta": max(5, expected - age),
+            "remediation": _suggested_remediation_payload(None),
+        }
+
+    steps[0]["state"] = "pending"
+    return {
+        "status": "running",
+        "progress_percent": 0,
+        "current_key": "admin_user",
+        "current_label": str(_("Starting provisioning…")),
+        "steps": steps,
+        "workflow_run_id": None,
+        "eta": 90,
+        "remediation": _suggested_remediation_payload(None),
+    }
+
+
 def resolve_provisioning_progress(
     school,
     *,
@@ -322,17 +415,15 @@ def resolve_provisioning_progress(
         eta = _eta_seconds(run)
         remediation = _suggested_remediation_payload(run)
     else:
-        steps = _default_steps()
-        status = "succeeded" if getattr(school, "is_active", False) else "running"
-        current_key = ""
-        current_label = _step_label("admin_user") if status == "running" else ""
-        progress_percent = 100 if getattr(school, "is_active", False) else 5
-        workflow_run_id = None
-        eta = 90
-        remediation = _suggested_remediation_payload(None)
-        if status == "running" and steps:
-            steps[0]["state"] = "active"
-            current_key = "admin_user"
+        fallback = _progress_while_run_not_yet_visible(school)
+        status = fallback["status"]
+        current_key = fallback["current_key"]
+        current_label = fallback["current_label"]
+        progress_percent = fallback["progress_percent"]
+        steps = fallback["steps"]
+        workflow_run_id = fallback["workflow_run_id"]
+        eta = fallback["eta"]
+        remediation = fallback["remediation"]
 
     blocking = _blocking_error(school, run)
 

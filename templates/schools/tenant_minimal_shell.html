@@ -8,8 +8,17 @@ Minimal tenant workspace chrome — school name only; no platform nav/footer.
 {% block navbar %}
 <nav class="navbar navbar-dark statement-header" aria-label="{% trans 'Campus' %}">
   <div class="container d-flex align-items-center py-2">
-    {% with brand_label=SITE.site_name|default:school.name|default:"Your school" %}
-    {% include "components/rmc_brand_mark.html" with size=32 variant="lockup" label=brand_label href="#" %}
+    {% with brand_label=SITE.site_name|default:school.name|default:pending_school_name|default:"Your school" %}
+    {% if tenant_blank_brand %}
+    <span class="rmc-brand-mark rmc-brand-mark--lockup rmc-brand-mark--pending-blank" style="--rmc-bm-size: 32px;">
+      <span class="rmc-brand-mark__squircle rmc-brand-mark__squircle--blank" aria-hidden="true"></span>
+      <span class="rmc-brand-mark__wordmark">
+        <span class="rmc-brand-mark__title">{{ brand_label }}</span>
+      </span>
+    </span>
+    {% else %}
+    {% include "components/rmc_brand_mark.html" with size=32 variant="lockup" label=brand_label href="#" blank_mark=1 %}
+    {% endif %}
     {% endwith %}
   </div>
 </nav>

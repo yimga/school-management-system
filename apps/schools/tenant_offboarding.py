@@ -692,6 +692,34 @@ def set_legal_hold(school, *, hold_until: str | None, actor=None) -> dict[str, A
     return {"legal_hold_active": hold_active, "legal_hold_until": hold_until}
 
 
+def clear_purge_policy_blockers(
+    school,
+    *,
+    actor=None,
+    reason: str = "operator_test_purge_override",
+) -> dict[str, Any]:
+    """Clear legal hold and dual-approval gates for an intentional test/dev purge."""
+    now_iso = datetime.now(tz=timezone.utc).isoformat()
+    actor_id = getattr(actor, "pk", None)
+    _save_offboarding_settings(
+        school,
+        {
+            "legal_hold_until": None,
+            "dual_approved": True,
+            "policy_override_at": now_iso,
+            "policy_override_reason": (reason or "").strip() or "operator_test_purge_override",
+            "policy_override_by": actor_id,
+        },
+    )
+    hold_active, hold_until = legal_hold_active(school)
+    return {
+        "legal_hold_active": hold_active,
+        "legal_hold_until": hold_until,
+        "dual_approved": True,
+        "policy_override_at": now_iso,
+    }
+
+
 def apply_purge(
     school,
     *,

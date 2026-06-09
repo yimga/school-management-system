@@ -153,6 +153,13 @@ html:not([data-rmc-shell="off"]) .rmc-app-shell__sidebar {
   max-height: 100%;
 }
 
+[data-rmc-isomorphic-template="operator-control-plane"] .rmc-app-shell__copilot {
+  grid-row: 2;
+  grid-column: 3;
+  width: var(--rmc-app-shell-copilot-w, 44px);
+  max-width: var(--rmc-app-shell-copilot-w, 44px);
+}
+
 /* Phone collapse for the operator 3-col bind. The rule above is specificity
    (0,3,0) and had NO mobile breakpoint, so it overrode every lower-specificity
    collapse (base rmc-app-shell.css @media, rmc-cp-200x.css) and kept the

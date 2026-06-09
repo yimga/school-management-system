@@ -7,7 +7,11 @@ import logging
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.schools.models import School
-from apps.schools.tenant_offboarding import apply_purge, dry_run_purge
+from apps.schools.tenant_offboarding import (
+    apply_purge,
+    clear_purge_policy_blockers,
+    dry_run_purge,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +42,14 @@ class Command(BaseCommand):
             action="store_true",
             help="Allow purge while provisioning events are in-flight.",
         )
+        parser.add_argument(
+            "--override-policy",
+            action="store_true",
+            help=(
+                "Test/dev only: clear legal hold and bypass dual-approval gates "
+                "(also enables --force-provisioning)."
+            ),
+        )
 
     def handle(self, *args, **opts):
         slugs = [
@@ -61,25 +73,45 @@ class Command(BaseCommand):
                     f"list exactly: {expected!r}"
                 )
 
+        override_policy = bool(opts.get("override_policy"))
         for slug in slugs:
             self._purge_one_slug(
                 slug,
                 apply=bool(opts.get("apply")),
-                force_provisioning=bool(opts.get("force_provisioning")),
+                force_provisioning=bool(opts.get("force_provisioning"))
+                or override_policy,
+                dual_approved=override_policy,
+                override_policy=override_policy,
             )
 
     def _purge_one_slug(
-        self, slug: str, *, apply: bool, force_provisioning: bool
+        self,
+        slug: str,
+        *,
+        apply: bool,
+        force_provisioning: bool,
+        dual_approved: bool = False,
+        override_policy: bool = False,
     ) -> None:
         school = School.objects.filter(slug=slug).first()
         if school is None:
             raise CommandError(f"School slug not found: {slug!r}")
+
+        if override_policy:
+            state = clear_purge_policy_blockers(school, reason="tenant_purge_cli_override")
+            self.stdout.write(
+                self.style.WARNING(
+                    f"[{slug}] Policy override: legal_hold={state['legal_hold_active']}, "
+                    f"dual_approved={state['dual_approved']}"
+                )
+            )
 
         if not apply:
             preview = dry_run_purge(
                 school,
                 confirm_slug=slug,
                 force_provisioning=force_provisioning,
+                dual_approved=dual_approved,
             )
             self.stdout.write(
                 self.style.SUCCESS(
@@ -108,6 +140,8 @@ class Command(BaseCommand):
                 confirm_slug=slug,
                 dry_run=False,
                 force_provisioning=force_provisioning,
+                dual_approved=dual_approved,
+                purge_source="cli_override" if override_policy else "operator",
             )
         except ValueError as exc:
             raise CommandError(str(exc)) from exc

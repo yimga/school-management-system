@@ -615,10 +615,15 @@ def _audience_matches(action: SystemAction, bucket: str) -> bool:
     return action.audience == bucket
 
 
-def get_control_plane_actions(user, *, limit: int = 6) -> list[SystemAction]:
+def get_control_plane_actions(
+    user,
+    *,
+    limit: int = 6,
+    request: Any | None = None,
+) -> list[SystemAction]:
     """
     When no tenant ``school`` is on the request (e.g. control plane / super routes),
-    surface a small set of platform navigation actions for staff.
+    surface operational next steps — not generic "open the page you are already on".
     """
     if not user or not getattr(user, "is_authenticated", False):
         return []
@@ -626,16 +631,61 @@ def get_control_plane_actions(user, *, limit: int = 6) -> list[SystemAction]:
         getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)
     ):
         return []
+    current_path = ""
+    if request is not None:
+        current_path = (getattr(request, "path", "") or "").split("?", 1)[0].rstrip("/")
+
     out: list[SystemAction] = []
-    pairs = [
-        ("super:founder_dashboard", "Platform Command Center", "Platform closure metrics and audits."),
-        ("super:command_center", "Command center", "Cross-tenant operations and incidents."),
-        ("super:dashboard", "Control plane home", "School portfolio and health."),
-        ("siteconfig:console_domains_hub", "Configuration center", "Domains and platform wiring."),
+    pairs: list[tuple[str, str, str, int]] = [
+        (
+            "super:schools_list",
+            "School directory",
+            "Query tenants, open Tenant 360, and run lifecycle actions.",
+            90,
+        ),
+        (
+            "super:tenant_health",
+            "Tenant health grid",
+            "Review health, onboarding stage, and schools needing attention.",
+            85,
+        ),
+        (
+            "super:command_center",
+            "Operational queues",
+            "Support backlog, provisioning SLA breaches, and approvals.",
+            80,
+        ),
+        (
+            "super:offboarding_queue",
+            "Offboarding queue",
+            "Wind-down, export, and scheduled purge workflows.",
+            75,
+        ),
+        (
+            "super:dashboard",
+            "Control plane home",
+            "Portfolio pulse, globe footprint, and tenant heatmap.",
+            60,
+        ),
+        (
+            "super:founder_dashboard",
+            "Founder metrics",
+            "Platform closure metrics and audit posture.",
+            55,
+        ),
+        (
+            "siteconfig:console_domains_hub",
+            "Configuration center",
+            "Domains, DNS, and platform wiring.",
+            50,
+        ),
     ]
-    for viewname, title, desc in pairs:
+    for viewname, title, desc, priority in pairs:
         url = _safe_reverse(viewname)
         if not url:
+            continue
+        normalized = url.rstrip("/")
+        if current_path and normalized == current_path:
             continue
         out.append(
             SystemAction(
@@ -643,13 +693,12 @@ def get_control_plane_actions(user, *, limit: int = 6) -> list[SystemAction]:
                 title=title,
                 description=desc,
                 action_url=url,
-                priority=50,
+                priority=priority,
                 audience="founder",
                 source="control_plane",
             )
         )
-        if len(out) >= limit:
-            break
+    out.sort(key=lambda a: (-a.priority, a.title.lower()))
     return out[:limit]
 
 
@@ -677,7 +726,7 @@ def get_actions_for_user(
         if request is not None:
             path = getattr(request, "path", "") or ""
         if path.startswith("/super/"):
-            return get_control_plane_actions(user, limit=limit)
+            return get_control_plane_actions(user, limit=limit, request=request)
         return []
 
     bucket = infer_primary_audience(user)

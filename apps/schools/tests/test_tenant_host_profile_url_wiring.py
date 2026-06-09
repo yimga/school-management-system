@@ -58,3 +58,21 @@ class ManagerHostProfileUrlWiringTests(SimpleTestCase):
                 else:
                     url = reverse(viewname, urlconf="config.manager_urls")
                 self.assertIn("/super/", url)
+
+
+class TenantFaviconRedirectTests(SimpleTestCase):
+    """Regression: favicon must not call django.conf.urls.static (returns URL pattern list)."""
+
+    def test_favicon_redirect_returns_static_asset_url(self):
+        from django.test import RequestFactory
+
+        from config.tenant_urls import favicon_redirect
+
+        response = favicon_redirect(RequestFactory().get("/favicon.ico"))
+        self.assertIn(response.status_code, (301, 302))
+        location = response["Location"]
+        self.assertIn("runmycampus-icon", location)
+        self.assertTrue(
+            location.startswith("/static/") or location.startswith("http"),
+            msg=location,
+        )

@@ -4,7 +4,8 @@ Used when request.urlconf is set to this module by UrlConfSwitcherMiddleware.
 """
 
 from django.conf import settings
-from django.conf.urls.static import static
+from django.conf.urls.static import static as static_media_serve
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.shortcuts import redirect
 from django.urls import include, path
@@ -104,7 +105,10 @@ def home(request):
 
 def favicon_redirect(request):
     """Serve favicon by redirecting to default static icon; avoids 500 when 404 pipeline runs for /favicon.ico."""
-    return redirect(static("images/runmycampus-icon.png"), permanent=False)
+    return redirect(
+        staticfiles_storage.url("images/runmycampus-icon.png"),
+        permanent=False,
+    )
 
 
 def _is_schema_allowed(user):
@@ -660,4 +664,4 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += staticfiles_urlpatterns()
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static_media_serve(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

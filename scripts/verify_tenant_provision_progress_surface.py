@@ -46,6 +46,7 @@ def run_scan() -> list[dict[str, str]]:
         ("templates/accounts/owner_onboarding/account.html", "rmc_tenant_provision_progress.html"),
         ("templates/siteconfig/tenant_provisioning_status.html", "rmc_tenant_provision_progress.html"),
         ("templates/schools/tenant_setup_in_progress.html", "rmc_tenant_provision_progress.html"),
+        ("templates/schools/tenant_setup_in_progress.html", "tenant_minimal_shell.html"),
         ("templates/schools/super_tenant_360.html", "tenant-360-provisioning"),
     ):
         p = REPO_ROOT / tpl

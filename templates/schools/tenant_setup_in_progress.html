@@ -1,48 +1,64 @@
-{% extends "base.html" %}
-{% load i18n %}
-
-{% block title %}{% trans "Campus setup in progress" %}{% endblock %}
-
-{% block content %}
-<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
-
-{% include "components/next_action_strip.html" %}
-
-<section class="rmc-card mx-auto my-5" style="max-width: 42rem;">
-  <header class="text-center mb-4">
-    <div data-rmc-scroll-policy="paginate" class="display-6 text-primary mb-2" aria-hidden="true"><i class="bi bi-hourglass-split"></i></div>
-    <h1 class="h3">{% blocktrans with name=pending_school_name %}Setting up {{ name }}{% endblocktrans %}</h1>
-    <p class="text-muted mb-0">
-      {% if pending_state == 'awaiting_verification' %}
-      {% trans "We received your signup — verify your email to continue." %}
-      {% else %}
-      {% trans "Your campus portal is being activated. This usually takes about a minute." %}
-      {% endif %}
-    </p>
-  </header>
-
-  {% if provision_progress_api_url and pending_state != 'awaiting_verification' %}
-  <div class="mb-4">
-    {% include "components/rmc_tenant_provision_progress.html" with provision_progress_api_url=provision_progress_api_url %}
-  </div>
-  {% endif %}
-
-  <div class="d-grid gap-2">
-    {% if pending_recovery_links.continue_setup_url %}
-    <a class="btn btn-primary" href="{{ pending_recovery_links.continue_setup_url }}">{% trans "Continue setup" %}</a>
-    {% endif %}
-    {% if pending_recovery_links.onboarding_done_url %}
-    <a class="btn btn-outline-primary" href="{{ pending_recovery_links.onboarding_done_url }}">{% trans "Check setup status" %}</a>
-    {% endif %}
-    <a class="btn btn-outline-secondary" href="{{ pending_recovery_links.login_url }}">{% trans "Sign in to your campus" %}</a>
-    {% if pending_state == 'awaiting_verification' and pending_recovery_links.resend_verification_url %}
-    <a class="btn btn-link" href="{{ pending_recovery_links.resend_verification_url }}">{% trans "Resend verification email" %}</a>
-    {% endif %}
-  </div>
-
-  <p class="text-muted small text-center mt-4 mb-0">
-    {% trans "You can bookmark this address — your portal will load here automatically when ready." %}
-  </p>
-</section>
-{% endblock %}
+{% extends "schools/tenant_minimal_shell.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Campus setup in progress" %}{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+<section class="rmc-card mx-auto my-5" style="max-width: 42rem;" data-rmc-page-fold-nav="required">
+  <header class="text-center mb-4">
+    <div class="display-6 text-primary mb-2" aria-hidden="true"><i class="bi bi-hourglass-split"></i></div>
+    <h1 class="h3">{% blocktrans with name=pending_school_name %}Setting up {{ name }}{% endblocktrans %}</h1>
+    <p class="text-muted mb-0">
+      {% if pending_state == 'awaiting_verification' %}
+      {% trans "We received your signup — verify your email to continue." %}
+      {% elif portal_ready %}
+      {% trans "Your campus portal is ready. Sign in below to get started." %}
+      {% else %}
+      {% trans "Your campus portal is being activated. Watch the steps below — this usually takes about a minute." %}
+      {% endif %}
+    </p>
+  </header>
+
+  {% if pending_state == 'awaiting_verification' %}
+  <div class="d-grid gap-2">
+    {% if pending_recovery_links.resend_verification_url %}
+    <a class="btn btn-primary" href="{{ pending_recovery_links.resend_verification_url }}">{% trans "Resend verification email" %}</a>
+    {% endif %}
+    {% if pending_recovery_links.continue_setup_url %}
+    <a class="btn btn-outline-primary" href="{{ pending_recovery_links.continue_setup_url }}">{% trans "Continue setup" %}</a>
+    {% endif %}
+  </div>
+  {% else %}
+  {% if provision_progress_api_url %}
+  <div class="mb-4" id="rmc-provision-live-workflow">
+    {% include "components/rmc_tenant_provision_progress.html" with provision_progress_api_url=provision_progress_api_url provision_initial_steps=provision_initial_steps provision_progress_percent=provision_progress_percent provision_current_step_label=provision_current_step_label show_provision_steps=True %}
+  </div>
+  {% if owner_email and not portal_ready %}
+  <p class="text-muted small text-center mb-3">
+    {% blocktrans with email=owner_email %}When your portal is ready we'll email <strong>{{ email }}</strong>. You can keep this page open — it updates automatically.{% endblocktrans %}
+  </p>
+  {% endif %}
+  {% endif %}
+
+  <div class="d-grid gap-2" id="rmc-provision-complete-actions"{% if not portal_ready %} hidden{% endif %}>
+    {% if pending_recovery_links.login_url %}
+    <a class="btn btn-primary" href="{{ pending_recovery_links.login_url }}" data-rmc-provision-login="1">
+      <i class="bi bi-box-arrow-in-right me-1"></i>{% trans "Sign in to your campus" %}
+    </a>
+    {% endif %}
+  </div>
+
+  {% if pending_recovery_links.continue_setup_url %}
+  <div class="d-grid gap-2 mt-2">
+    <a class="btn btn-outline-primary" href="{{ pending_recovery_links.continue_setup_url }}">{% trans "Finish account setup" %}</a>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  <p class="text-muted small text-center mt-4 mb-0">
+    {% trans "You can bookmark this address — your portal will load here automatically when ready." %}
+  </p>
+</section>
+{% endblock %}

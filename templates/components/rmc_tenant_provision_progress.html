@@ -13,22 +13,28 @@
     <span class="rmc-provision-progress__label small fw-semibold" data-rmc-provision-label>
       {% trans "Setting up your campus" %}
     </span>
-    <span class="rmc-provision-progress__pct small text-muted" data-rmc-provision-pct>0%</span>
+    <span class="rmc-provision-progress__pct small text-muted" data-rmc-provision-pct>{{ provision_progress_percent|default:0 }}%</span>
   </div>
   <div
     class="rmc-provision-progress__track rmc-wfp-track"
     role="progressbar"
     aria-valuemin="0"
     aria-valuemax="100"
-    aria-valuenow="0"
+    aria-valuenow="{{ provision_progress_percent|default:0 }}"
     data-rmc-provision-bar
   >
-    <div class="rmc-provision-progress__fill rmc-wfp-fill" data-rmc-provision-fill style="width: 0%;"></div>
+    <div class="rmc-provision-progress__fill rmc-wfp-fill" data-rmc-provision-fill style="width: {{ provision_progress_percent|default:0 }}%;"></div>
   </div>
   <p class="rmc-provision-progress__step small text-muted mt-2 mb-3" data-rmc-provision-step>
-    {% trans "Preparing your workspace…" %}
+    {% if provision_current_step_label %}{{ provision_current_step_label }}{% else %}{% trans "Preparing your workspace…" %}{% endif %}
   </p>
-  <ol class="rmc-provision-progress__steps rmc-wfp-steps list-unstyled mb-0" data-rmc-provision-steps hidden></ol>
+  <ol class="rmc-provision-progress__steps rmc-wfp-steps list-unstyled mb-0" data-rmc-provision-steps{% if not show_provision_steps %} hidden{% endif %}>
+    {% if provision_initial_steps %}
+      {% for step in provision_initial_steps %}
+      <li class="rmc-wfp-step rmc-wfp-step--{{ step.state|default:'pending' }}"><span class="rmc-wfp-step__label">{{ step.label }}</span></li>
+      {% endfor %}
+    {% endif %}
+  </ol>
   <div class="rmc-provision-progress__error alert alert-warning small mt-3 d-none" role="alert" data-rmc-provision-error-panel>
     <strong>{% trans "Setup needs attention" %}</strong>
     <div class="mt-1" data-rmc-provision-error-text></div>

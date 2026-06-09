@@ -6,6 +6,7 @@ When USE_DJANGO_TENANTS is True, ensures Client and Domain exist and runs tenant
 
 import logging
 import secrets
+import time
 from contextlib import contextmanager
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -188,13 +189,16 @@ def _record_school_event(
     try:
         from .models import SchoolProvisioningEvent
 
-        SchoolProvisioningEvent.log_event(
-            school=school,
-            event_type=event_type,
-            status=status,
-            message=message,
-            payload=payload or {},
-        )
+        # Nested atomic = savepoint so a best-effort log write cannot poison
+        # the outer provision_school_task / provision_school_sync transaction.
+        with transaction.atomic():
+            SchoolProvisioningEvent.log_event(
+                school=school,
+                event_type=event_type,
+                status=status,
+                message=message,
+                payload=payload or {},
+            )
     except (DatabaseError, IntegrityError, AttributeError, TypeError, ValueError):
         log_exception_with_context(
             "schools.tasks._record_school_event: failed to record provisioning event",
@@ -217,13 +221,14 @@ def _record_school_event_by_id(
         school = School.objects.filter(id=school_id).first()
         if not school:
             return
-        SchoolProvisioningEvent.log_event(
-            school=school,
-            event_type=event_type,
-            status=status,
-            message=message,
-            payload=payload or {},
-        )
+        with transaction.atomic():
+            SchoolProvisioningEvent.log_event(
+                school=school,
+                event_type=event_type,
+                status=status,
+                message=message,
+                payload=payload or {},
+            )
     except (DatabaseError, IntegrityError, AttributeError, TypeError, ValueError):
         log_exception_with_context(
             "schools.tasks._record_school_event_by_id: failed to record provisioning event",
@@ -460,10 +465,15 @@ _PROVISIONING_FAILURES = (
 
 
 def provision_school_sync(school_id: str, contact_email: str = "", **kwargs):
-    """Run provisioning synchronously (no Celery)."""
+    """Run provisioning synchronously (no Celery).
+
+    Intentionally **not** wrapped in a single outer ``transaction.atomic()``:
+    ``_do_provision`` creates a ``WorkflowRun`` at the start and pulses steps
+    while work runs. An outer atomic block hid the run from poll APIs until
+    the entire job committed (owners saw fake 5% for minutes).
+    """
     try:
-        with transaction.atomic():
-            _do_provision(school_id, contact_email=contact_email, **kwargs)
+        _do_provision(school_id, contact_email=contact_email, **kwargs)
     except _PROVISIONING_FAILURES as exc:
         _record_school_event_by_id(
             school_id,
@@ -528,11 +538,21 @@ def ensure_admin_user_for_school(school, contact_email: str):
             admin_user.username,
             getattr(school, "id", None),
         )
-    SchoolMembership.objects.get_or_create(
+    membership, membership_created = SchoolMembership.objects.get_or_create(
         user=admin_user,
         school=school,
         defaults={"role": User.Role.ADMIN, "is_primary": True},
     )
+    if not membership_created:
+        SchoolMembership.objects.filter(pk=membership.pk).update(
+            role=User.Role.ADMIN,
+            is_primary=True,
+        )
+    # Repeat signups with the same email must not keep an older demo school
+    # as primary — onboarding resolves is_primary=True first.
+    SchoolMembership.objects.filter(user=admin_user, is_primary=True).exclude(
+        school=school
+    ).update(is_primary=False)
     return admin_user, created
 
 
@@ -764,7 +784,7 @@ def _do_provision_tracked(
             note="provision_job_started",
             payload={"workflow_key": "tenant_school_provision"},
         )
-    except (ImportError, AttributeError, TypeError, ValueError):
+    except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
         pass
     try:
         from apps.platform_runtime.events import emit_platform_event
@@ -1374,8 +1394,7 @@ try:
     @shared_task(bind=True, max_retries=3)
     def provision_school_task(self, school_id: str, contact_email: str = "", **kwargs):
         try:
-            with transaction.atomic():
-                _do_provision(school_id, contact_email=contact_email, **kwargs)
+            _do_provision(school_id, contact_email=contact_email, **kwargs)
         except _PROVISIONING_FAILURES as exc:
             logger.exception("Provisioning failed for %s", school_id)
             _record_school_event_by_id(

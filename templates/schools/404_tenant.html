@@ -39,16 +39,19 @@
           <p class="text-muted mb-4">{% trans "Verify your email to continue. Your campus subdomain activates after verification and provisioning finish." %}</p>
           <div class="d-flex flex-wrap gap-2 justify-content-center">
             <a class="btn btn-primary" href="{{ pending_recovery_links.resend_verification_url }}">{% trans "Resend verification email" %}</a>
+            {% if pending_recovery_links.login_url %}
             <a class="btn btn-outline-primary" href="{{ pending_recovery_links.login_url }}">{% trans "Sign in" %}</a>
+            {% endif %}
           </div>
           {% else %}
-          <p class="text-muted mb-4">{% trans "Finish owner onboarding or sign in on the public site while provisioning completes. Do not use the manager console." %}</p>
+          <p class="text-muted mb-4">{% trans "Your campus is being provisioned. Open your school address to watch live progress." %}</p>
           <div class="d-flex flex-wrap gap-2 justify-content-center">
             {% if pending_recovery_links.continue_setup_url %}
-            <a class="btn btn-primary" href="{{ pending_recovery_links.continue_setup_url }}">{% trans "Continue setup" %}</a>
+            <a class="btn btn-primary" href="{{ pending_recovery_links.continue_setup_url }}">{% trans "Finish account setup" %}</a>
             {% endif %}
-            <a class="btn btn-outline-primary" href="{{ pending_recovery_links.login_url }}">{% trans "Sign in at runmycampus.com" %}</a>
-            <a class="btn btn-outline-secondary" href="{{ pending_recovery_links.onboarding_done_url }}">{% trans "Check provisioning status" %}</a>
+            {% if pending_recovery_links.login_url %}
+            <a class="btn btn-primary" href="{{ pending_recovery_links.login_url }}">{% trans "Sign in to your campus" %}</a>
+            {% endif %}
           </div>
           {% endif %}
           {% else %}
