@@ -54,6 +54,8 @@ class InteractionIntegrityContractTests(SimpleTestCase):
             "/authentication/documentation/",
             "/authentication/notifications/",
             "/kb/",
+            "/assist-dock/context.json",
+            "/platform-runtime/workflow-progress/stream/",
         ):
             self.assertTrue(
                 any(path.startswith(p) for p in MANAGER_HOST_ALLOWED_PREFIXES),

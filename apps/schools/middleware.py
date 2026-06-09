@@ -133,6 +133,10 @@ MANAGER_HOST_ALLOWED_PREFIXES = (
     "/favicon.ico",
     "/offline/",
     "/platform-runtime/",
+    # v4.02.34: assist-dock realtime/API (badges, SSE, presence) — manager shell loads
+    # rmc-assist-dock.js; without this prefix ReservedPublicHostAccessMiddleware
+    # 302s every /assist-dock/* call to "/" and breaks dock chrome on manager.
+    "/assist-dock/",
 )
 
 MANAGER_HOST_PUBLIC_ACCESS_PREFIXES = (
@@ -176,6 +180,8 @@ MANAGER_HOST_PUBLIC_ACCESS_PREFIXES = (
     "/static/",
     "/media/",
     "/favicon.ico",
+    # Anonymous 24h share-link resolver (see assist_dock UnauthenticatedApiGuard exempt).
+    "/assist-dock/s/",
     "/privacy/",
     "/terms/",
     "/cookie-policy/",

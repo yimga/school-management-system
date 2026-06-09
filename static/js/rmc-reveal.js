@@ -155,6 +155,18 @@
     });
   }
 
+  function revealAllStranded() {
+    document.querySelectorAll(".rmc-reveal:not(.is-revealed)").forEach(revealNow);
+  }
+
+  function scheduleGlobalRevealFailsafe() {
+    window.setTimeout(function () {
+      if (countRevealState().hiddenOpacity > 0) {
+        revealAllStranded();
+      }
+    }, 1200);
+  }
+
   function init() {
     if (prefersReducedMotion()) {
       // Respect the user. CSS already strips the transition; just flip the class.
@@ -164,10 +176,14 @@
     assignStaggerIndexes(document);
     var scrollRoot = resolveScrollRoot();
     var observer = setupObserver(scrollRoot);
-    if (!observer) return; // already revealed above
+    if (!observer) {
+      scheduleGlobalRevealFailsafe();
+      return; // already revealed above
+    }
 
     observeAll(observer, document);
     revealVisibleInRoot(scrollRoot);
+    scheduleGlobalRevealFailsafe();
 
     if (scrollRoot) {
       function revealAllInScrollRoot() {
@@ -257,9 +273,17 @@
     }
   }
 
+  function safeInit() {
+    try {
+      init();
+    } catch (_e) {
+      revealAllStranded();
+    }
+  }
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
+    document.addEventListener("DOMContentLoaded", safeInit);
   } else {
-    init();
+    safeInit();
   }
 })();

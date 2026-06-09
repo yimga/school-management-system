@@ -41,6 +41,32 @@ class ManagerHeaderAccountPathTests(SimpleTestCase):
             request.user = AnonymousUser()
             self.assertIsNone(middleware.process_request(request))
 
+    def test_allowlist_includes_assist_dock_realtime_paths(self):
+        for path in (
+            "/assist-dock/context.json",
+            "/assist-dock/context/stream/",
+            "/assist-dock/presence/heartbeat/",
+            "/assist-dock/s/abc123/",
+        ):
+            self.assertTrue(
+                any(path.startswith(prefix) for prefix in MANAGER_HOST_ALLOWED_PREFIXES),
+                msg=f"missing allowlist for {path}",
+            )
+
+    def test_reserved_middleware_allows_assist_dock_on_manager_host(self):
+        factory = RequestFactory()
+        middleware = ReservedPublicHostAccessMiddleware(lambda r: None)
+        for path in (
+            "/assist-dock/context.json",
+            "/assist-dock/presence/heartbeat/",
+        ):
+            request = factory.get(path, HTTP_HOST="manager.runmycampus.com")
+            request.user = AnonymousUser()
+            self.assertIsNone(
+                middleware.process_request(request),
+                msg=f"expected allow for {path}",
+            )
+
     def test_reserved_middleware_still_blocks_unknown_account_paths(self):
         factory = RequestFactory()
         middleware = ReservedPublicHostAccessMiddleware(lambda r: None)

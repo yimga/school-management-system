@@ -12,6 +12,7 @@ On success, writes ``docs/generated/shell_surface_inventory_ledger.md`` (mechani
 from __future__ import annotations
 
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -411,6 +412,29 @@ def _django_messages_direct_include_violations() -> list[str]:
     return bad
 
 
+_HTML_REGISTRY_ATTRS_PARTIAL = "templates/partials/shell_rmc_registry_html_attrs.html"
+_HTML_REGISTRY_FORBIDDEN_MARKERS = ("<div", "<section", "<script", "<style", "<main", "<body")
+
+
+def _html_registry_attrs_must_be_attributes_only() -> list[str]:
+    """Included inside <html ...> — block tags corrupt the DOM (manager blank-screen outage)."""
+    path = REPO / _HTML_REGISTRY_ATTRS_PARTIAL
+    if not path.is_file():
+        return [f"MISSING FILE {_HTML_REGISTRY_ATTRS_PARTIAL}"]
+    text = path.read_text(encoding="utf-8", errors="replace")
+    # Strip django comment blocks so doc examples do not trip the gate.
+    text = re.sub(r"\{#.*?#\}", "", text, flags=re.DOTALL)
+    text = re.sub(r"\{%\s*comment\s*%\}.*?\{%\s*endcomment\s*%\}", "", text, flags=re.DOTALL | re.I)
+    bad: list[str] = []
+    for marker in _HTML_REGISTRY_FORBIDDEN_MARKERS:
+        if marker in text.lower():
+            bad.append(
+                f"{_HTML_REGISTRY_ATTRS_PARTIAL}: must be html attributes only; "
+                f"found forbidden {marker!r}"
+            )
+    return bad
+
+
 def _write_ledger(passed: bool, rows: list[dict[str, str]]) -> None:
     LEDGER.parent.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -465,6 +489,8 @@ def main() -> int:
                 "summary": "ok" if not miss else f"missing: {', '.join(miss)}",
             }
         )
+    for b in _html_registry_attrs_must_be_attributes_only():
+        bad.append(b)
     dmv = _django_messages_direct_include_violations()
     for b in dmv:
         bad.append(b)
