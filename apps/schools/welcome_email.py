@@ -10,7 +10,6 @@ from __future__ import annotations
 import logging
 
 from django.conf import settings
-from django.urls import NoReverseMatch
 from django.utils.html import escape
 
 logger = logging.getLogger(__name__)

@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 from unittest import mock
 
-from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 
 from apps.accounts.models import User

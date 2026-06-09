@@ -19,7 +19,6 @@ from apps.platform_runtime.smart_links_kernel import get_smart_links
 from apps.platform_runtime.table_grammar_kernel import (
     Column,
     MAX_PRIMARY_COLUMNS,
-    TruncationResult,
     build_columns_from_dicts,
     truncate_columns,
 )

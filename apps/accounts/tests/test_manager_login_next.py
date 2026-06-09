@@ -7,7 +7,6 @@ from django.urls import reverse
 from apps.accounts.manager_login_next import (
     build_public_post_login_url,
     is_toxic_login_next_for_manager,
-    request_is_manager_host,
     sanitize_manager_login_next,
     tenant_staff_should_use_public_host,
 )

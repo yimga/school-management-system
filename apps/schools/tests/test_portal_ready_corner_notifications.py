@@ -6,7 +6,6 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase, override_settings
 
 from apps.accounts.context_processors_security import account_security_context
-from apps.accounts.models import User
 from apps.finance.models import Notification
 from apps.schools.portal_ready_corner_notifications import (
     mark_portal_ready_corner_dismissed,

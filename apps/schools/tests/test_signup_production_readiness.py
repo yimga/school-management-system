@@ -4,12 +4,11 @@ from __future__ import annotations
 
 from unittest import mock
 
-from django.contrib.auth import get_user_model
 from django.test import Client, RequestFactory, TestCase, override_settings
 from django.utils import timezone
 
 from apps.accounts.models import User
-from apps.schools.middleware import TenantMiddleware, _enforce_tenant_host_membership
+from apps.schools.middleware import _enforce_tenant_host_membership
 from apps.schools.models import School, SchoolMembership, SignupVerification
 from apps.schools.signup_completion_notifications import (
     build_signup_completed_payload,

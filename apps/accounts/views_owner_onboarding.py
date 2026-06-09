@@ -30,7 +30,7 @@ from django.contrib.auth import password_validation
 from django.contrib.auth.views import PasswordResetConfirmView
 from django.contrib import messages
 from django.shortcuts import redirect, render
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _l
 from django.views.decorators.http import require_http_methods
 

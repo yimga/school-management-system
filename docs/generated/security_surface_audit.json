@@ -944,7 +944,7 @@
         "classification": "allowed",
         "file": "apps/schools/section8_views.py",
         "governance_tier": "safe",
-        "line": "832",
+        "line": "831",
         "pattern": "csrf_exempt"
       },
       {
@@ -952,7 +952,7 @@
         "classification": "allowed",
         "file": "apps/schools/section8_views.py",
         "governance_tier": "safe",
-        "line": "907",
+        "line": "906",
         "pattern": "csrf_exempt"
       },
       {
@@ -960,7 +960,7 @@
         "classification": "allowed",
         "file": "apps/schools/section8_views.py",
         "governance_tier": "safe",
-        "line": "965",
+        "line": "964",
         "pattern": "csrf_exempt"
       },
       {
@@ -968,7 +968,7 @@
         "classification": "allowed",
         "file": "apps/schools/section8_views.py",
         "governance_tier": "safe",
-        "line": "1012",
+        "line": "1011",
         "pattern": "csrf_exempt"
       },
       {
@@ -976,7 +976,7 @@
         "classification": "allowed",
         "file": "apps/schools/section8_views.py",
         "governance_tier": "safe",
-        "line": "1166",
+        "line": "1165",
         "pattern": "csrf_exempt"
       },
       {
@@ -10880,7 +10880,7 @@
         "classification": "allowed",
         "file": "apps/schools/section8_views.py",
         "governance_tier": "safe",
-        "line": "344",
+        "line": "343",
         "pattern": "require_http_methods"
       },
       {
@@ -10888,7 +10888,7 @@
         "classification": "allowed",
         "file": "apps/schools/section8_views.py",
         "governance_tier": "safe",
-        "line": "452",
+        "line": "451",
         "pattern": "require_http_methods"
       },
       {
@@ -10896,7 +10896,7 @@
         "classification": "allowed",
         "file": "apps/schools/section8_views.py",
         "governance_tier": "safe",
-        "line": "833",
+        "line": "832",
         "pattern": "require_http_methods"
       },
       {
@@ -10904,7 +10904,7 @@
         "classification": "allowed",
         "file": "apps/schools/section8_views.py",
         "governance_tier": "safe",
-        "line": "908",
+        "line": "907",
         "pattern": "require_http_methods"
       },
       {
@@ -10912,7 +10912,7 @@
         "classification": "allowed",
         "file": "apps/schools/section8_views.py",
         "governance_tier": "safe",
-        "line": "966",
+        "line": "965",
         "pattern": "require_http_methods"
       },
       {
@@ -10920,7 +10920,7 @@
         "classification": "allowed",
         "file": "apps/schools/section8_views.py",
         "governance_tier": "safe",
-        "line": "1013",
+        "line": "1012",
         "pattern": "require_http_methods"
       },
       {
@@ -10928,7 +10928,7 @@
         "classification": "allowed",
         "file": "apps/schools/section8_views.py",
         "governance_tier": "safe",
-        "line": "1074",
+        "line": "1073",
         "pattern": "require_http_methods"
       },
       {
@@ -10936,7 +10936,7 @@
         "classification": "allowed",
         "file": "apps/schools/section8_views.py",
         "governance_tier": "safe",
-        "line": "1122",
+        "line": "1121",
         "pattern": "require_http_methods"
       },
       {
@@ -10944,7 +10944,7 @@
         "classification": "allowed",
         "file": "apps/schools/section8_views.py",
         "governance_tier": "safe",
-        "line": "1167",
+        "line": "1166",
         "pattern": "require_http_methods"
       },
       {
@@ -18097,7 +18097,7 @@
       }
     ]
   },
-  "generated_at": "2026-06-09T00:51:18.240307+00:00",
+  "generated_at": "2026-06-09T00:59:27.913552+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/br_northstar_views.py",
@@ -19104,7 +19104,7 @@
       "classification": "allowed",
       "file": "apps/schools/section8_views.py",
       "governance_tier": "safe",
-      "line": "832",
+      "line": "831",
       "pattern": "csrf_exempt"
     },
     {
@@ -19112,7 +19112,7 @@
       "classification": "allowed",
       "file": "apps/schools/section8_views.py",
       "governance_tier": "safe",
-      "line": "907",
+      "line": "906",
       "pattern": "csrf_exempt"
     },
     {
@@ -19120,7 +19120,7 @@
       "classification": "allowed",
       "file": "apps/schools/section8_views.py",
       "governance_tier": "safe",
-      "line": "965",
+      "line": "964",
       "pattern": "csrf_exempt"
     },
     {
@@ -19128,7 +19128,7 @@
       "classification": "allowed",
       "file": "apps/schools/section8_views.py",
       "governance_tier": "safe",
-      "line": "1012",
+      "line": "1011",
       "pattern": "csrf_exempt"
     },
     {
@@ -19136,7 +19136,7 @@
       "classification": "allowed",
       "file": "apps/schools/section8_views.py",
       "governance_tier": "safe",
-      "line": "1166",
+      "line": "1165",
       "pattern": "csrf_exempt"
     },
     {
@@ -29032,7 +29032,7 @@
       "classification": "allowed",
       "file": "apps/schools/section8_views.py",
       "governance_tier": "safe",
-      "line": "344",
+      "line": "343",
       "pattern": "require_http_methods"
     },
     {
@@ -29040,7 +29040,7 @@
       "classification": "allowed",
       "file": "apps/schools/section8_views.py",
       "governance_tier": "safe",
-      "line": "452",
+      "line": "451",
       "pattern": "require_http_methods"
     },
     {
@@ -29048,7 +29048,7 @@
       "classification": "allowed",
       "file": "apps/schools/section8_views.py",
       "governance_tier": "safe",
-      "line": "833",
+      "line": "832",
       "pattern": "require_http_methods"
     },
     {
@@ -29056,7 +29056,7 @@
       "classification": "allowed",
       "file": "apps/schools/section8_views.py",
       "governance_tier": "safe",
-      "line": "908",
+      "line": "907",
       "pattern": "require_http_methods"
     },
     {
@@ -29064,7 +29064,7 @@
       "classification": "allowed",
       "file": "apps/schools/section8_views.py",
       "governance_tier": "safe",
-      "line": "966",
+      "line": "965",
       "pattern": "require_http_methods"
     },
     {
@@ -29072,7 +29072,7 @@
       "classification": "allowed",
       "file": "apps/schools/section8_views.py",
       "governance_tier": "safe",
-      "line": "1013",
+      "line": "1012",
       "pattern": "require_http_methods"
     },
     {
@@ -29080,7 +29080,7 @@
       "classification": "allowed",
       "file": "apps/schools/section8_views.py",
       "governance_tier": "safe",
-      "line": "1074",
+      "line": "1073",
       "pattern": "require_http_methods"
     },
     {
@@ -29088,7 +29088,7 @@
       "classification": "allowed",
       "file": "apps/schools/section8_views.py",
       "governance_tier": "safe",
-      "line": "1122",
+      "line": "1121",
       "pattern": "require_http_methods"
     },
     {
@@ -29096,7 +29096,7 @@
       "classification": "allowed",
       "file": "apps/schools/section8_views.py",
       "governance_tier": "safe",
-      "line": "1167",
+      "line": "1166",
       "pattern": "require_http_methods"
     },
     {

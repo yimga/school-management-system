@@ -7,7 +7,6 @@ from unittest import mock
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
-from django.utils import timezone
 
 from apps.accounts.models import User
 from apps.communication.models_web_push import WebPushSubscription
