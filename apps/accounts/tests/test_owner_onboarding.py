@@ -181,6 +181,29 @@ class OwnerOnboardingFlowTests(TestCase):
         self.school.refresh_from_db()
         self.assertTrue(self.school.is_active)
 
+    def test_provision_status_api_reports_inactive_then_live(self):
+        self._login_past_mfa()
+
+        def _still_inactive(school_id, contact_email="", **kwargs):
+            return {"is_active": False, "sync_completed": True, "queued": False}
+
+        with mock.patch(
+            "apps.schools.tasks.complete_provisioning_for_school",
+            side_effect=_still_inactive,
+        ):
+            r = self.client.get(reverse("accounts:owner_onboarding_provision_status"))
+        self.assertEqual(r.status_code, 200)
+        payload = r.json()
+        self.assertTrue(payload.get("ok"))
+        self.assertFalse(payload.get("is_active"))
+        self.assertEqual(payload.get("pending_state"), "provisioning")
+
+        self.school.is_active = True
+        self.school.save(update_fields=["is_active"])
+        r2 = self.client.get(reverse("accounts:owner_onboarding_provision_status"))
+        self.assertTrue(r2.json().get("is_active"))
+        self.assertIn("dashboard_href", r2.json())
+
     def test_account_step_rejects_weak_password(self):
         url = self._account_url()
         r = self.client.get(url)

@@ -15,6 +15,23 @@
 1. **Routing:** Tenant-primary paths must not behave as school workflows on the manager host. Today: `/studio/hubs/workflow/`, `/studio/hubs/approvals/`, `/studio/hubs/import/`, and `/authentication/backend/` are **blocked** on the manager host (`ManagerTenantPrimarySurfaceBlockMiddleware`, alias `ManagerTenantPrimaryStudioHubBlockMiddleware`) and guarded in views (`apps/accounts/views_workflow.py`, `backend_dashboard` in `apps/accounts/views.py`). **Ordering:** `ReservedPublicHostAccessMiddleware` only allows known manager paths (`MANAGER_HOST_ALLOWED_PREFIXES` in `apps/schools/middleware.py`); tenant-primary URLs like `/authentication/backend/` must appear there so requests are not short-circuited with `HttpResponseRedirect("/")` before the block middleware runs.
 2. **Context:** School-shaped logic requires `request.school` / correct schema on the tenant host.
 3. **Authorization:** Manager host authenticated surfaces (outside public/bootstrap paths) require **control-plane** access (`user_has_control_plane_access`: superuser or `SUPERADMIN`), not generic `is_staff`. Studio OS on the manager host uses `user_can_access_studio_on_request()` (`apps/schools/control_plane.py`); tenant Studio remains staff-gated.
+4. **Sign-in URLs:** School owners and staff sign in on **`runmycampus.com`** only. The manager host login form is **operator-only**: unauthenticated visits to `manager.<base>/authentication/login/` redirect to the public host unless the request carries operator intent (`?next=/super/…`, `?next=/admin/…`, or `?cp=1`). After a mistaken manager login, tenant staff are bounced to `runmycampus.com/authentication/redirect/` (`tenant_staff_should_use_public_host` in `apps/accounts/manager_login_next.py`).
+5. **Session cookies (production):** Set `SESSION_COOKIE_DOMAIN` and `CSRF_COOKIE_DOMAIN` to the parent domain (e.g. `.runmycampus.com` in `render.yaml`) so a rare manager→public handoff can reuse the browser session. Manager uses separate cookie names (`MANAGER_SESSION_COOKIE_NAME`) when configured.
+
+## Operator entry (bookmarks)
+
+| Intent | URL |
+|--------|-----|
+| Control plane after auth | `https://manager.runmycampus.com/super/` (redirects to login with `next=/super/…`) |
+| Explicit operator login | `https://manager.runmycampus.com/authentication/login/?cp=1` |
+| School owner / staff | `https://runmycampus.com/authentication/login/` |
+
+## Signup → portal (tenant)
+
+1. Signup creates `School` with `is_active=False`.
+2. Email verification on the **public** host queues or sync-runs `complete_provisioning_for_school`.
+3. Owner onboarding launchpad (`/authentication/onboarding/done/`) polls `…/onboarding/done/status/` until `is_active` flips, then sends the portal-ready email.
+4. Stuck slugs: `python manage.py triage_signup_school <slug>` then `activate_pending_signup_schools --slug=<slug>` when verified-but-inactive.
 
 ## Impersonation
 

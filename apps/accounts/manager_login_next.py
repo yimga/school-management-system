@@ -7,7 +7,7 @@ because those flows belong on the public / tenant hosts, not the operator consol
 
 from __future__ import annotations
 
-from urllib.parse import parse_qs, unquote
+from urllib.parse import parse_qs, unquote, urlencode
 
 from django.db import DatabaseError
 
@@ -16,6 +16,14 @@ _MANAGER_TOXIC_NEXT_MARKERS = (
     "/activation/",
     "/authentication/onboarding/",
     "/authentication/mfa/",
+    "/authentication/backend/",
+    "/t/",
+)
+
+# Deep links that legitimately target the control plane after operator sign-in.
+_MANAGER_OPERATOR_NEXT_PREFIXES = (
+    "/super/",
+    "/admin/",
 )
 
 
@@ -43,6 +51,14 @@ def is_toxic_login_next_for_manager(raw: str) -> bool:
     return any(marker in chain for marker in _MANAGER_TOXIC_NEXT_MARKERS)
 
 
+def manager_login_next_is_operator_intent(raw: str) -> bool:
+    """True when ``next`` targets control-plane paths (e.g. ``/super/schools/``)."""
+    if not (raw or "").strip():
+        return False
+    chain = _unwrap_nested_next(raw).lower()
+    return any(prefix in chain for prefix in _MANAGER_OPERATOR_NEXT_PREFIXES)
+
+
 def sanitize_manager_login_next(raw: str) -> str:
     """Drop toxic manager-host ``next`` values; pass through safe relative paths."""
     cleaned = (raw or "").strip()
@@ -58,6 +74,43 @@ def build_public_post_login_url() -> str:
     from apps.schools.provision_email_urls import build_public_site_url
 
     return build_public_site_url(reverse("accounts:redirect"))
+
+
+def build_public_login_redirect_url(request) -> str:
+    """Public-host login URL preserving safe query params from a manager GET."""
+    from django.urls import reverse
+
+    from apps.schools.provision_email_urls import build_public_site_url
+
+    params: dict[str, str] = {}
+    next_raw = sanitize_manager_login_next((request.GET.get("next") or "").strip())
+    if next_raw:
+        params["next"] = next_raw
+    role = (request.GET.get("role") or "").strip().lower()
+    if role in ("student", "staff", "parent"):
+        params["role"] = role
+    path = reverse("accounts:login")
+    if params:
+        path = f"{path}?{urlencode(params)}"
+    return build_public_site_url(path)
+
+
+def should_show_manager_login_surface(request) -> bool:
+    """
+    The manager host login form is operator-only.
+
+    Unauthenticated school owners must sign in on runmycampus.com. Operators may
+    use the manager form when ``cp=1`` is present or when ``next`` deep-links to
+    ``/super/`` or ``/admin/`` (e.g. after ``redirect_to_login`` from ``/super/``).
+    """
+    if getattr(request.user, "is_authenticated", False):
+        return True
+    if (request.GET.get("cp") or "").strip() == "1":
+        return True
+    next_raw = (request.GET.get("next") or "").strip()
+    if next_raw and manager_login_next_is_operator_intent(next_raw):
+        return True
+    return False
 
 
 def request_is_manager_host(request) -> bool:

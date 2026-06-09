@@ -7,6 +7,7 @@ from django.urls import reverse
 from apps.accounts.manager_login_next import (
     build_public_post_login_url,
     is_toxic_login_next_for_manager,
+    manager_login_next_is_operator_intent,
     sanitize_manager_login_next,
     tenant_staff_should_use_public_host,
 )
@@ -33,6 +34,13 @@ class ManagerLoginNextSanitizerTests(TestCase):
 
     def test_super_dashboard_next_is_allowed(self):
         self.assertFalse(is_toxic_login_next_for_manager("/super/"))
+
+    def test_tenant_path_prefix_is_toxic(self):
+        self.assertTrue(is_toxic_login_next_for_manager("/t/st-jude/authentication/login/"))
+
+    def test_operator_intent_detects_super_paths(self):
+        self.assertTrue(manager_login_next_is_operator_intent("/super/schools/"))
+        self.assertFalse(manager_login_next_is_operator_intent("/authentication/login/"))
 
     def test_sanitize_strips_toxic(self):
         self.assertEqual(
@@ -64,7 +72,23 @@ class ManagerLoginViewNextTests(TestCase):
         )
         resp = client.get(toxic)
         self.assertEqual(resp.status_code, 302)
-        self.assertEqual(resp.url, reverse("accounts:login"))
+        self.assertTrue(resp.url.startswith("https://runmycampus.com/authentication/login/"))
+
+    def test_unauthenticated_manager_login_redirects_to_public_host(self):
+        client = Client(HTTP_HOST="manager.runmycampus.com")
+        resp = client.get(reverse("accounts:login"))
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(resp.url, "https://runmycampus.com/authentication/login/")
+
+    def test_operator_super_next_keeps_manager_login_surface(self):
+        client = Client(HTTP_HOST="manager.runmycampus.com")
+        resp = client.get(reverse("accounts:login") + "?next=/super/schools/")
+        self.assertEqual(resp.status_code, 200)
+
+    def test_cp_query_keeps_manager_login_surface(self):
+        client = Client(HTTP_HOST="manager.runmycampus.com")
+        resp = client.get(reverse("accounts:login") + "?cp=1")
+        self.assertEqual(resp.status_code, 200)
 
     def test_tenant_admin_login_escapes_to_public_host(self):
         school = School.objects.create(

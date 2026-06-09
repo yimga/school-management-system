@@ -72,6 +72,7 @@ from .views_legacy_setup import LegacySetupView
 from .views_owner_onboarding import (
     OwnerOnboardingAccountView,
     owner_onboarding_done,
+    owner_onboarding_provision_status,
     owner_onboarding_school,
 )
 from .guardian_invite import GuardianSetupView
@@ -582,6 +583,11 @@ urlpatterns = [
         "onboarding/done/",
         owner_onboarding_done,
         name="owner_onboarding_done",
+    ),
+    path(
+        "onboarding/done/status/",
+        owner_onboarding_provision_status,
+        name="owner_onboarding_provision_status",
     ),
     # rbac-allow: token-authenticated one-time guardian set-password; must be anonymous-reachable
     path(

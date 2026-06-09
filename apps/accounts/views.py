@@ -3202,20 +3202,32 @@ def login_view(request):
 
     is_manager_host = request_is_manager_host(request)
     if request.method == "GET" and is_manager_host:
-        next_raw = (request.GET.get("next") or "").strip()
-        if next_raw:
-            from apps.accounts.manager_login_next import is_toxic_login_next_for_manager
+        from apps.accounts.manager_login_next import (
+            build_public_login_redirect_url,
+            is_toxic_login_next_for_manager,
+            should_show_manager_login_surface,
+        )
 
-            if is_toxic_login_next_for_manager(next_raw):
-                messages.info(
-                    request,
-                    _(
-                        "School accounts sign in at runmycampus.com, not the manager "
-                        "console. If you are setting up a new school, use "
-                        "“Sign in on runmycampus.com” below."
-                    ),
-                )
-                return redirect(reverse("accounts:login"))
+        next_raw = (request.GET.get("next") or "").strip()
+        if next_raw and is_toxic_login_next_for_manager(next_raw):
+            messages.info(
+                request,
+                _(
+                    "School accounts sign in at runmycampus.com, not the manager "
+                    "console. If you are setting up a new school, use "
+                    "“Sign in on runmycampus.com” below."
+                ),
+            )
+            return redirect(build_public_login_redirect_url(request))
+        if not should_show_manager_login_surface(request):
+            messages.info(
+                request,
+                _(
+                    "RunMyCampus Manager is for platform operators only. "
+                    "School accounts sign in at runmycampus.com."
+                ),
+            )
+            return redirect(build_public_login_redirect_url(request))
 
     if request.method == "POST":
         # Store role intent for post-login redirect (Student / Staff / Parent).

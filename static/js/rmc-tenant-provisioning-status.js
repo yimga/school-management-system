@@ -16,8 +16,12 @@
       })
       .then(function (data) {
         if (!data || !data.ok) return;
+        if (data.is_active === true) {
+          window.location.reload();
+          return;
+        }
         var state = (data.unified && data.unified.state) || "";
-        if (state !== "provisioning") {
+        if (state && state !== "provisioning") {
           window.location.reload();
         }
       })

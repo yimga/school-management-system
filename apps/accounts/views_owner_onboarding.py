@@ -29,10 +29,11 @@ from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth import password_validation
 from django.contrib.auth.views import PasswordResetConfirmView
 from django.contrib import messages
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _l
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_GET, require_http_methods
 
 logger = logging.getLogger(__name__)
 
@@ -339,5 +340,66 @@ def owner_onboarding_done(request):
             "dashboard_href": _post_onboarding_dashboard_href(request, school),
             "owner_email": (getattr(request.user, "email", "") or "").strip(),
             "provisioning_events": _provisioning_timeline(school),
+            "provision_status_api_url": reverse(
+                "accounts:owner_onboarding_provision_status"
+            ),
         },
     )
+
+
+@login_required
+@require_GET
+def owner_onboarding_provision_status(request):
+    """JSON poll for the owner launchpad while ``is_active`` is still false."""
+    school = _owner_school(request.user)
+    if school is None:
+        return JsonResponse({"ok": False, "error": "no_school"}, status=403)
+
+    if not getattr(school, "is_active", False):
+        _kick_provisioning_on_done_page(request, school, request.user)
+        school.refresh_from_db(fields=["is_active", "name", "settings", "updated_at"])
+        if getattr(school, "is_active", False):
+            try:
+                from apps.schools.signup_completion_notifications import (
+                    notify_tenant_signup_completed,
+                )
+
+                notify_tenant_signup_completed(
+                    school,
+                    getattr(request.user, "email", "") or "",
+                    admin_user=request.user,
+                )
+            except ImportError:
+                pass
+
+    try:
+        from apps.schools.pending_tenant_discovery import pending_school_state
+
+        pending_state = pending_school_state(school) or (
+            "live" if getattr(school, "is_active", False) else "provisioning"
+        )
+    except ImportError:
+        pending_state = "live" if getattr(school, "is_active", False) else "provisioning"
+
+    events = []
+    for event in _provisioning_timeline(school, limit=6):
+        created = getattr(event, "created_at", None)
+        events.append(
+            {
+                "event_type": getattr(event, "event_type", ""),
+                "message": (getattr(event, "message", "") or "")[:240],
+                "created_at": created.isoformat() if created is not None else "",
+            }
+        )
+
+    is_live = bool(getattr(school, "is_active", False))
+    payload = {
+        "ok": True,
+        "is_active": is_live,
+        "pending_state": pending_state,
+        "school_name": (getattr(school, "name", "") or getattr(school, "slug", "") or "").strip(),
+        "events": events,
+    }
+    if is_live:
+        payload["dashboard_href"] = _post_onboarding_dashboard_href(request, school)
+    return JsonResponse(payload)

@@ -10,6 +10,8 @@ Pass 6 — In-app inbox + SMS + web push portal-ready channels wired.
 Pass 7 — First-visit corner toast + web-push nudge after subscribe.
 Pass 8 — Welcome email uses public onboarding URL + HTML alternative (not raw subdomain).
 Pass 9 — Platform recovery CLI ``activate_pending_signup_schools`` (--all-verified-inactive).
+Pass 10 — Owner onboarding done JSON poll + triage_signup_school CLI.
+Pass 11 — Render ``SESSION_COOKIE_DOMAIN`` parent-domain contract for cross-host handoff.
 
 Usage:
   python scripts/verify_signup_production_readiness.py --strict
@@ -561,6 +563,136 @@ def pass9_platform_recovery_cli() -> list[dict[str, str]]:
     return findings
 
 
+def pass10_onboarding_poll_and_triage() -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    onboarding = ONBOARDING.read_text(encoding="utf-8")
+    for needle in (
+        "owner_onboarding_provision_status",
+        "_kick_provisioning_on_done_page",
+        "is_active",
+    ):
+        if needle not in onboarding:
+            findings.append(
+                _finding(
+                    "pass10",
+                    f"owner_onboarding_missing:{needle}",
+                    path="apps/accounts/views_owner_onboarding.py",
+                )
+            )
+    urls = REPO_ROOT / "apps" / "accounts" / "urls.py"
+    if "owner_onboarding_provision_status" not in urls.read_text(encoding="utf-8"):
+        findings.append(
+            _finding(
+                "pass10",
+                "owner_onboarding_provision_status_url_missing",
+                path="apps/accounts/urls.py",
+            )
+        )
+    done_tpl = REPO_ROOT / "templates" / "accounts" / "owner_onboarding" / "done.html"
+    done_txt = done_tpl.read_text(encoding="utf-8")
+    for needle in (
+        "data-rmc-provisioning-poll",
+        "rmc-tenant-provisioning-status.js",
+        "provision_status_api_url",
+    ):
+        if needle not in done_txt:
+            findings.append(
+                _finding(
+                    "pass10",
+                    f"owner_onboarding_done_template_missing:{needle}",
+                    path="templates/accounts/owner_onboarding/done.html",
+                )
+            )
+    poll_js = REPO_ROOT / "static" / "js" / "rmc-tenant-provisioning-status.js"
+    if "data.is_active" not in poll_js.read_text(encoding="utf-8"):
+        findings.append(
+            _finding(
+                "pass10",
+                "provisioning_poll_js_must_reload_on_is_active",
+                path="static/js/rmc-tenant-provisioning-status.js",
+            )
+        )
+    triage = (
+        REPO_ROOT
+        / "apps"
+        / "schools"
+        / "management"
+        / "commands"
+        / "triage_signup_school.py"
+    )
+    if not triage.is_file():
+        findings.append(
+            _finding(
+                "pass10",
+                "triage_signup_school_command_missing",
+                path="apps/schools/management/commands/triage_signup_school.py",
+            )
+        )
+    else:
+        triage_txt = triage.read_text(encoding="utf-8")
+        for needle in (
+            "lookup_school_by_slug_or_subdomain",
+            "activate_pending_signup_schools",
+            "signup_completion_was_delivered",
+        ):
+            if needle not in triage_txt:
+                findings.append(
+                    _finding(
+                        "pass10",
+                        f"triage_cli_missing:{needle}",
+                        path="apps/schools/management/commands/triage_signup_school.py",
+                    )
+                )
+    boundary = REPO_ROOT / "docs" / "PLATFORM_BOUNDARY_OPERATOR_VS_TENANT.md"
+    if boundary.is_file():
+        doc = boundary.read_text(encoding="utf-8")
+        for needle in ("?cp=1", "triage_signup_school", "onboarding/done/status"):
+            if needle not in doc:
+                findings.append(
+                    _finding(
+                        "pass10",
+                        f"platform_boundary_doc_missing:{needle}",
+                        path="docs/PLATFORM_BOUNDARY_OPERATOR_VS_TENANT.md",
+                    )
+                )
+    return findings
+
+
+def pass11_session_cookie_parent_domain() -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    render_yaml = REPO_ROOT / "render.yaml"
+    if render_yaml.is_file():
+        doc = render_yaml.read_text(encoding="utf-8")
+        if "SESSION_COOKIE_DOMAIN" not in doc or ".runmycampus.com" not in doc:
+            findings.append(
+                _finding(
+                    "pass11",
+                    "render_yaml_must_set_session_cookie_domain_parent",
+                    path="render.yaml",
+                )
+            )
+        if "CSRF_COOKIE_DOMAIN" not in doc:
+            findings.append(
+                _finding(
+                    "pass11",
+                    "render_yaml_must_set_csrf_cookie_domain",
+                    path="render.yaml",
+                )
+            )
+    env_example = REPO_ROOT / ".env.example"
+    if env_example.is_file() and "SESSION_COOKIE_DOMAIN" not in env_example.read_text(
+        encoding="utf-8"
+    ):
+        findings.append(
+            _finding(
+                "pass11",
+                "env_example_should_document_session_cookie_domain",
+                path=".env.example",
+            )
+        )
+    return findings
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--strict", action="store_true")
@@ -577,11 +709,13 @@ def main(argv: list[str] | None = None) -> int:
     findings.extend(pass7_first_visit_corner_and_nudge())
     findings.extend(pass8_welcome_email_public_host_contract())
     findings.extend(pass9_platform_recovery_cli())
+    findings.extend(pass10_onboarding_poll_and_triage())
+    findings.extend(pass11_session_cookie_parent_domain())
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "finding_count": len(findings),
-        "passes": 9,
+        "passes": 11,
         "findings": findings,
     }
     if args.write_baseline:
