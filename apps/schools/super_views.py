@@ -81,6 +81,7 @@ from .super_views_runtime_ops import (
 from .super_views_platform_monitoring import (
     super_control_health_dashboard,
     super_fleet_wall,
+    super_provision_queue,
     super_pulse,
     super_tenant_360,
     super_tenant_health,
@@ -176,6 +177,7 @@ __all__ = (
     "super_support_csat_dashboard",
     "super_support_ticket_detail",
     "super_support_tickets_export_csv",
+    "super_provision_queue",
     "super_tenant_360",
     "super_tenant_health",
     "super_trust_center",

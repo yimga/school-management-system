@@ -430,6 +430,11 @@ urlpatterns = [
         name="fleet_wall",
     ),
     path(
+        "provision-queue/",
+        require_super_access_with_host(super_views.super_provision_queue),
+        name="provision_queue",
+    ),
+    path(
         "tenants/<uuid:school_id>/360/",
         require_super_access_with_host(super_views.super_tenant_360),
         name="tenant_360",

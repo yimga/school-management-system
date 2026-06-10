@@ -174,6 +174,68 @@ def super_tenant_health(request):
 
 
 @require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
+def super_provision_queue(request):
+    """Operator provisioning queue — every school not yet live, in ONE actionable
+    list (running / stuck / failed / queued) with requeue.
+
+    The owner sees their own live progress per-school; this is the operator's
+    proactive "what needs attention" view, so a stuck or failed provision is
+    caught without opening each Tenant 360 one at a time. Bounded + newest-first
+    so it stays cheap on large fleets (only not-yet-active schools are scanned).
+    """
+    from apps.schools.operator_school_lens import can_operator_requeue_provisioning
+    from apps.schools.provisioning_progress import resolve_provisioning_progress
+
+    base_qs = School.objects.filter(is_active=False).order_by("-created_at")
+    page, search, page_size, pagination_extra_query = paginate_operator_schools(
+        request, base_qs, default_page_size=50
+    )
+    rows = []
+    counts = {"running": 0, "stuck": 0, "failed": 0, "queued": 0}
+    for school in page.object_list:
+        try:
+            p = resolve_provisioning_progress(school)
+        except (DatabaseError, ValueError, TypeError, AttributeError):
+            continue
+        status = (p.get("status") or "").strip().lower()
+        stuck = bool(p.get("stuck"))
+        bucket = (
+            "failed" if status == "failed"
+            else "stuck" if stuck
+            else "running" if status == "running"
+            else "queued"
+        )
+        counts[bucket] = counts.get(bucket, 0) + 1
+        rows.append(
+            {
+                "school": school,
+                "status": status or "queued",
+                "stuck": stuck,
+                "bucket": bucket,
+                "progress_percent": int(p.get("progress_percent") or 0),
+                "phase_message": p.get("phase_message") or p.get("current_step_label") or "",
+                "elapsed_seconds": int(p.get("elapsed_seconds") or 0),
+                "last_error": p.get("last_error"),
+                "can_requeue": can_operator_requeue_provisioning(school),
+            }
+        )
+    return render(
+        request,
+        "schools/super_provision_queue.html",
+        {
+            "rows": rows,
+            "counts": counts,
+            "page_obj": page,
+            "search_query": search,
+            "page_size": page_size,
+            "page_size_options": REGISTRY_PAGE_SIZE_OPTIONS,
+            "pagination_extra_query": pagination_extra_query,
+            "total_pending_count": page.paginator.count,
+        },
+    )
+
+
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_fleet_wall(request):
     """Full-fleet operator wall — all schools as live tiles with chunked SSE bootstrap."""
     from apps.schools.fleet_wall_payload import (

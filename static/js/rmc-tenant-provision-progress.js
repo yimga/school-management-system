@@ -86,18 +86,27 @@
     function renderSummary(data) {
       var el = root.querySelector("[data-rmc-provision-summary]");
       if (!el) return;
-      var s = data.completion_summary || {};
-      function unit(n, one, many) {
-        return n + " " + (n === 1 ? one : many);
-      }
-      var parts = [];
-      if (s.terms) parts.push(unit(s.terms, "term", "terms"));
-      if (s.classrooms) parts.push(unit(s.classrooms, "classroom", "classrooms"));
-      if (s.subjects) parts.push(unit(s.subjects, "subject", "subjects"));
       var ready = data.status === "succeeded" || data.portal_ready === true;
-      if (ready && parts.length) {
+      if (!ready) return;
+      // Prefer the server-translated, pluralized summary; fall back to a simple
+      // client assembly only if the server didn't supply it.
+      var text = data.completion_summary_text || "";
+      if (!text) {
+        var s = data.completion_summary || {};
+        function unit(n, one, many) {
+          return n + " " + (n === 1 ? one : many);
+        }
+        var parts = [];
+        if (s.terms) parts.push(unit(s.terms, "term", "terms"));
+        if (s.classrooms) parts.push(unit(s.classrooms, "classroom", "classrooms"));
+        if (s.subjects) parts.push(unit(s.subjects, "subject", "subjects"));
+        if (parts.length) {
+          text = "Your campus is ready — we set up " + parts.join(" · ") + ".";
+        }
+      }
+      if (text) {
         el.hidden = false;
-        el.textContent = "Your campus is ready — we set up " + parts.join(" · ") + ".";
+        el.textContent = text;
       }
     }
 

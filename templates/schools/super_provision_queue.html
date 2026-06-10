@@ -1,0 +1,97 @@
+{% extends "control_plane_base.html" %}
+{% comment %} Operator provisioning queue — all not-yet-live schools in one actionable list. {% endcomment %}
+{% load static i18n %}
+
+{% block cp_title %}{% trans "Provisioning queue" %}{% endblock %}
+
+{% block cp_workspace_header %}{% endblock %}
+{% block cp_content %}
+<div class="container-fluid py-3" id="provision-queue-main">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 mb-0">{% trans "Provisioning queue" %}</h1>
+    <div class="d-flex flex-wrap gap-2 small">
+      <span class="badge text-bg-warning">{% trans "Running" %}: {{ counts.running }}</span>
+      <span class="badge text-bg-danger">{% trans "Stuck" %}: {{ counts.stuck }}</span>
+      <span class="badge text-bg-danger">{% trans "Failed" %}: {{ counts.failed }}</span>
+      <span class="badge text-bg-secondary">{% trans "Queued" %}: {{ counts.queued }}</span>
+      <span class="badge text-bg-light text-dark">{% trans "Total pending" %}: {{ total_pending_count }}</span>
+    </div>
+  </div>
+
+  <form method="get" class="mb-3" role="search">
+    <div class="input-group input-group-sm" style="max-width: 360px;">
+      <input type="search" name="q" value="{{ search_query }}" class="form-control" placeholder="{% trans 'Search by name or slug' %}" aria-label="{% trans 'Search schools' %}">
+      <button class="btn btn-outline-secondary" type="submit">{% trans "Search" %}</button>
+    </div>
+  </form>
+
+  {% if rows %}
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "School" %}</th>
+          <th scope="col">{% trans "Status" %}</th>
+          <th scope="col">{% trans "Progress" %}</th>
+          <th scope="col">{% trans "Phase" %}</th>
+          <th scope="col">{% trans "Elapsed" %}</th>
+          <th scope="col" class="text-end">{% trans "Action" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr{% if row.bucket == "failed" or row.bucket == "stuck" %} class="table-warning"{% endif %}>
+          <td>
+            <a href="{% url 'super:tenant_360' row.school.id %}">{{ row.school.name }}</a>
+            <div class="text-muted small">{{ row.school.slug }}</div>
+          </td>
+          <td>
+            {% if row.bucket == "failed" %}<span class="badge text-bg-danger">{% trans "Failed" %}</span>
+            {% elif row.bucket == "stuck" %}<span class="badge text-bg-danger">{% trans "Stuck" %}</span>
+            {% elif row.bucket == "running" %}<span class="badge text-bg-warning">{% trans "Running" %}</span>
+            {% else %}<span class="badge text-bg-secondary">{% trans "Queued" %}</span>{% endif %}
+            {% if row.last_error %}<div class="text-danger small">{{ row.last_error|truncatechars:80 }}</div>{% endif %}
+          </td>
+          <td style="min-width: 120px;">
+            <div class="progress" style="height: 0.4rem;" role="progressbar" aria-valuenow="{{ row.progress_percent }}" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-bar" style="width: {{ row.progress_percent }}%;"></div>
+            </div>
+            <span class="small text-muted">{{ row.progress_percent }}%</span>
+          </td>
+          <td class="small text-muted">{{ row.phase_message|truncatechars:48 }}</td>
+          <td class="small text-muted">{% if row.elapsed_seconds %}{% blocktrans with s=row.elapsed_seconds %}{{ s }}s{% endblocktrans %}{% else %}—{% endif %}</td>
+          <td class="text-end">
+            {% if row.can_requeue or row.bucket == "failed" or row.bucket == "stuck" %}
+            <form method="post" action="{% url 'super:api_school_requeue_provision' row.school.id %}" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{% url 'super:provision_queue' %}{% if pagination_extra_query %}?{{ pagination_extra_query }}{% endif %}">
+              <button type="submit" class="btn btn-sm btn-warning">{% trans "Requeue" %}</button>
+            </form>
+            {% endif %}
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:tenant_360' row.school.id %}">{% trans "360" %}</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <nav aria-label="{% trans 'Provisioning queue pages' %}">
+    <ul class="pagination pagination-sm">
+      {% if page_obj.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if pagination_extra_query %}&{{ pagination_extra_query }}{% endif %}">{% trans "Previous" %}</a></li>
+      {% endif %}
+      <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+      {% if page_obj.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if pagination_extra_query %}&{{ pagination_extra_query }}{% endif %}">{% trans "Next" %}</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="alert alert-success">{% trans "Nothing pending — every school is fully provisioned and live." %}</div>
+  {% endif %}
+</div>
+{% endblock %}

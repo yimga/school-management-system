@@ -501,6 +501,31 @@ def _completion_summary(school) -> dict[str, int]:
     return summary
 
 
+def _completion_summary_text(summary: dict[str, int]) -> str:
+    """Server-translated, pluralized 'here's what we set up' line for the owner.
+
+    Assembled server-side (not in JS) so it's translatable via Django's catalog.
+    """
+    if not summary:
+        return ""
+    from django.utils.translation import ngettext
+
+    parts: list[str] = []
+    for key, singular, plural in (
+        ("terms", "%(n)d term", "%(n)d terms"),
+        ("classrooms", "%(n)d classroom", "%(n)d classrooms"),
+        ("subjects", "%(n)d subject", "%(n)d subjects"),
+    ):
+        n = int(summary.get(key) or 0)
+        if n:
+            parts.append(ngettext(singular, plural, n) % {"n": n})
+    if not parts:
+        return ""
+    return str(_("Your campus is ready — we set up %(items)s.")) % {
+        "items": " · ".join(parts)
+    }
+
+
 def _run_is_stuck(run) -> bool:
     """True when the workflow run has gone silent past its heartbeat window."""
     if run is None:
@@ -665,6 +690,7 @@ def resolve_provisioning_progress(
         "current_phase": current_phase,
         "phase_message": phase_message,
         "completion_summary": completion_summary,
+        "completion_summary_text": _completion_summary_text(completion_summary),
         "unified": {
             "state": unified.get("state"),
             "label": unified.get("label"),
