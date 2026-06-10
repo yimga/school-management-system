@@ -202,12 +202,47 @@ def build_manager_catalog_nav_groups(request) -> list[dict]:
 
 
 def build_manager_complete_sidebar_groups(request) -> list[dict]:
-    """Full manager sidebar: Start + Guided + control plane + admin catalog (batch 1500)."""
-    from apps.schools.control_plane_nav import build_control_plane_nav
+    """Manager sidebar, split by the surface that renders it.
 
+    The shared Start + Guided head crosses both surfaces (it's how an operator
+    moves between them). Below the head the spine is scoped to what the surface
+    actually renders:
+
+    * manager ``/admin/*`` (configuration) → ``config`` control-plane groups +
+      the Django admin model catalog (configuration lives where the models do).
+    * ``/super/*`` (day-to-day operations) → ``ops`` control-plane groups only;
+      the model-catalog firehose is intentionally dropped so the operator's
+      day-to-day spine stays focused.
+    """
+    from apps.schools.control_plane_nav import (
+        build_control_plane_nav,
+        is_manager_platform_admin_path,
+    )
+
+    is_admin_surface = is_manager_platform_admin_path(getattr(request, "path", "") or "")
+
+    # Build the full registry once; each group carries its surface + an `expanded`
+    # flag that is True when the current path lands on one of its items.
+    all_cp = build_control_plane_nav(request)
+
+    # The spine follows the page, not just the host shell: many configuration
+    # tools are served under /super/* (e.g. /super/blueprints/, /super/operator-policy/),
+    # so a pure /admin/-vs-/super/ split would strand them under the ops spine with
+    # no matching nav item. Pick the surface of the group the current path lands in;
+    # fall back to the host-shell default (config on /admin/, ops elsewhere).
+    active = next((g for g in all_cp if g.get("expanded")), None)
+    if is_admin_surface:
+        surface = "config"
+    elif active is not None:
+        surface = active.get("surface", "ops")
+    else:
+        surface = "ops"
+
+    body = [g for g in all_cp if g.get("surface") == surface]
     head = build_manager_unified_sidebar_groups(request)
-    body = build_control_plane_nav(request)
-    tail = build_manager_catalog_nav_groups(request)
+    # The Django admin model catalog is /admin/-only chrome regardless of which
+    # config tool surfaced the config spine.
+    tail = build_manager_catalog_nav_groups(request) if is_admin_surface else []
     return _dedupe_complete_sidebar_groups(head + body + tail)
 
 

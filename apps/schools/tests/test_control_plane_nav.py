@@ -94,12 +94,16 @@ class ControlPlaneNavParityTests(SimpleTestCase):
         User = get_user_model()
         request.user = User(is_superuser=True, username="nav_mgr_admin")
         nav = build_manager_platform_admin_nav(request)
+        # Start group (quick_links) ids per the converged registry
+        # (manager_nav_convergence_specs): backoffice → admin:index,
+        # control plane → super:dashboard, config center, help center.
         ids = {row["id"] for row in nav.get("quick_links") or []}
-        self.assertIn("admin_index", ids)
-        self.assertIn("super_dashboard", ids)
-        self.assertIn("super_platform_operator_hub", ids)
+        self.assertIn("nav_platform_backoffice", ids)  # admin:index
+        self.assertIn("nav_control_plane", ids)  # super:dashboard
+        self.assertIn("nav_config_center", ids)
+        # Guided setup ids per manager_guided_setup_specs.
         guided_ids = {row["id"] for row in nav.get("guided_links") or []}
-        self.assertIn("config_center", guided_ids)
+        self.assertIn("super_platform_operator_hub", guided_ids)
         self.assertIn("configuration_center", guided_ids)
         self.assertIn("studio_shell", guided_ids)
 

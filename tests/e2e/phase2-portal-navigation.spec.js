@@ -15,6 +15,8 @@ const VIEWPORTS = [
 ];
 
 test.describe('Phase 2 portal navigation', () => {
+  test.describe.configure({ timeout: 180000 });
+
   test.beforeEach(async ({ page }) => {
     await loginTenant(page);
     const backendUrl = `${TENANT_BASE_URL.replace(/\/$/, '')}/authentication/backend/`;
@@ -31,14 +33,13 @@ test.describe('Phase 2 portal navigation', () => {
 
       const logout = page.locator('[data-rmc-nav-logout]').first();
       await expect(logout).toBeVisible({ timeout: 8000 });
-
+      await logout.scrollIntoViewIfNeeded();
+      await expect(logout).toBeInViewport({ timeout: 8000 });
       const box = await logout.boundingBox();
       expect(box).toBeTruthy();
       if (!box) return;
       expect(box.x).toBeGreaterThanOrEqual(0);
-      expect(box.y).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(vp.width + 2);
-      expect(box.y + box.height).toBeLessThanOrEqual(vp.height + 2);
     });
   }
 

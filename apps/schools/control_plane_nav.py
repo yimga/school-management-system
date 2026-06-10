@@ -528,16 +528,22 @@ def build_tenant_operator_primary_nav(request):
     return out
 
 
-def build_control_plane_nav(request):
+def build_control_plane_nav(request, surface=None):
     """
-    Return list of groups, each with "label" (optional section heading) and "items"
-    (list of dicts: id, label, url, icon). Only includes items whose url resolved.
+    Return list of groups, each with "label" (optional section heading), "items"
+    (list of dicts: id, label, url, icon), and "surface" — "ops" for day-to-day
+    operator work (rendered on /super/) or "config" for platform configuration
+    (rendered on manager /admin/). Only includes items whose url resolved.
+
+    ``surface`` filters the returned groups: pass "ops" or "config" to scope the
+    spine to one surface. ``None`` (default) returns every group — preserved for
+    callers that validate pin ids or assert on the full registry.
     """
     urlconf = getattr(request, "urlconf", None) or "config.manager_urls"
     request_path = getattr(request, "path", "") or ""
     groups = []
 
-    def _finalize_group(label, resolved):
+    def _finalize_group(label, resolved, group_surface):
         if not resolved:
             return
         for row in resolved:
@@ -545,9 +551,16 @@ def build_control_plane_nav(request):
                 request_path, row.get("url", "")
             )
         expanded = any(row.get("is_current") for row in resolved)
-        groups.append({"label": label, "items": resolved, "expanded": expanded})
+        groups.append(
+            {
+                "label": label,
+                "items": resolved,
+                "expanded": expanded,
+                "surface": group_surface,
+            }
+        )
 
-    def add_group(label, items):
+    def add_group(label, items, group_surface="ops"):
         resolved = []
         for item in items:
             url = _safe_reverse(
@@ -568,10 +581,10 @@ def build_control_plane_nav(request):
                         "icon": item.get("icon", "bi-circle"),
                     }
                 )
-        _finalize_group(label, resolved)
+        _finalize_group(label, resolved, group_surface)
 
-    def add_resolved_group(label, resolved):
-        _finalize_group(label, list(resolved))
+    def add_resolved_group(label, resolved, group_surface="ops"):
+        _finalize_group(label, list(resolved), group_surface)
 
     # Plan §2.1: /super nav groups — Platform Overview, Tenants, Runtime & Governance,
     # Blueprints & Policies, Workflows & Dashboards, Marketplace, Migration Cloud,
@@ -627,6 +640,7 @@ def build_control_plane_nav(request):
                 "icon": "bi-sliders",
             },
         ],
+        group_surface="config",
     )
     add_group(
         "Tenants",
@@ -721,6 +735,7 @@ def build_control_plane_nav(request):
                 "icon": "bi-file-earmark-text",
             },
         ],
+        group_surface="config",
     )
     add_group(
         "Runtime & Governance",
@@ -791,6 +806,7 @@ def build_control_plane_nav(request):
                 "icon": "bi-shield",
             },
         ],
+        group_surface="config",
     )
     add_group(
         "Workflows & Dashboards",
@@ -814,6 +830,7 @@ def build_control_plane_nav(request):
                 "icon": "bi-hourglass-split",
             },
         ],
+        group_surface="config",
     )
     add_group(
         "Marketplace",
@@ -986,6 +1003,7 @@ def build_control_plane_nav(request):
                 "icon": "bi-clipboard-check",
             },
         ],
+        group_surface="config",
     )
     add_group(
         "Tenant config defaults",
@@ -1021,6 +1039,7 @@ def build_control_plane_nav(request):
                 "icon": "bi-table",
             },
         ],
+        group_surface="config",
     )
     add_group(
         "Metadata & audit",
@@ -1062,6 +1081,7 @@ def build_control_plane_nav(request):
                 "icon": "bi-columns-gap",
             },
         ],
+        group_surface="config",
     )
     add_group(
         "Voice of customer & proof",
@@ -1114,9 +1134,12 @@ def build_control_plane_nav(request):
                 "label": "Advanced",
                 "items": _advanced_resolved,
                 "expanded": True,
+                "surface": "config",
             }
         )
 
+    if surface is not None:
+        groups = [g for g in groups if g.get("surface") == surface]
     return groups
 
 

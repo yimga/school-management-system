@@ -32,6 +32,26 @@ OPTIONAL_SIDEBAR_ERRORS = (
 )
 OPTIONAL_REVERSE_ERRORS = (AttributeError, NoReverseMatch, TypeError, ValueError)
 
+# Tenant ops/config split: portal sections that hold platform configuration rather
+# than day-to-day work. The config zone is rendered as one contiguous block AFTER
+# all day-to-day sections so the operational sidebar stays focused. Tenants keep
+# configuration in-portal (not Django /admin/) because tenant admins are typically
+# not Django staff — the portal IS their backend.
+PORTAL_CONFIG_SECTIONS = frozenset({"Admin Panel"})
+
+
+def _portal_item_surface(section):
+    """Return "config" for configuration sections, else "ops" (day-to-day)."""
+    return "config" if (section or "") in PORTAL_CONFIG_SECTIONS else "ops"
+
+
+def _order_sections_ops_then_config(section_order):
+    """Keep first-occurrence order within each surface, but push every config
+    section after all ops sections so configuration forms a contiguous bottom zone."""
+    ops_sections = [s for s in section_order if _portal_item_surface(s) == "ops"]
+    config_sections = [s for s in section_order if _portal_item_surface(s) == "config"]
+    return ops_sections + config_sections
+
 
 def _dashboard_layout_url(request, user):
     """Link to Backend dashboard + ?customize=1 (only backend supports layout customization)."""
@@ -953,7 +973,8 @@ def build_portal_sidebar_items(request, site):
                     "label": "Authentication Groups",
                     "url": _safe_reverse("admin:auth_group_changelist"),
                     "icon": "bi-unlock",
-                    "section": "People & Access",
+                    # Permission-group configuration = config, not a people roster.
+                    "section": "Admin Panel",
                     "badge": None,
                 }
             )
@@ -969,7 +990,8 @@ def build_portal_sidebar_items(request, site):
                     "label": "Staff Identity & Access",
                     "url": _tenant_identity_url,
                     "icon": "bi-person-badge",
-                    "section": "People & Access",
+                    # Identity/access provisioning = config, not a people roster.
+                    "section": "Admin Panel",
                     "badge": None,
                 }
             )
@@ -980,7 +1002,8 @@ def build_portal_sidebar_items(request, site):
                     "label": "RBAC & Access Control",
                     "url": _rbac_url,
                     "icon": "bi-diagram-3",
-                    "section": "People & Access",
+                    # Access-control rules = config, not a people roster.
+                    "section": "Admin Panel",
                     "badge": None,
                 }
             )
@@ -1108,7 +1131,9 @@ def build_portal_sidebar_items(request, site):
                 "label": "Bulk Letters",
                 "url": _safe_reverse("siteconfig:bulk_letters"),
                 "icon": "bi-envelope-paper",
-                "section": "Analytics & Reports",
+                # Mail-merge template management = configuration, not a day-to-day
+                # report — belongs in the config zone, not Analytics & Reports.
+                "section": "Admin Panel",
                 "badge": None,
             }
         )
@@ -1118,7 +1143,9 @@ def build_portal_sidebar_items(request, site):
                 "label": "Report Card Builder",
                 "url": _safe_reverse("siteconfig:reportcard_builder"),
                 "icon": "bi-file-earmark-richtext",
-                "section": "Analytics & Reports",
+                # Report-card template builder = configuration, not a day-to-day
+                # report — belongs in the config zone, not Analytics & Reports.
+                "section": "Admin Panel",
                 "badge": None,
             }
         )
@@ -1238,7 +1265,8 @@ def build_portal_sidebar_items(request, site):
                     "label": "Workflow Center",
                     "url": workflow_center_url,
                     "icon": "bi-diagram-3",
-                    "section": "Admin Panel",
+                    # Day-to-day operations (carries a pending badge) — not config.
+                    "section": "Workflows & Approvals",
                     "badge": workflow_badge,
                 }
             )
@@ -1250,7 +1278,8 @@ def build_portal_sidebar_items(request, site):
                     "label": "Approval Hub",
                     "url": approval_hub_url,
                     "icon": "bi-clipboard-check",
-                    "section": "Admin Panel",
+                    # Day-to-day approvals work — not config.
+                    "section": "Workflows & Approvals",
                     "badge": None,
                 }
             )
@@ -1278,7 +1307,8 @@ def build_portal_sidebar_items(request, site):
                             "label": "Safeguarding",
                             "url": "/school/studio/workflow-center/safeguarding/",
                             "icon": "bi-shield-exclamation",
-                            "section": "Admin Panel",
+                            # Urgent child-protection alerts (urgent badge) — day-to-day, not config.
+                            "section": "Workflows & Approvals",
                             "badge": _badge_count if _badge_count > 0 else None,
                         }
                     )
@@ -1294,7 +1324,8 @@ def build_portal_sidebar_items(request, site):
                         "label": "Workflow Hub",
                         "url": workflow_hub_url,
                         "icon": "bi-diagram-3-fill",
-                        "section": "Admin Panel",
+                        # Day-to-day workflow operations — not config.
+                        "section": "Workflows & Approvals",
                         "badge": None,
                     }
                 )
@@ -1499,8 +1530,15 @@ def build_portal_sidebar_items(request, site):
             or is_feature_enabled(school, it.get("feature") or "")
         ]
 
+    # Tag each item with its surface (day-to-day "ops" vs platform "config") so the
+    # template / callers can tell them apart, and so configuration never interleaves
+    # into the operational sidebar.
+    for it in items:
+        it["surface"] = _portal_item_surface(it.get("section"))
+
     # Group by section so each section title appears only once ({% ifchanged item.section %}).
-    # Section order = order of first occurrence in current list; items within each section keep relative order.
+    # Section order = first occurrence within each surface, but all config sections sort
+    # to the bottom as one contiguous configuration zone (the tenant ops/config split).
     section_order = []
     seen = set()
     for it in items:
@@ -1508,6 +1546,7 @@ def build_portal_sidebar_items(request, site):
         if sec not in seen:
             seen.add(sec)
             section_order.append(sec)
+    section_order = _order_sections_ops_then_config(section_order)
     by_section = {}
     for it in items:
         sec = it.get("section") or ""

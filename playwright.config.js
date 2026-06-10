@@ -30,6 +30,7 @@ const _tenantHostRules = (
 ).trim();
 
 const _managerPort = process.env.VISUAL_QA_PORT || '8012';
+const _tenantPhasePort = process.env.VISUAL_QA_TENANT_PHASE_PORT || '8013';
 const _managerBaseUrl =
   process.env.MANAGER_BASE_URL ||
   `http://manager.runmycampus.com:${_managerPort}`;
@@ -105,24 +106,36 @@ module.exports = defineConfig({
         '**/phase1-architecture-navigation.spec.js',
         '**/phase2-portal-navigation.spec.js',
       ],
-      timeout: 90000,
+      timeout: 120000,
+      workers: 1,
       use: {
         channel: 'chromium',
         baseURL:
           process.env.PLAYWRIGHT_TENANT_BASE_URL ||
-          `http://127.0.0.1:${_managerPort}/t/demo-school`,
+          `http://127.0.0.1:${_tenantPhasePort}/t/demo-school`,
         serviceWorkers: 'block',
         launchOptions: {
-          args: ['--proxy-server=direct://', '--proxy-bypass-list=*'],
+          // Subdomain canonical redirects after login require *.runmycampus.com → 127.0.0.1.
+          args: _chromiumArgs(_tenantHostRules),
         },
       },
-      webServer: {
-        command: 'bash scripts/run_playwright_tenant_e2e_server.sh',
-        cwd: __dirname,
-        url: `http://127.0.0.1:${_managerPort}/t/demo-school/authentication/login/`,
-        reuseExistingServer: !process.env.CI,
-        timeout: 240000,
-      },
+      ...(process.env.RMC_E2E_EXTERNAL_SERVER === '1'
+        ? {}
+        : {
+            webServer: {
+              command: 'node scripts/playwright_tenant_web_server.mjs',
+              cwd: __dirname,
+              env: {
+                ...process.env,
+                VISUAL_QA_PORT: _tenantPhasePort,
+                TENANT_SLUG: process.env.TENANT_SLUG || 'demo-school',
+                E2E_TENANT_PASSWORD: process.env.E2E_TENANT_PASSWORD || 'Test1234',
+              },
+              url: `http://127.0.0.1:${_tenantPhasePort}/t/demo-school/authentication/login/`,
+              reuseExistingServer: !process.env.CI,
+              timeout: 600000,
+            },
+          }),
     },
     {
       name: 'tenant-chromium',

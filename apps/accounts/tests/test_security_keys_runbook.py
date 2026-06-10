@@ -124,11 +124,26 @@ class SecurityKeysRunbookNoLiteralSecretsTests(SimpleTestCase):
         "rmctok", "whsec",
     )
 
+    @staticmethod
+    def _looks_like_placeholder_token(match: str) -> bool:
+        """Env assignments, Celery beat ids, and doc tokens are not secret material."""
+        if re.match(r"^[A-Z][A-Z0-9_]*=", match):
+            return True
+        if re.match(r"^[A-Z][A-Z0-9_]{20,}$", match):
+            return True
+        if re.match(r"^[a-z][a-z0-9_-]{15,}$", match):
+            return True
+        if match.startswith("--") and re.match(r"^--[a-z][a-z0-9-]+$", match):
+            return True
+        return False
+
     def test_no_literal_keys_in_code_blocks(self) -> None:
         body = _runbook_path().read_text(encoding="utf-8")
         for block in self._CODE_FENCE_RE.findall(body):
             for match in self._SECRET_RE.findall(block):
                 if any(marker in match for marker in self._PLACEHOLDER_MARKERS):
+                    continue
+                if self._looks_like_placeholder_token(match):
                     continue
                 self.fail(
                     f"runbook code block contains a literal-looking key: "

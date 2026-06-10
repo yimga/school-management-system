@@ -40,17 +40,51 @@ class ManagerNavConvergenceTests(SimpleTestCase):
 
 
 
-    def test_admin_and_super_same_group_ids(self):
+    def test_admin_and_super_surfaces_diverge(self):
+        """/super/ renders day-to-day (ops) groups; manager /admin/ renders
+        configuration groups. The shared Start + Guided head crosses both, but
+        the control-plane spine below it must NOT be identical anymore."""
+        admin_labels = [g.get("label") for g in build_manager_complete_sidebar_groups(self._req("/admin/"))]
+        super_labels = [g.get("label") for g in build_manager_complete_sidebar_groups(self._req("/super/"))]
 
-        admin_ids = [g.get("group_id") for g in build_manager_complete_sidebar_groups(self._req("/admin/"))]
+        # Day-to-day group lives on /super/ only.
+        self.assertIn("Platform Overview", super_labels)
+        self.assertNotIn("Platform Overview", admin_labels)
+        # Configuration group lives on manager /admin/ only.
+        self.assertIn("Tenant config defaults", admin_labels)
+        self.assertNotIn("Tenant config defaults", super_labels)
+        # Both still share the cross-surface Start head.
+        self.assertEqual(super_labels[0], admin_labels[0])
 
-        super_ids = [g.get("group_id") for g in build_manager_complete_sidebar_groups(self._req("/super/"))]
+    def test_super_surface_drops_admin_model_catalog(self):
+        """The /super/ day-to-day spine must not carry the Django admin model
+        catalog firehose (the "Backoffice · …" groups)."""
+        super_labels = [
+            str(g.get("label") or "")
+            for g in build_manager_complete_sidebar_groups(self._req("/super/"))
+        ]
+        self.assertFalse(
+            any(lbl.startswith("Backoffice · ") for lbl in super_labels),
+            msg=f"/super/ should not include catalog groups: {super_labels}",
+        )
 
-        self.assertEqual(admin_ids, super_ids)
+    def test_config_tool_under_super_follows_config_spine(self):
+        """Configuration tools are served under /super/* (e.g. /super/blueprints/);
+        the sidebar must follow the page to the config spine rather than strand it
+        on the ops sidebar with no matching nav item."""
+        from django.urls import reverse
+
+        url = reverse("super:blueprints_catalog", urlconf="config.manager_urls")
+        labels = [
+            g.get("label")
+            for g in build_manager_complete_sidebar_groups(self._req(url))
+        ]
+        self.assertIn("Blueprints & Policies", labels)  # config group present
+        self.assertNotIn("Platform Overview", labels)  # ops group hidden on a config page
 
 
 
-    def test_complete_sidebar_has_cp_and_catalog_layers(self):
+    def test_super_surface_has_ops_cp_layer(self):
         complete = build_manager_complete_sidebar_groups(self._req("/super/"))
         labels = [g.get("label") for g in complete]
         self.assertIn("Platform Overview", labels)
