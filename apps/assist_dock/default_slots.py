@@ -80,6 +80,27 @@ register_slot(
 )
 
 
+# Intelligence & Self-Healing (2026-06-10) — manager-surface chip linking the
+# consolidated AI status + autonomous health-remediation console. External-source so
+# the JS renders a navigable <a>; href is the manager-host mount of the console
+# (platform_runtime is mounted at /platform-runtime/ on the manager urlconf, and this
+# chip only renders on SURFACE_MANAGER, so the path is stable for the surface it
+# appears on — same rationale as the platform-health chip above).
+register_slot(
+    AssistDockSlot(
+        id="self-healing",
+        label=_("Self-Healing"),
+        icon="bi-robot",
+        surfaces=frozenset({SURFACE_MANAGER}),
+        source=SOURCE_EXTERNAL,
+        href="/platform-runtime/self-healing/",
+        pinned_default=False,
+        order=29,
+        description=_("AI status and the autonomous health remediation console."),
+    )
+)
+
+
 # Secondary tray (collapsed under "+" by default, ordered 30-79)
 register_slot(
     AssistDockSlot(
