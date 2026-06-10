@@ -13,8 +13,10 @@ from .super_views_geo_api import (
 )
 from .super_views_school_api import (
     api_approve_school,
+    api_school_lens_snapshot,
     api_school_policy_bundle_activate,
     api_school_policy_bundles,
+    api_school_requeue_provision,
     api_school_timeline,
     school_lifecycle_action,
 )
@@ -78,6 +80,7 @@ from .super_views_runtime_ops import (
 )
 from .super_views_platform_monitoring import (
     super_control_health_dashboard,
+    super_fleet_wall,
     super_pulse,
     super_tenant_360,
     super_tenant_health,
@@ -99,6 +102,7 @@ from .super_views_dashboard_surfaces import (
     super_dashboard_v2,
 )
 from .super_views_exports import (
+    export_fleet_status_odt,
     export_revenue_csv,
     export_schools_csv,
     export_super_dashboard_pdf,
@@ -125,6 +129,8 @@ __all__ = (
     "api_provinces",
     "api_school_policy_bundle_activate",
     "api_school_policy_bundles",
+    "api_school_lens_snapshot",
+    "api_school_requeue_provision",
     "api_school_timeline",
     "api_school_offboarding",
     "api_school_offboarding_deactivate",
@@ -140,6 +146,7 @@ __all__ = (
     "create_school_wizard",
     "export_revenue_csv",
     "export_schools_csv",
+    "export_fleet_status_odt",
     "export_super_dashboard_pdf",
     "global_ai_version",
     "global_ai_version_progress",
@@ -160,6 +167,7 @@ __all__ = (
     "super_command_center",
     "super_command_center_v2",
     "super_founder_dashboard",
+    "super_fleet_wall",
     "super_config_hub_redirect",
     "super_platform_events",
     "super_policy_diff",

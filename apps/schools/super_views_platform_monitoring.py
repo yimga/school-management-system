@@ -12,7 +12,8 @@ from django.utils import timezone
 
 from apps.tenancy.context import TenantContext
 
-from .control_plane_lifecycle import get_lifecycle_snapshot
+from .control_plane_lifecycle import batch_current_subscriptions, get_lifecycle_snapshot
+from .fleet_status import format_fleet_summary_label, resolve_fleet_summary, resolve_school_fleet_status
 from .models import School, TenantApiUsage, TenantQuotaLimit
 from .super_dashboard_registry import (
     REGISTRY_PAGE_SIZE_OPTIONS,
@@ -123,6 +124,7 @@ def super_pulse(request):
 @require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_tenant_health(request):
     """S13: Tenant Health Monitor — HTML view for super dashboard link. Wedge 14–22: missing statutory for PUBLIC/GOVERNMENT_MINISTRY."""
+    from apps.lifecycle.unified_lifecycle import resolve_unified_lifecycle
     from apps.platform_runtime.models import PlatformOperatorTenantHealthLink
     from apps.policies.resolver import get_effective_policy
 
@@ -133,8 +135,16 @@ def super_tenant_health(request):
         request, base_qs, default_page_size=50
     )
     tenants = list(page.object_list)
+    subs = batch_current_subscriptions(tenants)
+    fleet_summary = resolve_fleet_summary()
     for school in tenants:
-        school.lifecycle = get_lifecycle_snapshot(school)
+        school.lifecycle = get_lifecycle_snapshot(
+            school, cached_subscription=subs.get(school.pk)
+        )
+        school.fleet_status = resolve_school_fleet_status(
+            school, cached_subscription=subs.get(school.pk)
+        )
+        school.unified_lifecycle = resolve_unified_lifecycle(school)
         sector = (getattr(school, "primary_sector", None) or "").strip().upper()
         if sector in ("PUBLIC", "GOVERNMENT_MINISTRY"):
             policy = get_effective_policy(school)
@@ -156,7 +166,36 @@ def super_tenant_health(request):
             "page_size_options": REGISTRY_PAGE_SIZE_OPTIONS,
             "pagination_extra_query": pagination_extra_query,
             "total_tenant_count": page.paginator.count,
+            "fleet_summary_label": format_fleet_summary_label(fleet_summary),
+            "fleet_summary": fleet_summary,
             "operator_tenant_health_links": operator_tenant_health_links,
+        },
+    )
+
+
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
+def super_fleet_wall(request):
+    """Full-fleet operator wall — all schools as live tiles with chunked SSE bootstrap."""
+    from apps.schools.fleet_wall_payload import (
+        FLEET_WALL_DEFAULT_CHUNK_SIZE,
+        build_fleet_wall_context,
+        build_fleet_wall_rows,
+        parse_fleet_wall_query,
+    )
+
+    chunk_size, search = parse_fleet_wall_query(request)
+    ctx = build_fleet_wall_context(q=search)
+    initial_tiles = build_fleet_wall_rows(search)[:chunk_size]
+    return render(
+        request,
+        "schools/super_fleet_wall.html",
+        {
+            "search_query": search,
+            "wall_chunk_size": chunk_size or FLEET_WALL_DEFAULT_CHUNK_SIZE,
+            "fleet_summary_label": ctx["summary_label"],
+            "fleet_summary": ctx["summary"],
+            "total_school_count": ctx["total"],
+            "initial_tiles": initial_tiles,
         },
     )
 

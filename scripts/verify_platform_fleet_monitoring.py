@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_PATHS = (
     "apps/schools/fleet_status.py",
     "apps/schools/fleet_live_payload.py",
+    "apps/schools/fleet_wall_payload.py",
     "apps/schools/fleet_report_markdown.py",
     "apps/schools/tenant_operational_health.py",
     "apps/schools/views_fleet_live.py",
@@ -22,9 +23,11 @@ REQUIRED_PATHS = (
     "apps/siteconfig/views_cockpit_live.py",
     "static/js/rmc-cp-cockpit-live.js",
     "static/js/rmc-fleet-live.js",
+    "static/js/rmc-fleet-wall.js",
     "static/js/rmc-tenant-health-live.js",
     "templates/partials/cockpit/_tenant_heatmap.html",
     "templates/partials/tenant/operational_health_strip.html",
+    "templates/schools/super_fleet_wall.html",
     "templates/schools/super_tenant_health.html",
 )
 
@@ -45,6 +48,11 @@ REQUIRED_SYMBOLS = {
     "apps/schools/tenant_operational_health.py": ("resolve_tenant_operational_health",),
     "apps/siteconfig/views_cockpit_live.py": ("cockpit_live_json",),
     "apps/schools/views_fleet_live.py": ("fleet_live_json", "FleetStreamView"),
+    "apps/schools/fleet_wall_payload.py": (
+        "iter_fleet_wall_sse_events",
+        "request_is_fleet_wall_mode",
+        "build_fleet_wall_rows",
+    ),
     "apps/schools/views_tenant_health_api.py": (
         "tenant_operational_health_json",
         "TenantHealthStreamView",
@@ -153,6 +161,8 @@ def _check_wiring() -> list[str]:
     stream = _read("apps/schools/views_fleet_live.py")
     if "since_row_revisions" not in stream or "row_revision_map" not in stream:
         errors.append("views_fleet_live.py: SSE stream must track per-row revision map")
+    if "_fleet_wall_sse_stream" not in stream or "request_is_fleet_wall_mode" not in stream:
+        errors.append("views_fleet_live.py: must route mode=wall to fleet wall SSE stream")
     if "text/event-stream" not in stream:
         errors.append("views_fleet_live.py: FleetStreamView must emit text/event-stream")
     if "build_fleet_sse_payload" not in stream:
@@ -203,6 +213,16 @@ def _check_wiring() -> list[str]:
     sidebar = _read("templates/partials/portal_sidebar.html")
     if "SITE.enable_student_portal" not in sidebar:
         errors.append("portal_sidebar.html: student nav must honor enable_student_portal")
+    fleet_wall = _read("templates/schools/super_fleet_wall.html")
+    if 'data-rmc-fleet-wall="1"' not in fleet_wall:
+        errors.append("super_fleet_wall.html: missing data-rmc-fleet-wall root marker")
+    wall_js = _read("static/js/rmc-fleet-wall.js")
+    if "mode=wall" not in wall_js or "changed_rows" not in wall_js:
+        errors.append("rmc-fleet-wall.js: must subscribe to wall SSE and merge deltas")
+    if "fleet_wall" not in _read("apps/schools/super_urls.py"):
+        errors.append("super_urls.py: missing fleet_wall route")
+    if "fleet_wall" not in dashboard:
+        errors.append("super_dashboard.html: missing Fleet wall CTA")
     tenant_stream = _read("apps/schools/views_tenant_health_api.py")
     if "text/event-stream" not in tenant_stream:
         errors.append("views_tenant_health_api.py: TenantHealthStreamView must emit text/event-stream")

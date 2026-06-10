@@ -19,6 +19,11 @@ from apps.schools.fleet_live_payload import (
     parse_fleet_live_query,
     row_revision_map,
 )
+from apps.schools.fleet_wall_payload import (
+    iter_fleet_wall_sse_events,
+    merge_wall_row_revisions,
+    request_is_fleet_wall_mode,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +40,7 @@ def fleet_live_json(request):
     return JsonResponse(payload)
 
 
-def _fleet_sse_stream(request) -> Iterator[str]:
+def _fleet_table_sse_stream(request) -> Iterator[str]:
     started = time.monotonic()
     since_revision: str | None = str(request.GET.get("since_revision") or "").strip() or None
     since_row_revisions: dict[str, str] = {}
@@ -58,6 +63,41 @@ def _fleet_sse_stream(request) -> Iterator[str]:
                             row.get("row_revision") or ""
                         )
         time.sleep(_FLEET_SSE_INTERVAL_SECONDS)
+
+
+def _fleet_wall_sse_stream(request) -> Iterator[str]:
+    started = time.monotonic()
+    since_revision: str | None = None
+    since_row_revisions: dict[str, str] = {}
+    wall_bootstrapped = False
+    while time.monotonic() - started < _FLEET_SSE_MAX_SECONDS:
+        events = iter_fleet_wall_sse_events(
+            request,
+            since_revision=since_revision,
+            since_row_revisions=since_row_revisions or None,
+            wall_bootstrapped=wall_bootstrapped,
+        )
+        for event in events:
+            yield f"data: {json.dumps(event, default=str)}\n\n"
+
+        if events and events[0].get("type") == "unchanged":
+            time.sleep(_FLEET_SSE_INTERVAL_SECONDS)
+            continue
+
+        since_row_revisions = merge_wall_row_revisions(since_row_revisions, events)
+        since_revision = str(events[0].get("revision") or "") or since_revision
+        if not wall_bootstrapped and any(
+            event.get("type") == "wall_ready" for event in events
+        ):
+            wall_bootstrapped = True
+        time.sleep(_FLEET_SSE_INTERVAL_SECONDS)
+
+
+def _fleet_sse_stream(request) -> Iterator[str]:
+    if request_is_fleet_wall_mode(request):
+        yield from _fleet_wall_sse_stream(request)
+        return
+    yield from _fleet_table_sse_stream(request)
 
 
 @method_decorator(staff_member_required, name="dispatch")

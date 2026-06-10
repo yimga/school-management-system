@@ -1,0 +1,85 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n %}
+{% comment %} table-column-budget-allow: fleet-wall-operator-tile-grid {% endcomment %}
+
+{% block cp_title %}{% trans "Fleet wall" %}{% endblock %}
+
+{% block cp_workspace_header %}{% endblock %}
+
+{% block cp_content %}
+{% include "components/next_action_strip.html" %}
+
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#fleet-wall-main">{% trans "Skip to fleet wall" %}</a>
+
+<div id="fleet-wall-main"
+     class="container-fluid py-2"
+     tabindex="-1"
+     data-page-archetype="operational-workbench"
+     data-rmc-operational-workbench="1"
+     data-rmc-scroll-policy="paginate"
+     data-rmc-page-fold-nav="required"
+     data-rmc-fleet-wall="1"
+     data-rmc-fleet-wall-chunk-size="{{ wall_chunk_size|default:50 }}"
+     {% if search_query %}data-rmc-fleet-wall-q="{{ search_query|escape }}"{% endif %}>
+
+  {% url 'super:dashboard' as super_dashboard_url %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="fleet_wall" center_eyebrow=_("Platform operators") center_title=_("Fleet wall") center_purpose=_("Live health grid for every school. SSE: GET /super/api/fleet/stream/?mode=wall") primary_url=super_dashboard_url primary_label=_("Back to Schools") status_badge_text=_("Live") %}
+
+  <form method="get" class="d-flex flex-wrap align-items-center gap-2 mb-3" role="search">
+    <input type="search" name="q" value="{{ search_query }}" class="form-control" placeholder="{% trans 'Search schools by name or slug' %}" autocomplete="off">
+    <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Search" %}</button>
+    <span class="text-muted small ms-auto">
+      <span data-rmc-fleet-summary-bar>{{ fleet_summary_label }}</span>
+      · {% trans "Loaded" %} <span data-rmc-fleet-wall-loaded-count>{{ initial_tiles|length }}</span>/<span data-rmc-fleet-wall-total-count>{{ total_school_count }}</span>
+      · {% trans "Updated" %} <span data-rmc-fleet-refreshed></span>
+      · <a href="{% url 'super:tenant_health' %}" class="link-secondary">{% trans "Table view" %}</a>
+      · <a href="{% url 'super:export_fleet_status_odt' %}" class="link-secondary">{% trans "Export ODT" %}</a>
+    </span>
+  </form>
+
+  <div class="cp-toolbar cp-registry-toolbar mb-3 d-flex flex-wrap gap-2 align-items-center" role="group" aria-label="{% trans 'Filter fleet tiles' %}">
+    <span class="small text-muted">{% trans "Show" %}</span>
+    <button type="button" class="btn btn-sm btn-outline-secondary active" data-rmc-fleet-wall-filter="all">{% trans "All" %}</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-fleet-wall-filter="healthy">{% trans "Live" %}</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-fleet-wall-filter="okay">{% trans "Trial" %}</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-fleet-wall-filter="warn">{% trans "Watch" %}</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-fleet-wall-filter="danger">{% trans "Critical" %}</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-fleet-wall-filter="idle">{% trans "Inactive" %}</button>
+    <span class="small text-muted ms-auto" data-rmc-fleet-wall-status aria-live="polite"></span>
+  </div>
+
+  <section class="lx-card lx-heatmap rmc-fleet-wall-card" aria-label="{% trans 'Fleet wall by school health' %}">
+    <div class="lx-heatmap__grid rmc-heatmap rmc-fleet-wall-grid" role="list" data-rmc-fleet-wall-grid>
+      {% for tile in initial_tiles %}
+      {% url 'super:tenant_360' tile.id as tile_360_url %}
+      {% with tier=tile.heatmap_tier|default:"idle" %}
+      <a href="{{ tile_360_url }}"
+         class="lx-heatmap__tile lx-heatmap__tile--{{ tier }} rmc-heatmap__tile rmc-heatmap__tile--{% if tier == 'warn' %}watch{% elif tier == 'danger' %}critical{% else %}{{ tier }}{% endif %} rmc-fleet-wall-tile"
+         role="listitem"
+         tabindex="0"
+         data-school-id="{{ tile.id }}"
+         data-rmc-fleet-tier="{{ tier }}"
+         data-rmc-fleet-row-revision="{{ tile.row_revision|default:'' }}"
+         data-label="{{ tile.name|escape }}"
+         title="{{ tile.tooltip|default:tile.fleet_state_label|escape }}"
+         aria-label="{{ tile.name|escape }} — {{ tile.fleet_state_label|default:'—' }}"></a>
+      {% endwith %}
+      {% empty %}
+      <p class="text-muted small mb-0 px-2">{% trans "No schools match this search." %}</p>
+      {% endfor %}
+    </div>
+    <div class="lx-heatmap__legend mt-3" aria-label="{% trans 'Heatmap legend' %}" data-rmc-fleet-legend="1">
+      <span class="lx-l-healthy" data-rmc-fleet-tier="healthy">{% trans "Live" %}</span>
+      <span class="lx-l-okay" data-rmc-fleet-tier="okay">{% trans "Trial" %}</span>
+      <span class="lx-l-warn" data-rmc-fleet-tier="warn">{% trans "Watch" %}</span>
+      <span class="lx-l-danger" data-rmc-fleet-tier="danger">{% trans "Critical" %}</span>
+      <span class="lx-l-idle" data-rmc-fleet-tier="idle">{% trans "Inactive" %}</span>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+{{ block.super }}
+<script src="{% static 'js/rmc-fleet-wall.js' %}" defer></script>
+{% endblock %}

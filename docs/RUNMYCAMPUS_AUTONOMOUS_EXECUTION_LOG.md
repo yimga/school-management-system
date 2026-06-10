@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Full-fleet operator wall (2026-06-09)
+
+**A. Scope:** Batch **1699** — `/super/fleet-wall/` with chunked SSE bootstrap + fleet-wide row deltas.
+
+**B. Shipped:** `fleet_wall_payload.py`; `mode=wall` stream; `super_fleet_wall.html` + `rmc-fleet-wall.js`; dashboard CTA.
+
+**C. Proof:** **PLATFORM_FLEET_MONITORING_PASS**; `test_fleet_wall_payload` + `test_fleet_wall_http` green.
+
+**D. Honest:** Heatmap tile grid only; search reloads page; landing heatmap 500 cap unchanged.
+
 ## Slice — Fleet SSE per-row deltas (2026-06-09)
 
 **A. Scope:** Batch **1698** — connection-scoped row revision map + `{delta, changed_rows}` SSE payloads.
