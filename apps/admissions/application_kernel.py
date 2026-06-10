@@ -289,26 +289,61 @@ def enroll_applicant_to_student(
     applicant_id: int,
     school_id: int,
     actor_user_id: int | None = None,
+    classroom_id: int | None = None,
     db_runner=None,
 ) -> EnrollmentResult:
     """Promote an ACCEPTED applicant with full document set to a StudentProfile.
 
     Thin DB seam via ``db_runner`` so the FSM + document logic is unit-testable
     without Django. The default runner uses the live Applicant + StudentProfile
-    models.
+    models and CHAINS the new student into the system (active academic year,
+    classroom, admission number, status, applicant back-link) so an enrolled
+    student is immediately visible in rosters/reports — not a bare record.
     """
     runner = db_runner or _default_enroll_runner
     return runner(
         applicant_id=applicant_id,
         school_id=school_id,
         actor_user_id=actor_user_id,
+        classroom_id=classroom_id,
     )
 
 
+def _resolve_active_academic_year(school_id: int):
+    """Active academic year for the school (the enrolled student belongs to it)."""
+    try:
+        from apps.academics.models import AcademicYear  # type: ignore
+
+        qs = AcademicYear.objects.filter(school_id=school_id)
+        return (
+            qs.filter(is_active=True).order_by("-start_date").first()
+            or qs.order_by("-start_date").first()
+        )
+    except Exception:  # noqa: BLE001 - best-effort enrichment must never block enrollment
+        return None
+
+
+def _resolve_classroom(school_id: int, classroom_id: int | None):
+    if not classroom_id:
+        return None
+    try:
+        from apps.academics.models import Classroom  # type: ignore
+
+        # tenant-isolation-allow: classroom-confined-to-enrolling-school
+        return Classroom.objects.filter(id=classroom_id, school_id=school_id).first()
+    except Exception:  # noqa: BLE001 - best-effort enrichment must never block enrollment
+        return None
+
+
 def _default_enroll_runner(
-    *, applicant_id: int, school_id: int, actor_user_id: int | None,
+    *,
+    applicant_id: int,
+    school_id: int,
+    actor_user_id: int | None,
+    classroom_id: int | None = None,
 ) -> EnrollmentResult:
     from django.db import transaction  # type: ignore
+    from django.utils import timezone  # type: ignore
 
     from apps.people.models import Applicant, StudentProfile  # type: ignore
 
@@ -325,6 +360,9 @@ def _default_enroll_runner(
     if not ok:
         return EnrollmentResult(ok=False, error="preflight_failed", blockers=blockers)
 
+    academic_year = _resolve_active_academic_year(school_id)
+    classroom = _resolve_classroom(school_id, classroom_id)
+
     with transaction.atomic():
         # Promote to ENROLLED stage first so a partial-failure on student
         # create leaves the applicant intact for retry.
@@ -339,12 +377,43 @@ def _default_enroll_runner(
         applicant.extra_data = new_extra
         applicant.save(update_fields=["stage", "extra_data", "updated_at"])
 
+        # Chain the new student into the system so it's immediately usable:
+        # active year (reports/rollover), classroom (roster/attendance/gradebook),
+        # NEW status, join date, and a zero-migration back-link to the applicant
+        # (so the admission documents/history remain reachable).
+        # NOTE: StudentProfile has no ``email`` field (contact lives on the linked
+        # User / guardian). The original orphaned runner passed ``email=`` and would
+        # have crashed on first real call — it never did because only the fake-runner
+        # seam test exercised it. We keep the applicant email in custom_attributes so
+        # it's available when the student/guardian User account is later created.
         student = StudentProfile.objects.create(
             school_id=school_id,
             first_name=applicant.first_name,
             last_name=applicant.last_name,
-            email=applicant.email or "",
+            status=StudentProfile.Status.NEW,
+            academic_year=academic_year,
+            classroom=classroom,
+            joined_date=timezone.now().date(),
+            custom_attributes={
+                "enrolled_from_applicant_id": int(applicant_id),
+                "applicant_email": applicant.email or "",
+            },
         )
+        # Admission number is policy-driven off the academic year's name; only
+        # attempt it when a year exists. Best-effort — never block enrollment.
+        if academic_year is not None and not getattr(student, "admission_number", ""):
+            try:
+                number = StudentProfile.generate_admission_number(
+                    academic_year=academic_year,
+                    specialty=getattr(student, "specialty", None),
+                    classroom=classroom,
+                    school=None,
+                )
+                if number:
+                    student.admission_number = number
+                    student.save(update_fields=["admission_number"])
+            except Exception:  # noqa: BLE001 - admission-number is best-effort
+                pass
     return EnrollmentResult(
         ok=True,
         student_id=student.id,

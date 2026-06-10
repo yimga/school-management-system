@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
 from apps.admissions.application_kernel import (
     ACCEPTED,
@@ -198,3 +198,83 @@ class PayloadShapeTests(SimpleTestCase):
         p["documents"]["k"]["received"] = False  # mutate copy
         # original untouched
         self.assertTrue(seed["application"]["documents"]["k"]["received"])
+
+
+class EnrollmentChainTests(TestCase):
+    """The REAL enrollment runner (not the fake seam) must produce a fully-wired
+    student. Guards (a) the latent ``email=`` kwarg crash the orphaned runner
+    carried, and (b) the downstream chain: active academic year, classroom,
+    admission number, NEW status, and the applicant back-link.
+    """
+
+    def _accepted_applicant(self, school):
+        from apps.people.models import Applicant
+
+        extra = {}
+        for spec in list_required_documents():
+            extra = attach_document_reference(
+                extra_data=extra, document_key=spec.key,
+                storage_ref=f"s3://x/{spec.key}.pdf",
+            )
+        return Applicant.objects.create(
+            school=school, first_name="Ada", last_name="Lovelace",
+            email="ada@adm.test", stage=ACCEPTED, extra_data=extra,
+        )
+
+    def test_enroll_chains_student_into_system(self):
+        from datetime import date
+
+        from apps.academics.models import AcademicYear, Classroom, Department
+        from apps.people.models import StudentProfile
+        from apps.schools.models import School
+
+        school = School.objects.create(
+            name="Adm Test", slug="adm-chain", subdomain="adm-chain",
+            is_active=True, is_approved=True, country_code="US", timezone="UTC",
+        )
+        ay = AcademicYear.objects.create(
+            school=school, name="2026/2027",
+            start_date=date(2026, 9, 1), end_date=date(2027, 6, 30), is_active=True,
+        )
+        dept = Department.objects.create(school=school, code="adm-chain-GEN", name="General")
+        classroom = Classroom.objects.create(
+            school=school, academic_year=ay, department=dept,
+            name="Form 1A", code="adm-chain-C1",
+        )
+        applicant = self._accepted_applicant(school)
+
+        result = enroll_applicant_to_student(
+            applicant_id=applicant.id, school_id=school.id,
+            actor_user_id=None, classroom_id=classroom.id,
+        )
+
+        self.assertTrue(result.ok, msg=f"enroll failed: {result.error} {result.blockers}")
+        student = StudentProfile.objects.get(id=result.student_id)
+        self.assertEqual(student.status, StudentProfile.Status.NEW)
+        self.assertEqual(student.academic_year_id, ay.id)
+        self.assertEqual(student.classroom_id, classroom.id)
+        self.assertTrue(student.student_code)
+        self.assertTrue(student.admission_number)  # policy-generated off the year
+        ca = student.custom_attributes or {}
+        self.assertEqual(ca.get("enrolled_from_applicant_id"), applicant.id)
+        self.assertEqual(ca.get("applicant_email"), "ada@adm.test")
+        applicant.refresh_from_db()
+        self.assertEqual(applicant.stage, ENROLLED)
+
+    def test_enroll_blocks_when_not_accepted(self):
+        from apps.people.models import Applicant
+        from apps.schools.models import School
+
+        school = School.objects.create(
+            name="Adm Test 2", slug="adm-blk", subdomain="adm-blk",
+            is_active=True, is_approved=True, country_code="US", timezone="UTC",
+        )
+        applicant = Applicant.objects.create(
+            school=school, first_name="Grace", last_name="Hopper",
+            email="grace@adm.test", stage=APPLIED, extra_data={},
+        )
+        result = enroll_applicant_to_student(
+            applicant_id=applicant.id, school_id=school.id,
+        )
+        self.assertFalse(result.ok)
+        self.assertEqual(result.error, "preflight_failed")
