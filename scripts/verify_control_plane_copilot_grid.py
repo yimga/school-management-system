@@ -61,6 +61,7 @@ REQUIRED_TEMPLATE_MARKERS = (
     (REPO_ROOT / "templates" / "control_plane_skeleton.html", 'data-rmc-app-shell-copilot="1"'),
     (REPO_ROOT / "templates" / "control_plane_skeleton.html", "rmc-isomorphic-grid.css"),
     (REPO_ROOT / "templates" / "control_plane_skeleton.html", "rmc-cp-copilot-grid-lock.css"),
+    (REPO_ROOT / "templates" / "control_plane_skeleton.html", 'id="rmc-cp-copilot-grid-critical"'),
 )
 
 REQUIRED_GRID_AREA_SNIPPETS = (

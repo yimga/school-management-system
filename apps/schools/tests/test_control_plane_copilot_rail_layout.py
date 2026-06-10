@@ -54,6 +54,11 @@ def assert_manager_copilot_shell_contract(test_case, html: str, path: str) -> No
         html,
         f"{path}: terminal copilot grid-lock stylesheet not loaded",
     )
+    test_case.assertIn(
+        'id="rmc-cp-copilot-grid-critical"',
+        html,
+        f"{path}: inline copilot grid critical style missing (stale CSS cache defense)",
+    )
     copilot_idx = html.find('class="rmc-app-shell__copilot"')
     pulse_idx = html.find('id="rmcCpPulseDrillSheet"')
     footer_idx = html.find('class="rmc-app-shell__footer')
