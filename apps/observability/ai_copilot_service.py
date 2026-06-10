@@ -1,7 +1,19 @@
 """AI copilot service — operator rail insights (batch 1393).
 
-Powers manager ``cockpit.ai_copilot_rail`` when enabled. Uses platform metrics
-and support backlog counts — no tenant PII in suggestion copy.
+Powers the *Pulse* insight feed of the manager ``cockpit.ai_copilot_rail`` when
+enabled. Uses platform metrics and support backlog counts — no tenant PII in
+suggestion copy.
+
+HONESTY NOTE (do not mistake the module name for an inference engine): despite
+the ``ai_copilot`` name, every function here is **deterministic and rules-based**
+— it counts open tickets / pending AI reviews / KB gaps and reports whether the
+real gateway is reachable. It makes **no model call**. The genuinely generative
+side of the rail (the chat box) is served separately by the Studio OS copilot
+rail (``apps.studio_os.copilot_rail_service`` via the ``studio_os:copilot_rail_*``
+endpoints). The canonical generative-AI surface inventory lives in
+``apps.platform_runtime.ai_providers.describe_ai_assistant_surfaces`` and is
+surfaced in the Intelligence & Self-Healing hub; this feed is intentionally
+**not** listed there because it is not AI.
 """
 
 from __future__ import annotations

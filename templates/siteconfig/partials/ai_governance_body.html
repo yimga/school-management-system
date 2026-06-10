@@ -27,9 +27,9 @@
   </div>
 
   <div class="card border-0 shadow-sm mb-3">
-    <div class="card-header bg-light fw-semibold">{% trans "Policy copilot" %}</div>
+    <div class="card-header bg-light fw-semibold">{% trans "Policy matrix lookup" %}</div>
     <div class="card-body small">
-      <p class="text-muted mb-2">{% trans "Ask a governance / compliance question. Answers are grounded in this country's governance matrix — no AI generation, no external call." %}</p>
+      <p class="text-muted mb-2">{% trans "Ask a governance / compliance question. Answers are a grounded lookup in this country's governance matrix (pattern-matched intents with statute citations) — not an AI assistant: no model call, no generation, no external request." %}</p>
       <form method="post" class="mb-2">
         {% csrf_token %}
         <label class="form-label" for="policy-question">{% trans "Question" %}</label>
