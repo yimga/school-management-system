@@ -607,7 +607,10 @@ def build_portal_sidebar_items(request, site):
                 "label": "Portal Stats",
                 "url": _safe_reverse("portal:portal_stats"),
                 "icon": "bi-graph-up",
-                "section": "Settings",
+                # Same view the parent gets under "Performance Tracking"; "Settings"
+                # was a misnomer (a stats link, not configuration). Keep it ops, named
+                # consistently across roles. — 2026-06-10
+                "section": "Performance Tracking",
                 "badge": None,
             }
         )
