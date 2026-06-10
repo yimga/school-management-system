@@ -394,24 +394,27 @@ class ChurnRiskPredictor:
         thirty_days_ago = timezone.now() - timedelta(days=30)
         attendance_rate = 100.0
         try:
-            from apps.analytics.models import AttendanceLog
+            # Use the REAL per-student attendance model (academics.Attendance:
+            # student FK + date + status present/absent/late/excused). The former
+            # source, analytics.AttendanceLog, is a date+status stub with NO
+            # student field — filter(student=…) raised FieldError that the except
+            # below swallowed, silently pinning every student's attendance_rate to
+            # 100% and severing attendance from churn-risk scoring.
+            from apps.academics.models import Attendance
 
             if student_profile:
-                attendance_logs = AttendanceLog.objects.filter(
-                    student=student_profile, date__gte=thirty_days_ago
+                attendance_logs = Attendance.objects.filter(  # tenant-isolation-allow: scoped-via-student-profile-fk-attendance-rate
+                    student=student_profile, date__gte=thirty_days_ago.date()
                 )
             else:
-                # No StudentProfile — use empty QS so we never branch on list.count vs QS.filter
-                attendance_logs = AttendanceLog.objects.none()
+                # No StudentProfile — empty QS so the math below is well-defined.
+                attendance_logs = Attendance.objects.none()
 
-            if hasattr(attendance_logs, "filter"):
-                present_count = attendance_logs.filter(status="present").count()
-                total_logs = attendance_logs.count()
-                attendance_rate = (
-                    (present_count / total_logs * 100) if total_logs > 0 else 100.0
-                )
-            else:
-                attendance_rate = 100.0
+            present_count = attendance_logs.filter(status="present").count()
+            total_logs = attendance_logs.count()
+            attendance_rate = (
+                (present_count / total_logs * 100) if total_logs > 0 else 100.0
+            )
         except _ML_EXTRACT_FEATURES_ATTENDANCE_ERRORS as e:
             log_exception_with_context(
                 "ml_predictions ChurnRiskPredictor.extract_features attendance fallback",
@@ -422,7 +425,7 @@ class ChurnRiskPredictor:
                 },
             )
             logger.debug(
-                "AttendanceLog unavailable or query failed, defaulting to 100%%: %s", e
+                "Attendance query failed, defaulting to 100%%: %s", e
             )
             attendance_rate = 100.0
 
