@@ -102,7 +102,10 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   [data-rmc-shell-main="control-plane"] .rmc-app-shell {
     grid-template-columns: var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px)) 1fr;
   }
-  .rmc-app-shell__copilot { display: none; }
+  body.control-plane-shell .rmc-app-shell__copilot,
+  [data-rmc-isomorphic-template="operator-control-plane"] .rmc-app-shell__copilot {
+    display: none;
+  }
 }
 
 /* Phone: collapse the control-plane shell to a single column and hide the

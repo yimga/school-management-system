@@ -142,8 +142,12 @@ html:not([data-rmc-shell="off"]) .rmc-app-shell__sidebar {
 }
 
 /* Operator 3-col binds to app-shell sidebar + canvas + copilot */
-[data-rmc-isomorphic-template="operator-control-plane"] .rmc-app-shell:not(.rmc-app-shell--no-sidebar) {
+[data-rmc-isomorphic-template="operator-control-plane"] .rmc-app-shell:not(.rmc-app-shell--no-sidebar)[data-rmc-app-shell-copilot="1"] {
   grid-template-columns: var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px)) minmax(0, 1fr) var(--rmc-app-shell-copilot-w, 44px);
+  grid-template-areas:
+    "rmc-shell-h rmc-shell-h rmc-shell-h"
+    "rmc-shell-sb rmc-shell-cv rmc-shell-cp"
+    "rmc-shell-f rmc-shell-f rmc-shell-f";
 }
 
 [data-rmc-isomorphic-template="operator-control-plane"] .rmc-app-shell__sidebar,
@@ -153,7 +157,8 @@ html:not([data-rmc-shell="off"]) .rmc-app-shell__sidebar {
   max-height: 100%;
 }
 
-[data-rmc-isomorphic-template="operator-control-plane"] .rmc-app-shell__copilot {
+[data-rmc-isomorphic-template="operator-control-plane"] .rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__copilot {
+  grid-area: rmc-shell-cp;
   grid-row: 2;
   grid-column: 3;
   width: var(--rmc-app-shell-copilot-w, 44px);

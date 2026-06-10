@@ -1,0 +1,111 @@
+/**
+ * rmc-cp-copilot-grid-lock.css — terminal copilot rail placement (control plane)
+ *
+ * Loaded last in control_plane_skeleton head so the operator 3-column bind wins
+ * over any late shell overrides. Without an explicit grid-area pin, auto-placement
+ * parks .rmc-app-shell__copilot on a full-width implicit row (bottom band).
+ */
+
+html[data-rmc-isomorphic-template="operator-control-plane"]
+  body.control-plane-shell
+  .rmc-app-shell[data-rmc-app-shell-copilot="1"] {
+  display: grid;
+  grid-template-columns: var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px)) minmax(0, 1fr) var(--rmc-app-shell-copilot-w, 44px);
+  grid-template-areas:
+    "rmc-shell-h rmc-shell-h rmc-shell-h"
+    "rmc-shell-sb rmc-shell-cv rmc-shell-cp"
+    "rmc-shell-f rmc-shell-f rmc-shell-f";
+}
+
+html[data-rmc-isomorphic-template="operator-control-plane"]
+  body.control-plane-shell
+  .rmc-app-shell[data-rmc-app-shell-copilot="1"][data-copilot="expanded"] {
+  --rmc-app-shell-copilot-w: 360px;
+}
+
+html[data-rmc-isomorphic-template="operator-control-plane"]
+  body.control-plane-shell
+  .rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__header {
+  grid-area: rmc-shell-h;
+}
+
+html[data-rmc-isomorphic-template="operator-control-plane"]
+  body.control-plane-shell
+  .rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__sidebar {
+  grid-area: rmc-shell-sb;
+}
+
+html[data-rmc-isomorphic-template="operator-control-plane"]
+  body.control-plane-shell
+  .rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__canvas {
+  grid-area: rmc-shell-cv;
+}
+
+html[data-rmc-isomorphic-template="operator-control-plane"]
+  body.control-plane-shell
+  .rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__copilot {
+  grid-area: rmc-shell-cp;
+  grid-row: 2;
+  grid-column: 3;
+  width: var(--rmc-app-shell-copilot-w, 44px);
+  max-width: var(--rmc-app-shell-copilot-w, 44px);
+  min-width: 0;
+  min-height: 0;
+  max-height: 100%;
+  justify-self: stretch;
+  align-self: stretch;
+  position: relative;
+  inset: auto;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  top: auto;
+}
+
+html[data-rmc-isomorphic-template="operator-control-plane"]
+  body.control-plane-shell
+  .rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__footer {
+  grid-area: rmc-shell-f;
+}
+
+@media (max-width: 1199.98px) {
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell[data-rmc-app-shell-copilot="1"] {
+    grid-template-columns: var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px)) minmax(0, 1fr);
+    grid-template-areas:
+      "rmc-shell-h rmc-shell-h"
+      "rmc-shell-sb rmc-shell-cv"
+      "rmc-shell-f rmc-shell-f";
+  }
+
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__copilot {
+    display: none;
+  }
+}
+
+@media (max-width: 991.98px) {
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell[data-rmc-app-shell-copilot="1"] {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "rmc-shell-h"
+      "rmc-shell-cv"
+      "rmc-shell-f";
+  }
+
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__sidebar {
+    display: none;
+  }
+
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__canvas {
+    grid-area: rmc-shell-cv;
+  }
+}

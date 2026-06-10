@@ -3249,23 +3249,8 @@ def login_view(request):
 
         next_raw = (request.GET.get("next") or "").strip()
         if next_raw and is_toxic_login_next_for_manager(next_raw):
-            messages.info(
-                request,
-                _(
-                    "School accounts sign in on your campus address "
-                    "(your-school.runmycampus.com), not the manager console. "
-                    "Use “Find your school” below to open the right campus."
-                ),
-            )
             return redirect(build_public_login_redirect_url(request))
         if not should_show_manager_login_surface(request):
-            messages.info(
-                request,
-                _(
-                    "RunMyCampus Manager is for platform operators only. "
-                    "School accounts sign in on their campus subdomain."
-                ),
-            )
             return redirect(build_public_login_redirect_url(request))
 
     if request.method == "POST":
@@ -3461,19 +3446,18 @@ def login_view(request):
             # Tenant staff must not follow manager-host MFA / activation next chains.
             if is_manager_host:
                 from apps.accounts.manager_login_next import (
-                    build_public_post_login_url,
+                    build_public_login_redirect_url,
                     tenant_staff_should_use_public_host,
+                )
+                from apps.schools.tenant_login_redirect import (
+                    resolve_public_post_login_handoff,
                 )
 
                 if tenant_staff_should_use_public_host(user):
-                    messages.info(
-                        request,
-                        _(
-                            "This console is for platform operators. "
-                            "Taking you to your school account on runmycampus.com."
-                        ),
-                    )
-                    return redirect(build_public_post_login_url())
+                    handoff = resolve_public_post_login_handoff(request, user)
+                    if handoff is not None:
+                        return handoff
+                    return redirect(build_public_login_redirect_url(request))
 
             # MFA enforcement: if required or configured, route to setup/verify first.
             try:

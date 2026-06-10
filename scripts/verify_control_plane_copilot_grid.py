@@ -2,6 +2,19 @@
 
 The manager copilot rail must live in .rmc-app-shell grid row 2 / column 3 as a
 narrow right strip — never as a full-width bottom band from grid auto-placement.
+
+Surface families (single mount per family):
+  A) control_plane_skeleton.html — ALL manager /super/*, /help-center/*, and
+     siteconfig operator pages extending control_plane_base.html. Copilot is
+     included once in the skeleton; page templates only fill cp_content.
+  B) templates/admin/base.html (manager host) — Django admin unified shell;
+     grid pin in rmc-platform-vertical-compact.css + rmc-app-shell.css.
+  C) templates/portal_base.html (manager-portal-bridge) — legacy Bootstrap
+     bridge uses fixed .rmc-manager-portal-copilot-mount (intentional alternate).
+
+/super/ was not a separate copilot implementation — only super_dashboard.html
+adds extra extrastyle (manager-control-plane.css). The grid-lock sheet loads
+after every extrastyle block so landing and help-center share the same pin.
 """
 
 from __future__ import annotations
@@ -47,6 +60,12 @@ REQUIRED_TEMPLATE_ORDER = (
 REQUIRED_TEMPLATE_MARKERS = (
     (REPO_ROOT / "templates" / "control_plane_skeleton.html", 'data-rmc-app-shell-copilot="1"'),
     (REPO_ROOT / "templates" / "control_plane_skeleton.html", "rmc-isomorphic-grid.css"),
+    (REPO_ROOT / "templates" / "control_plane_skeleton.html", "rmc-cp-copilot-grid-lock.css"),
+)
+
+REQUIRED_GRID_AREA_SNIPPETS = (
+    (REPO_ROOT / "static" / "css" / "rmc-app-shell.css", "grid-template-areas:", "rmc-shell-cp"),
+    (REPO_ROOT / "static" / "css" / "rmc-cp-copilot-grid-lock.css", "grid-area: rmc-shell-cp", "rmc-shell-cp"),
 )
 
 
@@ -63,6 +82,12 @@ def main() -> int:
         text = path.read_text(encoding="utf-8", errors="replace")
         if marker not in text:
             findings.append(f"{path.relative_to(REPO_ROOT)}: missing '{marker}'")
+
+    for path, *snippets in REQUIRED_GRID_AREA_SNIPPETS:
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for snippet in snippets:
+            if snippet not in text:
+                findings.append(f"{path.relative_to(REPO_ROOT)}: missing '{snippet}'")
 
     skeleton = REQUIRED_TEMPLATE_ORDER[0].read_text(encoding="utf-8", errors="replace")
     copilot_idx = skeleton.find(REQUIRED_TEMPLATE_ORDER[1])

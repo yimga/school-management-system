@@ -119,7 +119,7 @@ class ManagerLoginViewNextTests(TestCase):
         resp = client.get(reverse("accounts:login") + "?cp=1")
         self.assertEqual(resp.status_code, 200)
 
-    def test_tenant_admin_login_escapes_to_public_host(self):
+    def test_tenant_admin_login_escapes_to_tenant_host(self):
         school = School.objects.create(
             name="Toxic Next Academy",
             slug="toxic-next-academy",
@@ -142,8 +142,31 @@ class ManagerLoginViewNextTests(TestCase):
         )
         self.assertEqual(resp.status_code, 302)
         self.assertTrue(
-            resp.url.endswith("/authentication/redirect/"),
+            resp.url.startswith("https://toxic-next-academy.runmycampus.com/"),
             msg=f"unexpected redirect target: {resp.url!r}",
         )
-        if resp.url.startswith("http"):
-            self.assertTrue(resp.url.startswith("https://runmycampus.com"))
+
+    def test_active_tenant_staff_login_on_manager_goes_to_tenant_backend(self):
+        school = School.objects.create(
+            name="Campus Live Academy",
+            slug="campus-live",
+            subdomain="campus-live",
+            is_active=True,
+        )
+        user = User.objects.create_user(
+            username="teacher-live",
+            email="teacher-live@example.com",
+            password="Test1234!",
+            role=User.Role.TEACHER,
+        )
+        SchoolMembership.objects.create(user=user, school=school, is_primary=True)
+        client = Client(HTTP_HOST="manager.runmycampus.com")
+        resp = client.post(
+            reverse("accounts:login"),
+            {"username": "teacher-live", "password": "Test1234!"},
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(
+            resp.url.startswith("https://campus-live.runmycampus.com/"),
+            msg=f"unexpected redirect target: {resp.url!r}",
+        )

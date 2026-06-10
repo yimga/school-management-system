@@ -16,6 +16,61 @@ from apps.schools.tests.manager_client import login_manager_control_plane
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
+# Representative manager routes — all must share control_plane_skeleton chrome
+# (copilot rail is mounted in the skeleton, not per-page).
+MANAGER_COPILOT_SHELL_ROUTE_SAMPLES = (
+    ("/super/", "command-center landing (was visually broken)"),
+    ("/super/schools/", "schools list"),
+    ("/help-center/", "help center (user reference — correct layout)"),
+    ("/super/team/", "operator team roster"),
+    ("/super/compliance/", "compliance overview"),
+)
+
+
+def assert_manager_copilot_shell_contract(test_case, html: str, path: str) -> None:
+    """HTML contract shared by every control_plane_base page on manager host."""
+    test_case.assertIn(
+        'data-rmc-isomorphic-template="operator-control-plane"',
+        html,
+        f"{path}: missing operator isomorphic template on <html>",
+    )
+    test_case.assertIn(
+        'data-rmc-app-shell-copilot="1"',
+        html,
+        f"{path}: copilot shell flag missing on .rmc-app-shell",
+    )
+    test_case.assertIn(
+        'class="rmc-app-shell__copilot"',
+        html,
+        f"{path}: copilot rail aside missing",
+    )
+    test_case.assertIn(
+        "data-rmc-copilot-rail",
+        html,
+        f"{path}: copilot rail marker missing",
+    )
+    test_case.assertIn(
+        "rmc-cp-copilot-grid-lock.css",
+        html,
+        f"{path}: terminal copilot grid-lock stylesheet not loaded",
+    )
+    copilot_idx = html.find('class="rmc-app-shell__copilot"')
+    pulse_idx = html.find('id="rmcCpPulseDrillSheet"')
+    footer_idx = html.find('class="rmc-app-shell__footer')
+    test_case.assertGreater(copilot_idx, 0, f"{path}: copilot aside not in DOM")
+    test_case.assertGreater(pulse_idx, 0, f"{path}: pulse sheet not in DOM")
+    test_case.assertGreater(footer_idx, 0, f"{path}: shell footer not in DOM")
+    test_case.assertLess(
+        copilot_idx,
+        pulse_idx,
+        f"{path}: copilot must precede pulse drill sheet inside .rmc-app-shell",
+    )
+    test_case.assertLess(
+        copilot_idx,
+        footer_idx,
+        f"{path}: copilot must precede footer inside .rmc-app-shell",
+    )
+
 
 class ControlPlaneCopilotRailCssContractTests(SimpleTestCase):
     def test_copilot_grid_css_contract_present_in_tree(self):
@@ -38,14 +93,18 @@ class ControlPlaneCopilotRailCssContractTests(SimpleTestCase):
         self.assertIn("grid-column: 3", css_200x)
         self.assertIn("max-width: var(--rmc-app-shell-copilot-w, 44px)", css_200x)
         self.assertIn(
-            '[data-rmc-isomorphic-template="operator-control-plane"] .rmc-app-shell__copilot',
+            '[data-rmc-isomorphic-template="operator-control-plane"] .rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__copilot',
             css_iso,
         )
         self.assertRegex(
             css_iso,
-            r'\[data-rmc-isomorphic-template="operator-control-plane"\] \.rmc-app-shell__copilot\s*\{[^}]*grid-row:\s*2[^}]*grid-column:\s*3',
+            r'\[data-rmc-isomorphic-template="operator-control-plane"\] \.rmc-app-shell\[data-rmc-app-shell-copilot="1"\] > \.rmc-app-shell__copilot\s*\{[^}]*grid-area:\s*rmc-shell-cp[^}]*grid-row:\s*2[^}]*grid-column:\s*3',
             re.DOTALL,
         )
+        grid_lock = (
+            REPO_ROOT / "static" / "css" / "rmc-cp-copilot-grid-lock.css"
+        ).read_text(encoding="utf-8", errors="replace")
+        self.assertIn("grid-area: rmc-shell-cp", grid_lock)
         copilot_idx = skeleton.find("_ai_copilot_rail.html")
         pulse_idx = skeleton.find("_pulse_drill_sheet.html")
         self.assertGreater(copilot_idx, 0)
@@ -80,49 +139,44 @@ class ControlPlaneCopilotRailLayoutTests(TestCase):
         login_manager_control_plane(self.client, self.user, password=self.password)
 
     @mock.patch.dict(os.environ, {"CONTROL_PLANE_OPERATOR_ROLES": "SUPERADMIN"})
-    def test_super_dashboard_html_mounts_copilot_before_pulse_sheet(self):
+    def test_manager_routes_share_identical_copilot_shell_contract(self):
+        """Copilot mounts in control_plane_skeleton — not duplicated per route."""
+        for path, label in MANAGER_COPILOT_SHELL_ROUTE_SAMPLES:
+            with self.subTest(path=path, label=label):
+                response = self.client.get(path, follow=False)
+                self.assertEqual(
+                    response.status_code,
+                    200,
+                    f"{path} ({label}): {response.content[:300]!r}",
+                )
+                html = response.content.decode("utf-8", errors="replace")
+                assert_manager_copilot_shell_contract(self, html, path)
+
+    @mock.patch.dict(os.environ, {"CONTROL_PLANE_OPERATOR_ROLES": "SUPERADMIN"})
+    def test_super_dashboard_landing_is_only_page_with_200x_cockpit_band(self):
+        """Landing embeds 200x sections inside canvas — copilot mount stays in skeleton."""
         response = self.client.get("/super/", follow=False)
         self.assertEqual(response.status_code, 200, response.content[:500])
         html = response.content.decode("utf-8", errors="replace")
+        self.assertEqual(html.count('class="rmc-app-shell__copilot"'), 1)
+        self.assertIn('data-rmc-cp-200x-landing="1"', html)
 
-        self.assertIn('class="rmc-app-shell__copilot"', html)
-        self.assertIn("data-rmc-copilot-rail", html)
-        self.assertIn('data-rmc-shell-main="control-plane"', html)
-        self.assertIn('data-rmc-isomorphic-template="operator-control-plane"', html)
-        self.assertIn('data-rmc-app-shell-copilot="1"', html)
-        self.assertIn("rmc-cp-200x.css", html)
-        self.assertIn("rmc-isomorphic-grid.css", html)
-
-        copilot_idx = html.find('class="rmc-app-shell__copilot"')
-        pulse_idx = html.find('id="rmcCpPulseDrillSheet"')
-        self.assertGreater(copilot_idx, 0)
-        self.assertGreater(pulse_idx, 0)
-        self.assertLess(
-            copilot_idx,
-            pulse_idx,
-            "copilot rail must precede pulse drill sheet inside .rmc-app-shell",
-        )
-
-        shell_open = html.find('class="rmc-app-shell')
-        footer_idx = html.find('class="rmc-app-shell__footer')
-        self.assertGreater(shell_open, 0)
-        self.assertGreater(footer_idx, 0)
-        self.assertLess(copilot_idx, footer_idx)
+    @mock.patch.dict(os.environ, {"CONTROL_PLANE_OPERATOR_ROLES": "SUPERADMIN"})
+    def test_help_center_uses_same_shell_as_super_not_portal_bridge(self):
+        response = self.client.get("/help-center/", follow=False)
+        self.assertEqual(response.status_code, 200, response.content[:500])
+        html = response.content.decode("utf-8", errors="replace")
+        assert_manager_copilot_shell_contract(self, html, "/help-center/")
+        self.assertNotIn("manager-portal-bridge", html)
+        self.assertNotIn("rmc-manager-portal-copilot-mount", html)
+        self.assertNotIn('data-rmc-cp-200x-landing="1"', html)
 
     @mock.patch.dict(os.environ, {"CONTROL_PLANE_OPERATOR_ROLES": "SUPERADMIN"})
     def test_super_schools_list_pins_copilot_shell_contract(self):
         response = self.client.get("/super/schools/", follow=False)
         self.assertEqual(response.status_code, 200, response.content[:500])
         html = response.content.decode("utf-8", errors="replace")
-
-        self.assertIn('data-rmc-app-shell-copilot="1"', html)
-        self.assertIn('class="rmc-app-shell__copilot"', html)
-        self.assertIn("rmc-isomorphic-grid.css", html)
-        copilot_idx = html.find('class="rmc-app-shell__copilot"')
-        footer_idx = html.find('class="rmc-app-shell__footer')
-        self.assertGreater(copilot_idx, 0)
-        self.assertGreater(footer_idx, 0)
-        self.assertLess(copilot_idx, footer_idx)
+        assert_manager_copilot_shell_contract(self, html, "/super/schools/")
         self.assertIn('data-rmc-portal-row-detail-dismiss', html)
         self.assertIn("rmc-portal-row-detail-drawer.js", html)
 
