@@ -4,6 +4,7 @@ Celery tasks for platform_runtime (beat-discovered via autodiscover_tasks).
 
 from __future__ import annotations
 
+import logging
 import os
 from io import StringIO
 
@@ -12,6 +13,8 @@ from django.core.management import call_command
 from django.utils import timezone
 
 from apps.platform_runtime.backlog_unlock_engine import normalize_profile
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task(name="platform_runtime.sync_ollama_models_beat")
@@ -339,6 +342,8 @@ def workflow_stuck_alert_sweep_task() -> dict:
 
         from apps.platform_runtime.models import WorkflowRun
         from apps.platform_runtime.event_bus import publish_event
+        from apps.platform_runtime.workflow_fix_handlers import resolve_stuck_remediation
+        from apps.platform_runtime.workflow_autopilot import try_auto_apply_on_stuck
 
         now = _tz.now()
         # Scan only rows where status=running AND last_heartbeat is at least
@@ -351,6 +356,7 @@ def workflow_stuck_alert_sweep_task() -> dict:
             ).order_by("-last_heartbeat_at")[:500]
         )
         published = 0
+        auto_applied = 0
         for run in candidates:
             try:
                 expected = max(int(run.expected_duration_seconds or 30), 5)
@@ -374,13 +380,31 @@ def workflow_stuck_alert_sweep_task() -> dict:
                     strict_catalog=True,
                     source="platform_runtime.workflow_stuck_alert_sweep",
                 )
-                # Flip the row so the SSE chip reflects stuck visually.
+                # Flip the row so the SSE chip reflects stuck visually AND stamp a
+                # remediation card so the operator gets a one-click Retry + the
+                # autopilot has a concrete target. Never clobber a richer (failure)
+                # remediation that already carries an auto-fix.
+                update_fields = {"status": "stuck"}
+                if not (run.suggested_remediation or {}).get("auto_fix_available"):
+                    update_fields["suggested_remediation"] = resolve_stuck_remediation(run=run)
                 # tenant-isolation-allow: workflow-stuck-sweep-single-row-pk-update-system-beat
-                WorkflowRun.objects.filter(pk=run.pk).update(status="stuck")
+                WorkflowRun.objects.filter(pk=run.pk).update(**update_fields)
                 published += 1
+                # Safe-by-default unattended remediation: a no-op (shadow) unless a
+                # WorkflowAutopilotPolicy explicitly enables the fix kind.
+                try:
+                    if try_auto_apply_on_stuck(run_pk=run.pk).get("applied"):
+                        auto_applied += 1
+                except Exception:
+                    logger.debug("stuck_auto_apply_failed run_id=%s", run.pk, exc_info=True)
             except Exception:
                 continue
-        return {"ok": True, "scanned": len(candidates), "published": published}
+        return {
+            "ok": True,
+            "scanned": len(candidates),
+            "published": published,
+            "auto_applied": auto_applied,
+        }
     except Exception as exc:
         return {"ok": False, "reason": f"exception:{type(exc).__name__}"}
 

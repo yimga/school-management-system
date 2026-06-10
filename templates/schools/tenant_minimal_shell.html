@@ -8,7 +8,13 @@ Minimal tenant workspace chrome — school name only; no platform nav/footer.
 {% block navbar %}
 <nav class="navbar navbar-dark statement-header" aria-label="{% trans 'Campus' %}">
   <div class="container d-flex align-items-center py-2">
-    {% with brand_label=SITE.site_name|default:school.name|default:pending_school_name|default:"Your school" %}
+    {# firstof resolves every operand with ignore_failures, so an UNDEFINED #}
+    {# pending_school_name (this shell is reused by the onboarding "done" page #}
+    {# and others that never set it) is skipped instead of raising #}
+    {# VariableDoesNotExist — the old `|default:pending_school_name` chain 500'd #}
+    {# because Django resolves filter args eagerly even when an earlier default #}
+    {# already won. #}
+    {% firstof SITE.site_name school.name pending_school_name "Your school" as brand_label %}
     {% if tenant_blank_brand %}
     <span class="rmc-brand-mark rmc-brand-mark--lockup rmc-brand-mark--pending-blank" style="--rmc-bm-size: 32px;">
       <span class="rmc-brand-mark__squircle rmc-brand-mark__squircle--blank" aria-hidden="true"></span>
@@ -19,7 +25,6 @@ Minimal tenant workspace chrome — school name only; no platform nav/footer.
     {% else %}
     {% include "components/rmc_brand_mark.html" with size=32 variant="lockup" label=brand_label blank_mark=1 %}
     {% endif %}
-    {% endwith %}
   </div>
 </nav>
 {% endblock %}

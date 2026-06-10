@@ -117,3 +117,51 @@ def apply_auto_fix_kind(*, run: Any, kind: str) -> dict[str, Any]:
         return {"ok": True, "applied": kind, "school_id": school_id}
 
     return {"ok": False, "reason": "unsupported_fix_kind", "kind": kind}
+
+
+# --- Stuck-run remediation (v4.04) ------------------------------------------
+# A run the stuck-sweep just flagged is still "running" semantically (it never
+# raised), so the failure-path remediation never fired and the card carries no
+# action. Resolve a remediation here so the operator gets a one-click Retry and
+# the unattended autopilot has a concrete target.
+
+# Default auto-fix kind per workflow for a STUCK (not-yet-failed) run. Only
+# workflows with a genuinely idempotent, owner-safe re-drive are listed; any
+# other workflow gets an explain-only card (Cancel + visibility, no false
+# "Apply" button).
+STUCK_DEFAULT_FIX_BY_WORKFLOW = {
+    "tenant_school_provision": "requeue_provision",
+}
+
+
+def resolve_stuck_remediation(*, run: Any) -> dict[str, Any]:
+    """Build a ``suggested_remediation`` payload for a run the sweep marked stuck.
+
+    For workflows with a known idempotent re-drive this enables the one-click
+    Retry (Apply) button AND the unattended autopilot; otherwise it returns an
+    explain-only card (``human_action`` set, ``auto_fix_available`` false) so the
+    operator still gets context + a Cancel action without a misleading Apply.
+    """
+
+    workflow_key = getattr(run, "workflow_key", "") or ""
+    kind = STUCK_DEFAULT_FIX_BY_WORKFLOW.get(workflow_key, "")
+    if kind == "requeue_provision":
+        return {
+            "auto_fix_available": True,
+            "auto_fix_kind": kind,
+            "human_action": (
+                "Provisioning has stalled past its expected time. Re-queue the "
+                "job — it is idempotent and resumes safely."
+            ),
+            "reason": "stuck",
+            "source": "stuck_sweep",
+        }
+    return {
+        "auto_fix_available": False,
+        "human_action": (
+            "This workflow has stalled past its expected time. Review the run "
+            "and cancel it or retry the originating action."
+        ),
+        "reason": "stuck",
+        "source": "stuck_sweep",
+    }

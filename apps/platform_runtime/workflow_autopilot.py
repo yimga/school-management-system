@@ -131,3 +131,116 @@ def try_auto_apply_on_failure(*, run_pk: int) -> bool:
         )
         return True
     return False
+
+
+# --- Unattended remediation for STUCK runs (v4.04) --------------------------
+# Bounds the stuck -> requeue -> stuck loop. Each requeue spawns a fresh run, so
+# we count autopilot applies by (workflow_key, school_id) over a window rather
+# than a single pk. Safe-by-default: no enabling policy => shadow (no mutation).
+_STUCK_MAX_AUTO_ATTEMPTS = 3
+_STUCK_WINDOW_SECONDS = 3600
+
+
+def _recent_stuck_auto_attempts(run: Any) -> int:
+    """Count autopilot applies for this run's school+workflow within the window."""
+
+    try:
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from apps.platform_runtime.models import (
+            WorkflowAutopilotApplyLog,
+            WorkflowRun,
+        )
+    except Exception:
+        return 0
+
+    school_id = str(getattr(run, "school_id", "") or "")
+    if school_id:
+        window_start = timezone.now() - timedelta(seconds=_STUCK_WINDOW_SECONDS)
+        run_ids = list(
+            # tenant-isolation-allow: autopilot-circuit-breaker-school-scoped-count
+            WorkflowRun.objects.filter(
+                workflow_key=run.workflow_key,
+                school_id=school_id,
+                started_at__gte=window_start,
+            ).values_list("pk", flat=True)
+        )
+    else:
+        run_ids = [run.pk]
+    if not run_ids:
+        return 0
+    return WorkflowAutopilotApplyLog.objects.filter(
+        autopilot=True,
+        outcome="applied",
+        workflow_key=run.workflow_key[:80],
+        run_id__in=run_ids,
+    ).count()
+
+
+def try_auto_apply_on_stuck(*, run_pk: int) -> dict[str, Any]:
+    """Unattended remediation for a STUCK run, gated by WorkflowAutopilotPolicy.
+
+    Safe-by-default: with no enabling policy this only proposes (``shadow``) and
+    mutates nothing. When the policy enables the kind it applies the same narrow,
+    idempotent handler the manual Retry button uses, bounded by a per-school
+    circuit breaker, and logs every outcome to WorkflowAutopilotApplyLog.
+    """
+
+    try:
+        from apps.platform_runtime.models import WorkflowRun
+        from apps.platform_runtime.workflow_fix_handlers import (
+            STUCK_DEFAULT_FIX_BY_WORKFLOW,
+            apply_auto_fix_kind,
+        )
+    except Exception:
+        return {"applied": False, "reason": "import_failed"}
+
+    run = WorkflowRun.objects.filter(pk=run_pk).first()  # tenant-isolation-allow: workflow-run-load-by-primary-key-row
+    if run is None:
+        return {"applied": False, "reason": "run_not_found"}
+    if getattr(run, "status", "") != "stuck":
+        return {"applied": False, "reason": "not_stuck"}
+
+    remediation = run.suggested_remediation or {}
+    kind = str(remediation.get("auto_fix_kind", "") or "") or STUCK_DEFAULT_FIX_BY_WORKFLOW.get(
+        run.workflow_key, ""
+    )
+    if not kind:
+        return {"applied": False, "reason": "no_fix_kind"}
+
+    if not policy_allows_auto_fix(
+        workflow_key=run.workflow_key,
+        auto_fix_kind=kind,
+        tenant_schema=run.tenant_schema or "",
+    ):
+        record_apply_log(
+            run_id=run.pk,
+            workflow_key=run.workflow_key,
+            auto_fix_kind=kind,
+            outcome="shadow",
+            autopilot=True,
+        )
+        return {"applied": False, "reason": "policy_disabled", "mode": "shadow", "kind": kind}
+
+    if _recent_stuck_auto_attempts(run) >= _STUCK_MAX_AUTO_ATTEMPTS:
+        record_apply_log(
+            run_id=run.pk,
+            workflow_key=run.workflow_key,
+            auto_fix_kind=kind,
+            outcome="circuit_open",
+            autopilot=True,
+        )
+        return {"applied": False, "reason": "circuit_open", "kind": kind}
+
+    result = apply_auto_fix_kind(run=run, kind=kind)
+    ok = bool(result.get("ok"))
+    record_apply_log(
+        run_id=run.pk,
+        workflow_key=run.workflow_key,
+        auto_fix_kind=kind,
+        outcome="applied" if ok else "failed",
+        autopilot=True,
+    )
+    return {"applied": ok, "kind": kind, "mode": "apply", "result": result}

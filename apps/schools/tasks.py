@@ -748,7 +748,12 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         workflow_key="tenant_school_provision",
         steps=("admin_user", "profile", "tenant_schema", "seed_data", "activate"),
         school_id=str(school_id),
-        expected_duration_seconds=180,  # magic-number-allow: workflow-expected-duration-seconds
+        # 600s (= registry slo_seconds). The `tenant_schema` step runs a blocking
+        # django-tenants schema create + migrate that can take minutes with no
+        # heartbeat; the old 180s (→270s stuck threshold) flagged a healthy run as
+        # "stuck" mid-migrate. 600s → 900s threshold; the >1h abandonment reaper
+        # still catches genuinely dead runs.
+        expected_duration_seconds=600,  # magic-number-allow: workflow-expected-duration-seconds
         payload={"slug": getattr(school, "slug", "") or ""},
     )
     from apps.tenancy.boundary_core_guard import pinned_tenant_boundary
@@ -1083,8 +1088,11 @@ def _do_provision_tracked(
                 "is_active": True,
             },
         )
-        if created:
-            # Create terms
+        # Seed terms idempotently — independent of whether the AcademicYear was
+        # just created. A prior provision may have created the year then died
+        # before terms; Term.get_or_create makes a requeue safely backfill them
+        # (the old ``if created:`` gate left such years permanently term-less).
+        try:
             def _month_start_add(base_date: date, months: int) -> date:
                 year = base_date.year + ((base_date.month - 1 + months) // 12)
                 month = ((base_date.month - 1 + months) % 12) + 1
@@ -1116,6 +1124,10 @@ def _do_provision_tracked(
                         "is_active": i == 0,
                     },
                 )
+        except (DatabaseError, IntegrityError, ValueError, TypeError):
+            # One seed sub-step must never abort the whole provision: the school
+            # is already active (Phase A) and missing terms are recoverable.
+            logger.exception("Term seeding failed for school %s", school_id)
         logger.info(
             "Seeded academic year and %s terms for school %s", term_count, school_id
         )
@@ -1185,40 +1197,43 @@ def _do_provision_tracked(
 
         # Optional: seed default subjects. Subject name is unique per school (school_id, name).
         subject_created = 0
-        if not Subject.objects.filter(school=school).exists():
-            subject_seed = []
-            if profile:
-                subject_seed = profile.normalized_subject_seed()
-            if not subject_seed:
-                subject_seed = [
-                    {"name": "Mathematics", "category": Subject.Category.GENERAL},
-                    {"name": "English", "category": Subject.Category.GENERAL},
-                    {"name": "French", "category": Subject.Category.GENERAL},
-                    {"name": "Science", "category": Subject.Category.GENERAL},
-                ]
-            valid_categories = {choice[0] for choice in Subject.Category.choices}
-            for item in subject_seed:
-                name = str(item.get("name") if isinstance(item, dict) else "").strip()
-                if not name:
-                    continue
-                raw_category = str(
-                    item.get("category", Subject.Category.GENERAL)
-                    if isinstance(item, dict)
-                    else Subject.Category.GENERAL
-                ).upper()
-                category = (
-                    raw_category
-                    if raw_category in valid_categories
-                    else Subject.Category.GENERAL
-                )
-                _, created_subject = Subject.objects.get_or_create(
-                    school=school,
-                    name=name,
-                    defaults={"category": category},
-                )
-                if created_subject:
-                    subject_created += 1
-            logger.info("Seeded default subjects for school %s", school_id)
+        try:
+            if not Subject.objects.filter(school=school).exists():
+                subject_seed = []
+                if profile:
+                    subject_seed = profile.normalized_subject_seed()
+                if not subject_seed:
+                    subject_seed = [
+                        {"name": "Mathematics", "category": Subject.Category.GENERAL},
+                        {"name": "English", "category": Subject.Category.GENERAL},
+                        {"name": "French", "category": Subject.Category.GENERAL},
+                        {"name": "Science", "category": Subject.Category.GENERAL},
+                    ]
+                valid_categories = {choice[0] for choice in Subject.Category.choices}
+                for item in subject_seed:
+                    name = str(item.get("name") if isinstance(item, dict) else "").strip()
+                    if not name:
+                        continue
+                    raw_category = str(
+                        item.get("category", Subject.Category.GENERAL)
+                        if isinstance(item, dict)
+                        else Subject.Category.GENERAL
+                    ).upper()
+                    category = (
+                        raw_category
+                        if raw_category in valid_categories
+                        else Subject.Category.GENERAL
+                    )
+                    _, created_subject = Subject.objects.get_or_create(
+                        school=school,
+                        name=name,
+                        defaults={"category": category},
+                    )
+                    if created_subject:
+                        subject_created += 1
+                logger.info("Seeded default subjects for school %s", school_id)
+        except (DatabaseError, IntegrityError, ValueError, TypeError):
+            logger.exception("Subject seeding failed for school %s", school_id)
         _record_school_event(
             school,
             event_type="SUBJECTS_READY",
@@ -1228,57 +1243,62 @@ def _do_provision_tracked(
         )
 
         # W1-5: Seed 1–3 default classrooms from profile (or generic names).
-        from apps.academics.models import Classroom, Department
+        # Wrapped so a classroom/department seeding error cannot abort the whole
+        # provision (the school is already active in Phase A).
+        try:
+            from apps.academics.models import Classroom, Department
 
-        classroom_seed_names = []
-        seed_fn = (
-            getattr(profile, "normalized_classroom_seed", None) if profile else None
-        )
-        if callable(seed_fn):
-            try:
-                classroom_seed_names = list(seed_fn())[:3]
-            except (TypeError, AttributeError, ValueError):
-                pass
-        if not classroom_seed_names:
-            classroom_seed_names = ["Class 1", "Class 2", "Class 3"]
-        dept_code = f"{school.slug}-GEN" if school.slug else f"{school.id.hex[:8]}-GEN"
-        department, _ = Department.objects.get_or_create(
-            code=dept_code,
-            defaults={"school": school, "name": "General"},
-        )
-        if department.school_id != school.id:
-            department.school = school
-            department.save(update_fields=["school"])
-        classroom_created = 0
-        for i, label in enumerate(classroom_seed_names[:3]):
-            name = str(label).strip() or f"Class {i + 1}"
-            code = f"{dept_code}-C{i + 1}"
-            # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
-            if Classroom.objects.filter(code=code).exists():
-                continue
-            Classroom.objects.get_or_create(
-                code=code,
-                defaults={
-                    "school": school,
-                    "academic_year": ay,
-                    "department": department,
-                    "name": name,
-                },
+            classroom_seed_names = []
+            seed_fn = (
+                getattr(profile, "normalized_classroom_seed", None) if profile else None
             )
-            classroom_created += 1
-        if classroom_created:
-            logger.info(
-                "Seeded %s default classrooms for school %s",
-                classroom_created,
-                school_id,
+            if callable(seed_fn):
+                try:
+                    classroom_seed_names = list(seed_fn())[:3]
+                except (TypeError, AttributeError, ValueError):
+                    pass
+            if not classroom_seed_names:
+                classroom_seed_names = ["Class 1", "Class 2", "Class 3"]
+            dept_code = f"{school.slug}-GEN" if school.slug else f"{school.id.hex[:8]}-GEN"
+            department, _ = Department.objects.get_or_create(
+                code=dept_code,
+                defaults={"school": school, "name": "General"},
             )
-            _record_school_event(
-                school,
-                event_type="CLASSROOMS_READY",
-                status="SUCCESS",
-                message="Default classrooms prepared.",
-                payload={"classrooms_created": classroom_created},
-            )
+            if department.school_id != school.id:
+                department.school = school
+                department.save(update_fields=["school"])
+            classroom_created = 0
+            for i, label in enumerate(classroom_seed_names[:3]):
+                name = str(label).strip() or f"Class {i + 1}"
+                code = f"{dept_code}-C{i + 1}"
+                # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
+                if Classroom.objects.filter(code=code).exists():
+                    continue
+                Classroom.objects.get_or_create(
+                    code=code,
+                    defaults={
+                        "school": school,
+                        "academic_year": ay,
+                        "department": department,
+                        "name": name,
+                    },
+                )
+                classroom_created += 1
+            if classroom_created:
+                logger.info(
+                    "Seeded %s default classrooms for school %s",
+                    classroom_created,
+                    school_id,
+                )
+                _record_school_event(
+                    school,
+                    event_type="CLASSROOMS_READY",
+                    status="SUCCESS",
+                    message="Default classrooms prepared.",
+                    payload={"classrooms_created": classroom_created},
+                )
+        except (DatabaseError, IntegrityError, ValueError, TypeError):
+            logger.exception("Classroom seeding failed for school %s", school_id)
 
         try:
             from apps.schools.provisioning_blueprint import (
