@@ -170,7 +170,11 @@ def offline_payment_intent_queue_export(request: HttpRequest):
                 intent.pk,
                 inv.pk if inv else "",
                 str(intent.amount),
-                intent.currency_code or "",
+                # OfflinePaymentIntent has no per-intent currency field — the
+                # currency is the school's compliance-profile currency (already
+                # resolved + non-None above). The former intent.currency_code
+                # access raised AttributeError, 500-ing this CSV export.
+                profile.currency_code or "",
                 intent.created_at.isoformat() if intent.created_at else "",
                 intent.recorded_by_id or "",
             ]
