@@ -17,7 +17,7 @@ from django.views.decorators.http import require_POST, require_GET
 
 from apps.finance.models import OfflinePaymentIntent
 from apps.finance.payment_orchestration import reconcile_offline_payment_intent
-from apps.finance.views_common import _active_profile
+from apps.finance.views_common import _active_profile, finance_save_redirect
 
 _BULK_APPROVE_MAX = 50
 
@@ -88,7 +88,7 @@ def offline_payment_intent_approve(request: HttpRequest, intent_id: int):
     except ValueError as exc:
         messages.error(request, str(exc))
 
-    return redirect("finance:offline_payment_intent_queue")
+    return finance_save_redirect(request, "finance:offline_payment_intent_queue")
 
 
 @staff_member_required(login_url=settings.LOGIN_URL)
@@ -107,13 +107,13 @@ def offline_payment_intent_bulk_approve(request: HttpRequest):
     raw_ids = request.POST.getlist("intent_ids")
     if not raw_ids:
         messages.error(request, "Select at least one offline payment to approve.")
-        return redirect("finance:offline_payment_intent_queue")
+        return finance_save_redirect(request, "finance:offline_payment_intent_queue")
 
     try:
         intent_ids = [int(x) for x in raw_ids[:_BULK_APPROVE_MAX]]
     except (TypeError, ValueError):
         messages.error(request, "Invalid selection.")
-        return redirect("finance:offline_payment_intent_queue")
+        return finance_save_redirect(request, "finance:offline_payment_intent_queue")
 
     school = getattr(request, "school", None)
     approved = 0
@@ -147,7 +147,7 @@ def offline_payment_intent_bulk_approve(request: HttpRequest):
         messages.success(request, f"Approved {approved} offline payment(s).")
     if failed:
         messages.warning(request, f"Skipped or failed {failed} item(s).")
-    return redirect("finance:offline_payment_intent_queue")
+    return finance_save_redirect(request, "finance:offline_payment_intent_queue")
 
 
 @staff_member_required(login_url=settings.LOGIN_URL)

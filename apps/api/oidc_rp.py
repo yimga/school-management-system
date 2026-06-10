@@ -64,6 +64,8 @@ from django.http import HttpRequest, HttpResponseRedirect, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
+from services.post_delete_navigation import safe_next_url
+
 logger = logging.getLogger(__name__)
 
 
@@ -285,7 +287,11 @@ def callback(request: HttpRequest, provider: str):
     except Exception as exc:  # noqa: BLE001
         logger.debug("oidc tenant bind failed err=%s", exc)
 
-    next_url = _safe_next_url(request)
+    next_url = safe_next_url(
+        request,
+        request.GET.get("next"),
+        getattr(settings, "LOGIN_REDIRECT_URL", "/") or "/",
+    )
     want_json = (request.GET.get("format") or "").lower() == "json"
     if want_json:
         return JsonResponse({
@@ -459,19 +465,6 @@ def _login_session(request: HttpRequest, user: Any) -> None:
     backend = backends[0] if backends else "django.contrib.auth.backends.ModelBackend"
     user.backend = backend  # required by django.contrib.auth.login when multiple backends configured
     _login(request, user)
-
-
-def _safe_next_url(request: HttpRequest) -> str:
-    """Pick the post-login redirect. Honors ?next= when same-host; else LOGIN_REDIRECT_URL."""
-    from django.conf import settings as _settings
-    from django.utils.http import url_has_allowed_host_and_scheme
-
-    raw = request.GET.get("next") or ""
-    if raw:
-        host = request.get_host()
-        if url_has_allowed_host_and_scheme(raw, allowed_hosts={host}, require_https=request.is_secure()):
-            return raw
-    return getattr(_settings, "LOGIN_REDIRECT_URL", "/") or "/"
 
 
 _LOGOUT_STATE_PREFIX = "oidc:logout:state:"

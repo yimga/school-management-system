@@ -30,6 +30,11 @@ from apps.platform_runtime.structured_logging import (
     log_exception_with_context,
     request_context_for_log,
 )
+from services.post_delete_navigation import (
+    mutation_return_url,
+    redirect_after_delete,
+    redirect_after_save,
+)
 
 
 def document_library_filtered_queryset(request):
@@ -100,10 +105,18 @@ def build_document_library_manage_context(request, *, studio_output_native: bool
         f"{studio_output_url}?pane=documents" if studio_output_native and studio_output_url else ""
     )
 
+    list_url = reverse("portal:document_library_manage")
+    if embed:
+        list_url = f"{list_url}?embed=1"
+    return_url = mutation_return_url(
+        request, request.get_full_path() or list_url, list_url=list_url
+    )
+
     return {
         "documents": documents,
         "stats": stats,
         "by_type": by_type,
+        "return_url": return_url,
         "document_types": PortalFeatureItem.DocumentType.choices,
         "document_packs": DocumentPack.objects.filter(is_active=True).order_by("name"),
         "lifecycle_choices": DOCUMENT_LIFECYCLE_CHOICES,
@@ -236,7 +249,7 @@ def document_upload(request, document_id=None):
         base_url = reverse("portal:document_library_manage")
         if request.GET.get("embed") == "1" or request.POST.get("embed") == "1":
             base_url = f"{base_url}?embed=1"
-        return redirect(base_url)
+        return redirect_after_save(request, base_url, list_url=base_url)
 
     context = {
         "form": form,
@@ -272,7 +285,10 @@ def document_delete(request, document_id):
     document.delete()
 
     messages.success(request, f"Document '{title}' deleted successfully.")
-    return redirect("portal:document_library_manage")
+    library_url = reverse("portal:document_library_manage")
+    if request.GET.get("embed") == "1" or request.POST.get("embed") == "1":
+        library_url = f"{library_url}?embed=1"
+    return redirect_after_delete(request, library_url, list_url=library_url)
 
 
 def _document_file_extension(document):

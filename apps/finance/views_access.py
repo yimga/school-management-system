@@ -30,6 +30,7 @@ from .views_common import (
     _backend_flags,
     _create_finance_request_notification,
     _notification_delivery_settings,
+    finance_save_redirect,
 )
 
 logger = logging.getLogger(__name__)
@@ -63,17 +64,13 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
             student_id = int(request.POST.get("student_id"))
         except (TypeError, ValueError):
             messages.error(request, "Invalid student selection.")
-            return redirect(
-                request.META.get("HTTP_REFERER", reverse("finance:invoices"))
-            )
+            return finance_save_redirect(request, "finance:invoices")
 
         # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         student = StudentProfile.objects.filter(id=student_id).first()
         if not student:
             messages.error(request, "Student not found.")
-            return redirect(
-                request.META.get("HTTP_REFERER", reverse("finance:invoices"))
-            )
+            return finance_save_redirect(request, "finance:invoices")
 
         guardians = StudentGuardian.objects.filter(student=student).select_related(
             "guardian_user"
@@ -157,7 +154,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
             Message.objects.bulk_create(messages_out)
 
         messages.success(request, f"Updated {updated} guardian link(s) for {student}.")
-        return redirect(request.META.get("HTTP_REFERER", reverse("finance:invoices")))
+        return finance_save_redirect(request, "finance:invoices")
 
     guardian_links = StudentGuardian.objects.filter(
         guardian_user=request.user
@@ -171,7 +168,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
             guardian_links = guardian_links.filter(student_id=student_id)
     if not guardian_links.exists():
         messages.error(request, "Link a student first to route your request.")
-        return redirect(request.META.get("HTTP_REFERER", reverse("finance:invoices")))
+        return finance_save_redirect(request, "finance:invoices")
 
     invoice_ref = None
     if invoice_id:
@@ -208,7 +205,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
             request,
             "No admin recipients were found to notify. Please contact the school directly.",
         )
-        return redirect(request.META.get("HTTP_REFERER", reverse("finance:invoices")))
+        return finance_save_redirect(request, "finance:invoices")
 
     student_names = ", ".join(str(link.student) for link in guardian_links)
     subject = "Finance access request"
@@ -325,7 +322,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
         )
 
     messages.success(request, "Request sent to the admin/finance team.")
-    return redirect(request.META.get("HTTP_REFERER", reverse("finance:invoices")))
+    return finance_save_redirect(request, "finance:invoices")
 
 
 @staff_member_required(login_url=settings.LOGIN_URL)
@@ -426,9 +423,10 @@ def finance_access_bulk(request: HttpRequest):
             request,
             f"Granted finance access to {granted} guardian link(s).",
         )
-        return redirect(
-            request.path + f"?year={selected_year}&classroom={selected_class}"
-        )
+        from services.post_delete_navigation import redirect_after_save
+
+        target = request.path + f"?year={selected_year}&classroom={selected_class}"
+        return redirect_after_save(request, target, list_url=target)
 
     context = {
         "years": years,

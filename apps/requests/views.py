@@ -6,8 +6,9 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils.http import url_has_allowed_host_and_scheme
 from django.urls import reverse
+
+from services.post_delete_navigation import safe_next_url as _safe_next_url
 
 from apps.accounts.models import User
 from apps.accounts.utils import get_user_role
@@ -26,21 +27,6 @@ def _safe_int(raw, *, default, minimum=None, maximum=None):
     if maximum is not None:
         value = min(maximum, value)
     return value
-
-
-def _safe_next_url(request: HttpRequest, candidate: str | None, fallback: str) -> str:
-    if not candidate:
-        return fallback
-    value = str(candidate).strip()
-    if not value:
-        return fallback
-    if url_has_allowed_host_and_scheme(
-        url=value,
-        allowed_hosts={request.get_host()},
-        require_https=request.is_secure(),
-    ):
-        return value
-    return fallback
 
 
 def _request_school(request: HttpRequest):

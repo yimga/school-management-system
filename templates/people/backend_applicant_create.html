@@ -33,6 +33,7 @@
                 data-rmc-offline-workflow="people_applicant_create"
                 data-offline-hint="{% trans 'Applicant details stay on this device until you reconnect and sync.' %}">
             {% csrf_token %}
+            {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
             <div class="row">
               <div class="col-md-6">{% include "components/form_field.html" with field=form.first_name %}</div>
               <div class="col-md-6">{% include "components/form_field.html" with field=form.last_name %}</div>

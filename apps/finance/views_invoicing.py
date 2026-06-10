@@ -48,6 +48,8 @@ from .views_common import (
     FINANCE_SOFT_FAILURES,
     _active_profile,
     _finance_access_state,
+    finance_detail_redirect,
+    finance_save_redirect,
     _notify_finance_staff_suspicious_receipt,
 )
 
@@ -293,7 +295,7 @@ def generate_fees(request: HttpRequest):
         plan_id = request.POST.get("plan_id")
         if not plan_id:
             messages.error(request, "Please select a fee plan.")
-            return redirect("finance:generate_fees")
+            return finance_save_redirect(request, "finance:generate_fees")
 
         plan = get_object_or_404(FeePlan, id=plan_id)
         issued_date = timezone.now().date()
@@ -307,7 +309,7 @@ def generate_fees(request: HttpRequest):
             request,
             f"Generated {len(invoices)} invoices. You can notify guardians below.",
         )
-        return redirect("finance:generate_fees")
+        return finance_save_redirect(request, "finance:generate_fees")
 
     invoice_ids = request.session.get(SESSION_KEY_LAST_GENERATED_INVOICE_IDS) or []
     return render(
@@ -335,7 +337,7 @@ def notify_guardians_new_invoices(request: HttpRequest):
     )
     if not invoice_ids:
         messages.info(request, "No recent invoices to notify. Generate invoices first.")
-        return redirect("finance:generate_fees")
+        return finance_save_redirect(request, "finance:generate_fees")
     total = notify_guardians_new_invoices_bulk(
         invoice_ids,
         created_by=request.user,
@@ -348,7 +350,7 @@ def notify_guardians_new_invoices(request: HttpRequest):
     messages.success(
         request, f"Notifications sent to {total} guardian(s) for the new invoices."
     )
-    return redirect("finance:invoices")
+    return finance_save_redirect(request, "finance:invoices")
 
 
 @login_required
@@ -450,11 +452,11 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
             messages.error(
                 request, e.messages[0] if getattr(e, "messages", None) else str(e)
             )
-            return redirect("finance:invoice_detail", invoice_id=invoice.id)
+            return finance_detail_redirect(request, invoice.id)
         invoice.attachment = up
         invoice.save(update_fields=["attachment"])
         messages.success(request, "Attachment uploaded.")
-        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+        return finance_detail_redirect(request, invoice.id)
 
     payment_link = generate_payment_link(invoice)
     reminder = getattr(invoice, "reminder", None)
@@ -600,7 +602,7 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
 
     if invoice.status == Invoice.Status.PAID:
         messages.error(request, "This invoice is already fully paid.")
-        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+        return finance_detail_redirect(request, invoice.id)
 
     site_settings = get_effective_site_settings(request=request)
     finance_runtime = (
@@ -613,12 +615,12 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
         getattr(site_settings, "finance_receipt_upload_enabled", True),
     ):
         messages.error(request, "Receipt upload is currently disabled.")
-        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+        return finance_detail_redirect(request, invoice.id)
 
     receipt_file = request.FILES.get("receipt_file")
     if not receipt_file:
         messages.error(request, "Please select a receipt file to upload.")
-        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+        return finance_detail_redirect(request, invoice.id)
 
     max_mb = finance_runtime.get(
         "receipt_max_size_mb",
@@ -631,7 +633,7 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
             f"File is too large ({receipt_file.size / (1024 * 1024):.1f} MB). "
             f"Maximum allowed is {max_mb} MB. Please compress or use a smaller image.",
         )
-        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+        return finance_detail_redirect(request, invoice.id)
     allowed_ext = (
         (
             finance_runtime.get(
@@ -659,12 +661,12 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
             f"File type '.{ext}' is not allowed. Use: {', '.join('.' + e for e in allowed_list)}. "
             "Please upload a PDF or image (e.g. photo of receipt).",
         )
-        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+        return finance_detail_redirect(request, invoice.id)
 
     payment_method = request.POST.get("payment_method", "")
     if payment_method not in [code[0] for code in PaymentMethodCode.choices]:
         messages.error(request, "Invalid payment method.")
-        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+        return finance_detail_redirect(request, invoice.id)
 
     transaction_reference = request.POST.get("transaction_reference", "").strip()
     idempotency_key = (request.POST.get("idempotency_key", "") or "").strip()[:64]
@@ -682,7 +684,7 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
             uploaded_amount = Decimal(uploaded_amount_str)
         except (ValueError, InvalidOperation):
             messages.error(request, "Invalid amount format.")
-            return redirect("finance:invoice_detail", invoice_id=invoice.id)
+            return finance_detail_redirect(request, invoice.id)
 
     notes = request.POST.get("notes", "").strip()
 
@@ -716,7 +718,7 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
                 request,
                 "This receipt was already received (same file). If payment was deducted but you saw an error, do not pay again; contact finance with your transaction reference.",
             )
-            return redirect("finance:invoice_detail", invoice_id=invoice.id)
+            return finance_detail_redirect(request, invoice.id)
 
     proof_upload = PaymentProofUpload.objects.create(
         invoice=invoice,
@@ -769,7 +771,7 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
             "Receipt uploaded successfully. It will be reviewed by finance staff.",
         )
 
-    return redirect("finance:invoice_detail", invoice_id=invoice.id)
+    return finance_detail_redirect(request, invoice.id)
 
 
 @login_required
@@ -792,11 +794,11 @@ def resend_reminder(request: HttpRequest, invoice_id: int) -> HttpResponse:
     reminder = getattr(invoice, "reminder", None)
     if not reminder:
         messages.error(request, "No reminder configured for this invoice.")
-        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+        return finance_detail_redirect(request, invoice.id)
 
     if not reminder.is_active:
         messages.warning(request, "Reminder is inactive. Activate it first to resend.")
-        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+        return finance_detail_redirect(request, invoice.id)
 
     reminder.next_send_at = timezone.now() - timedelta(minutes=1)
     reminder.save(update_fields=["next_send_at"])
@@ -818,7 +820,7 @@ def resend_reminder(request: HttpRequest, invoice_id: int) -> HttpResponse:
         logger.error("Error resending reminder: %s", str(e))
         messages.error(request, f"Error resending reminder: {str(e)}")
 
-    return redirect("finance:invoice_detail", invoice_id=invoice.id)
+    return finance_detail_redirect(request, invoice.id)
 
 
 @staff_member_required(login_url=settings.LOGIN_URL)

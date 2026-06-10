@@ -18,6 +18,7 @@ from apps.integrations_marketplace.models import Integration
 from apps.platform_runtime.helpers import get_effective_flags
 from apps.schools.control_plane import user_has_control_plane_access
 from .models import APIAuditLog, APIKey, APIQuota, _hash_secret
+from services.post_delete_navigation import redirect_after_delete
 
 
 def _is_manager_host(request):
@@ -455,7 +456,8 @@ def webhook_subscription_delete(request, pk: int):
     sub = get_object_or_404(qs, pk=pk)
     sub.delete()
     messages.success(request, _("Webhook subscription deleted."))
-    return redirect("apicenter:webhook_docs")
+    docs_url = reverse("apicenter:webhook_docs")
+    return redirect_after_delete(request, docs_url, list_url=docs_url)
 
 
 @login_required

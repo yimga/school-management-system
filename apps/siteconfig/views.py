@@ -21,7 +21,6 @@ from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
-from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import (
     xframe_options_exempt,
@@ -79,6 +78,7 @@ from apps.siteconfig.control_plane_render import (
     operator_cp_breadcrumb,
     render_siteconfig_stem,
 )
+from services.post_delete_navigation import safe_next_url as _safe_next_url
 
 logger = logging.getLogger(__name__)
 
@@ -166,22 +166,6 @@ def _normalize_preview_value(key, val):
     if isinstance(val, str):
         return val.strip()
     return val
-
-
-def _safe_next_url(request, candidate, fallback):
-    """Return candidate only when it is a safe local URL for this host."""
-    if not candidate:
-        return fallback
-    value = str(candidate).strip()
-    if not value:
-        return fallback
-    if url_has_allowed_host_and_scheme(
-        url=value,
-        allowed_hosts={request.get_host()},
-        require_https=request.is_secure(),
-    ):
-        return value
-    return fallback
 
 
 def _registry_grade_scale_choices(

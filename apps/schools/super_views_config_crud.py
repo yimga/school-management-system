@@ -27,6 +27,12 @@ from apps.siteconfig.models_platform_catalog import (
     PlanAddon,
     RegionConfig,
 )
+from services.post_delete_navigation import (
+    append_return_query,
+    mutation_return_url,
+    redirect_after_delete,
+    redirect_after_save,
+)
 
 
 def _ctx(request):
@@ -238,6 +244,9 @@ def _render_form(
     breadcrumb_extra: str,
     delete_url: str | None = None,
 ):
+    if delete_url:
+        delete_url = append_return_query(delete_url, request, back_url)
+    return_url = mutation_return_url(request, back_url, list_url=back_url)
     return render(
         request,
         "schools/super_crud_form.html",
@@ -246,6 +255,7 @@ def _render_form(
             "page_title": title,
             "form": form,
             "back_url": back_url,
+            "return_url": return_url,
             "breadcrumb_extra": breadcrumb_extra,
             "delete_url": delete_url,
         },
@@ -262,6 +272,7 @@ def _render_delete_confirm(
     delete_action_url: str,
     warning_lines: list[str] | None = None,
 ):
+    return_url = mutation_return_url(request, back_url, list_url=back_url)
     return render(
         request,
         "schools/super_crud_confirm_delete.html",
@@ -270,11 +281,22 @@ def _render_delete_confirm(
             "page_title": page_title,
             "object_label": object_label,
             "back_url": back_url,
+            "return_url": return_url,
             "breadcrumb_extra": breadcrumb_extra,
             "delete_action_url": delete_action_url,
             "warning_lines": warning_lines or [],
         },
     )
+
+
+def _redirect_after_delete(request, list_url_name: str):
+    list_url = reverse(list_url_name)
+    return redirect_after_delete(request, list_url, list_url=list_url)
+
+
+def _redirect_after_save(request, list_url_name: str):
+    list_url = reverse(list_url_name)
+    return redirect_after_save(request, list_url, list_url=list_url)
 
 
 # --- Regions ---
@@ -289,7 +311,7 @@ def super_region_edit(request, code: str):
         if form.is_valid():
             form.save()
             messages.success(request, "Region saved.")
-            return redirect("super:regions_list")
+            return _redirect_after_save(request, "super:regions_list")
     else:
         form = RegionConfigSuperForm(instance=region)
     return _render_form(
@@ -310,7 +332,7 @@ def super_region_add(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Region created.")
-            return redirect("super:regions_list")
+            return _redirect_after_save(request, "super:regions_list")
     else:
         form = RegionConfigSuperForm()
     return _render_form(
@@ -334,7 +356,7 @@ def super_grading_edit(request, pk: int):
         if form.is_valid():
             form.save()
             messages.success(request, "Grading scale saved.")
-            return redirect("super:grading_list")
+            return _redirect_after_save(request, "super:grading_list")
     else:
         form = GradingScaleConfigSuperForm(instance=row)
     return _render_form(
@@ -359,7 +381,7 @@ def super_grading_add(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Grading scale created.")
-            return redirect("super:grading_list")
+            return _redirect_after_save(request, "super:grading_list")
     else:
         form = GradingScaleConfigSuperForm(initial=initial)
     return _render_form(
@@ -383,11 +405,13 @@ def super_plan_edit(request, pk: int):
         if form.is_valid():
             form.save()
             messages.success(request, "Plan saved.")
-            return redirect("super:plans_list")
+            return _redirect_after_save(request, "super:plans_list")
     else:
         form = PlanSuperForm(instance=plan)
     # unbounded-collection-allow: platform-catalog-addon-reference-table-small-cardinality
     addons = list(PlanAddon.objects.all().order_by("name"))
+    back_url = reverse("super:plans_list")
+    return_url = mutation_return_url(request, back_url, list_url=back_url)
     return render(
         request,
         "schools/super_plan_form.html",
@@ -395,11 +419,16 @@ def super_plan_edit(request, pk: int):
             **_ctx(request),
             "page_title": f"Edit plan {plan.slug}",
             "form": form,
-            "back_url": reverse("super:plans_list"),
+            "back_url": back_url,
+            "return_url": return_url,
             "breadcrumb_extra": "Plans",
             "plan": plan,
             "addons": addons,
-            "delete_url": reverse("super:plan_delete", kwargs={"pk": plan.pk}),
+            "delete_url": append_return_query(
+                reverse("super:plan_delete", kwargs={"pk": plan.pk}),
+                request,
+                back_url,
+            ),
         },
     )
 
@@ -412,7 +441,7 @@ def super_plan_add(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Plan created.")
-            return redirect("super:plans_list")
+            return _redirect_after_save(request, "super:plans_list")
     else:
         form = PlanSuperForm()
     return _render_form(
@@ -433,7 +462,7 @@ def super_plan_addon_edit(request, pk: int):
         if form.is_valid():
             form.save()
             messages.success(request, "Add-on saved.")
-            return redirect("super:plans_list")
+            return _redirect_after_save(request, "super:plans_list")
     else:
         form = PlanAddonSuperForm(instance=addon)
     return _render_form(
@@ -454,7 +483,7 @@ def super_plan_addon_add(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Add-on created.")
-            return redirect("super:plans_list")
+            return _redirect_after_save(request, "super:plans_list")
     else:
         form = PlanAddonSuperForm()
     return _render_form(
@@ -478,7 +507,7 @@ def super_feature_toggle_edit(request, pk: int):
         if form.is_valid():
             form.save()
             messages.success(request, "Feature toggle definition saved.")
-            return redirect("super:feature_toggles_list")
+            return _redirect_after_save(request, "super:feature_toggles_list")
     else:
         form = FeatureToggleDefinitionSuperForm(instance=row)
     return _render_form(
@@ -499,7 +528,7 @@ def super_feature_toggle_add(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Feature toggle definition created.")
-            return redirect("super:feature_toggles_list")
+            return _redirect_after_save(request, "super:feature_toggles_list")
     else:
         form = FeatureToggleDefinitionSuperForm()
     return _render_form(
@@ -552,9 +581,9 @@ def super_region_delete(request, code: str):
                     )
                 ),
             )
-            return redirect("super:regions_list")
+            return _redirect_after_delete(request, "super:regions_list")
         messages.success(request, str(_("Region deleted.")))
-        return redirect("super:regions_list")
+        return _redirect_after_delete(request, "super:regions_list")
 
     return _render_delete_confirm(
         request,
@@ -574,7 +603,7 @@ def super_grading_delete(request, pk: int):
     if request.method == "POST" and request.POST.get("confirm") == "yes":
         row.delete()
         messages.success(request, str(_("Grading scale deleted.")))
-        return redirect("super:grading_list")
+        return _redirect_after_delete(request, "super:grading_list")
 
     return _render_delete_confirm(
         request,
@@ -594,7 +623,7 @@ def super_plan_delete(request, pk: int):
     if request.method == "POST" and request.POST.get("confirm") == "yes":
         plan.delete()
         messages.success(request, str(_("Plan deleted.")))
-        return redirect("super:plans_list")
+        return _redirect_after_delete(request, "super:plans_list")
 
     return _render_delete_confirm(
         request,
@@ -620,7 +649,7 @@ def super_plan_addon_delete(request, pk: int):
     if request.method == "POST" and request.POST.get("confirm") == "yes":
         addon.delete()
         messages.success(request, str(_("Add-on deleted.")))
-        return redirect("super:plans_list")
+        return _redirect_after_delete(request, "super:plans_list")
 
     return _render_delete_confirm(
         request,
@@ -654,7 +683,7 @@ def super_feature_toggle_delete(request, pk: int):
     if request.method == "POST" and request.POST.get("confirm") == "yes":
         row.delete()
         messages.success(request, _("Feature toggle definition deleted."))
-        return redirect("super:feature_toggles_list")
+        return _redirect_after_delete(request, "super:feature_toggles_list")
 
     return _render_delete_confirm(
         request,
@@ -680,7 +709,7 @@ def super_country_multiplier_add(request):
         if form.is_valid():
             form.save()
             messages.success(request, str(_("Country multiplier created.")))
-            return redirect("super:country_multipliers_list")
+            return _redirect_after_save(request, "super:country_multipliers_list")
     else:
         form = CountryMultiplierSuperForm()
     return _render_form(
@@ -701,7 +730,7 @@ def super_country_multiplier_edit(request, pk: int):
         if form.is_valid():
             form.save()
             messages.success(request, _("Country multiplier saved."))
-            return redirect("super:country_multipliers_list")
+            return _redirect_after_save(request, "super:country_multipliers_list")
     else:
         form = CountryMultiplierSuperForm(instance=row)
     return _render_form(
@@ -721,7 +750,7 @@ def super_country_multiplier_delete(request, pk: int):
     if request.method == "POST" and request.POST.get("confirm") == "yes":
         row.delete()
         messages.success(request, str(_("Country multiplier deleted.")))
-        return redirect("super:country_multipliers_list")
+        return _redirect_after_delete(request, "super:country_multipliers_list")
 
     return _render_delete_confirm(
         request,

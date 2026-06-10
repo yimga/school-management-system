@@ -18,6 +18,10 @@ from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.platform_runtime.structured_logging import log_view_exception
 from apps.schools.mixins import require_school
+from services.post_delete_navigation import (
+    mutation_return_url,
+    redirect_after_detail_mutation,
+)
 
 from .models import AdvancementDonor, AdvancementGift
 
@@ -188,6 +192,9 @@ def advancement_donor_detail(request, donor_id):
                     )
                     messages.error(request, "Could not record gift.")
     gifts = list(donor.gifts.all()[:100])
+    list_url = reverse("accounts:advancement_donor_list")
+    detail_url = reverse("accounts:advancement_donor_detail", args=[donor.pk])
+    return_url = mutation_return_url(request, detail_url, list_url=list_url)
     return render(
         request,
         "schools/advancement_donor_detail.html",
@@ -196,7 +203,8 @@ def advancement_donor_detail(request, donor_id):
             "gifts": gifts,
             "dashboard_url": reverse("accounts:backend_dashboard"),
             "edit_url": reverse("accounts:advancement_donor_edit", args=[donor.pk]),
-            "list_url": reverse("accounts:advancement_donor_list"),
+            "list_url": list_url,
+            "return_url": return_url,
         },
     )
 
@@ -215,4 +223,5 @@ def advancement_gift_delete(request, gift_id):
     donor_id = gift.donor_id
     gift.delete()
     messages.success(request, "Gift removed.")
-    return redirect("accounts:advancement_donor_detail", donor_id=donor_id)
+    detail_url = reverse("accounts:advancement_donor_detail", args=[donor_id])
+    return redirect_after_detail_mutation(request, detail_url)

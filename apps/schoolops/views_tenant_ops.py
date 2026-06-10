@@ -28,6 +28,13 @@ from apps.schools.mixins import require_feature, require_school
 from apps.schools.models import is_feature_enabled
 
 from django.utils import timezone
+
+from services.post_delete_navigation import redirect_after_save
+
+
+def _ops_save_redirect(request, url_name: str):
+    target = reverse(url_name)
+    return redirect_after_save(request, target, list_url=target)
 from django.utils.dateparse import parse_date
 
 from apps.schoolops.models import (
@@ -41,6 +48,12 @@ from apps.schoolops.models import (
     SubstituteCover,
     VisitorCheckIn,
 )
+
+
+def _scoped_library_items(school):
+    from apps.tenancy.queryset_boundary import scoped_queryset_for_school
+
+    return scoped_queryset_for_school(LibraryItem.objects.all(), school)
 
 
 def _ops_roles_ok(user) -> bool:
@@ -151,13 +164,13 @@ def ops_library(request):
                     ),
                 )
                 messages.success(request, "Item added.")
-                return redirect("accounts:ops_library")
+                return _ops_save_redirect(request, "accounts:ops_library")
             except (IntegrityError, DatabaseError, TypeError, ValueError):
                 messages.error(
                     request,
                     "Could not add item (duplicate title/author or invalid data).",
                 )
-    items = LibraryItem.objects.filter(school=school, is_active=True).order_by("title")[
+    items = _scoped_library_items(school).filter(is_active=True).order_by("title")[
         :500
     ]
     return render(
@@ -190,7 +203,7 @@ def ops_transport(request):
                         route=route, name=stop_name[:120], sequence=1
                     )
                 messages.success(request, "Route created.")
-                return redirect("accounts:ops_transport")
+                return _ops_save_redirect(request, "accounts:ops_transport")
             except IntegrityError:
                 messages.error(request, "A route with this name already exists.")
             except (DatabaseError, TypeError, ValueError):
@@ -245,7 +258,7 @@ def ops_inventory(request):
                                     request,
                                     f"Stock updated for “{item.name}” (now {new_qty}).",
                                 )
-                                return redirect("accounts:ops_inventory")
+                                return _ops_save_redirect(request, "accounts:ops_inventory")
                     except InventoryItem.DoesNotExist:
                         messages.error(request, "Inventory line not found.")
                     except (DatabaseError, TypeError, ValueError):
@@ -267,7 +280,7 @@ def ops_inventory(request):
                         location=(request.POST.get("location") or "").strip()[:255],
                     )
                     messages.success(request, "Inventory line added.")
-                    return redirect("accounts:ops_inventory")
+                    return _ops_save_redirect(request, "accounts:ops_inventory")
                 except (DatabaseError, TypeError, ValueError):
                     messages.error(request, "Could not add item.")
     items = InventoryItem.objects.filter(school=school).order_by("name")[:500]
@@ -301,7 +314,7 @@ def ops_canteen(request):
                         school=school, name=name[:120], price=price
                     )
                     messages.success(request, "Meal added.")
-                    return redirect("accounts:ops_canteen")
+                    return _ops_save_redirect(request, "accounts:ops_canteen")
                 except IntegrityError:
                     messages.error(request, "A meal with this name already exists.")
                 except (DatabaseError, TypeError, ValueError):
@@ -455,7 +468,7 @@ def ops_substitutes(request):
                     notes=(request.POST.get("notes") or "").strip()[:500],
                 )
                 messages.success(request, "Substitute cover recorded.")
-                return redirect("accounts:ops_substitutes")
+                return _ops_save_redirect(request, "accounts:ops_substitutes")
             except (DatabaseError, IntegrityError):
                 messages.error(request, "Could not save substitute cover.")
 
@@ -500,7 +513,7 @@ def ops_visitor_log(request):
                 row.checked_out_at = timezone.now()
                 row.save(update_fields=["checked_out_at"])
                 messages.success(request, "Visitor checked out.")
-            return redirect("accounts:ops_visitor_log")
+            return _ops_save_redirect(request, "accounts:ops_visitor_log")
         name = (request.POST.get("visitor_name") or "").strip()
         if not name:
             messages.error(request, "Visitor name is required.")
@@ -515,7 +528,7 @@ def ops_visitor_log(request):
                     recorded_by=request.user,
                 )
                 messages.success(request, "Visitor checked in.")
-                return redirect("accounts:ops_visitor_log")
+                return _ops_save_redirect(request, "accounts:ops_visitor_log")
             except (DatabaseError, IntegrityError):
                 messages.error(request, "Could not record check-in.")
 
@@ -568,7 +581,7 @@ def ops_facilities(request):
                     upd.append("closed_at")
                 row.save(update_fields=upd)
                 messages.success(request, "Status updated.")
-            return redirect("accounts:ops_facilities")
+            return _ops_save_redirect(request, "accounts:ops_facilities")
         title = (request.POST.get("title") or "").strip()
         if not title:
             messages.error(request, "Title is required.")
@@ -582,7 +595,7 @@ def ops_facilities(request):
                     reported_by=request.user,
                 )
                 messages.success(request, "Maintenance request logged.")
-                return redirect("accounts:ops_facilities")
+                return _ops_save_redirect(request, "accounts:ops_facilities")
             except (DatabaseError, IntegrityError):
                 messages.error(request, "Could not create request.")
 
@@ -780,7 +793,7 @@ def ops_pos(request):
                                         recorded_by=request.user,
                                     )
                                     messages.success(request, "Sale line recorded.")
-                                    return redirect("accounts:ops_pos")
+                                    return _ops_save_redirect(request, "accounts:ops_pos")
                             else:
                                 PosSaleLine.objects.create(
                                     school=school,
@@ -795,7 +808,7 @@ def ops_pos(request):
                                     recorded_by=request.user,
                                 )
                                 messages.success(request, "Sale line recorded.")
-                                return redirect("accounts:ops_pos")
+                                return _ops_save_redirect(request, "accounts:ops_pos")
                     except (DatabaseError, IntegrityError):
                         messages.error(request, "Could not record sale.")
 

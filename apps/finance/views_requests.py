@@ -10,12 +10,21 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.db import models
 from django.db.models import Count
 from django.http import HttpRequest, HttpResponseForbidden
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.urls import reverse
 
+from services.post_delete_navigation import redirect_after_save
+
 from .models import Notification, FinanceRequestAudit
 from .views_common import _active_profile
+
+
+def _requests_inbox_url(view_mode: str, severity_filter: str) -> str:
+    return (
+        f"{reverse('finance:requests')}?view={view_mode}"
+        f"&severity={severity_filter.lower()}"
+    )
 
 
 @staff_member_required(login_url=settings.LOGIN_URL)
@@ -115,9 +124,8 @@ def finance_requests(request: HttpRequest):
                 messages.success(
                     request, f"Marked {len(targets)} finance request(s) as read."
                 )
-            return redirect(
-                f"{reverse('finance:requests')}?view={view_mode}&severity={severity_filter.lower()}"
-            )
+            target = _requests_inbox_url(view_mode, severity_filter)
+            return redirect_after_save(request, target, list_url=target)
 
         selected = request.POST.getlist("notification_id")
         if selected:
@@ -136,9 +144,8 @@ def finance_requests(request: HttpRequest):
                 messages.success(
                     request, f"Marked {len(targets)} finance request(s) as read."
                 )
-        return redirect(
-            f"{reverse('finance:requests')}?view={view_mode}&severity={severity_filter.lower()}"
-        )
+        target = _requests_inbox_url(view_mode, severity_filter)
+        return redirect_after_save(request, target, list_url=target)
 
     per_page = min(100, max(10, int(request.GET.get("page_size", 25))))
     paginator = Paginator(notifications_qs, per_page)

@@ -234,6 +234,7 @@
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
         <form id="deleteForm" method="post" style="display: inline;">
           {% csrf_token %}
+          {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
           <button type="submit" class="btn btn-danger">{% trans "Delete" %}</button>
         </form>
       </div>

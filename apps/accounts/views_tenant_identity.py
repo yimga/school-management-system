@@ -34,6 +34,12 @@ from apps.accounts.tenant_identity import (
 )
 from apps.schools.mixins import require_school
 from apps.schools.models import SchoolMembership
+from services.post_delete_navigation import (
+    mutation_return_url,
+    redirect_after_delete,
+    redirect_after_detail_mutation,
+    redirect_after_save,
+)
 
 
 _IDENTITY_HUB_MANAGE_ROLES = frozenset(
@@ -138,6 +144,10 @@ def tenant_identity_detail(request, user_id: int):
                 )
         except Exception:
             continue
+    roster_url = reverse("accounts:tenant_identity_roster")
+    detail_url = reverse("accounts:tenant_identity_detail", args=[user.pk])
+    return_url = mutation_return_url(request, roster_url, list_url=roster_url)
+    detail_return_url = mutation_return_url(request, detail_url, list_url=detail_url)
     return render(
         request,
         "accounts/tenant_identity_detail.html",
@@ -149,7 +159,9 @@ def tenant_identity_detail(request, user_id: int):
             "role_code": membership.role,
             "mfa_ok": mfa_enrolled_for_user(user),
             "sessions": sessions,
-            "roster_url": reverse("accounts:tenant_identity_roster"),
+            "roster_url": roster_url,
+            "return_url": return_url,
+            "detail_return_url": detail_return_url,
             "can_manage": _can_manage_tenant_identity(request.user, school),
             "offboard_url": reverse(
                 "accounts:tenant_identity_offboard", args=[user.pk]
@@ -225,7 +237,8 @@ def tenant_identity_regulator_grant(request):
             _("Regulator read-only access granted to %(email)s until %(date)s.")
             % {"email": email, "date": expires_date.isoformat()},
         )
-        return redirect("accounts:tenant_identity_roster")
+        roster_url = reverse("accounts:tenant_identity_roster")
+        return redirect_after_save(request, roster_url, list_url=roster_url)
     return render(
         request,
         "accounts/tenant_identity_regulator_grant.html",
@@ -303,7 +316,8 @@ def tenant_identity_invite(request):
                 request,
                 _("Staff invite created. Share this link: %(url)s") % {"url": accept_url},
             )
-        return redirect("accounts:tenant_identity_roster")
+        roster_url = reverse("accounts:tenant_identity_roster")
+        return redirect_after_save(request, roster_url, list_url=roster_url)
     return render(
         request,
         "accounts/tenant_identity_invite.html",
@@ -354,7 +368,8 @@ def tenant_identity_revoke_sessions(request, user_id: int):
         _("Revoked %(count)s active session(s) for %(user)s.")
         % {"count": revoked, "user": user.get_username()},
     )
-    return redirect("accounts:tenant_identity_detail", user_id=user_id)
+    detail_url = reverse("accounts:tenant_identity_detail", args=[user_id])
+    return redirect_after_detail_mutation(request, detail_url)
 
 
 @login_required
@@ -366,11 +381,13 @@ def tenant_identity_offboard(request, user_id: int):
         return HttpResponseForbidden("Not permitted.")
     if request.user.pk == user_id:
         messages.error(request, _("You cannot offboard yourself."))
-        return redirect("accounts:tenant_identity_detail", user_id=user_id)
+        detail_url = reverse("accounts:tenant_identity_detail", args=[user_id])
+        return redirect_after_detail_mutation(request, detail_url)
     membership = get_object_or_404(SchoolMembership, school=school, user_id=user_id)
     membership.delete()
     messages.success(request, _("Staff member removed from this school."))
-    return redirect("accounts:tenant_identity_roster")
+    roster_url = reverse("accounts:tenant_identity_roster")
+    return redirect_after_delete(request, roster_url, list_url=roster_url)
 
 
 @require_http_methods(["GET", "POST"])

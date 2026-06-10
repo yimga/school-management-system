@@ -16,6 +16,8 @@ from apps.marketplace.integration_adapter_credentials import (
     mask_secret_value,
 )
 
+from services.post_delete_navigation import redirect_after_save
+
 from .views_common import _active_profile
 
 
@@ -51,10 +53,11 @@ def marketplace_integration_credentials(request: HttpRequest):
             messages.success(request, f"Saved credentials for {adapter_key}.")
         else:
             messages.info(request, "No credential changes detected.")
-        return redirect(
+        target = (
             reverse("finance:marketplace_integration_credentials")
             + f"?adapter={adapter_key}"
         )
+        return redirect_after_save(request, target, list_url=target)
 
     if not active and entries:
         active = entries[0]

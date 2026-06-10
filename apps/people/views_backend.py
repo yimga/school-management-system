@@ -43,6 +43,13 @@ from apps.siteconfig.admissions_services import (
 
 User = get_user_model()
 
+from services.post_delete_navigation import mutation_return_url, redirect_after_save
+
+
+def _backend_save_redirect(request, list_url_name: str):
+    list_url = reverse(list_url_name)
+    return redirect_after_save(request, list_url, list_url=list_url)
+
 # §2.4 Typed exception sets for backend create/save flows (RUNMYCAMPUS §2.4; broad_exception_audit)
 _PEOPLE_BACKEND_SAVE_ERRORS = (
     IntegrityError,
@@ -221,7 +228,7 @@ def backend_student_create(request):
                         request,
                         f"Student '{student.first_name} {student.last_name}' created successfully!",
                     )
-                    return redirect("accounts:backend_student_list")
+                    return _backend_save_redirect(request, "accounts:backend_student_list")
             except _PEOPLE_BACKEND_SAVE_ERRORS as e:
                 log_view_exception(
                     request,
@@ -240,6 +247,7 @@ def backend_student_create(request):
     form_draft_url = reverse(
         "siteconfig:form_draft_api", kwargs={"form_key": FORM_DRAFT_KEY_STUDENT_CREATE}
     )
+    list_url = reverse("accounts:backend_student_list")
     return render(
         request,
         "people/backend_student_create.html",
@@ -250,6 +258,7 @@ def backend_student_create(request):
             "form_draft_url": form_draft_url,
             "has_draft": has_draft,
             "draft_updated_at": draft_updated_at,
+            "return_url": mutation_return_url(request, list_url, list_url=list_url),
         },
     )
 
@@ -295,7 +304,7 @@ def backend_teacher_create(request):
                         request,
                         f"Login credentials: Username: {username}, Password: [as set]",
                     )
-                    return redirect("accounts:backend_teacher_list")
+                    return _backend_save_redirect(request, "accounts:backend_teacher_list")
             except _PEOPLE_BACKEND_SAVE_ERRORS as e:
                 log_view_exception(
                     request,
@@ -306,12 +315,14 @@ def backend_teacher_create(request):
     else:
         form = TeacherCreateForm()
 
+    list_url = reverse("accounts:backend_teacher_list")
     return render(
         request,
         "people/backend_teacher_create.html",
         {
             "form": form,
             "title": "Create Teacher",
+            "return_url": mutation_return_url(request, list_url, list_url=list_url),
         },
     )
 
@@ -415,7 +426,7 @@ def backend_classroom_create(request):
                 messages.success(
                     request, f"Classroom '{classroom.name}' created successfully!"
                 )
-                return redirect("accounts:backend_classroom_list")
+                return _backend_save_redirect(request, "accounts:backend_classroom_list")
             except _PEOPLE_BACKEND_SAVE_ERRORS as e:
                 log_view_exception(
                     request,
@@ -426,12 +437,14 @@ def backend_classroom_create(request):
     else:
         form = ClassroomCreateForm()
 
+    list_url = reverse("accounts:backend_classroom_list")
     return render(
         request,
         "academics/backend_classroom_create.html",
         {
             "form": form,
             "title": "Create Classroom",
+            "return_url": mutation_return_url(request, list_url, list_url=list_url),
         },
     )
 
@@ -888,7 +901,7 @@ def backend_applicant_create(request):
                     request,
                     f"Applicant '{applicant.first_name} {applicant.last_name}' added.",
                 )
-                return redirect("accounts:backend_applicant_list")
+                return _backend_save_redirect(request, "accounts:backend_applicant_list")
             except _PEOPLE_BACKEND_SAVE_ERRORS as e:
                 log_view_exception(
                     request,
@@ -907,6 +920,7 @@ def backend_applicant_create(request):
         "siteconfig:form_draft_api",
         kwargs={"form_key": FORM_DRAFT_KEY_APPLICATION_FORM},
     )
+    list_url = reverse("accounts:backend_applicant_list")
     return render(
         request,
         "people/backend_applicant_create.html",
@@ -917,6 +931,7 @@ def backend_applicant_create(request):
             "form_draft_url": form_draft_url,
             "has_draft": has_draft if request.method != "POST" else False,
             "draft_updated_at": draft_updated_at if request.method != "POST" else None,
+            "return_url": mutation_return_url(request, list_url, list_url=list_url),
         },
     )
 

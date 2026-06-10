@@ -64,7 +64,13 @@ from .services import (
 from .security import PaymentValidator, WebhookSecurityValidator
 from .receipt_verification import ReceiptVerificationService
 from .ocr_runtime import get_ocr_runtime_status
-from .views_common import FINANCE_SOFT_FAILURES, _active_profile, _backend_flags
+from .views_common import (
+    FINANCE_SOFT_FAILURES,
+    _active_profile,
+    _backend_flags,
+    finance_detail_redirect,
+    finance_save_redirect,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -249,7 +255,7 @@ def cash_office_closure(request: HttpRequest):
                 f"Cash closure saved for {closure.closure_date}. "
                 f"Expected {closure.expected_cash}, discrepancy {closure.discrepancy}.",
             )
-            return redirect("finance:cash_office_closure")
+            return finance_save_redirect(request, "finance:cash_office_closure")
         messages.error(request, "Please correct the closure form errors and try again.")
 
     def _to_decimal_or_zero(raw_value) -> Decimal:
@@ -398,7 +404,7 @@ def split_allocation(request: HttpRequest):
             request,
             f"Payment of {total_amount} recorded for {student} (invoice {invoice.reference}).",
         )
-        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+        return finance_detail_redirect(request, invoice.id)
 
     return render(
         request,

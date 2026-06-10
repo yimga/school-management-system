@@ -22,6 +22,7 @@
                 data-rmc-offline-workflow="people_teacher_create"
                 data-rmc-offline-hint="{% trans 'Teacher details (except photo) stay on this device until you reconnect. Upload photo when online.' %}">
             {% csrf_token %}
+            {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
 
             <div class="row g-3">
               <div class="col-12">

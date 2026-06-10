@@ -13,7 +13,6 @@ from __future__ import annotations
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Q
-from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -21,6 +20,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from apps.compliance.models import EraseRequest, ExportJob
 from apps.compliance.tenant_scope import get_compliance_scope_school
+from services.post_delete_navigation import redirect_after_save
 
 
 def _is_data_rights_operator(user):
@@ -155,10 +155,8 @@ def complete_export(request, pk):
 
 
 def _back_to_queue(request):
-    referer = request.META.get("HTTP_REFERER")
-    if referer:
-        return HttpResponseRedirect(referer)
     try:
-        return redirect(reverse("compliance:data_rights_queue"))
+        fallback = reverse("compliance:data_rights_queue")
     except Exception:  # noqa: BLE001
-        return redirect("/")
+        fallback = "/"
+    return redirect_after_save(request, fallback, list_url=fallback)

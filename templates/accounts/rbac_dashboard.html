@@ -34,6 +34,7 @@
           <h5 class="mb-3"><i class="bi bi-person-badge me-2"></i>{% trans "Assign Roles to User" %}</h5>
           <form method="post" class="row g-3">
             {% csrf_token %}
+            {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
             <input type="hidden" name="form_type" value="user_roles">
             {{ user_role_form.non_field_errors }}
             <div class="col-12 col-md-3">
@@ -92,6 +93,7 @@
           <h5 class="mb-3">{% trans "Create Role" %}</h5>
           <form method="post">
             {% csrf_token %}
+            {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
             <input type="hidden" name="form_type" value="role">
             {{ role_form.non_field_errors }}
             <div class="mb-3">
@@ -124,6 +126,7 @@
           <h5 class="mb-3">{% trans "Create Permission" %}</h5>
           <form method="post">
             {% csrf_token %}
+            {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
             <input type="hidden" name="form_type" value="permission">
             {{ permission_form.non_field_errors }}
             <div class="mb-3">
@@ -152,6 +155,7 @@
           <h5 class="mb-3">{% trans "Assign Direct Permissions" %}</h5>
           <form method="post">
             {% csrf_token %}
+            {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
             <input type="hidden" name="form_type" value="user_permissions">
             {{ user_permission_form.non_field_errors }}
             <div class="mb-3">
@@ -176,6 +180,7 @@
           <p class="small text-muted">{% trans "Give a user a role until a set date (e.g. auditor for one month)." %}</p>
           <form method="post">
             {% csrf_token %}
+            {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
             <input type="hidden" name="form_type" value="temporary_grant">
             {{ temporary_grant_form.non_field_errors }}
             <div class="mb-3">
@@ -296,6 +301,7 @@
         </div>
         <form method="post" action="">
           {% csrf_token %}
+          {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
           <input type="hidden" name="form_type" value="edit_role">
           {{ edit_role_form.role_id }}
           <div class="modal-body" id="editRoleModalDesc">

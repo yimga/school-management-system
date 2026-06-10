@@ -12,10 +12,10 @@ from django_otp.plugins.otp_totp.models import TOTPDevice
 from django_otp.plugins.otp_static.models import StaticDevice
 from django_otp import user_has_device, login as otp_login
 from django.utils import timezone
-from django.utils.http import url_has_allowed_host_and_scheme
 from datetime import timedelta
 
 from apps.accounts.mfa_setup_flow import build_mfa_setup_context, handle_mfa_setup_post
+from services.post_delete_navigation import safe_next_url as _safe_next_url
 
 
 def _mfa_template(request, name: str) -> str:
@@ -23,21 +23,6 @@ def _mfa_template(request, name: str) -> str:
         stem, suffix = name.rsplit(".", 1)
         return f"{stem}_manager.{suffix}"
     return name
-
-
-def _safe_next_url(request, candidate, fallback=""):
-    if not candidate:
-        return fallback
-    value = str(candidate).strip()
-    if not value:
-        return fallback
-    if url_has_allowed_host_and_scheme(
-        url=value,
-        allowed_hosts={request.get_host()},
-        require_https=request.is_secure(),
-    ):
-        return value
-    return fallback
 
 
 @login_required

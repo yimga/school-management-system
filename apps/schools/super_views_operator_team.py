@@ -8,9 +8,15 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.models import Session
 from django.db import transaction
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+
+from services.post_delete_navigation import (
+    mutation_return_url,
+    redirect_after_delete,
+    redirect_after_detail_mutation,
+)
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
@@ -63,6 +69,19 @@ def _profile_for_user(user):
         profile.status = PlatformOperatorProfile.Status.ACTIVE
         profile.save(update_fields=["tier", "status", "updated_at"])
     return profile
+
+
+@require_GET
+@require_platform_scope(PLATFORM_SCOPE_TEAM_READ)
+def api_operator_lens_snapshot(request, user_id):
+    """Lightweight identity + MFA chips for operator team roster Lens."""
+    from apps.schools.operator_school_lens import build_operator_team_lens_snapshot
+
+    User = get_user_model()
+    user = get_object_or_404(User, pk=user_id)
+    if not queryset_platform_operators().filter(pk=user.pk).exists():
+        return JsonResponse({"ok": False, "error": "not_operator"}, status=404)
+    return JsonResponse(build_operator_team_lens_snapshot(user))
 
 
 @require_GET
@@ -150,12 +169,18 @@ def super_operator_team_detail(request, user_id: int):
             "-created_at"
         )[:10]
     )
+    roster_url = reverse("super:operator_team_roster")
+    detail_url = reverse("super:operator_team_detail", args=[user.pk])
+    return_url = mutation_return_url(request, roster_url, list_url=roster_url)
+    detail_return_url = mutation_return_url(request, detail_url, list_url=detail_url)
     return render(
         request,
         "schools/super_operator_team_detail.html",
         {
             "dashboard_url": reverse("super:dashboard"),
-            "roster_url": reverse("super:operator_team_roster"),
+            "roster_url": roster_url,
+            "return_url": return_url,
+            "detail_return_url": detail_return_url,
             "operator_user": user,
             "profile": profile,
             "scopes": scopes,
@@ -257,7 +282,8 @@ def super_operator_team_offboard(request, user_id: int):
         new_values={"status": "offboarded"},
     )
     messages.success(request, _("Operator offboarded and sessions revoked."))
-    return redirect("super:operator_team_roster")
+    roster_url = reverse("super:operator_team_roster")
+    return redirect_after_delete(request, roster_url, list_url=roster_url)
 
 
 def _session_keys_for_user(user):
@@ -290,7 +316,8 @@ def super_operator_team_revoke_sessions(request, user_id: int):
         new_values={"sessions_revoked": deleted},
     )
     messages.success(request, _("Revoked %(n)s session(s).") % {"n": deleted})
-    return redirect("super:operator_team_detail", user_id=user_id)
+    detail_url = reverse("super:operator_team_detail", args=[user_id])
+    return redirect_after_detail_mutation(request, detail_url)
 
 
 @require_POST
@@ -315,7 +342,8 @@ def super_operator_team_suspend(request, user_id: int):
         new_values={"status": "suspended"},
     )
     messages.success(request, _("Operator suspended and sessions revoked."))
-    return redirect("super:operator_team_detail", user_id=user_id)
+    detail_url = reverse("super:operator_team_detail", args=[user_id])
+    return redirect_after_detail_mutation(request, detail_url)
 
 
 @require_POST
@@ -339,7 +367,8 @@ def super_operator_team_reactivate(request, user_id: int):
         new_values={"status": "active"},
     )
     messages.success(request, _("Operator reactivated."))
-    return redirect("super:operator_team_detail", user_id=user_id)
+    detail_url = reverse("super:operator_team_detail", args=[user_id])
+    return redirect_after_detail_mutation(request, detail_url)
 
 
 @require_http_methods(["GET", "POST"])

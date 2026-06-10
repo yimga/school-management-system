@@ -212,6 +212,10 @@ def main(argv: list[str] | None = None) -> int:
         "Phase 3: canonical nav IA and command palette contracts",
     )
     run(
+        [py, _script_path("verify_post_delete_navigation.py"), *base_args],
+        "Phase 3: mutation navigation (post-delete/save return URLs + safe_next)",
+    )
+    run(
         [
             py,
             _script_path("verify_phase4_control_plane_decision_console.py"),

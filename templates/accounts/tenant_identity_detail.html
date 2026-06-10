@@ -53,8 +53,9 @@
           <p class="small text-muted mb-3">{% trans "No active sessions found." %}</p>
           {% endif %}
           {% if can_manage %}
-          <form method="post" action="{{ revoke_sessions_url }}" class="d-inline" onsubmit="return confirm('{% trans "Revoke all sessions for this user?" %}');">
+          <form method="post" action="{{ revoke_sessions_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Revoke all sessions for this user?" %}');">
             {% csrf_token %}
+            {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
             <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Revoke all sessions" %}</button>
           </form>
           {% endif %}
@@ -67,8 +68,9 @@
   <div class="d-flex flex-wrap gap-2 mt-3">
     <a class="btn btn-sm btn-outline-primary" href="{{ rbac_url }}?user={{ staff_user.pk }}">{% trans "Edit RBAC roles" %}</a>
     <a class="btn btn-sm btn-outline-secondary" href="{{ regulator_url }}">{% blocktrans with body=gov_body_label %}{{ body }} grant{% endblocktrans %}</a>
-    <form method="post" action="{{ offboard_url }}" class="d-inline" onsubmit="return confirm('{% trans "Remove this user from the school?" %}');">
+    <form method="post" action="{{ offboard_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Remove this user from the school?" %}');">
       {% csrf_token %}
+      {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
       <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Offboard from school" %}</button>
     </form>
     <a class="btn btn-sm btn-outline-secondary" href="{{ roster_url }}">{% trans "Back to roster" %}</a>

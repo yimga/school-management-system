@@ -11,6 +11,12 @@ from django.core.exceptions import ValidationError
 from django.db import DatabaseError, IntegrityError
 from django.http import HttpRequest
 from django.conf import settings
+from django.urls import reverse
+
+from services.post_delete_navigation import (
+    redirect_after_detail_mutation,
+    redirect_after_save,
+)
 
 from apps.siteconfig.config_service import (
     get_effective_flags,
@@ -193,3 +199,15 @@ def _can_access_accounting(user) -> bool:
     if role == "ACCOUNTANT":
         return True
     return getattr(user, "has_feature_permission", lambda _: False)("accounting.view")
+
+
+def finance_save_redirect(request: HttpRequest, url_name: str, **url_kwargs):
+    """Return to a finance list/hub after save, preserving ``next`` / referer filters."""
+    url = reverse(url_name, kwargs=url_kwargs) if url_kwargs else reverse(url_name)
+    return redirect_after_save(request, url, list_url=url)
+
+
+def finance_detail_redirect(request: HttpRequest, invoice_id):
+    """Stay on invoice detail after in-place mutations."""
+    url = reverse("finance:invoice_detail", kwargs={"invoice_id": invoice_id})
+    return redirect_after_detail_mutation(request, url)

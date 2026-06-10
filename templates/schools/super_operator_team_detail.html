@@ -73,26 +73,30 @@
   <div class="card shadow-sm mb-3">
     <div class="card-header">{% trans "Actions" %}</div>
     <div class="card-body d-flex flex-wrap gap-2 align-items-center">
-      <form method="post" action="{% url 'super:operator_team_revoke_sessions' operator_user.pk %}">
+      <form method="post" action="{% url 'super:operator_team_revoke_sessions' operator_user.pk %}" data-rmc-post-mutation="1">
         {% csrf_token %}
+        {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
         <button type="submit" class="btn btn-sm btn-outline-warning">{% trans "Revoke all sessions" %}</button>
       </form>
       {% if not is_canonical_admin %}
         {% if profile.status == "active" %}
-        <form method="post" action="{{ suspend_url }}" onsubmit="return confirm('{% trans "Suspend this operator?" %}');">
+        <form method="post" action="{{ suspend_url }}" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Suspend this operator?" %}');">
           {% csrf_token %}
+          {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
           <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Suspend" %}</button>
         </form>
         {% elif profile.status == "suspended" %}
-        <form method="post" action="{{ reactivate_url }}">
+        <form method="post" action="{{ reactivate_url }}" data-rmc-post-mutation="1">
           {% csrf_token %}
+          {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
           <button type="submit" class="btn btn-sm btn-outline-success">{% trans "Reactivate" %}</button>
         </form>
         {% endif %}
       {% endif %}
       {% if can_offboard %}
-      <form method="post" action="{% url 'super:operator_team_offboard' operator_user.pk %}" onsubmit="return confirm('{% trans "Offboard this operator?" %}');">
+      <form method="post" action="{% url 'super:operator_team_offboard' operator_user.pk %}" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Offboard this operator?" %}');">
         {% csrf_token %}
+        <input type="hidden" name="next" value="{{ roster_url }}">
         <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Offboard" %}</button>
       </form>
       {% elif is_canonical_admin %}
@@ -169,5 +173,4 @@
   </div>
   {% endif %}
 </div>
-{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

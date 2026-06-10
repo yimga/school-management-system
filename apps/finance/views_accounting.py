@@ -24,7 +24,12 @@ from apps.accounts.utils import get_dashboard_context
 
 from .models import LedgerAccount, Payment, SuspensePayment
 from .bank_statement_import import BankStatementImportService
-from .views_common import _active_profile, _can_access_accounting, FINANCE_SOFT_FAILURES
+from .views_common import (
+    FINANCE_SOFT_FAILURES,
+    _active_profile,
+    _can_access_accounting,
+    finance_save_redirect,
+)
 
 
 @staff_member_required(login_url=settings.LOGIN_URL)
@@ -171,13 +176,13 @@ def claim_suspense_payment(request: HttpRequest, suspense_id: int):
     notes = request.POST.get("notes", "").strip()
     if not raw_allocations:
         messages.error(request, "Provide allocation JSON before submitting.")
-        return redirect("finance:suspense_queue")
+        return finance_save_redirect(request, "finance:suspense_queue")
 
     try:
         allocations = json.loads(raw_allocations)
     except json.JSONDecodeError:
         messages.error(request, "Allocation payload must be valid JSON.")
-        return redirect("finance:suspense_queue")
+        return finance_save_redirect(request, "finance:suspense_queue")
 
     try:
         result = BankStatementImportService().claim_suspense_payment(
@@ -188,10 +193,10 @@ def claim_suspense_payment(request: HttpRequest, suspense_id: int):
         )
     except FINANCE_SOFT_FAILURES as exc:
         messages.error(request, f"Failed to allocate suspense payment: {exc}")
-        return redirect("finance:suspense_queue")
+        return finance_save_redirect(request, "finance:suspense_queue")
 
     messages.success(
         request,
         f"Suspense #{suspense.id} updated to {result['status']}. Remaining: {result['remaining']}.",
     )
-    return redirect("finance:suspense_queue")
+    return finance_save_redirect(request, "finance:suspense_queue")

@@ -20,6 +20,7 @@ from apps.payroll.models import Payslip
 from .forms import ReportRequestForm
 from .models import Invoice, Notification
 from .ohada_reports import build_dsf_report
+from .views_common import finance_save_redirect
 
 
 def _active_profile(request: HttpRequest | None = None):
@@ -109,7 +110,7 @@ def submit_report_request(request: HttpRequest):
         return HttpResponseForbidden("No compliance profile configured.")
 
     if request.method != "POST":
-        return redirect("finance:reports")
+        return finance_save_redirect(request, "finance:reports")
 
     form = ReportRequestForm(request.POST)
     if form.is_valid():
@@ -126,7 +127,7 @@ def submit_report_request(request: HttpRequest):
         messages.success(
             request, "Report request logged. We will notify you once ready."
         )
-        return redirect("finance:reports")
+        return finance_save_redirect(request, "finance:reports")
 
     messages.error(request, "Please fix the errors below.")
     dsf_report = build_dsf_report(profile=profile, start_date=None, end_date=None)
