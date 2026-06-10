@@ -3735,7 +3735,12 @@ def claim_invite(request):
         invite = form.invite
         user = form.save_user()
         link_guardian_via_invite(invite, user, awarded_by=user)
-        login(request, user)
+        # save_user() creates the User via create_user() (never through
+        # authenticate()), so it carries no `.backend` attribute. With multiple
+        # AUTHENTICATION_BACKENDS configured, login() must be given an explicit
+        # backend or it raises ValueError → 500 on every successful claim. Use
+        # the vanilla ModelBackend, matching the SAML/OIDC login() calls.
+        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
         messages.success(
             request,
             f"Welcome! You are now linked to {invite.student} and can view reports/finance.",
