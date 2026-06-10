@@ -15,6 +15,8 @@ import logging
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
+from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_GET
 
 from apps.platform_runtime import health_autopilot as ha
@@ -23,6 +25,46 @@ logger = logging.getLogger(__name__)
 
 _MAX_SCHOOLS_SAMPLED = 50
 _MAX_LOG_ROWS = 50
+
+# Curated launcher for the genuinely GENERATIVE AI surfaces — the honest answer to
+# "where do I actually find AI?". Endpoint-only / ambient surfaces carry route="" so
+# we never render a fake link for something that has no standalone page. Routes are
+# reversed defensively below (a name may live on a different host's urlconf).
+_GENERATIVE_SURFACES = (
+    {
+        "label": _("AI governance & assistants"),
+        "where": _("Tenant · AI governance page"),
+        "route": "siteconfig:ai_governance",
+        "note": _("Provider posture, the assistant registry, and the (rules-based) policy matrix lookup."),
+    },
+    {
+        "label": _("Studio OS copilot rail"),
+        "where": _("Studio workspace"),
+        "route": "studio_os:shell",
+        "note": _("The primary generative assistant — chat, insights, and drafting."),
+    },
+    {
+        "label": _("Assist dock AI actions"),
+        "where": _("Every page · ambient dock"),
+        "route": "",
+        "note": _("Summarize / explain / draft / translate in place. Ambient — no standalone page."),
+    },
+    {
+        "label": _("Portal AI gateway (legacy)"),
+        "where": _("Tenant portal · floating copilot"),
+        "route": "",
+        "note": _("Legacy streaming copilot, superseded by the Studio rail. Ambient — no standalone page."),
+    },
+)
+
+
+def _safe_reverse(name: str) -> str | None:
+    if not name:
+        return None
+    try:
+        return reverse(name)
+    except Exception:  # noqa: BLE001 — route may live on another host's urlconf
+        return None
 
 
 def _proposal_row(prop: dict) -> dict:
@@ -103,11 +145,22 @@ def health_autopilot_console(request):
 
     catalog = [{"kind": k, **v} for k, v in sorted(ha.HEALTH_REMEDIATION_KINDS.items())]
 
+    generative_surfaces = [
+        {
+            "label": s["label"],
+            "where": s["where"],
+            "note": s["note"],
+            "url": _safe_reverse(s["route"]),
+        }
+        for s in _GENERATIVE_SURFACES
+    ]
+
     return render(
         request,
         "platform_runtime/health_autopilot_console.html",
         {
             "proposals": proposals,
+            "generative_surfaces": generative_surfaces,
             "policies": policies,
             "recent_log": recent_log,
             "catalog": catalog,

@@ -62,6 +62,42 @@
     {% else %}
     <div class="text-tertiary small">{% trans "No AI surfaces registered." %}</div>
     {% endif %}
+
+    {% if generative_surfaces %}
+    <h3 class="h6 mt-3 mb-2 text-uppercase text-tertiary small">{% trans "Where to find generative AI" %}</h3>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle small">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Surface" %}</th>
+            <th scope="col">{% trans "Where it lives" %}</th>
+            <th scope="col">{% trans "Open" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in generative_surfaces %}
+          <tr>
+            <td>
+              <span class="fw-semibold">{{ s.label }}</span>
+              <div class="text-tertiary small">{{ s.note }}</div>
+            </td>
+            <td class="text-tertiary small">{{ s.where }}</td>
+            <td>
+              {% if s.url %}
+                <a href="{{ s.url }}">{% trans "Open" %}</a>
+              {% else %}
+                <span class="text-tertiary small">{% trans "ambient" %}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-tertiary small mb-0">
+      {% trans "Generative surfaces route through the model gateway when AI is enabled above. Ambient surfaces have no standalone page — they appear in context on the pages where they help." %}
+    </p>
+    {% endif %}
   </section>
 
   <!-- Live shadow proposals -->
