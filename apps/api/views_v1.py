@@ -1200,8 +1200,11 @@ class SchedulerValidateView(View):
         schedule_id = request.GET.get("schedule_id")
         if schedule_id:
             try:
-                from apps.academics.scheduling import ScheduleGenerator
-                from apps.academics.models import Schedule
+                # Schedule lives in apps.academics.scheduling (NOT models) — the
+                # wrong-module import here raised an uncaught ImportError (the
+                # except below only catches Schedule.DoesNotExist), 500-ing every
+                # /api/v1/scheduler/validate?schedule_id=… call.
+                from apps.academics.scheduling import Schedule, ScheduleGenerator
 
                 schedule = Schedule.objects.get(pk=schedule_id)
                 gen = ScheduleGenerator(
