@@ -114,5 +114,39 @@ the codebase's own rules say to scope before sweeping.
 1. ✅ Hub built + AI inventory consolidated + honest generative-vs-rules labelling (landed/this wave).
 2. Tray nav chip for the hub (dedicated small commit + browser smoke).
 3. Phase 1 above (AI status/links in hub) — read-only, low risk.
-4. Retire/relabel the genuine orphans (agentic_self_healing_matrix, northstar) — honesty win.
+4. Relabel (never retire) the misleadingly-named modules — see §3.4 — honesty win.
 5. Phases 2–3 (self-healing + fleet-health aggregation) — approval-gated per phase.
+
+---
+
+## 5. Per-dashboard AI surface inventory (verified 2026-06-10)
+
+Every AI-related surface, where it renders, its route, whether it actually calls a model, and a
+per-surface recommendation. Templates/routes below were confirmed present in the tree; a few
+specifics flagged "(unverified)" still need a manual look. **No code changes were made for this
+inventory — it is the approval-gate input for any relocation.**
+
+| # | Surface | Module | Renders on (template / dashboard) | Route | Type | Recommendation |
+|---|---|---|---|---|---|---|
+| 1 | Manager copilot rail | `observability/ai_copilot_service.py` | `partials/cockpit/_ai_copilot_rail.html` (manager control-plane, via `cockpit_context`) | ambient (manager) | **RULES** (ticket / AI-review / KB-gap counts; no model) | **RELABEL-ONLY** — name says "AI copilot" but it's a metrics feed. Clarify label/docstring; do NOT move. No model call to consolidate. |
+| 2 | Studio OS copilot rail | `studio_os/copilot_rail_service.py` + `views_copilot_rail.py` | `studio_os/partials/cockpit_copilot_rail.html` (studio_os + tenant) | `studio_os:copilot_rail_{context,insights,send,send_stream}` | **GENERATIVE** (`invoke_with_request`, rules fallback) | **KEEP / LINK-INTO-HUB** — primary unified generative assistant. Hub *links* to it, doesn't absorb it. Low risk. |
+| 3 | Assist dock AI actions | `assist_dock/ai_actions.py` | assist dock panel (client-rendered) | `assist_dock:ai_actions`, `assist_dock:ai_invoke` | **GENERATIVE** (summarize/explain/draft/translate) | **LEAVE — ambient.** Page-aware, belongs everywhere. Registry-decoupled. |
+| 4 | School health insight | `platform_runtime/ai_system_layer.py` | `accounts/ai_system_layer_strip.html` (tenant `backend_dashboard`) | ambient (dashboard ctx) | **GENERATIVE** (rules fallback) | **RELOCATION CANDIDATE** (moderate blast radius) — could move to a tenant intelligence section. Approval-gated. |
+| 5 | Onboarding next action | `platform_runtime/ai_system_layer.py` | `accounts/ai_system_layer_strip.html` | ambient (dashboard ctx) | **GENERATIVE** (rules fallback) | **RELOCATION CANDIDATE** — same strip as #4; move together or leave. |
+| 6 | Anomaly risk nudge | `platform_runtime/ai_system_layer.py` (via `platform_runtime/context_processors.py`) | `accounts/ai_system_layer_strip.html` | ambient (ctx processor) | **GENERATIVE** | **LINK-INTO-HUB** — candidate to flow through the self-healing hub instead of every dashboard. Low risk. |
+| 7 | Migration AI bridge | `migration_cloud/ai_bridge.py` | internal (intake classification) — not a standalone widget | internal API | **GENERATIVE** (per-school, off by default) | **LEAVE — internal pipeline**, not a dashboard widget. |
+| 8 | Policy "copilot" | `governance/turbo/ai_policy_copilot.py` | governance policy page (sidecar/modal) (template unverified) | governance view (route name unverified) | **RULES** (regex over matrix; self-documents "no LLM") | **RELABEL-ONLY** — rename UI label to "Policy matrix lookup". CI-gated contract (§3.4) — never delete. |
+| 9 | Portal AI gateway (legacy) | `portal/ai_provider.py` + `portal/views_ai_stream.py` + `ai_chrome_config.py` | portal floating copilot | `portal:ai_stream` (+ `ai_line_intents`) | **GENERATIVE** | **DEPRECATE-CANDIDATE** — reportedly superseded by the studio rail (#2). Verify parity + grep hardcoded URL refs BEFORE any removal. Approval-gated. |
+| 10 | Intelligence & Self-Healing hub | `platform_runtime/views_health_autopilot.py` | `platform_runtime/health_autopilot_console.html` | `platform_runtime:health_autopilot_console` (`self-healing/`) | **FACADE** (reads `describe_ai_assistant_surfaces`; no inference) | **THE HUB / EXPAND** — already the authoritative operator AI map. Phase-1 work lands here. |
+| 11 | Risk digest narrator | `analytics/management/commands/ai_narrate_risk_digest.py` | background (digest emails) | mgmt command | **GENERATIVE** (async) | **LEAVE** — not a dashboard widget. |
+
+Flagged for manual confirmation: portal `ai_help` / `ai_assistant_panel` permission gates (separate visible widget?); `brand_experience/template_ai_recommender.py` (internal vs visible?); an API WebSocket AI chat consumer (UI render location not found in Python).
+
+### Recommended ordered execution (each its own commit, approval-gated)
+1. **Relabel-only (zero behavior change, lowest risk):** #1 manager rail + #8 policy lookup — clarify they are rules-based, not generative. 2 small commits.
+2. **Link-into-hub (read-only, hub-only):** add a "Generative AI surfaces" launcher table to the hub linking #2 studio rail, #9 portal gateway, #3 assist-dock, with live on/off status. Touches only the hub. 1 commit.
+3. **Anomaly nudge (#6) → hub flow:** route the nudge through the hub instead of the universal context processor; removes one ambient AI widget from every dashboard. Medium; approval-gated.
+4. **Tenant intelligence strip (#4/#5):** relocate the two dashboard-strip insights into one tenant intelligence section. Moderate blast radius (tenant `backend_dashboard`); approval-gated, browser-smoke required.
+5. **Portal legacy gateway (#9) deprecation:** only after confirming studio-rail parity; grep-audit URL refs first. Highest risk; separate sign-off.
+
+No item above is started; this section is the menu to approve from.
