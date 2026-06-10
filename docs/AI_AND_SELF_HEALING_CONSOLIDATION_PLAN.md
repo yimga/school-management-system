@@ -85,10 +85,19 @@ Each is a relocation INTO a hub, not a rewrite. Order by value/risk:
 3. **Health/observability widgets → one operator health surface.** `customer_health`,
    `tenant_operational_health`, `installation_health`, `registry_health` are scattered detection
    widgets; a single operator "Fleet Health" surface (the tenant-health API already exists). Medium.
-4. **Retire/relabel genuine orphans/stubs** found in the self-healing audit:
-   `governance/turbo/agentic_self_healing_matrix.py` (0 prod callers, no AI) and the northstar
-   self-heal dev tool — retire or relabel (like the `offline_conflict_kernel` retirement). Low risk,
-   high honesty.
+4. **Relabel (do NOT retire) the misleadingly-named modules.** Correction after closer
+   inspection — these are NOT dead code, so unlike the `offline_conflict_kernel` retirement they
+   must NOT be deleted:
+   - `governance/turbo/agentic_self_healing_matrix.py` is `TURBO_CONTRACTS[0]` in
+     `apps/governance/turbo/__init__.py` (1 of 15 phase-6 contract deliverables) **and has a
+     dedicated CI gate** (`scripts/verify_matrix_freshness.py` points `CONTRACT_MODULE` at it).
+     Deleting it would break that gate + the contract registry. It is tracked scaffolding (a JSON
+     approval queue, no AI yet), not an orphan. Honest action: a docstring note that "agentic" is
+     aspirational/not-yet-AI-backed — no deletion, no caller changes.
+   - `scripts/northstar_self_heal*` is read by the founder dashboard (`super_views_founder_dashboard`)
+     — also not an orphan. Leave as honest dev/CI tooling.
+   The only genuinely-retired self-healing orphan was `offline_conflict_kernel` (done 2026-06-10,
+   separate wave). There are no further safe deletions in this cluster.
 
 **Method for each phase:** inventory the scattered surfaces → build/extend the single hub section
 (read-only links + status first) → only then consider physically moving widgets → run the nav,
