@@ -9,11 +9,40 @@ from apps.accounts.manager_login_next import (
     is_toxic_login_next_for_manager,
     manager_login_next_is_operator_intent,
     sanitize_manager_login_next,
+    should_show_manager_login_surface,
     tenant_staff_should_use_public_host,
 )
 from apps.schools.models import School, SchoolMembership
 
 User = get_user_model()
+
+
+class ManagerHomeFrontDoorTests(TestCase):
+    """The manager host root is the operator front door; it must not eject operators
+    to the public campus-discovery page (regression: typing manager.runmycampus.com
+    redirected to runmycampus.com/discover/)."""
+
+    def test_manager_home_unauthenticated_carries_cp_marker(self):
+        from django.contrib.auth.models import AnonymousUser
+        from django.test import RequestFactory
+
+        from config.manager_urls import manager_home
+
+        req = RequestFactory().get("/")
+        req.user = AnonymousUser()
+        resp = manager_home(req)
+        self.assertEqual(resp.status_code, 302)
+        # Must point at the operator login WITH the cp=1 control-plane marker.
+        self.assertEqual(resp.url, f"{reverse('accounts:login')}?cp=1")
+
+    def test_cp_marker_shows_operator_surface_not_discovery_eject(self):
+        from django.contrib.auth.models import AnonymousUser
+        from django.test import RequestFactory
+
+        req = RequestFactory().get(f"{reverse('accounts:login')}?cp=1")
+        req.user = AnonymousUser()
+        req.public_host_kind = "manager"
+        self.assertTrue(should_show_manager_login_surface(req))
 
 
 class ManagerLoginNextSanitizerTests(TestCase):
