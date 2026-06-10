@@ -171,12 +171,14 @@ SiteSettings.cockpit_payload.
         <a class="nav-link nav-pill" href="{% url 'portal:link_child' %}"><i class="bi bi-link-45deg me-2"></i>{% trans "Link a child" %}</a>
         <a class="nav-link nav-pill" href="{% url 'portal:claim_invite' %}"><i class="bi bi-ticket me-2"></i>{% trans "Claim invite" %}</a>
       {% elif request.user.role == 'STUDENT' %}
+        {% if SITE.enable_student_portal %}
         <div class="sidebar-section-title">{% trans "Home" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:student_portal_grades' %}"><i class="bi bi-house me-2"></i>{% trans "Student Home" %}</a>
         <div class="sidebar-section-title">{% trans "My Workflow" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:student_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>{% trans "My Workflow" %}</a>
         <div class="sidebar-section-title">{% trans "Learning" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:portal_syllabus' %}"><i class="bi bi-journal-bookmark me-2"></i>{% trans "Syllabus Coverage" %}</a>
+        {% endif %}
         <div class="sidebar-section-title">{% trans "Communication" %}</div>
         <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
           <span><i class="bi bi-chat-dots me-2"></i>{% trans_term "Messages" key="message" plural=True %}</span>

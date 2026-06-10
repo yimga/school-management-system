@@ -17,6 +17,7 @@ from apps.schools.fleet_live_payload import (
     build_fleet_live_payload,
     build_fleet_sse_payload,
     parse_fleet_live_query,
+    row_revision_map,
 )
 
 logger = logging.getLogger(__name__)
@@ -36,9 +37,26 @@ def fleet_live_json(request):
 
 def _fleet_sse_stream(request) -> Iterator[str]:
     started = time.monotonic()
+    since_revision: str | None = str(request.GET.get("since_revision") or "").strip() or None
+    since_row_revisions: dict[str, str] = {}
     while time.monotonic() - started < _FLEET_SSE_MAX_SECONDS:
-        payload = build_fleet_sse_payload(request)
+        payload = build_fleet_sse_payload(
+            request,
+            since_revision=since_revision,
+            since_row_revisions=since_row_revisions or None,
+        )
         yield f"data: {json.dumps(payload, default=str)}\n\n"
+        if not payload.get("unchanged"):
+            since_revision = str(payload.get("revision") or "") or since_revision
+            if payload.get("rows"):
+                since_row_revisions = row_revision_map(payload["rows"])
+            elif payload.get("delta"):
+                for row in payload.get("changed_rows") or []:
+                    row_id = str(row.get("id") or "")
+                    if row_id:
+                        since_row_revisions[row_id] = str(
+                            row.get("row_revision") or ""
+                        )
         time.sleep(_FLEET_SSE_INTERVAL_SECONDS)
 
 

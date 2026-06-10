@@ -1,6 +1,8 @@
 """Shared fleet live payload builder for JSON + SSE endpoints."""
 from __future__ import annotations
 
+import hashlib
+import json
 from typing import Any
 
 from django.utils import timezone
@@ -24,6 +26,61 @@ def _parse_int(raw, default: int, *, minimum: int = 1, maximum: int = 500) -> in
     except (TypeError, ValueError):
         return default
     return max(minimum, min(maximum, value))
+
+
+def fleet_row_revision(row: dict[str, Any]) -> str:
+    """Stable per-school fingerprint for SSE row deltas."""
+    payload = {
+        "fleet_state": row.get("fleet_state"),
+        "heatmap_tier": row.get("heatmap_tier"),
+        "roster_state": row.get("roster_state"),
+        "is_active": row.get("is_active"),
+        "is_approved": row.get("is_approved"),
+        "is_frozen": row.get("is_frozen"),
+        "lifecycle_state": row.get("lifecycle_state"),
+    }
+    raw = json.dumps(payload, sort_keys=True, default=str)
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
+
+
+def _build_fleet_row_dict(school, *, cached_subscription=None) -> dict[str, Any]:
+    status = resolve_school_fleet_status(
+        school, cached_subscription=cached_subscription
+    )
+    tile = resolve_fleet_tile(school, cached_subscription=cached_subscription)
+    row = {
+        "id": str(school.pk),
+        "name": getattr(school, "name", "") or "",
+        "slug": getattr(school, "slug", "") or "",
+        "sector": (getattr(school, "primary_sector", None) or "").strip(),
+        "fleet_state": status["fleet_state"],
+        "fleet_state_label": status["fleet_state_label"],
+        "heatmap_tier": status["heatmap_tier"],
+        "lifecycle_state": status["lifecycle_state"],
+        "is_active": status["is_active"],
+        "is_approved": status["is_approved"],
+        "is_frozen": status["is_frozen"],
+        "tooltip": tile.get("tooltip") or "",
+        "roster_state": _roster_state_from_fleet(status),
+    }
+    row["row_revision"] = fleet_row_revision(row)
+    return row
+
+
+def _partition_fleet_row_delta(
+    rows: list[dict[str, Any]],
+    since_row_revisions: dict[str, str] | None,
+) -> tuple[list[dict[str, Any]], bool]:
+    """Return changed rows for the current page; ``True`` when a full snapshot is required."""
+    if not since_row_revisions:
+        return rows, True
+    changed: list[dict[str, Any]] = []
+    for row in rows:
+        row_id = str(row.get("id") or "")
+        current = row.get("row_revision") or fleet_row_revision(row)
+        if since_row_revisions.get(row_id) != current:
+            changed.append(row)
+    return changed, False
 
 
 def build_fleet_live_payload(
@@ -54,26 +111,8 @@ def build_fleet_live_payload(
     if include_rows:
         subs = batch_current_subscriptions(page_schools)
         for school in page_schools:
-            status = resolve_school_fleet_status(
-                school, cached_subscription=subs.get(school.pk)
-            )
-            tile = resolve_fleet_tile(school, cached_subscription=subs.get(school.pk))
             rows.append(
-                {
-                    "id": str(school.pk),
-                    "name": getattr(school, "name", "") or "",
-                    "slug": getattr(school, "slug", "") or "",
-                    "sector": (getattr(school, "primary_sector", None) or "").strip(),
-                    "fleet_state": status["fleet_state"],
-                    "fleet_state_label": status["fleet_state_label"],
-                    "heatmap_tier": status["heatmap_tier"],
-                    "lifecycle_state": status["lifecycle_state"],
-                    "is_active": status["is_active"],
-                    "is_approved": status["is_approved"],
-                    "is_frozen": status["is_frozen"],
-                    "tooltip": tile.get("tooltip") or "",
-                    "roster_state": _roster_state_from_fleet(status),
-                }
+                _build_fleet_row_dict(school, cached_subscription=subs.get(school.pk))
             )
 
     heatmap_tiles, _ = resolve_fleet_tiles(max_tiles=500)
@@ -122,8 +161,17 @@ def _request_wants_fleet_rows(request) -> bool:
     return request.GET.get("page") is not None or bool(str(request.GET.get("q") or "").strip())
 
 
-def build_fleet_sse_payload(request) -> dict[str, Any]:
-    """SSE snapshot — summary-only by default; paginated rows when client passes page/q."""
+def build_fleet_sse_payload(
+    request,
+    *,
+    since_revision: str | None = None,
+    since_row_revisions: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """SSE snapshot — summary-only, full page snapshot, or row deltas on repeat ticks."""
+    since = (since_revision or "").strip() or None
+    if since is None and request is not None:
+        since = str(request.GET.get("since_revision") or "").strip() or None
+
     if _request_wants_fleet_rows(request):
         page, page_size, q = parse_fleet_live_query(request)
         payload = build_fleet_live_payload(
@@ -132,21 +180,55 @@ def build_fleet_sse_payload(request) -> dict[str, Any]:
             q=q,
             include_rows=True,
         )
-        return {
+        revision = payload["revision"]
+        if since and since == revision:
+            return {
+                "generated_at": payload["generated_at"],
+                "revision": revision,
+                "unchanged": True,
+                "poll_interval_seconds": payload["poll_interval_seconds"],
+            }
+
+        base = {
             "generated_at": payload["generated_at"],
-            "revision": payload["revision"],
+            "revision": revision,
             "summary": payload["summary"],
             "summary_label": payload["summary_label"],
             "poll_interval_seconds": payload["poll_interval_seconds"],
             "pagination": payload["pagination"],
-            "rows": payload["rows"],
         }
+        changed_rows, needs_snapshot = _partition_fleet_row_delta(
+            payload["rows"],
+            since_row_revisions,
+        )
+        if needs_snapshot:
+            return {**base, "snapshot": True, "rows": payload["rows"]}
+        return {**base, "delta": True, "changed_rows": changed_rows}
 
     payload = build_fleet_live_payload(include_rows=False)
+    revision = payload["revision"]
+    if since and since == revision:
+        return {
+            "generated_at": payload["generated_at"],
+            "revision": revision,
+            "unchanged": True,
+            "poll_interval_seconds": payload["poll_interval_seconds"],
+        }
     return {
         "generated_at": payload["generated_at"],
-        "revision": payload["revision"],
+        "revision": revision,
         "summary": payload["summary"],
         "summary_label": payload["summary_label"],
         "poll_interval_seconds": payload["poll_interval_seconds"],
     }
+
+
+def row_revision_map(rows: list[dict[str, Any]]) -> dict[str, str]:
+    """Build id → row_revision map for SSE stream state on the connection."""
+    mapping: dict[str, str] = {}
+    for row in rows:
+        row_id = str(row.get("id") or "")
+        if not row_id:
+            continue
+        mapping[row_id] = str(row.get("row_revision") or fleet_row_revision(row))
+    return mapping

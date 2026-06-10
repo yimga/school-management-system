@@ -38,6 +38,8 @@ REQUIRED_SYMBOLS = {
     "apps/schools/fleet_live_payload.py": (
         "build_fleet_live_payload",
         "build_fleet_sse_payload",
+        "fleet_row_revision",
+        "row_revision_map",
     ),
     "apps/schools/fleet_report_markdown.py": ("build_fleet_status_markdown",),
     "apps/schools/tenant_operational_health.py": ("resolve_tenant_operational_health",),
@@ -139,6 +141,22 @@ def _check_wiring() -> list[str]:
         errors.append("rmc-fleet-live.js: must build paginated SSE stream URL")
     if "include_rows=1" not in fleet_js:
         errors.append("rmc-fleet-live.js: must request include_rows on paginated SSE")
+    if "usesPaginatedSse" not in fleet_js:
+        errors.append("rmc-fleet-live.js: must skip JSON poll when paginated SSE active")
+    payload_py = _read("apps/schools/fleet_live_payload.py")
+    if "since_revision" not in payload_py or "unchanged" not in payload_py:
+        errors.append("fleet_live_payload.py: must support since_revision unchanged heartbeats")
+    if "changed_rows" not in payload_py or "fleet_row_revision" not in payload_py:
+        errors.append("fleet_live_payload.py: must support per-row SSE deltas")
+    if "rowsFromPayload" not in fleet_js or "changed_rows" not in fleet_js:
+        errors.append("rmc-fleet-live.js: must merge SSE changed_rows deltas")
+    stream = _read("apps/schools/views_fleet_live.py")
+    if "since_row_revisions" not in stream or "row_revision_map" not in stream:
+        errors.append("views_fleet_live.py: SSE stream must track per-row revision map")
+    if "text/event-stream" not in stream:
+        errors.append("views_fleet_live.py: FleetStreamView must emit text/event-stream")
+    if "build_fleet_sse_payload" not in stream:
+        errors.append("views_fleet_live.py: must use build_fleet_sse_payload")
     cockpit_js = _read("static/js/rmc-cp-cockpit-live.js")
     if "/super/api/fleet/stream/" not in cockpit_js:
         errors.append("rmc-cp-cockpit-live.js: must subscribe to fleet SSE")
@@ -180,11 +198,11 @@ def _check_wiring() -> list[str]:
         errors.append("super_views_exports.py: missing ODT export view")
     if "markdown_to_document" not in exports:
         errors.append("super_views_exports.py: ODT must use markdown_to_document")
-    stream = _read("apps/schools/views_fleet_live.py")
-    if "text/event-stream" not in stream:
-        errors.append("views_fleet_live.py: FleetStreamView must emit text/event-stream")
-    if "build_fleet_sse_payload" not in stream:
-        errors.append("views_fleet_live.py: must use build_fleet_sse_payload")
+    if "attach_fleet_status_batch" not in _read("apps/schools/super_dashboard_registry.py"):
+        errors.append("super_dashboard_registry.py: must attach fleet_status for registry SSR")
+    sidebar = _read("templates/partials/portal_sidebar.html")
+    if "SITE.enable_student_portal" not in sidebar:
+        errors.append("portal_sidebar.html: student nav must honor enable_student_portal")
     tenant_stream = _read("apps/schools/views_tenant_health_api.py")
     if "text/event-stream" not in tenant_stream:
         errors.append("views_tenant_health_api.py: TenantHealthStreamView must emit text/event-stream")

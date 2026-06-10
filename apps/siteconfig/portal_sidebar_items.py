@@ -667,36 +667,37 @@ def build_portal_sidebar_items(request, site):
 
     # --- Student ---
     if role == User.Role.STUDENT:
-        items.append(
-            {
-                "id": "student_workflow",
-                "label": "My Workflow",
-                "url": _safe_reverse("portal:student_workflow"),
-                "icon": "bi-diagram-3",
-                "section": "My Workflow",
-                "badge": workflow_badge,
-            }
-        )
-        items.append(
-            {
-                "id": "student_home",
-                "label": "Student Home",
-                "url": _safe_reverse("portal:student_portal_grades"),
-                "icon": "bi-house",
-                "section": "Learning",
-                "badge": None,
-            }
-        )
-        items.append(
-            {
-                "id": "student_syllabus",
-                "label": "Syllabus Coverage",
-                "url": _safe_reverse("portal:portal_syllabus"),
-                "icon": "bi-journal-bookmark",
-                "section": "Learning",
-                "badge": None,
-            }
-        )
+        if getattr(site, "enable_student_portal", True):
+            items.append(
+                {
+                    "id": "student_workflow",
+                    "label": "My Workflow",
+                    "url": _safe_reverse("portal:student_workflow"),
+                    "icon": "bi-diagram-3",
+                    "section": "My Workflow",
+                    "badge": workflow_badge,
+                }
+            )
+            items.append(
+                {
+                    "id": "student_home",
+                    "label": "Student Home",
+                    "url": _safe_reverse("portal:student_portal_grades"),
+                    "icon": "bi-house",
+                    "section": "Learning",
+                    "badge": None,
+                }
+            )
+            items.append(
+                {
+                    "id": "student_syllabus",
+                    "label": "Syllabus Coverage",
+                    "url": _safe_reverse("portal:portal_syllabus"),
+                    "icon": "bi-journal-bookmark",
+                    "section": "Learning",
+                    "badge": None,
+                }
+            )
         items.append(
             {
                 "id": "student_help",

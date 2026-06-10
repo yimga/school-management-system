@@ -1,6 +1,7 @@
 /**
  * Live fleet status refresh for operator monitoring tables.
- * SSE heartbeat at /super/api/fleet/stream/ with JSON poll fallback.
+ * Paginated registry/tenant-health: SSE row snapshots (no JSON poll).
+ * Cockpit summary surfaces: SSE summary + JSON poll fallback.
  */
 (function () {
   "use strict";
@@ -21,6 +22,10 @@
     if (tier === "warn") return "cp-status-badge-warning";
     if (tier === "healthy" || tier === "okay") return "cp-status-badge-success";
     return "cp-status-badge-inactive";
+  }
+
+  function usesPaginatedSse(root) {
+    return !!root.getAttribute("data-rmc-fleet-page");
   }
 
   function patchSummaryBar(root, summary, summaryLabel) {
@@ -49,7 +54,8 @@
     }
     var badge = row.querySelector(".cp-registry-fleet-badge");
     if (badge) {
-      badge.className = "cp-status-badge cp-registry-fleet-badge " + cpBadgeClass(data.heatmap_tier);
+      badge.className =
+        "cp-status-badge cp-registry-fleet-badge " + cpBadgeClass(data.heatmap_tier);
       badge.textContent = data.fleet_state_label || data.fleet_state || "—";
     }
     if (data.roster_state) {
@@ -70,12 +76,30 @@
         chip.textContent = data.fleet_state_label || data.fleet_state || "—";
       }
     }
+    if (data.row_revision) {
+      row.setAttribute("data-rmc-fleet-row-revision", data.row_revision);
+    }
+  }
+
+  function rowsFromPayload(payload) {
+    if (payload.rows && payload.rows.length) return payload.rows;
+    if (payload.delta && payload.changed_rows && payload.changed_rows.length) {
+      return payload.changed_rows;
+    }
+    return null;
   }
 
   function applyPayload(root, payload) {
     if (!payload) return;
+    if (payload.unchanged) return;
+
     var revision = payload.revision || "";
-    if (revision && root.getAttribute("data-rmc-fleet-revision") === revision && !payload.rows) {
+    var rowList = rowsFromPayload(payload);
+    if (
+      revision &&
+      root.getAttribute("data-rmc-fleet-revision") === revision &&
+      !rowList
+    ) {
       if (payload.summary) {
         patchSummaryBar(root, payload.summary, payload.summary_label);
       }
@@ -87,11 +111,23 @@
       patchSummaryBar(root, payload.summary, payload.summary_label);
     }
 
-    if (!payload.rows || !payload.rows.length) return;
+    if (!rowList || !rowList.length) {
+      if (payload.delta) {
+        var stampOnly = root.querySelector("[data-rmc-fleet-refreshed]");
+        if (stampOnly) {
+          try {
+            stampOnly.textContent = new Date().toLocaleTimeString();
+          } catch (_) {
+            /* noop */
+          }
+        }
+      }
+      return;
+    }
 
     var byId = {};
-    for (var i = 0; i < payload.rows.length; i++) {
-      byId[payload.rows[i].id] = payload.rows[i];
+    for (var i = 0; i < rowList.length; i++) {
+      byId[rowList[i].id] = rowList[i];
     }
 
     var rows = root.querySelectorAll("tr[data-rmc-row-detail][data-school-id]");
@@ -105,7 +141,9 @@
     if (stamp) {
       try {
         stamp.textContent = new Date().toLocaleTimeString();
-      } catch (_) { /* noop */ }
+      } catch (_) {
+        /* noop */
+      }
     }
   }
 
@@ -115,13 +153,22 @@
     var pageSize = root.getAttribute("data-rmc-fleet-page-size") || "50";
     var q = root.getAttribute("data-rmc-fleet-q") || "";
     var sep = base.indexOf("?") >= 0 ? "&" : "?";
-    var url = base + sep + "page=" + encodeURIComponent(page) + "&page_size=" + encodeURIComponent(pageSize);
+    var url =
+      base +
+      sep +
+      "page=" +
+      encodeURIComponent(page) +
+      "&page_size=" +
+      encodeURIComponent(pageSize);
     if (q) url += "&q=" + encodeURIComponent(q);
     return url;
   }
 
   function pollOnce(root, intervalRef) {
-    fetch(buildJsonEndpoint(root), { credentials: "same-origin", headers: { Accept: "application/json" } })
+    fetch(buildJsonEndpoint(root), {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+    })
       .then(function (r) {
         if (!r.ok) throw new Error("status_" + r.status);
         return r.json();
@@ -132,7 +179,9 @@
         }
         applyPayload(root, payload);
       })
-      .catch(function () { /* keep SSR rows */ });
+      .catch(function () {
+        /* keep SSR rows */
+      });
   }
 
   function buildStreamEndpoint(root) {
@@ -154,16 +203,25 @@
     return url;
   }
 
-  function bootRoot(root) {
-    var intervalRef = { ms: DEFAULT_POLL_MS, handle: null };
-    var lastSseRevision = "";
-
+  function startPollFallback(root, intervalRef) {
     pollOnce(root, intervalRef);
     intervalRef.handle = window.setInterval(function () {
       pollOnce(root, intervalRef);
     }, intervalRef.ms);
+  }
 
-    if (typeof EventSource === "undefined") return;
+  function bootRoot(root) {
+    var paginatedSse = usesPaginatedSse(root);
+    var intervalRef = { ms: DEFAULT_POLL_MS, handle: null };
+
+    if (!paginatedSse) {
+      startPollFallback(root, intervalRef);
+    }
+
+    if (typeof EventSource === "undefined") {
+      if (paginatedSse) startPollFallback(root, intervalRef);
+      return;
+    }
 
     var sseUrl = buildStreamEndpoint(root);
     var source = new EventSource(sseUrl, { withCredentials: true });
@@ -171,18 +229,21 @@
     source.onmessage = function (event) {
       try {
         var payload = JSON.parse(event.data || "{}");
-        var hasRows = payload.rows && payload.rows.length;
-        if (payload.revision && payload.revision === lastSseRevision && !hasRows) return;
-        lastSseRevision = payload.revision || "";
+        if (payload.unchanged) return;
+        var hasRows = rowsFromPayload(payload);
         applyPayload(root, payload);
-        if (!hasRows) {
+        if (!paginatedSse && !hasRows) {
           pollOnce(root, intervalRef);
         }
-      } catch (_) { /* noop */ }
+      } catch (_) {
+        /* noop */
+      }
     };
 
     source.onerror = function () {
-      /* poll fallback continues */
+      if (paginatedSse && !intervalRef.handle) {
+        startPollFallback(root, intervalRef);
+      }
     };
   }
 

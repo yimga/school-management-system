@@ -254,6 +254,21 @@ def apply_registry_filters(
     return queryset
 
 
+def attach_fleet_status_batch(schools) -> None:
+    """Attach ``fleet_status`` dict to each school for registry SSR + live SSE patches."""
+    schools = list(schools)
+    if not schools:
+        return
+    from apps.schools.control_plane_lifecycle import batch_current_subscriptions
+    from apps.schools.fleet_status import resolve_school_fleet_status
+
+    subs = batch_current_subscriptions(schools)
+    for school in schools:
+        school.fleet_status = resolve_school_fleet_status(
+            school, cached_subscription=subs.get(school.pk)
+        )
+
+
 def enrich_school_for_registry(
     school,
     *,
@@ -388,7 +403,8 @@ def paginate_registry(
     page_number = request.GET.get("page", 1)
     page = paginator.get_page(page_number)
 
-    for school in page.object_list:
+    page_schools = list(page.object_list)
+    for school in page_schools:
         enrich_school_for_registry(
             school,
             country_names=country_names,
@@ -396,6 +412,7 @@ def paginate_registry(
             incident_school_ids=incident_school_ids,
             churn_risk_lookup=churn_risk_lookup,
         )
+    attach_fleet_status_batch(page_schools)
 
     return (
         page,

@@ -1,5 +1,25 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Fleet SSE per-row deltas (2026-06-09)
+
+**A. Scope:** Batch **1698** — connection-scoped row revision map + `{delta, changed_rows}` SSE payloads.
+
+**B. Shipped:** `fleet_row_revision`; `since_row_revisions` in payload builder + stream; client `rowsFromPayload()` merge.
+
+**C. Proof:** **PLATFORM_FLEET_MONITORING_PASS**; `test_fleet_sse_payload` 6/6 green.
+
+**D. Honest:** Deltas page-scoped; off-page changes bump summary with empty `changed_rows`.
+
+## Slice — Fleet SSE end-to-end + student portal nav (2026-06-09)
+
+**A. Scope:** Batch **1697** — complete fleet live registry loop (SSE-only paginated mode, revision heartbeats, SSR badges) + student portal nav discovery gate.
+
+**B. Shipped:** `since_revision` unchanged payloads; `usesPaginatedSse` in `rmc-fleet-live.js`; `attach_fleet_status_batch`; `portal_sidebar.html` + `portal_sidebar_items.py` `enable_student_portal` gates; `test_student_portal_gate.py`.
+
+**C. Proof:** **PLATFORM_FLEET_MONITORING_PASS**; fleet SSE + student portal gate tests green.
+
+**D. Honest:** Row updates still full-page snapshot on revision change, not delta encoding.
+
 ## Slice — Fleet SSE paginated rows + student workflow gate (2026-06-09)
 
 **A. Scope:** Batch **1696** — live registry row refresh over SSE; student workflow portal toggle gate.

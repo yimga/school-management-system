@@ -186,7 +186,7 @@
 // v4.02.89: purge retired vendor chunks; loader normalized; preview uses loader offline events.
 // v4.02.92: workflow progress SSE WSGI sync stream + busy reconnect in rmc-workflow-progress.js
 // v4.03.39: tenant 360 flight deck URL fix + cockpit live JSON refresh on /super/ landing.
-const CACHE_VERSION = "sms-v4.03.56-fleet-sse-row-payloads-tenant-health-2026-06-09";
+const CACHE_VERSION = "sms-v4.03.58-fleet-sse-row-deltas-2026-06-09";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

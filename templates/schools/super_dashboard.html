@@ -612,7 +612,7 @@
             <tbody>
               {% for school in schools %}
               {% url 'super:tenant_360' school.id as registry_t360_url %}
-              <tr class="cp-school-row" data-state="{{ school.roster_state }}" data-search="{{ school.roster_search }}" data-school-id="{{ school.id }}" data-rmc-row-detail="1" tabindex="0" {% include "partials/rmc_school_lens_api_attrs.html" with school=school %} data-rmc-row-title="{{ school.name|escape }}" data-rmc-row-subtitle="{{ school.slug|escape }}" data-rmc-row-meta='{"{% trans "State" %}":"{{ school.roster_state|escapejs }}","{% trans "Active" %}":"{% if school.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}","{% trans "Subscription" %}":"{{ school.subscription_status|default:"—"|escapejs }}"}' data-rmc-row-actions='[{"label":"{% trans "Tenant 360"|escapejs %}","href":"{{ registry_t360_url|escapejs }}","variant":"primary"}]' data-rmc-fleet-state="" data-rmc-fleet-tier="">
+              <tr class="cp-school-row" data-state="{{ school.roster_state }}" data-search="{{ school.roster_search }}" data-school-id="{{ school.id }}" data-rmc-row-detail="1" tabindex="0" {% include "partials/rmc_school_lens_api_attrs.html" with school=school %} data-rmc-row-title="{{ school.name|escape }}" data-rmc-row-subtitle="{{ school.slug|escape }}" data-rmc-row-meta='{"{% trans "State" %}":"{{ school.roster_state|escapejs }}","{% trans "Active" %}":"{% if school.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}","{% trans "Subscription" %}":"{{ school.subscription_status|default:"—"|escapejs }}"}' data-rmc-row-actions='[{"label":"{% trans "Tenant 360"|escapejs %}","href":"{{ registry_t360_url|escapejs }}","variant":"primary"}]' data-rmc-fleet-state="{{ school.fleet_status.fleet_state|default:'' }}" data-rmc-fleet-tier="{{ school.fleet_status.heatmap_tier|default:'' }}">
                 <td>
                   <div class="cp-school-name">{{ school.name }}</div>
                   <div class="cp-school-meta"><code>{{ school.slug }}</code> | <code>{{ school.subdomain|default:"--" }}</code></div>
@@ -673,7 +673,9 @@
                   {% else %}
                   <div class="cp-cell-meta">{% trans "No immediate operator flags." %}</div>
                   {% endif %}
-                  <span class="cp-status-badge cp-registry-fleet-badge cp-status-badge-neutral mt-1">—</span>
+                  {% with fs=school.fleet_status %}
+                  <span class="cp-status-badge cp-registry-fleet-badge cp-status-badge-{% if fs.heatmap_tier == 'danger' %}danger{% elif fs.heatmap_tier == 'warn' %}warning{% elif fs.heatmap_tier == 'healthy' or fs.heatmap_tier == 'okay' %}success{% else %}neutral{% endif %} mt-1">{{ fs.fleet_state_label|default:"—" }}</span>
+                  {% endwith %}
                   <div class="cp-cell-meta">{% blocktrans with s=school.student_count t=school.teacher_count m=school.member_count %}Students {{ s }} | Teachers {{ t }} | Members {{ m }}{% endblocktrans %}</div>
                   <div class="cp-cell-meta">{% blocktrans with d=school.updated_at|date:"Y-m-d H:i"|default:"-" %}Last update {{ d }}{% endblocktrans %}</div>
                 </td>
