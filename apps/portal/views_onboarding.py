@@ -361,6 +361,17 @@ def student_onboarding_wizard(request: HttpRequest):
                         can_view_results=True,
                         can_view_finance=True,
                     )
+                    if created:
+                        # Mirror the offline-drain path (offline_workflow_handlers
+                        # ._link_parent): a parent User is created with an unusable
+                        # password, so without a one-time set-password link the
+                        # account is locked out with no recovery path. Best-effort,
+                        # never raises.
+                        from apps.accounts.guardian_invite import send_guardian_invite
+
+                        send_guardian_invite(
+                            parent_user, request=request, school=school
+                        )
                 messages.success(
                     request,
                     f"Student pre-registration completed successfully. Admission number: {student.admission_number or 'Pending generation'}. Please contact the school to complete enrollment.",
