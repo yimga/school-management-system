@@ -83,6 +83,24 @@
         .join("");
     }
 
+    function renderSummary(data) {
+      var el = root.querySelector("[data-rmc-provision-summary]");
+      if (!el) return;
+      var s = data.completion_summary || {};
+      function unit(n, one, many) {
+        return n + " " + (n === 1 ? one : many);
+      }
+      var parts = [];
+      if (s.terms) parts.push(unit(s.terms, "term", "terms"));
+      if (s.classrooms) parts.push(unit(s.classrooms, "classroom", "classrooms"));
+      if (s.subjects) parts.push(unit(s.subjects, "subject", "subjects"));
+      var ready = data.status === "succeeded" || data.portal_ready === true;
+      if (ready && parts.length) {
+        el.hidden = false;
+        el.textContent = "Your campus is ready — we set up " + parts.join(" · ") + ".";
+      }
+    }
+
     function applyPayload(data) {
       if (!data || !data.ok) return;
 
@@ -100,22 +118,42 @@
         "";
       if (stepEl && stepLabel) stepEl.textContent = stepLabel;
 
-      if (labelEl && data.status === "failed") {
-        labelEl.textContent = "Setup paused";
-      } else if (labelEl && (data.portal_ready || data.is_active)) {
-        labelEl.textContent = "Portal ready";
+      if (labelEl) {
+        if (data.status === "failed") {
+          labelEl.textContent = "Setup paused";
+        } else if (data.stuck) {
+          labelEl.textContent = "Setup is taking longer than usual…";
+        } else if (data.status === "succeeded") {
+          labelEl.textContent = "All set";
+        } else if (data.portal_ready || data.is_active) {
+          labelEl.textContent = "Portal ready — finishing setup…";
+        }
       }
 
-      renderSteps(data.steps || []);
+      // Prefer the 14-step extended model so the owner sees the full process
+      // (blueprint, academic year, structure, subjects, classrooms, sample
+      // data, welcome email, portal-ready, complete) — not just the coarse
+      // 5-step model. Fall back to steps when extended isn't present.
+      renderSteps(
+        data.extended_steps && data.extended_steps.length
+          ? data.extended_steps
+          : data.steps || []
+      );
+      renderSummary(data);
       updateCopilotContext(data);
 
       var failed = data.status === "failed";
+      var stuck = data.stuck === true;
       var remediation = data.suggested_remediation || {};
       if (errPanel && errText) {
         if (failed && (data.last_error || remediation.human_action)) {
           errPanel.classList.remove("d-none");
           errText.textContent =
             data.last_error || remediation.human_action || "";
+        } else if (stuck) {
+          errPanel.classList.remove("d-none");
+          errText.textContent =
+            "Setup is taking longer than usual. You can keep waiting or try again.";
         } else {
           errPanel.classList.add("d-none");
           errText.textContent = "";
@@ -125,6 +163,9 @@
         if (failed && remediation.owner_may_apply && remediation.auto_fix_kind) {
           retryBtn.classList.remove("d-none");
           retryBtn.setAttribute("data-auto-fix-kind", remediation.auto_fix_kind);
+        } else if (failed || stuck) {
+          // Reload-based retry (handler below) re-polls and the watchdog re-kicks.
+          retryBtn.classList.remove("d-none");
         } else {
           retryBtn.classList.add("d-none");
         }
@@ -185,6 +226,13 @@
             if (res && res.ok) poll();
           })
           .catch(function () {});
+      });
+    } else if (retryBtn) {
+      // No auto-fix endpoint wired — make the button useful instead of dead.
+      // Reloading re-polls; the progress endpoint's watchdog re-kicks a stalled
+      // job, so "Try again" actually retries provisioning.
+      retryBtn.addEventListener("click", function () {
+        window.location.reload();
       });
     }
 

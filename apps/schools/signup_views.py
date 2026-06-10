@@ -1662,23 +1662,25 @@ def verify_signup(request: HttpRequest):
             pass
 
     try:
-        from apps.schools.tasks import dispatch_provision_school
+        from apps.schools.tasks import kick_complete_provisioning_background
 
-        dispatch = dispatch_provision_school(
+        # Kick provisioning in the BACKGROUND and return FAST — never block the
+        # verify request on full provisioning. Blocking risks gateway timeouts/502
+        # on a slow provision AND hides the live progress the owner should watch.
+        # The owner row was already created above (ensure_admin_user_for_school),
+        # so the lookup below is safe regardless of the background job's timing.
+        # The owner is redirected into the onboarding launchpad, which polls
+        # ``resolve_provisioning_progress`` and renders a real-time, step-by-step
+        # progress bar + a final summary report. Reliability is guaranteed by the
+        # progress poll endpoint's watchdog (it auto-kicks a stalled job), so
+        # provisioning always finishes — no "school never finishes provisioning".
+        # This dispatches to Celery when a broker is available AND runs a
+        # daemon-thread completion as a booster/fallback (covers the broker-less
+        # and queued-but-unconsumed cases).
+        kick_complete_provisioning_background(
             str(school.id), contact_email=verification.email,
         )
-        # Reset only when provisioning ran in-request (sync fallback or eager Celery).
-        # Queue-only dispatch must not call connections.close_all() here — verify
-        # still needs the DB for the admin_user lookup + onboarding redirect.
-        if not dispatch.get("queued") or dispatch.get("fallback"):
-            reset_broken_database_state()
-        if dispatch.get("queued") and not dispatch.get("fallback"):
-            from apps.schools.tasks import kick_complete_provisioning_background
-
-            kick_complete_provisioning_background(
-                str(school.id), contact_email=verification.email
-            )
-    except (ImportError, AttributeError, TypeError, ValueError, OSError) as exc:
+    except Exception as exc:  # noqa: BLE001 — provisioning must NEVER 500 the verify page; degrade to onboarding + retry
         logger.warning(
             "signup verify dispatch_provision_school failed school_id=%s err=%s",
             school.id,

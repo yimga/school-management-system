@@ -488,6 +488,15 @@ urlpatterns = [
     path(
         "studio/", include(("apps.studio_os.urls", "studio_os"), namespace="studio_os")
     ),
+    # Unified Wizard Engine (setup_studio) — its urlconf carries its own
+    # ``school/studio/wizards/...`` prefixes and is DESIGNED to mount at the
+    # tenant root (see apps/setup_studio/urls.py docstring). Without this the
+    # ``setup_studio`` namespace is absent on tenant hosts, so every
+    # ``reverse("setup_studio:tenant_wizard…")`` (e.g. the post-MFA / onboarding
+    # legacy_view_bridge redirects) silently fails and the whole engine falls
+    # back to legacy flows. Registering it here makes the wizards reachable AND
+    # the reverses resolve on the tenant subdomain.
+    path("", include(("apps.setup_studio.urls", "setup_studio"), namespace="setup_studio")),
     path(
         "verify/<str:token>/",
         __import__(

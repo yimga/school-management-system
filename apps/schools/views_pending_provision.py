@@ -61,6 +61,12 @@ def _maybe_kick_stalled_provisioning(request: HttpRequest, school) -> None:
         status = (progress.get("status") or "").strip().lower()
         if status == "failed" or progress.get("last_error"):
             kick_pending_tenant_provisioning(request, school, force=True)
+        elif progress.get("stuck"):
+            # A run exists but its heartbeat went silent (the background runner /
+            # worker died mid-provision). Re-kick regardless of how far it got, so
+            # a job that stalled at e.g. 50% never stays frozen — this is the
+            # watchdog that makes "school never finishes provisioning" impossible.
+            kick_pending_tenant_provisioning(request, school, force=True)
         elif workflow_run_id is None and progress_percent <= 10:
             kick_pending_tenant_provisioning(request, school)
     except (ImportError, AttributeError, TypeError, ValueError):

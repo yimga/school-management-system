@@ -35,6 +35,8 @@
       {% endfor %}
     {% endif %}
   </ol>
+  {# Final summary report — what provisioning actually created (filled by JS on completion). #}
+  <p class="rmc-provision-progress__summary small text-success fw-semibold mt-3 mb-0" data-rmc-provision-summary hidden></p>
   <div class="rmc-provision-progress__error alert alert-warning small mt-3 d-none" role="alert" data-rmc-provision-error-panel>
     <strong>{% trans "Setup needs attention" %}</strong>
     <div class="mt-1" data-rmc-provision-error-text></div>

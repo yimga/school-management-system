@@ -1,14 +1,16 @@
-"""verify_signup must land a brand-new owner in the guided onboarding wizard —
-even when provisioning is ASYNC (broker-backed), so the owner User is NOT
-created in-request.
+"""verify_signup must create the owner up-front and land a brand-new owner in
+the guided onboarding wizard, while provisioning runs in the BACKGROUND so the
+owner watches a live progress bar (and verify never blocks/times out).
 
-Regression for the 2026-06-08 production dead-end: on Render, ``CELERY_BROKER_URL``
-is set, so ``dispatch_provision_school`` queues provisioning on a worker and the
-owner User (created inside provisioning) does not exist yet at verify time →
-``admin_user`` was None → the new owner was redirected to the login page instead
-of the wizard. It "worked in dev" only because the broker-less dev box runs
-provisioning synchronously, creating the User in-request. This test pins the
-async case by mocking the dispatch to a no-op (worker hasn't run).
+Regression for the 2026-06-08 production dead-end: the owner User (created inside
+provisioning) didn't exist at verify time on broker-backed deploys → ``admin_user``
+was None → the owner was redirected to the login page instead of the wizard.
+verify now creates the owner up-front itself, then kicks provisioning to run in
+the background (a daemon-thread completion for queued dispatch; sync fallback when
+no broker) and redirects into the onboarding launchpad. Reliability is guaranteed
+by the progress poll endpoint's watchdog (auto-kick of a stalled job), not by
+blocking the verify request. These tests pin: owner created up-front, redirect
+into the wizard (never the login wall), and a background completion kicked.
 """
 
 from __future__ import annotations
@@ -47,23 +49,20 @@ class VerifySignupOnboardingTests(TestCase):
         )
         return school, verification
 
-    def test_async_provisioning_still_redirects_into_onboarding_wizard(self):
+    def test_verify_redirects_into_onboarding_wizard(self):
         _school, verification = self._pending()
         User = get_user_model()
         self.assertFalse(User.objects.filter(email=verification.email).exists())
 
-        # Simulate ASYNC provisioning: dispatch queues to a worker that has not
-        # run yet, so it creates NOTHING in-request (the prod failure mode).
+        # Provisioning is kicked in the background (no-op here); verify must STILL
+        # create the owner up-front and redirect into the wizard (owner row is
+        # created by verify itself, independent of the background job).
         with mock.patch(
-            "apps.schools.tasks.dispatch_provision_school",
-            return_value={"queued": True, "fallback": False, "job_id": "job-1"},
+            "apps.schools.tasks.kick_complete_provisioning_background"
         ):
-            with mock.patch(
-                "apps.schools.tasks.kick_complete_provisioning_background"
-            ):
-                resp = self.client.get(
-                    reverse("verify_signup") + f"?token={verification.token}"
-                )
+            resp = self.client.get(
+                reverse("verify_signup") + f"?token={verification.token}"
+            )
 
         # verify_signup must create the owner row up-front itself...
         owner = User.objects.filter(email=verification.email).first()
@@ -74,9 +73,7 @@ class VerifySignupOnboardingTests(TestCase):
         self.assertIn("/authentication/onboarding/account/", resp.url)
         self.assertNotIn("/authentication/login", resp.url)
         # The redirect MUST be relative (stay on the public host that always
-        # resolves), NOT an absolute tenant-subdomain URL — the subdomain isn't
-        # live until async provisioning activates the school, and redirecting
-        # there is what bounced owners to the school-not-found → login wall.
+        # resolves), NOT an absolute tenant-subdomain URL.
         self.assertTrue(resp.url.startswith("/authentication/onboarding/account/"))
         self.assertFalse(resp.url.lower().startswith("http"))
 
@@ -94,18 +91,17 @@ class VerifySignupOnboardingTests(TestCase):
             get_user_model().objects.filter(email=verification.email).count(), 1
         )
 
-    def test_async_provisioning_kicks_background_completion(self):
+    def test_verify_kicks_background_completion(self):
         school, verification = self._pending()
+        # verify must kick a background completion (fast, non-blocking) so
+        # provisioning runs while the owner watches the live progress bar —
+        # without blocking the verify request.
         with mock.patch(
-            "apps.schools.tasks.dispatch_provision_school",
-            return_value={"queued": True, "fallback": False, "job_id": "job-1"},
-        ):
-            with mock.patch(
-                "apps.schools.tasks.kick_complete_provisioning_background"
-            ) as kick:
-                self.client.get(
-                    reverse("verify_signup") + f"?token={verification.token}"
-                )
+            "apps.schools.tasks.kick_complete_provisioning_background"
+        ) as kick:
+            self.client.get(
+                reverse("verify_signup") + f"?token={verification.token}"
+            )
         kick.assert_called_once_with(
             str(school.id), contact_email=verification.email
         )

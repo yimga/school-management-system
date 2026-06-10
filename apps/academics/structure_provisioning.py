@@ -84,7 +84,14 @@ def provision_academic_structure_for_school(
 
             if st.get("primary_sector") in ("secondary", "middle", "k12"):
                 class_label = f"{label} — Group A"
-                room_code = _slug_code(code, label, 0)
+                # Classroom.code is GLOBALLY unique (max_length=30), so the seed
+                # code MUST be namespaced by school id — otherwise two schools
+                # sharing a pack school_type (e.g. two US "high" schools) generate
+                # the same code and the SECOND school's provisioning dies with a
+                # UNIQUE collision (the "provisioning fails for the next school"
+                # bug). Mirrors the school-scoped dept_code above.
+                sid = str(getattr(school, "id", "")).replace("-", "")[:8]
+                room_code = _slug_code(f"{sid}-{code}", label, 0)
                 classroom = Classroom.objects.filter(
                     school=school, academic_year=year, code=room_code
                 ).first()

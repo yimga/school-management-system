@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
+from django.db import DatabaseError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -461,6 +462,54 @@ def _progress_while_run_not_yet_visible(school) -> dict[str, Any]:
     }
 
 
+def _completion_summary(school) -> dict[str, int]:
+    """What provisioning actually created — counts for the owner-facing report.
+
+    Computed only at/after portal-ready (see resolver) so it never adds query
+    cost to the fast early-polling phase. Each count fails open to skip a missing
+    model rather than break the whole progress payload.
+    """
+    if school is None:
+        return {}
+    summary: dict[str, int] = {}
+    try:
+        from apps.academics.models import AcademicYear, Classroom, Subject, Term
+
+        for label, model in (
+            ("academic_years", AcademicYear),
+            ("terms", Term),
+            ("classrooms", Classroom),
+            ("subjects", Subject),
+        ):
+            try:
+                summary[label] = model.objects.filter(school=school).count()
+            except (DatabaseError, ValueError, TypeError):
+                continue
+    except (ImportError, AttributeError):
+        pass
+    return summary
+
+
+def _run_is_stuck(run) -> bool:
+    """True when the workflow run has gone silent past its heartbeat window."""
+    if run is None:
+        return False
+    checker = getattr(run, "is_stuck", None)
+    if callable(checker):
+        try:
+            return bool(checker())
+        except (TypeError, ValueError, AttributeError):
+            return False
+    return False
+
+
+def _iso_or_none(value) -> str | None:
+    try:
+        return value.isoformat() if value is not None else None
+    except (AttributeError, ValueError):
+        return None
+
+
 def resolve_provisioning_progress(
     school,
     *,
@@ -523,6 +572,27 @@ def resolve_provisioning_progress(
         for step in extended_steps:
             step["state"] = "done"
 
+    # Smooth the bar: derive percent from the 14-step extended model (≈7% per
+    # step) instead of the coarse 5-step model (20% jumps). Only on the live
+    # run path — the no-run fallback keeps its time-based estimate so a queued-
+    # but-not-yet-visible job doesn't snap to 0%.
+    if run is not None and status != "succeeded":
+        progress_percent = _progress_from_extended_steps(extended_steps)
+
+    # Stuck detection: a run that's gone silent past its heartbeat is "running"
+    # by status but should be surfaced as delayed so the UI stops pretending to
+    # advance and the watchdog/owner can act.
+    stuck = status == "running" and _run_is_stuck(run)
+
+    # Completion summary (the owner-facing "here's what we set up" report) is
+    # only worth computing once the portal is ready — keep early polls cheap.
+    completion_summary = (
+        _completion_summary(school)
+        if (flags["portal_ready"] or status == "succeeded")
+        else {}
+    )
+    completed_at = _iso_or_none(getattr(run, "ended_at", None)) if run is not None else None
+
     payload: dict[str, Any] = {
         "ok": True,
         "workflow_key": PROVISION_WORKFLOW_KEY,
@@ -543,6 +613,9 @@ def resolve_provisioning_progress(
         "phase_b_step": flags["phase_b_step"],
         "phase_b_complete": flags["phase_b_complete"],
         "blocking_error": blocking,
+        "stuck": stuck,
+        "completed_at": completed_at,
+        "completion_summary": completion_summary,
         "unified": {
             "state": unified.get("state"),
             "label": unified.get("label"),

@@ -186,7 +186,14 @@
 // v4.02.89: purge retired vendor chunks; loader normalized; preview uses loader offline events.
 // v4.02.92: workflow progress SSE WSGI sync stream + busy reconnect in rmc-workflow-progress.js
 // v4.03.39: tenant 360 flight deck URL fix + cockpit live JSON refresh on /super/ landing.
-const CACHE_VERSION = "sms-v4.03.60-master-implementation-consolidation-2026-06-10";
+// v4.03.61: provisioning A–Z reliability + real-time progress. Phase-B classroom-code collision
+//   fixed (school-namespaced Classroom.code in structure_provisioning); verify_signup is now
+//   fast+non-blocking (background kick + watchdog, no 502 risk) and redirects into the live
+//   progress launchpad; resolve_provisioning_progress gains completion_summary/completed_at/stuck
+//   and a smoother 14-step percent; rmc-tenant-provision-progress.js renders the full 14-step
+//   train + completion report + stuck label + a working retry; setup_studio namespace registered
+//   on the tenant urlconf so wizard reverses resolve.
+const CACHE_VERSION = "sms-v4.03.61-provisioning-progress-realtime-2026-06-10";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
