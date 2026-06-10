@@ -108,10 +108,6 @@ def _get_guardian_student(
     return link.student if link else None
 
 
-REPORT_PREVIEW_TEMPLATES = {
-    ReportCard.Type.TERM: "reports/preview_term_card.html",
-    ReportCard.Type.ANNUAL: "reports/preview_annual_card.html",
-}
 VERIFY_REPORT_HASH_RATE_LIMIT_WINDOW = 60 * 15
 VERIFY_REPORT_HASH_RATE_LIMIT_MAX = 120
 
