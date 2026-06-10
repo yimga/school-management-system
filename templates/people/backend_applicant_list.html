@@ -78,7 +78,7 @@
                     data-rmc-row-title="{{ a.first_name }} {{ a.last_name }}"
                     data-rmc-row-subtitle="{{ a.get_stage_display|default:a.stage }}"
                     data-rmc-row-meta='{"{% trans "Email" %}":"{{ a.email|default:"—"|escapejs }}","{% trans "Lead source" %}":"{{ a.lead_source|default:"—"|escapejs }}"}'>
-                  <td>{{ a.last_name }}, {{ a.first_name }}</td>
+                  <td><a href="{% url 'accounts:backend_applicant_detail' a.pk %}">{{ a.last_name }}, {{ a.first_name }}</a></td>
                   <td>{{ a.email|default:"-" }}</td>
                   <td>
                     {% comment %}v4.00.13: semantic stage->pill variant matching stage_to_pill_variant() in admissions.queue_depth.{% endcomment %}

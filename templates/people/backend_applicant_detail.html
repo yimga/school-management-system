@@ -1,0 +1,132 @@
+{% extends "backend_base.html" %}
+{% load i18n compliance_tags %}
+{% block backend_title %}{% trans "Applicant" %} — {{ applicant_display_name }}{% endblock %}
+{% block backend_page %}
+{% include "components/next_action_strip.html" %}
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-2" data-page-archetype="record-detail" data-rmc-page="applicant-detail" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  <nav class="mb-3" aria-label="{% trans 'Breadcrumb' %}">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{{ list_url }}">{% trans "Applicants" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ applicant_display_name }}</li>
+    </ol>
+  </nav>
+  {% include "studio_os/components/page_header.html" with title=applicant_display_name subtitle=_("Admissions record, documents, and enrollment.") %}
+
+  <div class="row g-3 rmc-reveal-stagger">
+    {% comment %} Applicant facts {% endcomment %}
+    <div class="col-md-6 col-lg-4 rmc-reveal">
+      <div class="card border-0 shadow-sm rmc-glass-surface h-100">
+        <div class="card-body">
+          <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans "Applicant" %}</p>
+          <p class="mb-2">
+            {% if applicant.stage == "ACCEPTED" or applicant.stage == "ENROLLED" %}<span class="rmc-status-pill rmc-status-pill--success">{{ applicant.get_stage_display }}</span>
+            {% elif applicant.stage == "UNDER_REVIEW" %}<span class="rmc-status-pill rmc-status-pill--warning">{{ applicant.get_stage_display }}</span>
+            {% elif applicant.stage == "REJECTED" or applicant.stage == "LEAD" %}<span class="rmc-status-pill rmc-status-pill--muted">{{ applicant.get_stage_display }}</span>
+            {% else %}<span class="rmc-status-pill rmc-status-pill--actionable">{{ applicant.get_stage_display }}</span>{% endif %}
+          </p>
+          <p class="mb-1 small"><strong>{% trans "Email" %}:</strong> {{ applicant.email|default:"—" }}</p>
+          <p class="mb-1 small"><strong>{% trans "Lead source" %}:</strong> {{ applicant.lead_source|default:"—" }}</p>
+          <p class="mb-1 small"><strong>{% trans "Recruiter" %}:</strong> {% if applicant.assigned_recruiter %}{{ applicant.assigned_recruiter.get_full_name|default:applicant.assigned_recruiter.username }}{% else %}—{% endif %}</p>
+          <p class="mb-0 small"><strong>{% trans "Created" %}:</strong> {{ applicant.created_at|date:"M j, Y H:i"|default:"—" }}</p>
+        </div>
+      </div>
+    </div>
+
+    {% comment %} Document checklist {% endcomment %}
+    <div class="col-md-6 col-lg-4 rmc-reveal">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+          <strong>{% trans "Documents" %}</strong>
+          <span class="badge text-bg-light">{{ summary.document_count_received }}/{{ summary.document_count_required }}</span>
+        </div>
+        <ul class="list-group list-group-flush">
+          {% for doc in document_rows %}
+          <li class="list-group-item d-flex justify-content-between align-items-center small">
+            <span>{{ doc.label }}</span>
+            {% if doc.received %}
+              <span class="rmc-status-pill rmc-status-pill--success">{% trans "Received" %}</span>
+            {% else %}
+              <span class="rmc-status-pill rmc-status-pill--muted">{% trans "Outstanding" %}</span>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    {% comment %} Actions: stage transitions + enrollment {% endcomment %}
+    <div class="col-12 col-lg-4 rmc-reveal">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-transparent"><strong>{% trans "Actions" %}</strong></div>
+        <div class="card-body d-flex flex-column gap-3">
+          {% if available_transitions %}
+          <div>
+            <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans "Move to stage" %}</p>
+            <div class="d-flex flex-wrap gap-2">
+              {% for t in available_transitions %}
+              <form method="post" action="{% url 'accounts:backend_applicant_advance_stage' applicant.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="target_stage" value="{{ t.code }}">
+                <button type="submit" class="btn btn-sm btn-outline-primary">{{ t.label }}</button>
+              </form>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          {% if enrolled_student %}
+          <div class="alert alert-success mb-0 py-2 small">
+            {% trans "Enrolled into the system." %}
+            <a href="{% url 'accounts:backend_student_detail' enrolled_student.pk %}" class="alert-link">{% trans "Open student record" %}</a>
+          </div>
+          {% elif applicant.stage == "ACCEPTED" %}
+          <div>
+            <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans "Enroll as student" %}</p>
+            {% if enroll_ok %}
+            <form method="post" action="{% url 'accounts:backend_applicant_enroll' applicant.pk %}" class="d-flex flex-column gap-2">
+              {% csrf_token %}
+              <label for="enroll-classroom" class="form-label small mb-0">{% trans "Classroom (optional)" %}</label>
+              <select id="enroll-classroom" name="classroom_id" class="form-select form-select-sm">
+                <option value="">{% trans "Unassigned" %}</option>
+                {% for c in classrooms %}
+                <option value="{{ c.pk }}">{{ c.name }}{% if c.academic_year %} · {{ c.academic_year.name }}{% endif %}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-sm btn-primary">{% trans "Enroll student" %}</button>
+            </form>
+            {% else %}
+            <div class="alert alert-warning mb-0 py-2 small">
+              <p class="mb-1">{% trans "Cannot enroll yet:" %}</p>
+              <ul class="mb-0 ps-3">
+                {% for b in enroll_blockers %}<li>{{ b }}</li>{% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% comment %} Stage history {% endcomment %}
+  {% if summary.history %}
+  <div class="card border-0 shadow-sm mt-3 rmc-reveal">
+    <div class="card-header bg-transparent"><strong>{% trans "Stage history" %}</strong></div>
+    <ul class="list-group list-group-flush">
+      {% for h in summary.history reversed %}
+      <li class="list-group-item small d-flex justify-content-between">
+        <span>{{ h.from }} → <strong>{{ h.to }}</strong>{% if h.note %} — {{ h.note }}{% endif %}</span>
+        <span class="text-muted">{{ h.at }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% comment %} Pass 9 platform-wide: per-record audit drill-down. {% endcomment %}
+  {% if applicant %}{% recent_activity_for "Applicant" applicant.pk %}{% endif %}
+</div>
+{% endblock %}

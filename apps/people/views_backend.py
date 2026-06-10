@@ -1072,6 +1072,192 @@ def backend_applicant_list(request):
     )
 
 
+def _applicant_available_transitions(current_stage: str) -> list[dict]:
+    """Stages the applicant may move to next, as [{code, label}] in choice order.
+
+    Drives the stage-transition buttons on the applicant detail page. Uses the
+    admissions kernel FSM as the single source of truth so the UI can never
+    offer an illegal move (e.g. LEAD → ENROLLED).
+    """
+    from apps.admissions.application_kernel import can_transition
+
+    out: list[dict] = []
+    for code, label in Applicant.Stage.choices:
+        if code != current_stage and can_transition(current_stage, code):
+            out.append({"code": code, "label": label})
+    return out
+
+
+@login_required
+@permission_required("people.view_applicant", raise_exception=True)
+@audit_pii_view(model_name="Applicant", object_id_kwarg="applicant_id", sensitivity="HIGH", reason="Applicant record view")
+def backend_applicant_detail(request, applicant_id):
+    """Applicant 360 — admissions record: document checklist, stage history, and
+    the two in-product actions the kernel already supports (advance stage,
+    enroll into the system). This is the caller the enrollment service was
+    missing — accepted applicants can now become students from the UI.
+    """
+    from apps.admissions.application_kernel import (
+        ACCEPTED,
+        build_summary,
+        can_enroll,
+        get_application_payload,
+        list_required_documents,
+    )
+
+    school = getattr(request, "school", None)
+    if not school:
+        return redirect("accounts:backend_dashboard")
+    applicant = (
+        Applicant.objects.select_related("assigned_recruiter")
+        .filter(pk=applicant_id, school_id=school.id)
+        .first()
+    )
+    if not applicant:
+        raise Http404("Applicant not found")
+
+    summary = build_summary(stage=applicant.stage, extra_data=applicant.extra_data)
+    enroll_ok, enroll_blockers = can_enroll(
+        current_stage=applicant.stage, extra_data=applicant.extra_data,
+    )
+    # Precompute the checklist rows here (received-state per required doc) so the
+    # template needs no dict-lookup filter from a foreign tag library.
+    received_docs = get_application_payload(applicant.extra_data)["documents"]
+    document_rows = [
+        {
+            "label": spec.label,
+            "received": bool((received_docs.get(spec.key) or {}).get("received")),
+        }
+        for spec in list_required_documents()
+    ]
+    # Offer a classroom selector only when enrollment is actually possible — the
+    # student is chained into the chosen room (roster / attendance / gradebook).
+    classrooms = []
+    if applicant.stage == ACCEPTED:
+        classrooms = list(
+            Classroom.objects.filter(school_id=school.id)
+            .select_related("academic_year")
+            .order_by("name")[:200]
+        )
+    enrolled_student = None
+    if applicant.stage == "ENROLLED":
+        # The enrolled student carries the back-link in custom_attributes (set by
+        # the enrollment service) so we can deep-link to the created record.
+        enrolled_student = StudentProfile.objects.filter(
+            school_id=school.id,
+            custom_attributes__enrolled_from_applicant_id=applicant.id,
+        ).first()
+
+    return render(
+        request,
+        "people/backend_applicant_detail.html",
+        {
+            "applicant": applicant,
+            "applicant_display_name": f"{applicant.first_name} {applicant.last_name}".strip(),
+            "summary": summary,
+            "document_rows": document_rows,
+            "available_transitions": _applicant_available_transitions(applicant.stage),
+            "enroll_ok": enroll_ok,
+            "enroll_blockers": enroll_blockers,
+            "classrooms": classrooms,
+            "enrolled_student": enrolled_student,
+            "list_url": reverse("accounts:backend_applicant_list"),
+            "title": "Applicant",
+        },
+    )
+
+
+@login_required
+@permission_required("people.change_applicant", raise_exception=True)
+def backend_applicant_advance_stage(request, applicant_id):
+    """Move an applicant to the next stage via the kernel FSM (POST only)."""
+    if request.method != "POST":
+        return redirect("accounts:backend_applicant_detail", applicant_id=applicant_id)
+    from apps.admissions.application_kernel import InvalidStageTransition, advance_stage
+
+    school = getattr(request, "school", None)
+    if not school:
+        return redirect("accounts:backend_dashboard")
+    applicant = Applicant.objects.filter(pk=applicant_id, school_id=school.id).first()
+    if not applicant:
+        raise Http404("Applicant not found")
+
+    target = (request.POST.get("target_stage") or "").strip()
+    if target not in dict(Applicant.Stage.choices):
+        messages.error(request, "Unknown stage.")
+        return redirect("accounts:backend_applicant_detail", applicant_id=applicant_id)
+    try:
+        new_stage, new_extra = advance_stage(
+            current_stage=applicant.stage,
+            target_stage=target,
+            extra_data=applicant.extra_data,
+            actor_id=request.user.id,
+            note=(request.POST.get("note") or "")[:240],
+        )
+    except InvalidStageTransition as exc:
+        messages.error(request, str(exc))
+        return redirect("accounts:backend_applicant_detail", applicant_id=applicant_id)
+
+    applicant.stage = new_stage
+    applicant.extra_data = new_extra
+    applicant.save(update_fields=["stage", "extra_data", "updated_at"])
+    messages.success(
+        request,
+        f"Moved to {dict(Applicant.Stage.choices).get(new_stage, new_stage)}.",
+    )
+    return redirect("accounts:backend_applicant_detail", applicant_id=applicant_id)
+
+
+@login_required
+@permission_required("people.add_studentprofile", raise_exception=True)
+def backend_applicant_enroll(request, applicant_id):
+    """Promote an ACCEPTED applicant to a StudentProfile (POST only).
+
+    The single caller of the admissions enrollment service. The service handles
+    the FSM transition (→ ENROLLED), the active-year / classroom / admission-number
+    chain, and the applicant back-link; this view just resolves the school, picks
+    up the optional classroom, and reports the outcome to the operator.
+    """
+    if request.method != "POST":
+        return redirect("accounts:backend_applicant_detail", applicant_id=applicant_id)
+    from apps.admissions.application_kernel import enroll_applicant_to_student
+
+    school = getattr(request, "school", None)
+    if not school:
+        return redirect("accounts:backend_dashboard")
+    applicant = Applicant.objects.filter(pk=applicant_id, school_id=school.id).first()
+    if not applicant:
+        raise Http404("Applicant not found")
+
+    classroom_id = None
+    raw_classroom = (request.POST.get("classroom_id") or "").strip()
+    if raw_classroom.isdigit():
+        classroom_id = int(raw_classroom)
+
+    result = enroll_applicant_to_student(
+        applicant_id=applicant.id,
+        school_id=school.id,
+        actor_user_id=request.user.id,
+        classroom_id=classroom_id,
+    )
+    if result.ok and result.student_id:
+        messages.success(
+            request,
+            f"Enrolled {applicant.first_name} {applicant.last_name} as a student.",
+        )
+        return redirect("accounts:backend_student_detail", student_id=result.student_id)
+
+    # Surface the kernel's preflight blockers in plain language.
+    if result.blockers:
+        messages.error(
+            request,
+            "Cannot enroll yet: " + "; ".join(result.blockers),
+        )
+    else:
+        messages.error(request, f"Enrollment failed ({result.error or 'unknown error'}).")
+    return redirect("accounts:backend_applicant_detail", applicant_id=applicant_id)
+
+
 @login_required
 @permission_required("people.view_studentguardian", raise_exception=True)
 def backend_guardian_list(request):

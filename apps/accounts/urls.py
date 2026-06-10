@@ -184,6 +184,9 @@ try:
         backend_guardian_list,
         backend_applicant_list,
         backend_applicant_create,
+        backend_applicant_detail,
+        backend_applicant_advance_stage,
+        backend_applicant_enroll,
         alumni_list,
     )
     from apps.people.views_backend_bulk import backend_student_bulk_status
@@ -782,6 +785,27 @@ urlpatterns = [
         "backend/applicants/create/",
         backend_applicant_create,
         name="backend_applicant_create",
+    )
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
+    path(
+        "backend/applicants/<int:applicant_id>/",
+        backend_applicant_detail,
+        name="backend_applicant_detail",
+    )
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
+    path(
+        "backend/applicants/<int:applicant_id>/advance-stage/",
+        backend_applicant_advance_stage,
+        name="backend_applicant_advance_stage",
+    )
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
+    path(
+        "backend/applicants/<int:applicant_id>/enroll/",
+        backend_applicant_enroll,
+        name="backend_applicant_enroll",
     )
     if BACKEND_PEOPLE_AVAILABLE
     else None,

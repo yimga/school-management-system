@@ -53,6 +53,22 @@ def stage_to_pill_variant(stage_code: str) -> str:
 _STALE_LEAD_THRESHOLD_DAYS = 14
 
 
+def _applicant_list_base_url() -> str:
+    """Resolve the real backend applicant-list route, falling back to its path.
+
+    The drill-down tiles previously hardcoded ``/admissions/applicants/`` which
+    has never resolved (the list lives at ``backend/applicants/`` under the
+    ``accounts`` namespace) — so every tile link 404'd. Reverse the live route
+    so the cockpit tile actually lands on the funnel.
+    """
+    try:
+        from django.urls import reverse
+
+        return reverse("accounts:backend_applicant_list")
+    except Exception:  # noqa: BLE001 — reverse may fail off-request; fall back to the known path
+        return "/backend/applicants/"
+
+
 def compute_admissions_queue_depth(school: Any) -> list[dict[str, Any]]:
     """Return per-stage counts and drill-down URLs for ``school``.
 
@@ -65,6 +81,8 @@ def compute_admissions_queue_depth(school: Any) -> list[dict[str, Any]]:
         return []
     try:
         from apps.people.models import Applicant  # local import — avoids circular at app load
+
+        base_url = _applicant_list_base_url()
 
         rows: list[dict[str, Any]] = []
         total_actionable = 0
@@ -89,15 +107,15 @@ def compute_admissions_queue_depth(school: Any) -> list[dict[str, Any]]:
                 "actionable": bool(actionable),
                 "stale_count": int(stale_count),
                 "pill_variant": stage_to_pill_variant(stage_code),
-                "drill_url": "/admissions/applicants/?" + urlencode({"stage": stage_code}),
-                "stale_drill_url": "/admissions/applicants/?" + urlencode({"stage": stage_code, "stale": "1"}) if stale_count else "",
+                "drill_url": base_url + "?" + urlencode({"stage": stage_code}),
+                "stale_drill_url": base_url + "?" + urlencode({"stage": stage_code, "stale": "1"}) if stale_count else "",
             })
         rows.append({
             "stage": "__TOTAL_ACTIONABLE__",
             "label": "Awaiting review",
             "count": int(total_actionable),
             "actionable": True,
-            "drill_url": "/admissions/applicants/?" + urlencode({"stage": "ACTIONABLE"}),
+            "drill_url": base_url + "?" + urlencode({"stage": "ACTIONABLE"}),
         })
         return rows
     except Exception as exc:  # noqa: BLE001 — never break the dashboard
