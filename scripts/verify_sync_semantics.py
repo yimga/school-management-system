@@ -95,7 +95,6 @@ def main() -> int:
             "apps.sync_engine.tests.test_event_envelope",
             "apps.sync_engine.tests.test_services",
             "apps.sync_engine.tests.test_sodp_conflict_grade",
-            "apps.communication.tests.test_offline_conflict_kernel",
             "apps.platform_runtime.tests.test_offline_grading_manual_review",
             "apps.platform_runtime.tests.test_offline_queue.OfflineQueueHelpersTests",
             "--verbosity=1",

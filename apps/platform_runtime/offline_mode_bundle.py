@@ -45,11 +45,16 @@ def apply_offline_mode_bundle_for_tenant(
     *,
     hub_base_url: str = "",
     dry_run: bool = False,
+    tenant_manifest: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     Apply the offline bundle to the current schema's SiteSettings (tenant context).
 
-    Call inside ``tenant_context`` for multi-tenant schools.
+    Call inside ``tenant_context`` for multi-tenant schools. When ``tenant_manifest``
+    is supplied (country-enriched offline manifest from
+    ``apps.sync_engine.tenant_manifest_resolver``) it is persisted under the
+    ``offline_tenant_manifest`` backend flag so the edge/PWA layer can read the
+    tenant's locale, country pack summary, and HONEST payment posture offline.
     """
     from apps.platform_runtime.helpers import get_platform_site_settings_record
 
@@ -58,11 +63,14 @@ def apply_offline_mode_bundle_for_tenant(
     hub = (hub_base_url or "").strip()
     if hub:
         bff["hub_base_url"] = hub.rstrip("/")
+    if tenant_manifest:
+        bff["offline_tenant_manifest"] = tenant_manifest
     if dry_run:
         return {
             "dry_run": True,
             "enable_offline_mode": True,
             "backend_flags": bff,
+            "offline_tenant_manifest": tenant_manifest,
         }
     site.apply_feature_control_state(
         backend_feature_flags=bff,
@@ -112,11 +120,29 @@ def apply_offline_mode_bundle_for_school(
     """Apply bundle inside the school's tenant schema when django-tenants is enabled."""
     from apps.schools.tasks import _ensure_tenant_client, _optional_tenant_context
 
+    # Country-enriched offline manifest (the country-profile -> manifest -> offline
+    # chain link). Resolved from the school BEFORE entering tenant context; a
+    # resolution failure must never break provisioning, so it is best-effort.
+    tenant_manifest: dict[str, Any] | None = None
+    try:
+        from apps.sync_engine.tenant_manifest_resolver import school_offline_manifest_dict
+
+        tenant_manifest = school_offline_manifest_dict(school)
+    except Exception:
+        import logging
+
+        logging.getLogger(__name__).debug(
+            "offline tenant manifest resolve failed for school %s",
+            getattr(school, "id", school),
+            exc_info=True,
+        )
+
     client = _ensure_tenant_client(school)
     with _optional_tenant_context(client):
         result = apply_offline_mode_bundle_for_tenant(
             hub_base_url=hub_base_url,
             dry_run=dry_run,
+            tenant_manifest=tenant_manifest,
         )
     result["offline_mode_module_enabled"] = _enable_offline_mode_policy_module(
         school, dry_run=dry_run
