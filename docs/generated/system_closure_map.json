@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "program_gap_registry_version": 7,
-  "generated_at": "2026-06-09",
+  "generated_at": "2026-06-10",
   "source": [
     "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
     "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md"
@@ -363,6 +363,9 @@
       ]
     }
   ],
-  "sot_partial_forward_queue_batches": [],
+  "sot_partial_forward_queue_batches": [
+    "1691",
+    "1692"
+  ],
   "generator": "scripts/generate_system_closure_map.py"
 }

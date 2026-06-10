@@ -692,6 +692,7 @@ class SiteSettings(models.Model):
             "notification_channels",
             "enable_parent_portal",
             "enable_teacher_portal",
+            "enable_student_portal",
             "grade_approval_enabled",
             "grade_approval_auto_validate",
             "enable_practical_assessment",
@@ -770,6 +771,12 @@ class SiteSettings(models.Model):
                 policies_payload,
                 self,
                 "enable_teacher_portal",
+                False,
+            ),
+            "enable_student_portal": _payload_bool(
+                policies_payload,
+                self,
+                "enable_student_portal",
                 False,
             ),
             "enable_reports_pdf": _payload_bool(

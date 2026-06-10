@@ -958,3 +958,29 @@
   }
   .tp-year-progress__fill { transition: none; }
 }
+
+.rmc-tenant-health {
+  border: 1px solid var(--hairline, rgba(148, 163, 184, 0.35));
+  border-radius: var(--radius-md, 12px);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  background: var(--surface-elevated, rgba(255, 255, 255, 0.04));
+}
+.rmc-tenant-health__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+.rmc-tenant-health__dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--brand-success, #22c55e);
+}
+.rmc-tenant-health--degraded .rmc-tenant-health__dot {
+  background: var(--brand-warning, #fbbf24);
+}
+.rmc-tenant-health--down .rmc-tenant-health__dot {
+  background: var(--brand-danger, #ef4444);
+}

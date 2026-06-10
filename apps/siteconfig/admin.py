@@ -648,6 +648,7 @@ class TenantSettingsAdmin(ModelAdmin):
             ("Maintenance", getattr(eff, "maintenance_mode", False)),
             ("Parent portal", getattr(eff, "enable_parent_portal", True)),
             ("Teacher portal", getattr(eff, "enable_teacher_portal", True)),
+            ("Student portal", getattr(eff, "enable_student_portal", True)),
             (
                 "Reports PDF",
                 bool(

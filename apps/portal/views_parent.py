@@ -1181,6 +1181,12 @@ def parent_dashboard(request: HttpRequest):
     if q:
         parent_full_dashboard_url = f"{request.path}?{q.urlencode()}"
 
+    from apps.schools.tenant_operational_health import resolve_tenant_operational_health
+
+    tenant_health = resolve_tenant_operational_health(
+        getattr(request, "school", None), request=request, surface="parent"
+    )
+
     return render(
         request,
         "parent/dashboard.html",
@@ -1237,6 +1243,7 @@ def parent_dashboard(request: HttpRequest):
             "parent_show_legacy_dashboard": parent_simplified,
             "show_pwa_install_cta": bool(flags.get("enable_portal_pwa", False)),
             "parent_settings_security_url": reverse("portal:parent_settings_security"),
+            "tenant_health": tenant_health,
             **build_tp_hero_context(
                 request,
                 role=role,

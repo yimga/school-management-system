@@ -770,12 +770,14 @@ class RuntimeHelperResolutionTests(TestCase):
                 "default_portal_role_dual_role": "PAYLOAD_ROLE",
                 "enable_parent_portal": False,
                 "enable_teacher_portal": False,
+                "enable_student_portal": False,
             },
             use_dark_mode=True,
             use_secondary_font_for_headings=True,
             default_portal_role_dual_role="PARENT_TEACHER",
             enable_parent_portal=True,
             enable_teacher_portal=True,
+            enable_student_portal=True,
         )
         invalidate_effective_site_settings_cache()
 
@@ -788,6 +790,7 @@ class RuntimeHelperResolutionTests(TestCase):
         )
         self.assertTrue(getattr(resolved, "enable_parent_portal", None))
         self.assertTrue(getattr(resolved, "enable_teacher_portal", None))
+        self.assertTrue(getattr(resolved, "enable_student_portal", None))
 
     def test_theme_surface_defaults_first_class_override_payload(self):
         """Theme-surface defaults columns beat stale payload keys."""

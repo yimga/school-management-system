@@ -21,29 +21,31 @@ from apps.platform_runtime.operator_identity import (
 
 @require_platform_scope(PLATFORM_SCOPE_AUDIT_EXPORT)
 def export_schools_csv(request):
-    """Export schools list as CSV (powerhouse upgrade: export)."""
-    # unbounded-collection-allow: csv-export-streams-full-fleet-by-operator-request
+    """Export schools list as CSV with unified fleet status columns."""
+    from apps.schools.control_plane_lifecycle import batch_current_subscriptions
+    from apps.schools.fleet_status import build_fleet_queryset, resolve_school_fleet_status
+
     latest_event_query = SchoolProvisioningEvent.objects.filter(
         school_id=OuterRef("pk")
     ).order_by("-created_at", "-id")
     schools = list(
-        School.objects.all()
+        build_fleet_queryset()
         .prefetch_related("tenant_systems__system")
-        .order_by("name")
         .annotate(member_count=Count("memberships"))
         .annotate(student_count=Count("student_profiles", distinct=True))
         .annotate(teacher_count=Count("teacher_profiles", distinct=True))
-        .annotate(
-            latest_event_type=Subquery(latest_event_query.values("event_type")[:1])
-        )
         .annotate(
             latest_event_created_at=Subquery(
                 latest_event_query.values("created_at")[:1]
             )
         )
     )
+    subs = batch_current_subscriptions(schools)
     for school in schools:
         school.selected_systems = selected_system_names(school)
+        school.fleet_status = resolve_school_fleet_status(
+            school, cached_subscription=subs.get(school.pk)
+        )
 
     buf = StringIO()
     w = csv.writer(buf)
@@ -55,7 +57,12 @@ def export_schools_csv(request):
             "Template/Systems",
             "Domain",
             "Domain Verified",
-            "Status",
+            "Fleet Status",
+            "Heatmap Tier",
+            "Operational State",
+            "Active",
+            "Approved",
+            "Frozen",
             "Provisioning",
             "Students",
             "Teachers",
@@ -70,7 +77,7 @@ def export_schools_csv(request):
         domain_verified = (
             "Yes" if getattr(school, "custom_domain_verified", False) else "No"
         )
-        status = "Active" if school.is_active else "Inactive"
+        fs = school.fleet_status or {}
         provisioning = (
             (school.latest_event_type or "") if school.latest_event_type else ""
         )
@@ -85,7 +92,12 @@ def export_schools_csv(request):
                 systems_str,
                 getattr(school, "custom_domain", "") or "",
                 domain_verified,
-                status,
+                fs.get("fleet_state_label") or "",
+                fs.get("heatmap_tier") or "",
+                fs.get("lifecycle_state") or "",
+                "Yes" if school.is_active else "No",
+                "Yes" if school.is_approved else "No",
+                "Yes" if getattr(school, "is_frozen", False) else "No",
                 provisioning,
                 school.student_count or 0,
                 school.teacher_count or 0,
@@ -94,7 +106,7 @@ def export_schools_csv(request):
             ]
         )
     resp = HttpResponse(buf.getvalue(), content_type="text/csv; charset=utf-8")
-    resp["Content-Disposition"] = 'attachment; filename="schools.csv"'
+    resp["Content-Disposition"] = 'attachment; filename="schools-fleet-status.csv"'
     return resp
 @require_platform_scope(PLATFORM_SCOPE_AUDIT_EXPORT)
 def export_super_dashboard_pdf(request):
@@ -141,6 +153,9 @@ def export_super_dashboard_pdf(request):
 
     school_count = School.objects.filter(is_active=True).count()
     pending_approval_count = School.objects.filter(is_approved=False).count()
+    from apps.schools.fleet_status import resolve_fleet_summary
+
+    fleet_summary = resolve_fleet_summary()
     open_incident_count = PlatformIncident.objects.filter(
         status__in=[
             PlatformIncident.Status.OPEN,
@@ -241,6 +256,11 @@ def export_super_dashboard_pdf(request):
     flow.append(Paragraph("Operational snapshot", heading_style))
     ops_data = [
         ["Metric", "Count"],
+        ["Total fleet", str(fleet_summary.get("total") or 0)],
+        ["Live (healthy + trial)", str(fleet_summary.get("live") or 0)],
+        ["Watch (provisioning / pending)", str(fleet_summary.get("watch") or 0)],
+        ["Critical (suspended / billing / errors)", str(fleet_summary.get("critical") or 0)],
+        ["Inactive / idle", str(fleet_summary.get("idle") or 0)],
         ["Active tenants", str(school_count)],
         ["Pending approvals", str(pending_approval_count)],
         ["Open platform incidents", str(open_incident_count)],
@@ -265,6 +285,38 @@ def export_super_dashboard_pdf(request):
         'attachment; filename="runmycampus-mission-control-summary.pdf"'
     )
     return resp
+
+
+@require_platform_scope(PLATFORM_SCOPE_AUDIT_EXPORT)
+def export_fleet_status_odt(request):
+    """Export full fleet status report as ODT (LibreOffice / Pandoc / built-in fallback)."""
+    from apps.portal.document_conversion import find_soffice
+    from apps.portal.document_generation import markdown_to_document
+    from apps.schools.fleet_report_markdown import build_fleet_status_markdown
+
+    markdown = build_fleet_status_markdown()
+    engine = "libreoffice" if find_soffice() is not None else "auto"
+    try:
+        content = markdown_to_document(
+            markdown,
+            output_format="odt",
+            title="RunMyCampus Fleet Status",
+            engine=engine,
+        )
+    except (RuntimeError, ValueError):
+        content = markdown_to_document(
+            markdown,
+            output_format="odt",
+            title="RunMyCampus Fleet Status",
+            engine="auto",
+        )
+
+    stamp = timezone.now().strftime("%Y%m%d-%H%M")
+    resp = HttpResponse(content, content_type="application/vnd.oasis.opendocument.text")
+    resp["Content-Disposition"] = f'attachment; filename="fleet-status-{stamp}.odt"'
+    return resp
+
+
 @require_platform_scope(PLATFORM_SCOPE_AUDIT_EXPORT)
 def export_revenue_csv(request):
     """Export revenue by country for selected month as CSV (powerhouse upgrade: export)."""

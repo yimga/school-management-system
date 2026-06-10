@@ -76,6 +76,7 @@ from apps.schoolops.views_email_health import (
 )
 from apps.siteconfig.views_globe_api import GlobeStreamView, globe_live_api, globe_markers_api
 from apps.siteconfig.views_cockpit_live import cockpit_live_json
+from apps.schools.views_fleet_live import FleetStreamView, fleet_live_json
 from apps.schoolops.views_email_webhook import EmailProviderWebhookView
 from .views_signup_diagnostics import SignupDiagnosticsView
 from .super_views_signup_verifications import (
@@ -138,6 +139,11 @@ urlpatterns = [
         "export/summary.pdf",
         require_super_access_with_host(super_views.export_super_dashboard_pdf),
         name="export_super_dashboard_pdf",
+    ),
+    path(
+        "export/fleet-status.odt",
+        require_super_access_with_host(super_views.export_fleet_status_odt),
+        name="export_fleet_status_odt",
     ),
     path(
         "api/dashboard-layout/",
@@ -252,6 +258,16 @@ urlpatterns = [
         "api/create-school/",
         require_super_access_with_host(api_create_school),
         name="api_create_school",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/lens/",
+        require_super_access_with_host(super_views.api_school_lens_snapshot),
+        name="api_school_lens_snapshot",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/requeue-provision/",
+        require_super_access_with_host(super_views.api_school_requeue_provision),
+        name="api_school_requeue_provision",
     ),
     path(
         "api/schools/<uuid:school_id>/timeline/",
@@ -575,6 +591,13 @@ urlpatterns = [
             super_views_operator_team.super_operator_team_promotion_decide
         ),
         name="operator_team_promotion_decide",
+    ),
+    path(
+        "team/<int:user_id>/lens/",
+        require_super_access_with_host(
+            super_views_operator_team.api_operator_lens_snapshot
+        ),
+        name="api_operator_lens_snapshot",
     ),
     path(
         "team/<int:user_id>/",
@@ -1255,6 +1278,16 @@ urlpatterns = [
         require_super_access_with_host(cockpit_live_json),
         name="api_cockpit_live",
     ),  # rbac-allow: super-staff-cockpit-live-json
+    path(
+        "api/fleet/live.json",
+        require_super_access_with_host(fleet_live_json),
+        name="api_fleet_live",
+    ),  # rbac-allow: super-staff-fleet-live-json
+    path(
+        "api/fleet/stream/",
+        require_super_access_with_host(FleetStreamView.as_view()),
+        name="api_fleet_stream",
+    ),  # rbac-allow: super-staff-fleet-live-stream
     path(
         "api/globe/markers/",
         globe_markers_api,

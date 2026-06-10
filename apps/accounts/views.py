@@ -1317,6 +1317,17 @@ def _rbac_permissions_by_group(permissions_qs):
     return result
 
 
+def _rbac_redirect(request):
+    from services.post_delete_navigation import redirect_after_save
+
+    fallback = request.get_full_path() or reverse("accounts:rbac")
+    return redirect_after_save(
+        request,
+        fallback,
+        list_url=reverse("accounts:rbac"),
+    )
+
+
 @rbac_dashboard_pdp
 @login_required
 @require_school
@@ -1324,6 +1335,7 @@ def _rbac_permissions_by_group(permissions_qs):
 @user_passes_test(_is_admin_user)
 def rbac_dashboard(request):
     from apps.accounts.tenant_identity import user_has_school_membership
+    from services.post_delete_navigation import mutation_return_url
 
     school = request.school
 
@@ -1377,20 +1389,20 @@ def rbac_dashboard(request):
                 role.save()
                 role_form.save_m2m()
                 messages.success(request, _("Role created successfully."))
-                return redirect("accounts:rbac")
+                return _rbac_redirect(request)
         elif form_type == "permission":
             permission_form = PermissionForm(request.POST, prefix="permission")
             if permission_form.is_valid():
                 permission_form.save()
                 messages.success(request, _("Permission created successfully."))
-                return redirect("accounts:rbac")
+                return _rbac_redirect(request)
         elif form_type == "user_roles":
             user_role_form = UserRoleForm(request.POST, prefix="user_role", school=school)
             if user_role_form.is_valid():
                 user = user_role_form.cleaned_data["user"]
                 if not user_has_school_membership(user, school):
                     messages.error(request, _("User is not a member of this school."))
-                    return redirect("accounts:rbac")
+                    return _rbac_redirect(request)
                 roles = user_role_form.cleaned_data["roles"]
                 for role in roles:
                     if not role_applies_to_school(role, school):
@@ -1399,10 +1411,10 @@ def rbac_dashboard(request):
                             _("Role %(code)s is not valid for this school.")
                             % {"code": role.code},
                         )
-                        return redirect("accounts:rbac")
+                        return _rbac_redirect(request)
                 user.roles.set(roles)
                 messages.success(request, f"Roles updated for {user.username}.")
-                return redirect("accounts:rbac")
+                return _rbac_redirect(request)
             else:
                 try:
                     role_ids = [int(pk) for pk in request.POST.getlist("user_role-roles")]
@@ -1421,11 +1433,11 @@ def rbac_dashboard(request):
                 user = user_permission_form.cleaned_data["user"]
                 if not user_has_school_membership(user, school):
                     messages.error(request, _("User is not a member of this school."))
-                    return redirect("accounts:rbac")
+                    return _rbac_redirect(request)
                 permissions = user_permission_form.cleaned_data["permissions"]
                 user.feature_permissions.set(permissions)
                 messages.success(request, f"Permissions updated for {user.username}.")
-                return redirect("accounts:rbac")
+                return _rbac_redirect(request)
         elif form_type == "edit_role":
             edit_role_form = EditRoleForm(request.POST)
             if edit_role_form.is_valid():
@@ -1437,7 +1449,7 @@ def rbac_dashboard(request):
                 role.permissions.set(edit_role_form.cleaned_data["permissions"])
                 role.save()
                 messages.success(request, f"Role '{role.name}' updated.")
-                return redirect("accounts:rbac")
+                return _rbac_redirect(request)
             edit_role_id = edit_role_form.cleaned_data.get(
                 "role_id"
             ) or request.POST.get("role_id")
@@ -1451,7 +1463,7 @@ def rbac_dashboard(request):
                 user = temporary_grant_form.cleaned_data["user"]
                 if not user_has_school_membership(user, school):
                     messages.error(request, _("User is not a member of this school."))
-                    return redirect("accounts:rbac")
+                    return _rbac_redirect(request)
                 role = temporary_grant_form.cleaned_data["role"]
                 if not role_applies_to_school(role, school):
                     messages.error(
@@ -1459,7 +1471,7 @@ def rbac_dashboard(request):
                         _("Role %(code)s is not valid for this school.")
                         % {"code": role.code},
                     )
-                    return redirect("accounts:rbac")
+                    return _rbac_redirect(request)
                 expires_date = temporary_grant_form.cleaned_data["expires_at"]
                 valid_from_date = temporary_grant_form.cleaned_data.get("valid_from")
                 notes = (temporary_grant_form.cleaned_data.get("notes") or "").strip()[
@@ -1487,7 +1499,7 @@ def rbac_dashboard(request):
                     request,
                     f"Temporary role '{role.name}' granted to {user.username} until {expires_date}.",
                 )
-                return redirect("accounts:rbac")
+                return _rbac_redirect(request)
 
     today = timezone.localdate()
     from apps.platform_runtime.localization import (
@@ -1564,6 +1576,11 @@ def rbac_dashboard(request):
         "selected_role_ids": selected_role_ids,
         "attendance_trend_total": attendance_trend_total,
         "attendance_trend_progress": attendance_trend_progress,
+        "return_url": mutation_return_url(
+            request,
+            request.get_full_path() or reverse("accounts:rbac"),
+            list_url=reverse("accounts:rbac"),
+        ),
     }
     return render(request, "accounts/rbac_dashboard.html", context)
 
@@ -2852,6 +2869,12 @@ def backend_dashboard(request):
     context["admissions_queue_rows"] = _extras.get("admissions_queue_rows", [])
     context["resumable_wizards"] = _extras.get("resumable_wizards", [])
     context["enrollment_forecast_rows"] = _extras.get("enrollment_forecast_rows", [])
+
+    from apps.schools.tenant_operational_health import resolve_tenant_operational_health
+
+    context["tenant_health"] = resolve_tenant_operational_health(
+        getattr(request, "school", None), request=request, surface="admin"
+    )
 
     return render(request, "accounts/backend_dashboard.html", context)
 

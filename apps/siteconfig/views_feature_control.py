@@ -206,6 +206,14 @@ FEATURE_CATEGORIES = {
             [],
         ),
         (
+            "enable_student_portal",
+            "Student Portal",
+            True,
+            "Student dashboard and access",
+            "Students redirected to maintenance",
+            [],
+        ),
+        (
             "enable_reports_pdf",
             "Report Card PDFs",
             False,
@@ -780,15 +788,17 @@ BULK_PRESETS = {
         "set_off": [
             "enable_parent_portal",
             "enable_teacher_portal",
+            "enable_student_portal",
             "preview_mode_enabled",
         ],
     },
     "exam_period": {
         "label": "Exam Period",
-        "description": "Parent/Teacher portals on, grade approval strict, reports enabled",
+        "description": "Parent/Teacher/Student portals on, grade approval strict, reports enabled",
         "set_on": [
             "enable_parent_portal",
             "enable_teacher_portal",
+            "enable_student_portal",
             "grade_approval_enabled",
             "grade_approval_auto_validate",
             "enable_reports_pdf",
@@ -801,6 +811,7 @@ BULK_PRESETS = {
         "set_on": [
             "enable_parent_portal",
             "enable_teacher_portal",
+            "enable_student_portal",
             "enable_reports_pdf",
             "report_downloads_enabled",
             "grade_approval_enabled",
@@ -1168,6 +1179,8 @@ def _apply_form_to_site(
             field_updates["enable_parent_portal"] = bool(val)
         elif key == "enable_teacher_portal":
             field_updates["enable_teacher_portal"] = bool(val)
+        elif key == "enable_student_portal":
+            field_updates["enable_student_portal"] = bool(val)
         elif key == "enable_reports_pdf":
             field_updates["enable_reports_pdf"] = bool(val)
         elif key == "report_downloads_enabled":

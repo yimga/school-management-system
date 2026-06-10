@@ -52,12 +52,12 @@
       {% endwith %}
     {% endfor %}
   </div>
-  <div class="lx-heatmap__legend" aria-label="{% trans 'Heatmap legend' %}">
-    <span class="lx-l-healthy">{% trans "Healthy" %}</span>
-    <span class="lx-l-okay">{% trans "Okay" %}</span>
-    <span class="lx-l-warn">{% trans "Watch" %}</span>
-    <span class="lx-l-danger">{% trans "Critical" %}</span>
-    <span class="lx-l-idle">{% trans "Idle / pilot" %}</span>
+  <div class="lx-heatmap__legend" aria-label="{% trans 'Heatmap legend' %}" data-rmc-fleet-legend="1">
+    <span class="lx-l-healthy" data-rmc-fleet-tier="healthy">{% trans "Live" %}</span>
+    <span class="lx-l-okay" data-rmc-fleet-tier="okay">{% trans "Trial" %}</span>
+    <span class="lx-l-warn" data-rmc-fleet-tier="warn">{% trans "Watch" %}</span>
+    <span class="lx-l-danger" data-rmc-fleet-tier="danger">{% trans "Critical" %}</span>
+    <span class="lx-l-idle" data-rmc-fleet-tier="idle">{% trans "Inactive" %}</span>
     {% if cockpit.tenant_heatmap.legend_hint %}<span class="lx-heatmap__legend-hint">{{ cockpit.tenant_heatmap.legend_hint }}</span>{% endif %}
   </div>
 </section>

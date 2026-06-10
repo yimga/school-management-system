@@ -27,6 +27,9 @@
 {% include "components/next_action_strip.html" %}
 
 {% include "partials/tenant/hero_greeting.html" %}
+{% url 'portal:portal_operational_health_json' as tenant_health_api_url %}
+{% url 'portal:portal_operational_health_stream' as tenant_health_stream_url %}
+{% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="parent" %}
 {% if show_pwa_install_cta %}
 <section class="alert alert-light border shadow-sm mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2" role="region" aria-label="{% trans 'Install app' %}" data-rmc-pwa-install-cta="1">
   <div data-rmc-scroll-policy="paginate">
@@ -724,4 +727,6 @@
 {% endblock %}
 
 {% block extrajs %}
+{{ block.super }}
+<script src="{% static 'js/rmc-tenant-health-live.js' %}" defer></script>
 {% endblock %}

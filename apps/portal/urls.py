@@ -1,5 +1,10 @@
 from django.urls import path
 
+from apps.schools.views_tenant_health_api import (
+    TenantHealthStreamView,
+    tenant_operational_health_json,
+)
+
 from . import views_ai_surfaces as _ai_surfaces
 from . import views_forums
 from . import views_lux_workspace
@@ -298,6 +303,16 @@ urlpatterns = [
     path("support/quick-create/", support_quick_create, name="support_quick_create"),
     path("api/v1/kb/search/", kb_search_inline, name="kb_search_inline"),
     path("api/v1/kb/offline-pack/", views_kb_offline.api_kb_offline_pack, name="kb_offline_pack"),
+    path(
+        "api/operational-health.json",
+        tenant_operational_health_json,
+        name="portal_operational_health_json",
+    ),
+    path(
+        "api/operational-health/stream/",
+        TenantHealthStreamView.as_view(),
+        name="portal_operational_health_stream",
+    ),
     path("offline/sync-queue/", offline_sync_queue, name="offline_sync_queue"),
     path("offline/conflicts/", offline_sync_conflicts, name="offline_sync_conflicts"),
     path("api/offline/enqueue/", api_offline_enqueue, name="api_offline_enqueue"),

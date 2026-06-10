@@ -30,6 +30,9 @@
 
 <div data-rmc-scroll-policy="paginate" data-page-archetype="role-home">
 {% include "partials/tenant/hero_greeting.html" %}
+{% url 'accounts:backend_operational_health_json' as tenant_health_api_url %}
+{% url 'accounts:backend_operational_health_stream' as tenant_health_stream_url %}
+{% include "partials/tenant/operational_health_strip.html" with health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="teacher" %}
 {% phase8_dashboard_declaration "teacher/dashboard.html" %}
 {% if phase7_de and role_home_declaration %}
 <section class="mb-3" data-page-archetype="role-home" data-decision-engine="surface">
@@ -691,4 +694,5 @@
 {% include "partials/rmc_chart_js_self_host.html" %}
 <script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
 <script src="{% static 'js/_pages/teacher__dashboard-2.js' %}"></script>
+<script src="{% static 'js/rmc-tenant-health-live.js' %}" defer></script>
 {% endblock %}

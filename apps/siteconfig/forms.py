@@ -261,6 +261,7 @@ SITESETTINGS_FIELD_ORDER = [
     # Feature toggles
     "enable_parent_portal",
     "enable_teacher_portal",
+    "enable_student_portal",
     "enable_reports_pdf",
     "report_downloads_enabled",
     "portal_features",

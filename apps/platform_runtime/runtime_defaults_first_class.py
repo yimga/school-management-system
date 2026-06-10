@@ -61,6 +61,7 @@ RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES: tuple[str, ...] = (
     "default_portal_role_dual_role",
     "enable_parent_portal",
     "enable_teacher_portal",
+    "enable_student_portal",
     "backend_console_theme",
     "header_bg_color",
     "footer_bg_color",

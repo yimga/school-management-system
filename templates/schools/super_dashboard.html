@@ -91,7 +91,7 @@
 {% if cockpit.trust_pillars_alerts.enabled and cockpit.trust_pillars_alerts.pillars %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Trust pillars alerts") key="super__trust_pillars_alerts" include_partial="partials/cockpit/_trust_pillars_alerts.html" chrome="section" %}
 {% endif %}
-<div id="super-dashboard-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-rmc-premium-command-center="1" data-page-header="platform-command-center" data-page-archetype="role-home" data-decision-engine="surface" data-apple-class-super-command-center="1"{% include "schools/partials/decision_architecture_attrs.html" %} data-page-critical-read="1">
+<div id="super-dashboard-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-rmc-premium-command-center="1" data-page-header="platform-command-center" data-page-archetype="role-home" data-decision-engine="surface" data-apple-class-super-command-center="1" data-rmc-copilot-page-lens="operator-dashboard-fleet"{% include "schools/partials/decision_architecture_attrs.html" %} data-page-critical-read="1">
   {% phase8_dashboard_declaration "schools/super_dashboard.html" %}
   {% url 'super:create_school_wizard' as wcx_create_school_url %}
   {% url 'configuration:center' as wcx_configuration_url %}
@@ -241,9 +241,10 @@
               <h3 class="mb-0">{% trans "Pending approvals" %}</h3>
               <span>{{ pending_approval_count }}</span>
             </a>
-            <div class="cp-list">
+            <div class="cp-list" data-rmc-row-detail-cards="1">
               {% for school in pending_schools|slice:":8" %}
-              <div class="cp-list-row">
+              {% url 'super:tenant_360' school.id as pending_t360_url %}
+              <div class="cp-list-row" data-rmc-row-detail="1" tabindex="0" {% include "partials/rmc_school_lens_api_attrs.html" with school=school %} data-rmc-row-title="{{ school.name|escape }}" data-rmc-row-subtitle="{{ school.slug|escape }}" data-rmc-row-meta='{"{% trans "Queue" %}":"{% trans "Pending approval"|escapejs %}","{% trans "Country" %}":"{{ school.country_display|default:"—"|escapejs }}"}' data-rmc-row-actions='[{"label":"{% trans "Tenant 360"|escapejs %}","href":"{{ pending_t360_url|escapejs }}","variant":"primary"}]'>
                 <div>
                   <strong>{{ school.name }}</strong>
                   <div class="cp-list-meta">{{ school.country_display }}{% if school.selected_systems %} | {{ school.selected_systems|join:", " }}{% endif %}</div>
@@ -294,9 +295,10 @@
               <h3>{% trans "Billing exceptions" %}</h3>
               <span>{{ billing_watchlist|length }}</span>
             </div>
-            <div class="cp-list">
+            <div class="cp-list" data-rmc-row-detail-cards="1">
               {% for subscription in billing_watchlist|slice:":8" %}
-              <div class="cp-list-row">
+              {% url 'super:tenant_360' subscription.school.id as billing_t360_url %}
+              <div class="cp-list-row" data-rmc-row-detail="1" tabindex="0" {% include "partials/rmc_school_lens_api_attrs.html" with school=subscription.school %} data-rmc-row-title="{{ subscription.school.name|escape }}" data-rmc-row-subtitle="{{ subscription.school.slug|escape }}" data-rmc-row-meta='{"{% trans "Queue" %}":"{% trans "Billing exception"|escapejs %}","{% trans "Status" %}":"{{ subscription.status|escapejs }}"}' data-rmc-row-actions='[{"label":"{% trans "Tenant 360"|escapejs %}","href":"{{ billing_t360_url|escapejs }}","variant":"primary"}]'>
                 <div>
                   <strong>{{ subscription.school.name }}</strong>
                   <div class="cp-list-meta">{{ subscription.status|title }}{% if subscription.plan %} | {{ subscription.plan.name }}{% endif %} | {{ subscription.billed_amount|format_currency }}</div>
@@ -315,11 +317,12 @@
               <h3 class="mb-0">{% trans "Support and provisioning" %}</h3>
               <span>{{ stale_support_rows|length }} / {{ provisioning_breach_rows|length }}</span>
             </a>
-            <div class="cp-queue-split">
+            <div class="cp-queue-split" data-rmc-row-detail-cards="1">
               <div>
                 <div class="cp-mini-heading">{% trans "Stale support" %}</div>
                 {% for row in stale_support_rows|slice:":4" %}
-                <div class="cp-mini-row">
+                {% url 'super:tenant_360' row.ticket.school.id as stale_t360_url %}
+                <div class="cp-mini-row" data-rmc-row-detail="1" tabindex="0" {% include "partials/rmc_school_lens_api_attrs.html" with school=row.ticket.school %} data-rmc-row-title="{{ row.ticket.school.name|escape }}" data-rmc-row-subtitle="{{ row.ticket.school.slug|escape }}" data-rmc-row-meta='{"{% trans "Queue" %}":"{% trans "Stale support"|escapejs %}","{% trans "Age (hours)" %}":"{{ row.age_hours }}"}' data-rmc-row-actions='[{"label":"{% trans "Tenant 360"|escapejs %}","href":"{{ stale_t360_url|escapejs }}","variant":"primary"}]'>
                   <strong>{{ row.ticket.school.name }}</strong>
                   <span>{{ row.age_hours }}h | {{ row.ticket.subject|truncatewords:5 }}</span>
                 </div>
@@ -330,10 +333,18 @@
               <div>
                 <div class="cp-mini-heading">{% trans "Provisioning breaches" %}</div>
                 {% for row in provisioning_breach_rows|slice:":4" %}
-                <div class="cp-mini-row">
-                  <strong>{{ row.school.name|default:_("Unknown school") }}</strong>
+                {% if row.school %}
+                {% url 'super:tenant_360' row.school.id as breach_t360_url %}
+                <div class="cp-mini-row" data-rmc-row-detail="1" tabindex="0" {% include "partials/rmc_school_lens_api_attrs.html" with school=row.school %} data-rmc-row-title="{{ row.school.name|escape }}" data-rmc-row-subtitle="{{ row.school.slug|escape }}" data-rmc-row-meta='{"{% trans "Queue" %}":"{% trans "Provisioning breach"|escapejs %}","{% trans "Hours" %}":"{{ row.hours }}"}' data-rmc-row-actions='[{"label":"{% trans "Tenant 360"|escapejs %}","href":"{{ breach_t360_url|escapejs }}","variant":"primary"}]'>
+                  <strong>{{ row.school.name }}</strong>
                   <span>{{ row.hours }}h</span>
                 </div>
+                {% else %}
+                <div class="cp-mini-row">
+                  <strong>{% trans "Unknown school" %}</strong>
+                  <span>{{ row.hours }}h</span>
+                </div>
+                {% endif %}
                 {% empty %}
                 <div class="cp-empty-inline">{% trans "No breaches" %}</div>
                 {% endfor %}
@@ -552,7 +563,7 @@
         </div>
       </section>
 
-      <section class="cp-panel rmc-reveal" id="cp-tenant-registry" data-rmc-scroll-policy="paginate">
+      <section class="cp-panel rmc-reveal" id="cp-tenant-registry" data-rmc-scroll-policy="paginate" data-rmc-fleet-live="1" data-rmc-fleet-page="{{ registry_page.number|default:1 }}" data-rmc-fleet-page-size="{{ registry_page_size|default:25 }}"{% if registry_search %} data-rmc-fleet-q="{{ registry_search|escape }}"{% endif %}>
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "School registry" %}</span>
@@ -560,7 +571,8 @@
           </div>
           <div class="cp-panel-header-actions">
             <a href="{% url 'super:schools_list' %}" class="btn btn-outline-secondary btn-sm">{% trans "Full directory" %}</a>
-            <a href="{% url 'super:export_schools_csv' %}" class="btn btn-outline-secondary btn-sm">{% trans "Export schools" %}</a>
+            <a href="{% url 'super:export_schools_csv' %}" class="btn btn-outline-secondary btn-sm">{% trans "Export CSV" %}</a>
+            <a href="{% url 'super:export_fleet_status_odt' %}" class="btn btn-outline-secondary btn-sm">{% trans "Export ODT" %}</a>
             <a href="{% url 'super:tenant_health' %}" class="btn btn-outline-secondary btn-sm">{% trans "School health" %}</a>
           </div>
         </div>
@@ -576,13 +588,15 @@
           <input type="hidden" name="page" value="1">
           {% if current_request_month %}<input type="hidden" name="month" value="{{ current_request_month }}">{% endif %}
           <div class="cp-toolbar-summary">
-            {% blocktrans with visible=registry_page|length total=registry_total_count page=registry_page.number pages=registry_page.paginator.num_pages %}
-            Page {{ page }} of {{ pages }} — <span id="cp-visible-school-count">{{ visible }}</span> of {{ total }} schools in this view
+            <span data-rmc-fleet-summary-bar>{{ fleet_summary_label|default:"" }}</span>
+            · {% trans "Updated" %} <span data-rmc-fleet-refreshed></span>
+            · {% blocktrans with visible=registry_page|length total=registry_total_count page=registry_page.number pages=registry_page.paginator.num_pages %}
+            Page {{ page }}/{{ pages }} — {{ visible }} of {{ total }} schools
             {% endblocktrans %}
           </div>
         </form>
         <div class="table-responsive cp-table-wrap cp-registry-table-wrap">
-          <table class="table table-family table-hover mb-0 cp-table cp-registry-table align-middle rmc-data-table" data-density="condensed" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+          <table class="table table-family table-hover mb-0 cp-table cp-registry-table align-middle rmc-data-table" data-density="condensed" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Search, triage, and drill into every school" %}</caption>
             <thead>
               <tr>
@@ -597,7 +611,8 @@
             </thead>
             <tbody>
               {% for school in schools %}
-              <tr class="cp-school-row" data-state="{{ school.roster_state }}" data-search="{{ school.roster_search }}">
+              {% url 'super:tenant_360' school.id as registry_t360_url %}
+              <tr class="cp-school-row" data-state="{{ school.roster_state }}" data-search="{{ school.roster_search }}" data-school-id="{{ school.id }}" data-rmc-row-detail="1" tabindex="0" {% include "partials/rmc_school_lens_api_attrs.html" with school=school %} data-rmc-row-title="{{ school.name|escape }}" data-rmc-row-subtitle="{{ school.slug|escape }}" data-rmc-row-meta='{"{% trans "State" %}":"{{ school.roster_state|escapejs }}","{% trans "Active" %}":"{% if school.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}","{% trans "Subscription" %}":"{{ school.subscription_status|default:"—"|escapejs }}"}' data-rmc-row-actions='[{"label":"{% trans "Tenant 360"|escapejs %}","href":"{{ registry_t360_url|escapejs }}","variant":"primary"}]' data-rmc-fleet-state="" data-rmc-fleet-tier="">
                 <td>
                   <div class="cp-school-name">{{ school.name }}</div>
                   <div class="cp-school-meta"><code>{{ school.slug }}</code> | <code>{{ school.subdomain|default:"--" }}</code></div>
@@ -648,7 +663,7 @@
                   <div class="cp-cell-meta">{% blocktrans with d=school.latest_subscription_period_end|format_date:"YYYY-MM-DD" %}Period end {{ d }}{% endblocktrans %}</div>
                   {% endif %}
                 </td>
-                <td>
+                <td data-rmc-fleet-status-cell>
                   {% if school.attention_reasons %}
                   <div class="cp-risk-list">
                     {% for reason in school.attention_reasons %}
@@ -658,6 +673,7 @@
                   {% else %}
                   <div class="cp-cell-meta">{% trans "No immediate operator flags." %}</div>
                   {% endif %}
+                  <span class="cp-status-badge cp-registry-fleet-badge cp-status-badge-neutral mt-1">—</span>
                   <div class="cp-cell-meta">{% blocktrans with s=school.student_count t=school.teacher_count m=school.member_count %}Students {{ s }} | Teachers {{ t }} | Members {{ m }}{% endblocktrans %}</div>
                   <div class="cp-cell-meta">{% blocktrans with d=school.updated_at|date:"Y-m-d H:i"|default:"-" %}Last update {{ d }}{% endblocktrans %}</div>
                 </td>
@@ -711,6 +727,7 @@
           </table>
         </div>
         {% include "components/pagination.html" with page_obj=registry_page pagination_extra_query=registry_pagination_extra_query show_page_size=True page_size=registry_page_size page_size_options=registry_page_size_options %}
+        {% include "components/row_detail_panel_hint.html" with hint_id="super-dashboard-registry-lens-hint" %}
       </section>
     </div>
 
@@ -761,9 +778,10 @@
             <h2 class="cp-panel-title">{% trans "Churn and operator escalation" %}</h2>
           </div>
         </div>
-        <div class="cp-list">
+        <div class="cp-list" data-rmc-row-detail-cards="1">
           {% for row in tenant_risk_rows %}
-          <div class="cp-list-row">
+          {% url 'super:tenant_360' row.school.id as risk_t360_url %}
+          <div class="cp-list-row" data-rmc-row-detail="1" tabindex="0" {% include "partials/rmc_school_lens_api_attrs.html" with school=row.school %} data-rmc-row-title="{{ row.school.name|escape }}" data-rmc-row-subtitle="{{ row.school.slug|escape }}" data-rmc-row-meta='{"{% trans "Risk score" %}":"{{ row.risk_score }}","{% trans "Reasons" %}":"{{ row.reasons|join:", "|escapejs }}"}' data-rmc-row-actions='[{"label":"{% trans "Tenant 360"|escapejs %}","href":"{{ risk_t360_url|escapejs }}","variant":"primary"}]'>
             <div>
               <strong>{{ row.school.name }}</strong>
               <div class="cp-list-meta">{{ row.reasons|join:", " }}</div>
@@ -783,9 +801,10 @@
             <h2 class="cp-panel-title">{% trans "Newest fleet entries" %}</h2>
           </div>
         </div>
-        <div class="cp-list">
+        <div class="cp-list" data-rmc-row-detail-cards="1">
           {% for school in recent_schools %}
-          <div class="cp-list-row">
+          {% url 'super:tenant_360' school.id as recent_t360_url %}
+          <div class="cp-list-row" data-rmc-row-detail="1" tabindex="0" {% include "partials/rmc_school_lens_api_attrs.html" with school=school %} data-rmc-row-title="{{ school.name|escape }}" data-rmc-row-subtitle="{{ school.slug|escape }}" data-rmc-row-meta='{"{% trans "Country" %}":"{{ school.country_display|default:"—"|escapejs }}","{% trans "State" %}":"{{ school.roster_state|escapejs }}"}' data-rmc-row-actions='[{"label":"{% trans "Tenant 360"|escapejs %}","href":"{{ recent_t360_url|escapejs }}","variant":"primary"}]'>
             <div>
               <strong>{{ school.name }}</strong>
               <div class="cp-list-meta">{% blocktrans with country=school.country_display created=school.created_at|format_date:"YYYY-MM-DD" %}{{ country }} | Created {{ created }}{% endblocktrans %}</div>
@@ -812,5 +831,5 @@
 <script type="application/json" id="page-data-schools__super_dashboard-1">{
   "var_super_dashboard_layout_url_escapejs": "{{ super_dashboard_layout_url|escapejs|escapejs }}"
 }</script><script src="{% static 'js/_pages/schools__super_dashboard-1.js' %}"></script>
-{% include "partials/portal_row_detail_drawer_bundle.html" %}
+<script src="{% static 'js/rmc-fleet-live.js' %}" defer></script>
 {% endblock %}

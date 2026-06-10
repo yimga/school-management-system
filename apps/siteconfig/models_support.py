@@ -478,6 +478,7 @@ def virtual_site_setting_default(name: str) -> object:
     _bool_true = {
         "enable_parent_portal",
         "enable_teacher_portal",
+        "enable_student_portal",
         "enable_concurrent_mark_uploads",
         "enable_reports_pdf",
         "notify_parent_welcome_email",

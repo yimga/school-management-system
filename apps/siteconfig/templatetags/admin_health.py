@@ -86,6 +86,7 @@ def admin_health(context):
         site = get_effective_site_settings(request=request)
         metrics["portal_parent_enabled"] = getattr(site, "enable_parent_portal", True)
         metrics["portal_teacher_enabled"] = getattr(site, "enable_teacher_portal", True)
+        metrics["portal_student_enabled"] = getattr(site, "enable_student_portal", True)
     except OPTIONAL_ADMIN_HEALTH_ERRORS:
         pass
 
@@ -171,6 +172,7 @@ def admin_section_stats(context):
         "portal": {
             "Parent portal": "On" if site.enable_parent_portal else "Off",
             "Teacher portal": "On" if site.enable_teacher_portal else "Off",
+            "Student portal": "On" if getattr(site, "enable_student_portal", True) else "Off",
         },
         "reports": {
             "Templates": ReportTemplate.objects.filter(is_active=True).count(),

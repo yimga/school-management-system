@@ -172,18 +172,35 @@ def _attach_sparkline(card: dict[str, Any], metric_key: str) -> dict[str, Any]:
 # ============================================================
 
 def _resolve_schools_card() -> dict[str, Any] | None:
-    """Active + approved schools across the platform."""
+    """Fleet-wide school counts with live / watch / critical breakdown."""
     try:
-        from apps.schools.models import School  # local import
-        total = School.objects.filter(is_active=True, is_approved=True).count()
+        from apps.schools.fleet_status import (
+            format_fleet_summary_label,
+            resolve_fleet_summary,
+        )
+
+        summary = resolve_fleet_summary()
+        total = int(summary.get("total") or 0)
         if total is None:
             return None
-        return _attach_delta({
-            "head": _("Schools"),
-            "severity": "ok",
-            "value": str(total),
-            "label": _("Healthy"),
-        }, "schools", total)
+        critical = int(summary.get("critical") or 0)
+        watch = int(summary.get("watch") or 0)
+        if critical:
+            severity = "danger"
+        elif watch:
+            severity = "warn"
+        else:
+            severity = "ok"
+        return _attach_delta(
+            {
+                "head": _("Schools"),
+                "severity": severity,
+                "value": str(total),
+                "label": format_fleet_summary_label(summary),
+            },
+            "schools",
+            total,
+        )
     except Exception:
         logger.warning("pulse: schools resolver failed", exc_info=True)
         return None
@@ -377,7 +394,7 @@ def __getattr__(name: str):
 # Empty-state shells used when a resolver returns None — keeps the layout
 # stable (6 cards always rendered, even when DB is silent).
 _EMPTY_SHELLS: dict[str, dict[str, Any]] = {
-    "schools":   _empty_card(_("Schools"),   _("Healthy")),
+    "schools":   _empty_card(_("Schools"),   _("Fleet status")),
     "incidents": _empty_card(_("Incidents"), _("Open")),
     "countries": _empty_card(_("Countries"), _("Live coverage")),
     "mrr":       _empty_card(_("MRR"),       _("Recurring")),

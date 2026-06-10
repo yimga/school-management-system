@@ -44,7 +44,10 @@ def student_learning_home(request: HttpRequest):
     if get_user_role(request.user) != User.Role.STUDENT:
         return redirect("portal:parent_dashboard")
 
-    site = get_effective_site_settings(request=request)
+    _site = get_effective_site_settings(request=request)
+    if not getattr(_site, "enable_student_portal", True):
+        return HttpResponseForbidden("Student portal is disabled.")
+
     profile = None
     try:
         # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
@@ -136,13 +139,18 @@ def student_learning_home(request: HttpRequest):
     }
 
     from apps.portal.tenant_role_home import build_tp_hero_context
+    from apps.schools.tenant_operational_health import resolve_tenant_operational_health
 
-    _ = site  # reserved for enable_student_portal wiring
+    tenant_health = resolve_tenant_operational_health(
+        getattr(request, "school", None), request=request, surface="student"
+    )
+
     return render(
         request,
         "student/learning_home.html",
         {
             "phase7_de": phase7_de,
+            "tenant_health": tenant_health,
             **build_tp_hero_context(
                 request,
                 role=User.Role.STUDENT,
@@ -156,6 +164,10 @@ def student_learning_home(request: HttpRequest):
 @role_required(User.Role.STUDENT)
 def student_workflow_center(request: HttpRequest):
     """Student workflow center: one simple path for daily learning tasks."""
+    site = get_effective_site_settings(request=request)
+    if not getattr(site, "enable_student_portal", True):
+        return HttpResponseForbidden("Student portal is disabled.")
+
     _school = getattr(request, "school", None)
     profile = None
     try:
@@ -297,6 +309,8 @@ def portal_syllabus(request: HttpRequest):
         return HttpResponseForbidden("Parent portal is disabled.")
     if role == User.Role.TEACHER and not site.enable_teacher_portal:
         return HttpResponseForbidden("Teacher portal is disabled.")
+    if role == User.Role.STUDENT and not getattr(site, "enable_student_portal", True):
+        return HttpResponseForbidden("Student portal is disabled.")
 
     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     items = (

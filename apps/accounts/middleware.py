@@ -618,6 +618,8 @@ class RequireMFAMiddleware:
         "/api/",
         "/ws/wal/",  # WAL HTTP stub returns 401/426 — never MFA HTML redirect
         "/siteconfig/api/tour-",  # Guided tour + info-tag helpers (all portal roles)
+        "/authentication/backend/api/operational-health",  # Dashboard health widgets (JSON + SSE)
+        "/portal/api/operational-health",  # Parent/teacher portal health widgets (JSON + SSE)
         # First-run owner onboarding: the wizard SETS the password (step 1) and
         # logs the owner in; forcing MFA setup in front of it walls a brand-new,
         # passwordless ADMIN out of their own setup. MFA is offered AFTER the

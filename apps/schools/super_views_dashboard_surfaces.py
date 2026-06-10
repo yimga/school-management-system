@@ -206,6 +206,21 @@ def super_dashboard_v2(request):
     health_top_tables, health_schema_stats = get_cached_health_table_metadata()
 
     command_center = get_cached_command_center_data()
+    provisioning_breach_rows = list(
+        command_center.get("provisioning_breach_rows", [])[:10]
+    )
+    if provisioning_breach_rows:
+        breach_ids = [
+            row["school_id"]
+            for row in provisioning_breach_rows
+            if row.get("school_id")
+        ]
+        breach_school_map = {
+            s.id: s
+            for s in School.objects.filter(id__in=breach_ids).only("id", "name", "slug")
+        }
+        for row in provisioning_breach_rows:
+            row["school"] = breach_school_map.get(row.get("school_id"))
     incident_bundle = get_cached_incident_bundle()
     platform_incidents = incident_bundle.get("platform_incidents", [])
     incident_counts = incident_bundle.get("incident_counts", {})
@@ -577,6 +592,8 @@ def super_dashboard_v2(request):
     from apps.schools.residency_readiness import assess_readiness
 
     data_residency_readiness = assess_readiness()
+    from apps.schools.fleet_status import format_fleet_summary_label, resolve_fleet_summary
+
     response = render(
         request,
         "schools/super_dashboard.html",
@@ -629,9 +646,7 @@ def super_dashboard_v2(request):
             "recent_schools": recent_schools,
             "tenant_risk_rows": command_center.get("tenant_churn_risk_rows", [])[:12],
             "stale_support_rows": command_center.get("support_stale_rows", [])[:10],
-            "provisioning_breach_rows": command_center.get(
-                "provisioning_breach_rows", []
-            )[:10],
+            "provisioning_breach_rows": provisioning_breach_rows,
             "super_dashboard_section_order": get_super_dashboard_section_order(
                 request.user
             ),
@@ -642,6 +657,7 @@ def super_dashboard_v2(request):
             "operator_super_dashboard_links": operator_super_dashboard_links,
             "peer_operators": peer_operators,
             "data_residency_readiness": data_residency_readiness,
+            "fleet_summary_label": format_fleet_summary_label(resolve_fleet_summary()),
         },
     )
     response["X-RMC-SuperDashboard-Elapsed-Ms"] = str(

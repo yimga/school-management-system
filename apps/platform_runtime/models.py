@@ -313,6 +313,11 @@ class RuntimeDefaults(models.Model):
         blank=True,
         help_text="Default teacher portal enabled toggle.",
     )
+    enable_student_portal = models.BooleanField(
+        null=True,
+        blank=True,
+        help_text="Default student portal enabled toggle.",
+    )
     backend_console_theme = models.CharField(
         max_length=64,
         blank=True,

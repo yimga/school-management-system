@@ -1,0 +1,28 @@
+{% load i18n static %}
+{% comment %}
+  Tenant operational health strip — up / degraded / down with live refresh.
+  Requires data-rmc-tenant-health-endpoint on root (set by parent template).
+{% endcomment %}
+<section class="rmc-tenant-health rmc-tenant-health--{{ tenant_health.tier|default:'up' }}"
+         data-rmc-tenant-health-live="1"
+         data-rmc-tenant-health-endpoint="{{ health_api_url }}"
+         {% if health_stream_url %}data-rmc-tenant-health-stream-endpoint="{{ health_stream_url }}"{% endif %}
+         data-rmc-tenant-health-surface="{{ health_surface|default:'admin' }}"
+         aria-live="polite"
+         role="status">
+  <div class="rmc-tenant-health__head">
+    <span class="rmc-tenant-health__dot" aria-hidden="true"></span>
+    <strong class="rmc-tenant-health__title">{% trans "School status" %}</strong>
+    <span class="rmc-tenant-health__label ms-2" data-rmc-tenant-health-label>{{ tenant_health.label|default:_("All systems operational") }}</span>
+    <span class="text-muted small ms-auto">{% trans "Updated" %} <span data-rmc-tenant-health-refreshed></span></span>
+  </div>
+  <div class="rmc-tenant-health__signals d-flex flex-wrap gap-1 mt-2" data-rmc-tenant-health-signals>
+    {% if tenant_health.signals %}
+    {% for sig in tenant_health.signals %}
+    <span class="table-status-chip table-status-chip--{% if sig.tone == 'danger' %}danger{% elif sig.tone == 'warning' %}warning{% elif sig.tone == 'success' %}success{% else %}muted{% endif %}">{{ sig.label }}</span>
+    {% endfor %}
+    {% else %}
+    <span class="table-status-chip table-status-chip--success">{% trans "No blockers detected" %}</span>
+    {% endif %}
+  </div>
+</section>

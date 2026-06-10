@@ -83,6 +83,7 @@ EXACT_FIELD_OWNERS: Final[dict[str, str]] = {
     "notification_channels": "policies_rules",
     "enable_parent_portal": "policies_rules",
     "enable_teacher_portal": "policies_rules",
+    "enable_student_portal": "policies_rules",
     "default_portal_role_dual_role": "policies_rules",
     "grade_approval_enabled": "policies_rules",
     "grade_approval_auto_validate": "policies_rules",

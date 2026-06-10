@@ -74,6 +74,9 @@ backend-shell dashboard-page-backend
   {% phase8_dashboard_declaration "accounts/backend_dashboard.html" %}
 
   {% include "partials/tenant/hero_greeting.html" %}
+  {% url 'accounts:backend_operational_health_json' as tenant_health_api_url %}
+  {% url 'accounts:backend_operational_health_stream' as tenant_health_stream_url %}
+  {% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="admin" %}
   {% include "partials/operator_queue_smart_links_banner.html" %}
 
   {% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings.
@@ -1029,6 +1032,7 @@ backend-shell dashboard-page-backend
   <script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
   <script src="{% static 'js/dashboard-layout.js' %}"></script>
   <script src="{% static 'js/backend-dashboard-v2-page.js' %}"></script>
+  <script src="{% static 'js/rmc-tenant-health-live.js' %}" defer></script>
   {% if first_login_tour_show and tour_complete_url %}
   <script type="application/json" id="rmc-tour-page-config">{
   "autostart": "{{ tour_autostart_context|default:'backend_dashboard_admin'|escapejs }}",

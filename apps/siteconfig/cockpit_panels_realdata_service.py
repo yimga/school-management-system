@@ -446,36 +446,25 @@ def _resolve_world_map() -> dict[str, Any] | None:
 # ============================================================
 
 def _resolve_tenant_heatmap() -> dict[str, Any] | None:
-    """Compact heatmap of school health. Proxy: active+approved=ok, otherwise warn."""
+    """Compact heatmap of every school with unified fleet status colors."""
     try:
-        from apps.schools.models import School
-        # tenant-isolation-allow: platform-cockpit-cross-tenant-heatmap-tiles
-        rows = list(
-            School.objects.filter(is_active=True)
-            .values("slug", "country_code", "is_approved")[:60]
+        from apps.schools.fleet_status import (
+            format_heatmap_meta,
+            resolve_fleet_tiles,
         )
-        if not rows:
+
+        tiles, summary = resolve_fleet_tiles(max_tiles=500)
+        if not tiles and not summary.get("total"):
             return None
-        # tenant-isolation-allow: platform-cockpit-cross-tenant-heatmap-total
-        total = School.objects.filter(is_active=True).count()
-        tiles = []
-        for r in rows:
-            status = "healthy" if r.get("is_approved") else "warn"
-            tiles.append({
-                "label": (r.get("country_code") or "").upper() or "—",
-                "status": status,
-                "cell_value": "",
-                "cell_secondary": "",
-                "tenant_slug": _hash_prefix(r.get("slug") or "", 8),
-            })
         return {
             "enabled": True,
             "eyebrow": _("Tenants · health grid"),
-            "meta_text": _("{shown} of {total} · last refreshed 60s ago").format(
-                shown=len(tiles),
-                total=total,
-            ),
+            "title": _("Every school,"),
+            "title_em": _("one glance"),
+            "meta_text": format_heatmap_meta(shown=len(tiles), summary=summary),
             "tiles": tiles,
+            "fleet_summary": summary,
+            "legend_hint": format_heatmap_meta(shown=len(tiles), summary=summary),
         }
     except Exception:
         logger.warning("panels: tenant_heatmap resolver failed", exc_info=True)

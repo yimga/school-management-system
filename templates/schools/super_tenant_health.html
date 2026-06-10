@@ -11,7 +11,7 @@
 
   <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#tenant-health-main">{% trans "Skip to school health table" %}</a>
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div id="tenant-health-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  <div id="tenant-health-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-rmc-copilot-page-lens="operator-tenant-health" data-page-critical-read="1" data-rmc-fleet-live="1" data-rmc-fleet-page="{{ page_obj.number|default:1 }}" data-rmc-fleet-page-size="{{ page_size|default:50 }}"{% if search_query %} data-rmc-fleet-q="{{ search_query|escape }}"{% endif %}>
     {% if operator_tenant_health_links %}
     <div class="card shadow-sm border-0 page-family-content-card mb-3">
       <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
@@ -30,13 +30,17 @@
     <form method="get" class="d-flex flex-wrap align-items-center gap-2 mb-3" role="search">
       <input type="search" name="q" value="{{ search_query }}" class="form-control" placeholder="{% trans 'Search schools by name or slug' %}" autocomplete="off">
       <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Search" %}</button>
-      <span class="text-muted small ms-auto">{% blocktrans with total=total_tenant_count %} {{ total }} schools in fleet{% endblocktrans %}</span>
+    <span class="text-muted small ms-auto">
+        <span data-rmc-fleet-summary-bar>{{ fleet_summary_label }}</span>
+        · {% trans "Updated" %} <span data-rmc-fleet-refreshed></span>
+        · <a href="{% url 'super:export_fleet_status_odt' %}" class="link-secondary">{% trans "Export ODT" %}</a>
+      </span>
     </form>
     <div class="card shadow-sm border-0 page-family-content-card">
       <div class="card-body p-0">
         {% if tenants %}
         <div class="table-responsive table-density-comfortable">
-          <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+          <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "School Health Monitor" %}</caption>
             <thead class="table-light">
               <tr>
@@ -54,35 +58,46 @@
             </thead>
             <tbody>
               {% for t in tenants %}
-              <tr>
+              {% url 'super:tenant_360' t.id as tenant_360_url %}
+              <tr data-rmc-row-detail="1"
+                  tabindex="0"
+                  data-school-id="{{ t.id }}"
+                  {% include "partials/rmc_school_lens_api_attrs.html" with school=t %}
+                  data-rmc-row-title="{{ t.name|escape }}"
+                  data-rmc-row-subtitle="{{ t.slug|escape }}"
+                  data-rmc-row-meta='{"{% trans "Fleet status" %}":"{{ t.fleet_status.fleet_state_label|default:"—"|escapejs }}","{% trans "Lifecycle" %}":"{{ t.lifecycle.state_label|default:"—"|escapejs }}","{% trans "Active" %}":"{% if t.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}","{% trans "Approved" %}":"{% if t.is_approved %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}","{% trans "Students" %}":"{{ t.student_count|default:0 }}"}'
+                  data-rmc-row-actions='[{"label":"{% trans "Tenant 360"|escapejs %}","href":"{{ tenant_360_url|escapejs }}","variant":"primary"}]'
+                  data-rmc-fleet-state="{{ t.fleet_status.fleet_state|default:'' }}"
+                  data-rmc-fleet-tier="{{ t.fleet_status.heatmap_tier|default:'' }}">
                 <td><strong>{{ t.name }}</strong></td>
                 <td><code>{{ t.slug }}</code></td>
+                <td>{{ t.primary_sector|default:"—" }}</td>
                 <td>
-                  {% if t.lifecycle.tone == "danger" %}
-                  <span class="table-status-chip table-status-chip--danger">{{ t.lifecycle.state_label|default:"Unknown" }}</span>
-                  {% elif t.lifecycle.tone == "warning" %}
-                  <span class="table-status-chip table-status-chip--warning">{{ t.lifecycle.state_label|default:"Unknown" }}</span>
-                  {% elif t.lifecycle.tone == "success" %}
-                  <span class="table-status-chip table-status-chip--success">{{ t.lifecycle.state_label|default:"Unknown" }}</span>
+                  {% if t.unified_lifecycle.state %}
+                  <span class="table-status-chip table-status-chip--muted">{{ t.unified_lifecycle.label|default:t.unified_lifecycle.state }}</span>
                   {% else %}
-                  <span class="table-status-chip table-status-chip--muted">{{ t.lifecycle.state_label|default:"Unknown" }}</span>
+                  <span class="text-muted small">—</span>
+                  {% endif %}
+                </td>
+                <td data-rmc-fleet-status-cell>
+                  {% if t.fleet_status.heatmap_tier == "danger" %}
+                  <span class="table-status-chip table-status-chip--danger">{{ t.fleet_status.fleet_state_label|default:"Unknown" }}</span>
+                  {% elif t.fleet_status.heatmap_tier == "warn" %}
+                  <span class="table-status-chip table-status-chip--warning">{{ t.fleet_status.fleet_state_label|default:"Unknown" }}</span>
+                  {% elif t.fleet_status.heatmap_tier == "healthy" or t.fleet_status.heatmap_tier == "okay" %}
+                  <span class="table-status-chip table-status-chip--success">{{ t.fleet_status.fleet_state_label|default:"Unknown" }}</span>
+                  {% else %}
+                  <span class="table-status-chip table-status-chip--muted">{{ t.fleet_status.fleet_state_label|default:"Unknown" }}</span>
                   {% endif %}
                   {% if t.lifecycle.subscription_status %}
                   <div class="text-muted small">{{ t.lifecycle.subscription_status|title }}</div>
                   {% endif %}
                 </td>
                 <td>
-                  {% if t.is_active %}
-                  <span class="table-status-chip table-status-chip--success">Active</span>
-                  {% else %}
-                  <span class="table-status-chip table-status-chip--muted">Inactive</span>
-                  {% endif %}
-                </td>
-                <td>
                   {% if t.is_approved %}
-                  <span class="table-status-chip table-status-chip--success">Yes</span>
+                  <span class="table-status-chip table-status-chip--success">{% trans "Yes" %}</span>
                   {% else %}
-                  <span class="table-status-chip table-status-chip--warning">No</span>
+                  <span class="table-status-chip table-status-chip--warning">{% trans "No" %}</span>
                   {% endif %}
                 </td>
                 <td>{{ t.student_count|default:0 }}</td>
@@ -110,7 +125,12 @@
         {% endif %}
       </div>
       {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query show_page_size=True page_size=page_size page_size_options=page_size_options %}
+      {% include "components/row_detail_panel_hint.html" with hint_id="tenant-health-lens-hint" %}
     </div>
   </div>
-{% include "partials/portal_row_detail_drawer_bundle.html" %}
+{% endblock %}
+
+{% block extrajs %}
+{{ block.super }}
+<script src="{% static 'js/rmc-fleet-live.js' %}" defer></script>
 {% endblock %}

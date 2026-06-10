@@ -52,6 +52,10 @@ from .views_workflow import (
     academic_rules,
     automation_hub,
 )
+from apps.schools.views_tenant_health_api import (
+    TenantHealthStreamView,
+    tenant_operational_health_json,
+)
 from .views_dashboard import backend_dashboard, backend_dashboard_status_fragment
 from .views_onboarding import dismiss_first_login_checklist, mark_tour_complete
 from .views_delegation import (
@@ -439,6 +443,16 @@ urlpatterns = [
         "backend/status/fragment/",
         backend_dashboard_status_fragment,
         name="backend_dashboard_status_fragment",
+    ),
+    path(
+        "backend/api/operational-health.json",
+        tenant_operational_health_json,
+        name="backend_operational_health_json",
+    ),
+    path(
+        "backend/api/operational-health/stream/",
+        TenantHealthStreamView.as_view(),
+        name="backend_operational_health_stream",
     ),
     path(
         "backend/dismiss-first-login-checklist/",

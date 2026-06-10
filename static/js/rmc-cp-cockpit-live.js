@@ -4,24 +4,18 @@
 (function () {
   "use strict";
 
-  var POLL_MS = 30000;
+  var DEFAULT_POLL_MS = 15000;
   var ENDPOINT = "/super/api/cockpit/live.json";
 
-  function logDebug(hypothesisId, message, data) {
-    // region agent log
-    fetch("http://127.0.0.1:7426/ingest/383483ef-728e-4a6f-8288-6731caa89dc7", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "a48ae2" },
-      body: JSON.stringify({
-        sessionId: "a48ae2",
-        hypothesisId: hypothesisId,
-        location: "rmc-cp-cockpit-live.js",
-        message: message,
-        data: data || {},
-        timestamp: Date.now(),
-      }),
-    }).catch(function () {});
-    // endregion
+  function heatmapClassForStatus(status) {
+    var raw = String(status || "idle");
+    var rmcTier = raw;
+    if (raw === "warn") rmcTier = "watch";
+    else if (raw === "danger") rmcTier = "critical";
+    return {
+      lx: "lx-heatmap__tile lx-heatmap__tile--" + raw,
+      rmc: "rmc-heatmap__tile rmc-heatmap__tile--" + rmcTier,
+    };
   }
 
   function patchPulse(cards) {
@@ -33,8 +27,12 @@
       var valueEl = el.querySelector(".rmc-cockpit-pulse-card__value");
       var labelEl = el.querySelector(".rmc-cockpit-pulse-card__label");
       var deltaEl = el.querySelector(".rmc-cockpit-pulse-card__delta");
+      var dotEl = el.querySelector(".rmc-cockpit-pulse-card__dot");
       if (valueEl && card.value != null) valueEl.textContent = String(card.value);
       if (labelEl && card.label) labelEl.textContent = String(card.label);
+      if (dotEl && card.severity) {
+        dotEl.className = "rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--" + card.severity;
+      }
       if (deltaEl) {
         if (card.delta) {
           deltaEl.textContent = String(card.delta);
@@ -47,7 +45,7 @@
       el.setAttribute("aria-label", (card.head || "") + ": " + (card.value != null ? card.value : "—"));
     }
     var stamp = document.querySelector("[data-rmc-cp-pulse-refreshed]");
-    if (stamp && cards.length) {
+    if (stamp) {
       try {
         stamp.textContent = new Date().toLocaleTimeString();
       } catch (_) { /* noop */ }
@@ -60,20 +58,70 @@
     if (meta) meta.textContent = metaText;
   }
 
+  function buildHeatmapTile(tile) {
+    var status = tile.status || tile.health_status || "idle";
+    var classes = heatmapClassForStatus(status);
+    var node = document.createElement("div");
+    node.className = classes.lx + " " + classes.rmc;
+    node.setAttribute("role", "listitem");
+    node.setAttribute("tabindex", "0");
+    node.setAttribute("data-label", tile.label || "");
+    node.setAttribute("data-rmc-tooltip-text", tile.tooltip || tile.label || "");
+    node.setAttribute("data-rmc-heatmap-tooltip", tile.tooltip || tile.label || "");
+    if (tile.cell_value) node.setAttribute("data-cell-value", tile.cell_value);
+    if (tile.cell_secondary) node.setAttribute("data-cell-secondary", tile.cell_secondary);
+    if (tile.tenant_slug) node.setAttribute("data-tenant-slug", tile.tenant_slug);
+    if (tile.school_id) node.setAttribute("data-school-id", tile.school_id);
+    node.setAttribute("title", tile.tooltip || tile.label || "");
+    node.setAttribute("aria-label", tile.tooltip || tile.label || "");
+    return node;
+  }
+
   function patchHeatmapTiles(tiles) {
     if (!tiles || !tiles.length) return;
-    var grid = document.querySelector(".lx-heatmap__grid");
+    var grid = document.querySelector(".lx-heatmap__grid[data-rmc-heatmap-grid]");
     if (!grid) return;
+
     var existing = grid.querySelectorAll(".lx-heatmap__tile");
-    if (existing.length !== tiles.length) return;
+    if (existing.length !== tiles.length) {
+      grid.innerHTML = "";
+      for (var n = 0; n < tiles.length; n++) {
+        grid.appendChild(buildHeatmapTile(tiles[n]));
+      }
+      return;
+    }
+
     for (var i = 0; i < tiles.length; i++) {
       var tile = tiles[i];
       var node = existing[i];
       if (!node || !tile) continue;
-      var status = tile.health_status || tile.status || "idle";
-      node.className = "lx-heatmap__tile lx-heatmap__tile--" + status;
-      node.setAttribute("title", tile.tooltip || tile.name || "");
-      node.setAttribute("aria-label", tile.name || tile.tooltip || "");
+      var status = tile.status || tile.health_status || "idle";
+      var classes = heatmapClassForStatus(status);
+      node.className = classes.lx + " " + classes.rmc;
+      node.setAttribute("data-label", tile.label || "");
+      node.setAttribute("title", tile.tooltip || tile.label || "");
+      node.setAttribute("aria-label", tile.tooltip || tile.label || "");
+      if (tile.cell_value) node.setAttribute("data-cell-value", tile.cell_value);
+      if (tile.cell_secondary) node.setAttribute("data-cell-secondary", tile.cell_secondary);
+    }
+  }
+
+  function patchFleetLegend(summary) {
+    if (!summary) return;
+    var legend = document.querySelector(".lx-heatmap__legend[data-rmc-fleet-legend]");
+    if (!legend) return;
+    var map = [
+      ["healthy", summary.healthy || 0],
+      ["okay", summary.okay || 0],
+      ["warn", summary.warn || 0],
+      ["danger", summary.danger || 0],
+      ["idle", summary.idle || 0],
+    ];
+    for (var i = 0; i < map.length; i++) {
+      var key = map[i][0];
+      var count = map[i][1];
+      var span = legend.querySelector("[data-rmc-fleet-tier='" + key + "']");
+      if (span) span.setAttribute("data-rmc-fleet-count", String(count));
     }
   }
 
@@ -115,32 +163,48 @@
     if (payload.tenant_heatmap) {
       patchHeatmapMeta(payload.tenant_heatmap.meta_text);
       patchHeatmapTiles(payload.tenant_heatmap.tiles);
+      patchFleetLegend(payload.tenant_heatmap.fleet_summary);
     }
     if (payload.activity_ticker) patchTicker(payload.activity_ticker.cards);
-    logDebug("B", "cockpit_live_applied", {
-      generated_at: payload.generated_at,
-      pulse: (payload.pulse_cards || []).length,
-      heatmap: payload.tenant_heatmap ? payload.tenant_heatmap.total : 0,
-    });
   }
 
-  function pollOnce() {
+  function pollOnce(intervalRef) {
     fetch(ENDPOINT, { credentials: "same-origin", headers: { Accept: "application/json" } })
       .then(function (r) {
         if (!r.ok) throw new Error("status_" + r.status);
         return r.json();
       })
-      .then(applyPayload)
-      .catch(function (err) {
-        logDebug("B", "cockpit_live_poll_failed", { error: String(err && err.message ? err.message : err) });
-      });
+      .then(function (payload) {
+        if (payload && payload.poll_interval_seconds && intervalRef) {
+          intervalRef.ms = Math.max(5000, Number(payload.poll_interval_seconds) * 1000);
+        }
+        applyPayload(payload);
+      })
+      .catch(function () { /* silent — SSR snapshot remains visible */ });
   }
 
   function boot() {
     var root = document.querySelector("[data-rmc-cp-cockpit-live]");
     if (!root) return;
-    pollOnce();
-    window.setInterval(pollOnce, POLL_MS);
+    var intervalRef = { ms: DEFAULT_POLL_MS, handle: null };
+    var lastSseRevision = "";
+
+    pollOnce(intervalRef);
+    intervalRef.handle = window.setInterval(function () {
+      pollOnce(intervalRef);
+    }, intervalRef.ms);
+
+    if (typeof EventSource === "undefined") return;
+
+    var source = new EventSource("/super/api/fleet/stream/", { withCredentials: true });
+    source.onmessage = function (event) {
+      try {
+        var snap = JSON.parse(event.data || "{}");
+        if (snap.revision && snap.revision === lastSseRevision) return;
+        lastSseRevision = snap.revision || "";
+        pollOnce(intervalRef);
+      } catch (_) { /* noop */ }
+    };
   }
 
   if (document.readyState === "loading") {

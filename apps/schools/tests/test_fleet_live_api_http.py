@@ -1,5 +1,4 @@
-"""HTTP tests for super tenant health monitor (Phase H + operator curated links)."""
-
+"""HTTP tests for fleet live JSON API."""
 import os
 from unittest.mock import patch
 
@@ -8,17 +7,16 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User, UserPasskey
-from apps.platform_runtime.models import PlatformOperatorTenantHealthLink
 from apps.platform_runtime.operator_identity import ensure_platform_operator_profile
 from apps.schools.models import School
 from apps.schools.tests.manager_client import login_manager_control_plane
 
 
 @override_settings(ALLOWED_HOSTS=["*"])
-class SuperTenantHealthHttpTests(TestCase):
+class FleetLiveApiHttpTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            username="super_tenant_health_h",
+            username="fleet_live_api",
             password="testpass123",
             is_staff=True,
             is_superuser=True,
@@ -27,8 +25,8 @@ class SuperTenantHealthHttpTests(TestCase):
         ensure_platform_operator_profile(self.user, tier="break_glass")
         UserPasskey.objects.create(
             user=self.user,
-            name="Tenant health test passkey",
-            credential_id="tenant-health-test-passkey",
+            name="Fleet live test passkey",
+            credential_id="fleet-live-test-passkey",
             public_key="test-public-key",
         )
         self.client.force_login(self.user)
@@ -45,43 +43,39 @@ class SuperTenantHealthHttpTests(TestCase):
         )
         self.env.start()
         School.objects.create(
-            name="Health School",
-            slug="health-school",
-            subdomain="health-school",
+            name="Fleet Live School",
+            slug="fleet-live-school",
+            subdomain="fleet-live-school",
             is_active=True,
+            is_approved=True,
         )
 
     def tearDown(self):
         self.env.stop()
 
-    def test_tenant_health_phase_h_skip_link_targets_main(self):
-        url = reverse("super:tenant_health")
+    def test_fleet_live_json_returns_summary_and_rows(self):
+        url = reverse("super:api_fleet_live")
         response = self.client.get(url, HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
-        body = response.content.decode("utf-8")
-        self.assertIn('href="#tenant-health-main"', body)
-        self.assertIn('id="tenant-health-main"', body)
+        payload = response.json()
+        self.assertIn("summary", payload)
+        self.assertIn("rows", payload)
+        self.assertIn("revision", payload)
+        self.assertGreaterEqual(payload["summary"].get("total", 0), 1)
+        self.assertEqual(payload.get("poll_interval_seconds"), 15)
 
-    def test_tenant_health_renders_operator_tenant_health_curated_links(self):
-        PlatformOperatorTenantHealthLink.objects.create(
-            slug="batch-30-pulse",
-            label="Open pulse map",
-            href="/super/pulse/",
-            sort_order=0,
-        )
-        url = reverse("super:tenant_health")
+    def test_fleet_stream_returns_event_stream(self):
+        url = reverse("super:api_fleet_stream")
         response = self.client.get(url, HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
-        body = response.content.decode("utf-8")
-        self.assertIn("Open pulse map", body)
-        self.assertIn('href="/super/pulse/"', body)
+        self.assertIn("text/event-stream", response["Content-Type"])
 
-    def test_tenant_health_rows_emit_school_lens_api_attrs(self):
-        url = reverse("super:tenant_health")
+    def test_cockpit_live_json_includes_fleet_heatmap(self):
+        url = reverse("super:api_cockpit_live")
         response = self.client.get(url, HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
-        body = response.content.decode("utf-8")
-        self.assertIn('data-rmc-copilot-page-lens="operator-tenant-health"', body)
-        self.assertIn("data-rmc-row-lens-api", body)
-        self.assertIn("data-rmc-row-requeue-api", body)
-        self.assertIn("Health School", body)
+        payload = response.json()
+        heatmap = payload.get("tenant_heatmap") or {}
+        self.assertIn("tiles", heatmap)
+        self.assertIn("fleet_summary", heatmap)
+        self.assertIn("revision", heatmap)
