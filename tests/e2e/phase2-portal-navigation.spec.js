@@ -2,15 +2,11 @@
 /**
  * Phase 2 — tenant portal user-dropdown logout visibility at all viewports.
  *
- * Requires Django on VISUAL_QA_PORT with demo tenant path, e.g.:
- *   /t/demo-school/authentication/backend/
+ * Requires Django on VISUAL_QA_PORT with demo-school host mapped:
+ *   npm run test:e2e:phase2-portal
  */
 const { test, expect } = require('@playwright/test');
-
-const TENANT_BASE =
-  process.env.TENANT_E2E_BASE_URL ||
-  process.env.VISUAL_QA_TENANT_URL ||
-  'http://127.0.0.1:8012/t/demo-school';
+const { loginTenant, TENANT_BASE_URL } = require('./helpers/tenant-login');
 
 const VIEWPORTS = [
   { label: '320px', width: 320, height: 640 },
@@ -20,17 +16,8 @@ const VIEWPORTS = [
 
 test.describe('Phase 2 portal navigation', () => {
   test.beforeEach(async ({ page }) => {
-    const loginUrl = `${TENANT_BASE.replace(/\/$/, '')}/authentication/login/`;
-    await page.goto(loginUrl, { waitUntil: 'domcontentloaded' });
-    const userField = page.locator('input[name="username"], input[name="email"]').first();
-    const passField = page.locator('input[name="password"]').first();
-    if (await userField.isVisible().catch(() => false)) {
-      await userField.fill(process.env.E2E_TENANT_USER || 'admin');
-      await passField.fill(process.env.E2E_TENANT_PASSWORD || 'Sch00l_1234');
-      await page.locator('button[type="submit"], input[type="submit"]').first().click();
-      await page.waitForLoadState('domcontentloaded');
-    }
-    const backendUrl = `${TENANT_BASE.replace(/\/$/, '')}/authentication/backend/`;
+    await loginTenant(page);
+    const backendUrl = `${TENANT_BASE_URL.replace(/\/$/, '')}/authentication/backend/`;
     const response = await page.goto(backendUrl, { waitUntil: 'domcontentloaded' });
     expect(response?.status()).toBeLessThan(400);
   });

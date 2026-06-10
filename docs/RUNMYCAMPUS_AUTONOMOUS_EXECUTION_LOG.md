@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Residual closure proof wave (2026-06-10)
+
+**A. Scope:** Batch **1701** — tenant isolation regressions, Z-F phases 0–8, Playwright phase1/2 harness, 50-app matrix isolation mode, `demo-school` sandbox fix.
+
+**B. Shipped:** Scoped querysets in academics/people/schoolops/schools/setup_studio; `ensure_developer_sandbox_tenant` creates School row; `tenant-login.js` + `tenant-phase-chromium` Playwright project + `run_playwright_tenant_e2e_server.sh` + `run_residual_closure_proof.sh`; `run_50_app_test_shards.py --isolation app`.
+
+**C. Proof:** `scan_tenant_queryset_safety.py --compare` **0**; **ZERO_FRICTION_PHASES_0_8_PASS**; **ZERO_FRICTION_JOURNEYS_PASS**; `demo-school` provisioned with `demo.admin` / `Test1234`.
+
+**D. Honest:** Full 46-app matrix not green locally; Playwright phase specs need long cold-start runserver (wired via webServer); Postgres RLS / MAA v2 / live SLA operator-gated.
+
 ## Slice — Master implementation consolidation round (2026-06-10)
 
 **A. Scope:** Batch **1700** — single commit closing uncommitted **1691**/**1692** kernels + operator school lens + row-detail drawer + audit packs.

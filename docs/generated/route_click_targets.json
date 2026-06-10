@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-05-23T00:41:02.545144+00:00",
-  "nav_item_count": 76,
+  "generated_at": "2026-06-10T08:28:10.419921+00:00",
+  "nav_item_count": 71,
   "lazy_fallback_count": 0,
   "targets": [
     {
@@ -52,10 +52,34 @@
       "url_name": "super:schools_list"
     },
     {
+      "id": "super_signup_verifications",
+      "label": "Signup verifications",
+      "url": "/super/signup-verifications/",
+      "url_name": "super:signup_verifications"
+    },
+    {
+      "id": "super_invite_school",
+      "label": "Invite a school",
+      "url": "/super/invite-school/",
+      "url_name": "super:invite_school"
+    },
+    {
       "id": "super_offboarding_queue",
       "label": "Offboarding queue",
       "url": "/super/offboarding/",
       "url_name": "super:offboarding_queue"
+    },
+    {
+      "id": "super_schools_rapid_create",
+      "label": "Rapid create",
+      "url": "/super/schools/rapid/",
+      "url_name": "super:schools_rapid_create"
+    },
+    {
+      "id": "super_provisioning_jobs",
+      "label": "Provisioning jobs",
+      "url": "/super/provisioning/jobs/",
+      "url_name": "super:provisioning_jobs"
     },
     {
       "id": "super_provision",
@@ -109,7 +133,7 @@
       "id": "super_incidents",
       "label": "Incidents",
       "url": "/ops/incidents/",
-      "url_name": ""
+      "url_name": "marketing_region"
     },
     {
       "id": "super_runtime_inspector",
@@ -176,6 +200,12 @@
       "label": "Dashboard Packs",
       "url": "/super/dashboard-packs/",
       "url_name": "super:dashboard_packs_catalog"
+    },
+    {
+      "id": "super_workflow_flight_deck",
+      "label": "Workflow Flight Deck",
+      "url": "/platform-runtime/workflow-progress/flight-deck/",
+      "url_name": "platform_runtime:workflow_progress_flight_deck"
     },
     {
       "id": "super_governance",
@@ -286,6 +316,12 @@
       "url_name": "super:operator_policy"
     },
     {
+      "id": "super_operator_team_roster",
+      "label": "Team & identity",
+      "url": "/super/team/",
+      "url_name": "super:operator_team_roster"
+    },
+    {
       "id": "super_backlog_unlock_center",
       "label": "Backlog unlock center",
       "url": "/super/backlog-unlock-center/",
@@ -392,72 +428,6 @@
       "label": "Platform Studio \u00b7 Reports",
       "url": "/studio/output/?pane=reports",
       "url_name": ""
-    },
-    {
-      "id": "cp_admin_bridge_integrations",
-      "label": "Integrations registry (admin)",
-      "url": "/admin/integrations_marketplace/integration/",
-      "url_name": "admin:integrations_marketplace_integration_changelist"
-    },
-    {
-      "id": "cp_admin_bridge_marketplace_apps",
-      "label": "Marketplace apps (admin)",
-      "url": "/admin/integrations_marketplace/marketplaceapp/",
-      "url_name": "admin:integrations_marketplace_marketplaceapp_changelist"
-    },
-    {
-      "id": "cp_admin_bridge_packages_installed",
-      "label": "Installed packages (admin)",
-      "url": "/admin/packages/installedpackage/",
-      "url_name": "admin:packages_installedpackage_changelist"
-    },
-    {
-      "id": "cp_admin_bridge_experience_packs",
-      "label": "Experience packs (admin)",
-      "url": "/admin/packages/experiencepack/",
-      "url_name": "admin:packages_experiencepack_changelist"
-    },
-    {
-      "id": "cp_admin_bridge_runtime_defaults",
-      "label": "Runtime defaults (admin)",
-      "url": "/admin/platform_runtime/runtimedefaults/",
-      "url_name": "admin:platform_runtime_runtimedefaults_changelist"
-    },
-    {
-      "id": "cp_admin_bridge_phase_b_domain_snapshots",
-      "label": "Phase B domain snapshots (admin)",
-      "url": "/admin/platform_runtime/platformphasebdomainsnapshot/",
-      "url_name": "admin:platform_runtime_platformphasebdomainsnapshot_changelist"
-    },
-    {
-      "id": "cp_admin_bridge_fleet_governed_changes",
-      "label": "Fleet governed changes (admin)",
-      "url": "/admin/platform_runtime/fleetgovernedchange/",
-      "url_name": "admin:platform_runtime_fleetgovernedchange_changelist"
-    },
-    {
-      "id": "cp_admin_bridge_ai_model_registry",
-      "label": "AI model registry (admin)",
-      "url": "/admin/siteconfig/aimodelregistry/",
-      "url_name": "admin:siteconfig_aimodelregistry_changelist"
-    },
-    {
-      "id": "cp_admin_bridge_global_brand_registry",
-      "label": "Global brand registry (admin)",
-      "url": "/admin/brand_experience/globalbrandregistry/",
-      "url_name": "admin:brand_experience_globalbrandregistry_changelist"
-    },
-    {
-      "id": "cp_admin_bridge_platform_global_branding",
-      "label": "Platform global branding (admin)",
-      "url": "/admin/brand_experience/platformglobalbranding/",
-      "url_name": "admin:brand_experience_platformglobalbranding_changelist"
-    },
-    {
-      "id": "cp_admin_bridge_accounts_users",
-      "label": "Users (admin)",
-      "url": "/admin/accounts/user/",
-      "url_name": "admin:accounts_user_changelist"
     }
   ],
   "findings": [],

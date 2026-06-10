@@ -21,7 +21,10 @@ def _school_from_request(request):
         from apps.schools.models import SchoolMembership
 
         mem = (
-            SchoolMembership.objects.filter(user=request.user, is_primary=True)
+            SchoolMembership.objects.filter(  # tenant-isolation-allow: primary-membership-resolves-tenant-context
+                user=request.user,
+                is_primary=True,
+            )
             .select_related("school")
             .first()
         )

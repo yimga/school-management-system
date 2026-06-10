@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -24,7 +25,11 @@ OUT = REPO / "docs" / "generated"
 
 # Import gate bootstrap so all shards share one stable SQLite test DB (no parallel fresh DBs).
 sys.path.insert(0, str(REPO / "scripts"))
-from sqlite_gate_db import bootstrap_gate_session_env, reap_all_stale_gate_locks  # noqa: E402
+from sqlite_gate_db import (  # noqa: E402
+    bootstrap_gate_session_env,
+    reap_all_stale_gate_locks,
+    sqlite_gate_lease,
+)
 
 SHARDS: list[list[str]] = [
     [
@@ -146,6 +151,179 @@ def _run_shard(shard_index: int, labels: list[str], *, keepdb: bool, fresh: bool
         }
 
 
+# ──────────────────────────────────────────────────────────────────────
+# Per-app isolation mode
+#
+# The default shard mode runs ~8 apps in ONE process against ONE shared
+# keepdb. That lets committed TransactionTestCase rows + module state bleed
+# across apps, so tests that pass alone fail in the matrix (confirmed: the
+# MFA /super/ nav suite is green in isolation but red in a shared shard).
+# Per-app isolation gives every app its OWN test DB file in its OWN process,
+# eliminating cross-app bleed — the only way the matrix can prove green
+# honestly. Migration cost is paid ONCE into a clean template, then copied
+# per app, so this is not 50× slower.
+# ──────────────────────────────────────────────────────────────────────
+
+_TEMPLATE_DB = REPO / ".django_test_dbs" / "iso_app_template.sqlite3"
+# A tiny DB-using *plain TestCase* suite (NOT SimpleTestCase, which would make
+# Django skip test-DB creation entirely, and NOT TransactionTestCase, which
+# commits rows). A plain TestCase forces Django to migrate the test DB, then
+# rolls back its single test in a transaction — yielding a clean, migrated,
+# EMPTY template to copy per app.
+_TEMPLATE_SEED_LABEL = "apps.customersuccess.tests.test_tenant_health_score"
+
+
+def _flatten_apps() -> list[str]:
+    return [label for shard in SHARDS for label in shard]
+
+
+def _iso_db_path(app_label: str) -> Path:
+    return REPO / ".django_test_dbs" / f"iso_{app_label.replace('.', '_')}.sqlite3"
+
+
+def _rm_sqlite(path: Path) -> None:
+    for suffix in ("", "-wal", "-shm"):
+        f = Path(str(path) + suffix)
+        try:
+            if f.exists():
+                f.unlink()
+        except OSError:
+            pass
+
+
+def _isolated_env(db_file: Path) -> dict:
+    env = os.environ.copy()
+    env["RMC_SQLITE_TEST_MEMORY"] = "1"
+    # File-backed TEST db so --keepdb reuses the copied template schema.
+    env["RMC_SQLITE_TEST_USE_MEMORY_NAME"] = "0"
+    env["DJANGO_TEST_DB_FILE"] = str(db_file)
+    # Per-app isolation must NOT funnel through the shared gate-session DB.
+    env.pop("RMC_SQLITE_GATE_SESSION", None)
+    env.setdefault("PYTHONUNBUFFERED", "1")
+    return env
+
+
+def _manage_test_cmd(labels: list[str]) -> list[str]:
+    return [
+        sys.executable,
+        str(REPO / "manage.py"),
+        "test",
+        *labels,
+        "--settings=config.settings",
+        "--noinput",
+        "--keepdb",
+        "--parallel=1",
+        "--verbosity=1",
+    ]
+
+
+def _seal_template_wal() -> None:
+    """Fold the WAL into the main DB file so ``shutil.copyfile`` is consistent.
+
+    SQLite under Django's test runner leaves the DB in WAL mode with an
+    uncheckpointed ``-wal`` sidecar. ``shutil.copyfile`` copies ONLY the main
+    file, so a naive copy is an inconsistent (or empty) snapshot — the source
+    of spurious ``UNIQUE constraint failed: auth_permission`` errors when an
+    app re-runs ``post_migrate`` over the partial copy. Checkpoint (TRUNCATE)
+    then switch to DELETE journal mode so the single main file is complete and
+    self-contained, with no sidecars left to drop.
+    """
+    import sqlite3
+
+    try:
+        conn = sqlite3.connect(str(_TEMPLATE_DB))
+        try:
+            conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            conn.execute("PRAGMA journal_mode=DELETE")
+            conn.commit()
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        # Best-effort: a failed seal just means the copy may re-migrate.
+        pass
+    # Remove any sidecars the journal-mode switch did not already unlink.
+    for suffix in ("-wal", "-shm"):
+        f = Path(str(_TEMPLATE_DB) + suffix)
+        try:
+            if f.exists():
+                f.unlink()
+        except OSError:
+            pass
+
+
+def _build_template_db() -> bool:
+    """Migrate one clean, data-free template DB to copy per app."""
+    _rm_sqlite(_TEMPLATE_DB)
+    env = _isolated_env(_TEMPLATE_DB)
+    cmd = _manage_test_cmd([_TEMPLATE_SEED_LABEL])
+    try:
+        with sqlite_gate_lease(_TEMPLATE_DB):
+            rc = subprocess.call(cmd, cwd=str(REPO), env=env, timeout=1800)
+    except subprocess.TimeoutExpired:
+        return False
+    if rc != 0 or not _TEMPLATE_DB.is_file():
+        return False
+    _seal_template_wal()
+    return _TEMPLATE_DB.is_file()
+
+
+def _run_app_isolated(app_label: str) -> dict:
+    iso_db = _iso_db_path(app_label)
+    _rm_sqlite(iso_db)
+    # Seed from the clean migrated template so --keepdb skips migration but
+    # each app still runs against its OWN file (no cross-app bleed). If the
+    # template is missing, the app migrates fresh into its own file (slower
+    # but still isolated).
+    if _TEMPLATE_DB.is_file():
+        try:
+            shutil.copyfile(_TEMPLATE_DB, iso_db)
+        except OSError:
+            _rm_sqlite(iso_db)
+    env = _isolated_env(iso_db)
+    cmd = _manage_test_cmd([app_label])
+    try:
+        with sqlite_gate_lease(iso_db):
+            proc = subprocess.run(
+                cmd, cwd=str(REPO), capture_output=True, text=True, timeout=3600
+            )
+        tail = ((proc.stdout or "") + "\n" + (proc.stderr or ""))[-4000:]
+        return {
+            "shard": app_label,
+            "labels": [app_label],
+            "command": " ".join(cmd),
+            "exit_code": proc.returncode,
+            "ok": proc.returncode == 0,
+            "output_tail": tail,
+        }
+    except subprocess.TimeoutExpired:
+        return {
+            "shard": app_label,
+            "labels": [app_label],
+            "command": " ".join(cmd),
+            "exit_code": -1,
+            "ok": False,
+            "error": "timeout_3600s",
+        }
+    finally:
+        # Reclaim disk; the template stays for the next app.
+        _rm_sqlite(iso_db)
+
+
+def payload_apps(results: list[dict], apps: list[str]) -> dict:
+    all_ran = len(results) == len(apps)
+    all_green = bool(results) and all(r.get("ok") for r in results) and all_ran
+    return {
+        "generated_at": _now(),
+        "isolation": "app",
+        "shard_count": len(apps),
+        "shards_run": len(results),
+        "all_shards_green": all_green,
+        "all_shards_executed": all_ran,
+        "shards": results,
+        "command_template": "python scripts/run_50_app_test_shards.py --write --isolation app",
+    }
+
+
 def _write_progress(payload: dict) -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "full_50_app_test_matrix_completion.json").write_text(
@@ -168,6 +346,74 @@ def payload_base(shard_results: list[dict], by_index: dict) -> dict:
     }
 
 
+def _run_app_isolation_mode(args) -> int:
+    reaped = reap_all_stale_gate_locks(REPO, stale_after=120.0)
+    if reaped:
+        print(f"Reaped {reaped} stale SQLite gate lock(s)", flush=True)
+
+    apps = _flatten_apps()
+    print(
+        f"Per-app isolation: {len(apps)} apps; building clean migrated template...",
+        flush=True,
+    )
+    if _build_template_db():
+        print(f"Template DB ready: {_TEMPLATE_DB}", flush=True)
+    else:
+        print(
+            "  ! template build failed; each app will migrate fresh (slower, still isolated)",
+            flush=True,
+        )
+
+    # Resume support: reuse prior per-app results for unchanged labels.
+    by_label: dict[str, dict] = {}
+    p = OUT / "full_50_app_test_matrix_completion.json"
+    if p.is_file():
+        try:
+            prior = json.loads(p.read_text(encoding="utf-8"))
+            if prior.get("isolation") == "app":
+                by_label = {
+                    r["shard"]: r
+                    for r in (prior.get("shards") or [])
+                    if r.get("shard") in apps
+                }
+        except json.JSONDecodeError:
+            by_label = {}
+
+    for i, app in enumerate(apps):
+        print(f"App {i + 1}/{len(apps)}: {app}", flush=True)
+        result = _run_app_isolated(app)
+        by_label[app] = result
+        print(
+            f"  -> {app} ok={result.get('ok')} exit={result.get('exit_code')}",
+            flush=True,
+        )
+        if args.write:
+            ordered = [by_label[a] for a in apps if a in by_label]
+            _write_progress(payload_apps(ordered, apps))
+
+    ordered = [by_label[a] for a in apps if a in by_label]
+    payload = payload_apps(ordered, apps)
+    if args.write:
+        _write_progress(payload)
+        failing = [r["shard"] for r in ordered if not r.get("ok")]
+        lines = [
+            "# Full 50-app test matrix completion (per-app isolation)\n",
+            f"Generated: {_now()}\n",
+            f"- Apps: {payload['shards_run']}/{payload['shard_count']}",
+            f"- All green: **{payload['all_shards_green']}**",
+            f"- Failing apps: {', '.join(failing) if failing else '(none)'}",
+        ]
+        (OUT / "full_50_app_test_matrix_completion.md").write_text(
+            "\n".join(lines) + "\n", encoding="utf-8"
+        )
+    print(
+        f"Matrix (per-app): {payload['shards_run']}/{payload['shard_count']} apps; "
+        f"all_green={payload['all_shards_green']}",
+        flush=True,
+    )
+    return 0 if payload["all_shards_green"] else 1
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--write", action="store_true")
@@ -175,8 +421,18 @@ def main() -> int:
     parser.add_argument("--max-shards", type=int, default=None, help="Run first N shards only")
     parser.add_argument("--keepdb", action="store_true", default=True)
     parser.add_argument("--no-keepdb", action="store_true")
+    parser.add_argument(
+        "--isolation",
+        choices=["shard", "app"],
+        default="shard",
+        help="shard = shared-DB shards (fast, bleed-prone); "
+        "app = per-app isolated DB (bleed-free, proves green honestly)",
+    )
     args = parser.parse_args()
     keepdb = args.keepdb and not args.no_keepdb
+
+    if args.isolation == "app":
+        return _run_app_isolation_mode(args)
 
     reaped = reap_all_stale_gate_locks(REPO, stale_after=120.0)
     if reaped:

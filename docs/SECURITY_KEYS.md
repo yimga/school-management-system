@@ -726,7 +726,7 @@ a backend identifier change.
    ```
 3. After deploy, `current_backend_name()` returns
    `"django_cryptography_1_2_plus"`. Confirm:
-   ```python
+   ```bash
    python manage.py shell -c "from apps.accounts.legacy_hashes.encryption import current_backend_name; print(current_backend_name())"
    ```
 4. **No data migration is required for new writes.** New

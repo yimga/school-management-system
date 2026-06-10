@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-09T01:46:41.200037+00:00",
+  "generated_at": "2026-06-10T08:29:38.884994+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASES-0-8",
   "summary": {
     "phases_total": 9,
@@ -9,7 +9,7 @@
     "not_done": 0,
     "repo_scope_complete": true
   },
-  "service_worker_version": "sms-v4.03.30-geos99-phases-gates-closure-2026-06-08",
+  "service_worker_version": "sms-v4.03.60-master-implementation-consolidation-2026-06-10",
   "phases": [
     {
       "phase": 0,
@@ -105,7 +105,7 @@
         "teacher_zone_scroll_complete": true,
         "parent_portal_rmc_table_scroll_complete": true,
         "people_portal_drawer_gaps_cleared": true,
-        "schools_siteconfig_mechanical_gaps_cleared": true,
+        "schools_siteconfig_mechanical_gaps_cleared": false,
         "finance_platform_runtime_mechanical_gaps_cleared": true,
         "analytics_mechanical_gaps_cleared": true,
         "evals_accounts_mechanical_gaps_cleared": true,

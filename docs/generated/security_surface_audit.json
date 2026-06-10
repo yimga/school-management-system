@@ -5468,7 +5468,7 @@
         "classification": "allowed",
         "file": "apps/setup_studio/views_zero_friction.py",
         "governance_tier": "safe",
-        "line": "33",
+        "line": "36",
         "pattern": "login_required"
       },
       {
@@ -5476,7 +5476,7 @@
         "classification": "allowed",
         "file": "apps/setup_studio/views_zero_friction.py",
         "governance_tier": "safe",
-        "line": "42",
+        "line": "45",
         "pattern": "login_required"
       },
       {
@@ -5484,7 +5484,7 @@
         "classification": "allowed",
         "file": "apps/setup_studio/views_zero_friction.py",
         "governance_tier": "safe",
-        "line": "51",
+        "line": "54",
         "pattern": "login_required"
       },
       {
@@ -11840,7 +11840,7 @@
         "classification": "allowed",
         "file": "apps/setup_studio/views_zero_friction.py",
         "governance_tier": "safe",
-        "line": "52",
+        "line": "55",
         "pattern": "require_http_methods"
       },
       {
@@ -16156,7 +16156,7 @@
         "classification": "needs_review",
         "file": "scripts/run_50_app_test_shards.py",
         "governance_tier": "controlled",
-        "line": "122",
+        "line": "127",
         "pattern": "subprocess"
       },
       {
@@ -16164,7 +16164,39 @@
         "classification": "needs_review",
         "file": "scripts/run_50_app_test_shards.py",
         "governance_tier": "controlled",
-        "line": "138",
+        "line": "143",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/run_50_app_test_shards.py",
+        "governance_tier": "controlled",
+        "line": "261",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/run_50_app_test_shards.py",
+        "governance_tier": "controlled",
+        "line": "262",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/run_50_app_test_shards.py",
+        "governance_tier": "controlled",
+        "line": "286",
+        "pattern": "subprocess"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "needs_review",
+        "file": "scripts/run_50_app_test_shards.py",
+        "governance_tier": "controlled",
+        "line": "298",
         "pattern": "subprocess"
       },
       {
@@ -18385,7 +18417,7 @@
       }
     ]
   },
-  "generated_at": "2026-06-10T03:19:54.663748+00:00",
+  "generated_at": "2026-06-10T08:30:10.747320+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/br_northstar_views.py",
@@ -18434,21 +18466,21 @@
     "permission_classes": 73,
     "require_http_methods": 676,
     "staff_member_required": 124,
-    "subprocess": 591
+    "subprocess": 595
   },
   "summary_by_classification": {
     "allowed": 1825,
-    "needs_review": 458,
+    "needs_review": 462,
     "unsafe": 13
   },
   "summary_by_governance_tier": {
-    "controlled": 402,
+    "controlled": 406,
     "needs_review": 57,
     "safe": 1825,
     "violation": 12
   },
   "totals": {
-    "hits": 2296
+    "hits": 2300
   },
   "unified": [
     {
@@ -23912,7 +23944,7 @@
       "classification": "allowed",
       "file": "apps/setup_studio/views_zero_friction.py",
       "governance_tier": "safe",
-      "line": "33",
+      "line": "36",
       "pattern": "login_required"
     },
     {
@@ -23920,7 +23952,7 @@
       "classification": "allowed",
       "file": "apps/setup_studio/views_zero_friction.py",
       "governance_tier": "safe",
-      "line": "42",
+      "line": "45",
       "pattern": "login_required"
     },
     {
@@ -23928,7 +23960,7 @@
       "classification": "allowed",
       "file": "apps/setup_studio/views_zero_friction.py",
       "governance_tier": "safe",
-      "line": "51",
+      "line": "54",
       "pattern": "login_required"
     },
     {
@@ -30280,7 +30312,7 @@
       "classification": "allowed",
       "file": "apps/setup_studio/views_zero_friction.py",
       "governance_tier": "safe",
-      "line": "52",
+      "line": "55",
       "pattern": "require_http_methods"
     },
     {
@@ -34592,7 +34624,7 @@
       "classification": "needs_review",
       "file": "scripts/run_50_app_test_shards.py",
       "governance_tier": "controlled",
-      "line": "122",
+      "line": "127",
       "pattern": "subprocess"
     },
     {
@@ -34600,7 +34632,39 @@
       "classification": "needs_review",
       "file": "scripts/run_50_app_test_shards.py",
       "governance_tier": "controlled",
-      "line": "138",
+      "line": "143",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/run_50_app_test_shards.py",
+      "governance_tier": "controlled",
+      "line": "261",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/run_50_app_test_shards.py",
+      "governance_tier": "controlled",
+      "line": "262",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/run_50_app_test_shards.py",
+      "governance_tier": "controlled",
+      "line": "286",
+      "pattern": "subprocess"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "needs_review",
+      "file": "scripts/run_50_app_test_shards.py",
+      "governance_tier": "controlled",
+      "line": "298",
       "pattern": "subprocess"
     },
     {

@@ -51,9 +51,9 @@ from apps.schoolops.models import (
 
 
 def _scoped_library_items(school):
-    from apps.tenancy.queryset_boundary import scoped_queryset_for_school
-
-    return scoped_queryset_for_school(LibraryItem.objects.all(), school)
+    if school is None:
+        return LibraryItem.objects.none()
+    return LibraryItem.objects.filter(school=school)
 
 
 def _ops_roles_ok(user) -> bool:

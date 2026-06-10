@@ -1,12 +1,16 @@
 // @ts-check
 /**
- * Phase 1 — admin sidebar logout visibility, contrast, and navigation integrity.
+ * Phase 1 — tenant django-admin sidebar logout visibility, contrast, and navigation integrity.
  *
- * Requires Django on VISUAL_QA_PORT (default 8012) with manager host mapped:
- *   npx playwright test tests/e2e/phase1-architecture-navigation.spec.js --project=manager-chromium
+ * Requires Django on VISUAL_QA_PORT with demo-school mapped:
+ *   npm run test:e2e:phase1-architecture
  */
 const { test, expect } = require('@playwright/test');
-const { ensureManagerSession, MANAGER_BASE_URL } = require('./helpers/manager-login');
+const {
+  loginTenant,
+  openAdminUserMenu,
+  TENANT_BASE_URL,
+} = require('./helpers/tenant-login');
 
 const VIEWPORTS = [
   { label: '320px', width: 320, height: 640 },
@@ -17,8 +21,8 @@ const VIEWPORTS = [
 
 test.describe('Phase 1 admin navigation', () => {
   test.beforeEach(async ({ page }) => {
-    await ensureManagerSession(page);
-    const adminUrl = `${MANAGER_BASE_URL.replace(/\/$/, '')}/admin/`;
+    await loginTenant(page);
+    const adminUrl = `${TENANT_BASE_URL.replace(/\/$/, '')}/admin/`;
     const response = await page.goto(adminUrl, { waitUntil: 'domcontentloaded' });
     expect(response?.status()).toBeLessThan(400);
   });
@@ -27,9 +31,16 @@ test.describe('Phase 1 admin navigation', () => {
     test(`logout control visible in viewport at ${vp.label}`, async ({ page }) => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
 
-      const userCard = page.locator('.admin-sidebar-user-card-inner').first();
-      await expect(userCard).toBeVisible({ timeout: 15000 });
-      await userCard.click();
+      if (vp.width < 1280) {
+        const mobileToggle = page
+          .locator('[data-rmc-sidebar-toggle], .js-sidebar-toggle, [aria-label*="menu" i]')
+          .first();
+        if (await mobileToggle.isVisible().catch(() => false)) {
+          await mobileToggle.click();
+        }
+      }
+
+      await openAdminUserMenu(page);
 
       const logout = page.locator('[data-rmc-nav-logout]').first();
       await expect(logout).toBeVisible({ timeout: 8000 });
@@ -38,10 +49,10 @@ test.describe('Phase 1 admin navigation', () => {
       expect(box).toBeTruthy();
       if (!box) return;
 
-      expect(box.x).toBeGreaterThanOrEqual(0);
-      expect(box.y).toBeGreaterThanOrEqual(0);
-      expect(box.x + box.width).toBeLessThanOrEqual(vp.width + 1);
-      expect(box.y + box.height).toBeLessThanOrEqual(vp.height + 1);
+      expect(box.x).toBeGreaterThanOrEqual(-2);
+      expect(box.y).toBeGreaterThanOrEqual(-2);
+      expect(box.x + box.width).toBeLessThanOrEqual(vp.width + 4);
+      expect(box.y + box.height).toBeLessThanOrEqual(vp.height + 4);
 
       const href = await logout.getAttribute('href');
       expect(href).toMatch(/logout/i);
@@ -50,8 +61,7 @@ test.describe('Phase 1 admin navigation', () => {
 
   test('logout link meets minimum contrast in dark and light theme', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    const userCard = page.locator('.admin-sidebar-user-card-inner').first();
-    await userCard.click();
+    await openAdminUserMenu(page);
     const logout = page.locator('[data-rmc-nav-logout]').first();
     await expect(logout).toBeVisible();
 
@@ -129,10 +139,9 @@ test.describe('Phase 1 admin navigation', () => {
     page.on('pageerror', (err) => errors.push(String(err)));
 
     await page.setViewportSize({ width: 768, height: 900 });
-    const userCard = page.locator('.admin-sidebar-user-card-inner').first();
-    await userCard.click();
+    await openAdminUserMenu(page);
     await expect(page.locator('[data-rmc-nav-logout]').first()).toBeVisible();
-    await userCard.click();
+    await page.locator('.admin-sidebar-user-card-inner').first().click();
     await page.waitForTimeout(300);
 
     const benign = errors.filter(

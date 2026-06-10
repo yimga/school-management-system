@@ -35,14 +35,32 @@ __all__ = [
 _FLAG_ERRORS = (AttributeError, ImportError, LookupError, TypeError, ValueError)
 
 
+# URL patterns are static per process, so the (name, urlconf) -> path
+# resolution never changes at runtime. Cache it: this context processor
+# reverses ~13 names on every page render across every host, and several
+# AI-chrome routes legitimately do not exist on some hosts (e.g. the
+# manager control-plane urlconf has no tenant copilot config/limits or
+# local-voice routes). Without the cache each miss re-walks the whole
+# resolver AND logs on every request. Cache both hits and misses, and log
+# a miss at most once per unique (name, urlconf).
+_REVERSE_CACHE: dict[tuple[str, str | None], str] = {}
+
+
 def _reverse(name: str, *, urlconf: str | None = None) -> str:
+    cache_key = (name, urlconf)
+    cached = _REVERSE_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
     try:
         if urlconf:
-            return reverse(name, urlconf=urlconf)
-        return reverse(name)
+            resolved = reverse(name, urlconf=urlconf)
+        else:
+            resolved = reverse(name)
     except NoReverseMatch:
         logger.debug("ai_chrome_config: NoReverseMatch for %s", name)
-        return ""
+        resolved = ""
+    _REVERSE_CACHE[cache_key] = resolved
+    return resolved
 
 
 def _effective_flags(request) -> dict[str, Any]:

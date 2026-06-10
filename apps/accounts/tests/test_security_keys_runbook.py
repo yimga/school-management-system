@@ -105,6 +105,12 @@ class SecurityKeysRunbookNoLiteralSecretsTests(SimpleTestCase):
     _PLACEHOLDER_MARKERS = (
         "xxxx", "INSERT",
         "DJANGO_CRYPTOGRAPHY_KEY", "DJANGO_CRYPTOGRAPHY_KEYS",
+        "DJANGO_CRYPTOGRAPHY_VAULT_MOUNT", "DJANGO_CRYPTOGRAPHY_VAULT_PATH",
+        "DJANGO_CRYPTOGRAPHY_VAULT_FIELD", "DJANGO_CRYPTOGRAPHY_VAULT_CACHE",
+        "DJANGO_CRYPTOGRAPHY_KEYS_SOURCE", "DJANGO_CRYPTOGRAPHY_VAULT_DRY",
+        "VAULT_ADDR", "VAULT_TOKEN", "VAULT_NAMESPACE",
+        "accounts-key-rotation-monthly", "accounts-sunset-stale-legacy-hashes",
+        "migration-cloud-webhook-deliver-due", "upstream-watch-django-cryptography",
         "encrypt_existing_legacy_hashes", "rewrap_all",
         "MigrationCloudWebhookSubscription",
         "companion_receiver", "rotate_companion_keypair",

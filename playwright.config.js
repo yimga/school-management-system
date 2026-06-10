@@ -38,6 +38,8 @@ const _chromiumArgs = (hostRules) => [
   `--host-resolver-rules=${hostRules}`,
   '--proxy-server=direct://',
   '--proxy-bypass-list=*',
+  // Local dev uses plain HTTP; prevent Chrome from upgrading *.runmycampus.com.
+  '--disable-features=HttpsUpgrades,HttpsFirstMode',
 ];
 
 module.exports = defineConfig({
@@ -98,6 +100,31 @@ module.exports = defineConfig({
       },
     },
     {
+      name: 'tenant-phase-chromium',
+      testMatch: [
+        '**/phase1-architecture-navigation.spec.js',
+        '**/phase2-portal-navigation.spec.js',
+      ],
+      timeout: 90000,
+      use: {
+        channel: 'chromium',
+        baseURL:
+          process.env.PLAYWRIGHT_TENANT_BASE_URL ||
+          `http://127.0.0.1:${_managerPort}/t/demo-school`,
+        serviceWorkers: 'block',
+        launchOptions: {
+          args: ['--proxy-server=direct://', '--proxy-bypass-list=*'],
+        },
+      },
+      webServer: {
+        command: 'bash scripts/run_playwright_tenant_e2e_server.sh',
+        cwd: __dirname,
+        url: `http://127.0.0.1:${_managerPort}/t/demo-school/authentication/login/`,
+        reuseExistingServer: !process.env.CI,
+        timeout: 240000,
+      },
+    },
+    {
       name: 'tenant-chromium',
       testMatch: [
         '**/parent-identity-cezgp-lane2.spec.js',
@@ -107,9 +134,14 @@ module.exports = defineConfig({
         channel: 'chromium',
         baseURL:
           process.env.PLAYWRIGHT_TENANT_BASE_URL ||
-          'http://demo-school.runmycampus.com:8000',
+          (process.env.TENANT_E2E_SUBDOMAIN === '1'
+            ? `http://demo-school.runmycampus.com:${_managerPort}`
+            : `http://127.0.0.1:${_managerPort}/t/demo-school`),
         launchOptions: {
-          args: _chromiumArgs(_tenantHostRules),
+          args:
+            process.env.TENANT_E2E_SUBDOMAIN === '1'
+              ? _chromiumArgs(_tenantHostRules)
+              : ['--proxy-server=direct://', '--proxy-bypass-list=*'],
         },
       },
     },

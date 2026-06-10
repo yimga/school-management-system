@@ -7,8 +7,9 @@ from __future__ import annotations
 
 import uuid
 
-from django.test import SimpleTestCase, TestCase
+from django.test import Client, SimpleTestCase, TestCase, override_settings
 from django.urls import NoReverseMatch, reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.schools.models import School, SchoolMembership
@@ -42,6 +43,7 @@ class TrustSurfaceUrlContractTests(SimpleTestCase):
                 self.assertTrue(path.startswith("/"), name)
 
 
+@override_settings(OPERATOR_MFA_REQUIRED_ON_MANAGER=False)
 class TrustSurfaceHttpFlowTests(TestCase):
     """Integration: session school_id + superuser can traverse the trust spine."""
 
@@ -65,9 +67,19 @@ class TrustSurfaceHttpFlowTests(TestCase):
             role=User.Role.ADMIN,
             is_primary=True,
         )
-        self.client.force_login(self.user)
+        TOTPDevice.objects.get_or_create(
+            user=self.user,
+            name="default",
+            defaults={"confirmed": True},
+        )
+        self.tenant_host = f"{self.school.subdomain}.runmycampus.com"
+        self.client = Client(HTTP_HOST=self.tenant_host)
+        self.client.force_login(
+            self.user, backend="django.contrib.auth.backends.ModelBackend"
+        )
         session = self.client.session
         session["school_id"] = str(self.school.id)
+        session["mfa_verified"] = True
         session.save()
 
     def test_security_trust_hub_renders(self) -> None:

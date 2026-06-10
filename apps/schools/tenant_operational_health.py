@@ -35,7 +35,7 @@ def _merge_tier(current: str, candidate: str) -> str:
     return candidate if _tier_rank(candidate) > _tier_rank(current) else current
 
 
-def _tenant_ops_metrics(request) -> dict[str, int]:
+def _tenant_ops_metrics(school) -> dict[str, int]:
     metrics = {
         "overdue_invoices": 0,
         "draft_invoices": 0,
@@ -43,20 +43,26 @@ def _tenant_ops_metrics(request) -> dict[str, int]:
         "reminders_due": 0,
         "pending_access_requests": 0,
     }
+    if school is None:
+        return metrics
     try:
         from apps.finance.models import Invoice, PaymentReminder
         from apps.reports.models import TermPublishStatus
 
         metrics["overdue_invoices"] = Invoice.objects.filter(
-            status=Invoice.Status.OVERDUE
+            school=school,
+            status=Invoice.Status.OVERDUE,
         ).count()
         metrics["draft_invoices"] = Invoice.objects.filter(
-            status=Invoice.Status.DRAFT
+            school=school,
+            status=Invoice.Status.DRAFT,
         ).count()
         metrics["unpublished_terms"] = TermPublishStatus.objects.filter(
-            is_published=False
+            academic_year__school=school,
+            is_published=False,
         ).count()
         metrics["reminders_due"] = PaymentReminder.objects.filter(
+            invoice__school=school,
             is_active=True,
             next_send_at__lte=timezone.now(),
         ).count()
@@ -67,7 +73,8 @@ def _tenant_ops_metrics(request) -> dict[str, int]:
         from apps.requests.models import AccessRequest
 
         metrics["pending_access_requests"] = AccessRequest.objects.filter(
-            status=AccessRequest.Status.PENDING
+            school=school,
+            status=AccessRequest.Status.PENDING,
         ).count()
     except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
         pass
@@ -75,7 +82,7 @@ def _tenant_ops_metrics(request) -> dict[str, int]:
     return metrics
 
 
-def _parent_portal_metrics(request) -> dict[str, int]:
+def _parent_portal_metrics(request, school) -> dict[str, int]:
     metrics = {
         "linked_children": 0,
         "finance_overdue": 0,
@@ -92,15 +99,17 @@ def _parent_portal_metrics(request) -> dict[str, int]:
         metrics["linked_children"] = links.count()
         finance_links = guardian_student_links(user, finance_only=True)
         finance_students = [link.student_id for link in finance_links if link.student_id]
-        if finance_students:
+        if finance_students and school is not None:
             from apps.finance.models import Invoice
 
             overdue_qs = Invoice.objects.filter(
+                school=school,
                 student_id__in=finance_students,
                 status=Invoice.Status.OVERDUE,
             )
             metrics["finance_overdue"] = overdue_qs.count()
             open_qs = Invoice.objects.filter(
+                school=school,
                 student_id__in=finance_students,
                 status__in=(
                     Invoice.Status.ISSUED,
@@ -115,13 +124,13 @@ def _parent_portal_metrics(request) -> dict[str, int]:
     return metrics
 
 
-def _student_portal_metrics(request) -> dict[str, int]:
+def _student_portal_metrics(request, school) -> dict[str, int]:
     metrics = {
         "profile_linked": 0,
         "unread_messages": 0,
     }
     user = getattr(request, "user", None)
-    if user is None or not getattr(user, "is_authenticated", False):
+    if user is None or not getattr(user, "is_authenticated", False) or school is None:
         return metrics
 
     try:
@@ -129,10 +138,15 @@ def _student_portal_metrics(request) -> dict[str, int]:
         from apps.people.models import StudentProfile
 
         metrics["profile_linked"] = int(
-            StudentProfile.objects.filter(user=user, is_active=True).exists()
+            StudentProfile.objects.filter(
+                user=user,
+                school=school,
+                is_active=True,
+            ).exists()
         )
         metrics["unread_messages"] = Message.objects.filter(
             recipient=user,
+            school=school,
             is_read=False,
         ).count()
     except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
@@ -196,7 +210,7 @@ def resolve_tenant_operational_health(
         )
 
     if request is not None and surface in ("admin", "backend"):
-        metrics = _tenant_ops_metrics(request)
+        metrics = _tenant_ops_metrics(school)
         if metrics["overdue_invoices"] > 0:
             tier = _merge_tier(tier, TIER_DEGRADED)
             if tier == TIER_UP:
@@ -272,7 +286,7 @@ def resolve_tenant_operational_health(
             pass
 
     if request is not None and surface == "student":
-        student_metrics = _student_portal_metrics(request)
+        student_metrics = _student_portal_metrics(request, school)
         if not student_metrics["profile_linked"]:
             tier = _merge_tier(tier, TIER_DEGRADED)
             if tier == TIER_UP:
@@ -294,7 +308,7 @@ def resolve_tenant_operational_health(
             )
 
     if request is not None and surface == "parent":
-        parent_metrics = _parent_portal_metrics(request)
+        parent_metrics = _parent_portal_metrics(request, school)
         if parent_metrics["linked_children"] == 0:
             tier = _merge_tier(tier, TIER_DEGRADED)
             if tier == TIER_UP:

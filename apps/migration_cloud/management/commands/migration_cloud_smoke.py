@@ -311,9 +311,9 @@ class Command(BaseCommand):
         )
         # Render with synthetic operator-supplied params (no PII).
         rendered = render_maa_text(
-            version=active_version,
-            holder_name="Smoke Synthetic Tenant",
-            vendor=ctx.vendor,
+            vendor_source=ctx.vendor,
+            vendor_account_holder_name="Smoke Synthetic Tenant",
+            agreement_version=active_version,
         )
         if not rendered or "RunMyCampus Migration Authorization Agreement" not in rendered:
             raise RuntimeError("MAA text render did not produce expected header")
@@ -355,9 +355,9 @@ class Command(BaseCommand):
             or AGREEMENT_VERSION_CURRENT
         )
         text = render_maa_text(
-            version=version,
-            holder_name="Smoke Synthetic Tenant",
-            vendor=ctx.vendor,
+            vendor_source=ctx.vendor,
+            vendor_account_holder_name="Smoke Synthetic Tenant",
+            agreement_version=version,
         )
         # signature_text_sha256 is the canonical persisted fingerprint.
         sig_sha = hashlib.sha256(text.encode("utf-8")).hexdigest()

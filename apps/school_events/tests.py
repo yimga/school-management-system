@@ -3,11 +3,12 @@ from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import User
+from apps.schools.models import SchoolMembership
 from apps.school_events.models import (
     EventRegistration,
     EventTicketTier,
@@ -86,9 +87,26 @@ class SchoolEventsTests(TestCase):
             start_at=timezone.now() + timedelta(days=7),
             is_public=True,
         )
+        SchoolMembership.objects.create(
+            user=self.user,
+            school=self.school,
+            role=User.Role.PARENT,
+            is_primary=True,
+        )
+        self.tenant_host = f"{self.school.subdomain}.runmycampus.com"
+        self.client = Client(HTTP_HOST=self.tenant_host)
 
     def tearDown(self):
         self.env.stop()
+
+    def _login_verified(self, user=None):
+        """Auth must be bound on the tenant host — force_login on testserver does not survive HTTP_HOST."""
+        user = user or self.user
+        self.client.force_login(user, backend="django.contrib.auth.backends.ModelBackend")
+        session = self.client.session
+        session["mfa_verified"] = True
+        session["school_id"] = str(self.school.id)
+        session.save()
 
     def test_upcoming_public_events_service_scopes_to_school(self):
         rows = upcoming_public_events_for_school(self.school)
@@ -98,11 +116,10 @@ class SchoolEventsTests(TestCase):
         self.assertEqual(rows[0]["title"], self.event.title)
 
     def test_event_hub_and_detail_render_on_tenant_host(self):
-        self.client.force_login(self.user)
+        self._login_verified()
 
         hub = self.client.get(
             reverse("school_events:event_hub", urlconf="config.tenant_urls"),
-            HTTP_HOST="riverfront-academy.runmycampus.com",
         )
         detail = self.client.get(
             reverse(
@@ -110,7 +127,6 @@ class SchoolEventsTests(TestCase):
                 kwargs={"slug": self.event.slug},
                 urlconf="config.tenant_urls",
             ),
-            HTTP_HOST="riverfront-academy.runmycampus.com",
         )
 
         self.assertEqual(hub.status_code, 200)
@@ -119,7 +135,7 @@ class SchoolEventsTests(TestCase):
         self.assertContains(detail, "General Admission")
 
     def test_event_registration_increments_ticket_sales(self):
-        self.client.force_login(self.user)
+        self._login_verified()
 
         response = self.client.post(
             reverse(
@@ -128,7 +144,6 @@ class SchoolEventsTests(TestCase):
                 urlconf="config.tenant_urls",
             ),
             {"ticket_tier_id": self.tier.pk, "quantity": 2},
-            HTTP_HOST="riverfront-academy.runmycampus.com",
         )
 
         self.assertEqual(response.status_code, 302)

@@ -26,6 +26,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+# Imported at module level (not inside the task) so tests can patch
+# ``tasks_smoke.call_command`` and so the nightly path uses a single,
+# overridable reference. Django management is always importable when this
+# app module loads; the guard mirrors the module's defensive style.
+try:  # pragma: no cover - defensive
+    from django.core.management import call_command
+except Exception:  # pragma: no cover - defensive
+    call_command = None  # type: ignore[assignment]
+
+
 try:  # pragma: no cover - celery presence varies per lane
     from celery import shared_task as _shared_task
 except ImportError:
@@ -40,10 +50,14 @@ def run_smoke_against_synthetic_tenant() -> dict:
     """
     try:
         from django.conf import settings
-        from django.core.management import call_command
     except Exception:  # pragma: no cover - defensive
         logger.error(
             "migration_cloud.smoke.nightly: failed to import Django bootstrap"
+        )
+        return {"status": "import_failed"}
+    if call_command is None:  # pragma: no cover - defensive
+        logger.error(
+            "migration_cloud.smoke.nightly: call_command unavailable"
         )
         return {"status": "import_failed"}
 

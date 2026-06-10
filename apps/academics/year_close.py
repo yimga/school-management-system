@@ -48,7 +48,9 @@ def evaluate_year_close_blockers(
         )
 
     terms = list(
-        Term.objects.filter(academic_year=source_year).values_list("id", flat=True)
+        Term.objects.filter(  # tenant-isolation-allow: terms-scoped-via-validated-academic-year-fk
+            academic_year=source_year
+        ).values_list("id", flat=True)
     )
     unpublished_terms: list[int] = []
     approval_blockers: list[str] = []
