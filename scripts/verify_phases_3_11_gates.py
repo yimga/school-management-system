@@ -484,6 +484,10 @@ def main(argv: list[str] | None = None) -> int:
         "Control plane: hub registry closed (PHASE7 list + exempts cover all CP extends)",
     )
     run(
+        [py, _script_path("verify_control_plane_copilot_grid.py"), *base_args],
+        "Control plane: copilot rail grid col-3 pin (not bottom-band auto-placement)",
+    )
+    run(
         [py, _script_path("verify_phase8_dashboard_density.py"), *base_args],
         "Phase 8: high-card Phase 7 templates include de-secondary-collapsible",
     )
