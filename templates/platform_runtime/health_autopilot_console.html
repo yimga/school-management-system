@@ -1,0 +1,219 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Intelligence & Self-Healing" %}{% endblock %}
+
+{% block cp_content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+<main id="main" class="container-fluid py-2" data-rmc-page="health-autopilot" data-page-archetype="operator-report">
+  <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Platform Intelligence &amp; Self-Healing" %}</h1>
+      <p class="text-tertiary mb-0">
+        {% trans "One place for AI status and the autonomous health remediation engine. The engine is shadow-only by default — it proposes and previews, and never changes a tenant until an operator enables a specific reversible kind via an autopilot policy." %}
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      {% if policies %}
+      <span class="badge text-bg-warning text-dark">{% trans "apply policies active" %}</span>
+      {% else %}
+      <span class="badge text-bg-success">{% trans "shadow-only (no mutations)" %}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- AI consolidation -->
+  <section class="mb-4">
+    <h2 class="h5 mb-2 text-uppercase text-tertiary small">{% trans "AI status &amp; surfaces" %}</h2>
+    <div class="d-flex flex-wrap gap-2 mb-2">
+      {% if ai_enabled %}
+      <span class="badge text-bg-info">{% trans "inbuilt AI: enabled" %}</span>
+      {% else %}
+      <span class="badge text-bg-secondary">{% trans "inbuilt AI: disabled (deterministic rules only)" %}</span>
+      {% endif %}
+      <span class="badge text-bg-light text-dark">{% trans "AI match floor" %} {{ ai_min_confidence }}</span>
+    </div>
+    {% if ai_surfaces %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle small">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Surface" %}</th>
+            <th scope="col">{% trans "What it does" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for key, desc in ai_surfaces.items %}
+          <tr>
+            <td><code class="text-tertiary">{{ key }}</code></td>
+            <td>{{ desc }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-tertiary small mb-0">
+      {% trans "Canonical AI surface inventory (from ai_providers.describe_ai_assistant_surfaces). New AI features register here so operators have a single map instead of scattered widgets." %}
+    </p>
+    {% else %}
+    <div class="text-tertiary small">{% trans "No AI surfaces registered." %}</div>
+    {% endif %}
+  </section>
+
+  <!-- Live shadow proposals -->
+  <section class="mb-4">
+    <h2 class="h5 mb-2 text-uppercase text-tertiary small">{% trans "Live shadow proposals" %}</h2>
+    {% if proposals %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle small">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Scope" %}</th>
+            <th scope="col">{% trans "Tenant" %}</th>
+            <th scope="col">{% trans "Signal" %}</th>
+            <th scope="col">{% trans "Proposed kind" %}</th>
+            <th scope="col">{% trans "Source" %}</th>
+            <th scope="col">{% trans "Auto-fixable" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in proposals %}
+          <tr>
+            <td class="text-tertiary">{{ p.scope }}</td>
+            <td><code class="text-tertiary small">{{ p.school_slug }}</code></td>
+            <td><code>{{ p.signal }}</code></td>
+            <td>
+              {% if p.kind %}<span class="fw-semibold">{{ p.kind }}</span>{% else %}<span class="text-tertiary small">{% trans "—" %}</span>{% endif %}
+            </td>
+            <td>
+              {% if p.source == 'ai' %}
+                <span class="badge text-bg-info">{% trans "ai" %}</span> <span class="text-tertiary small">{{ p.confidence }}</span>
+              {% else %}
+                <span class="text-tertiary small">{{ p.source }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if p.available %}
+                <span class="badge text-bg-success">{% trans "yes" %}</span>
+              {% else %}
+                <span class="text-tertiary small">{% trans "no" %}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-tertiary small mb-0">
+      {% blocktrans %}Sampled {{ schools_sampled }} active tenant(s).{% endblocktrans %}
+      {% if sampling_truncated %}<span class="text-warning">{% blocktrans %}Sample capped at {{ max_sampled }}; run the sweep command for full coverage.{% endblocktrans %}</span>{% endif %}
+      {% trans "These are computed live and write nothing." %}
+    </p>
+    {% else %}
+    <div class="text-tertiary small">{% trans "No health signals right now — nothing to propose." %}</div>
+    {% endif %}
+  </section>
+
+  <!-- Apply policies -->
+  <section class="mb-4">
+    <h2 class="h5 mb-2 text-uppercase text-tertiary small">{% trans "Autopilot apply policies" %}</h2>
+    {% if policies %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle small">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Tenant scope" %}</th>
+            <th scope="col">{% trans "Allowed kinds" %}</th>
+            <th scope="col">{% trans "Enabled" %}</th>
+            <th scope="col">{% trans "Updated" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pol in policies %}
+          <tr>
+            <td><code>{{ pol.tenant_schema|default:"* (global)" }}</code></td>
+            <td>{{ pol.allowed_auto_fix_kinds }}</td>
+            <td>{% if pol.enabled %}<span class="badge text-bg-warning text-dark">{% trans "yes" %}</span>{% else %}<span class="text-tertiary small">{% trans "no" %}</span>{% endif %}</td>
+            <td class="text-tertiary small">{{ pol.updated_at }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-tertiary small">
+      {% trans "No apply policies — the engine is shadow-only. Create a WorkflowAutopilotPolicy with workflow_key=health_autopilot and the allowed reversible kinds to enable autonomous apply." %}
+    </div>
+    {% endif %}
+  </section>
+
+  <!-- Curated catalog -->
+  <section class="mb-4">
+    <h2 class="h5 mb-2 text-uppercase text-tertiary small">{% trans "Curated remediation catalog" %}</h2>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle small">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Kind" %}</th>
+            <th scope="col">{% trans "Scope" %}</th>
+            <th scope="col">{% trans "Reversible" %}</th>
+            <th scope="col">{% trans "Description" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in catalog %}
+          <tr>
+            <td><span class="fw-semibold">{{ c.kind }}</span></td>
+            <td class="text-tertiary">{{ c.scope }}</td>
+            <td>{% if c.reversible %}<span class="badge text-bg-success">{% trans "yes" %}</span>{% else %}<span class="badge text-bg-danger">{% trans "no" %}</span>{% endif %}</td>
+            <td class="text-tertiary small">{{ c.description }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Remediation log -->
+  <section class="mb-4">
+    <h2 class="h5 mb-2 text-uppercase text-tertiary small">{% trans "Recent remediation log" %}</h2>
+    {% if recent_log %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle small">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "When" %}</th>
+            <th scope="col">{% trans "Tenant" %}</th>
+            <th scope="col">{% trans "Signal" %}</th>
+            <th scope="col">{% trans "Kind" %}</th>
+            <th scope="col">{% trans "Source" %}</th>
+            <th scope="col">{% trans "Mode" %}</th>
+            <th scope="col">{% trans "Outcome" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in recent_log %}
+          <tr>
+            <td class="text-tertiary small">{{ row.created_at }}</td>
+            <td><code class="text-tertiary small">{{ row.school_slug|default:"—" }}</code></td>
+            <td><code>{{ row.signal }}</code></td>
+            <td>{{ row.kind|default:"—" }}</td>
+            <td class="text-tertiary small">{{ row.source }}</td>
+            <td>{{ row.mode }}</td>
+            <td>
+              {% if row.outcome == 'applied' %}<span class="badge text-bg-success">{{ row.outcome }}</span>
+              {% elif row.outcome == 'failed' %}<span class="badge text-bg-danger">{{ row.outcome }}</span>
+              {% else %}<span class="text-tertiary small">{{ row.outcome }}</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-tertiary small">{% trans "No remediation activity recorded yet." %}</div>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

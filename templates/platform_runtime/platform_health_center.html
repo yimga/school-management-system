@@ -16,6 +16,9 @@
       <p class="text-tertiary mb-0">
         {% trans "Broken feature-gap proofs (promises that no longer resolve) and over-SLA backlog items, aggregated into one operator signal. This is the same data the bottom-right dock badge surfaces." %}
       </p>
+      <p class="mb-0 small">
+        <a href="{% url 'platform_runtime:health_autopilot_console' %}">{% trans "Intelligence &amp; Self-Healing console →" %}</a>
+      </p>
     </div>
     <div class="d-flex flex-wrap gap-2">
       {% if summary.feature_gap_broken %}

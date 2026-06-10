@@ -2202,6 +2202,7 @@ from .models_workflow_run import (  # noqa: E402,F401
     WorkflowStepStatus,
 )
 from .models_workflow_10x import (  # noqa: E402,F401
+    HealthRemediationLog,
     WorkflowAutopilotApplyLog,
     WorkflowAutopilotPolicy,
     WorkflowDurationStat,

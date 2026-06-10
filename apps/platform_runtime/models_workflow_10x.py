@@ -49,6 +49,47 @@ class WorkflowAutopilotApplyLog(models.Model):
         ordering = ["-created_at"]
 
 
+class HealthRemediationLog(models.Model):
+    """School-attributed audit trail for the health self-healing engine.
+
+    Records autonomous applies and (when explicitly captured) shadow proposals, so
+    operators can review what the engine sees and what it did BEFORE enabling apply.
+    Distinct from ``WorkflowAutopilotApplyLog`` (which has no school field) because
+    autonomous action on a live tenant demands tenant-attributed forensics.
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="health_remediation_logs",
+    )
+    school_slug = models.CharField(max_length=80, blank=True, default="", db_index=True)
+    signal = models.CharField(max_length=80, db_index=True)
+    kind = models.CharField(max_length=64, blank=True, default="")
+    source = models.CharField(max_length=16, default="rule")  # rule | ai
+    confidence = models.FloatField(default=0.0)
+    mode = models.CharField(max_length=16, default="shadow")  # shadow | apply
+    outcome = models.CharField(max_length=24, default="proposed")  # proposed|applied|failed|skipped
+    reversible = models.BooleanField(default=True)
+    detail = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        app_label = "platform_runtime"
+        verbose_name = "Health remediation log"
+        verbose_name_plural = "Health remediation logs"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["school_slug", "created_at"]),
+            models.Index(fields=["mode", "outcome"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.kind or self.signal}@{self.school_slug or '-'}:{self.outcome}"
+
+
 class WorkflowDurationStat(models.Model):
     """Rolling duration rollup per workflow_key for predictive degrading."""
 
