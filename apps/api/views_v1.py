@@ -960,6 +960,30 @@ class AttendanceExportView(View):
 
 
 # ---------------------------------------------------------------------------
+# Vocational competency tracking (clock hours / skill verification / digital
+# badge) lives in apps.evals.models_enhanced — a module that is currently NOT
+# importable (duplicate EvaluationEvidence + a bad CompetencyLevel reference)
+# and has NO migrations for its models. Until that feature is built, these
+# endpoints degrade to HTTP 501 instead of raising an uncaught 500 on every
+# call. _vocational_module() returns the module or None.
+# ---------------------------------------------------------------------------
+def _vocational_module():
+    try:
+        from apps.evals import models_enhanced
+
+        return models_enhanced
+    except Exception:  # noqa: BLE001 — unbuilt/unmigrated module → feature unavailable
+        return None
+
+
+def _vocational_unavailable_response():
+    # Fresh response each call (JsonResponse instances are stateful/streamed once).
+    return JsonResponse(
+        {"error": "Vocational competency tracking is not enabled."}, status=501
+    )
+
+
+# ---------------------------------------------------------------------------
 # POST /api/v1/vocational/log-hours  -> clock in/out hours
 # ---------------------------------------------------------------------------
 @method_decorator(require_http_methods(["POST"]), name="dispatch")
@@ -996,8 +1020,11 @@ class VocationalLogHoursView(View):
                 log_date = datetime.strptime(date_str[:10], "%Y-%m-%d").date()
             except (ValueError, TypeError):
                 pass
+        me = _vocational_module()
+        if me is None:
+            return _vocational_unavailable_response()
         try:
-            from apps.evals.models_enhanced import ClockHourTracking
+            ClockHourTracking = me.ClockHourTracking
 
             teacher = getattr(request.user, "teacher_profile", None)
             rec = ClockHourTracking.objects.create(
@@ -1048,12 +1075,13 @@ class VocationalVerifySkillView(View):
             return JsonResponse(
                 {"error": "student_id, competency_item_id required"}, status=400
             )
+        me = _vocational_module()
+        if me is None:
+            return _vocational_unavailable_response()
         try:
-            from apps.evals.models_enhanced import (
-                StudentCompetencyAssessment,
-                CompetencyItem,
-                CompetencyRubric,
-            )
+            StudentCompetencyAssessment = me.StudentCompetencyAssessment
+            CompetencyItem = me.CompetencyItem
+            CompetencyRubric = me.CompetencyRubric
 
             teacher = getattr(request.user, "teacher_profile", None)
             if not teacher:
@@ -1098,8 +1126,11 @@ class VocationalDigitalBadgeView(View):
         school, err = _require_tenant_member(request)
         if err:
             return err
+        me = _vocational_module()
+        if me is None:
+            return _vocational_unavailable_response()
         try:
-            from apps.evals.models_enhanced import StudentCompetencyAssessment
+            StudentCompetencyAssessment = me.StudentCompetencyAssessment
             from apps.people.models import StudentProfile
 
             student = StudentProfile.objects.get(pk=student_id, school=school)
