@@ -193,7 +193,12 @@
 //   and a smoother 14-step percent; rmc-tenant-provision-progress.js renders the full 14-step
 //   train + completion report + stuck label + a working retry; setup_studio namespace registered
 //   on the tenant urlconf so wizard reverses resolve.
-const CACHE_VERSION = "sms-v4.03.61-provisioning-progress-realtime-2026-06-10";
+// v4.03.62: provisioning progress — phase-aware messaging + live elapsed + per-step
+//   durations. resolve_provisioning_progress adds current_phase/phase_message
+//   ("Your portal is ready — finishing setup…"), elapsed_seconds, and duration_s on each
+//   workflow step; the progress JS shows the phase message + "Ns elapsed" so the owner sees
+//   moving feedback instead of a frozen label.
+const CACHE_VERSION = "sms-v4.03.62-provisioning-progress-phase-elapsed-2026-06-10";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

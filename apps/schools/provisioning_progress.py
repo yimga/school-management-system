@@ -236,7 +236,18 @@ def _steps_from_run(run: Any) -> list[dict[str, Any]]:
         label = _step_label(key)
         if row is not None and getattr(row, "label", ""):
             label = str(row.label)
-        steps.append({"key": key, "label": label, "state": state})
+        step_dict: dict[str, Any] = {"key": key, "label": label, "state": state}
+        # Per-step duration (seconds) when the step has both timestamps — surfaced
+        # for "this step took Ns" reporting in operator/API consumers.
+        if row is not None:
+            started = getattr(row, "started_at", None)
+            ended = getattr(row, "ended_at", None)
+            if started and ended:
+                try:
+                    step_dict["duration_s"] = round((ended - started).total_seconds(), 1)
+                except (TypeError, ValueError, AttributeError):
+                    pass
+        steps.append(step_dict)
     return steps
 
 
@@ -510,6 +521,39 @@ def _iso_or_none(value) -> str | None:
         return None
 
 
+def _elapsed_seconds(run) -> int:
+    """Whole seconds from run start to its end (or now if still running)."""
+    if run is None:
+        return 0
+    started = getattr(run, "started_at", None)
+    if not started:
+        return 0
+    end = getattr(run, "ended_at", None) or timezone.now()
+    try:
+        return max(0, int((end - started).total_seconds()))
+    except (TypeError, ValueError, AttributeError):
+        return 0
+
+
+def _phase_descriptor(flags: dict[str, Any], status: str) -> tuple[str, str]:
+    """Coarse phase + a human, owner-facing message for the current phase.
+
+    Phase A (provisioning) makes the portal usable (account, profile, workspace,
+    activation); Phase B (seeding) fills in classes/subjects/sample data. Surfacing
+    the phase lets the UI say "your portal is ready — finishing setup" instead of
+    a bare percentage, so the owner knows they can already sign in.
+    """
+    if status == "failed":
+        return "failed", str(_("Setup paused — it needs a quick bit of attention."))
+    if status == "succeeded" or flags.get("phase_b_complete"):
+        return "done", str(_("Your campus is ready."))
+    if flags.get("portal_ready") or flags.get("phase_a_complete"):
+        return "seeding", str(_("Your portal is ready — finishing setup (classes, subjects, sample data)…"))
+    if status == "running":
+        return "provisioning", str(_("Preparing your campus workspace…"))
+    return "queued", str(_("Getting your setup started…"))
+
+
 def resolve_provisioning_progress(
     school,
     *,
@@ -592,6 +636,8 @@ def resolve_provisioning_progress(
         else {}
     )
     completed_at = _iso_or_none(getattr(run, "ended_at", None)) if run is not None else None
+    elapsed_seconds = _elapsed_seconds(run)
+    current_phase, phase_message = _phase_descriptor(flags, status)
 
     payload: dict[str, Any] = {
         "ok": True,
@@ -615,6 +661,9 @@ def resolve_provisioning_progress(
         "blocking_error": blocking,
         "stuck": stuck,
         "completed_at": completed_at,
+        "elapsed_seconds": elapsed_seconds,
+        "current_phase": current_phase,
+        "phase_message": phase_message,
         "completion_summary": completion_summary,
         "unified": {
             "state": unified.get("state"),

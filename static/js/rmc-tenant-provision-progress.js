@@ -112,11 +112,27 @@
       if (bar) bar.setAttribute("aria-valuenow", String(pct));
       if (pctEl) pctEl.textContent = pct + "%";
 
+      // Prefer the human phase message ("Your portal is ready — finishing
+      // setup…") over the raw step key, and append elapsed seconds so the owner
+      // sees live, moving feedback rather than a frozen label.
       var stepLabel =
+        data.phase_message ||
         data.current_step_label ||
         (data.unified && data.unified.label) ||
         "";
-      if (stepEl && stepLabel) stepEl.textContent = stepLabel;
+      if (stepEl) {
+        var elapsed = parseInt(data.elapsed_seconds, 10);
+        if (
+          !isNaN(elapsed) &&
+          elapsed > 0 &&
+          data.status !== "succeeded" &&
+          stepLabel
+        ) {
+          stepEl.textContent = stepLabel + " · " + elapsed + "s elapsed";
+        } else if (stepLabel) {
+          stepEl.textContent = stepLabel;
+        }
+      }
 
       if (labelEl) {
         if (data.status === "failed") {
