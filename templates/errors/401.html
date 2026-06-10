@@ -14,7 +14,10 @@
     <p class="error-message">{% trans "Your session expired or you signed out. Sign in again to pick up where you left off — your in-progress work is preserved." %}</p>
     <div class="error-actions">
       <a class="btn btn-primary" href="{% url 'accounts:login' %}{% if request.path %}?next={{ request.path|urlencode }}{% endif %}"><i class="bi bi-box-arrow-in-right me-1"></i>{% trans "Sign in" %}</a>
-      <a class="btn btn-outline-secondary" href="{% url 'marketing_home' %}"><i class="bi bi-house me-1"></i>{% trans "Return to homepage" %}</a>
+      {% comment %} marketing_home exists only on the public host; fall back to the current host root
+      elsewhere so a 401 on the tenant/manager host never double-faults with NoReverseMatch. {% endcomment %}
+      {% url 'marketing_home' as marketing_home_url %}
+      <a class="btn btn-outline-secondary" href="{{ marketing_home_url|default:'/' }}"><i class="bi bi-house me-1"></i>{% trans "Return to homepage" %}</a>
     </div>
   </div>
 </section>

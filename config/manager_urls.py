@@ -623,6 +623,9 @@ from apps.portal.views_ai_copilot import (  # noqa: E402
 
 
 urlpatterns = [
+    # Language switcher (Django i18n) — must exist on every host urlconf or the
+    # platform-wide "Translate this page" form + error-page links raise NoReverseMatch.
+    path("i18n/setlang/", __import__("django.views.i18n", fromlist=["set_language"]).set_language, name="set_language"),
     path("", manager_home, name="home"),
     path("", manager_home, name="manager_home"),
     # Universal command bar (v3.53.0): mirror of config.urls path so the

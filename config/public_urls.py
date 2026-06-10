@@ -122,6 +122,9 @@ def offline_page(request):
 
 
 urlpatterns = [
+    # Language switcher (Django i18n) — must exist on every host urlconf or the
+    # platform-wide "Translate this page" form + error-page links raise NoReverseMatch.
+    path("i18n/setlang/", __import__("django.views.i18n", fromlist=["set_language"]).set_language, name="set_language"),
     path("", home, name="home"),
     # Alias for tooling/checklists that expect marketing_home (same view as home).
     path("", home, name="marketing_home"),

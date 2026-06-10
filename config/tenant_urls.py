@@ -233,6 +233,9 @@ from apps.siteconfig.views_manifest_icon import (  # noqa: E402
 )
 
 urlpatterns = [
+    # Language switcher (Django i18n) — must exist on every host urlconf or the
+    # platform-wide "Translate this page" form + error-page links raise NoReverseMatch.
+    path("i18n/setlang/", __import__("django.views.i18n", fromlist=["set_language"]).set_language, name="set_language"),
     path("", home, name="home"),
     # Universal command bar (v3.53.0): mirror of config.urls / config.manager_urls
     # path so the cmd+k overlay loaded into every tenant-host shell can reverse the
