@@ -53,8 +53,11 @@
         </tbody>
       </table>
     </div>
+    <p class="text-tertiary small mb-1">
+      {% trans "Canonical GENERATIVE AI surface inventory (from ai_providers.describe_ai_assistant_surfaces) — these route through the model gateway when AI is enabled. New AI features register here so operators have a single map instead of scattered widgets." %}
+    </p>
     <p class="text-tertiary small mb-0">
-      {% trans "Canonical AI surface inventory (from ai_providers.describe_ai_assistant_surfaces). New AI features register here so operators have a single map instead of scattered widgets." %}
+      {% trans "Honesty note: some operator features named copilot or assistant are deterministic and rules-based (no model call) — e.g. the manager copilot rail (a metrics feed) and the policy matrix lookup. They are not listed above because they are not generative AI." %}
     </p>
     {% else %}
     <div class="text-tertiary small">{% trans "No AI surfaces registered." %}</div>
