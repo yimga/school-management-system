@@ -190,10 +190,10 @@ class FeeFollowUpRunner(BaseOrchestrationRunner):
         )
         count = 0
         try:
-            from apps.finance.models import InvoiceReminder
+            from apps.finance.models import PaymentReminder
 
             if self.run.school_id:
-                count = InvoiceReminder.objects.filter(
+                count = PaymentReminder.objects.filter(
                     invoice__school_id=self.run.school_id,
                     is_active=True,
                     next_send_at__lte=timezone.now(),
@@ -218,12 +218,14 @@ class AdmissionsRunner(BaseOrchestrationRunner):
         )
         count = 0
         try:
-            from apps.requests.models import AdmissionApplication
+            from apps.people.models import Applicant
 
             if self.run.school_id:
-                count = AdmissionApplication.objects.filter(
+                # "Pending" = submitted but not yet decided (excludes raw LEAD
+                # and the terminal ACCEPTED/REJECTED/ENROLLED stages).
+                count = Applicant.objects.filter(
                     school_id=self.run.school_id,
-                    status="PENDING",
+                    stage__in=[Applicant.Stage.APPLIED, Applicant.Stage.UNDER_REVIEW],
                 ).count()
         except _ORCHESTRATION_STEP_QUERY_ERRORS:
             log_exception_with_context(
@@ -249,7 +251,7 @@ class ReEnrollmentRunner(BaseOrchestrationRunner):
         )
         count = 0
         try:
-            from apps.accounts.models import StudentProfile
+            from apps.people.models import StudentProfile
 
             if self.run.school_id:
                 count = StudentProfile.objects.filter(
