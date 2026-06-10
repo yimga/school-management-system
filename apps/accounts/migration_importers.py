@@ -524,7 +524,7 @@ def _resolve_school_currency(school) -> str:
 
 def _resolve_compliance_profile(school):
     """Get the active ComplianceProfile, preferring one bound to the school's country."""
-    from apps.billing.models import ComplianceProfile
+    from apps.finance.models import ComplianceProfile
 
     country = getattr(school, "country_code", None) or getattr(school, "country", None)
     qs = ComplianceProfile.objects.filter(is_active=True)

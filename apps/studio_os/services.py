@@ -1268,10 +1268,10 @@ def get_automation_workflow_health_summary(
             template_count = int(WorkflowTemplate.objects.all().count())
             failing_count = 0
             try:
-                from apps.orchestration.models import ProcessRun  # type: ignore[import-not-found]
+                from apps.orchestration.models import OrchestrationRun
 
                 failing_count = int(
-                    ProcessRun.objects.filter(status__iexact="failed").count()
+                    OrchestrationRun.objects.filter(status__iexact="failed").count()
                 )
             except _STUDIO_SOFT_FAILURES:
                 failing_count = 0
@@ -1294,10 +1294,10 @@ def get_automation_workflow_health_summary(
             paused_count = 0
         failing_count = 0
         try:
-            from apps.orchestration.models import ProcessRun  # type: ignore[import-not-found]
+            from apps.orchestration.models import OrchestrationRun
 
             failing_count = int(
-                ProcessRun.objects.filter(status__iexact="failed").count()
+                OrchestrationRun.objects.filter(status__iexact="failed").count()
             )
         except _STUDIO_SOFT_FAILURES:
             failing_count = 0

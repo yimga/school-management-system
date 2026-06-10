@@ -842,7 +842,7 @@ def _get_regional_pitch(country_code: str, language_code: str) -> dict:
         return default
 
     try:
-        from apps.siteconfig.models import RegionalPitch
+        from apps.siteconfig.models_global_experience import RegionalPitch
 
         pitch = RegionalPitch.objects.filter(
             country_code=country, is_active=True

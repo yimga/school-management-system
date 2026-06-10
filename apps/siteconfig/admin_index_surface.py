@@ -230,11 +230,11 @@ def build_admin_preview_related_links() -> list[dict[str, str]]:
             links.append({"label": str(label), "url": url, "count": count})
 
     try:
-        from apps.migration_cloud.models import MigrationCloudBundle
+        from apps.migration_cloud.models import MigrationBundle
 
         migration_url = _rev("migration_cloud_super:migration_cloud_command_center")
         if migration_url:
-            run_count = MigrationCloudBundle.objects.count()
+            run_count = MigrationBundle.objects.count()
             links = [l for l in links if l["label"] != str(_("Migration runs"))]
             links.append(
                 {
