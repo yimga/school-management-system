@@ -139,6 +139,8 @@
        revenue waterfall, audit feed, trust nutrition, SLO clocks, operator presence).
        Loaded LAST among cockpit sheets so 200x rules win where they refine v7. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-cp-200x.css' %}">
+    {% comment %} Critical path: operator 3-col grid + copilot col-3 pin must not wait on deferred chrome loader. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-isomorphic-grid.css' %}">
     {% comment %} v3.57.0 (2026-05-21): canonical pagination grammar + print v2 civic layer (adoption wave). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-print-v2.css' %}" media="print,screen">
@@ -186,7 +188,7 @@
        header (row 1, static) + sidebar (col 1, own scroll) + canvas (col 2, own scroll).
        Legacy `cp-shell-content` class kept on canvas-body for back-compat with existing
        CSS rules; behavior delegated to the shell grid above it. {% endcomment %}
-    <div class="rmc-app-shell" data-copilot="collapsed"{% block rmc_app_shell_attrs %}{% endblock %}{% block cp_shell_content_attrs %}{% endblock %}>
+    <div class="rmc-app-shell{% if cockpit.ai_copilot_rail.enabled %} rmc-app-shell--with-copilot{% endif %}" data-copilot="collapsed"{% if cockpit.ai_copilot_rail.enabled %} data-rmc-app-shell-copilot="1"{% endif %}{% block rmc_app_shell_attrs %}{% endblock %}{% block cp_shell_content_attrs %}{% endblock %}>
       {% block rmc_app_shell_inner %}
       <header class="rmc-app-shell__header" role="banner">
         {% block cp_shell_header %}
@@ -285,6 +287,7 @@
     <script src="{% static 'js/rmc-copilot-rail.js' %}" defer></script>
     <script src="{% static 'js/rmc-local-ai-accessibility.js' %}" defer></script>
     <script src="{% static 'js/rmc-copilot-context-lens.js' %}" defer></script>
+    <script src="{% static 'js/rmc-copilot-lens-provision.js' %}" defer></script>
     <script src="{% static 'js/rmc-list-bulk-select.js' %}" defer></script>
     {% comment %} v8 cockpit: Export PDF (print path) + Quick action (⌘K palette) button wiring. {% endcomment %}
     <script src="{% static 'js/rmc-cockpit-page-actions.js' %}" defer></script>

@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-06-09T19:42:19.013468+00:00",
+  "gaps": [
+    {
+      "id": "setup_studio_50x",
+      "kind": "repo",
+      "implementation": "apps/setup_studio/zero_friction.py",
+      "test_evidence": {
+        "ok": true,
+        "skipped": "run_tests_not_requested"
+      }
+    },
+    {
+      "id": "academic_year_close",
+      "kind": "repo",
+      "implementation": "apps/academics/year_close.py",
+      "test_evidence": {
+        "ok": true,
+        "skipped": "run_tests_not_requested"
+      }
+    },
+    {
+      "id": "tenant_daily_ops_50x",
+      "kind": "repo",
+      "implementation": "apps/platform_runtime/tenant_daily_ops.py",
+      "test_evidence": {
+        "ok": true,
+        "skipped": "run_tests_not_requested"
+      }
+    },
+    {
+      "id": "tenant_ai_help",
+      "kind": "repo",
+      "implementation": "apps/platform_runtime/tenant_ai_help.py",
+      "test_evidence": {
+        "ok": true,
+        "skipped": "run_tests_not_requested"
+      }
+    },
+    {
+      "id": "tenant_health_cs",
+      "kind": "repo",
+      "implementation": "apps/customersuccess/tasks.py",
+      "test_evidence": {
+        "ok": true,
+        "skipped": "run_tests_not_requested"
+      }
+    },
+    {
+      "id": "full_50_app_test_matrix",
+      "kind": "repo",
+      "implementation": "scripts/run_50_app_test_shards.py",
+      "test_evidence": {}
+    },
+    {
+      "id": "run_kill_test",
+      "kind": "repo",
+      "implementation": "scripts/run_kill_test.py",
+      "test_evidence": {}
+    },
+    {
+      "id": "artifact_dedup",
+      "kind": "repo",
+      "implementation": "scripts/generate_generated_artifact_registry.py",
+      "test_evidence": {}
+    },
+    {
+      "id": "playwright_e2e",
+      "kind": "external",
+      "implementation": "tests/e2e/phase1-architecture-navigation.spec.js",
+      "test_evidence": {}
+    },
+    {
+      "id": "deep_module_reengineering",
+      "kind": "repo",
+      "implementation": "docs/generated/module_audit_matrix.json",
+      "test_evidence": {}
+    }
+  ]
+}

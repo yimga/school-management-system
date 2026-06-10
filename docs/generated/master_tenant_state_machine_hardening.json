@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-06-09T16:58:35.296506+00:00",
+  "canonical_modules": [
+    "apps/platform_runtime/tenant_lifecycle_state_machine.py",
+    "apps/platform_runtime/tenant_lifecycle_engine.py"
+  ],
+  "provisioning_states": [
+    "requested",
+    "validating",
+    "provisioning",
+    "defaults_applied",
+    "setup_studio_ready",
+    "active",
+    "failed",
+    "retry_available"
+  ],
+  "offboarding_states": [
+    "requested",
+    "approved",
+    "access_frozen",
+    "export_compiling",
+    "purge_pending",
+    "offboarded",
+    "failed"
+  ],
+  "tests": [
+    "apps/platform_runtime/tests/test_tenant_lifecycle_state_machine.py",
+    "apps/schools/tests/test_tenant_provisioning_crash_resiliency.py"
+  ]
+}

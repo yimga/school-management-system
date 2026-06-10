@@ -13,3 +13,9 @@ class TenancyConfig(AppConfig):
             from apps.tenancy import signals_rls_jwt  # noqa: F401 — import-for-side-effect
         except ImportError:
             pass
+        try:
+            from apps.tenancy.boundary_core_guard import integrate_rls_bypass_context
+
+            integrate_rls_bypass_context()
+        except ImportError:
+            pass

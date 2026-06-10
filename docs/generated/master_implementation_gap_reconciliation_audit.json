@@ -1,0 +1,132 @@
+{
+  "generated_at": "2026-06-09T19:41:38.221089+00:00",
+  "prior_contradiction": {
+    "completion_audit_remaining_repo_gaps_empty": false,
+    "completion_audit_verdict": "MASTER IMPLEMENTATION PARTIAL \u2014 REPO GAPS REMAIN",
+    "final_report_listed_repo_gaps": [
+      "setup_studio_50x",
+      "academic_year_close",
+      "tenant_daily_ops_50x",
+      "tenant_ai_help",
+      "tenant_health_cs",
+      "full_50_app_test_matrix",
+      "run_kill_test",
+      "artifact_dedup",
+      "deep_module_reengineering"
+    ],
+    "contradiction_confirmed": false
+  },
+  "gaps": [
+    {
+      "id": "setup_studio_50x",
+      "label": "Setup Studio 50X UX",
+      "kind": "repo",
+      "implementation": "apps/setup_studio/zero_friction.py",
+      "test": "apps/setup_studio/tests/test_setup_studio_50x_zero_friction.py",
+      "verifier": "python manage.py test apps.setup_studio.tests.test_setup_studio_50x_zero_friction",
+      "complete_when": "kernel + template CTAs + 6 test modules green",
+      "incorrectly_excluded_from_remaining_repo_gaps": false,
+      "sot_overclaimed": false
+    },
+    {
+      "id": "academic_year_close",
+      "label": "Academic year close hardening",
+      "kind": "repo",
+      "implementation": "apps/academics/year_close.py",
+      "test": "apps/academics/tests/test_academic_year_setup_lifecycle.py",
+      "verifier": "python manage.py test apps.academics.tests.test_academic_year_setup_lifecycle",
+      "complete_when": "dry-run blockers + rollover + 7 test modules",
+      "incorrectly_excluded_from_remaining_repo_gaps": false,
+      "sot_overclaimed": false
+    },
+    {
+      "id": "tenant_daily_ops_50x",
+      "label": "Tenant daily operations 50X click reduction",
+      "kind": "repo",
+      "implementation": "apps/platform_runtime/tenant_daily_ops.py",
+      "test": "apps/platform_runtime/tests/test_tenant_ai_help_and_daily_ops.py",
+      "verifier": "per-workflow click audit + next-best-action cards",
+      "complete_when": "tenant_daily_operations_50x_completion_audit status=complete",
+      "incorrectly_excluded_from_remaining_repo_gaps": false,
+      "sot_overclaimed": false
+    },
+    {
+      "id": "tenant_ai_help",
+      "label": "Online/offline tenant AI help",
+      "kind": "repo",
+      "implementation": "apps/platform_runtime/tenant_ai_help.py",
+      "test": "apps/platform_runtime/tests/test_tenant_ai_help_and_daily_ops.py",
+      "verifier": "route-grounded help + offline contract tests",
+      "complete_when": "tenant_online_offline_ai_help_completion_audit status=complete",
+      "incorrectly_excluded_from_remaining_repo_gaps": false,
+      "sot_overclaimed": false
+    },
+    {
+      "id": "tenant_health_cs",
+      "label": "Tenant health / customer success / nudges",
+      "kind": "repo",
+      "implementation": "apps/customersuccess/tasks.py",
+      "test": "apps/customersuccess/tests/test_tenant_health_customer_success_completion.py",
+      "verifier": "health score + alert contracts",
+      "complete_when": "tenant_health_customer_success_completion_audit status=complete",
+      "incorrectly_excluded_from_remaining_repo_gaps": false,
+      "sot_overclaimed": false
+    },
+    {
+      "id": "full_50_app_test_matrix",
+      "label": "Full 50-app manage.py test matrix",
+      "kind": "repo",
+      "implementation": "scripts/run_50_app_test_shards.py",
+      "test": "docs/generated/full_50_app_test_matrix_completion.json",
+      "verifier": "all_shards_green=true",
+      "complete_when": "6/6 shards green",
+      "incorrectly_excluded_from_remaining_repo_gaps": false,
+      "sot_overclaimed": false
+    },
+    {
+      "id": "run_kill_test",
+      "label": "run_kill_test.py structural smoke",
+      "kind": "repo",
+      "implementation": "scripts/run_kill_test.py",
+      "test": "docs/generated/kill_test_report.json",
+      "verifier": "result=PASS",
+      "complete_when": "kill test PASS",
+      "incorrectly_excluded_from_remaining_repo_gaps": false,
+      "sot_overclaimed": false
+    },
+    {
+      "id": "artifact_dedup",
+      "label": "Generated artifact dedup",
+      "kind": "repo",
+      "implementation": "scripts/generate_generated_artifact_registry.py",
+      "test": "docs/generated/generated_artifact_dedup_completion_audit.json",
+      "verifier": "registry_complete=true",
+      "complete_when": "canonical registry written",
+      "incorrectly_excluded_from_remaining_repo_gaps": false,
+      "sot_overclaimed": false
+    },
+    {
+      "id": "playwright_e2e",
+      "label": "Playwright E2E phase1/phase2",
+      "kind": "external",
+      "implementation": "tests/e2e/phase1-architecture-navigation.spec.js",
+      "test": "npm run test:e2e:phase1-architecture",
+      "verifier": "Django on VISUAL_QA_PORT + browser",
+      "complete_when": "executed=true in playwright_e2e_completion_audit.json",
+      "incorrectly_excluded_from_remaining_repo_gaps": false,
+      "sot_overclaimed": false
+    },
+    {
+      "id": "deep_module_reengineering",
+      "label": "Deep module-by-module re-engineering",
+      "kind": "repo",
+      "implementation": "docs/generated/module_audit_matrix.json",
+      "test": "docs/generated/deep_module_reengineering_completion_audit.json",
+      "verifier": "open_module_count=0",
+      "complete_when": "all modules readiness=repo_scope with gaps=[]",
+      "incorrectly_excluded_from_remaining_repo_gaps": false,
+      "sot_overclaimed": false
+    }
+  ],
+  "fix_applied": "compute_open_repo_gaps() + build_completion() now require phase audit status"
+}

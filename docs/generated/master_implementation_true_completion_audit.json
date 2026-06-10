@@ -1,0 +1,148 @@
+{
+  "generated_at": "2026-06-09T19:41:38.369266+00:00",
+  "prior_completion_audit_verdict": "MASTER IMPLEMENTATION PARTIAL \u2014 REPO GAPS REMAIN",
+  "recommended_verdict": "MASTER IMPLEMENTATION PARTIAL \u2014 REPO GAPS REMAIN",
+  "remaining_repo_gaps": [
+    {
+      "id": "full_50_app_test_matrix",
+      "label": "Full 50-app manage.py test matrix",
+      "kind": "repo",
+      "status": "open",
+      "implementation": "scripts/run_50_app_test_shards.py",
+      "test": "docs/generated/full_50_app_test_matrix_completion.json",
+      "evidence": {
+        "shards_run": null,
+        "all_green": null
+      }
+    },
+    {
+      "id": "deep_module_reengineering",
+      "label": "Deep module-by-module re-engineering",
+      "kind": "repo",
+      "status": "partial",
+      "implementation": "docs/generated/module_audit_matrix.json",
+      "test": "docs/generated/deep_module_reengineering_completion_audit.json",
+      "evidence": {
+        "open_module_count": 1
+      }
+    }
+  ],
+  "remaining_repo_gaps_count": 2,
+  "all_gaps": [
+    {
+      "id": "setup_studio_50x",
+      "label": "Setup Studio 50X UX",
+      "kind": "repo",
+      "status": "complete",
+      "implementation": "apps/setup_studio/zero_friction.py",
+      "test": "apps/setup_studio/tests/test_setup_studio_50x_zero_friction.py",
+      "evidence": {
+        "ok": true
+      }
+    },
+    {
+      "id": "academic_year_close",
+      "label": "Academic year close hardening",
+      "kind": "repo",
+      "status": "complete",
+      "implementation": "apps/academics/year_close.py",
+      "test": "apps/academics/tests/test_academic_year_setup_lifecycle.py",
+      "evidence": {
+        "ok": true
+      }
+    },
+    {
+      "id": "tenant_daily_ops_50x",
+      "label": "Tenant daily operations 50X click reduction",
+      "kind": "repo",
+      "status": "complete",
+      "implementation": "apps/platform_runtime/tenant_daily_ops.py",
+      "test": "apps/platform_runtime/tests/test_tenant_ai_help_and_daily_ops.py",
+      "evidence": {}
+    },
+    {
+      "id": "tenant_ai_help",
+      "label": "Online/offline tenant AI help",
+      "kind": "repo",
+      "status": "complete",
+      "implementation": "apps/platform_runtime/tenant_ai_help.py",
+      "test": "apps/platform_runtime/tests/test_tenant_ai_help_and_daily_ops.py",
+      "evidence": {}
+    },
+    {
+      "id": "tenant_health_cs",
+      "label": "Tenant health / customer success / nudges",
+      "kind": "repo",
+      "status": "complete",
+      "implementation": "apps/customersuccess/tasks.py",
+      "test": "apps/customersuccess/tests/test_tenant_health_customer_success_completion.py",
+      "evidence": {}
+    },
+    {
+      "id": "full_50_app_test_matrix",
+      "label": "Full 50-app manage.py test matrix",
+      "kind": "repo",
+      "status": "open",
+      "implementation": "scripts/run_50_app_test_shards.py",
+      "test": "docs/generated/full_50_app_test_matrix_completion.json",
+      "evidence": {
+        "shards_run": null,
+        "all_green": null
+      }
+    },
+    {
+      "id": "run_kill_test",
+      "label": "run_kill_test.py structural smoke",
+      "kind": "repo",
+      "status": "closed",
+      "implementation": "scripts/run_kill_test.py",
+      "test": "docs/generated/kill_test_report.json",
+      "evidence": {
+        "result": "PASS",
+        "critical_count": 0
+      }
+    },
+    {
+      "id": "artifact_dedup",
+      "label": "Generated artifact dedup",
+      "kind": "repo",
+      "status": "closed",
+      "implementation": "scripts/generate_generated_artifact_registry.py",
+      "test": "docs/generated/generated_artifact_dedup_completion_audit.json",
+      "evidence": {}
+    },
+    {
+      "id": "playwright_e2e",
+      "label": "Playwright E2E phase1/phase2",
+      "kind": "external",
+      "status": "external",
+      "implementation": "tests/e2e/phase1-architecture-navigation.spec.js",
+      "test": "npm run test:e2e:phase1-architecture",
+      "evidence": {}
+    },
+    {
+      "id": "deep_module_reengineering",
+      "label": "Deep module-by-module re-engineering",
+      "kind": "repo",
+      "status": "partial",
+      "implementation": "docs/generated/module_audit_matrix.json",
+      "test": "docs/generated/deep_module_reengineering_completion_audit.json",
+      "evidence": {
+        "open_module_count": 1
+      }
+    }
+  ],
+  "external_blockers": [
+    {
+      "id": "playwright_e2e",
+      "label": "Playwright E2E phase1/phase2",
+      "kind": "external",
+      "status": "external",
+      "implementation": "tests/e2e/phase1-architecture-navigation.spec.js",
+      "test": "npm run test:e2e:phase1-architecture",
+      "evidence": {}
+    }
+  ],
+  "sot_safe_to_update": false,
+  "contradiction_resolved": true
+}

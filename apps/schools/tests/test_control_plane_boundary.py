@@ -9,6 +9,7 @@ from django.test import TestCase, override_settings
 from django.urls import resolve, reverse
 
 from apps.accounts.models import User
+from apps.schools.models import School, SchoolMembership
 
 
 @override_settings(ALLOWED_HOSTS=["*"])
@@ -28,6 +29,18 @@ class ControlPlaneBoundaryTests(TestCase):
             is_staff=True,
             is_superuser=False,
             role=User.Role.ADMIN,
+        )
+        school = School.objects.create(
+            name="CP Boundary Academy",
+            slug="cp-boundary-academy",
+            subdomain="cp-boundary-academy",
+            is_active=True,
+        )
+        SchoolMembership.objects.create(
+            school=school,
+            user=self.tenant_staff,
+            role=User.Role.ADMIN,
+            is_primary=True,
         )
 
     def test_manager_host_denies_non_platform_user_for_super(self):

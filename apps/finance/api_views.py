@@ -153,6 +153,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         school = _request_school(self.request)
         if school is None:
             return base.none()
+        from apps.tenancy.queryset_boundary import verify_explicit_school_filter
+
+        verify_explicit_school_filter(base, school=school)
         base = base.filter(school=school)
 
         if user.is_staff or user.role in ["ADMIN", "BURSAR", "LEADERSHIP", "HOD"]:
@@ -415,6 +418,9 @@ class PaymentViewSet(viewsets.ModelViewSet):
         school = _request_school(self.request)
         if school is None:
             return base.none()
+        from apps.tenancy.queryset_boundary import verify_explicit_school_filter
+
+        verify_explicit_school_filter(base, school=school)
         base = base.filter(school=school)
 
         if _can_write_finance(user, school):

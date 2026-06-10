@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-06-09T20:24:23.485753+00:00",
+  "scoring_dimensions": [
+    "repo_pct",
+    "internal_pilot_pct",
+    "public_live_pct",
+    "pwa_pct",
+    "external_vendor_pct",
+    "market_ready_pct",
+    "native_app_status"
+  ],
+  "sot_overclaim_pattern_hits": [
+    "100%"
+  ],
+  "honest_verdicts_allowed": [
+    "FULL BACKEND A++ HARDENING PARTIAL",
+    "FULL BACKEND A++ HARDENING READY \u2014 REPO SCOPE"
+  ]
+}

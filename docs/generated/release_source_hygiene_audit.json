@@ -1,0 +1,59 @@
+{
+  "generated_at": "2026-06-09T20:23:56.613663+00:00",
+  "large_file_audit": [
+    {
+      "path": "docs/generated/pre_deploy_gate_run.txt",
+      "bytes": 498,
+      "classification": "required_canonical_proof_summary",
+      "action": "keep_with_reason"
+    },
+    {
+      "path": "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md",
+      "bytes": 8102517,
+      "classification": "required_canonical_proof_summary",
+      "action": "keep_trim_policy_recommended"
+    },
+    {
+      "path": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
+      "bytes": 1333685,
+      "classification": "required_canonical_proof_summary",
+      "action": "keep_with_reason"
+    },
+    {
+      "path": "docs/generated/route_surface_audit.json",
+      "bytes": 8554144,
+      "classification": "required_canonical_proof_summary",
+      "action": "keep_with_reason"
+    },
+    {
+      "path": "docs/generated/code_support_index.json",
+      "bytes": 2777264,
+      "classification": "required_canonical_proof_summary",
+      "action": "keep_with_reason"
+    },
+    {
+      "path": "docs/generated/apple_class_authenticated_browser_report.json",
+      "bytes": 2734011,
+      "classification": "required_canonical_proof_summary",
+      "action": "keep_with_reason"
+    },
+    {
+      "path": "docs/generated/security_surface_audit.json",
+      "bytes": 1079502,
+      "classification": "required_canonical_proof_summary",
+      "action": "keep_with_reason"
+    }
+  ],
+  "directory_bytes": {
+    "docs/generated": 62080295,
+    "artifacts": 31078082809,
+    "var": 3032167808,
+    "docs": 82544908
+  },
+  "tracked_var_files_glob": 253,
+  "gitignore_covers": {
+    "artifacts_evidence": "artifacts-evidence/",
+    "var_sqlite": "var/*.sqlite3*",
+    "pre_deploy_summary_recommended": "docs/generated/pre_deploy_gate_run.txt"
+  }
+}

@@ -8,7 +8,7 @@
 {% include "components/next_action_strip.html" %}
 
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-archetype="decision-console" data-page-critical-read="1">
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="decision-console" data-rmc-copilot-page-lens="operator-offboarding-queue" data-page-critical-read="1">
   <h1 class="h5">{% trans "Offboarding queue" %}</h1>
   <p class="small text-secondary mb-2">
     {% trans "Schools with self-service or operator-scheduled purge." %}
@@ -60,7 +60,7 @@
   </ul>
   {% endif %}
   <div class="table-responsive">
-    <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+      <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1" aria-describedby="super-offboarding-lens-hint">
       <thead>
         <tr>
           <th>{% trans "School" %}</th>
@@ -75,7 +75,18 @@
       </thead>
       <tbody>
         {% for row in rows %}
-        <tr>
+        {% url 'super:tenant_360' row.school.id as offboard_tenant_360_url %}
+        {% url 'super:api_school_lens_snapshot' row.school.id as school_lens_api_url %}
+        {% url 'super:api_school_requeue_provision' row.school.id as school_requeue_api_url %}
+        <tr data-rmc-row-detail="1"
+            tabindex="0"
+            data-rmc-row-school-id="{{ row.school.id }}"
+            data-rmc-row-lens-api="{{ school_lens_api_url }}"
+            data-rmc-row-requeue-api="{{ school_requeue_api_url }}"
+            data-rmc-row-title="{{ row.school.name|escape }}"
+            data-rmc-row-subtitle="{{ row.school.slug|escape }}"
+            data-rmc-row-meta='{"{% trans "Offboarding status" %}":"{{ row.status|escapejs }}","{% trans "Scheduled purge" %}":"{{ row.scheduled_purge_at|default:"—"|escapejs }}","{% trans "Due today" %}":"{% if row.purge_due %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}","{% trans "Row count" %}":"{{ row.row_total }}","{% trans "Legal hold" %}":"{% if row.legal_hold %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}","{% trans "Billing" %}":"{{ row.billing_state|escapejs }}"}'
+            data-rmc-row-actions='[{"label":"{% trans "Tenant 360"|escapejs %}","href":"{{ offboard_tenant_360_url|escapejs }}","variant":"primary"},{"label":"{% trans "Offboarding"|escapejs %}","href":"{{ offboard_tenant_360_url|escapejs }}#offboarding","variant":"danger"}]'>
           <td>{{ row.school.name }} <code class="small">{{ row.school.slug }}</code></td>
           <td>{{ row.status }}</td>
           <td>{{ row.scheduled_purge_at|default:"—" }}</td>
@@ -87,7 +98,7 @@
             {% elif row.billing_state == "outstanding" %}<span class="badge text-bg-warning" title="{{ row.billing_reason }}">{% trans "Outstanding" %}</span>
             {% else %}<span class="badge text-bg-light" title="{{ row.billing_reason }}">{% trans "Unknown" %}</span>{% endif %}
           </td>
-          <td><a href="{{ row.tenant_360_url }}" class="btn btn-sm btn-outline-danger">{% trans "Offboarding" %}</a></td>
+          <td><a href="{{ offboard_tenant_360_url }}#offboarding" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();">{% trans "Offboarding" %}</a></td>
         </tr>
         {% empty %}
         <tr><td colspan="8" class="text-secondary">{% trans "No schools in offboarding queue." %}</td></tr>
@@ -95,6 +106,7 @@
       </tbody>
     </table>
   </div>
+  {% include "components/row_detail_panel_hint.html" with hint_id="super-offboarding-lens-hint" %}
   {% include "components/pagination.html" %}
   <pre class="small bg-dark text-light p-2 d-none" data-rmc-scheduled-purge-result></pre>
 </div>
@@ -103,5 +115,4 @@
   "auto_purge_enabled": {% if auto_purge_enabled %}true{% else %}false{% endif %}
 }</script>
 <script src="{% static 'js/_pages/schools__super_offboarding_queue-1.js' %}"></script>
-{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

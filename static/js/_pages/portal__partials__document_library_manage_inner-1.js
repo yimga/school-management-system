@@ -4,11 +4,23 @@
   if(pageDataEl){try{window.__RMC_PAGE_DATA__["portal__partials__document_library_manage_inner-1"]=JSON.parse(pageDataEl.textContent||"{}")}catch(_e){}}
 (function () {
   var DELETE_URL_TEMPLATE = ((window.__RMC_PAGE_DATA__["portal__partials__document_library_manage_inner-1"] || {})["url_portal_document_delete"]);
+  function ensureHiddenInput(form, name, value) {
+    if (!form) return;
+    var input = form.querySelector('input[name="' + name + '"]');
+    if (!input) {
+      input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      form.appendChild(input);
+    }
+    input.value = value;
+  }
   function confirmDelete(docId, docTitle) {
     var t = document.getElementById('deleteDocTitle');
     if (t) t.textContent = docTitle || '';
     var f = document.getElementById('deleteForm');
     if (f) f.action = DELETE_URL_TEMPLATE.replace('999999', String(docId));
+    ensureHiddenInput(f, 'next', window.location.pathname + window.location.search);
     var m = document.getElementById('deleteModal');
     if (m && window.bootstrap) new bootstrap.Modal(m).show();
   }

@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-06-09T20:24:23.503820+00:00",
+  "every_module_inventoried": true,
+  "source_hygiene_audited": true,
+  "proof_sludge_plan_exists": true,
+  "security_register_paths": [
+    "docs/generated/security_surface_audit.json",
+    "docs/generated/backend_security_deep_audit.json"
+  ],
+  "tenant_isolation_path": "docs/generated/platform_tenant_isolation_deep_audit.json",
+  "href_hash_product_count": 0,
+  "console_log_product_count": 3,
+  "tests_run_in_phase_11": false,
+  "verifiers_run_in_phase_13": false,
+  "sot_safe_to_update": false,
+  "remaining_repo_gaps": [
+    "Replace pre_deploy_gate_run.txt with summary",
+    "Run full backend test matrix or record remap",
+    "Run phase 13 verifier bundle"
+  ]
+}

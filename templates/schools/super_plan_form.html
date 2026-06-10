@@ -26,14 +26,15 @@
         <div class="h6 text-uppercase mb-1">{% trans "Platform configuration" %}</div>
         <h1 class="h4 mb-1 fw-bold">{{ page_title }}</h1>
       </div>
-      <a href="{{ back_url }}" class="btn btn-outline-light btn-sm">{% trans "Back to list" %}</a>
+      <a href="{{ return_url|default:back_url }}" class="btn btn-outline-light btn-sm">{% trans "Back to list" %}</a>
     </div>
   </header>
 
   <div class="cp-overview-card border border-secondary rounded p-4 mb-4">
     <h2 class="h6 text-uppercase mb-3">{% trans "Plan" %}</h2>
-    <form method="post" action="">
+    <form method="post" action="" data-rmc-post-mutation="1">
       {% csrf_token %}
+      {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
       {{ form.non_field_errors }}
       {% for field in form %}
       <div class="mb-3">
@@ -45,7 +46,7 @@
       {% endfor %}
       <div class="d-flex flex-wrap gap-2 pt-2">
         <button type="submit" class="btn btn-primary">{% trans "Save plan" %}</button>
-        <a href="{{ back_url }}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+        <a href="{{ return_url|default:back_url }}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
         <a href="{{ system_config_url }}" class="btn btn-outline-secondary ms-md-auto">{% trans "Config center" %}</a>
       </div>
     </form>
@@ -99,5 +100,4 @@
   </div>
   {% endif %}
 </div>
-{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

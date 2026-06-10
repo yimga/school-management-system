@@ -1,0 +1,2267 @@
+{
+  "generated_at": "2026-06-09T20:23:54.485452+00:00",
+  "git": {
+    "branch": "main",
+    "status_short_lines": 420,
+    "diff_stat_lines": 0
+  },
+  "module_count": 59,
+  "modules": {
+    "academics": {
+      "app": "academics",
+      "present": true,
+      "models_files": [
+        "apps/academics/models.py",
+        "apps/academics/models_lms.py",
+        "apps/academics/models_tenant_runtime.py"
+      ],
+      "views_files": [
+        "apps/academics/api_views.py",
+        "apps/academics/views_ca_marks.py",
+        "apps/academics/views_syllabus.py",
+        "apps/academics/views_timetable_solver.py",
+        "apps/academics/views_workflow.py"
+      ],
+      "views_count": 5,
+      "services_files": [
+        "apps/academics/services.py",
+        "apps/academics/services_certification.py",
+        "apps/academics/services_year_setup.py"
+      ],
+      "tasks_files": [],
+      "urls_files": [
+        "apps/academics/urls.py"
+      ],
+      "admin_files": [
+        "apps/academics/admin.py"
+      ],
+      "test_files_count": 21,
+      "migration_count": 59,
+      "template_count": 10,
+      "management_commands": [
+        "apps/academics/management/commands/__init__.py",
+        "apps/academics/management/commands/export_certification_pack.py",
+        "apps/academics/management/commands/fix_term_positions.py",
+        "apps/academics/management/commands/import_curriculum_nodes.py",
+        "apps/academics/management/commands/run_auto_promotion.py",
+        "apps/academics/management/commands/seed_buea_synthetic.py",
+        "apps/academics/management/commands/seed_demo.py",
+        "apps/academics/management/commands/seed_testdata_2425.py",
+        "apps/academics/management/commands/solve_timetable.py"
+      ],
+      "tenant_boundary_signals": 52,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "accounts": {
+      "app": "accounts",
+      "present": true,
+      "models_files": [
+        "apps/accounts/models.py",
+        "apps/accounts/models_login_context.py",
+        "apps/accounts/models_offline_device.py",
+        "apps/accounts/models_rebac.py",
+        "apps/accounts/models_sso.py"
+      ],
+      "views_files": [
+        "apps/accounts/views.py",
+        "apps/accounts/views_certification.py",
+        "apps/accounts/views_dashboard.py",
+        "apps/accounts/views_delegation.py",
+        "apps/accounts/views_district_interop.py",
+        "apps/accounts/views_i18n.py",
+        "apps/accounts/views_impersonation.py",
+        "apps/accounts/views_legacy_setup.py",
+        "apps/accounts/views_mfa.py",
+        "apps/accounts/views_migration.py",
+        "apps/accounts/views_oidc.py",
+        "apps/accounts/views_onboarding.py",
+        "apps/accounts/views_owner_onboarding.py",
+        "apps/accounts/views_passkey.py",
+        "apps/accounts/views_rollover.py",
+        "apps/accounts/views_saml.py",
+        "apps/accounts/views_security.py",
+        "apps/accounts/views_tenant_identity.py",
+        "apps/accounts/views_tenant_observability.py",
+        "apps/accounts/views_theme.py",
+        "apps/accounts/views_trust_hub.py",
+        "apps/accounts/views_web_push.py",
+        "apps/accounts/views_workflow.py"
+      ],
+      "views_count": 23,
+      "services_files": [],
+      "tasks_files": [
+        "apps/accounts/tasks.py"
+      ],
+      "urls_files": [
+        "apps/accounts/urls.py",
+        "apps/accounts/urls_backend.py"
+      ],
+      "admin_files": [
+        "apps/accounts/admin.py"
+      ],
+      "test_files_count": 72,
+      "migration_count": 42,
+      "template_count": 80,
+      "management_commands": [
+        "apps/accounts/management/commands/backfill_user_roles.py",
+        "apps/accounts/management/commands/check_roles.py",
+        "apps/accounts/management/commands/create_teacher_parent_accounts.py",
+        "apps/accounts/management/commands/ensure_default_tenant_admin.py",
+        "apps/accounts/management/commands/ensure_platform_operator_profiles.py",
+        "apps/accounts/management/commands/ensure_superadmin.py",
+        "apps/accounts/management/commands/ensure_superuser.py",
+        "apps/accounts/management/commands/list_expired_temporary_grants.py",
+        "apps/accounts/management/commands/refresh_saml_idp_metadata.py",
+        "apps/accounts/management/commands/rotate_encryption_keys.py",
+        "apps/accounts/management/commands/security_log_retention.py",
+        "apps/accounts/management/commands/seed_render_users.py",
+        "apps/accounts/management/commands/seed_tenant_identity_demo.py",
+        "apps/accounts/management/commands/sync_rebac_tuples.py"
+      ],
+      "tenant_boundary_signals": 163,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "admissions": {
+      "app": "admissions",
+      "present": true,
+      "models_files": [],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [],
+      "test_files_count": 3,
+      "migration_count": 0,
+      "template_count": 0,
+      "management_commands": [],
+      "tenant_boundary_signals": 3,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "analytics": {
+      "app": "analytics",
+      "present": true,
+      "models_files": [
+        "apps/analytics/models.py",
+        "apps/analytics/models_digest.py",
+        "apps/analytics/models_extended.py",
+        "apps/analytics/models_grade_prediction.py",
+        "apps/analytics/models_ml_registry.py"
+      ],
+      "views_files": [
+        "apps/analytics/benchmark_views.py",
+        "apps/analytics/views.py",
+        "apps/analytics/views_governed.py"
+      ],
+      "views_count": 3,
+      "services_files": [
+        "apps/analytics/services.py",
+        "apps/analytics/services/__init__.py",
+        "apps/analytics/services/analytics_seeder_py.py",
+        "apps/analytics/services/tenant_overview_viz.py"
+      ],
+      "tasks_files": [
+        "apps/analytics/tasks.py"
+      ],
+      "urls_files": [
+        "apps/analytics/urls.py"
+      ],
+      "admin_files": [
+        "apps/analytics/admin.py"
+      ],
+      "test_files_count": 32,
+      "migration_count": 29,
+      "template_count": 13,
+      "management_commands": [
+        "apps/analytics/management/commands/__init__.py",
+        "apps/analytics/management/commands/ai_narrate_risk_digest.py",
+        "apps/analytics/management/commands/bootstrap_at_risk_registry.py",
+        "apps/analytics/management/commands/build_student_embeddings.py",
+        "apps/analytics/management/commands/check_at_risk_calibration.py",
+        "apps/analytics/management/commands/check_at_risk_drift.py",
+        "apps/analytics/management/commands/check_grade_prediction_calibration.py",
+        "apps/analytics/management/commands/check_grade_prediction_drift.py",
+        "apps/analytics/management/commands/compute_benchmark_aggregates.py",
+        "apps/analytics/management/commands/compute_nightly_grade_predictions.py",
+        "apps/analytics/management/commands/compute_nightly_risk.py",
+        "apps/analytics/management/commands/evaluate_at_risk_model.py",
+        "apps/analytics/management/commands/evaluate_grade_prediction_model.py",
+        "apps/analytics/management/commands/export_at_risk_training_data.py",
+        "apps/analytics/management/commands/export_to_warehouse.py",
+        "apps/analytics/management/commands/migrate_embeddings_to_pgvector.py",
+        "apps/analytics/management/commands/promote_at_risk_artifact.py",
+        "apps/analytics/management/commands/promote_grade_prediction_artifact.py",
+        "apps/analytics/management/commands/rebuild_pgvector_index.py",
+        "apps/analytics/management/commands/register_at_risk_artifact.py"
+      ],
+      "tenant_boundary_signals": 138,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "api": {
+      "app": "api",
+      "present": true,
+      "models_files": [],
+      "views_files": [
+        "apps/api/auth_views.py",
+        "apps/api/br_northstar_views.py",
+        "apps/api/ceds_views.py",
+        "apps/api/config_diff_views.py",
+        "apps/api/control_plane_internal_views.py",
+        "apps/api/edfi_views.py",
+        "apps/api/government_views.py",
+        "apps/api/north_star_api_views.py",
+        "apps/api/offline_replay_views.py",
+        "apps/api/oneroster_views.py",
+        "apps/api/roadmap_due_today_views.py",
+        "apps/api/roadmap_extended_views.py",
+        "apps/api/rosetta_views.py",
+        "apps/api/scim_views.py",
+        "apps/api/views_marketplace_catalog.py",
+        "apps/api/views_marketplace_submissions.py",
+        "apps/api/views_migration_jobs.py",
+        "apps/api/views_v1.py",
+        "apps/api/views_v1_intervention.py",
+        "apps/api/views_v1_platform.py",
+        "apps/api/views_v1_tenant_crud.py",
+        "apps/api/views_v2.py",
+        "apps/api/views_webhook_catalog.py"
+      ],
+      "views_count": 23,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [
+        "apps/api/urls.py",
+        "apps/api/urls_v1.py",
+        "apps/api/urls_v2.py"
+      ],
+      "admin_files": [],
+      "test_files_count": 60,
+      "migration_count": 2,
+      "template_count": 0,
+      "management_commands": [],
+      "tenant_boundary_signals": 183,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "apicenter": {
+      "app": "apicenter",
+      "present": true,
+      "models_files": [
+        "apps/apicenter/models.py"
+      ],
+      "views_files": [
+        "apps/apicenter/oauth_views.py",
+        "apps/apicenter/views.py",
+        "apps/apicenter/views_ai_center_super.py"
+      ],
+      "views_count": 3,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [
+        "apps/apicenter/ai_center_urls.py",
+        "apps/apicenter/oauth_urls.py",
+        "apps/apicenter/urls.py"
+      ],
+      "admin_files": [
+        "apps/apicenter/admin.py"
+      ],
+      "test_files_count": 20,
+      "migration_count": 9,
+      "template_count": 21,
+      "management_commands": [],
+      "tenant_boundary_signals": 11,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "assist_dock": {
+      "app": "assist_dock",
+      "present": true,
+      "models_files": [
+        "apps/assist_dock/models.py"
+      ],
+      "views_files": [
+        "apps/assist_dock/power_views.py",
+        "apps/assist_dock/views.py",
+        "apps/assist_dock/views_ai.py",
+        "apps/assist_dock/views_cursors.py",
+        "apps/assist_dock/views_impersonation.py",
+        "apps/assist_dock/views_presence.py",
+        "apps/assist_dock/views_share.py",
+        "apps/assist_dock/views_wave.py"
+      ],
+      "views_count": 8,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [
+        "apps/assist_dock/client_urls.py",
+        "apps/assist_dock/urls.py"
+      ],
+      "admin_files": [],
+      "test_files_count": 21,
+      "migration_count": 4,
+      "template_count": 9,
+      "management_commands": [],
+      "tenant_boundary_signals": 16,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "automation": {
+      "app": "automation",
+      "present": true,
+      "models_files": [
+        "apps/automation/models.py"
+      ],
+      "views_files": [
+        "apps/automation/views.py",
+        "apps/automation/views_visual_workflow.py",
+        "apps/automation/views_workflow_gallery.py"
+      ],
+      "views_count": 3,
+      "services_files": [],
+      "tasks_files": [
+        "apps/automation/tasks.py"
+      ],
+      "urls_files": [
+        "apps/automation/urls.py"
+      ],
+      "admin_files": [
+        "apps/automation/admin.py"
+      ],
+      "test_files_count": 23,
+      "migration_count": 19,
+      "template_count": 3,
+      "management_commands": [
+        "apps/automation/management/commands/__init__.py",
+        "apps/automation/management/commands/migration_legacy_data_audit.py",
+        "apps/automation/management/commands/seed_migration_profiles.py"
+      ],
+      "tenant_boundary_signals": 13,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "billing": {
+      "app": "billing",
+      "present": true,
+      "models_files": [
+        "apps/billing/models.py",
+        "apps/billing/models_metering.py",
+        "apps/billing/models_usage_caps.py"
+      ],
+      "views_files": [
+        "apps/billing/api_views.py",
+        "apps/billing/views_embedded_checkout.py"
+      ],
+      "views_count": 2,
+      "services_files": [
+        "apps/billing/services.py"
+      ],
+      "tasks_files": [
+        "apps/billing/tasks_ai_token_flush.py"
+      ],
+      "urls_files": [
+        "apps/billing/urls_embedded_checkout.py"
+      ],
+      "admin_files": [
+        "apps/billing/admin.py"
+      ],
+      "test_files_count": 25,
+      "migration_count": 11,
+      "template_count": 0,
+      "management_commands": [
+        "apps/billing/management/commands/__init__.py",
+        "apps/billing/management/commands/aggregate_storage_usage.py",
+        "apps/billing/management/commands/import_platform_billing_snapshot.py",
+        "apps/billing/management/commands/run_platform_billing_lifecycle.py",
+        "apps/billing/management/commands/run_revenue_share_payouts.py"
+      ],
+      "tenant_boundary_signals": 15,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "brand_experience": {
+      "app": "brand_experience",
+      "present": true,
+      "models_files": [
+        "apps/brand_experience/models.py",
+        "apps/brand_experience/models_template.py"
+      ],
+      "views_files": [
+        "apps/brand_experience/views_template_marketplace.py"
+      ],
+      "views_count": 1,
+      "services_files": [
+        "apps/brand_experience/services.py"
+      ],
+      "tasks_files": [],
+      "urls_files": [
+        "apps/brand_experience/urls_template_marketplace.py"
+      ],
+      "admin_files": [
+        "apps/brand_experience/admin.py"
+      ],
+      "test_files_count": 12,
+      "migration_count": 4,
+      "template_count": 0,
+      "management_commands": [],
+      "tenant_boundary_signals": 0,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "communication": {
+      "app": "communication",
+      "present": true,
+      "models_files": [
+        "apps/communication/models.py",
+        "apps/communication/models_consent.py",
+        "apps/communication/models_delivery_receipt.py",
+        "apps/communication/models_web_push.py"
+      ],
+      "views_files": [
+        "apps/communication/api_views.py",
+        "apps/communication/views_announcements.py",
+        "apps/communication/views_delivery_dashboard.py",
+        "apps/communication/views_groups.py",
+        "apps/communication/views_narrative.py",
+        "apps/communication/views_preferences.py",
+        "apps/communication/views_sms_inbound_webhook.py",
+        "apps/communication/views_whatsapp_webhook.py"
+      ],
+      "views_count": 8,
+      "services_files": [],
+      "tasks_files": [
+        "apps/communication/tasks.py"
+      ],
+      "urls_files": [
+        "apps/communication/urls.py"
+      ],
+      "admin_files": [
+        "apps/communication/admin.py"
+      ],
+      "test_files_count": 28,
+      "migration_count": 24,
+      "template_count": 14,
+      "management_commands": [
+        "apps/communication/management/commands/check_email_signing.py",
+        "apps/communication/management/commands/encrypt_channel_secrets.py",
+        "apps/communication/management/commands/purge_thread_message_retention.py",
+        "apps/communication/management/commands/redrive_outbound_messages.py",
+        "apps/communication/management/commands/send_parent_digests.py",
+        "apps/communication/management/commands/sync_department_threads.py",
+        "apps/communication/management/commands/verify_whatsapp_parent_os_resolver.py"
+      ],
+      "tenant_boundary_signals": 36,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "compliance": {
+      "app": "compliance",
+      "present": true,
+      "models_files": [
+        "apps/compliance/models.py",
+        "apps/compliance/models_audit.py",
+        "apps/compliance/models_digest.py"
+      ],
+      "views_files": [
+        "apps/compliance/views.py",
+        "apps/compliance/views_api.py",
+        "apps/compliance/views_auditor.py",
+        "apps/compliance/views_dashboard.py",
+        "apps/compliance/views_data_quality.py",
+        "apps/compliance/views_ferpa.py",
+        "apps/compliance/views_gdpr.py",
+        "apps/compliance/views_queue.py",
+        "apps/compliance/views_ratelimit.py",
+        "apps/compliance/views_reporting.py"
+      ],
+      "views_count": 10,
+      "services_files": [
+        "apps/compliance/services.py"
+      ],
+      "tasks_files": [
+        "apps/compliance/tasks.py"
+      ],
+      "urls_files": [
+        "apps/compliance/urls.py",
+        "apps/compliance/urls_reporting.py"
+      ],
+      "admin_files": [
+        "apps/compliance/admin.py",
+        "apps/compliance/admin_audit.py"
+      ],
+      "test_files_count": 36,
+      "migration_count": 20,
+      "template_count": 14,
+      "management_commands": [
+        "apps/compliance/management/commands/__init__.py",
+        "apps/compliance/management/commands/archive_old_audits.py",
+        "apps/compliance/management/commands/check_compliance.py",
+        "apps/compliance/management/commands/cleanup_expired_rules.py",
+        "apps/compliance/management/commands/compliance_auditor.py",
+        "apps/compliance/management/commands/detect_threats.py",
+        "apps/compliance/management/commands/export_compliance_evidence_pack.py",
+        "apps/compliance/management/commands/generate_compliance_reports.py",
+        "apps/compliance/management/commands/generate_legal_docs.py",
+        "apps/compliance/management/commands/inject_table_captions.py",
+        "apps/compliance/management/commands/privacy_request.py",
+        "apps/compliance/management/commands/process_erase_requests.py",
+        "apps/compliance/management/commands/purge_compliance_data.py",
+        "apps/compliance/management/commands/rotate_audit_hmac_key.py",
+        "apps/compliance/management/commands/seed_compliance_baseline.py",
+        "apps/compliance/management/commands/send_digest_alerts.py",
+        "apps/compliance/management/commands/tenant_offboarding_run_scheduled_purges.py",
+        "apps/compliance/management/commands/tenant_purge.py",
+        "apps/compliance/management/commands/verify_access_control.py",
+        "apps/compliance/management/commands/verify_data_integrity.py"
+      ],
+      "tenant_boundary_signals": 19,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "customers": {
+      "app": "customers",
+      "present": true,
+      "models_files": [
+        "apps/customers/models.py"
+      ],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [
+        "apps/customers/admin.py"
+      ],
+      "test_files_count": 2,
+      "migration_count": 4,
+      "template_count": 0,
+      "management_commands": [
+        "apps/customers/management/commands/__init__.py",
+        "apps/customers/management/commands/ensure_tenant_schemas.py"
+      ],
+      "tenant_boundary_signals": 1,
+      "production_readiness": "minimal_tests",
+      "obvious_gaps": []
+    },
+    "customersuccess": {
+      "app": "customersuccess",
+      "present": true,
+      "models_files": [
+        "apps/customersuccess/models.py"
+      ],
+      "views_files": [
+        "apps/customersuccess/views_dashboard.py",
+        "apps/customersuccess/views_super.py",
+        "apps/customersuccess/views_tenant.py"
+      ],
+      "views_count": 3,
+      "services_files": [
+        "apps/customersuccess/services.py"
+      ],
+      "tasks_files": [
+        "apps/customersuccess/tasks.py"
+      ],
+      "urls_files": [],
+      "admin_files": [],
+      "test_files_count": 15,
+      "migration_count": 3,
+      "template_count": 6,
+      "management_commands": [
+        "apps/customersuccess/management/commands/__init__.py",
+        "apps/customersuccess/management/commands/promote_helpcenter_ledger_to_first_class.py"
+      ],
+      "tenant_boundary_signals": 17,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "dashboard": {
+      "app": "dashboard",
+      "present": true,
+      "models_files": [],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [
+        "apps/dashboard/services/__init__.py",
+        "apps/dashboard/services/insight_anomalies.py",
+        "apps/dashboard/services/role_home_service.py"
+      ],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [
+        "apps/dashboard/admin_context.py"
+      ],
+      "test_files_count": 11,
+      "migration_count": 0,
+      "template_count": 0,
+      "management_commands": [],
+      "tenant_boundary_signals": 11,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "evals": {
+      "app": "evals",
+      "present": true,
+      "models_files": [
+        "apps/evals/models.py",
+        "apps/evals/models_enhanced.py"
+      ],
+      "views_files": [
+        "apps/evals/api_views.py",
+        "apps/evals/views.py",
+        "apps/evals/views_bulk_grade_entry.py",
+        "apps/evals/views_drilldown.py",
+        "apps/evals/views_import_enhanced.py"
+      ],
+      "views_count": 5,
+      "services_files": [
+        "apps/evals/services.py"
+      ],
+      "tasks_files": [
+        "apps/evals/tasks.py"
+      ],
+      "urls_files": [
+        "apps/evals/urls.py"
+      ],
+      "admin_files": [
+        "apps/evals/admin.py"
+      ],
+      "test_files_count": 17,
+      "migration_count": 31,
+      "template_count": 15,
+      "management_commands": [
+        "apps/evals/management/commands/grade_import_template.py",
+        "apps/evals/management/commands/import_grades.py",
+        "apps/evals/management/commands/mark_completion.py"
+      ],
+      "tenant_boundary_signals": 212,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "events": {
+      "app": "events",
+      "present": true,
+      "models_files": [
+        "apps/events/models.py"
+      ],
+      "views_files": [
+        "apps/events/views_console.py",
+        "apps/events/views_event_ops.py"
+      ],
+      "views_count": 2,
+      "services_files": [
+        "apps/events/services.py"
+      ],
+      "tasks_files": [
+        "apps/events/tasks.py"
+      ],
+      "urls_files": [
+        "apps/events/urls.py"
+      ],
+      "admin_files": [
+        "apps/events/admin.py"
+      ],
+      "test_files_count": 11,
+      "migration_count": 6,
+      "template_count": 5,
+      "management_commands": [
+        "apps/events/management/commands/process_event_outbox.py",
+        "apps/events/management/commands/process_webhook_deliveries.py",
+        "apps/events/management/commands/replay_domain_events.py",
+        "apps/events/management/commands/retire_legacy_webhooks.py",
+        "apps/events/management/commands/sync_legacy_webhooks_to_events.py"
+      ],
+      "tenant_boundary_signals": 10,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "feedback": {
+      "app": "feedback",
+      "present": true,
+      "models_files": [
+        "apps/feedback/models.py"
+      ],
+      "views_files": [
+        "apps/feedback/views.py",
+        "apps/feedback/views_public_status.py"
+      ],
+      "views_count": 2,
+      "services_files": [
+        "apps/feedback/services.py"
+      ],
+      "tasks_files": [],
+      "urls_files": [
+        "apps/feedback/operator_urls.py",
+        "apps/feedback/tenant_urls.py",
+        "apps/feedback/urls.py"
+      ],
+      "admin_files": [
+        "apps/feedback/admin.py"
+      ],
+      "test_files_count": 22,
+      "migration_count": 7,
+      "template_count": 13,
+      "management_commands": [
+        "apps/feedback/management/commands/__init__.py",
+        "apps/feedback/management/commands/migrate_product_feedback_legacy.py",
+        "apps/feedback/management/commands/purge_help_telemetry.py"
+      ],
+      "tenant_boundary_signals": 20,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "finance": {
+      "app": "finance",
+      "present": true,
+      "models_files": [
+        "apps/finance/models.py",
+        "apps/finance/models_dual_auth.py",
+        "apps/finance/models_offline_capture.py"
+      ],
+      "views_files": [
+        "apps/finance/api_views.py",
+        "apps/finance/views.py",
+        "apps/finance/views_access.py",
+        "apps/finance/views_accounting.py",
+        "apps/finance/views_common.py",
+        "apps/finance/views_dashboard.py",
+        "apps/finance/views_global_payment_command_center.py",
+        "apps/finance/views_invoicing.py",
+        "apps/finance/views_marketplace_integration_credentials.py",
+        "apps/finance/views_offline_bursar_queue.py",
+        "apps/finance/views_payment_readiness_dashboard.py",
+        "apps/finance/views_payment_setup.py",
+        "apps/finance/views_payments.py",
+        "apps/finance/views_permission_to_pay.py",
+        "apps/finance/views_reports.py",
+        "apps/finance/views_requests.py",
+        "apps/finance/views_workforce_hub.py"
+      ],
+      "views_count": 17,
+      "services_files": [
+        "apps/finance/services.py"
+      ],
+      "tasks_files": [
+        "apps/finance/tasks.py"
+      ],
+      "urls_files": [
+        "apps/finance/urls.py"
+      ],
+      "admin_files": [
+        "apps/finance/admin.py"
+      ],
+      "test_files_count": 81,
+      "migration_count": 68,
+      "template_count": 25,
+      "management_commands": [
+        "apps/finance/management/commands/__init__.py",
+        "apps/finance/management/commands/apply_split_late_fees.py",
+        "apps/finance/management/commands/check_payment_gateways.py",
+        "apps/finance/management/commands/claim_suspense_payment.py",
+        "apps/finance/management/commands/import_bank_statement.py",
+        "apps/finance/management/commands/integration_preflight.py",
+        "apps/finance/management/commands/report_finance_opt_in_gaps.py",
+        "apps/finance/management/commands/seed_finance_defaults.py",
+        "apps/finance/management/commands/seed_sfdp_regional_demo_packs.py",
+        "apps/finance/management/commands/send_payment_reminders.py",
+        "apps/finance/management/commands/verify_bank_deposits.py",
+        "apps/finance/management/commands/verify_fiscal_einvoice_adapters.py"
+      ],
+      "tenant_boundary_signals": 100,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "global_registries": {
+      "app": "global_registries",
+      "present": true,
+      "models_files": [
+        "apps/global_registries/models.py"
+      ],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [
+        "apps/global_registries/admin.py"
+      ],
+      "test_files_count": 4,
+      "migration_count": 1,
+      "template_count": 0,
+      "management_commands": [],
+      "tenant_boundary_signals": 0,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "governance": {
+      "app": "governance",
+      "present": true,
+      "models_files": [
+        "apps/governance/models.py"
+      ],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [
+        "apps/governance/services.py"
+      ],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [
+        "apps/governance/admin.py"
+      ],
+      "test_files_count": 7,
+      "migration_count": 4,
+      "template_count": 0,
+      "management_commands": [
+        "apps/governance/management/commands/__init__.py",
+        "apps/governance/management/commands/backfill_organizations_from_hierarchy.py"
+      ],
+      "tenant_boundary_signals": 4,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "integrations_marketplace": {
+      "app": "integrations_marketplace",
+      "present": true,
+      "models_files": [
+        "apps/integrations_marketplace/models.py",
+        "apps/integrations_marketplace/models_lms_audit.py",
+        "apps/integrations_marketplace/models_lms_diag_action_audit.py",
+        "apps/integrations_marketplace/models_lms_token.py",
+        "apps/integrations_marketplace/models_tenant_retention_override.py",
+        "apps/integrations_marketplace/models_webhook_dead_letter.py"
+      ],
+      "views_files": [
+        "apps/integrations_marketplace/manager_views.py",
+        "apps/integrations_marketplace/views.py",
+        "apps/integrations_marketplace/views_oauth_metrics.py",
+        "apps/integrations_marketplace/views_studio_os_10x_w1.py"
+      ],
+      "views_count": 4,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [
+        "apps/integrations_marketplace/urls.py"
+      ],
+      "admin_files": [
+        "apps/integrations_marketplace/admin.py"
+      ],
+      "test_files_count": 29,
+      "migration_count": 6,
+      "template_count": 11,
+      "management_commands": [
+        "apps/integrations_marketplace/management/commands/__init__.py",
+        "apps/integrations_marketplace/management/commands/apply_marketplace_migrations.py",
+        "apps/integrations_marketplace/management/commands/check_brand_assets.py",
+        "apps/integrations_marketplace/management/commands/check_marketplace_deps.py",
+        "apps/integrations_marketplace/management/commands/export_sentry_alert_rules.py",
+        "apps/integrations_marketplace/management/commands/fetch_mailboxes.py",
+        "apps/integrations_marketplace/management/commands/refresh_oauth_tokens.py",
+        "apps/integrations_marketplace/management/commands/renew_push_subscriptions.py",
+        "apps/integrations_marketplace/management/commands/subscribe_push.py",
+        "apps/integrations_marketplace/management/commands/verify_oauth_token_rotation_policy.py"
+      ],
+      "tenant_boundary_signals": 27,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "lifecycle": {
+      "app": "lifecycle",
+      "present": true,
+      "models_files": [
+        "apps/lifecycle/models.py"
+      ],
+      "views_files": [
+        "apps/lifecycle/views.py",
+        "apps/lifecycle/views_bulk.py",
+        "apps/lifecycle/views_clone.py",
+        "apps/lifecycle/views_dsar.py",
+        "apps/lifecycle/views_jobs.py",
+        "apps/lifecycle/views_migration_intent.py",
+        "apps/lifecycle/views_migration_status.py",
+        "apps/lifecycle/views_rapid_create.py",
+        "apps/lifecycle/views_tenant_gdpr_export.py",
+        "apps/lifecycle/views_tenant_lifecycle.py"
+      ],
+      "views_count": 10,
+      "services_files": [
+        "apps/lifecycle/services.py",
+        "apps/lifecycle/services_bulk.py",
+        "apps/lifecycle/services_clone.py",
+        "apps/lifecycle/services_migration.py",
+        "apps/lifecycle/services_offboarding.py"
+      ],
+      "tasks_files": [
+        "apps/lifecycle/tasks_stall_watch.py"
+      ],
+      "urls_files": [
+        "apps/lifecycle/urls.py"
+      ],
+      "admin_files": [],
+      "test_files_count": 5,
+      "migration_count": 1,
+      "template_count": 9,
+      "management_commands": [],
+      "tenant_boundary_signals": 8,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "marketplace": {
+      "app": "marketplace",
+      "present": true,
+      "models_files": [
+        "apps/marketplace/models.py"
+      ],
+      "views_files": [
+        "apps/marketplace/views.py",
+        "apps/marketplace/views_developer_platform.py",
+        "apps/marketplace/views_monetization_dashboard.py",
+        "apps/marketplace/views_monetization_inspector.py",
+        "apps/marketplace/views_publisher.py"
+      ],
+      "views_count": 5,
+      "services_files": [
+        "apps/marketplace/services.py"
+      ],
+      "tasks_files": [
+        "apps/marketplace/tasks.py"
+      ],
+      "urls_files": [
+        "apps/marketplace/tenant_urls.py",
+        "apps/marketplace/urls.py",
+        "apps/marketplace/urls_developer_platform.py"
+      ],
+      "admin_files": [
+        "apps/marketplace/admin.py"
+      ],
+      "test_files_count": 50,
+      "migration_count": 13,
+      "template_count": 34,
+      "management_commands": [
+        "apps/marketplace/management/commands/__init__.py",
+        "apps/marketplace/management/commands/create_sandbox_tenant.py",
+        "apps/marketplace/management/commands/marketplace_health_check.py",
+        "apps/marketplace/management/commands/marketplace_report_updates.py",
+        "apps/marketplace/management/commands/seed_capability_registry.py",
+        "apps/marketplace/management/commands/seed_marketplace_apps.py",
+        "apps/marketplace/management/commands/seed_marketplace_publisher_e2e_fixtures.py",
+        "apps/marketplace/management/commands/seed_marketplace_scopes.py"
+      ],
+      "tenant_boundary_signals": 28,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "metadata": {
+      "app": "metadata",
+      "present": true,
+      "models_files": [
+        "apps/metadata/models.py"
+      ],
+      "views_files": [
+        "apps/metadata/views.py"
+      ],
+      "views_count": 1,
+      "services_files": [
+        "apps/metadata/services.py"
+      ],
+      "tasks_files": [],
+      "urls_files": [
+        "apps/metadata/urls.py"
+      ],
+      "admin_files": [
+        "apps/metadata/admin.py"
+      ],
+      "test_files_count": 11,
+      "migration_count": 11,
+      "template_count": 2,
+      "management_commands": [
+        "apps/metadata/management/commands/__init__.py",
+        "apps/metadata/management/commands/seed_business_glossary.py",
+        "apps/metadata/management/commands/seed_dynamic_field_recipes.py",
+        "apps/metadata/management/commands/seed_entity_catalog.py",
+        "apps/metadata/management/commands/sync_siteconfig_dynamicfields_to_metadata.py"
+      ],
+      "tenant_boundary_signals": 2,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "migration_cloud": {
+      "app": "migration_cloud",
+      "present": true,
+      "models_files": [
+        "apps/migration_cloud/models.py",
+        "apps/migration_cloud/models_audit.py",
+        "apps/migration_cloud/models_connectors.py",
+        "apps/migration_cloud/models_guardian_consent.py",
+        "apps/migration_cloud/models_intake.py",
+        "apps/migration_cloud/models_maa_state.py"
+      ],
+      "views_files": [
+        "apps/migration_cloud/views.py",
+        "apps/migration_cloud/views_audit_admin.py",
+        "apps/migration_cloud/views_command_center.py",
+        "apps/migration_cloud/views_connectors.py",
+        "apps/migration_cloud/views_customer.py",
+        "apps/migration_cloud/views_dlq_admin.py",
+        "apps/migration_cloud/views_dsar_admin.py",
+        "apps/migration_cloud/views_guardian_consent.py",
+        "apps/migration_cloud/views_guardian_consent_admin.py",
+        "apps/migration_cloud/views_health.py",
+        "apps/migration_cloud/views_lms_diagnostics.py",
+        "apps/migration_cloud/views_maa_counsel_activate.py",
+        "apps/migration_cloud/views_maa_promotion.py",
+        "apps/migration_cloud/views_smoke_history.py",
+        "apps/migration_cloud/views_smoke_trigger.py",
+        "apps/migration_cloud/views_token_admin.py",
+        "apps/migration_cloud/views_webhook_admin.py"
+      ],
+      "views_count": 17,
+      "services_files": [
+        "apps/migration_cloud/services.py",
+        "apps/migration_cloud/services/__init__.py",
+        "apps/migration_cloud/services/audit_root_signing.py",
+        "apps/migration_cloud/services/audit_root_signing_hsm.py",
+        "apps/migration_cloud/services/companion_keypair.py",
+        "apps/migration_cloud/services/connector_audit.py",
+        "apps/migration_cloud/services/connector_bundle_bridge.py",
+        "apps/migration_cloud/services/connector_credentials.py",
+        "apps/migration_cloud/services/connector_discovery.py",
+        "apps/migration_cloud/services/connector_import.py",
+        "apps/migration_cloud/services/connector_mapping.py",
+        "apps/migration_cloud/services/connector_rollback.py",
+        "apps/migration_cloud/services/hsm_vault.py",
+        "apps/migration_cloud/services/legacy_hash_intake.py",
+        "apps/migration_cloud/services/maa_text.py",
+        "apps/migration_cloud/services/vendor_write_gate.py"
+      ],
+      "tasks_files": [
+        "apps/migration_cloud/tasks_alerts.py",
+        "apps/migration_cloud/tasks_audit.py",
+        "apps/migration_cloud/tasks_retention.py",
+        "apps/migration_cloud/tasks_smoke.py",
+        "apps/migration_cloud/tasks_smoke_archival.py",
+        "apps/migration_cloud/tasks_smoke_trigger.py"
+      ],
+      "urls_files": [
+        "apps/migration_cloud/urls.py",
+        "apps/migration_cloud/urls_connectors.py",
+        "apps/migration_cloud/urls_customer.py",
+        "apps/migration_cloud/urls_guardian_consent.py",
+        "apps/migration_cloud/urls_guardian_consent_admin.py"
+      ],
+      "admin_files": [
+        "apps/migration_cloud/admin.py"
+      ],
+      "test_files_count": 77,
+      "migration_count": 30,
+      "template_count": 63,
+      "management_commands": [
+        "apps/migration_cloud/management/commands/__init__.py",
+        "apps/migration_cloud/management/commands/_assignment_promotion_helpers.py",
+        "apps/migration_cloud/management/commands/cleanup_intake_uploads.py",
+        "apps/migration_cloud/management/commands/dsar_runbook_record.py",
+        "apps/migration_cloud/management/commands/maa_v2_resign_campaign.py",
+        "apps/migration_cloud/management/commands/migration_cloud_rotation_drill.py",
+        "apps/migration_cloud/management/commands/migration_cloud_smoke.py",
+        "apps/migration_cloud/management/commands/migration_cloud_smoke_multi.py",
+        "apps/migration_cloud/management/commands/promote_dyna_assignments.py",
+        "apps/migration_cloud/management/commands/promote_maa_v2.py",
+        "apps/migration_cloud/management/commands/purge_audit_events_pre_approved.py",
+        "apps/migration_cloud/management/commands/purge_completed_migration_bundles.py",
+        "apps/migration_cloud/management/commands/replay_dfv_assignments.py",
+        "apps/migration_cloud/management/commands/seed_migration_connector_profiles.py",
+        "apps/migration_cloud/management/commands/verify_audit_chain.py"
+      ],
+      "tenant_boundary_signals": 342,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "observability": {
+      "app": "observability",
+      "present": true,
+      "models_files": [
+        "apps/observability/models.py",
+        "apps/observability/models_friction.py"
+      ],
+      "views_files": [
+        "apps/observability/views.py",
+        "apps/observability/views_friction.py",
+        "apps/observability/views_metrics.py"
+      ],
+      "views_count": 3,
+      "services_files": [],
+      "tasks_files": [
+        "apps/observability/tasks.py"
+      ],
+      "urls_files": [],
+      "admin_files": [
+        "apps/observability/admin.py"
+      ],
+      "test_files_count": 14,
+      "migration_count": 5,
+      "template_count": 2,
+      "management_commands": [
+        "apps/observability/management/commands/__init__.py",
+        "apps/observability/management/commands/db_health_check.py",
+        "apps/observability/management/commands/digest_friction.py",
+        "apps/observability/management/commands/summarize_feedback_loop.py",
+        "apps/observability/management/commands/synthetic_probe.py"
+      ],
+      "tenant_boundary_signals": 15,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "orchestration": {
+      "app": "orchestration",
+      "present": true,
+      "models_files": [
+        "apps/orchestration/models.py"
+      ],
+      "views_files": [
+        "apps/orchestration/views.py"
+      ],
+      "views_count": 1,
+      "services_files": [],
+      "tasks_files": [
+        "apps/orchestration/tasks.py"
+      ],
+      "urls_files": [
+        "apps/orchestration/urls.py"
+      ],
+      "admin_files": [
+        "apps/orchestration/admin.py"
+      ],
+      "test_files_count": 6,
+      "migration_count": 2,
+      "template_count": 1,
+      "management_commands": [
+        "apps/orchestration/management/commands/__init__.py",
+        "apps/orchestration/management/commands/process_orchestration_runs.py",
+        "apps/orchestration/management/commands/seed_process_definitions.py",
+        "apps/orchestration/management/commands/trigger_orchestration_runs.py"
+      ],
+      "tenant_boundary_signals": 2,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "packages": {
+      "app": "packages",
+      "present": true,
+      "models_files": [
+        "apps/packages/models.py"
+      ],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [
+        "apps/packages/admin.py"
+      ],
+      "test_files_count": 5,
+      "migration_count": 6,
+      "template_count": 0,
+      "management_commands": [
+        "apps/packages/management/commands/__init__.py",
+        "apps/packages/management/commands/seed_first_party_apps.py",
+        "apps/packages/management/commands/seed_marketplace_catalog_packages.py",
+        "apps/packages/management/commands/seed_phase9_first_party_packages.py",
+        "apps/packages/management/commands/seed_ultra_high_end_experience_packs.py"
+      ],
+      "tenant_boundary_signals": 0,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "payroll": {
+      "app": "payroll",
+      "present": true,
+      "models_files": [
+        "apps/payroll/models.py",
+        "apps/payroll/models_offline_capture.py"
+      ],
+      "views_files": [
+        "apps/payroll/views.py"
+      ],
+      "views_count": 1,
+      "services_files": [
+        "apps/payroll/services.py"
+      ],
+      "tasks_files": [],
+      "urls_files": [
+        "apps/payroll/urls.py"
+      ],
+      "admin_files": [
+        "apps/payroll/admin.py"
+      ],
+      "test_files_count": 8,
+      "migration_count": 7,
+      "template_count": 5,
+      "management_commands": [
+        "apps/payroll/management/commands/run_payroll_cycle.py"
+      ],
+      "tenant_boundary_signals": 0,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "people": {
+      "app": "people",
+      "present": true,
+      "models_files": [
+        "apps/people/models.py"
+      ],
+      "views_files": [
+        "apps/people/employer_views.py",
+        "apps/people/views_backend.py",
+        "apps/people/views_backend_bulk.py"
+      ],
+      "views_count": 3,
+      "services_files": [],
+      "tasks_files": [
+        "apps/people/tasks.py"
+      ],
+      "urls_files": [],
+      "admin_files": [
+        "apps/people/admin.py"
+      ],
+      "test_files_count": 14,
+      "migration_count": 61,
+      "template_count": 14,
+      "management_commands": [
+        "apps/people/management/commands/__init__.py",
+        "apps/people/management/commands/attach_audit_triggers.py",
+        "apps/people/management/commands/check_badge_expiry_alerts.py",
+        "apps/people/management/commands/repair_teacherprofile_updated_at.py",
+        "apps/people/management/commands/revoke_audit_log_permissions.py"
+      ],
+      "tenant_boundary_signals": 27,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "plans_entitlements": {
+      "app": "plans_entitlements",
+      "present": true,
+      "models_files": [
+        "apps/plans_entitlements/models.py"
+      ],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [
+        "apps/plans_entitlements/admin.py"
+      ],
+      "test_files_count": 3,
+      "migration_count": 2,
+      "template_count": 0,
+      "management_commands": [],
+      "tenant_boundary_signals": 0,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "platform_runtime": {
+      "app": "platform_runtime",
+      "present": true,
+      "models_files": [
+        "apps/platform_runtime/models.py",
+        "apps/platform_runtime/models_agentic_audit.py",
+        "apps/platform_runtime/models_newsletter.py",
+        "apps/platform_runtime/models_operator_identity.py",
+        "apps/platform_runtime/models_reactivation.py",
+        "apps/platform_runtime/models_rollout.py",
+        "apps/platform_runtime/models_workflow_10x.py",
+        "apps/platform_runtime/models_workflow_run.py"
+      ],
+      "views_files": [
+        "apps/platform_runtime/views_administration.py",
+        "apps/platform_runtime/views_click_tracking.py",
+        "apps/platform_runtime/views_local_ai.py",
+        "apps/platform_runtime/views_newsletter.py",
+        "apps/platform_runtime/views_operational_center.py",
+        "apps/platform_runtime/views_operator_tenant_inspect.py",
+        "apps/platform_runtime/views_platform_health.py",
+        "apps/platform_runtime/views_rum.py",
+        "apps/platform_runtime/views_tenant_lifecycle.py",
+        "apps/platform_runtime/views_workflow_autopilot.py",
+        "apps/platform_runtime/views_workflow_flight_deck.py",
+        "apps/platform_runtime/views_workflow_progress.py",
+        "apps/platform_runtime/views_workflow_trust.py"
+      ],
+      "views_count": 13,
+      "services_files": [
+        "apps/platform_runtime/services.py"
+      ],
+      "tasks_files": [
+        "apps/platform_runtime/tasks.py"
+      ],
+      "urls_files": [
+        "apps/platform_runtime/configuration_urls.py",
+        "apps/platform_runtime/urls.py"
+      ],
+      "admin_files": [
+        "apps/platform_runtime/admin.py",
+        "apps/platform_runtime/admin_mixins.py",
+        "apps/platform_runtime/administration_catalog.py"
+      ],
+      "test_files_count": 262,
+      "migration_count": 83,
+      "template_count": 35,
+      "management_commands": [
+        "apps/platform_runtime/management/commands/__init__.py",
+        "apps/platform_runtime/management/commands/apply_offline_mode_bundle.py",
+        "apps/platform_runtime/management/commands/apply_platform_migration.py",
+        "apps/platform_runtime/management/commands/backfill_runtime_defaults.py",
+        "apps/platform_runtime/management/commands/certify_edge_ai.py",
+        "apps/platform_runtime/management/commands/ensure_calendar_system_registry.py",
+        "apps/platform_runtime/management/commands/evaluate_backlog_unlocks.py",
+        "apps/platform_runtime/management/commands/export_pilot_defect_backlog.py",
+        "apps/platform_runtime/management/commands/platform_inventory.py",
+        "apps/platform_runtime/management/commands/process_configuration_change_queue.py",
+        "apps/platform_runtime/management/commands/profile_edge_hardware.py",
+        "apps/platform_runtime/management/commands/record_geos_internal_core_loop.py",
+        "apps/platform_runtime/management/commands/replay_platform_event.py",
+        "apps/platform_runtime/management/commands/run_tenant_lifecycle_scheduler.py",
+        "apps/platform_runtime/management/commands/run_tenant_reactivation_sweep.py",
+        "apps/platform_runtime/management/commands/seed_dashboard_topology_links.py",
+        "apps/platform_runtime/management/commands/seed_five_pillar_proof.py",
+        "apps/platform_runtime/management/commands/sign_intelligence_evidence.py",
+        "apps/platform_runtime/management/commands/suggest_next_runtime_defaults_fields.py",
+        "apps/platform_runtime/management/commands/sync_ollama_models.py"
+      ],
+      "tenant_boundary_signals": 63,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "policies": {
+      "app": "policies",
+      "present": true,
+      "models_files": [
+        "apps/policies/models.py"
+      ],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [
+        "apps/policies/admin.py"
+      ],
+      "test_files_count": 6,
+      "migration_count": 7,
+      "template_count": 0,
+      "management_commands": [
+        "apps/policies/management/commands/__init__.py",
+        "apps/policies/management/commands/apply_tenant_overrides.py",
+        "apps/policies/management/commands/seed_blueprint_policy_packs.py",
+        "apps/policies/management/commands/update_blueprint_bundles.py"
+      ],
+      "tenant_boundary_signals": 1,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "policies_rules": {
+      "app": "policies_rules",
+      "present": true,
+      "models_files": [
+        "apps/policies_rules/models.py"
+      ],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [],
+      "test_files_count": 1,
+      "migration_count": 0,
+      "template_count": 0,
+      "management_commands": [],
+      "tenant_boundary_signals": 0,
+      "production_readiness": "minimal_tests",
+      "obvious_gaps": []
+    },
+    "portal": {
+      "app": "portal",
+      "present": true,
+      "models_files": [
+        "apps/portal/models.py",
+        "apps/portal/models_forums.py",
+        "apps/portal/models_kb.py"
+      ],
+      "views_files": [
+        "apps/portal/views.py",
+        "apps/portal/views_admissions_intake.py",
+        "apps/portal/views_agentic.py",
+        "apps/portal/views_ai_copilot.py",
+        "apps/portal/views_ai_draft.py",
+        "apps/portal/views_ai_gateway.py",
+        "apps/portal/views_ai_line.py",
+        "apps/portal/views_ai_line_admin.py",
+        "apps/portal/views_ai_product.py",
+        "apps/portal/views_ai_stream.py",
+        "apps/portal/views_ai_surfaces.py",
+        "apps/portal/views_at_risk_labeling.py",
+        "apps/portal/views_attendance_export.py",
+        "apps/portal/views_bulk_capture.py",
+        "apps/portal/views_command_bar.py",
+        "apps/portal/views_common.py",
+        "apps/portal/views_configure.py",
+        "apps/portal/views_contact_requests.py",
+        "apps/portal/views_documents.py",
+        "apps/portal/views_education_pack.py",
+        "apps/portal/views_forums.py",
+        "apps/portal/views_idempotency_audit.py",
+        "apps/portal/views_institution_assign.py",
+        "apps/portal/views_kb.py",
+        "apps/portal/views_kb_docs.py"
+      ],
+      "views_count": 55,
+      "services_files": [
+        "apps/portal/services.py"
+      ],
+      "tasks_files": [
+        "apps/portal/tasks.py"
+      ],
+      "urls_files": [
+        "apps/portal/role_smoke_urls.py",
+        "apps/portal/urls.py",
+        "apps/portal/urls_kb.py"
+      ],
+      "admin_files": [
+        "apps/portal/admin.py",
+        "apps/portal/admin_kb.py"
+      ],
+      "test_files_count": 101,
+      "migration_count": 42,
+      "template_count": 87,
+      "management_commands": [
+        "apps/portal/management/commands/archive_stale_kb_articles.py",
+        "apps/portal/management/commands/build_code_support_index.py",
+        "apps/portal/management/commands/cleanup_photo_upload_tokens.py",
+        "apps/portal/management/commands/crawl_portal_role_urls.py",
+        "apps/portal/management/commands/generate_kb_odt.py",
+        "apps/portal/management/commands/import_docs_to_kb.py",
+        "apps/portal/management/commands/migrate_kb_embeddings_to_pgvector.py",
+        "apps/portal/management/commands/reindex_kb_help_embeddings.py",
+        "apps/portal/management/commands/seed_faqs.py",
+        "apps/portal/management/commands/seed_help_journey_slugs.py",
+        "apps/portal/management/commands/seed_kb_articles.py",
+        "apps/portal/management/commands/seed_office_documents.py",
+        "apps/portal/management/commands/seed_workflow_kb_corpus.py",
+        "apps/portal/management/commands/verify_kb_exports.py",
+        "apps/portal/management/commands/verify_onboarding_setup.py"
+      ],
+      "tenant_boundary_signals": 245,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "registries": {
+      "app": "registries",
+      "present": true,
+      "models_files": [
+        "apps/registries/models.py"
+      ],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [
+        "apps/registries/services.py"
+      ],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [
+        "apps/registries/admin.py"
+      ],
+      "test_files_count": 5,
+      "migration_count": 7,
+      "template_count": 0,
+      "management_commands": [
+        "apps/registries/management/commands/__init__.py",
+        "apps/registries/management/commands/seed_country_localization_registries.py",
+        "apps/registries/management/commands/seed_iso3166_subdivisions.py",
+        "apps/registries/management/commands/seed_platform_registries.py",
+        "apps/registries/management/commands/seed_terminology_registry.py",
+        "apps/registries/management/commands/verify_registry_coverage.py"
+      ],
+      "tenant_boundary_signals": 3,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "reports": {
+      "app": "reports",
+      "present": true,
+      "models_files": [
+        "apps/reports/models.py"
+      ],
+      "views_files": [
+        "apps/reports/views.py"
+      ],
+      "views_count": 1,
+      "services_files": [
+        "apps/reports/services.py"
+      ],
+      "tasks_files": [],
+      "urls_files": [
+        "apps/reports/urls.py"
+      ],
+      "admin_files": [
+        "apps/reports/admin.py"
+      ],
+      "test_files_count": 12,
+      "migration_count": 22,
+      "template_count": 13,
+      "management_commands": [
+        "apps/reports/management/commands/export_report_cards_csv.py",
+        "apps/reports/management/commands/export_state_report.py",
+        "apps/reports/management/commands/generate_regional_reports.py",
+        "apps/reports/management/commands/send_scheduled_reports.py"
+      ],
+      "tenant_boundary_signals": 56,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "requests": {
+      "app": "requests",
+      "present": true,
+      "models_files": [
+        "apps/requests/models.py"
+      ],
+      "views_files": [
+        "apps/requests/views.py"
+      ],
+      "views_count": 1,
+      "services_files": [
+        "apps/requests/services.py"
+      ],
+      "tasks_files": [
+        "apps/requests/tasks.py"
+      ],
+      "urls_files": [
+        "apps/requests/urls.py"
+      ],
+      "admin_files": [
+        "apps/requests/admin.py"
+      ],
+      "test_files_count": 3,
+      "migration_count": 3,
+      "template_count": 3,
+      "management_commands": [],
+      "tenant_boundary_signals": 2,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "runtime_blueprints": {
+      "app": "runtime_blueprints",
+      "present": true,
+      "models_files": [
+        "apps/runtime_blueprints/models.py"
+      ],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [
+        "apps/runtime_blueprints/admin.py"
+      ],
+      "test_files_count": 1,
+      "migration_count": 1,
+      "template_count": 0,
+      "management_commands": [],
+      "tenant_boundary_signals": 0,
+      "production_readiness": "minimal_tests",
+      "obvious_gaps": []
+    },
+    "safeguarding": {
+      "app": "safeguarding",
+      "present": true,
+      "models_files": [],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [],
+      "test_files_count": 3,
+      "migration_count": 0,
+      "template_count": 0,
+      "management_commands": [],
+      "tenant_boundary_signals": 0,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "sales": {
+      "app": "sales",
+      "present": true,
+      "models_files": [
+        "apps/sales/models.py"
+      ],
+      "views_files": [
+        "apps/sales/views.py"
+      ],
+      "views_count": 1,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [
+        "apps/sales/urls.py"
+      ],
+      "admin_files": [
+        "apps/sales/admin.py"
+      ],
+      "test_files_count": 4,
+      "migration_count": 3,
+      "template_count": 4,
+      "management_commands": [],
+      "tenant_boundary_signals": 0,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "school_events": {
+      "app": "school_events",
+      "present": true,
+      "models_files": [
+        "apps/school_events/models.py"
+      ],
+      "views_files": [
+        "apps/school_events/views.py"
+      ],
+      "views_count": 1,
+      "services_files": [
+        "apps/school_events/services.py"
+      ],
+      "tasks_files": [],
+      "urls_files": [
+        "apps/school_events/urls.py"
+      ],
+      "admin_files": [
+        "apps/school_events/admin.py"
+      ],
+      "test_files_count": 1,
+      "migration_count": 1,
+      "template_count": 2,
+      "management_commands": [],
+      "tenant_boundary_signals": 0,
+      "production_readiness": "minimal_tests",
+      "obvious_gaps": []
+    },
+    "schoolops": {
+      "app": "schoolops",
+      "present": true,
+      "models_files": [
+        "apps/schoolops/models.py",
+        "apps/schoolops/models_email_deadletter.py",
+        "apps/schoolops/models_email_delivery.py",
+        "apps/schoolops/models_email_suppression.py",
+        "apps/schoolops/models_micro_friction.py"
+      ],
+      "views_files": [
+        "apps/schoolops/views_analytics.py",
+        "apps/schoolops/views_email_admin.py",
+        "apps/schoolops/views_email_health.py",
+        "apps/schoolops/views_email_webhook.py",
+        "apps/schoolops/views_lost_belongings.py",
+        "apps/schoolops/views_substitute_handover.py",
+        "apps/schoolops/views_tenant_ops.py"
+      ],
+      "views_count": 7,
+      "services_files": [],
+      "tasks_files": [
+        "apps/schoolops/tasks.py"
+      ],
+      "urls_files": [],
+      "admin_files": [
+        "apps/schoolops/admin.py"
+      ],
+      "test_files_count": 26,
+      "migration_count": 26,
+      "template_count": 27,
+      "management_commands": [
+        "apps/schoolops/management/commands/__init__.py",
+        "apps/schoolops/management/commands/optimize_bus_route.py",
+        "apps/schoolops/management/commands/redrive_email_dead_letters.py",
+        "apps/schoolops/management/commands/test_email_health.py"
+      ],
+      "tenant_boundary_signals": 45,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "schools": {
+      "app": "schools",
+      "present": true,
+      "models_files": [
+        "apps/schools/models.py"
+      ],
+      "views_files": [
+        "apps/schools/activation_views.py",
+        "apps/schools/api_views.py",
+        "apps/schools/competitive_marketing_views.py",
+        "apps/schools/demo_conversion_views.py",
+        "apps/schools/error_views.py",
+        "apps/schools/marketing_competitor_views.py",
+        "apps/schools/marketing_kb_views.py",
+        "apps/schools/marketing_views.py",
+        "apps/schools/marketing_views_v2.py",
+        "apps/schools/parent_tenant_views.py",
+        "apps/schools/section8_views.py",
+        "apps/schools/signup_views.py",
+        "apps/schools/super_views.py",
+        "apps/schools/super_views_ai.py",
+        "apps/schools/super_views_beyond_reach.py",
+        "apps/schools/super_views_billing_console.py",
+        "apps/schools/super_views_bulk.py",
+        "apps/schools/super_views_catalog.py",
+        "apps/schools/super_views_command_center_data.py",
+        "apps/schools/super_views_command_center_views.py",
+        "apps/schools/super_views_config.py",
+        "apps/schools/super_views_config_crud.py",
+        "apps/schools/super_views_constants.py",
+        "apps/schools/super_views_create_school_wizard.py",
+        "apps/schools/super_views_dashboard_helpers.py"
+      ],
+      "views_count": 63,
+      "services_files": [],
+      "tasks_files": [
+        "apps/schools/tasks.py"
+      ],
+      "urls_files": [
+        "apps/schools/provision_email_urls.py",
+        "apps/schools/super_urls.py"
+      ],
+      "admin_files": [
+        "apps/schools/admin.py"
+      ],
+      "test_files_count": 245,
+      "migration_count": 65,
+      "template_count": 162,
+      "management_commands": [
+        "apps/schools/management/commands/__init__.py",
+        "apps/schools/management/commands/activate_pending_signup_schools.py",
+        "apps/schools/management/commands/align_tenant_config.py",
+        "apps/schools/management/commands/backfill_schooldomain.py",
+        "apps/schools/management/commands/check_tenant_runtime.py",
+        "apps/schools/management/commands/ensure_demo_environment.py",
+        "apps/schools/management/commands/ensure_developer_sandbox_tenant.py",
+        "apps/schools/management/commands/ingest_testimonial_sources.py",
+        "apps/schools/management/commands/migrate_schools_to_tenants.py",
+        "apps/schools/management/commands/migrate_tenant_schemas_one_by_one.py",
+        "apps/schools/management/commands/phase_i_gap_analysis.py",
+        "apps/schools/management/commands/run_tenant_migrations.py",
+        "apps/schools/management/commands/seed_demo_tenant_users.py",
+        "apps/schools/management/commands/seed_signup_e2e_fixtures.py",
+        "apps/schools/management/commands/tenant_health_check.py",
+        "apps/schools/management/commands/tenant_wind_down.py",
+        "apps/schools/management/commands/triage_signup_school.py",
+        "apps/schools/management/commands/validate_marketing_urls.py",
+        "apps/schools/management/commands/verify_custom_domains.py",
+        "apps/schools/management/commands/verify_data_residency.py"
+      ],
+      "tenant_boundary_signals": 137,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "security": {
+      "app": "security",
+      "present": true,
+      "models_files": [],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [],
+      "test_files_count": 23,
+      "migration_count": 0,
+      "template_count": 0,
+      "management_commands": [
+        "apps/security/management/commands/__init__.py",
+        "apps/security/management/commands/verify_csp_readiness.py"
+      ],
+      "tenant_boundary_signals": 0,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "setup_studio": {
+      "app": "setup_studio",
+      "present": true,
+      "models_files": [
+        "apps/setup_studio/models.py"
+      ],
+      "views_files": [
+        "apps/setup_studio/views_activation_dashboard.py",
+        "apps/setup_studio/views_wizard_cache_telemetry.py",
+        "apps/setup_studio/views_zero_friction.py",
+        "apps/setup_studio/wizard_views.py"
+      ],
+      "views_count": 4,
+      "services_files": [
+        "apps/setup_studio/services.py"
+      ],
+      "tasks_files": [
+        "apps/setup_studio/tasks.py"
+      ],
+      "urls_files": [
+        "apps/setup_studio/urls.py"
+      ],
+      "admin_files": [],
+      "test_files_count": 23,
+      "migration_count": 2,
+      "template_count": 33,
+      "management_commands": [
+        "apps/setup_studio/management/commands/__init__.py",
+        "apps/setup_studio/management/commands/seed_studio_os.py"
+      ],
+      "tenant_boundary_signals": 7,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "siteconfig": {
+      "app": "siteconfig",
+      "present": true,
+      "models_files": [
+        "apps/siteconfig/models.py",
+        "apps/siteconfig/models_ai.py",
+        "apps/siteconfig/models_constants.py",
+        "apps/siteconfig/models_dashboard.py",
+        "apps/siteconfig/models_feature_controls.py",
+        "apps/siteconfig/models_global_experience.py",
+        "apps/siteconfig/models_marketing.py",
+        "apps/siteconfig/models_marketing_testimonial.py",
+        "apps/siteconfig/models_platform_catalog.py",
+        "apps/siteconfig/models_pulse_snapshot.py",
+        "apps/siteconfig/models_runtime_ops.py",
+        "apps/siteconfig/models_support.py",
+        "apps/siteconfig/models_tooling.py",
+        "apps/siteconfig/models_workflow.py"
+      ],
+      "views_files": [
+        "apps/siteconfig/dashboard_views.py",
+        "apps/siteconfig/views.py",
+        "apps/siteconfig/views_academic_years_evidence.py",
+        "apps/siteconfig/views_ai_center.py",
+        "apps/siteconfig/views_ai_governance.py",
+        "apps/siteconfig/views_billing_plan.py",
+        "apps/siteconfig/views_billing_stripe.py",
+        "apps/siteconfig/views_billing_stripe_connect.py",
+        "apps/siteconfig/views_cockpit_admin.py",
+        "apps/siteconfig/views_cockpit_health.py",
+        "apps/siteconfig/views_cockpit_live.py",
+        "apps/siteconfig/views_cockpit_previews.py",
+        "apps/siteconfig/views_compliance_exports.py",
+        "apps/siteconfig/views_config_mutation_evidence.py",
+        "apps/siteconfig/views_console_ai_rag.py",
+        "apps/siteconfig/views_console_domains.py",
+        "apps/siteconfig/views_country_localization.py",
+        "apps/siteconfig/views_curriculum_templates.py",
+        "apps/siteconfig/views_custom_requirement.py",
+        "apps/siteconfig/views_dashboard_config.py",
+        "apps/siteconfig/views_dashboard_defaults_admin.py",
+        "apps/siteconfig/views_departments_setup_evidence.py",
+        "apps/siteconfig/views_entity_catalog.py",
+        "apps/siteconfig/views_feature_control.py",
+        "apps/siteconfig/views_form_draft.py"
+      ],
+      "views_count": 61,
+      "services_files": [],
+      "tasks_files": [
+        "apps/siteconfig/tasks.py"
+      ],
+      "urls_files": [
+        "apps/siteconfig/urls.py"
+      ],
+      "admin_files": [
+        "apps/siteconfig/admin.py",
+        "apps/siteconfig/admin_dashboard.py",
+        "apps/siteconfig/admin_index_surface.py",
+        "apps/siteconfig/admin_model_outcomes.py",
+        "apps/siteconfig/admin_portal_stats.py",
+        "apps/siteconfig/admin_steering.py"
+      ],
+      "test_files_count": 187,
+      "migration_count": 198,
+      "template_count": 133,
+      "management_commands": [
+        "apps/siteconfig/management/commands/aggregate_ai_metrics.py",
+        "apps/siteconfig/management/commands/ai_quality_scorecard.py",
+        "apps/siteconfig/management/commands/audit_tenant_models.py",
+        "apps/siteconfig/management/commands/backfill_search_indexes.py",
+        "apps/siteconfig/management/commands/backfill_service_integrations.py",
+        "apps/siteconfig/management/commands/bootstrap_platform_catalog.py",
+        "apps/siteconfig/management/commands/bootstrap_runmycampus_platform.py",
+        "apps/siteconfig/management/commands/calculate_monthly_revenue_stats.py",
+        "apps/siteconfig/management/commands/check_accessibility.py",
+        "apps/siteconfig/management/commands/check_api_health.py",
+        "apps/siteconfig/management/commands/check_branding_law.py",
+        "apps/siteconfig/management/commands/check_integrations.py",
+        "apps/siteconfig/management/commands/check_ui_parity.py",
+        "apps/siteconfig/management/commands/clone_region.py",
+        "apps/siteconfig/management/commands/compile_translations.py",
+        "apps/siteconfig/management/commands/crawl_admin_changelists.py",
+        "apps/siteconfig/management/commands/dispatch_webhook_deliveries.py",
+        "apps/siteconfig/management/commands/engine_room_sync_ollama.py",
+        "apps/siteconfig/management/commands/ensure_all_user_identities.py",
+        "apps/siteconfig/management/commands/export_config.py"
+      ],
+      "tenant_boundary_signals": 92,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "social_media": {
+      "app": "social_media",
+      "present": true,
+      "models_files": [
+        "apps/social_media/models.py"
+      ],
+      "views_files": [
+        "apps/social_media/api_views.py",
+        "apps/social_media/views.py"
+      ],
+      "views_count": 2,
+      "services_files": [
+        "apps/social_media/services/__init__.py",
+        "apps/social_media/services/aggregator.py",
+        "apps/social_media/services/analytics.py",
+        "apps/social_media/services/asset_processor.py",
+        "apps/social_media/services/emergency.py",
+        "apps/social_media/services/providers.py",
+        "apps/social_media/services/publisher.py",
+        "apps/social_media/services/throttle.py"
+      ],
+      "tasks_files": [
+        "apps/social_media/tasks.py"
+      ],
+      "urls_files": [],
+      "admin_files": [
+        "apps/social_media/admin.py"
+      ],
+      "test_files_count": 3,
+      "migration_count": 1,
+      "template_count": 1,
+      "management_commands": [],
+      "tenant_boundary_signals": 1,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "student360": {
+      "app": "student360",
+      "present": true,
+      "models_files": [
+        "apps/student360/models.py"
+      ],
+      "views_files": [
+        "apps/student360/views.py"
+      ],
+      "views_count": 1,
+      "services_files": [
+        "apps/student360/services.py"
+      ],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [],
+      "test_files_count": 9,
+      "migration_count": 1,
+      "template_count": 3,
+      "management_commands": [],
+      "tenant_boundary_signals": 4,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "studio_os": {
+      "app": "studio_os",
+      "present": true,
+      "models_files": [],
+      "views_files": [
+        "apps/studio_os/views.py",
+        "apps/studio_os/views_copilot_rail.py"
+      ],
+      "views_count": 2,
+      "services_files": [
+        "apps/studio_os/services.py"
+      ],
+      "tasks_files": [],
+      "urls_files": [
+        "apps/studio_os/urls.py"
+      ],
+      "admin_files": [],
+      "test_files_count": 42,
+      "migration_count": 0,
+      "template_count": 91,
+      "management_commands": [],
+      "tenant_boundary_signals": 5,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "sync_engine": {
+      "app": "sync_engine",
+      "present": true,
+      "models_files": [
+        "apps/sync_engine/models.py"
+      ],
+      "views_files": [
+        "apps/sync_engine/views_crdt.py"
+      ],
+      "views_count": 1,
+      "services_files": [
+        "apps/sync_engine/services.py"
+      ],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [],
+      "test_files_count": 16,
+      "migration_count": 0,
+      "template_count": 0,
+      "management_commands": [
+        "apps/sync_engine/management/commands/__init__.py",
+        "apps/sync_engine/management/commands/verify_crdt_convergence.py",
+        "apps/sync_engine/management/commands/verify_sync_semantics.py"
+      ],
+      "tenant_boundary_signals": 0,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "tenancy": {
+      "app": "tenancy",
+      "present": true,
+      "models_files": [],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [
+        "apps/tenancy/tasks.py"
+      ],
+      "urls_files": [],
+      "admin_files": [],
+      "test_files_count": 20,
+      "migration_count": 0,
+      "template_count": 0,
+      "management_commands": [
+        "apps/tenancy/management/commands/__init__.py",
+        "apps/tenancy/management/commands/verify_database_pooling.py"
+      ],
+      "tenant_boundary_signals": 2,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "wal_stream": {
+      "app": "wal_stream",
+      "present": true,
+      "models_files": [],
+      "views_files": [
+        "apps/wal_stream/views_http.py"
+      ],
+      "views_count": 1,
+      "services_files": [],
+      "tasks_files": [
+        "apps/wal_stream/tasks.py"
+      ],
+      "urls_files": [],
+      "admin_files": [],
+      "test_files_count": 2,
+      "migration_count": 0,
+      "template_count": 0,
+      "management_commands": [],
+      "tenant_boundary_signals": 8,
+      "production_readiness": "minimal_tests",
+      "obvious_gaps": []
+    },
+    "config": {
+      "app": "config",
+      "present": true,
+      "models_files": [],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [],
+      "test_files_count": 5,
+      "migration_count": 0,
+      "template_count": 0,
+      "management_commands": [],
+      "tenant_boundary_signals": 0,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "services": {
+      "app": "services",
+      "present": true,
+      "models_files": [],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [],
+      "test_files_count": 30,
+      "migration_count": 0,
+      "template_count": 0,
+      "management_commands": [],
+      "tenant_boundary_signals": 2,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "payment": {
+      "app": "payment",
+      "present": true,
+      "models_files": [
+        "payment/models.py"
+      ],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [],
+      "test_files_count": 3,
+      "migration_count": 0,
+      "template_count": 0,
+      "management_commands": [],
+      "tenant_boundary_signals": 0,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "emis": {
+      "app": "emis",
+      "present": true,
+      "models_files": [
+        "emis/models.py"
+      ],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [],
+      "test_files_count": 3,
+      "migration_count": 0,
+      "template_count": 1,
+      "management_commands": [],
+      "tenant_boundary_signals": 1,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    },
+    "ai": {
+      "app": "ai",
+      "present": true,
+      "models_files": [],
+      "views_files": [],
+      "views_count": 0,
+      "services_files": [],
+      "tasks_files": [],
+      "urls_files": [],
+      "admin_files": [],
+      "test_files_count": 13,
+      "migration_count": 0,
+      "template_count": 0,
+      "management_commands": [],
+      "tenant_boundary_signals": 0,
+      "production_readiness": "repo_scope",
+      "obvious_gaps": []
+    }
+  },
+  "cross_cutting": {
+    "middleware": [
+      "apps/accounts/middleware.py",
+      "apps/accounts/middleware_minimum_security_strength.py",
+      "apps/accounts/middleware_security_posture.py",
+      "apps/accounts/middleware_session_pinning.py",
+      "apps/api/middleware_edge_fallback.py",
+      "apps/api/middleware_idempotency.py",
+      "apps/api/middleware_tenant_cors.py",
+      "apps/assist_dock/middleware.py",
+      "apps/billing/middleware_metering.py",
+      "apps/compliance/middleware.py",
+      "apps/integrations_marketplace/middleware.py",
+      "apps/marketplace/middleware.py",
+      "apps/observability/middleware.py",
+      "apps/observability/middleware_agent_template_debug.py",
+      "apps/platform_runtime/middleware.py",
+      "apps/platform_runtime/middleware_regional_db.py",
+      "apps/platform_runtime/middleware_transient_db.py",
+      "apps/platform_runtime/middleware_unauthenticated_api_guard.py",
+      "apps/schools/middleware.py",
+      "apps/schools/middleware_activation_gate.py",
+      "apps/schools/middleware_conversion_lock.py",
+      "apps/schools/middleware_dashboard_topology.py",
+      "apps/schools/middleware_enterprise_security.py",
+      "apps/schools/middleware_operator_mfa.py",
+      "apps/schools/middleware_residency.py",
+      "apps/schools/middleware_session_school_bind.py",
+      "apps/schools/middleware_tenant_main.py",
+      "apps/tenancy/middleware.py",
+      "apps/tenancy/middleware_boundary_guard.py",
+      "apps/tenancy/middleware_rls_jwt.py"
+    ],
+    "celery_tasks": [
+      "apps/accounts/tasks.py",
+      "apps/analytics/tasks.py",
+      "apps/automation/tasks.py",
+      "apps/billing/tasks_ai_token_flush.py",
+      "apps/communication/tasks.py",
+      "apps/compliance/tasks.py",
+      "apps/customersuccess/tasks.py",
+      "apps/evals/tasks.py",
+      "apps/events/tasks.py",
+      "apps/finance/tasks.py",
+      "apps/lifecycle/tasks_stall_watch.py",
+      "apps/marketplace/tasks.py",
+      "apps/migration_cloud/tasks_alerts.py",
+      "apps/migration_cloud/tasks_audit.py",
+      "apps/migration_cloud/tasks_retention.py",
+      "apps/migration_cloud/tasks_smoke.py",
+      "apps/migration_cloud/tasks_smoke_archival.py",
+      "apps/migration_cloud/tasks_smoke_trigger.py",
+      "apps/observability/tasks.py",
+      "apps/orchestration/tasks.py",
+      "apps/people/tasks.py",
+      "apps/platform_runtime/tasks.py",
+      "apps/portal/tasks.py",
+      "apps/requests/tasks.py",
+      "apps/schoolops/tasks.py",
+      "apps/schools/tasks.py",
+      "apps/setup_studio/tasks.py",
+      "apps/siteconfig/tasks.py",
+      "apps/social_media/tasks.py",
+      "apps/tenancy/tasks.py",
+      "apps/wal_stream/tasks.py"
+    ],
+    "management_commands_count": 331
+  },
+  "verifiers": {
+    "verify_scripts": 475,
+    "audit_scripts": 66,
+    "scan_scripts": 58
+  },
+  "e2e_specs": [
+    "tests/e2e/account-profile-layout-balance.spec.js",
+    "tests/e2e/ai-center.spec.js",
+    "tests/e2e/analytics-viz-a11y.spec.js",
+    "tests/e2e/apple-class-authenticated.spec.js",
+    "tests/e2e/apple_class_evidence.spec.js",
+    "tests/e2e/capture-lens-tabs.spec.js",
+    "tests/e2e/capture-marketing-screenshots.spec.js",
+    "tests/e2e/capture-menus-open.spec.js",
+    "tests/e2e/control-plane-layout-audit.spec.js",
+    "tests/e2e/copilot-rail-grid.spec.js",
+    "tests/e2e/help-ai-center-a11y.spec.js",
+    "tests/e2e/help-center-crawl.spec.js",
+    "tests/e2e/interaction-integrity.spec.js",
+    "tests/e2e/keyboard-shortcuts-smoke.spec.js",
+    "tests/e2e/manager-bulk-confirm-dialog.spec.js",
+    "tests/e2e/manager-surface-parity.spec.js",
+    "tests/e2e/manager-theme-visibility.spec.js",
+    "tests/e2e/marketing-accessibility.spec.js",
+    "tests/e2e/marketing-differentiated-platform.spec.js",
+    "tests/e2e/marketing-gear2-a11y.spec.js",
+    "tests/e2e/marketing-impact-responsive.spec.js",
+    "tests/e2e/marketing-pricing-i18n.spec.js",
+    "tests/e2e/marketing-rtl.spec.js",
+    "tests/e2e/marketing-smoke.spec.js",
+    "tests/e2e/marketing-snapshots.spec.js",
+    "tests/e2e/marketing-theme-contrast.spec.js",
+    "tests/e2e/marketing-v2-smoke.spec.js",
+    "tests/e2e/marketing-visual-engine.spec.js",
+    "tests/e2e/marketing-visual-quality.spec.js",
+    "tests/e2e/marketing-visual-truth.spec.js"
+  ],
+  "generated_artifact_count": 509
+}

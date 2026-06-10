@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-06-09T20:24:23.486077+00:00",
+  "source": "synthesized_from_security_surface_audit",
+  "upstream": "docs/generated/security_surface_audit.json",
+  "summary": {
+    "allow_any": 40,
+    "csrf_exempt": 97,
+    "cursor_execute": 2,
+    "login_required": 689,
+    "permission_classes": 73,
+    "require_http_methods": 675,
+    "staff_member_required": 123,
+    "subprocess": 583
+  }
+}

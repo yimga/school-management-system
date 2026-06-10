@@ -1,0 +1,5 @@
+{
+  "generated_at": "2026-06-09T16:58:35.304270+00:00",
+  "status": "audit_required",
+  "candidate": "apps/setup_studio/ or apps/platform_runtime/remediation.py"
+}

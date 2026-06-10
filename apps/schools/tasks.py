@@ -751,15 +751,18 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         expected_duration_seconds=180,  # magic-number-allow: workflow-expected-duration-seconds
         payload={"slug": getattr(school, "slug", "") or ""},
     )
+    from apps.tenancy.boundary_core_guard import pinned_tenant_boundary
+
     try:
-        _do_provision_tracked(
-            school,
-            school_id,
-            contact_email=contact_email,
-            wf_run=wf_run,
-            pulse_workflow_step=pulse_workflow_step,
-            **kwargs,
-        )
+        with pinned_tenant_boundary(school_id=str(school_id), host="celery:provision"):
+            _do_provision_tracked(
+                school,
+                school_id,
+                contact_email=contact_email,
+                wf_run=wf_run,
+                pulse_workflow_step=pulse_workflow_step,
+                **kwargs,
+            )
         finalize_run(wf_run, status="succeeded")
     except Exception as exc:
         finalize_run(wf_run, status="failed", error=exc, email_on_failure=True)

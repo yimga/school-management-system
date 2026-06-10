@@ -1,0 +1,268 @@
+{
+  "generated_at": "2026-06-09T16:58:35.296479+00:00",
+  "stages": [
+    {
+      "id": "discovery_demo",
+      "label": "Discovery / demo / lead",
+      "modules": [
+        "apps/schools/marketing_views.py",
+        "apps/sales/"
+      ],
+      "modules_present": [
+        "apps/schools/marketing_views.py",
+        "apps/sales/"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "customer_record",
+      "label": "Customer record creation",
+      "modules": [
+        "apps/customers/"
+      ],
+      "modules_present": [
+        "apps/customers/"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "school_creation",
+      "label": "School creation request",
+      "modules": [
+        "apps/schools/super_views_create_school_wizard.py"
+      ],
+      "modules_present": [
+        "apps/schools/super_views_create_school_wizard.py"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "plan_entitlement",
+      "label": "Plan/entitlement choice",
+      "modules": [
+        "apps/plans_entitlements/",
+        "apps/billing/"
+      ],
+      "modules_present": [
+        "apps/plans_entitlements/",
+        "apps/billing/"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "data_residency",
+      "label": "Data residency/local profile",
+      "modules": [
+        "apps/global_registries/",
+        "apps/platform_runtime/"
+      ],
+      "modules_present": [
+        "apps/global_registries/",
+        "apps/platform_runtime/"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "owner_invite",
+      "label": "Owner/admin invitation",
+      "modules": [
+        "apps/accounts/views_owner_onboarding.py"
+      ],
+      "modules_present": [
+        "apps/accounts/views_owner_onboarding.py"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "provisioning",
+      "label": "Tenant provisioning",
+      "modules": [
+        "apps/schools/tasks.py",
+        "apps/schools/onboarding_service.py"
+      ],
+      "modules_present": [
+        "apps/schools/tasks.py",
+        "apps/schools/onboarding_service.py"
+      ],
+      "coverage": "partial",
+      "test_required": true
+    },
+    {
+      "id": "setup_studio",
+      "label": "Setup Studio",
+      "modules": [
+        "apps/setup_studio/"
+      ],
+      "modules_present": [
+        "apps/setup_studio/"
+      ],
+      "coverage": "partial",
+      "test_required": true
+    },
+    {
+      "id": "branding_pwa",
+      "label": "Branding/domain/PWA",
+      "modules": [
+        "apps/brand_experience/",
+        "apps/siteconfig/"
+      ],
+      "modules_present": [
+        "apps/brand_experience/",
+        "apps/siteconfig/"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "academic_structure",
+      "label": "Academic structure setup",
+      "modules": [
+        "apps/academics/"
+      ],
+      "modules_present": [
+        "apps/academics/"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "staff_import",
+      "label": "Staff import",
+      "modules": [
+        "apps/migration_cloud/",
+        "apps/people/"
+      ],
+      "modules_present": [
+        "apps/migration_cloud/",
+        "apps/people/"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "student_import",
+      "label": "Student import",
+      "modules": [
+        "apps/admissions/",
+        "apps/people/"
+      ],
+      "modules_present": [
+        "apps/admissions/",
+        "apps/people/"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "finance_setup",
+      "label": "Finance/billing setup",
+      "modules": [
+        "apps/finance/",
+        "apps/billing/"
+      ],
+      "modules_present": [
+        "apps/finance/",
+        "apps/billing/"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "communication_setup",
+      "label": "Communication setup",
+      "modules": [
+        "apps/communication/"
+      ],
+      "modules_present": [
+        "apps/communication/"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "launch_readiness",
+      "label": "Launch readiness check",
+      "modules": [
+        "apps/setup_studio/wizard_validators.py"
+      ],
+      "modules_present": [
+        "apps/setup_studio/wizard_validators.py"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "go_live",
+      "label": "Go-live",
+      "modules": [
+        "apps/platform_runtime/tenant_lifecycle_engine.py"
+      ],
+      "modules_present": [
+        "apps/platform_runtime/tenant_lifecycle_engine.py"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "daily_operations",
+      "label": "Daily operations",
+      "modules": [
+        "apps/schoolops/",
+        "apps/academics/"
+      ],
+      "modules_present": [
+        "apps/schoolops/",
+        "apps/academics/"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "year_close",
+      "label": "Academic year close",
+      "modules": [
+        "apps/academics/"
+      ],
+      "modules_present": [
+        "apps/academics/"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "suspension",
+      "label": "Suspension/read-only",
+      "modules": [
+        "apps/schools/tenant_offboarding.py",
+        "apps/lifecycle/"
+      ],
+      "modules_present": [
+        "apps/schools/tenant_offboarding.py",
+        "apps/lifecycle/"
+      ],
+      "coverage": "partial",
+      "test_required": false
+    },
+    {
+      "id": "offboarding",
+      "label": "Export/offboarding/purge",
+      "modules": [
+        "apps/schools/tenant_offboarding.py",
+        "apps/compliance/"
+      ],
+      "modules_present": [
+        "apps/schools/tenant_offboarding.py",
+        "apps/compliance/"
+      ],
+      "coverage": "partial",
+      "test_required": true
+    }
+  ],
+  "stage_count": 20
+}

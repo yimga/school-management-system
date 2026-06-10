@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-06-09T16:58:35.296511+00:00",
+  "modules": [
+    "apps/schools/onboarding_service.py",
+    "apps/schools/provisioning_progress.py"
+  ],
+  "idempotency_tests": [
+    "apps/schools/tests/test_tenant_isolation_and_provisioning.py",
+    "apps/schools/tests/test_tenant_provisioning_crash_resiliency.py"
+  ]
+}

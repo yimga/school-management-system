@@ -1,11 +1,13 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import resolve, reverse, set_urlconf
 
 from apps.accounts.models import User
+from apps.schools.models import School, SchoolMembership
 
 from config.manager_urls import _manager_search_static_catalog
 
 
+@override_settings(ALLOWED_HOSTS=["*"])
 class ManagerUrlconfBoundaryTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -20,6 +22,18 @@ class ManagerUrlconfBoundaryTests(TestCase):
             is_staff=True,
             is_superuser=False,
             role=User.Role.ADMIN,
+        )
+        school = School.objects.create(
+            name="Boundary Academy",
+            slug="boundary-academy",
+            subdomain="boundary-academy",
+            is_active=True,
+        )
+        SchoolMembership.objects.create(
+            school=school,
+            user=self.tenant_staff,
+            role=User.Role.ADMIN,
+            is_primary=True,
         )
 
     def test_manager_urlconf_uses_legacy_redirects_for_tenant_prefixes(self):

@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-06-09T16:58:35.304279+00:00",
+  "modules": [
+    "apps/compliance/management/commands/tenant_offboarding_run_scheduled_purges.py",
+    "apps/compliance/tenant_offboarding_inventory.py",
+    "apps/compliance/tenant_offboarding_storage.py",
+    "apps/schools/tenant_offboarding.py",
+    "apps/schools/tenant_offboarding_notifications.py",
+    "apps/schools/tenant_offboarding_policy.py"
+  ],
+  "adversarial_tests": [
+    "apps/schools/tests/test_tenant_offboarding_adversarial.py",
+    "apps/schools/tests/test_tenant_offboarding_api.py",
+    "apps/schools/tests/test_tenant_offboarding_extended.py",
+    "apps/schools/tests/test_tenant_offboarding_integration.py",
+    "apps/schools/tests/test_tenant_offboarding_optional.py"
+  ]
+}

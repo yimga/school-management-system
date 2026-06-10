@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-06-09T19:41:38.212144+00:00",
+  "status": "complete",
+  "features": {
+    "guided_one_click": true,
+    "health_score": true,
+    "blocker_cards": true,
+    "use_recommended_setup": true,
+    "resume_wizard": true,
+    "template_ctas": true,
+    "mobile_pwa_layout_audit": true,
+    "six_named_test_modules": true
+  },
+  "implementation_files": [
+    "apps/setup_studio/zero_friction.py",
+    "apps/setup_studio/views_zero_friction.py",
+    "templates/setup_studio/partials/zero_friction_cta_strip.html"
+  ],
+  "test_evidence": {
+    "ok": true
+  },
+  "open_items": []
+}

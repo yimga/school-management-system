@@ -4,10 +4,25 @@
 <div class="rmc-copilot-lens-root" data-rmc-copilot-lens-root="1">
   <p class="lx-copilot__lens-eyebrow small text-uppercase text-secondary mb-1" data-rmc-copilot-lens-eyebrow>{% trans "Context lens" %}</p>
   <p class="lx-copilot__lens-empty small text-muted mb-2" data-rmc-copilot-lens-empty>{% trans "Select a row to mirror context here." %}</p>
-  <div class="lx-copilot__lens-card mb-2">
-    <div class="lx-copilot__lens-title fw-semibold" data-rmc-copilot-lens-title></div>
-    <div class="lx-copilot__lens-sub small text-muted" data-rmc-copilot-lens-subtitle></div>
+  <div class="lx-copilot__lens-card mb-2" data-rmc-copilot-lens-card hidden>
+    <div class="lx-copilot__lens-card-head">
+      <div class="lx-copilot__lens-card-head-copy min-w-0">
+        <div class="lx-copilot__lens-title fw-semibold" data-rmc-copilot-lens-title></div>
+        <div class="lx-copilot__lens-sub small text-muted" data-rmc-copilot-lens-subtitle></div>
+      </div>
+      <button type="button" class="lx-copilot__lens-dismiss btn-close" data-rmc-copilot-lens-dismiss aria-label="{% trans 'Clear selection' %}"></button>
+    </div>
+    <div class="lx-copilot__lens-status d-flex flex-wrap gap-1 mt-2" data-rmc-copilot-lens-status hidden></div>
     <div class="lx-copilot__lens-meta mt-2" data-rmc-copilot-lens-meta></div>
+    <div class="lx-copilot__lens-provision mt-2" data-rmc-copilot-lens-provision hidden>
+      <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+        <span class="small text-uppercase text-secondary">{% trans "Provisioning" %}</span>
+        <span class="small fw-semibold" data-rmc-copilot-lens-provision-pct aria-live="polite"></span>
+      </div>
+      <ol class="lx-copilot__lens-provision-train list-unstyled mb-2" data-rmc-copilot-lens-provision-steps aria-label="{% trans 'Provisioning steps' %}"></ol>
+      <p class="small text-danger mb-2" data-rmc-copilot-lens-provision-error hidden></p>
+      <button type="button" class="btn btn-sm btn-outline-warning" data-rmc-copilot-lens-requeue hidden>{% trans "Requeue provision" %}</button>
+    </div>
     <div class="d-flex flex-wrap gap-2 mt-2" data-rmc-copilot-lens-actions></div>
   </div>
   <div class="d-flex flex-wrap gap-2 mb-2">

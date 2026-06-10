@@ -145,6 +145,7 @@ class ComplianceExportEnforcementTests(TransactionTestCase):
     MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
     ROOT_URLCONF="config.manager_urls",
     SESSION_PINNING_ENABLED=False,
+    OPERATOR_MFA_REQUIRED_ON_MANAGER=False,
 )
 class SecuritySurfaceDashboardTests(TransactionTestCase):
     def test_super_sees_marker_and_staff_blocked(self):
@@ -163,7 +164,7 @@ class SecuritySurfaceDashboardTests(TransactionTestCase):
         )
         url = reverse("super:security_surface_dashboard")
         c = Client(HTTP_HOST=_MGR_HOST)
-        self.assertTrue(c.login(username=super_u.username, password=password))
+        _force_login_verified(c, super_u)
         resp = c.get(url, HTTP_HOST=_MGR_HOST)
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")

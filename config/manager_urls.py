@@ -63,7 +63,13 @@ def manager_home(request):
         if user_has_control_plane_access(request.user):
             return redirect("super:dashboard")
         return redirect("accounts:redirect")
-    return redirect("accounts:login")
+    # The manager host root IS the operator front door. Carry the control-plane
+    # marker (cp=1) so the login view shows the operator sign-in form instead of
+    # ejecting the visitor to the public campus-discovery page — otherwise an
+    # operator who simply types manager.runmycampus.com lands on runmycampus.com.
+    from django.urls import reverse
+
+    return redirect(f"{reverse('accounts:login')}?cp=1")
 
 
 def offline_page(request):

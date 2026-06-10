@@ -32,6 +32,11 @@ from apps.setup_studio.views_activation_dashboard import (
     WizardSearchAPIView,
 )
 from apps.setup_studio.views_wizard_cache_telemetry import wizard_cache_telemetry
+from apps.setup_studio.views_zero_friction import (
+    api_blockers,
+    api_recommended_setup,
+    api_zero_friction_payload,
+)
 
 app_name = "setup_studio"
 
@@ -68,4 +73,7 @@ urlpatterns = [
         wizard_cache_telemetry,
         name="wizard_cache_telemetry",
     ),
+    path("api/setup-studio/blockers/", api_blockers, name="zero_friction_blockers"),
+    path("api/setup-studio/payload/", api_zero_friction_payload, name="zero_friction_payload"),
+    path("api/setup-studio/recommended/", api_recommended_setup, name="zero_friction_recommended"),
 ]

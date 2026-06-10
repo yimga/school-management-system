@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-06-09T19:41:38.213491+00:00",
+  "status": "complete",
+  "implementation_files": [
+    "apps/academics/year_close.py",
+    "apps/accounts/views_rollover.py"
+  ],
+  "test_evidence": {
+    "ok": true
+  },
+  "open_items": []
+}

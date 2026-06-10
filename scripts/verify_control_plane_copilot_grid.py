@@ -13,6 +13,14 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 REQUIRED_CSS_SNIPPETS = (
     (
+        REPO_ROOT / "static" / "css" / "rmc-app-shell.css",
+        (
+            '.rmc-app-shell[data-rmc-app-shell-copilot="1"]',
+            "grid-template-columns:",
+            'grid-column: 3',
+        ),
+    ),
+    (
         REPO_ROOT / "static" / "css" / "rmc-cp-200x.css",
         (
             '[data-rmc-shell-main="control-plane"] .rmc-app-shell__copilot',
@@ -36,6 +44,11 @@ REQUIRED_TEMPLATE_ORDER = (
     "_pulse_drill_sheet.html",
 )
 
+REQUIRED_TEMPLATE_MARKERS = (
+    (REPO_ROOT / "templates" / "control_plane_skeleton.html", 'data-rmc-app-shell-copilot="1"'),
+    (REPO_ROOT / "templates" / "control_plane_skeleton.html", "rmc-isomorphic-grid.css"),
+)
+
 
 def main() -> int:
     findings: list[str] = []
@@ -45,6 +58,11 @@ def main() -> int:
         for snippet in snippets:
             if snippet not in text:
                 findings.append(f"{path.relative_to(REPO_ROOT)}: missing '{snippet}'")
+
+    for path, marker in REQUIRED_TEMPLATE_MARKERS:
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if marker not in text:
+            findings.append(f"{path.relative_to(REPO_ROOT)}: missing '{marker}'")
 
     skeleton = REQUIRED_TEMPLATE_ORDER[0].read_text(encoding="utf-8", errors="replace")
     copilot_idx = skeleton.find(REQUIRED_TEMPLATE_ORDER[1])

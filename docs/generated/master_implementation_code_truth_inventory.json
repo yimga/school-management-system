@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-06-09T17:53:56.904116+00:00",
+  "git": {
+    "generated_at": "2026-06-09T17:53:54.756776+00:00",
+    "branch": "main\n",
+    "status_short": "audit.md\n?? docs/generated/tenant_50x_external_benchmark.json\n?? docs/generated/tenant_50x_external_benchmark.md\n?? docs/generated/tenant_50x_journey_map.json\n?? docs/generated/tenant_50x_journey_map.md\n?? docs/generated/tenant_50x_local_first_defaults.json\n?? docs/generated/tenant_50x_local_first_defaults.md\n?? docs/generated/tenant_50x_offboarding_export_purge.json\n?? docs/generated/tenant_50x_offboarding_export_purge.md\n?? docs/generated/tenant_50x_progress_notification_engine.json\n?? docs/generated/tenant_50x_progress_notification_engine.md\n?? docs/generated/tenant_50x_provisioning_hardening.json\n?? docs/generated/tenant_50x_provisioning_hardening.md\n?? docs/generated/tenant_50x_state_machine_hardening.json\n?? docs/generated/tenant_50x_state_machine_hardening.md\n?? docs/generated/tenant_daily_operations_50x_completion_audit.json\n?? docs/generated/tenant_daily_operations_50x_completion_audit.md\n?? docs/generated/tenant_health_customer_success_completion_audit.json\n?? docs/generated/tenant_health_customer_success_completion_audit.md\n?? docs/generated/tenant_online_offline_ai_help_completion_audit.json\n?? docs/generated/tenant_online_offline_ai_help_completion_audit.md\n?? scripts/audit_row_detail_drawer_platform.py\n?? scripts/generate_full_backend_audit_pack.py\n?? scripts/generate_generated_artifact_registry.py\n?? scripts/generate_master_implementation_continuation_audits.py\n?? scripts/generate_master_implementation_pack.py\n?? scripts/generate_tenant_50x_audit_pack.py\n?? scripts/run_50_app_test_shards.py\n?? scripts/verify_portal_row_detail_drawer.py\n?? scripts/verify_post_delete_navigation.py\n?? services/post_delete_navigation.py\n?? services/tests/test_post_delete_navigation.py\n?? static/js/rmc-copilot-lens-provision.js\n?? templates/components/row_detail_panel_hint.html\n?? templates/partials/rmc_school_lens_api_attrs.html\n?? templates/unfold/helpers/account_links.html\n?? tests/e2e/phase1-architecture-navigation.spec.js\n?? tests/e2e/phase2-portal-navigation.spec.js\n",
+    "diff_stat": "    1 -\n templates/schools/super_ministry_report_stubs.html |     1 -\n templates/schools/super_offboarding_queue.html     |    21 +-\n templates/schools/super_one_sis_any_lms.html       |     1 -\n templates/schools/super_operator_team_detail.html  |    13 +-\n templates/schools/super_operator_team_promote.html |     1 -\n templates/schools/super_operator_team_roster.html  |     9 +-\n templates/schools/super_plan_form.html             |     8 +-\n templates/schools/super_plans_list.html            |     1 -\n templates/schools/super_platform_events.html       |     1 -\n templates/schools/super_playbook_operator_hub.html |     1 -\n templates/schools/super_policies_catalog.html      |     1 -\n templates/schools/super_pulse.html                 |     1 -\n templates/schools/super_regions_list.html          |     1 -\n templates/schools/super_registries.html            |     1 -\n templates/schools/super_runtime_inspector.html     |     1 -\n templates/schools/super_schools_list.html          |    10 +-\n templates/schools/super_security_hub.html          |     1 -\n .../schools/super_security_surface_dashboard.html  |     1 -\n templates/schools/super_site_settings_list.html    |     1 -\n .../schools/super_support_csat_dashboard.html      |     1 -\n .../schools/super_support_queue_fragment.html      |     1 -\n templates/schools/super_sync_repair.html           |     1 -\n templates/schools/super_tenant_360.html            |     1 -\n templates/schools/super_tenant_health.html         |    15 +-\n templates/schools/super_usage.html                 |     1 -\n templates/schools/super_wedge_index.html           |     1 -\n templates/schools/super_workflow_packs.html        |     1 -\n templates/schools/tenant_minimal_shell.html        |     2 +-\n templates/unfold/helpers/navigation.html           |     2 +-\n templates/unfold/helpers/navigation_user.html      |    21 +-\n .../unfold/helpers/unauthenticated_header.html     |     2 +-\n 147 files changed, 25897 insertions(+), 24487 deletions(-)\n"
+  },
+  "module_count": 59,
+  "product_apps": [],
+  "tenant_lifecycle_engines": [
+    "apps/platform_runtime/tenant_lifecycle_engine.py",
+    "apps/platform_runtime/tenant_lifecycle_state_machine.py",
+    "apps/lifecycle/unified_lifecycle.py",
+    "apps/schools/onboarding_service.py"
+  ],
+  "boundary_guard": [
+    "apps/tenancy/boundary_core_guard.py",
+    "apps/tenancy/middleware_boundary_guard.py",
+    "apps/tenancy/queryset_boundary.py"
+  ],
+  "remediation_engine": "apps/platform_runtime/remediation.py",
+  "remediation_present": true
+}

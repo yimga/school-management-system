@@ -311,30 +311,9 @@ def _blocking_error(school, run: Any | None) -> str | None:
 
 
 def _suggested_remediation_payload(run: Any | None) -> dict[str, Any]:
-    empty = {
-        "human_action": "",
-        "auto_fix_available": False,
-        "auto_fix_kind": "",
-        "owner_may_apply": False,
-    }
-    if run is None:
-        return empty
-    raw = getattr(run, "suggested_remediation", None) or {}
-    if not isinstance(raw, dict):
-        return empty
-    kind = str(raw.get("auto_fix_kind", "") or "").strip()
-    owner_kinds = {
-        "requeue_provision",
-        "resend_welcome",
-        "retry_dns_sync",
-    }
-    return {
-        "human_action": str(raw.get("human_action", "") or "")[:500],
-        "auto_fix_available": bool(raw.get("auto_fix_available")),
-        "auto_fix_kind": kind,
-        "owner_may_apply": bool(raw.get("auto_fix_available"))
-        and kind in owner_kinds,
-    }
+    from apps.platform_runtime.remediation import from_workflow_run
+
+    return from_workflow_run(run)
 
 
 def _eta_seconds(run: Any | None) -> int:

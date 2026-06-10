@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-06-09T20:24:22.081534+00:00",
+  "summary_counts": {
+    "placeholder_stub": 713,
+    "shell_true": 13,
+    "csrf_exempt": 97,
+    "allow_any": 35,
+    "todo_fixme_hack": 26,
+    "console_log": 8,
+    "href_hash": 16
+  },
+  "must_fix_sample": {
+    "href_hash": [],
+    "console_log": [
+      {
+        "file": "static/js/htmx.min.js",
+        "line": 1
+      },
+      {
+        "file": "static/js/dist/world-globe.mount.js",
+        "line": 5
+      },
+      {
+        "file": "static/js/vendor/tesseract/worker.min.js",
+        "line": 2
+      }
+    ]
+  },
+  "classification_note": "Many placeholder/stub hits are honest-stub architectural markers or test fixtures"
+}

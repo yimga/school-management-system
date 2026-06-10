@@ -174,3 +174,33 @@ body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) [
     min-height: 0;
   }
 }
+
+/* ---------- Phase 2 — tenant fluid document scroll ----------
+   Aligns tenant portal with admin `.rmc-app-shell--fluid`: natural document
+   growth, no nested canvas trap, sidebar keeps internal scroll only. */
+html[data-rmc-layout="fluid"][data-surface="tenant"] body.portal-body-with-layout:not(.control-plane-shell) {
+  overflow: visible;
+  height: auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+html[data-rmc-layout="fluid"][data-surface="tenant"] body.portal-body-with-layout:not(.control-plane-shell) .portal-main-col > .page-wrap {
+  overflow-y: visible;
+  max-height: none;
+}
+
+html[data-rmc-layout="fluid"][data-surface="tenant"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col {
+  overflow: visible;
+  max-height: none;
+}
+
+html[data-rmc-layout="fluid"][data-surface="tenant"] body.portal-sidebar-tone-dark .sidebar,
+html[data-rmc-layout="fluid"][data-surface="tenant"] body.portal-sidebar-tone-light .sidebar {
+  max-height: none;
+}
+
+html[data-rmc-layout="fluid"][data-surface="tenant"] #portalHeader .topbar-controls,
+html[data-rmc-layout="fluid"][data-surface="tenant"] .user-dropdown-wrapper {
+  overflow: visible;
+}

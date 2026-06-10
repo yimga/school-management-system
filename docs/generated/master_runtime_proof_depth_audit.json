@@ -1,0 +1,39 @@
+{
+  "generated_at": "2026-06-09T16:58:32.890428+00:00",
+  "runtime_test_modules": [
+    "apps/academics/tests/test_academic_structure_provisioning.py",
+    "apps/compliance/tests/test_tenant_offboarding_inventory_purge.py",
+    "apps/customers/tests/test_schema_provisioning_repository.py",
+    "apps/lifecycle/tests/test_tenant_lifecycle_gap_close.py",
+    "apps/platform_runtime/tests/test_tenant_lifecycle_closure_slice.py",
+    "apps/platform_runtime/tests/test_tenant_lifecycle_engine.py",
+    "apps/platform_runtime/tests/test_tenant_lifecycle_finalization.py",
+    "apps/platform_runtime/tests/test_tenant_lifecycle_notifications.py",
+    "apps/platform_runtime/tests/test_tenant_lifecycle_scheduler.py",
+    "apps/platform_runtime/tests/test_tenant_lifecycle_state_machine.py",
+    "apps/schools/tests/test_provisioning_dispatch.py",
+    "apps/schools/tests/test_provisioning_progress_api.py",
+    "apps/schools/tests/test_provisioning_workflow_visibility.py",
+    "apps/schools/tests/test_super_offboarding_http.py",
+    "apps/schools/tests/test_tenant_isolation_and_provisioning.py",
+    "apps/schools/tests/test_tenant_lifecycle_full.py",
+    "apps/schools/tests/test_tenant_offboarding_adversarial.py",
+    "apps/schools/tests/test_tenant_offboarding_api.py",
+    "apps/schools/tests/test_tenant_offboarding_extended.py",
+    "apps/schools/tests/test_tenant_offboarding_integration.py",
+    "apps/schools/tests/test_tenant_offboarding_optional.py",
+    "apps/schools/tests/test_tenant_provisioning_crash_resiliency.py"
+  ],
+  "runtime_test_count": 22,
+  "doc_only_patterns_checked": [
+    "assertTrue(os.path.exists",
+    "assert Path(",
+    "self.assertTrue(",
+    "artifact exists"
+  ],
+  "gaps": [
+    "GraphQL depth/complexity production proof",
+    "PWA offline mutation browser proof",
+    "Object storage purge live proof"
+  ]
+}

@@ -1,0 +1,574 @@
+{
+  "generated_at": "2026-06-09T17:32:42.944825+00:00",
+  "total_files": 782,
+  "counts_by_kind": {
+    "batch_proof": 686,
+    "huge_raw_evidence": 22,
+    "canonical_current_proof": 72,
+    "duplicate": 2
+  },
+  "registry_complete": true,
+  "canonical_proof_files": [
+    "full_backend_audit_completion_audit.json",
+    "kill_test_report.json",
+    "kill_test_report.md",
+    "master_allowany_targeted_review.json",
+    "master_allowany_targeted_review.md",
+    "master_backend_security_deep_audit.json",
+    "master_backend_security_deep_audit.md",
+    "master_code_hygiene_deep_audit.json",
+    "master_code_hygiene_deep_audit.md",
+    "master_csrf_exempt_targeted_review.json",
+    "master_csrf_exempt_targeted_review.md",
+    "master_generated_artifact_consolidation_audit.json",
+    "master_generated_artifact_consolidation_audit.md",
+    "master_graphql_security_review.json",
+    "master_graphql_security_review.md",
+    "master_implementation_code_truth_inventory.json",
+    "master_implementation_code_truth_inventory.md",
+    "master_implementation_completion_audit.json",
+    "master_implementation_completion_audit.md",
+    "master_module_audit_matrix.json",
+    "master_module_audit_matrix.md",
+    "master_production_claim_honesty_audit.json",
+    "master_production_claim_honesty_audit.md",
+    "master_proof_sludge_cleanup_plan.json",
+    "master_proof_sludge_cleanup_plan.md",
+    "master_pwa_offline_backend_validation.json",
+    "master_pwa_offline_backend_validation.md",
+    "master_release_source_hygiene_audit.json",
+    "master_release_source_hygiene_audit.md",
+    "master_runtime_proof_depth_audit.json",
+    "master_runtime_proof_depth_audit.md",
+    "master_script_sprawl_consolidation_audit.json",
+    "master_script_sprawl_consolidation_audit.md",
+    "master_security_exception_register.json",
+    "master_security_exception_register.md",
+    "master_setup_studio_50x_zero_friction.json",
+    "master_setup_studio_50x_zero_friction.md",
+    "master_tenant_50x_journey_map.json",
+    "master_tenant_50x_journey_map.md",
+    "master_tenant_click_reduction_remediation.json",
+    "master_tenant_click_reduction_remediation.md",
+    "master_tenant_isolation_deep_audit.json",
+    "master_tenant_isolation_deep_audit.md",
+    "master_tenant_local_first_defaults.json",
+    "master_tenant_local_first_defaults.md",
+    "master_tenant_offboarding_export_purge.json",
+    "master_tenant_offboarding_export_purge.md",
+    "master_tenant_progress_notification_engine.json",
+    "master_tenant_progress_notification_engine.md",
+    "master_tenant_provisioning_hardening.json",
+    "master_tenant_provisioning_hardening.md",
+    "master_tenant_state_machine_hardening.json",
+    "master_tenant_state_machine_hardening.md",
+    "module_audit_matrix.json",
+    "pre_deploy_gate_run_summary.json",
+    "route_surface_audit.json",
+    "security_surface_audit.json",
+    "security_surface_audit.md",
+    "setup_studio_50x_zero_friction_audit.json",
+    "setup_studio_50x_zero_friction_audit.md",
+    "system_closure_map.json",
+    "tenant_isolation_audit.json",
+    "tenant_isolation_audit.md",
+    "tenant_lifecycle_architecture_deduplication_audit.json",
+    "tenant_lifecycle_architecture_deduplication_audit.md",
+    "tenant_lifecycle_code_truth_inventory.json",
+    "tenant_lifecycle_code_truth_inventory.md",
+    "tenant_lifecycle_completion_audit.json",
+    "tenant_lifecycle_external_benchmark.md",
+    "tenant_lifecycle_forensic_gap_audit.json",
+    "tenant_lifecycle_forensic_gap_audit.md",
+    "tenant_lifecycle_progress_notification_audit.json"
+  ],
+  "canonical_count": 72,
+  "safe_to_archive_count": 2,
+  "safe_to_archive_sample": [
+    "render_parity_certification_report.json",
+    "render_parity_certification_report.md"
+  ],
+  "strategy": "Verifiers and SOT reference master_* + named completion audits only; batch_* and dated duplicates may be archived under docs/generated/archive/ without deleting canonical proof.",
+  "entries_sample": [
+    {
+      "path": "academic_operations_certification.json",
+      "kind": "batch_proof",
+      "bytes": 1827,
+      "keep": true
+    },
+    {
+      "path": "academic_operations_certification.md",
+      "kind": "batch_proof",
+      "bytes": 908,
+      "keep": true
+    },
+    {
+      "path": "academic_operations_workflow_audit.json",
+      "kind": "batch_proof",
+      "bytes": 3607,
+      "keep": true
+    },
+    {
+      "path": "academic_operations_workflow_audit.md",
+      "kind": "batch_proof",
+      "bytes": 1142,
+      "keep": true
+    },
+    {
+      "path": "accessibility_matrix_audit.json",
+      "kind": "batch_proof",
+      "bytes": 161,
+      "keep": true
+    },
+    {
+      "path": "account_profile_layout_balance_audit.json",
+      "kind": "batch_proof",
+      "bytes": 2659,
+      "keep": true
+    },
+    {
+      "path": "admin_changelist_render_audit.json",
+      "kind": "batch_proof",
+      "bytes": 35784,
+      "keep": true
+    },
+    {
+      "path": "admin_config_browser_qa_report.json",
+      "kind": "batch_proof",
+      "bytes": 3575,
+      "keep": true
+    },
+    {
+      "path": "admin_config_browser_qa_report.md",
+      "kind": "batch_proof",
+      "bytes": 3008,
+      "keep": true
+    },
+    {
+      "path": "admin_config_domain_implementation_matrix.json",
+      "kind": "batch_proof",
+      "bytes": 7956,
+      "keep": true
+    },
+    {
+      "path": "admin_config_domain_implementation_matrix.md",
+      "kind": "batch_proof",
+      "bytes": 3935,
+      "keep": true
+    },
+    {
+      "path": "admin_config_domain_route_matrix.json",
+      "kind": "batch_proof",
+      "bytes": 11555,
+      "keep": true
+    },
+    {
+      "path": "admin_config_domain_route_matrix.md",
+      "kind": "batch_proof",
+      "bytes": 4609,
+      "keep": true
+    },
+    {
+      "path": "admin_config_gap_register.json",
+      "kind": "batch_proof",
+      "bytes": 3050,
+      "keep": true
+    },
+    {
+      "path": "admin_config_gap_register.md",
+      "kind": "batch_proof",
+      "bytes": 1772,
+      "keep": true
+    },
+    {
+      "path": "admin_config_permission_boundary_audit.json",
+      "kind": "batch_proof",
+      "bytes": 2752,
+      "keep": true
+    },
+    {
+      "path": "admin_config_permission_boundary_audit.md",
+      "kind": "batch_proof",
+      "bytes": 1879,
+      "keep": true
+    },
+    {
+      "path": "admin_config_test_coverage_matrix.json",
+      "kind": "batch_proof",
+      "bytes": 3674,
+      "keep": true
+    },
+    {
+      "path": "admin_config_test_coverage_matrix.md",
+      "kind": "batch_proof",
+      "bytes": 2173,
+      "keep": true
+    },
+    {
+      "path": "admin_config_wiring_matrix.json",
+      "kind": "batch_proof",
+      "bytes": 4157,
+      "keep": true
+    },
+    {
+      "path": "admin_config_wiring_matrix.md",
+      "kind": "batch_proof",
+      "bytes": 3200,
+      "keep": true
+    },
+    {
+      "path": "admin_control_plane_replacement_candidates.json",
+      "kind": "batch_proof",
+      "bytes": 5583,
+      "keep": true
+    },
+    {
+      "path": "admin_gravity_audit.json",
+      "kind": "batch_proof",
+      "bytes": 74571,
+      "keep": true
+    },
+    {
+      "path": "admin_gravity_audit.md",
+      "kind": "batch_proof",
+      "bytes": 1839,
+      "keep": true
+    },
+    {
+      "path": "admin_playwright_sweep_audit.json",
+      "kind": "batch_proof",
+      "bytes": 78559,
+      "keep": true
+    },
+    {
+      "path": "admin_usage_extended_audit.json",
+      "kind": "batch_proof",
+      "bytes": 24187,
+      "keep": true
+    },
+    {
+      "path": "admin_usage_extended_audit.md",
+      "kind": "batch_proof",
+      "bytes": 341,
+      "keep": true
+    },
+    {
+      "path": "administration_surface_map.json",
+      "kind": "batch_proof",
+      "bytes": 6728,
+      "keep": true
+    },
+    {
+      "path": "administration_surface_map.md",
+      "kind": "batch_proof",
+      "bytes": 2511,
+      "keep": true
+    },
+    {
+      "path": "adversarial_redteam_audit.json",
+      "kind": "batch_proof",
+      "bytes": 947,
+      "keep": true
+    },
+    {
+      "path": "agent5_migration_pillar_second_pass_audit.json",
+      "kind": "batch_proof",
+      "bytes": 3208,
+      "keep": true
+    },
+    {
+      "path": "aggressive_stage_execution_readiness.json",
+      "kind": "batch_proof",
+      "bytes": 2569,
+      "keep": true
+    },
+    {
+      "path": "aggressive_stage_execution_readiness.md",
+      "kind": "batch_proof",
+      "bytes": 1745,
+      "keep": true
+    },
+    {
+      "path": "ai_auto_migration_pipeline_audit.json",
+      "kind": "batch_proof",
+      "bytes": 3396,
+      "keep": true
+    },
+    {
+      "path": "ai_auto_migration_pipeline_audit.md",
+      "kind": "batch_proof",
+      "bytes": 2219,
+      "keep": true
+    },
+    {
+      "path": "ai_automation_api_engine_room_certification.json",
+      "kind": "batch_proof",
+      "bytes": 228,
+      "keep": true
+    },
+    {
+      "path": "ai_automation_api_engine_room_certification.md",
+      "kind": "batch_proof",
+      "bytes": 93,
+      "keep": true
+    },
+    {
+      "path": "ai_center_api_contracts.json",
+      "kind": "batch_proof",
+      "bytes": 270,
+      "keep": true
+    },
+    {
+      "path": "ai_center_api_contracts.md",
+      "kind": "batch_proof",
+      "bytes": 92,
+      "keep": true
+    },
+    {
+      "path": "ai_center_audit_observability.json",
+      "kind": "batch_proof",
+      "bytes": 354,
+      "keep": true
+    },
+    {
+      "path": "ai_center_audit_observability.md",
+      "kind": "batch_proof",
+      "bytes": 90,
+      "keep": true
+    },
+    {
+      "path": "ai_center_friction_analysis.json",
+      "kind": "batch_proof",
+      "bytes": 389,
+      "keep": true
+    },
+    {
+      "path": "ai_center_friction_analysis.md",
+      "kind": "batch_proof",
+      "bytes": 69,
+      "keep": true
+    },
+    {
+      "path": "ai_center_friction_analysis_A4_observation.json",
+      "kind": "batch_proof",
+      "bytes": 2426,
+      "keep": true
+    },
+    {
+      "path": "ai_center_indexing_contract.json",
+      "kind": "batch_proof",
+      "bytes": 330,
+      "keep": true
+    },
+    {
+      "path": "ai_center_indexing_contract.md",
+      "kind": "batch_proof",
+      "bytes": 96,
+      "keep": true
+    },
+    {
+      "path": "ai_center_modelfile_audit.json",
+      "kind": "batch_proof",
+      "bytes": 176,
+      "keep": true
+    },
+    {
+      "path": "ai_center_modelfile_audit.md",
+      "kind": "batch_proof",
+      "bytes": 64,
+      "keep": true
+    },
+    {
+      "path": "ai_center_platform_inventory.json",
+      "kind": "batch_proof",
+      "bytes": 10851,
+      "keep": true
+    },
+    {
+      "path": "ai_center_platform_inventory.md",
+      "kind": "batch_proof",
+      "bytes": 1581,
+      "keep": true
+    },
+    {
+      "path": "ai_cloud_direction_certification.json",
+      "kind": "batch_proof",
+      "bytes": 3914,
+      "keep": true
+    },
+    {
+      "path": "ai_infrastructure_audit_first_teardown.json",
+      "kind": "batch_proof",
+      "bytes": 891,
+      "keep": true
+    },
+    {
+      "path": "ai_infrastructure_audit_first_teardown.md",
+      "kind": "batch_proof",
+      "bytes": 991,
+      "keep": true
+    },
+    {
+      "path": "ai_policy_copilot_audit.json",
+      "kind": "batch_proof",
+      "bytes": 285,
+      "keep": true
+    },
+    {
+      "path": "ai_safety_gap_closure.json",
+      "kind": "batch_proof",
+      "bytes": 3145,
+      "keep": true
+    },
+    {
+      "path": "ai_safety_gap_closure.md",
+      "kind": "batch_proof",
+      "bytes": 2306,
+      "keep": true
+    },
+    {
+      "path": "ai_tenant_studio_audit_first_inventory.json",
+      "kind": "batch_proof",
+      "bytes": 4123,
+      "keep": true
+    },
+    {
+      "path": "ai_tenant_studio_audit_first_inventory.md",
+      "kind": "batch_proof",
+      "bytes": 4223,
+      "keep": true
+    },
+    {
+      "path": "ai_tenant_studio_change_decision_matrix.json",
+      "kind": "batch_proof",
+      "bytes": 1578,
+      "keep": true
+    },
+    {
+      "path": "ai_tenant_studio_change_decision_matrix.md",
+      "kind": "batch_proof",
+      "bytes": 1679,
+      "keep": true
+    },
+    {
+      "path": "ai_tenant_studio_final_certification.json",
+      "kind": "batch_proof",
+      "bytes": 285,
+      "keep": true
+    },
+    {
+      "path": "ai_tenant_studio_final_certification.md",
+      "kind": "batch_proof",
+      "bytes": 452,
+      "keep": true
+    },
+    {
+      "path": "ai_tenant_studio_integration_audit.json",
+      "kind": "batch_proof",
+      "bytes": 525,
+      "keep": true
+    },
+    {
+      "path": "ai_tenant_studio_integration_audit.md",
+      "kind": "batch_proof",
+      "bytes": 621,
+      "keep": true
+    },
+    {
+      "path": "ai_tenant_studio_second_pass_challenge.json",
+      "kind": "batch_proof",
+      "bytes": 545,
+      "keep": true
+    },
+    {
+      "path": "ai_tenant_studio_second_pass_challenge.md",
+      "kind": "batch_proof",
+      "bytes": 645,
+      "keep": true
+    },
+    {
+      "path": "ai_workflow_assistant_audit.json",
+      "kind": "batch_proof",
+      "bytes": 6936,
+      "keep": true
+    },
+    {
+      "path": "ai_workflow_assistant_audit.md",
+      "kind": "batch_proof",
+      "bytes": 7434,
+      "keep": true
+    },
+    {
+      "path": "allowany_targeted_review.json",
+      "kind": "batch_proof",
+      "bytes": 135,
+      "keep": true
+    },
+    {
+      "path": "allowany_targeted_review.md",
+      "kind": "batch_proof",
+      "bytes": 121,
+      "keep": true
+    },
+    {
+      "path": "analytics_viz_audit.json",
+      "kind": "batch_proof",
+      "bytes": 140,
+      "keep": true
+    },
+    {
+      "path": "analytics_viz_full_completion.json",
+      "kind": "batch_proof",
+      "bytes": 2037,
+      "keep": true
+    },
+    {
+      "path": "analytics_viz_gear_up_completion.json",
+      "kind": "batch_proof",
+      "bytes": 4017,
+      "keep": true
+    },
+    {
+      "path": "analytics_viz_prompt_completion.json",
+      "kind": "batch_proof",
+      "bytes": 4401,
+      "keep": true
+    },
+    {
+      "path": "api_ai_center_discovery.json",
+      "kind": "batch_proof",
+      "bytes": 331,
+      "keep": true
+    },
+    {
+      "path": "api_ai_center_discovery.md",
+      "kind": "batch_proof",
+      "bytes": 60,
+      "keep": true
+    },
+    {
+      "path": "api_automation_integration_certification.json",
+      "kind": "batch_proof",
+      "bytes": 175,
+      "keep": true
+    },
+    {
+      "path": "api_automation_integration_certification.md",
+      "kind": "batch_proof",
+      "bytes": 73,
+      "keep": true
+    },
+    {
+      "path": "api_center_open_usable_audit.json",
+      "kind": "batch_proof",
+      "bytes": 591,
+      "keep": true
+    },
+    {
+      "path": "api_center_open_usable_audit.md",
+      "kind": "batch_proof",
+      "bytes": 79,
+      "keep": true
+    }
+  ]
+}

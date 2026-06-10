@@ -1,0 +1,119 @@
+{
+  "generated_at": "2026-06-09T19:42:19.000739+00:00",
+  "recommended_verdict": "MASTER IMPLEMENTATION PARTIAL \u2014 REPO GAPS REMAIN",
+  "remaining_repo_gaps": [
+    {
+      "id": "full_50_app_test_matrix",
+      "kind": "repo",
+      "status": "open",
+      "implementation": "scripts/run_50_app_test_shards.py",
+      "evidence": {
+        "shards_run": null,
+        "all_green": null
+      }
+    },
+    {
+      "id": "deep_module_reengineering",
+      "kind": "repo",
+      "status": "partial",
+      "implementation": "docs/generated/module_audit_matrix.json",
+      "evidence": {
+        "open_module_count": 1
+      }
+    }
+  ],
+  "remaining_repo_gaps_count": 2,
+  "external_blockers": [
+    {
+      "id": "playwright_e2e",
+      "kind": "external",
+      "status": "external",
+      "implementation": "tests/e2e/phase1-architecture-navigation.spec.js",
+      "evidence": {}
+    }
+  ],
+  "all_gaps": [
+    {
+      "id": "setup_studio_50x",
+      "kind": "repo",
+      "status": "complete",
+      "implementation": "apps/setup_studio/zero_friction.py",
+      "evidence": {
+        "ok": true,
+        "skipped": "run_tests_not_requested"
+      }
+    },
+    {
+      "id": "academic_year_close",
+      "kind": "repo",
+      "status": "complete",
+      "implementation": "apps/academics/year_close.py",
+      "evidence": {}
+    },
+    {
+      "id": "tenant_daily_ops_50x",
+      "kind": "repo",
+      "status": "complete",
+      "implementation": "apps/platform_runtime/tenant_daily_ops.py",
+      "evidence": {}
+    },
+    {
+      "id": "tenant_ai_help",
+      "kind": "repo",
+      "status": "complete",
+      "implementation": "apps/platform_runtime/tenant_ai_help.py",
+      "evidence": {}
+    },
+    {
+      "id": "tenant_health_cs",
+      "kind": "repo",
+      "status": "complete",
+      "implementation": "apps/customersuccess/tasks.py",
+      "evidence": {}
+    },
+    {
+      "id": "full_50_app_test_matrix",
+      "kind": "repo",
+      "status": "open",
+      "implementation": "scripts/run_50_app_test_shards.py",
+      "evidence": {
+        "shards_run": null,
+        "all_green": null
+      }
+    },
+    {
+      "id": "run_kill_test",
+      "kind": "repo",
+      "status": "closed",
+      "implementation": "scripts/run_kill_test.py",
+      "evidence": {
+        "result": "PASS"
+      }
+    },
+    {
+      "id": "artifact_dedup",
+      "kind": "repo",
+      "status": "closed",
+      "implementation": "scripts/generate_generated_artifact_registry.py",
+      "evidence": {}
+    },
+    {
+      "id": "playwright_e2e",
+      "kind": "external",
+      "status": "external",
+      "implementation": "tests/e2e/phase1-architecture-navigation.spec.js",
+      "evidence": {}
+    },
+    {
+      "id": "deep_module_reengineering",
+      "kind": "repo",
+      "status": "partial",
+      "implementation": "docs/generated/module_audit_matrix.json",
+      "evidence": {
+        "open_module_count": 1
+      }
+    }
+  ],
+  "sot_safe_to_update": false,
+  "contradiction_resolved": true
+}

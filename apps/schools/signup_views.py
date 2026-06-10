@@ -537,9 +537,19 @@ def signup_school(request: HttpRequest):
         School.objects.filter(slug=slug).exists()
         or School.objects.filter(subdomain=slug).exists()
     ):
-        errors.append("This school URL is already taken. Choose another.")
+        from apps.platform_runtime.remediation import signup_slug_taken_remediation
+
+        remediation = signup_slug_taken_remediation(slug)
+        errors.append(remediation.message)
         if request.headers.get("Accept", "").find("application/json") >= 0:
-            return JsonResponse({"ok": False, "errors": errors}, status=400)
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "errors": errors,
+                    "remediation": remediation.to_tenant_api_dict(),
+                },
+                status=400,
+            )
         messages.error(request, errors[0])
         country_pack = resolve_country_pack(country_code)
         return render(

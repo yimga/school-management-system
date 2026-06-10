@@ -1,0 +1,611 @@
+{
+  "generated_at": "2026-06-09T16:58:32.110865+00:00",
+  "modules": [
+    {
+      "module": "academics",
+      "needed": true,
+      "tests": 16,
+      "migrations": 59,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "accounts",
+      "needed": true,
+      "tests": 72,
+      "migrations": 42,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "admissions",
+      "needed": true,
+      "tests": 3,
+      "migrations": 0,
+      "gaps": [
+        "no_urls",
+        "no_models"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "ai",
+      "needed": true,
+      "tests": 0,
+      "migrations": 0,
+      "gaps": [
+        "no_tests",
+        "no_urls",
+        "no_models"
+      ],
+      "readiness": "partial",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "analytics",
+      "needed": true,
+      "tests": 32,
+      "migrations": 29,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "api",
+      "needed": true,
+      "tests": 60,
+      "migrations": 2,
+      "gaps": [
+        "no_models"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "apicenter",
+      "needed": true,
+      "tests": 18,
+      "migrations": 9,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "assist_dock",
+      "needed": true,
+      "tests": 21,
+      "migrations": 4,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": false
+    },
+    {
+      "module": "automation",
+      "needed": true,
+      "tests": 23,
+      "migrations": 19,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "billing",
+      "needed": true,
+      "tests": 25,
+      "migrations": 11,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "brand_experience",
+      "needed": true,
+      "tests": 12,
+      "migrations": 4,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "communication",
+      "needed": true,
+      "tests": 25,
+      "migrations": 24,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "compliance",
+      "needed": true,
+      "tests": 36,
+      "migrations": 20,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "config",
+      "needed": true,
+      "tests": 0,
+      "migrations": 0,
+      "gaps": [
+        "no_tests",
+        "no_urls",
+        "no_models"
+      ],
+      "readiness": "partial",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "customers",
+      "needed": true,
+      "tests": 2,
+      "migrations": 4,
+      "gaps": [
+        "no_urls"
+      ],
+      "readiness": "minimal_tests",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "customersuccess",
+      "needed": true,
+      "tests": 11,
+      "migrations": 3,
+      "gaps": [
+        "no_urls"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "dashboard",
+      "needed": true,
+      "tests": 11,
+      "migrations": 0,
+      "gaps": [
+        "no_urls"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "emis",
+      "needed": true,
+      "tests": 0,
+      "migrations": 0,
+      "gaps": [
+        "no_tests",
+        "no_urls",
+        "no_models"
+      ],
+      "readiness": "partial",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "evals",
+      "needed": true,
+      "tests": 16,
+      "migrations": 31,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "events",
+      "needed": true,
+      "tests": 11,
+      "migrations": 6,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "feedback",
+      "needed": true,
+      "tests": 22,
+      "migrations": 7,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": false
+    },
+    {
+      "module": "finance",
+      "needed": true,
+      "tests": 80,
+      "migrations": 68,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "global_registries",
+      "needed": true,
+      "tests": 4,
+      "migrations": 1,
+      "gaps": [
+        "no_urls"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "governance",
+      "needed": true,
+      "tests": 7,
+      "migrations": 4,
+      "gaps": [
+        "no_urls"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "integrations_marketplace",
+      "needed": true,
+      "tests": 29,
+      "migrations": 6,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "lifecycle",
+      "needed": true,
+      "tests": 5,
+      "migrations": 1,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "marketplace",
+      "needed": true,
+      "tests": 50,
+      "migrations": 13,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "metadata",
+      "needed": true,
+      "tests": 11,
+      "migrations": 11,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "migration_cloud",
+      "needed": true,
+      "tests": 77,
+      "migrations": 30,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "observability",
+      "needed": true,
+      "tests": 14,
+      "migrations": 5,
+      "gaps": [
+        "no_urls"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "orchestration",
+      "needed": true,
+      "tests": 6,
+      "migrations": 2,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "packages",
+      "needed": true,
+      "tests": 5,
+      "migrations": 6,
+      "gaps": [
+        "no_urls"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "payment",
+      "needed": true,
+      "tests": 0,
+      "migrations": 0,
+      "gaps": [
+        "no_tests",
+        "no_urls",
+        "no_models"
+      ],
+      "readiness": "partial",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "payroll",
+      "needed": true,
+      "tests": 8,
+      "migrations": 7,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "people",
+      "needed": true,
+      "tests": 14,
+      "migrations": 61,
+      "gaps": [
+        "no_urls"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "plans_entitlements",
+      "needed": true,
+      "tests": 3,
+      "migrations": 2,
+      "gaps": [
+        "no_urls"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "platform_runtime",
+      "needed": true,
+      "tests": 259,
+      "migrations": 83,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "policies",
+      "needed": true,
+      "tests": 6,
+      "migrations": 7,
+      "gaps": [
+        "no_urls"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "policies_rules",
+      "needed": true,
+      "tests": 0,
+      "migrations": 0,
+      "gaps": [
+        "no_tests",
+        "no_urls"
+      ],
+      "readiness": "partial",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "portal",
+      "needed": true,
+      "tests": 101,
+      "migrations": 42,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "registries",
+      "needed": true,
+      "tests": 5,
+      "migrations": 7,
+      "gaps": [
+        "no_urls"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": false
+    },
+    {
+      "module": "reports",
+      "needed": true,
+      "tests": 11,
+      "migrations": 22,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "requests",
+      "needed": true,
+      "tests": 3,
+      "migrations": 3,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "runtime_blueprints",
+      "needed": true,
+      "tests": 0,
+      "migrations": 1,
+      "gaps": [
+        "no_tests",
+        "no_urls"
+      ],
+      "readiness": "partial",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "safeguarding",
+      "needed": true,
+      "tests": 3,
+      "migrations": 0,
+      "gaps": [
+        "no_urls",
+        "no_models"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "sales",
+      "needed": true,
+      "tests": 4,
+      "migrations": 3,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "school_events",
+      "needed": true,
+      "tests": 0,
+      "migrations": 1,
+      "gaps": [
+        "no_tests"
+      ],
+      "readiness": "partial",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "schoolops",
+      "needed": true,
+      "tests": 25,
+      "migrations": 26,
+      "gaps": [
+        "no_urls"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "schools",
+      "needed": true,
+      "tests": 240,
+      "migrations": 65,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "security",
+      "needed": true,
+      "tests": 23,
+      "migrations": 0,
+      "gaps": [
+        "no_urls",
+        "no_models"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "services",
+      "needed": true,
+      "tests": 0,
+      "migrations": 0,
+      "gaps": [
+        "no_tests",
+        "no_urls",
+        "no_models"
+      ],
+      "readiness": "partial",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "setup_studio",
+      "needed": true,
+      "tests": 14,
+      "migrations": 2,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "siteconfig",
+      "needed": true,
+      "tests": 187,
+      "migrations": 198,
+      "gaps": [],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "social_media",
+      "needed": true,
+      "tests": 3,
+      "migrations": 1,
+      "gaps": [
+        "no_urls"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "student360",
+      "needed": true,
+      "tests": 7,
+      "migrations": 1,
+      "gaps": [
+        "no_urls"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "studio_os",
+      "needed": true,
+      "tests": 42,
+      "migrations": 0,
+      "gaps": [
+        "no_models"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "sync_engine",
+      "needed": true,
+      "tests": 15,
+      "migrations": 0,
+      "gaps": [
+        "no_urls"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "tenancy",
+      "needed": true,
+      "tests": 20,
+      "migrations": 0,
+      "gaps": [
+        "no_urls",
+        "no_models"
+      ],
+      "readiness": "repo_scope",
+      "belongs_in_education_os": true
+    },
+    {
+      "module": "wal_stream",
+      "needed": true,
+      "tests": 2,
+      "migrations": 0,
+      "gaps": [],
+      "readiness": "minimal_tests",
+      "belongs_in_education_os": false
+    }
+  ],
+  "module_count": 59
+}

@@ -1,14 +1,35 @@
 {% load i18n %}
-{% comment %} Tenant portal row detail drawer (batch 1537 closeout) — gradebook + attendance. {% endcomment %}
+{% comment %} Row detail drawer — operator + tenant data tables (batch 1537+). {% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="offcanvas offcanvas-end rmc-portal-row-detail-drawer" tabindex="-1" id="rmcPortalRowDetailDrawer" role="dialog" aria-modal="true" aria-labelledby="rmcPortalRowDetailDrawerLabel" data-rmc-portal-row-drawer="1" data-rmc-detail-drawer="1" data-rmc-scroll-policy="viewport-lock">
-  <div class="offcanvas-header border-bottom">
-    <h2 class="offcanvas-title h5 mb-0" id="rmcPortalRowDetailDrawerLabel">{% trans "Student detail" %}</h2>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#rmcPortalRowDetailDrawer" aria-label="{% trans 'Close' %}"></button>
-  </div>
-  <div class="offcanvas-body d-flex flex-column gap-3">
-    <p class="text-muted small mb-0" id="rmcPortalRowDetailSubtitle"></p>
-    <dl class="rmc-kv-list mb-0 flex-grow-1" id="rmcPortalRowDetailBody"></dl>
-    <div class="rmc-portal-row-detail-drawer__actions d-flex flex-wrap gap-2 border-top pt-3" id="rmcPortalRowDetailActions" data-rmc-portal-row-detail-actions hidden></div>
+<div class="offcanvas offcanvas-end rmc-portal-row-detail-drawer" tabindex="-1" id="rmcPortalRowDetailDrawer" role="dialog" aria-modal="true" aria-labelledby="rmcPortalRowDetailDrawerLabel" data-bs-backdrop="true" data-bs-keyboard="true" data-rmc-portal-row-drawer="1" data-rmc-detail-drawer="1" data-rmc-scroll-policy="viewport-lock">
+  <header class="rmc-row-detail-drawer__hero offcanvas-header">
+    <div class="rmc-row-detail-drawer__avatar" id="rmcPortalRowDetailAvatar" aria-hidden="true" data-rmc-portal-row-detail-avatar></div>
+    <div class="rmc-row-detail-drawer__hero-copy min-w-0">
+      <p class="rmc-row-detail-drawer__eyebrow small text-uppercase mb-1" id="rmcPortalRowDetailEyebrow" hidden></p>
+      <h2 class="offcanvas-title rmc-row-detail-drawer__title h5 mb-0" id="rmcPortalRowDetailDrawerLabel">{% trans "Row detail" %}</h2>
+      <p class="rmc-row-detail-drawer__subtitle small mb-0" id="rmcPortalRowDetailSubtitle"></p>
+    </div>
+    <button type="button" class="btn-close rmc-row-detail-drawer__close" data-rmc-portal-row-detail-dismiss aria-label="{% trans 'Close detail panel' %}"></button>
+  </header>
+  <div class="offcanvas-body rmc-row-detail-drawer__body d-flex flex-column gap-3">
+    <div class="rmc-row-detail-drawer__status d-flex flex-wrap gap-2" id="rmcPortalRowDetailStatus" data-rmc-portal-row-detail-status hidden></div>
+    <div class="rmc-row-detail-drawer__meta" id="rmcPortalRowDetailBody" data-rmc-portal-row-detail-meta></div>
+    <section class="rmc-row-detail-drawer__insights" id="rmcPortalRowDetailInsights" data-rmc-portal-row-detail-insights hidden>
+      <p class="rmc-row-detail-drawer__section-label small text-uppercase mb-2">{% trans "Platform scopes" %}</p>
+      <ul class="rmc-row-detail-drawer__scope-list list-unstyled mb-0" data-rmc-portal-row-detail-scopes></ul>
+    </section>
+    <section class="rmc-row-detail-drawer__provision" id="rmcPortalRowDetailProvision" data-rmc-portal-row-detail-provision hidden>
+      <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+        <span class="rmc-row-detail-drawer__section-label small text-uppercase">{% trans "Provisioning" %}</span>
+        <span class="small fw-semibold" data-rmc-portal-row-detail-provision-pct aria-live="polite"></span>
+      </div>
+      <ol class="rmc-row-detail-drawer__provision-train list-unstyled mb-2" data-rmc-portal-row-detail-provision-steps aria-label="{% trans 'Provisioning steps' %}"></ol>
+      <p class="small text-danger mb-2" data-rmc-portal-row-detail-provision-error hidden></p>
+      <button type="button" class="btn btn-sm btn-outline-warning" data-rmc-portal-row-detail-requeue hidden>{% trans "Requeue provision" %}</button>
+    </section>
+    <footer class="rmc-row-detail-drawer__actions mt-auto" id="rmcPortalRowDetailActions" data-rmc-portal-row-detail-actions hidden></footer>
+    <p class="rmc-row-detail-drawer__kbd-hint small text-muted mb-0 mt-auto" id="rmcPortalRowDetailKbdHint">
+      <kbd class="rmc-kbd">Esc</kbd> {% trans "close" %} · <span aria-hidden="true">✕</span> {% trans "dismiss panel" %}
+    </p>
   </div>
 </div>

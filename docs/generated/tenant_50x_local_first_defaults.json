@@ -1,0 +1,8 @@
+{
+  "generated_at": "2026-06-09T16:58:35.304244+00:00",
+  "modules": [
+    "apps/global_registries/",
+    "apps/runtime_blueprints/",
+    "apps/setup_studio/"
+  ]
+}

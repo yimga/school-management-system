@@ -108,11 +108,16 @@
       <tbody>
         {% for school in page.object_list %}
         {% url 'super:tenant_360' school.id as school_360_url %}
+        {% url 'super:api_school_lens_snapshot' school.id as school_lens_api_url %}
+        {% url 'super:api_school_requeue_provision' school.id as school_requeue_api_url %}
         <tr data-rmc-row-detail="1"
             tabindex="0"
+            data-rmc-row-school-id="{{ school.id }}"
+            data-rmc-row-lens-api="{{ school_lens_api_url }}"
+            data-rmc-row-requeue-api="{{ school_requeue_api_url }}"
             data-rmc-row-title="{{ school.name|escape }}"
             data-rmc-row-subtitle="{{ school.slug|escape }}"
-            data-rmc-row-meta='{"{% trans "Subdomain" %}":"{{ school.subdomain|default:"—"|escapejs }}","{% trans "Lifecycle" %}":"{{ school.offboarding_chip|default:"—"|escapejs }}","{% trans "Active" %}":"{% if school.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}"}'
+            data-rmc-row-meta='{"{% trans "Subdomain" %}":"{{ school.subdomain|default:"—"|escapejs }}","{% trans "Sector" %}":"{{ school.primary_sector|default:"—"|escapejs }}","{% trans "Country" %}":"{{ school.country_code|default:"—"|escapejs }}","{% trans "Lifecycle" %}":"{{ school.offboarding_chip|default:"—"|escapejs }}","{% trans "Active" %}":"{% if school.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}"}'
             data-rmc-row-actions='[{"label":"{% trans "Tenant 360"|escapejs %}","href":"{{ school_360_url|escapejs }}","variant":"primary"},{"label":"{% trans "Offboarding"|escapejs %}","href":"{{ school_360_url|escapejs }}#offboarding"},{"label":"{% trans "Offboarding queue"|escapejs %}","href":"{{ offboarding_queue_url|escapejs }}"}]'
             data-rmc-bulk-href="{{ school_360_url }}">
           <td class="rmc-list-bulk-td"><input type="checkbox" class="rmc-bulk-check" data-rmc-bulk-row value="{{ school.id }}" data-rmc-bulk-label="{{ school.name|escape }}" data-rmc-bulk-slug="{{ school.slug|escape }}" aria-label="{% blocktrans with name=school.name %}Select {{ name }}{% endblocktrans %}"></td>
@@ -132,7 +137,7 @@
       </tbody>
     </table>
   </div>
-  <p id="super-schools-lens-hint" class="small text-muted mb-0">{% trans "Click a row for detail, use checkboxes for bulk actions, or open the ◉ Lens tab in the copilot rail." %}</p>
+  {% include "components/row_detail_panel_hint.html" with hint_id="super-schools-lens-hint" %}
   {% comment %} v3.57.x adoption-wave: layered rmc-pagination* classes
      alongside Bootstrap markup — see components/pagination.html. {% endcomment %}
   <nav aria-label="{% trans 'Schools pagination' %}" class="mt-2 rmc-pagination" data-rmc-component="pagination">
@@ -150,5 +155,4 @@
   <p class="text-muted">{% trans "No schools match the filters." %}</p>
   {% endif %}
 </div>
-{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

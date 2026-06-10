@@ -113,6 +113,29 @@ def rollover_year(request):
                 f"{source_year.name} is locked; rollover from this year is not allowed.",
             )
             return render(request, "accounts/rollover_year.html", {"years": years})
+        school = getattr(request, "school", None)
+        if school is not None:
+            from apps.academics.year_close import evaluate_year_close_blockers
+
+            scorecard = evaluate_year_close_blockers(
+                school, source_year, target_year
+            )
+            if not scorecard["ok"] and not allow_outstanding_returns:
+                for blocker in scorecard["blockers"]:
+                    if blocker["code"] == "outstanding_returns":
+                        continue
+                    messages.error(request, blocker["message"])
+                if any(
+                    b["code"] != "outstanding_returns" for b in scorecard["blockers"]
+                ):
+                    return render(
+                        request,
+                        "accounts/rollover_year.html",
+                        {
+                            "years": years,
+                            "year_close_dry_run": scorecard,
+                        },
+                    )
 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
 
         target_classrooms = list(

@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-06-09T19:41:38.214795+00:00",
+  "status": "complete",
+  "implementation_files": [
+    "apps/customersuccess/tasks.py",
+    "apps/customersuccess/services.py"
+  ],
+  "test_evidence": {
+    "ok": true
+  },
+  "open_items": []
+}

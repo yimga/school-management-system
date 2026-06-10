@@ -34,6 +34,46 @@ def _clamp_int(value, default: int, *, minimum: int, maximum: int) -> int:
 
 @require_http_methods(["GET"])
 @require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
+def api_school_lens_snapshot(request, school_id):
+    """Lightweight health + provisioning train for operator copilot Lens."""
+    from apps.schools.operator_school_lens import build_operator_lens_snapshot
+
+    school = get_object_or_404(School, id=school_id)
+    return JsonResponse(build_operator_lens_snapshot(school))
+
+
+@require_http_methods(["POST"])
+@require_platform_scope(PLATFORM_SCOPE_PROVISION)
+def api_school_requeue_provision(request, school_id):
+    """Operator requeue for stuck / inactive tenant provisioning."""
+    from apps.compliance.models_audit import AuditLog
+    from apps.schools.control_plane import log_control_plane_action
+    from apps.schools.operator_school_lens import (
+        build_operator_lens_snapshot,
+        operator_requeue_provisioning,
+    )
+
+    school = get_object_or_404(School, id=school_id)
+    try:
+        outcome = operator_requeue_provisioning(school, actor=request.user)
+    except ValueError as exc:
+        return JsonResponse({"ok": False, "error": str(exc)}, status=400)
+
+    log_control_plane_action(
+        request,
+        AuditLog.Action.UPDATE,
+        "School",
+        str(school.id),
+        object_repr=getattr(school, "name", "") or str(school.id),
+        reason="Operator requeued tenant provisioning",
+        sensitivity=AuditLog.Sensitivity.HIGH,
+    )
+    snapshot = build_operator_lens_snapshot(school)
+    return JsonResponse({**outcome, "lens": snapshot})
+
+
+@require_http_methods(["GET"])
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def api_school_timeline(request, school_id):
     school = get_object_or_404(School, id=school_id)
     limit = _clamp_int(request.GET.get("limit"), 80, minimum=1, maximum=500)

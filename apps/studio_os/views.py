@@ -1545,6 +1545,9 @@ def studio_shell(request, mode=None):
 
             payload = get_setup_studio_payload(school)
             context["launch_payload"] = payload
+            from apps.setup_studio.zero_friction import get_zero_friction_payload
+
+            context["zero_friction"] = get_zero_friction_payload(school)
             context["launch_role_previews"] = payload.get("role_previews") or []
             context["launch_health_summary"] = payload.get("health_summary") or ""
             context["launch_ready"] = payload.get("launch_ready", False)
@@ -1562,11 +1565,13 @@ def studio_shell(request, mode=None):
                     extra={"mode": "launch"},
                 )
             context["launch_payload"] = None
+            context["zero_friction"] = None
             context["launch_role_previews"] = []
             context["launch_health_summary"] = ""
             context["launch_ready"] = False
     elif mode == "launch":
         context["launch_payload"] = None
+        context["zero_friction"] = None
         context["launch_role_previews"] = []
         context["launch_health_summary"] = ""
         context["launch_ready"] = False

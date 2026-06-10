@@ -1,0 +1,10 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+{% comment %}Tenant-facing activation dashboard alias — embeds zero-friction strip for completion audit.{% endcomment %}
+{% block content %}
+<div class="container-fluid py-3" data-rmc-page-fold-nav="required">
+  <h1 class="h4 mb-3">{% trans "Setup activation" %}</h1>
+  {% include "setup_studio/partials/zero_friction_cta_strip.html" %}
+  <p class="small text-muted">{% trans "Complete the recommended steps above to reach launch readiness." %}</p>
+</div>
+{% endblock %}

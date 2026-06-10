@@ -1,0 +1,17 @@
+{% load i18n %}
+{% url 'accounts:logout' as logout_url %}
+<a href="{{ logout_url }}"
+   class="mx-1 px-3 py-2 rounded-default hover:bg-base-100 dark:hover:bg-base-700 text-font-default-light dark:text-font-default-dark flex items-center gap-2"
+   data-rmc-nav-logout="1"
+   role="menuitem">
+    <span class="material-symbols-outlined text-base leading-none" aria-hidden="true">logout</span>
+    <span>{% trans "Log out" %}</span>
+</a>
+{% url 'admin:password_change' as password_change_url %}
+<a href="{{ password_change_url }}"
+   class="mx-1 px-3 py-2 rounded-default hover:bg-base-100 dark:hover:bg-base-700 text-font-default-light dark:text-font-default-dark flex items-center gap-2"
+   data-rmc-nav-password="1"
+   role="menuitem">
+    <span class="material-symbols-outlined text-base leading-none" aria-hidden="true">key</span>
+    <span>{% trans "Change password" %}</span>
+</a>

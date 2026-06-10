@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-06-09T16:58:35.298737+00:00",
+  "core": [
+    "apps/setup_studio/__init__.py",
+    "apps/setup_studio/ai_fallbacks.py",
+    "apps/setup_studio/ai_prompts.py",
+    "apps/setup_studio/apps.py",
+    "apps/setup_studio/legacy_view_bridge.py",
+    "apps/setup_studio/models.py",
+    "apps/setup_studio/services.py",
+    "apps/setup_studio/tasks.py",
+    "apps/setup_studio/tenant_guard.py",
+    "apps/setup_studio/test_setup_studio_root.py",
+    "apps/setup_studio/urls.py",
+    "apps/setup_studio/views_activation_dashboard.py",
+    "apps/setup_studio/views_wizard_cache_telemetry.py",
+    "apps/setup_studio/wizard_ai.py",
+    "apps/setup_studio/wizard_analytics.py",
+    "apps/setup_studio/wizard_engine.py",
+    "apps/setup_studio/wizard_extras.py",
+    "apps/setup_studio/wizard_next_steps.py",
+    "apps/setup_studio/wizard_resolvers.py",
+    "apps/setup_studio/wizard_resolvers_domain.py",
+    "apps/setup_studio/wizard_resolvers_operator.py",
+    "apps/setup_studio/wizard_state_resolver.py",
+    "apps/setup_studio/wizard_telemetry.py",
+    "apps/setup_studio/wizard_validators.py",
+    "apps/setup_studio/wizard_views.py"
+  ],
+  "wizard_json_count": 36
+}

@@ -623,13 +623,13 @@ body.backend-shell .page-wrap {
   }
 }
 
-/* Landscape mode optimizations */
+/* Landscape mode optimizations — skip fixed viewport cap when fluid layout is active */
 @media (max-height: 500px) {
   .topbar {
     padding: 0.5rem 1rem;
   }
 
-  .sidebar {
+  html:not([data-rmc-layout="fluid"]) .sidebar {
     max-height: calc(100vh - 60px);
   }
 }

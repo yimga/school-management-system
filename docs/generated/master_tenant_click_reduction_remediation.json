@@ -1,0 +1,7 @@
+{
+  "generated_at": "2026-06-09T17:53:56.912345+00:00",
+  "engine": "apps/platform_runtime/remediation.py",
+  "wired_signup": true,
+  "wired_provisioning": true,
+  "status": "implemented_repo_scope"
+}

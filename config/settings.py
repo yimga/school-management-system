@@ -349,6 +349,7 @@ MIDDLEWARE = [
     "apps.schools.middleware_session_school_bind.SessionSchoolBindingMiddleware",
     "apps.schools.middleware.RlsResetOnExceptionMiddleware",  # RESET app.current_school_id on response or exception
     "apps.tenancy.middleware.TenantContextMiddleware",  # Attach request.tenant_ctx (TenantContext)
+    "apps.tenancy.middleware_boundary_guard.TenantBoundaryCoreGuardMiddleware",  # Pin school_id + SQL boundary guard
     "apps.tenancy.middleware_rls_jwt.RLSJWTBindingMiddleware",  # v4.00.0: bind app.current_school_id from signed JWT (RLS mode only; no-op under SCHEMA)
     "apps.platform_runtime.middleware.TenantRuntimeMiddleware",  # Attach request.tenant_runtime (TenantRuntime)
     "apps.platform_runtime.middleware_regional_db.RegionalDatabaseMiddleware",  # Glocal 1535: thread-local shard when ENABLE_MULTI_REGION
@@ -509,6 +510,7 @@ TEMPLATES = [
                 "apps.siteconfig.page_personality.personality_overrides_context_processor",  # v3.59.x Wave 11 Agent W — operator theme-personality CSS overrides
                 "apps.siteconfig.cockpit_context.cockpit_context",  # v3.55.0 cockpit (manager only) — brand tagline + activity ticker + platform pulse + workspace context
                 "apps.accounts.context_processors.dashboard_context",  # Dashboard header/footer data
+                "apps.platform_runtime.context_processors.tenant_experience_context",
                 "apps.accounts.mfa_ui_context.operator_mfa_context",  # Manager MFA header icon + profile links
                 "apps.accounts.context_processors_security.account_security_context",
                 "apps.accounts.context_processors.sidebar_record_context",
@@ -1930,6 +1932,33 @@ CELERY_BEAT_SCHEDULE = {
         "task": "customersuccess.run_auto_ticket_rules",
         "schedule": 600.0,
         "options": {"expires": 540},
+    },
+    "customersuccess-sweep-tenant-health": {
+        "task": "customersuccess.sweep_tenant_health_scores",
+        "schedule": (
+            _celery_crontab(hour=6, minute=0)
+            if _celery_crontab is not None else 86400.0
+        ),
+        "kwargs": {"limit": 200},
+        "options": {"expires": 3600},
+    },
+    "customersuccess-deliver-onboarding-nudges": {
+        "task": "customersuccess.deliver_onboarding_day_n_nudges",
+        "schedule": (
+            _celery_crontab(hour=8, minute=0)
+            if _celery_crontab is not None else 86400.0
+        ),
+        "kwargs": {"limit": 50},
+        "options": {"expires": 3600},
+    },
+    "customersuccess-compute-maturity-scores": {
+        "task": "customersuccess.compute_maturity_scores",
+        "schedule": (
+            _celery_crontab(hour=7, minute=0)
+            if _celery_crontab is not None else 86400.0
+        ),
+        "kwargs": {"limit": 200},
+        "options": {"expires": 3600},
     },
     "compliance-mark-sla-breaches": {
         "task": "compliance.mark_sla_breaches",
@@ -3569,6 +3598,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.schools.middleware_session_school_bind.SessionSchoolBindingMiddleware",
         "apps.schools.middleware.TenantSchoolNotFoundMiddleware",
         "apps.tenancy.middleware.TenantContextMiddleware",  # Attach request.tenant_ctx (TenantContext)
+        "apps.tenancy.middleware_boundary_guard.TenantBoundaryCoreGuardMiddleware",  # Pin school_id + SQL boundary guard
         "apps.tenancy.middleware_rls_jwt.RLSJWTBindingMiddleware",  # v4.00.0: bind app.current_school_id from signed JWT (RLS mode only; no-op under SCHEMA)
         "apps.platform_runtime.middleware.TenantRuntimeMiddleware",  # Attach request.tenant_runtime (TenantRuntime)
         "django.middleware.security.SecurityMiddleware",

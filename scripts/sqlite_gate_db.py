@@ -184,6 +184,18 @@ def ensure_gate_session(root: Path, *, force_fresh: bool = False) -> Path:
     return path.resolve()
 
 
+def reap_all_stale_gate_locks(root: Path, *, stale_after: float = 120.0) -> int:
+    """Remove dead gate-lock directories under ``.django_test_dbs/``."""
+    tdir = root / ".django_test_dbs"
+    if not tdir.is_dir():
+        return 0
+    reaped = 0
+    for lock_path in tdir.glob(".*.gate-lock"):
+        if lock_path.is_dir() and _reap_stale_lock(lock_path, stale_after=stale_after):
+            reaped += 1
+    return reaped
+
+
 def bootstrap_gate_session_env(root: Path, *, session_id: str | None = None, force_fresh: bool = False) -> Path:
     """Initialize env for a multi-step gate sweep; returns resolved test DB path."""
     if not os.environ.get("RMC_SQLITE_GATE_SESSION", "").strip():

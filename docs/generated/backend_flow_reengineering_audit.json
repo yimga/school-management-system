@@ -1,0 +1,9 @@
+{
+  "generated_at": "2026-06-09T20:24:23.503799+00:00",
+  "competing_lifecycle_engines": [
+    "apps/lifecycle/unified_lifecycle.py",
+    "apps/platform_runtime/tenant_lifecycle_engine.py",
+    "apps/schools/onboarding_service.py"
+  ],
+  "status": "mapped_consolidation_recommended"
+}

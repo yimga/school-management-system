@@ -1,0 +1,55 @@
+{
+  "generated_at": "2026-06-09T20:23:56.801256+00:00",
+  "generated_json_count": 509,
+  "generated_by_prefix_top20": {
+    "tenant": 33,
+    "master": 27,
+    "edos": 23,
+    "studio": 20,
+    "ai": 19,
+    "final": 18,
+    "orchestrator": 15,
+    "local": 14,
+    "platform": 13,
+    "admin": 12,
+    "global": 9,
+    "runtime": 9,
+    "marketing": 6,
+    "omni": 6,
+    "template": 6,
+    "manager": 5,
+    "migration": 5,
+    "pwa": 5,
+    "zero": 5,
+    "analytics": 4
+  },
+  "scripts_total": 959,
+  "scripts_verify": 477,
+  "scripts_audit_scan": 135,
+  "scripts_generate": 69,
+  "duplicate_risk_pairs": [
+    [
+      "tenant_lifecycle_code_truth_inventory.json",
+      "tenant_50x_code_truth_inventory.json"
+    ],
+    [
+      "security_surface_audit.json",
+      "backend_security_deep_audit.json"
+    ]
+  ],
+  "stale_candidate_sample": [
+    "docs/generated/batch_1371_elevation_spec.json",
+    "docs/generated/batch_1505_completeness_audit.json",
+    "docs/generated/deploy_readiness_2026_06_02.json",
+    "docs/generated/deploy_readiness_final_sweep_2026_06_02.json",
+    "docs/generated/deploy_readiness_resweep_2026_06_02.json",
+    "docs/generated/omni_consistency_audit_2026_06_02.json",
+    "docs/generated/omni_layout_audit_2026_06_02.json",
+    "docs/generated/omni_page_personality_audit_2026_06_02.json",
+    "docs/generated/omni_personality_unification_2026_06_02.json",
+    "docs/generated/omni_tenant_lifecycle_forensic_audit.json",
+    "docs/generated/omni_ux_audit_operator_tenant.json"
+  ],
+  "recommendation": "consolidate_tenant_lifecycle_audits; keep canonical verifiers; archive dated omni_* snapshots",
+  "focus": "script_sprawl"
+}

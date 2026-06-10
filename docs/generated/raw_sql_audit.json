@@ -1,6 +1,6 @@
 {
   "allowlist_path": "scripts/allowlists/raw_sql_allowlist.json",
-  "generated_at": "2026-06-03T09:11:46.386290+00:00",
+  "generated_at": "2026-06-10T02:56:34.967464+00:00",
   "hits": [
     {
       "classification": "migration_safe",
@@ -71,7 +71,13 @@
     {
       "classification": "migration_safe",
       "file": "apps/academics/migrations/0042_materialize_extracted_runtime_models.py",
-      "line": "67",
+      "line": "47",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/academics/migrations/0042_materialize_extracted_runtime_models.py",
+      "line": "75",
       "pattern": "connection_cursor"
     },
     {
@@ -95,19 +101,19 @@
     {
       "classification": "performance_safe",
       "file": "apps/analytics/management/commands/migrate_embeddings_to_pgvector.py",
-      "line": "214",
+      "line": "216",
       "pattern": "connection_cursor"
     },
     {
       "classification": "performance_safe",
       "file": "apps/analytics/management/commands/migrate_embeddings_to_pgvector.py",
-      "line": "234",
+      "line": "236",
       "pattern": "connection_cursor"
     },
     {
       "classification": "performance_safe",
       "file": "apps/analytics/management/commands/migrate_embeddings_to_pgvector.py",
-      "line": "258",
+      "line": "261",
       "pattern": "connection_cursor"
     },
     {
@@ -119,13 +125,13 @@
     {
       "classification": "performance_safe",
       "file": "apps/analytics/management/commands/rebuild_pgvector_index.py",
-      "line": "95",
+      "line": "98",
       "pattern": "connection_cursor"
     },
     {
       "classification": "performance_safe",
       "file": "apps/analytics/management/commands/rebuild_pgvector_index.py",
-      "line": "109",
+      "line": "112",
       "pattern": "connection_cursor"
     },
     {
@@ -137,31 +143,31 @@
     {
       "classification": "performance_safe",
       "file": "apps/analytics/management/commands/verify_pgvector_index.py",
-      "line": "105",
+      "line": "107",
       "pattern": "connection_cursor"
     },
     {
       "classification": "performance_safe",
       "file": "apps/analytics/management/commands/verify_pgvector_index.py",
-      "line": "126",
+      "line": "128",
       "pattern": "connection_cursor"
     },
     {
       "classification": "performance_safe",
       "file": "apps/analytics/management/commands/verify_pgvector_index.py",
-      "line": "140",
+      "line": "142",
       "pattern": "connection_cursor"
     },
     {
       "classification": "performance_safe",
       "file": "apps/analytics/management/commands/verify_pgvector_index.py",
-      "line": "162",
+      "line": "164",
       "pattern": "connection_cursor"
     },
     {
       "classification": "performance_safe",
       "file": "apps/analytics/management/commands/verify_pgvector_index.py",
-      "line": "190",
+      "line": "192",
       "pattern": "connection_cursor"
     },
     {
@@ -173,7 +179,7 @@
     {
       "classification": "performance_safe",
       "file": "apps/analytics/semantic_search.py",
-      "line": "65",
+      "line": "68",
       "pattern": "connection_cursor"
     },
     {
@@ -222,6 +228,12 @@
       "classification": "migration_safe",
       "file": "apps/communication/migrations/0014_rls_policy_default_deny.py",
       "line": "50",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/compliance/audit_retention.py",
+      "line": "296",
       "pattern": "connection_cursor"
     },
     {
@@ -555,7 +567,7 @@
       "pattern": "connection_cursor"
     },
     {
-      "classification": "needs_review",
+      "classification": "performance_safe",
       "file": "apps/platform_runtime/sqlite_pragmas.py",
       "line": "23",
       "pattern": "connection_cursor"
@@ -743,7 +755,13 @@
     {
       "classification": "migration_safe",
       "file": "apps/schoolops/migrations/0002_materialize_tenant_tables.py",
-      "line": "67",
+      "line": "47",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schoolops/migrations/0002_materialize_tenant_tables.py",
+      "line": "75",
       "pattern": "connection_cursor"
     },
     {
@@ -946,6 +964,12 @@
     },
     {
       "classification": "migration_safe",
+      "file": "apps/siteconfig/migrations/0011_themepack_defaults.py",
+      "line": "15",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
       "file": "apps/siteconfig/migrations/0045_remove_sitesettings_preview_banner_text_and_more.py",
       "line": "17",
       "pattern": "connection_cursor"
@@ -1073,25 +1097,25 @@
     {
       "classification": "migration_safe",
       "file": "apps/siteconfig/migrations/0141_globalsupportticket_assigned_to.py",
-      "line": "34",
+      "line": "39",
       "pattern": "connection_cursor"
     },
     {
       "classification": "migration_safe",
       "file": "apps/siteconfig/migrations/0141_globalsupportticket_assigned_to.py",
-      "line": "41",
+      "line": "46",
       "pattern": "connection_cursor"
     },
     {
       "classification": "migration_safe",
       "file": "apps/siteconfig/migrations/0141_globalsupportticket_assigned_to.py",
-      "line": "57",
+      "line": "60",
       "pattern": "connection_cursor"
     },
     {
       "classification": "migration_safe",
       "file": "apps/siteconfig/migrations/0141_globalsupportticket_assigned_to.py",
-      "line": "62",
+      "line": "65",
       "pattern": "connection_cursor"
     },
     {
@@ -1123,10 +1147,22 @@
       "file": "apps/siteconfig/sitesettings_slim_contract.py",
       "line": "151",
       "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/tenancy/tests/test_boundary_core_guard.py",
+      "line": "84",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/tenancy/tests/test_boundary_core_guard.py",
+      "line": "97",
+      "pattern": "connection_cursor"
     }
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 187
+    "hits": 193
   }
 }

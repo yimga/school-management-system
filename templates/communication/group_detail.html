@@ -112,13 +112,13 @@
           {% else %}
           {% comment %} Pass 8 Wave 2: replaced native onclick="return confirm(...)" with
              components/confirm_modal.html — themed, screen-reader-friendly, ESC-dismissable. {% endcomment %}
-          <a href="#" data-bs-toggle="modal"
+          <button type="button"
              class="btn btn-outline-danger w-100"
+             data-bs-toggle="modal"
              data-bs-target="#leaveGroupConfirm"
-             data-confirm-href="{% url 'communication:group_leave' thread_id=thread.id %}"
-             role="button">
+             data-confirm-href="{% url 'communication:group_leave' thread_id=thread.id %}">
             <i class="bi bi-person-dash me-1" aria-hidden="true"></i>{% trans "Leave group" %}
-          </a>
+          </button>
           {% include "components/confirm_modal.html" with modal_id="leaveGroupConfirm" icon="bi-person-dash" title=_("Leave this group?") body=_("You'll stop receiving messages from this group. You can rejoin later if invited.") confirm_label=_("Leave group") confirm_class="btn-danger" %}
           {% endif %}
         </div>

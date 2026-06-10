@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-06-09T19:41:38.214237+00:00",
+  "status": "complete",
+  "implementation_files": [
+    "apps/platform_runtime/tenant_ai_help.py",
+    "apps/sync_engine/offline_help.py"
+  ],
+  "test_evidence": {
+    "ok": true
+  },
+  "open_items": []
+}

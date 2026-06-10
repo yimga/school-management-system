@@ -910,6 +910,18 @@ class TenantSchoolNotFoundMiddleware(MiddlewareMixin):
         return _response_for_unknown_tenant_host(request, subdomain)
 
 
+def _resolve_login_discovery_path() -> str:
+    """Named URL for cross-tenant redirect; safe when ROOT_URLCONF lacks marketing routes."""
+    from django.urls import NoReverseMatch, reverse
+
+    for name in ("global_login_discovery", "accounts:login"):
+        try:
+            return reverse(name)
+        except NoReverseMatch:
+            continue
+    return "/authentication/login/"
+
+
 def _enforce_tenant_host_membership(request, school):
     """
     On a tenant subdomain, authenticated users must belong to that school.
@@ -955,16 +967,16 @@ def _enforce_tenant_host_membership(request, school):
         return None
     from django.contrib import messages
     from django.shortcuts import redirect
-    from django.urls import reverse
 
     from apps.schools.provision_email_urls import build_public_site_url
 
     messages.warning(
         request,
         "You do not have access to this school's portal. Sign in with your school account.",
+        fail_silently=True,
     )
     request.session.pop("school_id", None)
-    return redirect(build_public_site_url(reverse("global_login_discovery")))
+    return redirect(build_public_site_url(_resolve_login_discovery_path()))
 
 
 class TenantMiddleware(MiddlewareMixin):

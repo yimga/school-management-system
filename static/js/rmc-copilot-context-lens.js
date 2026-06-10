@@ -28,6 +28,33 @@
         "Draft an invite follow-up for pending operators",
       ],
     },
+    "operator-offboarding-queue": {
+      eyebrow: "Offboarding command",
+      empty: "Select a queued school to review purge schedule, billing clearance, and provisioning state.",
+      chips: [
+        "Which schools are due for purge today?",
+        "Explain billing hold vs legal hold for this tenant",
+        "What should I verify before applying scheduled purges?",
+      ],
+    },
+    "operator-tenant-health": {
+      eyebrow: "Tenant health",
+      empty: "Select a school to review lifecycle, activity, and statutory posture with live provisioning chips.",
+      chips: [
+        "Which schools have missing statutory packs?",
+        "Summarize inactive schools with no recent activity",
+        "What should I check before approving this tenant?",
+      ],
+    },
+    "operator-dashboard-fleet": {
+      eyebrow: "Fleet command",
+      empty: "Select a registry row or queue item to mirror provisioning and lifecycle in Lens.",
+      chips: [
+        "Which schools are stuck in provisioning?",
+        "Explain the highest-risk tenants on this dashboard",
+        "Draft operator next steps for the selected school",
+      ],
+    },
     "tenant-student-roster": {
       eyebrow: "Student roster",
       empty: "Select a student to see classroom, tags, and backend actions in the copilot lens.",
@@ -125,6 +152,85 @@
     return root.querySelector(sel);
   }
 
+  function lifecyclePillClass(value) {
+    var text = String(value || "").toLowerCase();
+    if (text.indexOf("active") >= 0 && text.indexOf("inactive") < 0) return "success";
+    if (text.indexOf("offboard") >= 0 || text.indexOf("frozen") >= 0) return "danger";
+    if (text.indexOf("schedul") >= 0 || text.indexOf("pending") >= 0 || text.indexOf("provision") >= 0) {
+      return "warning";
+    }
+    return "muted";
+  }
+
+  function activePillClass(value) {
+    return String(value || "").toLowerCase() === "yes" ? "success" : "secondary";
+  }
+
+  function metaKeyKind(key) {
+    var lower = String(key || "").toLowerCase();
+    if (lower === "active") return "active";
+    if (lower === "lifecycle") return "lifecycle";
+    return "";
+  }
+
+  function renderStatusPills(root, detail) {
+    var host = q(root, "[data-rmc-copilot-lens-status]");
+    if (!host) return;
+    host.innerHTML = "";
+    if (!detail || detail.bulkCount) {
+      host.hidden = true;
+      return;
+    }
+    var meta = detail.meta || {};
+    var chips = [];
+    Object.keys(meta).forEach(function (key) {
+      var kind = metaKeyKind(key);
+      if (kind === "active") {
+        chips.push({ label: key, value: meta[key], tone: activePillClass(meta[key]) });
+      } else if (kind === "lifecycle") {
+        chips.push({ label: key, value: meta[key], tone: lifecyclePillClass(meta[key]) });
+      }
+    });
+    if (!chips.length) {
+      host.hidden = true;
+      return;
+    }
+    chips.forEach(function (chip) {
+      var span = document.createElement("span");
+      span.className = "lx-copilot__lens-pill lx-copilot__lens-pill--" + chip.tone;
+      span.textContent = chip.label + ": " + chip.value;
+      host.appendChild(span);
+    });
+    host.hidden = false;
+  }
+
+  function setLensCardVisible(root, visible) {
+    var card = q(root, "[data-rmc-copilot-lens-card]");
+    if (card) card.hidden = !visible;
+  }
+
+  function dismissSelection() {
+    if (typeof window.rmcRowDetailDismiss === "function") {
+      window.rmcRowDetailDismiss();
+      return;
+    }
+    try {
+      document.dispatchEvent(new CustomEvent("rmc:row-detail-close", { bubbles: true }));
+    } catch (_e) {}
+  }
+
+  function onRowDetailClose() {
+    renderSelection(null);
+    var sheet = document.getElementById("rmcCopilotContextLensSheet");
+    if (sheet && window.bootstrap && window.bootstrap.Offcanvas) {
+      var inst = window.bootstrap.Offcanvas.getInstance(sheet);
+      if (inst) inst.hide();
+    }
+    document.querySelectorAll("tr[data-rmc-row-detail='1'].is-selected, [data-rmc-row-detail='1'].is-selected").forEach(function (row) {
+      row.classList.remove("is-selected");
+    });
+  }
+
   function renderSelection(detail) {
     var roots = lensRoots();
     if (!roots.length) { return; }
@@ -140,6 +246,8 @@
         titleEl.textContent = "";
         if (subEl) { subEl.textContent = ""; }
         metaEl.innerHTML = "";
+        setLensCardVisible(root, false);
+        renderStatusPills(root, null);
         if (emptyEl) {
           var pb = playbook();
           emptyEl.textContent = pb ? pb.empty : "Select a row to mirror context here.";
@@ -150,12 +258,14 @@
         return;
       }
 
+      setLensCardVisible(root, true);
       if (emptyEl) { emptyEl.hidden = true; }
 
       if (detail.bulkCount) {
         titleEl.textContent = detail.bulkCount + " rows selected";
         if (subEl) { subEl.textContent = detail.summary || ""; }
         metaEl.innerHTML = "";
+        renderStatusPills(root, detail);
         var bulkMeta = document.createElement("div");
         bulkMeta.className = "lx-copilot__lens-kv";
         bulkMeta.textContent = detail.summary || "";
@@ -164,8 +274,10 @@
         titleEl.textContent = detail.title || "";
         if (subEl) { subEl.textContent = detail.subtitle || ""; }
         metaEl.innerHTML = "";
+        renderStatusPills(root, detail);
         var meta = detail.meta || {};
         Object.keys(meta).forEach(function (key) {
+          if (metaKeyKind(key)) return;
           var row = document.createElement("div");
           row.className = "lx-copilot__lens-kv";
           var k = document.createElement("span");
@@ -313,9 +425,22 @@
     });
     document.addEventListener("click", function (ev) {
       var chip = ev.target && ev.target.closest("[data-rmc-copilot-lens-chip]");
-      if (!chip) { return; }
-      ev.preventDefault();
-      fillInput(chip.textContent.trim());
+      if (chip) {
+        ev.preventDefault();
+        fillInput(chip.textContent.trim());
+        return;
+      }
+      var dismiss = ev.target && ev.target.closest("[data-rmc-copilot-lens-dismiss]");
+      if (dismiss) {
+        ev.preventDefault();
+        dismissSelection();
+      }
+    });
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key !== "Escape" || ev.defaultPrevented) return;
+      var card = document.querySelector("[data-rmc-copilot-lens-card]:not([hidden])");
+      if (!card) return;
+      dismissSelection();
     });
     document.addEventListener("rmc-workflow-copilot-context", function (ev) {
       var detail = ev.detail || window.__rmcWorkflowCopilotContext;
@@ -357,6 +482,7 @@
     renderSelection(null);
     wireLensUi();
     document.addEventListener("rmc:row-detail-open", onRowOpen);
+    document.addEventListener("rmc:row-detail-close", onRowDetailClose);
     document.addEventListener("rmc:bulk-selection-changed", onBulkChange);
   }
 

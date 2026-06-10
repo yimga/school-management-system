@@ -340,3 +340,126 @@ html[data-rmc-shell="off"] body {
    Once Phase 3 lands, all Tier-1 templates use `.rmc-app-shell` and
    never write `data-rmc-shell="off"`.
    ============================================================ */
+
+/* ============================================================
+   Fluid layout variant (Phase 1 — liberate fixed-height traps)
+   ------------------------------------------------------------
+   Tenant admin and long operator pages that must grow with content
+   use `.rmc-app-shell--fluid` + `html[data-rmc-layout="fluid"]`.
+   Document scrolls naturally; footer sits at end of content flow.
+   ============================================================ */
+html[data-rmc-layout="fluid"],
+html[data-rmc-layout="fluid"] body,
+html:has(.rmc-app-shell--fluid),
+html:has(.rmc-app-shell--fluid) body {
+  overflow: visible;
+  height: auto;
+  min-height: 100%;
+}
+
+.rmc-app-shell--fluid {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  background: var(--surface-bg);
+  color: var(--text-primary);
+}
+
+.rmc-app-shell--fluid .rmc-app-shell__header {
+  flex: 0 0 auto;
+}
+
+.rmc-app-shell--fluid .rmc-app-shell__sidebar {
+  flex: 0 0 auto;
+  max-height: none;
+  overflow: visible;
+}
+
+.rmc-app-shell--fluid .rmc-app-shell__canvas {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.rmc-app-shell--fluid .rmc-app-shell__canvas-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--space-6, 1.5rem);
+}
+
+.rmc-app-shell--fluid .rmc-app-shell__footer {
+  flex: 0 0 auto;
+  max-height: none;
+}
+
+/* ============================================================
+   Copilot rail — operator 3-column shell (manager /super/*)
+   ------------------------------------------------------------
+   When data-rmc-app-shell-copilot="1" is set on the shell root,
+   column 3 is reserved for .rmc-app-shell__copilot. Without an
+   explicit grid-column pin, auto-placement parks the aside on a
+   full-width implicit row (bottom band with stacked icons).
+   ============================================================ */
+.rmc-app-shell[data-rmc-app-shell-copilot="1"] {
+  grid-template-columns: var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px)) minmax(0, 1fr) var(--rmc-app-shell-copilot-w, 44px);
+}
+
+.rmc-app-shell[data-rmc-app-shell-copilot="1"][data-copilot="expanded"] {
+  --rmc-app-shell-copilot-w: 360px;
+}
+
+.rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__copilot {
+  grid-row: 2;
+  grid-column: 3;
+  width: var(--rmc-app-shell-copilot-w, 44px);
+  max-width: var(--rmc-app-shell-copilot-w, 44px);
+  min-width: 0;
+  justify-self: stretch;
+  align-self: stretch;
+}
+
+/* Shell auxiliaries must not consume grid cells beside the copilot rail. */
+.rmc-app-shell[data-rmc-app-shell-copilot="1"] > dialog.rmc-sheet:not([open]),
+.rmc-app-shell[data-rmc-app-shell-copilot="1"] > [data-rmc-operator-notebook],
+.rmc-app-shell[data-rmc-app-shell-copilot="1"] > .lx-notebook {
+  position: fixed;
+  grid-column: 1;
+  grid-row: 1;
+  width: auto;
+  height: auto;
+  margin: 0;
+  pointer-events: auto;
+}
+
+.rmc-app-shell[data-rmc-app-shell-copilot="1"] > dialog.rmc-sheet:not([open]) {
+  width: 0;
+  height: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@media (max-width: 1199.98px) {
+  .rmc-app-shell[data-rmc-app-shell-copilot="1"] {
+    grid-template-columns: var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px)) minmax(0, 1fr);
+  }
+
+  .rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__copilot {
+    display: none;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .rmc-app-shell[data-rmc-app-shell-copilot="1"] {
+    grid-template-columns: 1fr;
+  }
+}

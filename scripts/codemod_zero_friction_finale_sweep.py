@@ -118,7 +118,7 @@ def _apply_shared(text: str) -> str:
             return match.group(0)
         return (
             '{% include "components/rmc_empty_state.html" with icon="bi-inbox" '
-            f'title=_("{inner}") message=_("Nothing here yet — check back after your school adds data.") %}'
+            f'title=_("{inner}") message=_("Nothing here yet — check back after your school adds data.") %}}'
         )
 
     text = EMPTY_ALERT_RE.sub(_empty_alert_repl, text, count=1)

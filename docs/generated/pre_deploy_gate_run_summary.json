@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-06-09T00:00:00+00:00",
+  "last_run_date": "2026-03-29",
+  "exit_code": 0,
+  "verdict": "PASSED",
+  "summary": "Release readiness checks passed for A/B/C/D. Raw SQL DEBUG output retired from repo; full log belongs in local evidence bundle only.",
+  "tests_passed": 4,
+  "checks": [
+    "No forbidden env files tracked in git",
+    "Repo hygiene (no conflict markers, backup files)",
+    "Migration plan clean",
+    "Release readiness test subset green"
+  ],
+  "evidence_policy": "Store full gate run output under artifacts-evidence/ or var/evidence/ (gitignored). Commit this summary only."
+}

@@ -45,7 +45,10 @@ def bulk_set_student_status(
     if school is None:
         raise ValueError("Tenant context required for bulk roster mutation.")
 
-    qs = StudentProfile.objects.filter(school=school, pk__in=student_ids, is_active=True)
+    qs = StudentProfile.objects.filter(pk__in=student_ids, is_active=True)
+    from apps.tenancy.queryset_boundary import scoped_queryset_for_school
+
+    qs = scoped_queryset_for_school(qs, school)
     students = list(qs.order_by("last_name", "first_name"))
     found_ids = {student.pk for student in students}
     missing = [str(sid) for sid in student_ids if sid not in found_ids]

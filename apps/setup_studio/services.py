@@ -1606,7 +1606,12 @@ def compile_setup_studio(school) -> dict[str, Any]:
         progress, _ = SetupProgress.objects.get_or_create(school=school)
         progress.current_step_key = current_step_key
         progress.completed_keys = completed_keys
-        progress.step_state = step_state
+        from apps.setup_studio.zero_friction import merge_persisted_wizard_state
+
+        progress.step_state = merge_persisted_wizard_state(
+            progress.step_state if isinstance(progress.step_state, dict) else None,
+            step_state,
+        )
         progress.recommendations = recommendations
         progress.role_previews = role_previews
         progress.launch_checklist = launch_checklist

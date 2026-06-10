@@ -250,3 +250,29 @@ def operational_nav_groups(request):
     from apps.platform_runtime.super_operational_frames import DEFAULT_SUPER_NAV_GROUPS
 
     return {"operational_nav_groups": DEFAULT_SUPER_NAV_GROUPS}
+
+
+def tenant_experience_context(request):
+    """Inject next-best actions and AI help routing into tenant templates."""
+    school = getattr(request, "school", None)
+    user = getattr(request, "user", None)
+    if not school or not user or not getattr(user, "is_authenticated", False):
+        return {}
+
+    from apps.platform_runtime.tenant_ai_help import (
+        build_tenant_ai_help_context,
+        offline_help_actions,
+    )
+    from apps.platform_runtime.tenant_daily_ops import (
+        next_best_actions_for_role,
+        resolve_action_urls,
+    )
+
+    actions = resolve_action_urls(next_best_actions_for_role(school, user))
+    ai_ctx = build_tenant_ai_help_context(request)
+    offline = offline_help_actions()
+    return {
+        "tenant_daily_ops_actions": actions,
+        "tenant_ai_help": ai_ctx,
+        "tenant_offline_help_actions": offline,
+    }

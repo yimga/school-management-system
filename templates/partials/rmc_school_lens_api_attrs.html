@@ -1,0 +1,4 @@
+{% comment %}Shared Lens poll attrs — nest inside tr/div with data-rmc-row-detail="1". Requires `school` with pk.{% endcomment %}
+data-rmc-row-school-id="{{ school.id }}"
+data-rmc-row-lens-api="{% url 'super:api_school_lens_snapshot' school.id %}"
+data-rmc-row-requeue-api="{% url 'super:api_school_requeue_provision' school.id %}"

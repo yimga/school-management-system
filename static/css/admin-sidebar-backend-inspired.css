@@ -275,6 +275,15 @@ body.portal-backend-lavender #nav-sidebar .admin-sidebar-section-title {
 #nav-sidebar-inner .admin-sidebar-user-card {
   padding: 0.75rem 1rem 1rem;
   border-top: 1px solid rgba(168, 160, 146, 0.25);
+  overflow: visible;
+  z-index: 50;
+}
+
+#nav-sidebar .admin-sidebar-user-menu,
+#nav-sidebar-inner .admin-sidebar-user-menu {
+  background: var(--surface-elevated, var(--admin-content-bg, var(--color-base-0)));
+  border-color: var(--hairline, var(--admin-content-border, var(--color-base-200)));
+  color: var(--text-primary, var(--admin-content-text, var(--color-base-900)));
 }
 
 #nav-sidebar .admin-sidebar-user-card-inner,

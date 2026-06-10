@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-06-09T20:24:23.447420+00:00",
+  "service_worker_present": true,
+  "manifest_shell_sample_count": 1,
+  "sync_engine_modules": [
+    "apps/sync_engine/__init__.py",
+    "apps/sync_engine/apps.py",
+    "apps/sync_engine/conflict_resolver.py",
+    "apps/sync_engine/crdt.py",
+    "apps/sync_engine/crdt_wallet.py",
+    "apps/sync_engine/crdt_wire_protocol.py",
+    "apps/sync_engine/delta_bundle.py",
+    "apps/sync_engine/event_envelope.py",
+    "apps/sync_engine/management/__init__.py",
+    "apps/sync_engine/management/commands/__init__.py",
+    "apps/sync_engine/management/commands/verify_crdt_convergence.py",
+    "apps/sync_engine/management/commands/verify_sync_semantics.py",
+    "apps/sync_engine/models.py",
+    "apps/sync_engine/offline_help.py",
+    "apps/sync_engine/policy_registry.py",
+    "apps/sync_engine/services.py",
+    "apps/sync_engine/tenant_manifest_compiler.py",
+    "apps/sync_engine/tests/__init__.py",
+    "apps/sync_engine/tests/test_conflict_resolver.py",
+    "apps/sync_engine/tests/test_crdt.py"
+  ],
+  "native_app_status": "deferred",
+  "pwa_production_claim": "repo_scope_only"
+}

@@ -1,6 +1,6 @@
 # Tenant lifecycle code-truth inventory
 
-Generated: `2026-06-09T15:53:11.048393+00:00`
+Generated: `2026-06-09T16:58:36.256449+00:00`
 
 ## Canonical engines
 

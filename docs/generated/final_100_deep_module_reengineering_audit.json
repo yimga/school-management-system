@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-06-09T19:42:18.993974+00:00",
+  "status": "partial",
+  "open_module_count": 1,
+  "open_modules_sample": [
+    {
+      "module": "ai",
+      "needed": true,
+      "tests": 0,
+      "migrations": 0,
+      "gaps": [],
+      "readiness": "partial",
+      "belongs_in_education_os": true
+    }
+  ],
+  "total_modules": 59
+}

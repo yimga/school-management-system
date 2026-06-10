@@ -1918,6 +1918,48 @@ body[data-rmc-notebook-footer-dock="1"] .rmc-footer-notebook-anchor .lx-notebook
   padding: 10px 12px;
   background: color-mix(in srgb, var(--surface-elevated, #1a1a22) 88%, transparent);
 }
+.lx-copilot__lens-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.lx-copilot__lens-card-head-copy { flex: 1 1 auto; min-width: 0; }
+.lx-copilot__lens-dismiss {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  opacity: 0.72;
+}
+.lx-copilot__lens-dismiss:hover,
+.lx-copilot__lens-dismiss:focus-visible {
+  opacity: 1;
+}
+.lx-copilot__lens-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+}
+.lx-copilot__lens-pill--success {
+  color: var(--text-success, #34d399);
+  border-color: color-mix(in srgb, var(--text-success, #34d399) 45%, transparent); /* off-token-allow: status-pill-accent */
+}
+.lx-copilot__lens-pill--warning {
+  color: var(--text-warning, #fbbf24);
+  border-color: color-mix(in srgb, var(--text-warning, #fbbf24) 45%, transparent); /* off-token-allow: status-pill-accent */
+}
+.lx-copilot__lens-pill--danger {
+  color: var(--text-danger, #f87171);
+  border-color: color-mix(in srgb, var(--text-danger, #f87171) 45%, transparent); /* off-token-allow: status-pill-accent */
+}
+.lx-copilot__lens-pill--secondary,
+.lx-copilot__lens-pill--muted {
+  color: var(--cp-chrome-text-muted, rgba(255, 255, 255, 0.72));
+}
 .lx-copilot__lens-kv { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; padding: 2px 0; }
 .lx-copilot__lens-k { color: var(--cp-chrome-text-faint, rgba(255, 255, 255, 0.55)); }
 .lx-copilot__lens-v { font-weight: 500; text-align: right; }
@@ -1944,6 +1986,52 @@ body[data-rmc-notebook-footer-dock="1"] .rmc-footer-notebook-anchor .lx-notebook
   cursor: pointer;
   font-size: 14px;
   line-height: 1;
+}
+
+.lx-copilot__lens-provision-train {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 9.5rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+
+.lx-copilot__lens-provision-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--cp-chrome-text-muted, rgba(255, 255, 255, 0.72));
+}
+
+.lx-copilot__lens-provision-step__dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  margin-top: 0.2rem;
+  border-radius: 999px;
+  background: var(--hairline, rgba(255, 255, 255, 0.22));
+}
+
+.lx-copilot__lens-provision-step--done .lx-copilot__lens-provision-step__dot {
+  background: var(--text-success, #34d399);
+}
+
+.lx-copilot__lens-provision-step--active .lx-copilot__lens-provision-step__dot {
+  background: var(--text-warning, #fbbf24);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--text-warning, #fbbf24) 28%, transparent); /* off-token-allow: status-pill-accent */
+}
+
+.lx-copilot__lens-provision-step--failed .lx-copilot__lens-provision-step__dot {
+  background: var(--text-danger, #f87171);
+}
+
+.lx-copilot__lens-provision-step--active .lx-copilot__lens-provision-step__label {
+  color: var(--cp-chrome-text, #f4f4f5);
+  font-weight: 600;
 }
 
 .lx-copilot__actions-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }

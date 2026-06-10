@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-26T10:24:14.849494+00:00",
+  "generated_at": "2026-06-10T02:56:37.855075+00:00",
   "kill_test": {
-    "critical_count": 2,
+    "critical_count": 0,
     "present": true,
-    "result": "FAIL"
+    "result": "PASS"
   },
   "northstar": {
     "present": true,

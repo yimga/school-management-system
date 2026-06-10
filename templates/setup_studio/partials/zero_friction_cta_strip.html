@@ -1,0 +1,57 @@
+{% load i18n %}
+{% comment %}Setup Studio 50X — unified zero-friction CTA strip (Launch Studio + guided onboarding).{% endcomment %}
+{% if zero_friction %}
+<section class="setup-studio-zero-friction rmc-section-nav mb-3" data-rmc-zero-friction="1" data-rmc-scroll-policy="paginate" aria-labelledby="rmc-zero-friction-heading">
+  <h2 id="rmc-zero-friction-heading" class="visually-hidden">{% trans "Setup quick actions" %}</h2>
+  <div class="setup-studio-panel setup-studio-health d-flex flex-wrap align-items-center gap-3">
+    <div class="setup-studio-health-ring flex-shrink-0" style="--setup-health-score: {{ zero_friction.health_score|default:0 }}%;" data-rmc-setup-health-score="1">
+      <strong>{{ zero_friction.health_score|default:0 }}</strong>
+    </div>
+    <div class="flex-grow-1 min-w-0">
+      {% if zero_friction.launch_ready %}
+      <p class="small text-success mb-1">{% trans "Ready to launch" %}</p>
+      {% elif zero_friction.launch_blockers %}
+      <p class="small text-warning mb-1">
+        {% blocktrans count counter=zero_friction.launch_blockers|length %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}
+      </p>
+      {% endif %}
+      {% if zero_friction.health_summary.label %}
+      <p class="small text-muted mb-0">{{ zero_friction.health_summary.label }}</p>
+      {% elif zero_friction.health_summary %}
+      <p class="small text-muted mb-0">{{ zero_friction.health_summary }}</p>
+      {% endif %}
+    </div>
+    <div class="setup-studio-actions d-flex flex-wrap gap-2">
+      {% if zero_friction.actions.use_recommended_setup and zero_friction.actions.use_recommended_setup != "#" %}
+      <a href="{{ zero_friction.actions.use_recommended_setup }}" class="btn btn-primary btn-sm" data-rmc-cta="use-recommended-setup">{% trans "Use recommended setup" %}</a>
+      {% endif %}
+      {% if zero_friction.actions.preview_setup and zero_friction.actions.preview_setup != "#" %}
+      <a href="{{ zero_friction.actions.preview_setup }}" class="btn btn-outline-secondary btn-sm" data-rmc-cta="preview-setup">{% trans "Preview before apply" %}</a>
+      {% endif %}
+      {% if zero_friction.actions.resume_wizard_url %}
+      <a href="{{ zero_friction.actions.resume_wizard_url }}" class="btn btn-outline-primary btn-sm" data-rmc-cta="resume-wizard">{% trans "Resume where I left off" %}</a>
+      {% endif %}
+      <button type="button" class="btn btn-outline-secondary btn-sm" data-rmc-cta="what-blocking" data-bs-toggle="collapse" data-bs-target="#rmc-zero-friction-blockers" aria-expanded="false">{% trans "What is blocking launch?" %}</button>
+      <form method="post" action="{% url 'setup_studio:zero_friction_recommended' %}" class="d-inline" data-rmc-cta="fix-automatically">
+        {% csrf_token %}
+        <input type="hidden" name="auto_fix" value="1">
+        <button type="submit" class="btn btn-outline-warning btn-sm">{% trans "Fix automatically" %}</button>
+      </form>
+    </div>
+  </div>
+  <div id="rmc-zero-friction-blockers" class="collapse mt-2">
+    <ul class="list-unstyled small mb-0 setup-studio-list">
+      {% for b in zero_friction.launch_blockers %}
+      <li class="setup-studio-blocker mb-1">
+        <span>{{ b.label|default:b.detail }}</span>
+        {% if b.link and b.link != "#" %}
+        <a href="{{ b.link }}" class="ms-1">{% trans "Fix" %}</a>
+        {% endif %}
+      </li>
+      {% empty %}
+      <li class="text-muted">{% trans "No blockers — you can launch." %}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+{% endif %}
