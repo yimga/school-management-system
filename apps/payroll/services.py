@@ -250,43 +250,50 @@ def generate_payslips(
             payslip.reference = f"PAY-{run.id}-{employee.id}"
             payslip.save(update_fields=["reference"])
 
+        # PayslipLine schema (migration 0005) is EARNING/DEDUCTION lines with
+        # fields (line_type, description, amount). The earlier code wrote the
+        # removed label/code/employer_amount fields + a removed CONTRIBUTION
+        # line_type, so every payslip generation crashed with TypeError /
+        # AttributeError. Net/gross live on the Payslip header (set above); these
+        # lines are the itemised breakdown.
         PayslipLine.objects.filter(payslip=payslip).delete()
         PayslipLine.objects.create(
             payslip=payslip,
             line_type=PayslipLine.LineType.EARNING,
-            label="Base Pay",
+            description="Base Pay",
             amount=calc["details"]["base_pay"],
         )
         if calc["overtime_pay"] > 0:
             PayslipLine.objects.create(
                 payslip=payslip,
                 line_type=PayslipLine.LineType.EARNING,
-                label="Overtime",
+                description="Overtime",
                 amount=calc["overtime_pay"],
             )
         for adj in calc["details"]["adjustments"]:
-            label = adj.get("description") or "Adjustment"
+            description = adj.get("description") or "Adjustment"
             PayslipLine.objects.create(
                 payslip=payslip,
                 line_type=PayslipLine.LineType.EARNING,
-                label=label,
+                description=description,
                 amount=adj.get("amount", Decimal("0.00")),
             )
         if calc["tax_amount"] > 0:
             PayslipLine.objects.create(
                 payslip=payslip,
                 line_type=PayslipLine.LineType.DEDUCTION,
-                label="Tax",
+                description="Tax",
                 amount=calc["tax_amount"],
             )
+        # Employee share of each statutory contribution is a DEDUCTION; the
+        # employer share is not an employee payslip line (it stays on the
+        # Payslip header's employer_contributions total).
         for contrib in calc["details"]["contributions"]:
             PayslipLine.objects.create(
                 payslip=payslip,
-                line_type=PayslipLine.LineType.CONTRIBUTION,
-                code=contrib.get("code", ""),
-                label=contrib.get("name", "Contribution"),
+                line_type=PayslipLine.LineType.DEDUCTION,
+                description=contrib.get("name", "Contribution"),
                 amount=contrib.get("employee_amount", Decimal("0.00")),
-                employer_amount=contrib.get("employer_amount", Decimal("0.00")),
             )
 
         payslips.append(payslip)
