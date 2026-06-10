@@ -135,10 +135,13 @@ sha256 fingerprint of the exported payload.
 - UTF-8 with BOM (Windows Excel compatibility).
 - Multi-line values quoted per RFC 4180.
 
-### 6.3 PDF (subject convenience)
-- One PDF per right-of-access request.
-- Generated via the platform PDF pipeline (`apps.exports.pdf`).
-- Carries an attestation footer (see §8).
+### 6.3 Export bundle (subject convenience)
+- The right-of-access export is produced as a JSON/CSV **ZIP bundle**, not a PDF:
+  per-student data via `apps.compliance.gdpr_services.export_student_data_portability(school_id, student_id, format="json"|"csv")`,
+  or the full tenant bundle via `apps.schools.tenant_offboarding.run_wind_down_export(school, full=True)`
+  (writes `portability_export.zip`; locate the latest via `latest_export_zip_path(school)`).
+- There is no automated PDF pipeline today; if a subject requests a PDF, render
+  it manually from the bundle and attach the §8 attestation alongside.
 
 ---
 
@@ -193,9 +196,12 @@ Audit reference: <INSERT TICKET ID>
     (e.g. billing dispute, fraud investigation).
 [ ] If retention is required, controller informs subject + RunMyCampus
     flags the row as 'erasure-deferred' with the legal basis.
-[ ] If erasure proceeds: run apps.exports.erase_subject(subject_pk,
-    domains=...) — deletes or anonymizes per the field catalog's
-    'erasure_strategy' setting.
+[ ] If erasure proceeds: log an EraseRequest, approve it, then fulfil it via
+    `python manage.py process_erase_requests` (batch) — or call
+    `apps.compliance.gdpr_services.gdpr_scrub_student(school_id, student_id,
+    dry_run=False)` directly. This anonymizes the StudentProfile + linked User,
+    guardians, attendance/incident/evaluation notes, and matching applicants.
+    (Run with `dry_run=True` first to preview.)
 [ ] Migration artifacts (raw bundle ciphertext, intake files) are
     deleted per the 90-day retention in the MAA (Section 6 of v2.0).
 [ ] Confirm via re-run of the access export that the subject's data
