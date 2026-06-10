@@ -143,10 +143,17 @@ inventory — it is the approval-gate input for any relocation.**
 Flagged for manual confirmation: portal `ai_help` / `ai_assistant_panel` permission gates (separate visible widget?); `brand_experience/template_ai_recommender.py` (internal vs visible?); an API WebSocket AI chat consumer (UI render location not found in Python).
 
 ### Recommended ordered execution (each its own commit, approval-gated)
-1. **Relabel-only (zero behavior change, lowest risk):** #1 manager rail + #8 policy lookup — clarify they are rules-based, not generative. 2 small commits.
-2. **Link-into-hub (read-only, hub-only):** add a "Generative AI surfaces" launcher table to the hub linking #2 studio rail, #9 portal gateway, #3 assist-dock, with live on/off status. Touches only the hub. 1 commit.
+1. ✅ **DONE (2026-06-10, commit `690b12039`) — Relabel-only (zero behavior change):** #1 manager rail
+   insight-feed module (`ai_copilot_service.py` docstring: stated plainly it is a rules-based metrics
+   feed, not inference; the rail's generative chat is studio_os) + #8 policy lookup (`ai_governance_body.html`:
+   "Policy copilot" → "Policy matrix lookup", copy clarifies no model call). No behavior change.
+2. ✅ **DONE (2026-06-10, commit `b2716acee`) — Link-into-hub (read-only, hub-only):** added a
+   "Where to find generative AI" launcher to the self-healing hub linking #2 studio rail
+   (`studio_os:shell`) + AI governance page (`siteconfig:ai_governance`), with #3 assist-dock and
+   #9 portal gateway listed as ambient (no standalone page). Routes reversed defensively
+   (`_safe_reverse`); ambient surfaces never get a fabricated link. 26/26 tests, gates 0, no SW bump.
 3. **Anomaly nudge (#6) → hub flow:** route the nudge through the hub instead of the universal context processor; removes one ambient AI widget from every dashboard. Medium; approval-gated.
 4. **Tenant intelligence strip (#4/#5):** relocate the two dashboard-strip insights into one tenant intelligence section. Moderate blast radius (tenant `backend_dashboard`); approval-gated, browser-smoke required.
 5. **Portal legacy gateway (#9) deprecation:** only after confirming studio-rail parity; grep-audit URL refs first. Highest risk; separate sign-off.
 
-No item above is started; this section is the menu to approve from.
+Items 1 & 2 are landed on local main (commits above). Items 3–5 are NOT started and need per-item sign-off.
