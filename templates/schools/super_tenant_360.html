@@ -117,23 +117,47 @@
         {% if provisioning_progress.workflow_run_id %}<span class="text-muted">#{{ provisioning_progress.workflow_run_id }}</span>{% endif %}
         · <span class="badge text-bg-secondary">{{ provisioning_progress.status }}</span>
         · {{ provisioning_progress.progress_percent }}%
+        {% if provisioning_progress.elapsed_seconds %}· <span class="text-muted">{% blocktrans with s=provisioning_progress.elapsed_seconds %}{{ s }}s elapsed{% endblocktrans %}</span>{% endif %}
       </p>
-      {% if provisioning_progress.current_step_label %}
+      {% if provisioning_progress.stuck %}
+      <div class="alert alert-danger small py-2">{% trans "Provisioning appears stalled (heartbeat went silent). Requeue to retry." %}</div>
+      {% endif %}
+      {% if provisioning_progress.phase_message %}
+      <p class="small text-muted mb-2">{{ provisioning_progress.phase_message }}</p>
+      {% elif provisioning_progress.current_step_label %}
       <p class="small text-muted mb-2">{{ provisioning_progress.current_step_label }}</p>
       {% endif %}
       <div class="progress mb-3" style="height: 0.5rem;" role="progressbar" aria-valuenow="{{ provisioning_progress.progress_percent }}" aria-valuemin="0" aria-valuemax="100">
         <div class="progress-bar" style="width: {{ provisioning_progress.progress_percent }}%;"></div>
       </div>
+      {# Full 14-step train (extended) with per-step durations when available. #}
       <ol class="list-unstyled small mb-3">
-        {% for step in provisioning_progress.steps %}
+        {% for step in provisioning_progress.extended_steps %}
         <li class="mb-1"><span class="badge text-bg-light text-dark">{{ step.state }}</span> {{ step.label }}</li>
         {% endfor %}
       </ol>
+      {% if provisioning_progress.completion_summary %}
+      {% with cs=provisioning_progress.completion_summary %}
+      <p class="small text-success mb-3">
+        {% trans "Created" %}:
+        {% if cs.terms %}{{ cs.terms }} {% trans "terms" %} · {% endif %}
+        {% if cs.classrooms %}{{ cs.classrooms }} {% trans "classrooms" %} · {% endif %}
+        {% if cs.subjects %}{{ cs.subjects }} {% trans "subjects" %}{% endif %}
+      </p>
+      {% endwith %}
+      {% endif %}
       {% if provisioning_progress.last_error %}
       <div class="alert alert-warning small">{{ provisioning_progress.last_error }}</div>
       {% endif %}
       {% endif %}
       <div class="d-flex flex-wrap gap-2">
+        {% if provisioning_progress.status == "failed" or provisioning_progress.stuck %}
+        <form method="post" action="{% url 'super:api_school_requeue_provision' school.id %}" class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{% url 'super:tenant_360' school.id %}">
+          <button type="submit" class="btn btn-sm btn-warning">{% trans "Requeue provisioning" %}</button>
+        </form>
+        {% endif %}
         <a class="btn btn-sm btn-outline-primary" href="{% url 'platform_runtime:workflow_progress_flight_deck' %}">{% trans "Open Flight Deck" %}</a>
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:tenant_health' %}">{% trans "Tenant health" %}</a>
       </div>

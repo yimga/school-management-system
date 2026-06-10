@@ -176,6 +176,10 @@ def build_operator_lens_snapshot(school: School) -> dict[str, Any]:
                 prov_tone,
             )
         )
+        # Surface a stalled provision to operators (heartbeat went silent) so it's
+        # visible at a glance instead of hiding behind a frozen percentage.
+        if progress.get("stuck"):
+            chips.append(_chip("stuck", _("Provision"), _("Delayed"), "danger"))
 
     unified_state = _text(unified.get("label") or unified.get("state") or "")
     if unified_state and unified.get("provisioning_in_flight"):
@@ -207,6 +211,12 @@ def build_operator_lens_snapshot(school: School) -> dict[str, Any]:
             "is_active": bool(progress.get("is_active")),
             "workflow_run_id": progress.get("workflow_run_id"),
             "eta_seconds": progress.get("eta_seconds"),
+            "elapsed_seconds": progress.get("elapsed_seconds"),
+            "stuck": bool(progress.get("stuck")),
+            "current_phase": progress.get("current_phase"),
+            "phase_message": _text(progress.get("phase_message") or ""),
+            "completion_summary": progress.get("completion_summary") or {},
+            "completed_at": progress.get("completed_at"),
             "last_error": progress.get("last_error") or progress.get("blocking_error"),
             "extended_steps": train,
             "can_requeue": can_operator_requeue_provisioning(school),

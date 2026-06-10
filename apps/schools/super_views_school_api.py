@@ -69,6 +69,21 @@ def api_school_requeue_provision(request, school_id):
         sensitivity=AuditLog.Sensitivity.HIGH,
     )
     snapshot = build_operator_lens_snapshot(school)
+    # Allow a plain <form> requeue button (e.g. Tenant 360) to redirect back to
+    # the page instead of dumping JSON. AJAX callers (operator lens) omit ``next``
+    # and still get the JSON snapshot. ``next`` is host-validated to avoid open
+    # redirects.
+    next_url = (request.POST.get("next") or "").strip()
+    if next_url:
+        from django.utils.http import url_has_allowed_host_and_scheme
+
+        if url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
+            messages.success(request, "Provisioning requeued.")
+            return redirect(next_url)
     return JsonResponse({**outcome, "lens": snapshot})
 
 
