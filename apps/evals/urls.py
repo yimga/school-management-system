@@ -24,7 +24,6 @@ from .views import (
     rosetta_grade_preview_api,
 )
 from .views_drilldown import evaluation_drilldown
-from .views_import_enhanced import grade_import_job_detail
 from .views_bulk_grade_entry import BulkGradeEntryView
 
 urlpatterns = [
@@ -87,13 +86,11 @@ urlpatterns = [
     ),
     # PHASE 4: Import Monitoring & Caching
     path("import-jobs/monitor/", import_job_monitor_view, name="import_job_monitor"),
-    # v3.16 (2026-05-17): wire grade_import_job_detail — view function existed at
-    # views_import_enhanced.py:130 but had no URL route, so 5 redirects to
-    # `evals:grade_import_job_detail` raised NoReverseMatch (HTTP 500) on every
-    # successful grade-import POST. Caught by platform-wide dead-URL audit.
-    path(
-        "grade-import/job/<int:job_id>/",
-        grade_import_job_detail,
-        name="grade_import_job_detail",
-    ),
+    # NOTE (2026-06-10): the former `grade_import_job_detail` route + its host module
+    # `views_import_enhanced.py` were retired here. That view was built against the
+    # abandoned `evals.models_enhanced.GradeImportJob` (a model that is never
+    # registered — the live model is `analytics.GradeImportJob`), had no template,
+    # and nothing live linked to it. The live import path (grade_import_upload_view /
+    # grade_import_apply_api) and the working `import_job_monitor_view` above already
+    # cover job visibility against the real model. See CSS_RETIREMENT_DOCKET.
 ]

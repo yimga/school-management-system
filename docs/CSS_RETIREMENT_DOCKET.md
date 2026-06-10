@@ -1,6 +1,18 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-07 (v4.02.88 — clock/weather relocated from header to a centered footer dock, platform-wide).
+**Last updated:** 2026-06-10 (Workflow 2 audit — retired dead `evals/views_import_enhanced.py` + its grade-import-job-detail route).
+
+## 2026-06-10 — Workflow 2 (Marks & Gradebook) — retire dead grade-import-job-detail view + module
+
+**Context:** systematic per-workflow audit (everything must be connected; nothing faked). Audited the Marks Entry & Gradebook chain. The core (teacher marks entry → `evals.Evaluation` → `evals/services.py` rankings/averages → reports/portal; live CSV import via `evals/views.py` using `apps.analytics.models.GradeImportJob` → `import_job_monitor_view`) is wired and healthy.
+
+**Retired (dead code, zero live callers):**
+- `apps/evals/views_import_enhanced.py` (whole module, 7 functions) — built against the **abandoned** `apps/evals/models_enhanced.py::GradeImportJob`/`GradeImportRowLog`, which are **never registered** (the live model is `apps.analytics.models.GradeImportJob`, with a different field/enum surface — no `.Status`, `created_count`/`failed_count`/`error_log` vs the dead module's `rows_created`/`success_rate`/`filename`). All 7 functions had **zero** external references (grep-verified).
+- The `evals:grade_import_job_detail` route + its import in `apps/evals/urls.py`. The view was **triple-dead**: (1) referenced phantom `evals.models.GradeImportJob`/`GradeImportRowLog`; (2) its template `templates/evals/grade_import_job_detail.html` does not exist (`TemplateDoesNotExist`); (3) nothing live linked to or redirected to it — the only redirects were inside the same module's own unrouted functions. The v3.16 (2026-05-17) route-wiring connected a URL to this dead view; its "5 redirects on every successful grade-import POST" claim was mistaken (those redirects live in unrouted dead functions, not the live POST path). Job visibility against the real model is already provided by the live `evals:import_job_monitor` view.
+
+**Validation:** `manage.py check` 0; live import routes (`grade_import_upload`, `grade_import_apply_api`, `import_job_monitor`, `teacher_marks_entry`) resolve; the retired route raises `NoReverseMatch`; new DB-free regression `apps/evals/tests/test_grade_import_route_health.py` (4 tests) green. No template/static change → no SW bump.
+
+**Noted, deferred to its own workflow (NOT fixed here):** `apps/evals/models_enhanced.py` is unimportable (duplicate `EvaluationEvidence` of `models.py:696` → `RuntimeError`; `StudentCompetencyAssessment.level` references a non-existent `CompetencyItem.CompetencyLevel` → `AttributeError`) and has no migrations for any of its ~12 models. Three **live routed** API endpoints in `apps/api/views_v1.py` (`VocationalDigitalBadgeView` + clock-hour/competency at lines ~1000/1052/1102) lazily import it and throw an uncaught `RuntimeError`. This belongs to a Vocational/Competency workflow (separate feature domain), captured for that pass.
 
 ## 2026-06-07 — v4.02.88 — Clock/weather → centered footer dock (platform-wide)
 
