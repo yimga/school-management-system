@@ -185,9 +185,28 @@ Flagged for manual confirmation: portal `ai_help` / `ai_assistant_panel` permiss
    post-deploy browser smoke** on the tenant dashboard. *(superseded line below was the pre-decision note.)*
    Deferred pending owner sign-off on
    the canonical-surface decision + a commitment to post-deploy browser smoke. NOT safe to do blind.
-5. **Portal legacy gateway (#9) deprecation:** only after confirming studio-rail parity; grep-audit URL refs first. Highest risk; separate sign-off.
+5. ⛔ **AUDITED (2026-06-10) — DO NOT DEPRECATE; the "superseded" premise is wrong.** The grep audit the
+   plan required shows the portal "legacy" AI gateway is **live, shared, multi-consumer infrastructure**,
+   not an orphan superseded by the studio rail:
+   - `static/js/_pages/rmc-ai-stream-bridge.js` (loaded in the **shared** `partials/rmc_viewport_engine.html`,
+     platform-wide) exposes a live `window.rmcAIStream.send()` API surface other code calls.
+   - `apps/portal/ai_chrome_config.py` builds the canonical **AI chrome page-data island**
+     (`partials/rmc_ai_chrome_page_data.html`, once per authenticated shell) AND its `_effective_flags`
+     is consumed by **`apps/assist_dock/context_processors.py:111`** — so the ambient assist dock (#3,
+     everywhere) depends on it. Deleting the gateway would break the assist dock platform-wide.
+   - `portal:ai_stream` is reversed in `siteconfig/cockpit_tenant_v3_realdata.py:47` and has active RBAC
+     tests (`test_ai_stream_rbac.py`, `test_ai_stream_view.py`).
+   - The studio rail (#2) and this gateway **coexist** (the rail is even included in `portal_base.html:627`):
+     the rail is the chat *UI* with its own `studio_os:copilot_rail_send_stream`; the portal gateway is the
+     chrome page-data + a separate SSE/`rmcAIStream` plumbing layer. Not a duplicate — different layers.
+   **Verdict:** keep. Any genuine future deprecation is a *project*, not a quick win — it would require
+   migrating the assist dock off `ai_chrome_config`, removing the `window.rmcAIStream` API + bridge,
+   retiring the RBAC tests, and browser verification — and is unjustified because the gateway is not
+   actually superseded. Same discipline as the `agentic_self_healing_matrix` "looks-orphaned-but-wired"
+   correction (§3.4): grep before retiring.
 
-Items 1–3 are landed on local main (commits above). Item 4 was investigated and found **already satisfied
-as literally specified** (no churn manufactured); its real follow-on (dashboard de-duplication) is a
-product decision + browser-verification job, not a code task I can do blind. Item 5 needs studio-rail
-parity confirmation + URL-ref grep audit first.
+**Final status (2026-06-10): the whole §5 menu is worked through.** Items 1, 2, 3, 4 are implemented and
+landed on local main (commits above). Item 5 was audited and found **NOT safe to deprecate** — the portal
+gateway is live shared infrastructure, not a superseded orphan; verdict is keep (no code change). Item 4's
+gating change still needs a **post-deploy browser smoke** on the tenant `backend_dashboard` (not locally
+verifiable). No further safe consolidation work remains in this menu without new owner direction.
