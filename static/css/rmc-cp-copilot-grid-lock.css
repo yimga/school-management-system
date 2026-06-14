@@ -127,3 +127,92 @@ html[data-rmc-isomorphic-template="operator-control-plane"]
     grid-area: rmc-shell-cv;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Belt-and-suspenders (2026-06-10): self-activating right-dock via :has().
+ *
+ * Every rule above keys on the `data-rmc-app-shell-copilot="1"` attribute. If
+ * that attribute is ever absent while the copilot <aside> still renders — e.g.
+ * the `cockpit.ai_copilot_rail.enabled` flag is read inconsistently between the
+ * shell attribute and the partial, or a stale deploy ships one without the
+ * other — NONE of the attribute-keyed rules match and CSS grid auto-placement
+ * parks `.rmc-app-shell__copilot` on a full-width implicit row (the bottom-band
+ * "stretched" bug). These rules re-pin the rail on the PRESENCE of the copilot
+ * aside alone, so the right-dock cannot silently regress. Modern-browser
+ * `:has()` only; older browsers still get the attribute-keyed rules above.
+ * ------------------------------------------------------------------------- */
+html[data-rmc-isomorphic-template="operator-control-plane"]
+  body.control-plane-shell
+  .rmc-app-shell:has(> .rmc-app-shell__copilot) {
+  display: grid !important;
+  grid-template-columns: var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px)) minmax(0, 1fr) var(--rmc-app-shell-copilot-w, 44px) !important;
+  grid-template-areas:
+    "rmc-shell-h rmc-shell-h rmc-shell-h"
+    "rmc-shell-sb rmc-shell-cv rmc-shell-cp"
+    "rmc-shell-f rmc-shell-f rmc-shell-f" !important;
+}
+
+html[data-rmc-isomorphic-template="operator-control-plane"]
+  body.control-plane-shell
+  .rmc-app-shell[data-copilot="expanded"]:has(> .rmc-app-shell__copilot) {
+  --rmc-app-shell-copilot-w: 360px;
+}
+
+html[data-rmc-isomorphic-template="operator-control-plane"]
+  body.control-plane-shell
+  .rmc-app-shell:has(> .rmc-app-shell__copilot) > .rmc-app-shell__header {
+  grid-area: rmc-shell-h;
+}
+
+html[data-rmc-isomorphic-template="operator-control-plane"]
+  body.control-plane-shell
+  .rmc-app-shell:has(> .rmc-app-shell__copilot) > .rmc-app-shell__sidebar {
+  grid-area: rmc-shell-sb;
+}
+
+html[data-rmc-isomorphic-template="operator-control-plane"]
+  body.control-plane-shell
+  .rmc-app-shell:has(> .rmc-app-shell__copilot) > .rmc-app-shell__canvas {
+  grid-area: rmc-shell-cv;
+}
+
+html[data-rmc-isomorphic-template="operator-control-plane"]
+  body.control-plane-shell
+  .rmc-app-shell:has(> .rmc-app-shell__copilot) > .rmc-app-shell__copilot {
+  grid-area: rmc-shell-cp !important;
+  grid-row: 2 !important;
+  grid-column: 3 !important;
+  width: var(--rmc-app-shell-copilot-w, 44px) !important;
+  max-width: var(--rmc-app-shell-copilot-w, 44px) !important;
+  min-width: 0;
+  position: relative !important;
+  inset: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  top: auto !important;
+}
+
+html[data-rmc-isomorphic-template="operator-control-plane"]
+  body.control-plane-shell
+  .rmc-app-shell:has(> .rmc-app-shell__copilot) > .rmc-app-shell__footer {
+  grid-area: rmc-shell-f;
+}
+
+@media (max-width: 1199.98px) {
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell:has(> .rmc-app-shell__copilot) {
+    grid-template-columns: var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px)) minmax(0, 1fr);
+    grid-template-areas:
+      "rmc-shell-h rmc-shell-h"
+      "rmc-shell-sb rmc-shell-cv"
+      "rmc-shell-f rmc-shell-f";
+  }
+
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell:has(> .rmc-app-shell__copilot) > .rmc-app-shell__copilot {
+    display: none;
+  }
+}
