@@ -1,6 +1,20 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-10 (Workflow 2 audit — retired dead `evals/views_import_enhanced.py` + its grade-import-job-detail route).
+**Last updated:** 2026-06-10 (Full-audit follow-up — retired dead `GradeViewSet` + `AssessmentResultsAPI` in `apps/academics/api_views.py`).
+
+## 2026-06-10 — Full-audit follow-up — retire dead `GradeViewSet` + `AssessmentResultsAPI`
+
+**Context:** the repo-wide import audit flagged `apps/academics/api_views.py` importing `evals.models.Grade` ×4 (lines 510/648/718/771) — a model that exists nowhere. Investigation (not a guess): both enclosing classes are **unrouted dead code** — `apps/api/urls.py` imports only `AttendanceViewSet` and `ScheduleConflictsAPI` from this module; `GradeViewSet`/`AssessmentResultsAPI` are referenced by no live `.py` and were already listed in `docs/DEAD_CODE_CANDIDATES_2026_06_03.md`. The premise that these were "4 routed endpoints returning 500" was wrong — they are unreachable. `GradeViewSet` doesn't even declare a `serializer_class`, so it could never have functioned. Rebuilding them against `evals.Evaluation` would be manufacturing a feature on a phantom, not fixing a break.
+
+**Retired (dead code, zero live callers, zero routes):**
+- `GradeViewSet` (was `apps/academics/api_views.py:496`) — `ModelViewSet` built on the non-existent `evals.models.Grade`; no `serializer_class`; not in any router.
+- `AssessmentResultsAPI` (was `:762`) — `APIView` reading the same phantom `Grade`; not wired to any URL.
+- Now-unused imports cleaned: `Avg, Case, When, IntegerField` (from `django.db.models`), `can_edit_student_grades`. Module docstring updated.
+
+**Kept (routed, live):** `AttendanceViewSet` (`api/urls.py` `attendance`), `ScheduleConflictsAPI` (`api/urls.py` `schedule-conflicts`).
+
+**Validation:** `manage.py check` 0; module imports; both kept classes resolve; `apps.api.urls` imports clean; repo-wide audit re-scan shows 0 unresolved `apps.*` symbols in `api_views.py`; 0 now-unused imports; new DB-free regression `apps/academics/tests/test_grade_viewset_retired.py`. No template/static change → no SW bump.
+
 
 ## 2026-06-10 — Workflow 2 (Marks & Gradebook) — retire dead grade-import-job-detail view + module
 
