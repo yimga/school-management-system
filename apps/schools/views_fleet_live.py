@@ -8,6 +8,7 @@ import time
 from typing import Iterator
 
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db import InterfaceError, OperationalError, close_old_connections
 from django.http import JsonResponse, StreamingHttpResponse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -45,11 +46,24 @@ def _fleet_table_sse_stream(request) -> Iterator[str]:
     since_revision: str | None = str(request.GET.get("since_revision") or "").strip() or None
     since_row_revisions: dict[str, str] = {}
     while time.monotonic() - started < _FLEET_SSE_MAX_SECONDS:
-        payload = build_fleet_sse_payload(
-            request,
-            since_revision=since_revision,
-            since_row_revisions=since_row_revisions or None,
-        )
+        try:
+            payload = build_fleet_sse_payload(
+                request,
+                since_revision=since_revision,
+                since_row_revisions=since_row_revisions or None,
+            )
+        except (OperationalError, InterfaceError) as exc:
+            # Render Postgres drops long-lived connections (SSL eof / server
+            # closed). Long-lived SSE generators get no request_finished signal,
+            # so the broken connection must be dropped explicitly or every
+            # subsequent tick fails too. Degrade gracefully instead of crashing
+            # the worker with a raw traceback; the client keeps the stream and
+            # the next tick reconnects.
+            logger.warning("fleet_sse.transient_db err_type=%s", type(exc).__name__)
+            close_old_connections()
+            yield f'data: {json.dumps({"transient_db": True})}\n\n'
+            time.sleep(_FLEET_SSE_INTERVAL_SECONDS)
+            continue
         yield f"data: {json.dumps(payload, default=str)}\n\n"
         if not payload.get("unchanged"):
             since_revision = str(payload.get("revision") or "") or since_revision
@@ -71,12 +85,19 @@ def _fleet_wall_sse_stream(request) -> Iterator[str]:
     since_row_revisions: dict[str, str] = {}
     wall_bootstrapped = False
     while time.monotonic() - started < _FLEET_SSE_MAX_SECONDS:
-        events = iter_fleet_wall_sse_events(
-            request,
-            since_revision=since_revision,
-            since_row_revisions=since_row_revisions or None,
-            wall_bootstrapped=wall_bootstrapped,
-        )
+        try:
+            events = iter_fleet_wall_sse_events(
+                request,
+                since_revision=since_revision,
+                since_row_revisions=since_row_revisions or None,
+                wall_bootstrapped=wall_bootstrapped,
+            )
+        except (OperationalError, InterfaceError) as exc:
+            logger.warning("fleet_wall_sse.transient_db err_type=%s", type(exc).__name__)
+            close_old_connections()
+            yield f'data: {json.dumps({"transient_db": True})}\n\n'
+            time.sleep(_FLEET_SSE_INTERVAL_SECONDS)
+            continue
         for event in events:
             yield f"data: {json.dumps(event, default=str)}\n\n"
 

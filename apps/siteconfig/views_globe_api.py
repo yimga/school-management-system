@@ -8,6 +8,7 @@ import time
 from typing import Any, Iterator
 
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db import InterfaceError, OperationalError, close_old_connections
 from django.http import HttpRequest, JsonResponse, StreamingHttpResponse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -144,7 +145,18 @@ def _globe_live_snapshot() -> dict[str, Any]:
 def _globe_sse_stream() -> Iterator[str]:
     started = time.monotonic()
     while time.monotonic() - started < _SSE_MAX_SECONDS:
-        payload = _globe_live_snapshot()
+        try:
+            payload = _globe_live_snapshot()
+        except (OperationalError, InterfaceError) as exc:
+            # Render Postgres drops long-lived connections; the broken conn must
+            # be closed explicitly (no request_finished signal on a generator)
+            # or every subsequent tick fails. Degrade instead of crashing the
+            # worker; the next tick reconnects.
+            logger.warning("globe_sse.transient_db err_type=%s", type(exc).__name__)
+            close_old_connections()
+            yield f'data: {json.dumps({"transient_db": True})}\n\n'
+            time.sleep(_SSE_HEARTBEAT_SECONDS)
+            continue
         yield f"data: {json.dumps(payload, default=str)}\n\n"
         time.sleep(_SSE_HEARTBEAT_SECONDS)
 
