@@ -4,11 +4,11 @@
 
 **A. Scope:** Batch **1701** — tenant isolation regressions, Z-F phases 0–8, Playwright phase1/2 harness, 50-app matrix isolation mode, `demo-school` sandbox fix.
 
-**B. Shipped:** Scoped querysets in academics/people/schoolops/schools/setup_studio; `ensure_developer_sandbox_tenant` creates School row; `run_tenant_phase_e2e.mjs` + `tenant-login.js` (MFA TOTP, subdomain host rules); phase1/2 specs retargeted to tenant backend shell (`/admin/` redirect); `run_50_app_test_shards.py --isolation app`.
+**B. Shipped:** Scoped querysets in academics/people/schoolops/schools/setup_studio; `ensure_developer_sandbox_tenant` creates School row; `run_tenant_phase_e2e.mjs` + `tenant-login.js` (MFA TOTP, subdomain host rules); phase1/2 specs retargeted to tenant backend shell (`/admin/` redirect); `run_50_app_test_shards.py --isolation app`; `bootstrap_sqlite_test_template.py`; final tenant-isolation closeout in `views_health_autopilot.py` + `studio_os/services.py`; matrix runner `.venv` python pin + `--fresh` retry.
 
 **C. Proof:** `scan_tenant_queryset_safety.py --compare` **0**; **ZERO_FRICTION_PHASES_0_8_PASS**; **ZERO_FRICTION_JOURNEYS_PASS**; **`TENANT_PHASE_E2E_PASS` (11/11)** — `artifacts/residual-closure-1701/playwright-phase-final.log`.
 
-**D. Honest:** 50-app matrix not green (template build timeout; Windows SQLite migration drift; 9/46 partial in `full_50_app_test_matrix_completion.json`); Postgres RLS / MAA v2 / live SLA operator-gated.
+**D. Honest:** 50-app matrix not green on Windows (SQLite malformed/duplicate-table keepdb under concurrent runs; rerun on Linux CI with `.venv/bin/python scripts/run_50_app_test_shards.py --write --isolation app` after clearing `.django_test_dbs/`); Postgres RLS / MAA v2 / live SLA operator-gated.
 
 ## Slice — Master implementation consolidation round (2026-06-10)
 
