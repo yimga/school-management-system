@@ -1271,7 +1271,9 @@ def get_automation_workflow_health_summary(
                 from apps.orchestration.models import OrchestrationRun
 
                 failing_count = int(
-                    OrchestrationRun.objects.filter(status__iexact="failed").count()
+                    OrchestrationRun.objects.filter(
+                        school=school, status__iexact="failed"
+                    ).count()
                 )
             except _STUDIO_SOFT_FAILURES:
                 failing_count = 0
@@ -1297,7 +1299,7 @@ def get_automation_workflow_health_summary(
             from apps.orchestration.models import OrchestrationRun
 
             failing_count = int(
-                OrchestrationRun.objects.filter(status__iexact="failed").count()
+                OrchestrationRun.objects.filter(status__iexact="failed").count()  # tenant-isolation-allow: studio-platform-wide-orchestration-failure-count
             )
         except _STUDIO_SOFT_FAILURES:
             failing_count = 0

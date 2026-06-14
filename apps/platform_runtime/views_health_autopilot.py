@@ -122,7 +122,7 @@ def health_autopilot_console(request):
             )
         )
         recent_log = list(
-            HealthRemediationLog.objects.all()[:_MAX_LOG_ROWS].values(
+            HealthRemediationLog.objects.all()[:_MAX_LOG_ROWS].values(  # tenant-isolation-allow: super-staff-health-autopilot-cross-tenant-log-sample
                 "school_slug", "signal", "kind", "source", "mode", "outcome", "created_at"
             )
         )
