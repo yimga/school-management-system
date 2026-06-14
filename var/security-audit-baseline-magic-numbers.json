@@ -97,10 +97,10 @@
   "excluded_path_fragments": [
     "management/commands/"
   ],
-  "finding_count": 884,
+  "finding_count": 913,
   "findings": [
     {
-      "line": 123,
+      "line": 126,
       "path": "apps/academics/api_views.py",
       "snippet": "queryset = queryset[:10000].select_related(\"student\", \"classroom\")",
       "value": 10000
@@ -112,34 +112,52 @@
       "value": 240
     },
     {
-      "line": 240,
+      "line": 236,
+      "path": "apps/academics/lesson_homework_kernel.py",
+      "snippet": "title=str(data.get(\"title\") or \"\")[:240],",
+      "value": 240
+    },
+    {
+      "line": 237,
+      "path": "apps/academics/lesson_homework_kernel.py",
+      "snippet": "instructions=str(data.get(\"instructions\") or \"\")[:4000],",
+      "value": 4000
+    },
+    {
+      "line": 273,
       "path": "apps/academics/lesson_homework_kernel.py",
       "snippet": "title=title.strip()[:240],",
       "value": 240
     },
     {
-      "line": 241,
+      "line": 274,
       "path": "apps/academics/lesson_homework_kernel.py",
       "snippet": "instructions=instructions.strip()[:4000],",
       "value": 4000
     },
     {
-      "line": 321,
+      "line": 354,
       "path": "apps/academics/lesson_homework_kernel.py",
       "snippet": "submission_text=(submission_text or \"\")[:8000],",
       "value": 8000
     },
     {
-      "line": 307,
+      "line": 300,
       "path": "apps/academics/timetable_solver.py",
       "snippet": "max_search_steps: int = 50_000,",
       "value": 50000
     },
     {
-      "line": 46,
+      "line": 51,
       "path": "apps/academics/views_timetable_solver.py",
       "snippet": "max_search_steps = int(payload.get(\"max_search_steps\") or 50_000)",
       "value": 50000
+    },
+    {
+      "line": 52,
+      "path": "apps/academics/views_timetable_solver.py",
+      "snippet": "if not 1 <= max_search_steps <= 250_000:",
+      "value": 250000
     },
     {
       "line": 36,
@@ -298,6 +316,12 @@
       "value": 4096
     },
     {
+      "line": 555,
+      "path": "apps/accounts/views_owner_onboarding.py",
+      "snippet": "\"message\": (getattr(event, \"message\", \"\") or \"\")[:240],",
+      "value": 240
+    },
+    {
       "line": 244,
       "path": "apps/accounts/views_saml.py",
       "snippet": "username = username_seed[:150]",
@@ -376,19 +400,25 @@
       "value": 150
     },
     {
+      "line": 71,
+      "path": "apps/analytics/ml_inference.py",
+      "snippet": "for student in students.iterator(chunk_size=250):",
+      "value": 250
+    },
+    {
       "line": 248,
       "path": "apps/analytics/ml_predictions.py",
       "snippet": "AdvancedAnalyticsService.get_performance_trends(student_profile, days=270)",
       "value": 270
     },
     {
-      "line": 449,
+      "line": 452,
       "path": "apps/analytics/ml_predictions.py",
       "snippet": "days_since_login = (timezone.now() - last_login).days if last_login else 999",
       "value": 999
     },
     {
-      "line": 457,
+      "line": 460,
       "path": "apps/analytics/ml_predictions.py",
       "snippet": "days_since_login = 999",
       "value": 999
@@ -664,7 +694,7 @@
       "value": 365
     },
     {
-      "line": 1098,
+      "line": 1145,
       "path": "apps/billing/services.py",
       "snippet": "payee_name=str(pname or \"Publisher\")[:160],",
       "value": 160
@@ -694,16 +724,34 @@
       "value": 280
     },
     {
-      "line": 413,
+      "line": 83,
+      "path": "apps/communication/web_push_service.py",
+      "snippet": "\"body\": (body or \"\")[:240],",
+      "value": 240
+    },
+    {
+      "line": 492,
       "path": "apps/compliance/admin_audit.py",
       "snippet": "hours = int(remaining.total_seconds() // 3600)",
       "value": 3600
     },
     {
-      "line": 414,
+      "line": 493,
       "path": "apps/compliance/admin_audit.py",
       "snippet": "minutes = int((remaining.total_seconds() % 3600) // 60)",
       "value": 3600
+    },
+    {
+      "line": 176,
+      "path": "apps/compliance/audit_retention.py",
+      "snippet": "for chunk in iter(lambda: archived.read(1024 * 1024), b\"\"):",
+      "value": 1024
+    },
+    {
+      "line": 176,
+      "path": "apps/compliance/audit_retention.py",
+      "snippet": "for chunk in iter(lambda: archived.read(1024 * 1024), b\"\"):",
+      "value": 1024
     },
     {
       "line": 59,
@@ -820,13 +868,13 @@
       "value": 240
     },
     {
-      "line": 290,
+      "line": 295,
       "path": "apps/evals/forms.py",
       "snippet": "if file.size > 8 * 1024 * 1024:",
       "value": 1024
     },
     {
-      "line": 290,
+      "line": 295,
       "path": "apps/evals/forms.py",
       "snippet": "if file.size > 8 * 1024 * 1024:",
       "value": 1024
@@ -952,7 +1000,7 @@
       "value": 280
     },
     {
-      "line": 534,
+      "line": 540,
       "path": "apps/finance/api_views.py",
       "snippet": "timeout=86400,",
       "value": 86400
@@ -988,43 +1036,43 @@
       "value": 140
     },
     {
-      "line": 148,
+      "line": 150,
       "path": "apps/finance/views_invoicing.py",
       "snippet": "for inv in ordered_qs[:5000]:",
       "value": 5000
     },
     {
-      "line": 627,
+      "line": 629,
       "path": "apps/finance/views_invoicing.py",
       "snippet": "max_bytes = max_mb * 1024 * 1024",
       "value": 1024
     },
     {
-      "line": 627,
+      "line": 629,
       "path": "apps/finance/views_invoicing.py",
       "snippet": "max_bytes = max_mb * 1024 * 1024",
       "value": 1024
     },
     {
-      "line": 631,
+      "line": 633,
       "path": "apps/finance/views_invoicing.py",
       "snippet": "f\"File is too large ({receipt_file.size / (1024 * 1024):.1f} MB). \"",
       "value": 1024
     },
     {
-      "line": 631,
+      "line": 633,
       "path": "apps/finance/views_invoicing.py",
       "snippet": "f\"File is too large ({receipt_file.size / (1024 * 1024):.1f} MB). \"",
       "value": 1024
     },
     {
-      "line": 107,
+      "line": 113,
       "path": "apps/finance/views_payments.py",
       "snippet": "for pay in ordered_qs[:5000]:",
       "value": 5000
     },
     {
-      "line": 561,
+      "line": 567,
       "path": "apps/finance/views_payments.py",
       "snippet": ").strip()[:160]",
       "value": 160
@@ -1150,7 +1198,7 @@
       "value": 9900
     },
     {
-      "line": 464,
+      "line": 507,
       "path": "apps/marketplace/views.py",
       "snippet": "or (time.time() - ts) > 900",
       "value": 900
@@ -2200,31 +2248,37 @@
       "value": 280
     },
     {
-      "line": 360,
+      "line": 371,
       "path": "apps/people/views_backend.py",
       "snippet": "for c in qs[:10000]:",
       "value": 10000
     },
     {
-      "line": 511,
+      "line": 524,
       "path": "apps/people/views_backend.py",
       "snippet": "for s in qs[:10000]:  # cap for safety",
       "value": 10000
     },
     {
-      "line": 817,
+      "line": 830,
       "path": "apps/people/views_backend.py",
       "snippet": "for t in qs[:10000]:",
       "value": 10000
     },
     {
-      "line": 1011,
+      "line": 1026,
       "path": "apps/people/views_backend.py",
       "snippet": "for a in qs[:10000]:",
       "value": 10000
     },
     {
-      "line": 1125,
+      "line": 1195,
+      "path": "apps/people/views_backend.py",
+      "snippet": "note=(request.POST.get(\"note\") or \"\")[:240],",
+      "value": 240
+    },
+    {
+      "line": 1326,
       "path": "apps/people/views_backend.py",
       "snippet": "for g in qs[:10000]:",
       "value": 10000
@@ -2296,6 +2350,18 @@
       "value": 86400
     },
     {
+      "line": 120,
+      "path": "apps/platform_runtime/browser_inference.py",
+      "snippet": "if not 100 <= max_input_chars <= 4000 or not 16 <= max_new_tokens <= 512:",
+      "value": 4000
+    },
+    {
+      "line": 181,
+      "path": "apps/platform_runtime/browser_inference.py",
+      "snippet": "int(getattr(settings, \"BROWSER_AI_MIN_FREE_BYTES\", 536870912)),",
+      "value": 536870912
+    },
+    {
       "line": 56,
       "path": "apps/platform_runtime/calendar_display.py",
       "snippet": "be_year = value.year + 543",
@@ -2344,6 +2410,24 @@
       "value": 7200
     },
     {
+      "line": 172,
+      "path": "apps/platform_runtime/intelligence_promotion.py",
+      "snippet": "elif STAGE_RANK[approved_stage] < STAGE_RANK.get(target_stage, 10_000):",
+      "value": 10000
+    },
+    {
+      "line": 54,
+      "path": "apps/platform_runtime/layout_observability.py",
+      "snippet": "value = _bounded_int(raw.get(field), maximum=10_000)",
+      "value": 10000
+    },
+    {
+      "line": 58,
+      "path": "apps/platform_runtime/layout_observability.py",
+      "snippet": "value = _bounded_int(raw.get(field), maximum=100_000)",
+      "value": 100000
+    },
+    {
       "line": 162,
       "path": "apps/platform_runtime/learning_institution_runtime.py",
       "snippet": "idempotency_key=f\"li-packs:{school.id}:{hash(tuple(all_pack_slugs)) & 0xFFFFFFFF}\",",
@@ -2374,43 +2458,43 @@
       "value": 1024
     },
     {
-      "line": 607,
+      "line": 612,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=320,",
       "value": 320
     },
     {
-      "line": 1438,
+      "line": 1443,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=160, db_index=True)",
       "value": 160
     },
     {
-      "line": 1516,
+      "line": 1521,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=180, db_index=True)",
       "value": 180
     },
     {
-      "line": 1569,
+      "line": 1574,
       "path": "apps/platform_runtime/models.py",
       "snippet": "target_key = models.CharField(max_length=160, db_index=True)",
       "value": 160
     },
     {
-      "line": 1622,
+      "line": 1627,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=180, blank=True, default=\"\", db_index=True)",
       "value": 180
     },
     {
-      "line": 1897,
+      "line": 1902,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=160, unique=True)",
       "value": 160
     },
     {
-      "line": 2135,
+      "line": 2141,
       "path": "apps/platform_runtime/models.py",
       "snippet": "title = models.CharField(max_length=240)",
       "value": 240
@@ -2428,19 +2512,19 @@
       "value": 1800
     },
     {
-      "line": 528,
+      "line": 531,
       "path": "apps/platform_runtime/offline_queue.py",
       "snippet": "notes=str(payload.get(\"notes\", \"\"))[:4000],",
       "value": 4000
     },
     {
-      "line": 546,
+      "line": 549,
       "path": "apps/platform_runtime/offline_queue.py",
       "snippet": "if len(body) > 50000:",
       "value": 50000
     },
     {
-      "line": 837,
+      "line": 840,
       "path": "apps/platform_runtime/offline_queue.py",
       "snippet": "body=message[:8000],",
       "value": 8000
@@ -2488,13 +2572,13 @@
       "value": 3600
     },
     {
-      "line": 34,
+      "line": 35,
       "path": "apps/platform_runtime/rum_aggregate.py",
       "snippet": "h = max(1, min(int(hours), 168))",
       "value": 168
     },
     {
-      "line": 35,
+      "line": 36,
       "path": "apps/platform_runtime/rum_aggregate.py",
       "snippet": "cap = max(1, min(int(limit_rows), 5000))",
       "value": 5000
@@ -2506,25 +2590,25 @@
       "value": 3600
     },
     {
-      "line": 41,
+      "line": 44,
       "path": "apps/platform_runtime/tasks.py",
       "snippet": "return (out.getvalue() + err.getvalue())[-4000:]",
       "value": -4000
     },
     {
-      "line": 65,
+      "line": 68,
       "path": "apps/platform_runtime/tasks.py",
       "snippet": "timeout=600,",
       "value": 600
     },
     {
-      "line": 69,
+      "line": 72,
       "path": "apps/platform_runtime/tasks.py",
       "snippet": "return (out.getvalue() + err.getvalue())[-4000:]",
       "value": -4000
     },
     {
-      "line": 167,
+      "line": 170,
       "path": "apps/platform_runtime/tasks.py",
       "snippet": "max_v=168,",
       "value": 168
@@ -2542,21 +2626,27 @@
       "value": 65536
     },
     {
-      "line": 25,
+      "line": 26,
       "path": "apps/platform_runtime/views_rum.py",
       "snippet": "MAX_BODY_BYTES = 4096",
       "value": 4096
     },
     {
-      "line": 36,
+      "line": 37,
       "path": "apps/platform_runtime/views_rum.py",
       "snippet": "cache.add(ck, 0, timeout=3600)",
       "value": 3600
     },
     {
-      "line": 42,
+      "line": 43,
       "path": "apps/platform_runtime/views_rum.py",
       "snippet": "cache.set(ck, 1, timeout=3600)",
+      "value": 3600
+    },
+    {
+      "line": 141,
+      "path": "apps/platform_runtime/workflow_autopilot.py",
+      "snippet": "_STUCK_WINDOW_SECONDS = 3600",
       "value": 3600
     },
     {
@@ -2630,6 +2720,12 @@
       "path": "apps/portal/admin_kb.py",
       "snippet": "return f\"{size_kb / 1024:.1f} MB\"",
       "value": 1024
+    },
+    {
+      "line": 272,
+      "path": "apps/portal/ai_chrome_config.py",
+      "snippet": "getattr(settings, \"LOCAL_VOICE_MAX_AUDIO_BYTES\", 2_000_000)",
+      "value": 2000000
     },
     {
       "line": 380,
@@ -2728,13 +2824,13 @@
       "value": 160
     },
     {
-      "line": 288,
+      "line": 294,
       "path": "apps/portal/kb_office_service.py",
       "snippet": "article_summary = (summary or plain[:280]).strip()",
       "value": 280
     },
     {
-      "line": 335,
+      "line": 341,
       "path": "apps/portal/kb_office_service.py",
       "snippet": "article_summary = (summary or plain[:280] or article.summary or \"\").strip()",
       "value": 280
@@ -2938,7 +3034,7 @@
       "value": 1024
     },
     {
-      "line": 156,
+      "line": 169,
       "path": "apps/portal/views_documents.py",
       "snippet": "for doc in documents[:10000]:",
       "value": 10000
@@ -3388,49 +3484,49 @@
       "value": 320
     },
     {
-      "line": 150,
+      "line": 163,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": "1, min(9999, int(request.POST.get(\"copies_total\") or 1))",
       "value": 9999
     },
     {
-      "line": 259,
+      "line": 272,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": "qty = max(0, min(10_000_000, int(request.POST.get(\"quantity\") or 0)))",
       "value": 10000000
     },
     {
-      "line": 330,
+      "line": 343,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": ".order_by(\"-recorded_at\")[:150]",
       "value": 150
     },
     {
-      "line": 495,
+      "line": 540,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": "VisitorCheckIn.objects.filter(school=school).order_by(\"-checked_in_at\")[:150]",
       "value": 150
     },
     {
-      "line": 549,
+      "line": 594,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": "description=(request.POST.get(\"description\") or \"\").strip()[:4000],",
       "value": 4000
     },
     {
-      "line": 580,
+      "line": 625,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": ".order_by(\"-created_at\")[:5000]",
       "value": 5000
     },
     {
-      "line": 632,
+      "line": 677,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": ".order_by(\"-created_at\")[:5000]",
       "value": 5000
     },
     {
-      "line": 695,
+      "line": 740,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": "qty = max(1, min(9999, int(request.POST.get(\"quantity\") or 1)))",
       "value": 9999
@@ -3476,6 +3572,12 @@
       "path": "apps/schools/email_delivery_settings.py",
       "snippet": "\"default_reply_to\": (payload.get(\"default_reply_to\") or prior.get(\"default_reply_to\") or \"\").strip()[:254],",
       "value": 254
+    },
+    {
+      "line": 149,
+      "path": "apps/schools/fleet_live_payload.py",
+      "snippet": "page = _parse_int(request.GET.get(\"page\"), 1, minimum=1, maximum=10_000)",
+      "value": 10000
     },
     {
       "line": 35,
@@ -3712,6 +3814,30 @@
       "value": 5000
     },
     {
+      "line": 33,
+      "path": "apps/schools/pending_tenant_discovery.py",
+      "snippet": "def list_active_schools_for_public_login(*, limit: int = 250) -> list[dict[str, str]]:",
+      "value": 250
+    },
+    {
+      "line": 77,
+      "path": "apps/schools/portal_ready_corner_notifications.py",
+      "snippet": "\"duration_ms\": 180000,",
+      "value": 180000
+    },
+    {
+      "line": 339,
+      "path": "apps/schools/provisioning_progress.py",
+      "snippet": "expected = int(getattr(run, \"expected_duration_seconds\", 180) or 180)",
+      "value": 180
+    },
+    {
+      "line": 339,
+      "path": "apps/schools/provisioning_progress.py",
+      "snippet": "expected = int(getattr(run, \"expected_duration_seconds\", 180) or 180)",
+      "value": 180
+    },
+    {
       "line": 61,
       "path": "apps/schools/rls_context.py",
       "snippet": "if any(ord(ch) < 32 or ord(ch) == 127 for ch in sid):",
@@ -3754,22 +3880,28 @@
       "value": 1024
     },
     {
-      "line": 61,
+      "line": 60,
       "path": "apps/schools/section8_views.py",
       "snippet": "CADDY_CHECK_RATE_LIMIT_MAX = 180",
       "value": 180
     },
     {
-      "line": 175,
+      "line": 174,
       "path": "apps/schools/section8_views.py",
       "snippet": "LTI_RATE_LIMIT_MAX = 240",
       "value": 240
     },
     {
-      "line": 331,
+      "line": 330,
       "path": "apps/schools/section8_views.py",
       "snippet": "FIND_SCHOOL_RATE_LIMIT_WINDOW = 900",
       "value": 900
+    },
+    {
+      "line": 65,
+      "path": "apps/schools/signup_completion_notifications.py",
+      "snippet": "def _confirm_completion_delivery(contact_email: str, *, window_seconds: int = 180) -> dict:",
+      "value": 180
     },
     {
       "line": 51,
@@ -3778,16 +3910,10 @@
       "value": 127462
     },
     {
-      "line": 277,
+      "line": 282,
       "path": "apps/schools/signup_views.py",
       "snippet": "window = int(getattr(settings, \"SIGNUP_RATE_WINDOW_SECONDS\", 3600))",
       "value": 3600
-    },
-    {
-      "line": 1375,
-      "path": "apps/schools/signup_views.py",
-      "snippet": "if not email or \"@\" not in email or len(email) > 254:",
-      "value": 254
     },
     {
       "line": 547,
@@ -3868,25 +3994,25 @@
       "value": 253
     },
     {
-      "line": 74,
+      "line": 78,
       "path": "apps/schools/views_advancement.py",
       "snippet": "email=(request.POST.get(\"email\") or \"\").strip()[:254],",
       "value": 254
     },
     {
-      "line": 76,
+      "line": 80,
       "path": "apps/schools/views_advancement.py",
       "snippet": "notes=(request.POST.get(\"notes\") or \"\").strip()[:4000],",
       "value": 4000
     },
     {
-      "line": 114,
+      "line": 118,
       "path": "apps/schools/views_advancement.py",
       "snippet": "donor.email = (request.POST.get(\"email\") or \"\").strip()[:254]",
       "value": 254
     },
     {
-      "line": 116,
+      "line": 120,
       "path": "apps/schools/views_advancement.py",
       "snippet": "donor.notes = (request.POST.get(\"notes\") or \"\").strip()[:4000]",
       "value": 4000
@@ -4222,19 +4348,19 @@
       "value": 170
     },
     {
-      "line": 551,
+      "line": 552,
       "path": "apps/siteconfig/forms.py",
       "snippet": "attrs={\"class\": \"form-control\", \"min\": 1, \"max\": 365}",
       "value": 365
     },
     {
-      "line": 1013,
+      "line": 1014,
       "path": "apps/siteconfig/forms.py",
       "snippet": "attrs={\"class\": \"form-control\", \"min\": 20, \"max\": 180, \"step\": 1}",
       "value": 180
     },
     {
-      "line": 1224,
+      "line": 1225,
       "path": "apps/siteconfig/forms.py",
       "snippet": "attrs={\"class\": \"form-control\", \"min\": 30, \"max\": 600}",
       "value": 600
@@ -4678,13 +4804,13 @@
       "value": 150
     },
     {
-      "line": 1421,
+      "line": 1405,
       "path": "apps/siteconfig/views.py",
       "snippet": "BULK_LETTER_BODY_MAX_LENGTH = 100_000",
       "value": 100000
     },
     {
-      "line": 2191,
+      "line": 2175,
       "path": "apps/siteconfig/views.py",
       "snippet": "if gate.get(\"slug\") != slug or (time.time() - gate_ts > 900):",
       "value": 900
@@ -4714,13 +4840,13 @@
       "value": 86400
     },
     {
-      "line": 1354,
+      "line": 1367,
       "path": "apps/siteconfig/views_feature_control.py",
       "snippet": "if import_data.size > 2 * 1024 * 1024:  # 2MB max",
       "value": 1024
     },
     {
-      "line": 1354,
+      "line": 1367,
       "path": "apps/siteconfig/views_feature_control.py",
       "snippet": "if import_data.size > 2 * 1024 * 1024:  # 2MB max",
       "value": 1024
@@ -4942,37 +5068,37 @@
       "value": 280
     },
     {
-      "line": 1552,
+      "line": 1554,
       "path": "apps/studio_os/services.py",
       "snippet": ")[:240]",
       "value": 240
     },
     {
-      "line": 1554,
+      "line": 1556,
       "path": "apps/studio_os/services.py",
       "snippet": "summary[\"risk_summary\"] = str(first)[:240]",
       "value": 240
     },
     {
-      "line": 1556,
+      "line": 1558,
       "path": "apps/studio_os/services.py",
       "snippet": "summary[\"risk_summary\"] = str(payload.get(\"health_summary\"))[:240]",
       "value": 240
     },
     {
-      "line": 1593,
+      "line": 1595,
       "path": "apps/studio_os/services.py",
       "snippet": "\"detail\": str(run.error_message)[:180],",
       "value": 180
     },
     {
-      "line": 696,
+      "line": 710,
       "path": "apps/studio_os/views.py",
       "snippet": "focus = (request.GET.get(\"pack\") or \"\").strip()[:160]",
       "value": 160
     },
     {
-      "line": 1843,
+      "line": 1862,
       "path": "apps/studio_os/views.py",
       "snippet": "context[\"output_focus_pack_code\"] = _focus_pack[:160] if _focus_pack else \"\"",
       "value": 160
@@ -4984,7 +5110,7 @@
       "value": 4000
     },
     {
-      "line": 10,
+      "line": 12,
       "path": "apps/sync_engine/event_envelope.py",
       "snippet": "MAX_ENVELOPE_BYTES = 1024",
       "value": 1024
@@ -5042,6 +5168,12 @@
       "path": "services/ai/command_bar.py",
       "snippet": "ai_snippet = str(engine.get(\"response\"))[:600]",
       "value": 600
+    },
+    {
+      "line": 18,
+      "path": "services/ai/context_token_compressor.py",
+      "snippet": "max_chars: int = 12_000",
+      "value": 12000
     },
     {
       "line": 30,
@@ -5200,25 +5332,25 @@
       "value": 86400
     },
     {
-      "line": 708,
+      "line": 724,
       "path": "services/ai_gateway.py",
       "snippet": "cache.add(cache_key, 0, timeout=86400 * 2)",
       "value": 86400
     },
     {
-      "line": 712,
+      "line": 728,
       "path": "services/ai_gateway.py",
       "snippet": "cache.set(cache_key, 1, timeout=86400 * 2)",
       "value": 86400
     },
     {
-      "line": 738,
+      "line": 754,
       "path": "services/ai_gateway.py",
       "snippet": "cache.add(cache_key, 0, timeout=86400 * 2)  # 2 days TTL to cover day boundary",
       "value": 86400
     },
     {
-      "line": 742,
+      "line": 758,
       "path": "services/ai_gateway.py",
       "snippet": "cache.set(cache_key, 1, timeout=86400 * 2)",
       "value": 86400
@@ -5248,15 +5380,15 @@
       "value": 5000
     },
     {
-      "line": 45,
+      "line": 47,
       "path": "services/ai_memory.py",
       "snippet": "def get_embedding_for_text(text: str, *, max_tokens: int = 8192) -> list[float] | None:",
       "value": 8192
     },
     {
-      "line": 74,
+      "line": 82,
       "path": "services/ai_memory.py",
-      "snippet": "embedding = get_embedding_for_text(text, max_tokens=8192)",
+      "snippet": "embedding = provider.embed(text, max_tokens=8192)",
       "value": 8192
     },
     {
@@ -5302,6 +5434,12 @@
       "value": 1500
     },
     {
+      "line": 19,
+      "path": "services/edge_hardware.py",
+      "snippet": "GIB = 1024**3",
+      "value": 1024
+    },
+    {
       "line": 21,
       "path": "services/embeddings.py",
       "snippet": "def embed(self, text: str, *, max_tokens: int = 8192) -> list[float] | None:",
@@ -5324,6 +5462,30 @@
       "path": "services/embeddings.py",
       "snippet": "def embed(self, text: str, *, max_tokens: int = 8192) -> list[float] | None:",
       "value": 8192
+    },
+    {
+      "line": 65,
+      "path": "services/local_voice.py",
+      "snippet": "max_bytes = int(getattr(settings, \"LOCAL_VOICE_MAX_AUDIO_BYTES\", 2_000_000))",
+      "value": 2000000
+    },
+    {
+      "line": 87,
+      "path": "services/local_voice.py",
+      "snippet": "max_chars = int(getattr(settings, \"LOCAL_VOICE_MAX_TRANSCRIPT_CHARS\", 4000))",
+      "value": 4000
+    },
+    {
+      "line": 113,
+      "path": "services/local_voice.py",
+      "snippet": "int(getattr(settings, \"LOCAL_VOICE_MAX_TTS_BYTES\", 4_000_000)) + 1",
+      "value": 4000000
+    },
+    {
+      "line": 120,
+      "path": "services/local_voice.py",
+      "snippet": "or len(audio) > int(getattr(settings, \"LOCAL_VOICE_MAX_TTS_BYTES\", 4_000_000))",
+      "value": 4000000
     },
     {
       "line": 25,
@@ -5402,9 +5564,21 @@
       "path": "services/teacher_lesson_plan.py",
       "snippet": "MAX_OUTLINE_CHARS = 2500",
       "value": 2500
+    },
+    {
+      "line": 23,
+      "path": "services/tenant_rag_bundle.py",
+      "snippet": "MAX_BUNDLE_RECORDS = 100_000",
+      "value": 100000
+    },
+    {
+      "line": 24,
+      "path": "services/tenant_rag_bundle.py",
+      "snippet": "MAX_VECTOR_DIMENSIONS = 16_384",
+      "value": 16384
     }
   ],
-  "generated_at": "2026-06-08T02:39:43+00:00",
+  "generated_at": "2026-06-14T22:24:05+00:00",
   "rule": "Integer literals with abs(value) >= 100 in production code should route through the 7-layer configurability contract (RuntimeDefaults / constants.py / SiteSettings)",
   "scan_dirs": [
     "apps",

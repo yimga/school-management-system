@@ -304,7 +304,7 @@ body.control-plane-shell .manager-login-card .manager-login-recovery a:hover,
 body.control-plane-shell .admin-login-card .manager-login-recovery a:hover,
 body.control-plane-shell .manager-login-card .manager-login-recovery a:focus-visible,
 body.control-plane-shell .admin-login-card .manager-login-recovery a:focus-visible {
-  color: #fff;
+  color: var(--cp-ultra-text);
 }
 
 body.control-plane-shell .manager-login-footer a,
