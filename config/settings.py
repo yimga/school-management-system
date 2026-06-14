@@ -3304,6 +3304,14 @@ SUPPORT_AI_KB_CONTEXT = os.getenv("SUPPORT_AI_KB_CONTEXT", "1").strip().lower() 
     "true",
     "yes",
 )
+# Co-pilot rail surfaces operator governance state (Feature Gap + Backlog registries)
+# as a separate `registry` channel in the rail payload. Operator/staff-only; reads the
+# cached backlog snapshot (never runs the gate scripts in a request). Set to 0 to hide.
+COPILOT_REGISTRY_INSIGHTS = os.getenv("COPILOT_REGISTRY_INSIGHTS", "1").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+)
 # KB RAG: auto-refresh embeddings on publish (batch 1341); pgvector path when column exists (1351).
 KB_EMBEDDING_AUTO_REFRESH = os.getenv("KB_EMBEDDING_AUTO_REFRESH", "1").strip().lower() in (
     "1",

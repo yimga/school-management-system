@@ -515,14 +515,27 @@ def resolve_quick_actions(
 
 
 def build_rail_payload(request: Any, *, mode: str, n: int = 3) -> dict[str, Any]:
-    """Convenience: returns the full {snapshot, insights, quick_actions} dict."""
+    """Convenience: returns the full {snapshot, insights, quick_actions, registry} dict.
+
+    ``registry`` is a separate channel (operator-only) carrying governance state
+    from the Feature Gap + Backlog registries — kept out of ``insights`` so the
+    AI-insight contract (exactly ``n`` rows) is unchanged.
+    """
     snapshot = build_context_snapshot(request, mode=mode)
     insights = generate_insights(snapshot, request=request, n=n)
     quick_actions = resolve_quick_actions(snapshot, request=request)
+    try:
+        from apps.studio_os.copilot_registry_insights import build_registry_insights
+
+        registry = build_registry_insights(request)
+    except Exception:  # noqa: BLE001 — registry bridge must never break the rail
+        logger.debug("copilot_rail: registry insights failed", exc_info=True)
+        registry = []
     return {
         "snapshot": snapshot.to_dict(),
         "insights": [i.to_dict() for i in insights],
         "quick_actions": quick_actions,
+        "registry": registry,
     }
 
 
