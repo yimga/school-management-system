@@ -130,21 +130,30 @@ def ai_operating_layer_context(request):
         return {
             "rmc_ai_governance": None,
             "rmc_ai_anomaly_nudge": None,
+            "rmc_ai_layer_enabled": False,
         }
     try:
         from apps.platform_runtime.ai_governance import get_public_ai_governance_context
+        from apps.platform_runtime.ai_providers import get_ai_runtime_config
         from apps.platform_runtime.ai_system_layer import generate_anomaly_risk_nudge
 
+        # The tenant AI strip is the consolidated AI home. It only renders when the
+        # school's AI assistant is enabled — in rules-only mode its rows merely restate
+        # richer purpose-built widgets already on the dashboard (operational health strip,
+        # onboarding card, ranked-anomaly widget), so showing it then is duplication.
+        ai_enabled = bool(get_ai_runtime_config(school=school).get("enabled"))
         gov = get_public_ai_governance_context(school=school)
         nudge = generate_anomaly_risk_nudge(school, user)
         return {
             "rmc_ai_governance": gov,
             "rmc_ai_anomaly_nudge": nudge,
+            "rmc_ai_layer_enabled": ai_enabled,
         }
     except Exception:  # noqa: BLE001
         return {
             "rmc_ai_governance": None,
             "rmc_ai_anomaly_nudge": None,
+            "rmc_ai_layer_enabled": False,
         }
 
 
