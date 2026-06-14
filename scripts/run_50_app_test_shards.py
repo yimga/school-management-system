@@ -25,6 +25,7 @@ OUT = REPO / "docs" / "generated"
 
 # Import gate bootstrap so all shards share one stable SQLite test DB (no parallel fresh DBs).
 sys.path.insert(0, str(REPO / "scripts"))
+from bootstrap_sqlite_test_template import bootstrap_template  # noqa: E402
 from sqlite_gate_db import (  # noqa: E402
     bootstrap_gate_session_env,
     reap_all_stale_gate_locks,
@@ -165,12 +166,6 @@ def _run_shard(shard_index: int, labels: list[str], *, keepdb: bool, fresh: bool
 # ──────────────────────────────────────────────────────────────────────
 
 _TEMPLATE_DB = REPO / ".django_test_dbs" / "iso_app_template.sqlite3"
-# A tiny DB-using *plain TestCase* suite (NOT SimpleTestCase, which would make
-# Django skip test-DB creation entirely, and NOT TransactionTestCase, which
-# commits rows). A plain TestCase forces Django to migrate the test DB, then
-# rolls back its single test in a transaction — yielding a clean, migrated,
-# EMPTY template to copy per app.
-_TEMPLATE_SEED_LABEL = "apps.customersuccess.tests.test_tenant_health_score"
 
 
 def _flatten_apps() -> list[str]:
@@ -254,59 +249,104 @@ def _seal_template_wal() -> None:
 def _build_template_db() -> bool:
     """Migrate one clean, data-free template DB to copy per app."""
     _rm_sqlite(_TEMPLATE_DB)
-    env = _isolated_env(_TEMPLATE_DB)
-    cmd = _manage_test_cmd([_TEMPLATE_SEED_LABEL])
     try:
-        with sqlite_gate_lease(_TEMPLATE_DB):
-            rc = subprocess.call(cmd, cwd=str(REPO), env=env, timeout=1800)
-    except subprocess.TimeoutExpired:
+        ok = bootstrap_template(_TEMPLATE_DB, verbosity=0)
+    except Exception:
+        _rm_sqlite(_TEMPLATE_DB)
         return False
-    if rc != 0 or not _TEMPLATE_DB.is_file():
+    if not ok or not _TEMPLATE_DB.is_file() or _TEMPLATE_DB.stat().st_size < 1024:
+        _rm_sqlite(_TEMPLATE_DB)
         return False
     _seal_template_wal()
-    return _TEMPLATE_DB.is_file()
+    return True
 
 
-def _run_app_isolated(app_label: str) -> dict:
+def _run_app_isolated(app_label: str, *, template_ready: bool = False) -> dict:
     iso_db = _iso_db_path(app_label)
-    _rm_sqlite(iso_db)
-    # Seed from the clean migrated template so --keepdb skips migration but
-    # each app still runs against its OWN file (no cross-app bleed). If the
-    # template is missing, the app migrates fresh into its own file (slower
-    # but still isolated).
-    if _TEMPLATE_DB.is_file():
-        try:
-            shutil.copyfile(_TEMPLATE_DB, iso_db)
-        except OSError:
-            _rm_sqlite(iso_db)
-    env = _isolated_env(iso_db)
-    cmd = _manage_test_cmd([app_label])
-    try:
-        with sqlite_gate_lease(iso_db):
-            proc = subprocess.run(
-                cmd, cwd=str(REPO), capture_output=True, text=True, timeout=3600
-            )
-        tail = ((proc.stdout or "") + "\n" + (proc.stderr or ""))[-4000:]
-        return {
-            "shard": app_label,
-            "labels": [app_label],
-            "command": " ".join(cmd),
-            "exit_code": proc.returncode,
-            "ok": proc.returncode == 0,
-            "output_tail": tail,
-        }
-    except subprocess.TimeoutExpired:
-        return {
-            "shard": app_label,
-            "labels": [app_label],
-            "command": " ".join(cmd),
-            "exit_code": -1,
-            "ok": False,
-            "error": "timeout_3600s",
-        }
-    finally:
-        # Reclaim disk; the template stays for the next app.
+
+    def _exec_manage(*, use_template: bool) -> dict:
         _rm_sqlite(iso_db)
+        if use_template and template_ready and _TEMPLATE_DB.is_file():
+            try:
+                shutil.copyfile(_TEMPLATE_DB, iso_db)
+            except OSError:
+                _rm_sqlite(iso_db)
+        env = _isolated_env(iso_db)
+        cmd = _manage_test_cmd([app_label])
+        try:
+            with sqlite_gate_lease(iso_db):
+                proc = subprocess.run(
+                    cmd, cwd=str(REPO), capture_output=True, text=True, timeout=3600, env=env
+                )
+            tail = ((proc.stdout or "") + "\n" + (proc.stderr or ""))[-4000:]
+            return {
+                "shard": app_label,
+                "labels": [app_label],
+                "command": " ".join(cmd),
+                "exit_code": proc.returncode,
+                "ok": proc.returncode == 0,
+                "output_tail": tail,
+            }
+        except subprocess.TimeoutExpired:
+            return {
+                "shard": app_label,
+                "labels": [app_label],
+                "command": " ".join(cmd),
+                "exit_code": -1,
+                "ok": False,
+                "error": "timeout_3600s",
+            }
+        finally:
+            _rm_sqlite(iso_db)
+
+    def _exec_fresh_runner() -> dict:
+        cmd = [
+            sys.executable,
+            str(REPO / "scripts/run_sqlite_memory_tests.py"),
+            app_label,
+            "--fresh",
+            "--verbosity=1",
+            "--noinput",
+        ]
+        env = os.environ.copy()
+        env["RMC_SQLITE_TEST_MEMORY"] = "1"
+        env["RMC_SQLITE_TEST_USE_MEMORY_NAME"] = "0"
+        env["DJANGO_TEST_DB_FILE"] = str(iso_db)
+        env.pop("RMC_SQLITE_GATE_SESSION", None)
+        try:
+            with sqlite_gate_lease(iso_db):
+                proc = subprocess.run(
+                    cmd, cwd=str(REPO), capture_output=True, text=True, timeout=3600, env=env
+                )
+            tail = ((proc.stdout or "") + "\n" + (proc.stderr or ""))[-4000:]
+            return {
+                "shard": app_label,
+                "labels": [app_label],
+                "command": " ".join(cmd),
+                "exit_code": proc.returncode,
+                "ok": proc.returncode == 0,
+                "output_tail": tail,
+            }
+        except subprocess.TimeoutExpired:
+            return {
+                "shard": app_label,
+                "labels": [app_label],
+                "command": " ".join(cmd),
+                "exit_code": -1,
+                "ok": False,
+                "error": "timeout_3600s",
+            }
+        finally:
+            _rm_sqlite(iso_db)
+
+    result = _exec_manage(use_template=True)
+    if result.get("ok"):
+        return result
+    if _looks_like_stale_keepdb(result.get("output_tail", "")):
+        retry = _exec_fresh_runner()
+        retry["retried_with_fresh_runner"] = True
+        return retry
+    return result
 
 
 def payload_apps(results: list[dict], apps: list[str]) -> dict:
@@ -356,7 +396,8 @@ def _run_app_isolation_mode(args) -> int:
         f"Per-app isolation: {len(apps)} apps; building clean migrated template...",
         flush=True,
     )
-    if _build_template_db():
+    template_ready = _build_template_db()
+    if template_ready:
         print(f"Template DB ready: {_TEMPLATE_DB}", flush=True)
     else:
         print(
@@ -381,7 +422,7 @@ def _run_app_isolation_mode(args) -> int:
 
     for i, app in enumerate(apps):
         print(f"App {i + 1}/{len(apps)}: {app}", flush=True)
-        result = _run_app_isolated(app)
+        result = _run_app_isolated(app, template_ready=template_ready)
         by_label[app] = result
         print(
             f"  -> {app} ok={result.get('ok')} exit={result.get('exit_code')}",
