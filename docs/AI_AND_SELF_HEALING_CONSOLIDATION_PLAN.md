@@ -158,7 +158,7 @@ Flagged for manual confirmation: portal `ai_help` / `ai_assistant_panel` permiss
    view** of `ai_system_layer.generate_anomaly_risk_nudge` while the ambient per-dashboard nudge stays.
    Bounded by `_MAX_NUDGE_SCHOOLS=12` so it never fans out into unbounded model calls when AI is on
    (healthy tenants short-circuit before any model call); cap disclosed in the UI. Hub-only.
-4. ⚠️ **INVESTIGATED (2026-06-10) — NO CHANGE MADE; the menu premise was wrong + the real fix needs a product call:**
+4. ✅ **DONE (2026-06-10, commit `f2ac4f1de`) — premise corrected + canonical call made & implemented:**
    The literal task ("relocate the two dashboard-strip insights #4 + #5 into one tenant intelligence section")
    is **ALREADY DONE**: `templates/accounts/ai_system_layer_strip.html` already merges #4 (school health),
    #5 (onboarding next action) AND #6 (anomaly nudge) into ONE `<section>` ("Intelligence suggestions
@@ -174,7 +174,16 @@ Flagged for manual confirmation: portal `ai_help` / `ai_assistant_panel` permiss
    in 3 (`admin_health` ln73, `operational_health_strip` ln79, AI strip #4). De-duplicating that means
    **deleting/merging widgets** + a **product decision** on which surface is canonical (and whether the
    genuinely-AI strip is the one to keep or drop), on a page that **cannot be browser-verified locally**
-   (tenant `backend_dashboard` 500s on this box from migration-DB lag). Deferred pending owner sign-off on
+   (tenant `backend_dashboard` 500s on this box from migration-DB lag).
+   **CANONICAL CALL (owner-delegated) + IMPLEMENTED:** health stays canonical in `operational_health_strip`,
+   anomalies in the `insight-anomalies` widget, onboarding in `school_onboarding_card`. The AI strip is
+   **KEPT as the single AI home but now renders only when the school's AI assistant is enabled**
+   (`rmc_ai_layer_enabled` from `ai_operating_layer_context` → `get_ai_runtime_config(school).enabled`);
+   in rules-only mode its rows just restate the richer widgets, so it's hidden then (AI-off tenants — the
+   default — lose nothing). Heading → "AI suggestions (draft)" + honest subtitle. Single include site,
+   `manage.py check` clean, render-safety 0, if/endif balanced, trivially reversible. **STILL NEEDS
+   post-deploy browser smoke** on the tenant dashboard. *(superseded line below was the pre-decision note.)*
+   Deferred pending owner sign-off on
    the canonical-surface decision + a commitment to post-deploy browser smoke. NOT safe to do blind.
 5. **Portal legacy gateway (#9) deprecation:** only after confirming studio-rail parity; grep-audit URL refs first. Highest risk; separate sign-off.
 
