@@ -649,8 +649,20 @@ class RequireMFAMiddleware:
             or path in self._bypass_paths_normalized
         ):
             return self.get_response(request)
-        # Allow MFA setup, verify, and passkey endpoints so user can complete setup
-        if "/mfa/setup" in path or "/mfa/verify" in path or "/mfa/passkey/" in path:
+        # Allow MFA setup, verify, and passkey endpoints so user can complete setup.
+        # Includes the Unified Wizard Engine surface (v4.00.12+): accounts:mfa_setup
+        # now 302-redirects to /school/studio/wizards/mfa_setup/. That path uses
+        # `mfa_setup` (underscore), which the `/mfa/setup` (slash) check does NOT
+        # match — so without exempting it, a no-device MFA-required user is bounced
+        # off the very page where they enroll, producing an infinite
+        # mfa/setup -> wizard -> mfa/setup loop (the new-owner onboarding loop).
+        if (
+            "/mfa/setup" in path
+            or "/mfa/verify" in path
+            or "/mfa/passkey/" in path
+            or "wizards/mfa_setup" in path
+            or "wizards/mfa_verify" in path
+        ):
             return self.get_response(request)
 
         user = getattr(request, "user", None)
