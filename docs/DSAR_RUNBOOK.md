@@ -114,6 +114,15 @@ redacted = redact_record(
 )
 ```
 
+**Automated since 2026-06-10:** `apps.compliance.gdpr_services.export_student_data_portability`
+now routes every export section through `redact_record(..., action="export")`
+automatically (keyed by the data subject), so classified third-party fields are
+masked per the field catalog without an operator code step. It degrades safely —
+sections whose entity has no classified fields pass through unchanged — and emits
+one `apps.policies.pdp.PolicyDecisionLog` row per export (`action="dsar_access_export"`).
+The operator's pre-delivery review (§7) remains the human backstop; classify more
+fields in the catalog to widen masking.
+
 Audit log: every DSAR export is logged with `operator_user_id`,
 `subject_external_id` (NOT the subject's name in plaintext), and the
 sha256 fingerprint of the exported payload.

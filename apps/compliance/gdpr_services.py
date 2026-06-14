@@ -344,12 +344,92 @@ def _student_core_payload(student) -> dict[str, Any]:
     }
 
 
+# --- Art.15/Art.20 export DLP redaction + audit (2026-06-10) ---
+# Route every export section through the field-level DLP layer so third-party
+# Personal Data the subject is not entitled to is masked per the sensitivity
+# tiers in the field catalog (apps.policies.dlp.redact_record). redact_record
+# degrades safely — an entity with no classified fields returns the record
+# unchanged — so this strengthens automatically as the catalog grows and never
+# weakens the prior (unredacted) behaviour. Each export section maps to a
+# field-catalog entity code (apps.metadata EntityCatalogEntry.code).
+_DSAR_EXPORT_REDACT_ERRORS = (
+    DatabaseError,
+    ObjectDoesNotExist,
+    AttributeError,
+    TypeError,
+    ValueError,
+    KeyError,
+)
+
+
+def _redact_export_rows(rows, *, entity, subject, school, school_id):
+    """Apply field-level DLP redaction to a list of export record dicts.
+
+    Fails open to the *unchanged* row on any policy/DB error — matching the
+    pre-existing ``load_field_meta`` fail-open behaviour, with the operator's
+    mandatory pre-delivery review (DSAR runbook §7) as the human backstop — so
+    an Art.15/Art.20 export never crashes mid-assembly.
+    """
+    from apps.policies.dlp import redact_record
+
+    out = []
+    for row in rows:
+        try:
+            out.append(
+                redact_record(
+                    row,
+                    entity=entity,
+                    subject=subject,
+                    school=school,
+                    action="export",
+                )
+            )
+        except _DSAR_EXPORT_REDACT_ERRORS as exc:
+            log_exception_with_context(
+                "DSAR export redaction failed; emitting unredacted row for operator review",
+                school_id=school_id,
+                extra={"entity": entity, "error": str(exc)},
+            )
+            out.append(row)
+    return out
+
+
+def _log_dsar_export(*, school_id, student_id, subject, sections):
+    """Emit one PolicyDecisionLog row per Art.15/Art.20 export (never Personal Data)."""
+    try:
+        from apps.policies.pdp import PolicyDecisionLog
+
+        PolicyDecisionLog.objects.create(  # tenant-isolation-allow: dsar-export-audit-log-explicit-school-id
+            school_id=school_id,
+            subject_id=str(subject.get("user_id") or student_id),
+            subject_role=str(subject.get("role") or "student"),
+            action="dsar_access_export",
+            resource_type="people.StudentProfile",
+            resource_id=str(student_id),
+            effect="allow",
+            decision_reason="art15-portability-export",
+            context_snapshot={"sections": sorted(sections)},
+        )
+    except _GDPR_AUDIT_LOG_ERRORS as exc:
+        log_exception_with_context(
+            "DSAR export PolicyDecisionLog emission failed",
+            school_id=school_id,
+            extra={"student_id": student_id, "error": str(exc)},
+        )
+
+
 def export_student_data_portability(
     school_id: int, student_id: int, format: str = "json"
 ) -> dict[str, Any] | None:
     """
     Data Portability (GDPR Art. 20).
     Caller must enforce MFA before calling.
+
+    Every section is routed through the field-level DLP layer
+    (``apps.policies.dlp.redact_record``, ``action="export"``) so third-party
+    Personal Data the subject is not entitled to is masked per the field
+    catalog's sensitivity tiers, and one ``PolicyDecisionLog`` row is emitted
+    per export for the audit trail.
     """
     fmt = (format or "json").strip().lower()
 
@@ -489,13 +569,44 @@ def export_student_data_portability(
                 }
             )
 
+    # Route every section through the field-level DLP layer (Art.15 third-party
+    # PII masking) keyed by the data subject, then audit the export.
+    subject = {"user_id": getattr(student, "user_id", None), "role": "student"}
+    school = getattr(student, "school", None)
+    _rk = {"subject": subject, "school": school, "school_id": school_id}
+    student_core = _redact_export_rows(
+        [_student_core_payload(student)], entity="student", **_rk
+    )[0]
+    guardians_payload = _redact_export_rows(guardians_payload, entity="person", **_rk)
+    evaluations_payload = _redact_export_rows(evaluations_payload, entity="grade", **_rk)
+    attendance_payload = _redact_export_rows(
+        attendance_payload, entity="attendance", **_rk
+    )
+    incidents_payload = _redact_export_rows(incidents_payload, entity="incident", **_rk)
+    invoices_payload = _redact_export_rows(invoices_payload, entity="invoice", **_rk)
+    payments_payload = _redact_export_rows(payments_payload, entity="payment", **_rk)
+    _log_dsar_export(
+        school_id=school_id,
+        student_id=student_id,
+        subject=subject,
+        sections=[
+            "student",
+            "guardians",
+            "evaluations",
+            "attendance",
+            "incidents",
+            "invoices",
+            "payments",
+        ],
+    )
+
     payload: dict[str, Any] = {
         "export_format": fmt,
         "schema": "ceds-lite-v1",
         "generated_at": timezone.now().isoformat(),
         "school_id": school_id,
         "student_id": student_id,
-        "student": _student_core_payload(student),
+        "student": student_core,
         "guardians": guardians_payload,
         "academics": {
             "evaluations": evaluations_payload,
