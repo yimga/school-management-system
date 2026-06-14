@@ -152,8 +152,15 @@ Flagged for manual confirmation: portal `ai_help` / `ai_assistant_panel` permiss
    (`studio_os:shell`) + AI governance page (`siteconfig:ai_governance`), with #3 assist-dock and
    #9 portal gateway listed as ambient (no standalone page). Routes reversed defensively
    (`_safe_reverse`); ambient surfaces never get a fabricated link. 26/26 tests, gates 0, no SW bump.
-3. **Anomaly nudge (#6) → hub flow:** route the nudge through the hub instead of the universal context processor; removes one ambient AI widget from every dashboard. Medium; approval-gated.
+3. ✅ **DONE (2026-06-10, commit `3ee11281b`) — Anomaly nudge (#6) in hub (ADDITIVE, reframed):** the
+   original "remove the nudge from every dashboard" framing was a UX regression (an anomaly *risk*
+   nudge earns its place by being proactive), so instead the hub now shows a **read-only cross-tenant
+   view** of `ai_system_layer.generate_anomaly_risk_nudge` while the ambient per-dashboard nudge stays.
+   Bounded by `_MAX_NUDGE_SCHOOLS=12` so it never fans out into unbounded model calls when AI is on
+   (healthy tenants short-circuit before any model call); cap disclosed in the UI. Hub-only.
 4. **Tenant intelligence strip (#4/#5):** relocate the two dashboard-strip insights into one tenant intelligence section. Moderate blast radius (tenant `backend_dashboard`); approval-gated, browser-smoke required.
 5. **Portal legacy gateway (#9) deprecation:** only after confirming studio-rail parity; grep-audit URL refs first. Highest risk; separate sign-off.
 
-Items 1 & 2 are landed on local main (commits above). Items 3–5 are NOT started and need per-item sign-off.
+Items 1–3 are landed on local main (commits above). Items 4–5 are NOT started and need per-item sign-off
+(item 4 needs browser smoke on the tenant `backend_dashboard`, which can't be verified locally; item 5
+needs studio-rail parity confirmation + URL-ref grep audit first).
