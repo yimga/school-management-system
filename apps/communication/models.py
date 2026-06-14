@@ -224,6 +224,13 @@ class Announcement(models.Model):
     """
     School-wide announcements. Creation is restricted to admins/leadership.
     Optional approval workflow: submissions can be PENDING_APPROVAL until approved.
+
+    NOTE — distinct from ``portal.Announcement`` (a different concept, not a
+    duplicate): that one is a simple date-windowed *banner* (BannerType colour,
+    start/end_date, no school FK) rendered platform-wide by the portal context
+    processor. This one is the rich, school-scoped, audience-targeted announcement
+    with approval/status/is_urgent. Do not merge the two without a deliberate
+    product decision + data migration.
     """
 
     class AnnouncementType(models.TextChoices):

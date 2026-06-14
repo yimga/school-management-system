@@ -386,8 +386,15 @@ class PendingGuardianInvite(models.Model):
 
 class Announcement(models.Model):
     """
-    Global announcement banner that can be displayed on all pages.
-    Admins can control announcements with different types and colors.
+    Global announcement *banner* shown on all pages (date-windowed ribbon).
+    Admins control it with a BannerType colour + start/end_date window; it is
+    rendered platform-wide by ``portal.context_processors`` into ``announcements``.
+
+    NOTE — distinct from ``communication.Announcement`` (a different concept, not a
+    duplicate): that model is a rich, school-scoped, audience-targeted announcement
+    with an approval workflow (status/approved_by/is_urgent). This one is a simple
+    operational banner with no school FK and no approval. Do not merge the two
+    without a deliberate product decision + data migration.
     """
 
     class BannerType(models.TextChoices):
