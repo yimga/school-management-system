@@ -134,7 +134,7 @@ def _require_parent_finance_or_operator_access(request):
     if not _user_has_any_role(user, {"PARENT"}):
         return False, JsonResponse({"error": "Forbidden"}, status=403)
 
-    from apps.finance.views import _finance_access_state
+    from apps.finance.views_common import _finance_access_state
 
     access_state = _finance_access_state(user, request)
     if access_state.get("guardian_count", 0) <= 0:
