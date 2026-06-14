@@ -13,7 +13,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -22,6 +21,22 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 GATE_SESSION_ID = os.environ.get("RMC_50_APP_GATE_SESSION", "final_100_test_matrix")
 OUT = REPO / "docs" / "generated"
+
+
+def _repo_python() -> str:
+    override = os.environ.get("RMC_TEST_PYTHON", "").strip()
+    if override:
+        return override
+    for candidate in (
+        REPO / ".venv" / "Scripts" / "python.exe",
+        REPO / ".venv" / "bin" / "python",
+    ):
+        if candidate.is_file():
+            return str(candidate)
+    return sys.executable
+
+
+PYTHON = _repo_python()
 
 # Import gate bootstrap so all shards share one stable SQLite test DB (no parallel fresh DBs).
 sys.path.insert(0, str(REPO / "scripts"))
@@ -114,7 +129,7 @@ def _looks_like_stale_keepdb(tail: str) -> bool:
 
 def _run_shard(shard_index: int, labels: list[str], *, keepdb: bool, fresh: bool = False) -> dict:
     cmd = [
-        sys.executable,
+        PYTHON,
         str(REPO / "scripts/run_sqlite_memory_tests.py"),
         *labels,
         "--verbosity=1",
@@ -200,7 +215,7 @@ def _isolated_env(db_file: Path) -> dict:
 
 def _manage_test_cmd(labels: list[str]) -> list[str]:
     return [
-        sys.executable,
+        PYTHON,
         str(REPO / "manage.py"),
         "test",
         *labels,
@@ -212,21 +227,14 @@ def _manage_test_cmd(labels: list[str]) -> list[str]:
     ]
 
 
-def _seal_template_wal() -> None:
-    """Fold the WAL into the main DB file so ``shutil.copyfile`` is consistent.
-
-    SQLite under Django's test runner leaves the DB in WAL mode with an
-    uncheckpointed ``-wal`` sidecar. ``shutil.copyfile`` copies ONLY the main
-    file, so a naive copy is an inconsistent (or empty) snapshot — the source
-    of spurious ``UNIQUE constraint failed: auth_permission`` errors when an
-    app re-runs ``post_migrate`` over the partial copy. Checkpoint (TRUNCATE)
-    then switch to DELETE journal mode so the single main file is complete and
-    self-contained, with no sidecars left to drop.
-    """
+def _seal_sqlite_wal(db_path: Path) -> None:
+    """Fold WAL into the main file so file copies / backups are consistent."""
     import sqlite3
 
+    if not db_path.is_file():
+        return
     try:
-        conn = sqlite3.connect(str(_TEMPLATE_DB))
+        conn = sqlite3.connect(str(db_path))
         try:
             conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             conn.execute("PRAGMA journal_mode=DELETE")
@@ -234,11 +242,9 @@ def _seal_template_wal() -> None:
         finally:
             conn.close()
     except sqlite3.Error:
-        # Best-effort: a failed seal just means the copy may re-migrate.
         pass
-    # Remove any sidecars the journal-mode switch did not already unlink.
     for suffix in ("-wal", "-shm"):
-        f = Path(str(_TEMPLATE_DB) + suffix)
+        f = Path(str(db_path) + suffix)
         try:
             if f.exists():
                 f.unlink()
@@ -246,8 +252,67 @@ def _seal_template_wal() -> None:
             pass
 
 
-def _build_template_db() -> bool:
+def _seal_template_wal() -> None:
+    """Seal the shared per-app template before snapshot copies."""
+    _seal_sqlite_wal(_TEMPLATE_DB)
+
+
+def _copy_sqlite_snapshot(src: Path, dst: Path) -> bool:
+    """Copy a SQLite DB via the backup API (safe under WAL / Windows)."""
+    import sqlite3
+
+    _rm_sqlite(dst)
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    _seal_sqlite_wal(src)
+    try:
+        src_conn = sqlite3.connect(str(src))
+        try:
+            dst_conn = sqlite3.connect(str(dst))
+            try:
+                src_conn.backup(dst_conn)
+                dst_conn.execute("PRAGMA journal_mode=DELETE")
+                dst_conn.commit()
+            finally:
+                dst_conn.close()
+        finally:
+            src_conn.close()
+    except sqlite3.Error:
+        _rm_sqlite(dst)
+        return False
+    _seal_sqlite_wal(dst)
+    if not dst.is_file() or dst.stat().st_size < 1024:
+        _rm_sqlite(dst)
+        return False
+    try:
+        conn = sqlite3.connect(str(dst))
+        try:
+            ok = conn.execute("PRAGMA integrity_check").fetchone()
+            if not ok or ok[0] != "ok":
+                _rm_sqlite(dst)
+                return False
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        _rm_sqlite(dst)
+        return False
+    return True
+
+
+def _template_usable() -> bool:
+    """True when a sealed template snapshot exists and looks migrated."""
+    if not _TEMPLATE_DB.is_file():
+        return False
+    try:
+        return _TEMPLATE_DB.stat().st_size >= 1024 * 1024
+    except OSError:
+        return False
+
+
+def _build_template_db(*, reuse_if_present: bool = False) -> bool:
     """Migrate one clean, data-free template DB to copy per app."""
+    if reuse_if_present and _template_usable():
+        _seal_template_wal()
+        return True
     _rm_sqlite(_TEMPLATE_DB)
     try:
         ok = bootstrap_template(_TEMPLATE_DB, verbosity=0)
@@ -267,9 +332,7 @@ def _run_app_isolated(app_label: str, *, template_ready: bool = False) -> dict:
     def _exec_manage(*, use_template: bool) -> dict:
         _rm_sqlite(iso_db)
         if use_template and template_ready and _TEMPLATE_DB.is_file():
-            try:
-                shutil.copyfile(_TEMPLATE_DB, iso_db)
-            except OSError:
+            if not _copy_sqlite_snapshot(_TEMPLATE_DB, iso_db):
                 _rm_sqlite(iso_db)
         env = _isolated_env(iso_db)
         cmd = _manage_test_cmd([app_label])
@@ -301,7 +364,7 @@ def _run_app_isolated(app_label: str, *, template_ready: bool = False) -> dict:
 
     def _exec_fresh_runner() -> dict:
         cmd = [
-            sys.executable,
+            PYTHON,
             str(REPO / "scripts/run_sqlite_memory_tests.py"),
             app_label,
             "--fresh",
@@ -396,7 +459,7 @@ def _run_app_isolation_mode(args) -> int:
         f"Per-app isolation: {len(apps)} apps; building clean migrated template...",
         flush=True,
     )
-    template_ready = _build_template_db()
+    template_ready = _build_template_db(reuse_if_present=args.reuse_template)
     if template_ready:
         print(f"Template DB ready: {_TEMPLATE_DB}", flush=True)
     else:
@@ -421,6 +484,13 @@ def _run_app_isolation_mode(args) -> int:
             by_label = {}
 
     for i, app in enumerate(apps):
+        if (
+            not getattr(args, "force", False)
+            and by_label.get(app, {}).get("ok")
+            and app in by_label
+        ):
+            print(f"App {i + 1}/{len(apps)}: {app} (skip — prior ok)", flush=True)
+            continue
         print(f"App {i + 1}/{len(apps)}: {app}", flush=True)
         result = _run_app_isolated(app, template_ready=template_ready)
         by_label[app] = result
@@ -468,6 +538,16 @@ def main() -> int:
         default="shard",
         help="shard = shared-DB shards (fast, bleed-prone); "
         "app = per-app isolated DB (bleed-free, proves green honestly)",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Per-app isolation: re-run apps even when prior JSON marked ok",
+    )
+    parser.add_argument(
+        "--reuse-template",
+        action="store_true",
+        help="Per-app isolation: skip template rebuild when iso_app_template.sqlite3 exists",
     )
     args = parser.parse_args()
     keepdb = args.keepdb and not args.no_keepdb
