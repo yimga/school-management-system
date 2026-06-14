@@ -300,7 +300,12 @@ class EncryptedJSONField(models.JSONField):
                     "encrypted_jsonfield_decrypt_skipped reason=invalid_token_unrecoverable",
                 )
                 return {}
-            logger.info(
+            # Expected and benign during the encryption rollout: rows written
+            # before the field was encrypted decode as plaintext JSON. Logged at
+            # DEBUG so it does not flood production logs on every read (was INFO,
+            # firing on nearly every request). The unrecoverable case above stays
+            # WARNING because it signals real key/data-integrity trouble.
+            logger.debug(
                 "encrypted_jsonfield_decrypt_skipped reason=pre_encryption_plaintext_row",
             )
             return parsed
