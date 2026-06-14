@@ -25,6 +25,10 @@ logger = logging.getLogger(__name__)
 
 _MAX_SCHOOLS_SAMPLED = 50
 _MAX_LOG_ROWS = 50
+# Anomaly nudges can fire one model call per at-risk tenant when AI is enabled.
+# Bound how many tenants we compute nudges for so this staff page never turns into
+# an unbounded fan-out of LLM calls; the cap is surfaced honestly in the template.
+_MAX_NUDGE_SCHOOLS = 12
 
 # Curated launcher for the genuinely GENERATIVE AI surfaces — the honest answer to
 # "where do I actually find AI?". Endpoint-only / ambient surfaces carry route="" so
@@ -92,6 +96,11 @@ def health_autopilot_console(request):
 
     sampled = 0
     truncated = False
+    # Cross-tenant anomaly risk nudges — the same engine that renders on each
+    # dashboard, consolidated here read-only (additive: the ambient per-dashboard
+    # nudge stays where it proactively helps).
+    anomaly_nudges: list[dict] = []
+    nudge_attempts = 0
     try:
         from apps.schools.models import School
 
@@ -107,8 +116,33 @@ def health_autopilot_console(request):
                         **_proposal_row(ha.propose_remediation(sig, school=school)),
                     }
                 )
+            if nudge_attempts < _MAX_NUDGE_SCHOOLS:
+                nudge_attempts += 1
+                try:
+                    from apps.platform_runtime.ai_system_layer import (
+                        generate_anomaly_risk_nudge,
+                    )
+
+                    nudge = generate_anomaly_risk_nudge(school, getattr(request, "user", None))
+                    if nudge:
+                        key = str(nudge.get("recommendation_key") or "")
+                        anomaly_nudges.append(
+                            {
+                                "school_slug": getattr(school, "slug", "") or "—",
+                                "title": nudge.get("title", ""),
+                                "explanation": nudge.get("explanation", ""),
+                                "confidence": nudge.get("confidence"),
+                                "source": "rules" if key.endswith("rules") else "ai",
+                            }
+                        )
+                except Exception:  # noqa: BLE001
+                    logger.debug(
+                        "health_autopilot_console: anomaly nudge failed", exc_info=True
+                    )
     except Exception:  # noqa: BLE001
         logger.debug("health_autopilot_console: school sampling failed", exc_info=True)
+
+    nudge_scan_capped = sampled > _MAX_NUDGE_SCHOOLS
 
     # --- Enabled policies (the ONLY thing that turns shadow into apply) ---
     policies: list[dict] = []
@@ -161,6 +195,9 @@ def health_autopilot_console(request):
         {
             "proposals": proposals,
             "generative_surfaces": generative_surfaces,
+            "anomaly_nudges": anomaly_nudges,
+            "nudge_scan_capped": nudge_scan_capped,
+            "max_nudge_schools": _MAX_NUDGE_SCHOOLS,
             "policies": policies,
             "recent_log": recent_log,
             "catalog": catalog,
