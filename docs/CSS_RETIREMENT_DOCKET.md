@@ -1,6 +1,18 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-10 (Full-audit follow-up — retired dead `GradeViewSet` + `AssessmentResultsAPI` in `apps/academics/api_views.py`).
+**Last updated:** 2026-06-14 (Owner decision — retired dead, superseded `people.NotificationPreference` model via migration `0058`).
+
+## 2026-06-14 — Owner decision — retire dead `people.NotificationPreference`
+
+**Context:** WF8/comms follow-up. `people.NotificationPreference` (a OneToOne extension of `StudentGuardian` holding per-category method + digest-cadence prefs for grade-publication / deadline / teacher reminders) was investigated rigorously: **0 code callers, 0 real tests, reverse accessor `StudentGuardian.notification_preference` used nowhere.** The similarly-named `apps/accounts/tests/test_notification_preferences.py` actually exercises a different, live model (`siteconfig.models_tooling.UserPreference`), not this one. Its concepts are already covered by two live mechanisms: coarse channel toggles on `StudentGuardian.receives_{email,sms,whatsapp}`, and user-level channels + weekly-digest in the routed `siteconfig.UserPreference` flow (`accounts:notification_preferences`). Its only unique capability — per-category digest cadence — was designed but **never wired** to any send path or UI. Owner chose **retire** (over build-out / leave-dormant) after the sharpened evidence was surfaced.
+
+**Retired (dead model, zero callers, zero routes, zero real tests):**
+- `people.NotificationPreference` (was `apps/people/models.py:814`) — removed the class; left a one-paragraph retirement note in its place pointing here.
+- Migration `apps/people/migrations/0058_delete_notificationpreference.py` — `migrations.DeleteModel`; nothing FKs into it, so a clean single-table `DROP TABLE "people_notificationpreference"` (verified via `sqlmigrate`).
+
+**Kept (live, superseding mechanisms — untouched):** `StudentGuardian.receives_{email,sms,whatsapp}`; `siteconfig.models_tooling.UserPreference` (`notification_channels` + `receive_weekly_summary`, routed `accounts:notification_preferences`, 7 tests).
+
+**Validation:** `manage.py check` 0; `makemigrations people --check --dry-run` → "No changes detected" (the hand-authored `DeleteModel` exactly captures the removal); `sqlmigrate people 0058` renders `BEGIN; DROP TABLE …; COMMIT;`; new DB-free regression `apps/people/tests/test_notification_preference_retired.py` (4 tests: model attr gone, reverse accessor gone, migration present, live UserPreference intact). The final `migrate` runs on deploy (local box heap-crashes on `migrate`; everything short of apply is validated). No template/static change → no SW bump.
 
 ## 2026-06-10 — Full-audit follow-up — retire dead `GradeViewSet` + `AssessmentResultsAPI`
 
