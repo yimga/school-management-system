@@ -4,6 +4,8 @@ Permission-gated; tabbed UI: Summary, Academic, Finance, Attendance, Timeline.
 Immutable transcript: freeze action and cross-year archive view.
 """
 
+from types import SimpleNamespace
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import DatabaseError
@@ -28,14 +30,18 @@ def _student_360_academic(student):
     try:
         from django.apps import apps
 
-        if apps.is_installed("academics"):
-            from apps.academics.models import ClassEnrollment
-
-            enrollments = list(
-                ClassEnrollment.objects.filter(student=student).select_related(
-                    "classroom", "academic_year"
-                )[:20]
-            )
+        # StudentProfile carries a single classroom FK
+        # (people.StudentProfile.classroom); there is no historical
+        # ClassEnrollment model, so the current placement is the student's
+        # one active enrollment row. Surface it with the same
+        # (.classroom / .academic_year) shape the template expects.
+        if getattr(student, "classroom_id", None):
+            enrollments = [
+                SimpleNamespace(
+                    classroom=student.classroom,
+                    academic_year=getattr(student, "academic_year", None),
+                )
+            ]
         if apps.is_installed("evals"):
             Evaluation = apps.get_model("evals", "Evaluation")
             # tenant-isolation-allow: `student` is school-scoped by caller; FK already binds tenant (reviewed 2026-05-14)

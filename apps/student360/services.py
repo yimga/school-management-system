@@ -61,12 +61,13 @@ def get_student_360_summary(
             out["academic"]["evaluations_count"] = Evaluation.objects.filter(
                 student=student
             ).count()
-        if apps.is_installed("academics"):
-            from apps.academics.models import ClassEnrollment
-
-            out["academic"]["enrollments_count"] = ClassEnrollment.objects.filter(
-                student=student
-            ).count()
+        # A student's class placement is a single FK on the profile
+        # (people.StudentProfile.classroom) — there is no historical
+        # per-year ClassEnrollment model, so the current placement is the
+        # student's one active enrollment.
+        out["academic"]["enrollments_count"] = (
+            1 if getattr(student, "classroom_id", None) else 0
+        )
         # Finance: invoices summary
         if apps.is_installed("finance"):
             Invoice = apps.get_model("finance", "Invoice")
