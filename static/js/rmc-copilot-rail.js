@@ -170,6 +170,44 @@
     }
   }
 
+  /* Governance registries (Feature-Gap + Backlog) — operator-only, server-gated.
+     Hidden section stays hidden when the payload omits `registry` (non-staff /
+     disabled / unreadable), so nothing leaks to tenant users. */
+  function renderRegistry(registry) {
+    var section = document.querySelector("[data-rmc-copilot-rail-registry]");
+    var list = document.querySelector("[data-rmc-copilot-rail-registry-list]");
+    if (!section || !list) { return; }
+    list.innerHTML = "";
+    if (!registry || !registry.length) {
+      section.setAttribute("hidden", "hidden");
+      return;
+    }
+    for (var i = 0; i < registry.length; i++) {
+      var item = registry[i];
+      if (!item) { continue; }
+      var li = document.createElement("li");
+      li.className = "rmc-copilot-rail__insight";
+      li.setAttribute("data-source", "registry");
+      var title = document.createElement("div");
+      title.className = "rmc-copilot-rail__insight-title";
+      if (item.url) {
+        var anchor = document.createElement("a");
+        anchor.href = item.url;
+        anchor.textContent = item.title || "";
+        title.appendChild(anchor);
+      } else {
+        title.textContent = item.title || "";
+      }
+      var body = document.createElement("div");
+      body.className = "rmc-copilot-rail__insight-body";
+      body.textContent = item.body || "";
+      li.appendChild(title);
+      li.appendChild(body);
+      list.appendChild(li);
+    }
+    section.removeAttribute("hidden");
+  }
+
   function markUnavailable() {
     var pill = document.querySelector("[data-rmc-copilot-rail-posture]");
     if (pill) {
@@ -192,6 +230,7 @@
       if (data.snapshot) { renderPosture(data.snapshot); }
       if (data.insights) { renderInsights(data.insights); }
       if (data.quick_actions) { renderQuickActions(data.quick_actions); }
+      renderRegistry(data.registry);
     }).catch(function () {
       markUnavailable();
     });

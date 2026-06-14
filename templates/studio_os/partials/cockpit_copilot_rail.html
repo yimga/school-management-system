@@ -107,6 +107,15 @@
     </ul>
   </div>
 
+  {% comment %} ---- Section 4: Governance registries (Feature-Gap + Backlog; operator-only, JS-hydrated) ----
+       Hidden until rmc-copilot-rail.js fills it from the context payload's `registry`
+       channel (build_registry_insights → operator/staff-only). Reuses the insight
+       class grammar so no new CSS classes are introduced. {% endcomment %}
+  <div class="rmc-cockpit__rail-section rmc-copilot-rail__section" data-rmc-copilot-rail-registry="1" hidden>
+    <div class="rmc-cockpit__rail-section-title">{% trans "Governance" %}</div>
+    <ul class="rmc-copilot-rail__insights-list" data-rmc-copilot-rail-registry-list="1" aria-live="polite"></ul>
+  </div>
+
   {% comment %} ---- Legacy "Suggested next" tail — keeps batch-pre-v3.53.1 behaviour. ---- {% endcomment %}
   {% if studio_recommendations %}
   <div class="rmc-cockpit__rail-section">
