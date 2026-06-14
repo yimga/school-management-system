@@ -158,9 +158,27 @@ Flagged for manual confirmation: portal `ai_help` / `ai_assistant_panel` permiss
    view** of `ai_system_layer.generate_anomaly_risk_nudge` while the ambient per-dashboard nudge stays.
    Bounded by `_MAX_NUDGE_SCHOOLS=12` so it never fans out into unbounded model calls when AI is on
    (healthy tenants short-circuit before any model call); cap disclosed in the UI. Hub-only.
-4. **Tenant intelligence strip (#4/#5):** relocate the two dashboard-strip insights into one tenant intelligence section. Moderate blast radius (tenant `backend_dashboard`); approval-gated, browser-smoke required.
+4. ⚠️ **INVESTIGATED (2026-06-10) — NO CHANGE MADE; the menu premise was wrong + the real fix needs a product call:**
+   The literal task ("relocate the two dashboard-strip insights #4 + #5 into one tenant intelligence section")
+   is **ALREADY DONE**: `templates/accounts/ai_system_layer_strip.html` already merges #4 (school health),
+   #5 (onboarding next action) AND #6 (anomaly nudge) into ONE `<section>` ("Intelligence suggestions
+   (draft)"), it is included **exactly once** (`backend_dashboard.html:195`), and both are wired
+   (`accounts/views.py:2773` health, `:2776` onboarding; nudge via `context_processors.py:142`). The
+   heading is already honest ("Rules-based when AI is disabled; approve before acting") — renaming it would
+   *reduce* precision, so it was left alone.
+   **The REAL scatter** (different from the menu's premise) is that the AI strip **duplicates richer
+   non-AI widgets on the same page**: onboarding renders in ~4 places in `section-readiness`
+   (`first_login_checklist_card` ln190, `school_onboarding_card` ln194, AI strip #5 ln195,
+   `backend_command_center_setup_strip` ln196) + the "Finish setup essentials" attention card (ln179);
+   anomalies in 3 (attention cards ln153-187, `insight-anomalies` widget ln269-307, AI strip #6); health
+   in 3 (`admin_health` ln73, `operational_health_strip` ln79, AI strip #4). De-duplicating that means
+   **deleting/merging widgets** + a **product decision** on which surface is canonical (and whether the
+   genuinely-AI strip is the one to keep or drop), on a page that **cannot be browser-verified locally**
+   (tenant `backend_dashboard` 500s on this box from migration-DB lag). Deferred pending owner sign-off on
+   the canonical-surface decision + a commitment to post-deploy browser smoke. NOT safe to do blind.
 5. **Portal legacy gateway (#9) deprecation:** only after confirming studio-rail parity; grep-audit URL refs first. Highest risk; separate sign-off.
 
-Items 1–3 are landed on local main (commits above). Items 4–5 are NOT started and need per-item sign-off
-(item 4 needs browser smoke on the tenant `backend_dashboard`, which can't be verified locally; item 5
-needs studio-rail parity confirmation + URL-ref grep audit first).
+Items 1–3 are landed on local main (commits above). Item 4 was investigated and found **already satisfied
+as literally specified** (no churn manufactured); its real follow-on (dashboard de-duplication) is a
+product decision + browser-verification job, not a code task I can do blind. Item 5 needs studio-rail
+parity confirmation + URL-ref grep audit first.
