@@ -83,23 +83,25 @@ def school_calendar_runtime(request: HttpRequest) -> JsonResponse:
     try:
         from datetime import datetime, timezone
 
-        from apps.academics.models import AcademicTerm  # type: ignore[attr-defined]
+        from apps.academics.models import Term
     except ImportError:
         return _runtime_response(request, "school_calendar", payload)
     school = getattr(request, "school", None)
-    qs = AcademicTerm.objects.all()
+    qs = Term.objects.all()
     if school is not None:
         school_id = getattr(school, "pk", None) or getattr(school, "id", None)
         if school_id is not None:
             qs = qs.filter(school_id=school_id)
+    # Term stores the window as start_date/end_date (the response keeps the
+    # public starts_on/ends_on names).
     payload["terms"] = [
         {
             "id": str(t.id),
             "name": getattr(t, "name", ""),
-            "starts_on": getattr(t, "starts_on", None) and t.starts_on.isoformat(),
-            "ends_on": getattr(t, "ends_on", None) and t.ends_on.isoformat(),
+            "starts_on": getattr(t, "start_date", None) and t.start_date.isoformat(),
+            "ends_on": getattr(t, "end_date", None) and t.end_date.isoformat(),
         }
-        for t in qs.order_by("starts_on")[:64]
+        for t in qs.order_by("start_date")[:64]
     ]
     payload["generated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     return _runtime_response(request, "school_calendar", payload)
