@@ -54,13 +54,13 @@ class Command(BaseCommand):
         ))
 
         try:
-            from apps.people.models import Guardian  # type: ignore
+            from apps.people.models import StudentGuardian
         except Exception as exc:
-            raise CommandError(f"Guardian model unavailable: {exc}")
+            raise CommandError(f"StudentGuardian model unavailable: {exc}")
 
         # 1. Field discovery
         from apps.communication.whatsapp_parent_os_resolvers import _PHONE_FIELDS
-        guardian_fields = {f.name for f in Guardian._meta.get_fields()}
+        guardian_fields = {f.name for f in StudentGuardian._meta.get_fields()}
         present = [f for f in _PHONE_FIELDS if f in guardian_fields]
         absent = [f for f in _PHONE_FIELDS if f not in guardian_fields]
         self.stdout.write(f"Guardian fields present from resolver probe: {present}")
@@ -76,8 +76,8 @@ class Command(BaseCommand):
             ))
             return
 
-        # 2. Data presence per field
-        qs = Guardian.objects.filter(school=school)
+        # 2. Data presence per field (StudentGuardian is tenant-scoped via student)
+        qs = StudentGuardian.objects.filter(student__school=school)
         total = qs.count()
         self.stdout.write(f"Tenant has {total} guardians total")
         if total == 0:

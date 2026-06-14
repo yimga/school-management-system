@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 _PHONE_FIELDS: tuple[str, ...] = (
     "phone_e164", "phone", "mobile", "primary_phone", "whatsapp_phone",
+    "whatsapp_number",
 )
 
 
@@ -41,16 +42,23 @@ def _normalize_phone(raw: str) -> str:
 def _find_guardian(tenant_id: str, phone: str):
     """Look up a Guardian by phone within a tenant scope. Returns None on miss."""
     try:
-        from apps.people.models import Guardian  # type: ignore
+        from apps.people.models import StudentGuardian
     except Exception:  # noqa: BLE001
         return None
     norm = _normalize_phone(phone)
     if not norm:
         return None
 
-    qs = Guardian.objects.all()
+    # StudentGuardian has no direct school FK; it is tenant-scoped through the
+    # linked student (StudentProfile.school). school_id is a UUID, so a malformed
+    # tenant_id must yield a clean miss (None), not raise — preserve the
+    # never-crash contract.
+    qs = StudentGuardian.objects.all()  # tenant-isolation-allow: scoped-below-via-student-school-when-tenant-id-present
     if tenant_id:
-        qs = qs.filter(school_id=tenant_id)
+        try:
+            qs = qs.filter(student__school_id=tenant_id)
+        except Exception:  # noqa: BLE001
+            return None
 
     # Try each plausible phone field — schemas vary across deployments.
     for field in _PHONE_FIELDS:
