@@ -11,14 +11,12 @@ import hmac
 import logging
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
-from functools import wraps
 from typing import Optional
 
 from django.conf import settings
 from django.core.cache import cache
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
+from django.http import HttpRequest
 from django.utils import timezone
-from django.views.decorators.http import require_http_methods
 
 logger = logging.getLogger(__name__)
 
@@ -403,98 +401,10 @@ class FraudDetector:
         return True, None
 
 
-def webhook_security_required(view_func):
-    """
-    Decorator for webhook views that enforces security checks.
-
-    Checks: HTTP method, IP whitelist, rate limit, signature.
-
-    Usage:
-        @webhook_security_required
-        def payment_provider_webhook(request, provider_slug):
-            ...
-    """
-
-    @require_http_methods(["POST"])
-    @wraps(view_func)
-    def _wrapped(request, *args, **kwargs):
-        from .models import PaymentIntegration, WebhookLog
-
-        provider_slug = kwargs.get("provider_slug")
-        if not provider_slug:
-            provider_slug = args[1] if len(args) > 1 else None
-
-        if not provider_slug:
-            logger.error("No provider_slug in webhook request")
-            return HttpResponseForbidden("Invalid request")
-
-        # Get provider config
-        try:
-            integration = PaymentIntegration.objects.get(
-                code=provider_slug, is_active=True
-            )
-        except PaymentIntegration.DoesNotExist:
-            logger.warning(f"Unknown payment provider: {provider_slug}")
-            return HttpResponseForbidden("Unknown provider")
-
-        # Create validator
-        validator = WebhookSecurityValidator(integration.config)
-        client_ip = validator.get_client_ip(request)
-
-        # Step 1: IP whitelist check
-        if not validator.validate_ip_whitelist(client_ip):
-            return HttpResponseForbidden("IP not whitelisted")
-
-        # Step 2: Rate limiting check
-        if not validator.validate_rate_limit(client_ip):
-            return HttpResponse("Rate limit exceeded", status=429)
-
-        # §2.4 Webhook signature verification; reject missing or invalid signature with 401.
-        signature_header = integration.config.get("signature_header", "X-Signature")
-        signature = request.headers.get(signature_header) or request.META.get(
-            f"HTTP_{signature_header.upper().replace('-', '_')}"
-        )
-        if not signature:
-            logger.warning(
-                f"Missing webhook signature from {provider_slug} ({client_ip})"
-            )
-            return HttpResponse("Missing signature", status=401)
-        if not validator.validate_signature(request.body, signature):
-            logger.warning(
-                f"Invalid webhook signature from {provider_slug} ({client_ip})"
-            )
-            return HttpResponse("Invalid signature", status=401)
-
-        # Log webhook receipt
-        try:
-            import json
-            from django.db import DatabaseError, IntegrityError
-            from django.core.exceptions import ValidationError
-
-            data = json.loads(request.body.decode() or "{}")
-            reference_id = (
-                data.get("reference") or data.get("payment_reference") or "unknown"
-            )
-            WebhookLog.objects.create(
-                provider=provider_slug,
-                reference_id=reference_id,
-                idempotency_bucket=reference_id,
-                client_ip=client_ip,
-                signature_valid=True,
-                status="RECEIVED",
-                request_body=request.body.decode(),
-            )
-        except (
-            ValueError,
-            TypeError,
-            UnicodeDecodeError,
-            DatabaseError,
-            IntegrityError,
-            ValidationError,
-        ) as e:
-            logger.error("Failed to log webhook: %s", e, exc_info=True)
-
-        # Call the actual view
-        return view_func(request, *args, **kwargs)
-
-    return _wrapped
+# NOTE: a `webhook_security_required` decorator once lived here (Phase 0,
+# 2026-01-21) but was retired 2026-06-15. It was dead (applied to no view),
+# referenced a `PaymentIntegration` model that was never built (so it would
+# ImportError if ever applied), and was superseded by the live, routed handler
+# `apps/finance/views_payments.py::payment_provider_webhook`, which performs the
+# same HMAC-signature / IP / rate-limit / WebhookLog checks inline using
+# `WebhookSecurityValidator`. See docs/CSS_RETIREMENT_DOCKET.md.

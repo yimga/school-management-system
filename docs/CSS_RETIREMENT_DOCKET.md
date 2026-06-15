@@ -1,6 +1,20 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-15 ("address everything" sweep — retired oneroster W1 dead read-side + 1 dead method + 1 orphan module; guarded playbook import steps; wired AI-RAG audit to the real primitive).
+**Last updated:** 2026-06-15 (relative-import follow-up — retired dead `webhook_security_required` decorator in `apps/finance/security.py`; see § below).
+
+## 2026-06-15 — Relative-import audit follow-up — retire dead `webhook_security_required`
+
+**Context:** the absolute-import audit (`from apps.* import`) had a blind spot — it never covered **relative** imports (`from .models import X`). Extending it across `apps/` (3,404 relative symbols) surfaced exactly one real unresolved: `apps/finance/security.py` `from .models import PaymentIntegration` (a model that exists nowhere). It lived inside `webhook_security_required` — a decorator from "Phase 0" (2026-01-21) that was **applied to no view**, would **ImportError if ever applied**, and was **superseded** by the live, routed `apps/finance/views_payments.py::payment_provider_webhook` (which does the same HMAC-signature / IP-whitelist / rate-limit / `WebhookLog` checks inline via `WebhookSecurityValidator`). A broken, dead security decorator is a footgun, so it was retired.
+
+**Retired:**
+- `apps/finance/security.py::webhook_security_required` (was lines 406-500) — replaced with a one-paragraph NOTE. Pruned now-orphaned imports (`functools.wraps`, `require_http_methods`, `HttpResponse`, `HttpResponseForbidden`; kept `HttpRequest`). Live classes `PaymentValidator`/`WebhookSecurityValidator`/`PaymentEncryption`/`FraudDetector` untouched.
+- `apps/finance/webhook_security.py` (compat shim, zero importers) — dropped the `webhook_security_required` re-export from its imports + `__all__`; kept `PaymentValidator`/`WebhookSecurityValidator`.
+
+**Kept (live):** `views_payments.py::payment_provider_webhook` (routed at `apps/finance/urls.py`) and its inline `WebhookSecurityValidator`-based verification — webhook security is unaffected.
+
+**Validation:** relative-import audit 1→0; `manage.py check` 0; tenant-isolation scanner 0; DB-free regression `apps/finance/tests/test_webhook_decorator_retired.py`. **Lesson:** a `grep -v "security.py"` to find importers silently masked `webhook_security.py` (substring) — the relative-import audit caught the re-export I'd have otherwise broken; always confirm "zero importers" with an exact module-path grep, not a substring exclusion.
+
+
 
 ## 2026-06-15 — "Address everything" backlog sweep (phantom-import disposition)
 
