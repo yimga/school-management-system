@@ -87,11 +87,16 @@ def school_calendar_runtime(request: HttpRequest) -> JsonResponse:
     except ImportError:
         return _runtime_response(request, "school_calendar", payload)
     school = getattr(request, "school", None)
-    qs = Term.objects.all()
-    if school is not None:
-        school_id = getattr(school, "pk", None) or getattr(school, "id", None)
-        if school_id is not None:
-            qs = qs.filter(school_id=school_id)
+    school_id = (
+        (getattr(school, "pk", None) or getattr(school, "id", None))
+        if school is not None
+        else None
+    )
+    if school_id is None:
+        # The calendar is tenant-scoped; with no tenant context, return an empty
+        # calendar rather than leaking every school's terms across tenants.
+        return _runtime_response(request, "school_calendar", payload)
+    qs = Term.objects.filter(school_id=school_id)
     # Term stores the window as start_date/end_date (the response keeps the
     # public starts_on/ends_on names).
     payload["terms"] = [

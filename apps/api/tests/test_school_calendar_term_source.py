@@ -33,6 +33,11 @@ class SchoolCalendarTermSourceTests(unittest.TestCase):
         self.assertNotIn("import AcademicTerm", src)
         self.assertNotIn('order_by("starts_on")', src)
         self.assertIn('order_by("start_date")', src)
+        # Term is a tenant model (school FK): the endpoint must scope by school,
+        # never query .all() unscoped (would leak terms across tenants and trip
+        # scan_tenant_queryset_safety).
+        self.assertNotIn("Term.objects.all()", src)
+        self.assertIn("Term.objects.filter(school_id=school_id)", src)
 
     def test_term_query_compiles(self) -> None:
         from apps.academics.models import Term
