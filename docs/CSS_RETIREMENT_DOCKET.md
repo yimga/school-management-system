@@ -1,6 +1,25 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-14 (Owner decision — retired dead, superseded `people.NotificationPreference` model via migration `0058`).
+**Last updated:** 2026-06-15 ("address everything" sweep — retired oneroster W1 dead read-side + 1 dead method + 1 orphan module; guarded playbook import steps; wired AI-RAG audit to the real primitive).
+
+## 2026-06-15 — "Address everything" backlog sweep (phantom-import disposition)
+
+**Context:** owner asked to address every remaining unresolved-import the AST audit reported (was 27). Each item got a concrete disposition — retire confirmed dead code, guard anything that could crash, wire where a real target exists, document the intentionally-absent/guarded ones — without manufacturing the absent models.
+
+**Retired (dead code, zero callers, zero routes — verified):**
+- `apps/api/oneroster_w1_extensions.py` read-side: `lineitem_detail` + `_build_lineitem_detail`, `staff_delta`, `demographics_delta`, `_iter_classes_synthetic`, `classes_with_fields_mask`, `enrollments_with_fields_mask`, the now-orphaned helpers (`compute_etag`/`check_if_none_match`/`parse_fields_mask`/`apply_fields_mask`) and the dead `STUDIO_OS_10X_W1_D_VIEWS` tuple. These were unrouted (only `classes_bulk_post`/`enrollments_bulk_post` are in `apps/api/urls.py`; the tuple was referenced nowhere) and referenced models that don't exist (`assessments.Evaluation`, `grading.Evaluation`, `people.Employment`, `schools.Section`, `schools.Enrollment`). Kept the 2 routed bulk endpoints + their helper chain; pruned now-unused imports (`datetime`/`timezone`/`Iterable`/`require_GET`/`_DEFAULT_LIMIT`). Removes 5 phantom symbols.
+- `apps/people/people_management.py::StudentAdminEnhancements.import_students_csv` — dead `@staticmethod` (zero callers) with double drift: phantom `academics.StudentProfile` (real is `people.StudentProfile`) + the swapped-out `django.contrib.auth.models.User`. `csv` / `log_exception_with_context` top-level imports still used elsewhere (kept).
+- `apps/compliance/management_commands.py` — orphan file: a `BaseCommand` subclass NOT under `management/commands/` (Django never registers it), module-level imports of phantom `compliance.models.IncidentTicket` + `compliance.threat_detection.ThreatDetector` (so it can't even import), zero importers. The real command lives at `apps/compliance/management/commands/check_compliance.py` (unaffected).
+
+**Guarded (could crash → degrade gracefully):**
+- `apps/automation/playbook_executor.py::_run_one_step` — the students/grades branches imported `apps.accounts.migration_services.run_student_import`/`run_grade_import` UNGUARDED; those functions don't exist, so executing such a step raised an unhandled ImportError. Wrapped each import+call in `try/except ImportError` that produces an error `result` flowing through the existing `mark_completed` PARTIAL path. (Imports remain in the audit count by design — guarded best-effort.)
+
+**Wired (real target existed):**
+- `apps/siteconfig/views_console_ai_rag.py` — replaced phantom `apps.audit.utils.log_action(user=, action=, payload=)` with the real signed/chained audit primitive `apps.compliance.non_repudiation.record_action(action=, resource=, actor_id=, school_id=, payload_summary=)`. Kept the best-effort `except: pass` so audit never breaks the AI-RAG response.
+
+**Documented (intentionally-absent / safely-guarded — no code change, not manufactured):** `setup_studio/wizard_resolvers_*` (5 absent service modules — guarded `try/except`, unbuilt feature steps); `schools/views_mat_group_hub.py` `people.Staff` (guarded, no clean target); `analytics/.../export_to_warehouse.py` + `siteconfig/.../i18n_commands.py` (guarded mgmt-command absent models); `compliance/tenant_offboarding_inventory.py` `platform_runtime.tenant_mode` (guarded `except ImportError: return None`); `evals/bulk_gradebook.py` `StudentEvaluation` (guarded, schema decision — no `score_percent` model); `accounts/context_processors.py` `MarkEntry`/`Assignment` (guarded best-effort, no such model); `api/views_v1.py:972` `evals.models_enhanced` (intentional WF10 501 guard); `platform_runtime/entitlement_gates.py` `normalize_role` (verified fail-safe role-string fallback).
+
+**Validation:** `manage.py check` 0; tenant-isolation scanner 0; 4 changed modules + `apps.api.urls` import clean; no orphaned imports; DB-free regression tests (`apps/api/tests/test_oneroster_w1_retired.py`, `apps/automation/tests/test_playbook_import_guards.py`). No template/static change → no SW bump.
 
 ## 2026-06-14 — Owner decision — retire dead `people.NotificationPreference`
 

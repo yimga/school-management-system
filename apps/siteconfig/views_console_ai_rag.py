@@ -185,13 +185,14 @@ def ingest_policy_docs(request: HttpRequest) -> JsonResponse:
             embedded += 1
 
     try:
-        from apps.audit.utils import log_action
+        from apps.compliance.non_repudiation import record_action
 
-        log_action(
-            user=request.user,
+        record_action(
             action="AI_RAG_INGEST_TRIGGERED",
-            payload={
-                "school_id": str(school.id),
+            resource="ai_rag_ingest",
+            actor_id=getattr(request.user, "id", None),
+            school_id=school.id,
+            payload_summary={
                 "scope": scope,
                 "scanned": scanned,
                 "embedded": embedded,

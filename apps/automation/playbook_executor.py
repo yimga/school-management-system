@@ -417,9 +417,14 @@ def _run_one_step(
     run.save(update_fields=["execution_summary"])
 
     if profile.domain == "students" and rows and school:
-        from apps.accounts.migration_services import run_student_import
+        try:
+            from apps.accounts.migration_services import run_student_import
 
-        result = run_student_import(school, rows, user=user)
+            result = run_student_import(school, rows, user=user)
+        except ImportError:
+            # Import service not present on this deploy — fail the step
+            # gracefully (PARTIAL) instead of crashing the executor.
+            result = {"errors": ["student_import_service_unavailable"], "created": 0, "updated": 0}
         run.mark_completed(
             status=MigrationRun.Status.SUCCESS
             if not result.get("errors")
@@ -430,9 +435,14 @@ def _run_one_step(
             summary={**run.execution_summary, "result": result},
         )
     elif profile.domain == "grades" and rows and school:
-        from apps.accounts.migration_services import run_grade_import
+        try:
+            from apps.accounts.migration_services import run_grade_import
 
-        result = run_grade_import(school, rows, user=user)
+            result = run_grade_import(school, rows, user=user)
+        except ImportError:
+            # Import service not present on this deploy — fail the step
+            # gracefully (PARTIAL) instead of crashing the executor.
+            result = {"errors": ["grade_import_service_unavailable"], "created": 0, "updated": 0}
         run.mark_completed(
             status=MigrationRun.Status.SUCCESS
             if not result.get("errors")
