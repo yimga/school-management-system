@@ -142,6 +142,24 @@ inventory — it is the approval-gate input for any relocation.**
 
 Flagged for manual confirmation: portal `ai_help` / `ai_assistant_panel` permission gates (separate visible widget?); `brand_experience/template_ai_recommender.py` (internal vs visible?); an API WebSocket AI chat consumer (UI render location not found in Python).
 
+### Completeness pass (verified 2026-06-15) — the flagged items resolved + 3 surfaces added
+The inventory above missed one surface and left three flagged "unconfirmed". All now classified:
+
+| # | Surface | Module | Type | Verdict |
+|---|---|---|---|---|
+| 12 | **Support copilot** | `customersuccess/views_tenant.py::support_copilot_view` → `services.get_support_copilot_suggestions` (route `siteconfig:support_copilot`, tmpl `customersuccess/support_copilot.html`) | **RULES** — appends from interventions/risk/health, `sorted(...)[:15]`; **no model call** | **RELABEL-CANDIDATE** — a *third* "copilot" with no inference (joins #1 manager rail + #8 policy lookup). Honesty fix only; no behavior change. |
+| 13 | Template AI recommender | `brand_experience/template_ai_recommender.py` | GENERATIVE (routes through `ai_helpers.invoke_with_request`, rules fallback) | **LEAVE — internal-only** (no template renders it; not a dashboard widget). |
+| 14 | WebSocket AI chat | `apps/api/consumers.py::AIChatConsumer` (routed `ws/ai/chat/` in `config/routing.py:15`) | GENERATIVE (`invoke_with_request` on receive) | **LEAVE — infra endpoint** (a routed SSE/WS layer, not a standalone dashboard widget; UI mount unconfirmed). |
+
+- `ai_help` / `ai_assistant_panel`: **not a distinct surface** — no portal routes or permission strings resolve; dropped off the flagged list.
+
+**Net new honesty finding (now closed):** the platform had **three** rules-based surfaces named "copilot/AI"
+that make no model call — #1 manager rail, #8 policy lookup, and #12 support copilot. All three are now
+relabelled (label-only, no logic touched): #1 + #8 on 2026-06-10; **#12 "Support co-pilot" → "Suggested
+support actions" on 2026-06-15** (`templates/customersuccess/support_copilot.html`, title + card header;
+route `siteconfig:support_copilot` and the view kept). The full AI surface inventory is now complete and
+every rules-as-AI mislabel is resolved.
+
 ### Recommended ordered execution (each its own commit, approval-gated)
 1. ✅ **DONE (2026-06-10, commit `690b12039`) — Relabel-only (zero behavior change):** #1 manager rail
    insight-feed module (`ai_copilot_service.py` docstring: stated plainly it is a rules-based metrics

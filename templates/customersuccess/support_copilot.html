@@ -1,6 +1,6 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
-{% block backend_title %}{% trans "Support co-pilot" %}{% endblock %}
+{% block backend_title %}{% trans "Suggested support actions" %}{% endblock %}
 {% block backend_page %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
@@ -9,7 +9,7 @@
 
 <div class="container-fluid py-2">
   <div class="card shadow-sm">
-    <div class="card-header">{% trans "Support co-pilot" %}</div>
+    <div class="card-header">{% trans "Suggested support actions" %}</div>
     <div class="card-body">
       <p class="text-muted small">{% trans "Suggested next actions from interventions, risk alerts, and health." %}</p>
       <ul class="list-group list-group-flush">
