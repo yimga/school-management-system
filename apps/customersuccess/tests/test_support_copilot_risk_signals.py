@@ -157,6 +157,21 @@ class SyncTenantRiskSignalsTests(TestCase):
             ).exists()
         )
 
+    def test_sweep_task_produces_signals_end_to_end(self):
+        # Seal the real production entry path: the beat-scheduled sweep task must
+        # drive the producer, not just the service helper. An inactive school
+        # (activity dimension RED) must end up with a risk alert after the sweep.
+        from apps.customersuccess.tasks import sweep_tenant_health_scores
+
+        school = _school("sweep-path")
+        result = sweep_tenant_health_scores()
+        self.assertGreaterEqual(result.get("updated", 0), 1)
+        self.assertTrue(
+            TenantRiskAlert.objects.filter(
+                school=school, payload__signal_key="activity_dormant"
+            ).exists()
+        )
+
     def test_support_copilot_surfaces_actionable_link(self):
         school = _school("links")
         sync_tenant_risk_signals(school, {"activity": 100, "workflows": 100, "adoption": 20})
