@@ -50,6 +50,19 @@
   function showCornerNotification(opts) {
     opts = opts || {};
     var container = getContainer();
+    // Idempotent per notification id: boot() runs on both DOMContentLoaded and every
+    // rmc:corner-notifications event, so without this guard a re-dispatch stacks another
+    // copy of the same toast (the "Quarterly security review due" / "portal is ready"
+    // storm). If this id is already on screen, do not append a duplicate.
+    if (opts.id) {
+      var wantId = String(opts.id);
+      var kids = container.children;
+      for (var k = 0; k < kids.length; k++) {
+        if (kids[k].dataset && kids[k].dataset.notificationId === wantId) {
+          return null;
+        }
+      }
+    }
     var duration = typeof opts.duration_ms === 'number' ? opts.duration_ms : DEFAULT_DURATION;
     var node = document.createElement('div');
     node.className = 'rmc-corner-notification rmc-corner-notification--' + (opts.type || 'info');
