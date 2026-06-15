@@ -31,6 +31,12 @@ from apps.schools.models import School, SchoolProvisioningEvent
 
 logger = logging.getLogger(__name__)
 
+# Distinguishes "caller omitted cached_subscription → look it up" from an
+# explicit ``None`` ("batch caller resolved it; this school genuinely has no
+# subscription"). Conflating the two masked billing_exception on single-school
+# surfaces — see resolve_school_fleet_status.
+_SUBSCRIPTION_UNSET = object()
+
 FLEET_POLL_INTERVAL_SECONDS = 15
 
 FLEET_STATE_LIVE = "live"
@@ -132,10 +138,22 @@ def _provision_error(school) -> bool:
 def resolve_school_fleet_status(
     school,
     *,
-    cached_subscription=None,
+    cached_subscription=_SUBSCRIPTION_UNSET,
 ) -> dict[str, Any]:
-    """Return canonical fleet status for one school."""
-    lifecycle = get_lifecycle_snapshot(school, cached_subscription=cached_subscription)
+    """Return canonical fleet status for one school.
+
+    When ``cached_subscription`` is omitted, the current subscription is looked
+    up so single-school callers get correct billing_exception detection. Batch
+    callers pass the pre-resolved row (or ``None`` for a genuinely sub-less
+    school) to skip the per-school query. NOTE: a bare ``None`` default would
+    be wrong here — get_lifecycle_snapshot treats ``None`` as "no subscription"
+    (its own sentinel means "look it up"), so defaulting to ``None`` silently
+    masked PAST_DUE / SUSPENDED schools as "live" on single-school surfaces.
+    """
+    if cached_subscription is _SUBSCRIPTION_UNSET:
+        lifecycle = get_lifecycle_snapshot(school)
+    else:
+        lifecycle = get_lifecycle_snapshot(school, cached_subscription=cached_subscription)
     lifecycle_state = lifecycle.get("state") or FLEET_STATE_INACTIVE
 
     fleet_state = FLEET_STATE_LIVE
@@ -185,7 +203,7 @@ def _school_display_label(school) -> str:
     return slug[:48] if slug else "—"
 
 
-def resolve_fleet_tile(school, *, cached_subscription=None) -> dict[str, Any]:
+def resolve_fleet_tile(school, *, cached_subscription=_SUBSCRIPTION_UNSET) -> dict[str, Any]:
     """Heatmap tile payload for one school."""
     status = resolve_school_fleet_status(school, cached_subscription=cached_subscription)
     slug = getattr(school, "slug", "") or ""

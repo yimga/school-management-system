@@ -43,7 +43,11 @@ def fleet_row_revision(row: dict[str, Any]) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
 
 
-def _build_fleet_row_dict(school, *, cached_subscription=None) -> dict[str, Any]:
+def _build_fleet_row_dict(school, *, cached_subscription) -> dict[str, Any]:
+    # cached_subscription is REQUIRED (no default): every caller resolves it via
+    # batch_current_subscriptions(). A bare None default would mean "no
+    # subscription" to get_lifecycle_snapshot and silently mask billing_exception
+    # — fail loud instead. See apps/schools/fleet_status.py::_SUBSCRIPTION_UNSET.
     status = resolve_school_fleet_status(
         school, cached_subscription=cached_subscription
     )
