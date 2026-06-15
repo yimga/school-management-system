@@ -717,4 +717,17 @@
   } else {
     init();
   }
+
+  // The control plane navigates, filters, and paginates via HTMX, which swaps row-detail
+  // tables into the DOM AFTER init() has already run once. Without a re-scan, those
+  // freshly-swapped tables are never bound and clicking a row silently does nothing — the
+  // /super/schools/ regression. Re-scan on every swap; bindTable's data-rmc-row-detail-bound
+  // guard makes this idempotent (already-bound tables are skipped). We re-scan tables ONLY —
+  // not init() — so the document-level drawer-dismiss listeners are not re-registered.
+  document.addEventListener('htmx:afterSwap', function () {
+    scanRowDetailSurfaces(document);
+  });
+  document.addEventListener('htmx:load', function (ev) {
+    scanRowDetailSurfaces((ev && ev.target && ev.target.querySelectorAll) ? ev.target : document);
+  });
 })();
