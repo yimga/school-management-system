@@ -38,6 +38,9 @@ on:
       - "scripts/scan_locale_coverage.py"
       - "scripts/verify_service_worker_version.py"
       - "scripts/verify_slo_registry.py"
+      - "scripts/verify_intelligence_model_producers.py"
+      - "apps/customersuccess/models.py"
+      - "apps/customersuccess/services.py"
       - "scripts/scan_sri_required.py"
       - "scripts/verify_csp_nonce_emission.py"
       - "scripts/scan_pwa_manifest_coverage.py"
@@ -172,6 +175,20 @@ jobs:
       - name: Verify copilot RBAC coverage
         run: |
           python scripts/verify_ai_copilot_rbac_coverage.py --strict
+
+  ai-naming-honesty:
+    name: AI naming honesty + consolidation seals
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify AI naming honesty + consolidation seals
+        run: |
+          python scripts/verify_ai_naming_honesty.py
 
   tenant-control-plane-rbac:
     name: Tenant vs control-plane RBAC boundary (5-pass)
@@ -340,6 +357,20 @@ jobs:
       - name: Run scanner --compare
         run: |
           python scripts/scan_subprocess_shell_true.py --compare
+
+  intelligence-model-producers:
+    name: "Surface model producers (read-only-orphan seal)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify every watchlisted surface model has a producer
+        run: |
+          python scripts/verify_intelligence_model_producers.py
 
   rls-bypass:
     name: "RLS bypass (raw SQL / cursor.execute) boundary"
