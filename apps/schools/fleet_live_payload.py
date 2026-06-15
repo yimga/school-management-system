@@ -5,11 +5,13 @@ import hashlib
 import json
 from typing import Any
 
+from django.core.cache import cache
 from django.utils import timezone
 
 from apps.schools.control_plane_lifecycle import batch_current_subscriptions
 from apps.schools.fleet_status import (
     FLEET_POLL_INTERVAL_SECONDS,
+    FLEET_STATUS_CACHE_KEY,
     build_fleet_queryset,
     fleet_revision,
     format_fleet_summary_label,
@@ -94,9 +96,23 @@ def build_fleet_live_payload(
     q: str = "",
     include_rows: bool = True,
 ) -> dict[str, Any]:
+    q_norm = (q or "").strip().lower()
+
+    # Hot poller path: summary-only, no search. This is what the cockpit live
+    # poll hits every ~15s from every operator tab, so cache the request-
+    # invariant full-fleet payload — N tabs collapse to one compute per poll
+    # window. Search / row pages (operator actively browsing) are per-request
+    # and stay uncached. generated_at is re-stamped on read so the timestamp
+    # stays honest; the cache is busted on lifecycle mutations via
+    # invalidate_fleet_status_cache(), with the short TTL as the floor.
+    cacheable = include_rows is False and not q_norm
+    if cacheable:
+        cached = cache.get(FLEET_STATUS_CACHE_KEY)
+        if cached is not None:
+            return {**cached, "generated_at": timezone.now().isoformat()}
+
     qs = build_fleet_queryset()
     schools = list(qs)
-    q_norm = (q or "").strip().lower()
     if q_norm:
         schools = [
             s
@@ -122,7 +138,7 @@ def build_fleet_live_payload(
     heatmap_tiles, _ = resolve_fleet_tiles(max_tiles=500)
     revision = fleet_revision(heatmap_tiles, summary)
 
-    return {
+    payload = {
         "generated_at": timezone.now().isoformat(),
         "poll_interval_seconds": FLEET_POLL_INTERVAL_SECONDS,
         "summary": summary,
@@ -136,6 +152,15 @@ def build_fleet_live_payload(
         },
         "rows": rows,
     }
+
+    if cacheable:
+        try:
+            cache.set(FLEET_STATUS_CACHE_KEY, payload, FLEET_POLL_INTERVAL_SECONDS)
+        except Exception:
+            # Cache is best-effort; a backend hiccup must never break the poll.
+            pass
+
+    return payload
 
 
 def _roster_state_from_fleet(status: dict[str, Any]) -> str:

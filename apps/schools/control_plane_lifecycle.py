@@ -275,6 +275,17 @@ def apply_school_lifecycle_action(
         ensure_billing_account_for_school(school)
 
     school.refresh_from_db()
+
+    # This operator action changed fleet-visible state — bust the fleet poller
+    # cache so the heatmap reflects it on the next poll instead of waiting out
+    # the TTL. Lazy import: fleet_status imports from this module (avoid cycle).
+    try:
+        from apps.schools.fleet_status import invalidate_fleet_status_cache
+
+        invalidate_fleet_status_cache()
+    except Exception:
+        pass
+
     return {
         "message": message,
         "changed_fields": changed_fields,

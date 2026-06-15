@@ -39,6 +39,12 @@ _SUBSCRIPTION_UNSET = object()
 
 FLEET_POLL_INTERVAL_SECONDS = 15
 
+# Short-TTL cache for the request-invariant fleet poller payload (the cockpit
+# live poll hits this every FLEET_POLL_INTERVAL_SECONDS from every operator tab).
+# TTL = one poll interval bounds staleness to a single poll the client already
+# makes. invalidate_fleet_status_cache() busts it on lifecycle mutations.
+FLEET_STATUS_CACHE_KEY = "rmc:fleet:status:v1"
+
 FLEET_STATE_LIVE = "live"
 FLEET_STATE_TRIALING = "trialing"
 FLEET_STATE_PENDING = "pending_approval"
@@ -327,6 +333,6 @@ def invalidate_fleet_status_cache() -> None:
     try:
         from django.core.cache import cache
 
-        cache.delete("rmc:fleet:status:v1")
+        cache.delete(FLEET_STATUS_CACHE_KEY)
     except Exception:
         logger.warning("fleet_status: cache invalidate failed", exc_info=True)
