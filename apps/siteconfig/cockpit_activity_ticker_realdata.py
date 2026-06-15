@@ -484,22 +484,29 @@ def _resolve_tenant_slug(request: Any) -> str:
 
 
 def _source_tenant_attendance_milestones(request: Any) -> list[dict[str, Any]]:
-    """Best-effort: surface a single 'attendance streak' card when the model exists."""
+    """Best-effort: surface a single 'attendance recorded today' card.
+
+    Tenant-scoped — ``academics.Attendance`` carries a school FK, so the count
+    is filtered by the request's school (no cross-tenant aggregate, no row-level
+    PII; aggregate count only).
+    """
     try:
-        from apps.attendance.models import AttendanceRecord  # noqa: F401
+        from apps.academics.models import Attendance
     except Exception:
         return []
     try:
-        # Lightweight signal: count attendance rows in the last 24h. No row-level
-        # PII surfaced — just an aggregate "attendance recorded today" line.
-        from apps.attendance.models import AttendanceRecord
         cutoff = timezone.now() - timedelta(hours=24)
-        if not hasattr(AttendanceRecord, "created_at") and not hasattr(AttendanceRecord, "date"):
+        ts_field = "created_at" if hasattr(Attendance, "created_at") else "date"
+        if not hasattr(Attendance, ts_field):
             return []
-        ts_field = "created_at" if hasattr(AttendanceRecord, "created_at") else "date"
-        # The tenant-scoped manager isolates this query — by-design when the
-        # tenant has the school FK on AttendanceRecord; no cross-tenant aggregate.
-        recent = AttendanceRecord.objects.filter(**{f"{ts_field}__gte": cutoff}).count()
+        school = getattr(request, "school", None)
+        school_id = getattr(school, "pk", None) if school is not None else None
+        if not school_id:
+            return []
+        recent = Attendance.objects.filter(
+            school_id=school_id,
+            **{f"{ts_field}__gte": cutoff},
+        ).count()
         if recent == 0:
             return []
         return [{
