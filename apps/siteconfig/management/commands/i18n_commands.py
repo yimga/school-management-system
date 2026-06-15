@@ -1,32 +1,18 @@
 """
 Phase 8 Task 5: Internationalization Management Commands
 compile_translations - Compile translation files
-generate_regional_reports - Generate region-specific reports
 validate_translations - Verify translation completeness
-§2.4: Typed exception tuple and log_exception_with_context for GenerateRegionalReportsCommand.
+
+Note: regional report generation lives in the registered, maintained command
+``apps/reports/management/commands/generate_regional_reports.py``. The former
+``GenerateRegionalReportsCommand`` here was an unregistered duplicate that
+referenced a nonexistent ``ReportCompilationService`` and was retired.
 """
 
 import json
 from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
-from django.db import DatabaseError, OperationalError
-from django.utils import timezone
-
-from apps.platform_runtime.structured_logging import log_exception_with_context
-
-# §2.4 broad-except shrink: report generation and file write can raise these.
-_I18N_GENERATE_REPORT_ERRORS = (
-    ValueError,
-    TypeError,
-    KeyError,
-    AttributeError,
-    DatabaseError,
-    OperationalError,
-    ImportError,
-    OSError,
-    FileNotFoundError,
-)
 
 
 class Command(BaseCommand):
@@ -68,94 +54,6 @@ class Command(BaseCommand):
             self.validate_translations(locale_path)
 
         self.stdout.write(self.style.SUCCESS("✓ Translations compiled successfully"))
-
-
-class GenerateRegionalReportsCommand(BaseCommand):
-    """Management command to generate region-specific reports"""
-
-    help = "Generate regional reports with localization"
-
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "--region",
-            type=str,
-            required=True,
-            help="Region code (west_africa, east_africa, central_africa, southern_africa)",
-        )
-        parser.add_argument(
-            "--school-id",
-            type=int,
-            required=True,
-            help="School ID",
-        )
-        parser.add_argument(
-            "--language",
-            type=str,
-            default="en",
-            help="Report language",
-        )
-        parser.add_argument(
-            "--type",
-            type=str,
-            choices=["monthly", "quarterly", "annual"],
-            default="monthly",
-            help="Report type",
-        )
-        parser.add_argument(
-            "--output",
-            type=str,
-            help="Output file path",
-        )
-
-    def handle(self, *args, **options):
-        from apps.reports.localization import (
-            RegionalReportGenerator,
-            ReportCompilationService,
-        )
-
-        region = options["region"]
-        school_id = options["school_id"]
-        language = options["language"]
-        report_type = options["type"]
-        output = options.get("output")
-
-        try:
-            if report_type == "monthly":
-                from datetime import datetime
-
-                month = datetime.now().month
-                report = ReportCompilationService.compile_monthly_regional_report(
-                    region, school_id, month, language
-                )
-            elif report_type == "quarterly":
-                quarter = (datetime.now().month - 1) // 3 + 1
-                report = ReportCompilationService.compile_quarterly_report(
-                    region, school_id, quarter, language
-                )
-            else:
-                report = RegionalReportGenerator.generate_regional_report(
-                    region, school_id, timezone.now(), timezone.now(), language
-                )
-
-            if output:
-                with open(output, "w", encoding="utf-8") as f:
-                    json.dump(report, f, indent=2, ensure_ascii=False)
-                self.stdout.write(self.style.SUCCESS(f"✓ Report saved to {output}"))
-            else:
-                self.stdout.write(json.dumps(report, indent=2, ensure_ascii=False))
-
-            self.stdout.write(
-                self.style.SUCCESS("✓ Regional report generated successfully")
-            )
-
-        except _I18N_GENERATE_REPORT_ERRORS as e:
-            log_exception_with_context(
-                "i18n generate_regional_reports: report generation failed",
-                school_id=options.get("school_id"),
-                extra={"region": region, "report_type": report_type, "error": str(e)},
-            )
-            self.stdout.write(self.style.ERROR(f"✗ Error generating report: {str(e)}"))
-            raise CommandError(str(e))
 
 
 class ValidateTranslationsCommand(BaseCommand):

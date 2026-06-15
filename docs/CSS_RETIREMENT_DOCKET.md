@@ -1,6 +1,15 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-15 (dynamic-lookup sweep — retired dead `apps/evals/import_services.py`, built on unregistered phantom models; see § below).
+**Last updated:** 2026-06-15 (import-reference integrity CI gate — sealed the phantom/wrong-module/absent-import loophole class with `scripts/scan_import_reference_integrity.py`; retired the dead `GenerateRegionalReportsCommand`; see § below).
+
+## 2026-06-15 — Import-reference integrity CI gate + retire dead `GenerateRegionalReportsCommand`
+
+**Context:** this session repeatedly fixed phantom/wrong-module/absent `apps.*` imports by hand (each one surfaced as a 500 on a routed view, or — worse — got swallowed by a broad `except` so a counter/list pinned to 0/empty forever). To make the loophole *unable to regress* rather than just closed-today, added a zero-tolerance CI gate `scripts/scan_import_reference_integrity.py` (stdlib AST + filesystem, no Django/runtime dep) wired into `architectural-boundaries.yml::import-reference-integrity`, baseline `var/security-audit-baseline-import-reference-integrity.json` = 0. It statically resolves every absolute / relative / dynamic-literal `apps.*` reference to a real module + symbol; PEP-420 namespace packages, `import *` / `__getattr__` / `globals().update(...)` re-exports are treated opaque (zero false positives); `try/except ImportError` (incl. named-tuple guards like `_GATE_SOFT_FAILURES`) and `# import-ref-allow: <reason>` markers excuse intentional optional/deferred targets. 14 stdlib unittests lock the behavior (`scripts/tests/test_scan_import_reference_integrity.py`).
+
+**Retired:**
+- `GenerateRegionalReportsCommand` (class in `apps/siteconfig/management/commands/i18n_commands.py`) — the gate's first run caught it: an **unregistered** management-command class (Django only loads the class literally named `Command` per file, so this one was never runnable) whose `handle()` imported a nonexistent `ReportCompilationService` from `apps.reports.localization` and called `ReportCompilationService.compile_monthly_regional_report` / `.compile_quarterly_report` (defined nowhere). Removed the class + its exclusively-used `_I18N_GENERATE_REPORT_ERRORS` tuple + now-orphaned imports (`DatabaseError`, `OperationalError`, `timezone`, `log_exception_with_context`). Zero importers.
+
+**Kept (live regional-reports path — unaffected):** the registered, maintained `python manage.py generate_regional_reports` command at `apps/reports/management/commands/generate_regional_reports.py`. The surviving `Command` (compile translations), `ValidateTranslationsCommand`, and `CompileTranslationsCommand` classes in `i18n_commands.py` are untouched; `manage.py check` passes.
 
 ## 2026-06-15 — Dynamic model-lookup sweep — retire dead `apps/evals/import_services.py`
 

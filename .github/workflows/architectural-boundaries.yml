@@ -26,6 +26,8 @@ on:
       - "scripts/scan_print_statements.py"
       - "scripts/scan_bare_except.py"
       - "scripts/scan_migration_model_imports.py"
+      - "scripts/scan_import_reference_integrity.py"
+      - "var/security-audit-baseline-import-reference-integrity.json"
       - "scripts/scan_drf_schema_coverage.py"
       - "scripts/scan_role_strings.py"
       - "scripts/scan_assert_in_production.py"
@@ -254,6 +256,20 @@ jobs:
       - name: Run scanner --compare
         run: |
           python scripts/scan_migration_model_imports.py --compare
+
+  import-reference-integrity:
+    name: Import-reference integrity boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_import_reference_integrity.py --compare
 
   drf-schema-coverage:
     name: DRF view schema coverage
