@@ -1,13 +1,13 @@
 # Luxury UI Surface Audit
 
-**Generated:** 2026-06-10T02:57:52.495169+00:00
-**Score:** 15/15
+**Generated:** 2026-06-15T01:51:52.216016+00:00
+**Score:** 14/15
 **Verdict:** ULTRA-LUXURY
 
 ## Summary
 
 - High-impact templates scanned: 254
-- Inline style hits: 55 (violations: 0)
+- Inline style hits: 56 (violations: 1)
 - Unwrapped tables: 8 (violations: 0)
 - Missing table-family: 7 (violations: 0)
 - Missing ds-btn usage: 120 (violations: 0)
@@ -27,7 +27,7 @@
 
 - **action_clarity:** 3/3
 - **click_depth:** 2/2
-- **component_consistency:** 2/2
+- **component_consistency:** 1/2
 - **layout_consistency:** 2/2
 - **mobile_ux:** 2/2
 - **overflow_safety:** 2/2

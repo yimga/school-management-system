@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-06-10T08:29:38.884994+00:00",
+  "generated_at": "2026-06-14T21:01:27.244482+00:00",
   "protocol": "ZERO-FRICTION-OS-PHASES-0-8",
   "summary": {
     "phases_total": 9,
@@ -9,7 +9,7 @@
     "not_done": 0,
     "repo_scope_complete": true
   },
-  "service_worker_version": "sms-v4.03.60-master-implementation-consolidation-2026-06-10",
+  "service_worker_version": "sms-v4.03.65-copilot-grid-critical-inline-2026-06-10",
   "phases": [
     {
       "phase": 0,

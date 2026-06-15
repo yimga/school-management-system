@@ -11,10 +11,12 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import atexit
 import json
 import os
 import subprocess
 import sys
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -45,7 +47,61 @@ from sqlite_gate_db import (  # noqa: E402
     bootstrap_gate_session_env,
     reap_all_stale_gate_locks,
     sqlite_gate_lease,
+    _pid_is_alive,
 )
+
+_MATRIX_RUNNER_LOCK = REPO / ".django_test_dbs" / "matrix_runner.pid"
+
+
+@contextmanager
+def _matrix_runner_lock():
+    """Refuse a second concurrent matrix — parallel runners corrupt SQLite on Windows."""
+    _MATRIX_RUNNER_LOCK.parent.mkdir(parents=True, exist_ok=True)
+    if _MATRIX_RUNNER_LOCK.is_file():
+        try:
+            other = int(_MATRIX_RUNNER_LOCK.read_text(encoding="utf-8").strip())
+        except ValueError:
+            other = 0
+        if other and _pid_is_alive(other):
+            print(
+                f"Matrix runner already active (pid {other}). "
+                "Stop it before starting another.",
+                file=sys.stderr,
+                flush=True,
+            )
+            sys.exit(2)
+        try:
+            _MATRIX_RUNNER_LOCK.unlink(missing_ok=True)
+        except OSError:
+            pass
+    try:
+        fd = os.open(str(_MATRIX_RUNNER_LOCK), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except FileExistsError:
+        print(
+            "Matrix runner already active (lock file present). "
+            "Stop it before starting another.",
+            file=sys.stderr,
+            flush=True,
+        )
+        sys.exit(2)
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        handle.write(str(os.getpid()))
+        handle.flush()
+
+    def _release() -> None:
+        try:
+            if _MATRIX_RUNNER_LOCK.is_file():
+                if _MATRIX_RUNNER_LOCK.read_text(encoding="utf-8").strip() == str(os.getpid()):
+                    _MATRIX_RUNNER_LOCK.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+    atexit.register(_release)
+    try:
+        yield
+    finally:
+        atexit.unregister(_release)
+        _release()
 
 SHARDS: list[list[str]] = [
     [
@@ -222,7 +278,6 @@ def _manage_test_cmd(labels: list[str]) -> list[str]:
         "--settings=config.settings",
         "--noinput",
         "--keepdb",
-        "--parallel=1",
         "--verbosity=1",
     ]
 
@@ -552,81 +607,82 @@ def main() -> int:
     args = parser.parse_args()
     keepdb = args.keepdb and not args.no_keepdb
 
-    if args.isolation == "app":
-        return _run_app_isolation_mode(args)
+    with _matrix_runner_lock():
+        if args.isolation == "app":
+            return _run_app_isolation_mode(args)
 
-    reaped = reap_all_stale_gate_locks(REPO, stale_after=120.0)
-    if reaped:
-        print(f"Reaped {reaped} stale SQLite gate lock(s)", flush=True)
-    gate_db = bootstrap_gate_session_env(REPO, session_id=GATE_SESSION_ID)
-    os.environ["RMC_SQLITE_TEST_MEMORY"] = "1"
-    os.environ["RMC_SQLITE_TEST_USE_MEMORY_NAME"] = "0"
-    print(f"Gate test DB: {gate_db}", flush=True)
+        reaped = reap_all_stale_gate_locks(REPO, stale_after=120.0)
+        if reaped:
+            print(f"Reaped {reaped} stale SQLite gate lock(s)", flush=True)
+        gate_db = bootstrap_gate_session_env(REPO, session_id=GATE_SESSION_ID)
+        os.environ["RMC_SQLITE_TEST_MEMORY"] = "1"
+        os.environ["RMC_SQLITE_TEST_USE_MEMORY_NAME"] = "0"
+        print(f"Gate test DB: {gate_db}", flush=True)
 
-    existing = {}
-    p = OUT / "full_50_app_test_matrix_completion.json"
-    if p.is_file():
-        try:
-            existing = json.loads(p.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            existing = {}
+        existing = {}
+        p = OUT / "full_50_app_test_matrix_completion.json"
+        if p.is_file():
+            try:
+                existing = json.loads(p.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                existing = {}
 
-    shard_results: list[dict] = list(existing.get("shards") or [])
-    by_index = {r["shard"]: r for r in shard_results if "shard" in r}
+        shard_results: list[dict] = list(existing.get("shards") or [])
+        by_index = {r["shard"]: r for r in shard_results if "shard" in r}
 
-    indices = list(range(len(SHARDS)))
-    if args.shard is not None:
-        indices = [args.shard]
-    elif args.max_shards is not None:
-        indices = indices[: args.max_shards]
+        indices = list(range(len(SHARDS)))
+        if args.shard is not None:
+            indices = [args.shard]
+        elif args.max_shards is not None:
+            indices = indices[: args.max_shards]
 
-    for idx in indices:
-        if idx < 0 or idx >= len(SHARDS):
-            continue
-        print(f"Shard {idx + 1}/{len(SHARDS)}: {', '.join(SHARDS[idx][:3])}...", flush=True)
-        result = _run_shard(idx, SHARDS[idx], keepdb=keepdb)
-        if not result.get("ok") and _looks_like_stale_keepdb(result.get("output_tail", "")):
+        for idx in indices:
+            if idx < 0 or idx >= len(SHARDS):
+                continue
+            print(f"Shard {idx + 1}/{len(SHARDS)}: {', '.join(SHARDS[idx][:3])}...", flush=True)
+            result = _run_shard(idx, SHARDS[idx], keepdb=keepdb)
+            if not result.get("ok") and _looks_like_stale_keepdb(result.get("output_tail", "")):
+                print(
+                    "  -> stale gate keepdb detected; resetting session and retrying with --fresh",
+                    flush=True,
+                )
+                gate_db = bootstrap_gate_session_env(
+                    REPO, session_id=GATE_SESSION_ID, force_fresh=True
+                )
+                os.environ["DJANGO_TEST_DB_FILE"] = str(gate_db)
+                print(f"  -> fresh gate test DB: {gate_db}", flush=True)
+                result = _run_shard(idx, SHARDS[idx], keepdb=keepdb, fresh=True)
+                result["retried_with_fresh_gate"] = True
+            by_index[idx] = result
+            shard_results = [by_index[i] for i in sorted(by_index)]
             print(
-                "  -> stale gate keepdb detected; resetting session and retrying with --fresh",
+                f"  -> shard {idx} ok={result.get('ok')} exit={result.get('exit_code')}",
                 flush=True,
             )
-            gate_db = bootstrap_gate_session_env(
-                REPO, session_id=GATE_SESSION_ID, force_fresh=True
-            )
-            os.environ["DJANGO_TEST_DB_FILE"] = str(gate_db)
-            print(f"  -> fresh gate test DB: {gate_db}", flush=True)
-            result = _run_shard(idx, SHARDS[idx], keepdb=keepdb, fresh=True)
-            result["retried_with_fresh_gate"] = True
-        by_index[idx] = result
-        shard_results = [by_index[i] for i in sorted(by_index)]
-        print(
-            f"  -> shard {idx} ok={result.get('ok')} exit={result.get('exit_code')}",
-            flush=True,
-        )
+
+            if args.write:
+                _write_progress(payload_base(shard_results, by_index))
+
+        payload = payload_base(shard_results, by_index)
 
         if args.write:
-            _write_progress(payload_base(shard_results, by_index))
+            _write_progress(payload)
+            lines = [
+                f"- Shards: {payload['shards_run']}/{payload['shard_count']}",
+                f"- All green: **{payload['all_shards_green']}**",
+            ]
+            for r in shard_results:
+                lines.append(f"- Shard {r['shard']}: ok={r.get('ok')} exit={r.get('exit_code')}")
+            (OUT / "full_50_app_test_matrix_completion.md").write_text(
+                "# Full 50-app test matrix completion\n\n"
+                + f"Generated: {_now()}\n\n"
+                + "\n".join(lines)
+                + "\n",
+                encoding="utf-8",
+            )
 
-    payload = payload_base(shard_results, by_index)
-
-    if args.write:
-        _write_progress(payload)
-        lines = [
-            f"- Shards: {payload['shards_run']}/{payload['shard_count']}",
-            f"- All green: **{payload['all_shards_green']}**",
-        ]
-        for r in shard_results:
-            lines.append(f"- Shard {r['shard']}: ok={r.get('ok')} exit={r.get('exit_code')}")
-        (OUT / "full_50_app_test_matrix_completion.md").write_text(
-            "# Full 50-app test matrix completion\n\n"
-            + f"Generated: {_now()}\n\n"
-            + "\n".join(lines)
-            + "\n",
-            encoding="utf-8",
-        )
-
-    print(f"Matrix: {payload['shards_run']}/{payload['shard_count']} shards; all_green={payload['all_shards_green']}")
-    return 0 if payload["all_shards_green"] else 1
+        print(f"Matrix: {payload['shards_run']}/{payload['shard_count']} shards; all_green={payload['all_shards_green']}")
+        return 0 if payload["all_shards_green"] else 1
 
 
 if __name__ == "__main__":

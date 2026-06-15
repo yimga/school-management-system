@@ -1,12 +1,7 @@
-# Full 50-app test matrix completion
+# Full 50-app test matrix completion (per-app isolation)
 
-Generated: 2026-06-10T05:08:49.444153+00:00
+Generated: 2026-06-15T03:31:14.079776+00:00
 
-- Shards: 6/6
+- Apps: 46/46
 - All green: **False**
-- Shard 0: ok=False exit=1
-- Shard 1: ok=False exit=1
-- Shard 2: ok=False exit=1
-- Shard 3: ok=False exit=1
-- Shard 4: ok=False exit=1
-- Shard 5: ok=False exit=1073807364
+- Failing apps: apps.accounts.tests, apps.analytics.tests, apps.api.tests, apps.apicenter.tests, apps.automation.tests, apps.billing.tests, apps.finance.tests, apps.integrations_marketplace.tests, apps.marketplace.tests, apps.metadata.tests, apps.migration_cloud.tests, apps.observability.tests, apps.orchestration.tests, apps.platform_runtime.tests, apps.reports.tests, apps.requests.tests, apps.schoolops.tests, apps.schools.tests, apps.security.tests, apps.setup_studio.tests, apps.siteconfig.tests, apps.studio_os.tests

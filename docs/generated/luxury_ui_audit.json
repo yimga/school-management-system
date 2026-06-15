@@ -14,7 +14,7 @@
     },
     "component_consistency": {
       "max": 2,
-      "score": 2
+      "score": 1
     },
     "layout_consistency": {
       "max": 2,
@@ -50,10 +50,10 @@
       ]
     }
   },
-  "generated_at": "2026-06-10T02:57:52.495169+00:00",
+  "generated_at": "2026-06-15T01:51:52.216016+00:00",
   "high_impact_templates_total": 254,
   "inline_styles": {
-    "count": 55,
+    "count": 56,
     "needs_review_count": 55,
     "needs_review_paths": [
       "templates/accounts/backend_dashboard.html",
@@ -112,8 +112,10 @@
       "templates/studio_os/partials/subpages/experience_experience_packs.html",
       "templates/studio_os/shell.html"
     ],
-    "violation_count": 0,
-    "violation_paths": []
+    "violation_count": 1,
+    "violation_paths": [
+      "templates/control_plane_skeleton.html"
+    ]
   },
   "luxury_gate_min_score": 13,
   "luxury_gate_passed": true,
@@ -336,7 +338,7 @@
     "violation": 0
   },
   "schema_version": 2,
-  "score_out_of_15": 15,
+  "score_out_of_15": 14,
   "screen_headers_actions": {
     "action_bar_violations": [
       "templates/schools/billing_dashboard.html"
@@ -824,7 +826,7 @@
       ]
     },
     "inline_style_cleanup": {
-      "count": 55,
+      "count": 56,
       "needs_review_count": 55,
       "needs_review_paths": [
         "templates/accounts/backend_dashboard.html",
@@ -883,8 +885,10 @@
         "templates/studio_os/partials/subpages/experience_experience_packs.html",
         "templates/studio_os/shell.html"
       ],
-      "violation_count": 0,
-      "violation_paths": []
+      "violation_count": 1,
+      "violation_paths": [
+        "templates/control_plane_skeleton.html"
+      ]
     },
     "non_token_literals": {
       "per_file": {
