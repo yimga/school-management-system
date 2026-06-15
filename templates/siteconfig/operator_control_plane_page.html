@@ -18,7 +18,7 @@
 {% block extrahead %}
 {{ block.super }}
 {% if operator_cp_meta_description or operator_cp_title %}
-<meta name="description" content="{{ operator_cp_meta_description|default:operator_cp_title|truncatewords:28 }}">
+{% firstof operator_cp_meta_description operator_cp_title as ocp_desc %}<meta name="description" content="{{ ocp_desc|truncatewords:28 }}">
 {% endif %}
 {% if operator_cp_title %}
 <meta property="og:title" content="{{ operator_cp_title }} — RunMyCampus Manager">

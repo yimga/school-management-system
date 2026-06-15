@@ -82,7 +82,7 @@
                     {% for row in report_pack_preview.rows %}
                       <tr>
                         <th scope="row" class="text-muted">{{ row.label|default:"Metric" }}</th>
-                        <td>{{ row.value|default:row.sample|default:row.note|default:row }}</td>
+                        <td>{% firstof row.value row.sample row.note row %}</td>
                       </tr>
                     {% endfor %}
                   </tbody>

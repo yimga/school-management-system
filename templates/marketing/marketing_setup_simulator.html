@@ -29,7 +29,7 @@
         </div>
       </div>
       <div class="proof-visual">
-        <img src="{{ school_in_a_box_flow_image_url|default:platform_architecture_diagram_url }}" alt="{% trans 'Setup visual' %}">
+        <img src="{% firstof school_in_a_box_flow_image_url platform_architecture_diagram_url %}" alt="{% trans 'Setup visual' %}">
         <div class="proof-visual-caption">{% trans "Setup should feel like a launch studio, not a checklist buried inside settings." %}</div>
       </div>
     </div>

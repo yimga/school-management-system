@@ -11,7 +11,7 @@ Minimal tenant workspace chrome — school name only; no platform nav/footer.
     {# firstof resolves every operand with ignore_failures, so an UNDEFINED #}
     {# pending_school_name (this shell is reused by the onboarding "done" page #}
     {# and others that never set it) is skipped instead of raising #}
-    {# VariableDoesNotExist — the old `|default:pending_school_name` chain 500'd #}
+    {# VariableDoesNotExist — the old default-filter fallback chain 500'd #}
     {# because Django resolves filter args eagerly even when an earlier default #}
     {# already won. #}
     {% firstof SITE.site_name school.name pending_school_name "Your school" as brand_label %}

@@ -18,7 +18,7 @@
   <form method="post" class="card card-body mb-3">
     {% csrf_token %}
     <label for="mf-input" class="form-label">{% trans "Manifest JSON" %}</label>
-    <textarea id="mf-input" name="manifest" class="form-control font-monospace" rows="12">{{ submitted|default:example }}</textarea>
+    <textarea id="mf-input" name="manifest" class="form-control font-monospace" rows="12">{% firstof submitted example %}</textarea>
     <div class="d-flex gap-2 mt-2">
       <button type="submit" class="btn btn-primary">{% trans "Validate" %}</button>
       <button type="reset" class="btn btn-outline-secondary">{% trans "Reset" %}</button>

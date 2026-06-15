@@ -26,7 +26,7 @@
         <div class="h6 text-uppercase mb-1">{% trans "Platform configuration" %}</div>
         <h1 class="h4 mb-1 fw-bold">{{ page_title }}</h1>
       </div>
-      <a href="{{ return_url|default:back_url }}" class="btn btn-outline-light btn-sm">{% trans "Back to list" %}</a>
+      <a href="{% firstof return_url back_url %}" class="btn btn-outline-light btn-sm">{% trans "Back to list" %}</a>
     </div>
   </header>
 
@@ -45,7 +45,7 @@
       {% endfor %}
       <div class="d-flex flex-wrap gap-2 pt-2">
         <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
-        <a href="{{ return_url|default:back_url }}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+        <a href="{% firstof return_url back_url %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
         <a href="{{ system_config_url }}" class="btn btn-outline-secondary ms-md-auto">{% trans "Config center" %}</a>
       </div>
     </form>

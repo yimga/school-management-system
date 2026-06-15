@@ -15,7 +15,7 @@
      preserved for backwards-compat of period / total pill chrome. {% endcomment %}
   {% trans "Evaluation grid" as report_title %}
   {% now "Y-m-d" as generated_at %}
-  {% include "partials/rmc_print_v2_brand_block.html" with report_title=report_title|default:report_title report_subtitle=report_period report_meta_left=generated_at report_meta_right=SITE.site_name %}
+  {% include "partials/rmc_print_v2_brand_block.html" with report_title=report_title report_subtitle=report_period report_meta_left=generated_at report_meta_right=SITE.site_name %}
   <div class="letterhead">
     {% if SITE_LOGO_URL %}
       <img src="{{ SITE_LOGO_URL }}" alt="Logo" width="80" height="80" decoding="async" style="max-height: 80px; width: auto; object-fit: contain;" />

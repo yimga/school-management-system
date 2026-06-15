@@ -16,7 +16,7 @@
       </button>
       {% endif %}
     </div>
-    <div class="dashboard-chart-wrapper" role="img" aria-label="{{ aria_label|default:chart_title }}"{% if fill_container %} data-chart-fill-container="true"{% endif %}>
+    <div class="dashboard-chart-wrapper" role="img" aria-label="{% firstof aria_label chart_title %}"{% if fill_container %} data-chart-fill-container="true"{% endif %}>
       <div class="dashboard-chart-loading d-none" data-chart-loading="{{ chart_id }}">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Loading chart...</span>

@@ -30,7 +30,7 @@
         </div>
       </div>
       <div class="proof-visual">
-        <img src="{{ hero_dashboard_image_url|default:platform_architecture_diagram_url }}" alt="{% trans 'Role dashboard preview' %}">
+        <img src="{% firstof hero_dashboard_image_url platform_architecture_diagram_url %}" alt="{% trans 'Role dashboard preview' %}">
         <div class="proof-visual-caption">{% trans "Each role page should communicate that the platform already knows why that role came here." %}</div>
       </div>
     </div>

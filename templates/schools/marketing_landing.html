@@ -65,8 +65,8 @@
   <section id="hero" class="mkt-hero" tabindex="-1" data-tour="hero" data-chapter="1">
     <div class="mkt-hero-inner">
       <div>
-        <h1 class="mkt-hero-headline">{{ platform_headline|default:hero_headline }}</h1>
-        <p class="mkt-hero-subheadline">{{ hero_ai_line|default:hero_subheadline }}</p>
+        <h1 class="mkt-hero-headline">{% firstof platform_headline hero_headline %}</h1>
+        <p class="mkt-hero-subheadline">{% firstof hero_ai_line hero_subheadline %}</p>
         {% if category_claim %}
         <p class="mkt-hero-category-claim text-muted small mb-2">{{ category_claim }}</p>
         {% endif %}

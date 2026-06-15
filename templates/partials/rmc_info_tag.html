@@ -12,10 +12,10 @@
     {% if entity %}data-rmc-info-entity="{{ entity }}"{% endif %}
     {% if field %}data-rmc-info-field="{{ field }}"{% endif %}
     {% if feature %}data-rmc-info-feature="{{ feature }}"{% endif %}
-    aria-label="{% trans 'More information' %}: {{ title|default:label }}"
+    aria-label="{% trans 'More information' %}: {% firstof title label %}"
   >
     <i class="bi bi-info-circle" aria-hidden="true"></i>
-    <span class="visually-hidden">{{ title|default:label }}</span>
+    <span class="visually-hidden">{% firstof title label %}</span>
   </button>
 </span>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

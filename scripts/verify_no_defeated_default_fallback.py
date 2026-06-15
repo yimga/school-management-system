@@ -1,22 +1,30 @@
 #!/usr/bin/env python
-"""CI guard: forbid the "defeated safety fallback" template footgun.
+"""CI guard: forbid the eager-resolution ``|default:<bare_var>`` template footgun.
 
-Django resolves EVERY filter argument eagerly, even when an earlier ``default``
-already won. So in a chain like::
+Django resolves EVERY ``default`` filter ARGUMENT eagerly — unconditionally, and
+regardless of whether the value being defaulted is truthy. So in BOTH of these::
 
-    {{ a|default:b|default:"safe" }}
+    {{ a|default:pending_school_name }}                 # single fallback
+    {{ a|default:pending_school_name|default:"safe" }}  # defeated double fallback
 
-if ``b`` is a bare variable that is undefined in some render path, resolving it
-raises ``VariableDoesNotExist`` and the page 500s — BEFORE the ``"safe"`` literal
-fallback can ever apply. The author's safety net is dead. (A *base* variable like
-``a`` is swallowed to ``string_if_invalid``; only filter ARGS raise. This is what
-caused the onboarding/done 500 via ``|default:pending_school_name``.)
+resolving the bare variable ``pending_school_name`` raises ``VariableDoesNotExist``
+and the page 500s whenever that variable is undefined in the render path — even
+when ``a`` is truthy, and even when a later ``"safe"`` literal "should" have caught
+it. (A *base* variable like ``a`` is swallowed to ``string_if_invalid``; only
+filter ARGS raise. This is exactly what caused the onboarding/done 500 via
+``|default:pending_school_name``.) Empirically verified: ``{{ x|default:undefined }}``
+raises; ``{{ x|default:True }}``/``False``/``None`` are SAFE (Django injects those
+three as context builtins); quoted/numeric/``_("…")`` args are literals (safe);
+``obj.attr`` args also raise if ``obj`` is absent but are accepted here by
+convention (loop vars + context-processor globals, far lower blast radius).
 
-The fix is always ``{% firstof a b "safe" %}`` (or ``{% firstof ... as x %}``),
-which resolves every operand with ``ignore_failures`` so the fallback works.
+The fix is always ``{% firstof a bare_var "safe" %}`` (optionally ``as x``), which
+resolves every operand with ``ignore_failures`` so the fallback genuinely works.
 
-This guard fails if the pattern ``|default:<bare_standalone_var>|default:`` is
-reintroduced anywhere under ``templates/``. Run in CI / pre-deploy.
+This guard fails if a bare LOWERCASE single-token variable is used as a ``default``
+filter argument anywhere under ``templates/``. Mark a deliberate, proven-safe site
+(e.g. the arg is guaranteed-present) with ``default-fallback-allow: <reason>`` on
+the same line. Run in CI / pre-deploy::
 
     python scripts/verify_no_defeated_default_fallback.py
 """
@@ -27,10 +35,13 @@ import pathlib
 import re
 import sys
 
-# A standalone bare-variable default arg (no dot/paren/quote -> a top-level var
-# that some render path may not provide) immediately followed by ANOTHER default.
-# Attribute chains (obj.attr) and literals ("x", 'x', _( )) are NOT flagged.
-PATTERN = re.compile(r"\|default:([a-z_]\w*)(?![\w.(])\s*\|default:")
+# A bare lowercase single-token variable used as a `default` filter arg. Excludes:
+#   - True/False/None (uppercase -> not [a-z]; injected as context builtins),
+#   - attribute chains obj.attr (the (?!...) drops a trailing dot),
+#   - calls _( ) and literals "x"/'x'/123 (the (?!...) drops ( ' " ; [a-z] drops digits),
+#   - the next filter in a chain (a trailing | is fine — that IS the value being defaulted).
+PATTERN = re.compile(r"\|default:([a-z]\w*)(?![\w.(:'\"])")
+ALLOW = "default-fallback-allow:"
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TEMPLATES = ROOT / "templates"
@@ -44,24 +55,27 @@ def main() -> int:
         except OSError:
             continue
         for lineno, line in enumerate(text.splitlines(), 1):
+            if ALLOW in line:
+                continue
             m = PATTERN.search(line)
             if m:
                 rel = path.relative_to(ROOT).as_posix()
-                offenders.append(f"{rel}:{lineno}  (|default:{m.group(1)}|default:...)")
+                offenders.append(f"{rel}:{lineno}  (|default:{m.group(1)})")
 
     if offenders:
         sys.stderr.write(
-            "Defeated safety-fallback template pattern found "
+            "Eager-resolution default-arg template footgun found "
             f"({len(offenders)} occurrence(s)).\n"
-            "Each `|default:<bare_var>|default:<fallback>` 500s when <bare_var> is "
-            "undefined — the fallback is dead. Use {% firstof a b \"fallback\" %} "
-            "(optionally `as var`) instead:\n\n"
+            "Each `|default:<bare_var>` 500s when <bare_var> is undefined in any "
+            "render path — Django resolves the filter arg eagerly. Use "
+            "{% firstof value bare_var \"fallback\" %} (optionally `as var`), or mark a "
+            "proven-safe site with `default-fallback-allow: <reason>`:\n\n"
         )
         for o in offenders:
             sys.stderr.write(f"  {o}\n")
         return 1
 
-    print("OK: no defeated default-fallback patterns in templates/.")
+    print("OK: no eager-resolution default-arg footguns in templates/.")
     return 0
 
 

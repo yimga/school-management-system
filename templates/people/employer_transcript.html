@@ -14,7 +14,8 @@
      crest header. Translated title pre-resolved to avoid lazy-callable leak. {% endcomment %}
   {% trans "Employer transcript" as report_title %}
   {% now "Y-m-d" as generated_at %}
-  {% include "partials/rmc_print_v2_brand_block.html" with report_title=report_title report_subtitle=student.get_full_name report_meta_left=generated_at report_meta_right=employer|default:school %}
+  {% firstof employer school as report_meta_right_val %}
+  {% include "partials/rmc_print_v2_brand_block.html" with report_title=report_title report_subtitle=student.get_full_name report_meta_left=generated_at report_meta_right=report_meta_right_val %}
 
   {% url 'portal:employer_dashboard' as dashboard_url %}
   {% include "studio_os/components/page_header.html" with title=_("Transcript") subtitle=student.get_full_name action_url=dashboard_url action_text=_("Back to dashboard") %}

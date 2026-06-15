@@ -32,7 +32,7 @@ PII safety:
 <section class="tp-spotlight" aria-label="{{ spotlight_label }}" data-rmc-cockpit-section="teacher_spotlight_card">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="tp-spotlight__head">
-    <h3 class="tp-spotlight__title">{{ ts.title|default:spotlight_label }}</h3>
+    <h3 class="tp-spotlight__title">{% firstof ts.title spotlight_label %}</h3>
     {% if ts.sub %}<div class="tp-spotlight__sub">{{ ts.sub }}</div>{% endif %}
   </div>
   <div class="tp-spotlight__teacher">

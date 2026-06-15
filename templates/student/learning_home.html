@@ -57,7 +57,8 @@
   <header class="rmc-page-header rmc-page-header-glow mb-3" data-rmc-aesthetic-page-header="student" data-tour="student-header">
     <div class="eyebrow rmc-page-eyebrow">{% trans "My learning" %}</div>
     {% comment %} v3.59.x Wave A (2026-05-22): wrap dynamic name in <strong> for `.page-h1 strong` gradient-text rule. {% endcomment %}
-    <h1 class="page-h1" data-rmc-injected-h1="1">{% blocktrans with name=request.user.first_name|default:student_sg %}Hi <strong>{{ name }}</strong>.{% endblocktrans %}</h1>
+    {% firstof request.user.first_name student_sg as greet_name %}
+    <h1 class="page-h1" data-rmc-injected-h1="1">{% blocktrans with name=greet_name %}Hi <strong>{{ name }}</strong>.{% endblocktrans %}</h1>
     <p class="page-sub">{% trans "Your priorities for today." %}</p>
   </header>
   <div data-tour="student-decision-strip">

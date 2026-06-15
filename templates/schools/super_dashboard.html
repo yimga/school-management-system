@@ -130,7 +130,7 @@
 
   {% comment %} Quick-action bar. Single row of operator destinations. {% endcomment %}
   <div class="ds-action-bar d-flex flex-wrap gap-2 mb-4" role="toolbar" aria-label="{% trans 'Operator quick actions' %}">
-    <a href="{{ command_center_url|default:wcx_command_center_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Command center" %}</a>
+    <a href="{% firstof command_center_url wcx_command_center_url %}" class="btn btn-outline-secondary btn-sm">{% trans "Command center" %}</a>
     <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-secondary btn-sm">{% trans "Billing" %}</a>
     <a href="{% url 'super:migration_cloud' %}" class="btn btn-outline-secondary btn-sm">{% trans "Migration" %}</a>
     <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-secondary btn-sm">{% trans "Marketplace" %}</a>
@@ -230,14 +230,14 @@
             <h2 class="cp-panel-title">{% trans "Operator queues" %}</h2>
           </div>
           <div class="cp-panel-header-actions">
-            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">{% blocktrans with count=pending_approval_count %}Pending approvals {{ count }}{% endblocktrans %}</a>
-            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">{% blocktrans with count=command_center.support_backlog_48h_count %}Support backlog 48h+ {{ count }}{% endblocktrans %}</a>
-            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">{% blocktrans with count=command_center.provisioning_sla_breaches %}Provisioning breaches {{ count }}{% endblocktrans %}</a>
+            <a href="{% firstof command_center_url wcx_command_center_url %}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">{% blocktrans with count=pending_approval_count %}Pending approvals {{ count }}{% endblocktrans %}</a>
+            <a href="{% firstof command_center_url wcx_command_center_url %}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">{% blocktrans with count=command_center.support_backlog_48h_count %}Support backlog 48h+ {{ count }}{% endblocktrans %}</a>
+            <a href="{% firstof command_center_url wcx_command_center_url %}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">{% blocktrans with count=command_center.provisioning_sla_breaches %}Provisioning breaches {{ count }}{% endblocktrans %}</a>
           </div>
         </div>
         <div class="cp-queue-grid rmc-canvas-adaptive-grid rmc-canvas-adaptive-grid--dashboard">
           <article class="cp-queue-card rmc-reveal">
-            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open operational queues' %}">
+            <a href="{% firstof command_center_url wcx_command_center_url %}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open operational queues' %}">
               <h3 class="mb-0">{% trans "Pending approvals" %}</h3>
               <span>{{ pending_approval_count }}</span>
             </a>
@@ -313,7 +313,7 @@
           </article>
 
           <article class="cp-queue-card rmc-reveal">
-            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open operational queues' %}">
+            <a href="{% firstof command_center_url wcx_command_center_url %}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open operational queues' %}">
               <h3 class="mb-0">{% trans "Support and provisioning" %}</h3>
               <span>{{ stale_support_rows|length }} / {{ provisioning_breach_rows|length }}</span>
             </a>
@@ -350,7 +350,7 @@
                 {% endfor %}
               </div>
             </div>
-            <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-subtle-link">{% trans "Open operational queues" %}</a>
+            <a href="{% firstof command_center_url wcx_command_center_url %}" class="cp-subtle-link">{% trans "Open operational queues" %}</a>
           </article>
         </div>
       </section>
@@ -744,7 +744,7 @@
         </div>
         <div class="cp-workstream-grid rmc-canvas-adaptive-grid rmc-canvas-adaptive-grid--dashboard">
           {% for workstream in workstream_cards %}
-          <a href="{{ workstream.url|default:wcx_command_center_url }}" class="cp-workstream-card">
+          <a href="{% firstof workstream.url wcx_command_center_url %}" class="cp-workstream-card">
             <span class="cp-workstream-title">{{ workstream.title }}</span>
             <strong class="cp-workstream-metric">{{ workstream.metric }}</strong>
             <span class="cp-workstream-meta">{{ workstream.meta }}</span>

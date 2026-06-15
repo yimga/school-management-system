@@ -32,7 +32,7 @@
         </div>
       </div>
       <div class="proof-visual">
-        <img src="{{ migration_cloud_diagram_url|default:migration_studio_image_url }}" alt="{% trans 'Migration visual' %}">
+        <img src="{% firstof migration_cloud_diagram_url migration_studio_image_url %}" alt="{% trans 'Migration visual' %}">
         <div class="proof-visual-caption">{% trans "Replace legacy SIS sprawl with one governed migration path: export, map, validate, cut over, and confirm parity." %}</div>
       </div>
     </div>

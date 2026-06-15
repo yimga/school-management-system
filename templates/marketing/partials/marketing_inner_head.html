@@ -37,7 +37,8 @@
     {% endif %}
 
     <div class="trust-strip">
-      {% for item in page_extras.trust_strip|default:trust_badges %}
+      {% firstof page_extras.trust_strip trust_badges as trust_src %}
+      {% for item in trust_src %}
         <span class="trust-pill">{{ item }}</span>
       {% endfor %}
     </div>

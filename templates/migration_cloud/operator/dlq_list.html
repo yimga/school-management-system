@@ -64,7 +64,7 @@
               <button type="submit" class="rmc-btn rmc-btn--ghost rmc-btn--sm" data-rmc-dlq-replay-btn="{{ row.id }}" aria-label="{% blocktrans %}Replay dead-letter row {{ row.id }}{% endblocktrans %}">{% trans "Replay" %}</button>
             </form>
           {% else %}
-            <span class="rmc-pill rmc-pill--muted" data-rmc-dlq-status="{{ row.status }}" aria-label="{% blocktrans %}Status: {{ row.status }}{% endblocktrans %}">{{ row.status|default:status_filter }}</span>
+            <span class="rmc-pill rmc-pill--muted" data-rmc-dlq-status="{{ row.status }}" aria-label="{% blocktrans %}Status: {{ row.status }}{% endblocktrans %}">{% firstof row.status status_filter %}</span>
           {% endif %}
         </td>
       </tr>

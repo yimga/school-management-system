@@ -1,6 +1,6 @@
 {% load i18n %}
 {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` alongside existing rmc-wcx-hero classes — additive, preserves every caller's hero layout. {% endcomment %}
-<section class="rmc-wcx-hero rmc-wcx-surface rmc-page-header-glow" data-world-class-page-hero="1" data-page-purpose="{{ purpose|default:title }}" aria-labelledby="{{ hero_id|default:'world-class-page-title' }}">
+<section class="rmc-wcx-hero rmc-wcx-surface rmc-page-header-glow" data-world-class-page-hero="1" data-page-purpose="{% firstof purpose title %}" aria-labelledby="{{ hero_id|default:'world-class-page-title' }}">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div>
     {% if breadcrumb_label %}<nav aria-label="{% trans 'Breadcrumb' %}" class="small mb-2"><a href="{{ breadcrumb_url }}">{{ breadcrumb_label }}</a></nav>{% endif %}

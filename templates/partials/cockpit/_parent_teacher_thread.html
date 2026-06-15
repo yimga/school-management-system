@@ -17,7 +17,7 @@ Configurability:
 {% with th=cockpit.parent_teacher_thread %}
 <section class="tp-pt-thread" aria-label="{{ th.title }}" data-rmc-tp-pt-thread data-rmc-cockpit-section="parent_teacher_thread">
   <header class="tp-pt-thread__head">
-    <h3 class="tp-pt-thread__title">{{ th.title|default:pt_thread_default }}</h3>
+    <h3 class="tp-pt-thread__title">{% firstof th.title pt_thread_default %}</h3>
     {% if th.teacher_name %}<span class="tp-pt-thread__teacher">{{ th.teacher_name }}</span>{% endif %}
   </header>
   {% if th.messages %}

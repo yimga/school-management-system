@@ -30,7 +30,7 @@
         </div>
       </div>
       <div class="proof-visual">
-        <img src="{{ ecosystem_map_image_url|default:platform_architecture_diagram_url }}" alt="{% trans 'Marketplace ecosystem map' %}">
+        <img src="{% firstof ecosystem_map_image_url platform_architecture_diagram_url %}" alt="{% trans 'Marketplace ecosystem map' %}">
         <div class="proof-visual-caption">{% trans "The marketplace should communicate platform seriousness: apps, templates, blueprints, policies, integrations, and runtime packs inside one governed economy." %}</div>
       </div>
     </div>

@@ -65,7 +65,7 @@
                             <li class="breadcrumb-item"><a href="{% url 'admin:index' %}" class="hover:text-primary dark:hover:text-primary">{% if is_manager_host %}{% trans 'Platform Backoffice' %}{% else %}{% trans 'Admin' %}{% endif %}</a></li>
                             {% if opts %}
                                 <li class="breadcrumb-item"><a href="{% url 'admin:app_list' opts.app_label %}" class="hover:text-primary dark:hover:text-primary">{{ opts.app_config.verbose_name|default:opts.app_label|title }}</a></li>
-                                <li class="breadcrumb-item active text-base-800 dark:text-base-200" aria-current="page">{{ opts.verbose_name_plural|capfirst|default:title }}</li>
+                                <li class="breadcrumb-item active text-base-800 dark:text-base-200" aria-current="page">{% firstof opts.verbose_name_plural|capfirst title %}</li>
                             {% elif app_list and title %}
                                 <li class="breadcrumb-item active text-base-800 dark:text-base-200" aria-current="page">{{ title }}</li>
                             {% endif %}

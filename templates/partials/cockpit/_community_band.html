@@ -52,7 +52,7 @@ PII safety:
     <article class="rmc-cband__card rmc-cband__card--achievement">
       <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-cband__head">
-        <h3 class="rmc-cband__title">🏅 {{ ach.title|default:cband_student_default }}</h3>
+        <h3 class="rmc-cband__title">🏅 {% firstof ach.title cband_student_default %}</h3>
         {% if ach.period_label %}<span class="rmc-cband__chip">{{ ach.period_label }}</span>{% endif %}
       </div>
       <div class="rmc-cband-achiever">
@@ -75,7 +75,7 @@ PII safety:
     {% with t=cockpit.community_band.testimonial %}
     <article class="rmc-cband__card rmc-cband__card--testimonial">
       <div class="rmc-cband__head">
-        <h3 class="rmc-cband__title">💬 {{ t.title|default:cband_parent_default }}</h3>
+        <h3 class="rmc-cband__title">💬 {% firstof t.title cband_parent_default %}</h3>
         <span class="rmc-cband__chip">{% trans "Live" %}</span>
       </div>
       <div class="rmc-cband-testimonial"

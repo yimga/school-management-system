@@ -26,7 +26,7 @@
         </div>
       </div>
       <div class="proof-visual">
-        <img src="{{ migration_cloud_diagram_url|default:migration_studio_image_url }}" alt="{% trans 'Migration simulator visual' %}">
+        <img src="{% firstof migration_cloud_diagram_url migration_studio_image_url %}" alt="{% trans 'Migration simulator visual' %}">
       </div>
     </div>
   </section>

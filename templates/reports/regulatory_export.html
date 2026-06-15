@@ -49,13 +49,13 @@
             <select name="academic_year_id" class="form-select form-select-sm" style="width: auto;">
               <option value="">{% trans "Any year" %}</option>
               {% for y in academic_years %}
-              <option value="{{ y.id }}">{{ y.name|default:y }}</option>
+              <option value="{{ y.id }}">{% firstof y.name y %}</option>
               {% endfor %}
             </select>
             <select name="term_id" class="form-select form-select-sm" style="width: auto;">
               <option value="">{% trans "Any term" %}</option>
               {% for t in terms %}
-              <option value="{{ t.id }}">{{ t.name|default:t }}</option>
+              <option value="{{ t.id }}">{% firstof t.name t %}</option>
               {% endfor %}
             </select>
             <button type="submit" class="btn btn-sm btn-primary">{% trans "Run export" %}</button>

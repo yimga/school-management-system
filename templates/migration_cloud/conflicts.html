@@ -22,7 +22,8 @@
   </header>
 
   <section class="rmc-card">
-    <h2 class="rmc-h2">{% trans "Pending review" %} <span class="rmc-muted">({{ pending_count|default:pending|length }})</span></h2>
+    {% firstof pending_count pending as pending_src %}
+    <h2 class="rmc-h2">{% trans "Pending review" %} <span class="rmc-muted">({{ pending_src|length }})</span></h2>
     {% if not pending %}
       <p class="rmc-empty">{% trans "No pending conflicts. The apply step will overwrite cleanly." %}</p>
     {% else %}

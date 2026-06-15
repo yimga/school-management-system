@@ -45,7 +45,7 @@
             {% for a in alerts %}
             <li class="border-bottom py-1">
               <strong>{{ a.severity|default:"" }}</strong>
-              <span>{{ a.reason|default:a }}</span>
+              <span>{% firstof a.reason a %}</span>
               <small class="text-muted d-block">{{ a.created_at|date:"Y-m-d H:i" }}</small>
             </li>
             {% endfor %}
@@ -62,7 +62,7 @@
           <ul class="list-unstyled mb-0">
             {% for s in suggestions %}
             <li class="border-bottom py-1">
-              <strong>{{ s.action|default:s }}</strong>
+              <strong>{% firstof s.action s %}</strong>
               <small class="text-muted d-block">{{ s.created_at|date:"Y-m-d H:i" }}</small>
             </li>
             {% endfor %}
