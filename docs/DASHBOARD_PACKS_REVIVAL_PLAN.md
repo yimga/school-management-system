@@ -1,6 +1,34 @@
 # Dashboard Packs — Revival & Wiring Plan (handoff for a fresh session)
 
-**Authored:** 2026-06-15 · **Status:** PLAN — not yet executed · **Owner question that triggered it:**
+> ## ✅ EXECUTED — 2026-06-15 (SW v4.03.76)
+>
+> All phases shipped. **Phase 0 findings (grounded by direct read, agent claims moderated):**
+> 1. **Seeder** (`seed_workflow_dashboard_packs.py`) created `DashboardPack` rows ONLY — **zero
+>    `DashboardTemplate` rows** and empty `recommended_sectors`. Opt-in only (`RUN_BOOTSTRAP_PLATFORM_CATALOG=1`,
+>    default off); never per-tenant. → Extended to create one default template per pack + per-pack sector
+>    recommendations; now also force-seeded by data migration `0198` so packs exist in every environment.
+> 2. **Resolver was PARTIALLY live, not fully dead** (an Explore agent over-claimed "LIVE" — moderated):
+>    `portal_chrome.py` reads `TenantLayoutAssignment`/`DashboardPackAssignment` but ONLY for header/footer
+>    **chrome**. The dashboard **content** (`role_home_engine` → `role_home_service` → `context.py`) read NONE
+>    of them. → Phase 2 implemented: `dashboard_pack_resolver.overlay_role_home()` overlays the assigned
+>    template's `config_schema["role_home"]` + `styling_overrides` onto the role-home default.
+> 3. **Cockpit exists** (`dashboard_configuration_hub`, staff TenantLayoutAssignment editor) but was dead —
+>    no templates to assign. Now populated.
+> 4. **Provisioning seeded NO assignments.** → Phase B now calls `assign_default_dashboard_packs(school)`
+>    (idempotent, non-fatal). Backfill: `manage.py assign_default_dashboard_packs [--apply]`.
+>
+> **What shipped:** `apps/siteconfig/dashboard_pack_catalog.py` (pure data), `dashboard_pack_resolver.py`
+> (role-bucket map + sector cascade + assignment + render overlay + precedence chain), seeder + provisioning
+> wiring + backfill cmd (Phase 1); `overlay_role_home` wired into `role_home_service` (Phase 2);
+> `DashboardUserPreference.role_dashboard_packs` + migrations `0197`/`0198` + `DashboardPackPreferenceAPI`
+> at `api:dashboard-pack-preference` (Phase 3); `components/dashboard_pack_switcher.html` +
+> `static/js/dashboard-pack-switcher.js` + backend-dashboard CSS, SW bump (Phase 4).
+> **Tests:** `apps/siteconfig/tests/test_dashboard_packs_revival.py` — 18 tests green. All zero-tolerance
+> gates clean; `makemigrations --check` → "No changes detected"; single migration leaf (0198).
+> Precedence: per-user choice → TenantLayoutAssignment → DashboardPackAssignment → role-home default
+> (default always wins → never blank).
+
+**Authored:** 2026-06-15 · **Status:** EXECUTED 2026-06-15 · **Owner question that triggered it:**
 *"Our tenants were supposed to have world-class dashboards, and a dashboard pack where each
 profile (admin / teacher / parent / …) gets a tailored look, and users within a group can switch
 which dashboard they prefer. What happened to these dashboard packs?"*

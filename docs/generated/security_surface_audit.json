@@ -6926,7 +6926,15 @@
         "classification": "allowed",
         "file": "apps/api/user_preferences_api.py",
         "governance_tier": "safe",
-        "line": "124",
+        "line": "142",
+        "pattern": "permission_classes"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/api/user_preferences_api.py",
+        "governance_tier": "safe",
+        "line": "204",
         "pattern": "permission_classes"
       },
       {
@@ -8384,7 +8392,7 @@
         "classification": "allowed",
         "file": "apps/api/oneroster_w1_extensions.py",
         "governance_tier": "safe",
-        "line": "250",
+        "line": "146",
         "pattern": "require_http_methods"
       },
       {
@@ -8392,7 +8400,7 @@
         "classification": "allowed",
         "file": "apps/api/oneroster_w1_extensions.py",
         "governance_tier": "safe",
-        "line": "285",
+        "line": "181",
         "pattern": "require_http_methods"
       },
       {
@@ -9206,14 +9214,6 @@
       {
         "bucket": "product",
         "classification": "allowed",
-        "file": "apps/finance/security.py",
-        "governance_tier": "safe",
-        "line": "418",
-        "pattern": "require_http_methods"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
         "file": "apps/finance/views_access.py",
         "governance_tier": "safe",
         "line": "40",
@@ -9713,6 +9713,14 @@
         "file": "apps/platform_runtime/views_click_tracking.py",
         "governance_tier": "safe",
         "line": "33",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/views_health_autopilot.py",
+        "governance_tier": "safe",
+        "line": "260",
         "pattern": "require_http_methods"
       },
       {
@@ -12650,6 +12658,14 @@
         "governance_tier": "safe",
         "line": "44",
         "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "allowed",
+        "file": "scripts/verify_health_autopilot_safety.py",
+        "governance_tier": "safe",
+        "line": "134",
+        "pattern": "require_http_methods"
       }
     ],
     "staff_member_required": [
@@ -13162,7 +13178,15 @@
         "classification": "allowed",
         "file": "apps/platform_runtime/views_health_autopilot.py",
         "governance_tier": "safe",
-        "line": "85",
+        "line": "94",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/platform_runtime/views_health_autopilot.py",
+        "governance_tier": "safe",
+        "line": "259",
         "pattern": "staff_member_required"
       },
       {
@@ -13450,7 +13474,7 @@
         "classification": "allowed",
         "file": "apps/schools/views_fleet_live.py",
         "governance_tier": "safe",
-        "line": "34",
+        "line": "35",
         "pattern": "staff_member_required"
       },
       {
@@ -13554,7 +13578,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_globe_api.py",
         "governance_tier": "safe",
-        "line": "99",
+        "line": "100",
         "pattern": "staff_member_required"
       },
       {
@@ -13562,7 +13586,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_globe_api.py",
         "governance_tier": "safe",
-        "line": "117",
+        "line": "118",
         "pattern": "staff_member_required"
       },
       {
@@ -13595,6 +13619,14 @@
         "file": "scripts/audit_security_surface.py",
         "governance_tier": "safe",
         "line": "42",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "allowed",
+        "file": "scripts/verify_health_autopilot_safety.py",
+        "governance_tier": "safe",
+        "line": "132",
         "pattern": "staff_member_required"
       }
     ],
@@ -18377,7 +18409,7 @@
       }
     ]
   },
-  "generated_at": "2026-06-15T01:57:16.634970+00:00",
+  "generated_at": "2026-06-15T21:43:57.760613+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/br_northstar_views.py",
@@ -18423,24 +18455,24 @@
     "csrf_exempt": 97,
     "cursor_execute": 2,
     "login_required": 696,
-    "permission_classes": 71,
-    "require_http_methods": 674,
-    "staff_member_required": 118,
+    "permission_classes": 72,
+    "require_http_methods": 675,
+    "staff_member_required": 120,
     "subprocess": 597
   },
   "summary_by_classification": {
-    "allowed": 1818,
+    "allowed": 1822,
     "needs_review": 464,
     "unsafe": 13
   },
   "summary_by_governance_tier": {
     "controlled": 408,
     "needs_review": 57,
-    "safe": 1818,
+    "safe": 1822,
     "violation": 12
   },
   "totals": {
-    "hits": 2295
+    "hits": 2299
   },
   "unified": [
     {
@@ -25360,7 +25392,15 @@
       "classification": "allowed",
       "file": "apps/api/user_preferences_api.py",
       "governance_tier": "safe",
-      "line": "124",
+      "line": "142",
+      "pattern": "permission_classes"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/api/user_preferences_api.py",
+      "governance_tier": "safe",
+      "line": "204",
       "pattern": "permission_classes"
     },
     {
@@ -26816,7 +26856,7 @@
       "classification": "allowed",
       "file": "apps/api/oneroster_w1_extensions.py",
       "governance_tier": "safe",
-      "line": "250",
+      "line": "146",
       "pattern": "require_http_methods"
     },
     {
@@ -26824,7 +26864,7 @@
       "classification": "allowed",
       "file": "apps/api/oneroster_w1_extensions.py",
       "governance_tier": "safe",
-      "line": "285",
+      "line": "181",
       "pattern": "require_http_methods"
     },
     {
@@ -27638,14 +27678,6 @@
     {
       "bucket": "product",
       "classification": "allowed",
-      "file": "apps/finance/security.py",
-      "governance_tier": "safe",
-      "line": "418",
-      "pattern": "require_http_methods"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
       "file": "apps/finance/views_access.py",
       "governance_tier": "safe",
       "line": "40",
@@ -28145,6 +28177,14 @@
       "file": "apps/platform_runtime/views_click_tracking.py",
       "governance_tier": "safe",
       "line": "33",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/views_health_autopilot.py",
+      "governance_tier": "safe",
+      "line": "260",
       "pattern": "require_http_methods"
     },
     {
@@ -31084,6 +31124,14 @@
       "pattern": "require_http_methods"
     },
     {
+      "bucket": "scripts",
+      "classification": "allowed",
+      "file": "scripts/verify_health_autopilot_safety.py",
+      "governance_tier": "safe",
+      "line": "134",
+      "pattern": "require_http_methods"
+    },
+    {
       "bucket": "product",
       "classification": "allowed",
       "file": "apps/analytics/views.py",
@@ -31592,7 +31640,15 @@
       "classification": "allowed",
       "file": "apps/platform_runtime/views_health_autopilot.py",
       "governance_tier": "safe",
-      "line": "85",
+      "line": "94",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/platform_runtime/views_health_autopilot.py",
+      "governance_tier": "safe",
+      "line": "259",
       "pattern": "staff_member_required"
     },
     {
@@ -31880,7 +31936,7 @@
       "classification": "allowed",
       "file": "apps/schools/views_fleet_live.py",
       "governance_tier": "safe",
-      "line": "34",
+      "line": "35",
       "pattern": "staff_member_required"
     },
     {
@@ -31984,7 +32040,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_globe_api.py",
       "governance_tier": "safe",
-      "line": "99",
+      "line": "100",
       "pattern": "staff_member_required"
     },
     {
@@ -31992,7 +32048,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_globe_api.py",
       "governance_tier": "safe",
-      "line": "117",
+      "line": "118",
       "pattern": "staff_member_required"
     },
     {
@@ -32025,6 +32081,14 @@
       "file": "scripts/audit_security_surface.py",
       "governance_tier": "safe",
       "line": "42",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "allowed",
+      "file": "scripts/verify_health_autopilot_safety.py",
+      "governance_tier": "safe",
+      "line": "132",
       "pattern": "staff_member_required"
     },
     {

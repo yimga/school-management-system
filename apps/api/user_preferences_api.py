@@ -112,6 +112,86 @@ class PortalPreferencesAPI(APIView):
         return Response({"pinned_sidebar_items": prefs.pinned_sidebar_items})
 
 
+_DashboardPackResponse = inline_serializer(
+    name="DashboardPackPreferenceResponse",
+    fields={
+        "role": serializers.CharField(),
+        "selected": serializers.CharField(allow_blank=True),
+        "available": serializers.ListField(child=serializers.DictField()),
+    },
+)
+
+_DashboardPackRequest = inline_serializer(
+    name="DashboardPackPreferencePatch",
+    fields={"dashboard_pack": serializers.CharField(allow_blank=True)},
+)
+
+
+@extend_schema(tags=["User preferences"])
+class DashboardPackPreferenceAPI(APIView):
+    """
+    Per-user dashboard-pack switcher (Dashboard Packs revival, Phase 3).
+
+    GET: the user's current pack choice for their role + the packs they may switch
+    between (the active packs in their role family).
+    PATCH: set ``dashboard_pack`` (a DashboardPack.code) for the user's role. Only codes
+    in the allowed set are accepted; an empty string clears the choice (revert to the
+    school/role default).
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def _role(self, request):
+        from apps.siteconfig.dashboard_pack_resolver import assignment_role_for_user_role
+
+        return assignment_role_for_user_role(getattr(request.user, "role", ""))
+
+    def _available(self, request):
+        from apps.siteconfig.dashboard_pack_resolver import available_packs_for_user
+
+        return available_packs_for_user(request.user)
+
+    @extend_schema(responses={200: _DashboardPackResponse})
+    def get(self, request):
+        role = self._role(request)
+        available = self._available(request)
+        prefs = getattr(request.user, "dashboard_preferences", None)
+        selected = ""
+        if prefs and hasattr(prefs, "get_dashboard_pack"):
+            selected = prefs.get_dashboard_pack(role)
+        return Response({"role": role, "selected": selected, "available": available})
+
+    @extend_schema(
+        request=_DashboardPackRequest,
+        responses={200: _DashboardPackResponse, 400: OpenApiTypes.OBJECT},
+    )
+    def patch(self, request):
+        data = getattr(request, "data", None) or request.POST
+        raw = data.get("dashboard_pack")
+        if raw is None:
+            return Response(
+                {"error": "dashboard_pack is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        code = str(raw).strip()
+        role = self._role(request)
+        available = self._available(request)
+        allowed_codes = {p["code"] for p in available}
+        if code and code not in allowed_codes:
+            return Response(
+                {"error": "dashboard_pack not available for your role"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        prefs, _ = DashboardUserPreference.objects.get_or_create(
+            user=request.user, defaults={"role_dashboard_packs": {}}
+        )
+        prefs.set_dashboard_pack(role, code)
+        prefs.save(update_fields=["role_dashboard_packs", "updated_at"])
+        selected = prefs.get_dashboard_pack(role)
+        return Response({"role": role, "selected": selected, "available": available})
+
+
 @extend_schema(tags=["User preferences"])
 class ControlPlanePreferencesAPI(APIView):
     """

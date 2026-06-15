@@ -784,6 +784,15 @@ def build_dashboard_extras(
     )
     role_home = role_home_result["role_home"]
     intent = role_home_result["intent"]
+
+    # Dashboard Packs (depth): the assigned/chosen pack can override which modules render.
+    _pack_modules = (
+        role_home.get("dashboard_modules") if isinstance(role_home, dict) else None
+    )
+    if isinstance(_pack_modules, dict):
+        for _mkey, _mval in _pack_modules.items():
+            if _mkey in module_visibility:
+                module_visibility[_mkey] = bool(_mval)
     primary_ctas = role_home_result["primary_ctas"]
     action_chips = role_home_result["action_chips"]
     welcome_action_grid = role_home_result["welcome_action_grid"]
@@ -921,7 +930,18 @@ def build_dashboard_extras(
             "icon": "bi-activity",
         },
     ]
-    kpi_strip_cards = select_kpis_for_intent(kpi_strip_cards, intent)
+    # Dashboard Packs (depth): a pack can pin the KPI-strip priority; else fall back to
+    # the intent-based ordering.
+    _pack_kpis = role_home.get("dashboard_kpis") if isinstance(role_home, dict) else None
+    if _pack_kpis:
+        _by_id = {str(c.get("id")): c for c in kpi_strip_cards}
+        _ordered = [_by_id[k] for k in _pack_kpis if k in _by_id]
+        for _card in kpi_strip_cards:
+            if _card not in _ordered:
+                _ordered.append(_card)
+        kpi_strip_cards = _ordered[:3]
+    else:
+        kpi_strip_cards = select_kpis_for_intent(kpi_strip_cards, intent)
     dashboard_priority_queue = _build_priority_queue(operations_watch, max_items=4)
     dashboard_recent_activity = _build_recent_activity_block(
         base.get("recent_activities"), max_items=4
@@ -960,6 +980,9 @@ def build_dashboard_extras(
         role_home_destinations=role_home_destinations,
     )
     role_home_declaration = build_role_home_declaration(role_home)
+
+    # Dashboard-pack switcher is provided globally by
+    # apps.siteconfig.context_processors.dashboard_pack_switcher_context (all shells).
 
     operations_watch = operations_watch[:max_items]
     quick_links = quick_links[:max_items]

@@ -1373,6 +1373,28 @@ def _do_provision_tracked(
         except (DatabaseError, IntegrityError, ValueError, TypeError):
             logger.exception("Classroom seeding failed for school %s", school_id)
 
+        # Assign default dashboard packs per role (Dashboard Packs revival). Idempotent
+        # via (school, role) unique_together; never overwrites an operator's choice. A
+        # school with no seeded packs is skipped gracefully (role-home default renders).
+        try:
+            from apps.siteconfig.dashboard_pack_resolver import (
+                assign_default_dashboard_packs,
+            )
+
+            dp_summary = assign_default_dashboard_packs(school, apply=True)
+            if dp_summary.get("pack_assignments_created") or dp_summary.get(
+                "layout_assignments_created"
+            ):
+                logger.info(
+                    "Seeded dashboard pack assignments for school %s: %s",
+                    school_id,
+                    dp_summary,
+                )
+        except (DatabaseError, IntegrityError, ValueError, TypeError, ImportError):
+            logger.exception(
+                "Default dashboard pack assignment failed for school %s", school_id
+            )
+
         try:
             from apps.schools.provisioning_blueprint import (
                 record_school_template_blueprint,

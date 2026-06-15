@@ -89,60 +89,40 @@ def resolve_portal_chrome(
 
 
 def resolve_dashboard_pack_for_request(request: Any) -> Any | None:
-    """Active DashboardPack for request school + effective portal role, if assigned."""
-    school = getattr(request, "school", None)
-    user = getattr(request, "user", None)
-    if not school or not user or not getattr(user, "is_authenticated", False):
-        return None
-    role = (getattr(user, "role", "") or "").strip()
-    if not role:
-        return None
-    role_keys = {role, role.lower(), role.upper()}
-    try:
-        from apps.siteconfig.models_dashboard import DashboardPackAssignment
+    """Effective DashboardPack for the request (honors per-user choice + role bucketing).
 
-        assignment = (
-            DashboardPackAssignment.objects.filter(
-                school_id=school.pk,
-                role__in=role_keys,
-                is_active=True,
-            )
-            .select_related("dashboard_pack")
-            .first()
+    Delegates to the shared resolver so chrome on EVERY shell follows the same precedence
+    chain (per-user choice → TenantLayoutAssignment → DashboardPackAssignment → default).
+    """
+    try:
+        from apps.siteconfig.dashboard_pack_resolver import (
+            resolve_effective_template_cached,
         )
-        if assignment and assignment.dashboard_pack and assignment.dashboard_pack.is_active:
-            return assignment.dashboard_pack
+        from apps.siteconfig.models_dashboard import DashboardPack
+
+        code = (resolve_effective_template_cached(request).get("pack_code") or "").strip()
+        if code:
+            return DashboardPack.objects.filter(code=code, is_active=True).first()
     except Exception:
         return None
     return None
 
 
 def resolve_dashboard_template_for_request(request: Any) -> Any | None:
-    """Assigned DashboardTemplate for request school + user role (Configuration Center)."""
-    school = getattr(request, "school", None)
-    user = getattr(request, "user", None)
-    if not school or not user or not getattr(user, "is_authenticated", False):
-        return None
-    role = (getattr(user, "role", "") or "").strip().upper()
-    if not role:
-        return None
-    try:
-        from apps.siteconfig.models_dashboard import TenantLayoutAssignment
+    """Effective DashboardTemplate for the request (honors per-user choice + role bucketing).
 
-        assignment = (
-            TenantLayoutAssignment.objects.filter(
-                school_id=school.pk,
-                role=role,
-                is_active=True,
-            )
-            .select_related("template")
-            .first()
+    Delegates to the shared resolver (resolve_effective_template) so the per-user pack
+    switcher and fine→coarse role bucketing drive header/footer chrome on all portal
+    shells, not just the school-level TenantLayoutAssignment for the exact role string.
+    """
+    try:
+        from apps.siteconfig.dashboard_pack_resolver import (
+            resolve_effective_template_cached,
         )
-        if assignment and assignment.template and assignment.template.is_active:
-            return assignment.template
+
+        return resolve_effective_template_cached(request).get("template")
     except Exception:
         return None
-    return None
 
 
 def describe_portal_chrome_override(dashboard_template: Any | None) -> str:

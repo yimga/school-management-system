@@ -5044,3 +5044,20 @@
 .rmc-provision-progress__error {
   /* surface via Bootstrap .alert utilities on the element */
 }
+
+/* Dashboard Packs revival: per-user "Choose your dashboard" switcher (all shells). */
+.rmc-dashboard-pack-switcher {
+  margin-top: var(--space-2, 0.5rem);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.5rem);
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  background: var(--surface-elevated);
+}
+.rmc-dashboard-pack-switcher > summary {
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+.rmc-dashboard-pack-switcher[open] > summary {
+  margin-bottom: var(--space-2, 0.5rem);
+  color: var(--text-primary);
+}

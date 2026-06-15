@@ -24,6 +24,7 @@ from apps.dashboard.role_home_engine import (
     select_role_home_actions,
 )
 from apps.dashboard.north_star_guidance import build_north_star_recommended_steps
+from apps.siteconfig.dashboard_pack_resolver import overlay_role_home
 
 # Typed exceptions for pinned-order / preference reads (§2.4)
 _DASHBOARD_PREFERENCE_ERRORS = (AttributeError, TypeError, ValueError, ImportError)
@@ -57,6 +58,11 @@ def build_role_home_context(
     if intent not in VALID_DASHBOARD_INTENTS:
         intent = ""
     role_home = resolve_role_home(role_code, intent or None)
+    # Dashboard Packs revival (Phase 2): overlay the school/role/user-assigned template's
+    # presentation onto the role-home default. Precedence (highest first): per-user pack
+    # choice → TenantLayoutAssignment → DashboardPackAssignment → role-home default. The
+    # default always wins when nothing is assigned, so a new school never renders blank.
+    role_home = overlay_role_home(role_home, request)
     intent = intent or role_home["default_intent"]
 
     actions = get_backend_dashboard_actions(

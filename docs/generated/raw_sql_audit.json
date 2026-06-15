@@ -1,6 +1,6 @@
 {
   "allowlist_path": "scripts/allowlists/raw_sql_allowlist.json",
-  "generated_at": "2026-06-15T01:31:28.606888+00:00",
+  "generated_at": "2026-06-15T21:08:23.223653+00:00",
   "hits": [
     {
       "classification": "migration_safe",
@@ -234,12 +234,6 @@
       "classification": "performance_safe",
       "file": "apps/compliance/audit_retention.py",
       "line": "296",
-      "pattern": "connection_cursor"
-    },
-    {
-      "classification": "needs_review",
-      "file": "apps/compliance/management_commands.py",
-      "line": "112",
       "pattern": "connection_cursor"
     },
     {
@@ -1163,6 +1157,6 @@
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 193
+    "hits": 192
   }
 }

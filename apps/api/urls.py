@@ -24,7 +24,10 @@ from apps.api.dashboard_api import (
     AcademicDashboardAPI,
 )
 from apps.api.dashboard_layout_api import AvailableWidgetsAPI, DashboardLayoutAPI
-from apps.api.user_preferences_api import PortalPreferencesAPI
+from apps.api.user_preferences_api import (
+    DashboardPackPreferenceAPI,
+    PortalPreferencesAPI,
+)
 from apps.api.search_api import GlobalSearchAPI, SearchSuggestionsAPI
 from apps.api.teacher_hover_api import TeacherHoverContextView
 from apps.api.insight_anomalies_api import InsightAnomaliesAPIView
@@ -336,6 +339,11 @@ urlpatterns = [
     ),
     path(
         "portal-preferences/", PortalPreferencesAPI.as_view(), name="portal-preferences"
+    ),
+    path(
+        "dashboard-pack-preference/",
+        DashboardPackPreferenceAPI.as_view(),
+        name="dashboard-pack-preference",
     ),
     # Phase 5: Admissions CRM — Lead Capture (public POST by school_slug)
     path("admissions/lead/", LeadCaptureAPI.as_view(), name="lead-capture"),  # rbac-allow: public lead-capture from marketing forms — school_slug in body, rate-limited

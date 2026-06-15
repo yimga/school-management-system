@@ -51,6 +51,15 @@ class DashboardUserPreference(models.Model):
             'Example: {"PARENT": "soft-glass", "TEACHER": "crisp-professional"}.'
         ),
     )
+    role_dashboard_packs = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Per-role dashboard-pack choice (DashboardPack.code). The user may only "
+            "pick among packs their school has installed for that role. "
+            'Example: {"TEACHER": "teacher-planner", "ADMIN": "school-admin-operations"}.'
+        ),
+    )
 
     # Theme preferences (shared across portal pages)
     THEME_CHOICES = [
@@ -190,6 +199,23 @@ class DashboardUserPreference(models.Model):
         payload = dict(self.role_visual_presets or {})
         payload[role_code] = selected
         self.role_visual_presets = payload
+
+    def get_dashboard_pack(self, role: str | None = None) -> str:
+        """Return the user's chosen dashboard-pack code for a role (or "")."""
+        role_code = (role or getattr(self.user, "role", "") or "").upper()
+        packs = self.role_dashboard_packs or {}
+        return str(packs.get(role_code) or "").strip()
+
+    def set_dashboard_pack(self, role: str | None, code: str | None) -> None:
+        """Store (or clear, when code is empty) the chosen pack code for a role."""
+        role_code = (role or getattr(self.user, "role", "") or "").upper() or "DEFAULT"
+        payload = dict(self.role_dashboard_packs or {})
+        normalized = (code or "").strip()
+        if normalized:
+            payload[role_code] = normalized
+        else:
+            payload.pop(role_code, None)
+        self.role_dashboard_packs = payload
 
 
 SUPER_DASHBOARD_DEFAULT_SECTION_ORDER = [

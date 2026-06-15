@@ -518,6 +518,7 @@ TEMPLATES = [
                 "apps.schools.context_processors.conversion_enforcement_context",
                 "apps.schools.context_processors.operator_surface_ia_context",
                 "apps.schools.context_processors.dashboard_topology_context",
+                "apps.siteconfig.context_processors.dashboard_pack_switcher_context",  # Per-user dashboard-pack switcher on all shells
                 "apps.portal.context_processors.tp_v3_role_home",  # v3 100x role-home shell dedupe
                 "apps.portal.context_processors.tenant_experience_command",  # Shared tenant dashboard/profile/tool command strip
                 "apps.portal.context_processors.announcements",  # Global announcements banner

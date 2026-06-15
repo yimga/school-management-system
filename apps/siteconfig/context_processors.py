@@ -1673,3 +1673,82 @@ def page_explain_context(request):
     from apps.siteconfig.page_explain import build_page_explain_context
 
     return build_page_explain_context(request)
+
+
+# Typed failures for the dashboard-pack switcher context (fail-soft, never break a page).
+_DASHBOARD_PACK_SWITCHER_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    LookupError,
+    TypeError,
+    ValueError,
+)
+
+
+def dashboard_pack_switcher_context(request):
+    """Per-user "Choose your dashboard" switcher data for ALL shells (Dashboard Packs).
+
+    Global, lightweight, fail-soft: computes only for authenticated users with a school,
+    and is hidden unless the user's role family has more than one switchable pack. Lets
+    the backend, parent, student, teacher, and finance shells share one switcher source
+    instead of each view building it. See docs/DASHBOARD_PACKS_REVIVAL_PLAN.md.
+    """
+    empty = {
+        "dashboard_pack_switcher": {
+            "enabled": False,
+            "available": [],
+            "selected": "",
+            "endpoint": "",
+            "role": "",
+        },
+        "dashboard_pack_hidden_sections": [],
+    }
+    user = getattr(request, "user", None)
+    school = getattr(request, "school", None)
+    if not user or not getattr(user, "is_authenticated", False) or not school:
+        return empty
+    out = {
+        "dashboard_pack_switcher": dict(empty["dashboard_pack_switcher"]),
+        "dashboard_pack_hidden_sections": [],
+    }
+    try:
+        from apps.siteconfig.dashboard_pack_resolver import (
+            assignment_role_for_user_role,
+            available_packs_for_user,
+            resolve_effective_template_cached,
+        )
+
+        # Portal cockpit sections the effective pack hides (independent of the switcher).
+        resolved = resolve_effective_template_cached(request)
+        schema = getattr(resolved.get("template"), "config_schema", None) or {}
+        if isinstance(schema, dict):
+            sections = schema.get("sections")
+            if isinstance(sections, dict):
+                out["dashboard_pack_hidden_sections"] = [
+                    str(k) for k, v in sections.items() if v is False
+                ]
+
+        # The switcher itself — only when the role has more than one pack to switch between.
+        available = available_packs_for_user(user)
+        if len(available) > 1:
+            coarse_role = assignment_role_for_user_role(getattr(user, "role", ""))
+            prefs = getattr(user, "dashboard_preferences", None)
+            selected = ""
+            if prefs is not None and hasattr(prefs, "get_dashboard_pack"):
+                selected = prefs.get_dashboard_pack(coarse_role)
+            try:
+                endpoint = reverse("api:dashboard-pack-preference")
+            except NoReverseMatch:
+                endpoint = ""
+            if endpoint:
+                out["dashboard_pack_switcher"] = {
+                    "enabled": True,
+                    "available": available,
+                    "selected": selected,
+                    "endpoint": endpoint,
+                    "role": coarse_role,
+                }
+        return out
+    except _DASHBOARD_PACK_SWITCHER_ERRORS:
+        return empty

@@ -68,6 +68,7 @@
   {% trans "Finance" as money_eyebrow %}
   {% include "components/rmc_os_page_header.html" with os_center_key="money_center" center_eyebrow=money_eyebrow center_title=_("Money Center") center_purpose="" %}
   <p class="text-body-secondary small mb-3">{% blocktrans with p=profile.name c=profile.country_code %}Invoices, fees, and payments — compliance profile {{ p }} ({{ c }}).{% endblocktrans %}</p>
+  {% include "components/dashboard_pack_switcher.html" %}
   {% url 'finance:invoices' as money_primary_url %}
   {% include "components/rmc_os_action_bar.html" with primary_url=money_primary_url primary_label=_("Open invoices") primary_data_action="money-open-invoices" primary_task="money_center" primary_step="finance:invoices" %}
   <details class="mb-3 de-secondary-collapsible">

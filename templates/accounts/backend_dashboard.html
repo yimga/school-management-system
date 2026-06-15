@@ -468,6 +468,7 @@ backend-shell dashboard-page-backend
                 </div>
                 <h3 class="backend-role-home-title">{{ role_home.title }}</h3>
                 <p class="backend-role-home-sub">{{ role_home.purpose }}</p>
+                {% include "components/dashboard_pack_switcher.html" %}
                 <div class="backend-role-home-contract">
                   <span class="backend-role-home-contract-item"><i class="bi bi-bullseye"></i> {% trans "1 dominant purpose" %}</span>
                   <span class="backend-role-home-contract-item"><i class="bi bi-grid-1x2"></i> {% blocktrans with count=dashboard_contract.metric_count %}{{ count }} metrics{% endblocktrans %}</span>
@@ -1033,6 +1034,7 @@ backend-shell dashboard-page-backend
   <script src="{% static 'js/dashboard-layout.js' %}"></script>
   <script src="{% static 'js/backend-dashboard-v2-page.js' %}"></script>
   <script src="{% static 'js/rmc-tenant-health-live.js' %}" defer></script>
+  <script src="{% static 'js/dashboard-pack-switcher.js' %}" defer></script>
   {% if first_login_tour_show and tour_complete_url %}
   <script type="application/json" id="rmc-tour-page-config">{
   "autostart": "{{ tour_autostart_context|default:'backend_dashboard_admin'|escapejs }}",

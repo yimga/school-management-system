@@ -1062,7 +1062,7 @@
     },
     {
       "file": "apps/people/people_management.py",
-      "line": "203",
+      "line": "137",
       "signal": "export_delivery_hint"
     },
     {
@@ -1341,20 +1341,20 @@
       "signal": "export_delivery_hint"
     }
   ],
-  "generated_at": "2026-06-15T01:31:19.745989+00:00",
+  "generated_at": "2026-06-15T21:08:04.246149+00:00",
   "post_handler_audit_embed": {
-    "generated_at": "2026-06-15T01:31:09.103815+00:00",
+    "generated_at": "2026-06-15T21:07:52.791699+00:00",
     "summary_by_bucket": {
       "product": 460,
-      "scripts": 4
+      "scripts": 5
     },
     "summary_by_classification": {
-      "needs_review": 181,
-      "protected_candidate": 279,
-      "scripts_cli": 4
+      "needs_review": 180,
+      "protected_candidate": 280,
+      "scripts_cli": 5
     },
     "totals": {
-      "hits": 464
+      "hits": 465
     }
   },
   "post_handler_product_needs_review": [
@@ -1558,14 +1558,14 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/api/oneroster_w1_extensions.py",
-      "line": "250",
+      "line": "146",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/api/oneroster_w1_extensions.py",
-      "line": "285",
+      "line": "181",
       "protective_decorator_nearby": false
     },
     {
@@ -1762,13 +1762,6 @@
       "classification": "needs_review",
       "file": "apps/compliance/views_api.py",
       "line": "19",
-      "protective_decorator_nearby": false
-    },
-    {
-      "bucket": "product",
-      "classification": "needs_review",
-      "file": "apps/finance/security.py",
-      "line": "418",
       "protective_decorator_nearby": false
     },
     {
@@ -2627,29 +2620,29 @@
     }
   ],
   "post_risk": {
-    "product_needs_review_post_handlers": 181,
-    "product_protected_candidate_post_handlers": 279
+    "product_needs_review_post_handlers": 180,
+    "product_protected_candidate_post_handlers": 280
   },
   "schema_version": 2,
   "security_surface_audit_embed": {
-    "generated_at": "2026-06-15T01:31:06.274282+00:00",
+    "generated_at": "2026-06-15T21:07:43.194908+00:00",
     "summary": {
       "allow_any": 40,
       "csrf_exempt": 97,
       "cursor_execute": 2,
       "login_required": 696,
       "permission_classes": 71,
-      "require_http_methods": 674,
-      "staff_member_required": 118,
+      "require_http_methods": 675,
+      "staff_member_required": 120,
       "subprocess": 597
     },
     "summary_by_classification": {
-      "allowed": 1818,
+      "allowed": 1821,
       "needs_review": 464,
       "unsafe": 13
     },
     "totals": {
-      "hits": 2295
+      "hits": 2298
     }
   },
   "subprocess_hits": [
@@ -2814,9 +2807,9 @@
     "csrf_exempt_hits_apps": 153,
     "cursor_execute_hits_apps": 0,
     "export_delivery_hint_hits_apps": 104,
-    "product_needs_review": 181,
+    "product_needs_review": 180,
     "product_post_handlers": 460,
-    "product_protected_candidate": 279,
+    "product_protected_candidate": 280,
     "subprocess_hits_apps": 31
   }
 }

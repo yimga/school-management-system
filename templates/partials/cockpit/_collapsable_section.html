@@ -25,6 +25,10 @@
   an empty expandable. Callers who want to avoid that should gate the include
   itself: {% if cockpit.tenant_heatmap.enabled %}{% include ... %}{% endif %}.
 {% endcomment %}
+{% comment %} Dashboard Packs (depth): a pack may hide specific cockpit sections by key.
+   Default-visible — a section is hidden ONLY when the active pack explicitly lists it in
+   dashboard_pack_hidden_sections, so an unassigned school renders unchanged. {% endcomment %}
+{% if not dashboard_pack_hidden_sections or key not in dashboard_pack_hidden_sections %}
 <details class="rmc-collapsable"
          data-rmc-collapsable-key="{{ key }}"
          data-rmc-collapsable-default="{{ default_state|default:'open' }}"
@@ -41,3 +45,4 @@
     {% if include_partial %}{% include include_partial %}{% endif %}
   </div>
 </details>
+{% endif %}

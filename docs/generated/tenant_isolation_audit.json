@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-15T01:31:22.286778+00:00",
+  "generated_at": "2026-06-15T21:08:10.139269+00:00",
   "hits": [
     {
       "classification": "tenant_scoped",
@@ -4826,12 +4826,6 @@
       "preview": "school_id=school.pk,"
     },
     {
-      "classification": "tenant_scoped",
-      "file": "apps/api/oneroster_w1_extensions.py",
-      "line": "444",
-      "preview": "\"schoolSourcedId\": f\"org-{getattr(sec, 'school_id', '')}\","
-    },
-    {
       "classification": "needs_review",
       "file": "apps/api/oneroster_writes.py",
       "line": "200",
@@ -8787,12 +8781,6 @@
     },
     {
       "classification": "tenant_scoped",
-      "file": "apps/compliance/management_commands.py",
-      "line": "117",
-      "preview": "school_id=None,"
-    },
-    {
-      "classification": "tenant_scoped",
       "file": "apps/compliance/middleware.py",
       "line": "431",
       "preview": "school_id=getattr(getattr(request, \"school\", None), \"id\", None),"
@@ -9520,37 +9508,43 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/customersuccess/services.py",
-      "line": "31",
+      "line": "34",
       "preview": "def get_peer_school_ids(school, cohort=None):"
     },
     {
       "classification": "needs_review",
       "file": "apps/customersuccess/services.py",
-      "line": "69",
+      "line": "72",
       "preview": "School.objects.filter(is_active=True, country_code=country)"
     },
     {
       "classification": "needs_review",
       "file": "apps/customersuccess/services.py",
-      "line": "74",
+      "line": "77",
       "preview": "qs = School.objects.filter(is_active=True).exclude(pk=school.pk)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/customersuccess/services.py",
-      "line": "157",
+      "line": "309",
+      "preview": "\"sync_tenant_risk_signals failed for school_id=%s\", school.pk,"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/customersuccess/services.py",
+      "line": "321",
       "preview": "peer_ids = get_peer_school_ids(school)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/customersuccess/services.py",
-      "line": "162",
+      "line": "326",
       "preview": "school_id__in=peer_ids,"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/customersuccess/services.py",
-      "line": "167",
+      "line": "331",
       "preview": "school_id__in=peer_ids,"
     },
     {
@@ -10128,36 +10122,6 @@
       "file": "apps/evals/caching.py",
       "line": "146",
       "preview": "school = School.objects.filter(pk=school_id).first()"
-    },
-    {
-      "classification": "tenant_scoped",
-      "file": "apps/evals/import_services.py",
-      "line": "204",
-      "preview": "school_id=None,"
-    },
-    {
-      "classification": "tenant_scoped",
-      "file": "apps/evals/import_services.py",
-      "line": "376",
-      "preview": "school_id = getattr(self.academic_year, \"school_id\", None)"
-    },
-    {
-      "classification": "tenant_scoped",
-      "file": "apps/evals/import_services.py",
-      "line": "379",
-      "preview": "school_id=school_id,"
-    },
-    {
-      "classification": "tenant_scoped",
-      "file": "apps/evals/import_services.py",
-      "line": "548",
-      "preview": "school_id = getattr(academic_year, \"school_id\", None)"
-    },
-    {
-      "classification": "tenant_scoped",
-      "file": "apps/evals/import_services.py",
-      "line": "551",
-      "preview": "school_id=school_id,"
     },
     {
       "classification": "tenant_scoped",
@@ -17433,18 +17397,6 @@
     },
     {
       "classification": "tenant_scoped",
-      "file": "apps/people/people_management.py",
-      "line": "150",
-      "preview": "school_id=None,"
-    },
-    {
-      "classification": "tenant_scoped",
-      "file": "apps/people/people_management.py",
-      "line": "157",
-      "preview": "school_id=None,"
-    },
-    {
-      "classification": "tenant_scoped",
       "file": "apps/people/signals.py",
       "line": "69",
       "preview": "school_id = getattr(instance.teacher, \"school_id\", None)"
@@ -22732,8 +22684,14 @@
     {
       "classification": "needs_review",
       "file": "apps/platform_runtime/views_health_autopilot.py",
-      "line": "107",
+      "line": "116",
       "preview": "qs = School.objects.filter(is_active=True).order_by(\"name\")"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/platform_runtime/views_health_autopilot.py",
+      "line": "279",
+      "preview": "school = School.objects.filter(slug=school_slug, is_active=True).first()"
     },
     {
       "classification": "tenant_scoped",
@@ -30000,11 +29958,53 @@
       "file": "apps/schools/repositories/rls_context_repository.py",
       "line": "11",
       "preview": "def set_current_school_id(school_id: str) -> None:"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/schools/repositories/rls_context_repository.py",
+      "line": "12",
+      "preview": "\"\"\"SET app.current_school_id = %s (parameterized). Caller enforces policy / normalization.\"\"\""
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/schools/repositories/rls_context_repository.py",
+      "line": "14",
+      "preview": "cursor.execute(\"SET app.current_school_id = %s\", [school_id])"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/schools/repositories/rls_context_repository.py",
+      "line": "17",
+      "preview": "def reset_current_school_id() -> None:"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/schools/repositories/rls_context_repository.py",
+      "line": "18",
+      "preview": "\"\"\"RESET app.current_school_id.\"\"\""
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/schools/repositories/rls_context_repository.py",
+      "line": "20",
+      "preview": "cursor.execute(\"RESET app.current_school_id\")"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/schools/residency_readiness.py",
+      "line": "78",
+      "preview": "qs = School.objects.filter(is_active=True).only("
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/schools/rls_context.py",
+      "line": "5",
+      "preview": "Single place for app.current_school_id SET/RESET so middleware and other callers"
     }
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 7354
+    "hits": 7347
   },
   "truncated": true
 }

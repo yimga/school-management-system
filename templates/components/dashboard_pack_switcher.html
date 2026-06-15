@@ -1,0 +1,44 @@
+{% load i18n %}
+{% comment %}
+Dashboard Packs revival (Phase 4): per-user "Choose your dashboard" switcher.
+Rendered only when the user's role family has more than one pack. Posts the choice
+to api:dashboard-pack-preference (PATCH) via static/js/dashboard-pack-switcher.js;
+preview-before-apply (select a radio, then Apply). See docs/DASHBOARD_PACKS_REVIVAL_PLAN.md.
+{% endcomment %}
+{% if dashboard_pack_switcher.enabled %}
+<details class="rmc-dashboard-pack-switcher mt-2"
+         data-rmc-dashboard-pack-switcher
+         data-endpoint="{{ dashboard_pack_switcher.endpoint }}"
+         data-selected="{{ dashboard_pack_switcher.selected }}">
+  <summary class="small fw-semibold user-select-none">
+    <i class="bi bi-grid-3x3-gap"></i> {% trans "Choose your dashboard" %}
+  </summary>
+  <form class="d-grid gap-2 pt-2" data-rmc-dashboard-pack-form>
+    {% for pack in dashboard_pack_switcher.available %}
+    <label class="form-check d-flex align-items-start gap-2 mb-0">
+      <input class="form-check-input mt-1" type="radio" name="dashboard_pack"
+             value="{{ pack.code }}"
+             {% if pack.code == dashboard_pack_switcher.selected %}checked{% endif %}>
+      <span class="form-check-label">
+        <strong class="d-block">{{ pack.name }}</strong>
+        <span class="small text-secondary">{{ pack.description }}</span>
+      </span>
+    </label>
+    {% endfor %}
+    <label class="form-check d-flex align-items-start gap-2 mb-0">
+      <input class="form-check-input mt-1" type="radio" name="dashboard_pack" value=""
+             {% if not dashboard_pack_switcher.selected %}checked{% endif %}>
+      <span class="form-check-label">
+        <strong class="d-block">{% trans "School default" %}</strong>
+        <span class="small text-secondary">{% trans "Use the dashboard your school assigned for your role." %}</span>
+      </span>
+    </label>
+    <div class="d-flex align-items-center gap-2 pt-1">
+      <button type="submit" class="ds-btn" data-rmc-dashboard-pack-apply>
+        {% trans "Apply" %}
+      </button>
+      <span class="small text-secondary" data-rmc-dashboard-pack-status aria-live="polite"></span>
+    </div>
+  </form>
+</details>
+{% endif %}

@@ -6,7 +6,8 @@ Idempotent: update_or_create by code.
 from django.core.management.base import BaseCommand
 
 from apps.siteconfig.models_workflow import WorkflowPack
-from apps.siteconfig.models_dashboard import DashboardPack
+from apps.siteconfig.models_dashboard import DashboardPack, DashboardTemplate
+from apps.siteconfig.dashboard_pack_catalog import DASHBOARD_PACKS, apply_seed
 
 
 # §7 MARKETPLACE_SEED_TARGETS: workflow minimum 30+, dashboard minimum 20+. Idempotent by code.
@@ -230,153 +231,6 @@ WORKFLOW_PACKS = [
     {"code": "migration-bundle-review", "name": "Migration — Bundle Review", "family": "migration", "description": "Migration Cloud bundle review with reconciliation sampling + sign-off."},
 ]
 
-DASHBOARD_PACKS = [
-    {
-        "code": "school-admin-executive",
-        "name": "School Admin Executive",
-        "family": "admin",
-        "description": "Executive summary and KPIs for school admins.",
-    },
-    {
-        "code": "school-admin-operations",
-        "name": "School Admin Operations",
-        "family": "admin",
-        "description": "Day-to-day operations and tasks.",
-    },
-    {
-        "code": "admissions-operations",
-        "name": "Admissions Operations",
-        "family": "admissions",
-        "description": "Pipeline and application queue for admissions team.",
-    },
-    {
-        "code": "admissions-analytics",
-        "name": "Admissions Analytics",
-        "family": "admissions",
-        "description": "Application metrics and funnel view.",
-    },
-    {
-        "code": "teacher-command-center",
-        "name": "Teacher Command Center",
-        "family": "teacher",
-        "description": "Classes, grading, and attendance for teachers.",
-    },
-    {
-        "code": "teacher-gradebook-quick",
-        "name": "Teacher Gradebook Quick",
-        "family": "teacher",
-        "description": "Quick grade entry and class roster.",
-    },
-    {
-        "code": "teacher-planner",
-        "name": "Teacher Planner",
-        "family": "teacher",
-        "description": "Lesson plans and calendar view.",
-    },
-    {
-        "code": "parent-mobile-feed",
-        "name": "Parent Mobile Feed",
-        "family": "parent",
-        "description": "Mobile-friendly parent dashboard.",
-    },
-    {
-        "code": "parent-student-progress",
-        "name": "Parent Student Progress",
-        "family": "parent",
-        "description": "Grades, attendance, and feedback.",
-    },
-    {
-        "code": "parent-payments",
-        "name": "Parent Payments",
-        "family": "parent",
-        "description": "Fees, payments, and payment history.",
-    },
-    {
-        "code": "finance-office-ledger",
-        "name": "Finance Office Ledger",
-        "family": "finance",
-        "description": "Invoices, payments, and outstanding fees.",
-    },
-    {
-        "code": "finance-reconciliation",
-        "name": "Finance Reconciliation",
-        "family": "finance",
-        "description": "Bank reconciliation and audit view.",
-    },
-    {
-        "code": "finance-aid",
-        "name": "Finance Aid Overview",
-        "family": "finance",
-        "description": "Financial aid and scholarship dashboard.",
-    },
-    {
-        "code": "low-bandwidth-compact",
-        "name": "Low-Bandwidth Compact",
-        "family": "compact",
-        "description": "Minimal widgets for low-bandwidth users.",
-    },
-    {
-        "code": "counselor-caseload",
-        "name": "Counselor Caseload",
-        "family": "counselor",
-        "description": "Student caseload and intervention tracking.",
-    },
-    {
-        "code": "counselor-attendance-alerts",
-        "name": "Counselor Attendance Alerts",
-        "family": "counselor",
-        "description": "At-risk and attendance alerts.",
-    },
-    {
-        "code": "principal-school-summary",
-        "name": "Principal School Summary",
-        "family": "principal",
-        "description": "School-wide metrics and alerts.",
-    },
-    {
-        "code": "principal-discipline",
-        "name": "Principal Discipline",
-        "family": "principal",
-        "description": "Discipline incidents and follow-ups.",
-    },
-    {
-        "code": "registrar-enrollment",
-        "name": "Registrar Enrollment",
-        "family": "registrar",
-        "description": "Enrollment and schedule management.",
-    },
-    {
-        "code": "registrar-transcripts",
-        "name": "Registrar Transcripts",
-        "family": "registrar",
-        "description": "Transcript requests and fulfillment.",
-    },
-    {
-        "code": "nurse-health-log",
-        "name": "Nurse Health Log",
-        "family": "nurse",
-        "description": "Health room visits and medication log.",
-    },
-    # === 2026-05-14 wave NS-4: per-role + per-domain dashboard coverage ===
-    {"code": "principal-academic-pulse", "name": "Principal — Academic Pulse", "family": "principal", "description": "Grade-distribution heatmap + on-track / at-risk band per cohort."},
-    {"code": "principal-parent-engagement", "name": "Principal — Parent Engagement", "family": "principal", "description": "Parent-portal adoption + outbound message reach."},
-    {"code": "vice-principal-discipline-trends", "name": "Vice Principal — Discipline Trends", "family": "principal", "description": "Discipline incident heatmap by grade / classroom / category."},
-    {"code": "bursar-collection-rate", "name": "Bursar — Collection Rate", "family": "finance", "description": "Real-time collection rate by term + cohort with aging buckets."},
-    {"code": "bursar-aging-report", "name": "Bursar — Aging Report", "family": "finance", "description": "Outstanding-balance aging report drilling into 30/60/90+ buckets."},
-    {"code": "it-admin-system-health", "name": "IT Admin — System Health", "family": "it_admin", "description": "Health probes, integration sync state, AI provider reachability."},
-    {"code": "it-admin-audit-trail", "name": "IT Admin — Audit Trail", "family": "it_admin", "description": "Recent admin actions, login anomalies, RBAC change feed."},
-    {"code": "hr-staff-pipeline", "name": "HR — Staff Pipeline", "family": "hr", "description": "Open positions, candidates, onboarding/offboarding in flight."},
-    {"code": "transport-fleet-status", "name": "Transport — Fleet Status", "family": "transport", "description": "Bus location, route on-time %, driver shift state."},
-    {"code": "library-circulation", "name": "Library — Circulation", "family": "library", "description": "Active loans, overdue items, top-circulated titles."},
-    {"code": "nurse-clinic-pulse", "name": "Nurse — Clinic Pulse", "family": "nurse", "description": "Visits today, recurring complaints, immunization due."},
-    {"code": "boarding-house-summary", "name": "Boarding — House Summary", "family": "boarding", "description": "Occupancy, visitor count, leave-permission requests pending."},
-    {"code": "cafeteria-meal-uptake", "name": "Cafeteria — Meal Uptake", "family": "cafeteria", "description": "Plan subscribers, daily uptake %, allergen incidents."},
-    {"code": "student-self-service", "name": "Student — Self Service", "family": "student", "description": "Today's classes, assignments due, attendance % to date."},
-    {"code": "admissions-funnel-conversion", "name": "Admissions — Funnel Conversion", "family": "admissions", "description": "Inquiry → application → offer → enrol conversion with stage SLAs."},
-    {"code": "alumni-engagement-summary", "name": "Alumni — Engagement Summary", "family": "alumni", "description": "Alumni roster activity + donation flow + event RSVP."},
-    {"code": "compliance-evidence-room", "name": "Compliance — Evidence Room", "family": "compliance", "description": "SOC 2 / ISO evidence collection status by control."},
-]
-
 
 class Command(BaseCommand):
     help = "Seed initial Workflow Packs and Dashboard Packs (Phase 4). Idempotent."
@@ -407,25 +261,20 @@ class Command(BaseCommand):
                 self.style.SUCCESS(f"Workflow packs: {len(WORKFLOW_PACKS)} ensured.")
             )
 
-        for row in DASHBOARD_PACKS:
-            if not dry_run:
-                DashboardPack.objects.update_or_create(
-                    code=row["code"],
-                    defaults={
-                        "name": row["name"],
-                        "family": row.get("family", ""),
-                        "description": row.get("description", ""),
-                        "version": "1.0",
-                        "is_active": True,
-                    },
-                )
+        templates_ensured = 0
+        if not dry_run:
+            templates_ensured = apply_seed(DashboardPack, DashboardTemplate)
         if dry_run:
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"Dry run: would ensure {len(WORKFLOW_PACKS)} workflow packs and {len(DASHBOARD_PACKS)} dashboard packs."
+                    f"Dry run: would ensure {len(WORKFLOW_PACKS)} workflow packs, "
+                    f"{len(DASHBOARD_PACKS)} dashboard packs, and one template per pack."
                 )
             )
         else:
             self.stdout.write(
-                self.style.SUCCESS(f"Dashboard packs: {len(DASHBOARD_PACKS)} ensured.")
+                self.style.SUCCESS(
+                    f"Dashboard packs: {len(DASHBOARD_PACKS)} ensured "
+                    f"({templates_ensured} new templates)."
+                )
             )
