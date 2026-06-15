@@ -383,6 +383,24 @@ def resolve_phase_flags(school) -> dict[str, Any]:
     }
 
 
+def provisioning_needs_resume(school) -> bool:
+    """True when Phase A is done (portal live) but Phase B never completed.
+
+    A half-provisioned tenant: the owner can sign in, but the school has no
+    academic year / terms / subjects / classrooms / seed because the seed_data
+    step failed (historically on a tenant schema missing recently-added columns).
+    Distinct from a not-yet-started school (handled by the normal inactive path)
+    and from a fully-complete one. The single source of truth for every "should a
+    Retry/Requeue RESUME Phase B instead of no-op'ing on the live portal?" guard.
+    """
+    if school is None:
+        return False
+    flags = resolve_phase_flags(school)
+    return bool(flags.get("phase_a_complete")) and not bool(
+        flags.get("phase_b_complete")
+    )
+
+
 def _provisioning_started_at(school):
     if school is None:
         return None

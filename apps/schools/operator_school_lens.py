@@ -26,12 +26,23 @@ def _chip(key: str, label: str, value: str, tone: str) -> dict[str, str]:
 def can_operator_requeue_provisioning(school: School) -> bool:
     """True when an operator requeue is safe and useful."""
     from apps.schools.provisioning_progress import (
+        provisioning_needs_resume,
         resolve_portal_ready,
         resolve_provisioning_progress,
     )
     from apps.schools.tenant_offboarding import provisioning_in_flight
 
-    if school is None or resolve_portal_ready(school):
+    if school is None:
+        return False
+
+    # Half-provisioned tenant: the portal is live (Phase A) but Phase B never
+    # completed — so the school has no academic year / classes / subjects. A
+    # requeue RESUMES Phase B, so allow it even though the portal already reports
+    # "ready"; just don't double-fire while a run is in flight.
+    if provisioning_needs_resume(school):
+        return not provisioning_in_flight(school)
+
+    if resolve_portal_ready(school):
         return False
 
     progress = resolve_provisioning_progress(school)
@@ -50,12 +61,17 @@ def operator_requeue_provisioning(school: School, *, actor=None) -> dict[str, An
     Skips anonymous session cooldown used on pending tenant polls.
     """
     from apps.schools.pending_tenant_discovery import _primary_owner_user
-    from apps.schools.provisioning_progress import resolve_portal_ready
+    from apps.schools.provisioning_progress import (
+        provisioning_needs_resume,
+        resolve_portal_ready,
+    )
     from apps.schools.tasks import kick_complete_provisioning_background
 
     if school is None:
         raise ValueError("School not found.")
-    if resolve_portal_ready(school):
+    # Allow requeue on a live-but-half-provisioned tenant (Phase B incomplete);
+    # only refuse when the school is genuinely fully provisioned.
+    if resolve_portal_ready(school) and not provisioning_needs_resume(school):
         raise ValueError("Portal is already ready; requeue is not needed.")
     if not can_operator_requeue_provisioning(school):
         raise ValueError("Provisioning is already running; wait or inspect Tenant 360.")

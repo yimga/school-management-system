@@ -685,8 +685,15 @@ def kick_complete_provisioning_background(
         try:
             from .models import School
 
-            school = School.objects.filter(id=sid).only("is_active").first()
-            if school and not school.is_active:
+            school = School.objects.filter(id=sid).only("is_active", "settings").first()
+            from apps.schools.provisioning_progress import provisioning_needs_resume
+
+            # Run when the school is not yet active OR when it is active but
+            # Phase B never completed (half-provisioned tenant the operator is
+            # repairing from Tenant 360 / the flight-deck Retry card).
+            if school and (
+                not school.is_active or provisioning_needs_resume(school)
+            ):
                 complete_provisioning_for_school(sid, contact_email=email, **kw)
         except (
             DatabaseError,
@@ -722,21 +729,41 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         logger.warning("School %s not found for provisioning", school_id)
         return
     if school.is_active:
-        try:
-            sync_school_domains_to_runtime(school)
-        except (
-            OSError,
-            ConnectionError,
-            DatabaseError,
-            AttributeError,
-            TypeError,
-            ValueError,
-        ):
-            logger.exception(
-                "Failed syncing domains for already active school %s", school_id
+        from apps.schools.provisioning_progress import provisioning_needs_resume
+
+        if not provisioning_needs_resume(school):
+            # Fully provisioned: Phase A activated AND Phase B seed completed.
+            # Nothing left to do but keep runtime domain routing in sync.
+            try:
+                sync_school_domains_to_runtime(school)
+            except (
+                OSError,
+                ConnectionError,
+                DatabaseError,
+                AttributeError,
+                TypeError,
+                ValueError,
+            ):
+                logger.exception(
+                    "Failed syncing domains for already active school %s", school_id
+                )
+            logger.info(
+                "School %s already fully provisioned, skip provisioning", school_id
             )
-        logger.info("School %s already active, skip provisioning", school_id)
-        return
+            return
+        # Active but Phase B never completed — e.g. the seed_data step failed on a
+        # tenant schema missing recently-added columns (academics.school_id), leaving
+        # the school LIVE (Phase A) but with no academic year / terms / subjects /
+        # classrooms. Do NOT bail here: fall through to re-run the pipeline so the
+        # tenant-schema migrate + idempotent seed can finish Phase B. Every step is
+        # get_or_create / delivery-gated, so re-entry on an active school is safe.
+        # This is what lets the flight-deck "Retry" card (requeue_provision) and the
+        # stuck-sweep autopilot actually REPAIR a half-provisioned tenant instead of
+        # no-op'ing on it.
+        logger.info(
+            "School %s active but Phase B incomplete — resuming provisioning",
+            school_id,
+        )
 
     from apps.platform_runtime.workflow_tracker import (
         begin_run,
@@ -981,6 +1008,52 @@ def _do_provision_tracked(
             ValueError,
         ):
             logger.exception("Failed syncing domains for school %s", school.id)
+    else:
+        # Bring the tenant schema to migration HEAD BEFORE Phase A activation and
+        # seeding. ``Client.auto_create_schema`` migrates a brand-new schema when it
+        # is first created, but two real cases leave a schema short of HEAD:
+        #   (1) the schema already existed from an earlier provisioning attempt, so
+        #       ensure_tenant_client_for_school returns it WITHOUT re-migrating; and
+        #   (2) a schema created between deploys whose create-time migrate did not
+        #       reach the latest leaf.
+        # Either way a tenant-scoped query then 500s with "column ... does not
+        # exist" (e.g. academics 0028 school_id) — exactly what made the seed_data
+        # step fail and the owner's onboarding/done page + dashboard 500. ``migrate``
+        # is idempotent (already-applied migrations are no-ops); this is the same
+        # guarantee the onboard_tenant path and render_predeploy already provide.
+        # DDL runs under boundary_bypass — a documented bypass case for the guard.
+        try:
+            from apps.schools.onboarding_service import _run_tenant_migrations
+            from apps.tenancy.boundary_core_guard import boundary_bypass
+
+            with boundary_bypass(reason="tenant-provision-schema-migrate"):
+                _run_tenant_migrations(tenant_client)
+            _record_school_event(
+                school,
+                event_type="TENANT_SCHEMA_READY",
+                status="SUCCESS",
+                message="Tenant schema migrated to HEAD.",
+                payload={"schema_name": getattr(tenant_client, "schema_name", "")},
+            )
+        except (
+            ImportError,
+            DatabaseError,
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as exc:
+            # Schema not ready ⇒ refuse to activate/seed a broken tenant. Record the
+            # failure and re-raise so the run finalizes "failed" and the flight-deck
+            # Retry card appears; a retry re-runs this idempotent migrate.
+            _record_school_event(
+                school,
+                event_type="TENANT_SCHEMA_FAILED",
+                status="ERROR",
+                message="Tenant schema migrate failed; aborting before activation.",
+                payload={"error": str(exc)[:500]},
+            )
+            raise
 
     # Pass 7: auto-create the tenant subdomain via the configured DNS provider.
     # No-op when DNS_PROVIDER is unset; logs success/failure as a provisioning event.

@@ -119,6 +119,79 @@ class SchoolProvisionOnboardingE2ETests(TestCase):
         resp = owner_onboarding_done(req)
         self.assertEqual(resp.status_code, 200, "onboarding/done must not 500")
 
+    def test_resume_phase_b_on_active_school_with_incomplete_seed(self):
+        """A school left LIVE but with Phase B incomplete must RESUME, not no-op.
+
+        Regression for the production half-provisioned tenant: Phase A activated
+        the school (is_active=True) but seed_data failed, so the owner had a live
+        portal with no academic year / terms / subjects / classrooms and no way to
+        finish. The flight-deck Retry card calls dispatch_provision_school, which
+        used to hit the blanket ``if school.is_active: return`` guard and bail —
+        leaving the tenant broken forever. The guard now falls through to resume
+        whenever ``phase_b_complete`` is not set.
+        """
+        # Simulate the broken state: active (Phase A done) but Phase B never
+        # completed and no seed artifacts created.
+        self.school.is_active = True
+        self.school.settings = {"provisioning": {"phase_a_complete": True}}
+        self.school.save(update_fields=["is_active", "settings", "updated_at"])
+        self.assertFalse(AcademicYear.objects.filter(school=self.school).exists())
+
+        # Retry provisioning (the same entry point the flight-deck Retry card uses).
+        self._provision()
+        self.school.refresh_from_db()
+
+        # Phase B must have RESUMED and completed: seed artifacts now exist and the
+        # phase_b_complete flag is set.
+        self.assertTrue(
+            AcademicYear.objects.filter(school=self.school).exists(),
+            "resume must seed the academic year that the failed run never created",
+        )
+        self.assertGreaterEqual(
+            Term.objects.filter(school=self.school).count(), 1
+        )
+        self.assertGreaterEqual(
+            Subject.objects.filter(school=self.school).count(), 1
+        )
+        prov = (self.school.settings or {}).get("provisioning") or {}
+        self.assertTrue(
+            prov.get("phase_b_complete"),
+            "resume must mark phase_b_complete so a later retry no-ops",
+        )
+
+        # And a SUBSEQUENT retry must now no-op (phase_b_complete short-circuit),
+        # never duplicating seed rows.
+        term_count = Term.objects.filter(school=self.school).count()
+        self._provision()
+        self.assertEqual(
+            Term.objects.filter(school=self.school).count(),
+            term_count,
+            "a fully-provisioned school must not re-seed on retry",
+        )
+
+    def test_operator_can_requeue_half_provisioned_active_school(self):
+        """Tenant-360 / flight-deck requeue must be ALLOWED on a live-but-Phase-B-
+        incomplete school, and REFUSED on a fully-provisioned one."""
+        from apps.schools.operator_school_lens import (
+            can_operator_requeue_provisioning,
+        )
+        from apps.schools.provisioning_progress import provisioning_needs_resume
+
+        # Fully provisioned (Phase A + B) → no requeue needed.
+        self.school.is_active = True
+        self.school.settings = {
+            "provisioning": {"phase_a_complete": True, "phase_b_complete": True}
+        }
+        self.school.save(update_fields=["is_active", "settings", "updated_at"])
+        self.assertFalse(provisioning_needs_resume(self.school))
+        self.assertFalse(can_operator_requeue_provisioning(self.school))
+
+        # Active but Phase B incomplete (the broken-tenant case) → requeue allowed.
+        self.school.settings = {"provisioning": {"phase_a_complete": True}}
+        self.school.save(update_fields=["settings", "updated_at"])
+        self.assertTrue(provisioning_needs_resume(self.school))
+        self.assertTrue(can_operator_requeue_provisioning(self.school))
+
     def test_done_page_renders_even_when_provisioning_incomplete(self):
         """The 500 was independent of provisioning state — guard that path too."""
         from apps.accounts.views_owner_onboarding import owner_onboarding_done
