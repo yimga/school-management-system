@@ -169,18 +169,37 @@
   }
 
   function pollOnce(intervalRef) {
+    // Error backoff: when the endpoint is failing (e.g. 502 while the web
+    // service is restarting / under load), skip an increasing number of ticks
+    // rather than hammering it every interval — a tight no-backoff retry loop
+    // adds load and can prolong a flapping server. Resets on the first success.
+    if (intervalRef && intervalRef._skip > 0) {
+      intervalRef._skip -= 1;
+      return;
+    }
     fetch(ENDPOINT, { credentials: "same-origin", headers: { Accept: "application/json" } })
       .then(function (r) {
         if (!r.ok) throw new Error("status_" + r.status);
         return r.json();
       })
       .then(function (payload) {
+        if (intervalRef) {
+          intervalRef._fails = 0;
+          intervalRef._skip = 0;
+        }
         if (payload && payload.poll_interval_seconds && intervalRef) {
           intervalRef.ms = Math.max(5000, Number(payload.poll_interval_seconds) * 1000);
         }
         applyPayload(payload);
       })
-      .catch(function () { /* silent — SSR snapshot remains visible */ });
+      .catch(function () {
+        // SSR snapshot stays visible. Back off: skip up to ~8 ticks of the base
+        // interval (caps the retry rate while the endpoint recovers).
+        if (intervalRef) {
+          intervalRef._fails = (intervalRef._fails || 0) + 1;
+          intervalRef._skip = Math.min(intervalRef._fails, 8);
+        }
+      });
   }
 
   function boot() {
