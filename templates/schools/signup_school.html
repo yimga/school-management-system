@@ -236,7 +236,7 @@
           {% endblocktrans %}
         </p>
         <input type="hidden" name="primary_language_code" id="primary_language_code"
-               value="{{ primary_language_code|default:language_code|default:'' }}">
+               value="{% firstof primary_language_code language_code '' %}">
         <div class="rmc-signup-type-cards rmc-signup-type-cards--language"
              role="group"
              aria-label="{% trans 'Official languages' %}"
@@ -244,7 +244,9 @@
              data-rmc-country-cards-multi="language_codes"
              data-rmc-multi-select="1">
           {% if country_pack.languages|length > 1 %}
-          {% with chosen_csv=language_codes_csv|default:language_code|default:'' primary=primary_language_code|default:language_code|default:'' %}
+          {% firstof language_codes_csv language_code '' as sg_csv %}
+          {% firstof primary_language_code language_code '' as sg_primary %}
+          {% with chosen_csv=sg_csv primary=sg_primary %}
             {% for lang in country_pack.languages %}
               {% with code_marker="|"|add:lang.code|add:"|" chosen_marker="|"|add:chosen_csv|add:"|" %}
               <label class="rmc-signup-type-card {% if code_marker in chosen_marker or not chosen_csv and lang.is_default %}rmc-signup-type-card--selected{% endif %}{% if primary == lang.code %} rmc-signup-type-card--primary{% endif %}"

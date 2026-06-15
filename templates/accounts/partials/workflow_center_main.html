@@ -20,7 +20,7 @@
     </div>
     <p id="workflow-hero-desc" class="small text-muted mb-0">{% trans "Fits general and technical education worldwide (GCE, BAC, BEPC, CAP, GCSE, A-Level, K–12, etc.); use the steps that match your subsystem—no rigid sequence." %}</p>
     <div class="mt-2 small text-muted">
-      {% trans "Active year:" %} <strong>{{ active_year.name|default:"—" }}</strong> · {% trans "Active term:" %} <strong>{{ active_term.name|default:active_term|default:"—" }}</strong>
+      {% trans "Active year:" %} <strong>{{ active_year.name|default:"—" }}</strong> · {% trans "Active term:" %} <strong>{% firstof active_term.name active_term "—" %}</strong>
     </div>
     {% if workflow_progress %}
     <div class="workflow-progress-summary">

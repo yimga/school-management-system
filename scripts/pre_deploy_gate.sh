@@ -107,6 +107,8 @@ echo "[pre_deploy_gate] Performance targets doc discipline (NORTH_STAR N9/N10 op
 python scripts/verify_performance_targets_doc_discipline.py
 echo "[pre_deploy_gate] LMS / SSO doc discipline (NORTH_STAR §0.4 operator contract)"
 python scripts/verify_lms_sso_doc_discipline.py
+echo "[pre_deploy_gate] Template defeated-default-fallback footgun (|default:<bare_var>|default: -> 500)"
+python scripts/verify_no_defeated_default_fallback.py
 echo "[pre_deploy_gate] UK / international packs doc discipline (NORTH_STAR §0.4 operator contract)"
 python scripts/verify_uk_international_packs_doc_discipline.py
 echo "[pre_deploy_gate] Advancement CRM doc discipline (NORTH_STAR §0.4 operator contract)"

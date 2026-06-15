@@ -52,7 +52,7 @@
       autocomplete="off"
       placeholder="{% trans 'Try: gradebook, attendance, payment, password…' %}"
       data-rmc-wizard-search-endpoint="{% url 'setup_studio:wizard_search_api' %}"
-      data-rmc-wizard-search-audience="{{ wizard_search_audience|default:user_audience|default:'' }}"
+      data-rmc-wizard-search-audience="{% firstof wizard_search_audience user_audience '' %}"
       aria-controls="rmc-wizard-search-results"
       aria-describedby="rmc-wizard-search-status"
     >

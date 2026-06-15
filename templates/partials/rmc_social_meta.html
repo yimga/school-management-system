@@ -15,7 +15,8 @@
 <meta property="og:type" content="{{ og_type|default:'website' }}">
 <meta property="og:title" content="{{ og_title|default:SITE.site_name|default:'RunMyCampus' }}">
 {% if og_description or seo_description or SITE.meta_description %}
-  <meta property="og:description" content="{{ og_description|default:seo_description|default:SITE.meta_description|truncatewords:30 }}">
+  {% firstof og_description seo_description SITE.meta_description as rmc_meta_desc %}
+  <meta property="og:description" content="{{ rmc_meta_desc|truncatewords:30 }}">
 {% endif %}
 {% if og_image %}
   <meta property="og:image" content="{{ og_image }}">
@@ -39,7 +40,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ og_title|default:SITE.site_name|default:'RunMyCampus' }}">
 {% if og_description or seo_description or SITE.meta_description %}
-  <meta name="twitter:description" content="{{ og_description|default:seo_description|default:SITE.meta_description|truncatewords:30 }}">
+  {% firstof og_description seo_description SITE.meta_description as rmc_tw_desc %}
+  <meta name="twitter:description" content="{{ rmc_tw_desc|truncatewords:30 }}">
 {% endif %}
 {% if og_image %}
   <meta name="twitter:image" content="{{ og_image }}">

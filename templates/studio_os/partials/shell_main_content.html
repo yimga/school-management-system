@@ -225,7 +225,7 @@
   </div>
 
   {% if studio_show_bottom_bar and studio_bottom_bar_actions %}
-  <div class="studio-os-bottom-bar mt-3 {% if request.public_host_kind == 'manager' %}cp-studio-sticky-actions{% endif %}" id="studio-bottom-bar" data-preview-url="{{ studio_preview_url|default:studio_preview_from_form_url|default:'' }}" data-publish-url="{{ studio_publish_url|default:'' }}" data-rollback-url="{{ studio_rollback_url|default:'' }}" data-mode="{{ current_mode|default:'' }}">
+  <div class="studio-os-bottom-bar mt-3 {% if request.public_host_kind == 'manager' %}cp-studio-sticky-actions{% endif %}" id="studio-bottom-bar" data-preview-url="{% firstof studio_preview_url studio_preview_from_form_url '' %}" data-publish-url="{{ studio_publish_url|default:'' }}" data-rollback-url="{{ studio_rollback_url|default:'' }}" data-mode="{{ current_mode|default:'' }}">
     {% for a in studio_bottom_bar_actions %}
     <button type="button" class="btn btn-sm {% if a.primary %}btn-primary{% else %}btn-outline-secondary{% endif %}" data-studio-action="{{ a.id }}">{{ a.label }}</button>
     {% endfor %}
