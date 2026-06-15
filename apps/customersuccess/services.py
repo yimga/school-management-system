@@ -2,6 +2,7 @@
 Section 11: Services for benchmark intelligence (11.3) and customer success (11.4).
 """
 
+import logging
 from decimal import Decimal
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -9,6 +10,8 @@ from django.db import DatabaseError
 from django.db.models import Avg, Q
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 CUSTOMER_SUCCESS_SOFT_FAILURES = (
     AttributeError,
@@ -127,6 +130,157 @@ def compute_tenant_health_score(school):
     return round(Decimal(str(score)), 2), dimensions
 
 
+# Risk-signal rules. Each derives a TenantRiskAlert + a paired
+# TenantInterventionSuggestion from the SAME dimension scores
+# compute_tenant_health_score already produces — no new product semantics are
+# invented here, the bands mirror the dimension scoring above. A rule fires RED
+# at/below `red_at`, AMBER at/below `amber_at`, and is silent otherwise. The
+# stable `signal_key` is stored in each row's `payload` for idempotent dedup.
+_RISK_SIGNAL_RULES = (
+    {
+        "signal_key": "activity_dormant",
+        "dimension": "activity",
+        "red_at": 20,
+        "amber_at": 40,
+        "reason": "Tenant inactive",
+        "suggested_action": (
+            "No recent activity. Reach out to re-engage the school and confirm "
+            "staff have working logins."
+        ),
+        "intervention_category": "engagement",
+        "intervention_title": "Re-engage an inactive school",
+        "intervention_description": (
+            "Activity has dropped off. Schedule a check-in and verify onboarding "
+            "was completed."
+        ),
+    },
+    {
+        "signal_key": "workflow_failures",
+        "dimension": "workflows",
+        "red_at": 20,
+        "amber_at": 40,
+        "reason": "High workflow failure rate",
+        "suggested_action": (
+            "Recent workflows are failing. Review the workflow failure log and "
+            "resolve the top recurring error."
+        ),
+        "intervention_category": "reliability",
+        "intervention_title": "Resolve recurring workflow failures",
+        "intervention_description": (
+            "Workflow failures are degrading this school's health. Triage the "
+            "recent failure events."
+        ),
+    },
+    {
+        "signal_key": "low_adoption",
+        "dimension": "adoption",
+        "red_at": 20,
+        "amber_at": 40,
+        "reason": "Low feature adoption",
+        "suggested_action": (
+            "Core modules are underused. Run guided onboarding and highlight the "
+            "highest-value unused features."
+        ),
+        "intervention_category": "adoption",
+        "intervention_title": "Drive feature adoption",
+        "intervention_description": (
+            "Adoption is low. Walk the school through setup of the modules they "
+            "have not enabled yet."
+        ),
+    },
+)
+
+
+def sync_tenant_risk_signals(school, dimensions):
+    """Reconcile risk alerts + paired interventions against the current health dimensions.
+
+    Full open/close loop, driven by the dimension scores compute_tenant_health_score
+    already produces:
+
+    * **Firing** (dimension at/below the amber band): create a RED/AMBER alert and a
+      paired intervention — unless one is already open for the same ``signal_key``
+      (idempotent; the daily sweep never duplicates).
+    * **Recovered** (dimension healthy again, or no longer measurable): auto-resolve
+      any open rows for that ``signal_key`` — acknowledge the alert / dismiss the
+      intervention. System-resolved rows keep ``acknowledged_by`` / ``dismissed_by``
+      null, so operators can distinguish them from a manual action.
+
+    Returns a dict: ``alerts_created`` / ``interventions_created`` /
+    ``alerts_resolved`` / ``interventions_resolved``.
+    """
+    from .models import TenantInterventionSuggestion, TenantRiskAlert
+
+    result = {
+        "alerts_created": 0,
+        "interventions_created": 0,
+        "alerts_resolved": 0,
+        "interventions_resolved": 0,
+    }
+    if not isinstance(dimensions, dict):
+        return result
+
+    now = timezone.now()
+    for rule in _RISK_SIGNAL_RULES:
+        signal_key = rule["signal_key"]
+        value = dimensions.get(rule["dimension"])
+        firing = value is not None and value <= rule["amber_at"]
+
+        if not firing:
+            result["alerts_resolved"] += TenantRiskAlert.objects.filter(
+                school=school,
+                acknowledged_at__isnull=True,
+                payload__signal_key=signal_key,
+            ).update(acknowledged_at=now)
+            result["interventions_resolved"] += TenantInterventionSuggestion.objects.filter(
+                school=school,
+                dismissed_at__isnull=True,
+                payload__signal_key=signal_key,
+            ).update(dismissed_at=now)
+            continue
+
+        is_red = value <= rule["red_at"]
+        severity = (
+            TenantRiskAlert.Severity.RED if is_red else TenantRiskAlert.Severity.AMBER
+        )
+        priority = 1 if is_red else 3
+        payload = {
+            "signal_key": signal_key,
+            "dimension": rule["dimension"],
+            "dimension_score": value,
+        }
+
+        if not TenantRiskAlert.objects.filter(
+            school=school,
+            acknowledged_at__isnull=True,
+            payload__signal_key=signal_key,
+        ).exists():
+            TenantRiskAlert.objects.create(
+                school=school,
+                severity=severity,
+                reason=rule["reason"],
+                suggested_action=rule["suggested_action"],
+                payload=payload,
+            )
+            result["alerts_created"] += 1
+
+        if not TenantInterventionSuggestion.objects.filter(
+            school=school,
+            dismissed_at__isnull=True,
+            payload__signal_key=signal_key,
+        ).exists():
+            TenantInterventionSuggestion.objects.create(
+                school=school,
+                category=rule["intervention_category"],
+                title=rule["intervention_title"],
+                description=rule["intervention_description"],
+                priority=priority,
+                payload=payload,
+            )
+            result["interventions_created"] += 1
+
+    return result
+
+
 def ensure_health_score_record(school):
     """Compute and save latest TenantHealthScore for school. Idempotent (one per day)."""
     from .models import TenantHealthScore
@@ -141,11 +295,21 @@ def ensure_health_score_record(school):
             .first()
         )
     score, dimensions = compute_tenant_health_score(school)
-    return TenantHealthScore.objects.create(
+    record = TenantHealthScore.objects.create(
         school=school,
         score=score,
         dimensions=dimensions,
     )
+    # Surface risk alerts + interventions from the same dimension signals. Never
+    # let signal sync break health-score persistence (the record is already saved).
+    try:
+        sync_tenant_risk_signals(school, dimensions)
+    except DatabaseError:
+        logger.warning(
+            "sync_tenant_risk_signals failed for school_id=%s", school.pk,
+            exc_info=True,
+        )
+    return record
 
 
 def get_peer_benchmark_metrics(school, metric_key="maturity"):
@@ -228,6 +392,23 @@ def create_auto_ticket(school, rule, trigger_context=None):
     return ticket
 
 
+# Maps a risk-signal back to the page an operator acts on, so the support
+# co-pilot's "Open" button is live instead of inert. Names are reversed lazily
+# via _onboarding_step_link (degrades to "" on NoReverseMatch).
+_SUPPORT_SIGNAL_LINK_NAMES = {
+    "activity_dormant": "siteconfig:tenant_health_dashboard",
+    "workflow_failures": "siteconfig:tenant_health_dashboard",
+    "low_adoption": "siteconfig:guided_onboarding",
+}
+
+
+def _support_signal_link(payload) -> str:
+    if not isinstance(payload, dict):
+        return ""
+    name = _SUPPORT_SIGNAL_LINK_NAMES.get(payload.get("signal_key"))
+    return _onboarding_step_link(name) if name else ""
+
+
 def get_support_copilot_suggestions(school):
     """
     Section 11.4: Support co-pilot — suggested actions from interventions, risk alerts, health.
@@ -243,7 +424,7 @@ def get_support_copilot_suggestions(school):
             {
                 "title": s.title,
                 "description": s.description[:200] if s.description else "",
-                "link": "",
+                "link": _support_signal_link(s.payload),
                 "priority": s.priority,
             }
         )
@@ -254,7 +435,7 @@ def get_support_copilot_suggestions(school):
             {
                 "title": f"Risk: {a.reason}",
                 "description": (a.suggested_action or "")[:200],
-                "link": "",
+                "link": _support_signal_link(a.payload),
                 "priority": 1 if a.severity == "red" else 2,
             }
         )
