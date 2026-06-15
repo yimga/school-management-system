@@ -308,7 +308,14 @@
 
     var sel = document.querySelector("[data-rmc-copilot-rail-selection]");
     if (sel) {
-      if (detail.bulkCount) {
+      // detail is null on the empty/initial state (init() calls
+      // renderSelection(null)). Without this guard, `detail.bulkCount` throws
+      // "Cannot read properties of null", which aborts init() before
+      // wireLensUi() and the row-detail/bulk-selection listeners are attached —
+      // leaving the whole copilot context-lens dead on every page load.
+      if (!detail) {
+        sel.textContent = "";
+      } else if (detail.bulkCount) {
         sel.textContent = detail.bulkCount + " selected";
       } else {
         sel.textContent = detail.title

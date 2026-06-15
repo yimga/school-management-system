@@ -201,7 +201,7 @@
 // v4.03.63: operator provisioning queue (/super/provision-queue/ — all not-yet-live
 //   schools in one actionable list w/ requeue) + i18n: completion summary now server-
 //   translated/pluralized (completion_summary_text) and rendered by the progress JS.
-const CACHE_VERSION = "sms-v4.03.73-corner-notification-dedup-2026-06-15";
+const CACHE_VERSION = "sms-v4.03.74-copilot-lens-crashfix-nav-networkfirst-2026-06-15";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -582,6 +582,17 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // HTML navigations are NETWORK-FIRST: an online user always gets the freshly
+  // deployed page (carrying the up-to-date inline-critical CSS + asset hashes),
+  // so a deploy is visible on the very next load without any manual cache clear.
+  // Cache is used only as an offline fallback. This closes the long-standing
+  // "deployed but the page still shows the old version" trap that a cache-first
+  // navigation created when a stale SW kept replaying a cached shell.
+  if (request.mode === "navigate") {
+    event.respondWith(networkFirstNavigation(request));
+    return;
+  }
+
   event.respondWith(cacheFirstNavigationAndStatic(request));
 });
 
@@ -693,6 +704,22 @@ async function staleWhileRevalidateApi(request) {
     }),
     { status: 503, headers: { "Content-Type": "application/json" } },
   );
+}
+
+async function networkFirstNavigation(request) {
+  // Online: always serve the fresh page from the network (do NOT cache the
+  // authenticated HTML — parity with the prior behaviour, which never cached
+  // navigations either, and avoids serving one user's page to the next).
+  // Offline: fall back to a cached copy if one exists, else the offline shell.
+  try {
+    return await fetch(request);
+  } catch (_err) {
+    const cached = await caches.match(request);
+    if (cached) {
+      return cached;
+    }
+    return (await caches.match("/offline/")) || new Response("Offline", { status: 503 });
+  }
 }
 
 async function cacheFirstNavigationAndStatic(request) {
