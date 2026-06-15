@@ -393,6 +393,15 @@ MODULE_ACCESS_DEFAULTS = {
         "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
         "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
     },
+    # Setup Studio is the onboarding/config sibling of studio_os (app_name="setup_studio",
+    # namespaced in config/urls.py). It was MISSING from this map, so can_access_module()
+    # default-denied it for EVERYONE (unknown module → deny), locking the entire Setup Studio
+    # out — newly-provisioned owners (role ADMIN) hit an "Access required" wall on the studio
+    # onboarding/MFA-setup wizard instead of their dashboard. Mirror studio_os's policy.
+    "setup_studio": {
+        "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+    },
     "events": {
         "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN", "LEADERSHIP", "PRINCIPAL"},
         "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
