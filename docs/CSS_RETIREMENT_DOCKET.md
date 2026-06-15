@@ -1,6 +1,19 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-15 (relative-import follow-up — retired dead `webhook_security_required` decorator in `apps/finance/security.py`; see § below).
+**Last updated:** 2026-06-15 (dynamic-lookup sweep — retired dead `apps/evals/import_services.py`, built on unregistered phantom models; see § below).
+
+## 2026-06-15 — Dynamic model-lookup sweep — retire dead `apps/evals/import_services.py`
+
+**Context:** the import audits (absolute + relative) cannot see models referenced by **string** via `apps.get_model("app", "Model")`. A new sweep over all literal `get_model(...)` / `import_module("apps...")` calls (78 literal get_model calls checked) surfaced exactly 2 bad: `apps/evals/import_services.py:406-407` `get_model("evals", "GradeImportJob")` / `get_model("evals", "GradeImportRowLog")` — both **unregistered phantom** models (they live only in the abandoned `apps/evals/models_enhanced.py`, which has no migrations and is not a registered app model, so `get_model` raises `LookupError`). `GradeImportService.__init__` calls them, so instantiating it crashes immediately.
+
+**Retired:**
+- `apps/evals/import_services.py` (whole 562-line module: `ImportRowData`, `ImportRowResult`, `GradeImportValidator`, `GradeImportProcessor`, `GradeImportService`) — **zero external references** anywhere (py/html/urls/config/tests), built entirely against the unregistered `evals/models_enhanced.py` grade-import models. This is the third leg of the abandoned enhanced-grade-import feature: WF2 (2026-06-10, `365df3799`) already retired the companion `evals/views_import_enhanced.py` + `grade_import_job_detail` route, but missed this service module because it references the phantom models dynamically via `get_model` rather than a static import.
+
+**Kept (live grade-import path — unaffected):** `apps/evals/views.py` import flow using the **real** `apps.analytics.models.GradeImportJob` → `import_job_monitor_view` (per WF2). The live path was never touched.
+
+**Validation:** dynamic-lookup sweep bad 2→0; `manage.py check` 0; `apps.evals` + `apps.evals.views` import clean; the deleted module had no importers so nothing else changed. **Lesson:** static import audits miss `get_model("app","Model")` string lookups — sweep those separately; a phantom there is a runtime `LookupError`, not a static ImportError.
+
+
 
 ## 2026-06-15 — Relative-import audit follow-up — retire dead `webhook_security_required`
 
