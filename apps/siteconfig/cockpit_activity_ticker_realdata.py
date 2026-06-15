@@ -269,12 +269,12 @@ def _source_email_delivery_events() -> list[dict[str, Any]]:
     Surfaces the count + bounce rate hint only — never recipient addresses.
     """
     try:
-        from apps.communications.models import EmailDeliveryEvent  # noqa: F401
+        from apps.schoolops.models_email_delivery import EmailDeliveryEvent  # noqa: F401
     except Exception:
         # Model not present on this deploy — silently no-op.
         return []
     try:
-        from apps.communications.models import EmailDeliveryEvent
+        from apps.schoolops.models_email_delivery import EmailDeliveryEvent
         cutoff = timezone.now() - timedelta(hours=24)
         # tenant-isolation-allow: platform-activity-ticker-cross-tenant-aggregate-by-design
         recent_count = EmailDeliveryEvent.objects.filter(
