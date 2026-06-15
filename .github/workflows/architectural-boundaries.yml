@@ -1240,6 +1240,7 @@ jobs:
           python scripts/scan_operator_shell_dead_hrefs.py --strict
           python scripts/verify_manager_header_account_completion.py
           python scripts/verify_operator_help_center_completion.py
+          python scripts/verify_provisioning_migrates_tenant_schema.py
           npm run test:interaction-integrity
           python manage.py migrate --noinput
           python manage.py backfill_search_indexes --only all

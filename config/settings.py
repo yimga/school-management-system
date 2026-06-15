@@ -1874,6 +1874,17 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 300.0,
         "options": {"expires": 240},
     },
+    # Durable provisioning seal — every 10 min, finish any tenant left LIVE
+    # (Phase A) but with Phase B unfinished (no academic year / seed). Catches a
+    # half-provisioned tenant regardless of whether its workflow run is stuck,
+    # failed, or gone — the case the stuck-sweep autopilot cannot reach. Bounded
+    # per tick + per-school cooldown; idempotent resume. Requires the explicit
+    # phase_a_complete marker, so legacy schools are never touched.
+    "schools-reconcile-half-provisioned": {
+        "task": "schools.reconcile_half_provisioned_tenants",
+        "schedule": 600.0,
+        "options": {"expires": 540},
+    },
     # Unified Wizard Framework — refresh SetupProgress.recommendations for every active school.
     # Runs Mondays 04:00 UTC. Handler is apps.setup_studio.wizard_ai.refresh_setup_recommendations,
     # invoked via a thin task wrapper that walks active schools (rate-limited per the v3.39.0

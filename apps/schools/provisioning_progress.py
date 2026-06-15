@@ -384,7 +384,7 @@ def resolve_phase_flags(school) -> dict[str, Any]:
 
 
 def provisioning_needs_resume(school) -> bool:
-    """True when Phase A is done (portal live) but Phase B never completed.
+    """True when the phased pipeline completed Phase A but never finished Phase B.
 
     A half-provisioned tenant: the owner can sign in, but the school has no
     academic year / terms / subjects / classrooms / seed because the seed_data
@@ -392,13 +392,20 @@ def provisioning_needs_resume(school) -> bool:
     Distinct from a not-yet-started school (handled by the normal inactive path)
     and from a fully-complete one. The single source of truth for every "should a
     Retry/Requeue RESUME Phase B instead of no-op'ing on the live portal?" guard.
+
+    Requires the EXPLICIT ``phase_a_complete`` marker — set only by
+    ``_activate_portal_phase_a`` — rather than inferring Phase A from
+    ``is_active``. Inferring from ``is_active`` would misfire on legacy schools
+    provisioned before phase tracking existed (no provisioning flags at all):
+    they would look like "needs resume" forever, so a reconciler scanning every
+    active school would wrongly re-provision them. Positive evidence only.
     """
-    if school is None:
+    if school is None or not getattr(school, "is_active", False):
         return False
-    flags = resolve_phase_flags(school)
-    return bool(flags.get("phase_a_complete")) and not bool(
-        flags.get("phase_b_complete")
-    )
+    prov = _provisioning_settings(school)
+    if not prov.get("phase_a_complete"):
+        return False
+    return not prov.get("phase_b_complete")
 
 
 def _provisioning_started_at(school):

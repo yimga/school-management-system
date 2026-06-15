@@ -192,6 +192,57 @@ class SchoolProvisionOnboardingE2ETests(TestCase):
         self.assertTrue(provisioning_needs_resume(self.school))
         self.assertTrue(can_operator_requeue_provisioning(self.school))
 
+    def test_reconciler_selects_only_half_provisioned_active_tenants(self):
+        """The durable seal must requeue half-provisioned tenants and ONLY those.
+
+        Critically, a legacy school (active, no provisioning flags at all — the
+        state of every tenant provisioned before phase tracking existed) must NOT
+        be flagged, or the reconciler would re-provision the entire fleet.
+        """
+        from django.utils import timezone
+
+        from apps.schools.tasks import reconcile_half_provisioned_tenants
+        from apps.schools.provisioning_progress import provisioning_needs_resume
+
+        # This school: active, Phase A done, Phase B NOT done → eligible.
+        self.school.is_active = True
+        self.school.settings = {"provisioning": {"phase_a_complete": True}}
+        self.school.save(update_fields=["is_active", "settings", "updated_at"])
+        self.assertTrue(provisioning_needs_resume(self.school))
+
+        # Legacy school: active, NO provisioning flags → must be immune.
+        legacy = School.objects.create(
+            name="Legacy High", slug="legacy-high",
+            subdomain="legacy-high", is_active=True,
+        )
+        self.assertFalse(provisioning_needs_resume(legacy))
+
+        # Fully provisioned school: both flags → must be skipped.
+        done = School.objects.create(
+            name="Done High", slug="done-high", subdomain="done-high",
+            is_active=True,
+            settings={"provisioning": {"phase_a_complete": True, "phase_b_complete": True}},
+        )
+        self.assertFalse(provisioning_needs_resume(done))
+
+        # Dry run isolates SELECTION from the actual re-drive.
+        result = reconcile_half_provisioned_tenants(dry_run=True)
+        self.assertEqual(
+            result["requeued"], 1, "exactly the one half-provisioned tenant"
+        )
+
+        # Cooldown: stamp last_reconcile_at = now → the candidate is skipped.
+        self.school.refresh_from_db()
+        blob = dict(self.school.settings or {})
+        prov = dict(blob.get("provisioning") or {})
+        prov["last_reconcile_at"] = timezone.now().isoformat()
+        blob["provisioning"] = prov
+        self.school.settings = blob
+        self.school.save(update_fields=["settings", "updated_at"])
+        result2 = reconcile_half_provisioned_tenants(dry_run=True, cooldown_minutes=30)
+        self.assertEqual(result2["requeued"], 0)
+        self.assertEqual(result2["skipped_cooldown"], 1)
+
     def test_done_page_renders_even_when_provisioning_incomplete(self):
         """The 500 was independent of provisioning state — guard that path too."""
         from apps.accounts.views_owner_onboarding import owner_onboarding_done

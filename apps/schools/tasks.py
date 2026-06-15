@@ -1502,6 +1502,107 @@ def _do_provision_tracked(
             )
 
 
+def reconcile_half_provisioned_tenants(
+    *, limit: int = 25, cooldown_minutes: int = 30, dry_run: bool = False
+) -> dict:
+    """Durable seal: finish tenants left LIVE (Phase A) but with Phase B unfinished.
+
+    Finds schools that are active (owner can sign in) yet never completed Phase B
+    — no academic year / terms / subjects / classrooms — and re-drives
+    provisioning to finish them. This catches a half-provisioned tenant REGARDLESS
+    of whether its original workflow run is stuck, failed, or already gone, which
+    the stuck-sweep autopilot (it only fires on an in-flight run) cannot reach.
+
+    Safe by construction:
+    - ``provisioning_needs_resume`` requires the explicit ``phase_a_complete``
+      marker, so legacy schools (no provisioning flags) are never touched.
+    - Bounded to ``limit`` re-drives per tick.
+    - Per-school ``cooldown_minutes`` (stamped as ``last_reconcile_at``) so a
+      permanently-unrepairable tenant is retried at most ~twice/hour, not every
+      beat tick.
+    - Skips any school with provisioning already in flight (no double-fire).
+    - Each re-drive resumes Phase B idempotently (get_or_create everywhere).
+    """
+    from datetime import datetime, timedelta
+    from django.utils import timezone
+
+    from .models import School
+    from apps.schools.pending_tenant_discovery import _primary_owner_user
+    from apps.schools.provisioning_progress import provisioning_needs_resume
+
+    try:
+        from apps.schools.tenant_offboarding import provisioning_in_flight
+    except ImportError:
+
+        def provisioning_in_flight(_school):
+            return False
+
+    now = timezone.now()
+    cutoff = now - timedelta(minutes=max(0, cooldown_minutes))
+    requeued = 0
+    skipped_in_flight = 0
+    skipped_cooldown = 0
+
+    # Narrow at the DB level to live tenants that ran Phase A (positive JSON key
+    # match only — NOT an exclude on phase_b_complete: a `.exclude(... =True)` on a
+    # MISSING JSON key drops the row via SQL three-valued logic, i.e. exactly the
+    # half-provisioned rows we want). The authoritative phase_b gate is the Python
+    # ``provisioning_needs_resume`` re-check below, so this filter is a pure
+    # optimization that is always a safe superset.
+    # tenant-isolation-allow: platform-operator-provisioning-reconciler-cross-tenant-by-design
+    candidates = School.objects.filter(
+        is_active=True, settings__provisioning__phase_a_complete=True
+    ).order_by("updated_at")
+    for school in candidates.iterator():
+        if requeued >= limit:
+            break
+        # Authoritative gate (handles the phase_b_complete absent/false cases the
+        # DB filter deliberately does not).
+        if not provisioning_needs_resume(school):
+            continue
+        prov = (getattr(school, "settings", None) or {}).get("provisioning") or {}
+        last_raw = str(prov.get("last_reconcile_at") or "").strip()
+        if last_raw:
+            try:
+                last_dt = datetime.fromisoformat(last_raw)
+                if timezone.is_naive(last_dt):
+                    last_dt = timezone.make_aware(
+                        last_dt, timezone.get_default_timezone()
+                    )
+                if last_dt > cutoff:
+                    skipped_cooldown += 1
+                    continue
+            except (ValueError, TypeError):
+                pass
+        if provisioning_in_flight(school):
+            skipped_in_flight += 1
+            continue
+        if dry_run:
+            requeued += 1
+            continue
+        owner = _primary_owner_user(school)
+        contact_email = (getattr(owner, "email", "") or "").strip()
+        # Stamp the cooldown BEFORE dispatch so a crash mid-dispatch still backs
+        # off the next tick rather than hammering the same school.
+        _merge_provisioning_settings(school, last_reconcile_at=now.isoformat())
+        school.save(update_fields=["settings", "updated_at"])
+        dispatch_provision_school(str(school.id), contact_email=contact_email)
+        requeued += 1
+        logger.info(
+            "reconcile_half_provisioned_tenants requeued school_id=%s", school.id
+        )
+
+    result = {
+        "requeued": requeued,
+        "skipped_in_flight": skipped_in_flight,
+        "skipped_cooldown": skipped_cooldown,
+        "dry_run": dry_run,
+    }
+    if requeued or skipped_in_flight or skipped_cooldown:
+        logger.info("reconcile_half_provisioned_tenants summary=%s", result)
+    return result
+
+
 # Celery task (optional)
 try:
     from celery import shared_task
@@ -1553,6 +1654,15 @@ try:
 
     provision_school_task.rmc_workflow_explicit = True
 
+    @shared_task(name="schools.reconcile_half_provisioned_tenants")
+    def reconcile_half_provisioned_tenants_task(
+        *, limit: int = 25, cooldown_minutes: int = 30, dry_run: bool = False
+    ) -> dict:
+        """Beat entry point — completes Phase B on any half-provisioned tenant."""
+        return reconcile_half_provisioned_tenants(
+            limit=limit, cooldown_minutes=cooldown_minutes, dry_run=dry_run
+        )
+
     @shared_task(name="schools.ensure_demo_environment_scheduled")
     def ensure_demo_environment_scheduled() -> dict:
         """
@@ -1579,3 +1689,6 @@ except ImportError:
 
     def ensure_demo_environment_scheduled(*args, **kwargs):
         return None
+
+    def reconcile_half_provisioned_tenants_task(*args, **kwargs):
+        return reconcile_half_provisioned_tenants(*args, **kwargs)
