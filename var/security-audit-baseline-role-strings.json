@@ -635,7 +635,7 @@
       "role": "STUDENT"
     },
     {
-      "line": 750,
+      "line": 757,
       "path": "apps/communication/models.py",
       "role": "TEACHER"
     },
@@ -915,7 +915,7 @@
       "role": "ADMIN"
     },
     {
-      "line": 906,
+      "line": 866,
       "path": "apps/people/models.py",
       "role": "STUDENT"
     },
@@ -1040,7 +1040,7 @@
       "role": "STUDENT"
     },
     {
-      "line": 492,
+      "line": 499,
       "path": "apps/portal/models.py",
       "role": "PARENT"
     },
@@ -1770,12 +1770,12 @@
       "role": "TEACHER"
     },
     {
-      "line": 111,
+      "line": 117,
       "path": "apps/student360/views.py",
       "role": "ADMIN"
     }
   ],
-  "generated_at": "2026-06-14T22:17:03+00:00",
+  "generated_at": "2026-06-15T00:31:44+00:00",
   "role_tokens": [
     "ADMIN",
     "PARENT",

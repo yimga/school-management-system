@@ -712,7 +712,7 @@
       "value": 4096
     },
     {
-      "line": 782,
+      "line": 789,
       "path": "apps/communication/models.py",
       "snippet": "contact_name = models.CharField(max_length=160)",
       "value": 160
@@ -5578,7 +5578,7 @@
       "value": 16384
     }
   ],
-  "generated_at": "2026-06-14T22:24:05+00:00",
+  "generated_at": "2026-06-15T00:31:08+00:00",
   "rule": "Integer literals with abs(value) >= 100 in production code should route through the 7-layer configurability contract (RuntimeDefaults / constants.py / SiteSettings)",
   "scan_dirs": [
     "apps",
