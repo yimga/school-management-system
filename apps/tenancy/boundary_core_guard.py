@@ -116,7 +116,7 @@ def unpin_tenant_boundary(token: str) -> None:
     if state is None:
         return
     if state.token != token:
-        logger.warning(
+        logger.warning(  # pii-logging-smell-allow: logs only non-reversible 8-char token prefixes for mismatch debug, never the full pin token
             "tenancy.boundary_unpin token_mismatch expected=%s got=%s",
             state.token[:8],
             (token or "")[:8],

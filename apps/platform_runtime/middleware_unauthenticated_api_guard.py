@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
+import logging
+
+from django.conf import settings
 from django.http import HttpResponse
+
+logger = logging.getLogger(__name__)
 
 _WORKFLOW_PREFIX = "/platform-runtime/workflow-progress/"
 _ASSIST_DOCK_PREFIX = "/assist-dock/"
@@ -58,5 +63,31 @@ class UnauthenticatedApiGuardMiddleware:
             return self.get_response(request)
         path = request.path or ""
         if path_requires_unauthenticated_api_auth(path, request.method):
+            # Observe-only diagnostic (off by default; set RMC_DEBUG_API_AUTH_401=1
+            # to enable). Logs ONLY booleans/presence — never cookie values or
+            # tokens — so we can tell WHY the request is anonymous here without
+            # touching any auth logic:
+            #   has_default_cookie True + user_authed False  -> session cookie
+            #       present but didn't resolve to a user (alias / session-load issue)
+            #   has_default_cookie False + has_manager_cookie True -> the manager
+            #       cookie alias didn't apply for this request
+            #   both False -> the browser sent no session cookie (credentials /
+            #       SameSite / cross-origin), not a server-side aliasing bug
+            if getattr(settings, "RMC_DEBUG_API_AUTH_401", False):
+                cookies = getattr(request, "COOKIES", {}) or {}
+                default_name = getattr(settings, "SESSION_COOKIE_NAME", "sessionid")
+                sess = getattr(request, "session", None)
+                logger.warning(
+                    "unauthenticated_api_guard_401 path=%s method=%s user_present=%s "
+                    "user_authed=%s has_default_cookie=%s has_manager_cookie=%s "
+                    "session_key_resolved=%s",
+                    path,
+                    request.method,
+                    user is not None,
+                    bool(user is not None and getattr(user, "is_authenticated", False)),
+                    default_name in cookies,
+                    "rmc_manager_sessionid" in cookies,
+                    bool(sess is not None and getattr(sess, "session_key", None)),
+                )
             return HttpResponse(status=401)
         return self.get_response(request)
