@@ -201,7 +201,7 @@
 // v4.03.63: operator provisioning queue (/super/provision-queue/ — all not-yet-live
 //   schools in one actionable list w/ requeue) + i18n: completion summary now server-
 //   translated/pluralized (completion_summary_text) and rendered by the progress JS.
-const CACHE_VERSION = "sms-v4.03.71-row-detail-htmx-rebind-2026-06-15";
+const CACHE_VERSION = "sms-v4.03.72-row-detail-always-open-panel-2026-06-15";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

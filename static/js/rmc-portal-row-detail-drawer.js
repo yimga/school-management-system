@@ -67,13 +67,6 @@
     return { title: title, subtitle: subtitle, meta: meta, actions: [], schoolId: '', lensApiUrl: '', requeueApiUrl: '' };
   }
 
-  function usesControlPlaneCopilotLens() {
-    return !!(
-      document.querySelector('.rmc-app-shell[data-rmc-app-shell-copilot="1"]') &&
-      document.querySelector('[data-rmc-copilot-lens-root]')
-    );
-  }
-
   function drawerElements() {
     return document.querySelectorAll('#' + DRAWER_ID);
   }
@@ -509,11 +502,9 @@
 
   function dismissRowDetail() {
     clearRowSelection();
-    if (usesControlPlaneCopilotLens()) {
-      clearLensPoll();
-      emitRowClose();
-      return;
-    }
+    // The offcanvas is now always the live surface (see openDrawer), so always close
+    // it. closeDrawerSurface also clears the lens poll and emits rmc:row-detail-close
+    // so the mirrored copilot Lens tab clears in lock-step.
     closeDrawerSurface(false);
   }
 
@@ -557,10 +548,17 @@
     if (!payload) return;
     dedupeDrawerDom();
     markSelectedRow(row);
+    // emitRowContext mirrors the selection into the control-plane copilot "Lens"
+    // tab (rmc-copilot-context-lens.js listens for rmc:row-detail-open). We then
+    // ALWAYS open the offcanvas detail panel as well. Batch 1700 (fc341f0bc) added
+    // an `if (usesControlPlaneCopilotLens()) return;` here that SUPPRESSED the drawer
+    // whenever the copilot rail was present (default-on for operators) and relied on
+    // the rail's Lens tab alone — but the rail does not reliably/visibly expand, so
+    // every /super/ list row (schools, team, offboarding…) appeared dead-on-click.
+    // The offcanvas is the self-contained, guaranteed-visible surface; the lens is
+    // the bonus mirror the row-detail hint already promises ("…also mirrored in the
+    // Lens tab"). Open both so clicking a row always surfaces the detail panel.
     emitRowContext(payload, row);
-    if (usesControlPlaneCopilotLens()) {
-      return;
-    }
     populateDrawerDom(payload);
     showDrawer();
   }
