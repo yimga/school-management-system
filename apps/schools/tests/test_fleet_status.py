@@ -6,6 +6,7 @@ from django.test import TestCase
 from apps.billing.models import BillingAccount, TenantSubscription
 from apps.schools.fleet_status import (
     HEATMAP_TIERS,
+    build_fleet_queryset,
     resolve_fleet_summary,
     resolve_school_fleet_status,
 )
@@ -23,6 +24,31 @@ class FleetStatusResolverTests(TestCase):
         }
         defaults.update(kwargs)
         return School.objects.create(**defaults)
+
+    def test_billing_account_select_related_no_n_plus_one(self):
+        """Seal: build_fleet_queryset must select_related the reverse OneToOne
+        billing_account so get_lifecycle_snapshot's school.billing_account
+        fallback (hit for every subscription-less school) does not fire one
+        query per tile across the up-to-500-school fleet loop. Query count must
+        be constant in the number of schools, not linear."""
+        for i in range(5):
+            # No TenantSubscription → forces the school.billing_account fallback.
+            self._school(
+                name=f"NPlus1 School {i}",
+                slug=f"nplus1-school-{i}",
+                subdomain=f"nplus1-school-{i}",
+            )
+
+        schools = list(build_fleet_queryset())
+        self.assertGreaterEqual(len(schools), 5)
+        # One query to materialise the list (with the billing_account JOIN);
+        # accessing school.billing_account per row must add zero queries.
+        with self.assertNumQueries(0):
+            for school in schools:
+                try:
+                    _ = school.billing_account
+                except BillingAccount.DoesNotExist:
+                    pass
 
     def test_active_approved_school_is_live_healthy(self):
         school = self._school()

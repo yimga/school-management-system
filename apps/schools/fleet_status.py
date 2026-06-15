@@ -81,7 +81,13 @@ def build_fleet_queryset():
         "-updated_at", "-created_at"
     )
     return (
-        School.objects.all()
+        # select_related the reverse OneToOne billing_account: get_lifecycle_snapshot
+        # falls back to school.billing_account for any school without a current
+        # subscription (new / pending schools especially), which is one query per
+        # such school across the up-to-500-tile fleet loop. Reverse OneToOne is
+        # select_related-safe (unlike a reverse FK); an absent row caches a
+        # DoesNotExist that get_lifecycle_snapshot already catches — no extra query.
+        School.objects.select_related("billing_account")
         .annotate(
             latest_event_type=Subquery(latest_event.values("event_type")[:1]),
             latest_event_status=Subquery(latest_event.values("status")[:1]),
