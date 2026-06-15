@@ -1,13 +1,22 @@
-"""Gap-closure validation (2026-06-14) — email ticker reads the real model.
+"""Seal: the email-delivery ticker source reads the real model AND only from
+the schema that actually has the table.
 
 Plain ``unittest`` (no DB).
 
-`_source_email_delivery_events` imported a non-existent
-`apps.communications.models.EmailDeliveryEvent` (plural app, wrong module),
-swallowed the ImportError, and so the "N platform emails delivered today"
-ticker row NEVER appeared. The real model is
-`apps.schoolops.models_email_delivery.EmailDeliveryEvent` (platform-level, no
-school FK — the cross-tenant aggregate is by-design). Fixed both import sites.
+History:
+  * v1 (pre-2026-06-14): ``_source_email_delivery_events`` imported a
+    non-existent ``apps.communications.models.EmailDeliveryEvent`` (plural app,
+    wrong module), swallowed the ImportError, so the card never appeared.
+  * v2 (2026-06-14): repointed at the real
+    ``apps.schoolops.models_email_delivery.EmailDeliveryEvent`` — but on a false
+    premise ("platform-level, cross-tenant aggregate by-design"). ``schoolops``
+    is a TENANT_APPS app, so its table lives ONLY in tenant schemas. The source
+    was wired into ``resolve_manager_ticker_cards()`` (manager host = public
+    schema), so it raised ``UndefinedTable`` on every operator page load — a
+    traceback storm, still no card.
+  * v3 (2026-06-15, this seal): the source is TENANT-scoped. It belongs in
+    ``resolve_tenant_ticker_cards()`` where the active tenant schema has the
+    table, and must NEVER be wired into the manager resolver again.
 """
 
 from __future__ import annotations
@@ -43,17 +52,50 @@ class EmailTickerSourceModuleTests(unittest.TestCase):
         names = {f.name for f in EmailDeliveryEvent._meta.get_fields()}
         self.assertIn("created_at", names)
 
-    def test_source_runs_without_import_error(self) -> None:
+    def test_source_runs_without_raising(self) -> None:
         from apps.siteconfig.cockpit_activity_ticker_realdata import (
             _source_email_delivery_events,
         )
 
-        # Must return a list (0 rows is fine) — never raise ImportError now.
+        # Must return a list (0 rows is fine) — never raise, even when the
+        # table is absent on the current schema (UndefinedTable is caught).
         result = _source_email_delivery_events()
         self.assertIsInstance(result, list)
-        # Sanity: the source body references the real module, not the phantom.
         body = inspect.getsource(_source_email_delivery_events)
         self.assertNotIn("communications", body)
+
+    def test_tenant_scoped_not_manager_scoped(self) -> None:
+        """The schoolops table lives only in tenant schemas — this source must be
+        wired into the tenant resolver and NEVER the manager (public-schema) one,
+        or it raises UndefinedTable on every operator page load."""
+        from apps.siteconfig.cockpit_activity_ticker_realdata import (
+            resolve_manager_ticker_cards,
+            resolve_tenant_ticker_cards,
+        )
+
+        manager_body = inspect.getsource(resolve_manager_ticker_cards)
+        tenant_body = inspect.getsource(resolve_tenant_ticker_cards)
+        self.assertNotIn(
+            "_source_email_delivery_events()", manager_body,
+            msg="email-delivery source must NOT be in the manager resolver "
+                "(public schema has no schoolops_email_delivery_event table)",
+        )
+        self.assertIn(
+            "_source_email_delivery_events()", tenant_body,
+            msg="email-delivery source must be wired into the tenant resolver",
+        )
+
+    def test_missing_table_is_caught_quietly(self) -> None:
+        """A missing table is an expected degraded state on a freshly-provisioned
+        tenant — the source must catch ProgrammingError/OperationalError so it
+        degrades silently instead of spamming tracebacks every render."""
+        from apps.siteconfig.cockpit_activity_ticker_realdata import (
+            _source_email_delivery_events,
+        )
+
+        body = inspect.getsource(_source_email_delivery_events)
+        self.assertIn("ProgrammingError", body)
+        self.assertIn("OperationalError", body)
 
 
 if __name__ == "__main__":

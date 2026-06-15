@@ -10,13 +10,13 @@ Architecture mirrors ``cockpit_panels_realdata_service`` + the
 
   * Two host-routed resolver groups:
       - ``resolve_manager_ticker_cards()`` — platform-wide events, sourced from
-        models that exist on the operator-platform schema (EmailDeliveryEvent,
-        MigrationCloudAuditEvent, School provisioning, TenantSubscription).
+        models that exist on the operator-platform (public) schema
+        (MigrationCloudAuditEvent, School provisioning, TenantSubscription).
         Cross-tenant aggregation is by design and marked accordingly.
       - ``resolve_tenant_ticker_cards(request)`` — tenant-scoped events,
-        sourced from the active tenant's own audit log + attendance + finance
-        rows. NEVER reads from operator-platform models so platform data
-        cannot leak onto a tenant subdomain.
+        sourced from the active tenant's own schema: audit log + attendance +
+        finance + email-delivery rows. NEVER reads from operator-platform
+        models so platform data cannot leak onto a tenant subdomain.
 
   * Lazy model imports inside each resolver — context processor on every
     request, so a missing model never breaks page load.
@@ -50,6 +50,7 @@ from datetime import timedelta
 from typing import Any
 
 from django.core.cache import cache
+from django.db.utils import OperationalError, ProgrammingError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -264,19 +265,26 @@ def _source_school_provisioning() -> list[dict[str, Any]]:
 
 
 def _source_email_delivery_events() -> list[dict[str, Any]]:
-    """Aggregate count of email delivery events in the last 24h.
+    """Count of this tenant's email delivery events in the last 24h.
 
-    Surfaces the count + bounce rate hint only — never recipient addresses.
+    TENANT-SCOPED. ``apps.schoolops`` is a TENANT_APPS app, so
+    ``schoolops_email_delivery_event`` exists ONLY inside tenant schemas — the
+    manager/public (operator) schema has no such table. This source therefore
+    belongs to the tenant ticker resolver, NOT the manager resolver: wiring it
+    onto the manager host raises ``UndefinedTable`` on every operator page.
+    Rows are scoped by the active tenant schema, so no school FK / WHERE clause
+    is needed — every row already belongs to this tenant.
+
+    Surfaces the count only — never recipient addresses.
     """
     try:
-        from apps.schoolops.models_email_delivery import EmailDeliveryEvent  # noqa: F401
+        from apps.schoolops.models_email_delivery import EmailDeliveryEvent
     except Exception:
         # Model not present on this deploy — silently no-op.
         return []
     try:
-        from apps.schoolops.models_email_delivery import EmailDeliveryEvent
         cutoff = timezone.now() - timedelta(hours=24)
-        # tenant-isolation-allow: platform-activity-ticker-cross-tenant-aggregate-by-design
+        # tenant-isolation-allow: schoolops-table-lives-in-active-tenant-schema-all-rows-are-this-tenant
         recent_count = EmailDeliveryEvent.objects.filter(
             created_at__gte=cutoff,
         ).count()
@@ -285,9 +293,15 @@ def _source_email_delivery_events() -> list[dict[str, Any]]:
         return [{
             "icon": "✉",
             "severity": "info",
-            "text": f"{recent_count} platform emails delivered today",
+            "text": f"{recent_count} emails delivered today",
             "timestamp": _("24h"),
         }]
+    except (ProgrammingError, OperationalError):
+        # Table not migrated on this schema yet (e.g. a freshly-provisioned
+        # tenant still mid-migration) — an expected degraded state, not an
+        # error. Quiet debug so it never spams tracebacks on every render.
+        logger.debug("ticker: email delivery table not ready on this schema")
+        return []
     except Exception:
         logger.warning("ticker: email delivery source failed", exc_info=True)
         return []
@@ -451,7 +465,6 @@ def resolve_manager_ticker_cards() -> list[dict[str, Any]]:
         _source_offboarding_activity(),
         _source_school_provisioning(),
         _source_schools_pending_approval(),
-        _source_email_delivery_events(),
         _source_tenant_subscription_changes(),
         _source_webhook_delivery_failures(),
         _source_migration_run_failures(),
@@ -634,6 +647,7 @@ def resolve_tenant_ticker_cards(request: Any) -> list[dict[str, Any]]:
         _source_tenant_fee_receipts(request),
         _source_tenant_new_enrollments(request),
         _source_tenant_communication_activity(request),
+        _source_email_delivery_events(),
         max_total=MAX_CARDS_TOTAL,
     )
 

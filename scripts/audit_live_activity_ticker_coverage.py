@@ -37,18 +37,21 @@ REQUIRED_MANAGER_SOURCES = [
     "_source_migration_audit_events",
     "_source_school_provisioning",
     "_source_schools_pending_approval",
-    "_source_email_delivery_events",
     "_source_tenant_subscription_changes",
     "_source_webhook_delivery_failures",
     "_source_migration_run_failures",
     "_source_offboarding_activity",
 ]
 
+# NOTE: _source_email_delivery_events is TENANT-scoped, not manager. schoolops
+# is a TENANT_APPS app, so its table exists only inside tenant schemas; querying
+# it from the manager/public schema raises UndefinedTable on every operator page.
 REQUIRED_TENANT_SOURCES = [
     "_source_tenant_attendance_milestones",
     "_source_tenant_fee_receipts",
     "_source_tenant_new_enrollments",
     "_source_tenant_communication_activity",
+    "_source_email_delivery_events",
 ]
 
 MIN_MANAGER_SOURCES = 6
