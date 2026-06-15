@@ -11,17 +11,72 @@
     <div>
       <h1 class="h3 mb-1">{% trans "Platform Intelligence &amp; Self-Healing" %}</h1>
       <p class="text-tertiary mb-0">
-        {% trans "One place for AI status and the autonomous health remediation engine. The engine is shadow-only by default — it proposes and previews, and never changes a tenant until an operator enables a specific reversible kind via an autopilot policy." %}
+        {% trans "One place for AI status and the autonomous health remediation engine. Autonomous applies stay shadow-only until an operator enables a specific reversible kind via an autopilot policy — but you can also heal any actionable signal right now with a one-click, fully-audited Run once." %}
       </p>
     </div>
     <div class="d-flex flex-wrap gap-2">
       {% if policies %}
-      <span class="badge text-bg-warning text-dark">{% trans "apply policies active" %}</span>
+      <span class="badge text-bg-warning text-dark">{% trans "autopilot policies active" %}</span>
       {% else %}
-      <span class="badge text-bg-success">{% trans "shadow-only (no mutations)" %}</span>
+      <span class="badge text-bg-success">{% trans "shadow-only (no autonomous mutations)" %}</span>
       {% endif %}
     </div>
   </div>
+
+  <!-- Action flash (set by a Run once apply) -->
+  {% if flash %}
+  <div class="alert {% if flash.ok %}alert-success{% else %}alert-warning{% endif %} d-flex flex-wrap align-items-center gap-2" role="alert">
+    {% if flash.ok %}
+      <span class="fw-semibold">{% trans "Healed." %}</span>
+      <span>{% blocktrans with kind=flash.kind tenant=flash.tenant %}Applied {{ kind }} for {{ tenant }}.{% endblocktrans %}</span>
+    {% else %}
+      <span class="fw-semibold">{% trans "Not applied." %}</span>
+      <span>{% blocktrans with signal=flash.signal outcome=flash.outcome %}Signal {{ signal }} returned: {{ outcome }}.{% endblocktrans %}</span>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Live posture strip -->
+  <section class="mb-4">
+    <div class="row g-2">
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="card h-100"><div class="card-body py-2">
+          <div class="text-tertiary small text-uppercase">{% trans "Tenants monitored" %}</div>
+          <div class="h3 mb-0">{{ schools_sampled }}</div>
+        </div></div>
+      </div>
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="card h-100"><div class="card-body py-2">
+          <div class="text-tertiary small text-uppercase">{% trans "Live proposals" %}</div>
+          <div class="h3 mb-0">{{ proposals|length }}</div>
+        </div></div>
+      </div>
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="card h-100"><div class="card-body py-2">
+          <div class="text-tertiary small text-uppercase">{% trans "Actionable now" %}</div>
+          <div class="h3 mb-0">{{ actionable }}</div>
+        </div></div>
+      </div>
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="card h-100"><div class="card-body py-2">
+          <div class="text-tertiary small text-uppercase">{% blocktrans with hours=activity_window_hours %}Auto-healed {{ hours }}h{% endblocktrans %}</div>
+          <div class="h3 mb-0 text-success">{{ auto_healed_window }}</div>
+        </div></div>
+      </div>
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="card h-100"><div class="card-body py-2">
+          <div class="text-tertiary small text-uppercase">{% blocktrans with hours=activity_window_hours %}Run once {{ hours }}h{% endblocktrans %}</div>
+          <div class="h3 mb-0">{{ manual_healed_window }}</div>
+        </div></div>
+      </div>
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="card h-100"><div class="card-body py-2">
+          <div class="text-tertiary small text-uppercase">{% blocktrans with hours=activity_window_hours %}Failures {{ hours }}h{% endblocktrans %}</div>
+          <div class="h3 mb-0 {% if failures_window %}text-danger{% else %}text-tertiary{% endif %}">{{ failures_window }}</div>
+        </div></div>
+      </div>
+    </div>
+  </section>
 
   <!-- AI consolidation -->
   <section class="mb-4">
@@ -102,7 +157,7 @@
 
   <!-- Live shadow proposals -->
   <section class="mb-4">
-    <h2 class="h5 mb-2 text-uppercase text-tertiary small">{% trans "Live shadow proposals" %}</h2>
+    <h2 class="h5 mb-2 text-uppercase text-tertiary small">{% trans "Live proposals — heal now" %}</h2>
     {% if proposals %}
     <div class="table-responsive">
       <table class="table table-hover align-middle small">
@@ -114,6 +169,7 @@
             <th scope="col">{% trans "Proposed kind" %}</th>
             <th scope="col">{% trans "Source" %}</th>
             <th scope="col">{% trans "Auto-fixable" %}</th>
+            <th scope="col" class="text-end">{% trans "Action" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -139,6 +195,19 @@
                 <span class="text-tertiary small">{% trans "no" %}</span>
               {% endif %}
             </td>
+            <td class="text-end">
+              {% if p.available %}
+              <form method="post" action="{{ apply_url }}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="signal" value="{{ p.signal }}">
+                <input type="hidden" name="scope" value="{{ p.scope }}">
+                <input type="hidden" name="school_slug" value="{{ p.school_slug }}">
+                <button type="submit" class="btn btn-sm btn-outline-success" title="{% trans 'Apply this reversible remediation once, now. You are the authorization; it is fully audited.' %}">{% trans "Run once" %}</button>
+              </form>
+              {% else %}
+              <span class="text-tertiary small">{% trans "—" %}</span>
+              {% endif %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>
@@ -147,7 +216,7 @@
     <p class="text-tertiary small mb-0">
       {% blocktrans %}Sampled {{ schools_sampled }} active tenant(s).{% endblocktrans %}
       {% if sampling_truncated %}<span class="text-warning">{% blocktrans %}Sample capped at {{ max_sampled }}; run the sweep command for full coverage.{% endblocktrans %}</span>{% endif %}
-      {% trans "These are computed live and write nothing." %}
+      {% trans "Proposals are computed live and write nothing. Run once applies a single curated reversible kind on demand — the autonomous engine still needs an autopilot policy." %}
     </p>
     {% else %}
     <div class="text-tertiary small">{% trans "No health signals right now — nothing to propose." %}</div>
@@ -260,7 +329,7 @@
 
   <!-- Remediation log -->
   <section class="mb-4">
-    <h2 class="h5 mb-2 text-uppercase text-tertiary small">{% trans "Recent remediation log" %}</h2>
+    <h2 class="h5 mb-2 text-uppercase text-tertiary small">{% trans "Self-healing timeline" %}</h2>
     {% if recent_log %}
     <div class="table-responsive">
       <table class="table table-hover align-middle small">
@@ -283,7 +352,11 @@
             <td><code>{{ row.signal }}</code></td>
             <td>{{ row.kind|default:"—" }}</td>
             <td class="text-tertiary small">{{ row.source }}</td>
-            <td>{{ row.mode }}</td>
+            <td>
+              {% if row.mode == 'manual' %}<span class="badge text-bg-primary">{% trans "manual" %}</span>
+              {% elif row.mode == 'apply' %}<span class="badge text-bg-warning text-dark">{% trans "autopilot" %}</span>
+              {% else %}<span class="text-tertiary small">{{ row.mode }}</span>{% endif %}
+            </td>
             <td>
               {% if row.outcome == 'applied' %}<span class="badge text-bg-success">{{ row.outcome }}</span>
               {% elif row.outcome == 'failed' %}<span class="badge text-bg-danger">{{ row.outcome }}</span>

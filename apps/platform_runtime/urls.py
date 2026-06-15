@@ -39,7 +39,10 @@ from apps.platform_runtime.views_platform_health import (
     platform_health_center,
     platform_health_recheck,
 )
-from apps.platform_runtime.views_health_autopilot import health_autopilot_console
+from apps.platform_runtime.views_health_autopilot import (
+    health_autopilot_apply,
+    health_autopilot_console,
+)
 from apps.platform_runtime.views_local_ai import (
     browser_inference_config_view,
     local_voice_synthesize_view,
@@ -179,6 +182,11 @@ urlpatterns = [
         "self-healing/",
         health_autopilot_console,
         name="health_autopilot_console",
+    ),
+    path(  # rbac-allow: staff-gated-via-staff_member_required-redirect-on-non-staff
+        "self-healing/apply/",
+        health_autopilot_apply,
+        name="health_autopilot_apply",
     ),
     # Newsletter subscription (v4.00.98 Phase 3).
     path(  # rbac-allow: intentionally-public-marketing-newsletter-double-opt-in-signup

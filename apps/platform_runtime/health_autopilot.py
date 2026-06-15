@@ -393,6 +393,74 @@ def try_auto_apply(
     }
 
 
+def apply_manual_remediation(*, signal, school=None, user=None, actor_user_id="") -> dict[str, Any]:
+    """Operator-initiated ONE-SHOT remediation — the staff human click IS the authorization.
+
+    This is the human-in-the-loop counterpart to :func:`try_auto_apply`. It does NOT relax
+    the autonomous safety contract: ``try_auto_apply`` stays shadow-only and policy-gated,
+    and this function is reached ONLY from a ``staff_member_required`` + CSRF-protected
+    console action where a person explicitly applies ONE curated kind to ONE scope. Because
+    every catalog kind is reversible/idempotent (locked by ``verify_health_autopilot_safety``),
+    a single human-initiated apply is safe by construction.
+
+    Only curated kinds are ever applied (``auto_fix_available`` gates it — the AI can still only
+    *classify* onto an existing kind, never invent one). The same vetted operation runs, the
+    same apply log is written (flagged ``autopilot=False`` so manual and autonomous applies are
+    distinguishable in the audit trail), and a ``mode="manual"`` ``HealthRemediationLog`` row is
+    recorded. Never raises for logging failures.
+    """
+    prop = propose_remediation(signal, school=school, user=user)
+    if not prop.get("auto_fix_available"):
+        return {**prop, "mode": "manual", "applied": False, "reason": "no_curated_kind"}
+
+    kind = prop["kind"]
+    ran = _apply_kind(kind, school=school)
+    outcome = "applied" if ran.get("ok") else "failed"
+
+    try:
+        from apps.platform_runtime.workflow_autopilot import record_apply_log
+
+        record_apply_log(
+            run_id=0,  # not bound to a WorkflowRun; namespaced by workflow_key
+            workflow_key=WORKFLOW_KEY,
+            auto_fix_kind=kind,
+            outcome=outcome,
+            actor_user_id=str(actor_user_id or ""),
+            autopilot=False,  # human-initiated, not autonomous
+        )
+    except Exception:  # noqa: BLE001
+        logger.debug("health_autopilot_manual_apply_log_failed", exc_info=True)
+
+    record_health_log(
+        school=school,
+        signal=prop["signal"],
+        kind=kind,
+        source=prop.get("source", "rule"),
+        confidence=prop.get("confidence", 0.0),
+        reversible=prop.get("reversible", True),
+        mode="manual",
+        outcome=outcome,
+        detail={"result": ran, "actor_user_id": str(actor_user_id or "")},
+    )
+
+    logger.info(
+        "health_autopilot_manual_apply school=%s signal=%s kind=%s outcome=%s actor=%s",
+        str(getattr(school, "slug", "") or "-"),
+        prop["signal"],
+        kind,
+        outcome,
+        str(actor_user_id or "-"),
+    )
+
+    return {
+        **prop,
+        "mode": "manual",
+        "applied": bool(ran.get("ok")),
+        "result": ran,
+        "tenant_scope": _tenant_scope_for(school),
+    }
+
+
 # --- Conservative signal producers (real state -> well-defined signals) ---
 
 def iter_school_signals(school) -> list[str]:

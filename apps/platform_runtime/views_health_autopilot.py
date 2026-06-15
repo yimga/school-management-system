@@ -5,23 +5,32 @@ One consolidated operator surface for:
   * the Health Self-Healing engine — live shadow proposals, enabled policies, the curated
     reversible remediation catalog, and the school-attributed remediation log.
 
-Staff-only, read-only page. Computing proposals here NEVER mutates tenant state (it calls the
-engine's *propose* path, not apply); applies happen only via policy + the sweep command.
+Staff-only. The GET page is read-only: computing proposals NEVER mutates tenant state (it
+calls the engine's *propose* path, not apply). Autonomous applies still happen only via an
+autopilot policy + the sweep command. The page also exposes ONE write action —
+``health_autopilot_apply`` (POST) — a human-authorized one-shot apply of a curated reversible
+kind; the staff member's explicit click is the authorization, and it is fully audited.
 """
 
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
+from urllib.parse import urlencode
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 
 from apps.platform_runtime import health_autopilot as ha
 
 logger = logging.getLogger(__name__)
+
+# Posture-strip lookback window for the "healed in the last day" counters.
+_ACTIVITY_WINDOW_HOURS = 24
 
 _MAX_SCHOOLS_SAMPLED = 50
 _MAX_LOG_ROWS = 50
@@ -163,6 +172,34 @@ def health_autopilot_console(request):
     except Exception:  # noqa: BLE001
         logger.debug("health_autopilot_console: policy/log read failed", exc_info=True)
 
+    # --- Posture strip (read-only aggregates over the activity window) ---
+    actionable = sum(1 for p in proposals if p.get("available"))
+    auto_healed_window = 0
+    manual_healed_window = 0
+    failures_window = 0
+    try:
+        from apps.platform_runtime.models import HealthRemediationLog
+
+        since = timezone.now() - timedelta(hours=_ACTIVITY_WINDOW_HOURS)
+        log_qs = HealthRemediationLog.objects
+        auto_healed_window = log_qs.filter(created_at__gte=since, mode="apply", outcome="applied").count()  # tenant-isolation-allow: super-staff-health-autopilot-cross-tenant-posture-aggregate
+        manual_healed_window = log_qs.filter(created_at__gte=since, mode="manual", outcome="applied").count()  # tenant-isolation-allow: super-staff-health-autopilot-cross-tenant-posture-aggregate
+        failures_window = log_qs.filter(created_at__gte=since, outcome="failed").count()  # tenant-isolation-allow: super-staff-health-autopilot-cross-tenant-posture-aggregate
+    except Exception:  # noqa: BLE001
+        logger.debug("health_autopilot_console: posture aggregate failed", exc_info=True)
+
+    # --- Action flash (set by the apply POST redirect; display-only) ---
+    flash = None
+    flash_outcome = request.GET.get("flash_outcome")
+    if flash_outcome:
+        flash = {
+            "signal": request.GET.get("flash_signal", ""),
+            "kind": request.GET.get("flash_kind", ""),
+            "tenant": request.GET.get("flash_tenant", ""),
+            "outcome": flash_outcome,
+            "ok": flash_outcome == "applied",
+        }
+
     # --- AI consolidation: one place to see AI on/off + every AI surface ---
     ai_enabled = False
     ai_surfaces: dict[str, str] = {}
@@ -207,5 +244,63 @@ def health_autopilot_console(request):
             "schools_sampled": sampled,
             "sampling_truncated": truncated,
             "max_sampled": _MAX_SCHOOLS_SAMPLED,
+            # Posture strip + action flash.
+            "actionable": actionable,
+            "auto_healed_window": auto_healed_window,
+            "manual_healed_window": manual_healed_window,
+            "failures_window": failures_window,
+            "activity_window_hours": _ACTIVITY_WINDOW_HOURS,
+            "apply_url": reverse("platform_runtime:health_autopilot_apply"),
+            "flash": flash,
         },
     )
+
+
+@staff_member_required
+@require_POST
+def health_autopilot_apply(request):
+    """Human-authorized one-shot apply of a curated reversible remediation.
+
+    The autonomous engine stays shadow-only and policy-gated; THIS endpoint is the operator's
+    in-console counterpart — a staff member explicitly healing one tenant/scope. It delegates
+    to ``health_autopilot.apply_manual_remediation`` (only curated reversible kinds are ever
+    applied; every apply is audited) and always redirects back to the console with a flash
+    describing the outcome.
+    """
+    signal = (request.POST.get("signal") or "").strip()
+    scope = (request.POST.get("scope") or "").strip()
+    school_slug = (request.POST.get("school_slug") or "").strip()
+
+    school = None
+    if scope == "school" and school_slug and school_slug != "—":
+        try:
+            from apps.schools.models import School
+
+            school = School.objects.filter(slug=school_slug, is_active=True).first()
+        except Exception:  # noqa: BLE001
+            logger.debug("health_autopilot_apply: school lookup failed", exc_info=True)
+            school = None
+
+    user = getattr(request, "user", None)
+    result = ha.apply_manual_remediation(
+        signal=signal,
+        school=school,
+        user=user,
+        actor_user_id=str(getattr(user, "pk", "") or ""),
+    )
+
+    if result.get("applied"):
+        outcome = "applied"
+    else:
+        outcome = result.get("reason") or result.get("verdict") or "not_applied"
+
+    params = urlencode(
+        {
+            "flash_signal": signal,
+            "flash_kind": result.get("kind") or "",
+            "flash_tenant": school_slug or "—",
+            "flash_outcome": outcome,
+        }
+    )
+    base = reverse("platform_runtime:health_autopilot_console")
+    return redirect(f"{base}?{params}")

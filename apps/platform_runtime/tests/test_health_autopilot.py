@@ -278,8 +278,106 @@ class ConsoleViewTests(TestCase):
             "catalog",
             "ai_surfaces",
             "ai_min_confidence",
+            # Posture strip + one-click apply wiring.
+            "actionable",
+            "auto_healed_window",
+            "manual_healed_window",
+            "failures_window",
+            "activity_window_hours",
+            "apply_url",
+            "flash",
         ):
             self.assertIn(key, ctx)
         # Catalog surfaced and every kind reversible.
         self.assertTrue(ctx["catalog"])
         self.assertTrue(all(c["reversible"] for c in ctx["catalog"]))
+
+
+class ApplyManualRemediationTests(SimpleTestCase):
+    def test_no_curated_kind_is_a_no_op(self):
+        with mock.patch.object(ha, "_classify_signal_with_ai", return_value=None):
+            out = ha.apply_manual_remediation(signal="totally_unknown")
+        self.assertEqual(out["mode"], "manual")
+        self.assertFalse(out["applied"])
+        self.assertEqual(out["reason"], "no_curated_kind")
+
+    def test_manual_apply_does_not_consult_policy(self):
+        # The human click is the authorization — manual apply must NOT gate on a policy.
+        with mock.patch(
+            "apps.platform_runtime.workflow_autopilot.policy_allows_auto_fix",
+            return_value=False,
+        ) as policy, mock.patch.object(
+            ha,
+            "_apply_kind",
+            return_value={"ok": True, "applied": ha.KIND_RECOMPUTE_HEALTH_SNAPSHOT},
+        ), mock.patch.object(ha, "record_health_log"), mock.patch(
+            "apps.platform_runtime.workflow_autopilot.record_apply_log"
+        ) as log:
+            out = ha.apply_manual_remediation(signal="platform_health_degraded")
+        self.assertEqual(out["mode"], "manual")
+        self.assertTrue(out["applied"])
+        policy.assert_not_called()
+        # Audited as a non-autonomous apply.
+        self.assertFalse(log.call_args.kwargs["autopilot"])
+
+    def test_manual_apply_failure_is_logged_failed(self):
+        with mock.patch.object(
+            ha, "_apply_kind", return_value={"ok": False, "reason": "boom"}
+        ), mock.patch.object(ha, "record_health_log"), mock.patch(
+            "apps.platform_runtime.workflow_autopilot.record_apply_log"
+        ) as log:
+            out = ha.apply_manual_remediation(signal="platform_health_degraded")
+        self.assertFalse(out["applied"])
+        self.assertEqual(log.call_args.kwargs["outcome"], "failed")
+
+
+class ApplyManualLogTests(TestCase):
+    def test_manual_apply_writes_manual_log_row(self):
+        from apps.platform_runtime.models import HealthRemediationLog
+
+        with mock.patch.object(
+            ha,
+            "_apply_kind",
+            return_value={"ok": True, "applied": ha.KIND_RECOMPUTE_HEALTH_SNAPSHOT},
+        ), mock.patch("apps.platform_runtime.workflow_autopilot.record_apply_log"):
+            ha.apply_manual_remediation(signal="platform_health_degraded")
+        row = HealthRemediationLog.objects.get(signal="platform_health_degraded")
+        self.assertEqual(row.mode, "manual")
+        self.assertEqual(row.outcome, "applied")
+
+
+class ApplyViewTests(TestCase):
+    def _staff(self):
+        user_model = get_user_model()
+        user = user_model.objects.create_user(
+            username="op_apply", email="op_apply@example.com", password="x"
+        )
+        user.is_staff = True
+        user.save(update_fields=["is_staff"])
+        return user
+
+    def test_get_is_rejected(self):
+        from apps.platform_runtime.views_health_autopilot import health_autopilot_apply
+
+        req = RequestFactory().get("/self-healing/apply/")
+        req.user = self._staff()
+        resp = health_autopilot_apply(req)
+        self.assertEqual(resp.status_code, 405)
+
+    def test_post_applies_and_redirects_with_flash(self):
+        from apps.platform_runtime.views_health_autopilot import health_autopilot_apply
+
+        req = RequestFactory().post(
+            "/self-healing/apply/",
+            {"signal": "platform_health_degraded", "scope": "platform", "school_slug": "—"},
+        )
+        req.user = self._staff()
+        with mock.patch.object(
+            ha,
+            "apply_manual_remediation",
+            return_value={"applied": True, "kind": ha.KIND_RECOMPUTE_HEALTH_SNAPSHOT},
+        ) as apply_fn:
+            resp = health_autopilot_apply(req)
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("flash_outcome=applied", resp.url)
+        apply_fn.assert_called_once()

@@ -24,6 +24,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULE = ROOT / "apps" / "platform_runtime" / "health_autopilot.py"
+# The operator console exposes the only write path into the engine — its guarantees are
+# locked here too so the human-authorized one-shot apply can never silently become
+# unauthenticated, accept an arbitrary kind, or bypass the curated catalog.
+VIEW_MODULE = ROOT / "apps" / "platform_runtime" / "views_health_autopilot.py"
 
 # Substrings that must never appear in the engine — these would mean it can destroy data,
 # bypass the ORM safety net, or rewrite credentials.
@@ -96,6 +100,45 @@ def main() -> int:
             errors.append(f"AI_MIN_CONFIDENCE out of safe range: {floor}")
     except Exception as exc:  # noqa: BLE001
         errors.append(f"could not load engine for invariant checks: {type(exc).__name__}: {exc}")
+
+    # 7. The human-authorized one-shot path can only ever run a CURATED kind. It must route
+    #    through propose_remediation (the curated signal->kind map + AI-classify-onto-existing)
+    #    and gate on auto_fix_available, so a non-catalog kind can never be applied.
+    if "def apply_manual_remediation(" not in src:
+        errors.append("manual one-shot path apply_manual_remediation is missing")
+    else:
+        manual = src[src.find("def apply_manual_remediation(") :]
+        manual = manual[: manual.find("\ndef ", 1) if "\ndef " in manual[1:] else len(manual)]
+        if "propose_remediation(" not in manual:
+            errors.append("apply_manual_remediation must route through propose_remediation (curated map)")
+        if "auto_fix_available" not in manual:
+            errors.append("apply_manual_remediation must gate on auto_fix_available (curated kinds only)")
+
+    # 8. The operator console's write endpoint must be staff-gated + POST-only, must delegate
+    #    to the engine (never call _apply_kind itself), and must NOT accept a raw kind from the
+    #    request (signal-only intake → the curated catalog is the sole path to an action).
+    try:
+        view_src = VIEW_MODULE.read_text(encoding="utf-8")
+    except OSError as exc:
+        view_src = ""
+        errors.append(f"could not read console view module: {type(exc).__name__}: {exc}")
+    if view_src:
+        idx = view_src.find("def health_autopilot_apply(")
+        if idx == -1:
+            errors.append("console write endpoint health_autopilot_apply is missing")
+        else:
+            preamble = view_src[max(0, idx - 300) : idx]
+            if "staff_member_required" not in preamble:
+                errors.append("health_autopilot_apply is not staff-gated (@staff_member_required)")
+            if "require_POST" not in preamble:
+                errors.append("health_autopilot_apply is not POST-only (@require_POST)")
+        if "apply_manual_remediation" not in view_src:
+            errors.append("console view must delegate applies to apply_manual_remediation")
+        if "_apply_kind" in view_src:
+            errors.append("console view must not call _apply_kind directly (delegate to the engine)")
+        for raw in ('POST.get("kind"', "POST.get('kind'"):
+            if raw in view_src:
+                errors.append("console view must not accept a raw kind from the request (signal-only intake)")
 
     if errors:
         print("HEALTH_AUTOPILOT_SAFETY_FAIL")
