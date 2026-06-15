@@ -42,6 +42,7 @@
 <aside class="rmc-app-shell__copilot"
        aria-label="{% trans 'AI copilot' %}"
        data-rmc-copilot-rail
+       data-rmc-cockpit-region="rail"
        data-rmc-copilot-active-tab="chat"{% if rmc_copilot_page_help_url %} data-rmc-help-center-url="{{ rmc_copilot_page_help_url }}"{% endif %}>
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="lx-copilot">
@@ -169,6 +170,19 @@
         <ul class="lx-copilot__insights-list list-unstyled mb-0" data-rmc-copilot-rail-insights-list aria-live="polite">
           <li class="lx-copilot__insight lx-copilot__insight--skeleton"><span class="lx-copilot__insight-line"></span></li>
         </ul>
+      </div>
+
+      {% comment %} Governance registries (Feature-Gap + Backlog) — operator/staff-only,
+         server-gated via build_registry_insights. Hidden until rmc-copilot-rail.js
+         (services bridge) fills it from the context payload's `registry` channel;
+         renderRegistry keeps the section hidden when the payload omits `registry`
+         (non-staff / disabled / unreadable), so nothing leaks to tenant users.
+         Reuses the rmc-copilot-rail__insight class grammar the bridge emits. {% endcomment %}
+      <div class="lx-copilot__insights-wrap px-3 pb-2" data-rmc-copilot-rail-registry="1" hidden>
+        <div class="lx-copilot__insights-head d-flex align-items-center justify-content-between gap-2 mb-1">
+          <span class="small text-uppercase text-secondary">{% trans "Governance" %}</span>
+        </div>
+        <ul class="rmc-copilot-rail__insights-list list-unstyled mb-0" data-rmc-copilot-rail-registry-list aria-live="polite"></ul>
       </div>
 
       <div class="lx-copilot__page-help-wrap">
