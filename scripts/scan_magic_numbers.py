@@ -35,6 +35,7 @@ import argparse
 import ast
 import json
 import sys
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -268,21 +269,32 @@ def _compare(findings: list[dict]) -> int:
         _print_summary(findings)
         print("\nNo baseline on disk. Run without --compare to write one.")
         return 1 if findings else 0
-    baseline_set = {
-        (item["path"], item["line"], item["value"]) for item in baseline.get("findings", [])
-    }
-    current_set = {(item["path"], item["line"], item["value"]) for item in findings}
-    new = current_set - baseline_set
-    removed = baseline_set - current_set
+    # Compare on (path, value) MULTISETS, not (path, line, value): a literal that
+    # merely shifts line number when unrelated code is added/removed above it is
+    # NOT a new magic number. Keying on the line made every wave trip this gate on
+    # cosmetic line-drift, turning CI-green into a manual re-baseline treadmill. A
+    # genuine regression — a brand-new value in a file, or one MORE occurrence of a
+    # value in a file — still increments the (path, value) count and trips the gate.
+    baseline_counts = Counter(
+        (item["path"], item["value"]) for item in baseline.get("findings", [])
+    )
+    current_counts = Counter((item["path"], item["value"]) for item in findings)
+    new = current_counts - baseline_counts  # positive counts: occurrences added
+    removed = baseline_counts - current_counts
+    # Map (path, value) -> current line numbers so the report still locates sites.
+    lines_by_key: dict[tuple, list] = {}
+    for item in findings:
+        lines_by_key.setdefault((item["path"], item["value"]), []).append(item["line"])
     _print_summary(findings)
     if new:
         print("\nNEW magic numbers introduced:")
-        for path, line, value in sorted(new):
-            print(f"  {path}:{line}  ({value})")
+        for (path, value), count in sorted(new.items()):
+            locs = ", ".join(str(n) for n in sorted(lines_by_key.get((path, value), []))[:6])
+            print(f"  {path}  ({value})  +{count}  [lines: {locs}]")
     if removed:
         print("\nRemoved (consider updating baseline):")
-        for path, line, value in sorted(removed):
-            print(f"  {path}:{line}  ({value})")
+        for (path, value), count in sorted(removed.items()):
+            print(f"  {path}  ({value})  -{count}")
     return 1 if new else 0
 
 
