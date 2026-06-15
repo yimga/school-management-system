@@ -1,0 +1,4 @@
+# Regenerable artifacts — produced by build_proof.py + verify_copilot_rail.mjs.
+# Keep the harness scripts in git; ignore the large generated HTML + screenshots.
+copilot_rail_proof.html
+*.png

@@ -41,6 +41,16 @@ CONVERSION_LOCK_AUTH_PREFIXES_STRICT: tuple[str, ...] = (
 # Strict base paths without authentication (activation + assets).
 CONVERSION_LOCK_BASE_PREFIXES_STRICT: tuple[str, ...] = (
     "/activation/",
+    # Unified Wizard Engine surface. RequireMFAMiddleware forces ADMIN owners to
+    # /school/studio/wizards/mfa_setup/ (and exempts that path itself — see
+    # apps/accounts/middleware.py "wizards/mfa_setup"), and
+    # ActivationGateMiddleware._path_exempt already exempts "/school/studio/".
+    # Without the same exemption here, the strict conversion lock bounces the
+    # wizard page back to /activation/first-action/, where the MFA gate
+    # re-redirects to the wizard — an ERR_TOO_MANY_REDIRECTS loop that walls a
+    # brand-new owner out of their own onboarding. Keep this allowlist in parity
+    # with the activation gate's.
+    "/school/studio/",
     "/static/",
     "/media/",
 )

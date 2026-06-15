@@ -222,6 +222,91 @@ class ConversionLockRouteMatrixHttpTests(TestCase):
             self.assertEqual(r.status_code, 200, msg=src)
 
 
+@patch.dict(
+    os.environ,
+    {"MULTI_TENANT_BASE_DOMAIN": "example.com"},
+    clear=False,
+)
+@override_settings(
+    ALLOWED_HOSTS=["*"],
+    SECURE_SSL_REDIRECT=False,
+    DEBUG=True,
+    ROOT_URLCONF="config.tenant_urls",
+    MULTI_TENANT_BASE_DOMAIN="example.com",
+    CONVERSION_LOCK_STRICT=True,
+    CONVERSION_LOCK_ALL_SCHOOLS=True,
+    CONVERSION_LOCK_USE_NARROW_WORKFLOW_PATHS=True,
+)
+class FreshOwnerOnboardingNoRedirectLoopTests(TestCase):
+    """General seal against the ERR_TOO_MANY_REDIRECTS class for ALL future
+    tenants. Simulates a brand-new ADMIN owner — authenticated, NOT activated
+    (no first_action), and with NO confirmed MFA device — exactly the state of
+    a freshly provisioned tenant. Follows redirects from every entry URL and
+    fails if the chain ever revisits a path (a loop) or never terminates. This
+    catches any gate (conversion lock, MFA, activation, a future one) that
+    bounces an owner in a cycle, regardless of which allowlist drifts.
+    """
+
+    def setUp(self):
+        self.client = Client(enforce_csrf_checks=False)
+        uid = uuid.uuid4().hex[:10]
+        self.host = f"loop-{uid}.example.com"
+        self.school = School.objects.create(
+            name=f"Loop School {uid}",
+            slug=f"loop-{uid}",
+            subdomain=f"loop-{uid}",
+            is_active=True,
+            settings={},  # no first_action_completed → conversion lock active
+        )
+        # Brand-new ADMIN owner with NO MFA device and NO mfa_verified session
+        # → RequireMFAMiddleware is live. This is the loop-prone state.
+        self.user = UserModel.objects.create_user(
+            username=f"owner{uid}",
+            email=f"owner{uid}@example.edu",
+            password="Test1234!ab",
+            role=User.Role.ADMIN,
+            is_staff=True,
+        )
+        SchoolMembership.objects.get_or_create(
+            user=self.user,
+            school=self.school,
+            defaults={"role": User.Role.ADMIN, "is_primary": True},
+        )
+        self.client.login(username=self.user.username, password="Test1234!ab")
+
+    def _assert_terminates_without_loop(self, start_path, max_hops=15):
+        chain: list[str] = []
+        path = start_path
+        for _ in range(max_hops):
+            if path in chain:
+                self.fail(
+                    "redirect loop (ERR_TOO_MANY_REDIRECTS) revisiting "
+                    f"{path}: chain={' -> '.join(chain)} -> {path}"
+                )
+            chain.append(path)
+            r = self.client.get(path, HTTP_HOST=self.host, follow=False)
+            if r.status_code in (301, 302, 303, 307, 308):
+                loc = r.get("Location", "") or ""
+                path = urlsplit(loc).path or "/"
+                continue
+            return r  # terminal response (200/403/404/500) — no loop
+        self.fail(
+            f"redirect chain did not terminate within {max_hops} hops "
+            f"starting at {start_path}: {' -> '.join(chain)}"
+        )
+
+    def test_entry_urls_never_loop_for_fresh_unactivated_owner(self):
+        # The exact URLs the owner reported dead on new-school + the shell root.
+        for start in (
+            "/",
+            "/activation/first-action/",
+            "/school/studio/wizards/mfa_setup/",
+            "/authentication/backend/identity/invite/",
+        ):
+            with self.subTest(entry=start):
+                self._assert_terminates_without_loop(start)
+
+
 @override_settings(
     CONVERSION_LOCK_STRICT=True,
     CONVERSION_LOCK_USE_NARROW_WORKFLOW_PATHS=True,
@@ -270,4 +355,81 @@ class ConversionLockAllowlistUnitTests(SimpleTestCase):
                 self.assertTrue(
                     path_matches_conversion_allowlist(path, ()),
                     msg=path,
+                )
+
+    # Canonical set of pages the platform's OWN gates redirect a brand-new owner
+    # to (or that an owner must reach to complete first-action) while strict
+    # conversion lock is active. RequireMFAMiddleware → accounts:mfa_setup
+    # (/authentication/mfa/setup/, which 302s to the wizard-engine surface) and
+    # accounts:mfa_verify; ConversionLockMiddleware → /activation/first-action/;
+    # owner onboarding wizard + invite-claim are token-authed first-run flows.
+    # If ANY of these is not allowlisted, a gate bounces it and onboarding loops.
+    # Keep this list in lockstep with the gates' own exemptions.
+    ONBOARDING_REACHABLE_UNDER_LOCK = (
+        "/authentication/login/",
+        "/authentication/logout/",
+        "/authentication/mfa/setup/",
+        "/authentication/mfa/verify/",
+        "/authentication/mfa/passkey/register/",
+        "/school/studio/wizards/mfa_setup/",
+        "/school/studio/wizards/mfa_verify/",
+        "/activation/first-action/",
+        "/authentication/onboarding/account/",
+        "/authentication/claim-invite/abc123/",
+    )
+
+    def test_all_onboarding_redirect_destinations_reachable_under_strict_lock(self):
+        """Parity seal: every page the gates send a new owner to MUST be
+        reachable under strict conversion lock, so no future tenant can hit an
+        onboarding redirect loop. Drift here is exactly the bug class that broke
+        new-school (ConversionLock omitted /school/studio/ → MFA-gate↔lock loop).
+        """
+        from apps.schools.conversion_lock_paths import path_matches_conversion_allowlist
+
+        for path in self.ONBOARDING_REACHABLE_UNDER_LOCK:
+            with self.subTest(must_be_reachable=path):
+                self.assertTrue(
+                    path_matches_conversion_allowlist(path, ()),
+                    msg=(
+                        f"{path} is a gate redirect destination but is NOT "
+                        f"allowlisted under strict conversion lock → onboarding "
+                        f"loop. Add its prefix to conversion_lock_paths.py in "
+                        f"parity with the gate that redirects to it."
+                    ),
+                )
+
+    def test_strict_school_studio_wizard_allowlisted_breaks_mfa_onboarding_loop(self):
+        """Regression seal: the Unified Wizard Engine surface must be reachable
+        under strict conversion lock.
+
+        RequireMFAMiddleware redirects ADMIN owners to
+        /school/studio/wizards/mfa_setup/ (and exempts that path). If the strict
+        conversion-lock allowlist omits /school/studio/ it bounces the wizard
+        page back to /activation/first-action/, where the MFA gate re-redirects
+        to the wizard — an ERR_TOO_MANY_REDIRECTS loop that walls a brand-new
+        owner out of onboarding. This keeps ConversionLock in parity with
+        ActivationGateMiddleware._path_exempt (which already exempts it).
+        """
+        from apps.schools.conversion_lock_paths import path_matches_conversion_allowlist
+
+        for path in (
+            "/school/studio/wizards/mfa_setup/",
+            "/school/studio/wizards/mfa_verify/",
+            "/school/studio/",
+        ):
+            with self.subTest(allowed=path):
+                self.assertTrue(
+                    path_matches_conversion_allowlist(path, ()),
+                    msg=f"{path} must be allowlisted to break the MFA onboarding loop",
+                )
+        # The fix must NOT loosen the locked backend/RBAC/profile surfaces.
+        for path in (
+            "/authentication/backend/identity/invite/",
+            "/authentication/backend/",
+            "/authentication/rbac/",
+        ):
+            with self.subTest(still_locked=path):
+                self.assertFalse(
+                    path_matches_conversion_allowlist(path, ()),
+                    msg=f"{path} must stay locked under strict conversion lock",
                 )

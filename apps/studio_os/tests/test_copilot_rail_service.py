@@ -402,3 +402,87 @@ class BuildRailPayloadTests(SimpleTestCase):
         self.assertEqual(len(payload["insights"]), 3)
         for ins in payload["insights"]:
             self.assertEqual(ins["source"], "rules")
+
+
+# ---------------------------------------------------------------------------
+# Cross-tenant leak guard (_looks_like_cross_tenant_leak)
+#
+# Regression seal for a real but previously-untested isolation control: a
+# cloud-generated copilot insight that names a slug the operator's tenant does
+# NOT own must be rejected, so another tenant's identity can never surface in
+# the rail. Covers both the guard predicate and its wiring into
+# generate_insights (so removing the call at the rail service fails CI).
+# ---------------------------------------------------------------------------
+
+
+class CrossTenantLeakGuardTests(SimpleTestCase):
+    def _insights(self, *bodies):
+        return [(f"c{i}", "Title four words here", b) for i, b in enumerate(bodies)]
+
+    def test_own_slug_is_not_a_leak(self):
+        from apps.studio_os.copilot_rail_service import _looks_like_cross_tenant_leak
+
+        req = _request(school=_school(slug="maple-high"))
+        insights = self._insights("Enrolment is up at school-maple-high this term.")
+        self.assertFalse(_looks_like_cross_tenant_leak(insights, None, request=req))
+
+    def test_foreign_slug_is_a_leak(self):
+        from apps.studio_os.copilot_rail_service import _looks_like_cross_tenant_leak
+
+        req = _request(school=_school(slug="maple-high"))
+        insights = self._insights("Compared to school-oak-ridge, your attendance lags.")
+        self.assertTrue(_looks_like_cross_tenant_leak(insights, None, request=req))
+
+    def test_foreign_slug_case_insensitive_is_a_leak(self):
+        from apps.studio_os.copilot_rail_service import _looks_like_cross_tenant_leak
+
+        req = _request(school=_school(slug="maple-high"))
+        insights = self._insights("See SCHOOL-Oak-Ridge for the benchmark.")
+        self.assertTrue(_looks_like_cross_tenant_leak(insights, None, request=req))
+
+    def test_no_slug_tokens_is_not_a_leak(self):
+        from apps.studio_os.copilot_rail_service import _looks_like_cross_tenant_leak
+
+        req = _request(school=_school(slug="maple-high"))
+        insights = self._insights("Attendance improved four percent week over week.")
+        self.assertFalse(_looks_like_cross_tenant_leak(insights, None, request=req))
+
+    def test_no_own_slug_cannot_assert_leak(self):
+        from apps.studio_os.copilot_rail_service import _looks_like_cross_tenant_leak
+
+        req = _request(school=None)
+        insights = self._insights("Compared to school-oak-ridge, your attendance lags.")
+        self.assertFalse(_looks_like_cross_tenant_leak(insights, None, request=req))
+
+    def test_generate_insights_rejects_cloud_response_that_leaks_foreign_slug(self):
+        import json
+
+        from apps.studio_os.copilot_rail_service import generate_insights
+
+        request = _request(mode="experience", school=_school(slug="maple-high"))
+        with patch(
+            "apps.portal.ai_provider.probe_ai_provider_reachable",
+            return_value=_stub_posture("live_cloud"),
+            create=True,
+        ):
+            snap = build_context_snapshot(request, mode="experience")
+        foreign = json.dumps(
+            {
+                "insights": [
+                    {"id": "x1", "title": "Peer benchmark one", "body": "school-oak-ridge outperforms you on attendance."},
+                    {"id": "x2", "title": "Peer benchmark two", "body": "school-oak-ridge leads on fee collection."},
+                    {"id": "x3", "title": "Peer benchmark three", "body": "school-oak-ridge leads on enrolment."},
+                ]
+            }
+        )
+        with patch(
+            "apps.studio_os.copilot_rail_service.invoke_with_request",
+            return_value=(foreign, {}),
+        ):
+            out = generate_insights(snap, request=request, n=3)
+        # The guard must reject the cloud content and serve rules instead —
+        # the foreign 'oak-ridge' slug must NEVER reach the rail.
+        self.assertTrue(out)
+        for ins in out:
+            self.assertNotIn("oak-ridge", (ins.title + " " + ins.body).lower())
+        self.assertTrue(all(getattr(i, "source", "") == "rules" for i in out))
