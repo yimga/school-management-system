@@ -358,16 +358,17 @@ def dashboard_context(request):
             if children.exists():
                 # Average attendance across all children
                 try:
-                    from apps.attendance.models import StudentAttendance
+                    from apps.academics.models import Attendance
 
                     total_attendance = 0
                     for child in children:
-                        attendance_records = StudentAttendance.objects.filter(
+                        # tenant-isolation-allow: context-scoped-via-request-school-membership (child is one of this guardian's school-bound students)
+                        attendance_records = Attendance.objects.filter(
                             student=child
                         )
                         if attendance_records.exists():
                             present_count = attendance_records.filter(
-                                status="PRESENT"
+                                status=Attendance.Status.PRESENT
                             ).count()
                             total_count = attendance_records.count()
                             if total_count > 0:
@@ -379,7 +380,7 @@ def dashboard_context(request):
                         else 0
                     )
                 # tenant-isolation-allow: context-scoped-via-request-school-membership
-                except ImportError:
+                except CONTEXT_SOFT_FAILURES:
                     context["parent_avg_attendance"] = 0
 
                 # tenant-isolation-allow: context-scoped-via-request-school-membership
@@ -461,8 +462,6 @@ def dashboard_context(request):
             # tenant-isolation-allow: context-scoped-via-request-school-membership
             try:
                 student_profile = user.student_profile
-                from apps.evals.models import MarkEntry
-# tenant-isolation-allow: context-scoped-via-request-school-membership
 
                 # Attendance percentage (apps.academics.models.Attendance)
                 # tenant-isolation-allow: context-scoped-via-request-school-membership
@@ -488,26 +487,32 @@ def dashboard_context(request):
                 except CONTEXT_SOFT_FAILURES:
                     context["student_attendance"] = 0
 
-                # Average grade
-                marks = MarkEntry.objects.filter(
-                    student=student_profile, mark__isnull=False
-                ).values_list("mark", flat=True)
+                # Average grade — evals.MarkEntry has no live model (grading
+                # lives in evals.Evaluation, differently shaped); degrade to 0.
+                try:
+                    from apps.evals.models import MarkEntry
 
-                if marks:
-                    context["student_average"] = round(sum(marks) / len(marks))
-                else:
+                    marks = MarkEntry.objects.filter(
+                        student=student_profile, mark__isnull=False
+                    ).values_list("mark", flat=True)
+                    context["student_average"] = (
+                        round(sum(marks) / len(marks)) if marks else 0
+                    )
+                except CONTEXT_SOFT_FAILURES:
                     context["student_average"] = 0
 
-                # Pending assignments/tasks
-                from apps.academics.models import Assignment
+                # Pending assignments/tasks — academics.Assignment has no live
+                # model; degrade to 0 rather than abort the whole block.
+                try:
+                    from apps.academics.models import Assignment
 
-                pending_assignments = Assignment.objects.filter(
-                    classroom=student_profile.classroom,
-                    due_date__gte=timezone.now(),
-                    is_active=True,
-                ).count()
-
-                context["student_pending"] = pending_assignments
+                    context["student_pending"] = Assignment.objects.filter(
+                        classroom=student_profile.classroom,
+                        due_date__gte=timezone.now(),
+                        is_active=True,
+                    ).count()
+                except CONTEXT_SOFT_FAILURES:
+                    context["student_pending"] = 0
 
             except AttributeError:
                 context["student_attendance"] = 0
