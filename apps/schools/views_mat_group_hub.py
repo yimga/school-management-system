@@ -53,27 +53,45 @@ def _default_member_metric_runner(tenant_slug: str, member: MATMember) -> dict:
 
 
 def _runner_from_real_models() -> callable:
-    """Build a runner that hits real models. Failures fall back to zeros so
-    one bad tenant doesn't abort the rollup."""
+    """Build a runner that counts each member tenant's students + staff.
+
+    Under django-tenants (schema-per-tenant, the production posture) it enters
+    the member's own schema and counts there — the whole schema belongs to one
+    school, so no cross-``school_id``-boundary filter is needed (honoring this
+    module's stated isolation rule). Under the RLS fallback (single schema) it
+    scopes the count by ``school``. Either way, any failure falls back to zeros
+    so one bad tenant doesn't abort the rollup.
+    """
     def runner(tenant_slug: str, member: MATMember) -> dict:
         out = _default_member_metric_runner(tenant_slug, member)
         try:
-            from apps.schools.models import School  # type: ignore
-            school = School.objects.filter(slug=tenant_slug).first()
-            if school is None:
-                return out
-            # Students count
-            try:
-                from apps.people.models import Student  # type: ignore
-                out["students"] = Student.objects.filter(school=school).count()
-            except Exception:  # noqa: BLE001
-                pass
-            # Staff count
-            try:
-                from apps.people.models import Staff  # type: ignore
-                out["staff"] = Staff.objects.filter(school=school).count()
-            except Exception:  # noqa: BLE001
-                pass
+            from django.conf import settings as _settings
+            # `Student` is an alias of StudentProfile; staff records are TeacherProfile.
+            from apps.people.models import StudentProfile, TeacherProfile
+
+            if getattr(_settings, "USE_DJANGO_TENANTS", False):
+                from django_tenants.utils import schema_context
+                from apps.customers.models import Client
+                client = (
+                    # tenant-isolation-allow: operator-mat-rollup-resolves-tenant-registry-by-member-slug
+                    Client.objects.filter(school__slug=tenant_slug)
+                    .exclude(schema_name="public")
+                    .first()
+                )
+                if client is None or not client.schema_name:
+                    return out
+                with schema_context(client.schema_name):
+                    # tenant-isolation-allow: mat-hub-rollup-enters-each-member-tenant-schema-explicitly
+                    out["students"] = StudentProfile.objects.count()
+                    # tenant-isolation-allow: mat-hub-rollup-enters-each-member-tenant-schema-explicitly
+                    out["staff"] = TeacherProfile.objects.count()
+            else:
+                from apps.schools.models import School
+                school = School.objects.filter(slug=tenant_slug).first()
+                if school is None:
+                    return out
+                out["students"] = StudentProfile.objects.filter(school=school).count()
+                out["staff"] = TeacherProfile.objects.filter(school=school).count()
         except Exception as exc:  # noqa: BLE001
             logger.warning(
                 "mat_group_hub real-models runner failed tenant=%s err=%s",
