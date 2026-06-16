@@ -201,7 +201,7 @@
 // v4.03.63: operator provisioning queue (/super/provision-queue/ — all not-yet-live
 //   schools in one actionable list w/ requeue) + i18n: completion summary now server-
 //   translated/pluralized (completion_summary_text) and rendered by the progress JS.
-const CACHE_VERSION = "sms-v4.03.90-operator-remote-support-console-seal-2026-06-16";
+const CACHE_VERSION = "sms-v4.03.91-new-tenant-wizard-index-sidebar-polish-2026-06-16";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

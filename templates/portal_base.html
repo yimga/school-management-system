@@ -345,7 +345,12 @@
         </div>
 
         <!-- Sidebar (mobile) -->
-        <div class="offcanvas offcanvas-start" tabindex="-1" id="portalSidebar" role="dialog" aria-modal="true" aria-labelledby="portalSidebarLabel" data-shell-sidebar="portal" data-shell-sidebar-mount="offcanvas">
+        <!-- d-lg-none: the offcanvas is only ever toggled by the d-lg-none header
+             button (above), so force display:none on lg+ regardless of Bootstrap
+             offcanvas CSS load timing. Without this, on a slow first paint (new
+             tenant) the offcanvas copy can render inline UNDER the desktop sidebar,
+             showing every nav item twice and overlapping rows. -->
+        <div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="portalSidebar" role="dialog" aria-modal="true" aria-labelledby="portalSidebarLabel" data-shell-sidebar="portal" data-shell-sidebar-mount="offcanvas">
           <div class="offcanvas-header">
             <h5 class="offcanvas-title" id="portalSidebarLabel">{% trans "Menu" %}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="{% trans 'Close' %}"></button>

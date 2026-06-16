@@ -25,7 +25,7 @@
     <section class="rmc-wizard-completion-banner rmc-reveal" role="status" aria-live="polite">
       <div class="rmc-wizard-completion-banner__head">
         <span class="rmc-wizard-completion-banner__icon" aria-hidden="true">&#x2713;</span>
-        <h2 class="rmc-wizard-completion-banner__title">{% blocktrans with wizard_key=just_completed_wizard_key %}{{ wizard_key }} complete.{% endblocktrans %}</h2>
+        <h2 class="rmc-wizard-completion-banner__title">{% blocktrans with wizard_label=just_completed_wizard_key|humanize_wizard_token %}{{ wizard_label }} complete.{% endblocktrans %}</h2>
       </div>
       {% if next_step_suggestions %}
         <p class="rmc-wizard-completion-banner__hint">{% trans "Suggested next steps:" %}</p>
@@ -60,11 +60,30 @@
     <ul id="rmc-wizard-search-results" class="rmc-wizard-search__results" role="list" hidden></ul>
   </section>
 
-  {% if wizards %}
-    <div class="rmc-wizard-grid">
+  {% if wizard_groups %}
+    {% for group in wizard_groups %}
+      <section class="rmc-wizard-group" aria-label="{{ group.label }}">
+        <header class="rmc-wizard-group__head">
+          <h2 class="rmc-wizard-group__title">{{ group.label }}</h2>
+          <span class="rmc-wizard-group__count">{{ group.wizards|length }}</span>
+        </header>
+        <div class="rmc-wizard-index-grid">
+          {% for w in group.wizards %}
+            <a class="rmc-wizard-card" href="{% url 'setup_studio:tenant_wizard' wizard_key=w.wizard_key %}">
+              <h3 class="rmc-wizard-card__title">{{ w.label_token|humanize_wizard_token }}</h3>
+              {% if w.description_token %}<p class="rmc-wizard-card__desc">{{ w.description_token|humanize_wizard_token }}</p>{% endif %}
+              <p class="rmc-wizard-card__meta">{{ w.estimated_minutes }} {% trans "min" %} &middot; {{ w.steps|length }} {% trans "steps" %}</p>
+            </a>
+          {% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+  {% elif wizards %}
+    <div class="rmc-wizard-index-grid">
       {% for w in wizards %}
         <a class="rmc-wizard-card" href="{% url 'setup_studio:tenant_wizard' wizard_key=w.wizard_key %}">
           <h3 class="rmc-wizard-card__title">{{ w.label_token|humanize_wizard_token }}</h3>
+          {% if w.description_token %}<p class="rmc-wizard-card__desc">{{ w.description_token|humanize_wizard_token }}</p>{% endif %}
           <p class="rmc-wizard-card__meta">{{ w.estimated_minutes }} {% trans "min" %} &middot; {{ w.steps|length }} {% trans "steps" %}</p>
         </a>
       {% endfor %}

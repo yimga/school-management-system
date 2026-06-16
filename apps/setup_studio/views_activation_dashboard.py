@@ -105,6 +105,21 @@ class WizardSearchAPIView(LoginRequiredMixin, View):
         audience_filter = request.GET.get("audience", "").strip() or None
         if audience_filter and audience_filter not in {"operator", "tenant_admin", "teacher", "parent", "student", "staff"}:
             audience_filter = None
+        # RBAC: only an operator (is_staff) may enumerate across audiences. A
+        # non-operator is locked to their OWN resolved audience so a tenant user
+        # cannot pass ?audience=operator to enumerate operator-only wizard
+        # metadata (super_create_school, jit_operator_*, etc.). Fail closed: an
+        # unresolved audience returns nothing rather than the full catalog.
+        if not getattr(getattr(request, "user", None), "is_staff", False):
+            try:
+                from apps.setup_studio.wizard_views import _user_audience
+
+                own_audience = _user_audience(request)
+            except Exception:  # noqa: BLE001 — audience resolution never opens the gate
+                own_audience = None
+            if not own_audience:
+                return JsonResponse({"results": [], "count": 0})
+            audience_filter = own_audience
         try:
             from apps.setup_studio import wizard_engine
             from apps.setup_studio.wizard_analytics import build_wizard_search_index, search_wizards

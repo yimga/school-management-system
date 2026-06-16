@@ -136,6 +136,10 @@ def build_wizard_search_index(wizards: Iterable[Any]) -> list[dict[str, Any]]:
     tokens from wizard_key + label_token + description_token + step keys
     that the search endpoint can do substring matching against.
     """
+    # Local import — avoids a hard dependency at module load and keeps the
+    # humanizer (a thin pure function) close to its single use here.
+    from apps.setup_studio.wizard_labels import humanize_wizard_token
+
     out = []
     for w in wizards:
         terms: list[str] = []
@@ -145,12 +149,16 @@ def build_wizard_search_index(wizards: Iterable[Any]) -> list[dict[str, Any]]:
         for s in getattr(w, "steps", ()) or ():
             terms.append(getattr(s, "key", "") or "")
             terms.append(getattr(s, "label_token", "") or "")
+        label_token = getattr(w, "label_token", "") or ""
         out.append({
             "wizard_key": w.wizard_key,
             "audience": list(w.audience),
             "icon_class": w.icon_class,
             "estimated_minutes": w.estimated_minutes,
-            "label_token": getattr(w, "label_token", "") or "",
+            "label_token": label_token,
+            # Humanized, render-ready title so the client never paints a raw
+            # `wizards.*` slug in the search dropdown (the mfa_setup-style leak).
+            "label": humanize_wizard_token(label_token) or w.wizard_key,
             "description_token": getattr(w, "description_token", "") or "",
             "search_terms": " ".join(t.lower().replace("_", " ").replace(".", " ") for t in terms if t),
             "step_count": len(w.steps),

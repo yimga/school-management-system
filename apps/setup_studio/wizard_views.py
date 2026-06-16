@@ -33,6 +33,7 @@ from apps.setup_studio import (
     wizard_state_resolver,
     wizard_telemetry,
 )
+from apps.setup_studio.wizard_categories import group_wizards_by_category
 from apps.setup_studio.wizard_labels import humanize_wizard_token
 
 logger = logging.getLogger(__name__)
@@ -84,6 +85,20 @@ def _resolve_resumable_wizards_for_request(request: HttpRequest) -> list[Any]:
     except Exception as exc:  # noqa: BLE001 — best-effort surfacing; never breaks the page
         logger.debug("resumable wizards lookup failed: %s", exc)
         return []
+
+
+def _wizard_index_context(wizards: list[Any]) -> dict[str, Any]:
+    """Shared index context: the flat list PLUS the category-grouped sections.
+
+    The template prefers ``wizard_groups`` (labeled sections of cards) and falls
+    back to the flat ``wizards`` list, so this is a non-breaking enrichment.
+    """
+    try:
+        groups = group_wizards_by_category(wizards)
+    except Exception as exc:  # noqa: BLE001 — never break the index over grouping
+        logger.debug("wizard grouping failed: %s", exc)
+        groups = []
+    return {"wizards": wizards, "wizard_groups": groups}
 
 
 def _build_context(
@@ -376,7 +391,11 @@ class OperatorWizardView(LoginRequiredMixin, View):
         if state.get("completed_at"):
             return render(request, "setup_studio/operator_wizard_index.html", {
                 "wizards": wizard_engine.list_wizards_for_audience("operator"),
-                "just_completed_wizard_key": wizard.wizard_key,
+                # Pass the human label, not the raw key: humanize_wizard_token
+                # leaves a bare key like "mfa_setup" UNCHANGED, so the completion
+                # banner must receive label_token ("Set up two-factor
+                # authentication") to read cleanly.
+                "just_completed_wizard_key": wizard.label_token,
             })
         wizard_telemetry.emit_step_viewed(wizard.wizard_key, step.key, self.audience)
         context = _build_context(
@@ -431,12 +450,13 @@ class TenantWizardIndexView(LoginRequiredMixin, View):
         else:
             wizards = wizard_engine.list_wizards_for_audience(user_audience)
         resumable = _resolve_resumable_wizards_for_request(request)
-        return render(request, "setup_studio/tenant_wizard_index.html", {
-            "wizards": wizards,
+        context = _wizard_index_context(wizards)
+        context.update({
             "resumable_wizards": resumable,
             "user_audience": user_audience,
             "wizard_search_audience": user_audience if not _user_is_tenant_admin(request) else "tenant_admin",
         })
+        return render(request, "setup_studio/tenant_wizard_index.html", context)
 
 
 class TenantWizardView(LoginRequiredMixin, View):
@@ -516,14 +536,21 @@ class TenantWizardView(LoginRequiredMixin, View):
                     })
             except Exception:  # noqa: BLE001
                 next_suggestions = []
-            return render(request, "setup_studio/tenant_wizard_index.html", {
-                "wizards": wizard_engine.list_wizards_for_audience(user_audience),
-                "just_completed_wizard_key": wizard.wizard_key,
+            context = _wizard_index_context(
+                wizard_engine.list_wizards_for_audience(user_audience)
+            )
+            context.update({
+                # Pass the human label, not the raw key: humanize_wizard_token
+                # leaves a bare key like "mfa_setup" UNCHANGED, so the completion
+                # banner must receive label_token ("Set up two-factor
+                # authentication") to read cleanly.
+                "just_completed_wizard_key": wizard.label_token,
                 "next_step_suggestions": next_suggestions,
                 "resumable_wizards": _resolve_resumable_wizards_for_request(request),
                 "user_audience": user_audience,
                 "wizard_search_audience": user_audience,
             })
+            return render(request, "setup_studio/tenant_wizard_index.html", context)
         wizard_telemetry.emit_step_viewed(wizard.wizard_key, step.key, self.audience)
         context = _build_context(
             request=request, wizard=wizard, step=step,
@@ -695,8 +722,14 @@ def _user_can_run_wizard(request: HttpRequest, wizard: wizard_engine.WizardDefin
     so a teacher reaches teacher wizards, a parent reaches parent wizards, etc.
     """
     if _user_is_tenant_admin(request):
-        # Tenant admin / staff can run tenant_admin wizards; gate other audiences below
-        if "tenant_admin" in wizard.audience or "operator" in wizard.audience:
+        # A tenant admin (role ADMIN/PROPRIETOR/PRINCIPAL on the tenant host) may
+        # run tenant_admin wizards ONLY. The previous `or "operator" in audience`
+        # clause leaked operator-only wizards (e.g. super_create_school,
+        # jit_operator_compliance_safeguarding) to tenant admins via direct URL.
+        # Operator-audience wizards are reached through the staff-gated operator
+        # surface: an is_staff user falls through to the audience check below,
+        # where `_user_audience` resolves to "operator" and admits them.
+        if "tenant_admin" in wizard.audience:
             return True
     user_audience = _user_audience(request)
     if user_audience is None:

@@ -6,6 +6,7 @@
 {% block extrastyle %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/rmc-wizard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-wizard-index.css' %}">
 {% endblock %}
 
 {% block cp_content %}
@@ -21,7 +22,7 @@
   </header>
 
   {% if wizards %}
-    <div style="display:grid; gap: var(--space-3); grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+    <div class="rmc-wizard-index-grid">
       {% for w in wizards %}
         <a class="rmc-wizard-card" href="{% url 'setup_studio:operator_wizard' wizard_key=w.wizard_key %}">
           <h3 class="rmc-wizard-card__title">{{ w.label_token|humanize_wizard_token }}</h3>

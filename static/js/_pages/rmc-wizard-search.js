@@ -95,7 +95,9 @@
       a.href = "/school/studio/wizards/" + encodeURIComponent(entry.wizard_key) + "/";
       var title = document.createElement("span");
       title.className = "rmc-wizard-search__result-title";
-      title.textContent = entry.label_token || entry.wizard_key;
+      // Prefer the server-humanized label; fall back gracefully. Never paints
+      // a raw `wizards.*` slug (the label field is humanized server-side).
+      title.textContent = entry.label || entry.label_token || entry.wizard_key;
       a.appendChild(title);
       var meta = document.createElement("span");
       meta.className = "rmc-wizard-search__result-meta";
