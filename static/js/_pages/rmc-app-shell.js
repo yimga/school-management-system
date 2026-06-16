@@ -282,11 +282,58 @@
   /* ----------------------------------------------------------
      Initialization
      ---------------------------------------------------------- */
-  function init() {
-    // Only activate behaviors when a shell is actually present.
-    if (!document.querySelector(".rmc-app-shell")) {
+  /* ----------------------------------------------------------
+     RE-HOME EJECTED SHELL CHILDREN  (control-plane resilience)
+     The /super/ landing renders a large amount of tenant-data-driven
+     markup inside the canvas. If any of it emits a stray or auto-closing
+     tag at runtime (e.g. an unescaped data field), the HTML parser closes
+     .rmc-app-shell early and the elements the skeleton emits *after* the
+     canvas — the copilot rail and the footer — get hoisted out to <body>
+     as siblings of the shell. The CSS column-3 pin targets
+     `.rmc-app-shell > .rmc-app-shell__copilot`, so once the rail is a body
+     child the pin can't reach it and it renders as a stray horizontal band
+     instead of docking right. Detect that ejection and move the elements
+     back inside the shell so the grid pin applies. Scoped to the
+     control-plane shell so the tenant-portal fixed-mount path (where the
+     rail is intentionally a <body> child) is never disturbed.
+     ---------------------------------------------------------- */
+  function rehomeEjectedShellChildren(shell) {
+    if (!shell || !document.body.classList.contains("control-plane-shell")) {
       return;
     }
+    var selectors = [".rmc-app-shell__copilot", ".rmc-app-shell__footer"];
+    var rehomed = [];
+    for (var i = 0; i < selectors.length; i++) {
+      var el = document.querySelector(selectors[i]);
+      // Only re-home when the element was hoisted out to <body> by the
+      // parser. If it's already inside the shell, leave it untouched.
+      if (el && el !== shell && el.parentElement === document.body) {
+        shell.appendChild(el);
+        rehomed.push(selectors[i]);
+      }
+    }
+    if (rehomed.length) {
+      // Surface it: the markup upstream is emitting a stray tag that ejects
+      // these. Re-homing fixes the layout, but the source should be found.
+      try {
+        console.warn(
+          "rmc-app-shell: re-homed ejected control-plane shell children " +
+            rehomed.join(", ") +
+            " (parser closed .rmc-app-shell early — likely a stray/unbalanced tag in canvas markup)"
+        );
+      } catch (_) {
+        /* noop */
+      }
+    }
+  }
+
+  function init() {
+    // Only activate behaviors when a shell is actually present.
+    var shell = document.querySelector(".rmc-app-shell");
+    if (!shell) {
+      return;
+    }
+    rehomeEjectedShellChildren(shell);
     document.addEventListener("click", handleHashClick);
     window.addEventListener("hashchange", handleHashChange);
     attachModalHooks();
