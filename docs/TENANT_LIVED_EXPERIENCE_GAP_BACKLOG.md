@@ -20,7 +20,12 @@ blank or can crash. This is the **same "built-but-not-wired" pattern** as the da
 
 ## P0 — Blocking / can crash (fix first)
 
-1. **[VERIFIED — Phase 0 confirmed the crash + exact mechanism] Provisioning never creates a per-tenant `ComplianceProfile`; invoicing crashes.**
+1. **[✅ IMPLEMENTED 2026-06-15 — was the confirmed P0 crash] Per-tenant `ComplianceProfile` now seeded in Phase B.**
+   New `apps/finance/provisioning_seed.py::ensure_tenant_compliance_profile(school)` (idempotent,
+   region-aware, tenant-schema-scoped, does NOT touch shared RuntimeDefaults) wired into
+   `apps/schools/tasks.py` Phase B `seed_data` block after the dashboard-pack assignment (non-fatal).
+   6 tests green (`apps/finance/tests/test_provisioning_compliance_seed.py`); `check` 0, no migration.
+   _Original finding (kept for context):_
    `apps.finance` is **TENANT_APPS** (schema-per-tenant) → a new tenant schema has zero
    `ComplianceProfile`. `Invoice.profile` = `ForeignKey(PROTECT)` non-null (`finance/models.py:456`).
    Fee/invoice creation resolves `site.compliance_profile → ComplianceProfile.filter(is_active=True).first()`

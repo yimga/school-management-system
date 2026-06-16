@@ -1,6 +1,8 @@
 # Provisioning "Experience Seed" Plan (handoff for a fresh session)
 
-**Authored:** 2026-06-15 · **Status:** PLAN — not executed · **Companion docs:**
+**Authored:** 2026-06-15 · **Status:** PARTIALLY EXECUTED — **P0 #1 (ComplianceProfile) DONE 2026-06-15**
+(`apps/finance/provisioning_seed.py` + Phase B wiring + 6 tests green); remaining items (fee plan,
+permission groups, packs, etc.) still pending. · **Companion docs:**
 [`TENANT_LIVED_EXPERIENCE_GAP_BACKLOG.md`](TENANT_LIVED_EXPERIENCE_GAP_BACKLOG.md) (the 21-item
 backlog this closes ~10 of) · [`DASHBOARD_PACKS_REVIVAL_PLAN.md`](DASHBOARD_PACKS_REVIVAL_PLAN.md)
 (the already-executed sibling; this follows the same wiring pattern).

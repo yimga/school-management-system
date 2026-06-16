@@ -1395,6 +1395,28 @@ def _do_provision_tracked(
                 "Default dashboard pack assignment failed for school %s", school_id
             )
 
+        # Ensure the tenant schema has an active ComplianceProfile. finance is
+        # TENANT_APPS (schema-per-tenant): a fresh schema has zero rows, and
+        # Invoice.profile is a PROTECT, non-null FK — without this, the first fee
+        # generation dead-ends on an empty-table fallback and raises IntegrityError.
+        # Idempotent; never overwrites an operator's profile. Non-fatal.
+        try:
+            from apps.finance.provisioning_seed import (
+                ensure_tenant_compliance_profile,
+            )
+
+            cp = ensure_tenant_compliance_profile(school)
+            if cp is not None:
+                logger.info(
+                    "Ensured tenant ComplianceProfile for school %s (profile %s)",
+                    school_id,
+                    cp.pk,
+                )
+        except (DatabaseError, IntegrityError, ValueError, TypeError, ImportError):
+            logger.exception(
+                "Tenant ComplianceProfile seed failed for school %s", school_id
+            )
+
         try:
             from apps.schools.provisioning_blueprint import (
                 record_school_template_blueprint,
