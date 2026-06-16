@@ -610,7 +610,12 @@
           return data;
         }
         if (!r.ok && !data.reply) {
-          throw new Error("send-failed");
+          /* Carry the HTTP status so the caller can craft a state-aware
+             message (403 = stale session, 5xx/502 = server busy) and decide
+             whether a transient failure is worth one automatic retry. */
+          var httpErr = new Error("send-http-" + r.status);
+          httpErr.httpStatus = r.status;
+          throw httpErr;
         }
         return data;
       });
@@ -624,6 +629,51 @@
       if (data.source) { updatePostureFromSendReply(data.source); }
       else if (data.error === "permission_denied") { updatePostureFromSendReply("unavailable"); }
     });
+  }
+
+  /* A transport failure is worth ONE automatic retry only when it's the kind
+     that clears on its own: a true network blip (no HTTP status reached us) or
+     a server-side 5xx / 502 (worker restarting / momentarily busy). A 4xx
+     (403 stale session, 400 bad request) will fail identically on retry, so we
+     surface it immediately instead of spinning. */
+  function isRetryableSendError(err) {
+    var status = (err && typeof err.httpStatus === "number") ? err.httpStatus : 0;
+    return status === 0 || status >= 500;
+  }
+
+  /* State-aware failure copy so the operator knows whether to refresh, wait, or
+     reconnect — rather than the old catch-all "couldn't reach" that read as a
+     hard breakage even when the backend was merely restarting. */
+  function sendFailureMessage(err) {
+    var status = (err && typeof err.httpStatus === "number") ? err.httpStatus : 0;
+    if (status === 403) {
+      return "Your session token looks stale. Refresh the page (the copilot picks up a fresh token on load) and send again.";
+    }
+    if (status === 401) {
+      return "You appear to be signed out. Refresh the page and sign in again.";
+    }
+    if (typeof navigator !== "undefined" && navigator && navigator.onLine === false) {
+      return "You appear to be offline. Reconnect and try again — your message wasn't sent.";
+    }
+    if (status >= 500 || status === 0) {
+      return "The assistant is temporarily unreachable (the server may be restarting or busy). Please try again in a moment.";
+    }
+    return "Couldn't reach the assistant. Check your connection and try again.";
+  }
+
+  function attemptCopilotSend(text, mode) {
+    if (SUPPORTS_FETCH_STREAM) {
+      return sendCopilotMessageStreaming(text, mode)
+        .catch(function () {
+          /* Streaming failed (no SSE frames / transport error). Drop the empty
+             placeholder bubble and fall back to the single-shot JSON endpoint,
+             whose rejection carries the HTTP status for message + retry logic. */
+          var stale = document.querySelector(".lx-copilot__msg--streaming");
+          if (stale && !stale.textContent) { stale.remove(); }
+          return sendCopilotMessageJSON(text, mode);
+        });
+    }
+    return sendCopilotMessageJSON(text, mode);
   }
 
   function sendCopilotMessage() {
@@ -658,25 +708,29 @@
       if (tab) { mode = tab; }
     }
 
-    var pipeline;
-    if (SUPPORTS_FETCH_STREAM) {
-      pipeline = sendCopilotMessageStreaming(text, mode, sendBtn)
-        .catch(function () {
-          var stale = document.querySelector(".lx-copilot__msg--streaming");
-          if (stale && !stale.textContent) { stale.remove(); }
-          return sendCopilotMessageJSON(text, mode);
-        });
-    } else {
-      pipeline = sendCopilotMessageJSON(text, mode);
-    }
-
-    pipeline.catch(function () {
-      appendThreadMessage("ai", "Couldn't reach the assistant. Check your connection and try again.");
-      updatePostureFromSendReply("unavailable");
-    }).then(function () {
+    function finalize() {
       sending = false;
       if (sendBtn) { sendBtn.disabled = false; sendBtn.removeAttribute("aria-busy"); }
-    });
+    }
+
+    attemptCopilotSend(text, mode)
+      .catch(function (err) {
+        if (isRetryableSendError(err)) {
+          /* One backoff retry on a transient blip (worker restart / 502 /
+             network flap) so a single hiccup doesn't dead-end the chat. The
+             retry uses the plain JSON endpoint — simplest path most likely to
+             land once a worker is back. */
+          return new Promise(function (resolve) { window.setTimeout(resolve, 900); })
+            .then(function () { return sendCopilotMessageJSON(text, mode); })
+            .catch(function (err2) {
+              appendThreadMessage("ai", sendFailureMessage(err2));
+              updatePostureFromSendReply("unavailable");
+            });
+        }
+        appendThreadMessage("ai", sendFailureMessage(err));
+        updatePostureFromSendReply("unavailable");
+      })
+      .then(finalize, finalize);
   }
 
   /* Fill the rail input with a caller-supplied prompt and send it through
