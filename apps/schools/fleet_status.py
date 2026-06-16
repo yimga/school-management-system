@@ -226,11 +226,20 @@ def resolve_fleet_tile(school, *, cached_subscription=_SUBSCRIPTION_UNSET) -> di
     }
 
 
-def resolve_fleet_summary(schools=None) -> dict[str, Any]:
-    """Aggregate fleet counts by heatmap tier and fleet_state."""
+def resolve_fleet_summary(schools=None, *, cached_subscriptions=None) -> dict[str, Any]:
+    """Aggregate fleet counts by heatmap tier and fleet_state.
+
+    Pass ``cached_subscriptions`` (a ``{school_id: subscription}`` map from
+    batch_current_subscriptions) to reuse a caller's already-fetched map and
+    skip a redundant query. An empty dict is honored (means "looked up, none").
+    """
     if schools is None:
         schools = list(build_fleet_queryset())
-    subs = batch_current_subscriptions(schools)
+    subs = (
+        cached_subscriptions
+        if cached_subscriptions is not None
+        else batch_current_subscriptions(schools)
+    )
 
     tier_counts = {t: 0 for t in HEATMAP_TIERS}
     state_counts: dict[str, int] = {}
@@ -264,11 +273,24 @@ def resolve_fleet_summary(schools=None) -> dict[str, Any]:
     }
 
 
-def resolve_fleet_tiles(*, max_tiles: int = 500) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """All fleet tiles (capped) + summary for heatmap / live JSON."""
-    schools = list(build_fleet_queryset())
-    subs = batch_current_subscriptions(schools)
-    summary = resolve_fleet_summary(schools)
+def resolve_fleet_tiles(
+    *, max_tiles: int = 500, schools=None, cached_subscriptions=None
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """All fleet tiles (capped) + summary for heatmap / live JSON.
+
+    Pass ``schools`` (a pre-materialized list) and/or ``cached_subscriptions``
+    to reuse a caller's work — build_fleet_live_payload already has both, so
+    threading them avoids a second build_fleet_queryset() + subscription fetch
+    on the cache-miss path.
+    """
+    if schools is None:
+        schools = list(build_fleet_queryset())
+    subs = (
+        cached_subscriptions
+        if cached_subscriptions is not None
+        else batch_current_subscriptions(schools)
+    )
+    summary = resolve_fleet_summary(schools, cached_subscriptions=subs)
 
     tiles: list[dict[str, Any]] = []
     for school in schools[:max_tiles]:

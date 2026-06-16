@@ -111,17 +111,24 @@ def build_fleet_live_payload(
         if cached is not None:
             return {**cached, "generated_at": timezone.now().isoformat()}
 
-    qs = build_fleet_queryset()
-    schools = list(qs)
+    # Materialize the full fleet + its subscription map ONCE, then thread both
+    # through summary / rows / heatmap tiles. Without this the cache-miss path
+    # ran build_fleet_queryset() twice and batch_current_subscriptions() ~3x.
+    # The heatmap is always the full fleet (q never filters it), so it reuses
+    # the unfiltered list even when a search narrows the summary/rows view.
+    all_schools = list(build_fleet_queryset())
+    all_subs = batch_current_subscriptions(all_schools)
+
+    schools = all_schools
     if q_norm:
         schools = [
             s
-            for s in schools
+            for s in all_schools
             if q_norm in (getattr(s, "name", "") or "").lower()
             or q_norm in (getattr(s, "slug", "") or "").lower()
         ]
 
-    summary = resolve_fleet_summary(schools)
+    summary = resolve_fleet_summary(schools, cached_subscriptions=all_subs)
     total = len(schools)
     start = (page - 1) * page_size
     end = start + page_size
@@ -129,13 +136,14 @@ def build_fleet_live_payload(
 
     rows: list[dict[str, Any]] = []
     if include_rows:
-        subs = batch_current_subscriptions(page_schools)
         for school in page_schools:
             rows.append(
-                _build_fleet_row_dict(school, cached_subscription=subs.get(school.pk))
+                _build_fleet_row_dict(school, cached_subscription=all_subs.get(school.pk))
             )
 
-    heatmap_tiles, _ = resolve_fleet_tiles(max_tiles=500)
+    heatmap_tiles, _ = resolve_fleet_tiles(
+        max_tiles=500, schools=all_schools, cached_subscriptions=all_subs
+    )
     revision = fleet_revision(heatmap_tiles, summary)
 
     payload = {

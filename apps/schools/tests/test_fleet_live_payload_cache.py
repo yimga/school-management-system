@@ -12,7 +12,9 @@ collapses that storm to one compute per poll window. These tests pin:
 from __future__ import annotations
 
 from django.core.cache import cache
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 
 from apps.schools.control_plane_lifecycle import apply_school_lifecycle_action
 from apps.schools.fleet_live_payload import build_fleet_live_payload
@@ -77,6 +79,32 @@ class FleetPollerCacheTests(TestCase):
         self._school(1)
         build_fleet_live_payload(page=1, page_size=50, include_rows=True)
         self.assertIsNone(cache.get(FLEET_STATUS_CACHE_KEY))
+
+    def test_cache_miss_query_count_is_constant_in_school_count(self):
+        """The cache-miss compute materializes the fleet + subscription map once
+        and threads both through summary / rows / tiles. Query count must be
+        constant in the number of schools — not grow per school (N+1) or per
+        redundant build_fleet_queryset / batch_current_subscriptions call."""
+        for i in range(3):
+            self._school(i)
+        invalidate_fleet_status_cache()
+        with CaptureQueriesContext(connection) as cap_small:
+            build_fleet_live_payload(include_rows=False)
+        small = len(cap_small.captured_queries)
+
+        for i in range(3, 9):
+            self._school(i)
+        invalidate_fleet_status_cache()
+        with CaptureQueriesContext(connection) as cap_big:
+            build_fleet_live_payload(include_rows=False)
+        big = len(cap_big.captured_queries)
+
+        self.assertEqual(
+            small, big,
+            msg=f"cache-miss query count must be constant in N (got {small} for 3 "
+                f"schools, {big} for 9) — a difference means an N+1 or a redundant "
+                f"per-school fetch crept back in.",
+        )
 
     def test_lifecycle_action_busts_cache(self):
         school = self._school(1)
