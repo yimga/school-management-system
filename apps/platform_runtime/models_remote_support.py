@@ -315,7 +315,7 @@ class TenantConnectivityHeartbeat(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     # Default freshness window: a school not seen within this is "offline".
-    ONLINE_THRESHOLD_SECONDS = 600
+    ONLINE_THRESHOLD_SECONDS = 600  # magic-number-allow: heartbeat-online-freshness-window-seconds
 
     class Meta:
         app_label = "platform_runtime"

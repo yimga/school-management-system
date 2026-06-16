@@ -43,4 +43,8 @@ class Migration(migrations.Migration):
                 'indexes': [models.Index(fields=['school_id', 'status'], name='lifecycle_p_school__92271a_idx'), models.Index(fields=['status', '-created_at'], name='lifecycle_p_status_f7fd64_idx')],
             },
         ),
+        migrations.AddConstraint(
+            model_name='purgeoperation',
+            constraint=models.UniqueConstraint(condition=models.Q(('status__in', ['pending', 'running'])), fields=('school_id',), name='uniq_active_purge_per_school'),
+        ),
     ]

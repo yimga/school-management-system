@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 
+from django.db import IntegrityError
 from django.utils import timezone
 
 from apps.compliance.models_audit import AuditLog
@@ -75,14 +76,25 @@ def begin_purge_operation(
             reason="Purge operation resumed",
         )
         return existing
-    op = PurgeOperation.objects.create(
-        school_id=str(school_id),
-        school_slug=str(school_slug)[:255],
-        requested_by=actor,
-        reason=(reason or "")[:255],
-        status=PurgeOperation.Status.RUNNING,
-        started_at=timezone.now(),
-    )
+    try:
+        op = PurgeOperation.objects.create(
+            school_id=str(school_id),
+            school_slug=str(school_slug)[:255],
+            requested_by=actor,
+            reason=(reason or "")[:255],
+            status=PurgeOperation.Status.RUNNING,
+            started_at=timezone.now(),
+        )
+    except IntegrityError:
+        # Raced with a concurrent purge of the same school — the partial-unique
+        # constraint (one non-terminal op per school) rejected the duplicate.
+        # Reuse the winner's row instead of minting a second certificate.
+        existing = find_resumable(school_id=school_id)
+        if existing is not None:
+            existing.mark_running()
+            existing.save(update_fields=["status", "started_at", "updated_at"])
+            return existing
+        raise
     _audit(
         op,
         actor=actor,

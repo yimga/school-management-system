@@ -80,6 +80,25 @@ class OrchestrationTests(SimpleTestCase):
         self.assertTrue(save.called)
 
     @mock.patch.object(PurgeOperation, "save")
+    def test_begin_reuses_winner_on_integrity_race(self, save, audit):
+        # The partial-unique constraint rejects a second concurrent op for one
+        # school; the loser must catch IntegrityError and reuse the winner's row
+        # rather than raise or mint a duplicate certificate.
+        from django.db import IntegrityError
+
+        winner = PurgeOperation(
+            school_id="1", school_slug="s", status=STT.RUNNING
+        )
+        # find_resumable: None on first check (race window), winner on retry.
+        with mock.patch.object(
+            ops, "find_resumable", side_effect=[None, winner]
+        ), mock.patch.object(
+            PurgeOperation.objects, "create", side_effect=IntegrityError("dup")
+        ):
+            op = ops.begin_purge_operation(school_id=1, school_slug="s")
+        self.assertIs(op, winner)
+
+    @mock.patch.object(PurgeOperation, "save")
     def test_complete_signs_verifiable_certificate(self, save, audit):
         op = PurgeOperation(school_id="1", school_slug="s")
         ops.complete_purge_operation(

@@ -66,10 +66,15 @@ def queue_intent(request):
     return JsonResponse({"ok": True, "intent_id": str(intent.id)}, status=201)
 
 
-@require_GET
+@require_POST
 @login_required
 def pending_intents(request):
-    """Tenant/hub polls for live intents (marks them delivered)."""
+    """Tenant/hub polls for live intents (marks them delivered).
+
+    POST (not GET): the poll mutates state (PENDING -> DELIVERED), so it must be
+    CSRF-protected. A GET with side effects can be triggered cross-site and
+    silently advance a tenant's intents, masking an operator message.
+    """
     school = getattr(request, "school", None)
     if school is None:
         return HttpResponseBadRequest("No tenant context.")

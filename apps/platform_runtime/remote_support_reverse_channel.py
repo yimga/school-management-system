@@ -106,7 +106,16 @@ def fetch_pending_intents(*, school, mark_delivered=True, now=None) -> list[dict
 
 
 def acknowledge_intent(*, intent, actor=None, note="") -> OperatorIntent:
-    """Tenant/hub acknowledges an intent (applied it)."""
+    """Tenant/hub acknowledges an intent (applied it).
+
+    Idempotent no-op once terminal: only a live (PENDING/DELIVERED) intent may
+    transition to ACKNOWLEDGED. A replayed ack on an already-terminal intent
+    (acknowledged/expired/cancelled) must never overwrite its terminal status or
+    its note — that would corrupt the operator's view of what was actually
+    applied.
+    """
+    if intent.status not in OperatorIntent.LIVE_STATUSES:
+        return intent
     intent.mark_acknowledged(note=note)
     intent.save(update_fields=["status", "acknowledged_at", "ack_note", "updated_at"])
     _audit_intent(

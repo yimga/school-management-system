@@ -54,6 +54,30 @@ def _notify_tenant_user(recipient, *, title, message, link="", actor=None) -> No
         logger.info("remote-support tenant notify skipped", exc_info=True)
 
 
+def _activate_if_ready(session, *, actor) -> bool:
+    """Promote an ACCEPTED + consent-satisfied session to ACTIVE.
+
+    The online handshake is request -> accept -> consent. Once both an operator
+    has accepted AND consent is satisfied, the session is cleared to go ACTIVE —
+    there is no separate "begin" click. Called from both accept (consent may be
+    pre-satisfied / not required) and consent (the common path), so ACTIVE is
+    reachable regardless of ordering. No-op unless currently ACCEPTED.
+    """
+    if (
+        session.status == RemoteSupportSession.Status.ACCEPTED
+        and session.consent_satisfied
+    ):
+        session.status = RemoteSupportSession.Status.ACTIVE
+        session.save(update_fields=["status", "updated_at"])
+        session.record_lifecycle_audit(
+            actor=actor,
+            action=AuditLog.Action.UPDATE,
+            reason="Remote support session activated (consent satisfied)",
+        )
+        return True
+    return False
+
+
 def request_remote_support(
     *, school, requested_by, reason="", channel=None, initiator=None
 ) -> RemoteSupportSession:
@@ -106,6 +130,9 @@ def accept_remote_support(
         ),
         actor=operator,
     )
+    # When consent isn't required (or was pre-granted), accepting clears the
+    # session to ACTIVE immediately; otherwise it waits for record_consent.
+    _activate_if_ready(session, actor=operator)
     return session
 
 
@@ -120,6 +147,9 @@ def record_consent(*, session, by_user) -> RemoteSupportSession:
         action=AuditLog.Action.APPROVE,
         reason="Tenant granted remote-support consent",
     )
+    # Consent is the final gate of the handshake: if an operator already
+    # accepted, granting consent promotes the session to ACTIVE.
+    _activate_if_ready(session, actor=by_user)
     return session
 
 

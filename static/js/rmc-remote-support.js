@@ -32,9 +32,9 @@
     });
   }
 
-  function getJSON(url) {
-    return fetch(url, { credentials: "same-origin" }).then(function (r) {
-      return r.ok ? r.json() : null;
+  function postJSON(url, body) {
+    return post(url, body).then(function (r) {
+      return r && r.ok ? r.json() : null;
     });
   }
 
@@ -110,7 +110,7 @@
     }
     Promise.all([
       post(cfg.getAttribute("data-heartbeat-url"), "pending_sync=" + pendingSync),
-      getJSON(cfg.getAttribute("data-pending-url")),
+      postJSON(cfg.getAttribute("data-pending-url")),
     ])
       .then(function (res) {
         var data = res[1];

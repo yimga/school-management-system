@@ -77,6 +77,17 @@ class PurgeOperation(models.Model):
             models.Index(fields=["school_id", "status"]),
             models.Index(fields=["status", "-created_at"]),
         ]
+        constraints = [
+            # At most one non-terminal purge per school. Closes the
+            # check-then-create race in begin_purge_operation so two concurrent
+            # purges of one school can't mint duplicate operations/certificates;
+            # the loser catches IntegrityError and reuses the winner's row.
+            models.UniqueConstraint(
+                fields=["school_id"],
+                condition=models.Q(status__in=["pending", "running"]),
+                name="uniq_active_purge_per_school",
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"purge:{self.school_slug}:{self.status}"
@@ -101,7 +112,7 @@ class PurgeOperation(models.Model):
 
     def mark_failed(self, error: str) -> None:
         self.status = self.Status.FAILED
-        self.last_error = str(error)[:4000]
+        self.last_error = str(error)[:4000]  # magic-number-allow: last-error-text-truncation-cap
 
     def mark_completed(self, *, now=None) -> None:
         self.status = self.Status.COMPLETED

@@ -88,6 +88,27 @@ class RemoteSupportServiceTests(SimpleTestCase):
         self.assertTrue(s.consent_satisfied)
         self.assertTrue(save.called)
 
+    def test_consent_promotes_accepted_to_active(self, save, audit):
+        # The online handshake closes here: consent on an ACCEPTED session goes
+        # ACTIVE (no separate operator "begin" click is needed).
+        s = _session(status=S.ACCEPTED, requires_consent=True)
+        svc.record_consent(session=s, by_user=None)
+        self.assertEqual(s.status, S.ACTIVE)
+
+    def test_consent_does_not_activate_when_not_accepted(self, save, audit):
+        # Consent recorded before an operator accepts must not jump to ACTIVE.
+        s = _session(status=S.REQUESTED, requires_consent=True)
+        svc.record_consent(session=s, by_user=None)
+        self.assertEqual(s.status, S.REQUESTED)
+
+    def test_accept_auto_activates_when_consent_not_required(self, save, audit):
+        s = _session(status=S.REQUESTED, requires_consent=False)
+        with mock.patch.object(
+            svc, "operator_can_remote_support", return_value=True
+        ), mock.patch.object(svc, "_notify_tenant_user"):
+            svc.accept_remote_support(session=s, operator=None)
+        self.assertEqual(s.status, S.ACTIVE)
+
     def test_end_sets_summary_and_notifies(self, save, audit):
         s = _session(status=S.ACTIVE)
         with mock.patch.object(svc, "_notify_tenant_user") as notify:

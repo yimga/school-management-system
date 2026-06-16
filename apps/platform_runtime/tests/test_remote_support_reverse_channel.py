@@ -108,6 +108,19 @@ class ReverseChannelServiceTests(SimpleTestCase):
         self.assertEqual(i.status, ST.ACKNOWLEDGED)
         self.assertTrue(save.called)
 
+    @mock.patch.object(OperatorIntent, "save")
+    def test_acknowledge_terminal_is_noop(self, save):
+        # A replayed ack on an already-terminal intent must not overwrite its
+        # status or note, and must not write/audit.
+        for terminal in (ST.ACKNOWLEDGED, ST.EXPIRED, ST.CANCELLED):
+            i = OperatorIntent(kind=K.MESSAGE, status=terminal, ack_note="orig")
+            with mock.patch.object(svc, "_audit_intent") as audit:
+                svc.acknowledge_intent(intent=i, actor=_U(), note="replayed")
+            self.assertEqual(i.status, terminal)
+            self.assertEqual(i.ack_note, "orig")
+            self.assertFalse(save.called)
+            self.assertFalse(audit.called)
+
     def test_record_heartbeat_upserts(self):
         hb = TenantConnectivityHeartbeat(school_id=1, last_seen_at=timezone.now())
         with mock.patch.object(
@@ -140,9 +153,16 @@ class ReverseChannelViewTests(SimpleTestCase):
             )
 
     def test_pending_requires_tenant_context(self):
-        req = rf.get("/x/pending/")
+        # POST (not GET): the poll mutates state (marks intents delivered), so it
+        # is CSRF-protected. A GET is rejected (405) before the body runs.
+        req = rf.post("/x/pending/")
         req.user = _U()
         self.assertEqual(views.pending_intents(req).status_code, 400)
+
+    def test_pending_rejects_get(self):
+        req = rf.get("/x/pending/")
+        req.user = _U()
+        self.assertEqual(views.pending_intents(req).status_code, 405)
 
     def test_queue_rejects_invalid_kind(self):
         req = rf.post("/x/queue/", {"kind": "bogus"})

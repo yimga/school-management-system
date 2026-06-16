@@ -849,6 +849,10 @@ def _apply_purge_tracked(
         sessions_revoked = revoke_all_sessions_for_school(
             school_id=school_id, user_ids=member_ids
         )
+        if purge_op is not None:
+            from apps.lifecycle.purge_operations import mark_purge_phase
+
+            mark_purge_phase(purge_op, "sessions_revoked")
     except Exception as exc:  # noqa: BLE001 - tracking/revocation never fails purge
         logger.warning(
             "tenant_offboarding purge tracking/revocation failed slug=%s: %s",
@@ -934,8 +938,14 @@ def _apply_purge_tracked(
     # not turn a completed purge into an error.
     if purge_op is not None:
         try:
-            from apps.lifecycle.purge_operations import complete_purge_operation
+            from apps.lifecycle.purge_operations import (
+                complete_purge_operation,
+                mark_purge_phase,
+            )
 
+            if schema_dropped:
+                mark_purge_phase(purge_op, "schema_dropped")
+            mark_purge_phase(purge_op, "records_deleted")
             complete_purge_operation(
                 op=purge_op,
                 row_total=row_total,
