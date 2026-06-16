@@ -89,6 +89,16 @@ _SEED: tuple[NavItem, ...] = (
         shells=(SHELL_PORTAL, SHELL_ADMIN),
         order=10,
     ),
+    # NOTE (nav-migration gap): the next three portal items use generic
+    # url_names (portal:grades / portal:attendance / portal:finance) that do NOT
+    # exist — Grades/Attendance/Finance are role-specific (student vs teacher vs
+    # parent), so a single route can't serve roles=(PARENT,STUDENT,TEACHER).
+    # No live surface renders these today (the only for_shell() consumer pulls
+    # SHELL_STUDIO_FOCUS, and the live tenant portal nav comes from
+    # apps/siteconfig/portal_sidebar_items.py with correct role-specific routes),
+    # so they are safely dropped (_safe_reverse). Before wiring SHELL_PORTAL to
+    # this registry, replace these with role-dispatch routes (or remove as
+    # superseded). Left intentionally unfabricated — a wrong route is worse.
     NavItem(
         key="grades",
         label="Grades",
@@ -129,7 +139,7 @@ _SEED: tuple[NavItem, ...] = (
         key="operator_console",
         label="Operator console",
         icon="bi-terminal",
-        url_name="schools:super_dashboard",
+        url_name="super:dashboard",  # was schools:super_dashboard (no such route) — operator landing is super:dashboard
         roles=("PROPRIETOR",),  # role-string-allow: nav-item-role-membership-tuple
         shells=(SHELL_CONTROL_PLANE,),
         order=10,
@@ -227,7 +237,7 @@ _SEED: tuple[NavItem, ...] = (
         key="marketplace",
         label="Marketplace",
         icon="bi-shop",
-        url_name="marketplace:tenant_app_catalog",
+        url_name="siteconfig:module_market",  # was marketplace:tenant_app_catalog (no such route) — tenant marketplace is siteconfig:module_market
         roles=("ADMIN", "PROPRIETOR"),  # role-string-allow: nav-item-role-membership-tuple
         shells=(SHELL_PORTAL,),
         order=60,
