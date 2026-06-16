@@ -301,7 +301,12 @@
     if (!shell || !document.body.classList.contains("control-plane-shell")) {
       return;
     }
-    var selectors = [".rmc-app-shell__copilot", ".rmc-app-shell__footer"];
+    // Re-home ONLY the rail. The footer is the full civic corporate footer
+    // (~220px); pulling it into the 100dvh grid gives it a real row and steals
+    // that height from the canvas (content "cut in half"). When ejected it sits
+    // off-screen below the shell taking zero grid space — its long-standing,
+    // harmless state — so we deliberately leave it where the parser put it.
+    var selectors = [".rmc-app-shell__copilot"];
     var rehomed = [];
     for (var i = 0; i < selectors.length; i++) {
       var el = document.querySelector(selectors[i]);
