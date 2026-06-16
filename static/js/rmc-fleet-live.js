@@ -165,6 +165,14 @@
   }
 
   function pollOnce(root, intervalRef) {
+    // Error backoff: when the endpoint is failing (e.g. 502 while the web service
+    // restarts / is under load), skip an increasing number of ticks rather than
+    // hammering every interval — a no-backoff retry loop adds load and prolongs a
+    // flapping server. Resets on the first success. (Mirrors rmc-cp-cockpit-live.)
+    if (intervalRef && intervalRef._skip > 0) {
+      intervalRef._skip -= 1;
+      return;
+    }
     fetch(buildJsonEndpoint(root), {
       credentials: "same-origin",
       headers: { Accept: "application/json" },
@@ -174,13 +182,21 @@
         return r.json();
       })
       .then(function (payload) {
+        if (intervalRef) {
+          intervalRef._fails = 0;
+          intervalRef._skip = 0;
+        }
         if (payload && payload.poll_interval_seconds && intervalRef) {
           intervalRef.ms = Math.max(5000, Number(payload.poll_interval_seconds) * 1000);
         }
         applyPayload(root, payload);
       })
       .catch(function () {
-        /* keep SSR rows */
+        // Keep SSR rows; back off up to ~8 ticks while the endpoint recovers.
+        if (intervalRef) {
+          intervalRef._fails = (intervalRef._fails || 0) + 1;
+          intervalRef._skip = Math.min(intervalRef._fails, 8);
+        }
       });
   }
 
@@ -227,6 +243,7 @@
     var source = new EventSource(sseUrl, { withCredentials: true });
 
     source.onmessage = function (event) {
+      intervalRef._sseFails = 0;
       try {
         var payload = JSON.parse(event.data || "{}");
         if (payload.unchanged) return;
@@ -241,6 +258,20 @@
     };
 
     source.onerror = function () {
+      // The browser auto-reconnects EventSource with no backoff. When the web
+      // service is 502ing, that's a thundering-herd that keeps workers from
+      // recovering. After a short burst of consecutive errors, close the stream
+      // and lean on the JSON poller (which backs off on failure).
+      intervalRef._sseFails = (intervalRef._sseFails || 0) + 1;
+      if (intervalRef._sseFails >= 5) {
+        try {
+          source.close();
+        } catch (_) {
+          /* noop */
+        }
+        if (!intervalRef.handle) startPollFallback(root, intervalRef);
+        return;
+      }
       if (paginatedSse && !intervalRef.handle) {
         startPollFallback(root, intervalRef);
       }

@@ -30,6 +30,43 @@
   var svgTourTimer = null;
   var svgTourIndex = 0;
 
+  // Live-refresh circuit breaker (batch: control-plane 502-storm mitigation).
+  // The globe is a cosmetic surface; when its live endpoints (/super/api/globe/
+  // live + /stream) fail repeatedly — e.g. the web service is 502ing/restarting —
+  // a no-backoff 4s-reconnect + 5s-poll loop turns one blip into sustained load
+  // that keeps the workers from recovering. After MAX_LIVE_FAILS consecutive
+  // failures we open the circuit: stop polling + stop reconnecting + close the
+  // stream, and show a quiet "paused" freshness. The circuit resets on a
+  // successful refresh or an `online` event, so live updates resume on recovery.
+  var liveFails = 0;
+  var liveCircuitOpen = false;
+  var MAX_LIVE_FAILS = 5;
+
+  function noteLiveSuccess() {
+    liveFails = 0;
+    liveCircuitOpen = false;
+  }
+
+  function openLiveCircuit() {
+    if (liveCircuitOpen) return;
+    liveCircuitOpen = true;
+    stopPollFallback();
+    if (eventSource) {
+      eventSource.close();
+      eventSource = null;
+    }
+    if (sseReconnectTimer) {
+      window.clearTimeout(sseReconnectTimer);
+      sseReconnectTimer = null;
+    }
+    setFreshness("Live paused");
+  }
+
+  function noteLiveFailure() {
+    liveFails += 1;
+    if (liveFails >= MAX_LIVE_FAILS) openLiveCircuit();
+  }
+
   function api() {
     return window.RMCWorldGlobe;
   }
@@ -161,15 +198,18 @@
     api()
       .refreshLive(force ? { force: "1" } : {})
       .then(function (bundle) {
+        noteLiveSuccess();
         if (bundle) applyLiveChrome(bundle);
       })
       .catch(function () {
-        /* network blip */
+        // Server unreachable/erroring — back off via the circuit breaker so the
+        // cosmetic globe stops hammering a struggling web service.
+        noteLiveFailure();
       });
   }
 
   function startPollFallback() {
-    if (pollTimer) return;
+    if (pollTimer || liveCircuitOpen) return;
     var cfg = liveRefreshConfig();
     var ms = cfg.poll_interval_ms || livePollMs;
     pollTimer = window.setInterval(function () {
@@ -185,7 +225,7 @@
   }
 
   function scheduleSseReconnect() {
-    if (sseReconnectTimer) return;
+    if (sseReconnectTimer || liveCircuitOpen) return;
     var cfg = liveRefreshConfig();
     var ms = cfg.sse_reconnect_ms || sseReconnectMs;
     sseReconnectTimer = window.setTimeout(function () {
@@ -520,6 +560,7 @@
     try {
       eventSource = new EventSource(endpoints.stream);
       eventSource.onopen = function () {
+        noteLiveSuccess();
         stopPollFallback();
         setFreshness("Live");
       };
@@ -545,6 +586,8 @@
           eventSource.close();
           eventSource = null;
         }
+        noteLiveFailure();
+        if (liveCircuitOpen) return;
         setFreshness("Reconnecting…");
         startPollFallback();
         scheduleSseReconnect();
@@ -627,6 +670,8 @@
   if (typeof window !== "undefined") {
     window.addEventListener("online", function () {
       if (!bridgeWired) return;
+      // Back online — clear the live circuit breaker so streams/polls resume.
+      noteLiveSuccess();
       syncGlobeModeChrome();
     });
   }
