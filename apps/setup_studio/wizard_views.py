@@ -87,18 +87,91 @@ def _resolve_resumable_wizards_for_request(request: HttpRequest) -> list[Any]:
         return []
 
 
-def _wizard_index_context(wizards: list[Any]) -> dict[str, Any]:
-    """Shared index context: the flat list PLUS the category-grouped sections.
+def _resolve_wizard_status_map(request: HttpRequest) -> dict[str, str]:
+    """Best-effort ``{wizard_key: "done"|"in_progress"}`` for the current tenant.
 
-    The template prefers ``wizard_groups`` (labeled sections of cards) and falls
-    back to the flat ``wizards`` list, so this is a non-breaking enrichment.
+    Reads the SAME SetupProgress wizards namespace the resumable banner uses, so
+    the bespoke index can paint per-card status + per-stage progress. Returns ``{}``
+    on any failure — every card then renders honestly as "Start" rather than the
+    page breaking over a status lookup.
+    """
+    try:
+        school = _resolve_school(request)
+        if school is None:
+            return {}
+        from apps.setup_studio.models import SetupProgress  # local import — avoids circular at app load
+        from apps.setup_studio.wizard_extras import wizard_status_map
+
+        progress = SetupProgress.objects.filter(school=school).first()
+        if progress is None:
+            return {}
+        step_state = progress.step_state or {}
+        wizards_namespace = step_state.get("wizards") if isinstance(step_state, dict) else None
+        return wizard_status_map(wizards_namespace)
+    except Exception as exc:  # noqa: BLE001 — status is decorative; never breaks the page
+        logger.debug("wizard status map lookup failed: %s", exc)
+        return {}
+
+
+def _decorate_stages(groups: list[dict[str, Any]], status_map: dict[str, str]):
+    """Decorate grouped stages with per-card status + per-stage/overall progress.
+
+    Returns ``(stages, overall)`` where each stage carries a ``cards`` list of
+    ``{"wizard", "status"}`` and a ``progress`` dict. ``overall`` aggregates the
+    whole journey for the index hero. Pure-Python; safe with an empty status_map.
+    """
+    stages: list[dict[str, Any]] = []
+    total_all = 0
+    done_all = 0
+    for g in groups:
+        cards = []
+        done = 0
+        for wiz in g.get("wizards") or []:
+            status = status_map.get(getattr(wiz, "wizard_key", ""), "not_started")
+            if status == "done":
+                done += 1
+            cards.append({"wizard": wiz, "status": status})
+        total = len(cards)
+        total_all += total
+        done_all += done
+        pct = int(round(done * 100 / total)) if total else 0
+        stages.append({
+            **g,
+            "cards": cards,
+            "progress": {"done": done, "total": total, "pct": pct, "remaining": total - done},
+        })
+    overall = {
+        "done": done_all,
+        "total": total_all,
+        "pct": int(round(done_all * 100 / total_all)) if total_all else 0,
+        "remaining": total_all - done_all,
+    }
+    return stages, overall
+
+
+def _wizard_index_context(wizards: list[Any], status_map: dict[str, str] | None = None) -> dict[str, Any]:
+    """Shared index context: the flat list, the grouped sections, AND the bespoke
+    lifecycle ``wizard_stages`` (cards + progress) used by the redesigned index.
+
+    The template prefers ``wizard_stages``, then ``wizard_groups``, then the flat
+    ``wizards`` list, so every layer is a non-breaking enrichment.
     """
     try:
         groups = group_wizards_by_category(wizards)
     except Exception as exc:  # noqa: BLE001 — never break the index over grouping
         logger.debug("wizard grouping failed: %s", exc)
         groups = []
-    return {"wizards": wizards, "wizard_groups": groups}
+    try:
+        stages, overall = _decorate_stages(groups, status_map or {})
+    except Exception as exc:  # noqa: BLE001 — decoration is decorative; never break the index
+        logger.debug("wizard stage decoration failed: %s", exc)
+        stages, overall = [], {"done": 0, "total": 0, "pct": 0, "remaining": 0}
+    return {
+        "wizards": wizards,
+        "wizard_groups": groups,
+        "wizard_stages": stages,
+        "overall_progress": overall,
+    }
 
 
 def _build_context(
@@ -353,7 +426,9 @@ class OperatorWizardIndexView(LoginRequiredMixin, View):
 
     def get(self, request: HttpRequest) -> HttpResponse:
         wizards = wizard_engine.list_wizards_for_audience("operator")
-        return render(request, "setup_studio/operator_wizard_index.html", {"wizards": wizards})
+        status_map = _resolve_wizard_status_map(request)
+        context = _wizard_index_context(wizards, status_map=status_map)
+        return render(request, "setup_studio/operator_wizard_index.html", context)
 
 
 @method_decorator(staff_member_required, name="dispatch")
@@ -389,14 +464,15 @@ class OperatorWizardView(LoginRequiredMixin, View):
             return redirect("setup_studio:operator_wizard_index")
         state = wizard_state_resolver.get_wizard_state(school, wizard.wizard_key)
         if state.get("completed_at"):
-            return render(request, "setup_studio/operator_wizard_index.html", {
-                "wizards": wizard_engine.list_wizards_for_audience("operator"),
-                # Pass the human label, not the raw key: humanize_wizard_token
-                # leaves a bare key like "mfa_setup" UNCHANGED, so the completion
-                # banner must receive label_token ("Set up two-factor
-                # authentication") to read cleanly.
-                "just_completed_wizard_key": wizard.label_token,
-            })
+            status_map = _resolve_wizard_status_map(request)
+            context = _wizard_index_context(
+                wizard_engine.list_wizards_for_audience("operator"), status_map=status_map,
+            )
+            # Pass the human label, not the raw key: humanize_wizard_token leaves a
+            # bare key like "mfa_setup" UNCHANGED, so the completion banner must
+            # receive label_token ("Set up two-factor authentication") to read cleanly.
+            context["just_completed_wizard_key"] = wizard.label_token
+            return render(request, "setup_studio/operator_wizard_index.html", context)
         wizard_telemetry.emit_step_viewed(wizard.wizard_key, step.key, self.audience)
         context = _build_context(
             request=request, wizard=wizard, step=step,
@@ -450,7 +526,8 @@ class TenantWizardIndexView(LoginRequiredMixin, View):
         else:
             wizards = wizard_engine.list_wizards_for_audience(user_audience)
         resumable = _resolve_resumable_wizards_for_request(request)
-        context = _wizard_index_context(wizards)
+        status_map = _resolve_wizard_status_map(request)
+        context = _wizard_index_context(wizards, status_map=status_map)
         context.update({
             "resumable_wizards": resumable,
             "user_audience": user_audience,
@@ -537,7 +614,8 @@ class TenantWizardView(LoginRequiredMixin, View):
             except Exception:  # noqa: BLE001
                 next_suggestions = []
             context = _wizard_index_context(
-                wizard_engine.list_wizards_for_audience(user_audience)
+                wizard_engine.list_wizards_for_audience(user_audience),
+                status_map=_resolve_wizard_status_map(request),
             )
             context.update({
                 # Pass the human label, not the raw key: humanize_wizard_token

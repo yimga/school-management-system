@@ -183,6 +183,204 @@ class WizardSearchAudienceRbacTests(SimpleTestCase):
         self.assertEqual(data["count"], 0)
 
 
+class LifecycleStageTaxonomyTests(SimpleTestCase):
+    """The taxonomy is the 4-stage onboarding lifecycle, numbered 1..4."""
+
+    def setUp(self):
+        wizard_engine.load_wizard_registry()
+
+    def test_category_order_is_the_four_lifecycle_stages(self):
+        self.assertEqual(
+            wizard_categories.CATEGORY_ORDER,
+            ("get_started", "configure", "operate", "govern"),
+        )
+
+    def test_every_stage_carries_label_description_and_step_number(self):
+        wizards = wizard_engine.list_wizards_for_audience("tenant_admin")
+        groups = wizard_categories.group_wizards_by_category(wizards)
+        self.assertTrue(groups)
+        # Step numbers are a 1-based consecutive progression in display order.
+        self.assertEqual([g["step"] for g in groups], list(range(1, len(groups) + 1)))
+        for g in groups:
+            self.assertTrue(g["label"])
+            self.assertTrue(g["description"])
+            self.assertIn(g["key"], wizard_categories.CATEGORY_ORDER)
+
+    def test_known_wizards_land_in_expected_stage(self):
+        self.assertEqual(wizard_categories.category_for("mfa_setup"), "get_started")
+        self.assertEqual(wizard_categories.category_for("teacher_gradebook_setup"), "configure")
+        self.assertEqual(wizard_categories.category_for("alumni_engagement_pipeline"), "operate")
+        self.assertEqual(
+            wizard_categories.category_for("dynamic_safeguarding_incident_medical"), "govern"
+        )
+
+    def test_default_stage_is_configure(self):
+        self.assertEqual(wizard_categories.DEFAULT_CATEGORY, "configure")
+
+
+class DualWizardRbacDropTests(SimpleTestCase):
+    """The 2 platform/infra wizards dropped from tenant audience (decision #2)."""
+
+    def setUp(self):
+        wizard_engine.load_wizard_registry()
+
+    def test_dropped_wizards_are_now_operator_only(self):
+        for key in ("cross_platform_whitelabel_branding", "legacy_data_extraction_pipeline"):
+            wizard = wizard_engine.WIZARD_REGISTRY[key]
+            self.assertEqual(tuple(wizard.audience), ("operator",), key)
+
+    def test_dropped_wizards_absent_from_tenant_admin_index(self):
+        tenant_keys = {
+            w.wizard_key for w in wizard_engine.list_wizards_for_audience("tenant_admin")
+        }
+        self.assertNotIn("cross_platform_whitelabel_branding", tenant_keys)
+        self.assertNotIn("legacy_data_extraction_pipeline", tenant_keys)
+
+    def test_genuine_tenant_wizards_still_present(self):
+        tenant_keys = {
+            w.wizard_key for w in wizard_engine.list_wizards_for_audience("tenant_admin")
+        }
+        # account_migration stays tenant self-service (go-live import).
+        self.assertIn("account_migration", tenant_keys)
+        self.assertIn("custom_domain_setup", tenant_keys)
+
+
+class WizardStatusMapTests(SimpleTestCase):
+    """Pure derivation of per-wizard status from a SetupProgress namespace."""
+
+    def test_completed_at_is_done(self):
+        from apps.setup_studio.wizard_extras import wizard_status_map
+
+        ns = {"mfa_setup": {"completed_at": "2026-06-16T00:00:00Z"}}
+        self.assertEqual(wizard_status_map(ns), {"mfa_setup": "done"})
+
+    def test_current_step_or_completed_steps_is_in_progress(self):
+        from apps.setup_studio.wizard_extras import wizard_status_map
+
+        ns = {
+            "a": {"current_step_key": "step2"},
+            "b": {"completed": ["step1"]},
+        }
+        self.assertEqual(
+            wizard_status_map(ns), {"a": "in_progress", "b": "in_progress"}
+        )
+
+    def test_untouched_wizard_is_absent_from_map(self):
+        from apps.setup_studio.wizard_extras import wizard_status_map
+
+        ns = {"a": {"completed": []}}  # started nothing
+        self.assertEqual(wizard_status_map(ns), {})
+
+    def test_malformed_input_yields_empty_map(self):
+        from apps.setup_studio.wizard_extras import wizard_status_map
+
+        self.assertEqual(wizard_status_map(None), {})
+        self.assertEqual(wizard_status_map("nope"), {})
+        self.assertEqual(wizard_status_map({"x": "not-a-dict"}), {})
+
+
+class StatusMapTenantScopeTests(SimpleTestCase):
+    """SetupProgress is a SHARED-schema model — isolation rests entirely on the
+    ``.filter(school=...)`` predicate. Lock it so a refactor can't drop the scope.
+    """
+
+    def test_status_map_filters_setupprogress_by_resolved_school(self):
+        from types import SimpleNamespace
+        from unittest import mock
+
+        from apps.setup_studio import wizard_views
+
+        school = SimpleNamespace(pk=42)
+        captured: dict = {}
+
+        class _QS:
+            def filter(self, **kwargs):
+                captured.update(kwargs)
+                return self
+
+            def first(self):
+                return SimpleNamespace(
+                    step_state={"wizards": {"mfa_setup": {"completed_at": "2026-06-16T00:00:00Z"}}}
+                )
+
+        fake_model = SimpleNamespace(objects=_QS())
+        with mock.patch.object(wizard_views, "_resolve_school", return_value=school), \
+                mock.patch("apps.setup_studio.models.SetupProgress", fake_model):
+            result = wizard_views._resolve_wizard_status_map(mock.Mock())
+
+        # The query MUST be scoped to the resolved school — never unscoped.
+        self.assertEqual(captured.get("school"), school)
+        self.assertEqual(result, {"mfa_setup": "done"})
+
+    def test_status_map_returns_empty_when_no_school_resolves(self):
+        from unittest import mock
+
+        from apps.setup_studio import wizard_views
+
+        with mock.patch.object(wizard_views, "_resolve_school", return_value=None):
+            self.assertEqual(wizard_views._resolve_wizard_status_map(mock.Mock()), {})
+
+
+class DecorateStagesProgressTests(SimpleTestCase):
+    """The view-layer stage decorator computes honest per-stage + overall progress."""
+
+    def _stub(self, key):
+        from types import SimpleNamespace
+
+        return SimpleNamespace(wizard_key=key)
+
+    def test_progress_math_and_overall_rollup(self):
+        from apps.setup_studio.wizard_views import _decorate_stages
+
+        groups = [
+            {"key": "get_started", "label": "Get started", "description": "d", "step": 1,
+             "wizards": [self._stub("a"), self._stub("b")]},
+            {"key": "configure", "label": "Configure", "description": "d", "step": 2,
+             "wizards": [self._stub("c")]},
+        ]
+        status_map = {"a": "done", "b": "in_progress"}
+        stages, overall = _decorate_stages(groups, status_map)
+
+        self.assertEqual(stages[0]["progress"], {"done": 1, "total": 2, "pct": 50, "remaining": 1})
+        self.assertEqual(stages[1]["progress"], {"done": 0, "total": 1, "pct": 0, "remaining": 1})
+        # Per-card status is attached, defaulting untouched wizards to not_started.
+        self.assertEqual([c["status"] for c in stages[0]["cards"]], ["done", "in_progress"])
+        self.assertEqual(stages[1]["cards"][0]["status"], "not_started")
+        self.assertEqual(overall, {"done": 1, "total": 3, "pct": 33, "remaining": 2})
+
+    def test_empty_groups_give_zeroed_overall(self):
+        from apps.setup_studio.wizard_views import _decorate_stages
+
+        stages, overall = _decorate_stages([], {})
+        self.assertEqual(stages, [])
+        self.assertEqual(overall, {"done": 0, "total": 0, "pct": 0, "remaining": 0})
+
+
+class BespokeIndexSurfaceTests(SimpleTestCase):
+    """The redesigned index ships the bespoke lifecycle grammar + its stylesheet."""
+
+    def test_tenant_index_uses_lifecycle_stages_and_status_cards(self):
+        tpl = (_TEMPLATES / "tenant_wizard_index.html").read_text(encoding="utf-8")
+        self.assertIn("rmc-wz-stages", tpl)
+        self.assertIn("rmc-wz-hero", tpl)
+        self.assertIn('data-rmc-wz-status="{{ card.status }}"', tpl)
+        self.assertIn("rmc-wizard-engine.css", tpl)
+        # Inline progress is a plain CSS custom-property number (token-gate safe).
+        self.assertIn("--rmc-wz-pct:{{ stage.progress.pct }}", tpl)
+
+    def test_operator_index_also_adopts_the_bespoke_grammar(self):
+        tpl = (_TEMPLATES / "operator_wizard_index.html").read_text(encoding="utf-8")
+        self.assertIn("rmc-wz-stages", tpl)
+        self.assertIn("rmc-wizard-engine.css", tpl)
+
+    def test_engine_stylesheet_defines_the_namespace(self):
+        css = (
+            _REPO_ROOT / "static" / "css" / "rmc-wizard-engine.css"
+        ).read_text(encoding="utf-8")
+        for selector in (".rmc-wz-card", ".rmc-wz-stage", ".rmc-wz-hero", ".rmc-wz-ring"):
+            self.assertIn(selector, css)
+
+
 class OffcanvasDoublingGuardTests(SimpleTestCase):
     def test_mobile_offcanvas_is_hidden_on_large_screens(self):
         portal_base = (

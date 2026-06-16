@@ -7,6 +7,7 @@
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/rmc-wizard.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-wizard-index.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-wizard-engine.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -15,10 +16,20 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-wizard-shell rmc-wizard-shell--tenant">
-  <header class="rmc-wizard-pane__head">
-    <h1 class="rmc-wizard-pane__title">{% trans "Setup wizards" %}</h1>
-    <p class="rmc-wizard-pane__subtitle">{% trans "Step-by-step flows to get your school running." %}</p>
+<main class="rmc-wz-index rmc-wz-index--tenant">
+  <header class="rmc-wz-hero">
+    <div class="rmc-wz-hero__text">
+      <h1 class="rmc-wz-hero__title">{% trans "Set up your school" %}</h1>
+      <p class="rmc-wz-hero__subtitle">{% trans "A guided path from first login to a fully running school." %}</p>
+    </div>
+    {% if overall_progress.total %}
+      <div class="rmc-wz-hero__progress" role="group" aria-label="{% trans 'Overall setup progress' %}">
+        <span class="rmc-wz-ring" style="--rmc-wz-pct:{{ overall_progress.pct }}" aria-hidden="true">
+          <span class="rmc-wz-ring__label">{{ overall_progress.pct }}%</span>
+        </span>
+        <p class="rmc-wz-hero__count">{% blocktrans with done=overall_progress.done total=overall_progress.total %}{{ done }} of {{ total }} complete{% endblocktrans %}</p>
+      </div>
+    {% endif %}
   </header>
 
   {% if just_completed_wizard_key %}
@@ -60,24 +71,39 @@
     <ul id="rmc-wizard-search-results" class="rmc-wizard-search__results" role="list" hidden></ul>
   </section>
 
-  {% if wizard_groups %}
-    {% for group in wizard_groups %}
-      <section class="rmc-wizard-group" aria-label="{{ group.label }}">
-        <header class="rmc-wizard-group__head">
-          <h2 class="rmc-wizard-group__title">{{ group.label }}</h2>
-          <span class="rmc-wizard-group__count">{{ group.wizards|length }}</span>
-        </header>
-        <div class="rmc-wizard-index-grid">
-          {% for w in group.wizards %}
-            <a class="rmc-wizard-card" href="{% url 'setup_studio:tenant_wizard' wizard_key=w.wizard_key %}">
-              <h3 class="rmc-wizard-card__title">{{ w.label_token|humanize_wizard_token }}</h3>
-              {% if w.description_token %}<p class="rmc-wizard-card__desc">{{ w.description_token|humanize_wizard_token }}</p>{% endif %}
-              <p class="rmc-wizard-card__meta">{{ w.estimated_minutes }} {% trans "min" %} &middot; {{ w.steps|length }} {% trans "steps" %}</p>
-            </a>
-          {% endfor %}
-        </div>
-      </section>
-    {% endfor %}
+  {% if wizard_stages %}
+    <ol class="rmc-wz-stages">
+      {% for stage in wizard_stages %}
+        <li class="rmc-wz-stage" data-rmc-wz-stage="{{ stage.key }}" aria-label="{{ stage.label }}">
+          <header class="rmc-wz-stage__head">
+            <span class="rmc-wz-stage__num" aria-hidden="true">{{ stage.step }}</span>
+            <div class="rmc-wz-stage__heading">
+              <h2 class="rmc-wz-stage__title">{{ stage.label }}</h2>
+              {% if stage.description %}<p class="rmc-wz-stage__desc">{{ stage.description }}</p>{% endif %}
+            </div>
+            <span class="rmc-wz-stage__progress">{{ stage.progress.done }}/{{ stage.progress.total }}</span>
+          </header>
+          <div class="rmc-wz-stage__bar" role="presentation">
+            <span class="rmc-wz-stage__bar-fill" style="--rmc-wz-pct:{{ stage.progress.pct }}"></span>
+          </div>
+          <div class="rmc-wz-grid">
+            {% for card in stage.cards %}
+              <a class="rmc-wz-card" data-rmc-wz-status="{{ card.status }}" href="{% url 'setup_studio:tenant_wizard' wizard_key=card.wizard.wizard_key %}">
+                <h3 class="rmc-wz-card__title">{{ card.wizard.label_token|humanize_wizard_token }}</h3>
+                {% if card.wizard.description_token %}<p class="rmc-wz-card__desc">{{ card.wizard.description_token|humanize_wizard_token }}</p>{% endif %}
+                <p class="rmc-wz-card__meta">{{ card.wizard.estimated_minutes }} {% trans "min" %} &middot; {{ card.wizard.steps|length }} {% trans "steps" %}</p>
+                <span class="rmc-wz-card__foot">
+                  <span class="rmc-wz-card__status">
+                    {% if card.status == "done" %}&#x2713; {% trans "Done" %}{% elif card.status == "in_progress" %}{% trans "In progress" %}{% else %}{% trans "Not started" %}{% endif %}
+                  </span>
+                  <span class="rmc-wz-card__cta">{% if card.status == "done" %}{% trans "Review" %}{% elif card.status == "in_progress" %}{% trans "Resume" %}{% else %}{% trans "Start" %}{% endif %}</span>
+                </span>
+              </a>
+            {% endfor %}
+          </div>
+        </li>
+      {% endfor %}
+    </ol>
   {% elif wizards %}
     <div class="rmc-wizard-index-grid">
       {% for w in wizards %}
@@ -89,7 +115,7 @@
       {% endfor %}
     </div>
   {% else %}
-    <p class="rmc-wizard-empty">{% trans "No wizards are configured yet." %}</p>
+    <p class="rmc-wz-empty">{% trans "No wizards are configured yet." %}</p>
   {% endif %}
 </main>
 <script src="{% static 'js/_pages/rmc-wizard-search.js' %}" defer nonce="{{ csp_nonce }}"></script>

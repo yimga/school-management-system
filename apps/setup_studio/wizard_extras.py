@@ -67,6 +67,35 @@ def list_resumable_wizards(
     return [item[1] for item in out]
 
 
+def wizard_status_map(wizards_namespace: dict[str, Any] | None) -> dict[str, str]:
+    """Derive a per-wizard status map from a SetupProgress wizards namespace.
+
+    ``wizards_namespace`` is the ``step_state["wizards"]`` dict from a SetupProgress
+    row. Returns ``{wizard_key: "done" | "in_progress"}`` for wizards the tenant has
+    touched. A wizard absent from the map has not been started — callers default it
+    to ``"not_started"`` so the index never invents progress it can't prove.
+
+    Pure-Python, defensive: any malformed shape yields an empty map (the bespoke
+    index then renders every card as "Start", which is honest, not broken).
+    """
+    if not isinstance(wizards_namespace, dict) or not wizards_namespace:
+        return {}
+    out: dict[str, str] = {}
+    for wizard_key, w_state in wizards_namespace.items():
+        if not isinstance(w_state, dict):
+            continue
+        if w_state.get("completed_at"):
+            out[str(wizard_key)] = "done"
+            continue
+        completed = w_state.get("completed") or []
+        started = bool(w_state.get("current_step_key")) or bool(
+            isinstance(completed, list) and completed
+        )
+        if started:
+            out[str(wizard_key)] = "in_progress"
+    return out
+
+
 def filter_disabled_for_tenant(
     wizards: list[Any],
     *,

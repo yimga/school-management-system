@@ -1,7 +1,7 @@
 {
   "wizard_key": "cross_platform_whitelabel_branding",
   "version": 1,
-  "audience": ["operator", "tenant_admin"],
+  "audience": ["operator"],
   "label_token": "wizards.cross_platform_whitelabel_branding.label",
   "description_token": "wizards.cross_platform_whitelabel_branding.description",
   "icon_class": "rmc-icon-brush",

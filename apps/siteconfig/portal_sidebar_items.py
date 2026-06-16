@@ -1559,3 +1559,125 @@ def build_portal_sidebar_items(request, site):
         items.extend(by_section.get(sec, []))
 
     return items
+
+
+# ---------------------------------------------------------------------------
+# Resilient baseline nav (under-provisioned tenant / transient-failure safety net)
+# ---------------------------------------------------------------------------
+#
+# When the full builder above raises or yields nothing — the classic
+# under-provisioned new-tenant symptom — the context processor used to return ``[]``,
+# which made ``portal_base.html`` fall through to a HARDCODED, role-only, NON
+# permission-gated fallback nav. This baseline replaces that dead-end: a small set of
+# KNOWN-GOOD routes, role + permission gated, every URL resolved through
+# ``_safe_reverse`` so a route absent on a half-provisioned tenant is skipped rather
+# than rendered broken. It never raises (anonymous users get ``[]`` so the template's
+# last-resort fallback still applies).
+
+# (id, label, url_name, icon, section) — shown to every authenticated user.
+_BASELINE_COMMON = (
+    ("home", "Home", "accounts:redirect", "bi-speedometer2", "Home"),
+    ("profile", "My Profile", "accounts:user_profile", "bi-person", "Account"),
+    ("preferences", "Preferences", "siteconfig:user_preferences", "bi-sliders", "Account"),
+    ("notifications", "Notifications", "accounts:user_notifications", "bi-bell", "Account"),
+    ("kb", "Knowledge Base", "kb:kb_home", "bi-journal-text", "Account"),
+)
+
+# Per-role operational floor (mirrors the known-good routes the legacy hardcoded
+# fallback used, so nothing here is a guessed URL name).
+_BASELINE_BY_ROLE = {
+    User.Role.TEACHER.value: (
+        ("teacher_home", "My Classes", "portal:teacher_dashboard_alias", "bi-grid", "Workspace"),
+        ("teacher_workflow", "My Workflow", "portal:teacher_workflow", "bi-diagram-3", "Workspace"),
+        ("teacher_marks", "Gradebook / Marks", "evals:teacher_marks_list", "bi-table", "Workspace"),
+        ("teacher_attendance", "Attendance", "portal:teacher_attendance", "bi-clipboard-check", "Workspace"),
+        ("teacher_timetable", "Timetable", "portal:teacher_timetable", "bi-calendar-week", "Workspace"),
+    ),
+    User.Role.PARENT.value: (
+        ("parent_home", "Family Home", "portal:parent_dashboard", "bi-house", "Home"),
+        ("parent_workflow", "My Workflow", "portal:parent_workflow", "bi-diagram-3", "My Workflow"),
+        ("parent_finance", "Finance", "portal:parent_finance", "bi-cash-coin", "Finance"),
+        ("parent_calendar", "Calendar", "portal:unified_calendar", "bi-calendar3", "Calendar"),
+    ),
+    User.Role.STUDENT.value: (
+        ("student_home", "Student Home", "portal:student_portal_grades", "bi-house", "Home"),
+        ("student_workflow", "My Workflow", "portal:student_workflow", "bi-diagram-3", "My Workflow"),
+    ),
+}
+
+# Admin/leadership floor — (id, label, url_name, icon, section, feature_perm_or_None).
+# The Command Center + Setup wizards are ALWAYS present (no feature gate) so a brand-new
+# admin can finish provisioning even when the full builder can't run.
+_BASELINE_ADMIN = (
+    ("backend_dashboard", "School Command Center", "accounts:backend_dashboard", "bi-gear-fill", "Admin Panel", None),
+    ("setup_wizards", "Setup wizards", "setup_studio:tenant_wizard_index", "bi-magic", "Admin Panel", None),
+    ("people", "Student Profiles", "accounts:backend_student_list", "bi-person-lines-fill", "People & Access", None),
+    ("rbac", "RBAC & Access Control", "accounts:rbac", "bi-diagram-3", "People & Access", None),
+    ("finance", "Money Center", "finance:dashboard", "bi-currency-exchange", "Financial Management", "settings.manage"),
+    ("config", "School Configuration", "school_configuration_center_canonical", "bi-sliders", "Configuration", "settings.manage"),
+)
+
+# ADMIN is canonical (User.Role); LEADERSHIP/IT_ADMIN/PRINCIPAL/BURSAR are extended
+# tenant roles not present in User.Role TextChoices (see role_registry).
+_BASELINE_ADMIN_ROLES = frozenset(
+    {User.Role.ADMIN.value, "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "BURSAR"}  # role-string-allow: sidebar-baseline-admin-floor-extended-roles
+)
+
+
+def _safe_has_feature_permission(user, codename):
+    """Best-effort feature-permission check that never raises (fail-closed)."""
+    try:
+        if getattr(user, "is_superuser", False):
+            return True
+        checker = getattr(user, "has_feature_permission", None)
+        if callable(checker):
+            return bool(checker(codename))
+    except OPTIONAL_SIDEBAR_ERRORS:
+        return False
+    return False
+
+
+def _baseline_item(item_id, label, url_name, icon, section):
+    url = _safe_reverse(url_name)
+    if not url:
+        return None
+    return {
+        "id": item_id,
+        "label": label,
+        "url": url,
+        "icon": icon,
+        "section": section,
+        "surface": _portal_item_surface(section),
+    }
+
+
+def build_portal_sidebar_baseline(request, site=None):
+    """Resilient minimal sidebar for authenticated users.
+
+    Served when ``build_portal_sidebar_items`` raises or returns nothing. Returns
+    a role + permission gated list of known-good nav items; NEVER raises. Returns
+    ``[]`` only for anonymous users (so the template's last-resort fallback applies).
+    """
+    user = getattr(request, "user", None)
+    if user is None or not getattr(user, "is_authenticated", False):
+        return []
+    role = (getattr(user, "role", "") or "").upper()
+    staff_like = bool(getattr(user, "is_staff", False)) or bool(getattr(user, "is_superuser", False))
+
+    items = []
+    for spec in _BASELINE_COMMON:
+        it = _baseline_item(*spec)
+        if it:
+            items.append(it)
+    for spec in _BASELINE_BY_ROLE.get(role, ()):  # role-specific operational floor
+        it = _baseline_item(*spec)
+        if it:
+            items.append(it)
+    if staff_like or role in _BASELINE_ADMIN_ROLES:
+        for item_id, label, url_name, icon, section, perm in _BASELINE_ADMIN:
+            if perm and not _safe_has_feature_permission(user, perm):
+                continue
+            it = _baseline_item(item_id, label, url_name, icon, section)
+            if it:
+                items.append(it)
+    return items

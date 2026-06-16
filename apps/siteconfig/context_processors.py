@@ -21,7 +21,7 @@ from apps.siteconfig.config_service import (
     get_effective_site_settings,
 )
 from .preview_state import ACT_AS_ROLE_SESSION_KEY
-from .portal_sidebar_items import build_portal_sidebar_items
+from .portal_sidebar_items import build_portal_sidebar_baseline, build_portal_sidebar_items
 from apps.policies.policy_registry import get_effective_policy
 
 OPTIONAL_CONTEXT_ERRORS = (
@@ -63,9 +63,17 @@ def _safe_site_attr(site, name: str, default=None):
 
 
 def _get_portal_sidebar_items(request, site):
-    """Return portal sidebar items (optionally sorted by portal_sidebar_order)."""
+    """Return portal sidebar items (optionally sorted by portal_sidebar_order).
+
+    When the full builder raises OR yields nothing — the classic under-provisioned
+    new-tenant symptom — fall back to a resilient, role + permission gated BASELINE
+    (real, known-good nav) instead of ``[]``. Returning ``[]`` made the template drop
+    to a hardcoded, ungated fallback nav; the baseline keeps the permission-gated
+    config-driven branch alive for authenticated users.
+    """
+    items = None
     try:
-        return build_portal_sidebar_items(request, site)
+        items = build_portal_sidebar_items(request, site)
     except OPTIONAL_CONTEXT_ERRORS as e:
         from apps.platform_runtime.structured_logging import (
             log_exception_with_context,
@@ -82,6 +90,11 @@ def _get_portal_sidebar_items(request, site):
             exc_info=False,
             extra={"error": str(e)[:200]},
         )
+    if items:
+        return items
+    try:
+        return build_portal_sidebar_baseline(request, site)
+    except OPTIONAL_CONTEXT_ERRORS:
         return []
 
 

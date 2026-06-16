@@ -2,8 +2,7 @@
   "wizard_key": "legacy_data_extraction_pipeline",
   "version": 1,
   "audience": [
-    "operator",
-    "tenant_admin"
+    "operator"
   ],
   "label_token": "wizards.legacy_data_extraction_pipeline.label",
   "description_token": "wizards.legacy_data_extraction_pipeline.description",
