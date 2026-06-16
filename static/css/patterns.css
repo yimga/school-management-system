@@ -284,6 +284,13 @@
   top: 0;
   z-index: 50;
 }
+/* In-page anchor jumps must clear the sticky .topbar instead of landing behind
+   it. scroll-padding-top is inert on a non-scrolling element, so this is safe
+   wherever the v2 shell's actual scroller turns out to be (document / body). */
+html[data-rmc-aesthetic="v2"],
+[data-rmc-aesthetic="v2"] body {
+  scroll-padding-top: 60px;
+}
 [data-rmc-aesthetic="v2"] .topbar .breadcrumb {
   margin: 0;
   padding: 0;
@@ -1287,6 +1294,12 @@
 
 [data-rmc-aesthetic="v2"] .cp-modal {
   width: min(640px, calc(100vw - 32px));
+  /* Bound the modal to the viewport (overlay pads 12vh from top) and lay it out
+     as a column so the results list — not the modal — absorbs overflow on short
+     / landscape screens; the input stays visible and results scroll within. */
+  max-height: calc(100dvh - 16vh);
+  display: flex;
+  flex-direction: column;
   background: var(--color-base-0, var(--color-base-0)); /* theme-locked-allow: manual-review */
   border-radius: 18px;
   box-shadow: var(--apple-elev-modal);
@@ -1311,6 +1324,8 @@
 }
 [data-rmc-aesthetic="v2"] .cp-results {
   max-height: 56vh;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   padding: 6px;
 }

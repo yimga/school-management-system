@@ -2,6 +2,15 @@
  * Tenant admin nav bridge — from templates/components/admin_nav_bridge.html (Phase 2).
  */
 
+/* In-page anchor jumps must clear the sticky .admin-nav-bridge instead of
+   landing behind it. Scoped to surfaces that are NOT the app-shell control-plane
+   canvas (which already reserves header space via its own scroll-padding-top) so
+   we never double-offset; scroll-padding-top is inert if the matched element
+   isn't the actual scroller, so this is safe. */
+body:not(.control-plane-shell):has(.admin-nav-bridge) {
+  scroll-padding-top: 3.75rem;
+}
+
 .admin-nav-bridge {
   position: sticky;
   top: 0;

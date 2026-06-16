@@ -86,6 +86,11 @@ body.control-plane-shell .rmc-portal-row-detail-drawer {
 
 .rmc-row-detail-drawer__body {
   padding: var(--space-4, 1rem) var(--space-5, 1.25rem) var(--space-5, 1.25rem);
+  /* Absorb the remaining height in the full-height .offcanvas column so a long
+     body scrolls here and the actions row below stays pinned + reachable even on
+     short / landscape viewports (was: body grew and pushed actions off-screen). */
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
