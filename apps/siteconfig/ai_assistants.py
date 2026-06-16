@@ -72,7 +72,7 @@ _ASSISTANTS: tuple[dict[str, Any], ...] = (
         "provider_policy": "ollama_first_rules_fallback",
         "prompt_key": "general_chat",
         "api_url_name": "api:ai-setup-assistant",
-        "entry_url_names": ("siteconfig:onboarding", "school_studio"),
+        "entry_url_names": ("siteconfig:onboarding", "studio_os:launch"),
     },
     {
         "assistant_key": "support_assistant",
