@@ -62,7 +62,12 @@ blank or can crash. This is the **same "built-but-not-wired" pattern** as the da
    (off unless an operator enables them); the decision-engine surface is a hardcoded
    "On track / Setup needed" stub. A new student sees hero + empty strip. **Fix:** sensible default-on
    cockpit set per provisioning + wire the decision surface to real classwork.
-7. **[VERIFIED] Admin dashboard zero-states read as "all good," not "set me up."**
+7. **[◐ PARTIALLY IMPLEMENTED 2026-06-15] Admin dashboard zero-states read as "all good," not "set me up."**
+   Done (`apps/dashboard/context.py`, commit `949fedf0d`): recent-activity busywork placeholder →
+   honest "No activity yet"; priority queue → "Finish setting up your school" nudge (→
+   `siteconfig:guided_onboarding`) when no staff/students/classrooms (opt-in `setup_incomplete`,
+   back-compat default; SimpleTestCase added). _Still pending:_ overview all-zeros empty-state copy +
+   defaulting a fresh school into the **Setup** intent. _Original finding:_
    Snapshot cards show all-zeros, Operations Watch says "System stable / queues clear," Recent
    Activity shows a placeholder "Role home is ready," and the **Setup** intent is not the default for
    a zero-data school. **Fix:** zero-data-aware empty states + default new schools into Setup intent +
