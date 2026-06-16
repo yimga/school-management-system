@@ -171,6 +171,8 @@ def _primary_nav_is_current(request_path: str, item_id: str) -> bool:
         return p.startswith("/super/migration")
     if item_id == "primary_support":
         return p.startswith("/super/support")
+    if item_id == "primary_remote_support":
+        return p.startswith("/super/remote-support/")
     if item_id == "primary_control":
         if "/studio/control/" in p:
             return True
@@ -267,6 +269,12 @@ def build_primary_control_plane_nav(request):
             "label": "Support",
             "url_name": "super:support_dashboard",
             "icon": "bi-headset",
+        },
+        {
+            "id": "primary_remote_support",
+            "label": "Remote support",
+            "url_name": "super:remote_support_console",
+            "icon": "bi-broadcast-pin",
         },
         {
             "id": "primary_control",

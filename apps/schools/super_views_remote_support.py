@@ -11,7 +11,8 @@ RemoteSupportSession is a SHARED (public-schema) model so it reads cleanly here.
 from __future__ import annotations
 
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
 from apps.platform_runtime import remote_support_service as svc
@@ -24,6 +25,37 @@ def _client_ip(request):
     if xff:
         return xff.split(",")[0].strip()
     return request.META.get("REMOTE_ADDR")
+
+
+@require_GET
+def super_remote_support_console(request):
+    """Server-rendered operator console for open remote-support sessions.
+
+    Control-plane page (extends control_plane_base.html). It carries no heavy
+    query — the table hydrates from ``super:remote_support_sessions`` (sessions.json)
+    via ``static/js/rmc-super-remote-support.js`` on a herd-safe poll loop. The
+    accept / end POSTs the JS issues are still gated per-tenant by
+    ``operator_can_remote_support`` inside the accept/end views, so this page
+    never bypasses tenant isolation. Control-plane access is enforced by
+    ``require_super_access_with_host`` in super_urls.py.
+    """
+    return render(
+        request,
+        "schools/super_remote_support_console.html",
+        {
+            "sessions_url": reverse("super:remote_support_sessions"),
+            # Placeholder UUID is swapped client-side per row, mirroring how
+            # _remote_support_banner.html templatizes per-session action URLs.
+            "accept_url_template": reverse(
+                "super:remote_support_accept",
+                args=["00000000-0000-0000-0000-000000000000"],
+            ),
+            "end_url_template": reverse(
+                "super:remote_support_end",
+                args=["00000000-0000-0000-0000-000000000000"],
+            ),
+        },
+    )
 
 
 @require_GET

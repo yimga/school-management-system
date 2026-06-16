@@ -1,0 +1,70 @@
+{% extends "control_plane_base.html" %}
+{% load i18n static %}
+
+{% block cp_title %}{% trans "Remote support" %}{% endblock %}
+
+{% block cp_content %}
+{% include "components/next_action_strip.html" %}
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="decision-console" data-rmc-copilot-page-lens="operator-remote-support-console" data-page-critical-read="1">
+  <h1 class="h5">{% trans "Remote support" %}</h1>
+  <p class="small text-secondary mb-3">
+    {% trans "Open remote-support sessions across every tenant. Accept a session to begin assisting; end it when the work is done." %}
+    {% trans "You can only act on sessions for tenants you are authorized to support." %}
+  </p>
+
+  <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-remote-support-refresh>
+      <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+      {% trans "Refresh now" %}
+    </button>
+    <span class="small text-muted" data-rmc-remote-support-status role="status" aria-live="polite">{% trans "Loading sessions…" %}</span>
+  </div>
+
+  <div class="table-responsive" data-rmc-remote-support-table-wrap>
+    <table class="table table-sm rmc-data-table" aria-describedby="super-remote-support-hint">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "School" %}</th>
+          <th scope="col">{% trans "Status" %}</th>
+          <th scope="col">{% trans "Channel" %}</th>
+          <th scope="col">{% trans "Reason" %}</th>
+          <th scope="col">{% trans "Consent" %}</th>
+          <th scope="col"><span class="visually-hidden">{% trans "Actions" %}</span></th>
+        </tr>
+      </thead>
+      <tbody data-rmc-remote-support-rows>
+        <tr data-rmc-remote-support-empty-row>
+          <td colspan="6" class="text-secondary">{% trans "No open remote-support sessions." %}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p id="super-remote-support-hint" class="small text-muted mb-0">
+    {% trans "This list refreshes automatically while the tab is visible." %}
+  </p>
+</div>
+
+<script type="application/json" id="rmc-super-remote-support-config" nonce="{{ csp_nonce }}">{
+  "sessions_url": "{{ sessions_url|escapejs }}",
+  "accept_url_template": "{{ accept_url_template|escapejs }}",
+  "end_url_template": "{{ end_url_template|escapejs }}",
+  "placeholder": "00000000-0000-0000-0000-000000000000",
+  "labels": {
+    "accept": "{% trans 'Accept' %}",
+    "end": "{% trans 'End' %}",
+    "needs_consent": "{% trans 'Awaiting consent' %}",
+    "consent_ok": "{% trans 'Ready' %}",
+    "empty": "{% trans 'No open remote-support sessions.' %}",
+    "error": "{% trans 'Could not load sessions — will retry.' %}",
+    "loaded": "{% trans 'Updated just now.' %}",
+    "end_prompt": "{% trans 'Optional summary for this support session:' %}",
+    "accepting": "{% trans 'Accepting session…' %}",
+    "ending": "{% trans 'Ending session…' %}",
+    "school": "{% trans 'School' %}"
+  }
+}</script>
+<script src="{% static 'js/rmc-super-remote-support.js' %}" defer></script>
+{% endblock %}

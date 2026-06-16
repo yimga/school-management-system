@@ -63,6 +63,7 @@ from .super_views_migration import (
 from .super_views_provisioning import api_create_school
 from .super_views_remote_support import (
     super_remote_support_accept,
+    super_remote_support_console,
     super_remote_support_end,
     super_remote_support_sessions,
 )
@@ -356,6 +357,15 @@ urlpatterns = [
     ),
     # Operator remote-support actions (same-host on /super/; closes the
     # cross-host gap). Per-tenant scope enforced in-view by operator_can_remote_support.
+    # Console PAGE (table hydrates from sessions.json via JS). Mounted before the
+    # other remote-support routes; the exact "remote-support/" path is distinct
+    # from "remote-support/sessions.json" and "remote-support/<uuid>/...", so all
+    # resolve independently.
+    path(
+        "remote-support/",
+        require_super_access_with_host(super_remote_support_console),
+        name="remote_support_console",
+    ),
     path(
         "remote-support/sessions.json",
         require_super_access_with_host(super_remote_support_sessions),
