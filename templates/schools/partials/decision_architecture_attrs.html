@@ -10,4 +10,10 @@ GAP.15: Seven answers in-code. Include in key pages; outputs data-decision-* att
  data-wrong-path="{{ decision_architecture.what_happens_if_they_are_wrong|default:'' }}"
  data-fallback-path="{{ decision_architecture.what_is_the_fallback_path|default:'' }}"
 {% endif %}
-<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+{% comment %} NOTE: this partial is ATTRIBUTE-ONLY — it is included INSIDE the opening
+   tag of a <div ...> on 6 /super/ pages (e.g. super_dashboard.html:94), so it must
+   emit ONLY `data-*` attributes, never an element. A block-level
+   `rmc-empty-state-sentinel` <div> previously lived here (added by a bulk
+   sentinel sweep); rendered inside an opening tag it broke the parser, closing
+   .rmc-app-shell early and ejecting the copilot rail + footer to <body>. Do NOT
+   add elements here — the host page carries its own page-critical-read sentinel. {% endcomment %}
