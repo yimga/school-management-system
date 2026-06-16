@@ -26,9 +26,14 @@ class GuidedAssistantAPITests(TestCase):
         self.admin = User.objects.create_user(username="ga_admin", password="x")
         self.admin.role = User.Role.ADMIN
         self.admin.save(update_fields=["role"])
+        # Platform operator: observability is an operator tool, so the user must
+        # be a genuine control-plane operator (superuser) — bare is_staff is
+        # intentionally NOT sufficient to cross onto a tenant host
+        # (TenantHostMembershipMiddleware), so it would be redirected (302).
         self.staff = User.objects.create_user(username="ga_staff", password="x")
         self.staff.is_staff = True
-        self.staff.save(update_fields=["is_staff"])
+        self.staff.is_superuser = True
+        self.staff.save(update_fields=["is_staff", "is_superuser"])
 
     def _client(self, user):
         c = Client(HTTP_HOST="ai-test.example.com")
