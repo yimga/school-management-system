@@ -48,6 +48,14 @@ blank or can crash. This is the **same "built-but-not-wired" pattern** as the da
 
 ## P1 — First-run experience is blank for every role (highest "tenants need work" signal)
 
+> **MODERATION OUTCOME (2026-06-15, verified by direct read):** the audit OVERSTATED this whole
+> section. On inspection the empty states already exist and are good: admin overview empty-state
+> (`backend_dashboard.html:428`), admin Setup-intent default (`accounts/views.py:2486`
+> `ADMIN:"setup"`), teacher "No classes assigned yet" (`teacher/dashboard.html:307`), parent "Get
+> Started" card + CTAs + contact fallback (`parent/dashboard.html:159-200`). Only genuine net-new
+> work was the admin honest-copy touches in `949fedf0d`. Student cockpit-off (#6) is a product
+> decision (opt-in by design), not a bug. **Do NOT manufacture edits to these — they are handled.**
+
 4. **[VERIFIED] Teacher portal goes blank with no active year/term.**
    `apps/evals/views.py` teacher_dashboard renders empty `display_widgets`/`teacher_alerts` + one
    warning card when `get_active_year_and_term()` is empty. A fresh teacher with no classes sees a
