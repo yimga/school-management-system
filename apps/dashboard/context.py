@@ -240,7 +240,7 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
 
 
 def _build_priority_queue(
-    items: list[Dict[str, Any]], *, max_items: int = 4
+    items: list[Dict[str, Any]], *, max_items: int = 4, setup_incomplete: bool = False
 ) -> list[Dict[str, Any]]:
     priority = {"danger": 0, "warn": 1, "ok": 2}
     ranked = sorted(
@@ -252,6 +252,19 @@ def _build_priority_queue(
     )
     if ranked:
         return ranked[:max_items]
+    if setup_incomplete:
+        # Brand-new school with no staff/students/classes: "queues are clear" reads as
+        # "all good" when really nothing is set up yet. Guide toward setup instead.
+        return [
+            {
+                "label": "Finish setting up your school",
+                "value": 0,
+                "status": "warn",
+                "url": __safe_reverse("siteconfig:guided_onboarding"),
+                "icon": "bi-rocket-takeoff",
+                "meta": "Add staff, students, and fees to bring your dashboard to life.",
+            }
+        ]
     return [
         {
             "label": "No urgent blockers",
@@ -942,16 +955,29 @@ def build_dashboard_extras(
         kpi_strip_cards = _ordered[:3]
     else:
         kpi_strip_cards = select_kpis_for_intent(kpi_strip_cards, intent)
-    dashboard_priority_queue = _build_priority_queue(operations_watch, max_items=4)
+    # Zero-data (brand-new school) → priority queue shows a "finish setup" nudge instead
+    # of "queues are clear". locals().get(...) guards against the snapshot try-blocks above
+    # leaving these unbound.
+    _has_core_data = bool(
+        locals().get("students")
+        or locals().get("teachers")
+        or locals().get("classrooms")
+    )
+    dashboard_priority_queue = _build_priority_queue(
+        operations_watch, max_items=4, setup_incomplete=not _has_core_data
+    )
     dashboard_recent_activity = _build_recent_activity_block(
         base.get("recent_activities"), max_items=4
     )
     if not dashboard_recent_activity:
+        # Honest zero-data empty state instead of busywork ("Role home is ready").
+        # A brand-new school has no real activity yet; guide toward setup rather
+        # than implying something already happened.
         dashboard_recent_activity = [
             {
-                "title": "Role home is ready",
+                "title": "No activity yet",
                 "actor": "System",
-                "action": "prepared your command center",
+                "action": "actions will appear here as you add staff, students, and fees",
                 "time_ago": "just now",
             }
         ]
