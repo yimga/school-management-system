@@ -240,7 +240,10 @@
       <div class="lx-copilot__pane lx-copilot__pane--shortcuts" data-rmc-copilot-pane="shortcuts">
         <div class="lx-copilot__pane-head">
           <span class="lx-copilot__pane-title">{% trans 'Pinned' %}</span>
-          <button type="button" class="lx-copilot__pane-edit" data-rmc-copilot-shortcuts-edit aria-label="{% trans 'Edit pins' %}">{% trans 'Edit' %}</button>
+          {% comment %} Pin-editing UI is not built yet; keep the control hidden
+             rather than showing a button with no handler. Unhide once
+             data-rmc-copilot-shortcuts-edit is wired in rmc-copilot-rail.js. {% endcomment %}
+          <button type="button" class="lx-copilot__pane-edit" data-rmc-copilot-shortcuts-edit aria-label="{% trans 'Edit pins' %}" hidden>{% trans 'Edit' %}</button>
         </div>
         <ul class="lx-copilot__shortcuts" data-rmc-copilot-rail-shortcuts-list>
           {% if request.user.is_authenticated %}

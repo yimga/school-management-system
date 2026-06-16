@@ -15,9 +15,12 @@
   "use strict";
 
   function openCommandPalette() {
+    // NOTE: [data-rmc-cmdk-open] is deliberately NOT a trigger here — those are
+    // prefix-seeding quick-action chips handled in rmc-command-palette.js;
+    // clicking one as a generic trigger would seed the palette unexpectedly.
     var trigger = document.querySelector(
       "[data-rmc-cmdk-trigger], #studio-command-palette-btn, " +
-        "[data-rmc-command-palette-trigger], [data-rmc-cmdk-open]"
+        "[data-rmc-command-palette-trigger]"
     );
     if (trigger && typeof trigger.click === "function") {
       trigger.click();

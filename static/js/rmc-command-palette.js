@@ -374,6 +374,28 @@
       }, 80);
     });
 
+    /* Quick-action chips (e.g. the copilot rail's New / Search / Go to / Help)
+       carry [data-rmc-cmdk-open] + an optional [data-rmc-cmdk-prefix] mode token
+       like ":new ". They previously had NO handler and no-op'd on click. Open the
+       palette and seed it with a plain search term — strip the ":" mode syntax,
+       which the palette doesn't parse (the literal token matches nothing). */
+    document.addEventListener("click", function (e) {
+      var chip = e.target && e.target.closest
+        ? e.target.closest("[data-rmc-cmdk-open]")
+        : null;
+      if (!chip) { return; }
+      e.preventDefault();
+      open();
+      var seed = (chip.getAttribute("data-rmc-cmdk-prefix") || "")
+        .trim().replace(/^:/, "").trim();
+      if (!seed) { return; }
+      var seedInput = document.getElementById(INPUT_ID);
+      if (seedInput) {
+        seedInput.value = seed;
+        try { seedInput.dispatchEvent(new Event("input", { bubbles: true })); } catch (_) {}
+      }
+    }, false);
+
     window.RMCCommandPalette = { open: open, close: close };
   }
 
