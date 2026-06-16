@@ -4978,6 +4978,9 @@
 .rmc-cockpit-pulse__refreshed {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Tenant operational-health strip */

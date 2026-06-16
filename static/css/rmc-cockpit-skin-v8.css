@@ -373,6 +373,9 @@ html[data-cockpit-skin] body.admin-manager-shell.change-list #result_list td {
   color: var(--rmc-cockpit-chrome-text, var(--text-secondary));
   text-decoration: none;
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .cp-primary-nav__more-item:hover {
   background: var(--rmc-cockpit-chrome-glass-strong, rgba(255, 255, 255, 0.09));
@@ -633,6 +636,9 @@ html[data-cockpit-skin] body.control-plane-shell .rmc-admin-catalog-section > su
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .cp-nav-status-chip:hover,
 .cp-nav-flank-action:hover {
@@ -660,6 +666,9 @@ html[data-cockpit-skin] body.control-plane-shell .rmc-admin-catalog-section > su
   gap: 5px;
   text-decoration: none;
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--rmc-cockpit-chrome-text, rgba(255, 255, 255, 0.85));
 }
 .cp-nav-flank-stat__value {
