@@ -70,15 +70,9 @@ services:
         value: "400"
       - key: GUNICORN_MAX_REQUESTS_JITTER
         value: "80"
-      # Preload OFF: workers import the app independently rather than forking from
-      # one preloaded master. Costs some RAM (no copy-on-write sharing) but we run
-      # at ~25-30% of the 2GB limit so there is ample headroom, and it lets each
-      # worker begin serving /health/ as soon as IT is ready instead of waiting on
-      # a single shared master import — reduces deploy-time health-check churn
-      # ("Instance failed: health check timed out after 5s"). Flip back to "1" if
-      # memory pressure returns (watch the Render Memory graph after deploy).
+      # Fork workers from a preloaded master (copy-on-write) -> less RAM/worker.
       - key: GUNICORN_PRELOAD
-        value: "0"
+        value: "1"
       # Give in-flight requests time to finish when a worker recycles/restarts.
       - key: GUNICORN_GRACEFUL_TIMEOUT
         value: "30"
