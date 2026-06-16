@@ -134,7 +134,11 @@
 
 .sidebar-collapsible-content {
   max-height: 500px;
-  overflow: hidden;
+  /* Scroll (not clip) when an expanded section is taller than the cap, so its
+     bottom nav items stay reachable. No scrollbar appears for the common case
+     (content <= 500px) — behaves identically to before for short sections. */
+  overflow-y: auto;
+  overflow-x: hidden;
   transition: max-height 0.24s ease, opacity 0.2s ease;
   opacity: 1;
 }
@@ -144,6 +148,7 @@
   opacity: 0;
   margin: 0;
   padding: 0;
+  overflow: hidden; /* no scrollbar while collapsed at max-height:0 */
 }
 
 .portal-sidebar-footer {
