@@ -27,3 +27,18 @@ def list_contains(value: Any, item: Any) -> bool:
     if not isinstance(value, (list, tuple, set)):
         return False
     return item in value
+
+
+@register.filter(name="humanize_wizard_token")
+def humanize_wizard_token_filter(value: Any) -> str:
+    """``{{ token|humanize_wizard_token }}`` — readable label for a wizard token.
+
+    Resolves synthesized ``wizards.*`` slugs (and gettext catalog entries) to
+    human text; passes resolver-supplied human labels through unchanged. Used
+    wherever a raw ``label_token`` is rendered straight off a wizard/step/option
+    object (stepper, index cards, choice lists) — the view layer already
+    humanizes ``step_label`` / ``wizard_label`` in ``_build_context``.
+    """
+    from apps.setup_studio.wizard_labels import humanize_wizard_token
+
+    return humanize_wizard_token(value)

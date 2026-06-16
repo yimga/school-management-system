@@ -45,6 +45,42 @@ def _can_impersonate(request):
     return user_has_platform_scope(request.user, PLATFORM_SCOPE_IMPERSONATE)
 
 
+def operator_can_impersonate_school(user, school) -> bool:
+    """Per-tenant gate: which operators may switch into which tenant.
+
+    ``_can_impersonate`` answers "may this operator impersonate at all"; this
+    answers "into THIS tenant". True when ANY of:
+      - the actor is a superuser (platform root of trust — never self-lock);
+      - an active ``OperatorTenantAssignment`` for (user, school) exists;
+      - an active JIT grant for this operator exists in ``school.settings``
+        (the existing just-in-time engine — integrated, not duplicated).
+    Otherwise False -> the caller returns 403.
+    """
+    if getattr(user, "is_superuser", False):
+        return True
+    try:
+        from apps.platform_runtime.models import OperatorTenantAssignment
+
+        if OperatorTenantAssignment.has_active(user, school):
+            return True
+    except (ImportError, OSError, RuntimeError, TypeError, ValueError):
+        pass
+    try:
+        from apps.platform_runtime.jit_operator_controller import (
+            check_jit_authorization,
+        )
+
+        grant = check_jit_authorization(
+            operator_user_id=getattr(user, "id", None),
+            school_settings=getattr(school, "settings", None),
+        )
+        if grant.granted:
+            return True
+    except (ImportError, OSError, RuntimeError, TypeError, ValueError):
+        pass
+    return False
+
+
 @require_POST
 def switch_to_tenant(request):
     """
@@ -58,6 +94,26 @@ def switch_to_tenant(request):
     if not school_id:
         return HttpResponseBadRequest("school_id required.")
     school = get_object_or_404(School, id=school_id, is_active=True)
+
+    # Per-tenant assignment gate: holding platform.impersonate is not enough —
+    # the operator must be assigned to THIS tenant (or hold an active JIT grant).
+    if not operator_can_impersonate_school(request.user, school):
+        try:
+            log_control_plane_action(
+                request,
+                AuditLog.Action.ACCESS_DENIED,
+                "School",
+                str(school.id),
+                object_repr=school.name or str(school.id),
+                reason="Impersonation denied: operator not assigned to this tenant",
+                sensitivity=AuditLog.Sensitivity.HIGH,
+            )
+        except CONTROL_PLANE_AUDIT_FAILURES:
+            pass
+        return HttpResponseForbidden(
+            "You are not assigned to this tenant. Request a tenant assignment "
+            "or a just-in-time grant before impersonating."
+        )
 
     _User = get_user_model()
     peer_user = None

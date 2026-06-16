@@ -22,6 +22,12 @@ PLATFORM_SCOPE_MIGRATION = "platform.migration.manage"
 PLATFORM_SCOPE_FLEET = "platform.fleet.manage"
 PLATFORM_SCOPE_SECURITY_READ = "platform.security.read"
 PLATFORM_SCOPE_SECURITY_WRITE = "platform.security.write"
+# Remote support of a tenant (request/accept a support session, send the tenant
+# messages, attach diagnostics, queue operator intents) WITHOUT necessarily
+# impersonating. Acting-as the tenant remains the separate platform.impersonate
+# escalation. Which tenants a holder may support is still scoped by
+# OperatorTenantAssignment.
+PLATFORM_SCOPE_TENANT_SUPPORT = "platform.tenant_support.remote"
 
 ALL_PLATFORM_SCOPES: frozenset[str] = frozenset(
     {
@@ -39,6 +45,7 @@ ALL_PLATFORM_SCOPES: frozenset[str] = frozenset(
         PLATFORM_SCOPE_FLEET,
         PLATFORM_SCOPE_SECURITY_READ,
         PLATFORM_SCOPE_SECURITY_WRITE,
+        PLATFORM_SCOPE_TENANT_SUPPORT,
     }
 )
 
@@ -58,6 +65,19 @@ TIER_SCOPES: dict[str, frozenset[str]] = {
             PLATFORM_SCOPE_AUDIT_EXPORT,
             PLATFORM_SCOPE_TENANT_READ,
             PLATFORM_SCOPE_SECURITY_READ,
+            PLATFORM_SCOPE_TENANT_SUPPORT,
+        }
+    ),
+    # Remote support WITHOUT act-as: can run support sessions / diagnostics /
+    # operator intents, but cannot impersonate (least privilege). Escalate to
+    # "support" when acting-as the tenant is genuinely required.
+    "tenant_support": frozenset(
+        {
+            PLATFORM_SCOPE_TEAM_READ,
+            PLATFORM_SCOPE_AUDIT_EXPORT,
+            PLATFORM_SCOPE_TENANT_READ,
+            PLATFORM_SCOPE_SECURITY_READ,
+            PLATFORM_SCOPE_TENANT_SUPPORT,
         }
     ),
     "fleet": frozenset(
@@ -70,6 +90,7 @@ TIER_SCOPES: dict[str, frozenset[str]] = {
             PLATFORM_SCOPE_MIGRATION,
             PLATFORM_SCOPE_FLEET,
             PLATFORM_SCOPE_SECURITY_READ,
+            PLATFORM_SCOPE_TENANT_SUPPORT,
         }
     ),
     "billing": frozenset(
@@ -92,6 +113,7 @@ TIER_SCOPES: dict[str, frozenset[str]] = {
             PLATFORM_SCOPE_FLEET,
             PLATFORM_SCOPE_SECURITY_READ,
             PLATFORM_SCOPE_SECURITY_WRITE,
+            PLATFORM_SCOPE_TENANT_SUPPORT,
         }
     ),
     "principal": frozenset(
@@ -109,6 +131,7 @@ TIER_SCOPES: dict[str, frozenset[str]] = {
             PLATFORM_SCOPE_FLEET,
             PLATFORM_SCOPE_SECURITY_READ,
             PLATFORM_SCOPE_SECURITY_WRITE,
+            PLATFORM_SCOPE_TENANT_SUPPORT,
         }
     ),
     "break_glass": frozenset(ALL_PLATFORM_SCOPES),

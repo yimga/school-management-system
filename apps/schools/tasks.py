@@ -1086,6 +1086,13 @@ def _do_provision_tracked(
     # Tenant-scoped creation: schema mode uses tenant_context(client); RLS mode pins
     # app.current_school_id to the new school so FORCE'd WITH CHECK clauses pass.
     with _optional_tenant_context(tenant_client), rls_school(school.id):
+        # Track critical seed-step failures. Sub-steps deliberately never abort the
+        # whole provision (the school is already active from Phase A), but if a
+        # CRITICAL step fails we must NOT mark phase_b_complete — otherwise a
+        # half-seeded tenant (no terms / subjects / classrooms / ComplianceProfile)
+        # goes live and is never re-seeded. Leaving the flag unset routes it into
+        # the existing resume path (provisioning_needs_resume → reconcile/requeue).
+        phase_b_failed_steps: list[str] = []
         # Phase B: Tenant Provisioning Engine — create TenantSystem rows from wizard selection (multi-system)
         # Use policy for provisioning config (no direct school.settings read per blueprint)
         provisioning = _policy.get("provisioning") or {}
@@ -1201,6 +1208,7 @@ def _do_provision_tracked(
             # One seed sub-step must never abort the whole provision: the school
             # is already active (Phase A) and missing terms are recoverable.
             logger.exception("Term seeding failed for school %s", school_id)
+            phase_b_failed_steps.append("terms")
         logger.info(
             "Seeded academic year and %s terms for school %s", term_count, school_id
         )
@@ -1267,6 +1275,7 @@ def _do_provision_tracked(
             logger.exception(
                 "Academic structure provisioning failed for school %s", school_id
             )
+            phase_b_failed_steps.append("academic_structure")
 
         # Optional: seed default subjects. Subject name is unique per school (school_id, name).
         subject_created = 0
@@ -1307,6 +1316,7 @@ def _do_provision_tracked(
                 logger.info("Seeded default subjects for school %s", school_id)
         except (DatabaseError, IntegrityError, ValueError, TypeError):
             logger.exception("Subject seeding failed for school %s", school_id)
+            phase_b_failed_steps.append("subjects")
         _record_school_event(
             school,
             event_type="SUBJECTS_READY",
@@ -1372,6 +1382,7 @@ def _do_provision_tracked(
                 )
         except (DatabaseError, IntegrityError, ValueError, TypeError):
             logger.exception("Classroom seeding failed for school %s", school_id)
+            phase_b_failed_steps.append("classrooms")
 
         # Assign default dashboard packs per role (Dashboard Packs revival). Idempotent
         # via (school, role) unique_together; never overwrites an operator's choice. A
@@ -1416,6 +1427,7 @@ def _do_provision_tracked(
             logger.exception(
                 "Tenant ComplianceProfile seed failed for school %s", school_id
             )
+            phase_b_failed_steps.append("compliance_profile")
 
         try:
             from apps.schools.provisioning_blueprint import (
@@ -1477,41 +1489,65 @@ def _do_provision_tracked(
         # Pass 7: seed demo users + a populated sample class when the user opted in.
         _maybe_seed_onboarding_sample_data(school)
 
-        _merge_provisioning_settings(school, phase_b_complete=True)
-        school.save(update_fields=["settings", "updated_at"])
-        _record_school_event(
-            school,
-            event_type="COMPLETED",
-            status="SUCCESS",
-            message="Provisioning completed successfully.",
-        )
-        try:
-            from apps.lifecycle.unified_lifecycle import record_unified_transition
-
-            record_unified_transition(
+        if phase_b_failed_steps:
+            # A critical step failed. Do NOT mark complete — record the failure and
+            # leave the tenant resumable. provisioning_needs_resume() returns True on
+            # an unset phase_b_complete, so the stuck-sweep / Tenant-360 Requeue
+            # re-runs the idempotent Phase B seed and backfills the missing rows.
+            failed = sorted(set(phase_b_failed_steps))
+            _merge_provisioning_settings(school, phase_b_failed_steps=failed)
+            school.save(update_fields=["settings", "updated_at"])
+            logger.warning(
+                "Phase B seeding incomplete for school %s; failed=%s "
+                "(left resumable, NOT marked complete)",
+                school_id,
+                failed,
+            )
+            _record_school_event(
                 school,
-                "live",
-                note="provisioning_phase_b_complete",
-                payload={"phase": "b"},
+                event_type="PHASE_B_INCOMPLETE",
+                status="WARNING",
+                message="Provisioning seeding partially failed; queued for resume.",
+                payload={"failed_steps": failed},
             )
-        except (ImportError, AttributeError, TypeError, ValueError):
-            pass
-        try:
-            from apps.platform_runtime.events import emit_platform_event
+        else:
+            _merge_provisioning_settings(
+                school, phase_b_complete=True, phase_b_failed_steps=[]
+            )
+            school.save(update_fields=["settings", "updated_at"])
+            _record_school_event(
+                school,
+                event_type="COMPLETED",
+                status="SUCCESS",
+                message="Provisioning completed successfully.",
+            )
+            try:
+                from apps.lifecycle.unified_lifecycle import record_unified_transition
 
-            emit_platform_event(
-                "provisioning_completed",
-                {
-                    "school_id": str(school.id),
-                    "slug": getattr(school, "slug", "") or "",
-                },
-                tenant_id=str(getattr(school, "id", "") or ""),
-                school_id=None,
-                idempotency_key=f"provision-done:{school.id}",
-            )
-        except (ImportError, AttributeError, TypeError, ValueError):
-            pass
-    logger.info("School %s provisioning complete", school_id)
+                record_unified_transition(
+                    school,
+                    "live",
+                    note="provisioning_phase_b_complete",
+                    payload={"phase": "b"},
+                )
+            except (ImportError, AttributeError, TypeError, ValueError):
+                pass
+            try:
+                from apps.platform_runtime.events import emit_platform_event
+
+                emit_platform_event(
+                    "provisioning_completed",
+                    {
+                        "school_id": str(school.id),
+                        "slug": getattr(school, "slug", "") or "",
+                    },
+                    tenant_id=str(getattr(school, "id", "") or ""),
+                    school_id=None,
+                    idempotency_key=f"provision-done:{school.id}",
+                )
+            except (ImportError, AttributeError, TypeError, ValueError):
+                pass
+    logger.info("School %s provisioning seed pass finished", school_id)
 
     # Legacy tail: provisioning events for observability (email handled by
     # finalize_tenant_activation → notify_tenant_signup_completed).

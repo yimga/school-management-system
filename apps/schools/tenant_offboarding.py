@@ -817,6 +817,45 @@ def _apply_purge_tracked(
     inventory = preview.inventory
     row_total = preview.row_total
 
+    # Resumable purge tracking + tenant-wide session/token revocation + signed
+    # deletion certificate (owner-decision b). Best-effort: tracking/revocation
+    # must NEVER break the actual purge. A crash mid-purge leaves a RUNNING
+    # PurgeOperation (needs_resume=True) so it can be picked up again.
+    purge_op = None
+    sessions_revoked = 0
+    try:
+        from apps.lifecycle.purge_operations import (
+            begin_purge_operation,
+            revoke_all_sessions_for_school,
+        )
+
+        purge_op = begin_purge_operation(
+            school_id=school_id,
+            school_slug=school_slug,
+            actor=actor,
+            reason=f"purge_source={purge_source}",
+        )
+        member_ids = []
+        try:
+            from apps.schools.models import SchoolMembership
+
+            member_ids = list(
+                SchoolMembership.objects.filter(school=school).values_list(
+                    "user_id", flat=True
+                )
+            )
+        except Exception:  # noqa: BLE001 - membership model variance never blocks
+            member_ids = []
+        sessions_revoked = revoke_all_sessions_for_school(
+            school_id=school_id, user_ids=member_ids
+        )
+    except Exception as exc:  # noqa: BLE001 - tracking/revocation never fails purge
+        logger.warning(
+            "tenant_offboarding purge tracking/revocation failed slug=%s: %s",
+            school_slug,
+            exc,
+        )
+
     # A2 (RLS purge completeness): the scheduled/operator purge runs outside
     # request middleware, so app.current_school_id is unset. Under FORCE RLS +
     # default-deny, ORM cascade child-row deletes would be denied and the purge
@@ -889,6 +928,27 @@ def _apply_purge_tracked(
     except Exception as exc:  # noqa: BLE001 - cleanup must never fail the purge
         logger.warning("tenant_offboarding wal purge failed slug=%s: %s", school_slug, exc)
         wal_purge_result = {"deleted": 0, "error": 1}
+
+    # Finalize the PurgeOperation + sign the deletion certificate (owner-decision
+    # b). Best-effort — the purge already succeeded; a tracking failure here must
+    # not turn a completed purge into an error.
+    if purge_op is not None:
+        try:
+            from apps.lifecycle.purge_operations import complete_purge_operation
+
+            complete_purge_operation(
+                op=purge_op,
+                row_total=row_total,
+                schema_dropped=bool(schema_dropped),
+                manifest_path=manifest_path,
+                sessions_revoked=sessions_revoked,
+            )
+        except Exception as exc:  # noqa: BLE001 - finalize never fails the purge
+            logger.warning(
+                "tenant_offboarding purge finalize failed slug=%s: %s",
+                school_slug,
+                exc,
+            )
 
     receipt_extra = {
         "purge_receipt": True,

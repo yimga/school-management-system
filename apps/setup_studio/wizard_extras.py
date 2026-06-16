@@ -101,11 +101,13 @@ def resolve_wizard_label(wizard_key: str) -> str:
         return ""
     try:
         from apps.setup_studio import wizard_engine
+        from apps.setup_studio.wizard_labels import humanize_wizard_token
 
         wizard = wizard_engine.get_wizard(wizard_key)
         label = getattr(wizard, "label_token", "") or ""
         if label:
-            return label
+            # label may be a synthesized ``wizards.*`` slug — never return raw.
+            return humanize_wizard_token(label)
     except Exception:  # noqa: BLE001
         pass
     return wizard_key.replace("_", " ").title()

@@ -111,20 +111,43 @@ def is_control_plane_request(request) -> bool:
     return (getattr(request, "public_host_kind", None) or "").lower() == "manager"
 
 
+def _user_is_tenant_admin_role(user) -> bool:
+    """Tenant ADMIN role — the same admin tier that reaches the tenant backend
+    dashboard (``accounts.views._is_admin_user`` + ``@permission_required('settings.manage')``).
+
+    Tenant admins are role-based members (``SchoolMembership``); by platform
+    design they are NOT Django ``is_staff`` (memory: tenant admins can't use
+    Django ``/admin/``). Uses ``User.Role.ADMIN`` (not a hardcoded string).
+    """
+    try:
+        from django.contrib.auth import get_user_model
+
+        role_enum = get_user_model().Role
+    except (ImportError, AttributeError):
+        return False
+    return getattr(user, "role", None) == role_enum.ADMIN
+
+
 def user_can_access_studio_on_request(request) -> bool:
     """
     Studio OS is mounted on both manager and tenant hosts.
 
     - **Manager host:** only platform operators (superuser / SUPERADMIN), never generic
       tenant staff. Aligns Studio with the control-plane contract.
-    - **Tenant host:** standard Django staff gate (school-scoped operational Studio).
+    - **Tenant host:** the school-scoped operational Studio is for the tenant admin
+      tier (superuser / Django staff / role ADMIN) — the SAME gate as the tenant
+      backend dashboard. Gating on ``is_staff`` alone locked out tenant admins
+      (who are role-based, never ``is_staff``), bouncing them back to the dashboard
+      from every Studio entry point (e.g. guided onboarding → ``studio_os:launch``).
     """
     user = getattr(request, "user", None)
     if not user or not getattr(user, "is_authenticated", False):
         return False
     if (getattr(request, "public_host_kind", None) or "").lower() == "manager":
         return user_has_control_plane_access(user)
-    return getattr(user, "is_staff", False)
+    if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
+        return True
+    return _user_is_tenant_admin_role(user)
 
 
 def use_control_plane_shell(request) -> bool:

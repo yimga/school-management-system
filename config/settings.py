@@ -542,6 +542,7 @@ TEMPLATES = [
                 "apps.platform_runtime.context_processors.system_actions_context",
                 "apps.platform_runtime.context_processors.zero_click_hub_context",
                 "apps.platform_runtime.context_processors.offline_sync_bar_context",
+                "apps.platform_runtime.context_processors.remote_support_context",  # Remote Support consent banner + poller config
                 "apps.platform_runtime.context_processors.operational_nav_groups",
                 # v3.62.5 Wave 2 local-first: emits `localization` dict
                 # (country_code, calendar, school_types, terminology,

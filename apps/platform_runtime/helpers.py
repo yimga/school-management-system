@@ -455,6 +455,27 @@ def get_effective_site_settings(request: Any = None, school: Any = None) -> Any:
         if hasattr(resolved, key):
             setattr(resolved, key, value)
 
+    # Wizard-driven per-tenant brand/typography overrides are persisted in a
+    # NESTED dict at school.settings['runtime_defaults'] (via set_runtime_default),
+    # so the top-level loop skips them (hasattr(resolved, 'runtime_defaults') is
+    # False) — the wizard answers were written but never read back. Unpack that
+    # bucket here with the same hasattr guard; blank wizard answers never clobber
+    # a real base value.
+    rd_bucket = overrides.get("runtime_defaults")
+    if isinstance(rd_bucket, dict):
+        try:
+            from apps.platform_runtime.runtime_defaults_first_class import (
+                runtime_defaults_first_class_string_is_blank as _rd_blank,
+            )
+        except ImportError:
+            _rd_blank = None
+        for rd_key, rd_value in rd_bucket.items():
+            if not hasattr(resolved, rd_key):
+                continue
+            if _rd_blank is not None and isinstance(rd_value, str) and _rd_blank(rd_value):
+                continue
+            setattr(resolved, rd_key, rd_value)
+
     setattr(resolved, "_resolved_for_school_id", school_id)
     cache.set(cache_key, resolved, 60)
     if request is not None:

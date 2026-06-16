@@ -33,6 +33,7 @@ from apps.setup_studio import (
     wizard_state_resolver,
     wizard_telemetry,
 )
+from apps.setup_studio.wizard_labels import humanize_wizard_token
 
 logger = logging.getLogger(__name__)
 
@@ -177,10 +178,10 @@ def _build_context(
         "step": step,
         "audience": audience,
         "school_id": getattr(school, "pk", None),
-        "wizard_label": wizard.label_token,
-        "wizard_description": wizard.description_token,
-        "step_label": step.label_token,
-        "step_description": step.description_token,
+        "wizard_label": humanize_wizard_token(wizard.label_token),
+        "wizard_description": humanize_wizard_token(wizard.description_token),
+        "step_label": humanize_wizard_token(step.label_token),
+        "step_description": humanize_wizard_token(step.description_token),
         "completed_keys": completed_keys,
         "prior_answer": prior_answer,
         "resolved_options": resolved_options,

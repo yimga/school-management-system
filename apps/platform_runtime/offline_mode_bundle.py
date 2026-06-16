@@ -91,7 +91,10 @@ def _enable_offline_mode_policy_module(school, *, dry_run: bool = False) -> bool
     """
     feats = dict(getattr(school, "features", None) or {})
     if feats.get("offline_mode"):
-        return False
+        # Already enabled — the module IS on. The caller stores this return as the
+        # `offline_mode_module_enabled` STATE field, so an idempotent re-apply must
+        # report True (enabled), not False (which read as "not enabled").
+        return True
     if dry_run:
         return True
     feats["offline_mode"] = True

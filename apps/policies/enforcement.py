@@ -126,6 +126,15 @@ def pdp_enforce(*, action: str, resource_kind: str, rebac_permission: str = ""):
                     log=True,
                 )
             except Exception as exc:
+                # Fail CLOSED in enforce mode: a PDP error (DB loss, bad rule,
+                # import failure) must NOT silently permit access. Advisory/off
+                # modes never block, so they degrade open as designed.
+                if mode == "enforce":
+                    logger.error(
+                        "pdp_enforce decision failed (%s) — denying", action,
+                        exc_info=True,
+                    )
+                    raise PermissionDenied("Policy decision unavailable") from exc
                 logger.warning("pdp_enforce failed soft (%s): %s", action, exc)
                 return view_fn(request, *args, **kwargs)
             if mode == "enforce" and not d.allowed:

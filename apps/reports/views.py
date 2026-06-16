@@ -475,19 +475,30 @@ def verify_report_hash(request: HttpRequest):
 
     sha = (request.GET.get("hash") or "").strip().lower()
     report_card_id = (request.GET.get("report_card_id") or "").strip()
+    school = getattr(request, "school", None)
     row = None
     if sha:
-        # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-        row = (
-            ReportDocumentHash.objects.filter(sha256_hash=sha)
-            .select_related("report_card")
-            .first()
-        )
-    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
+        # The 64-hex sha256 IS the capability: you can only verify a document
+        # whose hash you already hold (unguessable), so this is safe to serve
+        # publicly. When a tenant context is present we still scope to it.
+        # tenant-isolation-allow: public-hash-verify-sha256-is-capability-scoped-to-request-school-when-present
+        qs = ReportDocumentHash.objects.filter(sha256_hash=sha)
+        if school is not None:
+            qs = qs.filter(report_card__school=school)
+        row = qs.select_related("report_card").first()
     elif report_card_id.isdigit():
+        # report_card_id is sequential/enumerable — REQUIRE tenant scope so it can
+        # never walk another tenant's reports (IDOR). No tenant context → refuse.
+        if school is None:
+            return JsonResponse(
+                {"verified": False, "error": "Provide hash"}, status=400
+            )
         row = (
-            # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-            ReportDocumentHash.objects.filter(report_card_id=int(report_card_id))
+            # tenant-isolation-allow: enumerable-report-card-id-scoped-to-request-school
+            ReportDocumentHash.objects.filter(
+                report_card_id=int(report_card_id),
+                report_card__school=school,
+            )
             .select_related("report_card")
             .first()
         )

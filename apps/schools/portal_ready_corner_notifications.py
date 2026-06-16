@@ -70,6 +70,7 @@ def portal_ready_corner_for_request(request) -> list[dict[str, Any]]:
     return [
         {
             "id": nid,
+            "dedup_key": "portal-ready",
             "title": note.title,
             "message": note.message,
             "type": "success",

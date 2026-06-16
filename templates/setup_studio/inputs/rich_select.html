@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n wizard_extras %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-wizard-field">
   <label class="rmc-wizard-field__label" for="rmc-wizard-input-value">{{ step_label }}</label>
@@ -8,7 +8,7 @@
     {% for option in resolved_options %}
       <option value="{{ option.value }}"
               {% if option.value == prior_answer.value %}selected{% endif %}>
-        {{ option.label_token|default:option.value }}
+        {{ option.label_token|default:option.value|humanize_wizard_token }}
       </option>
     {% endfor %}
   </select>

@@ -50,7 +50,7 @@
       "role": "PARENT"
     },
     {
-      "line": 459,
+      "line": 460,
       "path": "apps/accounts/context_processors.py",
       "role": "STUDENT"
     },
@@ -715,27 +715,27 @@
       "role": "PARENT"
     },
     {
-      "line": 475,
+      "line": 488,
       "path": "apps/dashboard/context.py",
       "role": "ADMIN"
     },
     {
-      "line": 482,
+      "line": 495,
       "path": "apps/dashboard/context.py",
       "role": "PROPRIETOR"
     },
     {
-      "line": 486,
+      "line": 499,
       "path": "apps/dashboard/context.py",
       "role": "TEACHER"
     },
     {
-      "line": 487,
+      "line": 500,
       "path": "apps/dashboard/context.py",
       "role": "TEACHER"
     },
     {
-      "line": 656,
+      "line": 669,
       "path": "apps/dashboard/context.py",
       "role": "PROPRIETOR"
     },
@@ -1280,7 +1280,7 @@
       "role": "ADMIN"
     },
     {
-      "line": 1328,
+      "line": 1339,
       "path": "apps/reports/views.py",
       "role": "ADMIN"
     },
@@ -1425,57 +1425,57 @@
       "role": "PARENT"
     },
     {
-      "line": 158,
+      "line": 167,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "PARENT"
     },
     {
-      "line": 159,
+      "line": 168,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "TEACHER"
     },
     {
-      "line": 160,
+      "line": 169,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "ADMIN"
     },
     {
-      "line": 274,
+      "line": 300,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "STUDENT"
     },
     {
-      "line": 275,
+      "line": 301,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "TEACHER"
     },
     {
-      "line": 276,
+      "line": 302,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "PARENT"
     },
     {
-      "line": 277,
+      "line": 303,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "ADMIN"
     },
     {
-      "line": 600,
+      "line": 626,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "STUDENT"
     },
     {
-      "line": 601,
+      "line": 627,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "TEACHER"
     },
     {
-      "line": 602,
+      "line": 628,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "PARENT"
     },
     {
-      "line": 603,
+      "line": 629,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "ADMIN"
     },
@@ -1775,7 +1775,7 @@
       "role": "ADMIN"
     }
   ],
-  "generated_at": "2026-06-15T00:31:44+00:00",
+  "generated_at": "2026-06-16T15:42:19+00:00",
   "role_tokens": [
     "ADMIN",
     "PARENT",

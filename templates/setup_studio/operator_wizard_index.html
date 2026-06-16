@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load static i18n %}
+{% load static i18n wizard_extras %}
 
 {% block title %}{% trans "Setup Wizards" %}{% endblock %}
 
@@ -24,7 +24,7 @@
     <div style="display:grid; gap: var(--space-3); grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
       {% for w in wizards %}
         <a class="rmc-wizard-card" href="{% url 'setup_studio:operator_wizard' wizard_key=w.wizard_key %}">
-          <h3 class="rmc-wizard-card__title">{{ w.label_token }}</h3>
+          <h3 class="rmc-wizard-card__title">{{ w.label_token|humanize_wizard_token }}</h3>
           <p class="rmc-wizard-card__meta">{{ w.estimated_minutes }} {% trans "min" %} · {{ w.steps|length }} {% trans "steps" %}</p>
         </a>
       {% endfor %}

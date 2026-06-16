@@ -148,6 +148,33 @@ def write_custom_domain_step(*, school: Any, wizard_key: str, step_key: str, pay
 # ============================================================================
 
 
+def list_mfa_channel_choices(*, request: Any, school: Any) -> list[dict[str, Any]]:
+    """MFA verification channels for the ``choose_channel`` step.
+
+    Values MUST match the step's declarative ``branches`` keys
+    (``totp`` / ``sms`` / ``passkey``) so the engine routes to the right
+    follow-up step. Labels are human English (the established label_token
+    convention) — no hardcoded role strings, no secret material.
+    """
+    return [
+        {
+            "value": "totp",
+            "label_token": "Authenticator app (recommended)",
+            "metadata": {"hint": "Google Authenticator, Authy, 1Password, etc."},
+        },
+        {
+            "value": "sms",
+            "label_token": "Text message (SMS)",
+            "metadata": {"hint": "A 6-digit code sent to your phone."},
+        },
+        {
+            "value": "passkey",
+            "label_token": "Passkey / security key",
+            "metadata": {"hint": "Fingerprint, face, or a hardware key."},
+        },
+    ]
+
+
 def write_mfa_setup_step(*, school: Any, wizard_key: str, step_key: str, payload: dict[str, Any], actor_user_id: int | None) -> None:
     """MFA setup is account-scoped; we persist completion timestamps only.
 

@@ -96,6 +96,7 @@ def compile_manifest(
     locale_default: str = "en",
     feature_flags: dict[str, bool] | None = None,
     signature_posture: str = "unsigned",
+    strict_feature_flags: bool = False,
 ) -> TenantManifest:
     if not tenant_id:
         raise TenantManifestError("tenant_id required")
@@ -106,6 +107,20 @@ def compile_manifest(
     policies = _scrub(dict(data_policies or {}))
     cache = _scrub(dict(pwa_cache_hints or {}))
     flags = {str(k): bool(v) for k, v in (feature_flags or {}).items()}
+    # Validate flags against the canonical registry so a typo is never silently
+    # compiled in. Lenient by default (warn — non-breaking for ad-hoc callers);
+    # strict mode raises (used by callers that control their flag set).
+    from apps.sync_engine.feature_flag_registry import validate_feature_flags
+
+    unknown_flags = validate_feature_flags(flags)
+    if unknown_flags:
+        if strict_feature_flags:
+            raise TenantManifestError(
+                f"unknown feature_flags (not in registry): {unknown_flags}"
+            )
+        logger.warning(
+            "tenant_manifest_compiler unknown feature_flags %s", unknown_flags
+        )
     if signature_posture not in {"unsigned", "hmac-sha256", "ed25519"}:
         raise TenantManifestError(f"unsupported signature_posture {signature_posture!r}")
 

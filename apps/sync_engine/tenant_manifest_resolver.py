@@ -189,6 +189,10 @@ def build_school_offline_manifest(school: Any) -> TenantManifest:
         pwa_cache_hints={"offline_routes": list(_OFFLINE_ROUTES_ALLOWLIST)},
         locale_default=locale_default,
         feature_flags=_offline_feature_flags(),
+        # Production flags come from the bundle SOT, which is also what the
+        # registry derives from — so strict validation is provably safe here and
+        # catches any drift between the bundle and the manifest.
+        strict_feature_flags=True,
     )
 
 

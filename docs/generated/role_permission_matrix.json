@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-06-08T16:48:30.282717+00:00",
+  "generated_at": "2026-06-16T16:36:54.232329+00:00",
   "generated_by": "scripts/audit_role_permission_matrix.py",
-  "row_count": 1551,
-  "views_indexed": 2427,
+  "row_count": 1572,
+  "views_indexed": 2496,
   "summary": {
-    "login_gated": 1162,
-    "role_gated": 79,
-    "permission_gated": 104,
-    "has_inline_auth_check": 70,
+    "login_gated": 1177,
+    "role_gated": 77,
+    "permission_gated": 107,
+    "has_inline_auth_check": 71,
     "auth_mixin_gated": 111,
     "rbac_allow_reason": 139,
-    "candidate_anonymous": 221,
-    "unresolved": 167
+    "candidate_anonymous": 225,
+    "unresolved": 169
   },
   "rows": [
     {
@@ -359,9 +359,7 @@
       "urls_file": "apps/accounts/urls.py",
       "view_file": "apps/accounts/views.py",
       "kind": "func",
-      "decorators": [
-        "login_required"
-      ],
+      "decorators": [],
       "drf_permission_classes": [],
       "bases": [],
       "roles_required": [],
@@ -370,7 +368,7 @@
       "login_gated": true,
       "role_gated": false,
       "permission_gated": false,
-      "has_inline_auth_check": false,
+      "has_inline_auth_check": true,
       "auth_mixin_gated": false,
       "candidate_anonymous": false
     },
@@ -1806,6 +1804,51 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "backend/api/operational-health.json",
+      "view_symbol": "tenant_operational_health_json",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/schools/views_tenant_health_api.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_GET"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "backend/api/operational-health/stream/",
+      "view_symbol": "TenantHealthStreamView.as_view",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/schools/views_tenant_health_api.py",
+      "kind": "class",
+      "decorators": [
+        "login_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "backend/dismiss-first-login-checklist/",
       "view_symbol": "dismiss_first_login_checklist",
       "urls_file": "apps/accounts/urls.py",
@@ -2390,6 +2433,27 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "onboarding/account/<uidb64>/<token>/progress/",
+      "view_symbol": "owner_onboarding_account_provision_progress",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/accounts/views_owner_onboarding.py",
+      "kind": "func",
+      "decorators": [
+        "require_GET"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": "token-authenticated first-run owner onboarding; must be anonymous-reachable",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "onboarding/account/<uidb64>/<token>/",
       "view_symbol": "OwnerOnboardingAccountView.as_view",
       "urls_file": "apps/accounts/urls.py",
@@ -2401,14 +2465,14 @@
         "PasswordResetConfirmView"
       ],
       "roles_required": [],
-      "rbac_allow_reason": "token-authenticated first-run owner onboarding; must be anonymous-reachable",
+      "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": true,
+      "login_gated": false,
       "role_gated": false,
       "permission_gated": false,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
-      "candidate_anonymous": false
+      "candidate_anonymous": true
     },
     {
       "url_pattern": "onboarding/school/",
@@ -2438,7 +2502,74 @@
       "view_file": "apps/accounts/views_owner_onboarding.py",
       "kind": "func",
       "decorators": [
-        "login_required"
+        "login_required",
+        "require_http_methods(['GET', 'POST'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "onboarding/done/status/",
+      "view_symbol": "owner_onboarding_provision_status",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/accounts/views_owner_onboarding.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_GET"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "onboarding/provision/progress/",
+      "view_symbol": "owner_onboarding_provision_progress",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/accounts/views_owner_onboarding.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_GET"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "onboarding/provision/apply-fix/",
+      "view_symbol": "owner_onboarding_provision_apply_fix",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/accounts/views_owner_onboarding.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_http_methods(['POST'])"
       ],
       "drf_permission_classes": [],
       "bases": [],
@@ -2736,6 +2867,94 @@
       "view_symbol": "notification_corner_mark_read",
       "urls_file": "apps/accounts/urls.py",
       "view_file": "apps/accounts/views_security.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_POST"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "web-push/vapid-public-key/",
+      "view_symbol": "web_push_vapid_public_key",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/accounts/views_web_push.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_GET"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "web-push/subscribe/",
+      "view_symbol": "web_push_subscribe",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/accounts/views_web_push.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_POST"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "web-push/unsubscribe/",
+      "view_symbol": "web_push_unsubscribe",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/accounts/views_web_push.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_POST"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "web-push/nudge-portal-ready/",
+      "view_symbol": "web_push_nudge_portal_ready",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/accounts/views_web_push.py",
       "kind": "func",
       "decorators": [
         "login_required",
@@ -3222,6 +3441,73 @@
       "decorators": [
         "login_required",
         "permission_required('people.add_applicant')"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": true,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "backend/applicants/<int:applicant_id>/",
+      "view_symbol": "backend_applicant_detail",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/people/views_backend.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "permission_required('people.view_applicant')",
+        "audit_pii_view"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": true,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "backend/applicants/<int:applicant_id>/advance-stage/",
+      "view_symbol": "backend_applicant_advance_stage",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/people/views_backend.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "permission_required('people.change_applicant')"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": true,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "backend/applicants/<int:applicant_id>/enroll/",
+      "view_symbol": "backend_applicant_enroll",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/people/views_backend.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "permission_required('people.add_studentprofile')"
       ],
       "drf_permission_classes": [],
       "bases": [],
@@ -4473,6 +4759,31 @@
     {
       "url_pattern": "portal-preferences/",
       "view_symbol": "PortalPreferencesAPI.as_view",
+      "urls_file": "apps/api/urls.py",
+      "view_file": "apps/api/user_preferences_api.py",
+      "kind": "class",
+      "decorators": [
+        "extend_schema"
+      ],
+      "drf_permission_classes": [
+        "IsAuthenticated"
+      ],
+      "bases": [
+        "APIView"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "dashboard-pack-preference/",
+      "view_symbol": "DashboardPackPreferenceAPI.as_view",
       "urls_file": "apps/api/urls.py",
       "view_file": "apps/api/user_preferences_api.py",
       "kind": "class",
@@ -13503,27 +13814,6 @@
       "candidate_anonymous": false
     },
     {
-      "url_pattern": "grade-import/job/<int:job_id>/",
-      "view_symbol": "grade_import_job_detail",
-      "urls_file": "apps/evals/urls.py",
-      "view_file": "apps/evals/views_import_enhanced.py",
-      "kind": "func",
-      "decorators": [
-        "staff_member_required"
-      ],
-      "drf_permission_classes": [],
-      "bases": [],
-      "roles_required": [],
-      "rbac_allow_reason": null,
-      "unresolved": false,
-      "login_gated": true,
-      "role_gated": false,
-      "permission_gated": false,
-      "has_inline_auth_check": false,
-      "auth_mixin_gated": false,
-      "candidate_anonymous": false
-    },
-    {
       "url_pattern": "",
       "view_symbol": "views_console.event_console",
       "urls_file": "apps/events/urls.py",
@@ -15556,7 +15846,7 @@
       "view_file": "apps/marketplace/views_publisher.py",
       "kind": "func",
       "decorators": [
-        "require_super_access_with_host",
+        "require_verified_publisher_with_host",
         "require_GET"
       ],
       "drf_permission_classes": [],
@@ -15564,12 +15854,12 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": true,
-      "role_gated": true,
+      "login_gated": false,
+      "role_gated": false,
       "permission_gated": false,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
-      "candidate_anonymous": false
+      "candidate_anonymous": true
     },
     {
       "url_pattern": "publisher/<slug:slug>/",
@@ -15578,7 +15868,7 @@
       "view_file": "apps/marketplace/views_publisher.py",
       "kind": "func",
       "decorators": [
-        "require_super_access_with_host",
+        "require_verified_publisher_with_host",
         "require_GET"
       ],
       "drf_permission_classes": [],
@@ -15586,12 +15876,12 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": true,
-      "role_gated": true,
+      "login_gated": false,
+      "role_gated": false,
       "permission_gated": false,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
-      "candidate_anonymous": false
+      "candidate_anonymous": true
     },
     {
       "url_pattern": "monetization-inspector/",
@@ -20229,6 +20519,51 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "api/operational-health.json",
+      "view_symbol": "tenant_operational_health_json",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/schools/views_tenant_health_api.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_GET"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "api/operational-health/stream/",
+      "view_symbol": "TenantHealthStreamView.as_view",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/schools/views_tenant_health_api.py",
+      "kind": "class",
+      "decorators": [
+        "login_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "offline/sync-queue/",
       "view_symbol": "offline_sync_queue",
       "urls_file": "apps/portal/urls.py",
@@ -22983,6 +23318,72 @@
       "permission_gated": false,
       "has_inline_auth_check": false,
       "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "api/setup-studio/blockers/",
+      "view_symbol": "api_blockers",
+      "urls_file": "apps/setup_studio/urls.py",
+      "view_file": "apps/setup_studio/views_zero_friction.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_GET"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "api/setup-studio/payload/",
+      "view_symbol": "api_zero_friction_payload",
+      "urls_file": "apps/setup_studio/urls.py",
+      "view_file": "apps/setup_studio/views_zero_friction.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_GET"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "api/setup-studio/recommended/",
+      "view_symbol": "api_recommended_setup",
+      "urls_file": "apps/setup_studio/urls.py",
+      "view_file": "apps/setup_studio/views_zero_friction.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_POST"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
       "candidate_anonymous": false
     },
     {
@@ -28354,6 +28755,65 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "api/tour-steps/public/",
+      "view_symbol": "tour_steps_public_api",
+      "urls_file": "config/manager_urls.py",
+      "view_file": "apps/siteconfig/views_tour.py",
+      "kind": "func",
+      "decorators": [
+        "require_GET"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": true
+    },
+    {
+      "url_pattern": "demo/",
+      "view_symbol": "redirect_marketing_demo_to_public",
+      "urls_file": "config/manager_urls.py",
+      "view_file": null,
+      "kind": null,
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": true,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "resources/product-tour/",
+      "view_symbol": "redirect_marketing_product_tour_to_public",
+      "urls_file": "config/manager_urls.py",
+      "view_file": null,
+      "kind": null,
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": true,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "privacy/",
       "view_symbol": "marketing_page",
       "urls_file": "config/manager_urls.py",
@@ -33235,6 +33695,52 @@
       "candidate_anonymous": true
     },
     {
+      "url_pattern": "signup/slug-check/",
+      "view_symbol": "signup_slug_check",
+      "urls_file": "config/urls.py",
+      "view_file": "apps/schools/signup_views.py",
+      "kind": "func",
+      "decorators": [
+        "never_cache",
+        "require_GET",
+        "ratelimit"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": true
+    },
+    {
+      "url_pattern": "signup/slug-suggest/",
+      "view_symbol": "signup_slug_suggest",
+      "urls_file": "config/urls.py",
+      "view_file": "apps/schools/signup_views.py",
+      "kind": "func",
+      "decorators": [
+        "never_cache",
+        "require_GET",
+        "ratelimit"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": true
+    },
+    {
       "url_pattern": "<str:language_code>/<str:country_code>/",
       "view_symbol": "regional_marketing_landing",
       "urls_file": "config/urls.py",
@@ -33347,52 +33853,6 @@
       "kind": "func",
       "decorators": [
         "require_http_methods(['GET', 'POST'])"
-      ],
-      "drf_permission_classes": [],
-      "bases": [],
-      "roles_required": [],
-      "rbac_allow_reason": null,
-      "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
-      "permission_gated": false,
-      "has_inline_auth_check": false,
-      "auth_mixin_gated": false,
-      "candidate_anonymous": true
-    },
-    {
-      "url_pattern": "signup/slug-check/",
-      "view_symbol": "signup_slug_check",
-      "urls_file": "config/urls.py",
-      "view_file": "apps/schools/signup_views.py",
-      "kind": "func",
-      "decorators": [
-        "never_cache",
-        "require_GET",
-        "ratelimit"
-      ],
-      "drf_permission_classes": [],
-      "bases": [],
-      "roles_required": [],
-      "rbac_allow_reason": null,
-      "unresolved": false,
-      "login_gated": false,
-      "role_gated": false,
-      "permission_gated": false,
-      "has_inline_auth_check": false,
-      "auth_mixin_gated": false,
-      "candidate_anonymous": true
-    },
-    {
-      "url_pattern": "signup/slug-suggest/",
-      "view_symbol": "signup_slug_suggest",
-      "urls_file": "config/urls.py",
-      "view_file": "apps/schools/signup_views.py",
-      "kind": "func",
-      "decorators": [
-        "never_cache",
-        "require_GET",
-        "ratelimit"
       ],
       "drf_permission_classes": [],
       "bases": [],

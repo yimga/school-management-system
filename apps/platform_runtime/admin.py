@@ -898,6 +898,7 @@ register_platform_admin(PilotDefect, PilotDefectAdmin)
 
 
 from apps.platform_runtime.models_operator_identity import (
+    OperatorTenantAssignment,
     PlatformOperatorInvite,
     PlatformOperatorProfile,
     PlatformOperatorPromotionRequest,
@@ -932,11 +933,116 @@ class PlatformOperatorPromotionRequestAdmin(ModelAdmin):
     raw_id_fields = ("target_user", "requester", "peer_approver")
 
 
+class OperatorTenantAssignmentAdmin(ModelAdmin):
+    list_display = (
+        "operator",
+        "school",
+        "granted_by",
+        "expires_at",
+        "revoked_at",
+        "created_at",
+    )
+    list_filter = ("revoked_at", "expires_at")
+    search_fields = ("operator__username", "operator__email", "school__name", "reason")
+    raw_id_fields = ("operator", "school", "granted_by", "revoked_by")
+    readonly_fields = ("created_at", "updated_at")
+    actions = ["revoke_selected"]
+
+    @staticmethod
+    def _client_ip(request):
+        xff = request.META.get("HTTP_X_FORWARDED_FOR")
+        if xff:
+            return xff.split(",")[0].strip()
+        return request.META.get("REMOTE_ADDR")
+
+    def save_model(self, request, obj, form, change):
+        from apps.compliance.models_audit import AuditLog
+
+        was_revoked = bool(
+            change
+            and obj.pk
+            and type(obj)
+            .objects.filter(pk=obj.pk, revoked_at__isnull=False)
+            .exists()
+        )
+        # Auto-stamp the acting operator so the audit names a real grantor.
+        if not change and not obj.granted_by_id:
+            obj.granted_by = request.user
+        if obj.revoked_at and not obj.revoked_by_id:
+            obj.revoked_by = request.user
+        super().save_model(request, obj, form, change)
+
+        if not change:
+            action = AuditLog.Action.PERMISSION_GRANT
+            reason = "Operator assigned to tenant (granted via admin)"
+        elif obj.revoked_at and not was_revoked:
+            action = AuditLog.Action.PERMISSION_REVOKE
+            reason = "Operator tenant assignment revoked (via admin)"
+        else:
+            action = AuditLog.Action.UPDATE
+            reason = "Operator tenant assignment updated (via admin)"
+        obj.record_lifecycle_audit(
+            actor=request.user,
+            action=action,
+            reason=reason,
+            ip=self._client_ip(request),
+            user_agent=request.META.get("HTTP_USER_AGENT", ""),
+        )
+
+    def delete_model(self, request, obj):
+        from apps.compliance.models_audit import AuditLog
+
+        obj.record_lifecycle_audit(
+            actor=request.user,
+            action=AuditLog.Action.DELETE,
+            reason="Operator tenant assignment deleted (via admin)",
+            ip=self._client_ip(request),
+            user_agent=request.META.get("HTTP_USER_AGENT", ""),
+        )
+        super().delete_model(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        from apps.compliance.models_audit import AuditLog
+
+        for obj in queryset:
+            obj.record_lifecycle_audit(
+                actor=request.user,
+                action=AuditLog.Action.DELETE,
+                reason="Operator tenant assignment bulk-deleted (via admin)",
+                ip=self._client_ip(request),
+                user_agent=request.META.get("HTTP_USER_AGENT", ""),
+            )
+        super().delete_queryset(request, queryset)
+
+    @admin.action(description="Revoke selected assignments")
+    def revoke_selected(self, request, queryset):
+        from django.utils import timezone
+
+        from apps.compliance.models_audit import AuditLog
+
+        now = timezone.now()
+        count = 0
+        for obj in queryset.filter(revoked_at__isnull=True):
+            obj.revoked_at = now
+            obj.revoked_by = request.user
+            obj.save(update_fields=["revoked_at", "revoked_by", "updated_at"])
+            obj.record_lifecycle_audit(
+                actor=request.user,
+                action=AuditLog.Action.PERMISSION_REVOKE,
+                reason="Operator tenant assignment revoked (bulk admin action)",
+                ip=self._client_ip(request),
+                user_agent=request.META.get("HTTP_USER_AGENT", ""),
+            )
+            count += 1
+        self.message_user(request, f"Revoked {count} assignment(s).")
+
+
 register_platform_admin(PlatformOperatorProfile, PlatformOperatorProfileAdmin)
 register_platform_admin(PlatformOperatorInvite, PlatformOperatorInviteAdmin)
 register_platform_admin(
     PlatformOperatorPromotionRequest, PlatformOperatorPromotionRequestAdmin
 )
+register_platform_admin(OperatorTenantAssignment, OperatorTenantAssignmentAdmin)
 
 from .models_workflow_10x import (  # noqa: E402
     WorkflowAutopilotApplyLog,

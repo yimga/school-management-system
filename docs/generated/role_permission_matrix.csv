@@ -15,7 +15,7 @@ login/,login_view,apps/accounts/urls.py,apps/accounts/views.py,func,ratelimit | 
 logout/,logout_view,apps/accounts/urls.py,apps/accounts/views.py,func,,,,,1,0,0,1,0,,0,0
 impersonate/,impersonate_entry,apps/accounts/urls.py,apps/accounts/views_impersonation.py,func,require_GET | login_required,,,,1,0,0,0,0,,0,0
 end-impersonation/,end_impersonation,apps/accounts/urls.py,apps/accounts/views_impersonation.py,func,"require_http_methods(['GET', 'POST']) | login_required",,,,1,0,0,0,0,,0,0
-school-picker/,school_picker,apps/accounts/urls.py,apps/accounts/views.py,func,login_required,,,,1,0,0,0,0,,0,0
+school-picker/,school_picker,apps/accounts/urls.py,apps/accounts/views.py,func,,,,,1,0,0,1,0,,0,0
 redirect/,redirect_view,apps/accounts/urls.py,apps/accounts/views.py,func,,,,,1,0,0,1,0,,0,0
 switch-portal-role/,switch_portal_role,apps/accounts/urls.py,apps/accounts/views.py,func,login_required,,,,1,0,0,0,0,,0,0
 profile/,user_profile,apps/accounts/urls.py,apps/accounts/views.py,func,login_required,,,,1,0,0,0,0,,0,0
@@ -79,6 +79,8 @@ backend/district-lms-interop/packet/,district_interop_packet,apps/accounts/urls.
 backend/district-lms-interop/partner/,district_interop_partner,apps/accounts/urls.py,apps/accounts/views_district_interop.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0
 backend/institution-profile/,institution_profile_wizard,apps/accounts/urls.py,apps/accounts/views_district_interop.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0
 backend/status/fragment/,backend_dashboard_status_fragment,apps/accounts/urls.py,apps/accounts/views.py,func,login_required | permission_required('settings.manage') | user_passes_test(_is_admin_user),,,,1,0,1,0,0,,0,0
+backend/api/operational-health.json,tenant_operational_health_json,apps/accounts/urls.py,apps/schools/views_tenant_health_api.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
+backend/api/operational-health/stream/,TenantHealthStreamView.as_view,apps/accounts/urls.py,apps/schools/views_tenant_health_api.py,class,login_required,,View,,1,0,0,0,0,,0,0
 backend/dismiss-first-login-checklist/,dismiss_first_login_checklist,apps/accounts/urls.py,apps/accounts/views_onboarding.py,func,login_required | permission_required('settings.manage') | user_passes_test(_is_admin_user),,,,1,0,1,0,0,,0,0
 backend/tour-complete/,mark_tour_complete,apps/accounts/urls.py,apps/accounts/views_onboarding.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
 backend/ops-watch/,backend_ops_watch_data,apps/accounts/urls.py,apps/accounts/views.py,func,permission_required('settings.manage') | user_passes_test(_is_admin_user),,,,1,0,1,0,0,,0,0
@@ -105,9 +107,13 @@ certification/session/<int:session_id>/override/,certification_session_override,
 claim-invite/,claim_invite,apps/accounts/urls.py,apps/portal/views_parent.py,func,parent_portal_required | role_required(User.Role.PARENT),,,User.Role.PARENT,1,1,0,0,0,,0,0
 operator-invite/<uuid:token>/,operator_invite_accept,apps/accounts/urls.py,,,,,,,0,0,0,0,0,,0,1
 legacy-setup/<uidb64>/<token>/,LegacySetupView.as_view,apps/accounts/urls.py,apps/accounts/views_legacy_setup.py,class,,,PasswordResetConfirmView,,1,0,0,0,0,token-authenticated legacy-hash one-time setup; must be anonymous-reachable,0,0
-onboarding/account/<uidb64>/<token>/,OwnerOnboardingAccountView.as_view,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,class,,,PasswordResetConfirmView,,1,0,0,0,0,token-authenticated first-run owner onboarding; must be anonymous-reachable,0,0
+onboarding/account/<uidb64>/<token>/progress/,owner_onboarding_account_provision_progress,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,func,require_GET,,,,1,0,0,0,0,token-authenticated first-run owner onboarding; must be anonymous-reachable,0,0
+onboarding/account/<uidb64>/<token>/,OwnerOnboardingAccountView.as_view,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,class,,,PasswordResetConfirmView,,0,0,0,0,0,,1,0
 onboarding/school/,owner_onboarding_school,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,func,login_required,,,,1,0,0,0,0,,0,0
-onboarding/done/,owner_onboarding_done,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,func,login_required,,,,1,0,0,0,0,,0,0
+onboarding/done/,owner_onboarding_done,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0
+onboarding/done/status/,owner_onboarding_provision_status,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
+onboarding/provision/progress/,owner_onboarding_provision_progress,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
+onboarding/provision/apply-fix/,owner_onboarding_provision_apply_fix,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,func,login_required | require_http_methods(['POST']),,,,1,0,0,0,0,,0,0
 guardian-setup/<uidb64>/<token>/,GuardianSetupView.as_view,apps/accounts/urls.py,,,,,,,1,0,0,0,0,token-authenticated one-time guardian set-password; must be anonymous-reachable,0,1
 mfa/setup/,mfa_setup,apps/accounts/urls.py,apps/accounts/views_mfa.py,func,login_required,,,,1,0,0,0,0,,0,0
 mfa/dismiss-banner/,dismiss_mfa_banner,apps/accounts/urls.py,apps/accounts/views_mfa.py,func,login_required,,,,1,0,0,0,0,,0,0
@@ -122,6 +128,10 @@ profile/security/session-modal/ack/,security_posture_session_modal_ack,apps/acco
 notifications/corner/snooze/,notification_corner_snooze,apps/accounts/urls.py,apps/accounts/views_security.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
 notifications/corner/dismiss/,notification_corner_dismiss,apps/accounts/urls.py,apps/accounts/views_security.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
 notifications/corner/mark-read/,notification_corner_mark_read,apps/accounts/urls.py,apps/accounts/views_security.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
+web-push/vapid-public-key/,web_push_vapid_public_key,apps/accounts/urls.py,apps/accounts/views_web_push.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
+web-push/subscribe/,web_push_subscribe,apps/accounts/urls.py,apps/accounts/views_web_push.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
+web-push/unsubscribe/,web_push_unsubscribe,apps/accounts/urls.py,apps/accounts/views_web_push.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
+web-push/nudge-portal-ready/,web_push_nudge_portal_ready,apps/accounts/urls.py,apps/accounts/views_web_push.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
 profile/security/activity/,api_security_activity,apps/accounts/urls.py,apps/accounts/views_security.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
 profile/security/export/,api_security_export_log,apps/accounts/urls.py,apps/accounts/views_security.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
 profile/security/lockdown/,api_security_lockdown,apps/accounts/urls.py,apps/accounts/views_security.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
@@ -144,6 +154,9 @@ backend/teachers/<int:teacher_id>/,backend_teacher_detail,apps/accounts/urls.py,
 backend/guardians/,backend_guardian_list,apps/accounts/urls.py,apps/people/views_backend.py,func,login_required | permission_required('people.view_studentguardian'),,,,1,0,1,0,0,,0,0
 backend/applicants/,backend_applicant_list,apps/accounts/urls.py,apps/people/views_backend.py,func,login_required | permission_required('people.view_applicant'),,,,1,0,1,0,0,,0,0
 backend/applicants/create/,backend_applicant_create,apps/accounts/urls.py,apps/people/views_backend.py,func,login_required | permission_required('people.add_applicant'),,,,1,0,1,0,0,,0,0
+backend/applicants/<int:applicant_id>/,backend_applicant_detail,apps/accounts/urls.py,apps/people/views_backend.py,func,login_required | permission_required('people.view_applicant') | audit_pii_view,,,,1,0,1,0,0,,0,0
+backend/applicants/<int:applicant_id>/advance-stage/,backend_applicant_advance_stage,apps/accounts/urls.py,apps/people/views_backend.py,func,login_required | permission_required('people.change_applicant'),,,,1,0,1,0,0,,0,0
+backend/applicants/<int:applicant_id>/enroll/,backend_applicant_enroll,apps/accounts/urls.py,apps/people/views_backend.py,func,login_required | permission_required('people.add_studentprofile'),,,,1,0,1,0,0,,0,0
 backend/classrooms/,backend_classroom_list,apps/accounts/urls.py,apps/people/views_backend.py,func,login_required | permission_required('academics.view_classroom'),,,,1,0,1,0,0,,0,0
 backend/classrooms/create/,backend_classroom_create,apps/accounts/urls.py,apps/people/views_backend.py,func,login_required | permission_required('academics.add_classroom'),,,,1,0,1,0,0,,0,0
 backend/classrooms/<int:classroom_id>/,backend_classroom_detail,apps/accounts/urls.py,apps/people/views_backend.py,func,login_required | permission_required('academics.view_classroom'),,,,1,0,1,0,0,,0,0
@@ -200,6 +213,7 @@ finance/analytics/,FinancialAnalyticsAPI.as_view,apps/api/urls.py,apps/finance/a
 dashboard/layout/<str:page>/,DashboardLayoutAPI.as_view,apps/api/urls.py,apps/api/dashboard_layout_api.py,class,extend_schema_view,IsAuthenticated,APIView,,1,0,0,0,0,,0,0
 dashboard/available-widgets/,AvailableWidgetsAPI.as_view,apps/api/urls.py,apps/api/dashboard_layout_api.py,class,extend_schema,IsAuthenticated,APIView,,1,0,0,0,0,,0,0
 portal-preferences/,PortalPreferencesAPI.as_view,apps/api/urls.py,apps/api/user_preferences_api.py,class,extend_schema,IsAuthenticated,APIView,,1,0,0,0,0,,0,0
+dashboard-pack-preference/,DashboardPackPreferenceAPI.as_view,apps/api/urls.py,apps/api/user_preferences_api.py,class,extend_schema,IsAuthenticated,APIView,,1,0,0,0,0,,0,0
 admissions/lead/,LeadCaptureAPI.as_view,apps/api/urls.py,apps/api/lead_capture_api.py,class,csrf_exempt | require_http_methods(['POST']),,View,,1,0,0,0,0,"public lead-capture from marketing forms — school_slug in body, rate-limited",0,0
 interop/,interop_hub,apps/api/urls.py,,,,,,,0,0,0,0,0,,0,1
 interop/oneroster/,oneroster_readiness,apps/api/urls.py,,,,,,,0,0,0,0,0,,0,1
@@ -609,7 +623,6 @@ api/rosetta/preview/,rosetta_grade_preview_api,apps/evals/urls.py,apps/evals/vie
 audit-trail/<int:evaluation_id>/,audit_trail_view,apps/evals/urls.py,apps/evals/views.py,func,"staff_member_required | role_required(User.Role.ADMIN, User.Role.HOD, User.Role.TEACHER, 'HEAD_OF_ACADEMICS')",,,"HEAD_OF_ACADEMICS,User.Role.ADMIN,User.Role.HOD,User.Role.TEACHER",1,1,0,0,0,,0,0
 offline-conflict/<int:offline_entry_id>/resolve/,resolve_offline_conflict_view,apps/evals/urls.py,apps/evals/views.py,func,"staff_member_required | role_required(User.Role.ADMIN, User.Role.HOD, 'HEAD_OF_ACADEMICS')",,,"HEAD_OF_ACADEMICS,User.Role.ADMIN,User.Role.HOD",1,1,0,0,0,,0,0
 import-jobs/monitor/,import_job_monitor_view,apps/evals/urls.py,apps/evals/views.py,func,"staff_member_required | role_required(User.Role.ADMIN, User.Role.HOD, 'HEAD_OF_ACADEMICS')",,,"HEAD_OF_ACADEMICS,User.Role.ADMIN,User.Role.HOD",1,1,0,0,0,,0,0
-grade-import/job/<int:job_id>/,grade_import_job_detail,apps/evals/urls.py,apps/evals/views_import_enhanced.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
 ,views_console.event_console,apps/events/urls.py,apps/events/views_console.py,func,never_cache | login_required | require_http_methods(['GET']),,,,1,0,0,0,0,,0,0
 analytics/,views_event_ops.event_analytics_console,apps/events/urls.py,apps/events/views_event_ops.py,func,never_cache | login_required | require_http_methods(['GET']),,,,1,0,0,0,0,,0,0
 dlq/,views_event_ops.event_dlq_console,apps/events/urls.py,apps/events/views_event_ops.py,func,"never_cache | login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0
@@ -704,8 +717,8 @@ studio-os-10x/nav-sidebar/,s10x.studio_nav_sidebar,apps/integrations_marketplace
 <uuid:school_id>/,LifecycleTimelineView.as_view,apps/lifecycle/urls.py,apps/lifecycle/views.py,class,staff_member_required,,View,,1,0,0,0,0,,0,0
 governance/,views.governance_console,apps/marketplace/urls.py,apps/marketplace/views.py,func,login_required | user_passes_test(_control_plane_access),,,,1,0,0,0,0,,0,0
 reviews/<int:review_id>/action/,views.marketplace_review_action,apps/marketplace/urls.py,apps/marketplace/views.py,func,login_required | user_passes_test(_control_plane_access) | require_POST,,,,1,0,0,0,0,,0,0
-publisher/,publisher_dashboard,apps/marketplace/urls.py,apps/marketplace/views_publisher.py,func,require_super_access_with_host | require_GET,,,,1,1,0,0,0,,0,0
-publisher/<slug:slug>/,publisher_app_detail,apps/marketplace/urls.py,apps/marketplace/views_publisher.py,func,require_super_access_with_host | require_GET,,,,1,1,0,0,0,,0,0
+publisher/,publisher_dashboard,apps/marketplace/urls.py,apps/marketplace/views_publisher.py,func,require_verified_publisher_with_host | require_GET,,,,0,0,0,0,0,,1,0
+publisher/<slug:slug>/,publisher_app_detail,apps/marketplace/urls.py,apps/marketplace/views_publisher.py,func,require_verified_publisher_with_host | require_GET,,,,0,0,0,0,0,,1,0
 monetization-inspector/,MonetizationManifestInspectorView.as_view,apps/marketplace/urls.py,apps/marketplace/views_monetization_inspector.py,class,staff_member_required,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
 apps/<slug:slug>/,v.public_app_detail,apps/marketplace/urls_developer_platform.py,apps/marketplace/views_developer_platform.py,func,require_GET,,,,1,0,0,1,0,,0,0
 apps/<slug:slug>/rate/,v.submit_rating_view,apps/marketplace/urls_developer_platform.py,apps/marketplace/views_developer_platform.py,func,csrf_protect | login_required | require_POST,,,,1,0,0,0,0,,0,0
@@ -915,6 +928,8 @@ support/,support_request,apps/portal/urls.py,apps/portal/views_support.py,func,l
 support/quick-create/,support_quick_create,apps/portal/urls.py,apps/portal/views_support_quick.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
 api/v1/kb/search/,kb_search_inline,apps/portal/urls.py,apps/portal/views_support_quick.py,func,login_required,,,,1,0,0,0,0,,0,0
 api/v1/kb/offline-pack/,views_kb_offline.api_kb_offline_pack,apps/portal/urls.py,apps/portal/views_kb_offline.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
+api/operational-health.json,tenant_operational_health_json,apps/portal/urls.py,apps/schools/views_tenant_health_api.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
+api/operational-health/stream/,TenantHealthStreamView.as_view,apps/portal/urls.py,apps/schools/views_tenant_health_api.py,class,login_required,,View,,1,0,0,0,0,,0,0
 offline/sync-queue/,offline_sync_queue,apps/portal/urls.py,apps/portal/views_offline_sync.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0
 offline/conflicts/,offline_sync_conflicts,apps/portal/urls.py,apps/portal/views_offline_sync.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0
 api/offline/enqueue/,api_offline_enqueue,apps/portal/urls.py,apps/portal/views_offline_sync.py,func,login_required | require_http_methods(['POST']),,,,1,0,0,0,0,,0,0
@@ -1040,6 +1055,9 @@ api/wizards/ai/recommend/,WizardAIRecommendView.as_view,apps/setup_studio/urls.p
 super/wizards/activation-dashboard/,WizardActivationDashboardView.as_view,apps/setup_studio/urls.py,apps/setup_studio/views_activation_dashboard.py,class,staff_member_required,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
 api/wizards/search/,WizardSearchAPIView.as_view,apps/setup_studio/urls.py,apps/setup_studio/views_activation_dashboard.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
 api/wizards/cockpit-preset/,BulkPromoteCockpitPresetAPIView.as_view,apps/setup_studio/urls.py,apps/setup_studio/views_activation_dashboard.py,class,staff_member_required,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0
+api/setup-studio/blockers/,api_blockers,apps/setup_studio/urls.py,apps/setup_studio/views_zero_friction.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
+api/setup-studio/payload/,api_zero_friction_payload,apps/setup_studio/urls.py,apps/setup_studio/views_zero_friction.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
+api/setup-studio/recommended/,api_recommended_setup,apps/setup_studio/urls.py,apps/setup_studio/views_zero_friction.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
 customizer/,legacy_customizer_redirect,apps/siteconfig/urls.py,,,,,,,0,0,0,0,0,,0,1
 customizer/clear-preview/,legacy_customizer_clear_preview_redirect,apps/siteconfig/urls.py,,,,,,,0,0,0,0,0,,0,1
 maintenance/,maintenance_view,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
@@ -1288,6 +1306,9 @@ compliance/,manager_legacy_surface_redirect,config/manager_urls.py,,,,,,,0,0,0,0
 compliance/<path:remaining>,manager_legacy_surface_redirect,config/manager_urls.py,,,,,,,0,0,0,0,0,,0,1
 payroll/,manager_legacy_surface_redirect,config/manager_urls.py,,,,,,,0,0,0,0,0,,0,1
 payroll/<path:remaining>,manager_legacy_surface_redirect,config/manager_urls.py,,,,,,,0,0,0,0,0,,0,1
+api/tour-steps/public/,tour_steps_public_api,config/manager_urls.py,apps/siteconfig/views_tour.py,func,require_GET,,,,0,0,0,0,0,,1,0
+demo/,redirect_marketing_demo_to_public,config/manager_urls.py,,,,,,,0,0,0,0,0,,0,1
+resources/product-tour/,redirect_marketing_product_tour_to_public,config/manager_urls.py,,,,,,,0,0,0,0,0,,0,1
 privacy/,marketing_page,config/manager_urls.py,apps/schools/marketing_views.py,func,require_GET,,,,0,0,0,0,0,,1,0
 terms/,marketing_page,config/manager_urls.py,apps/schools/marketing_views.py,func,require_GET,,,,0,0,0,0,0,,1,0
 cookie-policy/,marketing_page,config/manager_urls.py,apps/schools/marketing_views.py,func,require_GET,,,,0,0,0,0,0,,1,0
@@ -1521,14 +1542,14 @@ terms/,marketing_page,config/urls.py,apps/schools/marketing_views.py,func,requir
 cookie-policy/,marketing_page,config/urls.py,apps/schools/marketing_views.py,func,require_GET,,,,0,0,0,0,0,,1,0
 solutions/<str:topic_slug>/,topical_marketing_landing,config/urls.py,apps/schools/marketing_views.py,func,require_GET,,,,0,0,0,0,0,,1,0
 verify-signup/resend/,resend_signup_verification,config/urls.py,apps/schools/signup_views.py,func,"never_cache | require_http_methods(['GET', 'POST'])",,,,0,0,0,0,0,,1,0
+signup/slug-check/,signup_slug_check,config/urls.py,apps/schools/signup_views.py,func,never_cache | require_GET | ratelimit,,,,0,0,0,0,0,,1,0
+signup/slug-suggest/,signup_slug_suggest,config/urls.py,apps/schools/signup_views.py,func,never_cache | require_GET | ratelimit,,,,0,0,0,0,0,,1,0
 <str:language_code>/<str:country_code>/,regional_marketing_landing,config/urls.py,apps/schools/marketing_views.py,func,require_GET,,,,0,0,0,0,0,,1,0
 setup-studio/,onboarding_wizard,config/urls.py,apps/schools/signup_views.py,func,"require_http_methods(['GET', 'POST'])",,,,0,0,0,0,0,,1,0
 onboard/,onboarding_wizard,config/urls.py,apps/schools/signup_views.py,func,"require_http_methods(['GET', 'POST'])",,,,0,0,0,0,0,,1,0
 onboard/migrate/,onboard_migration_handoff,config/urls.py,apps/schools/signup_views.py,func,require_GET,,,,1,0,0,1,0,,0,0
 onboard/migrate/start/,onboard_migration_start,config/urls.py,apps/schools/signup_views.py,func,require_POST,,,,1,0,0,1,0,,0,0
 signup/,signup_school,config/urls.py,apps/schools/signup_views.py,func,"require_http_methods(['GET', 'POST'])",,,,0,0,0,0,0,,1,0
-signup/slug-check/,signup_slug_check,config/urls.py,apps/schools/signup_views.py,func,never_cache | require_GET | ratelimit,,,,0,0,0,0,0,,1,0
-signup/slug-suggest/,signup_slug_suggest,config/urls.py,apps/schools/signup_views.py,func,never_cache | require_GET | ratelimit,,,,0,0,0,0,0,,1,0
 verify-signup/,verify_signup,config/urls.py,apps/schools/signup_views.py,func,,,,,0,0,0,0,0,,1,0
 accept-invite/,accept_school_invite,config/urls.py,apps/schools/signup_views.py,func,never_cache | require_GET,,,,0,0,0,0,0,,1,0
 api/trial/,api_trial_school,config/urls.py,apps/schools/signup_views.py,func,require_POST,,,,0,0,0,0,0,,1,0

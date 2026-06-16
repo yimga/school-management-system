@@ -149,7 +149,10 @@ def _compute_data_driven_onboarding_steps(
         from apps.schools.models import SchoolDomain
 
         has_domain = SchoolDomain.objects.filter(school_id=school.id).exists()
-        ccc = _reverse_tenant("siteconfig:console_domains_hub")
+        # Tenant-facing domains wizard (@login_required). NOT
+        # siteconfig:console_domains_hub — that hub is @staff_member_required
+        # (operator console) so a tenant admin clicking it gets bounced.
+        ccc = _reverse_tenant("siteconfig:custom_domain_wizard")
         add_row("ccc", "Domains / email routing (CCC)", has_domain, ccc)
     except Exception as ex:  # noqa: BLE001
         logger.debug("onboarding ccc: %s", ex)
@@ -197,7 +200,9 @@ def _compute_data_driven_onboarding_steps(
         )
         cfg_link = _reverse_tenant("siteconfig:tenant_runtime_configuration_hub")
         if not cfg_link:
-            cfg_link = _reverse_tenant("siteconfig:console_domains_hub")
+            # Fallback must stay tenant-facing: console_domains_hub is
+            # @staff_member_required, so it would bounce a tenant admin.
+            cfg_link = _reverse_tenant("siteconfig:custom_domain_wizard")
         add_row(
             "guided_configuration",
             "Tenant settings & runtime (guided setup)",

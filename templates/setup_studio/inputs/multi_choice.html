@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n wizard_extras %}
 <fieldset class="rmc-wizard-field">
   <legend class="rmc-wizard-field__label">{{ step_label }}</legend>
   {% if step_description %}<p class="rmc-wizard-field__helper">{{ step_description }}</p>{% endif %}
@@ -6,7 +6,7 @@
     <label class="rmc-wizard-option-card{% if option.value in prior_answer.value %} rmc-wizard-option-card--selected{% endif %}">
       <input type="checkbox" name="value" value="{{ option.value }}"
              {% if option.value in prior_answer.value %}checked{% endif %}>
-      <span>{{ option.label_token|default:option.value }}</span>
+      <span>{{ option.label_token|default:option.value|humanize_wizard_token }}</span>
     </label>
   {% empty %}
     <p class="rmc-wizard-empty">{% trans "No options available." %}</p>

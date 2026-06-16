@@ -48,6 +48,19 @@ from apps.platform_runtime.views_local_ai import (
     local_voice_synthesize_view,
     local_voice_transcribe_view,
 )
+from apps.platform_runtime.views_remote_support import (
+    grant_consent as remote_support_grant_consent,
+    operator_accept as remote_support_operator_accept,
+    operator_end as remote_support_operator_end,
+    request_help as remote_support_request_help,
+)
+from apps.platform_runtime.views_remote_support_reverse import (
+    ack_intent as remote_support_ack_intent,
+    config_version as remote_support_config_version,
+    heartbeat as remote_support_heartbeat,
+    pending_intents as remote_support_pending_intents,
+    queue_intent as remote_support_queue_intent,
+)
 
 urlpatterns = [
     path(  # rbac-allow: authenticated-tenant-local-browser-ai-config
@@ -203,5 +216,55 @@ urlpatterns = [
         "newsletter/unsubscribe/<str:token>/",
         newsletter_unsubscribe_view,
         name="newsletter_unsubscribe",
+    ),
+    # Remote Support — online loop (v4.03.x). Tenant requests + consent;
+    # operator accept/end gated by operator_can_remote_support (scope + tenant
+    # assignment). See apps/platform_runtime/remote_support_service.py.
+    path(  # rbac-allow: auth-gated-via-login_required-tenant-user-requests-own-school-support
+        "remote-support/request/",
+        remote_support_request_help,
+        name="remote_support_request",
+    ),
+    path(  # rbac-allow: auth-gated-login_required-requester-or-school-admin-consent-checked-in-view
+        "remote-support/<uuid:session_id>/consent/",
+        remote_support_grant_consent,
+        name="remote_support_consent",
+    ),
+    path(  # rbac-allow: gated-via-operator_can_remote_support-scope-plus-tenant-assignment
+        "remote-support/<uuid:session_id>/accept/",
+        remote_support_operator_accept,
+        name="remote_support_accept",
+    ),
+    path(  # rbac-allow: gated-via-operator_can_remote_support-scope-plus-tenant-assignment
+        "remote-support/<uuid:session_id>/end/",
+        remote_support_operator_end,
+        name="remote_support_end",
+    ),
+    # Remote Support — offline reverse channel (P4). Operator queues intents;
+    # tenant/hub polls + acks + heartbeats on reconnect.
+    path(  # rbac-allow: gated-via-operator_can_remote_support-scope-plus-tenant-assignment
+        "remote-support/operator-intents/queue/",
+        remote_support_queue_intent,
+        name="remote_support_queue_intent",
+    ),
+    path(  # rbac-allow: auth-gated-login_required-tenant-polls-own-school-intents-via-request-school
+        "remote-support/operator-intents/pending/",
+        remote_support_pending_intents,
+        name="remote_support_pending_intents",
+    ),
+    path(  # rbac-allow: auth-gated-login_required-tenant-acks-own-school-intent-checked-in-view
+        "remote-support/operator-intents/<uuid:intent_id>/ack/",
+        remote_support_ack_intent,
+        name="remote_support_ack_intent",
+    ),
+    path(  # rbac-allow: auth-gated-login_required-tenant-heartbeat-for-request-school
+        "remote-support/heartbeat/",
+        remote_support_heartbeat,
+        name="remote_support_heartbeat",
+    ),
+    path(  # rbac-allow: auth-gated-login_required-tenant-config-version-for-request-school
+        "remote-support/config-version/",
+        remote_support_config_version,
+        name="remote_support_config_version",
     ),
 ]

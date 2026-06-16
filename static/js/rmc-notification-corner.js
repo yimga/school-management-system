@@ -8,6 +8,10 @@
   var CORNER_ID = 'rmc-notification-corner';
   var DEFAULT_DURATION = 120000;
   var FADE_MS = 2000;
+  // Hard ceiling on simultaneously-stacked toasts. A backstop against any
+  // producer that emits a flood (the "Quarterly security review due" storm):
+  // even if de-dup is somehow bypassed, the stack can never exceed this.
+  var MAX_CARDS = 4;
 
   function getContainer() {
     var el = document.getElementById(CORNER_ID);
@@ -50,24 +54,33 @@
   function showCornerNotification(opts) {
     opts = opts || {};
     var container = getContainer();
-    // Idempotent per notification id: boot() runs on both DOMContentLoaded and every
-    // rmc:corner-notifications event, so without this guard a re-dispatch stacks another
-    // copy of the same toast (the "Quarterly security review due" / "portal is ready"
-    // storm). If this id is already on screen, do not append a duplicate.
-    if (opts.id) {
-      var wantId = String(opts.id);
+    // De-dup on a STABLE logical key (dedup_key), falling back to the row id.
+    // boot() runs on DOMContentLoaded and on every rmc:corner-notifications
+    // event, so without this a re-dispatch stacks another copy of the same toast
+    // (the "Quarterly security review due" / "portal is ready" storm). Using the
+    // stable key (not just the pk) means even duplicate server rows with
+    // different pks collapse to one card.
+    var dedupKey = opts.dedup_key || opts.id;
+    if (dedupKey) {
+      var wantKey = String(dedupKey);
       var kids = container.children;
       for (var k = 0; k < kids.length; k++) {
-        if (kids[k].dataset && kids[k].dataset.notificationId === wantId) {
+        var ds = kids[k].dataset || {};
+        if (ds.dedupKey === wantKey || ds.notificationId === wantKey) {
           return null;
         }
       }
+    }
+    // Hard backstop: never let the stack grow without bound.
+    if (container.children.length >= MAX_CARDS) {
+      return null;
     }
     var duration = typeof opts.duration_ms === 'number' ? opts.duration_ms : DEFAULT_DURATION;
     var node = document.createElement('div');
     node.className = 'rmc-corner-notification rmc-corner-notification--' + (opts.type || 'info');
     node.setAttribute('role', 'alert');
     node.dataset.notificationId = opts.id || '';
+    node.dataset.dedupKey = String(opts.dedup_key || opts.id || '');
 
     var progress = document.createElement('div');
     progress.className = 'rmc-corner-notification__progress';

@@ -211,6 +211,50 @@ def system_actions_context(request):
         return {"rmc_system_actions": [], "rmc_system_actions_available": False}
 
 
+def remote_support_context(request):
+    """Expose the tenant's open remote-support session for the consent banner.
+
+    Drives ``partials/_remote_support_banner.html``: shows "an operator is
+    assisting" transparency + the consent button. One indexed query, guarded.
+    RemoteSupportSession is a SHARED (public-schema) model so it reads cleanly
+    from tenant context.
+    """
+    user = getattr(request, "user", None)
+    if not user or not getattr(user, "is_authenticated", False):
+        return {"rmc_remote_support": None}
+    school = getattr(request, "school", None)
+    if school is None:
+        return {"rmc_remote_support": None}
+    try:
+        from apps.platform_runtime.models_remote_support import (
+            RemoteSupportSession,
+        )
+
+        session = (
+            RemoteSupportSession.objects.filter(
+                school_id=school.pk,
+                status__in=RemoteSupportSession.OPEN_STATUSES,
+            )
+            .order_by("-created_at")
+            .first()
+        )
+    except Exception:  # noqa: BLE001
+        return {"rmc_remote_support": None}
+    if session is None:
+        return {"rmc_remote_support": None}
+    return {
+        "rmc_remote_support": {
+            "session_id": str(session.id),
+            "status": session.status,
+            "needs_consent": (
+                session.status == RemoteSupportSession.Status.ACCEPTED
+                and not session.consent_satisfied
+            ),
+            "is_active": session.status == RemoteSupportSession.Status.ACTIVE,
+        }
+    }
+
+
 def offline_sync_bar_context(request):
     """
     Lightweight queue counts for the offline status bar (``offline_sync_status_bar.html``).

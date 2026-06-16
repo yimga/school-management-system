@@ -61,6 +61,11 @@ from .super_views_migration import (
     super_migration_rollback,
 )
 from .super_views_provisioning import api_create_school
+from .super_views_remote_support import (
+    super_remote_support_accept,
+    super_remote_support_end,
+    super_remote_support_sessions,
+)
 from apps.lifecycle.views import LifecycleTimelineView
 from apps.lifecycle.views_bulk import BulkSchoolCreateView
 from apps.lifecycle.views_clone import CloneSchoolView
@@ -348,6 +353,23 @@ urlpatterns = [
         "offboarding/",
         require_super_access_with_host(super_views.super_offboarding_queue),
         name="offboarding_queue",
+    ),
+    # Operator remote-support actions (same-host on /super/; closes the
+    # cross-host gap). Per-tenant scope enforced in-view by operator_can_remote_support.
+    path(
+        "remote-support/sessions.json",
+        require_super_access_with_host(super_remote_support_sessions),
+        name="remote_support_sessions",
+    ),
+    path(
+        "remote-support/<uuid:session_id>/accept/",
+        require_super_access_with_host(super_remote_support_accept),
+        name="remote_support_accept",
+    ),
+    path(
+        "remote-support/<uuid:session_id>/end/",
+        require_super_access_with_host(super_remote_support_end),
+        name="remote_support_end",
     ),
     path(
         "api/offboarding/run-scheduled/",

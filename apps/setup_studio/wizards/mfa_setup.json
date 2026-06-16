@@ -2,8 +2,8 @@
   "wizard_key": "mfa_setup",
   "version": 1,
   "audience": ["tenant_admin", "operator", "teacher", "parent", "student", "staff"],
-  "label_token": "wizards.mfa_setup.label",
-  "description_token": "wizards.mfa_setup.description",
+  "label_token": "Set up two-factor authentication",
+  "description_token": "Add a second step at sign-in so a stolen password alone can't open this account.",
   "icon_class": "rmc-icon-shield-lock",
   "estimated_minutes": 4,
   "gates": {},
@@ -11,8 +11,10 @@
   "steps": [
     {
       "key": "choose_channel",
+      "label_token": "Choose your verification method",
+      "description_token": "Pick how you'll confirm it's you when signing in.",
       "input_type": "single_choice",
-      "options_resolver": null,
+      "options_resolver": "apps.setup_studio.wizard_resolvers_operator::list_mfa_channel_choices",
       "branches": {
         "totp": "scan_qr",
         "sms": "sms_verify",
@@ -28,6 +30,8 @@
     },
     {
       "key": "scan_qr",
+      "label_token": "Scan the QR code",
+      "description_token": "Open your authenticator app, scan the code, then enter the 6-digit code it shows.",
       "input_type": "text",
       "validation": {
         "required": true,
@@ -42,6 +46,8 @@
     },
     {
       "key": "sms_verify",
+      "label_token": "Verify your phone",
+      "description_token": "Enter the 6-digit code we just texted to your phone.",
       "input_type": "text",
       "validation": {
         "required": true,
@@ -56,6 +62,8 @@
     },
     {
       "key": "passkey_register",
+      "label_token": "Register your passkey",
+      "description_token": "Use your device's fingerprint, face, or security key to create a passkey.",
       "input_type": "boolean",
       "branches": {"default": "save_recovery_codes"},
       "validation": {"required": true},
@@ -67,6 +75,8 @@
     },
     {
       "key": "save_recovery_codes",
+      "label_token": "Save your recovery codes",
+      "description_token": "Store these one-time codes somewhere safe — they get you back in if you lose your device.",
       "input_type": "boolean",
       "validation": {"required": true},
       "persistence": {

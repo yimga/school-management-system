@@ -91,3 +91,8 @@ LIVE_STAGES = frozenset(
 def _settings_school_field() -> str:
     # Defensive resolver: settings.AUTH_USER_MODEL is owned elsewhere.
     return getattr(settings, "AUTH_USER_MODEL", "auth.User")
+
+
+# Resumable, signed tenant-purge record (owner-decision b). Separate module so
+# the purge state machine doesn't entangle the append-only lifecycle timeline.
+from apps.lifecycle.models_purge import PurgeOperation  # noqa: E402,F401

@@ -1,9 +1,9 @@
-{% load i18n %}
+{% load i18n wizard_extras %}
 <nav class="rmc-wizard-stepper" aria-label="{% trans 'Wizard progress' %}">
   {% for s in wizard.steps %}
     <span class="rmc-wizard-stepper__item{% if s.key in completed_keys %} rmc-wizard-stepper__item--done{% endif %}{% if s.key == step.key %} rmc-wizard-stepper__item--active{% endif %}"
           aria-current="{% if s.key == step.key %}step{% endif %}">
-      {{ forloop.counter }}. {{ s.label_token }}
+      {{ forloop.counter }}. {{ s.label_token|humanize_wizard_token }}
     </span>
     {% if not forloop.last %}<span class="rmc-wizard-stepper__bar" aria-hidden="true"></span>{% endif %}
   {% endfor %}

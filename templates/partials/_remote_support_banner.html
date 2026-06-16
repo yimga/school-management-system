@@ -1,0 +1,41 @@
+{% load i18n %}
+{% comment %}
+Remote Support — consent banner + poller config. Driven by
+remote_support_context (rmc_remote_support) and static/js/rmc-remote-support.js.
+The hidden config element carries the reverse()'d endpoint URLs so the JS never
+hardcodes a tenant-mount path. Browser-unverified presentation — flagged for
+owner deploy verification. Uses Bootstrap utility classes + data-* hooks only
+(no new rmc- classes, no inline styles).
+{% endcomment %}
+<div id="rmc-remote-support-config"
+     data-heartbeat-url="{% url 'platform_runtime:remote_support_heartbeat' %}"
+     data-pending-url="{% url 'platform_runtime:remote_support_pending_intents' %}"
+     data-config-version-url="{% url 'platform_runtime:remote_support_config_version' %}"
+     data-request-url="{% url 'platform_runtime:remote_support_request' %}"
+     data-ack-url-template="{% url 'platform_runtime:remote_support_ack_intent' '00000000-0000-0000-0000-000000000000' %}"
+     data-consent-url-template="{% url 'platform_runtime:remote_support_consent' '00000000-0000-0000-0000-000000000000' %}"
+     hidden></div>
+
+{% if rmc_remote_support %}
+<div class="alert {% if rmc_remote_support.is_active %}alert-warning{% else %}alert-info{% endif %} d-flex align-items-center justify-content-between gap-2 mb-2"
+     role="status"
+     data-rmc-remote-support-banner
+     data-session-id="{{ rmc_remote_support.session_id }}">
+  <span>
+    {% if rmc_remote_support.is_active %}
+      {% trans "A RunMyCampus operator is currently assisting with your account." %}
+    {% elif rmc_remote_support.needs_consent %}
+      {% trans "An operator is ready to help. Grant consent to let them begin." %}
+    {% else %}
+      {% trans "Your support request has been received — an operator will respond." %}
+    {% endif %}
+  </span>
+  {% if rmc_remote_support.needs_consent %}
+  <button type="button" class="btn btn-sm btn-primary flex-shrink-0"
+          data-rmc-remote-support-consent
+          data-session-id="{{ rmc_remote_support.session_id }}">
+    {% trans "Grant consent" %}
+  </button>
+  {% endif %}
+</div>
+{% endif %}

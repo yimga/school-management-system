@@ -76,7 +76,21 @@ def clear_corner_snooze(request) -> None:
 
 
 def ensure_quarterly_posture_notification(user, school=None):
-    """Create or return unread quarterly posture notification for inbox + corner."""
+    """Return THE single unread quarterly posture notification (idempotent).
+
+    This runs from a context processor on *every* authenticated request. The
+    previous check-then-create was not atomic, so the new-tenant request herd
+    (multiple concurrent dashboard pollers, all seeing zero rows) created dozens
+    of duplicate unread rows — each with a different pk, which defeated the
+    corner-toast's id-based de-dup and produced the "Quarterly security review
+    due" toast storm.
+
+    The fix is idempotent AND self-healing: if duplicates already exist we keep
+    the newest and mark the rest read (collapsing the storm on the next render),
+    and creation goes through ``get_or_create`` keyed on the unread row so the
+    race window is closed. Steady state is a single SELECT returning one stable
+    row, so the toast's de-dup works.
+    """
     if not user or not getattr(user, "pk", None):
         return None
     if not is_security_posture_review_due(user, school):
@@ -85,27 +99,39 @@ def ensure_quarterly_posture_notification(user, school=None):
         from apps.finance.models import Notification
 
         review_url = reverse("accounts:security_posture_review")
-        existing = (
+        unread = list(
             Notification.objects.filter(
                 recipient=user,
                 title=POSTURE_NOTIFICATION_TITLE,
                 is_read=False,
-            )
-            .order_by("-created_at")
-            .first()
+            ).order_by("-created_at", "-pk")[:50]
         )
-        if existing:
-            return existing
-        return Notification.objects.create(
+        if len(unread) == 1:
+            return unread[0]
+        if len(unread) > 1:
+            keeper = unread[0]
+            dupe_ids = [n.pk for n in unread[1:]]
+            Notification.objects.filter(pk__in=dupe_ids).update(is_read=True)
+            logger.info(
+                "collapsed %d duplicate posture notifications for user=%s",
+                len(dupe_ids),
+                user.pk,
+            )
+            return keeper
+        note, _created = Notification.objects.get_or_create(
             recipient=user,
             title=POSTURE_NOTIFICATION_TITLE,
-            message=_(
-                "Confirm your password, MFA, and contact details for this quarter."
-            ),
-            link=review_url,
-            severity=Notification.Severity.WARNING,
-            created_by=None,
+            is_read=False,
+            defaults={
+                "message": _(
+                    "Confirm your password, MFA, and contact details for this quarter."
+                ),
+                "link": review_url,
+                "severity": Notification.Severity.WARNING,
+                "created_by": None,
+            },
         )
+        return note
     except Exception:  # noqa: BLE001
         logger.debug("ensure_quarterly_posture_notification failed", exc_info=True)
         return None
@@ -115,6 +141,9 @@ def build_corner_notification_payload(notification, *, review_url: str) -> dict[
     """Serializable payload for rmc-notification-corner.js."""
     return {
         "id": str(notification.pk),
+        # Stable logical key: even if a stray duplicate row slips through with a
+        # different pk, the corner toast de-dups on this so it never stacks.
+        "dedup_key": "security-posture-review",
         "title": notification.title,
         "message": notification.message,
         "type": "warning",

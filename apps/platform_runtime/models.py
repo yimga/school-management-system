@@ -2191,9 +2191,15 @@ class PilotDefect(models.Model):
 # Wave D — G3: register the rollout audit models on `platform_runtime`.
 from .models_rollout import SchemaRollout, SchemaRolloutAlias  # noqa: E402,F401
 from .models_operator_identity import (  # noqa: E402,F401
+    OperatorTenantAssignment,
     PlatformOperatorInvite,
     PlatformOperatorProfile,
     PlatformOperatorPromotionRequest,
+)
+from .models_remote_support import (  # noqa: E402,F401
+    OperatorIntent,
+    RemoteSupportSession,
+    TenantConnectivityHeartbeat,
 )
 from .models_workflow_run import (  # noqa: E402,F401
     WorkflowRun,
