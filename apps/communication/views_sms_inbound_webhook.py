@@ -131,8 +131,13 @@ def _signature_ok(request: HttpRequest) -> bool:
     if require_twilio or secret_configured:
         logger.info("communication.sms_webhook.auth_rejected")
         return False
-    # No auth mechanism configured (dev) — accept.
-    return True
+    # No auth mechanism configured. Accept ONLY in local dev (DEBUG). In production
+    # fail closed: an unauthenticated inbound webhook lets anyone forge SMS consent
+    # (STOP=withdraw / START=grant) for any phone number. (2026-06-17 fail-open seal.)
+    if getattr(settings, "DEBUG", False):
+        return True
+    logger.warning("communication.sms_webhook.rejected_no_auth_configured")
+    return False
 
 
 def _inbound_fields(request: HttpRequest) -> tuple[str, str, str]:

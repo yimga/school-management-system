@@ -82,7 +82,11 @@ def restore(school, *, actor=None) -> "object":
             raise ValueError("school is already purged — restore is irreversible past PURGED")
         if school.deleted_at is not None:
             school.deleted_at = None
-            school.save(update_fields=["deleted_at"])
+            # mark_deleted() deactivates the school alongside deleted_at; restore must
+            # re-activate it or the "restored" tenant stays unroutable/dark (every
+            # tenant-host resolution path filters is_active=True).
+            school.is_active = True
+            school.save(update_fields=["deleted_at", "is_active"])
         record_stage(
             school,
             SchoolLifecycleStage.Stage.OFFBOARDING_CANCELLED,

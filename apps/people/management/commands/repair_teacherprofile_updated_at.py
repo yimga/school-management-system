@@ -1,10 +1,13 @@
 """
-Heal missing people_teacherprofile.updated_at on public + every tenant schema.
+Heal drifted people_* columns on public + every tenant schema.
 
 django-tenants applies TENANT_APPS only via migrate_schemas --tenant. Legacy
 people_* tables left in the public schema never receive those migrations, which
 breaks manager.runmycampus.com views that resolve teacher_profile on the public
-connection (500: column does not exist).
+connection (500: column does not exist). The same drift family covers
+``client_offline_id`` (migration 0057/0059), not just ``updated_at`` — so this
+command runs the full ``ensure_people_schema_current`` repair bundle, healing
+BOTH ``updated_at`` and the offline-sync columns (incl. ``client_offline_id``).
 
 Run automatically from render_predeploy.sh after migrate_schemas.
 """
@@ -15,13 +18,14 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import connection
 
-from apps.people.schema_repair import ensure_teacherprofile_updated_at_column
+from apps.people.schema_repair import ensure_people_schema_current
 
 
 class Command(BaseCommand):
     help = (
-        "Add people_teacherprofile.updated_at when the table exists but the "
-        "column is missing (public legacy + tenant schemas)."
+        "Heal drifted people_* columns (updated_at + offline-sync columns incl. "
+        "client_offline_id) when the table exists but a column is missing "
+        "(public legacy + tenant schemas)."
     )
 
     def add_arguments(self, parser):
@@ -65,16 +69,17 @@ class Command(BaseCommand):
                 else _nullcontext()
             )
             with ctx:
-                if ensure_teacherprofile_updated_at_column():
+                if ensure_people_schema_current():
                     repaired += 1
                     self.stdout.write(
                         self.style.SUCCESS(
-                            f"  {schema_name}: added people_teacherprofile.updated_at"
+                            f"  {schema_name}: healed people_* columns "
+                            "(updated_at / offline-sync)"
                         )
                     )
                 else:
                     self.stdout.write(
-                        f"  {schema_name}: ok (column present or table absent)"
+                        f"  {schema_name}: ok (columns present or tables absent)"
                     )
 
         self.stdout.write(
