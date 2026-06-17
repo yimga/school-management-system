@@ -245,6 +245,47 @@ def _backend_flags_for_sidebar(request, site):
         return getattr(site, "backend_feature_flags", None) or {}
 
 
+def _dedupe_sidebar_items(items):
+    """Collapse duplicate nav rows. Pure (list[dict] -> list[dict]); order-stable.
+
+    Three guards, in order of strength:
+      1. ``id`` — same item id added by two code paths.
+      2. ``(label, url)`` — pinned-order / re-emitted identical rows.
+      3. NORMALIZED ``label`` — the final backstop. The same surface is often
+         reachable via two route names (e.g. ``studio_os:experience`` vs
+         ``siteconfig:theme_experience_hub``), so a second item carries an
+         identical visible label but a DIFFERENT id AND url — invisible to the
+         first two guards. This is what produced the live double-rows for
+         "Theme & Experience" / "District & LMS interop" / "Class Ranking".
+
+    A nav rail must never show the same visible label twice; the first occurrence
+    (the canonical static entry, appended earliest) wins.
+    """
+    deduped = []
+    seen_item_ids = set()
+    seen_label_urls = set()
+    seen_labels = set()
+    for item in items:
+        item_id = item.get("id")
+        if item_id and item_id in seen_item_ids:
+            continue
+        raw_label = item.get("label") or ""
+        label_url = (raw_label, item.get("url") or "")
+        if label_url[1] and label_url in seen_label_urls:
+            continue
+        norm_label = " ".join(raw_label.split()).casefold()
+        if norm_label and norm_label in seen_labels:
+            continue
+        if item_id:
+            seen_item_ids.add(item_id)
+        if label_url[1]:
+            seen_label_urls.add(label_url)
+        if norm_label:
+            seen_labels.add(norm_label)
+        deduped.append(item)
+    return deduped
+
+
 def build_portal_sidebar_items(request, site):
     """
     Return a list of sidebar items {id, label, url, icon, section, badge} for the current user.
@@ -1477,23 +1518,7 @@ def build_portal_sidebar_items(request, site):
         remaining = [x for x in items if x["id"] not in ordered_ids]
         items = [id_to_item[i] for i in ordered_ids] + remaining
 
-    # Global de-duplication: id first, then (label, url) for pinned-order duplicates.
-    deduped = []
-    seen_item_ids = set()
-    seen_label_urls = set()
-    for item in items:
-        item_id = item.get("id")
-        if item_id and item_id in seen_item_ids:
-            continue
-        label_url = (item.get("label") or "", item.get("url") or "")
-        if label_url[1] and label_url in seen_label_urls:
-            continue
-        if item_id:
-            seen_item_ids.add(item_id)
-        if label_url[1]:
-            seen_label_urls.add(label_url)
-        deduped.append(item)
-    items = deduped
+    items = _dedupe_sidebar_items(items)
 
     # Multi-tenant: hide items for modules the school has not enabled.
     # Prefer request.tenant_runtime (entitlements.modules, flags) when available; else Policy Registry / is_feature_enabled.
@@ -1660,9 +1685,16 @@ def build_portal_sidebar_baseline(request, site=None):
     user = getattr(request, "user", None)
     if user is None or not getattr(user, "is_authenticated", False):
         return []
-    from apps.accounts.portal_roles import get_nav_portal_role
+    # Role resolution must never break the resilient baseline. get_nav_portal_role
+    # reaches into request.session, which a degenerate / middleware-bypassing
+    # request may lack — fall back to the user's own role so the safety net still
+    # delivers a gated nav instead of raising (the function's "NEVER raises" contract).
+    try:
+        from apps.accounts.portal_roles import get_nav_portal_role
 
-    nav_role = get_nav_portal_role(request) or (getattr(user, "role", "") or "").upper()
+        nav_role = get_nav_portal_role(request) or (getattr(user, "role", "") or "").upper()
+    except Exception:  # noqa: BLE001 — baseline degrades to user.role, never raises
+        nav_role = (getattr(user, "role", "") or "").upper()
     staff_privileged = bool(getattr(user, "is_staff", False)) or bool(
         getattr(user, "is_superuser", False)
     )

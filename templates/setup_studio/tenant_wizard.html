@@ -6,6 +6,7 @@
 {% block extrastyle %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/rmc-wizard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-wizard-assist.css' %}">
 {% endblock %}
 
 {% comment %} v4.00.12: opt-in viewport-lock adoption for the wizard shell.
@@ -64,6 +65,7 @@
 {% block extra_scripts %}
   {{ block.super }}
   <script src="{% static 'js/rmc-wizard-state-cache.js' %}" nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'js/_pages/rmc-wizard-step-assist.js' %}" defer nonce="{{ csp_nonce }}"></script>
   {% if offline_intake_enabled %}
   <script src="{% static 'js/vendor/dexie.min.js' %}" nonce="{{ csp_nonce }}"></script>
   <script src="{% static 'js/offline-db.js' %}" nonce="{{ csp_nonce }}"></script>

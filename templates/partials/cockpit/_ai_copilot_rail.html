@@ -399,10 +399,24 @@
       </div>
     </div>
   </div>
-  {% url 'studio_os:copilot_rail_context' as copilot_rail_context_url %}
-  {% url 'studio_os:copilot_rail_insights' as copilot_rail_insights_url %}
-  {% url 'studio_os:copilot_rail_send' as copilot_rail_send_url %}
-  {% url 'studio_os:copilot_rail_send_stream' as copilot_rail_send_stream_url %}
+  {% comment %}
+    Host-correct endpoints. The manager control plane uses the studio_os routes;
+    tenant school workspaces use the portal counterparts (tenant-scoped, onboarding
+    aware). Hardcoding studio_os here left the rail's buttons inert on tenant hosts
+    because those route names don't reverse off the manager urlconf. The `as` form
+    fails soft to an empty string, so a missing route never raises.
+  {% endcomment %}
+  {% if request.public_host_kind == 'manager' %}
+    {% url 'studio_os:copilot_rail_context' as copilot_rail_context_url %}
+    {% url 'studio_os:copilot_rail_insights' as copilot_rail_insights_url %}
+    {% url 'studio_os:copilot_rail_send' as copilot_rail_send_url %}
+    {% url 'studio_os:copilot_rail_send_stream' as copilot_rail_send_stream_url %}
+  {% else %}
+    {% url 'portal:copilot_rail_context' as copilot_rail_context_url %}
+    {% url 'portal:copilot_rail_insights' as copilot_rail_insights_url %}
+    {% url 'portal:copilot_rail_send' as copilot_rail_send_url %}
+    {% url 'portal:copilot_rail_send_stream' as copilot_rail_send_stream_url %}
+  {% endif %}
   <span hidden data-rmc-copilot-rail-endpoints
         data-context-url="{{ copilot_rail_context_url }}"
         data-insights-url="{{ copilot_rail_insights_url }}"

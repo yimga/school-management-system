@@ -151,6 +151,12 @@ from .views_partner_docs import partner_documentation_assistant
 from .views_runmycampus_guide import runmycampus_guide
 # v4.00.9: streaming AI gateway view for the rmcStreamMount progressive client.
 from .views_ai_stream import ai_stream_view
+from .views_copilot_rail import (
+    TenantCopilotRailContextView,
+    TenantCopilotRailInsightsView,
+    TenantCopilotRailSendStreamView,
+    TenantCopilotRailSendView,
+)
 # Agentic Phase-2: role-gated reversible mutating actions for the tenant.
 from .views_agentic import tenant_agentic_actions
 from .views_ai_line_admin import (
@@ -180,6 +186,12 @@ app_name = "portal"
 urlpatterns = [
     # v4.00.9: streaming AI gateway — SSE chunks for rmcStreamMount.
     path("ai/stream/", ai_stream_view, name="ai_stream"),
+    # Tenant copilot rail endpoints (host-correct counterpart to studio_os:copilot_rail_*).
+    # The shared rail template resolves these on tenant hosts so chat/insights work.
+    path("copilot/rail/context/", TenantCopilotRailContextView.as_view(), name="copilot_rail_context"),
+    path("copilot/rail/insights/", TenantCopilotRailInsightsView.as_view(), name="copilot_rail_insights"),
+    path("copilot/rail/send/", TenantCopilotRailSendView.as_view(), name="copilot_rail_send"),
+    path("copilot/rail/send-stream/", TenantCopilotRailSendStreamView.as_view(), name="copilot_rail_send_stream"),
     path("ai/agentic-actions/", tenant_agentic_actions, name="agentic_actions"),
     # v4.00.34: AI-line intent shortcuts editor + staff coverage dashboard.
     path("configure/ai-line-intents/", tenant_ai_line_intents_view, name="ai_line_intents"),

@@ -1,0 +1,84 @@
+/* Per-step wizard AI assist ("Ask about this step").
+   Lives in the wizard help rail; tokens-only so tenant brand + theme win. */
+
+.rmc-wizard-assist {
+  margin-block-start: var(--space-3);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--hairline);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.rmc-wizard-assist__title {
+  margin: 0;
+  font-size: var(--type-size-h3, 1.125rem);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.rmc-wizard-assist__title::before {
+  content: "\2728"; /* sparkles — AI affordance cue */
+}
+
+.rmc-wizard-assist__hint {
+  margin: 0;
+  font-size: var(--type-size-small, 0.8125rem);
+  color: var(--text-secondary);
+}
+
+.rmc-wizard-assist__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.rmc-wizard-assist__input {
+  width: 100%;
+  resize: vertical;
+  min-height: 2.5rem;
+  padding: var(--space-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-2, 10px);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.rmc-wizard-assist__input:focus-visible {
+  outline: 2px solid var(--brand-accent, var(--school-accent, currentColor));
+  outline-offset: 1px;
+}
+
+.rmc-wizard-assist__send {
+  align-self: flex-start;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--brand-accent, var(--school-accent, var(--hairline)));
+  border-radius: var(--radius-2, 10px);
+  background: var(--brand-accent, var(--school-accent, var(--surface-elevated)));
+  color: var(--text-on-accent, #fff); /* off-token-allow: text-on-brand-accent-fill-fallback */
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rmc-wizard-assist__send:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.rmc-wizard-assist__reply {
+  font-size: var(--type-size-small, 0.8125rem);
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-2, 10px);
+  padding: var(--space-2);
+  white-space: pre-wrap;
+}
+
+.rmc-wizard-assist__reply[data-busy] {
+  color: var(--text-secondary);
+  font-style: italic;
+}

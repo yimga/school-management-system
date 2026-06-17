@@ -11,5 +11,32 @@
       {% endfor %}
     </ul>
   {% endif %}
+
+  {% comment %}
+    Per-step AI assist. Reuses the working tenant copilot endpoint
+    (portal:copilot_rail_send) — the `as` form fails soft to an empty string on
+    operator hosts, where the assist JS then no-ops. The JS prepends the current
+    step's context so answers are scoped to "this step", distinct from the
+    general floating copilot rail.
+  {% endcomment %}
+  {% url 'portal:copilot_rail_send' as rmc_wizard_assist_endpoint %}
+  {% if rmc_wizard_assist_endpoint %}
+    <section class="rmc-wizard-assist" data-rmc-wizard-assist
+             data-endpoint="{{ rmc_wizard_assist_endpoint }}"
+             data-wizard="{{ wizard.wizard_key }}"
+             data-step="{{ step.key }}"
+             data-step-label="{{ step_label }}">
+      <h3 class="rmc-wizard-assist__title">{% trans "Ask about this step" %}</h3>
+      <p class="rmc-wizard-assist__hint">{% trans "Not sure what this does? Ask the assistant to explain it or how to fill it in." %}</p>
+      <form class="rmc-wizard-assist__form" data-rmc-wizard-assist-form autocomplete="off">
+        <label class="visually-hidden" for="rmc-wizard-assist-input">{% trans "Your question about this step" %}</label>
+        <textarea id="rmc-wizard-assist-input" class="rmc-wizard-assist__input" rows="2"
+                  data-rmc-wizard-assist-input
+                  placeholder="{% trans 'e.g. What does this step set up?' %}"></textarea>
+        <button type="submit" class="rmc-wizard-assist__send" data-rmc-wizard-assist-send>{% trans "Ask" %}</button>
+      </form>
+      <div class="rmc-wizard-assist__reply" data-rmc-wizard-assist-reply role="status" aria-live="polite" hidden></div>
+    </section>
+  {% endif %}
 </aside>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
