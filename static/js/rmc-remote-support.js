@@ -32,10 +32,11 @@
     });
   }
 
-  function postJSON(url, body) {
-    return post(url, body).then(function (r) {
-      return r && r.ok ? r.json() : null;
-    });
+  function isAuthReject(resp) {
+    // 401/403 is a PERMANENT verdict for this session — a user without the
+    // operator reverse-channel grant (e.g. a tenant admin) can never be
+    // authorized here, so retrying only storms a dead end.
+    return !!resp && (resp.status === 401 || resp.status === 403);
   }
 
   /* --- consent + request buttons ------------------------------------------ */
@@ -110,15 +111,40 @@
     }
     Promise.all([
       post(cfg.getAttribute("data-heartbeat-url"), "pending_sync=" + pendingSync),
-      postJSON(cfg.getAttribute("data-pending-url")),
+      post(cfg.getAttribute("data-pending-url")),
     ])
       .then(function (res) {
-        var data = res[1];
-        if (data && data.intents) {
-          data.intents.forEach(applyIntent);
+        var hb = res[0];
+        var pending = res[1];
+        // fetch() RESOLVES on 4xx, so the .catch() breaker below never sees an
+        // auth reject. Catch it here: a 401/403 will not self-heal by polling, so
+        // stop immediately instead of hammering the endpoint every minute.
+        if (isAuthReject(hb) || isAuthReject(pending)) {
+          stopped = true;
+          return;
         }
-        fails = 0;
-        schedule(BASE_MS);
+        // Other non-OK (5xx / proxy 502 / transient) counts toward the breaker.
+        if (!hb || !hb.ok || !pending || !pending.ok) {
+          fails += 1;
+          if (fails >= MAX_FAILS) {
+            stopped = true;
+            return;
+          }
+          schedule(Math.min(MAX_MS, BASE_MS * Math.pow(2, fails)));
+          return;
+        }
+        return pending
+          .json()
+          .catch(function () {
+            return null;
+          })
+          .then(function (data) {
+            if (data && data.intents) {
+              data.intents.forEach(applyIntent);
+            }
+            fails = 0;
+            schedule(BASE_MS);
+          });
       })
       .catch(function () {
         fails += 1;

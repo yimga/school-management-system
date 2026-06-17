@@ -144,6 +144,26 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav {
   border-bottom: 1px solid var(--hairline);
 }
 
+/* v4.04.x: inline primary-nav — pulled onto the header line at xl+ (saves the
+   full-width band row's height). Scoped to the inline host so the band-row copy
+   below xl keeps its original padding + bottom border. */
+body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav-inline {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav-inline .tp-primary-nav {
+  padding: 0;
+  border-bottom: 0;
+  flex-wrap: nowrap;
+}
+
+/* Transparent wrapper: below xl the band row renders exactly as before; at xl+
+   Bootstrap's d-xl-none hides it (the inline copy takes over). */
+body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav-bandrow {
+  display: contents;
+}
+
 body.portal-body-with-layout:not(.control-plane-shell) .rmc-sidebar-page-help {
   margin: 8px 0 10px;
 }
