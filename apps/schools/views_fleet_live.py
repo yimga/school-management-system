@@ -9,7 +9,7 @@ from typing import Iterator
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import InterfaceError, OperationalError, close_old_connections
-from django.http import JsonResponse, StreamingHttpResponse
+from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.http import require_GET
@@ -25,11 +25,15 @@ from apps.schools.fleet_wall_payload import (
     merge_wall_row_revisions,
     request_is_fleet_wall_mode,
 )
+from services.sse_response import guarded_sse_response
 
 logger = logging.getLogger(__name__)
 
 _FLEET_SSE_INTERVAL_SECONDS = float(os.environ.get("FLEET_SSE_INTERVAL_SECONDS", "5"))
-_FLEET_SSE_MAX_SECONDS = float(os.environ.get("FLEET_SSE_MAX_SECONDS", "3600"))
+# ~30s hold then client reconnect; a 1-hour hold pinned a gthread worker thread
+# per open operator tab, starving /health/. The slot guard caps concurrent
+# streams per worker. Env-tunable.
+_FLEET_SSE_MAX_SECONDS = float(os.environ.get("FLEET_SSE_MAX_SECONDS", "30"))
 
 
 @staff_member_required
@@ -126,10 +130,9 @@ class FleetStreamView(View):
     """SSE fleet heartbeat — GET /super/api/fleet/stream/."""
 
     def get(self, request):
-        response = StreamingHttpResponse(
-            _fleet_sse_stream(request),
+        # guarded: opens the stream only if a per-worker SSE slot is free, else a
+        # cheap busy frame — keeps a thread free for /health/ and normal requests.
+        return guarded_sse_response(
+            lambda: _fleet_sse_stream(request),
             content_type="text/event-stream",
         )
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-        return response

@@ -13,10 +13,16 @@ from django.http import HttpRequest, JsonResponse, StreamingHttpResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 
+from services.sse_response import guarded_sse_response
+
 logger = logging.getLogger(__name__)
 
 _SSE_HEARTBEAT_SECONDS = float(os.environ.get("GLOBE_SSE_INTERVAL_SECONDS", "5"))
-_SSE_MAX_SECONDS = float(os.environ.get("GLOBE_SSE_MAX_SECONDS", "3600"))
+# Hold one stream ~30s then let the client reconnect — a 1-hour hold pinned a
+# gthread worker thread for the whole hour (no /health/ thread left). The slot
+# guard below caps concurrent streams per worker; the short duration cycles the
+# thread back to the pool. Env-tunable.
+_SSE_MAX_SECONDS = float(os.environ.get("GLOBE_SSE_MAX_SECONDS", "30"))
 
 
 def _school_rows_for_globe() -> list[dict[str, Any]]:
@@ -166,7 +172,6 @@ class GlobeStreamView(View):
     """SSE live footprint counts — GET /super/api/globe/stream/."""
 
     def get(self, request: HttpRequest) -> StreamingHttpResponse:
-        response = StreamingHttpResponse(_globe_sse_stream(), content_type="text/event-stream")
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-        return response
+        # guarded: only opens the stream if a per-worker SSE slot is free, else
+        # returns a cheap busy frame so /health/ and normal requests keep a thread.
+        return guarded_sse_response(_globe_sse_stream, content_type="text/event-stream")

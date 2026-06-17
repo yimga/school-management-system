@@ -1763,8 +1763,25 @@ if REDIS_URL:
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "IGNORE_EXCEPTIONS": True,
+            # CRASH-LOOP GUARD: without an explicit socket timeout, redis-py blocks
+            # the worker thread on a slow/hung connection for the OS TCP timeout
+            # (tens of seconds to minutes). Sessions are cache-backed (SESSION_ENGINE
+            # below) and the per-request site_settings context processor reads the
+            # cache, so a Redis stall freezes EVERY request -> all gthread threads
+            # block on I/O (low CPU, multi-minute p90) -> Render's 5s /health/ probe
+            # starves -> the instance is killed and restarts into the same stall (the
+            # 502 loop). IGNORE_EXCEPTIONS cannot rescue a *hang* — it only catches a
+            # raised error; a bounded timeout is what turns the hang into a raised
+            # (then ignored) error, degrading to a clean cache miss. Env-tunable.
+            "SOCKET_CONNECT_TIMEOUT": float(
+                os.getenv("REDIS_SOCKET_CONNECT_TIMEOUT", "2")
+            ),
+            "SOCKET_TIMEOUT": float(os.getenv("REDIS_SOCKET_TIMEOUT", "3")),
         },
     }
+    # Surface ignored Redis errors in the log so a degraded cache is observable
+    # instead of silently swallowed.
+    DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = True
 
 # Optional: Redis-backed sessions when Redis is available (shared across workers)
 if REDIS_URL and not RUNNING_TESTS:

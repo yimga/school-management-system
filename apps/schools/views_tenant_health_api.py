@@ -8,19 +8,23 @@ import time
 from typing import Iterator
 
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, StreamingHttpResponse
+from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.http import require_GET
 
 from apps.schools.tenant_operational_health import resolve_tenant_operational_health
+from services.sse_response import guarded_sse_response
 
 logger = logging.getLogger(__name__)
 
 _TENANT_HEALTH_SSE_INTERVAL_SECONDS = float(
     os.environ.get("TENANT_HEALTH_SSE_INTERVAL_SECONDS", "5")
 )
-_TENANT_HEALTH_SSE_MAX_SECONDS = float(os.environ.get("TENANT_HEALTH_SSE_MAX_SECONDS", "3600"))
+# ~30s hold then client reconnect; a 1-hour hold pinned a gthread worker thread
+# per open dashboard tab (every tenant user), starving /health/. The slot guard
+# caps concurrent streams per worker. Env-tunable.
+_TENANT_HEALTH_SSE_MAX_SECONDS = float(os.environ.get("TENANT_HEALTH_SSE_MAX_SECONDS", "30"))
 
 
 def _parse_health_surface(request) -> str:
@@ -53,10 +57,9 @@ class TenantHealthStreamView(View):
     """SSE tenant health heartbeat — GET …/api/operational-health/stream/."""
 
     def get(self, request):
-        response = StreamingHttpResponse(
-            _tenant_health_sse_stream(request),
+        # guarded: opens the stream only if a per-worker SSE slot is free, else a
+        # cheap busy frame — keeps a thread free for /health/ and normal requests.
+        return guarded_sse_response(
+            lambda: _tenant_health_sse_stream(request),
             content_type="text/event-stream",
         )
-        response["Cache-Control"] = "no-cache"
-        response["X-Accel-Buffering"] = "no"
-        return response
