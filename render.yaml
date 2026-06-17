@@ -1,4 +1,6 @@
-# Render Blueprint: Web Service + PostgreSQL + Redis + Celery Worker + Beat
+# Render Blueprint: Web Service + PostgreSQL + Valkey (cache/sessions).
+# Worker + Beat are present but COMMENTED OUT (no-worker, cost-minimal default —
+# background tasks run eager/inline). See the worker section to enable them.
 # Outbound mail: set EMAIL_HOST_USER + EMAIL_HOST_PASSWORD on WEB *and* WORKER (see docs/RENDER_EMAIL_SETUP.md).
 # Recommended free SMTP: Brevo — smtp-relay.brevo.com:587 (≈300 emails/day).
 #
@@ -128,26 +130,34 @@ services:
         value: ""
       - key: WOPI_SHARED_SECRET
         sync: false
-      # ── Cache / sessions / broker (production foundation) ───────────────────
+      # ── Cache / sessions (production foundation) ────────────────────────────
       # REDIS_URL wires a Render Key Value (Valkey, the open-source Redis fork).
       # When set it backs the CACHE + cache-SESSIONS only (moving sessions off
       # Postgres) — it does NOT auto-enable the task broker. Safe to set even
-      # without a worker; tasks keep running inline (eager).
-      #
-      # CELERY_BROKER_URL is the SEPARATE, explicit broker switch. Set it ONLY
-      # when the worker service below is actually running — otherwise tasks would
-      # queue with nothing to drain them. Both point at the same Key Value here
-      # because this blueprint also runs the worker.
+      # without a worker; tasks keep running inline (eager). This is the
+      # cost-minimal default topology: web + Valkey + Postgres, NO worker.
       - key: REDIS_URL
         fromService:
           type: redis
           name: school-management-redis
           property: connectionString
-      - key: CELERY_BROKER_URL
-        fromService:
-          type: redis
-          name: school-management-redis
-          property: connectionString
+      # ── CELERY_BROKER_URL is DELIBERATELY NOT SET on web ────────────────────
+      # The task broker is the SEPARATE, explicit switch — and setting it
+      # WITHOUT a running worker is a trap: tasks enqueue with nothing to drain
+      # them, so signups, welcome mail, provisioning and webhooks silently
+      # vanish. With it unset, Celery runs EAGER (tasks execute inline in the
+      # web request) — correct for the no-worker topology below.
+      #
+      # TO ENABLE BACKGROUND PROCESSING — one deliberate, all-together step:
+      #   1. Uncomment the `worker` (and `beat`) service blocks further down.
+      #   2. Re-add CELERY_BROKER_URL here on web, pointing at the same Valkey:
+      #        - key: CELERY_BROKER_URL
+      #          fromService:
+      #            type: redis
+      #            name: school-management-redis
+      #            property: connectionString
+      #   3. Flip SCHOOLOPS_EMAIL_ASYNC_USE_CELERY back to "1".
+      # NEVER do step 2 without step 1 — that is the broker-without-worker trap.
       # Broker publish resilience (crash-loop guard, broker side) — code defaults
       # live in config/settings.py; surfaced here so they're tunable. A web-request
       # .delay() fails fast instead of hanging when the broker is briefly slow.
@@ -191,9 +201,12 @@ services:
         sync: false
       - key: RMC_PUBLIC_SITE_URL
         value: "https://runmycampus.com"
-      # Durable Celery mail tasks — requires always-on worker (starter below).
+      # Durable Celery mail tasks — requires an always-on worker. Default "0"
+      # for the no-worker topology (mail sends inline via eager execution).
+      # Flip to "1" only when the worker service below is enabled (see the
+      # CELERY_BROKER_URL note above).
       - key: SCHOOLOPS_EMAIL_ASYNC_USE_CELERY
-        value: "1"
+        value: "0"
       # Web Push (optional) — portal-ready browser notifications after owner subscribes.
       - key: WEB_PUSH_VAPID_PUBLIC_KEY
         sync: false
@@ -215,132 +228,153 @@ services:
       - key: TENANT_OFFBOARDING_S3_CLEANUP_ENABLED
         value: "1"
 
-  - type: worker
-    name: school-management-system-worker
-    env: python
-    # Starter keeps the worker awake so signup provisioning + welcome mail run.
-    plan: starter
-    buildCommand: "./build.sh"
-    startCommand: ".venv/bin/celery -A config worker -l info --concurrency=${CELERY_WORKER_CONCURRENCY:-2}"
-    envVars:
-      - key: DEBUG
-        value: "0"
-      - key: PYTHON_VERSION
-        value: "3.12.3"
-      - key: DJANGO_SETTINGS_MODULE
-        value: "config.settings"
-      - key: MULTI_TENANT_BASE_DOMAIN
-        value: "runmycampus.com"
-      - key: MULTI_TENANT_LEGACY_BASE_DOMAINS
-        value: ""
-      - key: SECRET_KEY
-        sync: false
-      - key: DATABASE_URL
-        fromDatabase:
-          name: school-management-db
-          property: connectionString
-      - key: DB_CONN_MAX_AGE
-        value: "120"
-      - key: DB_CONNECT_TIMEOUT
-        value: "10"
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: school-management-redis
-          property: connectionString
-      - key: CELERY_BROKER_URL
-        fromService:
-          type: redis
-          name: school-management-redis
-          property: connectionString
-      # Broker resilience (worker side) — bounded reconnect to the broker.
-      - key: CELERY_BROKER_CONNECT_TIMEOUT
-        value: "2"
-      - key: CELERY_BROKER_SOCKET_TIMEOUT
-        value: "4"
-      # Same SMTP as web — welcome email sends from this worker after provisioning.
-      - key: EMAIL_BACKEND
-        value: "django.core.mail.backends.smtp.EmailBackend"
-      - key: EMAIL_HOST
-        value: "smtp-relay.brevo.com"
-      - key: EMAIL_PORT
-        value: "587"
-      - key: EMAIL_USE_TLS
-        value: "True"
-      - key: DEFAULT_FROM_EMAIL
-        value: "noreply@runmycampus.com"
-      # EMAIL_HOST_USER / EMAIL_HOST_PASSWORD: same Brevo secret as web. The
-      # worker sends welcome / reactivation / digest mail, so it MUST have these
-      # too (set the same values on both services in the Dashboard).
-      - key: EMAIL_HOST_USER
-        sync: false
-      - key: EMAIL_HOST_PASSWORD
-        sync: false
-      # Same operator-alert + sender-identity config as web (worker sends
-      # welcome / reactivation / digest mail too — audit H8).
-      - key: RMC_OPERATOR_ALERT_EMAIL
-        sync: false
-      - key: RMC_COMPANY_LEGAL_NAME
-        value: "RunMyCampus"
-      - key: RMC_COMPANY_POSTAL_ADDRESS
-        sync: false
-      - key: RMC_PUBLIC_SITE_URL
-        value: "https://runmycampus.com"
-      - key: SCHOOLOPS_EMAIL_ASYNC_USE_CELERY
-        value: "1"
-      - key: TENANT_SELF_SERVICE_OFFBOARDING_ENABLED
-        value: "1"
-      - key: TENANT_AUTO_PURGE_ENABLED
-        value: "0"
-      - key: TENANT_AUTO_PURGE_GRACE_DAYS
-        value: "30"
-      - key: TENANT_OFFBOARDING_EMAIL_ENABLED
-        value: "1"
-      - key: TENANT_OFFBOARDING_NOTIFY_TENANT_ADMINS
-        value: "1"
-      - key: TENANT_OFFBOARDING_S3_CLEANUP_ENABLED
-        value: "1"
-  - type: worker
-    name: school-management-system-beat
-    env: python
-    plan: starter
-    buildCommand: "./build.sh"
-    startCommand: ".venv/bin/celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler"
-    envVars:
-      - key: DEBUG
-        value: "0"
-      - key: PYTHON_VERSION
-        value: "3.12.3"
-      - key: DJANGO_SETTINGS_MODULE
-        value: "config.settings"
-      - key: MULTI_TENANT_BASE_DOMAIN
-        value: "runmycampus.com"
-      - key: MULTI_TENANT_LEGACY_BASE_DOMAINS
-        value: ""
-      - key: SECRET_KEY
-        sync: false
-      - key: DATABASE_URL
-        fromDatabase:
-          name: school-management-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: school-management-redis
-          property: connectionString
-      - key: CELERY_BROKER_URL
-        fromService:
-          type: redis
-          name: school-management-redis
-          property: connectionString
-      - key: TENANT_AUTO_PURGE_ENABLED
-        value: "0"
-      - key: TENANT_AUTO_PURGE_GRACE_DAYS
-        value: "30"
+  # ══════════════════════════════════════════════════════════════════════════
+  # WORKER + BEAT — DISABLED BY DEFAULT (no-worker, cost-minimal topology).
+  #
+  # While these are commented out, background tasks run EAGER (inline in the web
+  # request), which is why the web service above does NOT set CELERY_BROKER_URL.
+  # This keeps the blueprint matching the actual production topology: web +
+  # Valkey + Postgres, $0 of extra worker spend.
+  #
+  # TO ENABLE BACKGROUND PROCESSING (one deliberate, all-together step):
+  #   1. Uncomment BOTH service blocks below.
+  #   2. Re-add CELERY_BROKER_URL on the web service (see its note above).
+  #   3. Flip SCHOOLOPS_EMAIL_ASYNC_USE_CELERY to "1" on web.
+  # Enabling these creates TWO paid Render services (~$7/mo each on starter).
+  # Never re-add the web broker (step 2) without uncommenting the worker here —
+  # that is the broker-without-worker trap (tasks queue, nothing drains them).
+  # ══════════════════════════════════════════════════════════════════════════
+  # - type: worker
+  #   name: school-management-system-worker
+  #   env: python
+  #   # Starter keeps the worker awake so signup provisioning + welcome mail run.
+  #   plan: starter
+  #   buildCommand: "./build.sh"
+  #   startCommand: ".venv/bin/celery -A config worker -l info --concurrency=${CELERY_WORKER_CONCURRENCY:-2}"
+  #   envVars:
+  #     - key: DEBUG
+  #       value: "0"
+  #     - key: PYTHON_VERSION
+  #       value: "3.12.3"
+  #     - key: DJANGO_SETTINGS_MODULE
+  #       value: "config.settings"
+  #     - key: MULTI_TENANT_BASE_DOMAIN
+  #       value: "runmycampus.com"
+  #     - key: MULTI_TENANT_LEGACY_BASE_DOMAINS
+  #       value: ""
+  #     - key: SECRET_KEY
+  #       sync: false
+  #     - key: DATABASE_URL
+  #       fromDatabase:
+  #         name: school-management-db
+  #         property: connectionString
+  #     - key: DB_CONN_MAX_AGE
+  #       value: "120"
+  #     - key: DB_CONNECT_TIMEOUT
+  #       value: "10"
+  #     - key: REDIS_URL
+  #       fromService:
+  #         type: redis
+  #         name: school-management-redis
+  #         property: connectionString
+  #     - key: CELERY_BROKER_URL
+  #       fromService:
+  #         type: redis
+  #         name: school-management-redis
+  #         property: connectionString
+  #     # Broker resilience (worker side) — bounded reconnect to the broker.
+  #     - key: CELERY_BROKER_CONNECT_TIMEOUT
+  #       value: "2"
+  #     - key: CELERY_BROKER_SOCKET_TIMEOUT
+  #       value: "4"
+  #     # Same SMTP as web — welcome email sends from this worker after provisioning.
+  #     - key: EMAIL_BACKEND
+  #       value: "django.core.mail.backends.smtp.EmailBackend"
+  #     - key: EMAIL_HOST
+  #       value: "smtp-relay.brevo.com"
+  #     - key: EMAIL_PORT
+  #       value: "587"
+  #     - key: EMAIL_USE_TLS
+  #       value: "True"
+  #     - key: DEFAULT_FROM_EMAIL
+  #       value: "noreply@runmycampus.com"
+  #     # EMAIL_HOST_USER / EMAIL_HOST_PASSWORD: same Brevo secret as web. The
+  #     # worker sends welcome / reactivation / digest mail, so it MUST have these
+  #     # too (set the same values on both services in the Dashboard).
+  #     - key: EMAIL_HOST_USER
+  #       sync: false
+  #     - key: EMAIL_HOST_PASSWORD
+  #       sync: false
+  #     # Same operator-alert + sender-identity config as web (worker sends
+  #     # welcome / reactivation / digest mail too — audit H8).
+  #     - key: RMC_OPERATOR_ALERT_EMAIL
+  #       sync: false
+  #     - key: RMC_COMPANY_LEGAL_NAME
+  #       value: "RunMyCampus"
+  #     - key: RMC_COMPANY_POSTAL_ADDRESS
+  #       sync: false
+  #     - key: RMC_PUBLIC_SITE_URL
+  #       value: "https://runmycampus.com"
+  #     - key: SCHOOLOPS_EMAIL_ASYNC_USE_CELERY
+  #       value: "1"
+  #     - key: TENANT_SELF_SERVICE_OFFBOARDING_ENABLED
+  #       value: "1"
+  #     - key: TENANT_AUTO_PURGE_ENABLED
+  #       value: "0"
+  #     - key: TENANT_AUTO_PURGE_GRACE_DAYS
+  #       value: "30"
+  #     - key: TENANT_OFFBOARDING_EMAIL_ENABLED
+  #       value: "1"
+  #     - key: TENANT_OFFBOARDING_NOTIFY_TENANT_ADMINS
+  #       value: "1"
+  #     - key: TENANT_OFFBOARDING_S3_CLEANUP_ENABLED
+  #       value: "1"
+  # - type: worker
+  #   name: school-management-system-beat
+  #   env: python
+  #   plan: starter
+  #   buildCommand: "./build.sh"
+  #   startCommand: ".venv/bin/celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler"
+  #   envVars:
+  #     - key: DEBUG
+  #       value: "0"
+  #     - key: PYTHON_VERSION
+  #       value: "3.12.3"
+  #     - key: DJANGO_SETTINGS_MODULE
+  #       value: "config.settings"
+  #     - key: MULTI_TENANT_BASE_DOMAIN
+  #       value: "runmycampus.com"
+  #     - key: MULTI_TENANT_LEGACY_BASE_DOMAINS
+  #       value: ""
+  #     - key: SECRET_KEY
+  #       sync: false
+  #     - key: DATABASE_URL
+  #       fromDatabase:
+  #         name: school-management-db
+  #         property: connectionString
+  #     - key: REDIS_URL
+  #       fromService:
+  #         type: redis
+  #         name: school-management-redis
+  #         property: connectionString
+  #     - key: CELERY_BROKER_URL
+  #       fromService:
+  #         type: redis
+  #         name: school-management-redis
+  #         property: connectionString
+  #     - key: TENANT_AUTO_PURGE_ENABLED
+  #       value: "0"
+  #     - key: TENANT_AUTO_PURGE_GRACE_DAYS
+  #       value: "30"
   - type: redis
     name: school-management-redis
     plan: free
 
 databases:
   - name: school-management-db
-    plan: free
+    # LIVE PLAN IS PAID (basic_1gb / 0.5 CPU) — upgraded 2026-06-17 to fix the
+    # 0.1-CPU bottleneck that caused the 502 crash-loop. This value MUST match
+    # the live plan: a blueprint sync that finds "free" here could try to
+    # DOWNGRADE the production database (storage shrink / data risk). Keep this
+    # in sync with the dashboard plan; never let it regress to free.
+    plan: basic_1gb
