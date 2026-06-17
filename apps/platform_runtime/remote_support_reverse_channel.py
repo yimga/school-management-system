@@ -146,10 +146,42 @@ def record_heartbeat(
 
 
 def config_version_for(school) -> str:
-    """A cheap token the tenant compares to decide whether to re-pull config.
+    """A cheap token the tenant/hub compares to decide whether to re-pull config.
 
-    Changes whenever the school row or its settings change (updated_at moves on
-    save). Tenants/hubs store the last-seen token and re-pull when it differs.
+    Combines the School row's ``updated_at`` with the global config singletons
+    (``RuntimeDefaults`` id=1 and ``SiteSettings``) whose changes drive offline config
+    but do NOT touch ``School.updated_at`` — so a platform config change (feature
+    defaults, SMS provider, maintenance, etc.) now also moves the token and edge hubs
+    re-pull instead of running stale config indefinitely. All reads are single-row and
+    cheap; any unavailable source degrades to an empty part (never raises).
     """
+    import hashlib
+
+    parts: list[str] = []
     updated = getattr(school, "updated_at", None)
-    return updated.isoformat() if updated else ""
+    parts.append(updated.isoformat() if updated else "")
+    parts.append(f"school:{getattr(school, 'pk', '')}")
+
+    try:
+        from apps.platform_runtime.models import RuntimeDefaults
+
+        rd_updated = (
+            RuntimeDefaults.objects.filter(pk=1)
+            .values_list("updated_at", flat=True)
+            .first()
+        )
+        parts.append(rd_updated.isoformat() if rd_updated else "")
+    except Exception:  # noqa: BLE001 — config-version must never raise on a poll
+        parts.append("")
+
+    try:
+        from apps.siteconfig.models import SiteSettings
+
+        ss_updated = (
+            SiteSettings.objects.values_list("updated_at", flat=True).first()
+        )
+        parts.append(ss_updated.isoformat() if ss_updated else "")
+    except Exception:  # noqa: BLE001
+        parts.append("")
+
+    return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()[:24]

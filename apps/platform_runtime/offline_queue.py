@@ -666,7 +666,18 @@ def _grading_payload_conflicts_row(row, payload: dict[str, Any]) -> bool:
     return server_remarks != client_remarks
 
 
-def _apply_grading(school_id, user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
+_GRADE_SCORE_FIELDS = (
+    "seq1_score",
+    "seq2_score",
+    "exam_score",
+    "mock_score",
+    "practical_score",
+)
+
+
+def _apply_grading(
+    school_id, user_id: int, payload: dict[str, Any], *, force_local: bool = False
+) -> dict[str, Any]:
     from django.utils import timezone
 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
 
@@ -712,6 +723,20 @@ def _apply_grading(school_id, user_id: int, payload: dict[str, Any]) -> dict[str
     ).first()
     if server_eval is not None:
         if _grading_payload_conflicts_row(server_eval, payload):
+            if force_local:
+                # keep_mine resolution: the teacher's offline marks win — overwrite the
+                # server Evaluation's scores + remarks (mirrors the attendance force-local
+                # path). Without this, keep_mine re-detects the same conflict forever and
+                # the row is permanently stuck in CONFLICT.
+                for _field in _GRADE_SCORE_FIELDS:
+                    setattr(server_eval, _field, payload.get(_field))
+                server_eval.remarks = str(payload.get("remarks", "") or "")
+                server_eval.save()
+                return {
+                    "ok": True,
+                    "evaluation_id": server_eval.pk,
+                    "forced_local": True,
+                }
             decision = resolve_one(
                 {
                     "entity": "grade_entry",
@@ -753,6 +778,16 @@ def _apply_grading(school_id, user_id: int, payload: dict[str, Any]) -> dict[str
     ).first()
     if pending is not None:
         if _grading_payload_conflicts_row(pending, payload):
+            if force_local:
+                for _field in _GRADE_SCORE_FIELDS:
+                    setattr(pending, _field, payload.get(_field))
+                pending.remarks = str(payload.get("remarks", "") or "")
+                pending.save()
+                return {
+                    "ok": True,
+                    "offline_entry_id": pending.id,
+                    "forced_local": True,
+                }
             return {
                 "ok": False,
                 "conflict": True,
@@ -987,7 +1022,7 @@ def _apply_payload(action: Any, *, force_local: bool = False) -> dict[str, Any]:
     if at == OfflineAction.ActionType.ATTENDANCE:
         return _apply_attendance(sid, uid, payload, force_local=force_local)
     if at == OfflineAction.ActionType.GRADING:
-        return _apply_grading(sid, uid, payload)
+        return _apply_grading(sid, uid, payload, force_local=force_local)
     if at == OfflineAction.ActionType.PAYMENT_RECEIPT:
         return _apply_payment_receipt(sid, uid, payload)
     if at == OfflineAction.ActionType.NOTES_REPORT:
