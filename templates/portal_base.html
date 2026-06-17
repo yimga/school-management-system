@@ -116,6 +116,12 @@
       {% if SITE_USE_SECONDARY_FONT_HEADINGS and SITE_SECONDARY_FONT %}
       h1, h2, h3, h4, h5, h6 { font-family: {{ SITE_SECONDARY_FONT }}, var(--portal-font), system-ui, sans-serif; }
       {% endif %}
+      /* FOUC guard: the mobile offcanvas sidebar (#portalSidebar) must never render
+         inline at lg+ — before Bootstrap's d-lg-none utility CSS loads on a slow first
+         paint it bleeds under the desktop sidebar, doubling/overlapping every nav row.
+         This critical, non-deferred rule enforces the hide independent of bundle load
+         timing (the intent already documented at the offcanvas markup). */
+      @media (min-width: 992px) { #portalSidebar.offcanvas { display: none !important; } }
     </style>
     <link rel="stylesheet" href="{% static 'css/dashboard-theme-sync.css' %}">
     {% if SITE and SITE.custom_css %}
