@@ -12,6 +12,44 @@ from .models import School, SchoolProvisioningEvent
 from .super_views_constants import CONTROL_PLANE_METRIC_FAILURES
 
 
+def _aggregate_tenant_counts(counter) -> dict:
+    """Sum a per-tenant ``counter()`` across tenant schemas (dual-mode).
+
+    ``counter`` returns a ``{key: int}`` dict. Under django-tenants SCHEMA isolation the
+    TENANT_APPS tables only exist inside each tenant schema, so counting them from the
+    manager/public connection silently fails and pins the metric to 0 — we instead run
+    the counter inside each tenant schema and sum key-wise. Under RLS mode the rows live
+    in one shared table, so a single call suffices. Per-schema failures are skipped.
+    """
+    from django.conf import settings
+
+    totals: dict[str, int] = {}
+
+    def _accumulate(partial: dict) -> None:
+        for key, value in (partial or {}).items():
+            totals[key] = totals.get(key, 0) + int(value or 0)
+
+    if getattr(settings, "USE_DJANGO_TENANTS", False):
+        from django_tenants.utils import get_tenant_model, schema_context
+
+        Tenant = get_tenant_model()
+        for client in Tenant.objects.exclude(schema_name="public").only("schema_name"):
+            name = (getattr(client, "schema_name", None) or "").strip()
+            if not name:
+                continue
+            try:
+                with schema_context(name):
+                    _accumulate(counter())
+            except CONTROL_PLANE_METRIC_FAILURES:
+                continue
+    else:
+        try:
+            _accumulate(counter())
+        except CONTROL_PLANE_METRIC_FAILURES:
+            pass
+    return totals
+
+
 def build_command_center_data() -> dict:
     """
     Phase 3 mission-control metrics:
@@ -198,15 +236,24 @@ def build_command_center_data() -> dict:
     except CONTROL_PLANE_METRIC_FAILURES:
         pass
 
-    # Phase 4 differentiator metrics
+    # Phase 4 differentiator metrics. These are TENANT_APPS models, so under SCHEMA
+    # isolation they must be summed across tenant schemas (manager/public connection has
+    # no such table -> would otherwise pin to 0). See _aggregate_tenant_counts.
     try:
         from apps.analytics.models import InterventionLog
 
-        total_interventions = InterventionLog.objects.count()
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        resolved = InterventionLog.objects.filter(
-            status=InterventionLog.Status.RESOLVED
-        ).count()
+        def _intervention_counts() -> dict:
+            # tenant-isolation-allow: per-tenant-schema-context-aggregation-2026-06-17
+            total = InterventionLog.objects.count()
+            # tenant-isolation-allow: per-tenant-schema-context-aggregation-2026-06-17
+            resolved = InterventionLog.objects.filter(
+                status=InterventionLog.Status.RESOLVED
+            ).count()
+            return {"total": total, "resolved": resolved}
+
+        agg = _aggregate_tenant_counts(_intervention_counts)
+        total_interventions = agg.get("total", 0)
+        resolved = agg.get("resolved", 0)
         data["total_interventions"] = total_interventions
         data["resolved_interventions"] = resolved
         data["recovery_rate_pct"] = (
@@ -218,10 +265,18 @@ def build_command_center_data() -> dict:
         pass
 
     try:
-        from apps.people.models import StudentPassport, PassportSchoolInvite
+        from apps.people.models import PassportSchoolInvite, StudentPassport
 
-        data["student_passport_count"] = StudentPassport.objects.count()
-        data["student_passport_invite_count"] = PassportSchoolInvite.objects.count()
+        def _passport_counts() -> dict:
+            # tenant-isolation-allow: per-tenant-schema-context-aggregation-2026-06-17
+            passports = StudentPassport.objects.count()
+            # tenant-isolation-allow: per-tenant-schema-context-aggregation-2026-06-17
+            invites = PassportSchoolInvite.objects.count()
+            return {"passports": passports, "invites": invites}
+
+        agg = _aggregate_tenant_counts(_passport_counts)
+        data["student_passport_count"] = agg.get("passports", 0)
+        data["student_passport_invite_count"] = agg.get("invites", 0)
     except CONTROL_PLANE_METRIC_FAILURES:
         pass
 
