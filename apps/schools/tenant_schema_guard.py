@@ -97,6 +97,29 @@ def missing_tenant_tables(conn=None) -> list[tuple[str, str, str]]:
     return sorted(missing)
 
 
+def scan_all_tenant_schemas(only_schema=None) -> dict[str, list[tuple[str, str, str]]]:
+    """Run ``missing_tenant_tables`` against every tenant schema (or just one).
+
+    Returns ``{schema_name: [(app, model, table), ...]}``. Shared single source of
+    truth for both ``manage.py detect_tenant_table_drift`` and the periodic beat
+    task. Under shared-DB / RLS mode (no django-tenants) there is a single schema,
+    reported as ``{"public": ...}``.
+    """
+    try:
+        from django_tenants.utils import get_tenant_model, schema_context
+    except ImportError:
+        return {"public": missing_tenant_tables()}
+
+    report: dict[str, list[tuple[str, str, str]]] = {}
+    qs = get_tenant_model().objects.exclude(schema_name="public")
+    if only_schema:
+        qs = qs.filter(schema_name=only_schema)
+    for client in qs.order_by("schema_name"):
+        with schema_context(client.schema_name):
+            report[client.schema_name] = missing_tenant_tables()
+    return report
+
+
 def ensure_models_tables(schema_editor, models) -> list[str]:
     """Best-effort create of any missing table among ``models`` in the current schema.
 

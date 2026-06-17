@@ -1683,6 +1683,75 @@ def reconcile_half_provisioned_tenants(
     return result
 
 
+def detect_tenant_table_drift_scan() -> dict:
+    """Read-only sweep: flag tenant schemas missing expected tenant-app tables.
+
+    Detection only — the ensure-table heal migrations repair on the next deploy;
+    this surfaces the rarer "fake-applied CreateModel" drift between deploys via
+    log(ERROR) + a best-effort operator-inbox email so it never goes unnoticed.
+    Never raises (a monitoring sweep must not crash the beat).
+    """
+    try:
+        from apps.schools.tenant_schema_guard import scan_all_tenant_schemas
+
+        report = scan_all_tenant_schemas()
+    except (DatabaseError, ImportError, OSError, RuntimeError, ValueError) as exc:
+        logger.exception("detect_tenant_table_drift_scan: scan failed: %s", exc)
+        return {"ok": False, "error": str(exc)}
+
+    drifted = {
+        schema: [table for _app, _model, table in rows]
+        for schema, rows in report.items()
+        if rows
+    }
+    summary = {
+        "ok": True,
+        "schemas_checked": len(report),
+        "drifted_schemas": len(drifted),
+        "drift": drifted,
+    }
+    if drifted:
+        logger.error("detect_tenant_table_drift: tenant table drift found: %s", drifted)
+        _alert_operator_table_drift(drifted)
+    else:
+        logger.info(
+            "detect_tenant_table_drift: %s schema(s) checked, no drift", len(report)
+        )
+    return summary
+
+
+def _alert_operator_table_drift(drifted: dict) -> None:
+    """Best-effort operator-inbox email for detected table drift. Never raises."""
+    try:
+        from django.core.mail import send_mail
+
+        from apps.platform_runtime.platform_email_matrix import resolve_operator_inbox
+
+        recipients = resolve_operator_inbox({})
+        if not recipients:
+            return
+        lines = [
+            f"  [{schema}] missing: {', '.join(tables)}"
+            for schema, tables in sorted(drifted.items())
+        ]
+        body = (
+            "Tenant-schema table drift detected (recorded-applied migration but the "
+            "table is missing — see `manage.py detect_tenant_table_drift`).\n\n"
+            + "\n".join(lines)
+            + "\n\nThe ensure-table heal migrations repair this on the next deploy; "
+            "trigger a deploy (or run migrate_schemas --tenant) to clear it."
+        )
+        send_mail(
+            subject=f"[RunMyCampus] Tenant table drift: {len(drifted)} schema(s)",
+            message=body,
+            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
+            recipient_list=recipients,
+            fail_silently=True,
+        )
+    except (DatabaseError, ImportError, OSError, RuntimeError, ValueError, TypeError):
+        logger.exception("_alert_operator_table_drift: could not send operator alert")
+
+
 # Celery task (optional)
 try:
     from celery import shared_task
@@ -1743,6 +1812,11 @@ try:
             limit=limit, cooldown_minutes=cooldown_minutes, dry_run=dry_run
         )
 
+    @shared_task(name="schools.detect_tenant_table_drift")
+    def detect_tenant_table_drift_task() -> dict:
+        """Beat entry point — read-only sweep for tenant schemas missing tables."""
+        return detect_tenant_table_drift_scan()
+
     @shared_task(name="schools.ensure_demo_environment_scheduled")
     def ensure_demo_environment_scheduled() -> dict:
         """
@@ -1772,3 +1846,6 @@ except ImportError:
 
     def reconcile_half_provisioned_tenants_task(*args, **kwargs):
         return reconcile_half_provisioned_tenants(*args, **kwargs)
+
+    def detect_tenant_table_drift_task(*args, **kwargs):
+        return detect_tenant_table_drift_scan()

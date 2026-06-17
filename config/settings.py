@@ -1888,6 +1888,21 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 600.0,
         "options": {"expires": 540},
     },
+    # Read-only tenant-schema table-drift sweep (apps.schools.tasks
+    # .detect_tenant_table_drift_scan): flags any tenant schema missing an
+    # expected tenant-app table — the rare "fake-applied CreateModel" drift that
+    # migrate skips. Detection only (ensure-table heal migrations repair on
+    # deploy); logs ERROR + best-effort operator-inbox email on drift. Daily at
+    # 06:00 UTC — drift is rare and only appears between deploys, so a daily
+    # heartbeat is ample; lazy crontab falls back to a 24h interval.
+    "schools-detect-tenant-table-drift": {
+        "task": "schools.detect_tenant_table_drift",
+        "schedule": (
+            _celery_crontab(hour=6, minute=0)
+            if _celery_crontab is not None else 86400.0
+        ),
+        "options": {"expires": 3600},
+    },
     # Unified Wizard Framework — refresh SetupProgress.recommendations for every active school.
     # Runs Mondays 04:00 UTC. Handler is apps.setup_studio.wizard_ai.refresh_setup_recommendations,
     # invoked via a thin task wrapper that walks active schools (rate-limited per the v3.39.0

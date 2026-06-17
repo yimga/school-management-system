@@ -18,7 +18,7 @@ import json
 
 from django.core.management.base import BaseCommand
 
-from apps.schools.tenant_schema_guard import missing_tenant_tables
+from apps.schools.tenant_schema_guard import scan_all_tenant_schemas
 
 
 class Command(BaseCommand):
@@ -53,29 +53,8 @@ class Command(BaseCommand):
 
     def _collect(self, only_schema):
         """Map schema_name -> [ "app.Model (db_table)", ... ] of missing tables."""
-        try:
-            from django_tenants.utils import get_tenant_model, schema_context
-
-            using_tenants = True
-        except ImportError:
-            using_tenants = False
-
-        report: dict[str, list[str]] = {}
-
-        if not using_tenants:
-            # Shared-DB / RLS mode: only the one (public) schema exists.
-            report["public"] = self._fmt(missing_tenant_tables())
-            return report
-
-        tenant_model = get_tenant_model()
-        qs = tenant_model.objects.exclude(schema_name="public")
-        if only_schema:
-            qs = qs.filter(schema_name=only_schema)
-
-        for client in qs.order_by("schema_name"):
-            with schema_context(client.schema_name):
-                report[client.schema_name] = self._fmt(missing_tenant_tables())
-        return report
+        raw = scan_all_tenant_schemas(only_schema=only_schema)
+        return {schema: self._fmt(rows) for schema, rows in raw.items()}
 
     @staticmethod
     def _fmt(rows):

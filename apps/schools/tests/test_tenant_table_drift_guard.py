@@ -4,10 +4,12 @@ from django.core.management import call_command
 from django.db import connection
 from django.test import TestCase, override_settings
 
+from apps.schools.tasks import detect_tenant_table_drift_scan
 from apps.schools.tenant_schema_guard import (
     _entry_to_app_name,
     ensure_models_tables,
     missing_tenant_tables,
+    scan_all_tenant_schemas,
     tenant_app_labels,
 )
 
@@ -67,6 +69,23 @@ class EnsureModelsTablesTests(TestCase):
             _StubSchemaEditor(connection), [VisitorCheckIn]
         )
         self.assertEqual(created, [])
+
+
+class ScanAllTenantSchemasTests(TestCase):
+    def test_returns_dict_with_no_drift_on_healthy_db(self):
+        report = scan_all_tenant_schemas()
+        self.assertIsInstance(report, dict)
+        # Every schema reports an empty missing-table list on a HEAD-migrated DB.
+        for rows in report.values():
+            self.assertEqual(rows, [])
+
+
+class DetectTenantTableDriftScanTests(TestCase):
+    def test_scan_reports_ok_no_drift_on_healthy_db(self):
+        result = detect_tenant_table_drift_scan()
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["drifted_schemas"], 0)
+        self.assertEqual(result["drift"], {})
 
 
 class DetectTenantTableDriftCommandTests(TestCase):
