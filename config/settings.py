@@ -520,6 +520,7 @@ TEMPLATES = [
                 "apps.schools.context_processors.dashboard_topology_context",
                 "apps.siteconfig.context_processors.dashboard_pack_switcher_context",  # Per-user dashboard-pack switcher on all shells
                 "apps.portal.context_processors.tp_v3_role_home",  # v3 100x role-home shell dedupe
+                "apps.dashboard.context_processors.first_run_zero_state",  # Per-role first-run welcome card (new-tenant landings)
                 "apps.portal.context_processors.tenant_experience_command",  # Shared tenant dashboard/profile/tool command strip
                 "apps.portal.context_processors.announcements",  # Global announcements banner
                 "apps.portal.context_processors.platform_status_strip",  # Public-safe platform incident strip

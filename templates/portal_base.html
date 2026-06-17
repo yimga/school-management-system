@@ -450,6 +450,11 @@
             {% if wind_down_mode %}
             {% include "partials/rmc_wind_down_banner.html" %}
             {% endif %}
+            {% if first_run_zero_state %}
+            <section class="mb-4" data-rmc-first-run-zero-state aria-label="{% trans 'Getting started' %}">
+              {% include "components/rmc_empty_state.html" with illustration=first_run_zero_state.illustration title=first_run_zero_state.headline message=first_run_zero_state.message primary_url=first_run_zero_state.primary_url primary_label=first_run_zero_state.primary_label primary_icon=first_run_zero_state.primary_icon %}
+            </section>
+            {% endif %}
             {% block content %}
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 {% endblock %}
