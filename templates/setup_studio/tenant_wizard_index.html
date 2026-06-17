@@ -3,7 +3,7 @@
 
 {% block title %}{% trans "Setup Wizards" %}{% endblock %}
 
-{% block extra_head %}
+{% block extrastyle %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/rmc-wizard.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-wizard-index.css' %}">
@@ -89,8 +89,8 @@
           <div class="rmc-wz-grid">
             {% for card in stage.cards %}
               <a class="rmc-wz-card" data-rmc-wz-status="{{ card.status }}" href="{% url 'setup_studio:tenant_wizard' wizard_key=card.wizard.wizard_key %}">
-                <h3 class="rmc-wz-card__title">{{ card.wizard.label_token|humanize_wizard_token }}</h3>
-                {% if card.wizard.description_token %}<p class="rmc-wz-card__desc">{{ card.wizard.description_token|humanize_wizard_token }}</p>{% endif %}
+                <h3 class="rmc-wz-card__title">{{ card.title }}</h3>
+                {% if card.desc %}<p class="rmc-wz-card__desc">{{ card.desc }}</p>{% endif %}
                 <p class="rmc-wz-card__meta">{{ card.wizard.estimated_minutes }} {% trans "min" %} &middot; {{ card.wizard.steps|length }} {% trans "steps" %}</p>
                 <span class="rmc-wz-card__foot">
                   <span class="rmc-wz-card__status">

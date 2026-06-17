@@ -130,7 +130,15 @@ def _decorate_stages(groups: list[dict[str, Any]], status_map: dict[str, str]):
             status = status_map.get(getattr(wiz, "wizard_key", ""), "not_started")
             if status == "done":
                 done += 1
-            cards.append({"wizard": wiz, "status": status})
+            title = humanize_wizard_token(getattr(wiz, "label_token", ""))
+            desc = humanize_wizard_token(getattr(wiz, "description_token", ""))
+            # Wizards without a real translated description humanize their
+            # ``wizards.<key>.description`` slug to the SAME stem as the label
+            # (both -> "Account Migration"), so the card would print its name
+            # twice. Drop the description in that case.
+            if desc == title:
+                desc = ""
+            cards.append({"wizard": wiz, "status": status, "title": title, "desc": desc})
         total = len(cards)
         total_all += total
         done_all += done

@@ -355,6 +355,40 @@ class DecorateStagesProgressTests(SimpleTestCase):
         self.assertEqual(stages, [])
         self.assertEqual(overall, {"done": 0, "total": 0, "pct": 0, "remaining": 0})
 
+    def test_description_deduped_when_it_humanizes_to_the_title(self):
+        from types import SimpleNamespace
+
+        from apps.setup_studio.wizard_views import _decorate_stages
+
+        # Both tokens humanize to "Account Migration" -> the card would print its
+        # name twice; the description must be dropped.
+        wiz = SimpleNamespace(
+            wizard_key="account_migration",
+            label_token="wizards.account_migration.label",
+            description_token="wizards.account_migration.description",
+        )
+        groups = [{"key": "get_started", "label": "x", "description": "d", "step": 1,
+                   "wizards": [wiz]}]
+        card = _decorate_stages(groups, {})[0][0]["cards"][0]
+        self.assertEqual(card["title"], "Account Migration")
+        self.assertEqual(card["desc"], "")
+
+    def test_distinct_description_is_kept(self):
+        from types import SimpleNamespace
+
+        from apps.setup_studio.wizard_views import _decorate_stages
+
+        wiz = SimpleNamespace(
+            wizard_key="mfa_setup",
+            label_token="Set up two-factor authentication",
+            description_token="Add a second step at sign-in.",
+        )
+        groups = [{"key": "get_started", "label": "x", "description": "d", "step": 1,
+                   "wizards": [wiz]}]
+        card = _decorate_stages(groups, {})[0][0]["cards"][0]
+        self.assertEqual(card["title"], "Set up two-factor authentication")
+        self.assertEqual(card["desc"], "Add a second step at sign-in.")
+
 
 class BespokeIndexSurfaceTests(SimpleTestCase):
     """The redesigned index ships the bespoke lifecycle grammar + its stylesheet."""
@@ -379,6 +413,19 @@ class BespokeIndexSurfaceTests(SimpleTestCase):
         ).read_text(encoding="utf-8")
         for selector in (".rmc-wz-card", ".rmc-wz-stage", ".rmc-wz-hero", ".rmc-wz-ring"):
             self.assertIn(selector, css)
+
+    def test_index_injects_css_into_a_real_portal_block(self):
+        # portal_base.html exposes {% block extrastyle %} in <head>, NOT extra_head.
+        # Injecting CSS into the phantom `extra_head` block silently drops every
+        # wizard stylesheet — the "entirely unstyled wizard surface" regression.
+        tpl = (_TEMPLATES / "tenant_wizard_index.html").read_text(encoding="utf-8")
+        self.assertIn("{% block extrastyle %}", tpl)
+        self.assertNotIn("{% block extra_head %}", tpl)
+
+    def test_step_run_template_also_uses_the_real_css_block(self):
+        tpl = (_TEMPLATES / "tenant_wizard.html").read_text(encoding="utf-8")
+        self.assertIn("{% block extrastyle %}", tpl)
+        self.assertNotIn("{% block extra_head %}", tpl)
 
 
 class OffcanvasDoublingGuardTests(SimpleTestCase):
