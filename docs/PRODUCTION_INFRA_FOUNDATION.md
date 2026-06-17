@@ -29,6 +29,24 @@ The fix is architectural, not a bigger box.
 | Key Value | **Valkey** (Redis-compatible) | Free works; **Starter** adds persistence | Cache + cache-sessions + Celery broker. |
 | Worker | Celery (your code) | **Starter** (~$7/mo; no free worker tier) | Drains the task queue so background work leaves the web threads. |
 
+## Cost-aware tiers (you do not need everything at once)
+
+The broker is **opt-in and explicit** (`CELERY_BROKER_URL`); `REDIS_URL` alone only
+moves cache + sessions, so you can adopt this in cheap stages:
+
+- **Tier 1 — Postgres upgrade (biggest single win, no worker, ~$7/mo).** The DB is
+  the shared bottleneck (sessions + every query + the inline tasks all hit it).
+  Upgrading it speeds up everything at once. **Do this first.**
+- **Tier 2 — add Valkey for cache + sessions (free, no worker).** Set **only**
+  `REDIS_URL`. Sessions move off Postgres; tasks keep running inline. **Do NOT set
+  `CELERY_BROKER_URL` here** — without a worker, queued tasks would never run.
+- **Tier 3 — add a Background Worker + set `CELERY_BROKER_URL` (~$7/mo).** Now
+  background work (provisioning, email, webhooks) runs async, off the web threads.
+  This is the complete fix.
+
+⚠️ **Rule:** only set `CELERY_BROKER_URL` once a worker is running. (The code
+enforces the safe default — `REDIS_URL` never auto-enables the broker.)
+
 ## Provisioning (Render dashboard)
 
 1. **Key Value (Valkey)** — New + → **Key Value** → **same region** as web + DB →

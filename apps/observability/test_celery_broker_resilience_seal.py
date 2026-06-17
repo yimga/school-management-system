@@ -60,8 +60,8 @@ def _probe(env_extra):
 
 
 class CeleryBrokerResilienceSealTests(SimpleTestCase):
-    def test_broker_present_bounds_the_publish_path(self):
-        data = self._with_redis()
+    def test_explicit_broker_bounds_the_publish_path(self):
+        data = self._with_broker()
         self.assertTrue(data["broker"], "broker URL should be set")
         self.assertFalse(data["eager"], "must NOT be eager when a broker is configured")
         # The crash-loop guard: bounded socket timeouts + fail-fast publish.
@@ -70,14 +70,25 @@ class CeleryBrokerResilienceSealTests(SimpleTestCase):
         self.assertTrue(data["publish_retry"])
         self.assertTrue(data["retry_on_startup"])
 
+    def test_redis_url_alone_does_not_enable_broker(self):
+        # THE worker-safe invariant: a Valkey added for cache/sessions only
+        # (REDIS_URL set, no explicit CELERY_BROKER_URL, no worker) must keep
+        # tasks EAGER — never queue them into a broker nothing will drain.
+        data = self._redis_only()
+        self.assertFalse(data["broker"], "REDIS_URL alone must NOT enable the broker")
+        self.assertTrue(data["eager"], "tasks must stay inline without an explicit broker")
+        self.assertIsNone(data["connect_timeout"], "broker block must not run")
+
     def test_no_broker_falls_back_to_eager(self):
         data = self._without_redis()
         self.assertFalse(data["broker"], "broker URL should be empty")
         self.assertTrue(data["eager"], "must run tasks inline when no broker exists")
-        # No broker → the transport-options block must not have run.
         self.assertIsNone(data["connect_timeout"])
 
-    def _with_redis(self):
+    def _with_broker(self):
+        return _probe({"CELERY_BROKER_URL": "redis://localhost:6379/0", "REDIS_URL": ""})
+
+    def _redis_only(self):
         return _probe({"REDIS_URL": "redis://localhost:6379/0", "CELERY_BROKER_URL": ""})
 
     def _without_redis(self):

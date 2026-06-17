@@ -128,13 +128,16 @@ services:
         value: ""
       - key: WOPI_SHARED_SECRET
         sync: false
-      # ── Cache / broker / sessions (production foundation) ───────────────────
-      # REDIS_URL wires a Render Key Value (Valkey, the open-source Redis fork)
-      # service. When set, it backs the cache, cache-sessions, AND the Celery
-      # broker — moving sessions off Postgres and background tasks off the web
-      # threads (the fix for the 502 crash-loop). Provision the Key Value service
-      # (free tier works; Starter adds persistence) in the same region, and make
-      # sure the worker service below is running so tasks actually drain.
+      # ── Cache / sessions / broker (production foundation) ───────────────────
+      # REDIS_URL wires a Render Key Value (Valkey, the open-source Redis fork).
+      # When set it backs the CACHE + cache-SESSIONS only (moving sessions off
+      # Postgres) — it does NOT auto-enable the task broker. Safe to set even
+      # without a worker; tasks keep running inline (eager).
+      #
+      # CELERY_BROKER_URL is the SEPARATE, explicit broker switch. Set it ONLY
+      # when the worker service below is actually running — otherwise tasks would
+      # queue with nothing to drain them. Both point at the same Key Value here
+      # because this blueprint also runs the worker.
       - key: REDIS_URL
         fromService:
           type: redis

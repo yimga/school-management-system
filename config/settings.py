@@ -1809,8 +1809,15 @@ if os.getenv("RMC_FORCE_DB_SESSIONS", "").strip().lower() in ("1", "true", "yes"
     # Test client exports empty UA; Playwright/curl send a real UA — disable pin flush.
     SESSION_PINNING_ENABLED = False
 
-# --- Celery (background tasks; broker uses REDIS_URL when set) ---
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL") or REDIS_URL or ""
+# --- Celery (background tasks) ---
+# Broker is OPT-IN and EXPLICIT — it intentionally does NOT fall back to
+# REDIS_URL. A Valkey/Redis added for CACHE + SESSIONS only (REDIS_URL set, no
+# worker running yet) must NOT silently switch on the task queue: tasks would
+# enqueue with no worker to drain them and then never run — signups, welcome
+# email, provisioning, webhooks would vanish. So the broker activates ONLY when
+# CELERY_BROKER_URL is set explicitly (i.e. once a worker exists). Until then the
+# eager fallback below runs tasks inline, exactly as today.
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "")
 CELERY_RESULT_BACKEND = (
     "django-db"  # Store task results in Postgres; no Redis required for results
 )
