@@ -368,7 +368,7 @@ def build_inventory(school) -> dict[str, int]:
 def drop_tenant_schema_for_school(school) -> str | None:
     """Force-drop django-tenants schema + Client row before ``School.delete()``."""
     try:
-        from apps.platform_runtime.tenant_mode import use_django_tenants
+        from apps.schools.domain_sync import use_django_tenants
     except ImportError:
         return None
     if not use_django_tenants():

@@ -26,6 +26,9 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
 
+from apps.accounts.decorators import role_required
+from apps.accounts.models import User
+
 logger = logging.getLogger(__name__)
 
 
@@ -58,11 +61,24 @@ def _resolve_subject_max(subject_assignment) -> Decimal:
     return Decimal("20")
 
 
-@method_decorator([login_required, csrf_protect], name="dispatch")
+@method_decorator(
+    [
+        login_required,
+        role_required(
+            User.Role.ADMIN, User.Role.HOD, User.Role.TEACHER, "HEAD_OF_ACADEMICS"
+        ),
+        csrf_protect,
+    ],
+    name="dispatch",
+)
 class BulkGradeEntryView(View):
     """GET renders the bulk grade entry workbench; POST applies a value to many rows.
 
-    # rbac-allow: authenticated-teacher-bulk-grade-entry
+    Mark-editing roles only (matches the marks-entry contract in evals/views.py):
+    teacher / admin / HOD / head-of-academics. Without this gate a STUDENT or
+    PARENT in the same school could bulk-mutate Evaluation scores.
+
+    # rbac-allow: marks-editing-roles-bulk-grade-entry
     """
 
     template = "evals/bulk_grade_entry.html"

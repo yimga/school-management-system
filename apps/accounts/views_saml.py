@@ -113,6 +113,55 @@ def _parse_saml_response(xml_bytes: bytes) -> dict:
     }
 
 
+class _NoSamlCertificate(Exception):
+    """Raised when no IdP signing certificate is configured for the integration."""
+
+
+def _idp_certificate_pem(cfg: dict) -> str:
+    """Return the configured IdP signing cert as PEM (wrapping bare base64)."""
+    raw = ""
+    for key in (
+        "idp_x509_cert",
+        "idp_certificate",
+        "x509_cert",
+        "certificate",
+        "idp_cert",
+    ):
+        value = str(cfg.get(key) or "").strip()
+        if value:
+            raw = value
+            break
+    if not raw:
+        return ""
+    if "BEGIN CERTIFICATE" in raw:
+        return raw
+    body = "\n".join(raw[i : i + 64] for i in range(0, len(raw), 64))
+    return f"-----BEGIN CERTIFICATE-----\n{body}\n-----END CERTIFICATE-----\n"
+
+
+def _verify_saml_signature(xml_bytes: bytes, cfg: dict) -> bytes:
+    """Verify the SAML XML-DSig against the configured IdP cert.
+
+    Returns the canonical bytes of the signature-covered (signed) element so claims are
+    only ever read from signed data — defeating signature-wrapping. Raises
+    ``_NoSamlCertificate`` when no cert is configured (caller must fail closed) and lets
+    any signxml/parse error propagate (also a fail-closed signal).
+    """
+    cert_pem = _idp_certificate_pem(cfg)
+    if not cert_pem:
+        raise _NoSamlCertificate()
+    from lxml import etree
+    from signxml import XMLVerifier
+
+    doc = etree.fromstring(xml_bytes)
+    result = XMLVerifier().verify(doc, x509_cert=cert_pem)
+    if isinstance(result, list):
+        if not result:
+            raise ValueError("no verified SAML signature")
+        result = result[0]
+    return etree.tostring(result.signed_xml)
+
+
 def _choose_user_role(claims: dict, integration: ServiceIntegration) -> str:
     cfg = integration.config or {}
     valid_roles = {choice[0] for choice in User.Role.choices}
@@ -215,6 +264,7 @@ def saml_acs(request, integration_id: int):
         record_sso_failure(integration_id, "Tenant mismatch")
         return JsonResponse({"error": "Tenant mismatch"}, status=403)
 
+    cfg = integration.config or {}
     saml_response = (request.POST.get("SAMLResponse") or "").strip()
     if not saml_response:
         record_sso_failure(integration_id, "Missing SAMLResponse")
@@ -225,7 +275,32 @@ def saml_acs(request, integration_id: int):
         record_sso_failure(integration_id, "Invalid SAMLResponse")
         return JsonResponse({"error": "Invalid SAMLResponse"}, status=400)
 
-    claims = _parse_saml_response(xml_bytes)
+    # SECURITY (2026-06-17 auth-bypass seal): verify the assertion's XML signature against
+    # the configured IdP certificate BEFORE trusting any attribute. A SAML assertion is
+    # always relayed through the browser, so there is no transport fallback — if no cert
+    # is configured we fail closed. Claims are parsed only from the signed subtree.
+    try:
+        signed_xml_bytes = _verify_saml_signature(xml_bytes, cfg)
+    except _NoSamlCertificate:
+        logger.warning(
+            "SAML rejected: no IdP signing certificate configured for integration %s",
+            integration_id,
+        )
+        record_sso_failure(integration_id, "SAML IdP certificate not configured")
+        return JsonResponse(
+            {"error": "SAML SSO not fully configured (missing IdP certificate)"},
+            status=400,
+        )
+    except Exception:  # any verification/parse failure -> reject (fail closed)
+        logger.warning(
+            "SAML signature verification failed for integration %s", integration_id
+        )
+        record_sso_failure(integration_id, "SAML signature verification failed")
+        return JsonResponse(
+            {"error": "SAML signature verification failed"}, status=401
+        )
+
+    claims = _parse_saml_response(signed_xml_bytes)
     if not claims:
         record_sso_failure(integration_id, "Could not parse SAML assertion")
         return JsonResponse({"error": "Could not parse SAML assertion"}, status=400)

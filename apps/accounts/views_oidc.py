@@ -4,9 +4,14 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 import secrets
 from urllib.parse import urlencode, urlparse
 from urllib.request import Request, urlopen
+
+import jwt
+from jwt import PyJWKClient
+from jwt.exceptions import PyJWKClientError, PyJWTError
 
 from django.contrib.auth import login
 from django.http import HttpResponseForbidden, JsonResponse
@@ -18,6 +23,16 @@ from apps.accounts.models import User
 from apps.schools.models import School, SchoolMembership
 from apps.siteconfig.integration_registry import resolve_service_integration
 from apps.integrations_marketplace.models import ServiceIntegration
+
+logger = logging.getLogger(__name__)
+
+# Default signing algorithms accepted for id_token verification. ``none`` is never
+# included, so an ``alg=none`` token is always rejected.
+_DEFAULT_ID_TOKEN_ALGS = ["RS256", "RS384", "RS512", "ES256", "ES384", "ES512"]
+
+
+class _NoVerificationMaterial(Exception):
+    """Raised when no JWKS/issuer is configured, so a signature check is impossible."""
 
 
 def _resolve_school(request):
@@ -67,6 +82,62 @@ def _decode_unverified_jwt(id_token: str) -> dict:
         return body if isinstance(body, dict) else {}
     except (ValueError, TypeError, KeyError, json.JSONDecodeError, UnicodeDecodeError):
         return {}
+
+
+def _resolve_jwks_uri(cfg: dict) -> tuple[str, str]:
+    """Return (jwks_uri, issuer) from config, fetching OIDC discovery if needed."""
+    jwks_uri = str(cfg.get("jwks_uri") or "").strip()
+    issuer = str(cfg.get("issuer") or cfg.get("issuer_url") or "").strip()
+    if jwks_uri:
+        return jwks_uri, issuer
+    discovery_url = str(
+        cfg.get("discovery_url") or cfg.get("oidc_discovery_url") or ""
+    ).strip()
+    if not discovery_url and issuer:
+        discovery_url = issuer.rstrip("/") + "/.well-known/openid-configuration"
+    if not discovery_url:
+        return "", issuer
+    try:
+        req = Request(discovery_url, headers={"Accept": "application/json"})
+        with urlopen(req, timeout=10) as resp:  # noqa: S310 - configured IdP discovery
+            doc = json.loads(resp.read().decode("utf-8"))
+        jwks_uri = str(doc.get("jwks_uri") or "").strip()
+        if not issuer:
+            issuer = str(doc.get("issuer") or "").strip()
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        return "", issuer
+    return jwks_uri, issuer
+
+
+def _verify_id_token(id_token: str, *, cfg: dict, client_id: str) -> dict:
+    """Verify the id_token signature + standard claims against the IdP JWKS.
+
+    Returns the verified claims. Raises ``_NoVerificationMaterial`` when no JWKS /
+    issuer is configured (caller decides the fallback), or a ``PyJWTError`` /
+    ``PyJWKClientError`` when the token is present but fails verification.
+    """
+    jwks_uri, issuer = _resolve_jwks_uri(cfg)
+    if not jwks_uri:
+        raise _NoVerificationMaterial()
+    algs = cfg.get("id_token_signed_response_alg") or _DEFAULT_ID_TOKEN_ALGS
+    if isinstance(algs, str):
+        algs = [algs]
+    algs = [a for a in algs if str(a).lower() != "none"] or _DEFAULT_ID_TOKEN_ALGS
+    signing_key = PyJWKClient(jwks_uri, timeout=10).get_signing_key_from_jwt(id_token)
+    options = {
+        "require": ["exp", "iat"],
+        "verify_aud": bool(client_id),
+        "verify_iss": bool(issuer),
+    }
+    return jwt.decode(
+        id_token,
+        signing_key.key,
+        algorithms=algs,
+        audience=client_id or None,
+        issuer=issuer or None,
+        leeway=120,
+        options=options,
+    )
 
 
 def _choose_user_role(claims: dict, integration: ServiceIntegration) -> str:
@@ -210,42 +281,69 @@ def oidc_callback(request, integration_id: int):
         return JsonResponse({"error": request.GET.get("error")}, status=400)
 
     cfg = integration.config or {}
+    client_id = str(integration.client_id or cfg.get("client_id") or "").strip()
     code = (request.GET.get("code") or "").strip()
-    id_token = (request.GET.get("id_token") or "").strip()
-    if not id_token and code and str(cfg.get("token_endpoint") or "").strip():
-        try:
-            redirect_uri = str(
-                cfg.get("redirect_uri") or ""
-            ).strip() or request.build_absolute_uri(
-                reverse("accounts:oidc_callback", args=[integration.pk])
-            )
-            tokens = _exchange_code_for_tokens(
-                token_endpoint=str(cfg.get("token_endpoint")),
-                code=code,
-                client_id=str(integration.client_id or cfg.get("client_id") or ""),
-                client_secret=str(
-                    integration.client_secret or cfg.get("client_secret") or ""
-                ),
-                redirect_uri=redirect_uri,
-            )
-            id_token = str(tokens.get("id_token") or "").strip()
-        except (
-            OSError,
-            ConnectionError,
-            TimeoutError,
-            ValueError,
-            TypeError,
-            KeyError,
-            json.JSONDecodeError,
-        ):
-            record_sso_failure(integration_id, "Token exchange failed")
-            return JsonResponse({"error": "Token exchange failed"}, status=502)
+    token_endpoint = str(cfg.get("token_endpoint") or "").strip()
+
+    # SECURITY (2026-06-17 auth-bypass seal): only accept an id_token obtained via the
+    # server-to-server authorization-code exchange (authenticated with the client secret
+    # over TLS). A front-channel ``id_token`` request parameter is attacker-controllable
+    # and is NEVER trusted — otherwise a forged token grants login as any user/role.
+    if not code:
+        record_sso_failure(integration_id, "Missing authorization code")
+        return JsonResponse({"error": "Missing authorization code"}, status=400)
+    if not token_endpoint:
+        record_sso_failure(integration_id, "OIDC integration missing token_endpoint")
+        return JsonResponse({"error": "OIDC integration misconfigured"}, status=400)
+
+    try:
+        redirect_uri = str(
+            cfg.get("redirect_uri") or ""
+        ).strip() or request.build_absolute_uri(
+            reverse("accounts:oidc_callback", args=[integration.pk])
+        )
+        tokens = _exchange_code_for_tokens(
+            token_endpoint=token_endpoint,
+            code=code,
+            client_id=client_id,
+            client_secret=str(
+                integration.client_secret or cfg.get("client_secret") or ""
+            ),
+            redirect_uri=redirect_uri,
+        )
+        id_token = str(tokens.get("id_token") or "").strip()
+    except (
+        OSError,
+        ConnectionError,
+        TimeoutError,
+        ValueError,
+        TypeError,
+        KeyError,
+        json.JSONDecodeError,
+    ):
+        record_sso_failure(integration_id, "Token exchange failed")
+        return JsonResponse({"error": "Token exchange failed"}, status=502)
 
     if not id_token:
         record_sso_failure(integration_id, "Missing id_token")
         return JsonResponse({"error": "Missing id_token"}, status=400)
 
-    claims = _decode_unverified_jwt(id_token)
+    # Verify the id_token signature against the IdP JWKS when configured. When no JWKS /
+    # issuer is configured we fall back to decoding the code-exchanged token (its
+    # authenticity rests on the TLS + client-secret token exchange) and log that the
+    # signature was not cryptographically verified.
+    try:
+        claims = _verify_id_token(id_token, cfg=cfg, client_id=client_id)
+    except _NoVerificationMaterial:
+        logger.warning(
+            "OIDC id_token signature unverified (no jwks_uri/issuer configured) for "
+            "integration %s; relying on code-exchange transport authenticity.",
+            integration.pk,
+        )
+        claims = _decode_unverified_jwt(id_token)
+    except (PyJWTError, PyJWKClientError, OSError, ValueError, KeyError):
+        record_sso_failure(integration_id, "id_token signature verification failed")
+        return JsonResponse({"error": "id_token verification failed"}, status=401)
     if not claims:
         record_sso_failure(integration_id, "Invalid id_token")
         return JsonResponse({"error": "Invalid id_token"}, status=400)

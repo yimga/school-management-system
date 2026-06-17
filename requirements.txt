@@ -127,3 +127,12 @@ json-logic>=0.6.0
 
 # Architecture diagram (Section 13.2): python scripts/gen_models_png.py → docs/architecture/models.png
 django-extensions>=1.9.0
+
+# Enterprise SSO signature verification (2026-06-17 auth-bypass seal). OIDC id_token is
+# verified against the IdP JWKS via PyJWT; the SAML assertion XML-DSig is verified against
+# the IdP certificate via signxml (+ lxml). REQUIRED in prod: apps/accounts/views_oidc.py
+# imports PyJWT at module top, so a missing wheel would fail the URLConf import and 500 the
+# whole site. signxml pulls cryptography>=42 (already pinned above).
+PyJWT>=2.10,<3
+signxml>=4.0,<5
+lxml>=5.0
