@@ -301,6 +301,7 @@ html[data-surface="tenant"] body {
 
 html[data-surface="tenant"] body > .portal-shell,
 html[data-surface="tenant"] body > .portal-layout,
+html[data-surface="tenant"] body > .portal-layout-wrap,
 html[data-surface="tenant"] body > main {
   flex: 1 1 auto;
   min-height: 0;
