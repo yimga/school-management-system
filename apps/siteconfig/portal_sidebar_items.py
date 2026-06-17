@@ -1292,8 +1292,12 @@ def build_portal_sidebar_items(request, site):
                     }
                 )
         # Studio OS as single entry: Workflow Center and Approval Hub open from Studio (legacy URLs redirect when not from_studio=1).
-        workflow_center_url = _safe_reverse("studio_os:automation") or _safe_reverse(
-            "studio_os:workflow_center"
+        # Workflow Center → its OWN procedural-checklist view (distinct destination);
+        # Workflow Hub below → the automation builder. Prioritising workflow_center
+        # here stops the two sidebar rows collapsing onto the same /studio/automation/
+        # URL. Falls back to automation only if the dedicated view is unregistered.
+        workflow_center_url = _safe_reverse("studio_os:workflow_center") or _safe_reverse(
+            "studio_os:automation"
         )
         if workflow_center_url:
             items.append(
