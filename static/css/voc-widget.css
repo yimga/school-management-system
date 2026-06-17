@@ -3,6 +3,8 @@
 
 .voc-widget {
   position: fixed;
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  right: calc(1rem + env(safe-area-inset-right, 0px));
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -40,7 +42,13 @@
   min-height: 84px;
 }
 
+/* When the assist dock mounts and ADOPTS this widget, it moves the panel +
+   toggle into the dock rail and removes the original .voc-widget node entirely
+   (rmc-assist-dock.js: voc.remove()). So a .voc-widget that still exists after
+   the dock mounted means adoption did NOT complete. It must stay a collapsed,
+   bottom-right floating button — never be un-floated into the page flow, which
+   was the regression that splashed the expanded feedback panel across the
+   bottom of every operator page. (Previously: position: static.) */
 body[data-rmc-assist-dock="mounted"] .voc-widget {
-  position: static;
-  z-index: auto;
+  position: fixed;
 }
