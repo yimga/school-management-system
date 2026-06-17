@@ -11,12 +11,24 @@
   <header class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
     <div>
       <h1 class="h3 mb-1">{% trans "Workflow Flight Deck" %}</h1>
-      <p class="text-muted mb-0">{% trans "Live mission control for platform workflows — active runs, incidents, and fixes." %}</p>
+      <p class="text-muted mb-0">{% trans "Live mission control for platform workflows — active runs, incidents, and operator fixes." %}</p>
     </div>
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'super:dashboard' %}">{% trans "Back to dashboard" %}</a>
+    <div class="d-flex flex-wrap gap-2">
+      <button type="button" class="btn btn-primary btn-sm" id="rmc-wfp-flight-deck-refresh" data-rmc-flight-deck-refresh>
+        {% trans "Refresh deck" %}
+      </button>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'super:provision_queue' %}">{% trans "Provision queue" %}</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'super:dashboard' %}">{% trans "Back to dashboard" %}</a>
+    </div>
   </header>
 
-  <div id="rmc-wfp-flight-deck" class="rmc-wfp-flight-deck" data-api-url="{{ flight_deck_api_url }}">
+  <div
+    id="rmc-wfp-flight-deck"
+    class="rmc-wfp-flight-deck"
+    data-api-url="{{ flight_deck_api_url }}"
+  >
+    {{ flight_deck_endpoints_json|json_script:"page-data-rmc-flight-deck-endpoints" }}
+    {{ flight_deck_labels|json_script:"page-data-rmc-flight-deck-labels" }}
     <div class="rmc-wfp-flight-deck__loading rmc-skeleton" aria-live="polite">{% trans "Loading workflows…" %}</div>
   </div>
 </div>

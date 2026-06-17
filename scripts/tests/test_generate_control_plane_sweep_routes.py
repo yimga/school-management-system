@@ -25,6 +25,12 @@ def test_model_changelist_still_included():
     assert mod._admin_changelist_only(path) is True
 
 
+def test_platform_runtime_flight_deck_included():
+    path = "/platform-runtime/workflow-progress/flight-deck/"
+    assert mod._include_path(path, "workflow_progress_flight_deck") is True
+    assert mod._route_tier(path) == "operator"
+
+
 if __name__ == "__main__":
     test_password_change_done_not_admin_changelist()
     test_model_changelist_still_included()

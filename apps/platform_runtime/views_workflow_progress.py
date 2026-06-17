@@ -4,7 +4,8 @@ Endpoints mounted under ``/platform/workflow-progress/`` (see urls.py):
 
 * ``GET  active/``            — JSON list of running + stuck runs for the
   caller's tenant + actor scope. Used by the assist-dock badge.
-* ``GET  detail/<id>/``       — JSON detail incl. per-step breakdown.
+* ``GET  detail/<id>/``       — HTML operator detail page (browser default) or
+  JSON when ``Accept: application/json`` / ``?format=json``.
 * ``GET  stream/``            — Server-Sent Events stream pushing live
   updates every 2s, heartbeat every 15s, graceful close before the
   hosting worker timeout (25s default; see ``_sse_max_duration_seconds``).
@@ -28,6 +29,8 @@ from typing import Any
 
 from django.db import DatabaseError
 from django.http import JsonResponse
+from django.shortcuts import redirect, render
+from django.urls import reverse
 from services.http_auth_guards import login_required_api, login_required_sse
 from services.sse_response import guarded_sse_response
 from django.utils import timezone
@@ -192,27 +195,15 @@ def badge_view(request):
     return JsonResponse({"count": count, "level": level, "dot": running > 0 or stuck > 0})
 
 
-@login_required_api
-@require_GET
-def run_detail_view(request, run_id: int):
-    """JSON detail of one run, including per-step breakdown."""
+def build_run_detail_payload(run: Any) -> dict[str, Any]:
+    """Serialize one workflow run for JSON API and HTML detail page."""
 
-    from apps.platform_runtime.models import WorkflowRun, WorkflowStep
-    from apps.platform_runtime.workflow_tracker import is_stuck
-
-    try:
-        run = WorkflowRun.objects.get(pk=run_id)  # tenant-isolation-allow: workflow-run-detail-pk-lookup-tenant-checked-post-query
-    except WorkflowRun.DoesNotExist:
-        return JsonResponse({"error": "not_found"}, status=404)
-
-    # Tenant + actor scoping.
-    schema, actor_id = _resolve_scope(request)
-    is_staff = bool(getattr(request.user, "is_staff", False))
-    if not is_staff:
-        if schema and run.tenant_schema and run.tenant_schema != schema:
-            return JsonResponse({"error": "forbidden", "reason": "tenant_mismatch"}, status=403)
-        if actor_id and run.actor_user_id and run.actor_user_id != actor_id:
-            return JsonResponse({"error": "forbidden", "reason": "actor_mismatch"}, status=403)
+    from apps.platform_runtime.models import WorkflowStep
+    from apps.platform_runtime.workflow_flight_deck_actions import (
+        enrich_run_payload,
+        resolve_effective_remediation,
+    )
+    from apps.platform_runtime.workflow_tracker import is_stuck, serialize_workflow_run
 
     steps = []
     for s in WorkflowStep.objects.filter(run=run).order_by("ordinal"):
@@ -230,27 +221,119 @@ def run_detail_view(request, run_id: int):
             }
         )
 
-    return JsonResponse(
+    enriched = enrich_run_payload(serialize_workflow_run(run), run=run)
+    return {
+        "id": run.pk,
+        "workflow_key": run.workflow_key,
+        "workflow_label": run.workflow_label,
+        "status": "stuck" if is_stuck(run) else run.status,
+        "current_step_ordinal": run.current_step_ordinal,
+        "current_step_name": run.current_step_name,
+        "total_steps": run.total_steps,
+        "expected_duration_seconds": run.expected_duration_seconds,
+        "started_at": run.started_at.isoformat() if run.started_at else "",
+        "last_heartbeat_at": run.last_heartbeat_at.isoformat()
+        if run.last_heartbeat_at
+        else "",
+        "ended_at": run.ended_at.isoformat() if run.ended_at else "",
+        "tenant_schema": run.tenant_schema,
+        "school_id": run.school_id,
+        "actor_user_id": run.actor_user_id,
+        "actor_label": run.actor_label,
+        "payload_summary": run.payload_summary or {},
+        "error_summary": run.error_summary or {},
+        "suggested_remediation": resolve_effective_remediation(run),
+        "operator_actions": enriched.get("operator_actions") or [],
+        "steps": steps,
+    }
+
+
+def _run_detail_wants_json(request) -> bool:
+    if request.GET.get("format") == "json":
+        return True
+    if request.GET.get("format") == "html":
+        return False
+    accept = (request.headers.get("Accept") or "").split(",")[0].strip().lower()
+    return accept.startswith("application/json")
+
+
+def _mutation_wants_json(request) -> bool:
+    if request.GET.get("format") == "json":
+        return True
+    accept = (request.headers.get("Accept") or "").split(",")[0].strip().lower()
+    if accept.startswith("application/json"):
+        return True
+    return request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+
+def _mutation_redirect(request, run_id: int, payload: dict[str, Any]):
+    detail_url = reverse(
+        "platform_runtime:workflow_progress_run_detail",
+        kwargs={"run_id": run_id},
+    )
+    if payload.get("ok"):
+        return redirect(f"{detail_url}?applied=1")
+    reason = str(payload.get("reason") or payload.get("error") or "failed")
+    return redirect(f"{detail_url}?error={reason[:80]}")
+
+
+def _respond_mutation(request, run_id: int, payload: dict[str, Any], *, error_status: int = 400):
+    if _mutation_wants_json(request):
+        status = 200 if payload.get("ok") else error_status
+        if payload.get("error") == "not_found":
+            status = 404
+        if payload.get("error") == "forbidden":
+            status = 403
+        return JsonResponse(payload, status=status)
+    return _mutation_redirect(request, run_id, payload)
+
+
+@login_required_api
+@require_GET
+def run_detail_view(request, run_id: int):
+    """Run detail — HTML page for operators, JSON for API clients."""
+
+    from apps.platform_runtime.models import WorkflowRun
+
+    try:
+        run = WorkflowRun.objects.get(pk=run_id)  # tenant-isolation-allow: workflow-run-detail-pk-lookup-tenant-checked-post-query
+    except WorkflowRun.DoesNotExist:
+        return JsonResponse({"error": "not_found"}, status=404)
+
+    schema, actor_id = _resolve_scope(request)
+    is_staff = bool(getattr(request.user, "is_staff", False))
+    if not is_staff:
+        if schema and run.tenant_schema and run.tenant_schema != schema:
+            return JsonResponse({"error": "forbidden", "reason": "tenant_mismatch"}, status=403)
+        if actor_id and run.actor_user_id and run.actor_user_id != actor_id:
+            return JsonResponse({"error": "forbidden", "reason": "actor_mismatch"}, status=403)
+
+    payload = build_run_detail_payload(run)
+    if _run_detail_wants_json(request):
+        return JsonResponse(payload)
+
+    return render(
+        request,
+        "platform_runtime/workflow_run_detail.html",
         {
-            "id": run.pk,
-            "workflow_key": run.workflow_key,
-            "workflow_label": run.workflow_label,
-            "status": "stuck" if is_stuck(run) else run.status,
-            "current_step_ordinal": run.current_step_ordinal,
-            "current_step_name": run.current_step_name,
-            "total_steps": run.total_steps,
-            "expected_duration_seconds": run.expected_duration_seconds,
-            "started_at": run.started_at.isoformat() if run.started_at else "",
-            "last_heartbeat_at": run.last_heartbeat_at.isoformat() if run.last_heartbeat_at else "",
-            "ended_at": run.ended_at.isoformat() if run.ended_at else "",
-            "tenant_schema": run.tenant_schema,
-            "actor_user_id": run.actor_user_id,
-            "actor_label": run.actor_label,
-            "payload_summary": run.payload_summary or {},
-            "error_summary": run.error_summary or {},
-            "suggested_remediation": run.suggested_remediation or {},
-            "steps": steps,
-        }
+            "page_title": run.workflow_label or run.workflow_key,
+            "detail": payload,
+            "run": run,
+            "flight_deck_url": reverse("platform_runtime:workflow_progress_flight_deck"),
+            "apply_fix_url": reverse(
+                "platform_runtime:workflow_progress_apply_fix",
+                kwargs={"run_id": run.pk},
+            ),
+            "cancel_url": reverse(
+                "platform_runtime:workflow_progress_cancel",
+                kwargs={"run_id": run.pk},
+            ),
+            "json_url": reverse(
+                "platform_runtime:workflow_progress_run_detail",
+                kwargs={"run_id": run.pk},
+            )
+            + "?format=json",
+        },
     )
 
 
@@ -264,18 +347,22 @@ def cancel_view(request, run_id: int):
     try:
         run = WorkflowRun.objects.get(pk=run_id)  # tenant-isolation-allow: workflow-run-cancel-pk-lookup-tenant-checked-post-query
     except WorkflowRun.DoesNotExist:
-        return JsonResponse({"error": "not_found"}, status=404)
+        return _respond_mutation(request, run_id, {"error": "not_found", "ok": False})
 
     schema, actor_id = _resolve_scope(request)
     is_staff = bool(getattr(request.user, "is_staff", False))
     if not is_staff:
         if schema and run.tenant_schema and run.tenant_schema != schema:
-            return JsonResponse({"error": "forbidden"}, status=403)
+            return _respond_mutation(request, run_id, {"error": "forbidden", "ok": False})
         if actor_id and run.actor_user_id and run.actor_user_id != actor_id:
-            return JsonResponse({"error": "forbidden"}, status=403)
+            return _respond_mutation(request, run_id, {"error": "forbidden", "ok": False})
 
     if run.status not in ("running", "stuck"):
-        return JsonResponse({"ok": False, "reason": "not_in_cancellable_state", "status": run.status})
+        return _respond_mutation(
+            request,
+            run_id,
+            {"ok": False, "reason": "not_in_cancellable_state", "status": run.status},
+        )
 
     # tenant-isolation-allow: workflow-run-cancel-single-row-pk-update-already-scoped
     WorkflowRun.objects.filter(pk=run.pk).update(
@@ -283,7 +370,7 @@ def cancel_view(request, run_id: int):
         ended_at=timezone.now(),
         last_heartbeat_at=timezone.now(),
     )
-    return JsonResponse({"ok": True, "status": "cancelled"})
+    return _respond_mutation(request, run_id, {"ok": True, "status": "cancelled"})
 
 
 @login_required_api
@@ -299,17 +386,21 @@ def apply_fix_view(request, run_id: int):
     try:
         run = WorkflowRun.objects.get(pk=run_id)  # tenant-isolation-allow: workflow-run-applyfix-pk-lookup-tenant-checked-post-query
     except WorkflowRun.DoesNotExist:
-        return JsonResponse({"error": "not_found"}, status=404)
+        return _respond_mutation(request, run_id, {"error": "not_found", "ok": False})
 
     schema, actor_id = _resolve_scope(request)
     is_staff = bool(getattr(request.user, "is_staff", False))
     if not is_staff:
         if schema and run.tenant_schema and run.tenant_schema != schema:
-            return JsonResponse({"error": "forbidden"}, status=403)
+            return _respond_mutation(request, run_id, {"error": "forbidden", "ok": False})
 
-    remediation = run.suggested_remediation or {}
+    from apps.platform_runtime.workflow_flight_deck_actions import (
+        resolve_effective_remediation,
+    )
+
+    remediation = resolve_effective_remediation(run)
     if not remediation.get("auto_fix_available"):
-        return JsonResponse({"ok": False, "reason": "no_auto_fix_available"})
+        return _respond_mutation(request, run_id, {"ok": False, "reason": "no_auto_fix_available"})
 
     kind = str(remediation.get("auto_fix_kind", ""))
     workflow_key = run.workflow_key
@@ -336,9 +427,9 @@ def apply_fix_view(request, run_id: int):
         hint = promotion_hint(workflow_key=workflow_key, auto_fix_kind=kind)
         if hint:
             result["promotion"] = hint
-        return JsonResponse(result)
+        return _respond_mutation(request, run_id, result)
 
-    return JsonResponse(result)
+    return _respond_mutation(request, run_id, result)
 
 
 def _format_sse_frame(event_id, kind: str, payload: dict) -> bytes:

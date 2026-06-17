@@ -59,3 +59,33 @@
   color: var(--text-secondary);
   font-size: 0.9rem;
 }
+
+.rmc-wfp-flight-deck__remediation {
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-md, 10px);
+  background: var(--surface-canvas, var(--surface-bg));
+  border: 1px solid var(--hairline);
+}
+
+.rmc-wfp-flight-deck__actions .btn-primary {
+  font-weight: 600;
+}
+
+.rmc-wfp-flight-deck__run--acted {
+  opacity: 0.65;
+}
+
+.rmc-wfp-flight-deck__panel--summary {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 992px) {
+  .rmc-wfp-flight-deck__panel--summary {
+    grid-column: auto;
+  }
+}
+
+.rmc-wfp-flight-deck__run[data-status="failed"] {
+  border-left: 3px solid var(--color-danger, var(--hairline));
+  padding-left: 0.5rem;
+}

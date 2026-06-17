@@ -48,6 +48,7 @@ ADMIN_NON_MODEL_SEGMENTS = frozenset(
 # Operator HTML surfaces (extends control_plane_base / manager shells).
 OPERATOR_PREFIXES = (
     "/super/",
+    "/platform-runtime/",
     "/configuration/",
     "/studio/",
     "/sales/",

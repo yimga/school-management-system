@@ -111,6 +111,7 @@ Use `python scripts/run_sqlite_memory_tests.py <labels>` when Postgres is config
 - `collectstatic` can report duplicate static file warnings for admin JS files; django-unfold overrides make these non-blocking.
 - WeasyPrint requires system libraries such as libpango, libcairo, and libgdk-pixbuf.
 - Celery and Redis are optional for many local development paths, but production uses both.
+- **Workflow self-healing (Flight Deck / stuck autopilot):** production must run **Celery worker + beat**. Beat entry `platform-runtime-workflow-stuck-sweep` (every 5 min) drives stuck-run detection and optional auto-`requeue_provision` when `WorkflowAutopilotPolicy` is enabled (migration `0086_enable_provisioning_autopilot`). Without beat, operators still get Flight Deck buttons; autopilot never fires unattended.
 - `python-json-logger` v4.x changed its API; related import warnings may be non-blocking.
 
 ## Parallelism

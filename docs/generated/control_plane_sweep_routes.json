@@ -1,7 +1,7 @@
 {
   "version": "2026-05-18",
-  "count": 671,
-  "operator_count": 480,
+  "count": 709,
+  "operator_count": 518,
   "admin_changelist_count": 191,
   "routes": [
     {
@@ -1435,6 +1435,234 @@
     {
       "path": "/offline/sync/",
       "name": "manager_offline_sync_center",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/implementation/",
+      "name": "implementation_command_center",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/lifecycle/",
+      "name": "tenant_lifecycle_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/local-ai/browser-config/",
+      "name": "browser_inference_config",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/local-ai/voice/synthesize/",
+      "name": "local_voice_synthesize",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/local-ai/voice/transcribe/",
+      "name": "local_voice_transcribe",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/newsletter/confirm/",
+      "name": "newsletter_confirm",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/newsletter/subscribe/",
+      "name": "newsletter_subscribe",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/newsletter/unsubscribe/",
+      "name": "newsletter_unsubscribe",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/pilot-defects/",
+      "name": "pilot_defect_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/pilot-evidence/",
+      "name": "pilot_evidence_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/platform-health/",
+      "name": "platform_health_center",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/platform-health/badge/",
+      "name": "platform_health_badge",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/platform-health/recheck/",
+      "name": "platform_health_recheck",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/remote-support/accept/",
+      "name": "remote_support_accept",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/remote-support/config-version/",
+      "name": "remote_support_config_version",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/remote-support/consent/",
+      "name": "remote_support_consent",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/remote-support/end/",
+      "name": "remote_support_end",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/remote-support/heartbeat/",
+      "name": "remote_support_heartbeat",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/remote-support/operator-intents/ack/",
+      "name": "remote_support_ack_intent",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/remote-support/operator-intents/pending/",
+      "name": "remote_support_pending_intents",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/remote-support/operator-intents/queue/",
+      "name": "remote_support_queue_intent",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/remote-support/request/",
+      "name": "remote_support_request",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/self-healing/",
+      "name": "health_autopilot_console",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/self-healing/apply/",
+      "name": "health_autopilot_apply",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/support-playbooks/",
+      "name": "support_playbook_center",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/workflow-progress/active/",
+      "name": "workflow_progress_active_runs",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/workflow-progress/apply-fix/",
+      "name": "workflow_progress_apply_fix",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/workflow-progress/autopilot/enable/",
+      "name": "workflow_progress_enable_autopilot",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/workflow-progress/autopilot/policy/",
+      "name": "workflow_progress_autopilot_policy",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/workflow-progress/badge/",
+      "name": "workflow_progress_badge",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/workflow-progress/cancel/",
+      "name": "workflow_progress_cancel",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/workflow-progress/detail/",
+      "name": "workflow_progress_run_detail",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/workflow-progress/e2e-demo/start/",
+      "name": "workflow_progress_e2e_demo_start",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/workflow-progress/flight-deck/",
+      "name": "workflow_progress_flight_deck",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/workflow-progress/incidents/bulk-apply/",
+      "name": "workflow_progress_incident_bulk_apply",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/workflow-progress/stream/",
+      "name": "workflow_progress_stream",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/workflow-progress/tenant-trusted/active/",
+      "name": "workflow_progress_tenant_trusted_active",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/workflow-progress/tenant-trusted/stream/",
+      "name": "workflow_progress_tenant_trusted_stream",
       "tier": "operator",
       "sweep": true
     },

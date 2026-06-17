@@ -7,6 +7,7 @@ in — shadow otherwise — and bounded by a per-school circuit breaker).
 
 from __future__ import annotations
 
+import uuid
 from datetime import timedelta
 from unittest import mock
 
@@ -20,9 +21,38 @@ from apps.platform_runtime.models import (
 )
 from apps.platform_runtime.workflow_autopilot import try_auto_apply_on_stuck
 from apps.platform_runtime.workflow_fix_handlers import resolve_stuck_remediation
+from apps.schools.models import School
 
 
-def _stuck_run(workflow_key="tenant_school_provision", school_id="sch-1", status="stuck"):
+class StuckAutopilotMixin:
+    def setUp(self):
+        self.school = School.objects.create(
+            name="Stuck Autopilot School",
+            slug=f"stuck-{uuid.uuid4().hex[:8]}",
+            subdomain=f"stuck{uuid.uuid4().hex[:6]}",
+            is_active=False,
+        )
+        self.school_id = str(self.school.pk)
+
+    def _disable_provision_autopilot(self):
+        WorkflowAutopilotPolicy.objects.filter(
+            workflow_key="tenant_school_provision",
+            tenant_schema="",
+        ).update(enabled=False)
+
+    def _enable_provision_autopilot(self):
+        WorkflowAutopilotPolicy.objects.filter(
+            workflow_key="tenant_school_provision",
+            tenant_schema="",
+        ).update(enabled=True, allowed_auto_fix_kinds=["requeue_provision"])
+
+
+def _stuck_run(
+    *,
+    workflow_key="tenant_school_provision",
+    school_id="",
+    status="stuck",
+):
     return WorkflowRun.objects.create(
         workflow_key=workflow_key,
         workflow_label="Provision school",
@@ -42,20 +72,21 @@ class ResolveStuckRemediationTests(TestCase):
         rem = resolve_stuck_remediation(run=run)
         self.assertTrue(rem["auto_fix_available"])
         self.assertEqual(rem["auto_fix_kind"], "requeue_provision")
-        self.assertTrue(rem["human_action"])  # drives the card + Cancel button
+        self.assertTrue(rem["human_action"])
         self.assertEqual(rem["reason"], "stuck")
 
     def test_unknown_workflow_gets_explain_only(self):
         run = _stuck_run(workflow_key="some_other_workflow")
         rem = resolve_stuck_remediation(run=run)
-        self.assertFalse(rem["auto_fix_available"])  # no false Apply button
-        self.assertTrue(rem["human_action"])  # but still explains + Cancel
+        self.assertFalse(rem["auto_fix_available"])
+        self.assertTrue(rem["human_action"])
 
 
-class TryAutoApplyOnStuckTests(TestCase):
+class TryAutoApplyOnStuckTests(StuckAutopilotMixin, TestCase):
     def test_shadow_when_no_policy(self):
         """Safe-by-default: no enabling policy => propose only, mutate nothing."""
-        run = _stuck_run()
+        self._disable_provision_autopilot()
+        run = _stuck_run(school_id=self.school_id)
         run.suggested_remediation = resolve_stuck_remediation(run=run)
         run.save(update_fields=["suggested_remediation"])
 
@@ -67,21 +98,16 @@ class TryAutoApplyOnStuckTests(TestCase):
         self.assertFalse(out["applied"])
         self.assertEqual(out["reason"], "policy_disabled")
         self.assertEqual(out["mode"], "shadow")
-        dispatch.assert_not_called()  # NO mutation in shadow
+        dispatch.assert_not_called()
         log = WorkflowAutopilotApplyLog.objects.get(run_id=run.pk)
         self.assertEqual(log.outcome, "shadow")
         self.assertTrue(log.autopilot)
 
     def test_applies_when_policy_enabled(self):
-        run = _stuck_run()
+        self._enable_provision_autopilot()
+        run = _stuck_run(school_id=self.school_id)
         run.suggested_remediation = resolve_stuck_remediation(run=run)
         run.save(update_fields=["suggested_remediation"])
-        WorkflowAutopilotPolicy.objects.create(
-            workflow_key="tenant_school_provision",
-            tenant_schema="",
-            allowed_auto_fix_kinds=["requeue_provision"],
-            enabled=True,
-        )
 
         with mock.patch(
             "apps.schools.tasks.dispatch_provision_school"
@@ -95,15 +121,9 @@ class TryAutoApplyOnStuckTests(TestCase):
         self.assertTrue(log.autopilot)
 
     def test_circuit_breaker_opens_after_max_attempts(self):
-        WorkflowAutopilotPolicy.objects.create(
-            workflow_key="tenant_school_provision",
-            tenant_schema="",
-            allowed_auto_fix_kinds=["requeue_provision"],
-            enabled=True,
-        )
-        # Pre-seed 3 prior autopilot applies for THIS school within the window.
+        self._enable_provision_autopilot()
         for _ in range(3):
-            r = _stuck_run()
+            r = _stuck_run(school_id=self.school_id)
             WorkflowAutopilotApplyLog.objects.create(
                 run_id=r.pk,
                 workflow_key="tenant_school_provision",
@@ -111,7 +131,7 @@ class TryAutoApplyOnStuckTests(TestCase):
                 outcome="applied",
                 autopilot=True,
             )
-        run = _stuck_run()
+        run = _stuck_run(school_id=self.school_id)
         run.suggested_remediation = resolve_stuck_remediation(run=run)
         run.save(update_fields=["suggested_remediation"])
 
@@ -122,21 +142,20 @@ class TryAutoApplyOnStuckTests(TestCase):
 
         self.assertFalse(out["applied"])
         self.assertEqual(out["reason"], "circuit_open")
-        dispatch.assert_not_called()  # breaker prevented the re-drive
+        dispatch.assert_not_called()
 
     def test_not_stuck_run_is_ignored(self):
-        run = _stuck_run(status="running")
+        run = _stuck_run(school_id=self.school_id, status="running")
         out = try_auto_apply_on_stuck(run_pk=run.pk)
         self.assertFalse(out["applied"])
         self.assertEqual(out["reason"], "not_stuck")
 
 
-class StuckSweepIntegrationTests(TestCase):
+class StuckSweepIntegrationTests(StuckAutopilotMixin, TestCase):
     def test_sweep_marks_stuck_and_stamps_retry_card(self):
         from apps.platform_runtime.tasks import workflow_stuck_alert_sweep_task
 
-        run = _stuck_run(status="running")
-        # Force it past the stuck threshold (180 * 1.5 = 270s).
+        run = _stuck_run(school_id=self.school_id, status="running")
         WorkflowRun.objects.filter(pk=run.pk).update(
             last_heartbeat_at=timezone.now() - timedelta(seconds=600)
         )
@@ -150,7 +169,6 @@ class StuckSweepIntegrationTests(TestCase):
         self.assertGreaterEqual(result["published"], 1)
         run.refresh_from_db()
         self.assertEqual(run.status, "stuck")
-        # Gap #1: the operator now has a one-click Retry card.
         self.assertTrue(run.suggested_remediation.get("auto_fix_available"))
         self.assertEqual(
             run.suggested_remediation.get("auto_fix_kind"), "requeue_provision"

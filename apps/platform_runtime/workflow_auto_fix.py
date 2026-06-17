@@ -204,7 +204,12 @@ def suggest_remediation(
             out = dict(envelope)
             out["verdict"] = "match"
             out["matched_pattern"] = pattern.pattern[:80]
+            if workflow_key == "tenant_school_provision" and not out.get("auto_fix_available"):
+                return _provision_requeue_envelope(out)
             return out
+
+    if workflow_key == "tenant_school_provision":
+        return _provision_requeue_envelope()
 
     # Unknown — try AI diagnosis via the platform's allowed bridge.
     ai_envelope = _try_ai_diagnosis(
@@ -222,6 +227,26 @@ def suggest_remediation(
         "auto_fix_available": False,
         "suggested_next": "Inspect the workflow run detail.",
     }
+
+
+def _provision_requeue_envelope(prior: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Owner-safe provisioning failures always offer idempotent requeue."""
+
+    base = dict(prior or {})
+    base.update(
+        {
+            "verdict": "provision_requeue",
+            "remediation_key": base.get("remediation_key") or "provisioning_step_failed",
+            "human_action": (
+                "School setup failed partway through. Re-queue provisioning — the job "
+                "is idempotent and resumes from the last safe checkpoint."
+            ),
+            "auto_fix_available": True,
+            "auto_fix_kind": "requeue_provision",
+            "suggested_next": "Apply fix from Flight Deck or the workflow progress chip.",
+        }
+    )
+    return base
 
 
 def _try_ai_diagnosis(

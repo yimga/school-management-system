@@ -79,8 +79,15 @@ def apply_auto_fix_kind(*, run: Any, kind: str) -> dict[str, Any]:
         school_id = str(getattr(run, "school_id", "") or payload.get("school_id") or "")
         if not school_id:
             return {"ok": False, "reason": "missing_school_id", "kind": kind}
+        from apps.schools.models import School
+        from apps.schools.operator_school_lens import can_operator_requeue_provisioning
         from apps.schools.tasks import dispatch_provision_school
 
+        school = School.objects.filter(pk=school_id).first()
+        if school is None:
+            return {"ok": False, "reason": "school_not_found", "kind": kind}
+        if not can_operator_requeue_provisioning(school):
+            return {"ok": False, "reason": "requeue_not_allowed", "kind": kind}
         contact = str(payload.get("contact_email") or "").strip()
         dispatch_provision_school(school_id, contact_email=contact)
         return {"ok": True, "applied": kind, "school_id": school_id}

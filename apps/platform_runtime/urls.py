@@ -11,6 +11,7 @@ from apps.platform_runtime.views_tenant_lifecycle import tenant_lifecycle_dashbo
 from apps.platform_runtime.views_workflow_flight_deck import (
     flight_deck_json_view as workflow_progress_flight_deck_json_view,
     flight_deck_view as workflow_progress_flight_deck_view,
+    incident_bulk_apply_view as workflow_progress_incident_bulk_apply_view,
 )
 from apps.platform_runtime.views_workflow_progress import (
     active_runs_view as workflow_progress_active_runs_view,
@@ -153,6 +154,11 @@ urlpatterns = [
         "workflow-progress/flight-deck.json",
         workflow_progress_flight_deck_json_view,
         name="workflow_progress_flight_deck_json",
+    ),
+    path(  # rbac-allow: auth-gated-via-login_required_api-staff-incident-bulk-apply
+        "workflow-progress/incidents/bulk-apply/",
+        workflow_progress_incident_bulk_apply_view,
+        name="workflow_progress_incident_bulk_apply",
     ),
     path(  # rbac-allow: auth-gated-tenant-safe-workflow-active-json
         "workflow-progress/tenant-trusted/active/",

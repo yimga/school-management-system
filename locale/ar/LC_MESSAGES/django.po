@@ -47074,3 +47074,91 @@ msgstr ""
 
 msgid "~{{ mins }} min"
 msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "Cross-tenant signals"
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "Needs operator"
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "No runs."
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "No correlated incidents."
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "No automated fix available — inspect run detail or Tenant 360."
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "Could not load Flight Deck."
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "Action failed"
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "runs"
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "tenants"
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "Apply fix to all eligible runs"
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "Applying fixes…"
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "Bulk apply finished."
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "Back to Flight Deck"
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "View JSON"
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "Last heartbeat"
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "Remediation"
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "Steps"
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "Duration"
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "No step breakdown recorded for this run."
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "Fix applied successfully."
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "Action did not complete: %(reason)s"
+msgstr ""
+
+#: flight-deck-wave (manual catalog append)
+msgid "Provision queue"
+msgstr ""

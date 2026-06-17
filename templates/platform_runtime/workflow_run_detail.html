@@ -1,0 +1,137 @@
+{% extends "control_plane_base.html" %}
+{% load i18n static %}
+{% block cp_title %}{{ page_title }}{% endblock %}
+{% block cp_content %}
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+<div class="container-lg py-4" data-rmc-page="workflow-run-detail" data-rmc-scroll-policy="paginate">
+  <header class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+    <div>
+      <h1 class="h3 mb-1">{{ detail.workflow_label|default:detail.workflow_key }}</h1>
+      <p class="text-muted mb-0">
+        {% trans "Run" %} #{{ detail.id }}
+        · <span class="badge text-bg-secondary">{{ detail.status }}</span>
+        {% if detail.tenant_schema %}· {{ detail.tenant_schema }}{% endif %}
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-secondary btn-sm" href="{{ flight_deck_url }}">{% trans "Back to Flight Deck" %}</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{{ json_url }}">{% trans "View JSON" %}</a>
+    </div>
+  </header>
+
+  {% if request.GET.applied %}
+  <div class="alert alert-success" role="alert">{% trans "Fix applied successfully." %}</div>
+  {% elif request.GET.error %}
+  <div class="alert alert-warning" role="alert">
+    {% blocktrans with reason=request.GET.error %}Action did not complete: {{ reason }}{% endblocktrans %}
+  </div>
+  {% endif %}
+
+  <div class="row g-3">
+    <div class="col-lg-5">
+      <section class="card rounded-2xl border shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 text-uppercase text-muted">{% trans "Overview" %}</h2>
+          <dl class="row small mb-0">
+            <dt class="col-5">{% trans "Workflow" %}</dt>
+            <dd class="col-7">{{ detail.workflow_key }}</dd>
+            <dt class="col-5">{% trans "Current step" %}</dt>
+            <dd class="col-7">{{ detail.current_step_name }} ({{ detail.current_step_ordinal }}/{{ detail.total_steps }})</dd>
+            <dt class="col-5">{% trans "Started" %}</dt>
+            <dd class="col-7">{{ detail.started_at|default:"—" }}</dd>
+            <dt class="col-5">{% trans "Last heartbeat" %}</dt>
+            <dd class="col-7">{{ detail.last_heartbeat_at|default:"—" }}</dd>
+            {% if detail.ended_at %}
+            <dt class="col-5">{% trans "Ended" %}</dt>
+            <dd class="col-7">{{ detail.ended_at }}</dd>
+            {% endif %}
+            {% if detail.actor_label %}
+            <dt class="col-5">{% trans "Actor" %}</dt>
+            <dd class="col-7">{{ detail.actor_label }}</dd>
+            {% endif %}
+          </dl>
+        </div>
+      </section>
+
+      {% if detail.suggested_remediation.human_action or detail.error_summary.message %}
+      <section class="card rounded-2xl border shadow-sm mt-3">
+        <div class="card-body">
+          <h2 class="h6 text-uppercase text-muted">{% trans "Remediation" %}</h2>
+          {% if detail.suggested_remediation.human_action %}
+          <p class="small mb-2">{{ detail.suggested_remediation.human_action }}</p>
+          {% endif %}
+          {% if detail.error_summary.message %}
+          <p class="small text-danger mb-0">{{ detail.error_summary.message }}</p>
+          {% endif %}
+        </div>
+      </section>
+      {% endif %}
+
+      {% if detail.operator_actions %}
+      <section class="card rounded-2xl border shadow-sm mt-3">
+        <div class="card-body">
+          <h2 class="h6 text-uppercase text-muted">{% trans "Operator actions" %}</h2>
+          <div class="d-flex flex-wrap gap-2">
+            {% for action in detail.operator_actions %}
+              {% if action.href %}
+              <a class="btn btn-sm {% if action.primary %}btn-primary{% else %}btn-outline-secondary{% endif %}" href="{{ action.href }}">{{ action.label }}</a>
+              {% elif action.kind == "apply_fix" %}
+              <form method="post" action="{{ apply_fix_url }}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-primary">{{ action.label }}</button>
+              </form>
+              {% elif action.kind == "cancel" %}
+              <form method="post" action="{{ cancel_url }}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-secondary">{{ action.label }}</button>
+              </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+      {% endif %}
+    </div>
+
+    <div class="col-lg-7">
+      <section class="card rounded-2xl border shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 text-uppercase text-muted">{% trans "Steps" %}</h2>
+          {% if detail.steps %}
+          <div class="table-responsive">
+            <table class="table table-sm rmc-data-table mb-0">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>{% trans "Step" %}</th>
+                  <th>{% trans "Status" %}</th>
+                  <th>{% trans "Duration" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for step in detail.steps %}
+                <tr>
+                  <td>{{ step.ordinal }}</td>
+                  <td>
+                    <div>{{ step.label|default:step.name }}</div>
+                    {% if step.error_text %}
+                    <div class="small text-danger">{{ step.error_text }}</div>
+                    {% endif %}
+                  </td>
+                  <td><span class="badge text-bg-secondary">{{ step.status }}</span></td>
+                  <td>{% if step.duration_ms %}{{ step.duration_ms }} ms{% else %}—{% endif %}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-muted small mb-0">{% trans "No step breakdown recorded for this run." %}</p>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

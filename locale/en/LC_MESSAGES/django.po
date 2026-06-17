@@ -52791,3 +52791,91 @@ msgstr "{{ t }} min read"
 
 msgid "~{{ mins }} min"
 msgstr "~{{ mins }} min"
+
+#: flight-deck-wave (manual catalog append)
+msgid "Cross-tenant signals"
+msgstr "Cross-tenant signals"
+
+#: flight-deck-wave (manual catalog append)
+msgid "Needs operator"
+msgstr "Needs operator"
+
+#: flight-deck-wave (manual catalog append)
+msgid "No runs."
+msgstr "No runs."
+
+#: flight-deck-wave (manual catalog append)
+msgid "No correlated incidents."
+msgstr "No correlated incidents."
+
+#: flight-deck-wave (manual catalog append)
+msgid "No automated fix available — inspect run detail or Tenant 360."
+msgstr "No automated fix available — inspect run detail or Tenant 360."
+
+#: flight-deck-wave (manual catalog append)
+msgid "Could not load Flight Deck."
+msgstr "Could not load Flight Deck."
+
+#: flight-deck-wave (manual catalog append)
+msgid "Action failed"
+msgstr "Action failed"
+
+#: flight-deck-wave (manual catalog append)
+msgid "runs"
+msgstr "runs"
+
+#: flight-deck-wave (manual catalog append)
+msgid "tenants"
+msgstr "tenants"
+
+#: flight-deck-wave (manual catalog append)
+msgid "Apply fix to all eligible runs"
+msgstr "Apply fix to all eligible runs"
+
+#: flight-deck-wave (manual catalog append)
+msgid "Applying fixes…"
+msgstr "Applying fixes…"
+
+#: flight-deck-wave (manual catalog append)
+msgid "Bulk apply finished."
+msgstr "Bulk apply finished."
+
+#: flight-deck-wave (manual catalog append)
+msgid "Back to Flight Deck"
+msgstr "Back to Flight Deck"
+
+#: flight-deck-wave (manual catalog append)
+msgid "View JSON"
+msgstr "View JSON"
+
+#: flight-deck-wave (manual catalog append)
+msgid "Last heartbeat"
+msgstr "Last heartbeat"
+
+#: flight-deck-wave (manual catalog append)
+msgid "Remediation"
+msgstr "Remediation"
+
+#: flight-deck-wave (manual catalog append)
+msgid "Steps"
+msgstr "Steps"
+
+#: flight-deck-wave (manual catalog append)
+msgid "Duration"
+msgstr "Duration"
+
+#: flight-deck-wave (manual catalog append)
+msgid "No step breakdown recorded for this run."
+msgstr "No step breakdown recorded for this run."
+
+#: flight-deck-wave (manual catalog append)
+msgid "Fix applied successfully."
+msgstr "Fix applied successfully."
+
+#: flight-deck-wave (manual catalog append)
+msgid "Action did not complete: %(reason)s"
+msgstr "Action did not complete: %(reason)s"
+
+#: flight-deck-wave (manual catalog append)
+msgid "Provision queue"
+msgstr "Provision queue"

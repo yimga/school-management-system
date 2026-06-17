@@ -1,43 +1,199 @@
 /**
- * Workflow Flight Deck — loads flight-deck.json and paints mission control panels.
+ * Workflow Flight Deck — operator mission control with retry / apply-fix actions.
  */
 (function () {
   "use strict";
+
+  var state = {
+    endpoints: {},
+    apiUrl: "",
+    labels: {},
+  };
+
+  var defaultLabels = {
+    summary: "Summary",
+    active: "Active",
+    recent_failures: "Recent failures",
+    cross_tenant_signals: "Cross-tenant signals",
+    active_count: "Active",
+    failed_count: "Recent failures",
+    needs_operator_count: "Needs operator",
+    no_runs: "No runs.",
+    no_incidents: "No correlated incidents.",
+    no_actions: "No automated fix available — inspect run detail or Tenant 360.",
+    load_error: "Could not load Flight Deck.",
+    action_failed: "Action failed",
+    runs_label: "runs",
+    tenants_label: "tenants",
+    bulk_apply_fix: "Apply fix to all eligible runs",
+    bulk_apply_progress: "Applying fixes…",
+    bulk_apply_done: "Bulk apply finished.",
+  };
+
+  function label(key, fallback) {
+    if (state.labels && state.labels[key]) return state.labels[key];
+    if (defaultLabels[key]) return defaultLabels[key];
+    return fallback || key;
+  }
 
   function escapeHtml(v) {
     if (v == null) return "";
     return String(v)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function getCsrfToken() {
+    var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : "";
+  }
+
+  function readEndpoints() {
+    var el = document.getElementById("page-data-rmc-flight-deck-endpoints");
+    if (!el) return {};
+    try {
+      return JSON.parse(el.textContent || "{}");
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function readLabels() {
+    var el = document.getElementById("page-data-rmc-flight-deck-labels");
+    if (!el) return {};
+    try {
+      return JSON.parse(el.textContent || "{}");
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function endpointFor(kind, run, incident) {
+    var base = state.endpoints || {};
+    var runId = run.id;
+    var schoolId = run.school_id || "";
+    if (kind === "apply_fix" || kind === "preview_fix") {
+      return (base.apply_fix || "").replace("{run_id}", String(runId));
+    }
+    if (kind === "cancel") {
+      return (base.cancel || "").replace("{run_id}", String(runId));
+    }
+    if (kind === "requeue_provision") {
+      return (base.requeue_provision || "").replace("{school_id}", String(schoolId));
+    }
+    if (kind === "bulk_apply_fix") {
+      return base.bulk_apply || "";
+    }
+    return "";
+  }
+
+  function renderRemediation(run) {
+    var rem = run.suggested_remediation || {};
+    if (!rem.human_action && !(run.error_summary && run.error_summary.message)) {
+      return "";
+    }
+    var err = run.error_summary && run.error_summary.message
+      ? '<div class="rmc-wfp-flight-deck__error small text-danger mt-1">' +
+        escapeHtml(run.error_summary.message) +
+        "</div>"
+      : "";
+    return (
+      '<div class="rmc-wfp-flight-deck__remediation mt-2">' +
+      '<div class="small text-muted">' +
+      escapeHtml(rem.human_action || "") +
+      "</div>" +
+      err +
+      "</div>"
+    );
+  }
+
+  function renderActions(run) {
+    var actions = run.operator_actions || [];
+    if (!actions.length) {
+      return (
+        '<p class="rmc-wfp-flight-deck__no-actions small text-muted mb-0 mt-2">' +
+        label("no_actions") +
+        "</p>"
+      );
+    }
+    var html = '<div class="rmc-wfp-flight-deck__actions mt-2 d-flex flex-wrap gap-2">';
+    for (var i = 0; i < actions.length; i++) {
+      var action = actions[i];
+      var cls = action.primary
+        ? "btn btn-sm btn-primary"
+        : "btn btn-sm btn-outline-secondary";
+      if (action.href) {
+        html +=
+          '<a class="' +
+          cls +
+          '" href="' +
+          escapeHtml(action.href) +
+          '">' +
+          escapeHtml(action.label) +
+          "</a>";
+      } else {
+        html +=
+          '<button type="button" class="' +
+          cls +
+          '" data-rmc-flight-action="' +
+          escapeHtml(action.kind) +
+          '" data-run-id="' +
+          escapeHtml(run.id) +
+          '" data-school-id="' +
+          escapeHtml(run.school_id || "") +
+          '">' +
+          escapeHtml(action.label) +
+          "</button>";
+      }
+    }
+    html += "</div>";
+    return html;
+  }
+
+  function renderRunRow(run) {
+    return (
+      '<article class="rmc-wfp-flight-deck__run" data-status="' +
+      escapeHtml(run.status) +
+      '" data-run-id="' +
+      escapeHtml(run.id) +
+      '">' +
+      '<div class="d-flex flex-wrap justify-content-between align-items-start gap-2">' +
+      "<div>" +
+      "<strong>" +
+      escapeHtml(run.workflow_label || run.workflow_key) +
+      "</strong> " +
+      '<span class="badge text-bg-secondary">' +
+      escapeHtml(run.status) +
+      "</span>" +
+      '<div class="small text-muted mt-1">' +
+      (run.tenant_schema ? escapeHtml(run.tenant_schema) + " · " : "") +
+      escapeHtml(run.current_step_name || "") +
+      " · " +
+      escapeHtml(String(run.progress_percent || 0)) +
+      "%</div>" +
+      "</div>" +
+      "</div>" +
+      renderRemediation(run) +
+      renderActions(run) +
+      "</article>"
+    );
   }
 
   function renderRuns(title, runs) {
     if (!runs || !runs.length) {
       return (
         '<section class="rmc-wfp-flight-deck__panel">' +
-        "<h2>" + escapeHtml(title) + "</h2>" +
-        '<p class="rmc-wfp-flight-deck__empty">No runs.</p></section>'
+        "<h2>" +
+        escapeHtml(title) +
+        "</h2>" +
+        '<p class="rmc-wfp-flight-deck__empty">' + escapeHtml(label("no_runs")) + "</p></section>"
       );
     }
     var rows = "";
     for (var i = 0; i < runs.length; i++) {
-      var r = runs[i];
-      rows +=
-        '<div class="rmc-wfp-flight-deck__run" data-status="' +
-        escapeHtml(r.status) +
-        '">' +
-        "<strong>" +
-        escapeHtml(r.workflow_label || r.workflow_key) +
-        "</strong> " +
-        '<span class="badge text-bg-secondary">' +
-        escapeHtml(r.status) +
-        "</span>" +
-        '<div class="small text-muted">' +
-        escapeHtml(r.current_step_name || "") +
-        " · " +
-        escapeHtml(String(r.progress_percent || 0)) +
-        "%</div></div>";
+      rows += renderRunRow(runs[i]);
     }
     return (
       '<section class="rmc-wfp-flight-deck__panel">' +
@@ -49,15 +205,56 @@
     );
   }
 
+  function renderSummary(summary) {
+    if (!summary) return "";
+    return (
+      '<section class="rmc-wfp-flight-deck__panel rmc-wfp-flight-deck__panel--summary">' +
+      "<h2>" + escapeHtml(label("summary")) + "</h2>" +
+      '<ul class="list-unstyled small mb-0">' +
+      "<li>" + escapeHtml(label("active_count")) + ": " +
+      escapeHtml(summary.active_count || 0) +
+      "</li>" +
+      "<li>" + escapeHtml(label("failed_count")) + ": " +
+      escapeHtml(summary.failed_count || 0) +
+      "</li>" +
+      "<li>" + escapeHtml(label("needs_operator_count")) + ": " +
+      escapeHtml(summary.needs_operator_count || 0) +
+      "</li>" +
+      "</ul></section>"
+    );
+  }
+
+  function renderIncidentActions(inc) {
+    var actions = inc.operator_actions || [];
+    if (!actions.length) return "";
+    var html = '<div class="rmc-wfp-flight-deck__actions mt-2 d-flex flex-wrap gap-2">';
+    for (var i = 0; i < actions.length; i++) {
+      var action = actions[i];
+      html +=
+        '<button type="button" class="btn btn-sm btn-primary" data-rmc-flight-action="' +
+        escapeHtml(action.kind) +
+        '" data-remediation-key="' +
+        escapeHtml(action.remediation_key || inc.remediation_key || "") +
+        '">' +
+        escapeHtml(action.label || label("bulk_apply_fix")) +
+        "</button>";
+    }
+    html += "</div>";
+    return html;
+  }
+
   function renderIncidents(incidents) {
     if (!incidents || !incidents.length) {
       return (
         '<section class="rmc-wfp-flight-deck__panel">' +
-        "<h2>Cross-tenant signals</h2>" +
-        '<p class="rmc-wfp-flight-deck__empty">No correlated incidents.</p></section>'
+        "<h2>" + escapeHtml(label("cross_tenant_signals")) + "</h2>" +
+        '<p class="rmc-wfp-flight-deck__empty">' + escapeHtml(label("no_incidents")) + "</p></section>"
       );
     }
-    var html = '<section class="rmc-wfp-flight-deck__panel"><h2>Cross-tenant signals</h2>';
+    var html =
+      '<section class="rmc-wfp-flight-deck__panel"><h2>' +
+      escapeHtml(label("cross_tenant_signals")) +
+      "</h2>";
     for (var j = 0; j < incidents.length; j++) {
       var inc = incidents[j];
       html +=
@@ -66,11 +263,17 @@
         escapeHtml(inc.remediation_key) +
         "</strong> — " +
         escapeHtml(inc.run_count) +
-        " runs / " +
+        " " +
+        escapeHtml(label("runs_label")) +
+        " / " +
         escapeHtml(inc.tenant_count) +
-        ' tenants<br><span class="small text-muted">' +
+        " " +
+        escapeHtml(label("tenants_label")) +
+        '<br><span class="small text-muted">' +
         escapeHtml(inc.sample_action || "") +
-        "</span></div>";
+        "</span>" +
+        renderIncidentActions(inc) +
+        "</div>";
     }
     html += "</section>";
     return html;
@@ -84,25 +287,174 @@
     );
   }
 
-  function mount() {
+  function findRunById(runId) {
+    var card = document.querySelector(
+      '.rmc-wfp-flight-deck__run[data-run-id="' + runId + '"]'
+    );
+    return card;
+  }
+
+  function postAction(url, options) {
+    options = options || {};
+    return fetch(url, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "X-CSRFToken": getCsrfToken(),
+        Accept: "application/json",
+        "Content-Type": options.contentType || "application/x-www-form-urlencoded",
+      },
+      body: options.body || "",
+    }).then(function (r) {
+      var ct = (r.headers.get("content-type") || "").toLowerCase();
+      if (ct.indexOf("application/json") === -1) {
+        return r.text().then(function (text) {
+          return {
+            ok: false,
+            status: r.status,
+            json: {
+              ok: false,
+              reason: "non_json_response",
+              message: (text || "").slice(0, 200),
+            },
+          };
+        });
+      }
+      return r.json().then(function (j) {
+        return { ok: r.ok, status: r.status, json: j };
+      });
+    });
+  }
+
+  function handleActionClick(evt) {
+    var btn = evt.currentTarget;
+    var kind = btn.getAttribute("data-rmc-flight-action");
+    var runId = btn.getAttribute("data-run-id");
+    var remediationKey = btn.getAttribute("data-remediation-key") || "";
+    if (!kind) return;
+    btn.disabled = true;
+    var run = { id: runId, school_id: btn.getAttribute("data-school-id") || "" };
+    var url = endpointFor(kind, run);
+    if (kind === "bulk_apply_fix") {
+      url = endpointFor(kind, run);
+      if (!url) {
+        btn.disabled = false;
+        return;
+      }
+      postAction(url, {
+        body: "remediation_key=" + encodeURIComponent(remediationKey),
+      })
+        .then(function (result) {
+          if (result.json && (result.json.ok || result.json.applied)) {
+            loadDeck();
+            if (window.alert) window.alert(label("bulk_apply_done"));
+            return;
+          }
+          var err =
+            (result.json && (result.json.reason || result.json.error)) ||
+            label("action_failed");
+          if (window.alert) window.alert(String(err));
+          btn.disabled = false;
+        })
+        .catch(function () {
+          btn.disabled = false;
+        });
+      return;
+    }
+    if (!runId) {
+      btn.disabled = false;
+      return;
+    }
+    var url = endpointFor(kind, run);
+    if (!url) {
+      btn.disabled = false;
+      return;
+    }
+    var promise;
+    if (kind === "preview_fix") {
+      promise = postAction(url + (url.indexOf("?") >= 0 ? "&" : "?") + "dry_run=1");
+    } else if (kind === "requeue_provision") {
+      promise = postAction(url, {
+        body: "next=" + encodeURIComponent(window.location.pathname),
+      });
+    } else {
+      promise = postAction(url);
+    }
+    promise
+      .then(function (result) {
+        if (kind === "preview_fix" && result.json) {
+          var note = result.json.note || result.json.would_apply || JSON.stringify(result.json);
+          if (window.alert) window.alert(String(note));
+          btn.disabled = false;
+          return;
+        }
+        if (result.json && result.json.ok) {
+          var row = findRunById(runId);
+          if (row) row.classList.add("rmc-wfp-flight-deck__run--acted");
+          loadDeck();
+          return;
+        }
+        var err =
+          (result.json && (result.json.reason || result.json.error || result.json.message)) ||
+          label("action_failed");
+        if (window.alert) window.alert(String(err));
+        btn.disabled = false;
+      })
+      .catch(function () {
+        btn.disabled = false;
+      });
+  }
+
+  function wireActions(root) {
+    var buttons = root.querySelectorAll("[data-rmc-flight-action]");
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].addEventListener("click", handleActionClick);
+    }
+  }
+
+  function loadDeck() {
     var root = document.getElementById("rmc-wfp-flight-deck");
     if (!root) return;
-    var url = root.getAttribute("data-api-url") || "/platform-runtime/workflow-progress/flight-deck.json";
-    fetch(url, { credentials: "same-origin", headers: { Accept: "application/json" } })
+    fetch(state.apiUrl, {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+    })
       .then(function (r) {
         return r.json();
       })
       .then(function (data) {
+        if (data.endpoints) state.endpoints = data.endpoints;
+        if (data.labels) state.labels = data.labels;
         root.innerHTML =
-          renderRuns("Active", data.active) +
-          renderRuns("Recent failures", data.recent_failed) +
+          renderSummary(data.summary) +
+          renderRuns(label("active"), data.active) +
+          renderRuns(label("recent_failures"), data.recent_failed) +
           renderIncidents(data.incidents);
+        wireActions(root);
         pushCopilotContext(data.copilot_context);
       })
       .catch(function () {
         root.innerHTML =
-          '<p class="rmc-wfp-flight-deck__empty">Could not load Flight Deck.</p>';
+          '<p class="rmc-wfp-flight-deck__empty">' + escapeHtml(label("load_error")) + "</p>";
       });
+  }
+
+  function mount() {
+    var root = document.getElementById("rmc-wfp-flight-deck");
+    if (!root) return;
+    state.apiUrl =
+      root.getAttribute("data-api-url") ||
+      "/platform-runtime/workflow-progress/flight-deck.json";
+    state.endpoints = readEndpoints();
+    state.labels = readLabels();
+    loadDeck();
+    var refreshBtn = document.getElementById("rmc-wfp-flight-deck-refresh");
+    if (refreshBtn) {
+      refreshBtn.addEventListener("click", function () {
+        loadDeck();
+      });
+    }
+    window.setInterval(loadDeck, 30000);
   }
 
   if (document.readyState === "loading") {
