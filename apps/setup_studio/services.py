@@ -1700,6 +1700,14 @@ def execute_launch(school_id: int, actor_id: int | None = None) -> dict[str, Any
             if progress.launched_at is None:
                 progress.launched_at = timezone.now()
                 progress.save(update_fields=["launched_at"])
+        # Go-live just cleared first-run: drop the cached welcome-card flag so the
+        # per-role zero-state vanishes immediately (not at the next cache expiry).
+        try:
+            from apps.dashboard.first_run_zero_state import invalidate_first_run_zero_state
+
+            invalidate_first_run_zero_state(school)
+        except Exception:  # noqa: BLE001 — invalidation is best-effort; never block launch
+            pass
     if progress is None:
         progress, _ = SetupProgress.objects.get_or_create(school=school)
     return {

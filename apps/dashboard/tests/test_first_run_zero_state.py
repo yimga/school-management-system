@@ -110,6 +110,38 @@ class ContextProcessorTests(SimpleTestCase):
             self.assertEqual(frz_ctx(_req()), {})
 
 
+class CacheInvalidationTests(SimpleTestCase):
+    def test_cache_key_is_stable_and_pk_scoped(self):
+        self.assertEqual(
+            frz._first_run_cache_key(SimpleNamespace(pk=42)),
+            "rmc:first_run_zero_state:42",
+        )
+
+    def test_cache_key_is_none_without_pk(self):
+        self.assertIsNone(frz._first_run_cache_key(SimpleNamespace()))
+
+    def test_invalidate_deletes_the_scoped_key(self):
+        with mock.patch.object(frz, "cache") as cache_mock:
+            frz.invalidate_first_run_zero_state(SimpleNamespace(pk=7))
+        cache_mock.delete.assert_called_once_with("rmc:first_run_zero_state:7")
+
+    def test_invalidate_is_a_noop_without_pk(self):
+        with mock.patch.object(frz, "cache") as cache_mock:
+            frz.invalidate_first_run_zero_state(SimpleNamespace())
+        cache_mock.delete.assert_not_called()
+
+    def test_invalidate_never_raises(self):
+        with mock.patch.object(frz, "cache") as cache_mock:
+            cache_mock.delete.side_effect = RuntimeError("cache down")
+            frz.invalidate_first_run_zero_state(SimpleNamespace(pk=1))  # must not raise
+
+    def test_launch_path_invalidates_the_card(self):
+        # execute_launch must drop the cached first-run flag so the card vanishes
+        # the instant the tenant goes live.
+        src = (_REPO_ROOT / "apps" / "setup_studio" / "services.py").read_text(encoding="utf-8")
+        self.assertIn("invalidate_first_run_zero_state", src)
+
+
 class WiringTests(SimpleTestCase):
     def test_context_processor_registered_in_settings(self):
         settings_src = (_REPO_ROOT / "config" / "settings.py").read_text(encoding="utf-8")

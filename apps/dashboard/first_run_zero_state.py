@@ -126,6 +126,25 @@ def _resolve_school(request) -> Any:
     return None
 
 
+def _first_run_cache_key(school) -> str | None:
+    """The per-school cache key for the first-run flag (single source of truth so
+    the writer and the invalidator never drift)."""
+    pk = getattr(school, "pk", None)
+    return f"rmc:first_run_zero_state:{pk}" if pk is not None else None
+
+
+def invalidate_first_run_zero_state(school) -> None:
+    """Drop a school's cached first-run flag — call the instant it goes live so the
+    welcome card disappears immediately rather than at the next 5-minute expiry.
+    Fail-soft: a cache miss / error never disrupts the launch path."""
+    try:
+        key = _first_run_cache_key(school)
+        if key:
+            cache.delete(key)
+    except Exception as exc:  # noqa: BLE001 — cache invalidation is best-effort
+        logger.debug("first-run zero-state cache invalidation failed: %s", exc)
+
+
 def _tenant_is_first_run(request) -> bool:
     """True when the tenant is still being set up (not launch-ready).
 
@@ -135,7 +154,9 @@ def _tenant_is_first_run(request) -> bool:
     school = _resolve_school(request)
     if school is None:
         return False
-    cache_key = f"rmc:first_run_zero_state:{getattr(school, 'pk', '')}"
+    cache_key = _first_run_cache_key(school)
+    if cache_key is None:
+        return False
     cached = cache.get(cache_key)
     if cached is not None:
         return bool(cached)
