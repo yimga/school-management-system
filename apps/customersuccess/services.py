@@ -281,6 +281,41 @@ def sync_tenant_risk_signals(school, dimensions):
     return result
 
 
+def sync_admin_inactivity_alert(school, *, threshold_days: int = 14):
+    """Producer for AdminInactivityAlert (was read by the operator API but written nowhere
+    → the inactivity panel was perpetually empty, same class as the CS risk-signal gap).
+
+    Fires an alert when the tenant has had no activity for ``threshold_days``. Uses
+    ``School.last_activity`` (a field on the School row — schema-agnostic, cheap) as the
+    activity signal, falling back to ``created_at``. Idempotent: at most one alert per
+    ``threshold_days`` window so the daily sweep never spams; a tenant that stays inactive
+    is re-flagged once per window. Returns ``{"created": int}``.
+    """
+    from datetime import timedelta
+
+    from .models import AdminInactivityAlert
+
+    now = timezone.now()
+    last_activity = getattr(school, "last_activity", None) or getattr(
+        school, "created_at", None
+    )
+    if last_activity is None:
+        return {"created": 0}
+    if (now - last_activity) < timedelta(days=threshold_days):
+        return {"created": 0}
+    # Open-alert dedup: skip if one was already raised within the current window.
+    if AdminInactivityAlert.objects.filter(
+        school=school, created_at__gte=now - timedelta(days=threshold_days)
+    ).exists():
+        return {"created": 0}
+    AdminInactivityAlert.objects.create(
+        school=school,
+        last_admin_activity=last_activity,
+        threshold_days=threshold_days,
+    )
+    return {"created": 1}
+
+
 def ensure_health_score_record(school):
     """Compute and save latest TenantHealthScore for school. Idempotent (one per day)."""
     from .models import TenantHealthScore
@@ -307,6 +342,15 @@ def ensure_health_score_record(school):
     except DatabaseError:
         logger.warning(
             "sync_tenant_risk_signals failed for school_id=%s", school.pk,
+            exc_info=True,
+        )
+    # Same beat surfaces the admin-inactivity signal. Never let it break health-score
+    # persistence (the record is already saved above).
+    try:
+        sync_admin_inactivity_alert(school)
+    except DatabaseError:
+        logger.warning(
+            "sync_admin_inactivity_alert failed for school_id=%s", school.pk,
             exc_info=True,
         )
     return record
