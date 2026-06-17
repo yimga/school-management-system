@@ -17,6 +17,39 @@ def _slug_code(prefix: str, label: str, idx: int) -> str:
     return f"{prefix}-{base}-{idx}"[:30]
 
 
+def ensure_general_department(school):
+    """Return the single canonical "General" department for ``school``.
+
+    Idempotent and the SOLE creator of the default department. The academic-
+    structure provisioner and the Phase-B classroom seeder both need a home
+    department; before this they each created their OWN "General" dept with a
+    different globally-unique code (``GEN-<id8>`` vs ``<slug>-GEN``), leaving
+    every freshly provisioned tenant with two identically-named departments.
+    Resolves by canonical code, then adopts any pre-existing same-named
+    department (tenants seeded before this fix), else creates one.
+    """
+    if school is None:
+        return None
+    canonical_code = f"GEN-{str(school.id)[:8]}"
+    dept = Department.objects.filter(school=school, code=canonical_code).first()
+    if dept is not None:
+        return dept
+    # Adopt a legacy "General" department (e.g. the old <slug>-GEN one) rather
+    # than minting a duplicate. Oldest wins for determinism.
+    dept = (
+        Department.objects.filter(school=school, name="General")
+        .order_by("id")
+        .first()
+    )
+    if dept is not None:
+        return dept
+    return Department.objects.create(
+        school=school,
+        code=canonical_code,
+        name="General",
+    )
+
+
 def provision_academic_structure_for_school(
     school,
     *,
@@ -47,14 +80,7 @@ def provision_academic_structure_for_school(
     if year is None:
         return {"created_nodes": 0, "created_classrooms": 0, "skipped": "no_academic_year"}
 
-    dept_code = f"GEN-{str(school.id)[:8]}"
-    dept = Department.objects.filter(school=school, code=dept_code).first()
-    if dept is None:
-        dept = Department.objects.create(
-            school=school,
-            code=dept_code,
-            name="General",
-        )
+    dept = ensure_general_department(school)
 
     created_nodes = 0
     created_classrooms = 0

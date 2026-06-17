@@ -1329,7 +1329,7 @@ def _do_provision_tracked(
         # Wrapped so a classroom/department seeding error cannot abort the whole
         # provision (the school is already active in Phase A).
         try:
-            from apps.academics.models import Classroom, Department
+            from apps.academics.models import Classroom
 
             classroom_seed_names = []
             seed_fn = (
@@ -1342,14 +1342,15 @@ def _do_provision_tracked(
                     pass
             if not classroom_seed_names:
                 classroom_seed_names = ["Class 1", "Class 2", "Class 3"]
+            # Reuse the single canonical "General" department (the academic-
+            # structure provisioner above ensures it) instead of minting a second
+            # one — that double-create left every new tenant with two "General"
+            # departments. dept_code stays the classroom-code namespace prefix so
+            # already-seeded tenants don't regenerate duplicate classrooms.
+            from apps.academics.structure_provisioning import ensure_general_department
+
             dept_code = f"{school.slug}-GEN" if school.slug else f"{school.id.hex[:8]}-GEN"
-            department, _ = Department.objects.get_or_create(
-                code=dept_code,
-                defaults={"school": school, "name": "General"},
-            )
-            if department.school_id != school.id:
-                department.school = school
-                department.save(update_fields=["school"])
+            department = ensure_general_department(school)
             classroom_created = 0
             for i, label in enumerate(classroom_seed_names[:3]):
                 name = str(label).strip() or f"Class {i + 1}"
