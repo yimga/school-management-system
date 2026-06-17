@@ -28,6 +28,8 @@
     bulk_apply_fix: "Apply fix to all eligible runs",
     bulk_apply_progress: "Applying fixes…",
     bulk_apply_done: "Bulk apply finished.",
+    action_success: "Action completed.",
+    preview_title: "Fix preview",
   };
 
   function label(key, fallback) {
@@ -152,13 +154,19 @@
     return html;
   }
 
-  function renderRunRow(run) {
+  function notify(kind, message) {
+    if (
+      window.runMyCampusToast &&
+      typeof window.runMyCampusToast[kind] === "function"
+    ) {
+      window.runMyCampusToast[kind](message);
+      return;
+    }
+    if (window.alert) window.alert(message);
+  }
+
+  function renderRunContent(run) {
     return (
-      '<article class="rmc-wfp-flight-deck__run" data-status="' +
-      escapeHtml(run.status) +
-      '" data-run-id="' +
-      escapeHtml(run.id) +
-      '">' +
       '<div class="d-flex flex-wrap justify-content-between align-items-start gap-2">' +
       "<div>" +
       "<strong>" +
@@ -176,7 +184,30 @@
       "</div>" +
       "</div>" +
       renderRemediation(run) +
-      renderActions(run) +
+      renderActions(run)
+    );
+  }
+
+  function renderRunRow(run) {
+    return (
+      '<article class="rmc-wfp-flight-deck__run" data-status="' +
+      escapeHtml(run.status) +
+      '" data-run-id="' +
+      escapeHtml(run.id) +
+      '">' +
+      renderRunContent(run) +
+      "</article>"
+    );
+  }
+
+  function renderRunCard(run) {
+    return (
+      '<article class="rmc-wfp-flight-deck__run rmc-wfp-flight-deck__run--card" data-status="' +
+      escapeHtml(run.status) +
+      '" data-run-id="' +
+      escapeHtml(run.id) +
+      '">' +
+      renderRunContent(run) +
       "</article>"
     );
   }
@@ -202,6 +233,33 @@
       "</h2>" +
       rows +
       "</section>"
+    );
+  }
+
+  function renderFailedRuns(title, runs) {
+    if (!runs || !runs.length) {
+      return (
+        '<section class="rmc-wfp-flight-deck__panel rmc-wfp-flight-deck__panel--failures">' +
+        "<h2>" +
+        escapeHtml(title) +
+        "</h2>" +
+        '<p class="rmc-wfp-flight-deck__empty">' +
+        escapeHtml(label("no_runs")) +
+        "</p></section>"
+      );
+    }
+    var cards = "";
+    for (var j = 0; j < runs.length; j++) {
+      cards += renderRunCard(runs[j]);
+    }
+    return (
+      '<section class="rmc-wfp-flight-deck__panel rmc-wfp-flight-deck__panel--failures">' +
+      "<h2>" +
+      escapeHtml(title) +
+      "</h2>" +
+      '<div class="rmc-wfp-flight-deck__run-grid">' +
+      cards +
+      "</div></section>"
     );
   }
 
@@ -334,26 +392,26 @@
     if (!kind) return;
     btn.disabled = true;
     var run = { id: runId, school_id: btn.getAttribute("data-school-id") || "" };
-    var url = endpointFor(kind, run);
+
     if (kind === "bulk_apply_fix") {
-      url = endpointFor(kind, run);
-      if (!url) {
+      var bulkUrl = endpointFor(kind, run);
+      if (!bulkUrl) {
         btn.disabled = false;
         return;
       }
-      postAction(url, {
+      postAction(bulkUrl, {
         body: "remediation_key=" + encodeURIComponent(remediationKey),
       })
         .then(function (result) {
           if (result.json && (result.json.ok || result.json.applied)) {
             loadDeck();
-            if (window.alert) window.alert(label("bulk_apply_done"));
+            notify("success", label("bulk_apply_done"));
             return;
           }
           var err =
             (result.json && (result.json.reason || result.json.error)) ||
             label("action_failed");
-          if (window.alert) window.alert(String(err));
+          notify("gentle", String(err));
           btn.disabled = false;
         })
         .catch(function () {
@@ -361,43 +419,48 @@
         });
       return;
     }
+
     if (!runId) {
       btn.disabled = false;
       return;
     }
+
     var url = endpointFor(kind, run);
     if (!url) {
       btn.disabled = false;
       return;
     }
+
     var promise;
     if (kind === "preview_fix") {
       promise = postAction(url + (url.indexOf("?") >= 0 ? "&" : "?") + "dry_run=1");
-    } else if (kind === "requeue_provision") {
-      promise = postAction(url, {
-        body: "next=" + encodeURIComponent(window.location.pathname),
-      });
     } else {
       promise = postAction(url);
     }
+
     promise
       .then(function (result) {
         if (kind === "preview_fix" && result.json) {
-          var note = result.json.note || result.json.would_apply || JSON.stringify(result.json);
-          if (window.alert) window.alert(String(note));
+          var note =
+            result.json.note ||
+            result.json.would_apply ||
+            JSON.stringify(result.json);
+          notify("info", label("preview_title") + ": " + String(note));
           btn.disabled = false;
           return;
         }
         if (result.json && result.json.ok) {
           var row = findRunById(runId);
           if (row) row.classList.add("rmc-wfp-flight-deck__run--acted");
+          notify("success", label("action_success"));
           loadDeck();
           return;
         }
         var err =
-          (result.json && (result.json.reason || result.json.error || result.json.message)) ||
+          (result.json &&
+            (result.json.reason || result.json.error || result.json.message)) ||
           label("action_failed");
-        if (window.alert) window.alert(String(err));
+        notify("gentle", String(err));
         btn.disabled = false;
       })
       .catch(function () {
@@ -426,9 +489,11 @@
         if (data.endpoints) state.endpoints = data.endpoints;
         if (data.labels) state.labels = data.labels;
         root.innerHTML =
+          '<div class="rmc-wfp-flight-deck__top">' +
           renderSummary(data.summary) +
           renderRuns(label("active"), data.active) +
-          renderRuns(label("recent_failures"), data.recent_failed) +
+          "</div>" +
+          renderFailedRuns(label("recent_failures"), data.recent_failed) +
           renderIncidents(data.incidents);
         wireActions(root);
         pushCopilotContext(data.copilot_context);

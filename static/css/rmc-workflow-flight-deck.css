@@ -3,14 +3,20 @@
  */
 
 .rmc-wfp-flight-deck {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rmc-assist-gap, 12px);
+}
+
+.rmc-wfp-flight-deck__top {
   display: grid;
   gap: var(--rmc-assist-gap, 12px);
 }
 
 @media (min-width: 992px) {
-  .rmc-wfp-flight-deck {
-    grid-template-columns: 1.1fr 1fr 0.9fr;
-    align-items: start;
+  .rmc-wfp-flight-deck__top {
+    grid-template-columns: minmax(220px, 0.85fr) minmax(0, 1.15fr);
+    align-items: stretch;
   }
 }
 
@@ -30,9 +36,41 @@
   margin: 0 0 0.75rem;
 }
 
+.rmc-wfp-flight-deck__panel--summary ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+}
+
+.rmc-wfp-flight-deck__panel--summary li {
+  margin: 0;
+}
+
+.rmc-wfp-flight-deck__run-grid {
+  display: grid;
+  gap: var(--rmc-assist-gap, 12px);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+}
+
 .rmc-wfp-flight-deck__run {
   padding: 0.65rem 0;
   border-bottom: 1px solid var(--hairline);
+}
+
+.rmc-wfp-flight-deck__run--card {
+  padding: 0.85rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 10px);
+  background: var(--surface-canvas, var(--surface-bg));
+  border-bottom: 1px solid var(--hairline);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.rmc-wfp-flight-deck__run--card .rmc-wfp-flight-deck__actions {
+  margin-top: auto;
+  padding-top: 0.5rem;
 }
 
 .rmc-wfp-flight-deck__run:last-child {
@@ -47,6 +85,12 @@
 .rmc-wfp-flight-deck__run[data-status="stuck"] {
   border-left: 3px solid var(--color-danger, var(--hairline));
   padding-left: 0.5rem;
+}
+
+.rmc-wfp-flight-deck__run--card[data-status="degrading"],
+.rmc-wfp-flight-deck__run--card[data-status="stuck"],
+.rmc-wfp-flight-deck__run--card[data-status="failed"] {
+  padding-left: calc(0.85rem + 0.5rem);
 }
 
 .rmc-wfp-flight-deck__incident {
@@ -73,16 +117,6 @@
 
 .rmc-wfp-flight-deck__run--acted {
   opacity: 0.65;
-}
-
-.rmc-wfp-flight-deck__panel--summary {
-  grid-column: 1 / -1;
-}
-
-@media (min-width: 992px) {
-  .rmc-wfp-flight-deck__panel--summary {
-    grid-column: auto;
-  }
 }
 
 .rmc-wfp-flight-deck__run[data-status="failed"] {

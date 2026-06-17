@@ -102,6 +102,16 @@ class FlightDeckEnrichmentTests(TestCase):
         self.assertTrue(rem.get("auto_fix_available"))
         self.assertEqual(rem.get("auto_fix_kind"), "requeue_provision")
 
+    def test_resolve_upgrades_retry_backoff_to_requeue_for_provision(self):
+        self.run.suggested_remediation = {
+            "auto_fix_available": True,
+            "auto_fix_kind": "retry_once_with_backoff",
+            "human_action": "Upstream service did not respond in time.",
+            "remediation_key": "upstream_timeout",
+        }
+        rem = resolve_effective_remediation(self.run)
+        self.assertEqual(rem.get("auto_fix_kind"), "requeue_provision")
+
     @patch("apps.schools.tasks.dispatch_provision_school")
     @override_settings(ALLOWED_HOSTS=["*"])
     def test_apply_fix_works_with_stale_db_remediation(self, dispatch_mock):

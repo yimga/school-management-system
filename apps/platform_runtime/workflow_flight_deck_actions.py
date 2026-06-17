@@ -20,11 +20,41 @@ def _apply_fix_label(auto_fix_kind: str) -> str:
     return labels.get(auto_fix_kind, "Apply fix")
 
 
+_PROVISION_SPECIFIC_FIXES = frozenset(
+    {"suggest_alternate_slug", "resend_welcome", "retry_dns_sync"}
+)
+_RETRY_ONLY_FIXES = frozenset(
+    {
+        "retry_once_with_backoff",
+        "retry_after_rate_limit",
+        "refresh_oauth_token_and_retry",
+    }
+)
+
+
+def _requeue_provision_remediation(rem: dict[str, Any]) -> dict[str, Any]:
+    return {
+        **rem,
+        "verdict": rem.get("verdict") or "provision_operator_requeue",
+        "remediation_key": rem.get("remediation_key") or "provisioning_step_failed",
+        "human_action": rem.get("human_action")
+        or (
+            "School setup did not finish. Re-queue provisioning — the job is "
+            "idempotent and resumes from the last safe checkpoint."
+        ),
+        "auto_fix_available": True,
+        "auto_fix_kind": "requeue_provision",
+        "suggested_next": "Use Requeue provisioning or Apply fix.",
+    }
+
+
 def resolve_effective_remediation(run: Any) -> dict[str, Any]:
     """Remediation envelope used by Flight Deck UI and apply-fix handlers.
 
     Upgrades legacy failed/stuck provision rows that pre-date the requeue fallback
     so operators are not blocked by stale ``auto_fix_available: false`` in DB.
+    Also replaces generic retry/backoff suggestions for provisioning with an
+    explicit requeue — retry metadata alone does not restart the Celery job.
     """
 
     rem = dict(getattr(run, "suggested_remediation", None) or {})
@@ -38,22 +68,16 @@ def resolve_effective_remediation(run: Any) -> dict[str, Any]:
             )
 
             return resolve_stuck_remediation(run=run)
-        if status in ("failed", "stuck", "cancelled") and not rem.get(
-            "auto_fix_available"
-        ):
-            return {
-                **rem,
-                "verdict": rem.get("verdict") or "provision_operator_requeue",
-                "remediation_key": rem.get("remediation_key") or "provisioning_step_failed",
-                "human_action": rem.get("human_action")
-                or (
-                    "School setup did not finish. Re-queue provisioning — the job is "
-                    "idempotent and resumes from the last safe checkpoint."
-                ),
-                "auto_fix_available": True,
-                "auto_fix_kind": "requeue_provision",
-                "suggested_next": "Use Requeue provisioning or Apply fix.",
-            }
+        if status in ("failed", "stuck", "cancelled"):
+            kind = str(rem.get("auto_fix_kind") or "").strip()
+            if kind in _PROVISION_SPECIFIC_FIXES:
+                return rem
+            if (
+                not rem.get("auto_fix_available")
+                or kind in _RETRY_ONLY_FIXES
+                or not kind
+            ):
+                return _requeue_provision_remediation(rem)
     return rem
 
 

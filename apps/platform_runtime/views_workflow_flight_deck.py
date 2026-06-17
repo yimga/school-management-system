@@ -38,6 +38,8 @@ def flight_deck_labels() -> dict[str, str]:
         "bulk_apply_fix": _("Apply fix to all eligible runs"),
         "bulk_apply_progress": _("Applying fixes…"),
         "bulk_apply_done": _("Bulk apply finished."),
+        "action_success": _("Action completed."),
+        "preview_title": _("Fix preview"),
     }
 
 
