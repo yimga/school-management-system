@@ -1744,6 +1744,16 @@ SCHOOLOPS_EMAIL_DELIVERY_TENANT_HOURLY_CAP = int(os.getenv("SCHOOLOPS_EMAIL_DELI
 SCHOOLOPS_EMAIL_DELIVERY_SSE_HEARTBEAT_SECONDS = int(os.getenv("SCHOOLOPS_EMAIL_DELIVERY_SSE_HEARTBEAT_SECONDS", "5"))
 
 # --- Caching Configuration ---
+# Cache strategy (production foundation):
+#   * REDIS_URL set  -> Valkey/Redis (django_redis) below, with socket timeouts +
+#     IGNORE_EXCEPTIONS so a slow/down cache degrades to a clean miss, never a hang.
+#     This is the production target (shared across workers; also backs sessions).
+#   * REDIS_URL unset -> in-process LocMemCache (the default here). Intentionally
+#     NOT DatabaseCache: under django-tenants the cache table only exists in the
+#     schema it was created in, so a tenant-schema request would raise
+#     ProgrammingError (no IGNORE_EXCEPTIONS for the db backend) — a regression.
+#     LocMem is per-worker but adds ZERO database load (important on small DB tiers).
+#   Override the backend explicitly with CACHE_BACKEND if you know what you need.
 CACHES = {
     "default": {
         "BACKEND": os.getenv(
@@ -1830,6 +1840,33 @@ elif (
     # triggered it — log-and-continue, matching the broker-down `.delay()`
     # guards in academics/people/schoolops signals and the event bus.
     CELERY_TASK_EAGER_PROPAGATES = False
+
+# Broker resilience — the crash-loop guard, BROKER side. When a broker IS
+# configured (Valkey/Redis/RabbitMQ provisioned), a web request that calls
+# `.delay()` must NEVER hang waiting on a slow/unreachable broker: that would
+# block a gthread worker thread for the OS TCP timeout exactly like an un-timed
+# cache read does → /health/ starves → Render kills the box (the 502 loop). Bound
+# the publish path so enqueuing FAILS FAST and the existing broker-down `.delay()`
+# guards (log-and-continue) take over instead of the thread blocking. All env-tunable.
+if CELERY_BROKER_URL and not RUNNING_TESTS:
+    CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+    CELERY_BROKER_POOL_LIMIT = int(os.getenv("CELERY_BROKER_POOL_LIMIT", "10"))
+    CELERY_BROKER_TRANSPORT_OPTIONS = {
+        # redis/valkey transport socket bounds (seconds).
+        "socket_connect_timeout": float(os.getenv("CELERY_BROKER_CONNECT_TIMEOUT", "2")),
+        "socket_timeout": float(os.getenv("CELERY_BROKER_SOCKET_TIMEOUT", "4")),
+        # Redelivery window for un-acked tasks; must exceed the longest task.
+        "visibility_timeout": int(os.getenv("CELERY_BROKER_VISIBILITY_TIMEOUT", "3600")),
+    }
+    # Fail-fast publish from request paths: at most one short retry, then raise so
+    # the caller's broker-down guard logs and continues — never an unbounded block.
+    CELERY_TASK_PUBLISH_RETRY = True
+    CELERY_TASK_PUBLISH_RETRY_POLICY = {
+        "max_retries": 1,
+        "interval_start": 0,
+        "interval_step": 0.2,
+        "interval_max": 0.5,
+    }
 # Optional: run celery beat with: celery -A config beat -l info
 # Add periodic tasks in Django admin (django_celery_beat) or define CELERY_BEAT_SCHEDULE (see Celery docs).
 
