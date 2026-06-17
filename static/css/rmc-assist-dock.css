@@ -13,12 +13,16 @@ html[data-surface="tenant"] body.portal-body-with-layout {
   --rmc-assist-panel-max-h: min(640px, calc(100vh - 7rem));
 }
 
-/* --- Mounted: retire legacy fixed coordinates --- */
-body[data-rmc-assist-dock="mounted"] .ai-copilot-wrapper,
-body[data-rmc-assist-dock="mounted"] .voc-widget {
-  position: static !important;
-  inset: auto !important;
-}
+/* --- Mounted: retire legacy fixed coordinates ---
+   INVARIANT: do NOT force `position: static` on .voc-widget or
+   .ai-copilot-wrapper when the dock is mounted. Both are REMOVED from the DOM on
+   successful adoption (rmc-assist-dock.js: voc.remove() / aiWrap.remove()), so a
+   surviving node ALWAYS means adoption failed — un-floating it with
+   `position: static !important` drops it into normal page flow and it splashes
+   across the bottom of the page (the operator feedback-panel takeover bug,
+   v4.04.x). A survivor must keep its own fixed/floating position. Widgets that
+   are MOVED into the dock (help fab / chathead / context toggle / ai panel)
+   keep their static rules below — those are dock descendants on success. */
 
 body[data-rmc-assist-dock="mounted"] .rmc-page-help-fab,
 body[data-rmc-assist-dock="mounted"] .portal-chathead,
