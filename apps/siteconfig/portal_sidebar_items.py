@@ -257,19 +257,17 @@ def build_portal_sidebar_items(request, site):
         return []
     user = request.user
     backend_flags = _backend_flags_for_sidebar(request, site)
-    from apps.accounts.portal_roles import get_effective_portal_role
+    from apps.accounts.portal_roles import get_nav_portal_role
 
     primary_role = (getattr(user, "role", "") or "").upper()
-    role = get_effective_portal_role(request) or primary_role
+    nav_role = get_nav_portal_role(request) or primary_role
+    # Nav hat (session PARENT/STUDENT on staff accounts) drives all sidebar sections.
+    role = nav_role
     is_staff = getattr(user, "is_staff", False)
     is_superuser = getattr(user, "is_superuser", False)
     messages_unread_count = getattr(request, "messages_unread_count", None)
-    # Staff-like: full or partial backend nav (use primary role so dual-hat users don't get staff nav when viewing as Parent)
-    staff_like = (
-        is_staff
-        or is_superuser
-        or primary_role
-        in (
+    _STAFF_PRIMARY_ROLES = frozenset(
+        {
             "ADMIN",
             "LEADERSHIP",
             "IT_ADMIN",
@@ -281,13 +279,25 @@ def build_portal_sidebar_items(request, site):
             "PROPRIETOR",
             "DISCIPLINE_MASTER",
             "SECRETARY",
-        )
+        }
     )
+    # Privileged for badges / studio shell — independent of active portal hat.
+    staff_privileged = (
+        is_staff or is_superuser or primary_role in _STAFF_PRIMARY_ROLES
+    )
+    # Admin sidebar only when the effective hat is staff/admin — never on family surfaces.
+    family_effective_role = nav_role in (User.Role.PARENT, User.Role.STUDENT)
+    show_staff_admin_nav = (
+        staff_privileged
+        and not family_effective_role
+        and nav_role != User.Role.TEACHER
+    )
+    staff_like = staff_privileged
     workflow_badge, finance_badge, signatures_badge = _cached_sidebar_badge_counts(
         user, role, staff_like, request=request
     )
     # Single entry via Studio OS for operational hubs; resolve once for staff.
-    studio_shell_url = _safe_reverse("studio_os:shell") if staff_like else None
+    studio_shell_url = _safe_reverse("studio_os:shell") if show_staff_admin_nav else None
 
     items = []
 
@@ -780,23 +790,7 @@ def build_portal_sidebar_items(request, site):
             }
         )
     # Documents: for teachers/parents add here (one Content & Documents section); for staff add in staff block below
-    staff_gets_content_docs = (
-        is_staff
-        or is_superuser
-        or role
-        in (
-            "ADMIN",
-            "LEADERSHIP",
-            "IT_ADMIN",
-            "PRINCIPAL",
-            "VICE_PRINCIPAL",
-            "DEAN",
-            "BURSAR",
-            "ACCOUNTANT",
-            "PROPRIETOR",
-            "DISCIPLINE_MASTER",
-        )
-    ) and role != User.Role.TEACHER
+    staff_gets_content_docs = show_staff_admin_nav
     if (
         portal_cfg.get("documents")
         and getattr(user, "has_feature_permission", lambda _: False)("portal.documents")
@@ -815,24 +809,23 @@ def build_portal_sidebar_items(request, site):
             }
         )
 
-    # --- Admin / Staff (exclude teachers: they get only Academic Management + HR, no Admin Panel/People/Finance/Analytics) ---
-    can_manage_site = staff_like and (
+    # --- Admin / Staff (exclude teachers + family hats: parent/student never see admin nav) ---
+    can_manage_site = show_staff_admin_nav and (
         getattr(user, "has_feature_permission", lambda _: False)("settings.manage")
         or is_superuser
     )
-    if staff_like and role != User.Role.TEACHER:
+    if show_staff_admin_nav:
         # Support, Content & Documents, People & Access, Academic, Financial, Analytics first; Admin Panel last
-        if staff_like:
-            items.append(
-                {
-                    "id": "contact_requests",
-                    "label": "Contact Requests",
-                    "url": _safe_reverse("portal:staff_contact_request_list"),
-                    "icon": "bi-inbox",
-                    "section": "Support",
-                    "badge": None,
-                }
-            )
+        items.append(
+            {
+                "id": "contact_requests",
+                "label": "Contact Requests",
+                "url": _safe_reverse("portal:staff_contact_request_list"),
+                "icon": "bi-inbox",
+                "section": "Support",
+                "badge": None,
+            }
+        )
         if role in ("DISCIPLINE_MASTER", "CENSOR"):
             items.append(
                 {
@@ -1484,15 +1477,21 @@ def build_portal_sidebar_items(request, site):
         remaining = [x for x in items if x["id"] not in ordered_ids]
         items = [id_to_item[i] for i in ordered_ids] + remaining
 
-    # Global de-duplication safety (id-based) to prevent repeated nav items.
+    # Global de-duplication: id first, then (label, url) for pinned-order duplicates.
     deduped = []
     seen_item_ids = set()
+    seen_label_urls = set()
     for item in items:
         item_id = item.get("id")
         if item_id and item_id in seen_item_ids:
             continue
+        label_url = (item.get("label") or "", item.get("url") or "")
+        if label_url[1] and label_url in seen_label_urls:
+            continue
         if item_id:
             seen_item_ids.add(item_id)
+        if label_url[1]:
+            seen_label_urls.add(label_url)
         deduped.append(item)
     items = deduped
 
@@ -1661,19 +1660,27 @@ def build_portal_sidebar_baseline(request, site=None):
     user = getattr(request, "user", None)
     if user is None or not getattr(user, "is_authenticated", False):
         return []
-    role = (getattr(user, "role", "") or "").upper()
-    staff_like = bool(getattr(user, "is_staff", False)) or bool(getattr(user, "is_superuser", False))
+    from apps.accounts.portal_roles import get_nav_portal_role
+
+    nav_role = get_nav_portal_role(request) or (getattr(user, "role", "") or "").upper()
+    staff_privileged = bool(getattr(user, "is_staff", False)) or bool(
+        getattr(user, "is_superuser", False)
+    )
+    family_effective_role = nav_role in (User.Role.PARENT, User.Role.STUDENT)
+    show_admin_baseline = staff_privileged and not family_effective_role
 
     items = []
     for spec in _BASELINE_COMMON:
         it = _baseline_item(*spec)
         if it:
             items.append(it)
-    for spec in _BASELINE_BY_ROLE.get(role, ()):  # role-specific operational floor
+    for spec in _BASELINE_BY_ROLE.get(nav_role, ()):  # role-specific operational floor
         it = _baseline_item(*spec)
         if it:
             items.append(it)
-    if staff_like or role in _BASELINE_ADMIN_ROLES:
+    if show_admin_baseline or (
+        not family_effective_role and nav_role in _BASELINE_ADMIN_ROLES
+    ):
         for item_id, label, url_name, icon, section, perm in _BASELINE_ADMIN:
             if perm and not _safe_has_feature_permission(user, perm):
                 continue

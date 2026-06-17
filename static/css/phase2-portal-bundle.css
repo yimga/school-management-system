@@ -3056,3 +3056,40 @@ textarea:focus {
     .workflow-hero { padding: 1rem; }
     .workflow-grid { grid-template-columns: 1fr; }
   }
+
+/* Parent / family dashboard — dark mode semantic surfaces (tenant UX wave 4). */
+[data-theme="dark"] .parent-dashboard-header,
+[data-bs-theme="dark"] .parent-dashboard-header {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+[data-theme="dark"] .parent-dashboard-shell .parent-glance-card,
+[data-bs-theme="dark"] .parent-dashboard-shell .parent-glance-card,
+[data-theme="dark"] .parent-dashboard-widgets .parent-children-grid .child-card,
+[data-bs-theme="dark"] .parent-dashboard-widgets .parent-children-grid .child-card,
+[data-theme="dark"] .parent-dashboard-widgets .parent-sidebar-card,
+[data-bs-theme="dark"] .parent-dashboard-widgets .parent-sidebar-card,
+[data-theme="dark"] .parent-workflow-strip,
+[data-bs-theme="dark"] .parent-workflow-strip {
+  background: var(--surface-elevated);
+  border-color: var(--hairline);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .parent-dashboard-widgets .section-title,
+[data-bs-theme="dark"] .parent-dashboard-widgets .section-title {
+  border-bottom-color: var(--hairline);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .parent-rail-item,
+[data-bs-theme="dark"] .parent-rail-item {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .parent-workflow-head h2,
+[data-bs-theme="dark"] .parent-workflow-head h2 {
+  color: var(--text-primary);
+}

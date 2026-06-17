@@ -137,10 +137,10 @@ def _get_pinned_sidebar_items(request, all_items):
         # Seed defaults only for first-time preferences (or legacy null state), not when users intentionally unpin all.
         if not pinned_ids and (prefs_created or raw_pinned_ids is None):
             try:
-                from apps.accounts.portal_roles import get_effective_portal_role
+                from apps.accounts.portal_roles import get_nav_portal_role
 
                 role = (
-                    get_effective_portal_role(request)
+                    get_nav_portal_role(request)
                     or getattr(request.user, "role", "")
                     or ""
                 ).upper()
@@ -542,19 +542,19 @@ def site_settings(request):
     is_backend_context = (
         request.path.startswith("/backend") or "/authentication/backend" in request.path
     )
-    # Cache portal "hat" checks before building sidebar (so get_effective_portal_role can use them)
+    # Cache portal "hat" checks before building sidebar (nav role uses cached hats)
     effective_portal_role = None
     if user and getattr(user, "is_authenticated", False) and getattr(user, "pk", None):
         try:
             from apps.accounts.portal_roles import (
                 has_teacher_hat,
                 has_parent_hat,
-                get_effective_portal_role,
+                get_nav_portal_role,
             )
 
             request._portal_teacher_hat = has_teacher_hat(user)
             request._portal_parent_hat = has_parent_hat(user)
-            effective_portal_role = get_effective_portal_role(request)
+            effective_portal_role = get_nav_portal_role(request)
         except OPTIONAL_CONTEXT_ERRORS:
             request._portal_teacher_hat = False
             request._portal_parent_hat = False
@@ -687,14 +687,13 @@ def site_settings(request):
     # Dual-role (Teacher + Parent): show role switcher when user has both hats (cache already set above)
     if user and getattr(user, "is_authenticated", False):
         try:
-            from apps.accounts.portal_roles import get_effective_portal_role
+            from apps.accounts.portal_roles import get_nav_portal_role
 
             has_teacher = getattr(request, "_portal_teacher_hat", False)
             has_parent = getattr(request, "_portal_parent_hat", False)
             ctx["SHOW_ROLE_SWITCHER"] = has_teacher and has_parent
-            ctx["EFFECTIVE_PORTAL_ROLE"] = (
-                get_effective_portal_role(request)
-                or (getattr(user, "role", "") or "").upper()
+            ctx["EFFECTIVE_PORTAL_ROLE"] = get_nav_portal_role(request) or (
+                (getattr(user, "role", "") or "").upper()
             )
             ctx["HAS_TEACHER_HAT"] = has_teacher
             ctx["HAS_PARENT_HAT"] = has_parent

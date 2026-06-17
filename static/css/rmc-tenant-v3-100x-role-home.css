@@ -806,3 +806,38 @@ html[data-rmc-tp-v3-shell="1"] .tp-workflow-support {
     transition: none;
   }
 }
+
+/* Tenant v3 role-home — dark mode semantic re-point (no light hex fallbacks). */
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-greeting-block__weather,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-greeting-block__weather {
+  background: var(--surface-elevated);
+  border-color: var(--hairline);
+  color: var(--text-secondary);
+}
+
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-btn-secondary,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-btn-secondary {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border-color: var(--hairline);
+}
+
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-metric,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-metric,
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-focus,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-focus,
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-empty,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-empty {
+  background: var(--surface-elevated);
+  border-color: var(--hairline);
+}
+
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-metric strong,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-metric strong {
+  color: var(--text-primary);
+}
+
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-greeting-block__eyebrow,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-greeting-block__eyebrow {
+  color: var(--text-tertiary);
+}

@@ -893,3 +893,27 @@
   background: var(--tdm-border, rgba(0, 0, 0, 0.15));
   border-radius: 1px;
 }
+
+/* Teacher dashboard — dark mode token re-point (tenant UX wave 5). */
+[data-theme="dark"],
+[data-bs-theme="dark"] {
+  --tdm-bg: var(--surface-bg);
+  --tdm-card: var(--surface-elevated);
+  --tdm-border: var(--hairline);
+  --tdm-text: var(--text-primary);
+  --tdm-muted: var(--text-secondary);
+}
+
+[data-theme="dark"] .tdm-hero__text h1,
+[data-bs-theme="dark"] .tdm-hero__text h1,
+[data-theme="dark"] .tdm-stat-value,
+[data-bs-theme="dark"] .tdm-stat-value {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .tdm-subtitle,
+[data-bs-theme="dark"] .tdm-subtitle,
+[data-theme="dark"] .tdm-stat-label,
+[data-bs-theme="dark"] .tdm-stat-label {
+  color: var(--text-secondary);
+}

@@ -1,5 +1,6 @@
 {% load static i18n %}
 {% comment %} AI Copilot Assistant - RBAC Compatible {% endcomment %}
+{% with nav_role=EFFECTIVE_PORTAL_ROLE|default:request.user.role %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="ai-copilot-wrapper ai-copilot-above-footer">
   <!-- Floating AI Button -->
@@ -26,11 +27,11 @@
         <div>
           <h5 class="mb-0 fw-bold">{{ AI_CHROME_CONFIG.ui.floating_panel_title|default:_("AI Copilot") }}</h5>
           <small class="text-muted">
-            {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+            {% if nav_role == 'ADMIN' or nav_role == 'LEADERSHIP' %}
               Admin Assistant
-            {% elif request.user.role == 'TEACHER' %}
+            {% elif nav_role == 'TEACHER' %}
               Teacher Assistant
-            {% elif request.user.role == 'PARENT' %}
+            {% elif nav_role == 'PARENT' %}
               Parent Assistant
             {% else %}
               Your AI Assistant
@@ -67,17 +68,17 @@
           <p class="mb-2">👋 Hello {{ request.user.first_name|default:request.user.username }}!</p>
           <p class="mb-0">I'm your AI assistant. I can help you with:</p>
           <ul class="mt-2 mb-0 small">
-            {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+            {% if nav_role == 'ADMIN' or nav_role == 'LEADERSHIP' %}
               <li>System analytics and reports</li>
               <li>User management queries</li>
               <li>Financial summaries</li>
               <li>Compliance and audit tasks</li>
-            {% elif request.user.role == 'TEACHER' %}
+            {% elif nav_role == 'TEACHER' %}
               <li>Grade entry and calculations</li>
               <li>Class roster information</li>
               <li>Attendance tracking</li>
               <li>Student performance insights</li>
-            {% elif request.user.role == 'PARENT' %}
+            {% elif nav_role == 'PARENT' %}
               <li>Student progress updates</li>
               <li>Fee payment status</li>
               <li>Communication with teachers</li>
@@ -112,7 +113,7 @@
             <i class="bi bi-grid-3x3-gap"></i> Customize layout
           </button>
         </div>
-        {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+        {% if nav_role == 'ADMIN' or nav_role == 'LEADERSHIP' %}
           <button type="button" class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show me today's attendance summary">
             <i class="bi bi-calendar-check"></i> Today's Attendance
           </button>
@@ -122,7 +123,7 @@
           <button type="button" class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Show recent user activities">
             <i class="bi bi-activity"></i> Recent Activities
           </button>
-        {% elif request.user.role == 'TEACHER' %}
+        {% elif nav_role == 'TEACHER' %}
           <button type="button" class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show my today's classes">
             <i class="bi bi-calendar3"></i> Today's Classes
           </button>
@@ -132,7 +133,7 @@
           <button type="button" class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Attendance summary this week">
             <i class="bi bi-clipboard-check"></i> Attendance
           </button>
-        {% elif request.user.role == 'PARENT' %}
+        {% elif nav_role == 'PARENT' %}
           <button type="button" class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show my child's recent grades">
             <i class="bi bi-graph-up"></i> Recent Grades
           </button>
@@ -164,6 +165,7 @@
     </div>
   </div>
 </div>
+{% endwith %}
 
 <script src="{% static 'js/_pages/components__ai_copilot-1.js' %}"></script>
 <script src="{% static 'js/rmc-ai-health-pill.js' %}"></script>

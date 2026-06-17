@@ -198,7 +198,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    if (window.__RMC_CORNER_NOTIFICATIONS__) {
+    if (window.__RMC_CORNER_NOTIFICATIONS__ && !window.__RMC_CORNER_BOOTED__) {
+      window.__RMC_CORNER_BOOTED__ = true;
       boot(window.__RMC_CORNER_NOTIFICATIONS__);
     }
   });

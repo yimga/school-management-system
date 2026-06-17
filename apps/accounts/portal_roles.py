@@ -119,3 +119,24 @@ def get_effective_portal_role(request) -> str:
         except PORTAL_ROLE_SOFT_FAILURES:
             pass
     return (getattr(user, "role", "") or "").upper()
+
+
+def get_nav_portal_role(request) -> str:
+    """Role for sidebar, top nav, and post-login redirect.
+
+    Honors explicit session hat (``active_portal_role``) for PARENT/STUDENT even when
+    the user's primary role is staff/admin — matches family-surface UX expectations.
+    """
+    if not request or not getattr(getattr(request, "user", None), "is_authenticated", False):
+        return ""
+    user = request.user
+    primary_role = (getattr(user, "role", "") or "").upper()
+    role = get_effective_portal_role(request) or primary_role
+    session_hat = ""
+    if getattr(request, "session", None) is not None:
+        session_hat = (request.session.get(ACTIVE_PORTAL_ROLE_KEY) or "").strip().upper()
+    if session_hat in (User.Role.PARENT, User.Role.STUDENT):
+        return session_hat
+    if role in (User.Role.PARENT, User.Role.STUDENT, User.Role.TEACHER):
+        return role
+    return role or primary_role

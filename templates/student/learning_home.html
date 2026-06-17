@@ -52,6 +52,7 @@
 </div>
 <div class="container-lg py-3" data-page-archetype="role-home" data-rmc-student-learning-home="1" data-rmc-page="student-portal" data-task="student_home" data-task-step="student:dashboard">
   {% phase8_dashboard_declaration "student/learning_home.html" %}
+  {% if not tp_v3_role_home %}
   {% comment %} Aesthetic-v2 page header (eyebrow + page-h1 + page-sub). Styled by patterns.css. {% endcomment %}
   {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` for v8 200x preview parity. {% endcomment %}
   <header class="rmc-page-header rmc-page-header-glow mb-3" data-rmc-aesthetic-page-header="student" data-tour="student-header">
@@ -66,6 +67,7 @@
   </div>
   <p class="text-muted small mb-2" role="note">{% trans "Your highest-priority next steps appear in the strip above when your school assigns work or announcements." %}</p>
   <p class="text-muted small mb-0">{% trans "Need the family view?" %} <a href="{% url 'accounts:logout' %}?next={% url 'accounts:login' %}" data-task-step="student:switch-account">{% trans "Switch account" %}</a></p>
+  {% endif %}
 </div>
 {% endblock %}
 

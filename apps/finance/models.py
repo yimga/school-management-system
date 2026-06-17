@@ -1860,6 +1860,13 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["recipient", "title"],
+                condition=models.Q(is_read=False),
+                name="uniq_unread_notification_per_recipient_title",
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"{self.title} ({self.severity})"

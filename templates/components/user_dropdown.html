@@ -2,6 +2,7 @@
 {% load terminology_tags %}
 {% comment %} Enhanced user dropdown menu — i18n-wrapped 2026-05-12. {% endcomment %}
 {% firstof NOTIFICATIONS_UNREAD_COUNT unread_notifications_count 0 as rmc_unread_count %}
+{% with nav_role=EFFECTIVE_PORTAL_ROLE|default:request.user.role %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="user-dropdown-wrapper" data-rmc-shell-viewport-safe="1">
   <div class="dropdown">
@@ -53,20 +54,18 @@
              it duplicated the header security shield (which also pulses on risk). The score
              still lives in the header shield + the "Multi-factor authentication" / "Quarterly
              security review" items in this menu, so nothing is lost. {% endcomment %}
-          {% if request.user.role == 'ADMIN' %}
+          {% if nav_role == 'ADMIN' %}
             <i class="bi bi-shield-check"></i> {% trans "Admin" %}
-          {% elif request.user.role == 'LEADERSHIP' %}
+          {% elif nav_role == 'LEADERSHIP' %}
             <i class="bi bi-star"></i> {% trans "Leadership" %}
-          {% elif request.user.role == 'TEACHER' %}
+          {% elif nav_role == 'TEACHER' %}
             <i class="bi bi-person-video3"></i> {% trans_term "Teacher" key="teacher" %}
-          {% elif request.user.role == 'PARENT' %}
+          {% elif nav_role == 'PARENT' %}
             <i class="bi bi-house-heart"></i> {% trans_term "Parent" key="parent" %}
-          {% elif request.user.role == 'STUDENT' %}
+          {% elif nav_role == 'STUDENT' %}
             <i class="bi bi-backpack"></i> {% trans_term "Student" key="student" %}
-          {% elif request.user.role %}
-            {% comment %}Non-canonical roles (PROPRIETOR, SUPER_ADMIN, ...) get a generic
-               person icon + the role label so the badge never collapses.{% endcomment %}
-            <i class="bi bi-person-badge"></i> {{ request.user.get_role_display|default:request.user.role|title }}
+          {% elif nav_role %}
+            <i class="bi bi-person-badge"></i> {{ nav_role|title }}
           {% else %}
             <i class="bi bi-person"></i> {% trans "Member" %}
           {% endif %}
@@ -92,7 +91,13 @@
             {% else %}{% trans "Account" %}{% endif %}
           {% endwith %}
         </div>
-        <div class="user-dropdown-identity__role">{{ request.user.get_role_display|default:request.user.role|default:_("Member") }}</div>
+        <div class="user-dropdown-identity__role">
+          {% if SHOW_ROLE_SWITCHER and EFFECTIVE_PORTAL_ROLE %}
+            {% blocktrans with role=EFFECTIVE_PORTAL_ROLE %}Viewing as {{ role }}{% endblocktrans %}
+          {% else %}
+            {{ request.user.get_role_display|default:nav_role|default:_("Member") }}
+          {% endif %}
+        </div>
       </li>
       <li><hr class="dropdown-divider"></li>
       <!-- User stats section -->
@@ -188,7 +193,7 @@
         </a>
       </li>
 
-      {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+      {% if nav_role == 'ADMIN' or nav_role == 'LEADERSHIP' %}
       <li><hr class="dropdown-divider"></li>
 
       <!-- Admin tools (RBAC: no Django Admin link in portal; use Backend Console) -->
@@ -334,6 +339,7 @@
     </ul>
   </div>
 </div>
+{% endwith %}
 
 {% comment %}
 User-dropdown keyboard shortcuts + idle indicator. URLs sourced from a

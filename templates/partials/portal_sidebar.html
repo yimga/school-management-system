@@ -37,7 +37,7 @@ SiteSettings.cockpit_payload.
     </div>
     <div class="sidebar-info">
       <h6>{{ request.user.get_full_name|default:request.user.username }}</h6>
-      <p>{% if SHOW_ROLE_SWITCHER %}{% trans "Viewing as" %}: {{ EFFECTIVE_PORTAL_ROLE|default:"Portal User" }}{% else %}{{ request.user.role|default:"Portal User" }}{% endif %}</p>
+      <p>{% if SHOW_ROLE_SWITCHER %}{% trans "Viewing as" %}: {{ EFFECTIVE_PORTAL_ROLE|default:"Portal User" }}{% else %}{{ EFFECTIVE_PORTAL_ROLE|default:request.user.role|default:"Portal User" }}{% endif %}</p>
     </div>
   </div>
   {% if SHOW_ROLE_SWITCHER %}
@@ -52,6 +52,7 @@ SiteSettings.cockpit_payload.
 
 <nav class="nav flex-column gap-0" data-sidebar-nav="true" data-shell-nav-family="portal" data-rmc-os-nav="1" data-rmc-sidebar-luxury="10x" data-rmc-os-role-cluster="{{ rmc_os_shell.role_cluster|default:'school_staff' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %} role="navigation" aria-label="{% trans 'Portal navigation' %}" data-preview-label="{% trans 'Sidebar navigation' %}" data-preview-changes="{% trans 'Menu items, order from Site Settings' %}">
   {% if request.user.is_authenticated %}
+    {% with nav_role=EFFECTIVE_PORTAL_ROLE|default:request.user.role %}
     {% comment %}Phase 16: Quick access (pinned) items at top{% endcomment %}
     {% if PINNED_SIDEBAR_ITEMS %}
     <div class="sidebar-section-title">{% trans "Quick access" %}</div>
@@ -98,7 +99,7 @@ SiteSettings.cockpit_payload.
       <a class="nav-link nav-pill" href="{% url 'kb:kb_home' %}" title="{% trans 'Knowledge Base' %}">
         <i class="bi bi-journal-text me-2"></i>{% trans "Knowledge Base" %}
       </a>
-      {% if request.user.role == 'TEACHER' %}
+      {% if nav_role == 'TEACHER' %}
         <div class="sidebar-section-title">{% trans "Communication" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_feed' %}"><i class="bi bi-newspaper me-2"></i>{% trans "Feed" %}</a>
         <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
@@ -106,10 +107,10 @@ SiteSettings.cockpit_payload.
           {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
         </a>
         <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}"><i class="bi bi-people me-2"></i>{% trans "Message Groups" %}</a>
-      {% elif request.user.role == 'PARENT' %}
+      {% elif nav_role == 'PARENT' %}
         <div class="sidebar-section-title">{% trans "Communication" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-envelope-paper me-2"></i>{% trans "Contact School" %}</a>
-      {% elif request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
+      {% elif request.user.is_staff or request.user.is_superuser or nav_role == 'ADMIN' %}
         <div class="sidebar-section-title">{% trans "Communication" %}</div>
         <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
           <span><i class="bi bi-chat-dots me-2"></i>{% trans_term "Messages" key="message" plural=True %}</span>
@@ -123,7 +124,7 @@ SiteSettings.cockpit_payload.
         <a class="nav-link nav-pill" href="{% url 'communication:announcement_list_pending' %}"><i class="bi bi-hourglass-split me-2"></i>{% trans "Pending approval" %}</a>
         {% endif %}
       {% endif %}
-      {% if request.user.role == 'TEACHER' %}
+      {% if nav_role == 'TEACHER' %}
         <div class="sidebar-section-title">{% trans "Communication" %}</div>
         <a class="nav-link nav-pill" href="{% url 'communication:class_announcement_create' %}"><i class="bi bi-journal-text me-2"></i>{% term "class" capitalize=True %} {% trans "Announcement" %}</a>
         <div class="sidebar-section-title">{% trans "My Workflow" %}</div>
@@ -147,7 +148,7 @@ SiteSettings.cockpit_payload.
         <a class="nav-link nav-pill" href="{% url 'payroll:employee_payslips' %}"><i class="bi bi-wallet2 me-2"></i>{% trans "Payslips" %}</a>
         <a class="nav-link nav-pill" href="{% url 'payroll:employee_leave' %}"><i class="bi bi-calendar-check me-2"></i>{% trans "Leave Requests" %}</a>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_pay_history' %}"><i class="bi bi-receipt me-2"></i>{% trans "Pay History" %}</a>
-      {% elif request.user.role == 'PARENT' %}
+      {% elif nav_role == 'PARENT' %}
         <div class="sidebar-section-title">{% trans "Home" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-house me-2"></i>{% trans "Family Home" %}</a>
         <div class="sidebar-section-title">{% trans "My Workflow" %}</div>
@@ -170,7 +171,7 @@ SiteSettings.cockpit_payload.
         <div class="sidebar-section-title">{% trans "Account" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:link_child' %}"><i class="bi bi-link-45deg me-2"></i>{% trans "Link a child" %}</a>
         <a class="nav-link nav-pill" href="{% url 'portal:claim_invite' %}"><i class="bi bi-ticket me-2"></i>{% trans "Claim invite" %}</a>
-      {% elif request.user.role == 'STUDENT' %}
+      {% elif nav_role == 'STUDENT' %}
         {% if SITE.enable_student_portal %}
         <div class="sidebar-section-title">{% trans "Home" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:student_portal_grades' %}"><i class="bi bi-house me-2"></i>{% trans "Student Home" %}</a>
@@ -187,8 +188,8 @@ SiteSettings.cockpit_payload.
         <div class="sidebar-section-title">{% trans "Support" %}</div>
         <a class="nav-link nav-pill" href="{% url 'accounts:user_profile' %}"><i class="bi bi-person me-2"></i>{% trans "My Profile" %}</a>
         <a class="nav-link nav-pill" href="{% url 'feedback:help_center' %}"><i class="bi bi-life-preserver me-2"></i>{% trans "Help Center" %}</a>
-      {% elif request.user.role != 'TEACHER' %}
-        {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' or request.user.role == 'IT_ADMIN' %}
+      {% elif nav_role != 'TEACHER' and nav_role != 'PARENT' and nav_role != 'STUDENT' %}
+        {% if request.user.is_staff or request.user.is_superuser or nav_role == 'ADMIN' or nav_role == 'LEADERSHIP' or nav_role == 'IT_ADMIN' %}
         {% comment %}RBAC: staff sections; Admin Panel last (includes Site Settings, Region Configuration). No duplicate sections.{% endcomment %}
         {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
         {% url 'school_configuration_center_canonical' as school_configuration_url %}
@@ -258,7 +259,7 @@ SiteSettings.cockpit_payload.
     {% endif %}
 
     {% comment %}RBAC: Recent Activity shows other users' actions; hide for student, teacher, and parent portals to avoid leaking info.{% endcomment %}
-    {% if request.user.role != 'STUDENT' and request.user.role != 'TEACHER' and request.user.role != 'PARENT' %}
+    {% if nav_role != 'STUDENT' and nav_role != 'TEACHER' and nav_role != 'PARENT' %}
     <div class="sidebar-collapsible mt-3 recent-activity-block">
       <div class="sidebar-collapsible-header recent-activity-toggle" role="button" aria-expanded="true" title="{% trans 'Click to expand or collapse' %}">
         <span>{% trans "Recent Activity" %}</span>
@@ -283,6 +284,7 @@ SiteSettings.cockpit_payload.
     {% endif %}
     
     
+    {% endwith %}
   {% endif %}
 </nav>
 
@@ -326,14 +328,14 @@ SiteSettings.cockpit_payload.
   <a class="nav-link nav-pill" href="{% url 'kb:user_contributions' %}">
     <i class="bi bi-trophy me-2"></i>{% trans "My Contributions" %}
   </a>
-  {% if request.user.is_staff %}
+  {% if request.user.is_staff and EFFECTIVE_PORTAL_ROLE|default:request.user.role != 'PARENT' and EFFECTIVE_PORTAL_ROLE|default:request.user.role != 'STUDENT' %}
     <a class="nav-link nav-pill" href="/admin/" aria-label="{% trans 'Advanced admin fallback: open in Django admin' %}"><i class="bi bi-shield-lock me-2"></i>{% trans "Open Admin" %}</a>
   {% endif %}
 </div>
 {% endif %}
 
 <!-- Portal Stats for teachers (static sidebar); staff get it under Analytics & Reports. -->
-{% if not PORTAL_SIDEBAR_ITEMS and request.user.is_authenticated and request.user.role == 'TEACHER' %}
+{% if not PORTAL_SIDEBAR_ITEMS and request.user.is_authenticated and EFFECTIVE_PORTAL_ROLE == 'TEACHER' %}
 <div class="sidebar-section-title mt-4">{% trans "Performance Tracking" %}</div>
 <div class="nav flex-column gap-0">
   <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>{% trans "Portal Stats" %}</a>

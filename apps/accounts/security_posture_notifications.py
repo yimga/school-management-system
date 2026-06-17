@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from django.db import IntegrityError, transaction
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
@@ -99,39 +100,53 @@ def ensure_quarterly_posture_notification(user, school=None):
         from apps.finance.models import Notification
 
         review_url = reverse("accounts:security_posture_review")
-        unread = list(
-            Notification.objects.filter(
-                recipient=user,
-                title=POSTURE_NOTIFICATION_TITLE,
-                is_read=False,
-            ).order_by("-created_at", "-pk")[:50]
-        )
-        if len(unread) == 1:
-            return unread[0]
-        if len(unread) > 1:
-            keeper = unread[0]
-            dupe_ids = [n.pk for n in unread[1:]]
-            Notification.objects.filter(pk__in=dupe_ids).update(is_read=True)
-            logger.info(
-                "collapsed %d duplicate posture notifications for user=%s",
-                len(dupe_ids),
-                user.pk,
+        with transaction.atomic():
+            unread = list(
+                Notification.objects.select_for_update()
+                .filter(
+                    recipient=user,
+                    title=POSTURE_NOTIFICATION_TITLE,
+                    is_read=False,
+                )
+                .order_by("-created_at", "-pk")[:50]
             )
-            return keeper
-        note, _created = Notification.objects.get_or_create(
-            recipient=user,
-            title=POSTURE_NOTIFICATION_TITLE,
-            is_read=False,
-            defaults={
-                "message": _(
-                    "Confirm your password, MFA, and contact details for this quarter."
-                ),
-                "link": review_url,
-                "severity": Notification.Severity.WARNING,
-                "created_by": None,
-            },
-        )
-        return note
+            if len(unread) == 1:
+                return unread[0]
+            if len(unread) > 1:
+                keeper = unread[0]
+                dupe_ids = [n.pk for n in unread[1:]]
+                Notification.objects.filter(pk__in=dupe_ids).update(is_read=True)
+                logger.info(
+                    "collapsed %d duplicate posture notifications for user=%s",
+                    len(dupe_ids),
+                    user.pk,
+                )
+                return keeper
+            try:
+                note, _created = Notification.objects.get_or_create(
+                    recipient=user,
+                    title=POSTURE_NOTIFICATION_TITLE,
+                    is_read=False,
+                    defaults={
+                        "message": _(
+                            "Confirm your password, MFA, and contact details for this quarter."
+                        ),
+                        "link": review_url,
+                        "severity": Notification.Severity.WARNING,
+                        "created_by": None,
+                    },
+                )
+            except IntegrityError:
+                note = (
+                    Notification.objects.filter(
+                        recipient=user,
+                        title=POSTURE_NOTIFICATION_TITLE,
+                        is_read=False,
+                    )
+                    .order_by("-created_at", "-pk")
+                    .first()
+                )
+            return note
     except Exception:  # noqa: BLE001
         logger.debug("ensure_quarterly_posture_notification failed", exc_info=True)
         return None
@@ -152,6 +167,19 @@ def build_corner_notification_payload(notification, *, review_url: str) -> dict[
         "actions": ["read", "snooze", "dismiss"],
         "inbox_url": reverse("accounts:user_notifications"),
     }
+
+
+def dedupe_notifications_for_inbox(notifications) -> list:
+    """Display-only collapse: one row per (title, is_read), preserve first (newest) order."""
+    seen: set[tuple[str, bool]] = set()
+    ordered: list = []
+    for note in notifications:
+        key = (note.title, bool(note.is_read))
+        if key in seen:
+            continue
+        seen.add(key)
+        ordered.append(note)
+    return ordered
 
 
 def inline_security_posture_banner_active(request) -> bool:

@@ -247,7 +247,8 @@
         </div>
         <ul class="lx-copilot__shortcuts" data-rmc-copilot-rail-shortcuts-list>
           {% if request.user.is_authenticated %}
-            {% if request.user.role == 'TEACHER' %}
+            {% with nav_role=EFFECTIVE_PORTAL_ROLE|default:request.user.role %}
+            {% if nav_role == 'TEACHER' %}
               {% if request.public_host_kind == 'manager' %}
               <li><a class="lx-copilot__shortcut" href="{% url 'accounts:backend_dashboard' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">◐</span><span>{% trans 'My classes' %}</span></a></li>
               {% else %}
@@ -255,14 +256,14 @@
               {% endif %}
               <li><a class="lx-copilot__shortcut" href="{% url 'evals:teacher_dashboard' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">▤</span><span>{% trans 'Gradebook' %}</span></a></li>
               <li><a class="lx-copilot__shortcut" href="{% url 'accounts:user_messages' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">✉</span><span>{% trans 'Inbox' %}</span></a></li>
-            {% elif request.user.role == 'PARENT' %}
+            {% elif nav_role == 'PARENT' %}
               {% if request.public_host_kind == 'manager' %}
               <li><a class="lx-copilot__shortcut" href="{% url 'super:dashboard' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">◐</span><span>{% trans 'Control plane' %}</span></a></li>
               {% else %}
               <li><a class="lx-copilot__shortcut" href="{% url 'portal:parent_dashboard' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">◐</span><span>{% trans 'My children' %}</span></a></li>
               {% endif %}
               <li><a class="lx-copilot__shortcut" href="{% url 'accounts:user_messages' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">✉</span><span>{% trans 'Inbox' %}</span></a></li>
-            {% elif request.user.role == 'STUDENT' %}
+            {% elif nav_role == 'STUDENT' %}
               {% if request.public_host_kind == 'manager' %}
               <li><a class="lx-copilot__shortcut" href="{% url 'super:dashboard' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">▤</span><span>{% trans 'Control plane' %}</span></a></li>
               {% else %}
@@ -273,6 +274,7 @@
               <li><a class="lx-copilot__shortcut" href="{% url 'accounts:backend_dashboard' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">◐</span><span>{% trans 'Dashboard' %}</span></a></li>
               <li><a class="lx-copilot__shortcut" href="{% url 'accounts:user_messages' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">✉</span><span>{% trans 'Inbox' %}</span></a></li>
             {% endif %}
+            {% endwith %}
             <li><a class="lx-copilot__shortcut" href="{% url 'accounts:user_notifications' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">●</span><span>{% trans 'Notifications' %}</span></a></li>
             <li><a class="lx-copilot__shortcut" href="{% url 'accounts:user_profile' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">◉</span><span>{% trans 'Profile' %}</span></a></li>
           {% endif %}

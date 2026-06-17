@@ -208,21 +208,23 @@
         {% endif %}
         <div id="preview-header-brand" class="d-inline-flex align-items-center" data-preview-label="{% trans 'Logo & site name' %}">
         {% if tp_v3_tenant_shell %}
-          {% if request.user.role == 'TEACHER' %}
+          {% with nav_role=EFFECTIVE_PORTAL_ROLE|default:request.user.role %}
+          {% if nav_role == 'TEACHER' %}
             {% include "partials/tenant/tp_header_brand.html" with home_href=teacher_url %}
-          {% elif request.user.role == 'PARENT' %}
+          {% elif nav_role == 'PARENT' %}
             {% include "partials/tenant/tp_header_brand.html" with home_href=parent_url %}
-          {% elif request.user.role == 'STUDENT' %}
+          {% elif nav_role == 'STUDENT' %}
             {% url 'portal:student_portal_grades' as student_home_url %}
             {% include "partials/tenant/tp_header_brand.html" with home_href=student_home_url %}
           {% else %}
             {% include "partials/tenant/tp_header_brand.html" with home_href=backend_url %}
           {% endif %}
-        {% elif request.user.role == 'ADMIN' or request.user.is_staff %}
+          {% endwith %}
+        {% elif EFFECTIVE_PORTAL_ROLE|default:request.user.role == 'ADMIN' or request.user.is_staff and EFFECTIVE_PORTAL_ROLE|default:request.user.role != 'PARENT' and EFFECTIVE_PORTAL_ROLE|default:request.user.role != 'STUDENT' %}
           {% include "components/rmc_brand_mark.html" with size=34 variant="lockup" href=backend_url label=SITE.site_name|default:"School System" %}
-        {% elif request.user.role == 'TEACHER' %}
+        {% elif EFFECTIVE_PORTAL_ROLE|default:request.user.role == 'TEACHER' %}
           {% include "components/rmc_brand_mark.html" with size=34 variant="lockup" href=teacher_url label=SITE.site_name|default:"School System" %}
-        {% elif request.user.role == 'PARENT' %}
+        {% elif EFFECTIVE_PORTAL_ROLE|default:request.user.role == 'PARENT' %}
           {% include "components/rmc_brand_mark.html" with size=34 variant="lockup" href=parent_url label=SITE.site_name|default:"School System" %}
         {% endif %}
         </div>
@@ -565,7 +567,7 @@
     <script src="{% static 'js/rmc-service-worker-registration.js' %}"></script>
     
     {% comment %} Messages chathead: staff/teacher only (RBAC); parents use Contact School. Hidden on v3 tenant shell (header + ⌘K). {% endcomment %}
-    {% if request.user.is_authenticated and request.user.role != 'PARENT' and not tp_v3_tenant_shell %}
+    {% if request.user.is_authenticated and EFFECTIVE_PORTAL_ROLE|default:request.user.role != 'PARENT' and EFFECTIVE_PORTAL_ROLE|default:request.user.role != 'STUDENT' and not tp_v3_tenant_shell %}
     <a href="{% url 'accounts:user_messages' %}" class="portal-chathead" aria-label="{% trans 'Open Messages' %}" title="{% trans 'Messages' %}">
       <i class="bi bi-chat-dots-fill"></i>
       {% if messages_unread_count %}<span class="portal-chathead-badge">{{ messages_unread_count }}</span>{% endif %}

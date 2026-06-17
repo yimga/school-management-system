@@ -48,26 +48,25 @@ class PostureNotificationIdempotencyTests(TestCase):
         self.assertEqual(self._unread_count(), 1)
 
     def test_collapses_existing_duplicate_storm(self):
-        # Simulate the herd: 25 duplicate unread rows already in the DB.
-        for _ in range(25):
+        # Legacy storms are collapsed on read; unread duplicates are blocked at DB layer now.
+        keeper = Notification.objects.create(
+            recipient=self.user,
+            title=POSTURE_NOTIFICATION_TITLE,
+            message="keeper",
+            severity=Notification.Severity.WARNING,
+            is_read=False,
+        )
+        for _ in range(24):
             Notification.objects.create(
                 recipient=self.user,
                 title=POSTURE_NOTIFICATION_TITLE,
-                message="dupe",
+                message="historical read copy",
                 severity=Notification.Severity.WARNING,
+                is_read=True,
             )
-        self.assertEqual(self._unread_count(), 25)
-        keeper = ensure_quarterly_posture_notification(self.user)
-        # Storm collapsed to exactly one unread row, and it's the keeper.
+        note = ensure_quarterly_posture_notification(self.user)
+        self.assertEqual(note.pk, keeper.pk)
         self.assertEqual(self._unread_count(), 1)
-        self.assertEqual(
-            Notification.objects.filter(
-                recipient=self.user,
-                title=POSTURE_NOTIFICATION_TITLE,
-                is_read=False,
-            ).first().pk,
-            keeper.pk,
-        )
 
     def test_payload_carries_stable_dedup_key(self):
         note = ensure_quarterly_posture_notification(self.user)
@@ -75,13 +74,13 @@ class PostureNotificationIdempotencyTests(TestCase):
         self.assertEqual(payload["dedup_key"], "security-posture-review")
 
     def test_context_path_returns_single_payload_after_storm(self):
-        for _ in range(15):
-            Notification.objects.create(
-                recipient=self.user,
-                title=POSTURE_NOTIFICATION_TITLE,
-                message="dupe",
-                severity=Notification.Severity.WARNING,
-            )
+        Notification.objects.create(
+            recipient=self.user,
+            title=POSTURE_NOTIFICATION_TITLE,
+            message="keeper",
+            severity=Notification.Severity.WARNING,
+            is_read=False,
+        )
         request = RequestFactory().get("/")
         request.user = self.user
         request.session = {}

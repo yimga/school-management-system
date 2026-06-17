@@ -81,11 +81,21 @@ def resolve_rmc_os_shell(request) -> dict[str, str]:
         }
 
     session = getattr(request, "session", None)
-    eff = ""
-    if session is not None:
-        eff = (session.get("EFFECTIVE_PORTAL_ROLE") or "").strip().upper()
+    try:
+        from apps.accounts.portal_roles import get_nav_portal_role
+
+        effective = get_nav_portal_role(request) or (
+            (getattr(user, "role", None) or "").strip().upper()
+        )
+    except Exception:
+        eff = ""
+        if session is not None:
+            from apps.accounts.portal_roles import ACTIVE_PORTAL_ROLE_KEY
+
+            eff = (session.get(ACTIVE_PORTAL_ROLE_KEY) or "").strip().upper()
+        effective = eff or (getattr(user, "role", None) or "").strip().upper()
+
     base_role = (getattr(user, "role", None) or "").strip().upper()
-    effective = eff or base_role
 
     if effective == User.Role.TEACHER:
         cluster = "teacher"

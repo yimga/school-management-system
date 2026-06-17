@@ -727,7 +727,7 @@ def _tenant_ai_copilot_rail_master_enabled(request) -> bool:
     return True
 
 
-def _tenant_footer_defaults(site: Any | None) -> dict[str, Any]:
+def _tenant_footer_defaults(site: Any | None, request=None) -> dict[str, Any]:
     """Tenant civic footer — pulled from SITE model when available.
 
     `site` is the tenant's SiteSettings instance (or None on PUBLIC_BRAND_MODE).
@@ -762,12 +762,27 @@ def _tenant_footer_defaults(site: Any | None) -> dict[str, Any]:
 
     lang_label, lang_code = _resolve_footer_language()
 
+    descriptor = _("Family portal")
+    if request is not None:
+        user = getattr(request, "user", None)
+        if user is not None and getattr(user, "is_authenticated", False):
+            try:
+                from apps.accounts.portal_roles import get_nav_portal_role
+                from apps.portal.tenant_role_home import _tp_brand_surface_pill
+
+                role = get_nav_portal_role(request) or str(
+                    getattr(user, "role", "") or ""
+                )
+                descriptor = _tp_brand_surface_pill(role)
+            except Exception:
+                pass
+
     return {
         "brand": {
             "wordmark": wordmark,
             "motto": motto,
             "founded_year": founded_year,
-            "descriptor": _("Family portal"),
+            "descriptor": descriptor,
         },
         # Default tenant trust pillar — operators can extend in SiteSettings.
         "trust_pillars": [
@@ -990,7 +1005,7 @@ def cockpit_context(request) -> dict[str, Any]:
     # No operator pulse/ticker leak. PII safety: school-entity values only.
     site = getattr(request, "site_settings", None) or getattr(request, "SITE", None)
     tenant_cockpit: dict[str, Any] = {
-        "footer": _tenant_footer_defaults(site),
+        "footer": _tenant_footer_defaults(site, request=request),
         "community_band": _tenant_community_band_defaults(),
         "newsletter_band": _tenant_newsletter_band_defaults(),
         # v3.57.18 Wave 8 — emit signup_form on the tenant/public branch so

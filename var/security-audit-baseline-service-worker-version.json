@@ -1,12 +1,12 @@
 {
-  "date": "2026-06-05",
-  "generated_at": "2026-06-05T22:55:32+00:00",
+  "date": "2026-06-17",
+  "generated_at": "2026-06-17T12:54:40+00:00",
   "major": 4,
-  "minor": 2,
-  "patch": 19,
-  "raw": "sms-v4.02.19-cockpit-v8-completion-2026-06-05",
+  "minor": 4,
+  "patch": 0,
+  "raw": "sms-v4.04.00-tenant-ux-aggressive-audit-sealed-2026-06-17",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "cockpit-v8-completion",
+  "slug": "tenant-ux-aggressive-audit-sealed",
   "valid": true
 }

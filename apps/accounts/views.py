@@ -534,6 +534,15 @@ def user_notifications(request):
     from apps.finance.models import Notification
     from django.db.models import Q
 
+    from apps.accounts.security_posture_notifications import (
+        dedupe_notifications_for_inbox,
+        ensure_quarterly_posture_notification,
+    )
+
+    ensure_quarterly_posture_notification(
+        request.user, getattr(request, "school", None)
+    )
+
     base_qs = Notification.objects.filter(
         Q(recipient=request.user) | Q(created_by=request.user)
     ).order_by("-created_at")
@@ -546,11 +555,15 @@ def user_notifications(request):
     # Filter by status if requested, then slice for display
     status_filter = request.GET.get("status")
     if status_filter == "unread":
-        notifications = base_qs.filter(is_read=False)[:50]
+        notifications = dedupe_notifications_for_inbox(
+            list(base_qs.filter(is_read=False)[:50])
+        )
     elif status_filter == "read":
-        notifications = base_qs.filter(is_read=True)[:50]
+        notifications = dedupe_notifications_for_inbox(
+            list(base_qs.filter(is_read=True)[:50])
+        )
     else:
-        notifications = base_qs[:50]
+        notifications = dedupe_notifications_for_inbox(list(base_qs[:50]))
 
     context = {
         "notifications": notifications,
@@ -1160,21 +1173,15 @@ def redirect_view(request):
     except (DatabaseError, ImportError, AttributeError):
         dash_view = None
 
-    from apps.accounts.portal_roles import get_effective_portal_role
+    from apps.accounts.portal_roles import get_nav_portal_role
 
-    role = get_effective_portal_role(request) or getattr(user, "role", None)
+    nav_role = get_nav_portal_role(request) or getattr(user, "role", None)
 
-    # Staff/backend: Dashboard or Workflow Center as default view
-    if user.has_feature_permission("settings.manage"):
-        if dash_view == "WORKFLOW":
-            return _redirect_with_params("studio_os:workflow_center")
-        return _redirect_with_params("accounts:backend_dashboard")
-
-    if role == User.Role.TEACHER:
+    if nav_role == User.Role.TEACHER:
         if dash_view == "WORKFLOW":
             return _redirect_with_params("portal:teacher_workflow")
         return _redirect_with_params("evals:teacher_dashboard")
-    if role == User.Role.PARENT:
+    if nav_role == User.Role.PARENT:
         if dash_view == "WORKFLOW":
             return _redirect_with_params("portal:parent_workflow")
         if dash_view == "FINANCE":
@@ -1184,10 +1191,16 @@ def redirect_view(request):
         if dash_view == "ATTENDANCE":
             return _redirect_with_params("portal:parent_dashboard")
         return _redirect_with_params("portal:parent_dashboard")
-    if role == User.Role.STUDENT:
+    if nav_role == User.Role.STUDENT:
         if dash_view == "WORKFLOW":
             return _redirect_with_params("portal:student_workflow")
         return _redirect_with_params("portal:student_portal_grades")
+
+    # Staff/backend: only after family/student/teacher hats are ruled out.
+    if user.has_feature_permission("settings.manage"):
+        if dash_view == "WORKFLOW":
+            return _redirect_with_params("studio_os:workflow_center")
+        return _redirect_with_params("accounts:backend_dashboard")
 
     # Default: admin
     return _redirect_with_params("admin:index")

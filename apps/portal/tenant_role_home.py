@@ -6,6 +6,7 @@ from django.http import HttpRequest
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import User
+from apps.accounts.portal_roles import get_nav_portal_role
 from apps.siteconfig.models_support import filter_portal_items
 from apps.siteconfig.config_service import get_effective_site_settings
 
@@ -106,7 +107,7 @@ def tp_v3_role_home_shell_context(request: HttpRequest) -> dict[str, object]:
     role = ""
     user = getattr(request, "user", None)
     if user is not None:
-        role = str(getattr(user, "role", "") or "")
+        role = get_nav_portal_role(request) or str(getattr(user, "role", "") or "")
     year_label = ""
     try:
         from apps.siteconfig.config_service import get_effective_site_settings

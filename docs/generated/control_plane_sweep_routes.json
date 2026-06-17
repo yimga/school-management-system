@@ -1,8 +1,8 @@
 {
   "version": "2026-05-18",
-  "count": 650,
-  "operator_count": 463,
-  "admin_changelist_count": 187,
+  "count": 671,
+  "operator_count": 480,
+  "admin_changelist_count": 191,
   "routes": [
     {
       "path": "/",
@@ -193,6 +193,18 @@
     {
       "path": "/admin/brand_experience/themepack/",
       "name": "brand_experience_themepack_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/auditarchiverecord/",
+      "name": "compliance_auditarchiverecord_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/auditlegalhold/",
+      "name": "compliance_auditlegalhold_changelist",
       "tier": "admin_changelist",
       "sweep": true
     },
@@ -559,6 +571,12 @@
     {
       "path": "/admin/platform_runtime/fleetgovernedchange/",
       "name": "platform_runtime_fleetgovernedchange_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/operatortenantassignment/",
+      "name": "platform_runtime_operatortenantassignment_changelist",
       "tier": "admin_changelist",
       "sweep": true
     },
@@ -1069,6 +1087,12 @@
     {
       "path": "/admin/siteconfig/marketingcontent/",
       "name": "siteconfig_marketingcontent_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/marketingtestimonial/",
+      "name": "siteconfig_marketingtestimonial_changelist",
       "tier": "admin_changelist",
       "sweep": true
     },
@@ -1967,6 +1991,12 @@
       "sweep": true
     },
     {
+      "path": "/siteconfig/super/configure/cockpit/shell/",
+      "name": "cockpit_shell_configure",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/siteconfig/super/configure/dashboard-defaults/",
       "name": "dashboard_defaults_admin",
       "tier": "operator",
@@ -2429,6 +2459,18 @@
       "sweep": true
     },
     {
+      "path": "/super/ai-center/agentic/",
+      "name": "ai_center_agentic",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/ai-center/agentic/destructive/",
+      "name": "ai_center_destructive",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/ai-center/faq-candidates/",
       "name": "ai_center_faq_candidates",
       "tier": "operator",
@@ -2455,6 +2497,12 @@
     {
       "path": "/super/ai-center/kb-drafts/",
       "name": "ai_center_kb_drafts",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/ai-center/kb-tools/",
+      "name": "ai_center_kb_tools",
       "tier": "operator",
       "sweep": true
     },
@@ -2765,6 +2813,12 @@
       "sweep": true
     },
     {
+      "path": "/super/fleet-wall/",
+      "name": "fleet_wall",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/founder/",
       "name": "founder_dashboard",
       "tier": "operator",
@@ -2809,6 +2863,12 @@
     {
       "path": "/super/incidents/",
       "name": "incidents_list",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/invite-school/",
+      "name": "invite_school",
       "tier": "operator",
       "sweep": true
     },
@@ -2911,6 +2971,12 @@
     {
       "path": "/super/marketplace/publisher/apps/webhooks/edit/",
       "name": "marketplace_webhook_endpoint_edit",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/marketplace/publisher/submit/",
+      "name": "marketplace_publisher_submit_for_review",
       "tier": "operator",
       "sweep": true
     },
@@ -3617,6 +3683,12 @@
       "sweep": true
     },
     {
+      "path": "/super/provision-queue/",
+      "name": "provision_queue",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/provisioning/jobs/",
       "name": "provisioning_jobs",
       "tier": "operator",
@@ -3631,6 +3703,24 @@
     {
       "path": "/super/registries/",
       "name": "registries_overview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/remote-support/",
+      "name": "remote_support_console",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/remote-support/accept/",
+      "name": "remote_support_accept",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/remote-support/end/",
+      "name": "remote_support_end",
       "tier": "operator",
       "sweep": true
     },
@@ -3697,6 +3787,18 @@
     {
       "path": "/super/security/surface/",
       "name": "security_surface_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/signup-verifications/",
+      "name": "signup_verifications",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/signup-verifications/action/",
+      "name": "signup_verification_action",
       "tier": "operator",
       "sweep": true
     },
@@ -3797,6 +3899,12 @@
       "sweep": true
     },
     {
+      "path": "/super/team/lens/",
+      "name": "api_operator_lens_snapshot",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/team/offboard/",
       "name": "operator_team_offboard",
       "tier": "operator",
@@ -3883,6 +3991,24 @@
     {
       "path": "/super/wedge/",
       "name": "wedge_index",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/wedges/multicampus-academics/",
+      "name": "wedge_surface_multicampus_academics",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/wedges/multicampus-billing/",
+      "name": "wedge_surface_multicampus_billing",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/wedges/multicampus-extension/",
+      "name": "wedge_surface_multicampus_extension",
       "tier": "operator",
       "sweep": true
     },
