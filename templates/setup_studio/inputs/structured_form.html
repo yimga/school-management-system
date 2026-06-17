@@ -5,7 +5,7 @@
   {% for field in step.fields %}
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-wizard-field">
-      <label class="rmc-wizard-field__label" for="rmc-wizard-input-{{ field.name }}">{{ field.label_token|default:field.name }}</label>
+      <label class="rmc-wizard-field__label" for="rmc-wizard-input-{{ field.name }}">{{ field.label_token|default:field.name|humanize_wizard_token }}</label>
       {% if field.type == "textarea" %}
         <textarea id="rmc-wizard-input-{{ field.name }}" name="{{ field.name }}" rows="4"
                   {% if field.required %}required{% endif %}>{{ prior_answer|dict_get:field.name|default:'' }}</textarea>
@@ -13,7 +13,7 @@
         <select id="rmc-wizard-input-{{ field.name }}" name="{{ field.name }}"
                 {% if field.required %}required{% endif %}>
           {% for opt in field.choices %}
-            <option value="{{ opt.value }}">{{ opt.label_token|default:opt.value }}</option>
+            <option value="{{ opt.value }}">{{ opt.label_token|default:opt.value|humanize_wizard_token }}</option>
           {% endfor %}
         </select>
       {% elif field.type == "color" %}

@@ -34,7 +34,7 @@ from apps.setup_studio import (
     wizard_telemetry,
 )
 from apps.setup_studio.wizard_categories import group_wizards_by_category
-from apps.setup_studio.wizard_labels import humanize_wizard_token
+from apps.setup_studio.wizard_labels import humanize_wizard_error, humanize_wizard_token
 
 logger = logging.getLogger(__name__)
 
@@ -283,7 +283,10 @@ def _build_context(
         "resolved_options": resolved_options,
         "ai_rationale": ai_rationale,
         "ai_suggested_value": ai_suggested_value,
-        "errors": errors or {},
+        # Error dict values are raw ``wizards.errors.*`` slugs off the validator;
+        # humanize them here (the single render seam) so every input partial shows
+        # a real message. Keys stay the field name (telemetry/template lookup).
+        "errors": {k: humanize_wizard_error(v) for k, v in (errors or {}).items()},
         "form_action_url": form_action_url,
         "back_url": back_url,
         "is_final_step": is_final_step,

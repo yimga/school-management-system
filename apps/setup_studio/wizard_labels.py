@@ -74,3 +74,55 @@ def humanize_wizard_token(token: object) -> str:
         segment.replace("_", " ").replace("-", " ").strip()
     )
     return humanized or token
+
+
+# Validator error tokens (``wizards.errors.*``) emitted by ``wizard_validators``.
+# These are the single closed set of error slugs the engine can produce; without
+# resolution they render raw ("wizards.errors.required") to the user. Mapped to
+# real, full-sentence English (which doubles as a gettext msgid so the i18n path
+# stays intact); unmapped tokens fall back to ``humanize_wizard_token``.
+_WIZARD_ERROR_MESSAGES = {
+    "wizards.errors.required": "This field is required.",
+    "wizards.errors.max_length": "This value is too long.",
+    "wizards.errors.min_length": "This value is too short.",
+    "wizards.errors.pattern_mismatch": "This value isn't in the expected format.",
+    "wizards.errors.pattern_invalid": "This value isn't in the expected format.",
+    "wizards.errors.choice_not_in_set": "Choose one of the available options.",
+    "wizards.errors.decimal_invalid": "Enter a valid number.",
+    "wizards.errors.decimal_below_min": "This value is below the allowed minimum.",
+    "wizards.errors.decimal_above_max": "This value is above the allowed maximum.",
+    "wizards.errors.integer_invalid": "Enter a whole number.",
+    "wizards.errors.integer_below_min": "This value is below the allowed minimum.",
+    "wizards.errors.integer_above_max": "This value is above the allowed maximum.",
+    "wizards.errors.domain_invalid": "Enter a valid domain name.",
+    "wizards.errors.color_hex_invalid": "Enter a valid hex color (for example, #4F46E5).",
+    "wizards.errors.file_extension_invalid": "This file type isn't supported.",
+    "wizards.errors.file_extension_not_allowed": "This file type isn't allowed.",
+    "wizards.errors.file_size_invalid": "This file's size couldn't be read.",
+    "wizards.errors.file_too_large": "This file is too large.",
+    "wizards.errors.csv_header_missing": "The CSV file is missing its header row.",
+    "wizards.errors.csv_header_invalid": "The CSV header row is invalid.",
+    "wizards.errors.csv_header_required_missing": "A required column is missing from the CSV header.",
+    "wizards.errors.pfx_not_bytes": "Upload a valid certificate file.",
+    "wizards.errors.pfx_too_small": "This certificate file looks incomplete.",
+    "wizards.errors.pfx_magic_invalid": "This doesn't look like a valid PFX certificate.",
+    "wizards.errors.country_code_invalid": "Enter a valid country code.",
+    "wizards.errors.currency_code_invalid": "Enter a valid currency code.",
+    "wizards.errors.email_invalid": "Enter a valid email address.",
+}
+
+
+def humanize_wizard_error(token: object) -> str:
+    """Resolve a validator error token to a human-readable, translated message.
+
+    Safe for any input: non-strings / empty -> ``""``. Known ``wizards.errors.*``
+    slugs map to a full sentence; anything else (an unmapped error key, or a
+    validator that already returned a human string) falls back to
+    ``humanize_wizard_token``.
+    """
+    if not isinstance(token, str) or not token:
+        return ""
+    message = _WIZARD_ERROR_MESSAGES.get(token)
+    if message is not None:
+        return gettext(message)
+    return humanize_wizard_token(token)
