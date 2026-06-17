@@ -988,6 +988,13 @@ def create_payment_from_receipt(
     Create and apply payment from verified receipt upload.
     Caps amount at invoice balance; overpayment within tolerance creates RefundRequest.
     """
+    # Idempotency / double-credit guard (2026-06-17 seal): if this receipt already
+    # produced a payment, return it instead of creating a second one. ``proof_upload.payment``
+    # is set together with ``status=VERIFIED`` at the end of a successful application, so a
+    # retry / re-run (e.g. a no-reference receipt re-processed) must not re-credit the invoice.
+    if proof_upload.payment_id:
+        return proof_upload.payment
+
     invoice = proof_upload.invoice
     balance = invoice.balance_amount or invoice.total_amount or Decimal("0")
     if not isinstance(balance, Decimal):
