@@ -1,0 +1,70 @@
+# Self-hosted RunMyCampus — full open-source stack on YOUR server, $0 hosting fees.
+# Mirrors the Render topology: web + worker + beat + PostgreSQL + Valkey (Redis).
+# All images are open-source (PostgreSQL License / BSD). Nothing here affects the
+# Render deployment — this is the future migration target (docs/SELF_HOST_MIGRATION.md).
+#
+# Run from the repo root (beta/school-management-system/):
+#   cp deploy/selfhost/.env.example deploy/selfhost/.env   # then edit secrets
+#   docker compose -f deploy/selfhost/docker-compose.yml up -d --build
+
+x-app: &app
+  build:
+    context: ../..
+    dockerfile: deploy/selfhost/Dockerfile
+  image: runmycampus-selfhost:latest
+  env_file: .env
+  environment:
+    # Service-wired URLs (override any placeholders in .env).
+    DATABASE_URL: "postgres://${POSTGRES_USER:-rmc}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-runmycampus}"
+    REDIS_URL: "redis://valkey:6379/0"
+    # Broker is explicit + safe here because a worker service runs below.
+    CELERY_BROKER_URL: "redis://valkey:6379/1"
+  depends_on:
+    db:
+      condition: service_healthy
+    valkey:
+      condition: service_started
+  restart: unless-stopped
+
+services:
+  db:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-runmycampus}"
+      POSTGRES_USER: "${POSTGRES_USER:-rmc}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-rmc} -d ${POSTGRES_DB:-runmycampus}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  valkey:
+    # Valkey = the open-source (BSD) Redis fork. Persistent + LRU eviction.
+    image: valkey/valkey:8-alpine
+    command: ["valkey-server", "--maxmemory-policy", "allkeys-lru", "--appendonly", "yes"]
+    volumes:
+      - valkeydata:/data
+    restart: unless-stopped
+
+  web:
+    <<: *app
+    command: ["bash", "deploy/selfhost/entrypoint.web.sh"]
+    ports:
+      - "${WEB_PORT:-10000}:10000"
+
+  worker:
+    <<: *app
+    command: ["celery", "-A", "config", "worker", "-l", "info", "--concurrency=${CELERY_WORKER_CONCURRENCY:-2}"]
+    # The worker doesn't serve HTTP; it drains the task queue.
+
+  beat:
+    <<: *app
+    command: ["celery", "-A", "config", "beat", "-l", "info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
+
+volumes:
+  pgdata:
+  valkeydata:
