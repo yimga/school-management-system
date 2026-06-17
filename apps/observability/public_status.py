@@ -266,5 +266,18 @@ def public_health(request):
             # Deploy integrity: workflow progress strip partial required by shell includes.
             "wfp_strip_template_present": deploy_probe["present_on_disk"],
             "render_git_commit": deploy_probe["render_git_commit"],
+            # Infra wiring — PRESENCE ONLY (never the secret URLs/values), pure
+            # settings/env reads (no I/O, keeps /health/ DB+cache-free). Lets you
+            # confirm what the live box actually uses without dashboard access:
+            # is a Redis/Postgres wired in, and does the cache carry the
+            # crash-loop-guard socket timeout.
+            "redis_configured": bool(os.environ.get("REDIS_URL")),
+            "celery_broker_configured": bool(os.environ.get("CELERY_BROKER_URL")),
+            "database_configured": bool(os.environ.get("DATABASE_URL")),
+            "cache_backend": settings.CACHES.get("default", {}).get("BACKEND", ""),
+            "cache_socket_timeout": settings.CACHES.get("default", {})
+            .get("OPTIONS", {})
+            .get("SOCKET_TIMEOUT"),
+            "session_engine": getattr(settings, "SESSION_ENGINE", ""),
         }
     )
