@@ -166,6 +166,9 @@ def canonical_lms_provider_label(provider: str) -> str:
         PROVIDER_POWERSCHOOL: "PowerSchool Learning",
         PROVIDER_SAKAI: "Sakai",
         PROVIDER_ITSLEARNING: "Itslearning",
+        PROVIDER_MS_TEAMS_EDU: "Microsoft Teams for Education",
+        PROVIDER_CLEVER: "Clever",
+        PROVIDER_CLASSLINK: "ClassLink",
     }.get(p, p or "unknown")
 
 

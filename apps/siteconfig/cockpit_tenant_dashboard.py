@@ -85,7 +85,7 @@ def _tenant_today_snapshot_defaults() -> dict[str, Any]:
         delta_tone      str   ("" | "success" | "warn")
     """
     return {
-        "enabled": False,
+        "enabled": True,
         "section_label": _("Today · live"),
         "live_dot": True,
         "switch_link": {"label": "", "url": ""},
@@ -109,7 +109,7 @@ def _tenant_quick_actions_defaults() -> dict[str, Any]:
         badge   str   (optional numeric / pill)
     """
     return {
-        "enabled": False,
+        "enabled": True,
         "section_label": _("Quick actions"),
         "tiles": [],
     }
@@ -134,7 +134,7 @@ def _tenant_upcoming_events_defaults() -> dict[str, Any]:
         is_today    bool  (applies tp-event--today modifier)
     """
     return {
-        "enabled": False,
+        "enabled": True,
         "section_label": _("Upcoming · next 14 days"),
         "view_all_link": {"label": "", "url": ""},
         "events": [],
@@ -158,7 +158,7 @@ def _tenant_activity_timeline_defaults() -> dict[str, Any]:
         meta_right  str
     """
     return {
-        "enabled": False,
+        "enabled": True,
         "title": _("Recent activity"),
         "title_suffix": "",
         "view_all_link": {"label": "", "url": ""},
@@ -179,7 +179,7 @@ def _tenant_achievements_defaults() -> dict[str, Any]:
         label  str
     """
     return {
-        "enabled": False,
+        "enabled": True,
         "title": _("Achievements"),
         "count_label": "",
         "list": [],
@@ -200,7 +200,7 @@ def _tenant_teacher_spotlight_defaults() -> dict[str, Any]:
         glyph  str  (optional)
     """
     return {
-        "enabled": False,
+        "enabled": True,
         "title": _("Teacher spotlight"),
         "sub": _("This week's featured staff member"),
         "avatar_initials": "",
@@ -236,7 +236,7 @@ def _year_progress_defaults() -> dict[str, Any]:
         calendar marker.
     """
     return {
-        "enabled": False,
+        "enabled": True,
         "label": _("Academic year"),
         "term_label": "",
         "percent": 0,

@@ -23,6 +23,8 @@ from django.http import HttpRequest, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
+from apps.integrations_marketplace import connector_registry
+from apps.integrations_marketplace import lms_supported_providers as lms_sot
 from apps.siteconfig._wedge_registry import wedge
 
 logger = logging.getLogger(__name__)
@@ -69,14 +71,80 @@ _TIER_B_REGION: dict[int, set[str]] = {
 
 # ----- Integration facet map for Tier-A/F integration wedges ---------------
 #
-# Maps wedge id → a (capability, domain) facet pair. The integrations list
-# is then filtered by the listing's facet matching.
+# Maps wedge id → a (capability, domain) facet pair. ``domain`` matches a row's
+# ``category`` in the assembled catalog:
+#   * wedge 2  ("LMS integration")                  → lms
+#   * wedge 44 ("Clever / ClassLink roster + SSO")  → identity
+#   * wedge 45 ("Identity and access federation")   → identity
 
 _INTEGRATION_FACETS: dict[int, dict[str, str]] = {
     2: {"capability": "integration", "domain": "lms"},
     44: {"capability": "integration", "domain": "identity"},
     45: {"capability": "integration", "domain": "identity"},
 }
+
+# Among the LMS-provider SOT, these are roster/SSO ("identity") providers; the
+# rest of SUPPORTED_LMS_PROVIDERS are learning platforms ("lms").
+_IDENTITY_LMS_PROVIDERS: frozenset[str] = frozenset({
+    lms_sot.PROVIDER_CLEVER,
+    lms_sot.PROVIDER_CLASSLINK,
+})
+
+
+def _integration_catalog_rows() -> list[dict[str, Any]]:
+    """Assemble the platform integration catalog from real SOTs — no hardcoding.
+
+    Two sources, deduped by slug:
+
+    * ``connector_registry`` — the unified hub connectors (meeting / calendar /
+      mail / chat / messaging / payment / badges / generic LTI ``lms``).
+    * ``lms_supported_providers`` — the per-vendor LMS + roster/SSO providers
+      (Canvas, Moodle, …, Clever, ClassLink) that the single generic ``lms``
+      registry row does not enumerate individually.
+
+    Each row carries ``slug / name / category / vendor`` (the keys the template
+    + JSON export consume) plus a 1-based display ``id``.
+    """
+    rows: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    for c in connector_registry.list_connectors():
+        slug = (c.slug or "").strip().lower()
+        if not slug or slug in seen:
+            continue
+        seen.add(slug)
+        rows.append({
+            "slug": slug,
+            "name": c.label,
+            "category": c.category,
+            "vendor": connector_registry.CATEGORY_LABELS.get(c.category, c.category),
+        })
+
+    for slug in sorted(lms_sot.SUPPORTED_LMS_PROVIDERS):
+        s = (slug or "").strip().lower()
+        # Skip the legacy "google" alias — google_classroom already covers it.
+        if not s or s in seen or s == lms_sot.PROVIDER_GOOGLE_LEGACY_ALIAS:
+            continue
+        seen.add(s)
+        category = "identity" if s in _IDENTITY_LMS_PROVIDERS else "lms"
+        if lms_sot.is_production_lms_provider(s):
+            maturity = "Production"
+        elif lms_sot.is_oauth_ready_lms_provider(s):
+            maturity = "OAuth Ready"
+        elif lms_sot.is_scaffold_lms_provider(s):
+            maturity = "Scaffold (coming soon)"
+        else:
+            maturity = ""
+        rows.append({
+            "slug": s,
+            "name": lms_sot.canonical_lms_provider_label(s),
+            "category": category,
+            "vendor": maturity,
+        })
+
+    for i, r in enumerate(rows, start=1):
+        r["id"] = i
+    return rows
 
 
 # ----- Grading-scale facet map for Tier-D/E wedges -------------------------
@@ -164,39 +232,15 @@ def countries_by_wedge(request):
 def integrations_by_wedge(request):
     """Integrations catalog list filtered by ``?wedge=<id>``.
 
-    Reads either the marketplace listing model when available, or falls
-    back to a static catalog table so the page is never blank in dev.
+    The catalog is assembled from the real connector SOTs (see
+    :func:`_integration_catalog_rows`) — the ``connector_registry`` hub plus the
+    per-vendor ``lms_supported_providers`` list. Passing ``?wedge=<id>`` for an
+    integration wedge narrows to that wedge's domain (``lms`` / ``identity``).
     """
     w = _wedge_from_request(request)
     facets = _INTEGRATION_FACETS.get(w["id"]) if w else None
 
-    catalog: list[dict[str, Any]] = []
-    # Best-effort: try the live marketplace model first.
-    try:
-        from apps.integrations_marketplace.models import Connector
-        qs = Connector.objects.all()  # tenant-isolation-allow: platform-wide-connector-catalog-not-tenant-scoped
-        for c in qs[:200]:
-            catalog.append({
-                "id": c.pk,
-                "slug": getattr(c, "slug", "") or "",
-                "name": getattr(c, "name", "") or "",
-                "category": (getattr(c, "category", "") or "").lower(),
-                "vendor": getattr(c, "vendor", "") or "",
-            })
-    except Exception:  # noqa: BLE001
-        # Static fallback so the page is useful in dev.
-        catalog = [
-            {"id": 1, "slug": "canvas", "name": "Canvas LMS", "category": "lms", "vendor": "Instructure"},
-            {"id": 2, "slug": "moodle", "name": "Moodle", "category": "lms", "vendor": "Moodle HQ"},
-            {"id": 3, "slug": "google-classroom", "name": "Google Classroom", "category": "lms", "vendor": "Google"},
-            {"id": 4, "slug": "schoology", "name": "Schoology", "category": "lms", "vendor": "PowerSchool"},
-            {"id": 5, "slug": "clever", "name": "Clever", "category": "identity", "vendor": "Clever"},
-            {"id": 6, "slug": "classlink", "name": "ClassLink", "category": "identity", "vendor": "ClassLink"},
-            {"id": 7, "slug": "azure-ad", "name": "Microsoft Entra ID", "category": "identity", "vendor": "Microsoft"},
-            {"id": 8, "slug": "okta", "name": "Okta", "category": "identity", "vendor": "Okta"},
-            {"id": 9, "slug": "stripe", "name": "Stripe", "category": "billing", "vendor": "Stripe"},
-            {"id": 10, "slug": "twilio", "name": "Twilio", "category": "messaging", "vendor": "Twilio"},
-        ]
+    catalog = _integration_catalog_rows()
 
     rows = catalog
     if facets:

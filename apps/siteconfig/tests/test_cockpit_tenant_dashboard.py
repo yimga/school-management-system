@@ -36,7 +36,9 @@ from apps.siteconfig.cockpit_tenant_dashboard import (
 
 
 class TenantDashboardDefaultsShapeTests(SimpleTestCase):
-    """Every factory returns a dict with ``enabled=False`` by default."""
+    """Enabled-state defaults: the parent child-context card stays opt-in
+    (``enabled=False``); the canvas sections default ON (v4.04.x — populated
+    tenant dashboards out of the box, honest empty states until data hydrates)."""
 
     def test_workspace_context_defaults_disabled_with_expected_keys(self):
         d = _tenant_workspace_context_dashboard_defaults()
@@ -51,46 +53,46 @@ class TenantDashboardDefaultsShapeTests(SimpleTestCase):
         self.assertIn("add_child", d)
         self.assertEqual(d["add_child"]["url"], "")
 
-    def test_today_snapshot_defaults_disabled_with_empty_cards(self):
+    def test_today_snapshot_defaults_enabled_with_empty_cards(self):
         d = _tenant_today_snapshot_defaults()
-        self.assertIs(d["enabled"], False)
+        self.assertIs(d["enabled"], True)
         self.assertIs(d["live_dot"], True)
         self.assertEqual(d["cards"], [])
         self.assertIn("switch_link", d)
         self.assertEqual(d["switch_link"]["url"], "")
 
-    def test_quick_actions_defaults_disabled_with_empty_tiles(self):
+    def test_quick_actions_defaults_enabled_with_empty_tiles(self):
         d = _tenant_quick_actions_defaults()
-        self.assertIs(d["enabled"], False)
+        self.assertIs(d["enabled"], True)
         self.assertEqual(d["tiles"], [])
         self.assertIn("section_label", d)
 
-    def test_upcoming_events_defaults_disabled_with_empty_events(self):
+    def test_upcoming_events_defaults_enabled_with_empty_events(self):
         d = _tenant_upcoming_events_defaults()
-        self.assertIs(d["enabled"], False)
+        self.assertIs(d["enabled"], True)
         self.assertEqual(d["events"], [])
         self.assertIn("view_all_link", d)
 
-    def test_activity_timeline_defaults_disabled_with_empty_items(self):
+    def test_activity_timeline_defaults_enabled_with_empty_items(self):
         d = _tenant_activity_timeline_defaults()
-        self.assertIs(d["enabled"], False)
+        self.assertIs(d["enabled"], True)
         self.assertEqual(d["items"], [])
         self.assertIn("view_all_link", d)
         self.assertIn("title", d)
 
-    def test_achievements_defaults_disabled_with_empty_list(self):
+    def test_achievements_defaults_enabled_with_empty_list(self):
         d = _tenant_achievements_defaults()
-        self.assertIs(d["enabled"], False)
+        self.assertIs(d["enabled"], True)
         self.assertEqual(d["list"], [])
         self.assertIn("count_label", d)
 
-    def test_teacher_spotlight_defaults_disabled_with_empty_name(self):
+    def test_teacher_spotlight_defaults_enabled_with_empty_name(self):
         d = _tenant_teacher_spotlight_defaults()
-        self.assertIs(d["enabled"], False)
+        self.assertIs(d["enabled"], True)
         self.assertEqual(d["teacher_name"], "")
         self.assertEqual(d["actions"], [])
 
-    def test_tenant_dashboard_defaults_registry_covers_seven_sections(self):
+    def test_tenant_dashboard_defaults_registry_covers_all_sections(self):
         self.assertEqual(
             set(TENANT_DASHBOARD_DEFAULTS.keys()),
             {
@@ -101,6 +103,9 @@ class TenantDashboardDefaultsShapeTests(SimpleTestCase):
                 "activity_timeline",
                 "achievements",
                 "teacher_spotlight",
+                "tenant_activity_ticker",
+                "year_progress",
+                "calendar_subscribe",
             },
         )
 
