@@ -997,6 +997,27 @@ def _do_provision_tracked(
     # Schema-per-tenant: ensure Client and Domain exist so tenant schema is available
     tenant_client = _ensure_tenant_client(school)
     if tenant_client is None:
+        if _use_django_tenants():
+            # Schema mode but NO Client ⇒ client/schema creation soft-failed.
+            # ensure_tenant_client_for_school() returns None (not raise) on a swallowed
+            # DatabaseError or a non-postgres connection, so a transient DB blip here
+            # would otherwise fall straight through to Phase A activation — producing a
+            # LIVE tenant with no schema that 500s on every tenant-scoped query (the
+            # half-provisioned "broken tenant" symptom). Refuse to activate: record +
+            # raise so the run finalizes "failed" and the Retry card appears, exactly
+            # like the TENANT_SCHEMA_FAILED path below. A retry re-runs this idempotently.
+            _record_school_event(
+                school,
+                event_type="TENANT_CLIENT_FAILED",
+                status="ERROR",
+                message="Tenant client/schema unavailable in schema mode; aborting before activation.",
+                payload={"schema_mode": True},
+            )
+            raise RuntimeError(
+                f"tenant client unavailable for school {getattr(school, 'id', '?')} "
+                "in schema mode; refusing to activate a schema-less tenant"
+            )
+        # RLS mode: no per-tenant Client is expected — sync domains and continue.
         try:
             sync_school_domains_to_runtime(school)
         except (
