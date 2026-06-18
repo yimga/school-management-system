@@ -100,3 +100,52 @@ class DetectTenantTableDriftCommandTests(TestCase):
             "no table drift" in val or "no tenant schemas" in val,
             msg=f"unexpected detector output: {val!r}",
         )
+
+
+class RunTenantColumnRepairsTests(TestCase):
+    """The consolidated COLUMN-drift heal that the provision seed step runs so a
+    requeue actually REPAIRS `column ... does not exist` instead of looping."""
+
+    def test_runs_every_registered_repair_and_returns_bool_map(self):
+        from apps.schools import tenant_schema_guard
+
+        result = tenant_schema_guard.run_tenant_column_repairs()
+        # On the HEAD-migrated test DB every column already exists → each repair
+        # runs to completion and reports no change.
+        expected_labels = {label for label, _, _ in tenant_schema_guard._COLUMN_REPAIRS}
+        self.assertEqual(set(result), expected_labels)
+        for label, changed in result.items():
+            self.assertIsInstance(changed, bool, msg=label)
+            self.assertFalse(changed, msg=f"{label} reported a change on a healthy DB")
+
+    def test_idempotent_second_pass_changes_nothing(self):
+        from apps.schools.tenant_schema_guard import run_tenant_column_repairs
+
+        run_tenant_column_repairs()
+        second = run_tenant_column_repairs()
+        self.assertTrue(all(v is False for v in second.values()), msg=str(second))
+
+    def test_one_repair_failing_never_blocks_the_others(self):
+        from unittest import mock
+
+        from apps.schools import tenant_schema_guard
+
+        # Force the FIRST repair to raise an import failure; the remaining repairs
+        # must still run (failure isolation — provisioning never aborts on a heal).
+        bad = ("academics_school_id", "apps.academics.schema_repair", "does_not_exist")
+        good = tenant_schema_guard._COLUMN_REPAIRS[1:]
+        with mock.patch.object(
+            tenant_schema_guard, "_COLUMN_REPAIRS", (bad,) + good
+        ):
+            result = tenant_schema_guard.run_tenant_column_repairs()
+        # The broken one is skipped (absent from results), the good ones complete.
+        self.assertNotIn("academics_school_id", result)
+        self.assertEqual(set(result), {label for label, _, _ in good})
+
+    def test_academics_school_id_heal_is_reachable_and_idempotent(self):
+        # Direct proof the academics heal (the screenshot's failing column) is wired
+        # and idempotent — a second pass on a healed schema is a no-op.
+        from apps.academics.schema_repair import ensure_academics_school_id_columns
+
+        ensure_academics_school_id_columns()
+        self.assertFalse(ensure_academics_school_id_columns())

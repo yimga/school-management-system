@@ -45,6 +45,11 @@ _HEAL_ERRORS = (
     TypeError,
 )
 
+# Dispatching a per-app column repair can additionally fail to import (app not
+# installed in this deployment) or be missing its entrypoint — both mean "skip
+# this repair", never "abort provisioning".
+_REPAIR_DISPATCH_ERRORS = _HEAL_ERRORS + (ImportError, AttributeError)
+
 
 def _entry_to_app_name(entry: str) -> str:
     """Normalise an INSTALLED_APPS-style entry to its app module name.
@@ -163,3 +168,47 @@ def ensure_models_tables(schema_editor, models) -> list[str]:
                 exc,
             )
     return created
+
+
+# Per-app COLUMN-drift heals. Each entry is (label, module path, callable name).
+# These heals introspect the LIVE table columns (NOT django_migrations), so they
+# fix the drift class that `migrate` cannot: a heal migration recorded as applied
+# whose AddField never physically landed in the schema. That is exactly the
+# `column academics_academicyear.school_id does not exist` failure that aborts the
+# provisioning seed_data step and 500s the owner dashboard. Keep this list in sync
+# as new per-app schema_repair entrypoints land. NOTE: only true COLUMN heals
+# belong here — index/dedup heals (e.g. finance OfflinePaymentIntent) run their own
+# write and are owned by their app's migration, so they are deliberately excluded.
+_COLUMN_REPAIRS: tuple[tuple[str, str, str], ...] = (
+    ("academics_school_id", "apps.academics.schema_repair", "ensure_academics_school_id_columns"),
+    ("people_schema", "apps.people.schema_repair", "ensure_people_schema_current"),
+    ("schoolops_visitorcheckin_offline_id", "apps.schoolops.schema_repair", "ensure_visitorcheckin_offline_id_column"),
+)
+
+
+def run_tenant_column_repairs() -> dict[str, bool]:
+    """Best-effort idempotent COLUMN-drift heal for the CURRENT schema.
+
+    Complements ``ensure_models_tables`` (table granularity) and the provision-time
+    ``migrate``. Run this inside the tenant boundary (``tenant_context`` / RLS pin)
+    BEFORE the first tenant-scoped seed query so a requeue can actually REPAIR a
+    ``column ... does not exist`` failure instead of looping on it. Each repair runs
+    independently — an import/DDL failure in one is logged and skipped, never
+    aborting the others or provisioning. Idempotent: a no-op on a healthy schema
+    (one introspection per table). Returns ``{label: changed_bool}`` for the repairs
+    that ran to completion.
+    """
+    from importlib import import_module
+
+    results: dict[str, bool] = {}
+    for label, module_path, func_name in _COLUMN_REPAIRS:
+        try:
+            repair = getattr(import_module(module_path), func_name)
+            results[label] = bool(repair())
+        except _REPAIR_DISPATCH_ERRORS as exc:
+            logger.exception(
+                "tenant_schema_guard: column repair %s failed (skipped): %s",
+                label,
+                exc,
+            )
+    return results

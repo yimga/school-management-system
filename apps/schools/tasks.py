@@ -1141,6 +1141,34 @@ def _do_provision_tracked(
     # Tenant-scoped creation: schema mode uses tenant_context(client); RLS mode pins
     # app.current_school_id to the new school so FORCE'd WITH CHECK clauses pass.
     with _optional_tenant_context(tenant_client), rls_school(school.id):
+        # Heal any COLUMN drift (e.g. academics ``school_id``) BEFORE the first
+        # tenant-scoped seed query. The provision-time ``migrate`` above only fixes
+        # drift that ``django_migrations`` still records as unapplied; when a heal
+        # migration is recorded-applied yet its column never physically landed,
+        # ``migrate`` is a no-op and the seed_data step 500s with "column ... does
+        # not exist" on every attempt — so the flight-deck Requeue card loops
+        # forever. These introspection-based repairs are idempotent (a cheap no-op
+        # on a healthy schema) and are the one thing that lets a requeue actually
+        # REPAIR that failure. Best-effort: a repair error is logged, then the seed
+        # proceeds and fails loudly as before if a column is genuinely unrecoverable.
+        try:
+            from apps.schools.tenant_schema_guard import run_tenant_column_repairs
+            from apps.tenancy.boundary_core_guard import boundary_bypass
+
+            with boundary_bypass(reason="tenant-provision-column-repair"):
+                repaired = run_tenant_column_repairs()
+            if any(repaired.values()):
+                logger.warning(
+                    "Provision column-repair healed drift for school %s: %s",
+                    school_id,
+                    {k: v for k, v in repaired.items() if v},
+                )
+        except (ImportError, DatabaseError, OSError, RuntimeError, TypeError, ValueError):
+            logger.exception(
+                "Provision column-repair raised for school %s (continuing to seed)",
+                school_id,
+            )
+
         # Track critical seed-step failures. Sub-steps deliberately never abort the
         # whole provision (the school is already active from Phase A), but if a
         # CRITICAL step fails we must NOT mark phase_b_complete — otherwise a

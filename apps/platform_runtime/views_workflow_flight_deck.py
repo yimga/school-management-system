@@ -39,6 +39,12 @@ def flight_deck_labels() -> dict[str, str]:
         "bulk_apply_progress": _("Applying fixes…"),
         "bulk_apply_done": _("Bulk apply finished."),
         "action_success": _("Action completed."),
+        "action_unreachable": _(
+            "Couldn't reach the server — it may be restarting. Try again in a moment."
+        ),
+        "action_unavailable": _(
+            "This action isn't available for this run — open run detail or Tenant 360."
+        ),
         "preview_title": _("Fix preview"),
     }
 

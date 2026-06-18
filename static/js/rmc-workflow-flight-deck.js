@@ -421,12 +421,22 @@
     }
 
     if (!runId) {
+      notify(
+        "gentle",
+        label("action_unavailable", "This action isn't available for this run.")
+      );
       btn.disabled = false;
       return;
     }
 
     var url = endpointFor(kind, run);
     if (!url) {
+      // No resolvable endpoint (e.g. a provisioning run with no school_id) — tell
+      // the operator instead of silently re-enabling a button that looks dead.
+      notify(
+        "gentle",
+        label("action_unavailable", "This action isn't available for this run.")
+      );
       btn.disabled = false;
       return;
     }
@@ -464,6 +474,16 @@
         btn.disabled = false;
       })
       .catch(function () {
+        // Network-level failure (fetch rejected) — e.g. the web service is 502ing
+        // / restarting. Without this the button just silently re-enabled, which is
+        // exactly the "I click it and nothing happens" symptom during an outage.
+        notify(
+          "gentle",
+          label(
+            "action_unreachable",
+            "Couldn't reach the server — it may be restarting. Try again in a moment."
+          )
+        );
         btn.disabled = false;
       });
   }
