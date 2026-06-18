@@ -1078,11 +1078,18 @@ def _do_provision_tracked(
         # guarantee the onboard_tenant path and render_predeploy already provide.
         # DDL runs under boundary_bypass — a documented bypass case for the guard.
         try:
+            from apps.platform_runtime.workflow_tracker import heartbeat_during
             from apps.schools.onboarding_service import _run_tenant_migrations
             from apps.tenancy.boundary_core_guard import boundary_bypass
 
+            # The full-app-set schema migrate is one long blocking step. Without an
+            # intra-step heartbeat a healthy-but-slow migrate (loaded free-tier DB)
+            # blows past the stuck threshold and the run is false-flagged
+            # "abandoned: no heartbeat past the stuck threshold" — exactly the
+            # tenant_schema flight-deck card. Keep the run alive while it works.
             with boundary_bypass(reason="tenant-provision-schema-migrate"):
-                _run_tenant_migrations(tenant_client)
+                with heartbeat_during(wf_run):
+                    _run_tenant_migrations(tenant_client)
             _record_school_event(
                 school,
                 event_type="TENANT_SCHEMA_READY",

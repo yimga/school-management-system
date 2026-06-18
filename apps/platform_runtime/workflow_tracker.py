@@ -26,6 +26,7 @@ from __future__ import annotations
 import contextvars
 import functools
 import logging
+import threading
 import time
 import uuid
 from contextlib import contextmanager
@@ -475,6 +476,48 @@ def heartbeat(run: Any) -> None:
         WorkflowRun.objects.filter(pk=run.pk).update(last_heartbeat_at=timezone.now())
     except Exception:
         logger.warning("workflow_tracker_heartbeat_failed run_id=%s", getattr(run, "pk", "-"))
+
+
+@contextmanager
+def heartbeat_during(run: Any, *, interval_seconds: float = 30.0):
+    """Keep ``run``'s heartbeat fresh while a single long blocking step runs.
+
+    The stuck detector flags a run when ``now - last_heartbeat_at`` exceeds
+    ``expected_duration_seconds * 1.5``. One long step with no intra-step ping — a
+    fresh tenant-schema ``migrate`` of the full app set on a loaded DB, say — can
+    blow past that window while genuinely progressing, false-flagging a healthy run
+    as "abandoned: no heartbeat past the stuck threshold". This spawns a daemon
+    thread that pings :func:`heartbeat` every ``interval_seconds`` until the block
+    exits (normally or by exception), then stops and releases its DB connection.
+    Best-effort: a heartbeat failure never affects the wrapped operation. A genuine
+    hang is still caught — the wrapped call's own DB/statement timeout surfaces it,
+    and the thread stops the moment the call returns or raises.
+    """
+    if run is None or getattr(run, "pk", None) is None:
+        yield
+        return
+
+    stop = threading.Event()
+
+    def _beat() -> None:
+        # ``Event.wait`` returns True only once ``stop`` is set, so the first ping
+        # lands one interval in — a fast op never spawns a heartbeat write at all.
+        while not stop.wait(interval_seconds):
+            heartbeat(run)
+        try:
+            from django.db import connection
+
+            connection.close()  # release this worker thread's own DB connection
+        except Exception:
+            logger.debug("heartbeat_during: thread connection close failed", exc_info=True)
+
+    thread = threading.Thread(target=_beat, name="rmc-wf-heartbeat", daemon=True)
+    thread.start()
+    try:
+        yield
+    finally:
+        stop.set()
+        thread.join(timeout=2.0)
 
 
 def finalize_run(
