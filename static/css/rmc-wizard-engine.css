@@ -34,7 +34,15 @@
   justify-content: space-between;
   gap: var(--space-4, 1rem);
   padding: var(--space-5, 1.25rem) var(--space-6, 1.5rem);
-  background: var(--surface-elevated);
+  /* Brand-tinted command-surface hero (matches the signed-off workspace preview):
+     a subtle 135deg wash of the tenant brand over the elevated surface, so the
+     hero reads as a header band rather than a flat card. Token-only → tenant
+     brand + dark mode flow through. */
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--brand-accent) 9%, var(--surface-elevated)),
+    var(--surface-elevated)
+  );
   border: 1px solid var(--hairline);
   border-radius: var(--radius-lg, 14px);
   box-shadow: var(--elev-1);
