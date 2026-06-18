@@ -49,11 +49,31 @@ __all__ = [
 
 
 def _resolve_school(request: HttpRequest) -> Any:
-    """Best-effort school resolution. Tries request.school, request.tenant, request.user.school."""
+    """Best-effort school resolution for the wizard surface.
+
+    Tries request.school/tenant, then the CANONICAL resolver
+    (``resolve_request_school`` — adds session / signup-verification /
+    SchoolMembership fallbacks), then user attrs, then a session school_id.
+
+    The canonical resolver is load-bearing here: on schema-per-tenant prod the
+    bridge middleware sets ``request.school = None`` when the Client→School link
+    is not yet attached (e.g. a freshly provisioned tenant), which previously
+    made every studio wizard bounce back to the index ("clicking a tile reloads
+    the page"). The membership fallback resolves the school from the signed-in
+    admin even in that window.
+    """
     for attr in ("school", "tenant"):
         candidate = getattr(request, attr, None)
         if candidate is not None and getattr(candidate, "pk", None) is not None:
             return candidate
+    try:
+        from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+        resolved = resolve_request_school(request)
+        if resolved is not None and getattr(resolved, "pk", None) is not None:
+            return resolved
+    except Exception as exc:  # noqa: BLE001 — resolution is best-effort
+        logger.debug("resolve_request_school failed: %s", exc)
     user = getattr(request, "user", None)
     if user is not None:
         for attr in ("school", "tenant", "current_school"):
