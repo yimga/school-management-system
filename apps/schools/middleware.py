@@ -180,6 +180,10 @@ MANAGER_HOST_PUBLIC_ACCESS_PREFIXES = (
     "/ready/",
     "/status/",
     "/api/health/",
+    # Machine cron trigger (Option 2) — authed by INTERNAL_CRON_TOKEN shared
+    # secret in the view (constant-time), so an external scheduler can reach it
+    # anonymously on the manager host just like /api/health/.
+    "/api/internal/cron/",
     "/-/version/",
     "/api/system/version/",
     "/version.json",

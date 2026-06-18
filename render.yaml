@@ -227,6 +227,23 @@ services:
         value: "1"
       - key: TENANT_OFFBOARDING_S3_CLEANUP_ENABLED
         value: "1"
+      # ── Scheduling without a worker ─────────────────────────────────────────
+      # In-process periodic scheduler ("Celery beat without a worker"): light,
+      # idempotent jobs (e.g. the weekly benchmark-cohort recompute) are run off
+      # the constantly-pinged /health/ probe in a non-blocking background thread,
+      # cross-worker-locked via the Valkey cache. Mode "auto" (default) =
+      # ENABLED only while CELERY_BROKER_URL is unset, so it stands down
+      # automatically the moment a real worker+beat are provisioned (no double
+      # runs, no code change). Force with "on"/"off" if ever needed.
+      - key: RMC_INPROCESS_SCHEDULER
+        value: "auto"
+      # Secured cron trigger (Option 2): shared secret for /api/internal/cron/run/
+      # so a FREE external scheduler (GitHub Actions cron / cron-job.org) or the
+      # Render cron service below can drive the registry — including heavier jobs.
+      # generateValue makes Render mint a strong random token; copy it into the
+      # external scheduler's secret (e.g. GitHub Actions secret INTERNAL_CRON_TOKEN).
+      - key: INTERNAL_CRON_TOKEN
+        generateValue: true
 
   # ══════════════════════════════════════════════════════════════════════════
   # WORKER + BEAT — DISABLED BY DEFAULT (no-worker, cost-minimal topology).
@@ -366,6 +383,51 @@ services:
   #       value: "0"
   #     - key: TENANT_AUTO_PURGE_GRACE_DAYS
   #       value: "30"
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # CRON (Option 3) — DISABLED BY DEFAULT. Runs the periodic-job registry in its
+  # OWN short-lived process (NOT the web dyno's threads), so it suits HEAVIER
+  # jobs than the in-process /health/ tick should carry. Billed per-run (cheap),
+  # not always-on — but it IS a paid line, so it's commented out by default.
+  #
+  # The truly-FREE alternative is .github/workflows/cron-trigger.yml, which hits
+  # the secured /api/internal/cron/run/ endpoint on a GitHub Actions schedule for
+  # $0. Use whichever you prefer; both converge on the same locked registry.
+  #
+  # TO ENABLE: uncomment this block. The schedule below ticks every 15 min and
+  # runs whatever is DUE; the registry's per-job interval still controls cadence.
+  # ══════════════════════════════════════════════════════════════════════════
+  # - type: cron
+  #   name: school-management-system-cron
+  #   env: python
+  #   plan: starter
+  #   schedule: "*/15 * * * *"
+  #   buildCommand: "./build.sh"
+  #   startCommand: ".venv/bin/python manage.py run_periodic_jobs"
+  #   envVars:
+  #     - key: DEBUG
+  #       value: "0"
+  #     - key: PYTHON_VERSION
+  #       value: "3.12.3"
+  #     - key: DJANGO_SETTINGS_MODULE
+  #       value: "config.settings"
+  #     - key: MULTI_TENANT_BASE_DOMAIN
+  #       value: "runmycampus.com"
+  #     - key: SECRET_KEY
+  #       sync: false
+  #     - key: DATABASE_URL
+  #       fromDatabase:
+  #         name: school-management-db
+  #         property: connectionString
+  #     - key: REDIS_URL
+  #       fromService:
+  #         type: redis
+  #         name: school-management-redis
+  #         property: connectionString
+  #     # Force the registry on in this dedicated process even if a broker exists.
+  #     - key: RMC_INPROCESS_SCHEDULER
+  #       value: "on"
+
   - type: redis
     name: school-management-redis
     plan: free

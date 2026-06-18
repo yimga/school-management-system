@@ -86,3 +86,12 @@ class PlatformRuntimeConfig(AppConfig):
                 "Platform email matrix not registered at Django ready",
                 exc_info=True,
             )
+        try:
+            from apps.platform_runtime.periodic import ensure_default_jobs
+
+            ensure_default_jobs()
+        except Exception:
+            logger.debug(
+                "In-process periodic jobs not registered at Django ready",
+                exc_info=True,
+            )

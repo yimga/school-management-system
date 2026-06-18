@@ -244,6 +244,17 @@ def public_health(request):
         base_dir=settings.BASE_DIR,
     )
     # #endregion
+    # In-process periodic scheduler tick ("Celery beat without a worker"). This is
+    # pure-memory + non-blocking by contract: it does a monotonic throttle check on
+    # this thread and, at most once per scan window, hands all cache I/O + job
+    # execution to a daemon thread. It NEVER does I/O here and NEVER raises — the
+    # /health/ probe stays DB/cache-free and fast (a blocking probe is the 502 loop).
+    try:
+        from apps.platform_runtime.periodic import maybe_run_due_jobs
+
+        maybe_run_due_jobs()
+    except Exception:  # noqa: BLE001 — health must be untouchable
+        pass
     return JsonResponse(
         {
             "status": "healthy",

@@ -1,0 +1,76 @@
+# FREE external scheduler (Option 2) — drives the periodic-job registry with $0
+# of extra infra by hitting the secured /api/internal/cron/run/ endpoint on a
+# GitHub Actions schedule. This is the no-worker, no-paid-cron way to guarantee
+# scheduled work runs even if the in-process /health/ tick is throttled/idle.
+#
+# SETUP (one time): add two repo secrets (Settings → Secrets and variables →
+# Actions):
+#   RMC_CRON_URL        e.g. https://manager.runmycampus.com   (no trailing slash)
+#   INTERNAL_CRON_TOKEN the value Render generated for the web service's
+#                       INTERNAL_CRON_TOKEN env var (Dashboard → Environment).
+# Until BOTH are set the job no-ops (it never fails the Actions tab on a fork/PR).
+#
+# Cadence note: GitHub cron is best-effort (can lag a few minutes under load).
+# That's fine — the endpoint only runs jobs that are DUE per their own interval,
+# so a late or duplicate tick is a no-op thanks to the registry's per-job lock.
+name: cron-trigger
+
+on:
+  schedule:
+    # Every 15 minutes. The registry's per-job interval (e.g. weekly for the
+    # benchmark recompute) controls actual cadence; this just offers a tick.
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "Optional single job name to run (blank = all due)"
+        required: false
+        default: ""
+      force:
+        description: "Run even if not yet due (true/false)"
+        required: false
+        default: "false"
+
+concurrency:
+  group: cron-trigger
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Trigger due periodic jobs
+        env:
+          RMC_CRON_URL: ${{ secrets.RMC_CRON_URL }}
+          INTERNAL_CRON_TOKEN: ${{ secrets.INTERNAL_CRON_TOKEN }}
+          JOB: ${{ github.event.inputs.job }}
+          FORCE: ${{ github.event.inputs.force }}
+        run: |
+          set -euo pipefail
+          if [ -z "${RMC_CRON_URL:-}" ] || [ -z "${INTERNAL_CRON_TOKEN:-}" ]; then
+            echo "RMC_CRON_URL / INTERNAL_CRON_TOKEN not configured — skipping (no-op)."
+            exit 0
+          fi
+          payload="{}"
+          if [ -n "${JOB:-}" ] && [ "${FORCE:-false}" = "true" ]; then
+            payload="{\"job\":\"${JOB}\",\"force\":true}"
+          elif [ -n "${JOB:-}" ]; then
+            payload="{\"job\":\"${JOB}\"}"
+          elif [ "${FORCE:-false}" = "true" ]; then
+            payload="{\"force\":true}"
+          fi
+          echo "POST ${RMC_CRON_URL}/api/internal/cron/run/  payload=${payload}"
+          code=$(curl -sS -o /tmp/cron_resp.json -w "%{http_code}" \
+            -X POST "${RMC_CRON_URL}/api/internal/cron/run/" \
+            -H "Authorization: Bearer ${INTERNAL_CRON_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --max-time 300 \
+            --data "${payload}")
+          echo "HTTP ${code}"
+          cat /tmp/cron_resp.json || true
+          echo
+          if [ "${code}" -lt 200 ] || [ "${code}" -ge 300 ]; then
+            echo "Cron trigger failed with HTTP ${code}"
+            exit 1
+          fi

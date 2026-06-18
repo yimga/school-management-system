@@ -146,6 +146,12 @@ else:
 ONEROSTER_WEBHOOK_SECRET = (os.getenv("ONEROSTER_WEBHOOK_SECRET") or "").strip()
 # RUM: optional ingest token (>= 16 chars). When set, portal/marketing load rum-beacon.js.
 RUM_INGEST_KEY = (os.getenv("RUM_INGEST_KEY") or "").strip()
+# Secured internal cron trigger (Option 2). Shared secret (>= 16 chars) for the
+# token-authed /api/internal/cron/run/ endpoint that lets a FREE external
+# scheduler (GitHub Actions cron, cron-job.org) or Render cron drive the
+# in-process periodic-job registry — including heavier jobs. When unset/short the
+# endpoint is disabled (returns 404). See apps/platform_runtime/views_internal_cron.py.
+INTERNAL_CRON_TOKEN = (os.getenv("INTERNAL_CRON_TOKEN") or "").strip()
 RMC_LAYOUT_OBSERVABILITY_ENABLED = (
     os.getenv("RMC_LAYOUT_OBSERVABILITY_ENABLED", "1").strip().lower()
     in ("1", "true", "yes", "on")

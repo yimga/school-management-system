@@ -18,6 +18,7 @@ from apps.platform_runtime.views_click_tracking import (
 )
 from apps.platform_runtime.views_administration import internal_admin_alias_redirect
 from apps.platform_runtime.views_rum import rum_ingest
+from apps.platform_runtime.views_internal_cron import internal_cron_run
 
 from apps.schoolops.views_email_webhook import EmailProviderWebhookView
 from apps.communication.views_delivery_dashboard import MessageDeliveryDashboardView
@@ -783,6 +784,11 @@ urlpatterns = [
         include(("apps.metadata.urls", "metadata"), namespace="metadata"),
     ),
     path("api/internal/rum/", rum_ingest, name="rum_ingest"),
+    path(  # rbac-allow: machine endpoint authed by INTERNAL_CRON_TOKEN shared secret (constant-time)
+        "api/internal/cron/run/",
+        internal_cron_run,
+        name="internal_cron_run",
+    ),
     path(
         "api/internal/click-tracking/",
         record_click_event,
