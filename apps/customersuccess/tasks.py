@@ -22,6 +22,24 @@ def run_auto_ticket_rules() -> dict:
         return {}
 
 
+@shared_task(name="customersuccess.recompute_benchmark_cohorts")
+def recompute_benchmark_cohorts_task() -> dict:
+    """Produce peer-benchmark cohorts + k-anonymous aggregate metrics.
+
+    Thin wrapper over the ``recompute_benchmark_cohorts`` management command so
+    the producer can run on a schedule (Celery beat) as well as on demand. Never
+    raises into the worker loop.
+    """
+    try:
+        from django.core.management import call_command
+
+        call_command("recompute_benchmark_cohorts")
+        return {"ok": True}
+    except Exception as exc:  # noqa: BLE001 — never break the worker on analytics
+        logger.exception("recompute_benchmark_cohorts task failed: %s", exc)
+        return {"ok": False, "error": str(exc)}
+
+
 @shared_task(name="customersuccess.deliver_onboarding_day_n_nudges")
 def deliver_onboarding_day_n_nudges(*, limit: int = 50) -> dict:
     """Emit due onboarding nudges for active schools (idempotent markers in school.settings)."""

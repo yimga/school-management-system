@@ -356,11 +356,83 @@ def ensure_health_score_record(school):
     return record
 
 
+# Size-band ceilings keyed on student count — the single source of truth for
+# cohort bucketing (shared by the producer command + match_active_cohort).
+_SIZE_BAND_CEILINGS = ((100, "micro"), (500, "small"), (2000, "medium"))  # magic-number-allow: size-band student-count thresholds
+
+
+def size_band_for_count(count):
+    """Map a student count to a BenchmarkCohort.SizeBand value ('' when unknown)."""
+    if count is None:
+        return ""
+    for ceiling, band in _SIZE_BAND_CEILINGS:
+        if count < ceiling:
+            return band
+    return "large"
+
+
+def match_active_cohort(school):
+    """Return the active auto-produced BenchmarkCohort matching this school, or None.
+
+    Matches on (country_code, size_band, institution_type) — the same bucket key
+    the ``recompute_benchmark_cohorts`` producer assigns. Size band is inferred
+    from the school's student count.
+    """
+    from .models import BenchmarkCohort
+
+    if not school:
+        return None
+    country = (getattr(school, "country_code", "") or "").strip().upper()
+    inst = (getattr(school, "school_type", "") or "").strip().lower()
+    try:
+        cnt = school.student_profiles.count() if hasattr(school, "student_profiles") else 0
+    except CUSTOMER_SUCCESS_SOFT_FAILURES:
+        cnt = 0
+    band = size_band_for_count(cnt)
+    # tenant-isolation-allow: platform-level cohort registry, not tenant-scoped
+    return BenchmarkCohort.objects.filter(
+        is_auto=True, is_active=True,
+        country_code=country, size_band=band, institution_type=inst,
+    ).first()
+
+
+def get_published_cohort_metrics(school):
+    """Return the k-anonymous published aggregates for this school's cohort.
+
+    Shape: ``{metric_key: {p25, p50, p75, avg, member_count}}`` or ``{}`` when no
+    cohort/metrics clear the privacy floor. This is the AUTHORITATIVE benchmark
+    source (small-cell-suppressed); callers fall back to on-the-fly averages.
+    """
+    cohort = match_active_cohort(school)
+    if cohort is None:
+        return {}
+    out = {}
+    # tenant-isolation-allow: platform-level cohort metrics, not tenant-scoped
+    for m in cohort.metrics.all():
+        out[m.metric_key] = {
+            "p25": float(m.p25) if m.p25 is not None else None,
+            "p50": float(m.p50) if m.p50 is not None else None,
+            "p75": float(m.p75) if m.p75 is not None else None,
+            "avg": float(m.avg) if m.avg is not None else None,
+            "member_count": m.member_count,
+        }
+    return out
+
+
 def get_peer_benchmark_metrics(school, metric_key="maturity"):
     """
     Return aggregate metric for peer cohort (e.g. average maturity or health) for comparison.
+
+    Prefers the k-anonymous PUBLISHED cohort aggregate (median) produced by
+    ``recompute_benchmark_cohorts``; falls back to an on-the-fly peer average
+    when no published metric clears the privacy floor.
     """
     from .models import TenantMaturityScore, TenantHealthScore
+
+    published_key = "maturity:overall" if metric_key == "maturity" else "health:overall"
+    published = get_published_cohort_metrics(school).get(published_key)
+    if published and published.get("p50") is not None:
+        return published["p50"]
 
     peer_ids = get_peer_school_ids(school)
     if not peer_ids:

@@ -64,15 +64,22 @@ def api_benchmark_peer_metrics(request):
     if not school_id:
         return JsonResponse({"error": "school_id required"}, status=400)
     school = get_object_or_404(School, pk=school_id)
-    from .services import get_peer_benchmark_metrics
+    from .services import get_peer_benchmark_metrics, get_published_cohort_metrics, match_active_cohort
 
     maturity_avg = get_peer_benchmark_metrics(school, "maturity")
     health_avg = get_peer_benchmark_metrics(school, "health")
+    cohort = match_active_cohort(school)
     return JsonResponse(
         {
             "school_id": str(school.id),
             "peer_avg_maturity": maturity_avg,
             "peer_avg_health": health_avg,
+            "cohort": (
+                {"id": cohort.id, "name": cohort.name, "member_count": cohort.member_count}
+                if cohort else None
+            ),
+            # k-anonymous published percentiles (small-cell suppressed); {} if none.
+            "published_metrics": get_published_cohort_metrics(school),
         }
     )
 

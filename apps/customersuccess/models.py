@@ -39,15 +39,76 @@ class BenchmarkCohort(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # Producer outputs — populated by ``recompute_benchmark_cohorts``. A cohort
+    # is only kept active when ``member_count`` clears the k-anonymity floor.
+    member_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Schools matching this cohort at last recompute (k-anonymity gate).",
+    )
+    is_auto = models.BooleanField(
+        default=False,
+        help_text="True when produced by recompute_benchmark_cohorts (vs hand-curated).",
+    )
+    last_computed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         app_label = "customersuccess"
         ordering = ["name"]
         verbose_name = "Benchmark cohort"
         verbose_name_plural = "Benchmark cohorts"
+        constraints = [
+            # One auto-cohort per (country, size band, institution type) bucket.
+            models.UniqueConstraint(
+                fields=["country_code", "size_band", "institution_type"],
+                condition=models.Q(is_auto=True),
+                name="uniq_auto_cohort_bucket",
+            ),
+        ]
 
     def __str__(self):
         return self.name
+
+
+class BenchmarkCohortMetric(models.Model):
+    """Privacy-safe published aggregate for a benchmark cohort.
+
+    One row per ``(cohort, metric_key)``. Produced by
+    ``recompute_benchmark_cohorts`` ONLY when at least K member schools
+    contributed a value (small-cell suppression / k-anonymity) — so no
+    individual tenant's figure is recoverable from the published percentiles.
+    """
+
+    cohort = models.ForeignKey(
+        BenchmarkCohort, on_delete=models.CASCADE, related_name="metrics"
+    )
+    metric_key = models.CharField(
+        max_length=80,
+        db_index=True,
+        help_text="e.g. maturity:overall, health:overall, maturity:finance",
+    )
+    member_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Schools contributing a value (>= k-anonymity floor).",
+    )
+    p25 = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    p50 = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    p75 = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    avg = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    computed_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        app_label = "customersuccess"
+        ordering = ["cohort_id", "metric_key"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["cohort", "metric_key"], name="uniq_cohort_metric_key"
+            ),
+        ]
+        verbose_name = "Benchmark cohort metric"
+        verbose_name_plural = "Benchmark cohort metrics"
+
+    def __str__(self):
+        return f"{self.cohort_id}:{self.metric_key} p50={self.p50}"
 
 
 class TenantMaturityScore(models.Model):

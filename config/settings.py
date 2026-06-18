@@ -1899,6 +1899,22 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 30.0,
         "options": {"expires": 60},
     },
+    "safeguarding-audit-privilege-context": {
+        "task": "safeguarding.audit_privilege_context",
+        "schedule": (
+            _celery_crontab(minute=0, hour="*/6")
+            if _celery_crontab is not None else 21600.0
+        ),
+        "options": {"expires": 3600},
+    },
+    "siteconfig-sweep-pending-custom-domains": {
+        "task": "siteconfig.sweep_pending_custom_domains",
+        "schedule": (
+            _celery_crontab(minute="*/15")
+            if _celery_crontab is not None else 900.0
+        ),
+        "options": {"expires": 600},
+    },
     # v4.00.98 Phase 4 — daily tenant reactivation sweep at 09:00 UTC.
     # Walks the 4-cadence ladder (30/60/90/120 days inactive) and emails
     # eligible tenant admins. Idempotent via TenantReactivationAttempt
@@ -2048,6 +2064,16 @@ CELERY_BEAT_SCHEDULE = {
             if _celery_crontab is not None else 86400.0
         ),
         "kwargs": {"limit": 200},
+        "options": {"expires": 3600},
+    },
+    # Produce peer-benchmark cohorts + k-anonymous aggregates. Runs weekly
+    # (after maturity/health scores are fresh) — benchmarks change slowly.
+    "customersuccess-recompute-benchmark-cohorts": {
+        "task": "customersuccess.recompute_benchmark_cohorts",
+        "schedule": (
+            _celery_crontab(hour=7, minute=30, day_of_week=1)
+            if _celery_crontab is not None else 604800.0
+        ),
         "options": {"expires": 3600},
     },
     "compliance-mark-sla-breaches": {
