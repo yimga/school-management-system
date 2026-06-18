@@ -5,9 +5,51 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.schools.control_plane_nav import (
+    _dedupe_studio_focus_items,
     build_studio_focus_sidebar,
     is_manager_studio_focus_path,
 )
+
+
+class StudioFocusDedupeTests(TestCase):
+    """Pure-function guard for the Studio focus-sidebar duplicate-row defect."""
+
+    databases: set = set()
+
+    def test_collapses_same_url_within_one_section(self):
+        # The "repeated Workflow gallery in one rail" defect: same url twice in
+        # the same section (e.g. registry row + mode-task injection collide).
+        items = [
+            {"id": "a", "label": "Flow gallery", "url": "/studio/automation/?pane=flow_gallery", "nav_section": "mode_tasks"},
+            {"id": "b", "label": "Flow gallery (dup)", "url": "/studio/automation/?pane=flow_gallery", "nav_section": "mode_tasks"},
+        ]
+        out = _dedupe_studio_focus_items(items)
+        self.assertEqual(len(out), 1)
+        self.assertEqual(out[0]["id"], "a")  # first occurrence wins
+
+    def test_collapses_same_label_within_one_section(self):
+        items = [
+            {"id": "a", "label": "Workflow center", "url": "/x", "nav_section": "mode_tasks"},
+            {"id": "b", "label": "workflow  center", "url": "/y", "nav_section": "mode_tasks"},
+        ]
+        self.assertEqual(len(_dedupe_studio_focus_items(items)), 1)
+
+    def test_collapses_repeated_id_anywhere(self):
+        items = [
+            {"id": "dup", "label": "One", "url": "/1", "nav_section": "modes"},
+            {"id": "dup", "label": "Two", "url": "/2", "nav_section": "mode_tasks"},
+        ]
+        self.assertEqual(len(_dedupe_studio_focus_items(items)), 1)
+
+    def test_preserves_same_label_across_different_sections(self):
+        # "Overview" is BOTH a work-mode link and the active mode's pane — both
+        # must survive (different sections, different urls).
+        items = [
+            {"id": "mode_overview", "label": "Overview", "url": "/studio/overview/", "nav_section": "modes"},
+            {"id": "automation_overview", "label": "Overview", "url": "/studio/automation/?pane=overview", "nav_section": "mode_tasks"},
+        ]
+        out = _dedupe_studio_focus_items(items)
+        self.assertEqual(len(out), 2)
 
 
 @override_settings(

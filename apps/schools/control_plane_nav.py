@@ -1157,6 +1157,46 @@ def is_manager_studio_focus_path(path: str) -> bool:
     return p == "/studio" or p.startswith("/studio/")
 
 
+def _dedupe_studio_focus_items(items: list[dict]) -> list[dict]:
+    """Collapse duplicate Studio focus-sidebar rows. Pure; order-stable.
+
+    Unlike the portal sidebar's dedupe, this is scoped WITHIN a ``nav_section``
+    (plus a global ``id`` guard). The Studio focus rail renders several sections
+    at once ("Work modes" / "In this mode" / "Platform" / "Governance"), and a
+    label like "Overview" legitimately appears as BOTH a work-mode link and the
+    active mode's pane — a cross-section normalized-label collapse would wrongly
+    drop the valid second row. So a row is a duplicate only when it repeats an
+    ``id`` anywhere, or repeats a ``url`` / normalized ``label`` *inside the same
+    section* (the real "repeated Workflow gallery in one rail" defect). First
+    occurrence wins.
+    """
+    deduped: list[dict] = []
+    seen_ids: set = set()
+    seen_section_urls: set = set()
+    seen_section_labels: set = set()
+    for item in items:
+        item_id = item.get("id")
+        if item_id and item_id in seen_ids:
+            continue
+        section = item.get("nav_section") or ""
+        url = item.get("url") or ""
+        section_url = (section, url)
+        if url and section_url in seen_section_urls:
+            continue
+        norm_label = " ".join((item.get("label") or "").split()).casefold()
+        section_label = (section, norm_label)
+        if norm_label and section_label in seen_section_labels:
+            continue
+        if item_id:
+            seen_ids.add(item_id)
+        if url:
+            seen_section_urls.add(section_url)
+        if norm_label:
+            seen_section_labels.add(section_label)
+        deduped.append(item)
+    return deduped
+
+
 def build_studio_focus_sidebar(request) -> list[dict]:
     """
     Compact manager sidebar for /studio/* — sole vertical nav on manager Studio.
@@ -1211,4 +1251,7 @@ def build_studio_focus_sidebar(request) -> list[dict]:
     except (ImportError, AttributeError, TypeError, ValueError):
         pass
 
-    return items
+    # Safety net: the registry rows + dynamic mode-task injection are assembled by
+    # two code paths, so a registry/mode-task collision (same url or label inside
+    # one section) could render the same nav row twice. Collapse within-section.
+    return _dedupe_studio_focus_items(items)

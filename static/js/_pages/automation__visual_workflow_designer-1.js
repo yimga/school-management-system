@@ -149,6 +149,7 @@
   document.getElementById("wf-publish")?.addEventListener("click", function(){
     var wid = document.getElementById("wf-id")?.value;
     if(!wid){ alert(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["trans_save_the_graph_first_workflow_id_required_2"])); return; }
+    if(!confirm(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["trans_confirm_publish"]))){ return; }
     postJson(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["var_publish_url"]), {workflow_id: parseInt(wid,10)}).then(function(r){
       var j = r.j;
       if(!r.okHttp && j.validation_errors){
@@ -163,6 +164,7 @@
   document.getElementById("wf-rollback")?.addEventListener("click", function(){
     var wid = document.getElementById("wf-id")?.value;
     if(!wid){ return; }
+    if(!confirm(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["trans_confirm_rollback"]))){ return; }
     postJson(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["var_rollback_url"]), {workflow_id: parseInt(wid,10)}).then(function(r){
       var j = r.j;
       alert(j.ok ? ((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["trans_moved_to_draft"]) : (j.error || JSON.stringify(j)));
