@@ -1,0 +1,856 @@
+{
+  "app_totals": {
+    "academics": 42,
+    "accounts": 163,
+    "admissions": 4,
+    "analytics": 138,
+    "api": 181,
+    "apicenter": 11,
+    "assist_dock": 16,
+    "automation": 13,
+    "billing": 15,
+    "communication": 37,
+    "compliance": 19,
+    "customers": 1,
+    "customersuccess": 23,
+    "dashboard": 11,
+    "evals": 200,
+    "events": 10,
+    "feedback": 20,
+    "finance": 100,
+    "governance": 4,
+    "integrations_marketplace": 25,
+    "lifecycle": 8,
+    "marketplace": 26,
+    "metadata": 2,
+    "migration_cloud": 299,
+    "observability": 15,
+    "orchestration": 2,
+    "people": 23,
+    "platform_runtime": 71,
+    "policies": 1,
+    "portal": 220,
+    "registries": 3,
+    "reports": 55,
+    "requests": 2,
+    "schoolops": 43,
+    "schools": 144,
+    "services": 2,
+    "setup_studio": 8,
+    "siteconfig": 89,
+    "social_media": 1,
+    "student360": 4,
+    "studio_os": 6,
+    "wal_stream": 8
+  },
+  "content_digest_sha256_prefix": "a7d391f7aa1e1451",
+  "distinct_app_count": 42,
+  "distinct_reason_count": 691,
+  "generated_at": "2026-06-18T11:24:44+00:00",
+  "review_prompt": "For each sample row: confirm the queryset is intentionally cross-tenant or scoped upstream (request.school / schema_context). Flag markers whose reason does not match the query at that line.",
+  "sample": [
+    {
+      "app": "academics",
+      "lineno": 174,
+      "path": "apps/academics/bulk_attendance.py",
+      "reason": "bulk-attendance-classroom-confined-to-school-tenant"
+    },
+    {
+      "app": "academics",
+      "lineno": 218,
+      "path": "apps/academics/bulk_attendance.py",
+      "reason": "bulk-attendance-csv-classroom-confined-to-school-tenant"
+    },
+    {
+      "app": "academics",
+      "lineno": 244,
+      "path": "apps/academics/bulk_attendance.py",
+      "reason": "bulk-attendance-csv-upsert-confined-to-classroom"
+    },
+    {
+      "app": "accounts",
+      "lineno": 78,
+      "path": "apps/accounts/auth_backends_legacy.py",
+      "reason": "auth-layer-system-wide-user-table-lookup"
+    },
+    {
+      "app": "accounts",
+      "lineno": 253,
+      "path": "apps/accounts/legacy_hashes/sunset_task.py",
+      "reason": "auth-layer-system-wide-user-table-platform-sunset-job"
+    },
+    {
+      "app": "accounts",
+      "lineno": 82,
+      "path": "apps/accounts/services_link_child.py",
+      "reason": "both sides already resolved to this school"
+    },
+    {
+      "app": "admissions",
+      "lineno": 332,
+      "path": "apps/admissions/application_kernel.py",
+      "reason": "classroom-confined-to-enrolling-school"
+    },
+    {
+      "app": "admissions",
+      "lineno": 350,
+      "path": "apps/admissions/application_kernel.py",
+      "reason": "admissions-enrollment-applicant-confined-to-school"
+    },
+    {
+      "app": "admissions",
+      "lineno": 93,
+      "path": "apps/admissions/queue_depth.py",
+      "reason": "scoped-via-school-filter-applicant"
+    },
+    {
+      "app": "analytics",
+      "lineno": 110,
+      "path": "apps/analytics/management/commands/score_shadow_grade_prediction.py",
+      "reason": "SubjectAssignment scoped via term FK (tenant-bound)"
+    },
+    {
+      "app": "analytics",
+      "lineno": 218,
+      "path": "apps/analytics/semantic_search.py",
+      "reason": "AIEmbeddingStore filtered by school_id below \u2014 explicit single-tenant scope."
+    },
+    {
+      "app": "analytics",
+      "lineno": 320,
+      "path": "apps/analytics/tasks.py",
+      "reason": "celery-platform-analytics-beat-iterates-active-schools"
+    },
+    {
+      "app": "api",
+      "lineno": 101,
+      "path": "apps/api/dashboard_api.py",
+      "reason": "derived-from-rls-scoped-people-profiles-no-school-fk-on-user"
+    },
+    {
+      "app": "api",
+      "lineno": 321,
+      "path": "apps/api/oneroster_demographics.py",
+      "reason": "oneroster-demographic-by-pk-bearer-auth"
+    },
+    {
+      "app": "api",
+      "lineno": 2732,
+      "path": "apps/api/views_v1.py",
+      "reason": "api-v1-scoped-via-request-school-mixin"
+    },
+    {
+      "app": "apicenter",
+      "lineno": 26,
+      "path": "apps/apicenter/oauth_service.py",
+      "reason": "scoped-via-surrounding-tenant-context-reviewed-2026-05-17"
+    },
+    {
+      "app": "apicenter",
+      "lineno": 191,
+      "path": "apps/apicenter/views.py",
+      "reason": "view-layer-scoped-via-request-school-or-role-graph"
+    },
+    {
+      "app": "apicenter",
+      "lineno": 406,
+      "path": "apps/apicenter/views.py",
+      "reason": "view-layer-scoped-via-request-school-or-role-graph"
+    },
+    {
+      "app": "assist_dock",
+      "lineno": 281,
+      "path": "apps/assist_dock/impersonation.py",
+      "reason": "assist-dock-impersonation-grant-create-public-schema-shared"
+    },
+    {
+      "app": "assist_dock",
+      "lineno": 304,
+      "path": "apps/assist_dock/impersonation.py",
+      "reason": "assist-dock-impersonation-grant-approve-public-schema-shared"
+    },
+    {
+      "app": "assist_dock",
+      "lineno": 378,
+      "path": "apps/assist_dock/impersonation.py",
+      "reason": "assist-dock-impersonation-audit-create-public-schema-shared"
+    },
+    {
+      "app": "automation",
+      "lineno": 71,
+      "path": "apps/automation/helpers.py",
+      "reason": "scoped-via-surrounding-tenant-context-reviewed-2026-05-17"
+    },
+    {
+      "app": "automation",
+      "lineno": 45,
+      "path": "apps/automation/quarantine_services.py",
+      "reason": "service-layer-scoped-via-caller-student-classroom-or-teacher-fk"
+    },
+    {
+      "app": "automation",
+      "lineno": 30,
+      "path": "apps/automation/tasks.py",
+      "reason": "celery-task-runs-inside-tenant-context-or-rls-sweep"
+    },
+    {
+      "app": "billing",
+      "lineno": 109,
+      "path": "apps/billing/multi_tier_ledger.py",
+      "reason": "child-ledger-scoped-via-billing-account-fk-rollup"
+    },
+    {
+      "app": "billing",
+      "lineno": 113,
+      "path": "apps/billing/services.py",
+      "reason": "billing_account is the school-scoped FK; equivalent to `school=account.school` (reviewed 2026-05-14)"
+    },
+    {
+      "app": "billing",
+      "lineno": 114,
+      "path": "apps/billing/tasks_ai_token_flush.py",
+      "reason": "ai-metric-flush-pk-lookup-tenant-derived-from-bucket-key"
+    },
+    {
+      "app": "communication",
+      "lineno": 75,
+      "path": "apps/communication/tasks.py",
+      "reason": "celery-task-runs-inside-tenant-context-or-rls-sweep"
+    },
+    {
+      "app": "communication",
+      "lineno": 205,
+      "path": "apps/communication/tasks.py",
+      "reason": "celery-platform-comms-beat-stale-claim-recovery"
+    },
+    {
+      "app": "communication",
+      "lineno": 316,
+      "path": "apps/communication/tasks.py",
+      "reason": "celery-platform-comms-beat-iterates-active-schools"
+    },
+    {
+      "app": "compliance",
+      "lineno": 672,
+      "path": "apps/compliance/gdpr_services.py",
+      "reason": "PK lookup, school checked via .school after fetch"
+    },
+    {
+      "app": "compliance",
+      "lineno": 51,
+      "path": "apps/compliance/management/commands/process_erase_requests.py",
+      "reason": "GDPR processor iterates approved requests across all tenants by design"
+    },
+    {
+      "app": "compliance",
+      "lineno": 44,
+      "path": "apps/compliance/tasks.py",
+      "reason": "celery-task-runs-inside-tenant-context-or-rls-sweep"
+    },
+    {
+      "app": "customers",
+      "lineno": 64,
+      "path": "apps/customers/repositories/schema_provisioning_repository.py",
+      "reason": "provisioning-time lookup by schema_name (no tenant context yet; reviewed 2026-05-14)"
+    },
+    {
+      "app": "customersuccess",
+      "lineno": 297,
+      "path": "apps/customersuccess/bulk_csv_student_import.py",
+      "reason": "bulk-csv-existing-set-confined-to-school-tenant"
+    },
+    {
+      "app": "customersuccess",
+      "lineno": 51,
+      "path": "apps/customersuccess/management/commands/promote_helpcenter_ledger_to_first_class.py",
+      "reason": "cross-tenant-backfill-walks-every-school-by-design"
+    },
+    {
+      "app": "customersuccess",
+      "lineno": 197,
+      "path": "apps/customersuccess/management/commands/recompute_benchmark_cohorts.py",
+      "reason": "cross-tenant operator aggregate keyed by school id"
+    },
+    {
+      "app": "dashboard",
+      "lineno": 183,
+      "path": "apps/dashboard/context.py",
+      "reason": "scoped-via-surrounding-tenant-context-reviewed-2026-05-17"
+    },
+    {
+      "app": "dashboard",
+      "lineno": 189,
+      "path": "apps/dashboard/context.py",
+      "reason": "scoped-via-surrounding-tenant-context-reviewed-2026-05-17"
+    },
+    {
+      "app": "dashboard",
+      "lineno": 725,
+      "path": "apps/dashboard/context.py",
+      "reason": "scoped-via-surrounding-tenant-context-reviewed-2026-05-17"
+    },
+    {
+      "app": "evals",
+      "lineno": 223,
+      "path": "apps/evals/bulk_gradebook.py",
+      "reason": "bulk-gradebook-evaluation-confined-to-assessment-scope"
+    },
+    {
+      "app": "evals",
+      "lineno": 129,
+      "path": "apps/evals/caching.py",
+      "reason": "cache-key-includes-tenant-prefix-from-caller"
+    },
+    {
+      "app": "evals",
+      "lineno": 198,
+      "path": "apps/evals/tasks.py",
+      "reason": "celery-task-runs-inside-tenant-context-or-rls-sweep"
+    },
+    {
+      "app": "events",
+      "lineno": 42,
+      "path": "apps/events/tasks.py",
+      "reason": "domain-event outbox sweep across all tenants (reviewed 2026-05-14)"
+    },
+    {
+      "app": "events",
+      "lineno": 54,
+      "path": "apps/events/tasks.py",
+      "reason": "celery-events-beat-school-id-list-scoped"
+    },
+    {
+      "app": "events",
+      "lineno": 105,
+      "path": "apps/events/webhooks.py",
+      "reason": "conditionally scoped by event's school_id on next line (reviewed 2026-05-14)"
+    },
+    {
+      "app": "feedback",
+      "lineno": 111,
+      "path": "apps/feedback/db_readiness.py",
+      "reason": "caller-scoped-queryset-factory-manager-and-feedback-views"
+    },
+    {
+      "app": "feedback",
+      "lineno": 68,
+      "path": "apps/feedback/notification_services.py",
+      "reason": "feedback-alert-school-admin-membership-by-school"
+    },
+    {
+      "app": "feedback",
+      "lineno": 656,
+      "path": "apps/feedback/views.py",
+      "reason": "help-center-user-scoped-recent-features"
+    },
+    {
+      "app": "finance",
+      "lineno": 181,
+      "path": "apps/finance/admin.py",
+      "reason": "django-admin-action (rollover invoked from a row-context where current_year is the staff-selected tenant; this filter walks AcademicYear globally but the surrounding logic uses next_year only within the same admin action scope)"
+    },
+    {
+      "app": "finance",
+      "lineno": 1041,
+      "path": "apps/finance/tasks.py",
+      "reason": "celery-task-runs-inside-tenant-context-or-rls-sweep"
+    },
+    {
+      "app": "finance",
+      "lineno": 1987,
+      "path": "apps/finance/tasks.py",
+      "reason": "celery-finance-beat-caller-or-region-scoped-reviewed"
+    },
+    {
+      "app": "governance",
+      "lineno": 23,
+      "path": "apps/governance/context_profiles.py",
+      "reason": "school-context-profile-scoped-via-user-fk-session-bound"
+    },
+    {
+      "app": "governance",
+      "lineno": 34,
+      "path": "apps/governance/context_profiles.py",
+      "reason": "school-context-profile-scoped-via-user-fk-session-bound"
+    },
+    {
+      "app": "governance",
+      "lineno": 85,
+      "path": "apps/governance/context_profiles.py",
+      "reason": "school-context-profile-scoped-via-user-fk-session-bound"
+    },
+    {
+      "app": "integrations_marketplace",
+      "lineno": 36,
+      "path": "apps/integrations_marketplace/manager_views.py",
+      "reason": "control-plane operator surface, platform-wide view by design"
+    },
+    {
+      "app": "integrations_marketplace",
+      "lineno": 262,
+      "path": "apps/integrations_marketplace/token_refresh.py",
+      "reason": "cross-tenant sweeper, per-row writes only to row.school"
+    },
+    {
+      "app": "integrations_marketplace",
+      "lineno": 821,
+      "path": "apps/integrations_marketplace/views.py",
+      "reason": "AuditLog has no school FK; scope enforced via"
+    },
+    {
+      "app": "lifecycle",
+      "lineno": 133,
+      "path": "apps/lifecycle/tasks_stall_watch.py",
+      "reason": "celery-platform-stall-watch-global-count"
+    },
+    {
+      "app": "lifecycle",
+      "lineno": 68,
+      "path": "apps/lifecycle/tenant_school_resolve.py",
+      "reason": "pre-tenant-resolution-finds-school-from-signup-verification-by-email"
+    },
+    {
+      "app": "lifecycle",
+      "lineno": 57,
+      "path": "apps/lifecycle/views_jobs.py",
+      "reason": "operator-super-provisioning-jobs-dashboard-aggregate"
+    },
+    {
+      "app": "marketplace",
+      "lineno": 36,
+      "path": "apps/marketplace/tasks.py",
+      "reason": "celery-task-runs-inside-tenant-context-or-rls-sweep"
+    },
+    {
+      "app": "marketplace",
+      "lineno": 84,
+      "path": "apps/marketplace/views_developer_platform.py",
+      "reason": "developer-platform-app-rating-list"
+    },
+    {
+      "app": "marketplace",
+      "lineno": 531,
+      "path": "apps/marketplace/views_developer_platform.py",
+      "reason": "developer-platform-webhook-delivery-log"
+    },
+    {
+      "app": "metadata",
+      "lineno": 337,
+      "path": "apps/metadata/services.py",
+      "reason": "package blast-radius aggregates installs across tenants (reviewed 2026-05-14)"
+    },
+    {
+      "app": "metadata",
+      "lineno": 352,
+      "path": "apps/metadata/services.py",
+      "reason": "rollback aggregation across tenants for blast-radius (reviewed 2026-05-14)"
+    },
+    {
+      "app": "migration_cloud",
+      "lineno": 173,
+      "path": "apps/migration_cloud/api/viewsets.py",
+      "reason": "api-layer-anonymous-rejected-defense-in-depth"
+    },
+    {
+      "app": "migration_cloud",
+      "lineno": 422,
+      "path": "apps/migration_cloud/api/viewsets.py",
+      "reason": "api-layer-already-tenant-scoped-via-get-object"
+    },
+    {
+      "app": "migration_cloud",
+      "lineno": 112,
+      "path": "apps/migration_cloud/orchestrator.py",
+      "reason": "PK lookup by internal id from caller"
+    },
+    {
+      "app": "observability",
+      "lineno": 86,
+      "path": "apps/observability/ai_copilot_service.py",
+      "reason": "ai-review-queue-platform-wide-aggregate-for-operator-copilot"
+    },
+    {
+      "app": "observability",
+      "lineno": 877,
+      "path": "apps/observability/views.py",
+      "reason": "control-plane finance aggregate across tenants (reviewed 2026-05-14)"
+    },
+    {
+      "app": "observability",
+      "lineno": 1344,
+      "path": "apps/observability/views.py",
+      "reason": "SLO dashboard regional rollup across tenants (reviewed 2026-05-14)"
+    },
+    {
+      "app": "orchestration",
+      "lineno": 37,
+      "path": "apps/orchestration/slo_aggregator.py",
+      "reason": "orchestration-slo-run-aggregate-all-tenants"
+    },
+    {
+      "app": "orchestration",
+      "lineno": 55,
+      "path": "apps/orchestration/slo_aggregator.py",
+      "reason": "orchestration-slo-run-latency-aggregate"
+    },
+    {
+      "app": "people",
+      "lineno": 341,
+      "path": "apps/people/admin.py",
+      "reason": "django-admin-fallback (when no school context is resolved in admin, superuser sees all tenants ordered by school FK -- staff-only formfield_for_manytomany)"
+    },
+    {
+      "app": "people",
+      "lineno": 706,
+      "path": "apps/people/models.py",
+      "reason": "model-meta-or-manager-default-scopes-tenant-fk"
+    },
+    {
+      "app": "people",
+      "lineno": 91,
+      "path": "apps/people/offline_workflow_handlers.py",
+      "reason": "explicit-school-scoped-offline-idempotency-lookup"
+    },
+    {
+      "app": "platform_runtime",
+      "lineno": 179,
+      "path": "apps/platform_runtime/tasks.py",
+      "reason": "celery-task-runs-inside-tenant-context-or-rls-sweep"
+    },
+    {
+      "app": "platform_runtime",
+      "lineno": 47,
+      "path": "apps/platform_runtime/views_operator_tenant_inspect.py",
+      "reason": "explicit-pk-lookup-operator-jit-gated-inspect"
+    },
+    {
+      "app": "platform_runtime",
+      "lineno": 163,
+      "path": "apps/platform_runtime/workflow_autopilot.py",
+      "reason": "autopilot-circuit-breaker-school-scoped-count"
+    },
+    {
+      "app": "policies",
+      "lineno": 197,
+      "path": "apps/policies/pdp.py",
+      "reason": "hybrid-platform-or-this-school-union-applied-below"
+    },
+    {
+      "app": "portal",
+      "lineno": 83,
+      "path": "apps/portal/kb_archive.py",
+      "reason": "archive-by-explicit-pk-list-from-stale-candidate-scan"
+    },
+    {
+      "app": "portal",
+      "lineno": 168,
+      "path": "apps/portal/tasks.py",
+      "reason": "GlobalSupportTicket lives in the public schema (see schema_context wrap below); pk filter is globally-unique"
+    },
+    {
+      "app": "portal",
+      "lineno": 380,
+      "path": "apps/portal/views_lms_console.py",
+      "reason": "audit-rows-keyed-by-school-staff-required"
+    },
+    {
+      "app": "registries",
+      "lineno": 57,
+      "path": "apps/registries/grade_scale_resolver.py",
+      "reason": "tenant-grade-scale-override-scoped-via-school-fk-resolver"
+    },
+    {
+      "app": "registries",
+      "lineno": 72,
+      "path": "apps/registries/grade_scale_resolver.py",
+      "reason": "tenant-grade-scale-override-scoped-via-school-fk-resolver"
+    },
+    {
+      "app": "registries",
+      "lineno": 95,
+      "path": "apps/registries/grade_scale_resolver.py",
+      "reason": "runtime-defaults-is-platform-singleton-not-tenant-scoped"
+    },
+    {
+      "app": "reports",
+      "lineno": 208,
+      "path": "apps/reports/adhoc_runner.py",
+      "reason": "scoped-via-surrounding-tenant-context-reviewed-2026-05-17"
+    },
+    {
+      "app": "reports",
+      "lineno": 484,
+      "path": "apps/reports/views.py",
+      "reason": "public-hash-verify-sha256-is-capability-scoped-to-request-school-when-present"
+    },
+    {
+      "app": "reports",
+      "lineno": 497,
+      "path": "apps/reports/views.py",
+      "reason": "enumerable-report-card-id-scoped-to-request-school"
+    },
+    {
+      "app": "requests",
+      "lineno": 33,
+      "path": "apps/requests/tasks.py",
+      "reason": "scheduled task sweeps pending requests across all tenants (reviewed 2026-05-14)"
+    },
+    {
+      "app": "requests",
+      "lineno": 62,
+      "path": "apps/requests/views.py",
+      "reason": "conditionally scoped by school on next line (reviewed 2026-05-14)"
+    },
+    {
+      "app": "schoolops",
+      "lineno": 110,
+      "path": "apps/schoolops/micro_friction_persistence.py",
+      "reason": "anonymous-public-finder-lookup-by-qr-short-code-no-tenant-context-available"
+    },
+    {
+      "app": "schoolops",
+      "lineno": 83,
+      "path": "apps/schoolops/offline_workflow_handlers.py",
+      "reason": "explicit-school-scoped-offline-idempotency-lookup"
+    },
+    {
+      "app": "schoolops",
+      "lineno": 193,
+      "path": "apps/schoolops/tasks.py",
+      "reason": "celery-task-fetch-by-pk-row-already-tenant-bound-via-school-fk"
+    },
+    {
+      "app": "schools",
+      "lineno": 357,
+      "path": "apps/schools/tasks.py",
+      "reason": "celery-platform-provisioning-beat-cross-tenant"
+    },
+    {
+      "app": "schools",
+      "lineno": 537,
+      "path": "apps/schools/tasks.py",
+      "reason": "bootstrap-owner-lookup-by-email-pre-membership"
+    },
+    {
+      "app": "schools",
+      "lineno": 542,
+      "path": "apps/schools/tasks.py",
+      "reason": "bootstrap-owner-username-uniqueness-check"
+    },
+    {
+      "app": "services",
+      "lineno": 191,
+      "path": "services/ai_agentic_runners_destructive.py",
+      "reason": "service-layer-pk-lookup-operator-gated-erase-request"
+    },
+    {
+      "app": "services",
+      "lineno": 135,
+      "path": "services/ai_memory.py",
+      "reason": "service-layer-conditional-school-filter-below"
+    },
+    {
+      "app": "setup_studio",
+      "lineno": 56,
+      "path": "apps/setup_studio/tasks.py",
+      "reason": "cross-tenant-batch-cron-walks-every-active-school-by-design"
+    },
+    {
+      "app": "setup_studio",
+      "lineno": 95,
+      "path": "apps/setup_studio/tasks.py",
+      "reason": "cross-tenant-batch-cron-prunes-stale-wizard-state-by-design"
+    },
+    {
+      "app": "setup_studio",
+      "lineno": 24,
+      "path": "apps/setup_studio/views_zero_friction.py",
+      "reason": "primary-membership-resolves-tenant-context"
+    },
+    {
+      "app": "siteconfig",
+      "lineno": 298,
+      "path": "apps/siteconfig/country_localization_service.py",
+      "reason": "country-registry-public-reference-shared-across-all-tenants"
+    },
+    {
+      "app": "siteconfig",
+      "lineno": 148,
+      "path": "apps/siteconfig/tasks.py",
+      "reason": "celery-task-runs-inside-tenant-context-or-rls-sweep"
+    },
+    {
+      "app": "siteconfig",
+      "lineno": 537,
+      "path": "apps/siteconfig/tasks.py",
+      "reason": "celery-platform-siteconfig-beat-cross-tenant"
+    },
+    {
+      "app": "social_media",
+      "lineno": 30,
+      "path": "apps/social_media/tasks.py",
+      "reason": "celery-outbox-sweep-processes-pending-rows-per-integration"
+    },
+    {
+      "app": "student360",
+      "lineno": 74,
+      "path": "apps/student360/services.py",
+      "reason": "`student` already school-scoped on line 52 (reviewed 2026-05-14)"
+    },
+    {
+      "app": "student360",
+      "lineno": 47,
+      "path": "apps/student360/views.py",
+      "reason": "`student` is school-scoped by caller; FK already binds tenant (reviewed 2026-05-14)"
+    },
+    {
+      "app": "student360",
+      "lineno": 73,
+      "path": "apps/student360/views.py",
+      "reason": "`student` is school-scoped by caller; FK already binds tenant (reviewed 2026-05-14)"
+    },
+    {
+      "app": "studio_os",
+      "lineno": 1360,
+      "path": "apps/studio_os/services.py",
+      "reason": "overview-aggregate-readonly-count-only"
+    },
+    {
+      "app": "studio_os",
+      "lineno": 1405,
+      "path": "apps/studio_os/services.py",
+      "reason": "overview-aggregate-readonly-preview-count"
+    },
+    {
+      "app": "studio_os",
+      "lineno": 1524,
+      "path": "apps/studio_os/services.py",
+      "reason": "launch-cockpit-tenant-scoped-approval-count"
+    },
+    {
+      "app": "wal_stream",
+      "lineno": 288,
+      "path": "apps/wal_stream/tasks.py",
+      "reason": "celery-wal-drain-resolves-bound-tenant-by-derived-hash"
+    },
+    {
+      "app": "wal_stream",
+      "lineno": 295,
+      "path": "apps/wal_stream/tasks.py",
+      "reason": "celery-wal-fanout-iterates-all-schools"
+    },
+    {
+      "app": "wal_stream",
+      "lineno": 191,
+      "path": "apps/wal_stream/writers.py",
+      "reason": "drainer-runs-inside-rls_school-and-keys-are-this-tenants-validated-rows"
+    }
+  ],
+  "sample_count": 116,
+  "sample_per_app": 3,
+  "sample_seed": 1707,
+  "scanner": "sample_tenant_isolation_marker_audit.py",
+  "top_reasons": [
+    {
+      "count": 450,
+      "reason": "scoped-via-surrounding-tenant-context-reviewed-2026-05-17"
+    },
+    {
+      "count": 246,
+      "reason": "view-layer-scoped-via-request-school-or-role-graph"
+    },
+    {
+      "count": 220,
+      "reason": "service-layer-scoped-via-caller-student-classroom-or-teacher-fk"
+    },
+    {
+      "count": 46,
+      "reason": "celery-task-runs-inside-tenant-context-or-rls-sweep"
+    },
+    {
+      "count": 31,
+      "reason": "scoped-via-surrounding-tenant-context-lander-orchestrator"
+    },
+    {
+      "count": 29,
+      "reason": "form-queryset-filtered-in-view-with-school-context"
+    },
+    {
+      "count": 25,
+      "reason": "context-scoped-via-request-school-membership"
+    },
+    {
+      "count": 23,
+      "reason": "import-pipeline-validates-school-before-persist"
+    },
+    {
+      "count": 23,
+      "reason": "celery-finance-beat-caller-or-region-scoped-reviewed"
+    },
+    {
+      "count": 18,
+      "reason": "platform-email-delivery-log-no-tenant-scope"
+    },
+    {
+      "count": 15,
+      "reason": "command-center-cross-tenant-snapshot-staff-only"
+    },
+    {
+      "count": 14,
+      "reason": "cache-key-includes-tenant-prefix-from-caller"
+    },
+    {
+      "count": 9,
+      "reason": "api-v1-scoped-via-request-school-mixin"
+    },
+    {
+      "count": 9,
+      "reason": "signal-handler-scoped-via-instance-school-fk"
+    },
+    {
+      "count": 8,
+      "reason": "service-scoped-via-request-school-context"
+    },
+    {
+      "count": 8,
+      "reason": "scoped via school= below"
+    },
+    {
+      "count": 8,
+      "reason": "roster-cross-tenant-explicit-platform-scope"
+    },
+    {
+      "count": 8,
+      "reason": "cross-tenant-maa-campaign-tracking"
+    },
+    {
+      "count": 8,
+      "reason": "platform-wide-counsel-attestation-audit-log"
+    },
+    {
+      "count": 8,
+      "reason": "operator-shell-staff-cross-tenant-webhook-administration"
+    },
+    {
+      "count": 8,
+      "reason": "celery-platform-siteconfig-beat-cross-tenant"
+    },
+    {
+      "count": 7,
+      "reason": "test-scoped-explicit-school-fk"
+    },
+    {
+      "count": 7,
+      "reason": "test-fixture-counts-only-cross-tenant"
+    },
+    {
+      "count": 7,
+      "reason": "platform-activity-ticker-cross-tenant-aggregate-by-design"
+    },
+    {
+      "count": 7,
+      "reason": "platform-cockpit-cross-tenant-world-map"
+    }
+  ],
+  "total_marker_count": 2065
+}

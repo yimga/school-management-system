@@ -131,12 +131,13 @@ def write_custom_domain_step(*, school: Any, wizard_key: str, step_key: str, pay
         return
     _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
 
-    if step_key == "verify":
-        # Best-effort delegation to the canonical service if available
+    # The domain may arrive on the entry step (value=) or the verify step (domain=).
+    # schedule_dns_check is idempotent (get_or_create), so calling on either is safe.
+    if step_key in ("domain_entry", "verify"):
         try:
             from apps.siteconfig.services_custom_domain import schedule_dns_check  # type: ignore
 
-            domain = (payload.get("domain") or "").strip().lower()
+            domain = (payload.get("domain") or payload.get("value") or "").strip().lower()
             if domain:
                 schedule_dns_check(school=school, domain=domain)
         except Exception as exc:  # noqa: BLE001
@@ -216,7 +217,16 @@ def write_account_migration_step(*, school: Any, wizard_key: str, step_key: str,
         return
     _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
 
-    if step_key == "kick_off":
+    if step_key == "select_source":
+        source = payload.get("value") or payload.get("source")
+        if source:
+            _write_to_site_settings(school, "migration_cloud.wizard_source", str(source))
+    elif step_key == "review_mapping":
+        # Persist the field-vector mapping into the Migration Cloud bucket + bundle.
+        from apps.migration_cloud.wizard_pipeline_kernel import apply_field_mapping
+
+        apply_field_mapping(school=school, payload=payload, actor_user_id=actor_user_id)
+    elif step_key == "kick_off":
         try:
             from apps.migration_cloud.services.intake_init import bootstrap_migration_bundle  # type: ignore
 

@@ -1,0 +1,15 @@
+{% load i18n %}
+<section class="rmc-wizard-review-banner rmc-reveal" role="status" aria-live="polite">
+  <p class="rmc-wizard-review-banner__text">
+    {% trans "This wizard is complete. You are viewing your saved answers in read-only mode." %}
+  </p>
+  <div class="rmc-wizard-review-banner__actions">
+    <a class="rmc-wizard-nav__back" href="{{ wizard_index_url }}">{% trans "Back to setup wizards" %}</a>
+    {% if wizard_reset_url %}
+      <form method="post" action="{{ wizard_reset_url }}" class="rmc-wizard-review-banner__reset">
+        {% csrf_token %}
+        <button type="submit" class="rmc-wizard-nav__next">{% trans "Run again" %}</button>
+      </form>
+    {% endif %}
+  </div>
+</section>

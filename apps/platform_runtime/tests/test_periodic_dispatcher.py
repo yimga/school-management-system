@@ -102,6 +102,57 @@ class PeriodicDispatcherTests(_RegistryIsolationMixin, TestCase):
         periodic.maybe_run_due_jobs()
         self.assertEqual(self.calls["n"], 0)
 
+    def test_auto_only_skips_non_auto_eligible(self):
+        # A heavy / cron-only job (auto_eligible=False) must be excluded from the
+        # AUTO path but still run via the explicit (full-registry) path.
+        heavy = {"n": 0}
+
+        def _heavy():
+            heavy["n"] += 1
+
+        periodic.register_job(
+            "test.heavy", interval_seconds=3600, func=_heavy, auto_eligible=False
+        )
+
+        auto = periodic.run_due_jobs(force=True, auto_only=True)
+        statuses = {r["job"]: r["status"] for r in auto}
+        self.assertEqual(statuses["test.job"], "ran")
+        self.assertNotIn("test.heavy", statuses)  # skipped, not even attempted
+        self.assertEqual(heavy["n"], 0)
+
+        full = periodic.run_due_jobs(force=True)
+        full_statuses = {r["job"]: r["status"] for r in full}
+        self.assertEqual(full_statuses["test.heavy"], "ran")
+        self.assertEqual(heavy["n"], 1)
+
+
+class DefaultBillingJobRegistrationTests(TestCase):
+    """The billing lifecycle is registered cron-only (off the hot health path)."""
+
+    def setUp(self):
+        self._saved_registry = dict(periodic._REGISTRY)
+        self._saved_installed = periodic._DEFAULTS_INSTALLED
+        periodic._REGISTRY.clear()
+        periodic._DEFAULTS_INSTALLED = False  # let defaults install for this test
+
+    def tearDown(self):
+        periodic._REGISTRY.clear()
+        periodic._REGISTRY.update(self._saved_registry)
+        periodic._DEFAULTS_INSTALLED = self._saved_installed
+
+    def test_billing_lifecycle_registered_cron_only_daily(self):
+        periodic.ensure_default_jobs()
+        job = periodic._REGISTRY.get("billing.run_platform_billing_lifecycle")
+        self.assertIsNotNone(job)
+        self.assertFalse(job.auto_eligible)  # never on the /health/ hot thread
+        self.assertEqual(job.interval_seconds, periodic.DAILY_SECONDS)
+        self.assertEqual(job.lock_ttl_seconds, periodic.HEAVY_JOB_LOCK_TTL_SECONDS)
+        self.assertIn("billing", job.tags)
+        # The pre-existing light job stays auto-eligible (no regression).
+        bench = periodic._REGISTRY.get("customersuccess.recompute_benchmark_cohorts")
+        self.assertIsNotNone(bench)
+        self.assertTrue(bench.auto_eligible)
+
 
 class HealthEndpointSchedulerFlagTests(TestCase):
     def test_health_reports_inprocess_scheduler_flag(self):

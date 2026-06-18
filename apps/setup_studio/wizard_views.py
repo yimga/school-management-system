@@ -60,6 +60,20 @@ def _resolve_school(request: HttpRequest) -> Any:
             candidate = getattr(user, attr, None)
             if candidate is not None and getattr(candidate, "pk", None) is not None:
                 return candidate
+    # Session fallback: a bound school_id survives across requests where the
+    # tenant middleware did not re-attach request.school (e.g. operator host).
+    try:
+        session = getattr(request, "session", None) or {}
+        school_id = session.get("school_id")
+        if school_id:
+            from apps.schools.session_school_bind import verify_session_school_bind
+
+            if verify_session_school_bind(request, school_id):
+                from apps.schools.models import School
+
+                return School.objects.filter(pk=school_id, is_active=True).first()
+    except Exception as exc:  # noqa: BLE001 — resolution is best-effort
+        logger.debug("session school_id resolution failed: %s", exc)
     return None
 
 
@@ -329,6 +343,22 @@ def _make_url(audience: str, route: str, wizard_key: str | None = None, step_key
         return reverse(name, kwargs=kwargs)
     except Exception:  # noqa: BLE001
         return "#"
+
+
+def _tenant_wizard_href_template() -> str:
+    """Tenant wizard detail URL carrying a literal ``{key}`` placeholder.
+
+    The index template builds every Start/Review tile href by substituting the
+    wizard key into this single template (one reverse() instead of one per tile).
+    Reverses with a sentinel key, then restores the ``{key}`` placeholder so the
+    result equals ``reverse("setup_studio:tenant_wizard", wizard_key=<key>)``.
+    """
+    sentinel = "keyplaceholder"
+    try:
+        url = reverse("setup_studio:tenant_wizard", kwargs={"wizard_key": sentinel})
+    except Exception:  # noqa: BLE001
+        return "/school/studio/wizards/{key}/"
+    return url.replace(sentinel, "{key}")
 
 
 def _parse_post_payload(request: HttpRequest, step: wizard_engine.StepDefinition) -> dict[str, Any]:
@@ -604,18 +634,16 @@ class TenantWizardView(LoginRequiredMixin, View):
             return redirect("setup_studio:tenant_wizard_index")
         state = wizard_state_resolver.get_wizard_state(school, wizard.wizard_key)
         if state.get("completed_at"):
+            # v4.00.x: a completed wizard renders the wizard SHELL in read-only
+            # review mode (saved answers + a review banner) rather than bouncing
+            # back to the index — so a Review tile lands on the wizard it names.
             user_audience = _user_audience(request) or "tenant_admin"
-            # v4.00.8 #1: surface next-step suggestions
+            next_suggestions = []
             try:
                 from apps.setup_studio.wizard_next_steps import get_suggestions
-
-                next_suggestions_raw = get_suggestions(wizard.wizard_key, audience=user_audience)
-                # v4.00.13: enrich each suggestion with a resolved friendly label
-                # so the template doesn't have to render raw `wizards.next.*` slugs.
                 from apps.setup_studio.wizard_extras import resolve_wizard_label
 
-                next_suggestions = []
-                for s in next_suggestions_raw:
+                for s in get_suggestions(wizard.wizard_key, audience=user_audience):
                     next_suggestions.append({
                         "target_wizard_key": s.target_wizard_key,
                         "label_token": s.label_token,
@@ -624,22 +652,18 @@ class TenantWizardView(LoginRequiredMixin, View):
                     })
             except Exception:  # noqa: BLE001
                 next_suggestions = []
-            context = _wizard_index_context(
-                wizard_engine.list_wizards_for_audience(user_audience),
-                status_map=_resolve_wizard_status_map(request),
+            review_step = step or wizard.first_step()
+            context = _build_context(
+                request=request, wizard=wizard, step=review_step,
+                audience=self.audience, school=school, state=state,
             )
             context.update({
-                # Pass the human label, not the raw key: humanize_wizard_token
-                # leaves a bare key like "mfa_setup" UNCHANGED, so the completion
-                # banner must receive label_token ("Set up two-factor
-                # authentication") to read cleanly.
+                "review_mode": True,
                 "just_completed_wizard_key": wizard.label_token,
                 "next_step_suggestions": next_suggestions,
-                "resumable_wizards": _resolve_resumable_wizards_for_request(request),
-                "user_audience": user_audience,
-                "wizard_search_audience": user_audience,
+                "wizard_index_url": reverse("setup_studio:tenant_wizard_index"),
             })
-            return render(request, "setup_studio/tenant_wizard_index.html", context)
+            return render(request, self.template, context)
         wizard_telemetry.emit_step_viewed(wizard.wizard_key, step.key, self.audience)
         context = _build_context(
             request=request, wizard=wizard, step=step,

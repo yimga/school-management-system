@@ -389,7 +389,8 @@ def write_sovereignty_jurisdiction(*, school: Any, wizard_key: str, step_key: st
 
 
 def write_sovereignty_routing(*, school: Any, wizard_key: str, step_key: str, payload: dict[str, Any], actor_user_id: int | None) -> None:
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.setup_studio.sovereignty_kernel import apply_dynamic_routing
+    apply_dynamic_routing(school=school, payload=payload)
 
 
 def write_sovereignty_vocabulary(*, school: Any, wizard_key: str, step_key: str, payload: dict[str, Any], actor_user_id: int | None) -> None:
@@ -400,7 +401,8 @@ def write_sovereignty_vocabulary(*, school: Any, wizard_key: str, step_key: str,
 
 
 def write_sovereignty_statutory(*, school: Any, wizard_key: str, step_key: str, payload: dict[str, Any], actor_user_id: int | None) -> None:
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.setup_studio.sovereignty_kernel import apply_statutory_alignment
+    apply_statutory_alignment(school=school, payload=payload)
 
 
 # ============================================================================
@@ -457,11 +459,13 @@ def list_transcript_templates(*, request: Any, school: Any) -> list[dict[str, An
 
 
 def write_grading_track(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.evals.grading_wizard_kernel import apply_curriculum_tracks
+    apply_curriculum_tracks(school=school, payload=payload)
 
 
 def write_grading_metrics(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.evals.grading_wizard_kernel import apply_assessment_metrics
+    apply_assessment_metrics(school=school, payload=payload)
 
 
 def write_grading_subject_mapping(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -501,15 +505,18 @@ def write_migration_upload(*, school, wizard_key, step_key, payload, actor_user_
 
 
 def write_migration_mapping(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.migration_cloud.wizard_pipeline_kernel import apply_field_mapping
+    apply_field_mapping(school=school, payload=payload, actor_user_id=actor_user_id)
 
 
 def write_migration_cleanup(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.migration_cloud.wizard_pipeline_kernel import apply_error_cleanup
+    apply_error_cleanup(school=school, payload=payload, actor_user_id=actor_user_id)
 
 
 def write_migration_seeding(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.migration_cloud.wizard_pipeline_kernel import apply_seeding_mode
+    apply_seeding_mode(school=school, payload=payload, actor_user_id=actor_user_id)
 
 
 # ============================================================================
@@ -549,15 +556,18 @@ def write_helpcenter_sources(*, school, wizard_key, step_key, payload, actor_use
 
 
 def write_helpcenter_tagging(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.customersuccess.helpcenter_wizard_kernel import apply_audience_tags
+    apply_audience_tags(school=school, payload=payload)
 
 
 def write_helpcenter_fallbacks(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.customersuccess.helpcenter_wizard_kernel import apply_fallback_matrix
+    apply_fallback_matrix(school=school, payload=payload)
 
 
 def write_helpcenter_validation(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.customersuccess.helpcenter_wizard_kernel import apply_validation_probe
+    apply_validation_probe(school=school, payload=payload)
 
 
 # ============================================================================
@@ -624,7 +634,22 @@ def write_fintech_apm(*, school, wizard_key, step_key, payload, actor_user_id):
 
 
 def write_fintech_split(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    if school is None:
+        return
+    from apps.billing.regional_pricing import compute_localized_price
+    base = payload.get('base_usd') or payload.get('value') or '0.00'
+    cc = payload.get('country_code') or getattr(school, 'country_code', None) or 'US'
+    loc = compute_localized_price(base, str(cc).strip().upper())
+    _write_to_site_settings(school, 'fintech.ppp_revenue_split', {
+        'country_code': loc.country_code,
+        'currency_code': loc.currency_code,
+        'multiplier': str(loc.multiplier),
+        'tax_rate': str(loc.tax_rate),
+        'subtotal': str(loc.subtotal),
+        'tax': str(loc.tax),
+        'total': str(loc.total),
+        'engine': 'billing.regional_pricing',
+    })
 
 
 def write_fintech_einvoicing(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -646,19 +671,30 @@ def list_storefront_categories(*, request: Any, school: Any) -> list[dict[str, A
 
 
 def write_marketplace_storefront(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.marketplace.marketplace_wizard_kernel import apply_storefront_blueprint
+    apply_storefront_blueprint(school=school, payload=payload)
+    if school is not None:
+        from apps.marketplace.localized_pricing import apply_ppp_to_storefront
+        base = payload.get('base_usd') or payload.get('default_base_usd') or '0.00'
+        apply_ppp_to_storefront(school=school, base_usd=base, payload=payload)
 
 
 def write_marketplace_catalog(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.marketplace.marketplace_wizard_kernel import apply_catalog_seed
+    apply_catalog_seed(school=school, payload=payload)
 
 
 def write_marketplace_routing(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    if school is None:
+        return
+    from apps.marketplace.localized_pricing import apply_ppp_to_storefront
+    base = payload.get('base_usd') or payload.get('value') or '0.00'
+    apply_ppp_to_storefront(school=school, base_usd=base, payload=payload)
 
 
 def write_marketplace_receipts(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.marketplace.marketplace_wizard_kernel import apply_receipt_automation
+    apply_receipt_automation(school=school, payload=payload)
 
 
 # ============================================================================
@@ -685,11 +721,13 @@ def write_pos_credentials(*, school, wizard_key, step_key, payload, actor_user_i
 
 
 def write_pos_guardrails(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.schoolops.pos_config_kernel import configure_pos_guardrails
+    configure_pos_guardrails(school=school, payload=payload)
 
 
 def write_pos_allergens(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.schoolops.pos_config_kernel import configure_pos_allergens
+    configure_pos_allergens(school=school, payload=payload)
 
 
 # ============================================================================
@@ -716,7 +754,8 @@ def list_audit_anchors(*, request: Any, school: Any) -> list[dict[str, Any]]:
 
 
 def write_safeguarding_categories(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.safeguarding.wizard_config_kernel import apply_enabled_categories
+    apply_enabled_categories(school=school, payload=payload)
 
 
 def write_safeguarding_routing(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -728,7 +767,8 @@ def write_safeguarding_stakeholders(*, school, wizard_key, step_key, payload, ac
 
 
 def write_safeguarding_anchor(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.safeguarding.wizard_config_kernel import apply_audit_anchor
+    apply_audit_anchor(school=school, payload=payload)
 
 
 # ============================================================================
@@ -762,7 +802,8 @@ def write_comms_event(*, school, wizard_key, step_key, payload, actor_user_id):
 
 
 def write_comms_gateway(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.communication.routing_config_kernel import apply_gateway_priority
+    apply_gateway_priority(school=school, payload=payload)
 
 
 def write_comms_guards(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -810,7 +851,8 @@ def write_compliance_masking(*, school, wizard_key, step_key, payload, actor_use
 
 
 def write_compliance_ledger(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.compliance.jit_compliance_kernel import apply_ledger_anchor
+    apply_ledger_anchor(school=school, payload=payload, actor_user_id=actor_user_id)
 
 
 # ============================================================================
@@ -823,7 +865,8 @@ def list_substitute_pool(*, request: Any, school: Any) -> list[dict[str, Any]]:
 
 
 def write_hr_contract(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.payroll.hr_wizard_kernel import apply_labor_contract_profile
+    apply_labor_contract_profile(school=school, payload=payload)
 
 
 def write_hr_tax(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -831,7 +874,8 @@ def write_hr_tax(*, school, wizard_key, step_key, payload, actor_user_id):
 
 
 def write_hr_absence(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.payroll.hr_wizard_kernel import apply_absence_logic
+    apply_absence_logic(school=school, payload=payload)
 
 
 def write_hr_substitute(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -856,11 +900,14 @@ def list_executive_kpis(*, request: Any, school: Any) -> list[dict[str, Any]]:
 
 
 def write_analytics_kpis(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.reports.board_aggregation_kernel import apply_enabled_executive_kpis
+    apply_enabled_executive_kpis(school=school, payload=payload)
 
 
 def write_analytics_aggregation(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.reports.board_aggregation_kernel import refresh_board_kpi_snapshot
+    raw = payload.get('value') or payload.get('kpi_keys') or []
+    refresh_board_kpi_snapshot(school=school, kpi_keys=raw if isinstance(raw, list) else [raw])
 
 
 def write_analytics_predictions(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -887,7 +934,8 @@ def list_observability_recovery_actions(*, request: Any, school: Any) -> list[di
 
 
 def write_observability_thresholds(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.observability.tenant_guard_kernel import apply_tenant_slo_thresholds
+    apply_tenant_slo_thresholds(school=school, payload=payload)
 
 
 def write_observability_actions(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -908,7 +956,8 @@ def list_resource_constraints(*, request: Any, school: Any) -> list[dict[str, An
 
 
 def write_scheduling_resources(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.academics.scheduling_kernel import apply_resource_constraints
+    apply_resource_constraints(school=school, payload=payload)
 
 
 def write_scheduling_pathways(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -916,7 +965,8 @@ def write_scheduling_pathways(*, school, wizard_key, step_key, payload, actor_us
 
 
 def write_scheduling_solver(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.academics.scheduling_kernel import configure_solver
+    configure_solver(school=school, payload=payload)
 
 
 def write_scheduling_rollout(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -940,7 +990,8 @@ def write_fieldtrip_logistics(*, school, wizard_key, step_key, payload, actor_us
 
 
 def write_fieldtrip_authorization(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.schoolops.field_trip_kernel import setup_field_trip_authorization
+    setup_field_trip_authorization(school=school, payload=payload)
 
 
 def write_fieldtrip_roster(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -971,7 +1022,8 @@ def write_pathway_audit(*, school, wizard_key, step_key, payload, actor_user_id)
 
 
 def write_pathway_matcher(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.academics.pathway_elective_kernel import match_elective_courses
+    match_elective_courses(school=school, payload=payload)
 
 
 def write_pathway_lock(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -984,11 +1036,13 @@ def write_pathway_lock(*, school, wizard_key, step_key, payload, actor_user_id):
 
 
 def write_parent_profile(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.accounts.persona_onboarding_kernel import apply_parent_profile
+    apply_parent_profile(school=school, actor_user_id=actor_user_id, payload=payload)
 
 
 def write_parent_children(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.accounts.persona_onboarding_kernel import apply_parent_linked_children
+    apply_parent_linked_children(school=school, actor_user_id=actor_user_id, payload=payload)
 
 
 def write_parent_preferences(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -1010,7 +1064,8 @@ def write_parent_consent(*, school, wizard_key, step_key, payload, actor_user_id
 
 
 def write_staff_profile(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.accounts.persona_onboarding_kernel import apply_staff_profile
+    apply_staff_profile(school=school, actor_user_id=actor_user_id, payload=payload)
 
 
 def write_staff_role(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -1022,7 +1077,8 @@ def write_staff_background(*, school, wizard_key, step_key, payload, actor_user_
 
 
 def write_staff_schedule(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.payroll.hr_wizard_kernel import apply_staff_schedule_preferences
+    apply_staff_schedule_preferences(school=school, actor_user_id=actor_user_id, payload=payload)
 
 
 def write_staff_training(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -1059,7 +1115,8 @@ def write_library_catalog(*, school, wizard_key, step_key, payload, actor_user_i
 
 
 def write_library_fines(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.schoolops.library_config_kernel import configure_fine_policy
+    configure_fine_policy(school=school, payload=payload)
 
 
 def write_library_categories(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -1082,7 +1139,8 @@ def list_exam_room_strategies(*, request: Any, school: Any) -> list[dict[str, An
 
 
 def write_exam_window(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.academics.exam_orchestration_kernel import configure_exam_window
+    configure_exam_window(school=school, payload=payload)
 
 
 def write_exam_room_strategy(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -1123,11 +1181,13 @@ def write_report_card_template(*, school, wizard_key, step_key, payload, actor_u
 
 
 def write_report_card_columns(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.reports.report_card_kernel import apply_grade_columns
+    apply_grade_columns(school=school, payload=payload)
 
 
 def write_report_card_attendance(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.reports.report_card_kernel import apply_attendance_block
+    apply_attendance_block(school=school, payload=payload)
 
 
 def write_report_card_signature(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -1163,7 +1223,8 @@ def list_alumni_programs(*, request: Any, school: Any) -> list[dict[str, Any]]:
 
 
 def write_alumni_graduation_capture(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.people.alumni_engagement import capture_graduation_cohort
+    capture_graduation_cohort(school=school, payload=payload)
 
 
 def write_alumni_contact_preferences(*, school, wizard_key, step_key, payload, actor_user_id):
@@ -1171,7 +1232,9 @@ def write_alumni_contact_preferences(*, school, wizard_key, step_key, payload, a
 
 
 def write_alumni_programs(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.people.alumni_engagement import configure_alumni_pipeline
+    value = payload.get('value') or payload.get('programs') or []
+    configure_alumni_pipeline(school=school, payload={**payload, 'programs': value if isinstance(value, list) else [value]})
 
 
 def write_alumni_donation_pipeline(*, school, wizard_key, step_key, payload, actor_user_id):

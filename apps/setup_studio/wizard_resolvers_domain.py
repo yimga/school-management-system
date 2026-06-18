@@ -27,9 +27,34 @@ import hashlib
 import logging
 from typing import Any
 
-from apps.setup_studio.wizard_resolvers import _default_cockpit_writer
+from apps.setup_studio.wizard_resolvers import _default_cockpit_writer, _write_to_site_settings
 
 logger = logging.getLogger(__name__)
+
+
+def _write_user_step(
+    *,
+    school: Any,
+    root_key: str,
+    wizard_key: str,
+    step_key: str,
+    payload: dict[str, Any],
+    actor_user_id: int | None,
+    nest_wizard: bool = True,
+) -> None:
+    """Persist a per-user wizard step under a role-scoped settings path.
+
+    ``role_wizards.<wizard_key>.users.<actor>.<step_key>`` when ``nest_wizard``
+    (teacher gradebook / attendance), or ``<root_key>.users.<actor>.<step_key>``
+    when the wizard owns its own top-level bucket (parent payment setup).
+    """
+    if school is None or not actor_user_id:
+        return
+    if nest_wizard:
+        path = f"{root_key}.{wizard_key}.users.{actor_user_id}.{step_key}"
+    else:
+        path = f"{root_key}.users.{actor_user_id}.{step_key}"
+    _write_to_site_settings(school, path, payload)
 
 
 # ============================================================================
@@ -199,13 +224,19 @@ def _list_courses(school: Any, *, required_only: bool) -> list[dict[str, Any]]:
 def write_teacher_gradebook_setup_step(*, school: Any, wizard_key: str, step_key: str, payload: dict[str, Any], actor_user_id: int | None) -> None:
     if school is None:
         return
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    _write_user_step(
+        school=school, root_key="role_wizards", wizard_key=wizard_key,
+        step_key=step_key, payload=payload, actor_user_id=actor_user_id,
+    )
 
 
 def write_teacher_attendance_intake_step(*, school: Any, wizard_key: str, step_key: str, payload: dict[str, Any], actor_user_id: int | None) -> None:
     if school is None:
         return
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    _write_user_step(
+        school=school, root_key="role_wizards", wizard_key=wizard_key,
+        step_key=step_key, payload=payload, actor_user_id=actor_user_id,
+    )
 
 
 _PAYMENT_SECRET_KEYS = frozenset({
@@ -220,19 +251,33 @@ def write_parent_payment_setup_step(*, school: Any, wizard_key: str, step_key: s
     if school is None:
         logger.info("parent_payment_setup step=%s actor=%s safe_field_count=%d", step_key, actor_user_id, len(safe))
         return
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=safe, actor_user_id=actor_user_id)
+    # parent_payment_setup owns a top-level bucket: parent_payment_setup.users.<actor>.<step>
+    _write_user_step(
+        school=school, root_key=wizard_key, wizard_key=wizard_key,
+        step_key=step_key, payload=safe, actor_user_id=actor_user_id, nest_wizard=False,
+    )
 
 
 def write_parent_contact_preferences_step(*, school: Any, wizard_key: str, step_key: str, payload: dict[str, Any], actor_user_id: int | None) -> None:
     if school is None:
         return
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    # Delegate to the persona kernel so guardian contact-channel flags update too.
+    from apps.accounts.persona_onboarding_kernel import apply_parent_contact_preferences_wizard
+
+    apply_parent_contact_preferences_wizard(
+        school=school, actor_user_id=actor_user_id, step_key=step_key, payload=payload,
+    )
 
 
 def write_student_course_selection_step(*, school: Any, wizard_key: str, step_key: str, payload: dict[str, Any], actor_user_id: int | None) -> None:
-    if school is None:
+    if school is None or not actor_user_id:
         return
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    # Record the student's course request under a per-user requests bucket.
+    _write_to_site_settings(
+        school,
+        f"student_course_requests.{actor_user_id}",
+        {"wizard_key": wizard_key, "step_key": step_key, "payload": payload},
+    )
 
 
 def write_password_rotation_step(*, school: Any, wizard_key: str, step_key: str, payload: dict[str, Any], actor_user_id: int | None) -> None:

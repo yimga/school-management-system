@@ -226,7 +226,7 @@
       "value": 6371
     },
     {
-      "line": 122,
+      "line": 166,
       "path": "apps/accounts/security_posture_notifications.py",
       "snippet": "\"duration_ms\": 120000,",
       "value": 120000
@@ -304,13 +304,13 @@
       "value": 100000
     },
     {
-      "line": 266,
+      "line": 364,
       "path": "apps/accounts/views_oidc.py",
       "snippet": "username = username_seed[:150]",
       "value": 150
     },
     {
-      "line": 317,
+      "line": 415,
       "path": "apps/accounts/views_oidc.py",
       "snippet": "if len(id_token) <= 4096:",
       "value": 4096
@@ -322,7 +322,7 @@
       "value": 240
     },
     {
-      "line": 244,
+      "line": 319,
       "path": "apps/accounts/views_saml.py",
       "snippet": "username = username_seed[:150]",
       "value": 150
@@ -694,7 +694,7 @@
       "value": 365
     },
     {
-      "line": 1145,
+      "line": 1185,
       "path": "apps/billing/services.py",
       "snippet": "payee_name=str(pname or \"Publisher\")[:160],",
       "value": 160
@@ -814,7 +814,7 @@
       "value": 150
     },
     {
-      "line": 94,
+      "line": 97,
       "path": "apps/customersuccess/services.py",
       "snippet": "delta = (timezone.now() - last).total_seconds() / 86400",
       "value": 86400
@@ -856,7 +856,7 @@
       "value": 160
     },
     {
-      "line": 131,
+      "line": 137,
       "path": "apps/dashboard/services/role_home_service.py",
       "snippet": "key=lambda x: order_map.get(x.get(\"id\", \"\"), 999),",
       "value": 999
@@ -2512,19 +2512,19 @@
       "value": 1800
     },
     {
-      "line": 531,
+      "line": 533,
       "path": "apps/platform_runtime/offline_queue.py",
       "snippet": "notes=str(payload.get(\"notes\", \"\"))[:4000],",
       "value": 4000
     },
     {
-      "line": 549,
+      "line": 563,
       "path": "apps/platform_runtime/offline_queue.py",
       "snippet": "if len(body) > 50000:",
       "value": 50000
     },
     {
-      "line": 840,
+      "line": 889,
       "path": "apps/platform_runtime/offline_queue.py",
       "snippet": "body=message[:8000],",
       "value": 8000
@@ -3574,7 +3574,7 @@
       "value": 254
     },
     {
-      "line": 149,
+      "line": 186,
       "path": "apps/schools/fleet_live_payload.py",
       "snippet": "page = _parse_int(request.GET.get(\"page\"), 1, minimum=1, maximum=10_000)",
       "value": 10000
@@ -3820,7 +3820,7 @@
       "value": 250
     },
     {
-      "line": 77,
+      "line": 78,
       "path": "apps/schools/portal_ready_corner_notifications.py",
       "snippet": "\"duration_ms\": 180000,",
       "value": 180000
@@ -5578,7 +5578,7 @@
       "value": 16384
     }
   ],
-  "generated_at": "2026-06-15T00:31:08+00:00",
+  "generated_at": "2026-06-18T20:26:42+00:00",
   "rule": "Integer literals with abs(value) >= 100 in production code should route through the 7-layer configurability contract (RuntimeDefaults / constants.py / SiteSettings)",
   "scan_dirs": [
     "apps",

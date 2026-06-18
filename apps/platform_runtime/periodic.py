@@ -67,6 +67,12 @@ logger = logging.getLogger(__name__)
 SCAN_THROTTLE_SECONDS = int(os.getenv("RMC_PERIODIC_SCAN_THROTTLE", "60"))
 DEFAULT_LOCK_TTL_SECONDS = 600  # magic-number-allow: default per-job lock TTL (seconds)
 WEEKLY_SECONDS = 7 * 24 * 60 * 60
+DAILY_SECONDS = 24 * 60 * 60
+# A heavy, tenant-fan-out job (e.g. the billing lifecycle) can run longer than the
+# default lock TTL, especially via the management-command / Render-cron path which
+# has no HTTP cap. Keep the claim lock well past its worst-case runtime so a second
+# trigger can't start it mid-run. (last_run gating is the backstop regardless.)
+HEAVY_JOB_LOCK_TTL_SECONDS = 1800  # magic-number-allow: heavy cron-only job lock TTL (seconds)
 # last_run is kept well past one interval so it survives between ticks; extra hour
 # beyond 2x interval absorbs clock skew / scheduler lag.
 _LASTRUN_TTL_BUFFER_SECONDS = 3600  # magic-number-allow: last_run cache buffer (seconds)
@@ -86,6 +92,11 @@ class PeriodicJob:
     # ``last_run`` is already set, so there is no immediate re-run anyway).
     lock_ttl_seconds: int = DEFAULT_LOCK_TTL_SECONDS
     enabled: bool = True
+    # When False the job is SKIPPED by the AUTO (/health/-tick) path and runs ONLY
+    # via the explicit triggers (secured cron endpoint, run_periodic_jobs command,
+    # Render cron). This is how heavy / tenant-fan-out / financial work stays off
+    # the constantly-pinged web health thread while still being scheduled.
+    auto_eligible: bool = True
     tags: tuple[str, ...] = field(default_factory=tuple)
 
 
@@ -108,6 +119,7 @@ def register_job(
     description: str = "",
     lock_ttl_seconds: int = DEFAULT_LOCK_TTL_SECONDS,
     enabled: bool = True,
+    auto_eligible: bool = True,
     tags: tuple[str, ...] = (),
 ) -> None:
     """Register (idempotently) a periodic job. Last writer for a name wins."""
@@ -119,6 +131,7 @@ def register_job(
             description=description,
             lock_ttl_seconds=int(lock_ttl_seconds),
             enabled=bool(enabled),
+            auto_eligible=bool(auto_eligible),
             tags=tuple(tags),
         )
 
@@ -148,6 +161,22 @@ def ensure_default_jobs() -> None:
             description="Weekly k-anonymous peer-benchmark cohort recompute.",
             tags=("analytics", "light"),
         )
+        # Heavy + financial + tenant-fan-out: matures the platform billing
+        # lifecycle daily (trial->active conversion, period renewal + charge,
+        # dunning past-due/suspend, and collection restore). Marked
+        # auto_eligible=False so it NEVER runs on the hot /health/ thread — it is
+        # driven only by the secured cron endpoint, the run_periodic_jobs command,
+        # or Render cron, each running off the request-serving hot path. The
+        # command is idempotent + resumable, so a duplicate/late tick is a no-op.
+        _REGISTRY["billing.run_platform_billing_lifecycle"] = PeriodicJob(
+            name="billing.run_platform_billing_lifecycle",
+            interval_seconds=DAILY_SECONDS,
+            func=_run_platform_billing_lifecycle,
+            description="Daily platform billing lifecycle (trial conversion, renewal/charge, dunning).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("billing", "heavy"),
+        )
         _DEFAULTS_INSTALLED = True
 
 
@@ -157,6 +186,14 @@ def _run_recompute_benchmark_cohorts() -> object:
     from django.core.management import call_command
 
     return call_command("recompute_benchmark_cohorts")
+
+
+def _run_platform_billing_lifecycle() -> object:
+    # Delegates to the SAME management command an operator runs by hand / a future
+    # Celery beat task would wrap, so every trigger path runs identical code.
+    from django.core.management import call_command
+
+    return call_command("run_platform_billing_lifecycle")
 
 
 # --- mode / gating -----------------------------------------------------------
@@ -282,11 +319,21 @@ def run_job(name: str, *, force: bool = False) -> dict:
         _release(job)
 
 
-def run_due_jobs(*, force: bool = False) -> list[dict]:
-    """Run every due (or, with ``force``, every enabled) registered job."""
+def run_due_jobs(*, force: bool = False, auto_only: bool = False) -> list[dict]:
+    """Run every due (or, with ``force``, every enabled) registered job.
+
+    ``auto_only=True`` restricts the run to AUTO-eligible jobs — used by the
+    health-tick path so heavy / cron-only jobs (``auto_eligible=False``) never run
+    on the request-serving hot thread. The explicit triggers (cron endpoint,
+    management command) leave it False so they run the full registry.
+    """
     ensure_default_jobs()
     results: list[dict] = []
     for name in list(_REGISTRY.keys()):
+        if auto_only:
+            job = _REGISTRY.get(name)
+            if job is not None and not job.auto_eligible:
+                continue
         results.append(run_job(name, force=force))
     return results
 
@@ -305,7 +352,10 @@ def close_thread_connections() -> None:
 
 def _scan_and_run() -> None:
     try:
-        results = run_due_jobs(force=False)
+        # AUTO path: only auto-eligible jobs. Heavy / financial / fan-out jobs
+        # (auto_eligible=False) are deliberately excluded from the hot health
+        # thread and run via the secured cron endpoint / command instead.
+        results = run_due_jobs(force=False, auto_only=True)
         ran = [r for r in results if r.get("status") == "ran"]
         if ran:
             logger.info("periodic tick ran %d job(s): %s", len(ran), [r["job"] for r in ran])
@@ -368,6 +418,7 @@ def registry_status() -> list[dict]:
                 "description": job.description,
                 "interval_seconds": job.interval_seconds,
                 "enabled": job.enabled,
+                "auto_eligible": job.auto_eligible,
                 "tags": list(job.tags),
                 "last_run_epoch": last,
                 "seconds_until_due": seconds_until_due,
