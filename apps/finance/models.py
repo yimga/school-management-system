@@ -3126,6 +3126,17 @@ class OfflinePaymentIntent(models.Model):
             models.Index(fields=["invoice", "status"]),
             models.Index(fields=["client_offline_id"]),
         ]
+        constraints = [
+            # Atomic idempotency for offline payment replay: the same captured
+            # payment (same client_offline_id) can never create two intents for
+            # one invoice. Scoped to non-empty keys so keyless legacy captures are
+            # never rejected (offline must stay fully functional).
+            models.UniqueConstraint(
+                condition=models.Q(("client_offline_id", ""), _negated=True),
+                fields=["invoice", "client_offline_id"],
+                name="uniq_offlinepaymentintent_invoice_client_id",
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"OfflinePaymentIntent {self.pk} ({self.status})"

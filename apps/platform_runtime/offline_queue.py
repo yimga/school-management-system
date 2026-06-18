@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -522,15 +522,29 @@ def _apply_payment_receipt(school_id, user_id: int, payload: dict[str, Any]) -> 
         if dup:
             return {"ok": True, "intent_id": dup.id, "dedup": True}
     user = User.objects.filter(pk=user_id).first()
-    intent = OfflinePaymentIntent.objects.create(
-        invoice_id=invoice_id,
-        recorded_by=user,
-        amount=amount,
-        payment_method=method,
-        transaction_reference=str(payload.get("transaction_reference", ""))[:100],
-        notes=str(payload.get("notes", ""))[:4000],
-        client_offline_id=client_key,
-    )
+    try:
+        with transaction.atomic():
+            intent = OfflinePaymentIntent.objects.create(
+                invoice_id=invoice_id,
+                recorded_by=user,
+                amount=amount,
+                payment_method=method,
+                transaction_reference=str(payload.get("transaction_reference", ""))[:100],
+                notes=str(payload.get("notes", ""))[:4000],
+                client_offline_id=client_key,
+            )
+    except IntegrityError:
+        # Concurrent offline replay won the race on the partial-unique
+        # (invoice_id, client_offline_id) index between the check above and here.
+        # Idempotent outcome: return the intent the winner created. (Only fires
+        # when client_key is non-empty — keyless captures carry no constraint.)
+        dup = OfflinePaymentIntent.objects.filter(
+            invoice_id=invoice_id,
+            client_offline_id=client_key,
+        ).first()
+        if dup:
+            return {"ok": True, "intent_id": dup.id, "dedup": True}
+        raise
     return {"ok": True, "intent_id": intent.id}
 
 
