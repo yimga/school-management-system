@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n wizard_extras %}
 <section class="rmc-wizard-review-banner rmc-reveal" role="status" aria-live="polite">
   <p class="rmc-wizard-review-banner__text">
     {% trans "This wizard is complete. You are viewing your saved answers in read-only mode." %}
@@ -12,4 +12,20 @@
       </form>
     {% endif %}
   </div>
+
+  {% comment %} Fill the page (and make review mode useful) by surfacing the
+     audience-aware "what's next" wizards as clickable cards — same grammar the
+     index completion banner uses (rmc-class-grammar.css). Each card deep-links
+     straight into the next wizard. Renders nothing when there are no suggestions. {% endcomment %}
+  {% if next_step_suggestions %}
+    <p class="rmc-wizard-completion-banner__hint">{% trans "Suggested next steps" %}</p>
+    <div class="rmc-wizard-completion-banner__next">
+      {% for s in next_step_suggestions %}
+        <a class="rmc-wizard-next-card" href="{% url 'setup_studio:tenant_wizard' wizard_key=s.target_wizard_key %}">
+          <span class="rmc-wizard-next-card__key">{{ s.resolved_label|default:s.target_wizard_key }}</span>
+          {% if s.label_token %}<span class="rmc-wizard-next-card__reason">{{ s.label_token|humanize_wizard_token }}</span>{% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
 </section>

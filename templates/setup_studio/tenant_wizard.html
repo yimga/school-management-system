@@ -15,7 +15,12 @@
    benefit from this since the stepper + nav must stay pinned. Pages already use
    {% block body_extra_class %} from portal_base to add body classes — we opt in here.
 {% endcomment %}
-{% block body_extra_class %}rmc-wizard-shell-viewport-locked{% endblock %}
+{% comment %} Viewport-lock (100dvh focused-task grid) is for ACTIVE steps where the
+   stepper + nav must stay pinned. A COMPLETED wizard in read-only review mode has a
+   short body (banner + saved answers), so locking it to 100dvh leaves a large empty
+   void below the content. Opt OUT of the lock in review mode → the page collapses to
+   content height. {% endcomment %}
+{% block body_extra_class %}{% if not review_mode %}rmc-wizard-shell-viewport-locked{% endif %}{% endblock %}
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -23,7 +28,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-wizard-shell rmc-wizard-shell--tenant" data-rmc-wizard-shell="tenant" data-rmc-viewport-lock="opt-in">
+<main class="rmc-wizard-shell rmc-wizard-shell--tenant" data-rmc-wizard-shell="tenant"{% if not review_mode %} data-rmc-viewport-lock="opt-in"{% endif %}>
   {% include "setup_studio/partials/wizard_state_restore_banner.html" %}
 
   {% include "setup_studio/partials/wizard_stepper.html" %}

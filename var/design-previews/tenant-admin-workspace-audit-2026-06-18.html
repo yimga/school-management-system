@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMyCampus · Tenant Admin Workspace — LIVE AUDIT (2026-06-18)</title>
+<style>
+  /* Palette = the agreed design-preview tokens (what the deployed code ALREADY targets). */
+  :root{
+    --bg:#0b1020; --canvas:#0e1426; --elevated:#141c33; --popover:#1a2542;
+    --hairline:rgba(255,255,255,.08); --hairline-strong:rgba(255,255,255,.14);
+    --text:#eef2ff; --text-2:#aab3d4; --text-3:#7b86ad;
+    --brand:#6366f1; --brand-2:#818cf8; --accent:#10b981; --warn:#f59e0b; --danger:#ef4444;
+    --radius:14px; --font:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14.5px;line-height:1.55;padding:0 0 80px}
+  .wrap{max-width:980px;margin:0 auto;padding:26px 22px}
+  header.h{display:flex;align-items:center;gap:16px;padding:22px 0 14px;border-bottom:1px solid var(--hairline);margin-bottom:24px}
+  .logo{width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:grid;place-items:center;font-weight:800;color:#fff;font-size:17px;box-shadow:0 4px 14px rgba(99,102,241,.4)}
+  h1{font-size:22px;margin:0}
+  .sub{color:var(--text-3);font-size:12.5px}
+  h2{font-size:16px;margin:30px 0 12px;display:flex;align-items:center;gap:9px}
+  .tag{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:999px}
+  .tag--ok{background:rgba(16,185,129,.16);color:#34d399;border:1px solid rgba(16,185,129,.4)}
+  .tag--cache{background:rgba(245,158,11,.16);color:#fbbf24;border:1px solid rgba(245,158,11,.4)}
+  .tag--fix{background:rgba(99,102,241,.18);color:var(--brand-2);border:1px solid rgba(99,102,241,.4)}
+  .card{background:var(--canvas);border:1px solid var(--hairline);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px}
+  .card h3{margin:0 0 6px;font-size:14.5px}
+  .card p{margin:0 0 4px;color:var(--text-2);font-size:13px}
+  code{background:rgba(255,255,255,.06);border:1px solid var(--hairline);border-radius:6px;padding:1px 6px;font-size:12px;color:#c7d0f5}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .kv{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--hairline);font-size:13px}
+  .kv:last-child{border-bottom:0}
+  .kv b{color:var(--text)}
+  ol.steps{padding-left:20px;margin:8px 0 0}
+  ol.steps li{margin:7px 0;color:var(--text-2);font-size:13.5px}
+  .swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .sw{width:74px;height:54px;border-radius:9px;border:1px solid var(--hairline);display:grid;place-items:end;padding:5px;font-size:9.5px;color:#fff;font-weight:700}
+  .banner{background:linear-gradient(135deg,color-mix(in oklab,var(--elevated) 88%,var(--brand)),var(--elevated));border:1px solid var(--hairline);border-radius:16px;padding:18px 20px;margin-bottom:8px}
+  .pillrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--elevated);border:1px solid var(--hairline);color:var(--text-2)}
+  .verdict{font-size:13.5px;color:var(--text)}
+  .danger{color:#fca5a5}
+  .ok{color:#34d399}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="h">
+    <div class="logo">NT</div>
+    <div>
+      <h1>Tenant Admin Workspace — Live Audit</h1>
+      <div class="sub">new-school.runmycampus.com · 2026-06-18 · deployed commit <code>a9608662e</code> (= current origin/main, 1 commit behind)</div>
+    </div>
+  </header>
+
+  <div class="banner">
+    <div class="verdict"><b>Headline:</b> The deployed code <span class="ok">already implements the agreed design</span> — indigo/emerald palette, one-line header, toast dedupe+cap, wired onboarding + copilot. What the screenshot shows is overwhelmingly <span class="danger">(1) stale browser/service-worker cache</span> and <span class="danger">(2) the wrong surface</span> (a completed wizard's read-only page, not the onboarding overview).</div>
+    <div class="pillrow">
+      <span class="pill">Deployed SW target: v4.04.22 → now v4.04.23</span>
+      <span class="pill">celery worker: none (in-process scheduler)</span>
+      <span class="pill">verified via /health/ on the live host</span>
+    </div>
+  </div>
+
+  <h2><span class="tag tag--ok">Already correct &amp; deployed</span></h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Theme = indigo / emerald (NOT gold)</h3>
+      <p>The tenant-admin page-personality is <code>--personality-accent:#4f46e5</code> with an indigo→emerald gradient (<code>design-tokens-personality.css:213</code>). The "green+gold" text in that file is a <i>source comment</i>; the tokens were already converted. Legacy <code>--platform-gold</code> now aliases to indigo.</p>
+      <div class="swatches">
+        <div class="sw" style="background:#6366f1">#6366f1 brand</div>
+        <div class="sw" style="background:#10b981">#10b981 accent</div>
+        <div class="sw" style="background:#0b1020;border-color:var(--hairline-strong)">#0b1020 bg</div>
+        <div class="sw" style="background:#f59e0b;color:#241a00">#f59e0b warn</div>
+      </div>
+      <p style="margin-top:8px">The gold you see = an <b>old cached stylesheet</b> from before this conversion. It is overridable per-tenant under Branding (the cascade respects BrandProfile → BrandSettings → School → ThemePack → default).</p>
+    </div>
+    <div class="card">
+      <h3>Toast dedupe + hard cap</h3>
+      <p>Current <code>rmc-notification-corner.js</code> dedupes on a stable key and hard-caps at <b>4</b> cards; backend creation is idempotent (atomic get_or_create + self-healing collapse). The duplicate "Quarterly security review" / "portal ready" cards = <b>stale cached JS</b>.</p>
+    </div>
+    <div class="card">
+      <h3>Onboarding tasks — fully wired</h3>
+      <p>All 11 setup tasks <code>reverse()</code> to real tenant URLs with correct RBAC (academic year, departments, students, teachers, classes, reports, domains, settings hub, plan). Tenant-facing routes, not operator-gated.</p>
+    </div>
+    <div class="card">
+      <h3>Copilot rail — wired on tenant host</h3>
+      <p>Tenant-scoped endpoints exist (<code>apps/portal/views_copilot_rail.py</code> → <code>portal:copilot_rail_*</code>), host-correct routing, <code>LoginRequired</code>, graceful degrade. Tools tray is config-gated OFF by default.</p>
+    </div>
+  </div>
+
+  <h2><span class="tag tag--cache">Stale cache — needs a client refresh, not a code change</span></h2>
+  <div class="card">
+    <h3>Why you still see gold + empty/duplicate cards</h3>
+    <p>A browser tab or installed PWA opened <i>before</i> the latest deploy keeps serving the old cached CSS/JS until the new service worker takes control. The SW is set to auto-update (<code>updateViaCache:'none'</code> + <code>registration.update()</code> on every load + guarded <code>controllerchange</code> reload), but an already-open session can lag.</p>
+    <h3 style="margin-top:12px">Definitive fix &amp; verification (please run on new-school.runmycampus.com)</h3>
+    <ol class="steps">
+      <li>Open DevTools → <b>Application → Service Workers</b> → click <b>Unregister</b>.</li>
+      <li>Application → <b>Storage → Clear site data</b>.</li>
+      <li>Hard reload (<code>Ctrl+Shift+R</code>). Close any other tabs/PWA windows of the site first.</li>
+      <li><b>Confirm the version:</b> DevTools → Console → run <code>caches.keys()</code> — you should see <code>sms-v4.04.23-…</code>. If you still see an older version, the deploy hasn't reached the tenant subdomain yet.</li>
+      <li><b>Confirm the theme:</b> Console → <code>getComputedStyle(document.body).getPropertyValue('--personality-accent')</code> — should be <code>#4f46e5</code>/indigo, not gold.</li>
+    </ol>
+  </div>
+
+  <h2><span class="tag tag--fix">Code fixed this turn</span></h2>
+  <div class="card">
+    <h3>Wizard read-only "void" (the big empty space)</h3>
+    <p>Your screenshot is the <b>completed MFA wizard's read-only review</b> page (<code>STUDIO › WIZARDS › MFA SETUP</code>), not the "Set up your school" overview. In review mode the short content was locked inside a <code>100dvh</code> focused-task grid → a large empty area below.</p>
+    <p><b>Fix:</b> review mode now opts OUT of the viewport-lock (<code>tenant_wizard.html</code>) so the page collapses to content height — no void. SW bumped to <code>v4.04.23</code> to force stale clients to refresh.</p>
+    <p class="ok">The onboarding OVERVIEW that matches the design preview is a different route: <code>/school/studio/wizards/</code> (hero + stages + wizard-card grid). The screenshot was a single completed wizard.</p>
+  </div>
+
+  <h2>Deployed runtime facts (from /health/)</h2>
+  <div class="card">
+    <div class="kv"><span>render_git_commit</span><b>a9608662e (≈ current)</b></div>
+    <div class="kv"><span>auth_api_guard</span><b>unauthenticated-api-guard-v1</b></div>
+    <div class="kv"><span>cache_backend</span><b>RedisCache (socket_timeout 3.0s)</b></div>
+    <div class="kv"><span>celery_broker_configured</span><b>false → in-process scheduler active</b></div>
+    <div class="kv"><span>SW CACHE_VERSION (repo)</span><b>sms-v4.04.23</b></div>
+  </div>
+
+  <h2>Open decisions for you</h2>
+  <div class="card">
+    <p>1. <b>Remove copilot/tools from the wizard surface?</b> They're wired + functional, but if you don't want them on setup pages I can gate them off there (one context flag).</p>
+    <p>2. <b>Make review mode useful, not just non-empty?</b> I can render the computed "next steps" as cards in review mode instead of just a banner.</p>
+    <p>3. <b>Force the indigo palette as a hard default even for tenants with old cached themes?</b> Already the code default; only branding overrides win. No code change needed — only a cache refresh.</p>
+  </div>
+</div>
+</body>
+</html>

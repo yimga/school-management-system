@@ -449,3 +449,35 @@
   outline: 2px solid var(--text-primary);
   outline-offset: 2px;
 }
+
+/* ----------------------------------------------------------------------------
+   Read-only review banner — shown when a completed wizard is reopened. Gives
+   the "saved answers" notice + actions + the suggested-next-step cards a clear,
+   intentional surface (the cards reuse .rmc-wizard-next-card from the global
+   class grammar). Pairs with the review-mode viewport-lock opt-out so the page
+   sizes to content instead of leaving a 100dvh void.
+   ------------------------------------------------------------------------- */
+.rmc-wizard-review-banner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: clamp(var(--space-3), 2vw, var(--space-4));
+  margin-bottom: var(--space-4);
+}
+.rmc-wizard-review-banner__text {
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.rmc-wizard-review-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+.rmc-wizard-review-banner__reset {
+  margin: 0;
+}
