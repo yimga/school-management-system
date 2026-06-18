@@ -894,6 +894,40 @@ def _do_provision_tracked(
 
     pulse(wf_run, "profile")
 
+    # Ensure the school is linked to its region BEFORE profile resolution.
+    # resolve_profile_for_school() / EducationSystemProfile.for_school() match an
+    # approved profile by school.default_region_id. A school created without an
+    # explicit region (operator create_school, region-less signup paths) leaves
+    # default_region_id None, which made an existing approved country profile
+    # (e.g. usa-any-auto) UNREACHABLE — for_school() returned None and the
+    # auto_create branch passed region_code=None, so resolution fell through to
+    # the generic fallback (the "No approved education profile resolved" WARNING).
+    # The block below restores the assumption the comment under it already makes:
+    # derive the region from country_code, idempotently + best-effort.
+    if not school.default_region_id and (getattr(school, "country_code", "") or "").strip():
+        try:
+            from apps.siteconfig.education_profile_engine import (
+                ensure_region_for_country,
+            )
+
+            _linked_region = ensure_region_for_country(school.country_code)
+            if _linked_region is not None:
+                school.default_region = _linked_region
+                school.save(update_fields=["default_region", "updated_at"])
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            DatabaseError,
+            IntegrityError,
+        ):
+            logger.debug(
+                "region link from country_code skipped for school %s",
+                school_id,
+                exc_info=True,
+            )
+
     # Seed academic year and terms from education profile + region defaults.
     # W1-9: When no education_profile_code is set, resolve_profile_for_school uses school.default_region_id
     # (from country_code at create) and returns one approved profile per country via for_school() + ensure_country_profile().
