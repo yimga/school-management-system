@@ -242,6 +242,20 @@ body.manager-portal-bridge[data-copilot="expanded"] #main-content {
   }
 }
 
+/* === Tenant canvas: fill the main column (no 1320px left-aligned cap) ===== */
+/* design-tokens.css documents the intent as --rmc-shell-max-width:none ("dashboards
+   use the full main column between sidebar rails … tenant portal …"), but
+   root-base-shell.css re-caps it to 1320px on :root. With .page-wrap's margin-inline:0
+   (left-aligned), the tenant canvas hugged the left on wide screens and left dead space
+   between the content and the copilot rail. Restore the documented full-column fill for
+   the TENANT portal only — the cockpit grids are built to fill (4/6-col snapshot &
+   quick-actions, auto-fill wizard grid). Manager / control-plane keep their own cap.
+   Safe from overflow: .portal-main-col is overflow-x:clip + min-width:0 and the grids
+   use minmax(0, 1fr). */
+body.portal-body-with-layout:not(.control-plane-shell) {
+  --rmc-shell-max-width: none;
+}
+
 /* === Tenant portal bridge: fixed copilot rail (Bootstrap layout) ====== */
 /* v4.04.x: tenant copilot rail widened 44 → 56px to match the single-rail
    tenant-admin workspace preview. The tools edge-tab folds into the bottom of

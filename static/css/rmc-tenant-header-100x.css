@@ -187,7 +187,11 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item {
   font-weight: 500;
   color: var(--text-secondary);
   text-decoration: none;
-  white-space: nowrap; /* never wrap a pill to a 2nd line in the inline header row */
+  /* horizontal-overflow-risk-allow: short fixed pills (Home/Finance/Messages/Analytics)
+     must never wrap to a 2nd line; horizontal containment is the wrapper's job —
+     .tp-primary-nav-inline is flex:0 1 auto + min-width:0 inside the flex-nowrap header
+     row, and the lg–xl compact-padding rule keeps all four on one line. */
+  white-space: nowrap;
   transition: background var(--motion-fast, 150ms), color var(--motion-fast, 150ms);
 }
 
