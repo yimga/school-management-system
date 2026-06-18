@@ -14,6 +14,16 @@ dependency is added/removed/bumped without regenerating. Derived from the
 declared manifests (requirements.txt + package-lock.json/package.json) rather
 than an installed environment, so it reproduces identically on any machine.
 
+Machine-verified enrichment (optional, local maintenance step):
+    python scripts/generate_sbom.py --enrich-from-installed --write
+reads resolved versions + SPDX licenses from the INSTALLED environment via
+importlib.metadata and writes them to a committed pins file
+(var/sbom-pins.json). Both `generate` and `verify` then read that committed
+file offline, so the byte-stable drift gate is preserved — exactly like a
+lockfile. Run enrichment in a venv with the project's deps installed, commit
+the refreshed pins + SBOM, and the asserted versions/licenses become
+machine-derived instead of hand-curated.
+
 Usage:
     python scripts/generate_sbom.py            # print to stdout
     python scripts/generate_sbom.py --write     # write docs/generated/runmycampus_sbom.cdx.json
@@ -27,6 +37,29 @@ import sys
 from pathlib import Path
 
 SBOM_RELATIVE_PATH = "docs/generated/runmycampus_sbom.cdx.json"
+# Machine-verified versions/licenses snapshot (refreshed by --enrich-from-installed).
+# Committed and read offline by both generate + verify so the gate stays deterministic.
+PINS_RELATIVE_PATH = "var/sbom-pins.json"
+
+# Trove classifier → SPDX id, for licenses read from installed package metadata
+# when the package exposes no SPDX `License-Expression` (metadata < 2.4).
+CLASSIFIER_SPDX = {
+    "License :: OSI Approved :: MIT License": "MIT",
+    "License :: OSI Approved :: BSD License": "BSD-3-Clause",
+    "License :: OSI Approved :: Apache Software License": "Apache-2.0",
+    "License :: OSI Approved :: ISC License (ISCL)": "ISC",
+    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)": "MPL-2.0",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)": "AGPL-3.0-or-later",
+    "License :: OSI Approved :: GNU Affero General Public License v3": "AGPL-3.0-only",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)": "GPL-3.0-only",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)": "GPL-2.0-only",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)": "LGPL-3.0-only",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)": "LGPL-3.0-or-later",
+    "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)": "LGPL-2.0-only",
+    "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)": "LGPL-2.1-only",
+    "License :: OSI Approved :: Python Software Foundation License": "PSF-2.0",
+    "License :: OSI Approved :: Historical Permission Notice and Disclaimer (HPND)": "HPND",
+}
 
 # ── High-confidence SPDX license map ──────────────────────────────────────────
 # Only packages whose license is known with confidence are listed. Anything not
@@ -93,6 +126,7 @@ PYTHON_LICENSES = {
     "pyjwt": "MIT",
     "signxml": "Apache-2.0",
     "lxml": "BSD-3-Clause",
+    "shap": "MIT",
 }
 
 JS_LICENSES = {
@@ -130,7 +164,7 @@ def _classify(license_id: str | None) -> str:
 _REQ_LINE = re.compile(r"^([A-Za-z0-9_.\-]+)(\[[^\]]*\])?\s*(.*)$")
 
 
-def parse_requirements(path: Path) -> list[dict]:
+def parse_requirements(path: Path, scope: str = "required") -> list[dict]:
     """Parse declared Python requirements into normalized component dicts."""
     out: list[dict] = []
     if not path.exists():
@@ -152,6 +186,7 @@ def parse_requirements(path: Path) -> list[dict]:
         if eq:
             pinned = eq.group(1)
         version = pinned or spec or "*"
+        curated = PYTHON_LICENSES.get(norm)
         out.append(
             {
                 "ecosystem": "pypi",
@@ -159,8 +194,10 @@ def parse_requirements(path: Path) -> list[dict]:
                 "normalized": norm,
                 "version": version,
                 "pinned": bool(pinned),
-                "license": PYTHON_LICENSES.get(norm),
-                "scope": "required",
+                "license": curated,
+                "license_source": "curated" if curated else None,
+                "version_source": "declared",
+                "scope": scope,
             }
         )
     return out
@@ -188,7 +225,9 @@ def parse_npm(pkg_json: Path, lock_json: Path) -> list[dict]:
     for section, scope in sections:
         for name, declared in (pkg.get(section) or {}).items():
             resolved, lic = _lock_version_license(lock, name)
-            license_id = JS_LICENSES.get(name) or lic
+            curated = JS_LICENSES.get(name)
+            license_id = curated or lic
+            license_source = "curated" if curated else ("lockfile" if lic else None)
             out.append(
                 {
                     "ecosystem": "npm",
@@ -197,6 +236,8 @@ def parse_npm(pkg_json: Path, lock_json: Path) -> list[dict]:
                     "version": resolved or str(declared).lstrip("^~"),
                     "pinned": resolved is not None,
                     "license": license_id,
+                    "license_source": license_source,
+                    "version_source": "lockfile" if resolved else "declared",
                     "scope": scope,
                     "dev": section == "devDependencies",
                 }
@@ -222,14 +263,50 @@ def _component(dep: dict) -> dict:
         comp["licenses"] = [{"license": {"id": dep["license"]}}]
     props = [{"name": "rmc:ecosystem", "value": dep["ecosystem"]}]
     props.append({"name": "rmc:classification", "value": _classify(dep.get("license"))})
-    if not dep.get("license"):
+    if dep.get("license"):
+        props.append(
+            {"name": "rmc:license-source", "value": dep.get("license_source") or "curated"}
+        )
+    else:
         props.append({"name": "rmc:license-status", "value": "unverified"})
+    props.append({"name": "rmc:version-source", "value": dep.get("version_source") or "declared"})
     if dep.get("dev"):
         props.append({"name": "rmc:dependency-type", "value": "dev"})
     if dep["normalized"] in PROPRIETARY_BACKING_SERVICE:
         props.append({"name": "rmc:backing-service", "value": "proprietary-saas"})
     comp["properties"] = props
     return comp
+
+
+def load_pins(root: Path) -> dict:
+    """Read the committed machine-verified pins file (offline, deterministic).
+
+    Shape: {"pypi": {"<normalized>": {"version": .., "license": .., "license_source": ..}}, "npm": {..}}
+    Absent file → empty dict (generator degrades to declared manifests + curated map).
+    """
+    path = root / PINS_RELATIVE_PATH
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _apply_pins(dep: dict, pins: dict) -> None:
+    """Overlay a committed pin (resolved version + verified license) onto a dep, in place."""
+    pin = (pins.get(dep["ecosystem"]) or {}).get(dep["normalized"])
+    if not pin:
+        return
+    pinned_version = pin.get("version")
+    if pinned_version:
+        dep["version"] = pinned_version
+        dep["pinned"] = True
+        dep["version_source"] = "installed"
+    pinned_license = pin.get("license")
+    if pinned_license:
+        dep["license"] = pinned_license
+        dep["license_source"] = pin.get("license_source") or "installed-metadata"
 
 
 def build_sbom(root: Path) -> dict:
@@ -242,7 +319,13 @@ def build_sbom(root: Path) -> dict:
         app_license = pj.get("license", app_license)
 
     deps = parse_requirements(root / "requirements.txt")
+    deps += parse_requirements(root / "requirements_optional.txt", scope="optional")
     deps += parse_npm(pkg_json, root / "package-lock.json")
+
+    pins = load_pins(root)
+    for dep in deps:
+        _apply_pins(dep, pins)
+
     components = sorted((_component(d) for d in deps), key=lambda c: (c["purl"], c["name"]))
 
     return {
@@ -254,7 +337,7 @@ def build_sbom(root: Path) -> dict:
                 {
                     "vendor": "RunMyCampus",
                     "name": "generate_sbom.py",
-                    "version": "1.0.0",
+                    "version": "1.1.0",
                 }
             ],
             "component": {
@@ -277,12 +360,100 @@ def repo_root() -> Path:
     return Path(__file__).resolve().parent.parent
 
 
+def _installed_license(name: str) -> tuple[str | None, str | None]:
+    """Resolve an SPDX license id for an INSTALLED package from its metadata.
+
+    Returns (license_id, source). Preference: SPDX `License-Expression`
+    (metadata 2.4+) > mapped Trove classifier > a short literal `License`
+    field. Returns (None, None) when nothing trustworthy is available — never
+    a guess.
+    """
+    from importlib import metadata  # stdlib; only touched during enrichment
+
+    try:
+        md = metadata.metadata(name)
+    except metadata.PackageNotFoundError:
+        return None, None
+
+    expr = (md.get("License-Expression") or "").strip()
+    if expr:
+        return expr, "license-expression"
+
+    for classifier in md.get_all("Classifier") or []:
+        spdx = CLASSIFIER_SPDX.get(classifier.strip())
+        if spdx:
+            return spdx, "classifier"
+
+    lic = (md.get("License") or "").strip()
+    if lic and "\n" not in lic and len(lic) <= 40:
+        return lic, "license-field"
+    return None, None
+
+
+def _installed_version(name: str) -> str | None:
+    from importlib import metadata
+
+    try:
+        return metadata.version(name)
+    except metadata.PackageNotFoundError:
+        return None
+
+
+def enrich_from_installed(root: Path) -> dict:
+    """Build the pins map from the INSTALLED environment and write it to disk.
+
+    Iterates the declared dependency set, looks each up via importlib.metadata,
+    and records the resolved version + verified SPDX license. Packages that are
+    not installed are simply skipped (the SBOM keeps their declared version).
+    Deterministic (sorted); written to var/sbom-pins.json.
+    """
+    pkg_json = root / "package.json"
+    pypi: dict = {}
+    py_deps = parse_requirements(root / "requirements.txt")
+    py_deps += parse_requirements(root / "requirements_optional.txt", scope="optional")
+    for dep in py_deps:
+        version = _installed_version(dep["normalized"]) or _installed_version(dep["name"])
+        license_id, source = _installed_license(dep["normalized"])
+        if license_id is None and source is None:
+            license_id, source = _installed_license(dep["name"])
+        entry: dict = {}
+        if version:
+            entry["version"] = version
+        if license_id:
+            entry["license"] = license_id
+            entry["license_source"] = source
+        if entry:
+            pypi[dep["normalized"]] = entry
+
+    pins = {
+        "_comment": (
+            "Machine-verified resolved versions + SPDX licenses from importlib.metadata. "
+            "Regenerate with: python scripts/generate_sbom.py --enrich-from-installed --write. "
+            "Do not hand-edit. Read offline by generate + verify so the SBOM drift gate stays deterministic."
+        ),
+        "pypi": {k: pypi[k] for k in sorted(pypi)},
+    }
+    out = root / PINS_RELATIVE_PATH
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(pins, indent=2) + "\n", encoding="utf-8")
+    print(f"Wrote {out} ({len(pypi)} pinned components from installed metadata).")
+    return pins
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write", action="store_true", help="write the SBOM to docs/generated/")
+    parser.add_argument(
+        "--enrich-from-installed",
+        action="store_true",
+        help="refresh var/sbom-pins.json with resolved versions + SPDX licenses from the installed env",
+    )
     args = parser.parse_args(argv)
 
     root = repo_root()
+    if args.enrich_from_installed:
+        enrich_from_installed(root)
+
     text = build_sbom_text(root)
     if args.write:
         out = root / SBOM_RELATIVE_PATH
@@ -290,7 +461,7 @@ def main(argv: list[str] | None = None) -> int:
         out.write_text(text, encoding="utf-8")
         data = json.loads(text)
         print(f"Wrote {out} ({len(data['components'])} components).")
-    else:
+    elif not args.enrich_from_installed:
         sys.stdout.write(text)
     return 0
 

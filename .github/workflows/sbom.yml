@@ -18,11 +18,13 @@ on:
   pull_request:
     paths:
       - "requirements.txt"
+      - "requirements_optional.txt"
       - "package.json"
       - "package-lock.json"
       - "scripts/generate_sbom.py"
       - "scripts/verify_sbom_current.py"
       - "docs/generated/runmycampus_sbom.cdx.json"
+      - "var/sbom-pins.json"
   workflow_dispatch: {}
 
 permissions:

@@ -7,7 +7,7 @@
       {
         "vendor": "RunMyCampus",
         "name": "generate_sbom.py",
-        "version": "1.0.0"
+        "version": "1.1.0"
       }
     ],
     "component": {
@@ -49,6 +49,14 @@
           "value": "OPEN_SOURCE_WITH_WEAK_COPYLEFT"
         },
         {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
+        },
+        {
           "name": "rmc:dependency-type",
           "value": "dev"
         }
@@ -78,6 +86,14 @@
           "value": "OSI_APPROVED_OPEN_SOURCE"
         },
         {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
+        },
+        {
           "name": "rmc:dependency-type",
           "value": "dev"
         }
@@ -105,6 +121,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "curated"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
         }
       ]
     },
@@ -130,6 +154,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
         },
         {
           "name": "rmc:dependency-type",
@@ -161,6 +193,14 @@
           "value": "OSI_APPROVED_OPEN_SOURCE"
         },
         {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
+        },
+        {
           "name": "rmc:dependency-type",
           "value": "dev"
         }
@@ -188,6 +228,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
         },
         {
           "name": "rmc:dependency-type",
@@ -219,6 +267,14 @@
           "value": "OSI_APPROVED_OPEN_SOURCE"
         },
         {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
+        },
+        {
           "name": "rmc:dependency-type",
           "value": "dev"
         }
@@ -246,6 +302,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
         },
         {
           "name": "rmc:dependency-type",
@@ -277,6 +341,14 @@
           "value": "OSI_APPROVED_OPEN_SOURCE"
         },
         {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
+        },
+        {
           "name": "rmc:dependency-type",
           "value": "dev"
         }
@@ -306,6 +378,14 @@
           "value": "OSI_APPROVED_OPEN_SOURCE"
         },
         {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
+        },
+        {
           "name": "rmc:dependency-type",
           "value": "dev"
         }
@@ -333,6 +413,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "curated"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
         }
       ]
     },
@@ -358,6 +446,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
         },
         {
           "name": "rmc:dependency-type",
@@ -389,6 +485,14 @@
           "value": "OSI_APPROVED_OPEN_SOURCE"
         },
         {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
+        },
+        {
           "name": "rmc:dependency-type",
           "value": "dev"
         }
@@ -418,6 +522,14 @@
           "value": "OPEN_SOURCE_WITH_WEAK_COPYLEFT"
         },
         {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
+        },
+        {
           "name": "rmc:dependency-type",
           "value": "dev"
         }
@@ -445,6 +557,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "curated"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
         }
       ]
     },
@@ -470,6 +590,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "curated"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
         }
       ]
     },
@@ -495,6 +623,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "curated"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
         }
       ]
     },
@@ -520,6 +656,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
         },
         {
           "name": "rmc:dependency-type",
@@ -551,6 +695,14 @@
           "value": "OSI_APPROVED_OPEN_SOURCE"
         },
         {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
+        },
+        {
           "name": "rmc:dependency-type",
           "value": "dev"
         }
@@ -578,6 +730,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
         },
         {
           "name": "rmc:dependency-type",
@@ -609,6 +769,14 @@
           "value": "OSI_APPROVED_OPEN_SOURCE"
         },
         {
+          "name": "rmc:license-source",
+          "value": "lockfile"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "lockfile"
+        },
+        {
           "name": "rmc:dependency-type",
           "value": "dev"
         }
@@ -616,11 +784,11 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/anthropic",
+      "bom-ref": "pkg:pypi/anthropic@0.102.0",
       "name": "anthropic",
-      "version": ">=0.39.0",
+      "version": "0.102.0",
       "scope": "required",
-      "purl": "pkg:pypi/anthropic",
+      "purl": "pkg:pypi/anthropic@0.102.0",
       "licenses": [
         {
           "license": {
@@ -636,6 +804,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         },
         {
           "name": "rmc:backing-service",
@@ -645,11 +821,11 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/argon2-cffi",
+      "bom-ref": "pkg:pypi/argon2-cffi@25.1.0",
       "name": "argon2-cffi",
-      "version": ">=23.1.0",
+      "version": "25.1.0",
       "scope": "required",
-      "purl": "pkg:pypi/argon2-cffi",
+      "purl": "pkg:pypi/argon2-cffi@25.1.0",
       "licenses": [
         {
           "license": {
@@ -665,20 +841,28 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/axe-selenium-python",
+      "bom-ref": "pkg:pypi/axe-selenium-python@3.0.0",
       "name": "axe-selenium-python",
-      "version": ">=2.1.6",
+      "version": "3.0.0",
       "scope": "required",
-      "purl": "pkg:pypi/axe-selenium-python",
+      "purl": "pkg:pypi/axe-selenium-python@3.0.0",
       "licenses": [
         {
           "license": {
-            "id": "MPL-2.0"
+            "id": "Mozilla Public License 2.0 (MPL 2.0)"
           }
         }
       ],
@@ -689,21 +873,29 @@
         },
         {
           "name": "rmc:classification",
-          "value": "OPEN_SOURCE_WITH_WEAK_COPYLEFT"
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-field"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/bleach",
+      "bom-ref": "pkg:pypi/bleach@6.3.0",
       "name": "bleach",
-      "version": ">=6.0.0",
+      "version": "6.3.0",
       "scope": "required",
-      "purl": "pkg:pypi/bleach",
+      "purl": "pkg:pypi/bleach@6.3.0",
       "licenses": [
         {
           "license": {
-            "id": "Apache-2.0"
+            "id": "Apache Software License"
           }
         }
       ],
@@ -715,16 +907,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-field"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/celery",
+      "bom-ref": "pkg:pypi/celery@5.6.3",
       "name": "celery",
-      "version": ">=5.3.0",
+      "version": "5.6.3",
       "scope": "required",
-      "purl": "pkg:pypi/celery",
+      "purl": "pkg:pypi/celery@5.6.3",
       "licenses": [
         {
           "license": {
@@ -740,41 +940,57 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:pypi/channels",
-      "name": "channels",
-      "version": ">=4.0.0",
-      "scope": "required",
-      "purl": "pkg:pypi/channels",
-      "licenses": [
-        {
-          "license": {
-            "id": "BSD-3-Clause"
-          }
-        }
-      ],
-      "properties": [
-        {
-          "name": "rmc:ecosystem",
-          "value": "pypi"
         },
         {
-          "name": "rmc:classification",
-          "value": "OSI_APPROVED_OPEN_SOURCE"
+          "name": "rmc:license-source",
+          "value": "license-field"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/channels-redis",
+      "bom-ref": "pkg:pypi/channels-redis@4.3.0",
       "name": "channels-redis",
-      "version": ">=4.2.0",
+      "version": "4.3.0",
       "scope": "required",
-      "purl": "pkg:pypi/channels-redis",
+      "purl": "pkg:pypi/channels-redis@4.3.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-field"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/channels@4.3.2",
+      "name": "channels",
+      "version": "4.3.2",
+      "scope": "required",
+      "purl": "pkg:pypi/channels@4.3.2",
       "licenses": [
         {
           "license": {
@@ -790,16 +1006,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/cryptography",
+      "bom-ref": "pkg:pypi/cryptography@48.0.0",
       "name": "cryptography",
-      "version": ">=42.0",
+      "version": "48.0.0",
       "scope": "required",
-      "purl": "pkg:pypi/cryptography",
+      "purl": "pkg:pypi/cryptography@48.0.0",
       "licenses": [
         {
           "license": {
@@ -815,16 +1039,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/dj-database-url",
+      "bom-ref": "pkg:pypi/dj-database-url@3.1.2",
       "name": "dj-database-url",
-      "version": ">=2.1",
+      "version": "3.1.2",
       "scope": "required",
-      "purl": "pkg:pypi/dj-database-url",
+      "purl": "pkg:pypi/dj-database-url@3.1.2",
       "licenses": [
         {
           "license": {
@@ -840,41 +1072,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:pypi/django",
-      "name": "Django",
-      "version": ">=5.0,<6.0",
-      "scope": "required",
-      "purl": "pkg:pypi/django",
-      "licenses": [
-        {
-          "license": {
-            "id": "BSD-3-Clause"
-          }
-        }
-      ],
-      "properties": [
-        {
-          "name": "rmc:ecosystem",
-          "value": "pypi"
         },
         {
-          "name": "rmc:classification",
-          "value": "OSI_APPROVED_OPEN_SOURCE"
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/django-celery-beat",
+      "bom-ref": "pkg:pypi/django-celery-beat@2.9.0",
       "name": "django-celery-beat",
-      "version": ">=2.5.0",
+      "version": "2.9.0",
       "scope": "required",
-      "purl": "pkg:pypi/django-celery-beat",
+      "purl": "pkg:pypi/django-celery-beat@2.9.0",
       "licenses": [
         {
           "license": {
@@ -890,16 +1105,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/django-celery-results",
+      "bom-ref": "pkg:pypi/django-celery-results@2.6.0",
       "name": "django-celery-results",
-      "version": ">=2.5.0",
+      "version": "2.6.0",
       "scope": "required",
-      "purl": "pkg:pypi/django-celery-results",
+      "purl": "pkg:pypi/django-celery-results@2.6.0",
       "licenses": [
         {
           "license": {
@@ -915,16 +1138,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/django-cors-headers",
+      "bom-ref": "pkg:pypi/django-cors-headers@4.9.0",
       "name": "django-cors-headers",
-      "version": ">=4.3.1",
+      "version": "4.9.0",
       "scope": "required",
-      "purl": "pkg:pypi/django-cors-headers",
+      "purl": "pkg:pypi/django-cors-headers@4.9.0",
       "licenses": [
         {
           "license": {
@@ -940,6 +1171,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
@@ -965,16 +1204,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "curated"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "declared"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/django-extensions",
+      "bom-ref": "pkg:pypi/django-extensions@4.1",
       "name": "django-extensions",
-      "version": ">=1.9.0",
+      "version": "4.1",
       "scope": "required",
-      "purl": "pkg:pypi/django-extensions",
+      "purl": "pkg:pypi/django-extensions@4.1",
       "licenses": [
         {
           "license": {
@@ -990,20 +1237,28 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/django-otp",
+      "bom-ref": "pkg:pypi/django-otp@1.7.0",
       "name": "django-otp",
-      "version": ">=1.7.0",
+      "version": "1.7.0",
       "scope": "required",
-      "purl": "pkg:pypi/django-otp",
+      "purl": "pkg:pypi/django-otp@1.7.0",
       "licenses": [
         {
           "license": {
-            "id": "BSD-2-Clause"
+            "id": "Unlicense"
           }
         }
       ],
@@ -1015,16 +1270,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/django-ratelimit",
+      "bom-ref": "pkg:pypi/django-ratelimit@4.1.0",
       "name": "django-ratelimit",
-      "version": ">=4.1.0",
+      "version": "4.1.0",
       "scope": "required",
-      "purl": "pkg:pypi/django-ratelimit",
+      "purl": "pkg:pypi/django-ratelimit@4.1.0",
       "licenses": [
         {
           "license": {
@@ -1040,16 +1303,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/django-redis",
+      "bom-ref": "pkg:pypi/django-redis@6.0.0",
       "name": "django-redis",
-      "version": ">=5.4.0",
+      "version": "6.0.0",
       "scope": "required",
-      "purl": "pkg:pypi/django-redis",
+      "purl": "pkg:pypi/django-redis@6.0.0",
       "licenses": [
         {
           "license": {
@@ -1065,16 +1336,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/django-tenants",
+      "bom-ref": "pkg:pypi/django-tenants@3.10.1",
       "name": "django-tenants",
-      "version": ">=1.6.0",
+      "version": "3.10.1",
       "scope": "required",
-      "purl": "pkg:pypi/django-tenants",
+      "purl": "pkg:pypi/django-tenants@3.10.1",
       "licenses": [
         {
           "license": {
@@ -1090,6 +1369,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
@@ -1115,16 +1402,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/djangorestframework",
-      "name": "djangorestframework",
-      "version": ">=3.14.0",
+      "bom-ref": "pkg:pypi/django@5.2.14",
+      "name": "Django",
+      "version": "5.2.14",
       "scope": "required",
-      "purl": "pkg:pypi/djangorestframework",
+      "purl": "pkg:pypi/django@5.2.14",
       "licenses": [
         {
           "license": {
@@ -1140,16 +1435,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/djangorestframework-simplejwt",
+      "bom-ref": "pkg:pypi/djangorestframework-simplejwt@5.5.1",
       "name": "djangorestframework-simplejwt",
-      "version": ">=5.3.0",
+      "version": "5.5.1",
       "scope": "required",
-      "purl": "pkg:pypi/djangorestframework-simplejwt",
+      "purl": "pkg:pypi/djangorestframework-simplejwt@5.5.1",
       "licenses": [
         {
           "license": {
@@ -1165,16 +1468,57 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/dnspython",
-      "name": "dnspython",
-      "version": ">=2.4.0",
+      "bom-ref": "pkg:pypi/djangorestframework@3.17.1",
+      "name": "djangorestframework",
+      "version": "3.17.1",
       "scope": "required",
-      "purl": "pkg:pypi/dnspython",
+      "purl": "pkg:pypi/djangorestframework@3.17.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dnspython@2.8.0",
+      "name": "dnspython",
+      "version": "2.8.0",
+      "scope": "required",
+      "purl": "pkg:pypi/dnspython@2.8.0",
       "licenses": [
         {
           "license": {
@@ -1190,16 +1534,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/drf-spectacular",
+      "bom-ref": "pkg:pypi/drf-spectacular@0.29.0",
       "name": "drf-spectacular",
-      "version": ">=0.27.0",
+      "version": "0.29.0",
       "scope": "required",
-      "purl": "pkg:pypi/drf-spectacular",
+      "purl": "pkg:pypi/drf-spectacular@0.29.0",
       "licenses": [
         {
           "license": {
@@ -1215,16 +1567,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/geoip2",
+      "bom-ref": "pkg:pypi/geoip2@5.2.0",
       "name": "geoip2",
-      "version": ">=5.0",
+      "version": "5.2.0",
       "scope": "required",
-      "purl": "pkg:pypi/geoip2",
+      "purl": "pkg:pypi/geoip2@5.2.0",
       "licenses": [
         {
           "license": {
@@ -1240,16 +1600,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/geonamescache",
+      "bom-ref": "pkg:pypi/geonamescache@3.0.1",
       "name": "geonamescache",
-      "version": ">=2.0.0",
+      "version": "3.0.1",
       "scope": "required",
-      "purl": "pkg:pypi/geonamescache",
+      "purl": "pkg:pypi/geonamescache@3.0.1",
       "licenses": [
         {
           "license": {
@@ -1265,16 +1633,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/graphene-django",
+      "bom-ref": "pkg:pypi/graphene-django@3.2.3",
       "name": "graphene-django",
-      "version": ">=3.2.0",
+      "version": "3.2.3",
       "scope": "required",
-      "purl": "pkg:pypi/graphene-django",
+      "purl": "pkg:pypi/graphene-django@3.2.3",
       "licenses": [
         {
           "license": {
@@ -1290,16 +1666,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-field"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/gunicorn",
+      "bom-ref": "pkg:pypi/gunicorn@24.1.1",
       "name": "gunicorn",
-      "version": ">=21.2,<25",
+      "version": "24.1.1",
       "scope": "required",
-      "purl": "pkg:pypi/gunicorn",
+      "purl": "pkg:pypi/gunicorn@24.1.1",
       "licenses": [
         {
           "license": {
@@ -1315,6 +1699,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
@@ -1340,16 +1732,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "curated"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "declared"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/inflection",
+      "bom-ref": "pkg:pypi/inflection@0.5.1",
       "name": "inflection",
-      "version": ">=0.5.1",
+      "version": "0.5.1",
       "scope": "required",
-      "purl": "pkg:pypi/inflection",
+      "purl": "pkg:pypi/inflection@0.5.1",
       "licenses": [
         {
           "license": {
@@ -1365,16 +1765,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/joblib",
+      "bom-ref": "pkg:pypi/joblib@1.5.3",
       "name": "joblib",
-      "version": ">=1.3.0",
+      "version": "1.5.3",
       "scope": "required",
-      "purl": "pkg:pypi/joblib",
+      "purl": "pkg:pypi/joblib@1.5.3",
       "licenses": [
         {
           "license": {
@@ -1390,16 +1798,31 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/json-logic",
+      "bom-ref": "pkg:pypi/json-logic@0.6.3",
       "name": "json-logic",
-      "version": ">=0.6.0",
+      "version": "0.6.3",
       "scope": "required",
-      "purl": "pkg:pypi/json-logic",
+      "purl": "pkg:pypi/json-logic@0.6.3",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "properties": [
         {
           "name": "rmc:ecosystem",
@@ -1407,11 +1830,15 @@
         },
         {
           "name": "rmc:classification",
-          "value": "UNKNOWN"
+          "value": "OSI_APPROVED_OPEN_SOURCE"
         },
         {
-          "name": "rmc:license-status",
-          "value": "unverified"
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
@@ -1437,20 +1864,28 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "curated"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "declared"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/numpy",
+      "bom-ref": "pkg:pypi/numpy@2.4.5",
       "name": "numpy",
-      "version": ">=1.24.0",
+      "version": "2.4.5",
       "scope": "required",
-      "purl": "pkg:pypi/numpy",
+      "purl": "pkg:pypi/numpy@2.4.5",
       "licenses": [
         {
           "license": {
-            "id": "BSD-3-Clause"
+            "id": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0"
           }
         }
       ],
@@ -1462,6 +1897,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
@@ -1472,103 +1915,6 @@
       "version": "1.4.1",
       "scope": "required",
       "purl": "pkg:pypi/odfpy@1.4.1",
-      "properties": [
-        {
-          "name": "rmc:ecosystem",
-          "value": "pypi"
-        },
-        {
-          "name": "rmc:classification",
-          "value": "UNKNOWN"
-        },
-        {
-          "name": "rmc:license-status",
-          "value": "unverified"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:pypi/openpyxl",
-      "name": "openpyxl",
-      "version": ">=3.1.0",
-      "scope": "required",
-      "purl": "pkg:pypi/openpyxl",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "properties": [
-        {
-          "name": "rmc:ecosystem",
-          "value": "pypi"
-        },
-        {
-          "name": "rmc:classification",
-          "value": "OSI_APPROVED_OPEN_SOURCE"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:pypi/pillow",
-      "name": "Pillow",
-      "version": ">=10.0",
-      "scope": "required",
-      "purl": "pkg:pypi/pillow",
-      "licenses": [
-        {
-          "license": {
-            "id": "HPND"
-          }
-        }
-      ],
-      "properties": [
-        {
-          "name": "rmc:ecosystem",
-          "value": "pypi"
-        },
-        {
-          "name": "rmc:classification",
-          "value": "OSI_APPROVED_OPEN_SOURCE"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:pypi/polib",
-      "name": "polib",
-      "version": ">=1.2.0",
-      "scope": "required",
-      "purl": "pkg:pypi/polib",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "properties": [
-        {
-          "name": "rmc:ecosystem",
-          "value": "pypi"
-        },
-        {
-          "name": "rmc:classification",
-          "value": "OSI_APPROVED_OPEN_SOURCE"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:pypi/prometheus-client",
-      "name": "prometheus-client",
-      "version": ">=0.20.0",
-      "scope": "required",
-      "purl": "pkg:pypi/prometheus-client",
       "licenses": [
         {
           "license": {
@@ -1584,66 +1930,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:pypi/psycopg",
-      "name": "psycopg",
-      "version": ">=3.1",
-      "scope": "required",
-      "purl": "pkg:pypi/psycopg",
-      "licenses": [
-        {
-          "license": {
-            "id": "LGPL-3.0-or-later"
-          }
-        }
-      ],
-      "properties": [
-        {
-          "name": "rmc:ecosystem",
-          "value": "pypi"
         },
         {
-          "name": "rmc:classification",
-          "value": "OPEN_SOURCE_WITH_WEAK_COPYLEFT"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:pypi/pycountry",
-      "name": "pycountry",
-      "version": ">=24.6.1",
-      "scope": "required",
-      "purl": "pkg:pypi/pycountry",
-      "licenses": [
-        {
-          "license": {
-            "id": "LGPL-2.1-only"
-          }
-        }
-      ],
-      "properties": [
-        {
-          "name": "rmc:ecosystem",
-          "value": "pypi"
+          "name": "rmc:license-source",
+          "value": "classifier"
         },
         {
-          "name": "rmc:classification",
-          "value": "OPEN_SOURCE_WITH_WEAK_COPYLEFT"
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/pyjwt",
-      "name": "PyJWT",
-      "version": ">=2.10,<3",
+      "bom-ref": "pkg:pypi/openpyxl@3.1.5",
+      "name": "openpyxl",
+      "version": "3.1.5",
       "scope": "required",
-      "purl": "pkg:pypi/pyjwt",
+      "purl": "pkg:pypi/openpyxl@3.1.5",
       "licenses": [
         {
           "license": {
@@ -1659,6 +1963,212 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pillow@12.2.0",
+      "name": "Pillow",
+      "version": "12.2.0",
+      "scope": "required",
+      "purl": "pkg:pypi/pillow@12.2.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT-CMU"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/polib@1.2.0",
+      "name": "polib",
+      "version": "1.2.0",
+      "scope": "required",
+      "purl": "pkg:pypi/polib@1.2.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/prometheus-client@0.25.0",
+      "name": "prometheus-client",
+      "version": "0.25.0",
+      "scope": "required",
+      "purl": "pkg:pypi/prometheus-client@0.25.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0 AND BSD-2-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/psycopg@3.3.4",
+      "name": "psycopg",
+      "version": "3.3.4",
+      "scope": "required",
+      "purl": "pkg:pypi/psycopg@3.3.4",
+      "licenses": [
+        {
+          "license": {
+            "id": "LGPL-3.0-only"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OPEN_SOURCE_WITH_WEAK_COPYLEFT"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pycountry@26.2.16",
+      "name": "pycountry",
+      "version": "26.2.16",
+      "scope": "required",
+      "purl": "pkg:pypi/pycountry@26.2.16",
+      "licenses": [
+        {
+          "license": {
+            "id": "LGPL-2.1-only"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OPEN_SOURCE_WITH_WEAK_COPYLEFT"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyjwt@2.12.1",
+      "name": "PyJWT",
+      "version": "2.12.1",
+      "scope": "required",
+      "purl": "pkg:pypi/pyjwt@2.12.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
@@ -1684,16 +2194,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "curated"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "declared"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/python-dotenv",
+      "bom-ref": "pkg:pypi/python-dotenv@1.2.2",
       "name": "python-dotenv",
-      "version": ">=1.0",
+      "version": "1.2.2",
       "scope": "required",
-      "purl": "pkg:pypi/python-dotenv",
+      "purl": "pkg:pypi/python-dotenv@1.2.2",
       "licenses": [
         {
           "license": {
@@ -1709,16 +2227,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-field"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/python-json-logger",
+      "bom-ref": "pkg:pypi/python-json-logger@4.1.0",
       "name": "python-json-logger",
-      "version": ">=2.0.7",
+      "version": "4.1.0",
       "scope": "required",
-      "purl": "pkg:pypi/python-json-logger",
+      "purl": "pkg:pypi/python-json-logger@4.1.0",
       "licenses": [
         {
           "license": {
@@ -1734,16 +2260,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/pytz",
+      "bom-ref": "pkg:pypi/pytz@2026.2",
       "name": "pytz",
-      "version": ">=2024.1",
+      "version": "2026.2",
       "scope": "required",
-      "purl": "pkg:pypi/pytz",
+      "purl": "pkg:pypi/pytz@2026.2",
       "licenses": [
         {
           "license": {
@@ -1759,6 +2293,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
@@ -1784,16 +2326,24 @@
         {
           "name": "rmc:classification",
           "value": "OPEN_SOURCE_WITH_WEAK_COPYLEFT"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "curated"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "declared"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/pyyaml",
+      "bom-ref": "pkg:pypi/pyyaml@6.0.3",
       "name": "PyYAML",
-      "version": ">=6.0.1",
+      "version": "6.0.3",
       "scope": "required",
-      "purl": "pkg:pypi/pyyaml",
+      "purl": "pkg:pypi/pyyaml@6.0.3",
       "licenses": [
         {
           "license": {
@@ -1809,16 +2359,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/qrcode",
+      "bom-ref": "pkg:pypi/qrcode@8.2",
       "name": "qrcode",
-      "version": ">=8.0",
+      "version": "8.2",
       "scope": "required",
-      "purl": "pkg:pypi/qrcode",
+      "purl": "pkg:pypi/qrcode@8.2",
       "licenses": [
         {
           "license": {
@@ -1834,16 +2392,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/redis",
+      "bom-ref": "pkg:pypi/redis@7.4.0",
       "name": "redis",
-      "version": ">=5.0.0",
+      "version": "7.4.0",
       "scope": "required",
-      "purl": "pkg:pypi/redis",
+      "purl": "pkg:pypi/redis@7.4.0",
       "licenses": [
         {
           "license": {
@@ -1859,6 +2425,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
@@ -1884,16 +2458,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/requests",
+      "bom-ref": "pkg:pypi/requests@2.34.2",
       "name": "requests",
-      "version": ">=2.31.0",
+      "version": "2.34.2",
       "scope": "required",
-      "purl": "pkg:pypi/requests",
+      "purl": "pkg:pypi/requests@2.34.2",
       "licenses": [
         {
           "license": {
@@ -1909,16 +2491,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/ruff",
+      "bom-ref": "pkg:pypi/ruff@0.15.13",
       "name": "ruff",
-      "version": ">=0.6.0",
+      "version": "0.15.13",
       "scope": "required",
-      "purl": "pkg:pypi/ruff",
+      "purl": "pkg:pypi/ruff@0.15.13",
       "licenses": [
         {
           "license": {
@@ -1934,16 +2524,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/scikit-learn",
+      "bom-ref": "pkg:pypi/scikit-learn@1.8.0",
       "name": "scikit-learn",
-      "version": ">=1.3.0",
+      "version": "1.8.0",
       "scope": "required",
-      "purl": "pkg:pypi/scikit-learn",
+      "purl": "pkg:pypi/scikit-learn@1.8.0",
       "licenses": [
         {
           "license": {
@@ -1959,16 +2557,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/sentry-sdk",
+      "bom-ref": "pkg:pypi/sentry-sdk@2.60.0",
       "name": "sentry-sdk",
-      "version": ">=1.40.0",
+      "version": "2.60.0",
       "scope": "required",
-      "purl": "pkg:pypi/sentry-sdk",
+      "purl": "pkg:pypi/sentry-sdk@2.60.0",
       "licenses": [
         {
           "license": {
@@ -1986,8 +2592,49 @@
           "value": "OSI_APPROVED_OPEN_SOURCE"
         },
         {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
+        },
+        {
           "name": "rmc:backing-service",
           "value": "proprietary-saas"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/shap@0.51.0",
+      "name": "shap",
+      "version": "0.51.0",
+      "scope": "optional",
+      "purl": "pkg:pypi/shap@0.51.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
@@ -2013,20 +2660,28 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "curated"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "declared"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/uritemplate",
+      "bom-ref": "pkg:pypi/uritemplate@4.2.0",
       "name": "uritemplate",
-      "version": ">=4.1.1",
+      "version": "4.2.0",
       "scope": "required",
-      "purl": "pkg:pypi/uritemplate",
+      "purl": "pkg:pypi/uritemplate@4.2.0",
       "licenses": [
         {
           "license": {
-            "id": "Apache-2.0 OR BSD-3-Clause"
+            "id": "BSD 3-Clause OR Apache-2.0"
           }
         }
       ],
@@ -2038,6 +2693,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-field"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
@@ -2063,16 +2726,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "curated"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "declared"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/weasyprint",
+      "bom-ref": "pkg:pypi/weasyprint@68.1",
       "name": "WeasyPrint",
-      "version": ">=61.0",
+      "version": "68.1",
       "scope": "required",
-      "purl": "pkg:pypi/weasyprint",
+      "purl": "pkg:pypi/weasyprint@68.1",
       "licenses": [
         {
           "license": {
@@ -2088,16 +2759,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "classifier"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/webauthn",
+      "bom-ref": "pkg:pypi/webauthn@2.7.1",
       "name": "webauthn",
-      "version": ">=2.0.0",
+      "version": "2.7.1",
       "scope": "required",
-      "purl": "pkg:pypi/webauthn",
+      "purl": "pkg:pypi/webauthn@2.7.1",
       "licenses": [
         {
           "license": {
@@ -2113,16 +2792,24 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:pypi/whitenoise",
+      "bom-ref": "pkg:pypi/whitenoise@6.12.0",
       "name": "whitenoise",
-      "version": ">=6.6",
+      "version": "6.12.0",
       "scope": "required",
-      "purl": "pkg:pypi/whitenoise",
+      "purl": "pkg:pypi/whitenoise@6.12.0",
       "licenses": [
         {
           "license": {
@@ -2138,6 +2825,14 @@
         {
           "name": "rmc:classification",
           "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:license-source",
+          "value": "license-expression"
+        },
+        {
+          "name": "rmc:version-source",
+          "value": "installed"
         }
       ]
     }

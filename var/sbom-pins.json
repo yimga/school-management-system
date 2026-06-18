@@ -1,0 +1,280 @@
+{
+  "_comment": "Machine-verified resolved versions + SPDX licenses from importlib.metadata. Regenerate with: python scripts/generate_sbom.py --enrich-from-installed --write. Do not hand-edit. Read offline by generate + verify so the SBOM drift gate stays deterministic.",
+  "pypi": {
+    "anthropic": {
+      "version": "0.102.0",
+      "license": "MIT",
+      "license_source": "classifier"
+    },
+    "argon2-cffi": {
+      "version": "25.1.0",
+      "license": "MIT",
+      "license_source": "license-expression"
+    },
+    "axe-selenium-python": {
+      "version": "3.0.0",
+      "license": "Mozilla Public License 2.0 (MPL 2.0)",
+      "license_source": "license-field"
+    },
+    "bleach": {
+      "version": "6.3.0",
+      "license": "Apache Software License",
+      "license_source": "license-field"
+    },
+    "celery": {
+      "version": "5.6.3",
+      "license": "BSD-3-Clause",
+      "license_source": "license-field"
+    },
+    "channels": {
+      "version": "4.3.2",
+      "license": "BSD-3-Clause",
+      "license_source": "classifier"
+    },
+    "channels-redis": {
+      "version": "4.3.0",
+      "license": "BSD",
+      "license_source": "license-field"
+    },
+    "cryptography": {
+      "version": "48.0.0",
+      "license": "Apache-2.0 OR BSD-3-Clause",
+      "license_source": "license-expression"
+    },
+    "dj-database-url": {
+      "version": "3.1.2",
+      "license": "BSD-3-Clause",
+      "license_source": "license-expression"
+    },
+    "django": {
+      "version": "5.2.14",
+      "license": "BSD-3-Clause",
+      "license_source": "license-expression"
+    },
+    "django-celery-beat": {
+      "version": "2.9.0",
+      "license": "BSD-3-Clause",
+      "license_source": "classifier"
+    },
+    "django-celery-results": {
+      "version": "2.6.0",
+      "license": "BSD-3-Clause",
+      "license_source": "classifier"
+    },
+    "django-cors-headers": {
+      "version": "4.9.0",
+      "license": "MIT",
+      "license_source": "license-expression"
+    },
+    "django-extensions": {
+      "version": "4.1",
+      "license": "MIT",
+      "license_source": "license-expression"
+    },
+    "django-otp": {
+      "version": "1.7.0",
+      "license": "Unlicense",
+      "license_source": "license-expression"
+    },
+    "django-ratelimit": {
+      "version": "4.1.0",
+      "license": "Apache-2.0",
+      "license_source": "classifier"
+    },
+    "django-redis": {
+      "version": "6.0.0",
+      "license": "BSD-3-Clause",
+      "license_source": "classifier"
+    },
+    "django-tenants": {
+      "version": "3.10.1",
+      "license": "MIT",
+      "license_source": "license-expression"
+    },
+    "django-unfold": {
+      "version": "0.76.0",
+      "license": "MIT",
+      "license_source": "license-expression"
+    },
+    "djangorestframework": {
+      "version": "3.17.1",
+      "license": "BSD-3-Clause",
+      "license_source": "license-expression"
+    },
+    "djangorestframework-simplejwt": {
+      "version": "5.5.1",
+      "license": "MIT",
+      "license_source": "classifier"
+    },
+    "dnspython": {
+      "version": "2.8.0",
+      "license": "ISC",
+      "license_source": "classifier"
+    },
+    "drf-spectacular": {
+      "version": "0.29.0",
+      "license": "BSD-3-Clause",
+      "license_source": "license-expression"
+    },
+    "geoip2": {
+      "version": "5.2.0",
+      "license": "Apache-2.0",
+      "license_source": "license-expression"
+    },
+    "geonamescache": {
+      "version": "3.0.1",
+      "license": "MIT",
+      "license_source": "license-expression"
+    },
+    "graphene-django": {
+      "version": "3.2.3",
+      "license": "MIT",
+      "license_source": "license-field"
+    },
+    "gunicorn": {
+      "version": "24.1.1",
+      "license": "MIT",
+      "license_source": "license-expression"
+    },
+    "inflection": {
+      "version": "0.5.1",
+      "license": "MIT",
+      "license_source": "classifier"
+    },
+    "joblib": {
+      "version": "1.5.3",
+      "license": "BSD-3-Clause",
+      "license_source": "license-expression"
+    },
+    "json-logic": {
+      "version": "0.6.3",
+      "license": "MIT",
+      "license_source": "classifier"
+    },
+    "numpy": {
+      "version": "2.4.5",
+      "license": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+      "license_source": "license-expression"
+    },
+    "odfpy": {
+      "version": "1.4.1",
+      "license": "Apache-2.0",
+      "license_source": "classifier"
+    },
+    "openpyxl": {
+      "version": "3.1.5",
+      "license": "MIT",
+      "license_source": "classifier"
+    },
+    "pillow": {
+      "version": "12.2.0",
+      "license": "MIT-CMU",
+      "license_source": "license-expression"
+    },
+    "polib": {
+      "version": "1.2.0",
+      "license": "MIT",
+      "license_source": "classifier"
+    },
+    "prometheus-client": {
+      "version": "0.25.0",
+      "license": "Apache-2.0 AND BSD-2-Clause",
+      "license_source": "license-expression"
+    },
+    "psycopg": {
+      "version": "3.3.4",
+      "license": "LGPL-3.0-only",
+      "license_source": "license-expression"
+    },
+    "pycountry": {
+      "version": "26.2.16",
+      "license": "LGPL-2.1-only",
+      "license_source": "license-expression"
+    },
+    "pyjwt": {
+      "version": "2.12.1",
+      "license": "MIT",
+      "license_source": "license-expression"
+    },
+    "python-dotenv": {
+      "version": "1.2.2",
+      "license": "BSD-3-Clause",
+      "license_source": "license-field"
+    },
+    "python-json-logger": {
+      "version": "4.1.0",
+      "license": "BSD-2-Clause",
+      "license_source": "license-expression"
+    },
+    "pytz": {
+      "version": "2026.2",
+      "license": "MIT",
+      "license_source": "classifier"
+    },
+    "pyyaml": {
+      "version": "6.0.3",
+      "license": "MIT",
+      "license_source": "classifier"
+    },
+    "qrcode": {
+      "version": "8.2",
+      "license": "BSD-3-Clause",
+      "license_source": "classifier"
+    },
+    "redis": {
+      "version": "7.4.0",
+      "license": "MIT",
+      "license_source": "license-expression"
+    },
+    "reportlab": {
+      "version": "4.2.2",
+      "license": "BSD-3-Clause",
+      "license_source": "classifier"
+    },
+    "requests": {
+      "version": "2.34.2",
+      "license": "Apache-2.0",
+      "license_source": "classifier"
+    },
+    "ruff": {
+      "version": "0.15.13",
+      "license": "MIT",
+      "license_source": "license-expression"
+    },
+    "scikit-learn": {
+      "version": "1.8.0",
+      "license": "BSD-3-Clause",
+      "license_source": "license-expression"
+    },
+    "sentry-sdk": {
+      "version": "2.60.0",
+      "license": "MIT",
+      "license_source": "license-expression"
+    },
+    "shap": {
+      "version": "0.51.0",
+      "license": "MIT",
+      "license_source": "classifier"
+    },
+    "uritemplate": {
+      "version": "4.2.0",
+      "license": "BSD 3-Clause OR Apache-2.0",
+      "license_source": "license-field"
+    },
+    "weasyprint": {
+      "version": "68.1",
+      "license": "BSD-3-Clause",
+      "license_source": "classifier"
+    },
+    "webauthn": {
+      "version": "2.7.1",
+      "license": "BSD-3-Clause",
+      "license_source": "license-expression"
+    },
+    "whitenoise": {
+      "version": "6.12.0",
+      "license": "MIT",
+      "license_source": "license-expression"
+    }
+  }
+}
