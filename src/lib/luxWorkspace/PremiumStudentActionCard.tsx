@@ -51,9 +51,13 @@ export function PremiumStudentActionCard({
   useEffect(() => {
     if (!isSheetOpen) return;
     let cancelled = false;
-    void loadSheetDraft(draftKey).then((draft) => {
-      if (!cancelled && draft) setDraftNote(draft.body);
-    });
+    void loadSheetDraft(draftKey)
+      .then((draft) => {
+        if (!cancelled && draft) setDraftNote(draft.body);
+      })
+      .catch(() => {
+        /* best-effort draft load — leave the note empty on storage failure */
+      });
     return () => {
       cancelled = true;
     };
@@ -62,7 +66,11 @@ export function PremiumStudentActionCard({
   useEffect(() => {
     if (!isSheetOpen) return;
     const handle = window.setTimeout(() => {
-      if (draftNote.trim().length > 0) void saveSheetDraft(draftKey, draftNote);
+      if (draftNote.trim().length > 0) {
+        void saveSheetDraft(draftKey, draftNote).catch(() => {
+          /* best-effort autosave — never surface a rejection */
+        });
+      }
     }, 400);
     return () => window.clearTimeout(handle);
   }, [draftNote, draftKey, isSheetOpen]);

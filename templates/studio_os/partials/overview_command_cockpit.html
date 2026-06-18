@@ -149,7 +149,7 @@
       <ul class="rmc-overview-card__list">
         {% for r in studio_role_preview_entries|slice:":5" %}
         <li class="rmc-overview-card__list-item">
-          {% if r.url %}<a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" title="{{ r.label|default:r.role }}">{{ r.label|default:r.role|default:_("Preview") }}</a>
+          {% if r.url %}<a href="{{ r.url }}" target="_blank" rel="noopener noreferrer" title="{{ r.label|default:r.role }}" aria-label="{{ r.label|default:r.role|default:_("Preview") }} {% trans "(opens in new tab)" %}">{{ r.label|default:r.role|default:_("Preview") }}</a>
           {% else %}<span title="{{ r.label|default:r.role }}">{{ r.label|default:r.role|default:_("Preview") }}</span>{% endif %}
         </li>
         {% endfor %}

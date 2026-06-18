@@ -45,21 +45,32 @@ export function CommandBar({
         setRemote([]);
         return;
       }
-      const res = await fetch(apiUrl, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken || csrfFromDom(),
-        },
-        body: JSON.stringify({
-          q,
-          active_url: typeof window !== 'undefined' ? window.location.pathname : '/',
-          include_ai: q.length >= 4 ? '1' : '0',
-        }),
-      });
-      const payload = await res.json();
-      setRemote((payload?.results as CommandBarResult[]) || []);
+      try {
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken || csrfFromDom(),
+          },
+          body: JSON.stringify({
+            q,
+            active_url: typeof window !== 'undefined' ? window.location.pathname : '/',
+            include_ai: q.length >= 4 ? '1' : '0',
+          }),
+        });
+        if (!res.ok) {
+          setRemote([]);
+          return;
+        }
+        const payload = await res.json();
+        setRemote((payload?.results as CommandBarResult[]) || []);
+      } catch {
+        // Network/parse failure (offline, server error): degrade gracefully to
+        // the static/local command set — never leave an unhandled rejection or
+        // stale remote results.
+        setRemote([]);
+      }
     },
     [apiUrl, csrfToken],
   );
