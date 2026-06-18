@@ -147,6 +147,15 @@ def _current_balance_for_account(account: BillingAccount) -> Decimal:
     )
 
 
+def platform_account_balance(account: BillingAccount) -> Decimal:
+    """Public read-only accessor for a billing account's current posted balance.
+
+    Positive = the tenant owes the platform. Exposed so operator surfaces can
+    display the balance without reaching into the private ledger aggregator.
+    """
+    return _current_balance_for_account(account)
+
+
 def _coerce_datetime(value, default: datetime) -> datetime:
     if isinstance(value, datetime):
         return value
@@ -1016,14 +1025,24 @@ def _promote_school_plan_from_processor_payload(
         if target is None:
             return
         school_changed: list[str] = []
+        promoted = False
         if getattr(school, "plan_id", None) != target.pk:
             school.plan = target
             school_changed.append("plan")
         if school_changed:
             school.save(update_fields=school_changed + ["updated_at"])
+            promoted = True
         if subscription.plan_id != target.pk:
             subscription.plan = target
             subscription.save(update_fields=["plan", "updated_at"])
+            promoted = True
+        if promoted:
+            # The plan FK alone does not change what the tenant can actually use:
+            # feature gates read materialized Entitlement rows behind a cached gate.
+            # Reconcile re-materializes those rows + busts the gate cache so the
+            # upgraded plan takes effect immediately instead of healing only on the
+            # next cache TTL or a manual lifecycle run.
+            reconcile_subscription_entitlements(subscription)
     except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
         logger.warning("billing_plan_promotion_failed", exc_info=True)
 

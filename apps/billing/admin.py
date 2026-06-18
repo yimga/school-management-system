@@ -1,6 +1,11 @@
+import logging
+
 from django.contrib import admin
+from django.db import DatabaseError
 
 from config.admin import platform_admin_site
+
+logger = logging.getLogger(__name__)
 
 from apps.billing.models import (
     BillingAccount,
@@ -52,6 +57,27 @@ class TenantSubscriptionAdmin(admin.ModelAdmin):
     )
     list_filter = ("status", "billing_cycle")
     search_fields = ("school__name", "plan__name", "external_subscription_ref")
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        # A direct plan/status edit here must re-materialize entitlements + bust the
+        # gate cache, otherwise the tenant's feature access stays at the pre-edit
+        # state until the next cache TTL or lifecycle run. The operator console
+        # (tenant_subscription_manage) already reconciles; this closes the same gap
+        # for the Django-admin fallback path. Best-effort: the row is already saved,
+        # so a reconcile failure must not roll the edit back — log and move on.
+        if not (obj.pk and obj.school_id and obj.billing_account_id):
+            return
+        try:
+            from apps.billing.services import reconcile_subscription_entitlements
+
+            reconcile_subscription_entitlements(obj)
+        except (DatabaseError, AttributeError, TypeError, ValueError, ImportError):
+            logger.warning(
+                "admin_subscription_reconcile_failed for subscription %s",
+                obj.pk,
+                exc_info=True,
+            )
 
 
 @admin.register(Entitlement, site=platform_admin_site)

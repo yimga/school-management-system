@@ -1,0 +1,175 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block cp_title %}{% trans "Tenant subscription" %}{% endblock %}
+{% block cp_workspace_header %}{% endblock %}
+{% block cp_content %}
+<div class="container-fluid py-3" data-page-archetype="operational-workbench">
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <div>
+      <h1 class="h4 mb-1">{{ school.name }}</h1>
+      <div class="text-muted small">
+        {% trans "Slug" %}: <code>{{ school.slug }}</code>
+        &middot; {% trans "Country" %}: {{ school.country_code|default:"—" }}
+        &middot; {% trans "Billing type" %}: {{ school.get_billing_type_display|default:school.billing_type }}
+      </div>
+    </div>
+    <a href="{{ back_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Back to billing" %}</a>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }} py-2">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header fw-semibold">{% trans "Current state" %}</div>
+        <div class="card-body small">
+          <dl class="row mb-0">
+            <dt class="col-6">{% trans "Plan" %}</dt>
+            <dd class="col-6 text-end">{% if school.plan %}{{ school.plan.name }}{% else %}<span class="text-muted">{% trans "None" %}</span>{% endif %}</dd>
+
+            <dt class="col-6">{% trans "Subscription" %}</dt>
+            <dd class="col-6 text-end">{{ subscription.get_status_display|default:subscription.status }}</dd>
+
+            <dt class="col-6">{% trans "Billing account" %}</dt>
+            <dd class="col-6 text-end">{{ billing_account.get_status_display|default:billing_account.status }}</dd>
+
+            <dt class="col-6">{% trans "Billed amount" %}</dt>
+            <dd class="col-6 text-end">{{ subscription.billed_amount|default:"0.00" }} {{ billing_account.currency_code|default:"USD" }}</dd>
+
+            <dt class="col-6">{% trans "Trial ends" %}</dt>
+            <dd class="col-6 text-end">{{ trial_end_date|default:"—" }}</dd>
+
+            <dt class="col-6">{% trans "Current period end" %}</dt>
+            <dd class="col-6 text-end">{{ subscription.current_period_end|date:"Y-m-d"|default:"—" }}</dd>
+
+            <dt class="col-6">{% trans "Balance due" %}</dt>
+            <dd class="col-6 text-end">{{ account_balance|default:"0.00" }} {{ billing_account.currency_code|default:"USD" }}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card mb-3">
+        <div class="card-header fw-semibold">{% trans "Change plan" %}</div>
+        <div class="card-body">
+          <form method="post" class="row g-2 align-items-end">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="change_plan">
+            <div class="col-sm-8">
+              <label class="form-label small">{% trans "Plan" %}</label>
+              <select name="plan_id" class="form-select">
+                <option value="">{% trans "(no plan)" %}</option>
+                {% for p in plans %}
+                  <option value="{{ p.pk }}" {% if school.plan and school.plan.pk == p.pk %}selected{% endif %}>
+                    {{ p.name }}{% if p.is_default %} — {% trans "default" %}{% endif %}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label small">{% trans "Reason (optional, audited)" %}</label>
+              <input type="text" name="reason" maxlength="200" class="form-control form-control-sm" placeholder="{% trans 'Why this change?' %}">
+            </div>
+            <div class="col-sm-4">
+              <button type="submit" class="btn btn-primary w-100">{% trans "Update plan" %}</button>
+            </div>
+          </form>
+          <div class="form-text">{% trans "Re-materializes entitlements + usage caps immediately. Tenants can still self-upgrade." %}</div>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header fw-semibold">{% trans "Trial" %}</div>
+        <div class="card-body">
+          <form method="post" class="row g-2 align-items-end">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="extend_trial">
+            <div class="col-sm-4">
+              <label class="form-label small">{% trans "Set end date" %}</label>
+              <input type="date" name="trial_end_date" class="form-control">
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label small">{% trans "…or extend by days" %}</label>
+              <input type="number" name="extend_days" min="1" max="365" class="form-control" placeholder="30">
+            </div>
+            <div class="col-12">
+              <label class="form-label small">{% trans "Reason (optional, audited)" %}</label>
+              <input type="text" name="reason" maxlength="200" class="form-control form-control-sm" placeholder="{% trans 'Why this change?' %}">
+            </div>
+            <div class="col-sm-4">
+              <button type="submit" class="btn btn-outline-primary w-100">{% trans "Apply trial" %}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header fw-semibold">{% trans "Subscription status" %}</div>
+        <div class="card-body">
+          <form method="post" class="row g-2 align-items-end">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="set_status">
+            <div class="col-sm-8">
+              <label class="form-label small">{% trans "Status" %}</label>
+              <select name="status" class="form-select">
+                {% for s in settable_statuses %}
+                  <option value="{{ s.value }}" {% if subscription.status == s.value %}selected{% endif %}>{{ s.label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label small">{% trans "Reason (optional, audited)" %}</label>
+              <input type="text" name="reason" maxlength="200" class="form-control form-control-sm" placeholder="{% trans 'Why this change?' %}">
+            </div>
+            <div class="col-sm-4">
+              <button type="submit" class="btn btn-outline-warning w-100">{% trans "Set status" %}</button>
+            </div>
+          </form>
+          <div class="form-text">{% trans "Suspend / cancel disables entitlements; reactivate re-enables them. Past-due is processor-driven and not settable here." %}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-3">
+    <div class="card-header fw-semibold">{% trans "Platform billing history" %}</div>
+    <div class="card-body p-0">
+      {% if ledger_entries %}
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 small align-middle">
+          <thead>
+            <tr>
+              <th>{% trans "When" %}</th>
+              <th>{% trans "Type" %}</th>
+              <th>{% trans "Status" %}</th>
+              <th class="text-end">{% trans "Amount" %}</th>
+              <th>{% trans "Reference" %}</th>
+              <th>{% trans "Description" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in ledger_entries %}
+            <tr>
+              <td class="text-nowrap">{{ entry.happened_at|date:"Y-m-d H:i"|default:"—" }}</td>
+              <td>{{ entry.get_entry_type_display|default:entry.entry_type }}</td>
+              <td>{{ entry.get_status_display|default:entry.status }}</td>
+              <td class="text-end">{{ entry.amount }} {{ entry.currency_code }}</td>
+              <td><code class="small">{{ entry.reference|default:"—" }}</code></td>
+              <td>{{ entry.description|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted small mb-0 p-3">{% trans "No platform billing entries recorded for this tenant yet." %}</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

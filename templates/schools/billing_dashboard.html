@@ -136,6 +136,7 @@
                   <th>{% trans "Plan" %}</th>
                   <th>{% trans "Amount" %}</th>
                   <th>{% trans "Cycle" %}</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -146,9 +147,10 @@
                   <td>{{ subscription.plan.name|default:"-" }}</td>
                   <td>{{ subscription.billing_account.currency_code }} {{ subscription.billed_amount|default:subscription.base_amount }}</td>
                   <td>{{ subscription.get_billing_cycle_display }}</td>
+                  <td class="text-end"><a class="btn btn-sm btn-outline-primary py-0" href="{% url 'super:tenant_subscription_manage' school_id=subscription.school.pk %}">{% trans "Manage" %}</a></td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="text-muted">{% trans "No subscriptions yet." %}</td></tr>
+                <tr><td colspan="6" class="text-muted">{% trans "No subscriptions yet." %}</td></tr>
                 {% endfor %}
               </tbody>
             </table>
