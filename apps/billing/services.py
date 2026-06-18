@@ -5,7 +5,7 @@ from decimal import Decimal
 import json
 import logging
 
-from django.db import models, transaction, DatabaseError
+from django.db import models, transaction, DatabaseError, IntegrityError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 
@@ -498,6 +498,27 @@ def ensure_subscription_for_school(school):
         .order_by("-updated_at", "-created_at")
         .first()
     )
+    # Bind the platform default plan (Free) for a brand-new tenant that has no
+    # explicit plan, so Free-tier entitlements + usage limits apply from day one.
+    # This sets School.plan (the FK the usage-limit middleware reads — a plan-less
+    # school otherwise skips all caps), not just the subscription's plan. Scoped
+    # to first subscription creation: never override an existing tenant's plan
+    # (an established plan-less tenant keeps its current posture). Operators set
+    # which plan is the default via Plan.is_default; tenants can still upgrade.
+    if subscription is None and getattr(school, "plan_id", None) is None:
+        try:
+            from apps.siteconfig.models_platform_catalog import Plan
+
+            default_plan = Plan.get_default_plan()
+            if default_plan is not None:
+                school.plan = default_plan
+                school.save(update_fields=["plan", "updated_at"])
+        except (ImportError, AttributeError, TypeError, ValueError, DatabaseError, IntegrityError):
+            logger.warning(
+                "default-plan binding skipped for school %s",
+                getattr(school, "id", None),
+                exc_info=True,
+            )
     period_start = timezone.now()
     period_end = period_start + timedelta(days=30)
     desired_status = _resolve_subscription_status(school)

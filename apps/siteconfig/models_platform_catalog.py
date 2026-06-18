@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models
+from django.db import models, transaction
 
 from apps.siteconfig.nuance_engine import model_hook_point_choices
 
@@ -522,6 +522,14 @@ class Plan(models.Model):
         help_text='Tier bands for TIERED model, e.g. [{"max": 500, "price": 200}, {"max": 2000, "price": 600}]',
     )
     is_active = models.BooleanField(default=True)
+    is_default = models.BooleanField(
+        default=False,
+        help_text=(
+            "When set, new tenants created without an explicit plan are bound to "
+            "this plan (the platform default — typically the Free tier). At most "
+            "one active plan may be the default."
+        ),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -529,9 +537,44 @@ class Plan(models.Model):
         ordering = ["name"]
         verbose_name = "Plan"
         verbose_name_plural = "Plans"
+        constraints = [
+            # At most one plan can be the platform default. Partial-unique so the
+            # many is_default=False rows never collide (works on PostgreSQL +
+            # SQLite via a partial index).
+            models.UniqueConstraint(
+                fields=["is_default"],
+                condition=models.Q(is_default=True),
+                name="plan_unique_default",
+            ),
+        ]
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        # Keep the single-default invariant DWIM: marking this plan as the
+        # default atomically clears the flag on any other plan, so operators
+        # never hit the partial-unique IntegrityError when switching defaults.
+        if self.is_default:
+            with transaction.atomic():
+                type(self).objects.filter(is_default=True).exclude(
+                    pk=self.pk or 0
+                ).update(is_default=False)
+                super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
+
+    @classmethod
+    def get_default_plan(cls):
+        """Return the platform default plan new tenants bind to, or None.
+
+        Read-only resolver (mirrors RegionConfig.get_default's house style but
+        never creates a row — defining a plan + its pricing is a product
+        decision, not something to fabricate at read time). Operators mark the
+        default via the is_default flag on the plan-edit form; the migration
+        seeds the Free tier as the initial default.
+        """
+        return cls.objects.filter(is_default=True, is_active=True).first()
 
 
 class SyncConflict(models.Model):

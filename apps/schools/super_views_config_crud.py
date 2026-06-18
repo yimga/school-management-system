@@ -129,9 +129,15 @@ class PlanSuperForm(forms.ModelForm):
                 self.fields[name].widget = forms.NumberInput(
                     attrs={"class": "form-control", "step": "0.01"}
                 )
-        if "is_active" in self.fields:
-            self.fields["is_active"].widget = forms.CheckboxInput(
-                attrs={"class": "form-check-input"}
+        for name in ("is_active", "is_default"):
+            if name in self.fields:
+                self.fields[name].widget = forms.CheckboxInput(
+                    attrs={"class": "form-check-input"}
+                )
+        if "is_default" in self.fields:
+            self.fields["is_default"].help_text = _(
+                "Bind new tenants with no explicit plan to this plan. Only one "
+                "plan can be the default."
             )
 
     def clean_included_features(self):
