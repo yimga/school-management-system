@@ -1306,12 +1306,21 @@ def _do_provision_tracked(
                 if profile:
                     subject_seed = profile.normalized_subject_seed()
                 if not subject_seed:
-                    subject_seed = [
-                        {"name": "Mathematics", "category": Subject.Category.GENERAL},
-                        {"name": "English", "category": Subject.Category.GENERAL},
-                        {"name": "French", "category": Subject.Category.GENERAL},
-                        {"name": "Science", "category": Subject.Category.GENERAL},
-                    ]
+                    # Last-resort fallback (no resolved profile / empty seed). Delegate
+                    # to the engine's language-aware helper instead of a hardcoded list
+                    # so an English-medium school never gets French as a core subject
+                    # (the old fallback hardcoded Math/English/French/Science for every
+                    # region). Derive language from the school, falling back to the
+                    # FR/EN sub-system marker when default_language is unset.
+                    from apps.siteconfig.education_profile_engine import (
+                        _default_subject_seed,
+                    )
+
+                    fallback_lang = (getattr(school, "default_language", "") or "").strip()
+                    if not fallback_lang:
+                        sub_system = (getattr(school, "sub_system", "") or "").upper()
+                        fallback_lang = "fr" if sub_system == "FR" else "en"
+                    subject_seed = _default_subject_seed(fallback_lang)
                 valid_categories = {choice[0] for choice in Subject.Category.choices}
                 for item in subject_seed:
                     name = str(item.get("name") if isinstance(item, dict) else "").strip()

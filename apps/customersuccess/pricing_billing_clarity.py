@@ -48,7 +48,16 @@ def pricing_clarity_crosswalk(*, school=None) -> dict[str, Any]:
                 .first()
             )
             if subscription is not None:
-                plan_name = getattr(subscription.plan, "name", "") or subscription.plan_code or ""
+                # subscription.plan may be None (no plan bound at provisioning). Both
+                # getattr()s no-op safely on None. plan_code lives on StripePlanPrice,
+                # NOT TenantSubscription — referencing it here raised an AttributeError
+                # that the broad except below swallowed, silently dropping status /
+                # cycle / amount for any plan-less subscription.
+                plan_name = (
+                    getattr(subscription.plan, "name", "")
+                    or getattr(subscription.plan, "slug", "")
+                    or ""
+                )
                 status = subscription.get_status_display()
                 billing_cycle = subscription.get_billing_cycle_display()
                 amount = _subscription_amount(subscription)
