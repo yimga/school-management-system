@@ -93,6 +93,51 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-assist-dock__backdrop {
   outline-offset: 2px;
 }
 
+/* ----------------------------------------------------------------------- *
+ * v4.04.x — TENANT single-rail consolidation.
+ *
+ * Per the tenant-admin workspace preview, the tenant right edge is ONE 56px
+ * rail: the AI copilot icons up top + a "Tools" entry at the bottom. The
+ * copilot rail (rmc-platform-vertical-compact.css) is a full-height fixed
+ * column at right:0; this block folds the floating tools edge-tab into the
+ * BOTTOM of that same column instead of letting it float as a separate
+ * rounded tab — so the two stop reading as two crowded rails.
+ *
+ * Tenant-only (body[data-rmc-workspace-tools="tenant"], set by the tray JS on
+ * the tenant surface only). The manager / control-plane tray keeps its
+ * original floating edge-tab. The tray still slides out from here via the
+ * existing toggle JS — zero markup / JS changes, so the DOM tree is untouched.
+ * ----------------------------------------------------------------------- */
+body[data-rmc-workspace-tools="tenant"] {
+  /* Match the 56px copilot-rail width so the tab is flush in the column. */
+  --rmc-operator-tools-tab-w: 56px;
+}
+
+@media (min-width: 992px) {
+  /* The copilot rail renders at lg+ (it is display:none below 992px), so only
+     merge the tab into it there; below lg the tab keeps its original floating
+     treatment. Kept in lockstep with the rail's lg breakpoint in
+     rmc-platform-vertical-compact.css — if one moves, move both, or the tab
+     floats over (or away from) the rail and you get two-rail crowding again. */
+  body[data-rmc-workspace-tools="tenant"] .rmc-operator-tools__edge-tab {
+    margin-bottom: 8px; /* align to the rail bottom (rail is bottom:8px) */
+    border: none;
+    border-top: 1px solid var(--cp-chrome-hairline, rgba(255, 255, 255, 0.14)); /* off-token-allow: tenant-copilot-rail-merge-dark-chrome */
+    border-radius: 0; /* continuous with the rail, not a floating pill */
+    /* Transparent: the copilot rail's dark gradient (z:45, directly beneath at
+       right:0) shows through, guaranteeing a seamless seam with no colour
+       matching. */
+    background: transparent;
+    color: var(--cp-chrome-text, #e8ecff); /* off-token-allow: tenant-copilot-rail-merge-dark-chrome */
+    box-shadow: none;
+  }
+  body[data-rmc-workspace-tools="tenant"] .rmc-operator-tools__edge-tab:hover,
+  body[data-rmc-workspace-tools="tenant"] .rmc-operator-tools__edge-tab:focus-visible {
+    background: rgba(255, 255, 255, 0.06); /* off-token-allow: tenant-copilot-rail-merge-dark-chrome */
+    box-shadow: none;
+  }
+}
+
 .rmc-operator-tools__edge-tab[aria-expanded="true"] {
   background: color-mix(in oklab, var(--school-primary) 28%, var(--surface-elevated, #1a2234));
   border-color: color-mix(in oklab, var(--school-primary) 45%, var(--hairline));

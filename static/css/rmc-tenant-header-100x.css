@@ -144,9 +144,9 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav {
   border-bottom: 1px solid var(--hairline);
 }
 
-/* v4.04.x: inline primary-nav — pulled onto the header line at xl+ (saves the
+/* v4.04.x: inline primary-nav — pulled onto the header line at lg+ (saves the
    full-width band row's height). Scoped to the inline host so the band-row copy
-   below xl keeps its original padding + bottom border. */
+   below lg keeps its original padding + bottom border. */
 body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav-inline {
   flex: 0 1 auto;
   min-width: 0;
@@ -158,8 +158,8 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav-inline .t
   flex-wrap: nowrap;
 }
 
-/* Transparent wrapper: below xl the band row renders exactly as before; at xl+
-   Bootstrap's d-xl-none hides it (the inline copy takes over). */
+/* Transparent wrapper: below lg the band row renders exactly as before; at lg+
+   Bootstrap's d-lg-none hides it (the inline copy takes over). */
 body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav-bandrow {
   display: contents;
 }
@@ -187,7 +187,20 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item {
   font-weight: 500;
   color: var(--text-secondary);
   text-decoration: none;
+  white-space: nowrap; /* never wrap a pill to a 2nd line in the inline header row */
   transition: background var(--motion-fast, 150ms), color var(--motion-fast, 150ms);
+}
+
+/* lg → just-below-xl: the inline nav shares the header row with brand + search +
+   controls. Compress the pills (tighter padding + slightly smaller text) so all four
+   fit on one line without clipping at ~992–1279px — the preview hides pill labels
+   below 1280px; we keep the labels but tighten instead. */
+@media (min-width: 992px) and (max-width: 1279.98px) {
+  body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav-inline .tp-primary-nav__item {
+    padding: 7px 11px;
+    font-size: 12.5px;
+    gap: 5px;
+  }
 }
 
 body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item:hover {

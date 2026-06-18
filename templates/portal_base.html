@@ -247,12 +247,15 @@
           </a>
         {% endif %}
 
-        {% comment %} v4.04.x: tenant primary nav pulled ONTO the header line at xl+ so
+        {% comment %} v4.04.x: tenant primary nav pulled ONTO the header line at lg+ so
            the four pills share the row with the search bar (reclaims the full-width band
-           row's vertical height). Below xl the band row still renders (tp-primary-nav-bandrow
-           wrapper, d-xl-none) — display:none guarantees exactly one nav is in the a11y tree
-           at any breakpoint, so there is no duplicate-landmark cost. {% endcomment %}
-        <div class="tp-primary-nav-inline d-none d-xl-flex align-items-center" data-rmc-tenant-primary-nav-inline="1">
+           row's vertical height). The lg breakpoint (≥992px) matches the preview across all
+           desktop widths AND aligns with the existing 991.98px band-restyle boundary; at lg
+           the d-xl-only campus/shell switchers are hidden, so the row has room. Below lg the
+           band row still renders (tp-primary-nav-bandrow wrapper, d-lg-none) — display:none
+           guarantees exactly one nav is in the a11y tree at any breakpoint, so there is no
+           duplicate-landmark cost. {% endcomment %}
+        <div class="tp-primary-nav-inline d-none d-lg-flex align-items-center" data-rmc-tenant-primary-nav-inline="1">
           {% include "partials/tenant_primary_nav.html" %}
         </div>
 
@@ -339,9 +342,9 @@
         </div>
       </div>
     </div>
-    {% comment %} Band-row primary nav: the full-width row fallback, shown only below xl
-       (at xl+ the inline copy in the header line takes over — see tp-primary-nav-inline). {% endcomment %}
-    <div class="tp-primary-nav-bandrow d-xl-none">{% include "partials/tenant_primary_nav.html" %}</div>
+    {% comment %} Band-row primary nav: the full-width row fallback, shown only below lg
+       (at lg+ the inline copy in the header line takes over — see tp-primary-nav-inline). {% endcomment %}
+    <div class="tp-primary-nav-bandrow d-lg-none">{% include "partials/tenant_primary_nav.html" %}</div>
     </div>
     {% endif %}
 

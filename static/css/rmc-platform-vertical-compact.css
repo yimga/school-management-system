@@ -243,6 +243,15 @@ body.manager-portal-bridge[data-copilot="expanded"] #main-content {
 }
 
 /* === Tenant portal bridge: fixed copilot rail (Bootstrap layout) ====== */
+/* v4.04.x: tenant copilot rail widened 44 → 56px to match the single-rail
+   tenant-admin workspace preview. The tools edge-tab folds into the bottom of
+   this same column (see rmc-operator-tools-tray.css, tenant block) so the right
+   edge reads as ONE 56px rail. Scoped to the tenant copilot-rail body attribute
+   only — the manager grid (data-rmc-notebook-footer-dock) is untouched. The var
+   cascades to both the mount width (below) and the main-col padding-right. */
+body[data-rmc-tenant-copilot-rail="1"] {
+  --rmc-app-shell-copilot-w: 56px;
+}
 body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount {
   position: fixed;
   top: var(--rmc-app-shell-header-h, 72px);
@@ -276,12 +285,21 @@ body[data-rmc-tenant-copilot-rail="1"] #main-content {
   padding-right: calc(var(--rmc-app-shell-copilot-w, 44px) + 8px);
 }
 
-body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .portal-main-col,
-body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] #main-content {
-  padding-right: calc(360px + 8px);
+/* xl+ only: the expanded 360px panel reserves space by pushing content. Below
+   xl the panel is allowed to OVERLAY (content keeps its collapsed 56px padding,
+   set by the base rule above) so the narrower lg canvas isn't squeezed — the
+   panel is position:fixed, so it floats over the right edge instead. */
+@media (min-width: 1200px) {
+  body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .portal-main-col,
+  body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] #main-content {
+    padding-right: calc(360px + 8px);
+  }
 }
 
-@media (max-width: 1199.98px) {
+/* v4.04.x: rail now shows at lg+ (≥992px) to match the header inline-nav
+   breakpoint — was xl+ (≥1200px). Below lg (tablet / mobile) the rail is hidden
+   and the tools tab floats free, as before. */
+@media (max-width: 991.98px) {
   body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount {
     display: none;
   }

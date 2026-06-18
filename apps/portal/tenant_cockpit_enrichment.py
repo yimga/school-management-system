@@ -105,6 +105,103 @@ def _hydrate_workspace_context_tenant(
     return hydrated
 
 
+# Decorative glyphs for onboarding-derived quick-action tiles, keyed by the
+# data-driven step key from apps.platform_runtime.onboarding. Presentational
+# only — an unknown key falls back to a neutral arrow. Mirrors the cockpit
+# emoji grammar used by the activity ticker.
+_QUICK_ACTION_GLYPHS: dict[str, str] = {
+    "academic_year": "📅",
+    "departments": "🏛",
+    "students": "🎓",
+    "teachers": "🧑‍🏫",
+    "classes": "🏫",
+    "reports": "📊",
+    "ccc": "🌐",
+    "marketplace": "🧩",
+    "data_migration": "📥",
+    "guided_configuration": "⚙",
+    "plan_entitlements": "💳",
+}
+
+
+def _seed_admin_quick_actions(
+    request: HttpRequest, section: dict[str, Any]
+) -> dict[str, Any]:
+    """Seed the Quick Actions grid with the school's *incomplete* onboarding steps.
+
+    Only fires when the operator has NOT already published their own tiles, so it
+    is a default the operator can override (cockpit cascade: SiteSettings wins).
+    Admin / staff landing surface only — the role gate keeps the ~10 ``exists()``
+    completion queries off the high-volume parent / student / teacher traffic.
+
+    Real, reverse()-resolved URLs from the live onboarding engine only — no
+    fabricated data. A brand-new tenant gets an actionable "next setup steps"
+    grid; a fully-onboarded tenant with no operator tiles gets nothing (the
+    section then stays hidden via its data-presence gate).
+    """
+    if not isinstance(section, dict):
+        return section
+    if not section.get("enabled") or section.get("tiles"):
+        return section  # disabled, or operator already configured — respect it
+
+    user = getattr(request, "user", None)
+    if user is None or not getattr(user, "is_authenticated", False):
+        return section
+    role = str(getattr(user, "role", "") or "").upper()
+    is_admin = (
+        getattr(user, "is_staff", False)
+        or getattr(user, "is_superuser", False)
+        or role == User.Role.ADMIN
+    )
+    if not is_admin:
+        return section
+
+    school = getattr(request, "school", None)
+    if school is None or getattr(school, "id", None) is None:
+        return section
+
+    try:
+        from apps.platform_runtime.onboarding import get_onboarding_steps
+
+        steps = get_onboarding_steps(school, user=user)
+    except Exception:  # noqa: BLE001 - seeding is best-effort; never block render
+        return section
+
+    tiles: list[dict[str, Any]] = []
+    for step in steps:
+        if step.get("done"):
+            continue
+        url = (step.get("link") or step.get("deep_link") or "").strip()
+        if not url:
+            continue
+        # `link` is already a resolved path; a bare `name:route` deep_link needs reverse().
+        if ":" in url and "/" not in url:
+            try:
+                url = reverse(url)
+            except Exception:  # noqa: BLE001
+                continue
+        key = str(step.get("key") or "")
+        glyph = _QUICK_ACTION_GLYPHS.get(key) or "→"
+        tiles.append(
+            {
+                "url": url,
+                "icon": glyph,
+                "title": str(step.get("label") or _("Set up")),
+                "sub": "",
+                "badge": "",
+            }
+        )
+        if len(tiles) >= 6:
+            break
+
+    if not tiles:
+        return section
+
+    seeded = dict(section)
+    seeded["tiles"] = tiles
+    return seeded
+
+
 def _seed_role_home_community_band(
     request: HttpRequest, section: dict[str, Any]
 ) -> dict[str, Any]:
@@ -160,6 +257,10 @@ def enrich_tenant_cockpit_for_request(
         tenant_cockpit["workspace_context_tenant"] = _hydrate_workspace_context_tenant(
             request, wct
         )
+
+    qa = tenant_cockpit.get("quick_actions")
+    if isinstance(qa, dict):
+        tenant_cockpit["quick_actions"] = _seed_admin_quick_actions(request, qa)
 
     if is_tp_v3_role_home_request(request):
         cb = tenant_cockpit.get("community_band")
