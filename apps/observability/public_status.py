@@ -249,10 +249,18 @@ def public_health(request):
     # this thread and, at most once per scan window, hands all cache I/O + job
     # execution to a daemon thread. It NEVER does I/O here and NEVER raises — the
     # /health/ probe stays DB/cache-free and fast (a blocking probe is the 502 loop).
+    inprocess_scheduler = None
     try:
-        from apps.platform_runtime.periodic import maybe_run_due_jobs
+        from apps.platform_runtime.periodic import (
+            inprocess_scheduler_enabled,
+            maybe_run_due_jobs,
+        )
 
         maybe_run_due_jobs()
+        # Pure-memory env read (no I/O) — lets you confirm from /health/ whether the
+        # worker-free periodic scheduler is active on the live box (it auto-yields
+        # when CELERY_BROKER_URL is set).
+        inprocess_scheduler = inprocess_scheduler_enabled()
     except Exception:  # noqa: BLE001 — health must be untouchable
         pass
     return JsonResponse(
@@ -284,6 +292,9 @@ def public_health(request):
             # crash-loop-guard socket timeout.
             "redis_configured": bool(os.environ.get("REDIS_URL")),
             "celery_broker_configured": bool(os.environ.get("CELERY_BROKER_URL")),
+            # Worker-free periodic scheduler: True when the in-process /health/ tick
+            # will run due jobs (auto-disables when a Celery broker is configured).
+            "inprocess_scheduler": inprocess_scheduler,
             "database_configured": bool(os.environ.get("DATABASE_URL")),
             "cache_backend": settings.CACHES.get("default", {}).get("BACKEND", ""),
             "cache_socket_timeout": settings.CACHES.get("default", {})

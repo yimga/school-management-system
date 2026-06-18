@@ -103,6 +103,16 @@ class PeriodicDispatcherTests(_RegistryIsolationMixin, TestCase):
         self.assertEqual(self.calls["n"], 0)
 
 
+class HealthEndpointSchedulerFlagTests(TestCase):
+    def test_health_reports_inprocess_scheduler_flag(self):
+        resp = self.client.get("/health/")
+        self.assertEqual(resp.status_code, 200)
+        body = resp.json()
+        self.assertIn("inprocess_scheduler", body)
+        # Boolean (or None only if the periodic import failed — it shouldn't here).
+        self.assertIsInstance(body["inprocess_scheduler"], bool)
+
+
 class SchedulerModeTests(TestCase):
     def _enabled(self, env):
         with mock.patch.dict(os.environ, env, clear=False):
