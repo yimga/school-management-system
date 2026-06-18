@@ -1511,6 +1511,44 @@ def _do_provision_tracked(
         # Pass 7: seed demo users + a populated sample class when the user opted in.
         _maybe_seed_onboarding_sample_data(school)
 
+        # Pass 8: ensure a platform billing subscription exists. Historically this
+        # was wired only into the entry surfaces (api_create_school / control-plane
+        # lifecycle / billing views), so a pure-engine provision (operator
+        # create_school, resume sweep) left the tenant with TenantSubscription
+        # MISSING + plan_id None until a billing view lazily get-or-created one.
+        # Fold it into the canonical engine so every provisioning path is uniform.
+        # Idempotent (get-or-create) + best-effort: a billing hiccup must never
+        # wedge provisioning or block completion, and the lazy self-heal still
+        # backstops it, so this step is deliberately NOT added to
+        # phase_b_failed_steps.
+        try:
+            from apps.billing.services import ensure_subscription_for_school
+
+            _billing_account, _subscription, subscription_created = (
+                ensure_subscription_for_school(school)
+            )
+            if subscription_created:
+                _record_school_event(
+                    school,
+                    event_type="SUBSCRIPTION_SEEDED",
+                    status="SUCCESS",
+                    message="Platform billing subscription created during provisioning.",
+                )
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            DatabaseError,
+            IntegrityError,
+            RuntimeError,
+        ):
+            logger.warning(
+                "ensure_subscription_for_school failed during provisioning school=%s",
+                school_id,
+                exc_info=True,
+            )
+
         if phase_b_failed_steps:
             # A critical step failed. Do NOT mark complete — record the failure and
             # leave the tenant resumable. provisioning_needs_resume() returns True on
