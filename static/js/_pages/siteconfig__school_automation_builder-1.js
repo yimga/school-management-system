@@ -204,15 +204,20 @@
       actions: extra.actions || [],
       graph: extra.graph || graphState
     }, lastSavedWorkflowId ? { id: lastSavedWorkflowId } : {});
-    const out = await postJson(((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_save_api"]), body);
-    if (out.id) { lastSavedWorkflowId = out.id; }
-    document.getElementById('wf-output').textContent = JSON.stringify(out, null, 2);
+    try {
+      const out = await postJson(((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_save_api"]), body);
+      if (out.id) { lastSavedWorkflowId = out.id; }
+      document.getElementById('wf-output').textContent = JSON.stringify(out, null, 2);
+    } catch (e) { document.getElementById('wf-output').textContent = String(e); }
   });
 
   document.getElementById('btn-publish')?.addEventListener('click', async function() {
     if (!lastSavedWorkflowId) { alert('Save draft first'); return; }
-    const out = await postJson(((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_publish_api"]), { id: lastSavedWorkflowId });
-    document.getElementById('wf-output').textContent = JSON.stringify(out, null, 2);
+    if (!confirm(((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["trans_confirm_publish"]))) { return; }
+    try {
+      const out = await postJson(((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_publish_api"]), { id: lastSavedWorkflowId });
+      document.getElementById('wf-output').textContent = JSON.stringify(out, null, 2);
+    } catch (e) { document.getElementById('wf-output').textContent = String(e); }
   });
 
   document.getElementById('btn-simulate')?.addEventListener('click', async function() {
@@ -225,38 +230,44 @@
         actions: extra.actions || []
       };
     } catch (e) { alert('Invalid JSON'); return; }
-    const out = await postJson(((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_simulate_api"]), {
-      dsl: dsl,
-      context: { score: 10, student_id: 1 }
-    });
-    document.getElementById('wf-output').textContent = JSON.stringify(out, null, 2);
+    try {
+      const out = await postJson(((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_simulate_api"]), {
+        dsl: dsl,
+        context: { score: 10, student_id: 1 }
+      });
+      document.getElementById('wf-output').textContent = JSON.stringify(out, null, 2);
+    } catch (e) { document.getElementById('wf-output').textContent = String(e); }
   });
 
   document.getElementById('btn-load-logs')?.addEventListener('click', async function() {
     let url = ((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_execution_logs_api"]);
     if (lastSavedWorkflowId) url += '?workflow_id=' + lastSavedWorkflowId;
-    const r = await fetch(url, { credentials: 'same-origin' });
-    const data = await r.json();
-    const sel = document.getElementById('exec-log-pick');
-    sel.innerHTML = '';
-    (data.logs || []).forEach(function(lg) {
-      const opt = document.createElement('option');
-      opt.value = lg.id;
-      opt.textContent = '#' + lg.id + ' ' + lg.run_status + (lg.has_action_errors ? ' ERR' : '');
-      sel.appendChild(opt);
-    });
-    document.getElementById('wf-output').textContent = JSON.stringify(data, null, 2);
+    try {
+      const r = await fetch(url, { credentials: 'same-origin' });
+      const data = await r.json();
+      const sel = document.getElementById('exec-log-pick');
+      sel.innerHTML = '';
+      (data.logs || []).forEach(function(lg) {
+        const opt = document.createElement('option');
+        opt.value = lg.id;
+        opt.textContent = '#' + lg.id + ' ' + lg.run_status + (lg.has_action_errors ? ' ERR' : '');
+        sel.appendChild(opt);
+      });
+      document.getElementById('wf-output').textContent = JSON.stringify(data, null, 2);
+    } catch (e) { document.getElementById('wf-output').textContent = String(e); }
   });
 
   document.getElementById('btn-retry-log')?.addEventListener('click', async function() {
     const sel = document.getElementById('exec-log-pick');
     const logId = sel.value;
     if (!logId) { alert('Load logs and pick an entry'); return; }
-    const out = await postJson(((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_retry_api"]), {
-      execution_log_id: parseInt(logId, 10),
-      context: {}
-    });
-    document.getElementById('wf-output').textContent = JSON.stringify(out, null, 2);
+    try {
+      const out = await postJson(((window.__RMC_PAGE_DATA__["siteconfig__school_automation_builder-1"] || {})["url_siteconfig_school_automation_retry_api"]), {
+        execution_log_id: parseInt(logId, 10),
+        context: {}
+      });
+      document.getElementById('wf-output').textContent = JSON.stringify(out, null, 2);
+    } catch (e) { document.getElementById('wf-output').textContent = String(e); }
   });
 
   wfJson.value = JSON.stringify({ conditions: [], actions: [], graph: { nodes: [], edges: [] } }, null, 2);

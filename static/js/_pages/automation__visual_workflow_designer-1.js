@@ -143,7 +143,7 @@
     if(!wid){ alert(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["trans_save_the_graph_first_workflow_id_required"])); return; }
     postJson(((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["var_validate_graph_url"]), {workflow_id: parseInt(wid,10)}).then(function(r){
       document.getElementById("wf-validate-out").textContent = JSON.stringify(r.j, null, 2);
-    });
+    }).catch(function(e){ document.getElementById("wf-validate-out").textContent = String(e); });
   });
 
   document.getElementById("wf-publish")?.addEventListener("click", function(){
@@ -179,7 +179,7 @@
       sample_payload: {school_id: ((window.__RMC_PAGE_DATA__["automation__visual_workflow_designer-1"] || {})["var_school_pk_2"]), student_id: 1}
     }).then(function(r){
       document.getElementById("wf-sim-out").textContent = JSON.stringify(r.j, null, 2);
-    });
+    }).catch(function(e){ document.getElementById("wf-sim-out").textContent = String(e); });
   });
 
   pushNode("trigger", 40, 40);
