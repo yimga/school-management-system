@@ -1,0 +1,47 @@
+# SBOM freshness + license-inventory gate (open-source-first audit).
+#
+# Regenerates the CycloneDX SBOM from the declared manifests and fails the PR
+# when docs/generated/runmycampus_sbom.cdx.json is stale — i.e. a dependency
+# was added/removed/bumped without running `python scripts/generate_sbom.py
+# --write`. The SBOM doubles as the machine-readable license inventory, so this
+# also keeps license classification current.
+#
+# This is a fast, stdlib-only static gate (no `pip install`). It is INTENTIONALLY
+# separate from the existing CVE scanners — pip-audit.yml and security-self-audit.yml
+# already cover Python + JS vulnerability scanning (bandit / pip-audit / npm audit /
+# semgrep / gitleaks). This gate adds the missing SBOM + license-drift slice only;
+# it does not duplicate vulnerability scanning.
+
+name: sbom
+
+on:
+  pull_request:
+    paths:
+      - "requirements.txt"
+      - "package.json"
+      - "package-lock.json"
+      - "scripts/generate_sbom.py"
+      - "scripts/verify_sbom_current.py"
+      - "docs/generated/runmycampus_sbom.cdx.json"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sbom-current:
+    name: SBOM current vs declared manifests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify SBOM is current
+        run: python scripts/verify_sbom_current.py --compare

@@ -54,26 +54,31 @@ that reads them is permissively licensed, but the **data** is attribution-licens
 and the attribution below must be retained wherever this product (or that data) is
 redistributed or exposed in a network service.
 
-### GeoLite2 (via `maxminddb-geolite2` / `geoip2`)
+### GeoLite2 (via `geoip2`)
 
-- **Packages:** `maxminddb-geolite2==2018.703` (bundles a GeoLite2 database
-  snapshot) and `geoip2>=5.0` (MaxMind's reader library, Apache-2.0 code).
-- **Data license:** the bundled `maxminddb-geolite2` database is the **legacy
-  GeoLite2** vintage (2018), distributed by MaxMind under
-  **Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)**.
-  (MaxMind's *current* GeoLite2 databases, post-2019, are distributed under the
-  MaxMind GeoLite2 End User License Agreement rather than CC; if you replace the
-  bundled DB with a freshly downloaded GeoLite2 file, that EULA's attribution
-  requirement applies instead — the attribution string below satisfies both.)
-- **Required attribution:**
+- **Package:** `geoip2>=5.0` (MaxMind's reader library, Apache-2.0 code). **No
+  GeoLite2 database is bundled in this repo.** The former `maxminddb-geolite2==2018.703`
+  pin (which shipped a 2018-vintage GeoLite2 DB) was **removed** during the
+  open-source-first audit: nothing imported it, the snapshot was ~8 years stale,
+  and dropping it eliminates the licensing ambiguity below.
+- **Data license (if you supply your own DB):** MaxMind relicensed GeoLite2 on
+  **30 December 2019**. Snapshots **before** that date were
+  **Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA 4.0)**; **current**
+  GeoLite2 databases are distributed only under the **MaxMind GeoLite2 End User
+  License Agreement** (free account + license key required, and the EULA
+  requires deleting databases within 30 days of a new release). If you enable
+  geo-IP by pointing `GEOIP_PATH` at a freshly downloaded GeoLite2/GeoIP2 file,
+  that EULA — and the attribution below — applies.
+- **Required attribution (when a MaxMind DB is in use):**
 
   > This product includes GeoLite2 data created by MaxMind, available from
   > https://www.maxmind.com.
 
 - **Used by:** optional IP→country resolution for compliance access control
-  (`apps/compliance/access_control.py`, `apps/siteconfig/geoip_*`). This path is
-  **disabled by default** — it activates only when `GEOIP_PATH` is configured; on
-  the default deployment (e.g. Render) it returns `None` and callers fall back.
+  (`apps/compliance/access_control.py`, `apps/accounts/security_audit.py`). This
+  path is **disabled by default** — it activates only when `GEOIP_PATH` is
+  configured; on the default deployment (e.g. Render) it returns `None` and
+  callers fall back.
 
 ### GeoNames (via `geonamescache`)
 

@@ -1,0 +1,2145 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "tools": [
+      {
+        "vendor": "RunMyCampus",
+        "name": "generate_sbom.py",
+        "version": "1.0.0"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "bom-ref": "runmycampus-platform",
+      "name": "runmycampus",
+      "version": "0.0.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "AGPL-3.0-or-later"
+          }
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@axe-core/playwright@4.11.3",
+      "name": "@axe-core/playwright",
+      "version": "4.11.3",
+      "scope": "excluded",
+      "purl": "pkg:npm/@axe-core/playwright@4.11.3",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OPEN_SOURCE_WITH_WEAK_COPYLEFT"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@playwright/test@1.58.2",
+      "name": "@playwright/test",
+      "version": "1.58.2",
+      "scope": "excluded",
+      "purl": "pkg:npm/@playwright/test@1.58.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@tesseract.js-data/eng@1.0.0",
+      "name": "@tesseract.js-data/eng",
+      "version": "1.0.0",
+      "scope": "required",
+      "purl": "pkg:npm/@tesseract.js-data/eng@1.0.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@testing-library/jest-dom@6.9.1",
+      "name": "@testing-library/jest-dom",
+      "version": "6.9.1",
+      "scope": "excluded",
+      "purl": "pkg:npm/@testing-library/jest-dom@6.9.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@testing-library/react@16.3.2",
+      "name": "@testing-library/react",
+      "version": "16.3.2",
+      "scope": "excluded",
+      "purl": "pkg:npm/@testing-library/react@16.3.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@types/react-dom@18.3.7",
+      "name": "@types/react-dom",
+      "version": "18.3.7",
+      "scope": "excluded",
+      "purl": "pkg:npm/@types/react-dom@18.3.7",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@types/react@18.3.28",
+      "name": "@types/react",
+      "version": "18.3.28",
+      "scope": "excluded",
+      "purl": "pkg:npm/@types/react@18.3.28",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@types/three@0.184.1",
+      "name": "@types/three",
+      "version": "0.184.1",
+      "scope": "excluded",
+      "purl": "pkg:npm/@types/three@0.184.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@vitejs/plugin-react@4.7.0",
+      "name": "@vitejs/plugin-react",
+      "version": "4.7.0",
+      "scope": "excluded",
+      "purl": "pkg:npm/@vitejs/plugin-react@4.7.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/copyfiles@2.4.1",
+      "name": "copyfiles",
+      "version": "2.4.1",
+      "scope": "excluded",
+      "purl": "pkg:npm/copyfiles@2.4.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/dexie@4.3.0",
+      "name": "dexie",
+      "version": "4.3.0",
+      "scope": "required",
+      "purl": "pkg:npm/dexie@4.3.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/globe.gl@2.46.1",
+      "name": "globe.gl",
+      "version": "2.46.1",
+      "scope": "excluded",
+      "purl": "pkg:npm/globe.gl@2.46.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/jsdom@24.1.3",
+      "name": "jsdom",
+      "version": "24.1.3",
+      "scope": "excluded",
+      "purl": "pkg:npm/jsdom@24.1.3",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/pa11y-ci@3.1.0",
+      "name": "pa11y-ci",
+      "version": "3.1.0",
+      "scope": "excluded",
+      "purl": "pkg:npm/pa11y-ci@3.1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "LGPL-3.0-only"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OPEN_SOURCE_WITH_WEAK_COPYLEFT"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/react-dom@18.3.1",
+      "name": "react-dom",
+      "version": "18.3.1",
+      "scope": "required",
+      "purl": "pkg:npm/react-dom@18.3.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/react@18.3.1",
+      "name": "react",
+      "version": "18.3.1",
+      "scope": "required",
+      "purl": "pkg:npm/react@18.3.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/tesseract.js@7.0.0",
+      "name": "tesseract.js",
+      "version": "7.0.0",
+      "scope": "required",
+      "purl": "pkg:npm/tesseract.js@7.0.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/three@0.184.0",
+      "name": "three",
+      "version": "0.184.0",
+      "scope": "excluded",
+      "purl": "pkg:npm/three@0.184.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/tsx@4.22.2",
+      "name": "tsx",
+      "version": "4.22.2",
+      "scope": "excluded",
+      "purl": "pkg:npm/tsx@4.22.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/typescript@5.9.3",
+      "name": "typescript",
+      "version": "5.9.3",
+      "scope": "excluded",
+      "purl": "pkg:npm/typescript@5.9.3",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/vitest@2.1.9",
+      "name": "vitest",
+      "version": "2.1.9",
+      "scope": "excluded",
+      "purl": "pkg:npm/vitest@2.1.9",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "npm"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:dependency-type",
+          "value": "dev"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/anthropic",
+      "name": "anthropic",
+      "version": ">=0.39.0",
+      "scope": "required",
+      "purl": "pkg:pypi/anthropic",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:backing-service",
+          "value": "proprietary-saas"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/argon2-cffi",
+      "name": "argon2-cffi",
+      "version": ">=23.1.0",
+      "scope": "required",
+      "purl": "pkg:pypi/argon2-cffi",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/axe-selenium-python",
+      "name": "axe-selenium-python",
+      "version": ">=2.1.6",
+      "scope": "required",
+      "purl": "pkg:pypi/axe-selenium-python",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OPEN_SOURCE_WITH_WEAK_COPYLEFT"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/bleach",
+      "name": "bleach",
+      "version": ">=6.0.0",
+      "scope": "required",
+      "purl": "pkg:pypi/bleach",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/celery",
+      "name": "celery",
+      "version": ">=5.3.0",
+      "scope": "required",
+      "purl": "pkg:pypi/celery",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/channels",
+      "name": "channels",
+      "version": ">=4.0.0",
+      "scope": "required",
+      "purl": "pkg:pypi/channels",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/channels-redis",
+      "name": "channels-redis",
+      "version": ">=4.2.0",
+      "scope": "required",
+      "purl": "pkg:pypi/channels-redis",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/cryptography",
+      "name": "cryptography",
+      "version": ">=42.0",
+      "scope": "required",
+      "purl": "pkg:pypi/cryptography",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0 OR BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dj-database-url",
+      "name": "dj-database-url",
+      "version": ">=2.1",
+      "scope": "required",
+      "purl": "pkg:pypi/dj-database-url",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/django",
+      "name": "Django",
+      "version": ">=5.0,<6.0",
+      "scope": "required",
+      "purl": "pkg:pypi/django",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/django-celery-beat",
+      "name": "django-celery-beat",
+      "version": ">=2.5.0",
+      "scope": "required",
+      "purl": "pkg:pypi/django-celery-beat",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/django-celery-results",
+      "name": "django-celery-results",
+      "version": ">=2.5.0",
+      "scope": "required",
+      "purl": "pkg:pypi/django-celery-results",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/django-cors-headers",
+      "name": "django-cors-headers",
+      "version": ">=4.3.1",
+      "scope": "required",
+      "purl": "pkg:pypi/django-cors-headers",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/django-cryptography",
+      "name": "django-cryptography",
+      "version": ">=1.1",
+      "scope": "required",
+      "purl": "pkg:pypi/django-cryptography",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/django-extensions",
+      "name": "django-extensions",
+      "version": ">=1.9.0",
+      "scope": "required",
+      "purl": "pkg:pypi/django-extensions",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/django-otp",
+      "name": "django-otp",
+      "version": ">=1.7.0",
+      "scope": "required",
+      "purl": "pkg:pypi/django-otp",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/django-ratelimit",
+      "name": "django-ratelimit",
+      "version": ">=4.1.0",
+      "scope": "required",
+      "purl": "pkg:pypi/django-ratelimit",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/django-redis",
+      "name": "django-redis",
+      "version": ">=5.4.0",
+      "scope": "required",
+      "purl": "pkg:pypi/django-redis",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/django-tenants",
+      "name": "django-tenants",
+      "version": ">=1.6.0",
+      "scope": "required",
+      "purl": "pkg:pypi/django-tenants",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/django-unfold@0.76.0",
+      "name": "django-unfold",
+      "version": "0.76.0",
+      "scope": "required",
+      "purl": "pkg:pypi/django-unfold@0.76.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/djangorestframework",
+      "name": "djangorestframework",
+      "version": ">=3.14.0",
+      "scope": "required",
+      "purl": "pkg:pypi/djangorestframework",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/djangorestframework-simplejwt",
+      "name": "djangorestframework-simplejwt",
+      "version": ">=5.3.0",
+      "scope": "required",
+      "purl": "pkg:pypi/djangorestframework-simplejwt",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/dnspython",
+      "name": "dnspython",
+      "version": ">=2.4.0",
+      "scope": "required",
+      "purl": "pkg:pypi/dnspython",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/drf-spectacular",
+      "name": "drf-spectacular",
+      "version": ">=0.27.0",
+      "scope": "required",
+      "purl": "pkg:pypi/drf-spectacular",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/geoip2",
+      "name": "geoip2",
+      "version": ">=5.0",
+      "scope": "required",
+      "purl": "pkg:pypi/geoip2",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/geonamescache",
+      "name": "geonamescache",
+      "version": ">=2.0.0",
+      "scope": "required",
+      "purl": "pkg:pypi/geonamescache",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/graphene-django",
+      "name": "graphene-django",
+      "version": ">=3.2.0",
+      "scope": "required",
+      "purl": "pkg:pypi/graphene-django",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/gunicorn",
+      "name": "gunicorn",
+      "version": ">=21.2,<25",
+      "scope": "required",
+      "purl": "pkg:pypi/gunicorn",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/hijridate",
+      "name": "hijridate",
+      "version": ">=2.3.0,<3.0",
+      "scope": "required",
+      "purl": "pkg:pypi/hijridate",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/inflection",
+      "name": "inflection",
+      "version": ">=0.5.1",
+      "scope": "required",
+      "purl": "pkg:pypi/inflection",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/joblib",
+      "name": "joblib",
+      "version": ">=1.3.0",
+      "scope": "required",
+      "purl": "pkg:pypi/joblib",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/json-logic",
+      "name": "json-logic",
+      "version": ">=0.6.0",
+      "scope": "required",
+      "purl": "pkg:pypi/json-logic",
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "UNKNOWN"
+        },
+        {
+          "name": "rmc:license-status",
+          "value": "unverified"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/lxml",
+      "name": "lxml",
+      "version": ">=5.0",
+      "scope": "required",
+      "purl": "pkg:pypi/lxml",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/numpy",
+      "name": "numpy",
+      "version": ">=1.24.0",
+      "scope": "required",
+      "purl": "pkg:pypi/numpy",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/odfpy@1.4.1",
+      "name": "odfpy",
+      "version": "1.4.1",
+      "scope": "required",
+      "purl": "pkg:pypi/odfpy@1.4.1",
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "UNKNOWN"
+        },
+        {
+          "name": "rmc:license-status",
+          "value": "unverified"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/openpyxl",
+      "name": "openpyxl",
+      "version": ">=3.1.0",
+      "scope": "required",
+      "purl": "pkg:pypi/openpyxl",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pillow",
+      "name": "Pillow",
+      "version": ">=10.0",
+      "scope": "required",
+      "purl": "pkg:pypi/pillow",
+      "licenses": [
+        {
+          "license": {
+            "id": "HPND"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/polib",
+      "name": "polib",
+      "version": ">=1.2.0",
+      "scope": "required",
+      "purl": "pkg:pypi/polib",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/prometheus-client",
+      "name": "prometheus-client",
+      "version": ">=0.20.0",
+      "scope": "required",
+      "purl": "pkg:pypi/prometheus-client",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/psycopg",
+      "name": "psycopg",
+      "version": ">=3.1",
+      "scope": "required",
+      "purl": "pkg:pypi/psycopg",
+      "licenses": [
+        {
+          "license": {
+            "id": "LGPL-3.0-or-later"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OPEN_SOURCE_WITH_WEAK_COPYLEFT"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pycountry",
+      "name": "pycountry",
+      "version": ">=24.6.1",
+      "scope": "required",
+      "purl": "pkg:pypi/pycountry",
+      "licenses": [
+        {
+          "license": {
+            "id": "LGPL-2.1-only"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OPEN_SOURCE_WITH_WEAK_COPYLEFT"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyjwt",
+      "name": "PyJWT",
+      "version": ">=2.10,<3",
+      "scope": "required",
+      "purl": "pkg:pypi/pyjwt",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pynacl",
+      "name": "pynacl",
+      "version": ">=1.5,<2.0",
+      "scope": "required",
+      "purl": "pkg:pypi/pynacl",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/python-dotenv",
+      "name": "python-dotenv",
+      "version": ">=1.0",
+      "scope": "required",
+      "purl": "pkg:pypi/python-dotenv",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/python-json-logger",
+      "name": "python-json-logger",
+      "version": ">=2.0.7",
+      "scope": "required",
+      "purl": "pkg:pypi/python-json-logger",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pytz",
+      "name": "pytz",
+      "version": ">=2024.1",
+      "scope": "required",
+      "purl": "pkg:pypi/pytz",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pywebpush",
+      "name": "pywebpush",
+      "version": ">=2.0,<3.0",
+      "scope": "required",
+      "purl": "pkg:pypi/pywebpush",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OPEN_SOURCE_WITH_WEAK_COPYLEFT"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pyyaml",
+      "name": "PyYAML",
+      "version": ">=6.0.1",
+      "scope": "required",
+      "purl": "pkg:pypi/pyyaml",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/qrcode",
+      "name": "qrcode",
+      "version": ">=8.0",
+      "scope": "required",
+      "purl": "pkg:pypi/qrcode",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/redis",
+      "name": "redis",
+      "version": ">=5.0.0",
+      "scope": "required",
+      "purl": "pkg:pypi/redis",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/reportlab@4.2.2",
+      "name": "reportlab",
+      "version": "4.2.2",
+      "scope": "required",
+      "purl": "pkg:pypi/reportlab@4.2.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/requests",
+      "name": "requests",
+      "version": ">=2.31.0",
+      "scope": "required",
+      "purl": "pkg:pypi/requests",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/ruff",
+      "name": "ruff",
+      "version": ">=0.6.0",
+      "scope": "required",
+      "purl": "pkg:pypi/ruff",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/scikit-learn",
+      "name": "scikit-learn",
+      "version": ">=1.3.0",
+      "scope": "required",
+      "purl": "pkg:pypi/scikit-learn",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/sentry-sdk",
+      "name": "sentry-sdk",
+      "version": ">=1.40.0",
+      "scope": "required",
+      "purl": "pkg:pypi/sentry-sdk",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        },
+        {
+          "name": "rmc:backing-service",
+          "value": "proprietary-saas"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/signxml",
+      "name": "signxml",
+      "version": ">=4.0,<5",
+      "scope": "required",
+      "purl": "pkg:pypi/signxml",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/uritemplate",
+      "name": "uritemplate",
+      "version": ">=4.1.1",
+      "scope": "required",
+      "purl": "pkg:pypi/uritemplate",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0 OR BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/uvicorn",
+      "name": "uvicorn",
+      "version": ">=0.30",
+      "scope": "required",
+      "purl": "pkg:pypi/uvicorn",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/weasyprint",
+      "name": "WeasyPrint",
+      "version": ">=61.0",
+      "scope": "required",
+      "purl": "pkg:pypi/weasyprint",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/webauthn",
+      "name": "webauthn",
+      "version": ">=2.0.0",
+      "scope": "required",
+      "purl": "pkg:pypi/webauthn",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/whitenoise",
+      "name": "whitenoise",
+      "version": ">=6.6",
+      "scope": "required",
+      "purl": "pkg:pypi/whitenoise",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "rmc:ecosystem",
+          "value": "pypi"
+        },
+        {
+          "name": "rmc:classification",
+          "value": "OSI_APPROVED_OPEN_SOURCE"
+        }
+      ]
+    }
+  ]
+}
