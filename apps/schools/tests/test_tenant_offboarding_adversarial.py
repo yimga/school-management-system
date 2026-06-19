@@ -11,6 +11,7 @@ from django.test import RequestFactory, TestCase, override_settings
 from apps.schools.models import School, SchoolMembership, SchoolProvisioningEvent
 from apps.schools.super_views_tenant_offboarding import (
     api_school_offboarding,
+    api_school_offboarding_export,
     api_school_offboarding_purge,
 )
 from apps.schools.tenant_offboarding import request_self_service_closure
@@ -83,6 +84,47 @@ class TenantOffboardingAdversarialTests(TestCase):
         request.public_host_kind = "manager"
         response = api_school_offboarding_purge(request, school_id=self.school_a.id)
         self.assertIn(response.status_code, (403, 302))
+
+    def test_non_privileged_user_cannot_trigger_offboarding_export(self):
+        """Generating a full-tenant portability export now requires
+        platform.audit.export scope (matching the export *download* at
+        api_school_offboarding_export_download), not merely an authenticated
+        session. A tenant admin / observer-tier operator must be refused —
+        previously this endpoint carried no scope decorator, so a caller who
+        could not even download the export could still trigger one."""
+        request = self.factory.post(
+            f"/super/api/schools/{self.school_a.id}/offboarding/export/",
+            data=json.dumps({"full": True}).encode(),
+            content_type="application/json",
+            HTTP_HOST="manager.runmycampus.com",
+        )
+        request.user = self.owner_a
+        request.public_host_kind = "manager"
+        response = api_school_offboarding_export(request, school_id=self.school_a.id)
+        self.assertIn(response.status_code, (403, 302))
+
+    @patch("apps.schools.super_views_tenant_offboarding.run_wind_down_export")
+    def test_staff_can_still_trigger_offboarding_export(self, mock_export):
+        """The new scope gate must not over-restrict: a superuser (who holds
+        every platform scope) still passes the decorator and reaches the
+        export body. Side effect mocked so no real zip is written."""
+        result = mock_export.return_value
+        result.export_zip_path = "/tmp/export.zip"
+        result.student_export_count = 0
+        result.archive_dir = "/tmp/archive"
+        result.manifest_path = "/tmp/manifest.json"
+        request = self.factory.post(
+            f"/super/api/schools/{self.school_a.id}/offboarding/export/",
+            data=json.dumps({"full": True}).encode(),
+            content_type="application/json",
+            HTTP_HOST="manager.runmycampus.com",
+        )
+        request.user = self.staff
+        request.public_host_kind = "manager"
+        response = api_school_offboarding_export(request, school_id=self.school_a.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(json.loads(response.content).get("ok"))
+        mock_export.assert_called_once()
 
     def test_purge_slug_mismatch_blocks_even_for_staff(self):
         request = self.factory.post(

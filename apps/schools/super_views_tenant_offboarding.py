@@ -15,6 +15,7 @@ from apps.compliance.models_audit import AuditLog
 from apps.schools.control_plane import log_control_plane_action
 from apps.schools.models import School
 from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_AUDIT_EXPORT,
     PLATFORM_SCOPE_FLEET,
     PLATFORM_SCOPE_SECURITY_WRITE,
     require_platform_scope,
@@ -53,6 +54,7 @@ def api_school_offboarding(request, school_id):
 
 
 @require_http_methods(["POST"])
+@require_platform_scope(PLATFORM_SCOPE_AUDIT_EXPORT)
 def api_school_offboarding_export(request, school_id):
     school = get_object_or_404(School, id=school_id)
     body = _parse_json_body(request)

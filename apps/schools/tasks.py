@@ -350,7 +350,7 @@ def _maybe_apply_onboarding_blueprint_pack(school, actor=None) -> None:
         return
     try:
         from apps.policies.blueprint_registry import apply_blueprint_pack
-        from apps.policies.models import BlueprintPack
+        from apps.policies.models import BlueprintPack, TenantBlueprint
     except (ImportError, ModuleNotFoundError):
         return
     try:
@@ -366,6 +366,19 @@ def _maybe_apply_onboarding_blueprint_pack(school, actor=None) -> None:
             payload={"pack_slug": pack_slug},
         )
         return
+    # Idempotency guard: a requeue / reconcile re-runs this provisioning step,
+    # and apply_blueprint_pack() creates a fresh PolicyBundle on every call (by
+    # design — that powers version-bump history in update_bundle_for_schools).
+    # Without this check, each requeue accrues a redundant "(applied)" bundle.
+    # A *failed* first apply never sets TenantBlueprint.applied_pack, so this
+    # still retries on the next requeue — it only skips an already-applied pack.
+    try:
+        if TenantBlueprint.objects.filter(  # tenant-isolation-allow: celery-platform-provisioning-beat-cross-tenant
+            school=school, applied_pack=pack
+        ).exists():
+            return
+    except (DatabaseError, AttributeError, TypeError, ValueError):
+        pass
     try:
         apply_blueprint_pack(school, pack, applied_by=actor)
     except (DatabaseError, IntegrityError, AttributeError, TypeError, ValueError):
