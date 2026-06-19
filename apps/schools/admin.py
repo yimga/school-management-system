@@ -340,6 +340,54 @@ class InKindDonationAdmin(admin.ModelAdmin):
     search_fields = ("description", "donor__display_name", "notes")
     raw_id_fields = ("school", "donor", "campaign", "inventory_item")
     readonly_fields = ("inventory_item", "created_at", "updated_at")
+    actions = ["accept_into_inventory", "reject_donations"]
+
+    @admin.action(description="Accept selected → add to inventory register")
+    def accept_into_inventory(self, request, queryset):
+        """Run the acceptance service (lands each donation in schoolops inventory)."""
+        from apps.schools.advancement_services import accept_in_kind_donation
+
+        accepted = skipped = 0
+        for donation in queryset:
+            result = accept_in_kind_donation(donation, user_id=request.user.pk)
+            if result.get("ok"):
+                accepted += 1
+            else:
+                skipped += 1
+        if accepted:
+            self.message_user(
+                request,
+                f"Accepted {accepted} donation(s) into the inventory register.",
+                messages.SUCCESS,
+            )
+        if skipped:
+            self.message_user(
+                request,
+                f"Skipped {skipped} donation(s) already accepted.",
+                messages.WARNING,
+            )
+
+    @admin.action(description="Reject selected donations")
+    def reject_donations(self, request, queryset):
+        from apps.schools.advancement_services import reject_in_kind_donation
+
+        rejected = skipped = 0
+        for donation in queryset:
+            result = reject_in_kind_donation(donation)
+            if result.get("ok"):
+                rejected += 1
+            else:
+                skipped += 1
+        if rejected:
+            self.message_user(
+                request, f"Rejected {rejected} donation(s).", messages.SUCCESS
+            )
+        if skipped:
+            self.message_user(
+                request,
+                f"Skipped {skipped} donation(s) that were already accepted.",
+                messages.WARNING,
+            )
 
 
 class FundraisingCampaignAdmin(admin.ModelAdmin):
@@ -373,6 +421,34 @@ class DonationPledgeAdmin(admin.ModelAdmin):
     search_fields = ("donor__display_name", "notes")
     raw_id_fields = ("school", "donor", "campaign")
     readonly_fields = ("fulfilled_at", "created_at", "updated_at")
+    actions = ["mark_fully_fulfilled"]
+
+    @admin.action(description="Record outstanding balance as fulfilled")
+    def mark_fully_fulfilled(self, request, queryset):
+        """Fulfill each open pledge for its remaining outstanding amount."""
+        from apps.schools.advancement_services import fulfill_pledge
+
+        fulfilled = skipped = 0
+        for pledge in queryset:
+            outstanding = pledge.outstanding_amount
+            if not pledge.is_open or outstanding <= 0:
+                skipped += 1
+                continue
+            result = fulfill_pledge(pledge, outstanding)
+            if result.get("ok"):
+                fulfilled += 1
+            else:
+                skipped += 1
+        if fulfilled:
+            self.message_user(
+                request, f"Marked {fulfilled} pledge(s) fulfilled.", messages.SUCCESS
+            )
+        if skipped:
+            self.message_user(
+                request,
+                f"Skipped {skipped} pledge(s) (already closed or nothing outstanding).",
+                messages.WARNING,
+            )
 
 
 register_tenant_admin(InKindDonation, InKindDonationAdmin)
