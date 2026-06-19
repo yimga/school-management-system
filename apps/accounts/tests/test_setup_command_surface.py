@@ -63,6 +63,8 @@ class SetupCommandSurfaceRenderTests(SimpleTestCase):
         # step labels + next action come straight from onboarding data
         self.assertIn("Create academic year", out)
         self.assertIn("Configure academic year", out)
+        # heading is terminology-aware ("school" by default, tenant term otherwise)
+        self.assertIn("Set up your", out)
 
 
 class SetupCommandSurfaceContractTests(SimpleTestCase):

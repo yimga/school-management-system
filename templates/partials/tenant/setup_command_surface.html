@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n terminology_tags %}
 {% comment %}
   Onboarding "command surface" for the tenant-admin v3 canvas.
 
@@ -17,11 +17,12 @@
 {% endcomment %}
 {% if show_setup_landing and not backend_show_legacy_dashboard and rmc_school_onboarding and rmc_school_onboarding.total %}
 {% url 'siteconfig:onboarding' as rmc_setup_checklist_url %}
-<section class="rmc-setup-surface" data-rmc-setup-surface="active" aria-label="{% trans 'Set up your school' %}">
+{% term 'school' as rmc_school_term %}
+<section class="rmc-setup-surface" data-rmc-setup-surface="active" aria-label="{% blocktrans with school_term=rmc_school_term %}Set up your {{ school_term }}{% endblocktrans %}">
   <header class="rmc-setup-surface__hero">
     <div class="rmc-setup-surface__hero-copy">
       <p class="rmc-setup-surface__eyebrow">{% trans "Getting started" %}</p>
-      <h2 class="rmc-setup-surface__title">{% trans "Set up your school" %}</h2>
+      <h2 class="rmc-setup-surface__title">{% blocktrans with school_term=rmc_school_term %}Set up your {{ school_term }}{% endblocktrans %}</h2>
       <p class="rmc-setup-surface__lede">{% trans "A guided path from first login to a fully running school." %}</p>
       {% if rmc_school_onboarding.next_action and rmc_school_onboarding.next_action.url %}
       <a class="rmc-setup-surface__cta btn btn-primary btn-sm" href="{{ rmc_school_onboarding.next_action.url }}" data-rmc-setup-next-action="1">
