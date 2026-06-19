@@ -1188,10 +1188,12 @@ class AwardSourceAdmin(ModelAdmin):
         "total_budget",
         "remaining_funds",
         "currency",
+        "is_restricted",
+        "restricted_purpose",
         "is_active",
     )
-    list_filter = ("school", "is_active", "currency")
-    search_fields = ("name",)
+    list_filter = ("school", "is_active", "is_restricted", "currency")
+    search_fields = ("name", "restricted_purpose")
     list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE
 
 
@@ -1201,6 +1203,7 @@ class ScholarshipAdmin(ModelAdmin):
         "school",
         "source",
         "award_amount",
+        "purpose",
         "is_renewable",
         "is_active",
     )

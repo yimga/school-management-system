@@ -2694,6 +2694,19 @@ class AwardSource(models.Model):
     )
     currency = models.CharField(max_length=3, default="USD")
     is_active = models.BooleanField(default=True)
+    is_restricted = models.BooleanField(
+        default=False,
+        help_text="When True, funds may only be spent on the declared restricted_purpose.",
+    )
+    restricted_purpose = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text=(
+            "Program/purpose this fund is restricted to (e.g. scholarship, "
+            "feeding-program, building-project). Enforced against Scholarship.purpose "
+            "at disbursement when is_restricted is True."
+        ),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -2732,6 +2745,14 @@ class Scholarship(models.Model):
         max_digits=12,
         decimal_places=2,
         validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    purpose = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text=(
+            "Program/purpose served; must match a restricted AwardSource."
+            "restricted_purpose to disburse from it."
+        ),
     )
     is_renewable = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)

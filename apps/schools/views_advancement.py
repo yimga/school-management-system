@@ -4,6 +4,7 @@ Tenant advancement (wedge 5): donor and gift CRUD for staff on school subdomain.
 
 from __future__ import annotations
 
+import logging
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
@@ -166,7 +167,7 @@ def advancement_donor_detail(request, donor_id):
                 messages.error(request, "Enter a positive amount.")
             else:
                 try:
-                    AdvancementGift.objects.create(
+                    gift = AdvancementGift.objects.create(
                         donor=donor,
                         amount=d,
                         currency=(request.POST.get("currency") or "USD").strip()[:3]
@@ -177,7 +178,28 @@ def advancement_donor_detail(request, donor_id):
                         ],
                         notes=(request.POST.get("gift_notes") or "").strip()[:500],
                     )
-                    messages.success(request, "Gift recorded.")
+                    award_source_id = (
+                        request.POST.get("award_source_id") or ""
+                    ).strip()
+                    if award_source_id:
+                        from .advancement_services import designate_and_credit_gift
+
+                        res = designate_and_credit_gift(
+                            gift, award_source_id, user_id=request.user.pk
+                        )
+                        if res and not res.get("ok"):
+                            messages.warning(
+                                request,
+                                f"Gift recorded, but not credited to fund: {res.get('error')}",
+                            )
+                        elif res and res.get("ok"):
+                            messages.success(
+                                request, "Gift recorded and credited to fund."
+                            )
+                        else:
+                            messages.success(request, "Gift recorded.")
+                    else:
+                        messages.success(request, "Gift recorded.")
                     return redirect(
                         "accounts:advancement_donor_detail", donor_id=donor.pk
                     )
@@ -191,7 +213,18 @@ def advancement_donor_detail(request, donor_id):
                         },
                     )
                     messages.error(request, "Could not record gift.")
-    gifts = list(donor.gifts.all()[:100])
+    gifts = list(donor.gifts.select_related("award_source").all()[:100])
+    award_sources = []
+    try:
+        from apps.finance.models import AwardSource
+
+        award_sources = list(
+            AwardSource.objects.filter(school=school, is_active=True).order_by("name")
+        )
+    except (ImportError, DatabaseError) as e:
+        logging.getLogger(__name__).debug(
+            "advancement_donor_detail award_sources skip: %s", e
+        )
     list_url = reverse("accounts:advancement_donor_list")
     detail_url = reverse("accounts:advancement_donor_detail", args=[donor.pk])
     return_url = mutation_return_url(request, detail_url, list_url=list_url)
@@ -201,6 +234,7 @@ def advancement_donor_detail(request, donor_id):
         {
             "donor": donor,
             "gifts": gifts,
+            "award_sources": award_sources,
             "dashboard_url": reverse("accounts:backend_dashboard"),
             "edit_url": reverse("accounts:advancement_donor_edit", args=[donor.pk]),
             "list_url": list_url,

@@ -1275,12 +1275,104 @@ class AdvancementGift(models.Model):
         blank=True,
         help_text="Campaign or appeal label (e.g. Annual Fund 2026).",
     )
+    award_source = models.ForeignKey(
+        "finance.AwardSource",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="advancement_gifts",
+        help_text="Optional restricted/scholarship fund this gift credits.",
+    )
+    credited_to_fund_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Set once this gift has been applied to its award_source fund (idempotency guard).",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-received_at", "-pk"]
         verbose_name = "Advancement gift"
         verbose_name_plural = "Advancement gifts"
+
+
+class InKindDonation(models.Model):
+    """
+    Wedge 5: a donated good/service recorded against a school. On acceptance it feeds
+    the existing schoolops InventoryItem register rather than forking a new inventory
+    engine. Tenant-scoped by school; donor optional (blank = anonymous).
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        ACCEPTED = "ACCEPTED", "Accepted"
+        REJECTED = "REJECTED", "Rejected"
+
+    class Category(models.TextChoices):
+        BOOKS = "books", "Books / learning materials"
+        EQUIPMENT = "equipment", "Equipment"
+        FOOD = "food", "Food / supplies"
+        UNIFORMS = "uniforms", "Uniforms"
+        FURNITURE = "furniture", "Furniture"
+        VEHICLE = "vehicle", "Vehicle"
+        SERVICE = "service", "Service / volunteer time"
+        OTHER = "other", "Other"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="in_kind_donations",
+    )
+    donor = models.ForeignKey(
+        AdvancementDonor,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="in_kind_donations",
+        help_text="Optional; blank for anonymous in-kind gifts.",
+    )
+    description = models.CharField(max_length=255)
+    category = models.CharField(
+        max_length=20, choices=Category.choices, default=Category.OTHER
+    )
+    quantity = models.PositiveIntegerField(default=1)
+    unit = models.CharField(
+        max_length=40, blank=True, help_text="e.g. boxes, units, hours"
+    )
+    estimated_value = models.DecimalField(
+        max_digits=14, decimal_places=2, null=True, blank=True
+    )
+    currency = models.CharField(max_length=3, default="USD")
+    condition = models.CharField(
+        max_length=40, blank=True, help_text="e.g. new, good, fair, poor"
+    )
+    received_at = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.PENDING
+    )
+    acknowledgment_sent = models.BooleanField(default=False)
+    inventory_item = models.ForeignKey(
+        "schoolops.InventoryItem",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="in_kind_donations",
+        help_text="Inventory line created/incremented when this donation is accepted.",
+    )
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-received_at", "-pk"]
+        verbose_name = "In-kind donation"
+        verbose_name_plural = "In-kind donations"
+        indexes = [
+            models.Index(fields=["school", "status"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.description} x{self.quantity} ({self.get_status_display()})"
 
 
 class MarketingFunnelEvent(models.Model):

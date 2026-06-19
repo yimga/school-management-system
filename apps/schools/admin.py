@@ -4,9 +4,10 @@ from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 
-from config.admin import platform_admin_site
+from config.admin import platform_admin_site, register_tenant_admin
 
 from .models import (
+    InKindDonation,
     School,
     SchoolMembership,
     SchoolProvisioningEvent,
@@ -320,3 +321,23 @@ class SchoolProvisioningEventAdmin(admin.ModelAdmin):
         "created_by",
         "created_at",
     )
+
+
+class InKindDonationAdmin(admin.ModelAdmin):
+    list_display = (
+        "description",
+        "school",
+        "donor",
+        "category",
+        "quantity",
+        "status",
+        "inventory_item",
+        "received_at",
+    )
+    list_filter = ("school", "status", "category")
+    search_fields = ("description", "donor__display_name", "notes")
+    raw_id_fields = ("school", "donor", "inventory_item")
+    readonly_fields = ("inventory_item", "created_at", "updated_at")
+
+
+register_tenant_admin(InKindDonation, InKindDonationAdmin)

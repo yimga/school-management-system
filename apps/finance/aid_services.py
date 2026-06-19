@@ -79,6 +79,25 @@ def _student_context(student: StudentProfile) -> dict[str, Any]:
     }
 
 
+def _restricted_purpose_error(source: AwardSource, scholarship: Scholarship) -> str | None:
+    """
+    Return an error string if a restricted source rejects this scholarship's purpose,
+    else None. A non-restricted source (or one with no declared purpose) never blocks.
+    """
+    if not getattr(source, "is_restricted", False):
+        return None
+    required = (getattr(source, "restricted_purpose", "") or "").strip()
+    if not required:
+        return None
+    actual = (getattr(scholarship, "purpose", "") or "").strip()
+    if actual.casefold() == required.casefold():
+        return None
+    return (
+        f"Restricted fund '{source.name}' permits only purpose '{required}'; "
+        f"scholarship purpose is '{actual or 'unset'}'."
+    )
+
+
 def check_eligibility(
     student: StudentProfile, scholarship: Scholarship
 ) -> tuple[bool, str]:
@@ -155,6 +174,7 @@ def simulate_bulk_disbursement(
         "insufficient_funds": insufficient,
         "source_remaining": source.remaining_funds,
         "scholarship_title": scholarship.title,
+        "restriction_error": _restricted_purpose_error(source, scholarship),
     }
 
 
@@ -189,6 +209,9 @@ def execute_disbursement(
         return {"ok": False, "error": f"Invalid status for disbursement: {app.status}"}
     amount = app.amount_approved or app.scholarship.award_amount
     source = app.scholarship.source
+    purpose_error = _restricted_purpose_error(source, app.scholarship)
+    if purpose_error:
+        return {"ok": False, "error": purpose_error}
     if source.remaining_funds < amount:
         return {
             "ok": False,
@@ -286,6 +309,61 @@ def execute_disbursement(
                 "disbursement webhook enqueue skip: %s", e
             )
     return {"ok": True, "application_id": app.pk, "amount": amount}
+
+
+def credit_award_source(
+    *,
+    school_id: Any,
+    source_id: Any,
+    amount: Decimal,
+    currency: str | None = None,
+    reason: str = "",
+    user_id: int | None = None,
+) -> dict[str, Any]:
+    """
+    Inflow side of the aid loop: credit a donation INTO an AwardSource fund.
+
+    Mirrors execute_disbursement's outflow — bumps remaining_funds (and total_budget,
+    so committed-vs-remaining health stays consistent) and writes an AidAuditLog
+    action='donation'. Tenant-scoped by school_id; refuses currency mismatch so a
+    USD gift never silently inflates an EUR fund.
+    """
+    if amount is None:
+        return {"ok": False, "error": "Amount is required"}
+    if not isinstance(amount, Decimal):
+        try:
+            amount = Decimal(str(amount))
+        except (ArithmeticError, TypeError, ValueError):
+            return {"ok": False, "error": "Amount is not a valid number"}
+    if amount <= 0:
+        return {"ok": False, "error": "Amount must be positive"}
+    source = AwardSource.objects.filter(school_id=school_id, pk=source_id).first()
+    if not source:
+        return {"ok": False, "error": "Award source not found"}
+    if currency and source.currency and currency.upper() != source.currency.upper():
+        return {
+            "ok": False,
+            "error": f"Currency mismatch: gift {currency} vs fund {source.currency}",
+        }
+    with transaction.atomic():
+        source.remaining_funds += amount
+        source.total_budget += amount
+        source.save(update_fields=["remaining_funds", "total_budget", "updated_at"])
+        AidAuditLog.objects.create(
+            school_id=school_id,
+            source=source,
+            action="donation",
+            amount=amount,
+            balance_after=source.remaining_funds,
+            reason=(reason or "Donation")[:255],
+            created_by_id=user_id,
+        )
+    return {
+        "ok": True,
+        "source_id": source.pk,
+        "amount": amount,
+        "balance_after": source.remaining_funds,
+    }
 
 
 def get_endowment_health_report(school_id: Any, *, years_ahead: int = 4) -> list[dict]:

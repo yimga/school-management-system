@@ -22,11 +22,22 @@
       <label class="form-label small" for="cur">CCY</label>
       <input type="text" class="form-control" id="cur" name="currency" value="USD" maxlength="3">
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
       <label class="form-label small" for="camp">Campaign</label>
       <input type="text" class="form-control" id="camp" name="campaign_name" maxlength="120" placeholder="Annual fund">
     </div>
+    {% if award_sources %}
     <div class="col-md-3">
+      <label class="form-label small" for="fund">{% trans "Credit fund" %}</label>
+      <select class="form-select" id="fund" name="award_source_id">
+        <option value="">{% trans "— None —" %}</option>
+        {% for src in award_sources %}
+        <option value="{{ src.pk }}">{{ src.name }}{% if src.is_restricted %} ({% trans "restricted" %}){% endif %}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+    <div class="col-md-2">
       <label class="form-label small" for="gn">Notes</label>
       <input type="text" class="form-control" id="gn" name="gift_notes" maxlength="500">
     </div>
@@ -37,15 +48,16 @@
 
   <h6>Gifts</h6>
   <div class="table-responsive">
-    <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+    <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-6col="1">
       <caption class="visually-hidden">{% trans "Gifts" %}</caption>
-      <thead><tr><th>Date</th><th>Amount</th><th>Campaign</th><th>Notes</th><th></th></tr></thead>
+      <thead><tr><th>Date</th><th>Amount</th><th>Campaign</th><th>{% trans "Fund" %}</th><th>Notes</th><th></th></tr></thead>
       <tbody>
         {% for g in gifts %}
         <tr>
           <td>{{ g.received_at }}</td>
           <td>{{ g.amount }} {{ g.currency }}</td>
           <td>{{ g.campaign_name|default:"—" }}</td>
+          <td class="small">{% if g.award_source %}{{ g.award_source.name }}{% if g.credited_to_fund_at %} <span class="badge bg-success-subtle text-success-emphasis">{% trans "credited" %}</span>{% endif %}{% else %}<span class="text-muted">—</span>{% endif %}</td>
           <td class="small text-muted">{{ g.notes|truncatewords:8 }}</td>
           <td>
           <details class="rmc-row-disclosure">
@@ -60,7 +72,7 @@
           </details></td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="text-secondary">No gifts yet.</td></tr>
+        <tr><td colspan="6" class="text-secondary">No gifts yet.</td></tr>
         {% endfor %}
       </tbody>
     </table>

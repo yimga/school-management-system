@@ -3,7 +3,11 @@ from decimal import Decimal
 from django.test import TestCase
 
 from apps.events.models import WebhookDelivery, WebhookSubscription
-from apps.finance.aid_services import execute_disbursement, get_endowment_health_report
+from apps.finance.aid_services import (
+    credit_award_source,
+    execute_disbursement,
+    get_endowment_health_report,
+)
 from apps.finance.models import (
     AidAuditLog,
     AwardSource,
@@ -177,3 +181,122 @@ class AidDisbursementLedgerTests(TestCase):
         self.assertIn("projections", row)
         self.assertEqual(len(row["projections"]), 3)
         self.assertEqual(row["projections"][0]["year_offset"], 1)
+
+
+class AidCreditAndRestrictionTests(TestCase):
+    def setUp(self):
+        self.school = School.objects.create(
+            name="Credit School",
+            slug="credit-school",
+            subdomain="credit-school",
+            is_active=True,
+        )
+        self.source = AwardSource.objects.create(
+            school=self.school,
+            name="General Fund",
+            total_budget=Decimal("1000.00"),
+            remaining_funds=Decimal("1000.00"),
+            currency="USD",
+        )
+
+    def test_credit_award_source_bumps_balance_and_logs_donation(self):
+        res = credit_award_source(
+            school_id=self.school.id,
+            source_id=self.source.id,
+            amount=Decimal("250.00"),
+            currency="USD",
+            reason="Donation from Acme NGO",
+        )
+        self.assertTrue(res["ok"])
+        self.source.refresh_from_db()
+        self.assertEqual(self.source.remaining_funds, Decimal("1250.00"))
+        self.assertEqual(self.source.total_budget, Decimal("1250.00"))
+        log = AidAuditLog.objects.get(source=self.source, action="donation")
+        self.assertEqual(log.amount, Decimal("250.00"))
+        self.assertEqual(log.balance_after, Decimal("1250.00"))
+
+    def test_credit_rejects_currency_mismatch(self):
+        res = credit_award_source(
+            school_id=self.school.id,
+            source_id=self.source.id,
+            amount=Decimal("10.00"),
+            currency="EUR",
+        )
+        self.assertFalse(res["ok"])
+        self.source.refresh_from_db()
+        self.assertEqual(self.source.remaining_funds, Decimal("1000.00"))
+
+    def test_credit_rejects_nonpositive_amount(self):
+        res = credit_award_source(
+            school_id=self.school.id,
+            source_id=self.source.id,
+            amount=Decimal("0.00"),
+        )
+        self.assertFalse(res["ok"])
+
+    def test_restricted_fund_blocks_mismatched_scholarship_disbursement(self):
+        restricted = AwardSource.objects.create(
+            school=self.school,
+            name="Feeding Program Fund",
+            total_budget=Decimal("500.00"),
+            remaining_funds=Decimal("500.00"),
+            currency="USD",
+            is_restricted=True,
+            restricted_purpose="feeding-program",
+        )
+        scholarship = Scholarship.objects.create(
+            school=self.school,
+            source=restricted,
+            title="Merit Award",
+            award_amount=Decimal("100.00"),
+            purpose="scholarship",
+            is_active=True,
+        )
+        student = StudentProfile.objects.create(
+            school=self.school, first_name="Grace", last_name="Hopper"
+        )
+        app = FinancialAidApplication.objects.create(
+            school=self.school,
+            student=student,
+            scholarship=scholarship,
+            status=FinancialAidApplication.Status.APPROVED,
+            amount_approved=Decimal("100.00"),
+        )
+        res = execute_disbursement(app.id, school_id=self.school.id)
+        self.assertFalse(res["ok"])
+        self.assertIn("Restricted fund", res["error"])
+        restricted.refresh_from_db()
+        self.assertEqual(restricted.remaining_funds, Decimal("500.00"))
+
+    def test_restricted_fund_allows_matching_purpose(self):
+        restricted = AwardSource.objects.create(
+            school=self.school,
+            name="Scholarship Fund",
+            total_budget=Decimal("500.00"),
+            remaining_funds=Decimal("500.00"),
+            currency="USD",
+            is_restricted=True,
+            restricted_purpose="scholarship",
+        )
+        scholarship = Scholarship.objects.create(
+            school=self.school,
+            source=restricted,
+            title="Merit Award",
+            award_amount=Decimal("100.00"),
+            purpose="scholarship",
+            is_active=True,
+        )
+        student = StudentProfile.objects.create(
+            school=self.school, first_name="Ada", last_name="Lovelace"
+        )
+        app = FinancialAidApplication.objects.create(
+            school=self.school,
+            student=student,
+            scholarship=scholarship,
+            status=FinancialAidApplication.Status.APPROVED,
+            amount_approved=Decimal("100.00"),
+        )
+        res = execute_disbursement(app.id, school_id=self.school.id)
+        self.assertTrue(res["ok"])
+        restricted.refresh_from_db()
+        self.assertEqual(restricted.remaining_funds, Decimal("400.00"))
