@@ -1,0 +1,69 @@
+{% load i18n %}
+{% comment %}
+  Onboarding "command surface" for the tenant-admin v3 canvas.
+
+  Renders ONLY while a school is still onboarding (gated on the view's
+  `show_setup_landing` signal) and ONLY on the default v3 canvas — never in the
+  `?simple=1` legacy stack, which already carries the full readiness cards.
+
+  Visual direction mirrors var/design-previews/tenant-admin-workspace-preview.html
+  (hero + progress ring + numbered "Configure" stage + wizard-style step cards),
+  rebuilt with the semantic token system + .rmc-* grammar (see
+  static/css/rmc-setup-surface.css) so tenant brand and light/dark flip cleanly.
+
+  All content is real onboarding data (rmc_school_onboarding) — no fabricated
+  step counts or time estimates. Steps with no resolved deep-link fall back to
+  the full activation checklist.
+{% endcomment %}
+{% if show_setup_landing and not backend_show_legacy_dashboard and rmc_school_onboarding and rmc_school_onboarding.total %}
+{% url 'siteconfig:onboarding' as rmc_setup_checklist_url %}
+<section class="rmc-setup-surface" data-rmc-setup-surface="active" aria-label="{% trans 'Set up your school' %}">
+  <header class="rmc-setup-surface__hero">
+    <div class="rmc-setup-surface__hero-copy">
+      <p class="rmc-setup-surface__eyebrow">{% trans "Getting started" %}</p>
+      <h2 class="rmc-setup-surface__title">{% trans "Set up your school" %}</h2>
+      <p class="rmc-setup-surface__lede">{% trans "A guided path from first login to a fully running school." %}</p>
+      {% if rmc_school_onboarding.next_action and rmc_school_onboarding.next_action.url %}
+      <a class="rmc-setup-surface__cta btn btn-primary btn-sm" href="{{ rmc_school_onboarding.next_action.url }}" data-rmc-setup-next-action="1">
+        <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
+        <span>{{ rmc_school_onboarding.next_action.label }}</span>
+      </a>
+      {% endif %}
+    </div>
+    <div class="rmc-setup-surface__ring" style="--rmc-setup-ring-pct: {{ rmc_school_onboarding.percent }}%" role="img" aria-label="{% blocktrans with pct=rmc_school_onboarding.percent %}{{ pct }} percent of setup complete{% endblocktrans %}">
+      <span class="rmc-setup-surface__ring-value">{{ rmc_school_onboarding.percent }}%</span>
+    </div>
+  </header>
+
+  <div class="rmc-setup-surface__stage">
+    <div class="rmc-setup-surface__stage-head">
+      <span class="rmc-setup-surface__stage-num" aria-hidden="true"><i class="bi bi-sliders2"></i></span>
+      <div class="rmc-setup-surface__stage-meta">
+        <h3 class="rmc-setup-surface__stage-title">{% trans "Configure" %}</h3>
+        <p class="rmc-setup-surface__stage-desc">{% trans "Set up how your school runs — academics, finance, and communications." %}</p>
+      </div>
+      <span class="rmc-setup-surface__stage-count">{% blocktrans with done=rmc_school_onboarding.completed total=rmc_school_onboarding.total %}{{ done }}/{{ total }}{% endblocktrans %}</span>
+    </div>
+
+    <ul class="rmc-setup-surface__cards" data-rmc-setup-steps="1">
+      {% for step in rmc_school_onboarding.display_steps %}
+      <li class="rmc-setup-surface__card{% if step.done %} is-done{% endif %}">
+        <h4 class="rmc-setup-surface__card-title">{{ step.label }}</h4>
+        <div class="rmc-setup-surface__card-foot">
+          <span class="rmc-setup-surface__card-status">
+            {% if step.done %}{% trans "Done" %}{% else %}{% trans "Not started" %}{% endif %}
+          </span>
+          <a class="rmc-setup-surface__card-cta" href="{{ step.link|default:rmc_setup_checklist_url }}">
+            {% if step.done %}{% trans "Review" %}{% else %}{% trans "Start" %}{% endif %}
+          </a>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% if rmc_setup_checklist_url %}
+    <a class="rmc-setup-surface__all" href="{{ rmc_setup_checklist_url }}">{% trans "Open full activation checklist" %}</a>
+    {% endif %}
+  </div>
+</section>
+{% endif %}

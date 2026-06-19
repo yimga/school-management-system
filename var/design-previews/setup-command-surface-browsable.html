@@ -1,0 +1,329 @@
+<!doctype html><html lang=en data-theme=light><head><meta charset=utf-8><meta name=viewport content='width=device-width, initial-scale=1'><title>Setup command surface — browsable preview</title><link rel=stylesheet href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css'><style>:root{--surface-bg:#f6f7fb;--surface-canvas:#fff;--surface-elevated:#fff;--hairline:rgba(2,6,23,.10);--text-primary:#0f172a;--text-secondary:#64748b;--elev-2:0 8px 24px rgba(2,6,23,.10);--radius-lg:16px;--radius-md:13px;--type-size-micro:.7rem;--type-size-xs:.78rem;--type-size-sm:.85rem;--type-size-md:1rem;--type-size-lg:1.1rem;--type-size-xl:1.45rem;--brand-primary:#4f46e5;--brand-accent:#10b981;--brand-success:#16a34a;}html[data-theme=dark]{--surface-bg:#0b1020;--surface-canvas:#0e1426;--surface-elevated:#141c33;--hairline:rgba(255,255,255,.12);--text-primary:#eef2ff;--text-secondary:#aab3d4;--elev-2:0 16px 40px rgba(0,0,0,.45);--brand-primary:#818cf8;--brand-success:#34d399;}*{box-sizing:border-box}body{background:var(--surface-bg);color:var(--text-primary);font-family:Inter,system-ui,sans-serif;margin:0;padding:32px;transition:background .2s,color .2s}.pv-wrap{max-width:900px;margin:0 auto}.pv-flag{background:linear-gradient(90deg,#6366f1,#10b981);color:#04121a;font-weight:700;font-size:12px;text-align:center;padding:7px;border-radius:8px;margin-bottom:8px}.pv-note{font-size:12px;color:var(--text-secondary);text-align:center;margin:0 0 8px}.pv-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin:30px 0 8px}.pv-toggle{position:fixed;top:14px;right:18px;z-index:10;padding:8px 13px;border-radius:9px;border:1px solid var(--hairline);background:var(--surface-elevated);color:var(--text-primary);font-weight:650;cursor:pointer}/* rmc-setup-surface.css
+   Onboarding "command surface" for the tenant-admin v3 canvas.
+
+   Rendered by templates/partials/tenant/setup_command_surface.html ONLY while a
+   school is still onboarding (gated on the view's show_setup_landing signal).
+   Visual direction mirrors var/design-previews/tenant-admin-workspace-preview.html
+   (hero + progress ring + numbered "Configure" stage + wizard-style step cards),
+   rebuilt entirely on the semantic token system + .rmc-* grammar so tenant brand
+   and light/dark flip cleanly. Zero hardcoded hex/rgb — every colour routes through
+   a semantic / brand token or color-mix() over one, so the dark-mode + brand
+   cascades own the surface. The conic progress ring mirrors the established
+   .setup-studio-health-ring pattern (a per-instance --rmc-setup-ring-pct custom
+   property set inline from real onboarding percent). */
+
+.rmc-setup-surface {
+  margin-bottom: 1.25rem;
+  min-width: 0;
+}
+
+/* ---------- Hero ---------- */
+.rmc-setup-surface__hero {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.4rem 1.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 18px);
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--brand-primary) 10%, var(--surface-elevated)),
+    var(--surface-elevated)
+  );
+}
+
+.rmc-setup-surface__hero-copy {
+  min-width: 0;
+}
+
+.rmc-setup-surface__eyebrow {
+  margin: 0 0 0.25rem;
+  font-size: var(--type-size-micro, 0.7rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.rmc-setup-surface__title {
+  margin: 0 0 0.3rem;
+  font-size: var(--type-size-xl, 1.4rem);
+  font-weight: 750;
+  color: var(--text-primary);
+}
+
+.rmc-setup-surface__lede {
+  margin: 0 0 0.9rem;
+  color: var(--text-secondary);
+  max-width: 56ch;
+}
+
+.rmc-setup-surface__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* ---------- Progress ring (mirrors .setup-studio-health-ring) ---------- */
+.rmc-setup-surface__ring {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  margin-left: auto;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  position: relative;
+  background: conic-gradient(
+    var(--brand-primary) var(--rmc-setup-ring-pct, 0%),
+    color-mix(in oklab, var(--text-secondary) 18%, transparent) 0
+  );
+}
+
+.rmc-setup-surface__ring::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: var(--surface-elevated, var(--surface-canvas));
+}
+
+.rmc-setup-surface__ring-value {
+  position: relative;
+  z-index: 1;
+  font-weight: 700;
+  font-size: var(--type-size-sm, 0.9rem);
+  color: var(--text-primary);
+}
+
+/* ---------- Stage ---------- */
+.rmc-setup-surface__stage {
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  background: var(--surface-canvas, var(--surface-elevated));
+}
+
+.rmc-setup-surface__stage-head {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.rmc-setup-surface__stage-num {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: var(--type-size-md, 1rem);
+  background: color-mix(in oklab, var(--brand-primary) 16%, transparent);
+  color: var(--brand-primary);
+}
+
+.rmc-setup-surface__stage-meta {
+  min-width: 0;
+}
+
+.rmc-setup-surface__stage-title {
+  margin: 0;
+  font-size: var(--type-size-lg, 1.1rem);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rmc-setup-surface__stage-desc {
+  margin: 0.1rem 0 0;
+  font-size: var(--type-size-sm, 0.8rem);
+  color: var(--text-secondary);
+}
+
+.rmc-setup-surface__stage-count {
+  margin-left: auto;
+  flex: none;
+  font-weight: 600;
+  font-size: var(--type-size-sm, 0.8rem);
+  color: var(--text-secondary);
+}
+
+/* ---------- Wizard-style step cards ---------- */
+.rmc-setup-surface__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rmc-setup-surface__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 13px);
+  background: var(--surface-elevated);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rmc-setup-surface__card-title {
+  margin: 0;
+  font-size: var(--type-size-sm, 0.875rem);
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.rmc-setup-surface__card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  font-size: var(--type-size-xs, 0.78rem);
+}
+
+.rmc-setup-surface__card-status {
+  color: var(--text-secondary);
+}
+
+.rmc-setup-surface__card.is-done .rmc-setup-surface__card-status {
+  color: var(--brand-success, var(--brand-accent));
+  font-weight: 600;
+}
+
+.rmc-setup-surface__card-cta {
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--brand-primary);
+}
+
+.rmc-setup-surface__all {
+  display: inline-block;
+  margin-top: 0.9rem;
+  font-size: var(--type-size-sm, 0.85rem);
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--brand-primary);
+}
+
+/* ---------- Interaction (hover-capable pointers only) ---------- */
+@media (hover: hover) {
+  .rmc-setup-surface__card:hover {
+    transform: translateY(-2px);
+    border-color: var(--brand-primary);
+    box-shadow: var(--elev-2);
+  }
+
+  .rmc-setup-surface__card-cta:hover,
+  .rmc-setup-surface__all:hover {
+    text-decoration: underline;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-setup-surface__card {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .rmc-setup-surface__card:hover {
+    transform: none;
+  }
+}
+
+/* ---------- Narrow viewports ---------- */
+@media (max-width: 640px) {
+  .rmc-setup-surface__hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .rmc-setup-surface__ring {
+    margin-left: 0;
+  }
+
+  .rmc-setup-surface__stage-count {
+    margin-left: 0;
+  }
+}
+.btn.btn-primary{display:inline-flex;align-items:center;gap:.45rem;padding:.5rem .95rem;border-radius:10px;border:1px solid var(--brand-primary);background:var(--brand-primary);color:#fff;font-weight:650;font-size:.85rem;text-decoration:none}</style></head><body><div class=pv-wrap><div class=pv-flag>BROWSABLE PREVIEW — shipped partial markup + shipped rmc-setup-surface.css (inlined verbatim); tokens approximate the live platform</div><p class=pv-note>Toggle dark mode (top-right) to verify the gradient / ring / borders flip. Real tenants pick up their own brand colour.</p><button class=pv-toggle onclick="var h=document.documentElement,d=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',d?'light':'dark');this.textContent=d?'Dark mode':'Light mode';">Dark mode</button><p class="pv-label">Fresh tenant — 12%</p>
+<section class="rmc-setup-surface" data-rmc-setup-surface="active" aria-label="Set up your school">
+  <header class="rmc-setup-surface__hero">
+    <div class="rmc-setup-surface__hero-copy">
+      <p class="rmc-setup-surface__eyebrow">Getting started</p>
+      <h2 class="rmc-setup-surface__title">Set up your school</h2>
+      <p class="rmc-setup-surface__lede">A guided path from first login to a fully running school.</p>
+      <a class="rmc-setup-surface__cta btn btn-primary btn-sm" href="#"><i class="bi bi-arrow-right-circle"></i><span>Configure academic year</span></a>
+    </div>
+    <div class="rmc-setup-surface__ring" style="--rmc-setup-ring-pct: 12%" role="img" aria-label="12 percent of setup complete">
+      <span class="rmc-setup-surface__ring-value">12%</span>
+    </div>
+  </header>
+  <div class="rmc-setup-surface__stage">
+    <div class="rmc-setup-surface__stage-head">
+      <span class="rmc-setup-surface__stage-num"><i class="bi bi-sliders2"></i></span>
+      <div class="rmc-setup-surface__stage-meta">
+        <h3 class="rmc-setup-surface__stage-title">Configure</h3>
+        <p class="rmc-setup-surface__stage-desc">Set up how your school runs — academics, finance, and communications.</p>
+      </div>
+      <span class="rmc-setup-surface__stage-count">1/9</span>
+    </div>
+    <ul class="rmc-setup-surface__cards"><li class="rmc-setup-surface__card is-done"><h4 class="rmc-setup-surface__card-title">Create academic year</h4><div class="rmc-setup-surface__card-foot"><span class="rmc-setup-surface__card-status">Done</span><a class="rmc-setup-surface__card-cta" href="#">Review</a></div></li><li class="rmc-setup-surface__card"><h4 class="rmc-setup-surface__card-title">Add classrooms & sections</h4><div class="rmc-setup-surface__card-foot"><span class="rmc-setup-surface__card-status">Not started</span><a class="rmc-setup-surface__card-cta" href="#">Start</a></div></li><li class="rmc-setup-surface__card"><h4 class="rmc-setup-surface__card-title">Invite teachers</h4><div class="rmc-setup-surface__card-foot"><span class="rmc-setup-surface__card-status">Not started</span><a class="rmc-setup-surface__card-cta" href="#">Start</a></div></li><li class="rmc-setup-surface__card"><h4 class="rmc-setup-surface__card-title">Import students</h4><div class="rmc-setup-surface__card-foot"><span class="rmc-setup-surface__card-status">Not started</span><a class="rmc-setup-surface__card-cta" href="#">Start</a></div></li><li class="rmc-setup-surface__card"><h4 class="rmc-setup-surface__card-title">Set up fee structure</h4><div class="rmc-setup-surface__card-foot"><span class="rmc-setup-surface__card-status">Not started</span><a class="rmc-setup-surface__card-cta" href="#">Start</a></div></li></ul>
+    <a class="rmc-setup-surface__all" href="#">Open full activation checklist</a>
+  </div>
+</section>
+<p class="pv-label">New Test High — 55%</p>
+<section class="rmc-setup-surface" data-rmc-setup-surface="active" aria-label="Set up your school">
+  <header class="rmc-setup-surface__hero">
+    <div class="rmc-setup-surface__hero-copy">
+      <p class="rmc-setup-surface__eyebrow">Getting started</p>
+      <h2 class="rmc-setup-surface__title">Set up your school</h2>
+      <p class="rmc-setup-surface__lede">A guided path from first login to a fully running school.</p>
+      <a class="rmc-setup-surface__cta btn btn-primary btn-sm" href="#"><i class="bi bi-arrow-right-circle"></i><span>Configure academic year</span></a>
+    </div>
+    <div class="rmc-setup-surface__ring" style="--rmc-setup-ring-pct: 55%" role="img" aria-label="55 percent of setup complete">
+      <span class="rmc-setup-surface__ring-value">55%</span>
+    </div>
+  </header>
+  <div class="rmc-setup-surface__stage">
+    <div class="rmc-setup-surface__stage-head">
+      <span class="rmc-setup-surface__stage-num"><i class="bi bi-sliders2"></i></span>
+      <div class="rmc-setup-surface__stage-meta">
+        <h3 class="rmc-setup-surface__stage-title">Configure</h3>
+        <p class="rmc-setup-surface__stage-desc">Set up how your school runs — academics, finance, and communications.</p>
+      </div>
+      <span class="rmc-setup-surface__stage-count">3/9</span>
+    </div>
+    <ul class="rmc-setup-surface__cards"><li class="rmc-setup-surface__card is-done"><h4 class="rmc-setup-surface__card-title">Create academic year</h4><div class="rmc-setup-surface__card-foot"><span class="rmc-setup-surface__card-status">Done</span><a class="rmc-setup-surface__card-cta" href="#">Review</a></div></li><li class="rmc-setup-surface__card is-done"><h4 class="rmc-setup-surface__card-title">Add classrooms & sections</h4><div class="rmc-setup-surface__card-foot"><span class="rmc-setup-surface__card-status">Done</span><a class="rmc-setup-surface__card-cta" href="#">Review</a></div></li><li class="rmc-setup-surface__card is-done"><h4 class="rmc-setup-surface__card-title">Invite teachers</h4><div class="rmc-setup-surface__card-foot"><span class="rmc-setup-surface__card-status">Done</span><a class="rmc-setup-surface__card-cta" href="#">Review</a></div></li><li class="rmc-setup-surface__card"><h4 class="rmc-setup-surface__card-title">Import students</h4><div class="rmc-setup-surface__card-foot"><span class="rmc-setup-surface__card-status">Not started</span><a class="rmc-setup-surface__card-cta" href="#">Start</a></div></li><li class="rmc-setup-surface__card"><h4 class="rmc-setup-surface__card-title">Set up fee structure</h4><div class="rmc-setup-surface__card-foot"><span class="rmc-setup-surface__card-status">Not started</span><a class="rmc-setup-surface__card-cta" href="#">Start</a></div></li></ul>
+    <a class="rmc-setup-surface__all" href="#">Open full activation checklist</a>
+  </div>
+</section>
+<p class="pv-label">Almost there — 88%</p>
+<section class="rmc-setup-surface" data-rmc-setup-surface="active" aria-label="Set up your school">
+  <header class="rmc-setup-surface__hero">
+    <div class="rmc-setup-surface__hero-copy">
+      <p class="rmc-setup-surface__eyebrow">Getting started</p>
+      <h2 class="rmc-setup-surface__title">Set up your school</h2>
+      <p class="rmc-setup-surface__lede">A guided path from first login to a fully running school.</p>
+      <a class="rmc-setup-surface__cta btn btn-primary btn-sm" href="#"><i class="bi bi-arrow-right-circle"></i><span>Configure academic year</span></a>
+    </div>
+    <div class="rmc-setup-surface__ring" style="--rmc-setup-ring-pct: 88%" role="img" aria-label="88 percent of setup complete">
+      <span class="rmc-setup-surface__ring-value">88%</span>
+    </div>
+  </header>
+  <div class="rmc-setup-surface__stage">
+    <div class="rmc-setup-surface__stage-head">
+      <span class="rmc-setup-surface__stage-num"><i class="bi bi-sliders2"></i></span>
+      <div class="rmc-setup-surface__stage-meta">
+        <h3 class="rmc-setup-surface__stage-title">Configure</h3>
+        <p class="rmc-setup-surface__stage-desc">Set up how your school runs — academics, finance, and communications.</p>
+      </div>
+      <span class="rmc-setup-surface__stage-count">8/9</span>
+    </div>
+    <ul class="rmc-setup-surface__cards"><li class="rmc-setup-surface__card is-done"><h4 class="rmc-setup-surface__card-title">Create academic year</h4><div class="rmc-setup-surface__card-foot"><span class="rmc-setup-surface__card-status">Done</span><a class="rmc-setup-surface__card-cta" href="#">Review</a></div></li><li class="rmc-setup-surface__card is-done"><h4 class="rmc-setup-surface__card-title">Add classrooms & sections</h4><div class="rmc-setup-surface__card-foot"><span class="rmc-setup-surface__card-status">Done</span><a class="rmc-setup-surface__card-cta" href="#">Review</a></div></li><li class="rmc-setup-surface__card is-done"><h4 class="rmc-setup-surface__card-title">Invite teachers</h4><div class="rmc-setup-surface__card-foot"><span class="rmc-setup-surface__card-status">Done</span><a class="rmc-setup-surface__card-cta" href="#">Review</a></div></li><li class="rmc-setup-surface__card is-done"><h4 class="rmc-setup-surface__card-title">Import students</h4><div class="rmc-setup-surface__card-foot"><span class="rmc-setup-surface__card-status">Done</span><a class="rmc-setup-surface__card-cta" href="#">Review</a></div></li><li class="rmc-setup-surface__card is-done"><h4 class="rmc-setup-surface__card-title">Set up fee structure</h4><div class="rmc-setup-surface__card-foot"><span class="rmc-setup-surface__card-status">Done</span><a class="rmc-setup-surface__card-cta" href="#">Review</a></div></li></ul>
+    <a class="rmc-setup-surface__all" href="#">Open full activation checklist</a>
+  </div>
+</section></div></body></html>

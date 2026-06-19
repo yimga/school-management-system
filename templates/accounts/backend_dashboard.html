@@ -33,6 +33,10 @@ backend-shell dashboard-page-backend
 <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
 {% comment %} v4.00.12: shared resumable-wizards banner styles (also used by tenant_wizard_index). {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-wizard-index.css' %}">
+{% comment %} v4.04.x: onboarding setup-command-surface (hero + progress ring + Configure stage
+   + wizard-style step cards) shown on the default v3 canvas while a school is still
+   onboarding (gated on show_setup_landing). Token-only; tenant brand + theme flip clean. {% endcomment %}
+<link rel="stylesheet" href="{% static 'css/rmc-setup-surface.css' %}">
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 <!-- Include navigation bridge styles -->
 <script src="{% static 'js/_pages/accounts__backend_dashboard.js' %}"></script>
@@ -78,6 +82,12 @@ backend-shell dashboard-page-backend
   {% url 'accounts:backend_operational_health_stream' as tenant_health_stream_url %}
   {% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="admin" %}
   {% include "partials/operator_queue_smart_links_banner.html" %}
+
+  {% comment %} v4.04.x: onboarding command surface — front-and-centre on the default v3
+     canvas while a school is still onboarding, so a fresh tenant lands on a guided
+     setup path (hero + progress ring + Configure stage + wizard step cards) instead
+     of an empty cockpit. Self-gates on show_setup_landing + real onboarding data. {% endcomment %}
+  {% include "partials/tenant/setup_command_surface.html" %}
 
   {% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings.
 
