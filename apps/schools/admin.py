@@ -7,6 +7,7 @@ from django.urls import reverse
 from config.admin import platform_admin_site, register_tenant_admin
 
 from .models import (
+    DonationPledge,
     FundraisingCampaign,
     InKindDonation,
     School,
@@ -358,5 +359,22 @@ class FundraisingCampaignAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
+class DonationPledgeAdmin(admin.ModelAdmin):
+    list_display = (
+        "donor",
+        "school",
+        "amount",
+        "currency",
+        "status",
+        "fulfilled_amount",
+        "due_date",
+    )
+    list_filter = ("school", "status", "currency")
+    search_fields = ("donor__display_name", "notes")
+    raw_id_fields = ("school", "donor", "campaign")
+    readonly_fields = ("fulfilled_at", "created_at", "updated_at")
+
+
 register_tenant_admin(InKindDonation, InKindDonationAdmin)
 register_tenant_admin(FundraisingCampaign, FundraisingCampaignAdmin)
+register_tenant_admin(DonationPledge, DonationPledgeAdmin)

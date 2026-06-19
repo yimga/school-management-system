@@ -615,6 +615,96 @@ def post_scholarship_disbursement_to_ledger(
     return entry
 
 
+def post_donation_to_ledger(
+    *,
+    school,
+    amount: Decimal,
+    reference_id,
+    memo: str = "Donation",
+    method: str = "",
+    profile=None,
+) -> JournalEntry | None:
+    """
+    Post an incoming donation as a balanced journal entry — the INFLOW mirror of
+    ``post_scholarship_disbursement_to_ledger`` (which posts the outflow). Without
+    this, fund credits were visible in AidAuditLog but absent from the GL while
+    disbursements posted, breaking double-entry symmetry.
+
+    Debit: Cash (531) / Bank (512) / Mobile Money (514) asset, by method.
+    Credit: Donations & Grants Income (754).
+    Returns None (no-op) when no compliance profile is configured.
+    """
+    amount = Decimal(str(amount or "0"))
+    if amount <= 0:
+        return None
+
+    if profile is None:
+        site = _site_settings_for_school(school)
+        profile = (
+            getattr(site, "compliance_profile", None)
+            or ComplianceProfile.objects.filter(is_active=True).first()
+        )
+    if not profile:
+        return None
+
+    income_account = _account(
+        profile, "754", "Donations & Grants Income", LedgerAccount.AccountType.INCOME
+    )
+    cash_account = _account(profile, "531", "Cash", LedgerAccount.AccountType.ASSET)
+    bank_account = _account(profile, "512", "Bank", LedgerAccount.AccountType.ASSET)
+    mobile_account = _account(
+        profile, "514", "Mobile Money", LedgerAccount.AccountType.ASSET
+    )
+    method = (method or "").strip()
+    if method in {PaymentMethodCode.MTN_MOMO, PaymentMethodCode.ORANGE_MOMO}:
+        debit_account = mobile_account
+    elif method == PaymentMethodCode.CASH:
+        debit_account = cash_account
+    else:
+        debit_account = bank_account
+
+    reference = f"DON-{reference_id}"
+    entry = JournalEntry.objects.filter(
+        source_type="advancement_donation",
+        source_id=reference_id,
+    ).first()
+    entry_date = timezone.now().date()
+    if entry:
+        entry.entry_date = entry_date
+        entry.reference = reference
+        entry.memo = memo[:255]
+        entry.posted_at = entry.posted_at or timezone.now()
+        entry.save(update_fields=["entry_date", "reference", "memo", "posted_at"])
+        entry.lines.all().delete()
+    else:
+        entry = JournalEntry.objects.create(
+            profile=profile,
+            entry_date=entry_date,
+            reference=reference,
+            memo=memo[:255],
+            source_type="advancement_donation",
+            source_id=reference_id,
+            posted_at=timezone.now(),
+        )
+
+    line_desc = memo[:255]
+    JournalLine.objects.create(
+        entry=entry,
+        account=debit_account,
+        description=line_desc,
+        debit=amount,
+        credit=Decimal("0.00"),
+    )
+    JournalLine.objects.create(
+        entry=entry,
+        account=income_account,
+        description=line_desc,
+        debit=Decimal("0.00"),
+        credit=amount,
+    )
+    return entry
+
+
 def _invoice_status(total: Decimal, balance: Decimal) -> str:
     if total <= 0:
         return Invoice.Status.DRAFT

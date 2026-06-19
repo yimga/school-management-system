@@ -134,6 +134,7 @@ from apps.schools.views_advancement import (
     advancement_donor_list,
     advancement_gift_delete,
     advancement_send_portal_link,
+    donation_capture,
     donations_dashboard,
 )
 from apps.schools.views_donor_portal import donor_portal
@@ -317,13 +318,18 @@ urlpatterns = [
         name="donations_dashboard",
     ),
     path(
+        "backend/advancement/donations/capture/",
+        donation_capture,
+        name="donation_capture",
+    ),
+    path(
         "backend/advancement/donors/<int:donor_id>/portal-link/",
         advancement_send_portal_link,
         name="advancement_send_portal_link",
     ),
     # Public donor magic-link portal (no auth; UUID token is the credential).
     path(
-        "giving/<uuid:token>/",
+        "giving/<uuid:token>/",  # rbac-allow: public-donor-magic-link-uuid-token-is-credential
         donor_portal,
         name="donor_portal",
     ),

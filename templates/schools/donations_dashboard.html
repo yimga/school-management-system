@@ -38,6 +38,33 @@
     </div>
   </div>
 
+  <h6 class="mb-2">{% trans "Quick capture" %}</h6>
+  <form method="post" action="{% url 'accounts:donation_capture' %}"
+        class="row g-2 align-items-end mb-4"
+        data-rmc-offline-form="donation_capture"
+        data-offline-hint="{% trans 'Offline: this donation is saved on the device and syncs when you reconnect.' %}">
+    {% csrf_token %}
+    <div class="col-md-3">
+      <label class="form-label small" for="dc_name">{% trans "Donor name" %} *</label>
+      <input type="text" class="form-control" id="dc_name" name="donor_name" required maxlength="200">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small" for="dc_amt">{% trans "Amount" %} *</label>
+      <input type="text" class="form-control" id="dc_amt" name="amount" required inputmode="decimal" placeholder="0.00">
+    </div>
+    <div class="col-md-1">
+      <label class="form-label small" for="dc_ccy">{% trans "CCY" %}</label>
+      <input type="text" class="form-control" id="dc_ccy" name="currency" value="USD" maxlength="3">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small" for="dc_camp">{% trans "Campaign" %}</label>
+      <input type="text" class="form-control" id="dc_camp" name="campaign_name" maxlength="120" placeholder="Annual fund">
+    </div>
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-primary min-touch-target w-100">{% trans "Record donation" %}</button>
+    </div>
+  </form>
+
   <h6 class="mb-2">{% trans "Campaigns" %}</h6>
   {% if overview.campaigns %}
   <div class="row g-3 mb-4">
@@ -59,6 +86,24 @@
   </div>
   {% else %}
   <p class="text-secondary mb-4">{% trans "No campaigns yet. Create one in the admin to start tracking progress." %}</p>
+  {% endif %}
+
+  {% if overview.pledges.total_outstanding %}
+  <h6 class="mb-2">{% trans "Pledges outstanding" %}</h6>
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card card-body"><p class="text-muted small mb-1">{% trans "Current" %}</p><p class="h5 mb-0">{{ overview.pledges.buckets.current }}</p><p class="small text-muted mb-0">{{ overview.pledges.counts.current }}</p></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-body"><p class="text-muted small mb-1">{% trans "1–30 days overdue" %}</p><p class="h5 mb-0">{{ overview.pledges.buckets.d1_30 }}</p><p class="small text-muted mb-0">{{ overview.pledges.counts.d1_30 }}</p></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-body"><p class="text-muted small mb-1">{% trans "31–60 days" %}</p><p class="h5 mb-0">{{ overview.pledges.buckets.d31_60 }}</p><p class="small text-muted mb-0">{{ overview.pledges.counts.d31_60 }}</p></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-body"><p class="text-muted small mb-1">{% trans "60+ days" %}</p><p class="h5 mb-0">{{ overview.pledges.buckets.d60_plus }}</p><p class="small text-muted mb-0">{{ overview.pledges.counts.d60_plus }}</p></div>
+    </div>
+  </div>
   {% endif %}
 
   {% if overview.endowment %}

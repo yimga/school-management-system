@@ -62,6 +62,65 @@ def campaign_progress(campaign) -> dict[str, Any]:
     }
 
 
+def fulfill_pledge(pledge, amount, *, gift=None) -> dict[str, Any]:
+    """
+    Apply a payment toward a pledge: bump fulfilled_amount and transition status
+    (PLEDGED → PARTIAL → FULFILLED). Idempotent in the sense that over-fulfilling
+    simply caps the status at FULFILLED.
+    """
+    amount = _as_decimal(amount)
+    if amount <= 0:
+        return {"ok": False, "error": "Amount must be positive"}
+    if pledge.status == pledge.Status.CANCELLED:
+        return {"ok": False, "error": "Pledge is cancelled"}
+    pledge.fulfilled_amount = _as_decimal(pledge.fulfilled_amount) + amount
+    fields = ["fulfilled_amount", "updated_at"]
+    if pledge.fulfilled_amount >= _as_decimal(pledge.amount):
+        if pledge.status != pledge.Status.FULFILLED:
+            pledge.status = pledge.Status.FULFILLED
+            pledge.fulfilled_at = timezone.now()
+            fields += ["status", "fulfilled_at"]
+    elif pledge.fulfilled_amount > 0 and pledge.status == pledge.Status.PLEDGED:
+        pledge.status = pledge.Status.PARTIAL
+        fields.append("status")
+    pledge.save(update_fields=fields)
+    if gift is not None and gift.campaign_id is None and pledge.campaign_id:
+        gift.campaign_id = pledge.campaign_id
+        gift.save(update_fields=["campaign"])
+    return {"ok": True, "status": pledge.status, "fulfilled_amount": pledge.fulfilled_amount}
+
+
+def pledge_aging(school_id: Any) -> dict[str, Any]:
+    """Aging buckets for OPEN pledges (current vs overdue 1-30 / 31-60 / 60+ days)."""
+    from apps.schools.models import DonationPledge
+
+    today = timezone.now().date()
+    buckets = {"current": Decimal("0.00"), "d1_30": Decimal("0.00"),
+               "d31_60": Decimal("0.00"), "d60_plus": Decimal("0.00")}
+    counts = {"current": 0, "d1_30": 0, "d31_60": 0, "d60_plus": 0}
+    open_pledges = DonationPledge.objects.filter(
+        school_id=school_id,
+        status__in=(DonationPledge.Status.PLEDGED, DonationPledge.Status.PARTIAL),
+    )
+    total_outstanding = Decimal("0.00")
+    for p in open_pledges:
+        outstanding = p.outstanding_amount
+        total_outstanding += outstanding
+        if not p.due_date or p.due_date >= today:
+            key = "current"
+        else:
+            overdue = (today - p.due_date).days
+            if overdue <= 30:
+                key = "d1_30"
+            elif overdue <= 60:
+                key = "d31_60"
+            else:
+                key = "d60_plus"
+        buckets[key] += outstanding
+        counts[key] += 1
+    return {"buckets": buckets, "counts": counts, "total_outstanding": total_outstanding}
+
+
 def donations_overview(school_id: Any) -> dict[str, Any]:
     """
     Tenant donations dashboard summary: campaign progress, gift/in-kind totals,
@@ -108,6 +167,7 @@ def donations_overview(school_id: Any) -> dict[str, Any]:
         "in_kind_pending": in_kind_pending,
         "in_kind_accepted_count": in_kind_accepted["n"] or 0,
         "in_kind_accepted_value": _as_decimal(in_kind_accepted["total"]),
+        "pledges": pledge_aging(school_id),
         "endowment": endowment,
     }
 

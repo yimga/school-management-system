@@ -1286,6 +1286,73 @@ class FundraisingCampaign(models.Model):
         return f"{self.name} ({self.get_status_display()})"
 
 
+class DonationPledge(models.Model):
+    """
+    Wedge 5: a promise to give later (distinct from AdvancementGift, which is a gift
+    already received). Tracks due date, fulfillment (via linked gifts), reminder
+    counters and aging. Tenant-scoped via school.
+    """
+
+    class Status(models.TextChoices):
+        PLEDGED = "pledged", "Pledged"
+        PARTIAL = "partial", "Partially fulfilled"
+        FULFILLED = "fulfilled", "Fulfilled"
+        CANCELLED = "cancelled", "Cancelled"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="donation_pledges",
+    )
+    donor = models.ForeignKey(
+        "schools.AdvancementDonor",
+        on_delete=models.CASCADE,
+        related_name="pledges",
+    )
+    campaign = models.ForeignKey(
+        "schools.FundraisingCampaign",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pledges",
+    )
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    currency = models.CharField(max_length=3, default="USD")
+    due_date = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        max_length=12, choices=Status.choices, default=Status.PLEDGED
+    )
+    fulfilled_amount = models.DecimalField(
+        max_digits=14, decimal_places=2, default=Decimal("0.00")
+    )
+    fulfilled_at = models.DateTimeField(null=True, blank=True)
+    reminders_sent = models.PositiveIntegerField(default=0)
+    last_reminder_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["due_date", "-created_at"]
+        verbose_name = "Donation pledge"
+        verbose_name_plural = "Donation pledges"
+        indexes = [
+            models.Index(fields=["school", "status"]),
+            models.Index(fields=["school", "due_date"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"Pledge {self.amount} {self.currency} ({self.get_status_display()})"
+
+    @property
+    def outstanding_amount(self) -> Decimal:
+        return max(Decimal("0.00"), self.amount - (self.fulfilled_amount or Decimal("0.00")))
+
+    @property
+    def is_open(self) -> bool:
+        return self.status in (self.Status.PLEDGED, self.Status.PARTIAL)
+
+
 class AdvancementDonor(models.Model):
     """
     Wedge 5 Phase 2: per-school donor CRM (minimal v1 — gifts and receipts).

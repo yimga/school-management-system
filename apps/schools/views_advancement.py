@@ -311,6 +311,49 @@ def donations_dashboard(request):
 @user_passes_test(_staff_only)
 @require_school
 @require_POST
+def donation_capture(request):
+    """
+    Quick donation capture (online path). The same form is offline-capable via
+    data-rmc-offline-form="donation_capture", which queues a donation.intake
+    action that applies identically on sync.
+    """
+    school = request.school
+    donor_name = (request.POST.get("donor_name") or "").strip()[:200]
+    amount_raw = (request.POST.get("amount") or "").strip()
+    try:
+        amount = Decimal(amount_raw)
+    except (InvalidOperation, TypeError, ValueError):
+        amount = None
+    if not donor_name or amount is None or amount <= 0:
+        messages.error(request, "Donor name and a positive amount are required.")
+        return redirect("accounts:donations_dashboard")
+    try:
+        donor, _created = AdvancementDonor.objects.get_or_create(
+            school=school, display_name=donor_name
+        )
+        AdvancementGift.objects.create(
+            donor=donor,
+            amount=amount,
+            currency=(request.POST.get("currency") or "USD").strip()[:3] or "USD",
+            received_at=timezone.now().date(),
+            campaign_name=(request.POST.get("campaign_name") or "").strip()[:120],
+            notes=(request.POST.get("notes") or "").strip()[:500],
+        )
+        messages.success(request, "Donation recorded.")
+    except (IntegrityError, DatabaseError, ValueError, TypeError):
+        log_view_exception(
+            request,
+            "donation_capture failed",
+            extra={"view": "donation_capture", "school_id": str(school.pk)},
+        )
+        messages.error(request, "Could not record the donation.")
+    return redirect("accounts:donations_dashboard")
+
+
+@login_required
+@user_passes_test(_staff_only)
+@require_school
+@require_POST
 def advancement_send_portal_link(request, donor_id):
     """Mint a donor magic-link and email it to the donor (best-effort)."""
     school = request.school

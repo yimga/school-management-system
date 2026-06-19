@@ -333,6 +333,37 @@
     });
   }
 
+  function wireDonationCapture(form) {
+    form.addEventListener('submit', function (ev) {
+      if (navigator.onLine || !enabled()) return;
+      ev.preventDefault();
+      var nameEl = form.querySelector('[name="donor_name"]');
+      var amountEl = form.querySelector('[name="amount"]');
+      var donorName = nameEl ? String(nameEl.value || '').trim() : '';
+      var amount = amountEl ? String(amountEl.value || '').trim() : '';
+      if (!donorName || !amount) {
+        toast('Donor name and amount are required offline.', 'warning');
+        return;
+      }
+      var currencyEl = form.querySelector('[name="currency"]');
+      var campaignEl = form.querySelector('[name="campaign_name"]');
+      var notesEl = form.querySelector('[name="notes"]');
+      var idem = 'don-' + donorName.toLowerCase().replace(/\s+/g, '-').slice(0, 40) + '-' + amount + '-' + Date.now();
+      window.rmcOfflineEnqueue({
+        action_type: 'donation.intake',
+        payload: {
+          donor_name: donorName,
+          amount: amount,
+          currency: currencyEl ? String(currencyEl.value || 'USD') : 'USD',
+          campaign_name: campaignEl ? String(campaignEl.value || '') : '',
+          notes: notesEl ? String(notesEl.value || '') : '',
+        },
+        idempotency_key: idem.slice(0, 128),
+      });
+      toast('Donation saved on this device — it will sync when you reconnect.', 'success');
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('form[data-rmc-offline-form="attendance"]').forEach(wireAttendance);
     document.querySelectorAll('form[data-rmc-offline-form="grading"]').forEach(wireGrading);
@@ -341,5 +372,6 @@
     document.querySelectorAll('form[data-rmc-offline-form="homework_submission"]').forEach(wireHomeworkSubmission);
     document.querySelectorAll('form[data-rmc-offline-form="support_ticket"]').forEach(wireSupportTicket);
     document.querySelectorAll('form[data-rmc-offline-form="field_capture"]').forEach(wireFieldCapture);
+    document.querySelectorAll('form[data-rmc-offline-form="donation_capture"]').forEach(wireDonationCapture);
   });
 })();

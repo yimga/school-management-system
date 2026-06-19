@@ -169,6 +169,26 @@ class AidDisbursementLedgerTests(TestCase):
         )
         self.assertEqual(delivery.domain_event.event_type, "finance.aid_disbursed")
 
+    def test_donation_credit_posts_balanced_ledger_inflow(self):
+        from apps.finance.aid_services import credit_award_source
+
+        res = credit_award_source(
+            school_id=self.school.pk,
+            source_id=self.source.pk,
+            amount=Decimal("400.00"),
+            currency="USD",
+            reason="Donation from Acme NGO",
+        )
+        self.assertTrue(res["ok"])
+        entry = JournalEntry.objects.filter(source_type="advancement_donation").first()
+        self.assertIsNotNone(entry)
+        debit_total = sum((line.debit for line in entry.lines.all()), Decimal("0.00"))
+        credit_total = sum((line.credit for line in entry.lines.all()), Decimal("0.00"))
+        self.assertEqual(debit_total, Decimal("400.00"))
+        self.assertEqual(credit_total, Decimal("400.00"))
+        codes = {line.account.code for line in entry.lines.all()}
+        self.assertIn("754", codes)  # Donations & Grants Income (credit)
+
     def test_endowment_report_includes_multi_year_projections(self):
         app = self._application(self.student_without_invoice, "25.00")
         result = execute_disbursement(app.pk, school_id=self.school.pk)

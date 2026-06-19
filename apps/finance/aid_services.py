@@ -319,6 +319,7 @@ def credit_award_source(
     currency: str | None = None,
     reason: str = "",
     user_id: int | None = None,
+    method: str = "",
 ) -> dict[str, Any]:
     """
     Inflow side of the aid loop: credit a donation INTO an AwardSource fund.
@@ -349,7 +350,7 @@ def credit_award_source(
         source.remaining_funds += amount
         source.total_budget += amount
         source.save(update_fields=["remaining_funds", "total_budget", "updated_at"])
-        AidAuditLog.objects.create(
+        audit = AidAuditLog.objects.create(
             school_id=school_id,
             source=source,
             action="donation",
@@ -357,6 +358,17 @@ def credit_award_source(
             balance_after=source.remaining_funds,
             reason=(reason or "Donation")[:255],
             created_by_id=user_id,
+        )
+        # Post the INFLOW to the GL so it mirrors disbursement (which posts the
+        # outflow) — double-entry symmetry. No-op when no compliance profile.
+        from .services import post_donation_to_ledger
+
+        post_donation_to_ledger(
+            school=source.school,
+            amount=amount,
+            reference_id=audit.pk,
+            memo=(reason or "Donation")[:255],
+            method=method or "",
         )
     return {
         "ok": True,

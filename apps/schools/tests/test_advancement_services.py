@@ -12,13 +12,16 @@ from apps.schools.advancement_services import (
     campaign_progress,
     designate_and_credit_gift,
     donations_overview,
+    fulfill_pledge,
     mint_donor_access_link,
+    pledge_aging,
     reject_in_kind_donation,
     resolve_donor_access_link,
 )
 from apps.schools.models import (
     AdvancementDonor,
     AdvancementGift,
+    DonationPledge,
     DonorGiftAccessLink,
     FundraisingCampaign,
     InKindDonation,
@@ -328,3 +331,60 @@ class OfflineDonationIntakeTests(TestCase):
         d = InKindDonation.objects.get(school=self.school, description="Donated tablets")
         self.assertEqual(d.quantity, 12)
         self.assertEqual(d.status, InKindDonation.Status.PENDING)
+
+
+class DonationPledgeTests(TestCase):
+    def setUp(self):
+        self.school = School.objects.create(
+            name="Pledge School", slug="pledge-school",
+            subdomain="pledge-school", is_active=True,
+        )
+        self.donor = AdvancementDonor.objects.create(
+            school=self.school, display_name="Pledging Donor"
+        )
+
+    def _pledge(self, amount="1000.00", due_offset_days=None):
+        due = None
+        if due_offset_days is not None:
+            due = timezone.now().date() + timedelta(days=due_offset_days)
+        return DonationPledge.objects.create(
+            school=self.school, donor=self.donor,
+            amount=Decimal(amount), currency="USD", due_date=due,
+        )
+
+    def test_partial_then_full_fulfillment(self):
+        p = self._pledge("1000.00")
+        r1 = fulfill_pledge(p, Decimal("400.00"))
+        self.assertTrue(r1["ok"])
+        p.refresh_from_db()
+        self.assertEqual(p.status, DonationPledge.Status.PARTIAL)
+        self.assertEqual(p.outstanding_amount, Decimal("600.00"))
+        fulfill_pledge(p, Decimal("600.00"))
+        p.refresh_from_db()
+        self.assertEqual(p.status, DonationPledge.Status.FULFILLED)
+        self.assertIsNotNone(p.fulfilled_at)
+        self.assertEqual(p.outstanding_amount, Decimal("0.00"))
+
+    def test_cancelled_pledge_rejects_fulfillment(self):
+        p = self._pledge("100.00")
+        p.status = DonationPledge.Status.CANCELLED
+        p.save(update_fields=["status"])
+        self.assertFalse(fulfill_pledge(p, Decimal("50.00"))["ok"])
+
+    def test_aging_buckets(self):
+        self._pledge("100.00", due_offset_days=10)    # current (future due)
+        self._pledge("200.00", due_offset_days=-15)   # 1-30 overdue
+        self._pledge("300.00", due_offset_days=-45)   # 31-60 overdue
+        self._pledge("400.00", due_offset_days=-90)   # 60+ overdue
+        aging = pledge_aging(self.school.pk)
+        self.assertEqual(aging["buckets"]["current"], Decimal("100.00"))
+        self.assertEqual(aging["buckets"]["d1_30"], Decimal("200.00"))
+        self.assertEqual(aging["buckets"]["d31_60"], Decimal("300.00"))
+        self.assertEqual(aging["buckets"]["d60_plus"], Decimal("400.00"))
+        self.assertEqual(aging["total_outstanding"], Decimal("1000.00"))
+
+    def test_fulfilled_pledge_excluded_from_aging(self):
+        p = self._pledge("500.00", due_offset_days=-30)
+        fulfill_pledge(p, Decimal("500.00"))
+        aging = pledge_aging(self.school.pk)
+        self.assertEqual(aging["total_outstanding"], Decimal("0.00"))
