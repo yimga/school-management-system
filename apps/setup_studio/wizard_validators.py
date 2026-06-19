@@ -88,7 +88,10 @@ def validate_min_length(value: Any, min_len: int) -> tuple[bool, str | None]:
 
 
 def validate_pattern(value: Any, pattern: str) -> tuple[bool, str | None]:
-    if value is None or not isinstance(value, str):
+    # Emptiness is the ``required`` validator's job, not the shape check's — an
+    # optional field left blank submits "" and must not trip a pattern. Mirrors
+    # validate_max_length / validate_min_length, which also pass on absent input.
+    if value is None or not isinstance(value, str) or value == "":
         return True, None
     try:
         if not re.match(pattern, value):
@@ -167,7 +170,7 @@ def validate_integer_range(
 
 
 def validate_domain_format(value: Any) -> tuple[bool, str | None]:
-    if value is None:
+    if value is None or value == "":
         return True, None
     if not isinstance(value, str):
         return False, "wizards.errors.domain_invalid"
@@ -178,7 +181,7 @@ def validate_domain_format(value: Any) -> tuple[bool, str | None]:
 
 
 def validate_color_hex(value: Any) -> tuple[bool, str | None]:
-    if value is None:
+    if value is None or value == "":
         return True, None
     if not isinstance(value, str) or not _HEX_COLOR_RE.match(value):
         return False, "wizards.errors.color_hex_invalid"
@@ -245,7 +248,7 @@ def validate_pfx_certificate_shape(b: Any) -> tuple[bool, str | None]:
 
 
 def validate_iso_country_code(value: Any) -> tuple[bool, str | None]:
-    if value is None:
+    if value is None or value == "":
         return True, None
     if not isinstance(value, str) or not _ISO_COUNTRY_RE.match(value):
         return False, "wizards.errors.country_code_invalid"
@@ -253,7 +256,7 @@ def validate_iso_country_code(value: Any) -> tuple[bool, str | None]:
 
 
 def validate_iso_currency_code(value: Any) -> tuple[bool, str | None]:
-    if value is None:
+    if value is None or value == "":
         return True, None
     if not isinstance(value, str) or not _ISO_CURRENCY_RE.match(value):
         return False, "wizards.errors.currency_code_invalid"
@@ -261,7 +264,7 @@ def validate_iso_currency_code(value: Any) -> tuple[bool, str | None]:
 
 
 def validate_email_shape(value: Any) -> tuple[bool, str | None]:
-    if value is None:
+    if value is None or value == "":
         return True, None
     if not isinstance(value, str) or not _EMAIL_SHAPE_RE.match(value):
         return False, "wizards.errors.email_invalid"

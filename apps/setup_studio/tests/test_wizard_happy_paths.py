@@ -63,6 +63,10 @@ def _sample_from_pattern(pattern: str) -> str:
             _sre_constants.CATEGORY_DIGIT: "0",
             _sre_constants.CATEGORY_WORD: "a",
             _sre_constants.CATEGORY_SPACE: " ",
+            # Negated categories (\S \D \W) — emit a char that satisfies them.
+            _sre_constants.CATEGORY_NOT_SPACE: "a",
+            _sre_constants.CATEGORY_NOT_DIGIT: "a",
+            _sre_constants.CATEGORY_NOT_WORD: ".",
         }
         if category in mapping:
             return mapping[category]
@@ -128,6 +132,10 @@ def _value_for_text_validation(validation: dict) -> str:
     """
     validation = validation or {}
 
+    if validation.get("iso_country"):
+        return "US"
+    if validation.get("iso_currency"):
+        return "USD"
     if validation.get("color_hex"):
         return "#4F46E5"
     if validation.get("domain_format"):
@@ -193,7 +201,9 @@ def _synthesize_field_value(field_def: dict):
     if field_type == "domain":
         return "test.example.com"
     if field_type == "select":
-        return "default"
+        # A select constrained by a shape validator (iso_country/currency, etc.)
+        # must emit a value that satisfies it, not the bare "default" sentinel.
+        return _value_for_text_validation(validation) if validation else "default"
     # text + long_text + everything else — honour declared validators.
     return _value_for_text_validation(validation)
 

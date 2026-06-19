@@ -76,7 +76,7 @@
           "name": "logo_url",
           "type": "text",
           "required": false,
-          "validation": {"max_length": 256}
+          "validation": {"max_length": 256, "pattern": "^https?://\\S+\\.\\S+$"}
         }
       ],
       "persistence": {

@@ -35,7 +35,7 @@
           "name": "phone",
           "type": "text",
           "required": false,
-          "validation": {"max_length": 32}
+          "validation": {"max_length": 32, "pattern": "^[+0-9 ()-]{6,32}$"}
         }
       ],
       "persistence": {

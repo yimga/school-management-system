@@ -72,6 +72,27 @@ class PatternTests(SimpleTestCase):
             (False, "wizards.errors.pattern_invalid"),
         )
 
+    def test_empty_and_none_pass(self):
+        # Emptiness is the required validator's concern — an optional field left
+        # blank ("" or None) must not trip a shape pattern.
+        self.assertEqual(v.validate_pattern("", r"^[a-z]+$"), (True, None))
+        self.assertEqual(v.validate_pattern(None, r"^[a-z]+$"), (True, None))
+
+    def test_global_phone_and_url_shapes(self):
+        phone = r"^[+0-9 ()-]{6,32}$"
+        self.assertEqual(v.validate_pattern("+234 802 123 4567", phone), (True, None))
+        self.assertEqual(v.validate_pattern("(415) 555-0100", phone), (True, None))
+        self.assertEqual(
+            v.validate_pattern("<script>", phone),
+            (False, "wizards.errors.pattern_mismatch"),
+        )
+        url = r"^https?://\S+\.\S+$"
+        self.assertEqual(v.validate_pattern("https://cdn.school.edu/logo.png", url), (True, None))
+        self.assertEqual(
+            v.validate_pattern("javascript:alert(1)", url),
+            (False, "wizards.errors.pattern_mismatch"),
+        )
+
 
 class ChoicesTests(SimpleTestCase):
     def test_in_set(self):
@@ -126,10 +147,15 @@ class DomainTests(SimpleTestCase):
             v.validate_domain_format("not_a_domain"),
             (False, "wizards.errors.domain_invalid"),
         )
-        self.assertEqual(
-            v.validate_domain_format(""),
-            (False, "wizards.errors.domain_invalid"),
-        )
+
+    def test_empty_passes_required_owns_emptiness(self):
+        # Shape validators skip blank input — an optional field left empty must
+        # not be rejected for shape; the required validator gates emptiness.
+        self.assertEqual(v.validate_domain_format(""), (True, None))
+        self.assertEqual(v.validate_color_hex(""), (True, None))
+        self.assertEqual(v.validate_iso_country_code(""), (True, None))
+        self.assertEqual(v.validate_iso_currency_code(""), (True, None))
+        self.assertEqual(v.validate_email_shape(""), (True, None))
 
 
 class ColorHexTests(SimpleTestCase):
