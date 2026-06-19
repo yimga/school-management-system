@@ -23,7 +23,7 @@
     <div class="rmc-setup-surface__hero-copy">
       <p class="rmc-setup-surface__eyebrow">{% trans "Getting started" %}</p>
       <h2 class="rmc-setup-surface__title">{% blocktrans with school_term=rmc_school_term %}Set up your {{ school_term }}{% endblocktrans %}</h2>
-      <p class="rmc-setup-surface__lede">{% trans "A guided path from first login to a fully running school." %}</p>
+      <p class="rmc-setup-surface__lede">{% blocktrans with school_term=rmc_school_term %}A guided path from first login to a fully running {{ school_term }}.{% endblocktrans %}</p>
       {% if rmc_school_onboarding.next_action and rmc_school_onboarding.next_action.url %}
       <a class="rmc-setup-surface__cta btn btn-primary btn-sm" href="{{ rmc_school_onboarding.next_action.url }}" data-rmc-setup-next-action="1">
         <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
@@ -41,7 +41,7 @@
       <span class="rmc-setup-surface__stage-num" aria-hidden="true"><i class="bi bi-sliders2"></i></span>
       <div class="rmc-setup-surface__stage-meta">
         <h3 class="rmc-setup-surface__stage-title">{% trans "Configure" %}</h3>
-        <p class="rmc-setup-surface__stage-desc">{% trans "Set up how your school runs — academics, finance, and communications." %}</p>
+        <p class="rmc-setup-surface__stage-desc">{% blocktrans with school_term=rmc_school_term %}Set up how your {{ school_term }} runs — academics, finance, and communications.{% endblocktrans %}</p>
       </div>
       <span class="rmc-setup-surface__stage-count">{% blocktrans with done=rmc_school_onboarding.completed total=rmc_school_onboarding.total %}{{ done }}/{{ total }}{% endblocktrans %}</span>
     </div>
