@@ -860,6 +860,38 @@ def _get_single_tenant_school():
     return None
 
 
+def _resolve_bridge_school_fallback(request):
+    """Resolve the tenant's School when the Client->School FK is unset.
+
+    A freshly-provisioned schema tenant can have ``request.tenant.school`` None
+    until the link is attached, which left ``request.school`` None for the WHOLE
+    request — silently emptying every direct reader (setup-wizard tiles, copilot
+    rail feeds, dashboard quick-actions seed, AI-chrome gate) and even risking a
+    false "school not found". Resolve by the tenant's OWN identity (host
+    subdomain), NEVER by user membership, so the bound school is always this
+    tenant's own and a multi-membership user can never resolve the wrong one.
+    Best-effort: returns None (preserving prior behavior) if anything fails.
+    """
+    try:
+        from apps.schools.pending_tenant_discovery import (
+            lookup_school_by_slug_or_subdomain,
+        )
+    except ImportError:
+        return None
+    subdomain = _extract_subdomain(
+        _request_host_raw(request), _get_base_domain() or None
+    )
+    if not subdomain:
+        return None
+    try:
+        school = lookup_school_by_slug_or_subdomain(subdomain)
+    except Exception:  # noqa: BLE001 — bridge fallback must never break request setup
+        return None
+    if school is not None and getattr(school, "id", None) is not None:
+        return school
+    return None
+
+
 class TenantSchemaSchoolBridgeMiddleware(MiddlewareMixin):
     """
     When using django-tenants (schema-per-tenant), TenantMainMiddleware sets request.tenant (Client).
@@ -870,7 +902,14 @@ class TenantSchemaSchoolBridgeMiddleware(MiddlewareMixin):
     def process_request(self, request):
         tenant = getattr(request, "tenant", None)
         if tenant is not None and hasattr(tenant, "school"):
-            request.school = tenant.school
+            school = tenant.school
+            if school is None:
+                # Client->School FK not attached yet (freshly provisioned tenant):
+                # resolve by tenant identity (subdomain) so every downstream
+                # request.school reader works instead of degrading to an empty
+                # surface. Common case (FK present) skips this entirely.
+                school = _resolve_bridge_school_fallback(request)
+            request.school = school
             if request.school and getattr(request, "session", None) is not None:
                 request.session["school_id"] = str(request.school.id)
         else:
