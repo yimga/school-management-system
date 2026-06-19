@@ -354,6 +354,63 @@ def _cahier_enabled(request=None):
     return True
 
 
+# Oversight roles that may take attendance for any classroom in the school.
+# A plain TEACHER is scoped to the classes they actually teach (below).
+_ATTENDANCE_OVERSIGHT_ROLES = frozenset(
+    {
+        User.Role.SUPERADMIN,
+        User.Role.ADMIN,
+        User.Role.LEADERSHIP,
+        User.Role.PRINCIPAL,
+        User.Role.VICE_PRINCIPAL,
+        User.Role.PROPRIETOR,
+    }
+)
+
+
+def _attendance_visible_classrooms(request: HttpRequest, year):
+    """Classrooms the requester may take attendance / view seating for.
+
+    Closes the gap where any ``attendance.manage`` holder could mark roll call
+    for ANY classroom. Oversight roles (admin/principal/leadership/proprietor)
+    and superusers see every classroom in the active year. A regular teacher is
+    scoped to the classrooms they actually teach (TeacherAssignment ->
+    SubjectAssignment -> classroom). A teacher with NO active assignments falls
+    back to the full list rather than being locked out — e.g. an attendance
+    officer modeled as a teacher — a conservative default the owner can tighten.
+
+    Because the POST handlers resolve the target classroom from this list, the
+    scoping protects the write path too: an unassigned classroom id resolves to
+    None and no attendance is saved.
+    """
+    if not year:
+        return []
+    base = list(
+        # tenant-isolation-allow: attendance-classrooms-scoped-by-active-year-then-teacher-assignment
+        Classroom.objects.filter(academic_year=year).order_by("name")
+    )
+    user = getattr(request, "user", None)
+    if getattr(user, "is_superuser", False):
+        return base
+    if get_user_role(user) in _ATTENDANCE_OVERSIGHT_ROLES:
+        return base
+    profile = (
+        # tenant-isolation-allow: attendance-teacher-profile-resolved-from-request-user
+        TeacherProfile.objects.filter(user=user).first()
+    )
+    if profile is None:
+        return base
+    assigned_ids = set(
+        # tenant-isolation-allow: attendance-assignments-scoped-to-this-teacher-profile
+        TeacherAssignment.objects.filter(teacher=profile, is_active=True).values_list(
+            "subject_assignment__classroom_id", flat=True
+        )
+    )
+    if not assigned_ids:
+        return base
+    return [c for c in base if c.id in assigned_ids]
+
+
 @login_required
 def take_student_attendance(request: HttpRequest):
     """Student roll call: date + classroom, default present, one save. Requires attendance.manage."""
@@ -365,12 +422,7 @@ def take_student_attendance(request: HttpRequest):
         # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         )
     year, _term = get_active_year_and_term()
-    classrooms = (
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        list(Classroom.objects.filter(academic_year=year).order_by("name"))
-        if year
-        else []
-    )
+    classrooms = _attendance_visible_classrooms(request, year)
     today = timezone.localdate()
     date_str = request.GET.get("date") or request.POST.get("date") or today.isoformat()
     classroom_id = request.GET.get("classroom") or request.POST.get("classroom")
@@ -558,12 +610,7 @@ def seating_chart_view(request: HttpRequest):
             "You do not have permission to view seating chart."
         )
     year, _term = get_active_year_and_term()
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-    classrooms = (
-        list(Classroom.objects.filter(academic_year=year).order_by("name"))
-        if year
-        else []
-    )
+    classrooms = _attendance_visible_classrooms(request, year)
     classroom_id = request.GET.get("classroom")
     classroom_obj = None
     if classroom_id and classrooms:

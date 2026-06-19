@@ -11,6 +11,33 @@
     return window.SMS_OFFLINE_CONFIG || {};
   }
 
+  /** The logged-in user id (server-populated in SMS_OFFLINE_CONFIG.currentUserId). */
+  function currentUserId() {
+    try {
+      var v = getConfig().currentUserId;
+      return v == null ? '' : String(v);
+    } catch (e) {
+      return '';
+    }
+  }
+
+  /**
+   * Cross-user flush guard (shared-device safety). A queued row may only sync
+   * under the user who created it: on a shared device this stops User A's
+   * unsynced attendance / grades / payment proofs from being POSTed under
+   * User B's session after a logout + login. A row is held back ONLY when we
+   * positively know the current user differs from the row's stamped owner —
+   * legacy rows with no owner still flush (back-compat), and when the current
+   * user is unknown (no config) we fall back to the prior behaviour rather than
+   * stranding work.
+   */
+  function rowBlockedForCurrentUser(entry) {
+    if (!entry) return false;
+    var owner = entry.owner || (entry.payload && entry.payload.__owner) || '';
+    var cur = currentUserId();
+    return !!(owner && cur && String(owner) !== cur);
+  }
+
   var CAUSAL_COUNTER_KEY = 'rmc_offline_lamport_v1';
   var CAUSAL_REPLICA_KEY = 'rmc_offline_replica_v1';
 
@@ -196,12 +223,14 @@
       return;
     }
 
+    var owner = currentUserId();
     var row = {
       id: 'c-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9),
       payload: payload,
       action_type: actionType,
       ts: Date.now(),
       synced: 0,
+      owner: owner,
       idempotency_key: payload.idempotency_key || payload.client_offline_id || '',
     };
 
@@ -212,7 +241,7 @@
       });
     } else {
       var rows = readOutboxLS();
-      rows.push({ id: row.id, payload: payload, ts: new Date().toISOString() });
+      rows.push({ id: row.id, payload: payload, ts: new Date().toISOString(), owner: owner });
       writeOutboxLS(rows);
       updateBar();
       flushIfOnline();
@@ -261,6 +290,11 @@
     var chain = Promise.resolve();
     rows.forEach(function (entry) {
       chain = chain.then(function () {
+        if (rowBlockedForCurrentUser(entry)) {
+          // Belongs to a different user — keep it queued for when they return.
+          remaining.push(entry);
+          return;
+        }
         var p = entry.payload || {};
         var actionType = p.action_type || p.type;
         if (!actionType) {
@@ -300,6 +334,10 @@
       var seq = Promise.resolve();
       rows.forEach(function (entry) {
         seq = seq.then(function () {
+          if (rowBlockedForCurrentUser(entry)) {
+            // Different user's row — leave it in IndexedDB until they return.
+            return;
+          }
           var p = entry.payload || {};
           var actionType = entry.action_type || p.action_type || p.type;
           if (!actionType) return;
@@ -365,9 +403,33 @@
   });
   window.addEventListener('offline', updateBar);
 
+  // Best-effort flush BEFORE logout: drain this user's own queue to the server
+  // while they are still authenticated and (hopefully) online, so a shared
+  // device hands off with as little pending work as possible. Non-blocking and
+  // never preventDefault — logout proceeds regardless. The owner-stamp guard
+  // (rowBlockedForCurrentUser) is the real safety net for anything that does
+  // not drain in time (e.g. offline at logout).
+  function wireLogoutFlush() {
+    document.addEventListener(
+      'click',
+      function (ev) {
+        var t = ev.target;
+        if (!t || typeof t.closest !== 'function') return;
+        var hit = t.closest(
+          'a[href*="/logout"], form[action*="/logout"] [type="submit"], [data-rmc-logout]'
+        );
+        if (hit) {
+          try { flushIfOnline(); } catch (e) { /* never block logout */ }
+        }
+      },
+      true
+    );
+  }
+
   function boot() {
     updateBar();
     flushIfOnline();
+    wireLogoutFlush();
     setInterval(function () {
       if (navigator.onLine) flushIfOnline();
     }, 45000);
