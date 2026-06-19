@@ -204,13 +204,29 @@ def apply_step_answer(
     }
 
     sanitized_payload = _sanitize_for_storage(payload)
+    # Double-submit guard: a step re-submitted with a BYTE-IDENTICAL answer
+    # (double-click, retry, network replay) must not re-run its writer — that is
+    # how create-style writers (student/teacher onboarding, field-trip consent,
+    # etc.) produce duplicate rows, since most have no natural unique key. A
+    # genuinely CHANGED answer still re-runs the writer (editing a completed step
+    # is legitimate, and idempotent writers update in place). The state machine
+    # still advances either way — only the duplicate side effect is suppressed.
+    prior_answer = state["answers"].get(step_key)
+    is_idempotent_resubmit = (
+        step_key in state["completed"] and prior_answer == sanitized_payload
+    )
     state["answers"][step_key] = sanitized_payload
     if step_key not in state["completed"]:
         state["completed"].append(step_key)
 
     # Side effect: invoke persistence writer if declared
     writer_path = step.persistence.get("writer") if step.persistence else None
-    if writer_path:
+    if writer_path and is_idempotent_resubmit:
+        logger.info(
+            "skip writer for %s.%s: identical re-submit of completed step",
+            wizard_key, step_key,
+        )
+    elif writer_path:
         try:
             writer = wizard_engine._import_dotted(writer_path)
             writer(
