@@ -322,6 +322,34 @@ class ValidationTests(SimpleTestCase):
         self.assertTrue(ok)
 
 
+class SanitizeStorageCapTests(SimpleTestCase):
+    """The universal free-text backstop bounds EVERY stored string, including
+    nested ones (key_value_pairs ``pairs``, csv_mapping dicts, list items) that
+    validate_step_answer's declared-path cap never reaches."""
+
+    def setUp(self):
+        from apps.setup_studio import wizard_state_resolver
+        self.sanitize = wizard_state_resolver._sanitize_for_storage
+        self.cap = wizard_engine.WIZARD_MAX_TEXT_FIELD_LENGTH
+
+    def test_key_value_pairs_nested_string_truncated(self):
+        payload = {"pairs": [{"key": "policy", "value": "x" * (self.cap + 5000)}]}
+        out = self.sanitize(payload)
+        self.assertEqual(len(out["pairs"][0]["value"]), self.cap)
+        self.assertEqual(out["pairs"][0]["key"], "policy")  # short key untouched
+
+    def test_list_and_dict_items_truncated(self):
+        big = "y" * (self.cap + 1)
+        out = self.sanitize({"value": [big, "ok"], "nested": {"deep": big}})
+        self.assertEqual(len(out["value"][0]), self.cap)
+        self.assertEqual(out["value"][1], "ok")
+        self.assertEqual(len(out["nested"]["deep"]), self.cap)
+
+    def test_within_cap_unchanged(self):
+        payload = {"pairs": [{"key": "a", "value": "a reasonable value"}]}
+        self.assertEqual(self.sanitize(payload), payload)
+
+
 class GetWizardTests(SimpleTestCase):
     def test_not_found_raises(self):
         with self.assertRaises(wizard_engine.WizardNotFound):

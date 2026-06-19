@@ -92,6 +92,17 @@ def _sanitize_for_storage(value: Any) -> Any:
             "file_name": getattr(value, "name", None),
             "file_size": getattr(value, "size", None),
         }
+    # Universal free-text backstop. validate_step_answer rejects over-cap strings
+    # on the declared paths (structured_form fields + the top-level ``value``), but
+    # input types that nest free text under other keys — key_value_pairs ``pairs``,
+    # csv_mapping dicts, multi_choice/ranked_list items — never reach that check.
+    # Truncate here (the recursive walk already visits every str) so NO unbounded
+    # string can land in the JSONField regardless of input type. Truncation, not
+    # rejection, because sanitization runs after validation has passed.
+    if isinstance(value, str):
+        cap = wizard_engine.WIZARD_MAX_TEXT_FIELD_LENGTH
+        if len(value) > cap:
+            return value[:cap]
     return value
 
 
