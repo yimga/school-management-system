@@ -2,10 +2,11 @@ from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.middleware import RequireMFAMiddleware
+from apps.accounts.middleware_security_posture import SecurityPostureReviewMiddleware
 
 
 User = get_user_model()
@@ -103,3 +104,51 @@ class RequireMfaWizardSetupBypassTests(TestCase):
         response = self._run("/portal/")
         self.assertEqual(response.status_code, 302)
         self.assertIn("/mfa/setup", response.url)
+
+
+@override_settings(SECURITY_POSTURE_REVIEW_NAG_ENABLED=True)
+class SecurityPostureMfaSetupExemptionTests(TestCase):
+    """The quarterly security-posture nag must not interrupt MFA enrollment.
+
+    RequireMFAMiddleware already exempts /school/studio/wizards/mfa_setup/
+    (see RequireMfaWizardSetupBypassTests). SecurityPostureReviewMiddleware was
+    never updated to match: EXEMPT_VIEW_NAMES exempts the accounts:mfa_setup
+    *shim* but not the studio wizard view that actually renders enrollment, so a
+    no-device owner gets bounced wizard -> security-review -> mfa/setup -> wizard
+    on first login. These lock the MFA-setup surface open while keeping the nag
+    firing on every other page.
+    """
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user = User.objects.create_user(
+            username="posture-owner",
+            email="posture-owner@example.com",
+            password="password",
+            role="ADMIN",
+        )
+
+    def _run(self, path, view_name):
+        request = self.factory.get(path)
+        request.user = self.user
+        request.session = {}
+        request.resolver_match = mock.Mock(view_name=view_name)
+        with mock.patch(
+            "apps.accounts.middleware_security_posture.is_security_posture_review_due",
+            return_value=True,
+        ):
+            return SecurityPostureReviewMiddleware(_ok_response)(request)
+
+    def test_mfa_setup_wizard_not_hijacked_by_posture_nag(self):
+        response = self._run(
+            "/school/studio/wizards/mfa_setup/", "setup_studio:tenant_wizard_step"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"ok")
+
+    def test_normal_page_still_nagged_when_review_due(self):
+        # The nag must still fire on a non-MFA page (otherwise the exemption
+        # silently disabled the whole quarterly review).
+        response = self._run("/portal/", "portal:home")
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/security/review", response.url)

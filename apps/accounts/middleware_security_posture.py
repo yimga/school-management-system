@@ -23,6 +23,26 @@ EXEMPT_VIEW_NAMES = frozenset(
     }
 )
 
+# Mirror RequireMFAMiddleware's MFA-setup bypass (apps/accounts/middleware.py):
+# the canonical MFA enrollment surface is the studio wizard at
+# /school/studio/wizards/mfa_setup/ — accounts:mfa_setup is only a redirect
+# shim. EXEMPT_VIEW_NAMES exempts that shim's view name but NOT the wizard view
+# (setup_studio:tenant_wizard_step, which serves every step), so without a path
+# check the quarterly nag interrupts a no-device owner mid-enrollment and
+# ping-pongs them wizard -> security-review -> mfa/setup -> wizard. Match on the
+# specific mfa_setup/mfa_verify path fragments so every OTHER page still nags.
+_MFA_SETUP_PATH_FRAGMENTS = (
+    "/mfa/setup",
+    "/mfa/verify",
+    "wizards/mfa_setup",
+    "wizards/mfa_verify",
+)
+
+
+def _is_mfa_setup_path(path: str) -> bool:
+    p = path or ""
+    return any(frag in p for frag in _MFA_SETUP_PATH_FRAGMENTS)
+
 
 class SecurityPostureReviewMiddleware:
     """Prompt users to complete quarterly security review (soft redirect once per session)."""
@@ -47,7 +67,9 @@ class SecurityPostureReviewMiddleware:
         ):
             match = getattr(request, "resolver_match", None)
             view_name = getattr(match, "view_name", None) if match else None
-            if view_name not in EXEMPT_VIEW_NAMES:
+            if view_name not in EXEMPT_VIEW_NAMES and not _is_mfa_setup_path(
+                getattr(request, "path", "") or ""
+            ):
                 school = getattr(request, "school", None)
                 if is_security_posture_review_due(user, school):
                     request.session[SESSION_NAG_KEY] = True
