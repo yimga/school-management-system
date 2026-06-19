@@ -613,6 +613,90 @@ def _persist_student_note(school_id, user_id: int, payload: dict[str, Any]) -> d
     }
 
 
+def _apply_donation_intake(school_id, user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
+    """
+    Apply an offline-captured monetary donation: find-or-create the donor by name
+    for this school, then record an AdvancementGift. The OfflineAction queue already
+    dedups on (school, idempotency_key) at enqueue time, so this applies once.
+    """
+    from decimal import Decimal, InvalidOperation
+
+    from apps.schools.models import AdvancementDonor, AdvancementGift
+
+    donor_name = str(payload.get("donor_name") or "").strip()[:200]
+    amount_raw = payload.get("amount")
+    if not donor_name or amount_raw is None:
+        return {"ok": False, "error": "donor_name and amount required."}
+    try:
+        amount = Decimal(str(amount_raw))
+    except (InvalidOperation, TypeError, ValueError):
+        return {"ok": False, "error": "Invalid amount."}
+    if amount <= 0:
+        return {"ok": False, "error": "Amount must be positive."}
+    received = payload.get("received_at")
+    with transaction.atomic():
+        donor, _created = AdvancementDonor.objects.get_or_create(
+            school_id=school_id,
+            display_name=donor_name,
+            defaults={"email": str(payload.get("email") or "")[:254]},  # magic-number-allow: email-field-max-length
+        )
+        gift = AdvancementGift.objects.create(
+            donor=donor,
+            amount=amount,
+            currency=str(payload.get("currency") or "USD")[:3] or "USD",
+            received_at=received or timezone.now().date(),
+            campaign_name=str(payload.get("campaign_name") or "")[:120],
+            notes=str(payload.get("notes") or "")[:500],
+        )
+    return {"ok": True, "gift_id": gift.pk, "donor_id": donor.pk}
+
+
+def _apply_in_kind_intake(school_id, user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
+    """Apply an offline-captured in-kind donation as a PENDING InKindDonation."""
+    from decimal import Decimal, InvalidOperation
+
+    from apps.schools.models import AdvancementDonor, InKindDonation
+
+    description = str(payload.get("description") or "").strip()[:255]
+    if not description:
+        return {"ok": False, "error": "description required."}
+    try:
+        quantity = int(payload.get("quantity") or 1)
+    except (TypeError, ValueError):
+        quantity = 1
+    quantity = max(1, quantity)
+    estimated_value = None
+    if payload.get("estimated_value") is not None:
+        try:
+            estimated_value = Decimal(str(payload.get("estimated_value")))
+        except (InvalidOperation, TypeError, ValueError):
+            estimated_value = None
+    donor = None
+    donor_name = str(payload.get("donor_name") or "").strip()[:200]
+    if donor_name:
+        donor, _created = AdvancementDonor.objects.get_or_create(
+            school_id=school_id, display_name=donor_name
+        )
+    valid_categories = {c[0] for c in InKindDonation.Category.choices}
+    category = str(payload.get("category") or "other")
+    if category not in valid_categories:
+        category = InKindDonation.Category.OTHER
+    donation = InKindDonation.objects.create(
+        school_id=school_id,
+        donor=donor,
+        description=description,
+        category=category,
+        quantity=quantity,
+        unit=str(payload.get("unit") or "")[:40],
+        estimated_value=estimated_value,
+        currency=str(payload.get("currency") or "USD")[:3] or "USD",
+        condition=str(payload.get("condition") or "")[:40],
+        received_at=payload.get("received_at") or timezone.now().date(),
+        notes=str(payload.get("notes") or "")[:2000],
+    )
+    return {"ok": True, "in_kind_donation_id": donation.pk}
+
+
 def _apply_notes_report(school_id, user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
     """Persist narrative captured offline into ``StudentNote`` (idempotent per client_offline_id)."""
     from apps.platform_runtime.offline_workflow_apply import (
@@ -1051,6 +1135,10 @@ def _apply_payload(action: Any, *, force_local: bool = False) -> dict[str, Any]:
         )
     if at == OfflineAction.ActionType.SUPPORT_TICKET:
         return _apply_support_ticket(sid, uid, payload)
+    if at == OfflineAction.ActionType.DONATION_INTAKE:
+        return _apply_donation_intake(sid, uid, payload)
+    if at == OfflineAction.ActionType.IN_KIND_INTAKE:
+        return _apply_in_kind_intake(sid, uid, payload)
     if at == OfflineAction.ActionType.PROVISION_SIGNUP:
         return _apply_provision_signup(sid, uid, payload)
     if at_norm == OfflineActionType.PROVISIONAL_SIGNUP:

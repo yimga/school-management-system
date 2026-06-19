@@ -3,14 +3,27 @@ from decimal import Decimal
 from django.test import TestCase
 from django.utils import timezone
 
+from datetime import timedelta
+
 from apps.finance.models import AidAuditLog, AwardSource
 from apps.schoolops.models import InventoryItem
 from apps.schools.advancement_services import (
     accept_in_kind_donation,
+    campaign_progress,
     designate_and_credit_gift,
+    donations_overview,
+    mint_donor_access_link,
     reject_in_kind_donation,
+    resolve_donor_access_link,
 )
-from apps.schools.models import AdvancementDonor, AdvancementGift, InKindDonation, School
+from apps.schools.models import (
+    AdvancementDonor,
+    AdvancementGift,
+    DonorGiftAccessLink,
+    FundraisingCampaign,
+    InKindDonation,
+    School,
+)
 
 
 class GiftToFundCreditTests(TestCase):
@@ -154,3 +167,164 @@ class InKindDonationInventoryTests(TestCase):
         accept_in_kind_donation(donation)
         res = reject_in_kind_donation(donation)
         self.assertFalse(res["ok"])
+
+
+class CampaignProgressTests(TestCase):
+    def setUp(self):
+        self.school = School.objects.create(
+            name="Campaign School", slug="campaign-school",
+            subdomain="campaign-school", is_active=True,
+        )
+        self.donor = AdvancementDonor.objects.create(
+            school=self.school, display_name="Donor One"
+        )
+        self.campaign = FundraisingCampaign.objects.create(
+            school=self.school, name="Library Drive",
+            goal_amount=Decimal("1000.00"), currency="USD",
+            status=FundraisingCampaign.Status.ACTIVE,
+        )
+
+    def test_progress_aggregates_cash_and_in_kind(self):
+        AdvancementGift.objects.create(
+            donor=self.donor, amount=Decimal("300.00"), currency="USD",
+            received_at=timezone.now().date(), campaign=self.campaign,
+        )
+        AdvancementGift.objects.create(
+            donor=self.donor, amount=Decimal("200.00"), currency="USD",
+            received_at=timezone.now().date(), campaign=self.campaign,
+        )
+        InKindDonation.objects.create(
+            school=self.school, donor=self.donor, description="Books",
+            quantity=5, estimated_value=Decimal("100.00"), campaign=self.campaign,
+        )
+        p = campaign_progress(self.campaign)
+        self.assertEqual(p["cash_raised"], Decimal("500.00"))
+        self.assertEqual(p["in_kind_value"], Decimal("100.00"))
+        self.assertEqual(p["raised"], Decimal("600.00"))
+        self.assertEqual(p["pct_to_goal"], 60)
+        self.assertEqual(p["gift_count"], 2)
+        self.assertEqual(p["in_kind_count"], 1)
+
+    def test_progress_pct_caps_at_100(self):
+        AdvancementGift.objects.create(
+            donor=self.donor, amount=Decimal("5000.00"), currency="USD",
+            received_at=timezone.now().date(), campaign=self.campaign,
+        )
+        p = campaign_progress(self.campaign)
+        self.assertEqual(p["pct_to_goal"], 100)
+        self.assertTrue(p["over_goal"])
+
+    def test_donations_overview_shape(self):
+        AdvancementGift.objects.create(
+            donor=self.donor, amount=Decimal("50.00"), currency="USD",
+            received_at=timezone.now().date(),
+        )
+        ov = donations_overview(self.school.pk)
+        self.assertEqual(ov["total_cash_raised"], Decimal("50.00"))
+        self.assertIn("campaigns", ov)
+        self.assertIn("endowment", ov)
+        self.assertEqual(len(ov["campaigns"]), 1)
+
+
+class DonorAccessLinkTests(TestCase):
+    def setUp(self):
+        self.school = School.objects.create(
+            name="Link School", slug="link-school",
+            subdomain="link-school", is_active=True,
+        )
+        self.donor = AdvancementDonor.objects.create(
+            school=self.school, display_name="Magic Donor", email="d@example.org"
+        )
+
+    def test_mint_and_resolve_bumps_access(self):
+        link = mint_donor_access_link(self.donor)
+        self.assertTrue(link.is_valid)
+        resolved = resolve_donor_access_link(link.token)
+        self.assertIsNotNone(resolved)
+        self.assertEqual(resolved.donor_id, self.donor.pk)
+        resolved.refresh_from_db()
+        self.assertEqual(resolved.access_count, 1)
+
+    def test_expired_link_does_not_resolve(self):
+        link = mint_donor_access_link(self.donor)
+        DonorGiftAccessLink.objects.filter(pk=link.pk).update(
+            expires_at=timezone.now() - timedelta(days=1)
+        )
+        self.assertIsNone(resolve_donor_access_link(link.token))
+
+
+class AdvancementAiDraftTests(TestCase):
+    def setUp(self):
+        self.school = School.objects.create(
+            name="Draft School", slug="draft-school",
+            subdomain="draft-school", is_active=True,
+        )
+
+    def test_acknowledgment_always_returns_text(self):
+        from services.advancement_ai import draft_donor_acknowledgment
+
+        text, meta = draft_donor_acknowledgment(
+            school=self.school, donor_name="Jane Doe",
+            amount=Decimal("250.00"), currency="USD", campaign_name="Annual Fund",
+        )
+        self.assertTrue(text)
+        self.assertIn("Jane Doe", text)
+
+    def test_grant_draft_always_returns_text(self):
+        from services.advancement_ai import draft_grant_application
+
+        text, meta = draft_grant_application(
+            school=self.school, funder_name="Acme Foundation",
+            program="STEM lab", amount=Decimal("10000.00"),
+        )
+        self.assertTrue(text)
+        self.assertIn("STEM lab", text)
+
+
+class OfflineDonationIntakeTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        self.school = School.objects.create(
+            name="Offline School", slug="offline-school",
+            subdomain="offline-school", is_active=True,
+        )
+        self.user = get_user_model().objects.create_user(
+            username="offline_staff", password="x"
+        )
+
+    def test_offline_donation_intake_creates_gift(self):
+        from apps.platform_runtime.offline_queue import (
+            enqueue_offline_action,
+            process_offline_queue,
+        )
+
+        enqueue_offline_action(
+            user_id=self.user.pk, school_id=self.school.pk,
+            action_type="donation.intake",
+            payload={"donor_name": "Field Donor", "amount": "75.00", "currency": "USD"},
+            idempotency_key="off-don-1",
+        )
+        result = process_offline_queue(school_id=self.school.pk)
+        self.assertGreaterEqual(result.get("synced", 0), 1)
+        donor = AdvancementDonor.objects.get(school=self.school, display_name="Field Donor")
+        self.assertEqual(donor.gifts.count(), 1)
+        self.assertEqual(donor.gifts.first().amount, Decimal("75.00"))
+
+    def test_offline_in_kind_intake_creates_pending_donation(self):
+        from apps.platform_runtime.offline_queue import (
+            enqueue_offline_action,
+            process_offline_queue,
+        )
+
+        enqueue_offline_action(
+            user_id=self.user.pk, school_id=self.school.pk,
+            action_type="in_kind.intake",
+            payload={"description": "Donated tablets", "quantity": 12, "category": "equipment"},
+            idempotency_key="off-ink-1",
+        )
+        result = process_offline_queue(school_id=self.school.pk)
+        self.assertGreaterEqual(result.get("synced", 0), 1)
+        d = InKindDonation.objects.get(school=self.school, description="Donated tablets")
+        self.assertEqual(d.quantity, 12)
+        self.assertEqual(d.status, InKindDonation.Status.PENDING)

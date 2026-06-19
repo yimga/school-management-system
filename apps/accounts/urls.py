@@ -133,7 +133,10 @@ from apps.schools.views_advancement import (
     advancement_donor_edit,
     advancement_donor_list,
     advancement_gift_delete,
+    advancement_send_portal_link,
+    donations_dashboard,
 )
+from apps.schools.views_donor_portal import donor_portal
 from apps.accounts.views_tenant_observability import tenant_activity_log
 from apps.accounts.views_trust_hub import security_trust_hub, tenant_impersonation_audit
 from apps.accounts.views_tenant_identity import (
@@ -307,6 +310,22 @@ urlpatterns = [
         "backend/advancement/gifts/<int:gift_id>/delete/",
         advancement_gift_delete,
         name="advancement_gift_delete",
+    ),
+    path(
+        "backend/advancement/donations/",
+        donations_dashboard,
+        name="donations_dashboard",
+    ),
+    path(
+        "backend/advancement/donors/<int:donor_id>/portal-link/",
+        advancement_send_portal_link,
+        name="advancement_send_portal_link",
+    ),
+    # Public donor magic-link portal (no auth; UUID token is the credential).
+    path(
+        "giving/<uuid:token>/",
+        donor_portal,
+        name="donor_portal",
     ),
     path("backend/activity-log/", tenant_activity_log, name="tenant_activity_log"),
     path(

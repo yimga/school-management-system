@@ -7,6 +7,7 @@ from django.urls import reverse
 from config.admin import platform_admin_site, register_tenant_admin
 
 from .models import (
+    FundraisingCampaign,
     InKindDonation,
     School,
     SchoolMembership,
@@ -336,8 +337,26 @@ class InKindDonationAdmin(admin.ModelAdmin):
     )
     list_filter = ("school", "status", "category")
     search_fields = ("description", "donor__display_name", "notes")
-    raw_id_fields = ("school", "donor", "inventory_item")
+    raw_id_fields = ("school", "donor", "campaign", "inventory_item")
     readonly_fields = ("inventory_item", "created_at", "updated_at")
 
 
+class FundraisingCampaignAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "school",
+        "status",
+        "goal_amount",
+        "currency",
+        "is_public",
+        "start_date",
+        "end_date",
+    )
+    list_filter = ("school", "status", "is_public", "currency")
+    search_fields = ("name", "description")
+    raw_id_fields = ("school", "award_source")
+    readonly_fields = ("created_at", "updated_at")
+
+
 register_tenant_admin(InKindDonation, InKindDonationAdmin)
+register_tenant_admin(FundraisingCampaign, FundraisingCampaignAdmin)

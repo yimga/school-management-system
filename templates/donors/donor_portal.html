@@ -1,0 +1,72 @@
+{% extends "marketing/base_marketing.html" %}
+{% load i18n %}
+{% block title %}{% trans "Your giving" %} — {{ school.name }}{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width: 820px">
+  <header class="mb-4">
+    <h1 class="h3 mb-1">{% trans "Your giving" %}</h1>
+    <p class="text-muted mb-0">{{ donor.display_name }} · {{ school.name }}</p>
+  </header>
+
+  <div class="card card-body mb-4">
+    <p class="text-muted small mb-1">{% trans "Total given (cash)" %}</p>
+    <p class="h4 mb-0">{{ total_given }}</p>
+  </div>
+
+  <h2 class="h6">{% trans "Gifts & receipts" %}</h2>
+  {% if gifts %}
+  <div class="table-responsive mb-4">
+    <table class="table table-sm align-middle">
+      <caption class="visually-hidden">{% trans "Gifts" %}</caption>
+      <thead><tr><th>{% trans "Date" %}</th><th>{% trans "Amount" %}</th><th>{% trans "Campaign" %}</th><th>{% trans "Receipt" %}</th></tr></thead>
+      <tbody>
+        {% for g in gifts %}
+        <tr>
+          <td>{{ g.received_at }}</td>
+          <td>{{ g.amount }} {{ g.currency }}</td>
+          <td>{% if g.campaign %}{{ g.campaign.name }}{% elif g.campaign_name %}{{ g.campaign_name }}{% else %}—{% endif %}</td>
+          <td>{% if g.receipt_sent %}<span class="badge bg-success-subtle text-success-emphasis">{% trans "Sent" %}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-secondary mb-4">{% trans "No gifts recorded yet." %}</p>
+  {% endif %}
+
+  {% if in_kind %}
+  <h2 class="h6">{% trans "In-kind contributions" %}</h2>
+  <div class="table-responsive mb-4">
+    <table class="table table-sm align-middle">
+      <caption class="visually-hidden">{% trans "In-kind" %}</caption>
+      <thead><tr><th>{% trans "Date" %}</th><th>{% trans "Item" %}</th><th>{% trans "Qty" %}</th><th>{% trans "Status" %}</th></tr></thead>
+      <tbody>
+        {% for d in in_kind %}
+        <tr>
+          <td>{{ d.received_at|default:"—" }}</td>
+          <td>{{ d.description }}</td>
+          <td>{{ d.quantity }}{% if d.unit %} {{ d.unit }}{% endif %}</td>
+          <td>{{ d.get_status_display }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if public_campaigns %}
+  <h2 class="h6">{% trans "Campaigns you can support" %}</h2>
+  <ul class="list-unstyled">
+    {% for c in public_campaigns %}
+    <li class="mb-2">
+      <span class="fw-semibold">{{ c.name }}</span>
+      {% if c.description %}<span class="text-muted small d-block">{{ c.description|truncatewords:30 }}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <p class="text-muted small mt-4">{% trans "This is a private summary generated for you. Please contact the school for any corrections." %}</p>
+</div>
+{% endblock %}

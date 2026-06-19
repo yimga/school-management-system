@@ -10,6 +10,24 @@
   <p class="text-muted small">{{ donor.email|default:"No email" }} · Ref: {{ donor.external_ref|default:"—" }}</p>
   {% if donor.notes %}<p class="card card-body bg-light">{{ donor.notes }}</p>{% endif %}
 
+  <div class="d-flex gap-2 flex-wrap mb-3">
+    <form method="post" action="{% url 'accounts:advancement_send_portal_link' donor.pk %}" onsubmit="return confirm('Email this donor a private giving-summary link?');">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-outline-secondary min-touch-target">{% trans "Email giving-summary link" %}</button>
+    </form>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="ai_ack">
+      <button type="submit" class="btn btn-sm btn-outline-secondary min-touch-target">{% trans "Draft thank-you (AI)" %}</button>
+    </form>
+  </div>
+  {% if ai_draft %}
+  <div class="mb-3">
+    <label class="form-label small" for="aidraft">{% trans "Draft acknowledgment (review & edit before sending)" %}</label>
+    <textarea class="form-control" id="aidraft" rows="6">{{ ai_draft }}</textarea>
+  </div>
+  {% endif %}
+
   <h6 class="mt-4">Record gift</h6>
   <form method="post" class="row g-2 align-items-end mb-4">
     {% csrf_token %}
@@ -26,8 +44,19 @@
       <label class="form-label small" for="camp">Campaign</label>
       <input type="text" class="form-control" id="camp" name="campaign_name" maxlength="120" placeholder="Annual fund">
     </div>
+    {% if campaigns %}
+    <div class="col-md-2">
+      <label class="form-label small" for="campsel">{% trans "Campaign link" %}</label>
+      <select class="form-select" id="campsel" name="campaign_id">
+        <option value="">{% trans "— None —" %}</option>
+        {% for c in campaigns %}
+        <option value="{{ c.pk }}">{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
     {% if award_sources %}
-    <div class="col-md-3">
+    <div class="col-md-2">
       <label class="form-label small" for="fund">{% trans "Credit fund" %}</label>
       <select class="form-select" id="fund" name="award_source_id">
         <option value="">{% trans "— None —" %}</option>

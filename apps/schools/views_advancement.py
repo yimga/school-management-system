@@ -155,6 +155,7 @@ def advancement_donor_detail(request, donor_id):
     donor = get_object_or_404(
         AdvancementDonor.objects.prefetch_related("gifts"), pk=donor_id, school=school
     )
+    ai_draft = None
     if request.method == "POST":
         action = (request.POST.get("action") or "").strip()
         if action == "add_gift":
@@ -178,6 +179,16 @@ def advancement_donor_detail(request, donor_id):
                         ],
                         notes=(request.POST.get("gift_notes") or "").strip()[:500],
                     )
+                    campaign_id = (request.POST.get("campaign_id") or "").strip()
+                    if campaign_id:
+                        from .models import FundraisingCampaign
+
+                        campaign = FundraisingCampaign.objects.filter(
+                            school=school, pk=campaign_id
+                        ).first()
+                        if campaign:
+                            gift.campaign = campaign
+                            gift.save(update_fields=["campaign"])
                     award_source_id = (
                         request.POST.get("award_source_id") or ""
                     ).strip()
@@ -213,8 +224,26 @@ def advancement_donor_detail(request, donor_id):
                         },
                     )
                     messages.error(request, "Could not record gift.")
-    gifts = list(donor.gifts.select_related("award_source").all()[:100])
+        elif action == "ai_ack":
+            from services.advancement_ai import draft_donor_acknowledgment
+
+            latest = donor.gifts.select_related("campaign").first()
+            campaign_label = ""
+            if latest is not None:
+                campaign_label = latest.campaign_name or (
+                    latest.campaign.name if latest.campaign_id else ""
+                )
+            ai_draft, _meta = draft_donor_acknowledgment(
+                school=school,
+                donor_name=donor.display_name,
+                amount=getattr(latest, "amount", None),
+                currency=getattr(latest, "currency", "USD"),
+                campaign_name=campaign_label,
+                user=request.user,
+            )
+    gifts = list(donor.gifts.select_related("award_source", "campaign").all()[:100])
     award_sources = []
+    campaigns = []
     try:
         from apps.finance.models import AwardSource
 
@@ -224,6 +253,18 @@ def advancement_donor_detail(request, donor_id):
     except (ImportError, DatabaseError) as e:
         logging.getLogger(__name__).debug(
             "advancement_donor_detail award_sources skip: %s", e
+        )
+    try:
+        from .models import FundraisingCampaign
+
+        campaigns = list(
+            FundraisingCampaign.objects.filter(school=school)
+            .exclude(status=FundraisingCampaign.Status.CANCELLED)
+            .order_by("-created_at")
+        )
+    except (ImportError, DatabaseError) as e:
+        logging.getLogger(__name__).debug(
+            "advancement_donor_detail campaigns skip: %s", e
         )
     list_url = reverse("accounts:advancement_donor_list")
     detail_url = reverse("accounts:advancement_donor_detail", args=[donor.pk])
@@ -235,12 +276,61 @@ def advancement_donor_detail(request, donor_id):
             "donor": donor,
             "gifts": gifts,
             "award_sources": award_sources,
+            "campaigns": campaigns,
+            "ai_draft": ai_draft,
             "dashboard_url": reverse("accounts:backend_dashboard"),
             "edit_url": reverse("accounts:advancement_donor_edit", args=[donor.pk]),
             "list_url": list_url,
             "return_url": return_url,
         },
     )
+
+
+@login_required
+@user_passes_test(_staff_only)
+@require_school
+@require_http_methods(["GET"])
+def donations_dashboard(request):
+    """Tenant staff donations overview: campaign progress, totals, aid endowment health."""
+    from .advancement_services import donations_overview
+
+    school = request.school
+    overview = donations_overview(school.pk)
+    return render(
+        request,
+        "schools/donations_dashboard.html",
+        {
+            "overview": overview,
+            "dashboard_url": reverse("accounts:backend_dashboard"),
+            "donors_url": reverse("accounts:advancement_donor_list"),
+        },
+    )
+
+
+@login_required
+@user_passes_test(_staff_only)
+@require_school
+@require_POST
+def advancement_send_portal_link(request, donor_id):
+    """Mint a donor magic-link and email it to the donor (best-effort)."""
+    school = request.school
+    donor = get_object_or_404(AdvancementDonor, pk=donor_id, school=school)
+    from .advancement_services import mint_donor_access_link, send_donor_portal_link
+
+    link = mint_donor_access_link(donor)
+    portal_url = request.build_absolute_uri(
+        reverse("accounts:donor_portal", args=[str(link.token)])
+    )
+    res = send_donor_portal_link(donor, portal_url)
+    if res.get("ok"):
+        messages.success(request, "Portal link emailed to the donor.")
+    else:
+        messages.warning(
+            request,
+            f"Could not email the donor ({res.get('error', 'unknown')}). "
+            f"Share this private link manually: {portal_url}",
+        )
+    return redirect("accounts:advancement_donor_detail", donor_id=donor.pk)
 
 
 @login_required

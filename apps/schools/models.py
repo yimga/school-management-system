@@ -7,6 +7,7 @@ Phase D: Plan + addons; is_feature_enabled(tenant, code) for feature gate.
 import hashlib
 import logging
 import uuid
+from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
@@ -1229,6 +1230,62 @@ from apps.schoolops.models import (  # noqa: E402,F401
 )
 
 
+class FundraisingCampaign(models.Model):
+    """
+    Wedge 5: a tenant-scoped fundraising campaign / appeal. Gifts and in-kind
+    donations may FK to it; progress is aggregated from those (no stored running
+    total). `is_public` controls visibility on the donor magic-link portal.
+    """
+
+    class Status(models.TextChoices):
+        PLANNING = "planning", "Planning"
+        ACTIVE = "active", "Active"
+        COMPLETED = "completed", "Completed"
+        CANCELLED = "cancelled", "Cancelled"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="fundraising_campaigns",
+    )
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    goal_amount = models.DecimalField(
+        max_digits=14, decimal_places=2, default=Decimal("0.00")
+    )
+    currency = models.CharField(max_length=3, default="USD")
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        max_length=12, choices=Status.choices, default=Status.PLANNING
+    )
+    is_public = models.BooleanField(
+        default=False, help_text="Show this campaign on the donor portal."
+    )
+    award_source = models.ForeignKey(
+        "finance.AwardSource",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="fundraising_campaigns",
+        help_text="Optional fund that gifts to this campaign credit by default.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Fundraising campaign"
+        verbose_name_plural = "Fundraising campaigns"
+        indexes = [
+            models.Index(fields=["school", "status"]),
+            models.Index(fields=["school", "is_public"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.get_status_display()})"
+
+
 class AdvancementDonor(models.Model):
     """
     Wedge 5 Phase 2: per-school donor CRM (minimal v1 — gifts and receipts).
@@ -1274,6 +1331,14 @@ class AdvancementGift(models.Model):
         max_length=120,
         blank=True,
         help_text="Campaign or appeal label (e.g. Annual Fund 2026).",
+    )
+    campaign = models.ForeignKey(
+        "schools.FundraisingCampaign",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="gifts",
+        help_text="Optional structured campaign this gift counts toward.",
     )
     award_source = models.ForeignKey(
         "finance.AwardSource",
@@ -1331,6 +1396,14 @@ class InKindDonation(models.Model):
         related_name="in_kind_donations",
         help_text="Optional; blank for anonymous in-kind gifts.",
     )
+    campaign = models.ForeignKey(
+        "schools.FundraisingCampaign",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="in_kind_donations",
+        help_text="Optional structured campaign this donation counts toward.",
+    )
     description = models.CharField(max_length=255)
     category = models.CharField(
         max_length=20, choices=Category.choices, default=Category.OTHER
@@ -1373,6 +1446,39 @@ class InKindDonation(models.Model):
 
     def __str__(self) -> str:
         return f"{self.description} x{self.quantity} ({self.get_status_display()})"
+
+
+class DonorGiftAccessLink(models.Model):
+    """
+    Signed magic-link grant for a donor to view their own gifts/receipts/public
+    campaigns WITHOUT a login account. Verified by random UUID token + expiry
+    (mirrors SignupVerification). Tenant-scoped via the donor's school.
+    """
+
+    donor = models.ForeignKey(
+        AdvancementDonor,
+        on_delete=models.CASCADE,
+        related_name="access_links",
+    )
+    token = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True, editable=False)
+    expires_at = models.DateTimeField()
+    last_accessed_at = models.DateTimeField(null=True, blank=True)
+    access_count = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Donor gift access link"
+        verbose_name_plural = "Donor gift access links"
+
+    def __str__(self) -> str:
+        return f"link for {self.donor_id} (exp {self.expires_at:%Y-%m-%d})"
+
+    @property
+    def is_valid(self) -> bool:
+        from django.utils import timezone as _tz
+
+        return self.expires_at > _tz.now()
 
 
 class MarketingFunnelEvent(models.Model):

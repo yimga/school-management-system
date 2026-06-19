@@ -1985,6 +1985,8 @@ class OfflineAction(models.Model):
         NOTIFY_STAFF = "notify.staff", "Notify staff"
         SUPPORT_TICKET = "support_ticket", "Support ticket"
         PROVISION_SIGNUP = "provision.signup", "Provisional device signup"
+        DONATION_INTAKE = "donation.intake", "Donation / pledge capture"
+        IN_KIND_INTAKE = "in_kind.intake", "In-kind donation capture"
 
     class Resolution(models.TextChoices):
         KEEP_MINE = "keep_mine", "Keep mine"
