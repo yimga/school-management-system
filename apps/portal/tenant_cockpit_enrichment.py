@@ -158,7 +158,19 @@ def _seed_admin_quick_actions(
 
     school = getattr(request, "school", None)
     if school is None or getattr(school, "id", None) is None:
-        return section
+        # Fresh schema-per-tenant: request.school stays None until the
+        # Client->School link attaches, which left the dashboard Quick Actions
+        # unseeded -> "empty space on the dashboard". Resolve via the canonical
+        # resolver (session / signup / SchoolMembership) — same fix as the setup
+        # wizard tiles + the copilot rail.
+        try:
+            from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+            school = resolve_request_school(request)
+        except Exception:  # noqa: BLE001 — seeding is best-effort; never block render
+            school = None
+        if school is None or getattr(school, "id", None) is None:
+            return section
 
     try:
         from apps.platform_runtime.onboarding import get_onboarding_steps

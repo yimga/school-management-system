@@ -108,8 +108,21 @@ def _manager_rail_enabled(request, flags: dict[str, Any]) -> bool:
 def _tenant_rail_enabled(request, flags: dict[str, Any]) -> bool:
     if getattr(request, "public_host_kind", None) == "manager":
         return False
-    if getattr(request, "school", None) is None:
-        return False
+    school = getattr(request, "school", None)
+    if school is None:
+        # Fresh schema-per-tenant: request.school is None until the Client->School
+        # link attaches; without this fallback the tenant AI chrome gates OFF on
+        # brand-new tenants (a co-cause of "copilot doesn't show / renders
+        # nothing"). Resolve via the canonical resolver — same fix as the wizard
+        # tiles, the copilot rail feeds, and the dashboard quick-actions seed.
+        try:
+            from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+            school = resolve_request_school(request)
+        except Exception:  # noqa: BLE001 — gate falls closed only if truly no school
+            school = None
+        if school is None:
+            return False
     user = getattr(request, "user", None)
     if user is None or not getattr(user, "is_authenticated", False):
         return False
