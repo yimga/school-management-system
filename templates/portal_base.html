@@ -122,6 +122,17 @@
          This critical, non-deferred rule enforces the hide independent of bundle load
          timing (the intent already documented at the offcanvas markup). */
       @media (min-width: 992px) { #portalSidebar.offcanvas { display: none !important; } }
+      /* FOUC guard (cont.): BELOW lg, mirror Bootstrap's breakpoint so exactly ONE
+         sidebar ever paints — even before the utility/offcanvas bundle applies. On a
+         slow first paint (new tenant) or a narrow/high-DPI viewport the desktop rail's
+         d-none and the offcanvas's .offcanvas positioning have not yet loaded, so BOTH
+         copies render inline and overlap every nav row (the "doubled, super-long rail").
+         Hiding the desktop mount and keeping the offcanvas out of flow until it is
+         actually opened (.show) enforces the invariant independent of bundle timing. */
+      @media (max-width: 991.98px) {
+        [data-shell-sidebar-mount="desktop"] { display: none !important; }
+        #portalSidebar.offcanvas:not(.show) { display: none !important; }
+      }
     </style>
     <link rel="stylesheet" href="{% static 'css/dashboard-theme-sync.css' %}">
     {% if SITE and SITE.custom_css %}
