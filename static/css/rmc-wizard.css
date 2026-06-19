@@ -244,8 +244,50 @@
   .rmc-wizard-nav__next,
   .rmc-wizard-nav__back,
   .rmc-wizard-nav__save-draft {
-    transition: background var(--motion-quick, 120ms) var(--ease-standard, ease-out);
+    transition:
+      background var(--motion-quick, 120ms) var(--ease-standard, ease-out),
+      border-color var(--motion-quick, 120ms) var(--ease-standard, ease-out),
+      transform var(--motion-quick, 120ms) var(--ease-standard, ease-out);
   }
+  .rmc-wizard-card,
+  .rmc-wizard-option-card {
+    transition:
+      background var(--motion-quick, 120ms) var(--ease-standard, ease-out),
+      border-color var(--motion-quick, 120ms) var(--ease-standard, ease-out),
+      box-shadow var(--motion-quick, 120ms) var(--ease-standard, ease-out);
+  }
+}
+
+/* ---------- interactive feedback (hover / active) ----------
+   Apple-tier surfaces give immediate, subtle pointer feedback. Scoped to
+   (hover: hover) so touch targets are unaffected; motion is under the
+   reduced-motion guard above. Every tint is a color-mix on semantic theme
+   tokens (no literals, semantic-first), so scan_off_token_colors and
+   scan_theme_locked_token_text stay at 0 and dark mode flips correctly. */
+@media (hover: hover) {
+  .rmc-wizard-nav__next:hover {
+    background: color-mix(in srgb, var(--text-primary) 88%, var(--surface-bg));
+    border-color: color-mix(in srgb, var(--text-primary) 88%, var(--surface-bg));
+  }
+  .rmc-wizard-nav__back:hover,
+  .rmc-wizard-nav__save-draft:hover {
+    background: color-mix(in srgb, var(--surface-bg) 92%, var(--text-primary) 8%);
+    border-color: var(--hairline);
+  }
+  .rmc-wizard-card:hover {
+    border-color: color-mix(in srgb, var(--hairline) 55%, var(--text-primary) 45%);
+    box-shadow: var(--elev-2);
+  }
+  .rmc-wizard-option-card:hover {
+    border-color: color-mix(in srgb, var(--hairline) 55%, var(--text-primary) 45%);
+    background: color-mix(in srgb, var(--surface-bg) 95%, var(--text-primary) 5%);
+  }
+}
+
+.rmc-wizard-nav__next:active,
+.rmc-wizard-nav__back:active,
+.rmc-wizard-nav__save-draft:active {
+  transform: translateY(1px);
 }
 
 /* ---------- help rail ---------- */
