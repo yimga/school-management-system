@@ -1598,6 +1598,56 @@ def rbac_dashboard(request):
     return render(request, "accounts/rbac_dashboard.html", context)
 
 
+# Adaptive admin landing (2026-06-19): while a school is still onboarding, the
+# admin dashboard collapses the dense operations center to a focused setup
+# surface (hero + readiness + setup checklist + setup banner). These are the
+# backend_module_visibility keys flipped off in that mode — the per-widget
+# template gates already exist, so no parallel template branches are needed.
+BACKEND_SETUP_LANDING_HIDDEN_MODULES = (
+    "overview",
+    "welcome",
+    "admin_portal",
+    "enrollment_trends",
+    "at_risk_students",
+    "outstanding_fees",
+    "recent_admissions",
+    "recent_activity",
+    "top_performing",
+    "attendance_today",
+    "ops_watch",
+    "quick_links",
+    "planner",
+)
+# Default onboarding %% below which the setup surface engages (operator-tunable
+# via the backend_setup_landing_threshold flag; whole behaviour gated by
+# backend_adaptive_setup_landing).
+BACKEND_SETUP_LANDING_DEFAULT_THRESHOLD = 70
+
+
+def _resolve_setup_landing(onboarding_percent, backend_flags) -> bool:
+    """Adaptive-landing decision: True when a school is still onboarding (below
+    the operator-tunable setup threshold), so the admin dashboard collapses the
+    dense operations center to a focused setup surface. The whole behaviour is
+    gated by the backend_adaptive_setup_landing flag (default on); the cutover
+    point is backend_setup_landing_threshold (default
+    BACKEND_SETUP_LANDING_DEFAULT_THRESHOLD). Reversible — lifts automatically as
+    setup completes."""
+    if not bool(backend_flags.get("backend_adaptive_setup_landing", True)):
+        return False
+    try:
+        pct = int(onboarding_percent or 0)
+    except (TypeError, ValueError):
+        pct = 0
+    try:
+        threshold = int(
+            backend_flags.get("backend_setup_landing_threshold")
+            or BACKEND_SETUP_LANDING_DEFAULT_THRESHOLD
+        )
+    except (TypeError, ValueError):
+        threshold = BACKEND_SETUP_LANDING_DEFAULT_THRESHOLD
+    return pct < threshold
+
+
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
 def backend_dashboard(request):
@@ -2773,6 +2823,18 @@ def backend_dashboard(request):
             context["rmc_school_onboarding"] = get_school_onboarding_progress(
                 _sch, user=request.user
             )
+            # Adaptive landing: below the setup threshold, collapse the ops center
+            # to a focused setup surface by flipping the existing per-widget
+            # visibility gates (no parallel template branches). Reversible.
+            _setup_landing = _resolve_setup_landing(
+                (context.get("rmc_school_onboarding") or {}).get("percent"),
+                backend_flags,
+            )
+            context["show_setup_landing"] = _setup_landing
+            if _setup_landing:
+                for _mod in BACKEND_SETUP_LANDING_HIDDEN_MODULES:
+                    backend_module_visibility[_mod] = False
+                context["backend_intent_emphasize_setup"] = True
             context["rmc_school_health"] = calculate_school_health(_sch)
             context["rmc_school_health_nudges"] = get_school_health_recommendations(
                 _sch, user=request.user, limit=3
@@ -2888,6 +2950,8 @@ def backend_dashboard(request):
     context["tenant_health"] = resolve_tenant_operational_health(
         getattr(request, "school", None), request=request, surface="admin"
     )
+
+    context.setdefault("show_setup_landing", False)
 
     return render(request, "accounts/backend_dashboard.html", context)
 
