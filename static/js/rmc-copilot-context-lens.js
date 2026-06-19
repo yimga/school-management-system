@@ -462,8 +462,18 @@
         degrading +
         (ids ? ". Run ids: " + ids : "") +
         ". Suggest the next operator action.";
-      fillInput(prompt);
-      openLensChrome();
+      // Stage the workflow prompt so it is ready the moment the operator opens
+      // the copilot — but do NOT force the rail open. The copilot stays
+      // collapsed by default platform-wide and expands only on an explicit user
+      // action (toggle, AI chip, or the workflow card's "Explain" button, which
+      // opens the rail itself). Auto-opening here was the cause of the rail
+      // rendering expanded by default on the flight deck / any workflow page.
+      // NB: fillInput() would re-open the rail (setRailTab / openTenantLensChrome),
+      // so set the value directly instead of calling it.
+      var stageInput =
+        document.querySelector("[data-rmc-copilot-input]") ||
+        document.getElementById("aiCopilotInput");
+      if (stageInput) { stageInput.value = prompt; }
     });
     document.querySelectorAll("[data-ai-copilot-view]").forEach(function (btn) {
       btn.addEventListener("click", function () {
