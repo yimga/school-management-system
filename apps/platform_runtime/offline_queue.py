@@ -634,20 +634,42 @@ def _apply_donation_intake(school_id, user_id: int, payload: dict[str, Any]) -> 
     if amount <= 0:
         return {"ok": False, "error": "Amount must be positive."}
     received = payload.get("received_at")
-    with transaction.atomic():
-        donor, _created = AdvancementDonor.objects.get_or_create(
-            school_id=school_id,
-            display_name=donor_name,
-            defaults={"email": str(payload.get("email") or "")[:254]},  # magic-number-allow: email-field-max-length
-        )
-        gift = AdvancementGift.objects.create(
-            donor=donor,
-            amount=amount,
-            currency=str(payload.get("currency") or "USD")[:3] or "USD",
-            received_at=received or timezone.now().date(),
-            campaign_name=str(payload.get("campaign_name") or "")[:120],
-            notes=str(payload.get("notes") or "")[:500],
-        )
+    client_key = str(payload.get("client_offline_id") or payload.get("idempotency_key") or "")[:64]
+    donor, _created = AdvancementDonor.objects.get_or_create(
+        school_id=school_id,
+        display_name=donor_name,
+        defaults={"email": str(payload.get("email") or "")[:254]},  # magic-number-allow: email-field-max-length
+    )
+    # Record-level idempotency (mirrors the offline payment-intent guard): the
+    # OfflineAction queue dedupes on (school, idempotency_key) at enqueue, but a
+    # re-keyed replay of the same captured gift would otherwise create a second
+    # gift and double-credit its fund. The partial-unique (donor, client_offline_id)
+    # index makes the replay land on the first gift instead.
+    if client_key:
+        dup = AdvancementGift.objects.filter(
+            donor=donor, client_offline_id=client_key
+        ).first()
+        if dup:
+            return {"ok": True, "gift_id": dup.pk, "donor_id": donor.pk, "dedup": True}
+    try:
+        with transaction.atomic():
+            gift = AdvancementGift.objects.create(
+                donor=donor,
+                amount=amount,
+                currency=str(payload.get("currency") or "USD")[:3] or "USD",
+                received_at=received or timezone.now().date(),
+                campaign_name=str(payload.get("campaign_name") or "")[:120],
+                notes=str(payload.get("notes") or "")[:500],
+                client_offline_id=client_key,
+            )
+    except IntegrityError:
+        # Concurrent replay won the partial-unique (donor, client_offline_id) race.
+        dup = AdvancementGift.objects.filter(
+            donor=donor, client_offline_id=client_key
+        ).first()
+        if dup:
+            return {"ok": True, "gift_id": dup.pk, "donor_id": donor.pk, "dedup": True}
+        raise
     return {"ok": True, "gift_id": gift.pk, "donor_id": donor.pk}
 
 
@@ -681,19 +703,40 @@ def _apply_in_kind_intake(school_id, user_id: int, payload: dict[str, Any]) -> d
     category = str(payload.get("category") or "other")
     if category not in valid_categories:
         category = InKindDonation.Category.OTHER
-    donation = InKindDonation.objects.create(
-        school_id=school_id,
-        donor=donor,
-        description=description,
-        category=category,
-        quantity=quantity,
-        unit=str(payload.get("unit") or "")[:40],
-        estimated_value=estimated_value,
-        currency=str(payload.get("currency") or "USD")[:3] or "USD",
-        condition=str(payload.get("condition") or "")[:40],
-        received_at=payload.get("received_at") or timezone.now().date(),
-        notes=str(payload.get("notes") or "")[:2000],
-    )
+    client_key = str(payload.get("client_offline_id") or payload.get("idempotency_key") or "")[:64]
+    # Record-level idempotency: a re-keyed replay of the same captured in-kind
+    # donation would otherwise create a second pending record (and, once accepted,
+    # double-increment inventory). The partial-unique (school, client_offline_id)
+    # index folds the replay onto the first row.
+    if client_key:
+        dup = InKindDonation.objects.filter(
+            school_id=school_id, client_offline_id=client_key
+        ).first()
+        if dup:
+            return {"ok": True, "in_kind_donation_id": dup.pk, "dedup": True}
+    try:
+        with transaction.atomic():
+            donation = InKindDonation.objects.create(
+                school_id=school_id,
+                donor=donor,
+                description=description,
+                category=category,
+                quantity=quantity,
+                unit=str(payload.get("unit") or "")[:40],
+                estimated_value=estimated_value,
+                currency=str(payload.get("currency") or "USD")[:3] or "USD",
+                condition=str(payload.get("condition") or "")[:40],
+                received_at=payload.get("received_at") or timezone.now().date(),
+                notes=str(payload.get("notes") or "")[:2000],
+                client_offline_id=client_key,
+            )
+    except IntegrityError:
+        dup = InKindDonation.objects.filter(
+            school_id=school_id, client_offline_id=client_key
+        ).first()
+        if dup:
+            return {"ok": True, "in_kind_donation_id": dup.pk, "dedup": True}
+        raise
     return {"ok": True, "in_kind_donation_id": donation.pk}
 
 

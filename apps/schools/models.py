@@ -1421,11 +1421,28 @@ class AdvancementGift(models.Model):
         help_text="Set once this gift has been applied to its award_source fund (idempotency guard).",
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    client_offline_id = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text=(
+            "Client-generated offline idempotency key; dedupes replayed offline "
+            "donation captures so one captured gift can never credit a fund twice."
+        ),
+    )
 
     class Meta:
         ordering = ["-received_at", "-pk"]
         verbose_name = "Advancement gift"
         verbose_name_plural = "Advancement gifts"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["donor", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_advancementgift_donor_client_offline_id",
+            ),
+        ]
 
 
 class InKindDonation(models.Model):
@@ -1500,6 +1517,16 @@ class InKindDonation(models.Model):
         help_text="Inventory line created/incremented when this donation is accepted.",
     )
     notes = models.TextField(blank=True)
+    client_offline_id = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text=(
+            "Client-generated offline idempotency key; dedupes replayed offline "
+            "in-kind captures so one capture can never create two donation records."
+        ),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1509,6 +1536,13 @@ class InKindDonation(models.Model):
         verbose_name_plural = "In-kind donations"
         indexes = [
             models.Index(fields=["school", "status"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_inkinddonation_school_client_offline_id",
+            ),
         ]
 
     def __str__(self) -> str:
