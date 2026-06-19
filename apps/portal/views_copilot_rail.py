@@ -44,7 +44,24 @@ _TENANT_TASK_TYPE = "general_chat"
 
 
 def _school(request: HttpRequest):
-    return getattr(request, "school", None)
+    school = getattr(request, "school", None)
+    if school is not None and getattr(school, "pk", None) is not None:
+        return school
+    # Freshly-provisioned schema-per-tenant: TenantSchemaSchoolBridgeMiddleware
+    # leaves request.school None until the Client->School link is attached. With
+    # no school the onboarding insight cards throw -> get swallowed -> the rail
+    # feeds come back empty and the copilot "renders nothing". Fall back to the
+    # canonical resolver (session / signup / SchoolMembership) — the same fix the
+    # setup-wizard tile navigation uses (apps.setup_studio.wizard_views).
+    try:
+        from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+        resolved = resolve_request_school(request)
+        if resolved is not None and getattr(resolved, "pk", None) is not None:
+            return resolved
+    except Exception:  # noqa: BLE001 — resolution is best-effort; never break the rail
+        logger.debug("copilot rail school resolve failed", exc_info=True)
+    return school
 
 
 def _insight_count(request: HttpRequest) -> int:
