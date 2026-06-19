@@ -6,6 +6,7 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/workflow-center.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-workflow-guidance.css' %}">
 <script src="{% static 'js/_pages/accounts__workflow_center_embed.js' %}"></script>
 {% endblock %}
 
@@ -16,5 +17,6 @@
 {% include "components/next_action_strip.html" %}
 
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Workflow Center" %} · {{ block.super }}</h1>
+<div class="container-fluid py-2">{% include "components/workflow_help_panel.html" with help=workflow_help %}</div>
 {% include "accounts/partials/workflow_center_main.html" %}
 {% endblock %}

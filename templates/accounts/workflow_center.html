@@ -6,6 +6,7 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/workflow-center.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-workflow-guidance.css' %}">
 <script src="{% static 'js/_pages/accounts__workflow_center.js' %}"></script>
 {% endblock %}
 
@@ -17,5 +18,6 @@
 
 <span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
 {% phase8_dashboard_declaration "accounts/workflow_center.html" %}
+<div class="container-fluid py-2">{% include "components/workflow_help_panel.html" with help=workflow_help %}</div>
 {% include "accounts/partials/workflow_center_main.html" %}
 {% endblock %}

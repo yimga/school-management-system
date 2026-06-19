@@ -1,6 +1,7 @@
 {% load i18n %}
-{% comment %} Phase 3 — workflow_help_panel.html (v3.58.x scaffolding, NOT wired in any shell).
-   Sidebar/drawer panel showing how a workflow works + what blocks it + what happens after.
+{% comment %} workflow_help_panel.html — sidebar/drawer panel showing how a workflow
+   works + what blocks it + what happens after. Wired into the Workflow Center
+   (accounts/workflow_center.html via accounts.views_workflow.workflow_center, v4.04.30).
    Caller contract: include with help=help where help is a dict carrying title,
    how_it_works (list), before_you_start (list), common_blockers (list of label+fix_url),
    what_happens_next (list), need_help (dict with label+url and optional ai_help.label+context_key).

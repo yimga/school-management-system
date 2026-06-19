@@ -527,6 +527,61 @@ def workflow_center(request):
         s["step_index"] = i
         s["total_steps"] = total_steps
 
+    # Contextual "how this works" help panel (templates/components/workflow_help_panel.html).
+    # Every line is grounded in the real lifecycle steps + live signals resolved above —
+    # no fabricated copy, and blockers surface only when they actually apply.
+    try:
+        _academic_year_url = reverse("admin:academics_academicyear_changelist")
+    except ACCOUNTS_SOFT_FAILURES:
+        _academic_year_url = ""
+    try:
+        _kb_home_url = reverse("kb:kb_home")
+    except ACCOUNTS_SOFT_FAILURES:
+        _kb_home_url = ""
+
+    _common_blockers = []
+    if not year:
+        # Surfaced only when it applies — every step keys off the active year.
+        _common_blockers.append(
+            {
+                "label": _(
+                    "No active academic year is set — most steps stay empty until one exists."
+                ),
+                "fix_url": _academic_year_url,
+            }
+        )
+
+    workflow_help = {
+        "title": _("How the Workflow Center works"),
+        "subtitle": _(
+            "A guided path through the school year. Use the steps that match your "
+            "subsystem — there is no rigid order."
+        ),
+        "how_it_works": [
+            _("Set up the academic year, terms, classrooms and subjects."),
+            _("Onboard students and teachers, then link guardians."),
+            _("Enter and approve marks — type them in or upload marksheets for OCR."),
+            _("Publish report cards so parents see results in the portal."),
+            _("Handle communication, documents, certification and automation as needed."),
+        ],
+        "before_you_start": [
+            _("An active academic year — every step below uses it for enrollment and reports."),
+            _("Classrooms, departments and subjects created for that year."),
+        ],
+        "common_blockers": _common_blockers,
+        "what_happens_next": [
+            _("Approved marks publish as report cards to the parent portal."),
+            _("Year-end rollover promotes students into next year's classrooms."),
+        ],
+        # KB link only — omit the AI button: data-rmc-ai-context-key has no JS
+        # consumer yet, and the assist-dock copilot already covers AI on this page.
+        "need_help": (
+            {"label": _("Help & Knowledge Base"), "url": _kb_home_url}
+            if _kb_home_url
+            else None
+        ),
+    }
+
     studio_pack_catalog_strip = None
     try:
         from apps.marketplace.pack_registry import load_platform_pack_catalog
@@ -558,6 +613,7 @@ def workflow_center(request):
         "active_term": term,
         "steps": steps,
         "workflow_progress": progress,
+        "workflow_help": workflow_help,
         "studio_pack_catalog_strip": studio_pack_catalog_strip,
         "studio_simulation_url": studio_simulation_url,
         "import_hub_url": import_hub_url,
