@@ -36,6 +36,26 @@ class LengthTests(SimpleTestCase):
         self.assertEqual(v.validate_min_length("a", 3), (False, "wizards.errors.min_length"))
 
 
+class TextCapTests(SimpleTestCase):
+    def test_within_cap_accepts(self):
+        self.assertEqual(v.validate_text_within_cap("x" * 100, 200), (True, None))
+
+    def test_over_cap_rejects(self):
+        self.assertEqual(
+            v.validate_text_within_cap("x" * 201, 200),
+            (False, "wizards.errors.text_too_long"),
+        )
+
+    def test_non_string_passes_through(self):
+        # Typed validators own non-str values; the cap only bounds free text.
+        self.assertEqual(v.validate_text_within_cap(12345, 2), (True, None))
+        self.assertEqual(v.validate_text_within_cap(None, 2), (True, None))
+        self.assertEqual(v.validate_text_within_cap(["a", "b", "c"], 1), (True, None))
+
+    def test_default_cap_is_positive(self):
+        self.assertGreater(v.DEFAULT_MAX_TEXT_FIELD_LENGTH, 0)
+
+
 class PatternTests(SimpleTestCase):
     def test_match(self):
         self.assertEqual(v.validate_pattern("abc123", r"^[a-z0-9]+$"), (True, None))

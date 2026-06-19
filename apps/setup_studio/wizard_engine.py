@@ -24,11 +24,35 @@ from __future__ import annotations
 import importlib
 import json
 import logging
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
 from apps.setup_studio import wizard_validators as _val
+
+
+def _resolve_max_text_field_length() -> int:
+    """Effective global free-text cap. Env-tunable
+    (``WIZARD_MAX_TEXT_FIELD_LENGTH``) over the platform-constant default —
+    no hardcoded magic number on the validation hot path."""
+    raw = os.environ.get("WIZARD_MAX_TEXT_FIELD_LENGTH", "")
+    try:
+        parsed = int(raw)
+        if parsed > 0:
+            return parsed
+    except (TypeError, ValueError):
+        pass
+    return _val.DEFAULT_MAX_TEXT_FIELD_LENGTH
+
+
+WIZARD_MAX_TEXT_FIELD_LENGTH = _resolve_max_text_field_length()
+
+# Keys a ``structured_form`` payload may carry that are NOT declared fields.
+# The HTTP view builds field-only payloads, so this is empty today; it exists so
+# a future framework-level key (e.g. an idempotency token) can be allowlisted in
+# one place instead of weakening the unexpected-attribute check.
+_ALLOWED_PAYLOAD_META_KEYS: frozenset[str] = frozenset()
 
 __all__ = [
     "Audience",
@@ -468,6 +492,18 @@ def validate_step_answer(
     errors: dict[str, str] = {}
 
     if step.input_type == "structured_form":
+        declared_names = {
+            fld.get("name")
+            for fld in step.fields
+            if isinstance(fld.get("name"), str)
+        }
+        # Reject unexpected attributes. The HTTP view only ever builds declared
+        # keys, so this can't bite the normal flow — it hardens the public
+        # apply_step_answer() boundary against programmatic / replayed payloads
+        # that smuggle un-validated keys into stored state.
+        for key in payload:
+            if key not in declared_names and key not in _ALLOWED_PAYLOAD_META_KEYS:
+                errors.setdefault(str(key), "wizards.errors.unexpected_field")
         for fld in step.fields:
             name = fld.get("name")
             if not isinstance(name, str):
@@ -478,11 +514,16 @@ def validate_step_answer(
                 if not ok:
                     errors[name] = err or "wizards.errors.required"
                     continue
-            for rule_name, rule_value in (fld.get("validation") or {}).items():
+            rules = fld.get("validation") or {}
+            for rule_name, rule_value in rules.items():
                 ok, err = _run_validator(rule_name, v, rule_value)
                 if not ok:
                     errors[name] = err or "wizards.errors.unknown"
                     break
+            if name not in errors and "max_length" not in rules:
+                ok, err = _val.validate_text_within_cap(v, WIZARD_MAX_TEXT_FIELD_LENGTH)
+                if not ok:
+                    errors[name] = err or "wizards.errors.text_too_long"
     else:
         v = payload.get("value")
         if step.validation.get("required"):
@@ -497,6 +538,10 @@ def validate_step_answer(
                 if not ok:
                     errors["value"] = err or "wizards.errors.unknown"
                     break
+        if "value" not in errors and "max_length" not in step.validation:
+            ok, err = _val.validate_text_within_cap(v, WIZARD_MAX_TEXT_FIELD_LENGTH)
+            if not ok:
+                errors["value"] = err or "wizards.errors.text_too_long"
 
     return (len(errors) == 0, errors)
 

@@ -38,6 +38,13 @@ except ImportError:  # pragma: no cover - older interpreters
     import sre_constants as _sre_constants  # type: ignore[no-redef]
 
 _MAX_STEPS = 50
+# Several wizards are USER-scoped (a teacher/parent/student runs them for
+# themselves) and persist to per-user buckets keyed by the actor's id
+# (e.g. role_wizards.<actor>, student_course_requests.<actor>). Walking them
+# without an actor makes those writers correctly no-op, so the persistence
+# assertion must walk as a logged-in user. The id need not be a real User row —
+# the writers use it only as a bucket key.
+_ACTOR_USER_ID = 100100
 
 
 def _sample_from_pattern(pattern: str) -> str:
@@ -350,6 +357,7 @@ class WizardHappyPathTests(TestCase):
                     payload = _synthesize_payload(step)
                     state = wizard_state_resolver.apply_step_answer(
                         self.school, wizard_key, current_key, payload,
+                        actor_user_id=_ACTOR_USER_ID,
                     )
 
                 self.school.refresh_from_db()

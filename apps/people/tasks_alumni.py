@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 from celery import shared_task
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ def sync_alumni_registry_task(self, school_id: int) -> dict:
     settings = dict(school.settings or {})
     alumni = dict(settings.get("alumni_engagement") or {})
     alumni["registry_count"] = count
-    alumni["last_sync_at"] = __import__("django.utils.timezone", fromlist=["timezone"]).timezone.now().isoformat()
+    alumni["last_sync_at"] = timezone.now().isoformat()
     settings["alumni_engagement"] = alumni
     school.settings = settings
     school.save(update_fields=["settings"])

@@ -14,7 +14,9 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 __all__ = [
+    "DEFAULT_MAX_TEXT_FIELD_LENGTH",
     "validate_required",
+    "validate_text_within_cap",
     "validate_max_length",
     "validate_min_length",
     "validate_pattern",
@@ -33,6 +35,15 @@ __all__ = [
 ]
 
 
+# Global backstop for free-text length. A field that declares no explicit
+# ``max_length`` rule must still not be able to write an unbounded string into
+# SetupProgress.step_state (a JSONField) — that path is a cheap storage-DoS and
+# bloats every subsequent read of the row. The engine resolves the effective cap
+# (env-tunable) and only applies it when no explicit ``max_length`` is declared,
+# so an author who opts into a specific bound always wins. 20k chars comfortably
+# fits long-form descriptions / pasted policy text while blocking abuse.
+DEFAULT_MAX_TEXT_FIELD_LENGTH = 20_000
+
 _DOMAIN_RE = re.compile(r"^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$")
 _HEX_COLOR_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 _ISO_COUNTRY_RE = re.compile(r"^[A-Z]{2}$")
@@ -47,6 +58,16 @@ def validate_required(value: Any) -> tuple[bool, str | None]:
         return False, "wizards.errors.required"
     if isinstance(value, (list, dict)) and len(value) == 0:
         return False, "wizards.errors.required"
+    return True, None
+
+
+def validate_text_within_cap(value: Any, cap: int) -> tuple[bool, str | None]:
+    """Global free-text backstop — distinct token from the per-field max_length
+    so telemetry can tell ``author set max_length=N, user exceeded it`` apart from
+    ``unbounded field hit the platform cap``. Only strings are bounded; non-str
+    values pass through (their own typed validators handle them)."""
+    if isinstance(value, str) and len(value) > cap:
+        return False, "wizards.errors.text_too_long"
     return True, None
 
 

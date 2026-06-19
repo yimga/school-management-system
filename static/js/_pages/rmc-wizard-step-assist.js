@@ -21,13 +21,35 @@
     return meta ? (meta.getAttribute("content") || "") : "";
   }
 
+  // Collect the labels / fields / options actually shown on this step so the AI
+  // can explain the concrete choices in front of the customer — not just the
+  // step name. Best-effort + capped; degrades to "" if the form isn't found.
+  function collectStepContext() {
+    var form = document.querySelector("[data-rmc-wizard-form]");
+    if (!form) { return ""; }
+    var nodes = form.querySelectorAll(
+      "legend, label, .rmc-wizard-option-card, .rmc-wizard-field__label, .rmc-wizard-field > label"
+    );
+    var seen = {};
+    var items = [];
+    for (var i = 0; i < nodes.length && items.length < 12; i++) {
+      var t = (nodes[i].textContent || "").replace(/\s+/g, " ").trim();
+      if (t && t.length <= 80 && !seen[t]) { seen[t] = 1; items.push(t); }
+    }
+    return items.join("; ");
+  }
+
   function buildMessage(root, question) {
     var stepLabel = root.getAttribute("data-step-label") || "";
+    var stepDesc = (root.getAttribute("data-step-description") || "").trim();
     var wizard = root.getAttribute("data-wizard") || "";
     var ctx = [];
     if (stepLabel) { ctx.push('the "' + stepLabel + '" step'); }
     if (wizard) { ctx.push("the " + wizard.replace(/_/g, " ") + " setup wizard"); }
     var prefix = ctx.length ? "I'm on " + ctx.join(" of ") + ". " : "";
+    if (stepDesc) { prefix += "This step: " + stepDesc + ". "; }
+    var shown = collectStepContext();
+    if (shown) { prefix += "The fields/options shown are: " + shown + ". "; }
     return prefix + question;
   }
 

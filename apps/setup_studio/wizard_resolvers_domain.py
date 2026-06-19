@@ -267,6 +267,13 @@ def write_parent_contact_preferences_step(*, school: Any, wizard_key: str, step_
     apply_parent_contact_preferences_wizard(
         school=school, actor_user_id=actor_user_id, step_key=step_key, payload=payload,
     )
+    # Also leave a per-user, school-level breadcrumb (no secrets here — these are
+    # channel/quiet-hours/topic preferences) so the choice is observable in the
+    # tenant settings cascade, consistent with the other user-scoped wizards.
+    _write_user_step(
+        school=school, root_key="role_wizards", wizard_key=wizard_key,
+        step_key=step_key, payload=payload, actor_user_id=actor_user_id,
+    )
 
 
 def write_student_course_selection_step(*, school: Any, wizard_key: str, step_key: str, payload: dict[str, Any], actor_user_id: int | None) -> None:

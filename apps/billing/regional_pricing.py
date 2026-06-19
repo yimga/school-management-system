@@ -17,11 +17,25 @@ currency=USD) so missing data never silently zeroes out a tenant's bill.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Any
 
 
 _TWOPLACES = Decimal("0.01")
+
+
+def _safe_decimal(value: Any, default: str = "0") -> Decimal:
+    """Coerce arbitrary input (incl. user-entered wizard strings like '1,000' or
+    '') to Decimal, never raising. A pure pricing helper must not crash on input —
+    a bad value would otherwise bubble up and make a wizard's persistence writer
+    fail silently. Strips thousands separators; falls back to ``default``."""
+    if isinstance(value, Decimal):
+        return value
+    try:
+        s = str(value).strip().replace(",", "") if value is not None else ""
+        return Decimal(s) if s else Decimal(default)
+    except (InvalidOperation, ValueError, TypeError):
+        return Decimal(default)
 
 
 @dataclass(frozen=True)
@@ -90,9 +104,9 @@ def compute_localized_price(
     (Avalara / TaxJar / Stripe Tax) can override the static value when
     a tenant configures one.
     """
-    base = Decimal(str(base_usd or 0))
+    base = _safe_decimal(base_usd)
     row = _resolve_country_row(country_code)
-    multiplier = Decimal(str(getattr(row, "multiplier", 1) or 1)) if row else Decimal("1")
+    multiplier = _safe_decimal(getattr(row, "multiplier", 1), "1") if row else Decimal("1")
     tax_code = (getattr(row, "tax_code", "") or "") if row else ""
     subtotal = _q(base * multiplier)
     tax_rate = _resolve_tax_rate(country_code, subdivision_code, row)

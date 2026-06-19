@@ -249,6 +249,78 @@ class ValidationTests(SimpleTestCase):
         ok, errs = wizard_engine.validate_step_answer(step, {"name": "abc"})
         self.assertTrue(ok)
 
+    def test_global_text_cap_bounds_undeclared_field(self):
+        """A free-text field with NO declared max_length still can't write an
+        unbounded string into stored state."""
+        wizard = wizard_engine._parse_wizard({
+            "wizard_key": "cap_sf",
+            "version": 1,
+            "audience": ["operator"],
+            "steps": [
+                {
+                    "key": "form",
+                    "input_type": "structured_form",
+                    "fields": [{"name": "notes", "type": "text"}],
+                },
+            ],
+        }, Path("/tmp/cap_sf.json"))
+        step = wizard.steps[0]
+        over = "x" * (wizard_engine.WIZARD_MAX_TEXT_FIELD_LENGTH + 1)
+        ok, errs = wizard_engine.validate_step_answer(step, {"notes": over})
+        self.assertFalse(ok)
+        self.assertEqual(errs.get("notes"), "wizards.errors.text_too_long")
+        ok, _ = wizard_engine.validate_step_answer(step, {"notes": "a reasonable note"})
+        self.assertTrue(ok)
+
+    def test_explicit_max_length_overrides_global_cap(self):
+        """An author-declared max_length larger than nothing still owns the bound
+        — the global backstop does not double-reject what the field already passed."""
+        wizard = wizard_engine._parse_wizard(_VALID_WIZARD, Path("/tmp/v.json"))
+        step = wizard.steps[1]  # text field, max_length=50
+        ok, errs = wizard_engine.validate_step_answer(step, {"value": "ok"})
+        self.assertTrue(ok)
+        ok, errs = wizard_engine.validate_step_answer(step, {"value": "z" * 51})
+        self.assertFalse(ok)
+        self.assertEqual(errs.get("value"), "wizards.errors.max_length")
+
+    def test_global_text_cap_bounds_simple_value(self):
+        wizard = wizard_engine._parse_wizard({
+            "wizard_key": "cap_simple",
+            "version": 1,
+            "audience": ["operator"],
+            "steps": [{"key": "free", "input_type": "text"}],
+        }, Path("/tmp/cap_simple.json"))
+        step = wizard.steps[0]
+        over = "y" * (wizard_engine.WIZARD_MAX_TEXT_FIELD_LENGTH + 1)
+        ok, errs = wizard_engine.validate_step_answer(step, {"value": over})
+        self.assertFalse(ok)
+        self.assertEqual(errs.get("value"), "wizards.errors.text_too_long")
+
+    def test_unexpected_field_rejected(self):
+        """Structured-form payloads carrying keys outside the declared field set
+        are rejected at the apply_step_answer boundary (defense-in-depth)."""
+        wizard = wizard_engine._parse_wizard({
+            "wizard_key": "strict_sf",
+            "version": 1,
+            "audience": ["operator"],
+            "steps": [
+                {
+                    "key": "form",
+                    "input_type": "structured_form",
+                    "fields": [{"name": "school_name", "type": "text", "required": True}],
+                },
+            ],
+        }, Path("/tmp/strict_sf.json"))
+        step = wizard.steps[0]
+        ok, errs = wizard_engine.validate_step_answer(
+            step, {"school_name": "Westside High", "is_staff": True}
+        )
+        self.assertFalse(ok)
+        self.assertEqual(errs.get("is_staff"), "wizards.errors.unexpected_field")
+        # Declared-only payload still passes.
+        ok, _ = wizard_engine.validate_step_answer(step, {"school_name": "Westside High"})
+        self.assertTrue(ok)
+
 
 class GetWizardTests(SimpleTestCase):
     def test_not_found_raises(self):
