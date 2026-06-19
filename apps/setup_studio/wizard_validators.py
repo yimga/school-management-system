@@ -42,7 +42,7 @@ __all__ = [
 # (env-tunable) and only applies it when no explicit ``max_length`` is declared,
 # so an author who opts into a specific bound always wins. 20k chars comfortably
 # fits long-form descriptions / pasted policy text while blocking abuse.
-DEFAULT_MAX_TEXT_FIELD_LENGTH = 20_000
+DEFAULT_MAX_TEXT_FIELD_LENGTH = 20_000  # magic-number-allow: named-constant-definition (env-tunable free-text cap)
 
 _DOMAIN_RE = re.compile(r"^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$")
 _HEX_COLOR_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")

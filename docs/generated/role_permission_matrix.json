@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-06-16T16:36:54.232329+00:00",
+  "generated_at": "2026-06-19T16:41:41.493309+00:00",
   "generated_by": "scripts/audit_role_permission_matrix.py",
-  "row_count": 1572,
-  "views_indexed": 2496,
+  "row_count": 1579,
+  "views_indexed": 2539,
   "summary": {
-    "login_gated": 1177,
+    "login_gated": 1184,
     "role_gated": 77,
     "permission_gated": 107,
     "has_inline_auth_check": 71,
-    "auth_mixin_gated": 111,
+    "auth_mixin_gated": 115,
     "rbac_allow_reason": 139,
     "candidate_anonymous": 225,
     "unresolved": 169
@@ -987,6 +987,78 @@
     {
       "url_pattern": "backend/advancement/gifts/<int:gift_id>/delete/",
       "view_symbol": "advancement_gift_delete",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/schools/views_advancement.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "user_passes_test(_staff_only)",
+        "require_school",
+        "require_POST"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "backend/advancement/donations/",
+      "view_symbol": "donations_dashboard",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/schools/views_advancement.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "user_passes_test(_staff_only)",
+        "require_school",
+        "require_http_methods(['GET'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "backend/advancement/donations/capture/",
+      "view_symbol": "donation_capture",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/schools/views_advancement.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "user_passes_test(_staff_only)",
+        "require_school",
+        "require_POST"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "backend/advancement/donors/<int:donor_id>/portal-link/",
+      "view_symbol": "advancement_send_portal_link",
       "urls_file": "apps/accounts/urls.py",
       "view_file": "apps/schools/views_advancement.py",
       "kind": "func",
@@ -4100,7 +4172,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/analytics/urls.py",
-      "view_file": "apps/payroll/views.py",
+      "view_file": "apps/finance/views_dashboard.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -14424,7 +14496,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/finance/urls.py",
-      "view_file": "apps/payroll/views.py",
+      "view_file": "apps/finance/views_dashboard.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -18658,7 +18730,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/payroll/urls.py",
-      "view_file": "apps/payroll/views.py",
+      "view_file": "apps/finance/views_dashboard.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -18952,6 +19024,102 @@
       "permission_gated": false,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "copilot/rail/context/",
+      "view_symbol": "TenantCopilotRailContextView.as_view",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_copilot_rail.py",
+      "kind": "class",
+      "decorators": [
+        "never_cache"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "copilot/rail/insights/",
+      "view_symbol": "TenantCopilotRailInsightsView.as_view",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_copilot_rail.py",
+      "kind": "class",
+      "decorators": [
+        "never_cache"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "copilot/rail/send/",
+      "view_symbol": "TenantCopilotRailSendView.as_view",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_copilot_rail.py",
+      "kind": "class",
+      "decorators": [
+        "never_cache"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "copilot/rail/send-stream/",
+      "view_symbol": "TenantCopilotRailSendStreamView.as_view",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_copilot_rail.py",
+      "kind": "class",
+      "decorators": [
+        "never_cache"
+      ],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
       "candidate_anonymous": false
     },
     {
