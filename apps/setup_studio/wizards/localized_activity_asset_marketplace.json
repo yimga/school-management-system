@@ -33,7 +33,10 @@
           "name": "default_currency",
           "type": "select",
           "required": true,
-          "choices_resolver": "apps.setup_studio.wizard_resolvers::list_settlement_currencies"
+          "choices_resolver": "apps.setup_studio.wizard_resolvers::list_settlement_currencies",
+          "validation": {
+            "iso_currency": true
+          }
         },
         {
           "name": "default_tax_inclusive",

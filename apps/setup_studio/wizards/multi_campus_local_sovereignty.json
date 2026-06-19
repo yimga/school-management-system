@@ -25,7 +25,10 @@
           "name": "country_code",
           "type": "select",
           "required": true,
-          "choices_resolver": "apps.setup_studio.wizard_resolvers::list_countries"
+          "choices_resolver": "apps.setup_studio.wizard_resolvers::list_countries",
+          "validation": {
+            "iso_country": true
+          }
         },
         {
           "name": "state_code",
