@@ -1447,6 +1447,13 @@ body[data-rmc-shell-main="control-plane"] .lx-audit__row--danger,
 
 .lx-copilot__thread {
   flex: 1;
+  /* min-height:0 is REQUIRED for a flex child to shrink below its content. Without
+     it the chat thread (the default tab) refuses to shrink as messages accumulate
+     and pushes .lx-copilot__input-wrap past the panel's bottom edge, where the
+     parent .rmc-app-shell__copilot { overflow:hidden } clips it — the user opens
+     the copilot and cannot see where to type. The panes already set this (below);
+     the thread did not. */
+  min-height: 0;
   overflow-y: auto;
   padding: 0 16px;
   display: flex;
@@ -1499,12 +1506,28 @@ body[data-rmc-shell-main="control-plane"] .lx-audit__row--danger,
 }
 
 .lx-copilot__input-wrap {
+  /* Pin the composer to the panel bottom and never let it shrink or be clipped:
+     it is the one element the user must always be able to reach. flex:0 0 auto
+     keeps it at its natural height while the thread/panes above absorb the
+     scroll (they carry flex:1 + min-height:0). */
+  flex: 0 0 auto;
   border-top: 1px solid var(--cp-chrome-hairline);
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   background: rgba(7, 9, 26, 0.45); /* off-token-allow: dark-chrome-copilot-glass */
+}
+
+/* Safety net for short viewports: the "Pulse" insights block is the only
+   variable-height element ABOVE the scrolling thread, so bound it and let it
+   scroll internally. Otherwise a long insight list can crowd the fixed header +
+   tabs + composer past the panel height and clip the input even with the thread
+   fully collapsed. Keeps everything in frame — no bleeding past the edge. */
+.lx-copilot__insights-wrap {
+  flex: 0 1 auto;
+  max-height: 30vh;
+  overflow-y: auto;
 }
 .lx-copilot__input {
   width: 100%;
