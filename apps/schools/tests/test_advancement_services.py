@@ -332,6 +332,76 @@ class OfflineDonationIntakeTests(TestCase):
         self.assertEqual(d.quantity, 12)
         self.assertEqual(d.status, InKindDonation.Status.PENDING)
 
+    def test_donation_intake_is_idempotent_on_client_offline_id(self):
+        from apps.platform_runtime.offline_queue import (
+            enqueue_offline_action,
+            process_offline_queue,
+        )
+
+        # Same captured gift replayed under two DIFFERENT queue keys (the client
+        # re-queued after a flaky sync). The queue-level (school, idempotency_key)
+        # dedup does NOT catch a re-keyed replay — only the record-level
+        # client_offline_id guard does. A second gift here would double-credit
+        # the gift's fund, so it must fold onto the first.
+        for queue_key in ("off-don-A", "off-don-B"):
+            enqueue_offline_action(
+                user_id=self.user.pk, school_id=self.school.pk,
+                action_type="donation.intake",
+                payload={
+                    "donor_name": "Repeat Donor", "amount": "120.00",
+                    "currency": "USD", "client_offline_id": "cid-don-1",
+                },
+                idempotency_key=queue_key,
+            )
+        process_offline_queue(school_id=self.school.pk)
+        donor = AdvancementDonor.objects.get(school=self.school, display_name="Repeat Donor")
+        self.assertEqual(donor.gifts.count(), 1)
+        self.assertEqual(donor.gifts.first().client_offline_id, "cid-don-1")
+
+    def test_in_kind_intake_is_idempotent_on_client_offline_id(self):
+        from apps.platform_runtime.offline_queue import (
+            enqueue_offline_action,
+            process_offline_queue,
+        )
+
+        for queue_key in ("off-ink-A", "off-ink-B"):
+            enqueue_offline_action(
+                user_id=self.user.pk, school_id=self.school.pk,
+                action_type="in_kind.intake",
+                payload={
+                    "description": "Replayed crate of books", "quantity": 5,
+                    "category": "equipment", "client_offline_id": "cid-ink-1",
+                },
+                idempotency_key=queue_key,
+            )
+        process_offline_queue(school_id=self.school.pk)
+        self.assertEqual(
+            InKindDonation.objects.filter(
+                school=self.school, description="Replayed crate of books"
+            ).count(),
+            1,
+        )
+
+    def test_keyless_offline_donations_are_never_folded_together(self):
+        from apps.platform_runtime.offline_queue import (
+            enqueue_offline_action,
+            process_offline_queue,
+        )
+
+        # No client_offline_id -> the partial-unique index skips blank keys, so two
+        # genuinely distinct keyless captures from the same donor must BOTH land
+        # (the dedup must never silently swallow real offline work).
+        for queue_key in ("off-keyless-1", "off-keyless-2"):
+            enqueue_offline_action(
+                user_id=self.user.pk, school_id=self.school.pk,
+                action_type="donation.intake",
+                payload={"donor_name": "Keyless Donor", "amount": "10.00", "currency": "USD"},
+                idempotency_key=queue_key,
+            )
+        process_offline_queue(school_id=self.school.pk)
+        donor = AdvancementDonor.objects.get(school=self.school, display_name="Keyless Donor")
+        self.assertEqual(donor.gifts.count(), 2)
+
 
 class DonationPledgeTests(TestCase):
     def setUp(self):
