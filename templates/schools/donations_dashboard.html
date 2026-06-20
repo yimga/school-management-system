@@ -8,6 +8,11 @@
 <div class="container-fluid py-2" data-page-archetype="dashboard" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% include "studio_os/components/page_header.html" with title="Donations & funding" subtitle="Campaigns, gifts, in-kind and fund health" action_url=donors_url action_text="Donors" %}
 
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:grants_dashboard' %}">{% trans "Grants" %}</a>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ donors_url }}">{% trans "Donors" %}</a>
+  </div>
+
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
       <div class="card card-body">

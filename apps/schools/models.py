@@ -1582,6 +1582,229 @@ class DonorGiftAccessLink(models.Model):
         return self.expires_at > _tz.now()
 
 
+class GrantApplication(models.Model):
+    """
+    Wedge 5: an outbound grant the school applies for, tracked through its full
+    lifecycle — draft → submitted → under_review → awarded/declined → closed (with
+    renewal via ``renewed_from``). On award it credits a finance ``AwardSource`` (the
+    fund bucket) via ``aid_services.credit_award_source`` rather than forking a funding
+    ledger. The narrative may be AI-drafted (``services.advancement_ai``). Tenant-scoped.
+    """
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        SUBMITTED = "submitted", "Submitted"
+        UNDER_REVIEW = "under_review", "Under review"
+        AWARDED = "awarded", "Awarded"
+        DECLINED = "declined", "Declined"
+        CLOSED = "closed", "Closed"
+
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="grant_applications"
+    )
+    funder_name = models.CharField(max_length=200)
+    program = models.CharField(
+        max_length=200, blank=True, help_text="Programme or purpose the grant funds."
+    )
+    requested_amount = models.DecimalField(max_digits=14, decimal_places=2)
+    awarded_amount = models.DecimalField(
+        max_digits=14, decimal_places=2, null=True, blank=True
+    )
+    currency = models.CharField(max_length=3, default="USD")
+    status = models.CharField(
+        max_length=16, choices=Status.choices, default=Status.DRAFT
+    )
+    narrative = models.TextField(
+        blank=True, help_text="Application narrative (may be AI-drafted, then edited)."
+    )
+    award_source = models.ForeignKey(
+        "finance.AwardSource",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="grant_applications",
+        help_text="Fund credited when the grant is awarded.",
+    )
+    credited_to_fund_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Idempotency stamp: set once the award has credited its fund.",
+    )
+    renewed_from = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="renewals",
+        help_text="Prior grant this application renews.",
+    )
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+    due_date = models.DateField(
+        null=True, blank=True, help_text="Submission deadline."
+    )
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Grant application"
+        verbose_name_plural = "Grant applications"
+        indexes = [
+            models.Index(fields=["school", "status"]),
+            models.Index(fields=["school", "due_date"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.funder_name} ({self.get_status_display()})"
+
+    @property
+    def is_open(self) -> bool:
+        return self.status in (
+            self.Status.DRAFT,
+            self.Status.SUBMITTED,
+            self.Status.UNDER_REVIEW,
+        )
+
+
+class GrantMilestone(models.Model):
+    """A deliverable/checkpoint on an awarded grant (e.g. interim report due, build phase)."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        COMPLETED = "completed", "Completed"
+        WAIVED = "waived", "Waived"
+
+    grant = models.ForeignKey(
+        GrantApplication, on_delete=models.CASCADE, related_name="milestones"
+    )
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    due_date = models.DateField(null=True, blank=True)
+    completed_at = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        max_length=12, choices=Status.choices, default=Status.PENDING
+    )
+    order = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "due_date", "id"]
+        verbose_name = "Grant milestone"
+        verbose_name_plural = "Grant milestones"
+
+    def __str__(self) -> str:
+        return f"{self.title} ({self.get_status_display()})"
+
+
+class GrantReport(models.Model):
+    """A narrative or financial report filed against an awarded grant."""
+
+    class ReportType(models.TextChoices):
+        NARRATIVE = "narrative", "Narrative"
+        FINANCIAL = "financial", "Financial"
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        SUBMITTED = "submitted", "Submitted"
+        ACCEPTED = "accepted", "Accepted"
+
+    grant = models.ForeignKey(
+        GrantApplication, on_delete=models.CASCADE, related_name="reports"
+    )
+    report_type = models.CharField(
+        max_length=12, choices=ReportType.choices, default=ReportType.NARRATIVE
+    )
+    period_start = models.DateField(null=True, blank=True)
+    period_end = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        max_length=12, choices=Status.choices, default=Status.DRAFT
+    )
+    content = models.TextField(blank=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-period_end", "-created_at"]
+        verbose_name = "Grant report"
+        verbose_name_plural = "Grant reports"
+
+    def __str__(self) -> str:
+        return f"{self.get_report_type_display()} report ({self.get_status_display()})"
+
+
+class RecurringDonationSchedule(models.Model):
+    """
+    Wedge 5: a donor's recurring giving commitment. The platform has NO card-on-file
+    auto-charge, so this is a SCHEDULE that MINTS a ``DonationPledge`` on each due date
+    (an expected gift the donor fulfils as usual) — never an automatic charge. A daily
+    periodic job advances due schedules. Tenant-scoped.
+    """
+
+    class Frequency(models.TextChoices):
+        WEEKLY = "weekly", "Weekly"
+        MONTHLY = "monthly", "Monthly"
+        QUARTERLY = "quarterly", "Quarterly"
+        ANNUAL = "annual", "Annual"
+
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Active"
+        PAUSED = "paused", "Paused"
+        COMPLETED = "completed", "Completed"
+        CANCELLED = "cancelled", "Cancelled"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="recurring_donation_schedules",
+    )
+    donor = models.ForeignKey(
+        "schools.AdvancementDonor",
+        on_delete=models.CASCADE,
+        related_name="recurring_schedules",
+    )
+    campaign = models.ForeignKey(
+        "schools.FundraisingCampaign",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="recurring_schedules",
+    )
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    currency = models.CharField(max_length=3, default="USD")
+    frequency = models.CharField(
+        max_length=12, choices=Frequency.choices, default=Frequency.MONTHLY
+    )
+    start_date = models.DateField()
+    end_date = models.DateField(
+        null=True, blank=True, help_text="Optional; blank = ongoing."
+    )
+    next_run_date = models.DateField(help_text="Next date a pledge is minted.")
+    status = models.CharField(
+        max_length=12, choices=Status.choices, default=Status.ACTIVE
+    )
+    pledges_created = models.PositiveIntegerField(default=0)
+    last_run_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["next_run_date", "-created_at"]
+        verbose_name = "Recurring donation schedule"
+        verbose_name_plural = "Recurring donation schedules"
+        indexes = [models.Index(fields=["school", "status", "next_run_date"])]
+
+    def __str__(self) -> str:
+        return (
+            f"{self.amount} {self.currency} {self.get_frequency_display()} "
+            f"({self.get_status_display()})"
+        )
+
+
 class MarketingFunnelEvent(models.Model):
     """
     Growth analytics: full conversion funnel (anonymous + school-scoped).

@@ -93,6 +93,7 @@ from .super_views_command_center_views import (
     super_command_center_v2,
 )
 from .super_views_founder_dashboard import super_founder_dashboard
+from .super_views_funding import super_funding_overview
 from .super_views_overview_surfaces import (
     super_analytics_overview,
     super_schools_list,
@@ -154,6 +155,7 @@ __all__ = (
     "school_lifecycle_action",
     "super_dashboard_v2",
     "super_analytics_overview",
+    "super_funding_overview",
     "super_schools_list",
     "super_playbook_operator_hub",
     "super_runtime_inspector",

@@ -177,6 +177,20 @@ def ensure_default_jobs() -> None:
             auto_eligible=False,
             tags=("billing", "heavy"),
         )
+        # Heavy + tenant-fan-out: mints DonationPledges for due recurring giving
+        # schedules. The platform has no card-on-file auto-charge, so recurring giving
+        # produces expected-gift pledges (donors fulfil them as usual). cron-only like
+        # the billing job — never on the hot /health/ thread; the command is idempotent
+        # per due-date, so a duplicate/late tick re-mints only genuinely-due schedules.
+        _REGISTRY["advancement.mint_recurring_donation_pledges"] = PeriodicJob(
+            name="advancement.mint_recurring_donation_pledges",
+            interval_seconds=DAILY_SECONDS,
+            func=_run_mint_recurring_donation_pledges,
+            description="Daily: mint pledges for due recurring donation schedules.",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("advancement", "heavy"),
+        )
         _DEFAULTS_INSTALLED = True
 
 
@@ -194,6 +208,14 @@ def _run_platform_billing_lifecycle() -> object:
     from django.core.management import call_command
 
     return call_command("run_platform_billing_lifecycle")
+
+
+def _run_mint_recurring_donation_pledges() -> object:
+    # Delegates to the management command so the cron, manual, and future-worker
+    # trigger paths all run identical code.
+    from django.core.management import call_command
+
+    return call_command("mint_recurring_donation_pledges")
 
 
 # --- mode / gating -----------------------------------------------------------

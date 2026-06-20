@@ -259,6 +259,12 @@ def build_primary_control_plane_nav(request):
             "icon": "bi-graph-up-arrow",
         },
         {
+            "id": "primary_funding",
+            "label": "Funding",
+            "url_name": "super:funding_overview",
+            "icon": "bi-cash-coin",
+        },
+        {
             "id": "primary_migration",
             "label": "Migration Cloud",
             "url_name": "super:migration_cloud",

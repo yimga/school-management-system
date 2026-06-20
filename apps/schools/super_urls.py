@@ -892,6 +892,11 @@ urlpatterns = [
         name="analytics_overview",
     ),
     path(
+        "funding/",
+        require_super_access_with_host(super_views.super_funding_overview),
+        name="funding_overview",
+    ),
+    path(
         "support/",
         require_super_access_with_host(super_views.super_support_dashboard),
         name="support_dashboard",

@@ -1,0 +1,73 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Funding overview" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Funding" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-2" data-page-archetype="dashboard" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  <h1 class="h4 mb-1">{% trans "Funding overview" %}</h1>
+  <p class="text-secondary mb-4">{% blocktrans %}Platform-wide advancement rollup across {{ tenant_count }} tenants with recorded gifts.{% endblocktrans %}</p>
+
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card card-body">
+        <p class="text-muted small mb-1">{% trans "Cash raised (all tenants)" %}</p>
+        <p class="h4 mb-0">{{ total_cash_raised }}</p>
+        <p class="small text-muted mb-0">{{ gift_count }} {% trans "gifts" %}</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-body">
+        <p class="text-muted small mb-1">{% trans "In-kind accepted" %}</p>
+        <p class="h4 mb-0">{{ in_kind_accepted_value }}</p>
+        <p class="small text-muted mb-0">{{ in_kind_accepted_count }} {% trans "items" %}</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-body">
+        <p class="text-muted small mb-1">{% trans "Pledges outstanding" %}</p>
+        <p class="h4 mb-0">{{ pledged_outstanding }}</p>
+        <p class="small text-muted mb-0">{{ open_pledge_count }} {% trans "open" %}</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-body">
+        <p class="text-muted small mb-1">{% trans "Active campaigns" %}</p>
+        <p class="h4 mb-0">{{ active_campaigns }}</p>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="h6 mb-2">{% trans "Top tenants by cash raised" %}</h2>
+  {% if rows %}
+  <div class="table-responsive">
+    <table class="table table-sm align-middle rmc-data-table">
+      <caption class="visually-hidden">{% trans "Funding by tenant" %}</caption>
+      <thead><tr><th>{% trans "School" %}</th><th>{% trans "Cash raised" %}</th><th>{% trans "Gifts" %}</th><th>{% trans "Advancement" %}</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>{{ r.name }}</td>
+          <td>{{ r.raised }}</td>
+          <td>{{ r.gifts }}</td>
+          <td>{% if r.advancement_enabled %}<span class="badge bg-success-subtle text-success-emphasis">{% trans "Enabled" %}</span>{% else %}<span class="badge bg-secondary-subtle text-secondary-emphasis">{% trans "Disabled" %}</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-secondary">{% trans "No gifts recorded across any tenant yet." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

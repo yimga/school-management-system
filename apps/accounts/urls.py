@@ -136,8 +136,9 @@ from apps.schools.views_advancement import (
     advancement_send_portal_link,
     donation_capture,
     donations_dashboard,
+    grants_dashboard,
 )
-from apps.schools.views_donor_portal import donor_portal
+from apps.schools.views_donor_portal import donor_portal, donor_receipt_pdf
 from apps.accounts.views_tenant_observability import tenant_activity_log
 from apps.accounts.views_trust_hub import security_trust_hub, tenant_impersonation_audit
 from apps.accounts.views_tenant_identity import (
@@ -323,6 +324,11 @@ urlpatterns = [
         name="donation_capture",
     ),
     path(
+        "backend/advancement/grants/",
+        grants_dashboard,
+        name="grants_dashboard",
+    ),
+    path(
         "backend/advancement/donors/<int:donor_id>/portal-link/",
         advancement_send_portal_link,
         name="advancement_send_portal_link",
@@ -332,6 +338,11 @@ urlpatterns = [
         "giving/<uuid:token>/",  # rbac-allow: public-donor-magic-link-uuid-token-is-credential
         donor_portal,
         name="donor_portal",
+    ),
+    path(
+        "giving/<uuid:token>/gifts/<int:gift_id>/receipt.pdf",  # rbac-allow: public-donor-magic-link-uuid-token-is-credential
+        donor_receipt_pdf,
+        name="donor_gift_receipt",
     ),
     path("backend/activity-log/", tenant_activity_log, name="tenant_activity_log"),
     path(

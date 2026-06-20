@@ -25,7 +25,7 @@
           <td>{{ g.received_at }}</td>
           <td>{{ g.amount }} {{ g.currency }}</td>
           <td>{% if g.campaign %}{{ g.campaign.name }}{% elif g.campaign_name %}{{ g.campaign_name }}{% else %}—{% endif %}</td>
-          <td>{% if g.receipt_sent %}<span class="badge bg-success-subtle text-success-emphasis">{% trans "Sent" %}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+          <td><a href="{% url 'accounts:donor_gift_receipt' token g.id %}" target="_blank" rel="noopener">{% trans "Download" %}</a>{% if g.receipt_sent %} <span class="badge bg-success-subtle text-success-emphasis">{% trans "Sent" %}</span>{% endif %}</td>
         </tr>
         {% endfor %}
       </tbody>

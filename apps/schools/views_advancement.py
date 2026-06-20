@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 from decimal import Decimal, InvalidOperation
+from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -31,9 +32,30 @@ def _staff_only(u):
     return bool(u and u.is_authenticated and u.is_staff)
 
 
+def _require_advancement(view_func):
+    """
+    Gate an advancement staff view on the per-tenant advancement toggle. Enabled by
+    default (see advancement_services.advancement_enabled); only an operator's explicit
+    School.features["advancement"] = False redirects. Place BELOW @require_school so
+    request.school is set.
+    """
+
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        from .advancement_services import advancement_enabled
+
+        if not advancement_enabled(getattr(request, "school", None)):
+            messages.info(request, "Advancement is not enabled for this school.")
+            return redirect("accounts:backend_dashboard")
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped
+
+
 @login_required
 @user_passes_test(_staff_only)
 @require_school
+@_require_advancement
 @require_http_methods(["GET", "POST"])
 def advancement_donor_list(request):
     school = request.school
@@ -64,6 +86,7 @@ def advancement_donor_list(request):
 @login_required
 @user_passes_test(_staff_only)
 @require_school
+@_require_advancement
 @require_http_methods(["GET", "POST"])
 def advancement_donor_create(request):
     school = request.school
@@ -105,6 +128,7 @@ def advancement_donor_create(request):
 @login_required
 @user_passes_test(_staff_only)
 @require_school
+@_require_advancement
 @require_http_methods(["GET", "POST"])
 def advancement_donor_edit(request, donor_id):
     school = request.school
@@ -149,6 +173,7 @@ def advancement_donor_edit(request, donor_id):
 @login_required
 @user_passes_test(_staff_only)
 @require_school
+@_require_advancement
 @require_http_methods(["GET", "POST"])
 def advancement_donor_detail(request, donor_id):
     school = request.school
@@ -289,6 +314,7 @@ def advancement_donor_detail(request, donor_id):
 @login_required
 @user_passes_test(_staff_only)
 @require_school
+@_require_advancement
 @require_http_methods(["GET"])
 def donations_dashboard(request):
     """Tenant staff donations overview: campaign progress, totals, aid endowment health."""
@@ -310,6 +336,40 @@ def donations_dashboard(request):
 @login_required
 @user_passes_test(_staff_only)
 @require_school
+@_require_advancement
+@require_http_methods(["GET"])
+def grants_dashboard(request):
+    """Tenant staff grants overview: the application pipeline by status + awarded totals."""
+    from django.db.models import Sum
+
+    from .models import GrantApplication
+
+    school = request.school
+    grants = list(
+        GrantApplication.objects.filter(school=school)
+        .select_related("award_source")
+        .order_by("-created_at")[:100]
+    )
+    awarded_total = GrantApplication.objects.filter(
+        school=school, status=GrantApplication.Status.AWARDED
+    ).aggregate(total=Sum("awarded_amount"))["total"]
+    open_count = sum(1 for g in grants if g.is_open)
+    return render(
+        request,
+        "schools/grants_dashboard.html",
+        {
+            "grants": grants,
+            "awarded_total": awarded_total or 0,
+            "open_count": open_count,
+            "donations_url": reverse("accounts:donations_dashboard"),
+        },
+    )
+
+
+@login_required
+@user_passes_test(_staff_only)
+@require_school
+@_require_advancement
 @require_POST
 def donation_capture(request):
     """
@@ -353,6 +413,7 @@ def donation_capture(request):
 @login_required
 @user_passes_test(_staff_only)
 @require_school
+@_require_advancement
 @require_POST
 def advancement_send_portal_link(request, donor_id):
     """Mint a donor magic-link and email it to the donor (best-effort)."""
@@ -379,6 +440,7 @@ def advancement_send_portal_link(request, donor_id):
 @login_required
 @user_passes_test(_staff_only)
 @require_school
+@_require_advancement
 @require_POST
 def advancement_gift_delete(request, gift_id):
     school = request.school

@@ -31,6 +31,23 @@ def _as_decimal(value: Any) -> Decimal:
         return Decimal("0.00")
 
 
+def advancement_enabled(school) -> bool:
+    """
+    Advancement (donations / fundraising) is enabled-by-default for every tenant —
+    it has been a live feature, so gating it on the usual opt-in ``is_feature_enabled``
+    would lock out existing tenants. Instead an operator switches it OFF per tenant by
+    setting ``School.features["advancement"] = False``; ONLY an explicit ``False``
+    disables it. No backfill migration (``School.features`` is a JSONField), so the gate
+    carries zero regression for tenants already using advancement.
+    """
+    if school is None:
+        return False
+    feats = getattr(school, "features", None) or {}
+    if isinstance(feats, dict) and feats.get("advancement") is False:
+        return False
+    return True
+
+
 def campaign_progress(campaign) -> dict[str, Any]:
     """
     Aggregate a campaign's progress from its linked gifts (money) and in-kind

@@ -10,7 +10,11 @@ from .models import (
     DonationPledge,
     DonorGiftAccessLink,
     FundraisingCampaign,
+    GrantApplication,
+    GrantMilestone,
+    GrantReport,
     InKindDonation,
+    RecurringDonationSchedule,
     School,
     SchoolMembership,
     SchoolProvisioningEvent,
@@ -509,7 +513,187 @@ class DonorGiftAccessLinkAdmin(admin.ModelAdmin):
             )
 
 
+class GrantMilestoneInline(admin.TabularInline):
+    model = GrantMilestone
+    extra = 0
+    fields = ("title", "due_date", "completed_at", "status", "order")
+    ordering = ("order", "due_date")
+
+
+class GrantReportInline(admin.TabularInline):
+    model = GrantReport
+    extra = 0
+    fields = ("report_type", "period_start", "period_end", "status", "submitted_at")
+    readonly_fields = ("submitted_at",)
+
+
+class GrantApplicationAdmin(admin.ModelAdmin):
+    list_display = (
+        "funder_name",
+        "school",
+        "status",
+        "requested_amount",
+        "awarded_amount",
+        "currency",
+        "due_date",
+    )
+    list_filter = ("school", "status", "currency")
+    search_fields = ("funder_name", "program", "notes")
+    raw_id_fields = ("school", "award_source", "renewed_from")
+    readonly_fields = (
+        "submitted_at",
+        "decided_at",
+        "credited_to_fund_at",
+        "created_at",
+        "updated_at",
+    )
+    inlines = [GrantMilestoneInline, GrantReportInline]
+    actions = [
+        "submit_selected",
+        "mark_under_review_selected",
+        "award_selected",
+        "decline_selected",
+        "close_selected",
+        "ai_draft_narrative",
+        "open_renewal_selected",
+    ]
+
+    def _run(self, request, queryset, fn, *, label):
+        ok = skipped = 0
+        for grant in queryset:
+            result = fn(grant)
+            if result.get("ok"):
+                ok += 1
+            else:
+                skipped += 1
+        if ok:
+            self.message_user(request, f"{label}: {ok} grant(s).", messages.SUCCESS)
+        if skipped:
+            self.message_user(
+                request, f"{label}: skipped {skipped} (not eligible).", messages.WARNING
+            )
+
+    @admin.action(description="Submit selected (draft → submitted)")
+    def submit_selected(self, request, queryset):
+        from apps.schools.grant_services import submit_grant
+
+        self._run(request, queryset, submit_grant, label="Submitted")
+
+    @admin.action(description="Mark under review (submitted → under review)")
+    def mark_under_review_selected(self, request, queryset):
+        from apps.schools.grant_services import mark_under_review
+
+        self._run(request, queryset, mark_under_review, label="Under review")
+
+    @admin.action(description="Award (credits the fund if award_source is set)")
+    def award_selected(self, request, queryset):
+        from apps.schools.grant_services import award_grant
+
+        self._run(
+            request,
+            queryset,
+            lambda g: award_grant(
+                g, award_source_id=g.award_source_id, user_id=request.user.pk
+            ),
+            label="Awarded",
+        )
+
+    @admin.action(description="Decline selected")
+    def decline_selected(self, request, queryset):
+        from apps.schools.grant_services import decline_grant
+
+        self._run(request, queryset, decline_grant, label="Declined")
+
+    @admin.action(description="Close out (awarded → closed, milestones must be done)")
+    def close_selected(self, request, queryset):
+        from apps.schools.grant_services import close_grant
+
+        self._run(request, queryset, close_grant, label="Closed")
+
+    @admin.action(description="AI-draft application narrative")
+    def ai_draft_narrative(self, request, queryset):
+        from services.advancement_ai import draft_grant_application
+
+        drafted = 0
+        for grant in queryset:
+            text, _meta = draft_grant_application(
+                school=grant.school,
+                funder_name=grant.funder_name,
+                program=grant.program,
+                amount=grant.requested_amount,
+                currency=grant.currency,
+                user=request.user,
+            )
+            if text:
+                grant.narrative = text
+                grant.save(update_fields=["narrative", "updated_at"])
+                drafted += 1
+        self.message_user(
+            request, f"Drafted narrative for {drafted} grant(s).", messages.SUCCESS
+        )
+
+    @admin.action(description="Open renewal (new draft from an awarded/closed grant)")
+    def open_renewal_selected(self, request, queryset):
+        from apps.schools.grant_services import open_grant_renewal
+
+        self._run(request, queryset, open_grant_renewal, label="Renewal opened")
+
+
+class RecurringDonationScheduleAdmin(admin.ModelAdmin):
+    list_display = (
+        "donor",
+        "school",
+        "amount",
+        "currency",
+        "frequency",
+        "status",
+        "next_run_date",
+        "pledges_created",
+    )
+    list_filter = ("school", "status", "frequency", "currency")
+    search_fields = ("donor__display_name", "notes")
+    raw_id_fields = ("school", "donor", "campaign")
+    readonly_fields = ("pledges_created", "last_run_at", "created_at", "updated_at")
+    actions = ["pause_schedules", "resume_schedules", "cancel_schedules", "mint_due_now"]
+
+    def _set_status(self, request, queryset, status, label):
+        n = queryset.update(status=status)
+        self.message_user(request, f"{label} {n} schedule(s).", messages.SUCCESS)
+
+    @admin.action(description="Pause selected schedules")
+    def pause_schedules(self, request, queryset):
+        self._set_status(
+            request, queryset, RecurringDonationSchedule.Status.PAUSED, "Paused"
+        )
+
+    @admin.action(description="Resume selected schedules")
+    def resume_schedules(self, request, queryset):
+        self._set_status(
+            request, queryset, RecurringDonationSchedule.Status.ACTIVE, "Resumed"
+        )
+
+    @admin.action(description="Cancel selected schedules")
+    def cancel_schedules(self, request, queryset):
+        self._set_status(
+            request, queryset, RecurringDonationSchedule.Status.CANCELLED, "Cancelled"
+        )
+
+    @admin.action(description="Mint pledges now for due selected schedules")
+    def mint_due_now(self, request, queryset):
+        from apps.schools.recurring_giving_services import mint_pledge_for_schedule
+
+        minted = 0
+        for schedule in queryset:
+            if mint_pledge_for_schedule(schedule).get("ok"):
+                minted += 1
+        self.message_user(
+            request, f"Minted {minted} pledge(s).", messages.SUCCESS
+        )
+
+
 register_tenant_admin(InKindDonation, InKindDonationAdmin)
 register_tenant_admin(FundraisingCampaign, FundraisingCampaignAdmin)
 register_tenant_admin(DonationPledge, DonationPledgeAdmin)
 register_tenant_admin(DonorGiftAccessLink, DonorGiftAccessLinkAdmin)
+register_tenant_admin(GrantApplication, GrantApplicationAdmin)
+register_tenant_admin(RecurringDonationSchedule, RecurringDonationScheduleAdmin)

@@ -1,0 +1,43 @@
+{% load i18n region_format %}
+<!doctype html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+  <head>
+    <meta charset="utf-8" />
+    <title>{% trans "Donation receipt" %} {{ receipt_reference }}</title>
+    <style>
+      /* Donation receipt — mirrors finance/receipt.html warm-bright palette; tenant primary_color cascade preserved. */
+      body { font-family: "Segoe UI", "Helvetica Neue", sans-serif; margin: 32px; color: #2a241e; background: #fdf9f2; }
+      .section { margin-bottom: 16px; }
+      .section strong { display: block; font-size: 12px; color: #544d44; margin-bottom: 4px; }
+      .amount { font-size: 24px; font-weight: 700; color: {{ primary_color|default:"#c47f1c" }}; }
+      .muted { color: #6b655d; font-size: 11px; }
+      .ack { margin-top: 20px; padding-top: 12px; border-top: 1px solid rgba(80, 55, 25, 0.12); font-size: 12px; color: #544d44; }
+      .ack p { margin: 0 0 6px 0; }
+    </style>
+  </head>
+  <body class="rmc-print-v2" data-page-archetype="record-detail">
+    {% trans "Donation receipt" as report_title %}
+    {% include "partials/rmc_print_v2_brand_block.html" with report_title=report_title report_subtitle=receipt_reference report_meta_left=gift.received_at|format_date report_meta_right=school.name %}
+
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+    <div class="section" data-rmc-scroll-policy="paginate">
+      <strong>{% trans "Received from" %}</strong>
+      <div>{{ donor.display_name }}</div>
+      {% if donor.email %}<div class="muted">{{ donor.email }}</div>{% endif %}
+    </div>
+
+    <div class="section">
+      <strong>{% trans "Gift" %}</strong>
+      <div class="amount">{{ gift.amount }} {{ gift.currency }}</div>
+      <div class="muted">{% trans "Date received" %}: {{ gift.received_at|format_date }}</div>
+      {% if gift.campaign %}<div class="muted">{% trans "Campaign" %}: {{ gift.campaign.name }}</div>{% elif gift.campaign_name %}<div class="muted">{% trans "Campaign" %}: {{ gift.campaign_name }}</div>{% endif %}
+      {% if gift.award_source %}<div class="muted">{% trans "Designated fund" %}: {{ gift.award_source.name }}</div>{% endif %}
+      <div class="muted">{% trans "Receipt no." %}: {{ receipt_reference }}</div>
+    </div>
+
+    <div class="ack">
+      <p>{% blocktrans with school_name=school.name %}This is your official receipt for the gift described above, gratefully received by {{ school_name }}.{% endblocktrans %}</p>
+      <p>{% trans "No goods or services were provided in exchange for this contribution, except as noted above. Please retain this receipt for your records." %}</p>
+    </div>
+  </body>
+</html>
