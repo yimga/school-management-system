@@ -2,8 +2,10 @@
 
 Wires templates/components/workflow_help_panel.html (the "How it works /
 Before you start / Common blockers / What happens next" pattern) into the live
-Workflow Center page. Two complementary tests:
+Workflow Center page. Three complementary layers:
 
+  * build_workflow_help_panel() — the pure payload builder, conditional blocker
+    logic on both branches (no DB/shell),
   * the panel partial renders a help dict correctly (deterministic, no shell), and
   * the live Workflow Center page mounts the panel and surfaces the
     "no active academic year" blocker only when it applies.
@@ -12,11 +14,38 @@ Workflow Center page. Two complementary tests:
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.template.loader import render_to_string
-from django.test import RequestFactory, TestCase, override_settings
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 
 from apps.accounts.models import User
-from apps.accounts.views_workflow import workflow_center
+from apps.accounts.views_workflow import build_workflow_help_panel, workflow_center
 from apps.schools.models import School, SchoolMembership
+
+
+class BuildWorkflowHelpPanelTests(SimpleTestCase):
+    """The pure payload builder — conditional blocker logic, no DB/shell."""
+
+    def test_no_active_year_includes_blocker(self):
+        panel = build_workflow_help_panel(
+            has_active_year=False, academic_year_url="/admin/year/"
+        )
+        labels = [str(b["label"]) for b in panel["common_blockers"]]
+        self.assertTrue(any("No active academic year" in label for label in labels))
+        self.assertEqual(panel["common_blockers"][0]["fix_url"], "/admin/year/")
+
+    def test_active_year_has_no_blocker(self):
+        panel = build_workflow_help_panel(
+            has_active_year=True, academic_year_url="/admin/year/"
+        )
+        self.assertEqual(panel["common_blockers"], [])
+
+    def test_panel_omits_kb_footer(self):
+        # De-dup: the page hero owns the Help/KB link, so the panel has none.
+        panel = build_workflow_help_panel(has_active_year=True)
+        self.assertIsNone(panel.get("need_help"))
+        # ...and its always-on structural sections are present.
+        self.assertTrue(panel["how_it_works"])
+        self.assertTrue(panel["before_you_start"])
+        self.assertTrue(panel["what_happens_next"])
 
 
 class WorkflowHelpPanelPartialTests(TestCase):
@@ -108,8 +137,9 @@ class WorkflowCenterPageHelpPanelTests(TestCase):
         html = self._render_page()
         self.assertIn('data-rmc-workflow-help="1"', html)
         self.assertIn("How the Workflow Center works", html)
-        self.assertIn("Knowledge Base", html)
         self.assertNotIn("rmc-workflow-help__ai-link", html)
+        # De-dup with the page hero: the panel carries no Help/KB footer link.
+        self.assertNotIn("rmc-workflow-help__support-link", html)
 
     def test_no_active_year_blocker_surfaces(self):
         # setUp creates no AcademicYear → active year is None → blocker appears.

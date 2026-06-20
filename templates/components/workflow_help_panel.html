@@ -1,7 +1,9 @@
 {% load i18n %}
 {% comment %} workflow_help_panel.html — sidebar/drawer panel showing how a workflow
-   works + what blocks it + what happens after. Wired into the Workflow Center
-   (accounts/workflow_center.html via accounts.views_workflow.workflow_center, v4.04.30).
+   works + what blocks it + what happens after. Two render paths: (1) the generic
+   Tools-tray auto-chrome (components/_workflow_auto_chrome.html) for any surface with
+   a registered WorkflowDefinition, and (2) an inline include on the Workflow Center
+   (accounts/workflow_center.html via accounts.views_workflow.build_workflow_help_panel).
    Caller contract: include with help=help where help is a dict carrying title,
    how_it_works (list), before_you_start (list), common_blockers (list of label+fix_url),
    what_happens_next (list), need_help (dict with label+url and optional ai_help.label+context_key).
