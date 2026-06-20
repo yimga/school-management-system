@@ -54,6 +54,13 @@
   function setShellState(shell, state) {
     if (!shell) { return; }
     shell.setAttribute("data-copilot", state);
+    // Mirror the rail state to <body> so body-level fixed chrome can react. The
+    // operator Tools edge tab mounts in .rmc-assist-dock OUTSIDE the app-shell, so it
+    // cannot select on .rmc-app-shell[data-copilot]; without this mirror the floating
+    // tab sits on top of the open copilot composer / Send button when the rail expands.
+    if (document.body) {
+      document.body.setAttribute("data-rmc-copilot-shell", state);
+    }
   }
 
   function toggleShell(shell) {

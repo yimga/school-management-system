@@ -571,6 +571,37 @@ body[data-rmc-assist-layout="edge-tray"].cp-shell-has-operator-footer
   margin-bottom: calc(var(--rmc-operator-tools-tray-bottom) + 0.25rem);
 }
 
+/* ----------------------------------------------------------------------- *
+ * v4.04.36 — Operator: clear the EXPANDED copilot rail.
+ *
+ * When the operator copilot rail is expanded it pins a 360px panel to the right
+ * edge of the viewport. The body-level Tools dock lives at right:0, so its edge
+ * tab + tray land ON TOP of the open copilot composer / Send button. The rail
+ * mirrors its state onto <body data-rmc-copilot-shell="expanded|collapsed">
+ * (set at the single choke point in _pages/rmc-copilot-rail.js); shift the whole
+ * dock inboard by the panel width so the tab + tray sit just left of the panel
+ * instead of over it. Collapsed → rule de-applies → tab returns to the edge.
+ *
+ * SCOPED to the OPERATOR tools layout only (data-rmc-workspace-tools="operator").
+ * The tenant single-rail fold (data-rmc-workspace-tools="tenant") owns its own
+ * flush-into-the-rail treatment above and must never be moved by this rule.
+ * Gated to >=992px to match where the copilot column actually pins (it is
+ * display:none below lg). --rmc-copilot-expanded-w is kept in lockstep with
+ * --rmc-app-shell-copilot-w (the [data-copilot="expanded"] column) in
+ * rmc-cp-200x.css — if one moves, move both.
+ * ----------------------------------------------------------------------- */
+@media (min-width: 992px) {
+  body[data-rmc-assist-layout="edge-tray"][data-rmc-workspace-tools="operator"][data-rmc-copilot-shell="expanded"] {
+    --rmc-copilot-expanded-w: 360px;
+  }
+  body[data-rmc-assist-layout="edge-tray"][data-rmc-workspace-tools="operator"][data-rmc-copilot-shell="expanded"]
+    .rmc-assist-dock {
+    right: calc(
+      var(--rmc-operator-tools-edge-right, 0px) + var(--rmc-copilot-expanded-w, 360px)
+    );
+  }
+}
+
 @media (max-width: 767px) {
   html[data-surface="control-plane"] {
     --rmc-operator-tools-tray-max-w: calc(100vw - var(--rmc-operator-tools-tab-w) - 1rem);
