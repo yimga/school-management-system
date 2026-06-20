@@ -84,6 +84,7 @@ def humanize_wizard_token(token: object) -> str:
 _WIZARD_ERROR_MESSAGES = {
     "wizards.errors.required": "This field is required.",
     "wizards.errors.max_length": "This value is too long.",
+    "wizards.errors.text_too_long": "This value is too long.",
     "wizards.errors.min_length": "This value is too short.",
     "wizards.errors.pattern_mismatch": "This value isn't in the expected format.",
     "wizards.errors.pattern_invalid": "This value isn't in the expected format.",

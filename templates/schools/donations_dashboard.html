@@ -44,6 +44,8 @@
         data-rmc-offline-form="donation_capture"
         data-offline-hint="{% trans 'Offline: this donation is saved on the device and syncs when you reconnect.' %}">
     {% csrf_token %}
+    {# Stable per-form offline idempotency key — the capture script persists its generated key here so a double-submit reuses one key and the server folds replays via the (donor, client_offline_id) unique constraint. #}
+    <input type="hidden" id="dc_idem" name="idempotency_key" value="">
     <div class="col-md-3">
       <label class="form-label small" for="dc_name">{% trans "Donor name" %} *</label>
       <input type="text" class="form-control" id="dc_name" name="donor_name" required maxlength="200">

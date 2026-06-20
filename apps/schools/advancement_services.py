@@ -37,9 +37,13 @@ def campaign_progress(campaign) -> dict[str, Any]:
     donations (estimated value). No stored running total — always computed.
     """
     gift_agg = campaign.gifts.aggregate(total=Sum("amount"), n=Count("id"))
-    in_kind_agg = campaign.in_kind_donations.aggregate(
-        total=Sum("estimated_value"), n=Count("id")
-    )
+    # Only ACCEPTED in-kind donations count toward realized progress — a PENDING
+    # gift may still be declined and a REJECTED one never materialized, so neither
+    # should inflate the campaign bar. Mirrors donations_overview, which likewise
+    # only sums estimated_value on status=ACCEPTED rows.
+    in_kind_agg = campaign.in_kind_donations.filter(
+        status=campaign.in_kind_donations.model.Status.ACCEPTED
+    ).aggregate(total=Sum("estimated_value"), n=Count("id"))
     cash_raised = _as_decimal(gift_agg["total"])
     in_kind_value = _as_decimal(in_kind_agg["total"])
     raised = cash_raised + in_kind_value

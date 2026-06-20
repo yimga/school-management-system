@@ -99,7 +99,8 @@
       },
       "persistence": {
         "target": "custom",
-        "writer": "apps.setup_studio.wizard_resolvers_operator::write_student_self_onboarding_step"
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_student_self_onboarding_step",
+        "create_once": true
       },
       "estimated_seconds": 60
     }

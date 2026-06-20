@@ -96,3 +96,72 @@ class DoubleSubmitGuardTests(TestCase):
             "a changed answer must re-run the writer (edit is legitimate)",
         )
         self.assertEqual(_WRITER_CALLS[-1]["value"], "y")
+
+
+_CREATE_ONCE_KEY = "create_once_probe"
+_CREATE_ONCE_SPEC = {
+    "wizard_key": _CREATE_ONCE_KEY,
+    "version": 1,
+    "audience": ["operator"],
+    "steps": [
+        {
+            "key": "only",
+            "input_type": "text",
+            "validation": {"required": True},
+            "persistence": {
+                "target": "custom",
+                "writer": (
+                    "apps.setup_studio.tests.test_wizard_double_submit_guard"
+                    "::_counting_writer"
+                ),
+                # Writer CREATES a row with no natural key — must run at most once.
+                "create_once": True,
+            },
+        },
+    ],
+}
+
+
+class CreateOnceGuardTests(TestCase):
+    """``persistence.create_once`` steps skip their writer on ANY re-submit of a
+    completed step — even a genuinely CHANGED answer — because re-running a
+    no-natural-key create-writer spawns a duplicate row."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.school = School.objects.create(
+            name="Create Once School",
+            slug="create-once",
+            subdomain="create-once",
+            is_active=True,
+        )
+
+    def setUp(self):
+        _WRITER_CALLS.clear()
+        parsed = wizard_engine._parse_wizard(
+            _CREATE_ONCE_SPEC, Path("/tmp/create_once_probe.json")
+        )
+        wizard_engine.WIZARD_REGISTRY[_CREATE_ONCE_KEY] = parsed
+
+    def tearDown(self):
+        wizard_engine.WIZARD_REGISTRY.pop(_CREATE_ONCE_KEY, None)
+        wizard_state_resolver.reset_wizard(self.school, _CREATE_ONCE_KEY)
+
+    def _apply(self, value):
+        return wizard_state_resolver.apply_step_answer(
+            self.school, _CREATE_ONCE_KEY, "only", {"value": value},
+        )
+
+    def test_create_once_runs_writer_first_time(self):
+        wizard_state_resolver.start_wizard(self.school, _CREATE_ONCE_KEY)
+        self._apply("x")
+        self.assertEqual(len(_WRITER_CALLS), 1)
+
+    def test_create_once_skips_writer_on_changed_resubmit(self):
+        wizard_state_resolver.start_wizard(self.school, _CREATE_ONCE_KEY)
+        self._apply("x")
+        self._apply("y")  # genuine EDIT of a completed create-step
+        self.assertEqual(
+            len(_WRITER_CALLS), 1,
+            "create_once must not re-run the writer even when the answer changed",
+        )

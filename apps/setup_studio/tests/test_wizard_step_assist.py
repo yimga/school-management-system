@@ -23,6 +23,16 @@ class WizardStepAssistWiringTests(SimpleTestCase):
         self.assertIn("as rmc_wizard_assist_endpoint", tpl)
         self.assertIn("data-step", tpl)
 
+    def test_assist_endpoint_resolves_on_tenant_urlconf(self):
+        """The assist depends on ``portal:copilot_rail_send`` resolving where the
+        wizard actually renders — tenant hosts (config.tenant_urls). A refactor
+        that drops the portal include from the tenant urlconf would silently kill
+        the per-step AI assist (the ``as`` form fails soft to ""). Catch it here."""
+        from django.urls import reverse
+
+        url = reverse("portal:copilot_rail_send", urlconf="config.tenant_urls")
+        self.assertIn("copilot/rail/send", url)
+
     def test_runner_loads_assist_assets(self):
         tpl = (_REPO / "templates" / "setup_studio" / "tenant_wizard.html").read_text(encoding="utf-8")
         self.assertIn("rmc-wizard-step-assist.js", tpl)

@@ -91,6 +91,26 @@ class FieldTripWriterTests(TestCase):
             ).exists()
         )
 
+    def test_authorization_consent_request_is_idempotent(self):
+        # Re-running / editing the authorization step must NOT spawn a duplicate
+        # consent request for the same trip — get_or_create keys on
+        # (school, category, title).
+        for _ in range(2):
+            write_fieldtrip_authorization(
+                school=self.school,
+                wizard_key="localized_field_trip_coordinator",
+                step_key="automated_authorization_pipeline",
+                payload={"parent_signature_required": True},
+                actor_user_id=1,
+            )
+        self.assertEqual(
+            ConsentRequest.objects.filter(
+                school=self.school,
+                category="field_trip",
+            ).count(),
+            1,
+        )
+
 
 class LibraryWriterTests(TestCase):
     def setUp(self):

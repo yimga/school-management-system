@@ -321,6 +321,55 @@ class ValidationTests(SimpleTestCase):
         ok, _ = wizard_engine.validate_step_answer(step, {"school_name": "Westside High"})
         self.assertTrue(ok)
 
+    def _nonstructured_step(self, input_type, validation=None):
+        wizard = wizard_engine._parse_wizard({
+            "wizard_key": f"ns_{input_type}",
+            "version": 1,
+            "audience": ["operator"],
+            "steps": [{
+                "key": "s",
+                "input_type": input_type,
+                "validation": validation or {},
+            }],
+        }, Path(f"/tmp/ns_{input_type}.json"))
+        return wizard.steps[0]
+
+    def test_unexpected_field_rejected_on_nonstructured(self):
+        """A non-structured step (text/single_choice/etc.) only carries ``value``.
+        A smuggled extra key is rejected just like on structured_form."""
+        step = self._nonstructured_step("text")
+        ok, errs = wizard_engine.validate_step_answer(
+            step, {"value": "ok", "is_superuser": True}
+        )
+        self.assertFalse(ok)
+        self.assertEqual(errs.get("is_superuser"), "wizards.errors.unexpected_field")
+        # Plain ``value`` payload still passes.
+        ok, _ = wizard_engine.validate_step_answer(step, {"value": "ok"})
+        self.assertTrue(ok)
+
+    def test_key_value_pairs_allows_pairs_and_value(self):
+        """key_value_pairs legitimately uses ``pairs`` (HTTP) or ``value`` (synth);
+        both pass, but a foreign key is still rejected."""
+        step = self._nonstructured_step("key_value_pairs")
+        ok, _ = wizard_engine.validate_step_answer(step, {"pairs": [{"key": "a", "value": "b"}]})
+        self.assertTrue(ok)
+        ok, _ = wizard_engine.validate_step_answer(step, {"value": {"a": "b"}})
+        self.assertTrue(ok)
+        ok, errs = wizard_engine.validate_step_answer(step, {"pairs": [], "evil": 1})
+        self.assertFalse(ok)
+        self.assertEqual(errs.get("evil"), "wizards.errors.unexpected_field")
+
+    def test_duration_allows_part_keys(self):
+        """duration legitimately uses days/hours/minutes (HTTP) or ``value`` (synth)."""
+        step = self._nonstructured_step("duration")
+        ok, _ = wizard_engine.validate_step_answer(step, {"days": 1, "hours": 2, "minutes": 0})
+        self.assertTrue(ok)
+        ok, _ = wizard_engine.validate_step_answer(step, {"value": "PT1H"})
+        self.assertTrue(ok)
+        ok, errs = wizard_engine.validate_step_answer(step, {"days": 1, "seconds": 5})
+        self.assertFalse(ok)
+        self.assertEqual(errs.get("seconds"), "wizards.errors.unexpected_field")
+
 
 class SanitizeStorageCapTests(SimpleTestCase):
     """The universal free-text backstop bounds EVERY stored string, including

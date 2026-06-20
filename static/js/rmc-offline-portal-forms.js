@@ -348,7 +348,15 @@
       var currencyEl = form.querySelector('[name="currency"]');
       var campaignEl = form.querySelector('[name="campaign_name"]');
       var notesEl = form.querySelector('[name="notes"]');
-      var idem = 'don-' + donorName.toLowerCase().replace(/\s+/g, '-').slice(0, 40) + '-' + amount + '-' + Date.now();
+      // Mirror the payment-receipt capture: read a persisted key first and write
+      // the generated one back into the hidden field, so a double-submit of this
+      // same form reuses one key (enqueue dedupes) and the server receives a
+      // non-empty client_offline_id to fold re-keyed replays onto the first gift.
+      var idemEl = form.querySelector('[name="idempotency_key"]');
+      var idem = (idemEl && idemEl.value)
+        ? idemEl.value
+        : ('don-' + donorName.toLowerCase().replace(/\s+/g, '-').slice(0, 40) + '-' + amount + '-' + Date.now());
+      if (idemEl) idemEl.value = idem;
       window.rmcOfflineEnqueue({
         action_type: 'donation.intake',
         payload: {
@@ -357,6 +365,7 @@
           currency: currencyEl ? String(currencyEl.value || 'USD') : 'USD',
           campaign_name: campaignEl ? String(campaignEl.value || '') : '',
           notes: notesEl ? String(notesEl.value || '') : '',
+          client_offline_id: idem.slice(0, 64),
         },
         idempotency_key: idem.slice(0, 128),
       });

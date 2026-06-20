@@ -24,17 +24,27 @@ FIELD_TRIP_CATEGORY = "field_trip"
 def create_field_trip_consent(
     *, school_id, title: str, description: str = "", due_date=None
 ):
-    """Create a field-trip consent request (parents sign ConsentRecords against it)."""
+    """Get-or-create a field-trip consent request (parents sign ConsentRecords against it).
+
+    Idempotent on (school, category, title): re-running the field-trip wizard
+    authorization step — e.g. editing it after completion — returns the existing
+    request for the same trip instead of spawning a duplicate. A different trip
+    title yields a distinct request, as intended.
+    """
     from apps.compliance.models import ConsentRequest
 
-    return ConsentRequest.objects.create(
+    safe_title = (title or "Field trip").strip()[:255]
+    req, _created = ConsentRequest.objects.get_or_create(
         school_id=school_id,
-        title=(title or "Field trip").strip()[:255],
-        description=description or "",
         category=FIELD_TRIP_CATEGORY,
-        due_date=due_date,
-        is_active=True,
+        title=safe_title,
+        defaults={
+            "description": description or "",
+            "due_date": due_date,
+            "is_active": True,
+        },
     )
+    return req
 
 
 def _classify_health(student_id, school_id) -> dict[str, list[str]]:

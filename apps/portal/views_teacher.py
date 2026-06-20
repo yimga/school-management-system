@@ -368,6 +368,23 @@ _ATTENDANCE_OVERSIGHT_ROLES = frozenset(
 )
 
 
+def _unassigned_teacher_attendance_sees_all(request: HttpRequest) -> bool:
+    """Opt-in escape hatch for the legacy no-lockout behaviour.
+
+    Locked down by default: a TEACHER with no active assignments sees NO
+    classrooms. An operator who deliberately models a non-teaching attendance
+    officer as a TEACHER (rather than granting an oversight role) can restore the
+    permissive 'see every classroom' fallback by setting
+    ``settings['attendance']['unassigned_teacher_sees_all'] = true`` on the school.
+    """
+    school = getattr(request, "school", None)
+    settings = getattr(school, "settings", None)
+    if not isinstance(settings, dict):
+        return False
+    attendance = settings.get("attendance")
+    return bool(isinstance(attendance, dict) and attendance.get("unassigned_teacher_sees_all"))
+
+
 def _attendance_visible_classrooms(request: HttpRequest, year):
     """Classrooms the requester may take attendance / view seating for.
 
@@ -375,9 +392,10 @@ def _attendance_visible_classrooms(request: HttpRequest, year):
     for ANY classroom. Oversight roles (admin/principal/leadership/proprietor)
     and superusers see every classroom in the active year. A regular teacher is
     scoped to the classrooms they actually teach (TeacherAssignment ->
-    SubjectAssignment -> classroom). A teacher with NO active assignments falls
-    back to the full list rather than being locked out — e.g. an attendance
-    officer modeled as a teacher — a conservative default the owner can tighten.
+    SubjectAssignment -> classroom). A teacher with NO active assignments is
+    LOCKED DOWN to an empty list by default rather than seeing every classroom —
+    unless the school opts into the legacy see-all fallback (e.g. an attendance
+    officer modeled as a teacher) via ``_unassigned_teacher_attendance_sees_all``.
 
     Because the POST handlers resolve the target classroom from this list, the
     scoping protects the write path too: an unassigned classroom id resolves to
@@ -407,7 +425,11 @@ def _attendance_visible_classrooms(request: HttpRequest, year):
         )
     )
     if not assigned_ids:
-        return base
+        # Locked down: an unassigned teacher sees nothing unless the school has
+        # explicitly opted into the legacy see-all fallback.
+        if _unassigned_teacher_attendance_sees_all(request):
+            return base
+        return []
     return [c for c in base if c.id in assigned_ids]
 
 

@@ -54,6 +54,26 @@ WIZARD_MAX_TEXT_FIELD_LENGTH = _resolve_max_text_field_length()
 # one place instead of weakening the unexpected-attribute check.
 _ALLOWED_PAYLOAD_META_KEYS: frozenset[str] = frozenset()
 
+# Legitimate top-level payload keys for NON-structured input types, beyond the
+# universal ``value`` convention. ``_parse_post_payload`` nests data under these
+# keys for a few input types (key_value_pairs -> ``pairs``; duration -> day/hour/
+# minute parts), while the synthetic/test path uses ``value`` for every type — so
+# the allowlist is the UNION (``value`` is always permitted). Anything else is a
+# smuggled / replayed key and is rejected, mirroring the structured_form check.
+_INPUT_TYPE_EXTRA_PAYLOAD_KEYS: dict[str, frozenset[str]] = {
+    "key_value_pairs": frozenset({"pairs"}),
+    "duration": frozenset({"days", "hours", "minutes"}),
+}
+
+
+def _allowed_payload_keys(input_type: str) -> frozenset[str]:
+    """Top-level keys a non-structured payload may legitimately carry."""
+    return (
+        frozenset({"value"})
+        | _INPUT_TYPE_EXTRA_PAYLOAD_KEYS.get(input_type, frozenset())
+        | _ALLOWED_PAYLOAD_META_KEYS
+    )
+
 __all__ = [
     "Audience",
     "InputType",
@@ -525,6 +545,14 @@ def validate_step_answer(
                 if not ok:
                     errors[name] = err or "wizards.errors.text_too_long"
     else:
+        # Reject unexpected attributes (parity with structured_form above). The
+        # HTTP view only ever builds the keys in _allowed_payload_keys, so this
+        # can't bite the normal flow — it hardens the public apply_step_answer()
+        # boundary against programmatic / replayed payloads on non-form steps.
+        allowed = _allowed_payload_keys(step.input_type)
+        for key in payload:
+            if key not in allowed:
+                errors.setdefault(str(key), "wizards.errors.unexpected_field")
         v = payload.get("value")
         if step.validation.get("required"):
             ok, err = _val.validate_required(v)

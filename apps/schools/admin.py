@@ -8,6 +8,7 @@ from config.admin import platform_admin_site, register_tenant_admin
 
 from .models import (
     DonationPledge,
+    DonorGiftAccessLink,
     FundraisingCampaign,
     InKindDonation,
     School,
@@ -451,6 +452,64 @@ class DonationPledgeAdmin(admin.ModelAdmin):
             )
 
 
+class DonorGiftAccessLinkAdmin(admin.ModelAdmin):
+    """Magic-link grants donors use to view their gifts without a login account.
+
+    The token is a credential, so it is never editable and the list never shows
+    it raw — only its validity, expiry, and access history. Revocation expires the
+    link in place (preserving the access-count audit trail) rather than deleting it.
+    """
+
+    list_display = (
+        "donor",
+        "is_valid",
+        "expires_at",
+        "access_count",
+        "last_accessed_at",
+        "created_at",
+    )
+    list_filter = ("donor__school", "expires_at")
+    search_fields = ("donor__display_name", "donor__email")
+    raw_id_fields = ("donor",)
+    readonly_fields = (
+        "token",
+        "access_count",
+        "last_accessed_at",
+        "created_at",
+    )
+    actions = ["revoke_links"]
+
+    @admin.display(boolean=True, description="Valid")
+    def is_valid(self, obj):
+        return obj.is_valid
+
+    @admin.action(description="Revoke selected links (expire immediately)")
+    def revoke_links(self, request, queryset):
+        """Expire each link now so its token stops resolving — keeps the row and
+        its access_count for audit instead of destroying the record."""
+        from django.utils import timezone
+
+        revoked = skipped = 0
+        for link in queryset:
+            if not link.is_valid:
+                skipped += 1
+                continue
+            link.expires_at = timezone.now()
+            link.save(update_fields=["expires_at"])
+            revoked += 1
+        if revoked:
+            self.message_user(
+                request, f"Revoked {revoked} access link(s).", messages.SUCCESS
+            )
+        if skipped:
+            self.message_user(
+                request,
+                f"Skipped {skipped} link(s) that were already expired.",
+                messages.WARNING,
+            )
+
+
 register_tenant_admin(InKindDonation, InKindDonationAdmin)
 register_tenant_admin(FundraisingCampaign, FundraisingCampaignAdmin)
 register_tenant_admin(DonationPledge, DonationPledgeAdmin)
+register_tenant_admin(DonorGiftAccessLink, DonorGiftAccessLinkAdmin)

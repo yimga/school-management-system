@@ -199,6 +199,7 @@ class CampaignProgressTests(TestCase):
         InKindDonation.objects.create(
             school=self.school, donor=self.donor, description="Books",
             quantity=5, estimated_value=Decimal("100.00"), campaign=self.campaign,
+            status=InKindDonation.Status.ACCEPTED,
         )
         p = campaign_progress(self.campaign)
         self.assertEqual(p["cash_raised"], Decimal("500.00"))
@@ -207,6 +208,29 @@ class CampaignProgressTests(TestCase):
         self.assertEqual(p["pct_to_goal"], 60)
         self.assertEqual(p["gift_count"], 2)
         self.assertEqual(p["in_kind_count"], 1)
+
+    def test_progress_excludes_pending_and_rejected_in_kind(self):
+        # Only ACCEPTED in-kind counts toward the bar — a pending gift may still be
+        # declined and a rejected one never materialized. Mirrors donations_overview.
+        InKindDonation.objects.create(
+            school=self.school, donor=self.donor, description="Accepted books",
+            quantity=1, estimated_value=Decimal("100.00"), campaign=self.campaign,
+            status=InKindDonation.Status.ACCEPTED,
+        )
+        InKindDonation.objects.create(
+            school=self.school, donor=self.donor, description="Pending desks",
+            quantity=1, estimated_value=Decimal("400.00"), campaign=self.campaign,
+            status=InKindDonation.Status.PENDING,
+        )
+        InKindDonation.objects.create(
+            school=self.school, donor=self.donor, description="Rejected junk",
+            quantity=1, estimated_value=Decimal("999.00"), campaign=self.campaign,
+            status=InKindDonation.Status.REJECTED,
+        )
+        p = campaign_progress(self.campaign)
+        self.assertEqual(p["in_kind_value"], Decimal("100.00"))
+        self.assertEqual(p["in_kind_count"], 1)
+        self.assertEqual(p["raised"], Decimal("100.00"))
 
     def test_progress_pct_caps_at_100(self):
         AdvancementGift.objects.create(

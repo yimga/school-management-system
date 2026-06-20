@@ -98,13 +98,31 @@ class AttendanceClassroomScopeTests(TestCase):
             self._visible(self.admin_user), {self.room_a.id, self.room_b.id}
         )
 
-    def test_unassigned_teacher_falls_back_to_all_not_locked_out(self):
-        # Conservative no-lockout default: a teacher with no active assignments
-        # still sees every classroom rather than an empty list.
-        self.assertEqual(
-            self._visible(self.unassigned_teacher),
-            {self.room_a.id, self.room_b.id},
+    def test_unassigned_teacher_locked_down_by_default(self):
+        # Locked down: a teacher with no active assignments sees NO classrooms,
+        # not every classroom. Guards the attendance write path for stray teacher
+        # accounts that were never assigned a class.
+        self.assertEqual(self._visible(self.unassigned_teacher), set())
+
+    def test_unassigned_teacher_sees_all_when_school_opts_in(self):
+        # Opt-in escape hatch: a non-teaching attendance officer modeled as a
+        # teacher can be restored to the legacy see-all behaviour per school.
+        from apps.schools.models import School
+
+        school = School.objects.create(
+            name="Opt In Attendance School",
+            slug="opt-in-attendance",
+            subdomain="opt-in-attendance",
+            is_active=True,
+            settings={"attendance": {"unassigned_teacher_sees_all": True}},
         )
+        request = self.factory.get("/portal/attendance/student/")
+        request.user = self.unassigned_teacher
+        request.school = school
+        visible = {
+            c.id for c in _attendance_visible_classrooms(request, self.year)
+        }
+        self.assertEqual(visible, {self.room_a.id, self.room_b.id})
 
     def test_no_active_year_returns_empty(self):
         request = self.factory.get("/portal/attendance/student/")

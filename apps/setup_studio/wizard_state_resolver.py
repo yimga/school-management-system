@@ -223,19 +223,31 @@ def apply_step_answer(
     # is legitimate, and idempotent writers update in place). The state machine
     # still advances either way — only the duplicate side effect is suppressed.
     prior_answer = state["answers"].get(step_key)
-    is_idempotent_resubmit = (
-        step_key in state["completed"] and prior_answer == sanitized_payload
-    )
+    already_completed = step_key in state["completed"]
+    is_idempotent_resubmit = already_completed and prior_answer == sanitized_payload
+    # A step may declare ``persistence.create_once`` when its writer CREATES a row
+    # with no natural unique key (e.g. the StudentProfile spawned by student
+    # self-onboarding). Editing such a completed step with CHANGED data would
+    # otherwise spawn a duplicate — the identical-resubmit guard above only covers
+    # byte-identical replays. For ``create_once`` steps we therefore skip the
+    # writer on ANY re-submit of an already-completed step. Writers whose create
+    # HAS a natural key (e.g. field-trip consent, keyed on school+category+title)
+    # are made idempotent in the writer itself and do not need this flag.
+    create_once = bool(step.persistence.get("create_once")) if step.persistence else False
+    skip_writer = is_idempotent_resubmit or (already_completed and create_once)
     state["answers"][step_key] = sanitized_payload
     if step_key not in state["completed"]:
         state["completed"].append(step_key)
 
     # Side effect: invoke persistence writer if declared
     writer_path = step.persistence.get("writer") if step.persistence else None
-    if writer_path and is_idempotent_resubmit:
+    if writer_path and skip_writer:
         logger.info(
-            "skip writer for %s.%s: identical re-submit of completed step",
+            "skip writer for %s.%s: %s",
             wizard_key, step_key,
+            "create_once on already-completed step"
+            if (already_completed and create_once and not is_idempotent_resubmit)
+            else "identical re-submit of completed step",
         )
     elif writer_path:
         try:
