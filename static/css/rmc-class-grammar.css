@@ -2461,6 +2461,113 @@
   align-items: center;
 }
 
+/* Flow Thread — folds the system "next action" into this same bar:
+   origin (you are here) → luminous connector → destination (your next step).
+   Only the --flow modifier (set when a next-action exists) gets the single-row
+   treatment; the plain explain strip is unchanged. */
+.rmc-page-explain-strip--flow {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+.rmc-page-explain-strip--flow .rmc-page-explain-strip__lead {
+  width: auto;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.rmc-page-explain-strip__here-dot {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  flex: none;
+  border-radius: 50%;
+  background: var(--brand-primary, var(--text-secondary));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-primary, var(--text-secondary)) 20%, transparent);
+}
+.rmc-page-explain-strip__flow {
+  flex: 1 1 auto;
+  min-inline-size: 2rem;
+  block-size: 2px;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+  /* off-token-allow: decorative-gradient */
+  background: linear-gradient(90deg, color-mix(in srgb, var(--brand-primary, var(--hairline)) 55%, transparent), color-mix(in srgb, var(--ds-success, var(--hairline)) 55%, transparent));
+}
+.rmc-page-explain-strip__flow::after {
+  content: "";
+  position: absolute;
+  inset-block-start: -1px;
+  inset-inline-start: 0;
+  inline-size: 34%;
+  block-size: 4px;
+  border-radius: 4px;
+  filter: blur(1px);
+  /* off-token-allow: decorative-gradient */
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ds-success, var(--text-secondary)) 80%, transparent), transparent);
+  animation: rmc-pe-flow 3.2s cubic-bezier(0.6, 0, 0.4, 1) infinite;
+}
+.rmc-page-explain-strip__next {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: none;
+  padding: 0.3rem 0.4rem 0.3rem 0.7rem;
+  border-radius: var(--radius-pill, 9999px);
+  border: 1px solid color-mix(in srgb, var(--ds-success, var(--hairline)) 40%, transparent);
+  background: color-mix(in srgb, var(--ds-success, var(--surface-elevated)) 11%, transparent);
+  text-decoration: none;
+  transition: background-color var(--motion-fast, 120ms) var(--ease-standard, ease);
+}
+.rmc-page-explain-strip__next:hover,
+.rmc-page-explain-strip__next:focus-visible {
+  background: color-mix(in srgb, var(--ds-success, var(--surface-elevated)) 18%, transparent);
+}
+.rmc-page-explain-strip__next:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--ds-success, currentColor));
+  outline-offset: 2px;
+}
+.rmc-page-explain-strip__next-kicker {
+  font-size: var(--type-size-micro, 0.6875rem);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-tertiary, var(--text-secondary));
+}
+.rmc-page-explain-strip__next-name {
+  font-size: var(--type-size-sm, 0.875rem);
+  font-weight: 650;
+  color: var(--ds-success, var(--text-primary));
+  max-inline-size: 24ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: truncates-with-ellipsis */
+}
+.rmc-page-explain-strip__next-go {
+  inline-size: 1.4rem;
+  block-size: 1.4rem;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  background: var(--ds-success, var(--brand-primary));
+  color: var(--text-on-brand, #ffffff); /* off-token-allow: brand-foreground-fallback */
+}
+@keyframes rmc-pe-flow {
+  0% { inset-inline-start: -34%; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { inset-inline-start: 100%; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rmc-page-explain-strip__flow::after { animation: none; display: none; }
+}
+/* Narrow viewports: identity stays, the thread hides and the next step wraps. */
+@media (max-width: 720px) {
+  .rmc-page-explain-strip--flow { flex-wrap: wrap; }
+  .rmc-page-explain-strip--flow .rmc-page-explain-strip__flow { display: none; }
+  .rmc-page-explain-strip--flow .rmc-page-explain-strip__next { margin-inline-start: auto; }
+}
+
 /* Bootstrap .text-muted → design-token contrast (batch 1225 sweep) */
 .rmc-text-muted,
 .text-muted {

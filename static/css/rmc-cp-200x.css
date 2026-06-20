@@ -1354,6 +1354,47 @@ body[data-rmc-shell-main="control-plane"] .lx-audit__row--danger,
   flex: 1 1 auto;
   min-width: 0;
 }
+
+/* v4.04.35 — "At a glance" disclosure. Folds Pulse + Governance + page-help into one
+   collapsible group (default closed) so they stop crowding the chat thread out of the
+   panel and bleeding past the bottom edge that the parent clips. flex:0 0 auto keeps
+   it at its natural (collapsed) height; the thread below keeps flex:1 + min-height:0
+   and absorbs the scroll, so the composer is always reachable. */
+.lx-copilot__glance {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+}
+.lx-copilot__glance-summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cp-chrome-text-muted);
+}
+.lx-copilot__glance-summary::-webkit-details-marker { display: none; }
+.lx-copilot__glance-summary::after {
+  content: "\203A"; /* › */
+  font-size: 14px;
+  line-height: 1;
+  transform: rotate(90deg);
+  transition: transform var(--motion-fast, 160ms ease);
+  color: var(--cp-chrome-text-faint);
+}
+.lx-copilot__glance[open] .lx-copilot__glance-summary::after { transform: rotate(-90deg); }
+.lx-copilot__glance-summary:hover { color: var(--cp-chrome-text); }
+/* When opened, bound the group so a long Pulse + Governance stack still can't shove the
+   composer off-screen — it scrolls inside the disclosure instead of bleeding past. */
+.lx-copilot__glance[open] {
+  max-height: 46vh;
+  overflow-y: auto;
+}
 .lx-copilot__kbd {
   writing-mode: vertical-rl;
   text-orientation: mixed;

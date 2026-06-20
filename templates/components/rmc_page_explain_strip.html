@@ -1,12 +1,20 @@
 {% load i18n rmc_explain_tags %}
 {% comment %}
   Shell-level page explainer — operator + tenant authenticated surfaces.
-  Renders route help, workflow taxonomy chips, and seeds auto field-tag manifest.
+  Renders route help + workflow taxonomy chips, and — when a system next-action
+  is available — folds the "Next up" recommendation into this same bar as a
+  Flow Thread: origin (you are here) → connector → destination (your next step).
+  The standalone components/next_action_strip.html suppresses itself whenever this
+  bar is hosting the action (it guards on rmc_page_explain_enabled +
+  rmc_system_actions_available), so the action renders exactly once — here — with
+  no double strip and the standalone block's vertical space reclaimed.
 {% endcomment %}
 {% if rmc_page_explain_enabled %}
-<section class="rmc-page-explain-strip rmc-reveal" aria-label="{% trans 'Page guidance' %}" data-rmc-page-explain="1">
+{% with rmc_pe_next=rmc_system_actions.0 %}
+<section class="rmc-page-explain-strip rmc-reveal{% if rmc_system_actions_available and rmc_pe_next %} rmc-page-explain-strip--flow{% endif %}" aria-label="{% trans 'Page guidance' %}" data-rmc-page-explain="1">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="rmc-page-explain-strip__lead">
+  <div class="rmc-page-explain-strip__lead">
+    {% if rmc_system_actions_available and rmc_pe_next %}<span class="rmc-page-explain-strip__here-dot" aria-hidden="true"></span>{% endif %}
     {% if rmc_page_help.title or rmc_page_help.body %}
     <div class="rmc-page-explain-strip__copy">
       <span class="rmc-page-explain-strip__label text-secondary small">{% trans "About this page" %}</span>
@@ -26,6 +34,26 @@
     </div>
     {% endif %}
   </div>
+  {% if rmc_system_actions_available and rmc_pe_next %}
+  <span class="rmc-page-explain-strip__flow" aria-hidden="true"></span>
+  <a class="rmc-page-explain-strip__next"
+     href="{{ rmc_pe_next.action_url }}"
+     title="{{ rmc_pe_next.description }}"
+     aria-label="{% blocktrans with step=rmc_pe_next.title %}Your next step: {{ step }}{% endblocktrans %}"
+     data-rmc-primary-action="1"
+     data-action="{% if rmc_pe_next.recommendation_key %}ai-suggestion-open{% else %}{{ rmc_pe_next.type }}-open{% endif %}"
+     data-task="{% if rmc_pe_next.task_code %}{{ rmc_pe_next.task_code }}{% else %}platform-next-action{% endif %}"
+     data-task-step="dashboard:next-action"
+     data-action-type="{{ rmc_pe_next.type }}"
+     data-action-source="{{ rmc_pe_next.source }}"
+     data-action-urgency="{{ rmc_pe_next.urgency|default:'normal' }}"
+     {% if rmc_pe_next.recommendation_key %}data-ai-rec-key="{{ rmc_pe_next.recommendation_key }}"{% endif %}>
+    <span class="rmc-page-explain-strip__next-kicker">{% trans "Next" %}</span>
+    <span class="rmc-page-explain-strip__next-name">{{ rmc_pe_next.title }}</span>
+    <span class="rmc-page-explain-strip__next-go" aria-hidden="true">&rarr;</span>
+  </a>
+  {% endif %}
 </section>
 {% include "partials/rmc_page_field_manifest.html" %}
+{% endwith %}
 {% endif %}

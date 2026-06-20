@@ -162,6 +162,13 @@
 
       <p class="lx-copilot__selection small text-secondary mb-0 px-3" data-rmc-copilot-rail-selection aria-live="polite"></p>
 
+      {% comment %} v4.04.35: Pulse + Governance + page-help fold into one collapsible
+         "At a glance" group (default closed) so they stop crowding the chat thread out
+         of the panel and bleeding past the clipped bottom edge. JS still hydrates the
+         lists inside — querySelector reaches into a closed <details>. {% endcomment %}
+      <details class="lx-copilot__glance">
+        <summary class="lx-copilot__glance-summary">{% trans "At a glance" %}</summary>
+
       <div class="lx-copilot__insights-wrap px-3 pb-2" data-rmc-copilot-rail-insights-block>
         <div class="lx-copilot__insights-head d-flex align-items-center justify-content-between gap-2 mb-1">
           <span class="small text-uppercase text-secondary">{% trans "Pulse" %}</span>
@@ -193,9 +200,15 @@
           <span class="lx-copilot__page-help-label">{% trans "Need help on this page?" %}</span>
         </a>
       </div>
+      </details>
 
-      {% if cockpit.ai_copilot_rail.insight_text %}
-      <div class="lx-copilot__insight">
+      {% comment %} Guided-mode notice — shown ONLY when the cloud model is off
+         (cockpit.ai_copilot_rail.guided, derived from is_litellm_configured() — the
+         SAME signal as the header status pill, so the two never contradict). Reuses
+         the existing .lx-copilot__insight ★ card; absent entirely when cloud AI is
+         live, so a "Live · cloud AI" pill never sits above a "rules fallback" banner. {% endcomment %}
+      {% if cockpit.ai_copilot_rail.guided and cockpit.ai_copilot_rail.insight_text %}
+      <div class="lx-copilot__insight" role="note">
         {{ cockpit.ai_copilot_rail.insight_text }}
         {% if cockpit.ai_copilot_rail.insight_em %} <em>{{ cockpit.ai_copilot_rail.insight_em }}</em>{% endif %}
       </div>

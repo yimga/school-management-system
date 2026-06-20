@@ -150,16 +150,25 @@ def enrich_manager_copilot_rail(request: Any | None = None) -> dict[str, Any]:
             )
         )
 
+    # Single source of truth for the posture banner: the SAME signal the rail's
+    # status pill uses (services.ai_deployment_posture.is_litellm_configured via
+    # views_copilot_rail._posture_mode). The old check called is_ai_available(None),
+    # which returns False unconditionally for a None school — so this operator banner
+    # always read "rules fallback" and contradicted a green "Live · cloud AI" pill.
     try:
-        from services.ai_helpers import is_ai_available
+        from services.ai_deployment_posture import is_litellm_configured
 
-        ai_on = is_ai_available(None)
-    except Exception:
-        ai_on = False
+        cloud_ready = bool(is_litellm_configured())
+    except Exception:  # noqa: BLE001 — posture is cosmetic; default to guided
+        cloud_ready = False
+    guided_mode = not cloud_ready
     insight_text = (
         _("Cloud AI gateway is reachable — copilot can draft KB and support.")
-        if ai_on
-        else _("Rules fallback active — enable LiteLLM on Render for generative help.")
+        if cloud_ready
+        else _(
+            "Guided mode — step-by-step help that works with no AI model. "
+            "Turn on Cloud AI (LiteLLM on Render) for generative drafting."
+        )
     )
 
     if request is not None:
@@ -179,6 +188,7 @@ def enrich_manager_copilot_rail(request: Any | None = None) -> dict[str, Any]:
         "intro_text": _("RunMyCampus Guide"),
         "insight_text": insight_text,
         "insight_em": "",
+        "guided": guided_mode,
         "suggested_actions": [s.get("title", "") for s in suggestions[:4] if s.get("title")],
         "suggestions": suggestions[:6],
         "activity": activity[:4],
