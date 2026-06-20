@@ -106,6 +106,19 @@
     return '';
   }
 
+  // CSRF token for POSTs. Read the DOM first: with CSRF_COOKIE_HTTPONLY=True the
+  // csrftoken cookie is invisible to JS, so getCookie('csrftoken') returns '' and
+  // the server rejects the empty header ("incorrect length"). The rendered
+  // csrfmiddlewaretoken input / <meta name="csrf-token"> always carry a valid
+  // token; the cookie is only a last resort for pages without either.
+  function csrfToken() {
+    var input = document.querySelector('input[name=csrfmiddlewaretoken]');
+    if (input && input.value) { return input.value; }
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.getAttribute('content')) { return meta.getAttribute('content'); }
+    return getCookie('csrftoken');
+  }
+
   function readOutboxLS() {
     try {
       var raw = localStorage.getItem(LS_KEY);
@@ -188,7 +201,7 @@
       credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken'),
+        'X-CSRFToken': csrfToken(),
       },
       body: JSON.stringify(body),
     }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, status: r.status, json: j }; }); });

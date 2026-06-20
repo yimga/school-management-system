@@ -185,6 +185,19 @@ def permission_denied(request, exception):
 
 
 def page_not_found(request, exception):
+    # A miss under /static/ or /media/ (e.g. a browser-requested *.css.map source
+    # map that isn't shipped) must NOT render the branded tenant 404 template:
+    # that pulls tenant context + context processors that can raise on an asset
+    # path, turning the 404 into a 500. Return a plain 404 for asset paths — the
+    # same reason favicon_redirect exists. Real page 404s still get the brand page.
+    path = request.path or ""
+    static_url = settings.STATIC_URL or "/static/"
+    media_url = settings.MEDIA_URL or "/media/"
+    if path.startswith(static_url) or path.startswith(media_url):
+        from django.http import HttpResponseNotFound
+
+        return HttpResponseNotFound("Not found")
+
     from apps.schools.error_views import school_not_found
 
     return school_not_found(request)

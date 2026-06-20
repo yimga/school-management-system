@@ -4,6 +4,10 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    {% comment %} JS-readable CSRF token. CSRF_COOKIE_HTTPONLY=True hides the cookie
+    from document.cookie, so client POSTs (offline outbox etc.) must read the token
+    from here rather than getCookie('csrftoken'). {% endcomment %}
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <link rel="preload" href="{% static 'css/design-tokens.css' %}" as="style">
     <link rel="preload" href="{% static 'css/vendor/inter.css' %}" as="style">
     <link rel="preload" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" as="style">
