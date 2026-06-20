@@ -246,14 +246,14 @@ const DIRS = {
     ]
   },
   2:{
-    name:"Guided Mode as a feature", sub:"Reframe “rules fallback” as an intentional, premium “Guided mode” with a clear path to turn on Cloud AI.",
-    desc:{k:"Product-positive · on-brand",html:"<b>Stop calling it a failure.</b> “Guided mode” is presented as a real feature (works offline, no model needed) with <b>one</b> friendly card and a primary CTA — <em>Turn on Cloud AI</em> for operators, or <em>Ask your admin</em> for tenants. Pulse + Governance collapse into one compact <b>At a glance</b> accordion, freeing the whole lower half for chat."},
+    name:"Guided Mode as a feature ✓ SHIPPED", sub:"Reframe “rules fallback” as an intentional, honest “Guided mode”. This is what was built (v4.04.35).",
+    desc:{k:"✓ Shipped 2026-06-20 · product-positive",html:"<b>What shipped:</b> Pulse + Governance + “Need help” fold into one collapsible <b>At a glance</b> group (default closed) — that single change frees the lower half for chat and stops the bleed. The “rules fallback” banner is reframed to honest <b>Guided mode</b> wording and now shows <b>only when the cloud model is genuinely off</b> (driven by the same <code>is_litellm_configured()</code> signal as the header pill — they can never contradict). <em>No dead CTA button</em> was added: operators enable Cloud AI via Render env, not a UI toggle, so a button would go nowhere."},
     render:guidedFeature, notes:[
-      ["Rules state reframed as “Guided mode” — reads as intentional, not broken."],
-      ["One actionable card with a real CTA instead of a scolding banner."],
-      ["Pulse + Governance fold into a single “At a glance” accordion."],
-      ["Big, calm chat area; composer pinned."],
-      ["TOOLS tab folds flush into the rail edge (the v4.04 consolidation, applied correctly)."]
+      ["Pulse + Governance + Need-help collapse into one “At a glance” disclosure → chat gets the room, composer never clipped."],
+      ["Banner reframed to honest “Guided mode” wording (no scolding “enable LiteLLM”)."],
+      ["Guided card appears ONLY when cloud AI is off — your env has it ON, so you’ll see a clean panel with no banner at all."],
+      ["Status lives in one place (header pill) — the header/body contradiction is gone."],
+      ["TOOLS-tab overlap left untouched this pass (delicate, recently-fixed area) — offered as a separate follow-up."]
     ]
   },
   3:{
@@ -308,19 +308,21 @@ function guidedHonest(){
   composerHTML(true) +
   `<div class="tools-tab inboard"><span>Tools</span></div>`;
 }
-/* Direction 2 */
+/* Direction 2 — as shipped (v4.04.35). Two variants render based on cloud state;
+   we show the cloud-ON state (your environment) with a callout for the OFF state. */
 function guidedFeature(){
-  return headHTML("guided","Guided mode") + tabsHTML() + kpisHTML() +
+  return headHTML("cloud","Live · Cloud AI") + tabsHTML() + kpisHTML() +
   `<details class="at-glance"><summary>At a glance <span>›</span></summary>
-     <div class="body"><div class="gov"><div class="reg">Capability register</div><div class="stat">49 shipped · 0 in progress · 0 planned.</div></div></div>
+     <div class="body">
+       <div class="pulse" style="padding:0 0 6px"><div class="row" style="border-top:0"><p class="h">Pick a mode</p><p class="d">Experience, Automation, Outputs, Launch, or Control.</p></div><div class="row"><p class="h">Press ⌘K</p><p class="d">Find every action you can run.</p></div></div>
+       <div class="gov" style="padding:8px 0 2px"><div class="reg">Capability register</div><div class="stat">49 shipped · 0 in progress · 0 planned.</div></div>
+       <div class="banner-help" style="margin:8px 0 0"><span class="i">?</span><span>Need help on this page?</span></div>
+     </div>
    </details>` +
-  `<div class="banner-fallback" style="background:radial-gradient(closest-side at 0 0,rgba(245,158,11,.22),transparent 70%),rgba(255,255,255,.04);border-color:rgba(245,158,11,.32)">
-     <b>Guided mode</b> is on — step-by-step help with no AI model needed.
-     <div style="margin-top:8px;display:flex;gap:8px"><button class="send" style="background:linear-gradient(135deg,var(--amber),#d97706)">Turn on Cloud AI</button><button class="send" style="background:transparent;border:1px solid var(--hairline);color:var(--ink-muted)">What’s this?</button></div>
-   </div>` +
-  `<div class="thread"><div class="msg ai">Hi! I’m running in Guided mode. Ask about any setup step and I’ll point you to the right wizard.</div></div>` +
-  composerHTML(true) +
-  `<div class="tools-tab folded"><span>Tools</span></div>`;
+  `<div class="thread"><div class="msg ai">How can I help with your platform?</div><div class="msg user">Summarise this week’s admissions.</div><div class="msg ai">This week you have <b>12 new applications</b>, 4 awaiting review…</div></div>` +
+  composerHTML(false) +
+  `<div class="tools-tab inboard"><span>Tools</span></div>` +
+  `<div style="position:absolute;left:10px;right:10px;bottom:8px;font-size:10px;color:var(--ink-faint);text-align:center;pointer-events:none">When cloud AI is OFF, a slim amber “Guided mode” note appears above the composer (no banner when it’s ON, as here).</div>`;
 }
 /* Direction 3 */
 function focusedComposer(){
