@@ -1335,8 +1335,17 @@ RUNMYCAMPUS_DEMO_MODE = os.getenv("RUNMYCAMPUS_DEMO_MODE", "").strip().lower() i
 # Unified flag for templates (sandbox OR explicit demo mode).
 RUNMYCAMPUS_DEMO_ENABLED = RUNMYCAMPUS_DEMO_SANDBOX or RUNMYCAMPUS_DEMO_MODE
 # Tenant ADMIN activation landing after self-service signup verify (school.settings.rmc_activation_gate).
+# DEFAULT OFF (2026-06-20): the activation gate funnels every authenticated tenant
+# user to /activation/first-action/ (a bare setup wizard) and refuses ALL other
+# pages until the gate clears. In practice it trapped admins on the wizard so the
+# Dashboard — whose own adaptive setup-command-surface IS the intended onboarding
+# UI for an under-onboarded school — was unreachable, and it drove a background
+# poll/redirect loop (workflow-progress/insights/heartbeat → 302 → first-action).
+# The Dashboard setup surface supersedes the bare wizard funnel, so the gate is
+# disabled by default until it is reworked to funnel to the Dashboard instead.
+# Re-enable explicitly with DISABLE_SCHOOL_ACTIVATION_GATE=0.
 DISABLE_SCHOOL_ACTIVATION_GATE = os.getenv(
-    "DISABLE_SCHOOL_ACTIVATION_GATE", ""
+    "DISABLE_SCHOOL_ACTIVATION_GATE", "1"
 ).strip().lower() in ("1", "true", "yes")
 # Conversion lock (apps.schools.middleware_conversion_lock): blocks tenant routes until first_action_completed.
 # Production / staging / cloud host: strict ON. Local dev (DEBUG=1, not Render, not RMC_ENV): permissive.

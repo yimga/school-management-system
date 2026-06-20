@@ -72,7 +72,7 @@ class ActivationGateMiddlewareTests(TestCase):
         self.school.refresh_from_db()
         self.assertFalse(school_activation_gate_pending(self.school))
 
-    @override_settings(CONVERSION_LOCK_STRICT=False)
+    @override_settings(CONVERSION_LOCK_STRICT=False, DISABLE_SCHOOL_ACTIVATION_GATE=False)
     def test_authenticated_user_on_pending_school_redirects_to_first_action(self):
         request = _build_request(self.user, self.school)
         mw = ActivationGateMiddleware(get_response=lambda r: None)
@@ -81,7 +81,7 @@ class ActivationGateMiddlewareTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/activation/first-action/", response["Location"])
 
-    @override_settings(CONVERSION_LOCK_STRICT=False)
+    @override_settings(CONVERSION_LOCK_STRICT=False, DISABLE_SCHOOL_ACTIVATION_GATE=False)
     def test_anonymous_user_is_not_redirected(self):
         from django.contrib.auth.models import AnonymousUser
 
@@ -89,7 +89,7 @@ class ActivationGateMiddlewareTests(TestCase):
         mw = ActivationGateMiddleware(get_response=lambda r: None)
         self.assertIsNone(mw._maybe_redirect(request))
 
-    @override_settings(CONVERSION_LOCK_STRICT=True)
+    @override_settings(CONVERSION_LOCK_STRICT=True, DISABLE_SCHOOL_ACTIVATION_GATE=False)
     def test_strict_mode_defers_to_conversion_lock_middleware(self):
         request = _build_request(self.user, self.school)
         mw = ActivationGateMiddleware(get_response=lambda r: None)
@@ -98,7 +98,7 @@ class ActivationGateMiddlewareTests(TestCase):
             "activation gate should be a no-op when CONVERSION_LOCK_STRICT is on",
         )
 
-    @override_settings(CONVERSION_LOCK_STRICT=False)
+    @override_settings(CONVERSION_LOCK_STRICT=False, DISABLE_SCHOOL_ACTIVATION_GATE=False)
     def test_gate_cleared_means_no_redirect(self):
         clear_activation_gate(self.school)
         self.school.refresh_from_db()
@@ -106,7 +106,7 @@ class ActivationGateMiddlewareTests(TestCase):
         mw = ActivationGateMiddleware(get_response=lambda r: None)
         self.assertIsNone(mw._maybe_redirect(request))
 
-    @override_settings(CONVERSION_LOCK_STRICT=False)
+    @override_settings(CONVERSION_LOCK_STRICT=False, DISABLE_SCHOOL_ACTIVATION_GATE=False)
     def test_exempt_path_is_not_redirected(self):
         request = _build_request(self.user, self.school, path="/authentication/login/")
         mw = ActivationGateMiddleware(get_response=lambda r: None)
