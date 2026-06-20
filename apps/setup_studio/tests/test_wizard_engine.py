@@ -35,7 +35,20 @@ _VALID_WIZARD = {
 }
 
 
-class RegistryLoadTests(SimpleTestCase):
+class _RestoresGlobalRegistry(SimpleTestCase):
+    """Base for tests that load a FIXTURE directory into the module-global
+    ``WIZARD_REGISTRY``. ``load_wizard_registry(<dir>)`` calls
+    ``WIZARD_REGISTRY.clear()`` first, so a fixture load wipes the real
+    36-wizard registry for every LATER test in the same process (e.g.
+    ``get_wizard("mfa_setup")`` -> WizardNotFound in test_wizard_labels). Restore
+    the production registry afterwards so cross-file test order can't matter."""
+
+    def tearDown(self):
+        super().tearDown()
+        wizard_engine.load_wizard_registry()
+
+
+class RegistryLoadTests(_RestoresGlobalRegistry):
     def test_load_valid_wizard(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "test_wizard.json"
@@ -71,7 +84,7 @@ class RegistryLoadTests(SimpleTestCase):
             self.assertEqual(registry, {})
 
 
-class SchemaTests(SimpleTestCase):
+class SchemaTests(_RestoresGlobalRegistry):
     def test_missing_wizard_key_skipped(self):
         with tempfile.TemporaryDirectory() as tmp:
             bad = dict(_VALID_WIZARD)
@@ -109,7 +122,7 @@ class SchemaTests(SimpleTestCase):
             self.assertEqual(registry, {})
 
 
-class AudienceFilterTests(SimpleTestCase):
+class AudienceFilterTests(_RestoresGlobalRegistry):
     def test_list_for_audience(self):
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / "tenant_wiz.json").write_text(

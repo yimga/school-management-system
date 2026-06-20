@@ -307,9 +307,13 @@ def write_password_rotation_step(*, school: Any, wizard_key: str, step_key: str,
         except Exception as exc:  # noqa: BLE001
             logger.debug("password rotation service delegation skipped: %s", exc)
     if school is None:
+        # Log the wizard_key, NOT step_key: a rotation step can be named after a
+        # secret field (e.g. "new_password"), and echoing that into logs is noise
+        # at best and a misleading "secret in logs" signal at worst. Only the
+        # safe, already-redacted key names (e.g. verify_identity_hash) are logged.
         logger.info(
-            "password_rotation step=%s actor=%s wrote_keys=%s",
-            step_key, actor_user_id, sorted(safe.keys()),
+            "password_rotation wizard=%s actor=%s wrote_keys=%s",
+            wizard_key, actor_user_id, sorted(safe.keys()),
         )
         return
     _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=safe, actor_user_id=actor_user_id)

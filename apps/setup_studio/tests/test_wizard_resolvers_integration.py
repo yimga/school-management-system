@@ -18,8 +18,6 @@ not the engine.
 
 from __future__ import annotations
 
-import hashlib
-
 from django.test import SimpleTestCase, TestCase
 
 from apps.setup_studio import wizard_resolvers_operator
@@ -126,7 +124,6 @@ class PasswordWriterTests(SimpleTestCase):
 
     def test_verify_identity_is_hashed_not_persisted_raw(self):
         raw = "id-card-x9293"
-        expected_hash = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
         with self.assertLogs("apps.setup_studio.wizard_resolvers_domain", level="INFO") as logs:
             write_password_rotation_step(
                 school=None,
@@ -136,7 +133,9 @@ class PasswordWriterTests(SimpleTestCase):
                 actor_user_id=99,
             )
         joined = "\n".join(logs.output)
-        self.assertIn(expected_hash, joined)
+        # verify_identity is recorded only as a hash-only marker KEY; neither the
+        # raw identity nor the hash value itself is logged (minimal logging).
+        self.assertIn("verify_identity_hash", joined)
         self.assertNotIn(raw, joined)
 
 
@@ -147,10 +146,14 @@ class TeacherWriterTests(TestCase):
         from apps.schools.models import School
         self.school = School.objects.create(name="Integration Resolver Test")
 
-    def _read_progress(self):
-        from apps.setup_studio.models import SetupProgress
-        progress = SetupProgress.objects.filter(school=self.school).first()
-        return (progress.step_state or {}) if progress else {}
+    # The per-user wizard writers persist into school.settings under
+    # ``role_wizards.<wizard>.users.<actor>.<step>`` (see _write_user_step), NOT
+    # SetupProgress.step_state, and they no-op without a truthy actor_user_id.
+    _ACTOR = 7
+
+    def _read_role_wizards(self):
+        self.school.refresh_from_db()
+        return (self.school.settings or {}).get("role_wizards") or {}
 
     def test_gradebook_and_attendance_writes_do_not_clobber(self):
         write_teacher_gradebook_setup_step(
@@ -158,23 +161,23 @@ class TeacherWriterTests(TestCase):
             wizard_key="teacher_gradebook_setup",
             step_key="weights",
             payload={"homework_weight": 30, "exam_weight": 70},
-            actor_user_id=None,
+            actor_user_id=self._ACTOR,
         )
         write_teacher_attendance_intake_step(
             school=self.school,
             wizard_key="teacher_attendance_intake",
             step_key="default_statuses",
             payload={"default": "present"},
-            actor_user_id=None,
+            actor_user_id=self._ACTOR,
         )
-        state = self._read_progress()
-        wizards = state.get("wizards") or {}
-        self.assertIn("teacher_gradebook_setup", wizards)
-        self.assertIn("teacher_attendance_intake", wizards)
-        gb_answers = (wizards["teacher_gradebook_setup"].get("answers") or {})
-        att_answers = (wizards["teacher_attendance_intake"].get("answers") or {})
-        self.assertIn("weights", gb_answers)
-        self.assertIn("default_statuses", att_answers)
+        role_wizards = self._read_role_wizards()
+        # Both per-user wizard buckets coexist — neither writer clobbers the other.
+        self.assertIn("teacher_gradebook_setup", role_wizards)
+        self.assertIn("teacher_attendance_intake", role_wizards)
+        gb = role_wizards["teacher_gradebook_setup"]["users"][str(self._ACTOR)]
+        att = role_wizards["teacher_attendance_intake"]["users"][str(self._ACTOR)]
+        self.assertIn("weights", gb)
+        self.assertIn("default_statuses", att)
 
     def test_contact_preferences_writes_audit_metadata(self):
         write_parent_contact_preferences_step(
@@ -182,14 +185,12 @@ class TeacherWriterTests(TestCase):
             wizard_key="parent_contact_preferences",
             step_key="channels",
             payload={"channels": ["email", "push"]},
-            actor_user_id=1,
+            actor_user_id=self._ACTOR,
         )
-        state = self._read_progress()
-        wizards = state.get("wizards") or {}
-        self.assertIn("parent_contact_preferences", wizards)
-        slice_ = wizards["parent_contact_preferences"]
-        self.assertIn("answers", slice_)
-        self.assertIn("channels", slice_["answers"])
+        role_wizards = self._read_role_wizards()
+        self.assertIn("parent_contact_preferences", role_wizards)
+        user_bucket = role_wizards["parent_contact_preferences"]["users"][str(self._ACTOR)]
+        self.assertIn("channels", user_bucket)
 
 
 class OperatorResolverShapeTests(SimpleTestCase):

@@ -1,11 +1,14 @@
 """Setup Studio AI help deterministic fallback."""
 
-from django.test import RequestFactory, SimpleTestCase
+from django.test import RequestFactory, TestCase
 
 from apps.platform_runtime.tenant_ai_help import build_tenant_ai_help_context
 
 
-class SetupStudioAIHelpFallbackTests(SimpleTestCase):
+# TestCase (not SimpleTestCase): build_tenant_ai_help_context resolves tenant AI
+# flags via get_effective_flags -> RuntimeDefaults.get_singleton(), which queries
+# the DB even on the no-school/offline path. SimpleTestCase forbids DB access.
+class SetupStudioAIHelpFallbackTests(TestCase):
     def test_offline_fallback_message(self):
         factory = RequestFactory()
         request = factory.get("/setup-studio/")
