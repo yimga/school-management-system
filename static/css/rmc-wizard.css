@@ -53,6 +53,14 @@
   color: var(--text-primary);
   padding-inline: clamp(var(--space-3), 4vw, var(--space-6));
   padding-block: clamp(var(--space-3), 3vh, var(--space-5));
+  /* The shell is nested inside the portal canvas grid (#main-content >
+     .rmc-shell-content-grid > .portal-page-body). A grid/flex item defaults to
+     min-width:auto, so a non-shrinking child (the stepper row) can push the
+     whole column wider than the viewport instead of wrapping — that is the
+     "step 5 sliced off the right edge" overflow. min-width:0 lets the column
+     shrink so flex-wrap actually engages; max-width:100% caps it to the canvas. */
+  min-width: 0;
+  max-width: 100%;
 }
 
 .rmc-wizard-shell--operator {
@@ -71,6 +79,9 @@
   width: 100%;
   max-width: 1280px;
   margin-inline: auto;
+  /* Let the grid shrink inside the flex column above instead of forcing
+     overflow when the pane/help-rail content has a wide min-content size. */
+  min-width: 0;
 }
 
 @media (min-width: 1024px) {

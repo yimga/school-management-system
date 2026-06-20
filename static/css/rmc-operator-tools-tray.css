@@ -108,7 +108,13 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-assist-dock__backdrop {
  * original floating edge-tab. The tray still slides out from here via the
  * existing toggle JS — zero markup / JS changes, so the DOM tree is untouched.
  * ----------------------------------------------------------------------- */
-body[data-rmc-workspace-tools="tenant"] {
+/* The 56px width + the transparent "fold into the rail" treatment below BOTH
+   assume the AI copilot rail is actually present (it is the dark column the tab
+   sits flush against / shows through). Scope them to require the rail's body
+   attribute — when the copilot rail is DISABLED there is no column to merge
+   into, so the tab must keep its own solid, visible 44px treatment instead of
+   becoming an invisible transparent tab floating over the page canvas. */
+body[data-rmc-tenant-copilot-rail="1"][data-rmc-workspace-tools="tenant"] {
   /* Match the 56px copilot-rail width so the tab is flush in the column. */
   --rmc-operator-tools-tab-w: 56px;
 }
@@ -118,8 +124,10 @@ body[data-rmc-workspace-tools="tenant"] {
      merge the tab into it there; below lg the tab keeps its original floating
      treatment. Kept in lockstep with the rail's lg breakpoint in
      rmc-platform-vertical-compact.css — if one moves, move both, or the tab
-     floats over (or away from) the rail and you get two-rail crowding again. */
-  body[data-rmc-workspace-tools="tenant"] .rmc-operator-tools__edge-tab {
+     floats over (or away from) the rail and you get two-rail crowding again.
+     Gated on the copilot-rail attribute so this fold only happens when there is
+     a rail to fold INTO (see scope note above). */
+  body[data-rmc-tenant-copilot-rail="1"][data-rmc-workspace-tools="tenant"] .rmc-operator-tools__edge-tab {
     margin-bottom: 8px; /* align to the rail bottom (rail is bottom:8px) */
     border: none;
     border-top: 1px solid var(--cp-chrome-hairline, rgba(255, 255, 255, 0.14)); /* off-token-allow: tenant-copilot-rail-merge-dark-chrome */
@@ -131,10 +139,24 @@ body[data-rmc-workspace-tools="tenant"] {
     color: var(--cp-chrome-text, #e8ecff); /* off-token-allow: tenant-copilot-rail-merge-dark-chrome */
     box-shadow: none;
   }
-  body[data-rmc-workspace-tools="tenant"] .rmc-operator-tools__edge-tab:hover,
-  body[data-rmc-workspace-tools="tenant"] .rmc-operator-tools__edge-tab:focus-visible {
+  body[data-rmc-tenant-copilot-rail="1"][data-rmc-workspace-tools="tenant"] .rmc-operator-tools__edge-tab:hover,
+  body[data-rmc-tenant-copilot-rail="1"][data-rmc-workspace-tools="tenant"] .rmc-operator-tools__edge-tab:focus-visible {
     background: rgba(255, 255, 255, 0.06); /* off-token-allow: tenant-copilot-rail-merge-dark-chrome */
     box-shadow: none;
+  }
+
+  /* Content gutter fallback when the AI copilot rail is DISABLED.
+     The only canvas gutter on the tenant shell (portal-shell-enhanced.css) is
+     keyed on body[data-rmc-tenant-copilot-rail="1"]. If an operator/flag turns
+     the copilot rail off, that reservation vanishes — but the Tools edge-tab is
+     still position:fixed at the right edge, so .portal-main-col / #main-content
+     bleed underneath it (clipped wizard steppers, content tucked behind the
+     tab). When the rail attribute is absent, reserve the tab's own width here so
+     the canvas always clears it. Excluded when the rail IS present (it owns its
+     own, wider, reservation) to avoid a double gutter. */
+  body[data-rmc-workspace-tools="tenant"]:not([data-rmc-tenant-copilot-rail="1"]) .portal-main-col,
+  body[data-rmc-workspace-tools="tenant"]:not([data-rmc-tenant-copilot-rail="1"]) #main-content {
+    padding-right: calc(var(--rmc-operator-tools-tab-w, 44px) + 8px);
   }
 }
 
