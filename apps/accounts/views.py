@@ -904,6 +904,48 @@ def _can_access_direct_messages(user) -> bool:
     return _is_staff_or_teacher(user)
 
 
+def _direct_message_user_queryset(request):
+    """Active users the caller may direct-message — SAME SCHOOL only.
+
+    Closes a cross-tenant leak: the recipient picker and the thread-target lookup
+    previously used an unscoped ``User.objects.filter(is_active=True)``, exposing
+    (and allowing messages to) every school's users on a shared instance. This
+    binds the set to the caller's school via the canonical ``_school_user_queryset``
+    pattern. Superusers are intentionally left unscoped (cross-tenant operator
+    tooling); everyone else is school-bound, and an unresolvable school yields an
+    empty set rather than the whole platform.
+    """
+    user = request.user
+    if getattr(user, "is_superuser", False):
+        return User.objects.filter(is_active=True).exclude(pk=user.pk)
+
+    from apps.communication.api_views import _school_user_queryset
+
+    school = getattr(request, "school", None)
+    if school is None:
+        # Hosts that don't bind request.school (rare for staff) — resolve the
+        # caller's own school membership; never fall back to platform-wide.
+        try:
+            from apps.schools.models import SchoolMembership
+
+            # tenant-isolation-allow: resolves-callers-own-membership-then-scopes-below
+            membership = (
+                SchoolMembership.objects.filter(user_id=user.pk)
+                .select_related("school")
+                .first()
+            )
+            school = getattr(membership, "school", None)
+        except Exception:  # noqa: BLE001 — never break compose on a lookup hiccup
+            school = None
+    if school is None:
+        return User.objects.none()
+    return (
+        _school_user_queryset(school)
+        .filter(is_active=True)
+        .exclude(pk=user.pk)
+    )
+
+
 #: Cap on attachments accepted per single message send — a defensive bound on one
 #: multipart POST (each file is independently size/type validated below).
 _MESSAGE_ATTACHMENT_MAX_FILES = 5
@@ -999,7 +1041,10 @@ def direct_thread(request, user_id):
     User = request.user.__class__
     if user_id == request.user.pk:
         return redirect("accounts:user_messages")
-    other = get_object_or_404(User.objects.filter(is_active=True), pk=user_id)
+    # Same-school only — the target must be in the caller's messageable user set
+    # (closes the cross-tenant thread-open leak). 404 (not 403) so a probed id
+    # outside the school is indistinguishable from a non-existent one.
+    other = get_object_or_404(_direct_message_user_queryset(request), pk=user_id)
 
     other_is_parent = getattr(other, "role", None) == User.Role.PARENT
     i_am_parent = getattr(request.user, "role", None) == User.Role.PARENT
@@ -1124,8 +1169,10 @@ def direct_thread_read_state(request, user_id):
     from apps.communication.models import Message
     from django.http import JsonResponse
 
-    user_model = request.user.__class__
-    other = get_object_or_404(user_model.objects.filter(is_active=True), pk=user_id)
+    # Same school-scoped set as the thread itself (the payload only ever exposes
+    # the caller's OWN sent messages, but scoping the lookup keeps it consistent
+    # and avoids confirming a cross-tenant user exists).
+    other = get_object_or_404(_direct_message_user_queryset(request), pk=user_id)
 
     # tenant-isolation-allow: scoped-to-callers-own-sent-messages-to-other
     rows = (
@@ -1162,10 +1209,10 @@ def direct_compose(request):
                 request, _("Select a recipient and enter a message or attach a file.")
             )
             return redirect("accounts:direct_compose")
+        # Validate the recipient against the SAME school-scoped set the picker was
+        # built from, so a tampered POST can't message across tenants.
         recipient = (
-            User.objects.filter(pk=recipient_id, is_active=True)
-            .exclude(pk=request.user.pk)
-            .first()
+            _direct_message_user_queryset(request).filter(pk=recipient_id).first()
         )
         if not recipient:
             messages.error(request, _("Selected recipient is not available."))
@@ -1198,10 +1245,11 @@ def direct_compose(request):
         _notify_new_direct_message(request.user, recipient, msg)
         return redirect("accounts:direct_thread", user_id=recipient.pk)
 
-    # GET: list active users (exclude self) for recipient dropdown; limit for large schools
+    # GET: list SAME-SCHOOL active users (exclude self) for recipient dropdown;
+    # limit for large schools. School-scoped via _direct_message_user_queryset so
+    # the picker never exposes another tenant's users.
     recipients = (
-        User.objects.filter(is_active=True)
-        .exclude(pk=request.user.pk)
+        _direct_message_user_queryset(request)
         .order_by("first_name", "last_name")
         .values("id", "first_name", "last_name", "username")[:500]
     )
