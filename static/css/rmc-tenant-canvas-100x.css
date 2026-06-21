@@ -683,3 +683,17 @@
 @media (prefers-reduced-motion: reduce) {
   .portal-sidebar__ics-link { transition: none; }
 }
+
+/* Defense-in-depth: mobile offcanvas must never paint over desktop canvas.
+   Bootstrap d-lg-none normally hides #portalSidebar at lg+, but a slow/missed
+   CSS load (PWA cache race) leaves the offcanvas inline + backdrop = black void. */
+@media (min-width: 992px) {
+  #portalSidebar.offcanvas {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+  .offcanvas-backdrop {
+    display: none !important;
+  }
+}

@@ -201,7 +201,7 @@
 // v4.03.63: operator provisioning queue (/super/provision-queue/ — all not-yet-live
 //   schools in one actionable list w/ requeue) + i18n: completion summary now server-
 //   translated/pluralized (completion_summary_text) and rendered by the progress JS.
-const CACHE_VERSION = "sms-v4.04.40-flow-leadin-2026-06-20";
+const CACHE_VERSION = "sms-v4.04.42-wizard-review-void-fix-2026-06-20";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -602,13 +602,12 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // CSS/JS under /static/ are NETWORK-FIRST (online users always get the freshly
-  // deployed bundle). Cache is updated in the background for offline fallback
-  // only. Cache-first here was the root cause of "committed code but old UI":
-  // rmc-wizard.css, rmc-setup-surface.css, etc. stayed pinned until a manual
-  // hard-refresh or CACHE_VERSION bump + lucky SW activation.
+  // CSS/JS under /static/ use STALE-WHILE-REVALIDATE: serve cache immediately
+  // (fast, offline-safe) but always refresh from network in the background so
+  // deploys propagate without manual hard-refresh. Pure network-first (v4.04.38)
+  // caused blank/broken layouts when a CSS fetch failed or lagged on first paint.
   if (isNetworkFirstStaticAsset(request, url)) {
-    event.respondWith(networkFirstStatic(request));
+    event.respondWith(staleWhileRevalidateStatic(request));
     return;
   }
 
@@ -750,6 +749,34 @@ function isNetworkFirstStaticAsset(request, url) {
   }
   const path = url.pathname.toLowerCase();
   return path.includes("/css/") || path.endsWith(".css") || path.includes("/js/") || path.endsWith(".js");
+}
+
+async function staleWhileRevalidateStatic(request) {
+  const cached = await caches.match(request);
+  const revalidate = (async () => {
+    try {
+      const response = await fetch(request);
+      if (response && response.ok) {
+        const cache = await caches.open(STATIC_CACHE);
+        await cache.put(request, response.clone());
+      }
+      return response;
+    } catch (_err) {
+      return null;
+    }
+  })();
+
+  if (cached) {
+    revalidate.catch(function () {});
+    return cached;
+  }
+  try {
+    const response = await revalidate;
+    if (response) {
+      return response;
+    }
+  } catch (_err) {}
+  return new Response("Offline", { status: 503 });
 }
 
 async function networkFirstStatic(request) {

@@ -186,7 +186,7 @@ def service_worker_asset_manifest(request):
         {
             "version": _os.getenv(
                 "SW_MANIFEST_VERSION",
-                "sms-v4.04.39-tenant-lifecycle-hardening-2026-06-20",
+                "sms-v4.04.42-wizard-review-void-fix-2026-06-20",
             ),
             "assets": assets,
         }

@@ -48,19 +48,20 @@
 .rmc-wizard-shell {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  /* Default: size to content. Only active (viewport-locked) steps fill the
+     viewport — review/read-only mode must NOT inherit 100dvh or the shell
+     paints a huge empty --surface-bg void below a short banner + form. */
+  min-height: auto;
   background: var(--surface-bg);
   color: var(--text-primary);
   padding-inline: clamp(var(--space-3), 4vw, var(--space-6));
   padding-block: clamp(var(--space-3), 3vh, var(--space-5));
-  /* The shell is nested inside the portal canvas grid (#main-content >
-     .rmc-shell-content-grid > .portal-page-body). A grid/flex item defaults to
-     min-width:auto, so a non-shrinking child (the stepper row) can push the
-     whole column wider than the viewport instead of wrapping — that is the
-     "step 5 sliced off the right edge" overflow. min-width:0 lets the column
-     shrink so flex-wrap actually engages; max-width:100% caps it to the canvas. */
   min-width: 0;
   max-width: 100%;
+}
+
+.rmc-wizard-shell[data-rmc-viewport-lock="opt-in"] {
+  min-height: 100dvh;
 }
 
 .rmc-wizard-shell--operator {
@@ -340,6 +341,20 @@
   text-align: center;
   padding-block: var(--space-6);
   color: var(--text-secondary);
+}
+
+.rmc-wizard-empty__title {
+  font-size: var(--type-size-h3, 1.125rem);
+  font-weight: 600;
+  margin: 0 0 var(--space-2, 0.5rem);
+  color: var(--text-primary);
+}
+
+.rmc-wizard-empty__lede {
+  margin: 0 auto var(--space-4, 1rem);
+  max-inline-size: 42ch;
+  color: var(--text-secondary);
+  font-size: var(--type-size-sm, 0.9375rem);
 }
 
 .rmc-wizard-card {

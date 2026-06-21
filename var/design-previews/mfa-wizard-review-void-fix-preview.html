@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-bs-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MFA Wizard Review — Before vs After (v4.04.42 fix)</title>
+<style>
+  :root {
+    --surface-bg: #0b1020;
+    --surface-elevated: #141c33;
+    --text-primary: #eef2ff;
+    --text-secondary: #aab3d4;
+    --hairline: rgba(255,255,255,.08);
+    --brand-primary: #6366f1;
+    --accent: #10b981;
+    --radius-lg: 14px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --font: Inter, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--font); background: #060912; color: var(--text-primary); font-size: 14px; line-height: 1.5; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
+  header { border-bottom: 1px solid var(--hairline); padding-bottom: 16px; margin-bottom: 24px; }
+  h1 { margin: 0 0 6px; font-size: 22px; }
+  .sub { color: var(--text-secondary); font-size: 13px; }
+  .tag { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; margin-right: 6px; }
+  .tag--bad { background: rgba(239,68,68,.15); color: #fca5a5; border: 1px solid rgba(239,68,68,.35); }
+  .tag--good { background: rgba(16,185,129,.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,.35); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .panel { border: 1px solid var(--hairline); border-radius: var(--radius-lg); overflow: hidden; background: #0e1426; }
+  .panel__head { padding: 12px 14px; border-bottom: 1px solid var(--hairline); font-weight: 700; font-size: 13px; }
+  .frame { height: 420px; overflow: hidden; position: relative; background: var(--surface-bg); }
+  .chrome { padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-size: 11px; color: var(--text-secondary); }
+  .chrome b { color: var(--text-primary); }
+  /* Simulated wizard shell — BEFORE = 100dvh inside fixed frame shows void */
+  .shell { display: flex; flex-direction: column; padding: 12px 16px; background: var(--surface-bg); color: var(--text-primary); }
+  .shell--broken { min-height: 100%; }
+  .shell--fixed { min-height: auto; }
+  .stepper { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; font-size: 11px; }
+  .step { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--hairline); color: var(--text-secondary); }
+  .step--done { border-color: var(--accent); color: #6ee7b7; }
+  .banner { background: var(--surface-elevated); border: 1px solid var(--hairline); border-radius: var(--radius-lg); padding: 12px; margin-bottom: 12px; }
+  .banner p { margin: 0 0 8px; font-weight: 600; font-size: 13px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { font-size: 12px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--hairline); background: transparent; color: var(--text-primary); text-decoration: none; }
+  .btn--primary { background: var(--brand-primary); border-color: var(--brand-primary); }
+  .pane { background: var(--surface-elevated); border: 1px solid var(--hairline); border-radius: var(--radius-lg); padding: 12px; }
+  .pane h2 { margin: 0 0 8px; font-size: 15px; }
+  .field { margin-bottom: 10px; }
+  .label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+  .value { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: rgba(0,0,0,.2); font-size: 13px; }
+  .void-label { position: absolute; left: 50%; top: 58%; transform: translate(-50%,-50%); text-align: center; color: #64748b; font-size: 12px; pointer-events: none; }
+  .void-label span { display: block; font-size: 11px; margin-top: 4px; color: #475569; }
+  .expect { margin-top: 28px; }
+  .expect h2 { font-size: 16px; margin: 0 0 12px; }
+  .expect ol { margin: 0; padding-left: 20px; color: var(--text-secondary); }
+  .expect li { margin: 8px 0; }
+  .expect code { background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 4px; font-size: 12px; color: #c7d0f5; }
+  .note { margin-top: 16px; padding: 14px; border-radius: var(--radius-lg); border: 1px solid rgba(99,102,241,.35); background: rgba(99,102,241,.08); font-size: 13px; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>MFA Wizard Review — what to expect after v4.04.42</h1>
+    <p class="sub">Route: <code>STUDIO → WIZARDS → MFA SETUP</code> when the wizard is already complete (read-only review). Commit fixes the empty dark void — not the onboarding overview on the admin dashboard.</p>
+  </header>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="panel__head"><span class="tag tag--bad">Before (broken)</span> <code>min-height: 100dvh</code> on shell always</div>
+      <div class="frame">
+        <div class="chrome"><b>STUDIO › WIZARDS › MFA SETUP</b> · read-only review</div>
+        <div class="shell shell--broken">
+          <div class="stepper">
+            <span class="step step--done">1 Done</span>
+            <span class="step step--done">2 Done</span>
+            <span class="step step--done">3 Done</span>
+          </div>
+          <div class="banner">
+            <p>This wizard is complete. You are viewing your saved answers in read-only mode.</p>
+            <div class="actions">
+              <a class="btn" href="#">Back to setup wizards</a>
+              <a class="btn btn--primary" href="#">Run again</a>
+            </div>
+          </div>
+          <div class="pane">
+            <h2>Verify authenticator</h2>
+            <div class="field"><div class="label">Channel</div><div class="value">Authenticator app</div></div>
+          </div>
+          <div class="void-label">EMPTY VOID<br><span>Dark --surface-bg fills rest of viewport</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel__head"><span class="tag tag--good">After (fixed)</span> <code>min-height: auto</code> in review mode</div>
+      <div class="frame" style="height:auto; min-height:280px;">
+        <div class="chrome"><b>STUDIO › WIZARDS › MFA SETUP</b> · read-only review</div>
+        <div class="shell shell--fixed">
+          <div class="stepper">
+            <span class="step step--done">1 Done</span>
+            <span class="step step--done">2 Done</span>
+            <span class="step step--done">3 Done</span>
+          </div>
+          <div class="banner">
+            <p>This wizard is complete. You are viewing your saved answers in read-only mode.</p>
+            <div class="actions">
+              <a class="btn" href="#">Back to setup wizards</a>
+              <a class="btn btn--primary" href="#">Run again</a>
+            </div>
+          </div>
+          <div class="pane">
+            <h2>Verify authenticator</h2>
+            <div class="field"><div class="label">Channel</div><div class="value">Authenticator app</div></div>
+          </div>
+        </div>
+        <div style="padding:10px 16px;font-size:11px;color:#64748b;border-top:1px solid var(--hairline);">Page ends here — footer / copilot rail visible below (no black slab)</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="expect">
+    <h2>When you load the live tenant site</h2>
+    <ol>
+      <li><b>Unregister the old service worker</b> once (DevTools → Application → Service Workers → Unregister), then hard-refresh. New version: <code>sms-v4.04.42-wizard-review-void-fix-2026-06-20</code>.</li>
+      <li><b>MFA review page</b> (<code>/school/studio/wizards/mfa_setup/</code> when complete): review banner + stepper + saved answers visible; <b>no</b> large empty black area below.</li>
+      <li><b>Active wizard steps</b> (in-progress, not review): still use full viewport height — stepper and Next/Back stay pinned (unchanged).</li>
+      <li><b>Admin dashboard</b> (<code>/authentication/backend/</code>): if onboarding is active, you should see the “Set up your school” hero + progress ring + wizard cards — a different surface from the MFA review page.</li>
+      <li><b>Duplicate sidebar labels</b> may still appear — separate fix; they do not cause the void.</li>
+    </ol>
+  </section>
+
+  <div class="note">
+    <strong>Important:</strong> Your screenshot was the <em>completed</em> MFA wizard, not a broken backend. Commit <code>58d33d8</code> improved cache freshness but did not change the CSS that caused the void. This commit does.
+  </div>
+</div>
+</body>
+</html>
