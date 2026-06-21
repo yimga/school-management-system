@@ -48,6 +48,16 @@
               </div>
             </div>
 
+            {% comment %} Specific-Group recipient picker. Revealed only when Audience is
+               "Specific Group"; the field is always in the DOM so a server-side
+               validation error round-trips correctly, and the toggle is purely a
+               progressive-enhancement convenience. {% endcomment %}
+            <div id="announcement-specific-recipients"
+                 data-audience-specific-target
+                 {% if form.audience.value != 'specific' %}hidden{% endif %}>
+              {% include "components/form_field.html" with field=form.specific_recipients %}
+            </div>
+
             {% include "components/form_field.html" with field=form.send_to_department %}
 
             <div class="row">
@@ -91,4 +101,24 @@
     </div>
   </div>
 </div>
+
+{% comment %} Progressive-enhancement: show the specific-recipient picker only while
+   Audience == "Specific Group". No-JS users still see the (always-present) field
+   and the server still validates it; this just removes the clutter otherwise. {% endcomment %}
+<script nonce="{{ csp_nonce }}">
+  (function () {
+    var audience = document.getElementById("{{ form.audience.id_for_label }}");
+    var target = document.querySelector("[data-audience-specific-target]");
+    if (!audience || !target) { return; }
+    function sync() {
+      if (audience.value === "specific") {
+        target.removeAttribute("hidden");
+      } else {
+        target.setAttribute("hidden", "hidden");
+      }
+    }
+    audience.addEventListener("change", sync);
+    sync();
+  })();
+</script>
 {% endblock %}

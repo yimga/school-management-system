@@ -106,19 +106,58 @@ def _guardian_users_for_school(school) -> Iterator[Any]:
 def _specific_recipient_users(announcement: Announcement) -> List[Any]:
     """Resolve the recipient list for ``audience="specific"``.
 
-    The :class:`Announcement` schema has **no** field for storing a per-target
-    recipient list (no M2M, no JSON column, and the create form exposes no
-    "specific targets" widget). ``audience="specific"`` is therefore unsupported
-    by the current data model: there is nowhere a chosen group is persisted. We
-    treat it as an empty audience and log a warning rather than crash, so the
-    publish path still completes and the gap is observable in logs.
+    The chosen recipients are persisted on the ``Announcement.specific_recipients``
+    M2M (Phase 4.4). They are intersected here with the set of users actually
+    linked to ``announcement.school`` so a stray / stale pick from another tenant
+    can never receive the announcement — fan-out re-scopes to the school as a
+    hard floor, independent of how the picks were saved. An empty pick set yields
+    zero recipients with an info log (a "specific" announcement targeting nobody
+    is a content mistake, not a crash).
     """
-    logger.warning(
-        "announcement %s has audience='specific' but the schema stores no "
-        "specific-target list; delivering to zero recipients",
-        getattr(announcement, "pk", None),
+    school = getattr(announcement, "school", None)
+    if school is None:
+        return []
+
+    try:
+        chosen_ids = list(
+            announcement.specific_recipients.values_list("pk", flat=True)
+        )
+    except Exception as exc:  # broad-by-design — a bad relation never breaks publish
+        logger.warning(
+            "announcement %s specific-recipient resolve failed err=%s",
+            getattr(announcement, "pk", None),
+            type(exc).__name__,
+        )
+        return []
+
+    if not chosen_ids:
+        logger.info(
+            "announcement %s audience='specific' has no picked recipients; "
+            "delivering to zero recipients",
+            getattr(announcement, "pk", None),
+        )
+        return []
+
+    # Re-scope to the school's own user set: the M2M is the *intent*, the school
+    # membership is the *authority*. Only users that are both picked AND linked to
+    # this school are delivered to.
+    in_school = set(
+        _school_user_queryset(school)
+        .filter(pk__in=chosen_ids)
+        .values_list("pk", flat=True)
     )
-    return []
+    dropped = len(chosen_ids) - len(in_school)
+    if dropped:
+        logger.warning(
+            "announcement %s dropped %s specific recipient(s) not linked to its "
+            "school (cross-tenant / stale picks)",
+            getattr(announcement, "pk", None),
+            dropped,
+        )
+    if not in_school:
+        return []
+    # tenant-isolation-allow: ids-pre-filtered-through-school-user-queryset
+    return list(User.objects.filter(pk__in=in_school))
 
 
 def resolve_audience_recipients(announcement: Announcement) -> Iterator[Any]:

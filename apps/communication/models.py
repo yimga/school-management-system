@@ -299,6 +299,16 @@ class Announcement(models.Model):
     audience = models.CharField(
         max_length=20, choices=Audience.choices, default=Audience.ALL
     )
+    specific_recipients = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        related_name="targeted_announcements",
+        help_text=(
+            "When audience='specific', the explicit set of recipient users. "
+            "Resolution is still re-scoped to this announcement's school at "
+            "fan-out time, so a stray cross-tenant pick can never be delivered."
+        ),
+    )
     status = models.CharField(
         max_length=20,
         choices=Status.choices,

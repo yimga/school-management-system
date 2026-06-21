@@ -29,6 +29,20 @@ class AnnouncementCreateForm(forms.ModelForm):
         help_text="Optional: Send this announcement to all teachers in a department",
     )
 
+    #: Explicit recipient picker, surfaced only when Audience == "Specific Group".
+    #: Declared (not auto-generated) so its queryset can be scoped to the school in
+    #: ``__init__``; it is also listed in ``Meta.fields`` so ``_save_m2m`` persists
+    #: the relation after the manual ``announcement.save()`` in ``save()``.
+    specific_recipients = forms.ModelMultipleChoiceField(
+        queryset=Announcement.specific_recipients.field.remote_field.model.objects.none(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={"class": "form-select", "size": 8}),
+        help_text=(
+            "Only used when Audience is 'Specific Group' — the exact users in this "
+            "school who should receive the announcement."
+        ),
+    )
+
     class Meta:
         model = Announcement
         fields = [
@@ -36,6 +50,7 @@ class AnnouncementCreateForm(forms.ModelForm):
             "content",
             "announcement_type",
             "audience",
+            "specific_recipients",
             "is_urgent",
             "is_active",
             "expiry_date",
@@ -73,6 +88,17 @@ class AnnouncementCreateForm(forms.ModelForm):
             self.fields["send_to_department"].queryset = Department.objects.filter(
                 school=self.school
             ).order_by("name")
+            # Scope the specific-recipient picker to this school's own users only.
+            # Because the field is a ModelMultipleChoiceField, a POSTed pk outside
+            # this queryset is rejected at validation — so the form layer is itself
+            # a tenant boundary, on top of the school re-scope at fan-out time.
+            from apps.communication.announcement_delivery import (
+                _school_user_queryset,
+            )
+
+            self.fields["specific_recipients"].queryset = _school_user_queryset(
+                self.school
+            ).order_by("first_name", "last_name", "username")
         else:
             self.fields["send_to_department"].queryset = Department.objects.none()
 
@@ -110,6 +136,10 @@ class AnnouncementCreateForm(forms.ModelForm):
                 except Announcement.DoesNotExist:
                     was_active = True
             announcement.save()
+            # The instance now has a PK; persist the specific-recipients M2M.
+            # ``_save_m2m`` honours ``Meta.fields`` (the field is listed there) and
+            # only touches the school-scoped picks that passed validation.
+            self.save_m2m()
 
             if is_new:
                 log_announcement_audit(
