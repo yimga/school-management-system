@@ -1,6 +1,45 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-15 (Dashboard Packs revival + all-shells expansion — per-profile switchable dashboards on backend/parent/student/teacher/finance; SW v4.03.77; see § below).
+**Last updated:** 2026-06-20 (Flow Thread Phase 1+2 — page-explain/next-action merge + flow-continuation launchpad; SW v4.04.37; see § below. Docket reconciled across the 2026-06-18→20 platform waves that shipped between v4.03.76 and here.)
+
+## 2026-06-20 — Flow Thread — page-explain + next-action merge (Phase 1) + flow-continuation launchpad (Phase 2)
+
+**Owner ask:** "I want both of them on one line — move Next Up / Next step INTO the About-this-page frame without changing its size, to save dashboard space — but be creative and inspirational, give a flow." Then: "Proceed with implementing [Option] F platform-wide … audit and make sure all gaps are closed." Then (Phase 2): "creatively consume the freed band" → owner picked Option C from a rendered mockup.
+
+**Context:** two shell-level strips stacked at the top of every authenticated page — the "About this page" page-explain bar (`components/rmc_page_explain_strip.html`, `.rmc-page-explain-strip`) and the standalone "Next up" next-action strip (`components/next_action_strip.html`, `.rmc-next-action-strip`, included in ~757 per-page templates + base shells). Both read context-processor globals: page-explain from `apps/siteconfig/page_explain.py`, next-action `rmc_system_actions` from `apps/platform_runtime/action_engine.py`.
+
+**What landed — Phase 1 (merge, "Flow Thread"):**
+- The page-explain bar folds the system's primary next-action (`rmc_system_actions.0`) into itself as a one-line Flow Thread: origin dot ("you are here") → luminous connector → emerald destination pill ("your next step"), preserving every analytics `data-*` attr incl. the single `data-rmc-primary-action="1"`.
+- LINCHPIN dedup: ONE guard added to `next_action_strip.html` (`{% if not rmc_page_explain_enabled or not rmc_system_actions_available %}`) suppresses all ~757 + shell renders at once when the bar hosts the action — mutually exclusive, no double-render, no 757-file sweep. Standalone strip still renders on non-explain pages + as fallback when the engine returns no rows.
+- Shell-level coverage: editing the bar partial covers operator (`base.html`, `control_plane_base.html`) + tenant (`portal_base.html`) — past/present/future tenants, platform-wide.
+
+**What landed — Phase 2 (flow-continuation launchpad, Option C):**
+- New shell-level partial `components/rmc_flow_launchpad.html` — the thread drops from the bar into the ~110px band the merge reclaimed, landing in a 2-3 step "Your flow" launchpad built from the SAME `rmc_system_actions` engine (`|slice:":3"`). First card is the live "you are here" anchor (echoes the pill, `aria-current="step"`); cards carry analytics `data-*` but deliberately OMIT `data-rmc-primary-action` (the pill keeps the page's single primary).
+- Included once from `rmc_page_explain_strip.html` (after the bar `</section>`) → same platform-wide reach from one file.
+- Gated SILENT in conversion-single-action (strict) mode and when only the pill's action exists (`… and not rmc_conversion_single_action_enforced and rmc_system_actions|length > 1`) → no redundant band.
+
+**CSS / SW:** `.rmc-page-explain-strip--flow*` + `.rmc-flow-launchpad*` in `static/css/rmc-class-grammar.css`, token-only (`--brand-primary` / `--ds-success` / `color-mix`; `off-token-allow` on the 2 decorative gradients; `horizontal-overflow-risk-allow` on the ellipsis names; reduced-motion + ≤720px responsive). **SW v4.04.33 → v4.04.34 (Phase 1, peer-superseded to v4.04.36) → v4.04.37-flow-launchpad (Phase 2).**
+
+**Design loop:** mockups rendered in-browser first (owner constraint: no change until a rendered style is approved) — `var/design-previews/page-explain-next-action-merge-options*.html` (Phase 1, owner picked F) + `page-explain-phase2-band-treatments.html` (Phase 2, owner picked C).
+
+**Tests/gates:** `apps/siteconfig/tests/test_page_explain_flow_thread.py` — 10 green (PageExplainFlowThread + NextActionStripDedup + FlowLaunchpad: multi / single / strict / no-bar / cap-3). All zero-tolerance gates 0 (render-safety, undefined-css, off-token-colors, theme-locked, horizontal-overflow, inline-style, attribute-context, reveal-invariants); SW monotonic OK. Commits: Phase 1 `83cba58b3` (peer-flush-absorbed `8c6a3498b`), Phase 2 `88de87329`.
+
+## 2026-06-18 → 2026-06-20 — Docket reconciliation: platform waves between v4.03.76 and Flow Thread
+
+The docket stalled at 2026-06-15 (v4.03.76) while a dense run of platform waves shipped to `origin/main`. Cataloged here by theme with commit hashes to restore changelog continuity; per-wave audit detail lives in the session auto-memory files. (These were feature/fix waves — no CSS retirement — listed for completeness.)
+
+- **NGO funding / donation lifecycle** — campaigns, pledges, donor magic-link portal, AI drafting, offline intake, restricted-fund enforcement, in-kind→inventory, donation→fund GL inflow + record-level idempotency: `564429ea3`, `a88ace1eb`, `f5bbd8484`, `bcd065b83`, `68a74f24f`, `75aeca476`. Advancement grants pipeline + recurring giving + donor receipts + operator funding rollup: `08929c379`.
+- **Setup Studio wizards** — wired ~40 operational domain-kernel writers end-to-end (`a9608662e`); resolver / render / user-scoped persistence / validation hardening + double-submit guard + ISO country-currency validation + global free-text backstop: `0558049c1`, `6fe70272c`, `9f672a5b0`, `0659c4673`, `a72da5a14`, `d68e4564a`, `2152a8818`, `85b388696`, `f5f5016f6`; test reds fixed `28cf78c19`.
+- **Billing / subscription** — Free-as-default plan binding + operator subscription manager + entitlement propagation + plan=None pricing safety: `074e52a34`, `071c8c0fa`, `a0935977d`.
+- **Provisioning / flight-deck** — requeue self-heals tenant column-drift + button feedback (`6a4e599e4`), migrate heartbeat so slow runs aren't false-flagged stuck (`c00740326`, `3c97cbbba`), region/profile link (`42ab1fe18`), manager-host cron endpoint (`a9f5d64f1`).
+- **AI copilot rail** — collapsed-by-default platform-wide (`75027328b`) + composer-in-frame + tenant-school resolution + operator Tools-tab overlap fix + collapsed-default contract test: `a050d914a`, `4aece04df`, `d9d49cfcb`, `bc5fb35e8`, `060449c82`, `789429501`.
+- **Tenant shell / dashboard** — onboarding setup command surface on the v3 canvas + terminology-aware copy (`323830d0c`, `84376ca16`, `2684505df`), adaptive admin landing (`f7a5cb011`), canvas-gutter / copilot decouple + wizard overflow (`1f92bbc33`), 18 invalid `calc()` repairs (`2db8914e7`), fresh-tenant school resolution (`be5593a48`, `668186bfa`), single-sidebar below lg (`eb817b814`).
+- **Attendance / offline** — teacher attendance scoped to taught classrooms + offline owner guard (`0f473bec7`, `a32f04cbe`), offline draft/command error-handling + a11y (`112401cfa`), finance offline payment-intent idempotency OFFLINE-006 (`8647e7aa9`).
+- **Contextual help** — workflow help panel wired into Workflow Center + de-dup vs hero / testable builder: `648852669`, `4bee1b6e0`.
+- **Operator / tenant plane audit** — offboarding-export scope gap + blueprint-apply idempotency (`477c6ff46`), MFA first-run nag no longer interrupts enrollment (`7624a478f`).
+- **Studio breadth audit** — focus-sidebar dedupe + publish/rollback confirms (`2721cfd6c`), automation-builder async error states (`9fbcd56d0`).
+- **Activation** — disable the school activation gate by default (it trapped admins on the setup wizard): `134c48b11`.
+- **CI hygiene** — magic-numbers / rbac-matrix / security-audit baseline refreshes, no finding changes (`0ea600041`, `69ee0b257`); tracked design-preview snapshots (`6cb02e797`).
 
 ## 2026-06-15 — v4.03.76 — Dashboard Packs revival (per-profile dashboards, role-assignable + user-switchable)
 
