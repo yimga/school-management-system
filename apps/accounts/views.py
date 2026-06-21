@@ -528,12 +528,46 @@ def profile_edit(request):
     )
 
 
+def _notification_inbox_queryset(request):
+    """The caller's visible-inbox notification queryset (GAP-4/5).
+
+    Scopes notifications to what the user should actually see in their inbox:
+
+    * **Ownership** — rows the user is the recipient of, or created.
+    * **Tenant** — when the request carries a school, only that school's rows plus
+      global (``school__isnull``) rows; a notification stamped for another tenant
+      never leaks into this inbox. Hosts without a school (e.g. manager) are not
+      school-filtered (there is no tenant to bind to).
+    * **Not dismissed** — rows the recipient dismissed are hidden.
+    * **Not expired** — rows past their ``expires_at`` are hidden (they are
+      retention-eligible, not inbox content).
+
+    Returned newest-first. Used by both the SSR inbox and the per-row SSR actions
+    so "what I can see" and "what I can act on" are defined in exactly one place.
+    """
+    from apps.finance.models import Notification
+    from django.db.models import Q
+    from django.utils import timezone
+
+    qs = Notification.objects.filter(
+        Q(recipient=request.user) | Q(created_by=request.user)
+    )
+
+    school = getattr(request, "school", None)
+    if school is not None:
+        # tenant-isolation-allow: inbox-scoped-to-request-school-plus-global-rows
+        qs = qs.filter(Q(school=school) | Q(school__isnull=True))
+
+    now = timezone.now()
+    qs = qs.filter(dismissed_at__isnull=True).filter(
+        Q(expires_at__isnull=True) | Q(expires_at__gte=now)
+    )
+    return qs.order_by("-created_at")
+
+
 @login_required
 def user_notifications(request):
     """User notifications landing page (RBAC-safe)."""
-    from apps.finance.models import Notification
-    from django.db.models import Q
-
     from apps.accounts.security_posture_notifications import (
         dedupe_notifications_for_inbox,
         ensure_quarterly_posture_notification,
@@ -543,9 +577,7 @@ def user_notifications(request):
         request.user, getattr(request, "school", None)
     )
 
-    base_qs = Notification.objects.filter(
-        Q(recipient=request.user) | Q(created_by=request.user)
-    ).order_by("-created_at")
+    base_qs = _notification_inbox_queryset(request)
 
     # Stats from full queryset before slicing
     total_count = base_qs.count()
@@ -654,6 +686,82 @@ def mark_all_notifications_read(request):
 
     target = request.META.get("HTTP_REFERER") or reverse("accounts:user_notifications")
     return redirect(target)
+
+
+def _safe_inbox_redirect(request):
+    """Redirect back to the referring inbox page, falling back to the inbox URL.
+
+    Only same-origin referers are honoured (an absolute off-site referer is
+    ignored) so the per-row actions can't be turned into an open redirect.
+    """
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    referer = request.META.get("HTTP_REFERER") or ""
+    fallback = reverse("accounts:user_notifications")
+    if referer and url_has_allowed_host_and_scheme(
+        referer,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return redirect(referer)
+    return redirect(fallback)
+
+
+@login_required
+@require_POST
+def notification_mark_read(request, notification_id):
+    """SSR action: mark ONE of the caller's notifications read, then redirect back.
+
+    GAP-3: the inbox previously POSTed the per-row "mark read" form straight at
+    the DRF JSON endpoint, which returned ``{"status": "success"}`` as a raw JSON
+    body — the user saw JSON instead of their refreshed inbox. This server-rendered
+    action marks the row read (scoped through :func:`_notification_inbox_queryset`,
+    so a user can only touch rows they can see) and redirects back to the inbox.
+    """
+    notification = _notification_inbox_queryset(request).filter(
+        pk=notification_id
+    ).first()
+    if notification is None:
+        messages.info(request, _("That notification is no longer available."))
+        return _safe_inbox_redirect(request)
+
+    if not notification.is_read:
+        notification.is_read = True
+        notification.save(update_fields=["is_read"])
+    return _safe_inbox_redirect(request)
+
+
+@login_required
+@require_POST
+def notification_dismiss(request, notification_id):
+    """SSR action: dismiss ONE notification from the caller's inbox (GAP-4).
+
+    Dismissal removes the row from the inbox (and the unread count) without
+    deleting it — it stamps ``dismissed_at`` and marks it read, so the row drops
+    out of :func:`_notification_inbox_queryset` immediately while remaining on
+    record (and retention-eligible). Scoped through the same inbox queryset, so a
+    user can only dismiss rows they can see.
+    """
+    notification = _notification_inbox_queryset(request).filter(
+        pk=notification_id
+    ).first()
+    if notification is None:
+        messages.info(request, _("That notification is no longer available."))
+        return _safe_inbox_redirect(request)
+
+    from django.utils import timezone
+
+    update_fields = []
+    if notification.dismissed_at is None:
+        notification.dismissed_at = timezone.now()
+        update_fields.append("dismissed_at")
+    if not notification.is_read:
+        notification.is_read = True
+        update_fields.append("is_read")
+    if update_fields:
+        notification.save(update_fields=update_fields)
+    messages.success(request, _("Notification dismissed."))
+    return _safe_inbox_redirect(request)
 
 
 def _direct_conversations(user, limit=50):

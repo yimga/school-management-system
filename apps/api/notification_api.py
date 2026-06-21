@@ -88,13 +88,29 @@ class NotificationViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """Get notifications"""
+        """Get the caller's visible notifications.
+
+        Matches the SSR inbox's visibility rules (see
+        ``apps.accounts.views._notification_inbox_queryset``) so the bell badge,
+        the API list, and the inbox page never disagree: rows the user is the
+        recipient of or created, scoped to the request's school (plus global
+        rows), excluding dismissed and expired rows.
+        """
         from apps.finance.models import Notification
 
         user = self.request.user
-        return Notification.objects.filter(
-            Q(recipient=user) | Q(created_by=user)
-        ).order_by("-created_at")
+        qs = Notification.objects.filter(Q(recipient=user) | Q(created_by=user))
+
+        school = getattr(self.request, "school", None)
+        if school is not None:
+            # tenant-isolation-allow: inbox-scoped-to-request-school-plus-global-rows
+            qs = qs.filter(Q(school=school) | Q(school__isnull=True))
+
+        now = timezone.now()
+        qs = qs.filter(dismissed_at__isnull=True).filter(
+            Q(expires_at__isnull=True) | Q(expires_at__gte=now)
+        )
+        return qs.order_by("-created_at")
 
     def list(self, request):
         """List notifications with filtering"""

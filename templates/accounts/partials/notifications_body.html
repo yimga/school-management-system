@@ -97,7 +97,7 @@
                     </a>
                   {% endif %}
                   {% if not notif.is_read %}
-                    <form method="post" action="{% url 'api:notification-read' notif.id %}" class="d-inline">
+                    <form method="post" action="{% url 'accounts:notification_mark_read' notif.id %}" class="d-inline">
                       {% csrf_token %}
                       <button type="submit" class="btn btn-sm btn-outline-secondary" title="{% trans 'Mark as read' %}">
                         <i class="bi bi-check2"></i>
@@ -105,6 +105,13 @@
                       </button>
                     </form>
                   {% endif %}
+                  <form method="post" action="{% url 'accounts:notification_dismiss' notif.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-secondary" title="{% trans 'Dismiss' %}">
+                      <i class="bi bi-x-lg"></i>
+                      <span class="visually-hidden">{% trans "Dismiss" %}</span>
+                    </button>
+                  </form>
                 </div>
               </li>
             {% endfor %}

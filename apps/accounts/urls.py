@@ -31,6 +31,8 @@ from .views import (
     user_messages,
     user_notifications,
     mark_all_notifications_read,
+    notification_mark_read,
+    notification_dismiss,
     notification_preferences,
     user_profile,
 )
@@ -250,6 +252,16 @@ urlpatterns = [
         "notifications/mark-all-read/",
         mark_all_notifications_read,
         name="mark_all_notifications_read",
+    ),
+    path(
+        "notifications/<int:notification_id>/read/",
+        notification_mark_read,
+        name="notification_mark_read",
+    ),
+    path(
+        "notifications/<int:notification_id>/dismiss/",
+        notification_dismiss,
+        name="notification_dismiss",
     ),
     path(
         "notifications/preferences/",
