@@ -12,7 +12,6 @@ from pathlib import Path
 
 from django.contrib.staticfiles import finders
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
 from django.templatetags.static import static as django_static
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
@@ -75,21 +74,84 @@ def service_worker_script(request):
     return response
 
 
+# Self-contained reset page. Built as a string and served via HttpResponse (NOT
+# render()) so it never runs the shell context processors — several of those
+# require an authenticated tenant request and 500 for the anonymous hit this page
+# is designed to serve. No shell + no SW registration, so it cannot re-register
+# the worker it just removed. ``__CSP_NONCE__`` is swapped for the per-request CSP
+# nonce so the inline script is allowed by the strict CSP header.
+_SW_RESET_HTML = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Resetting the app...</title>
+</head>
+<body>
+  <main style="max-width: 36rem; margin: 4rem auto; padding: 0 1.25rem; line-height: 1.6;">
+    <h1>Resetting the app...</h1>
+    <p data-rmc-sw-reset-status>Clearing cached service workers and offline data. This page will reload automatically.</p>
+    <p>If it doesn't, <a href="/" data-rmc-sw-reset-home>tap here to continue</a>.</p>
+    <noscript><p>JavaScript is disabled. Open your browser's site settings for this site and choose
+    "Clear site data" / "Unregister service workers", then reload.</p></noscript>
+  </main>
+  <script nonce="__CSP_NONCE__">
+  (function () {
+    "use strict";
+    function destination() {
+      try {
+        var next = new URLSearchParams(window.location.search).get("next");
+        if (next && next.charAt(0) === "/" && next.charAt(1) !== "/") { return next; }
+      } catch (e) {}
+      return "/";
+    }
+    function done() {
+      var s = document.querySelector("[data-rmc-sw-reset-status]");
+      if (s) { s.textContent = "Done. Reloading the latest version..."; }
+      var dest = destination();
+      var sep = dest.indexOf("?") === -1 ? "?" : "&";
+      window.location.replace(dest + sep + "rmc_fresh=" + Date.now());
+    }
+    var tasks = [];
+    try {
+      if ("serviceWorker" in navigator) {
+        tasks.push(navigator.serviceWorker.getRegistrations().then(function (rs) {
+          return Promise.all(rs.map(function (r) { return r.unregister(); }));
+        }));
+      }
+      if (window.caches && typeof caches.keys === "function") {
+        tasks.push(caches.keys().then(function (ks) {
+          return Promise.all(ks.map(function (k) { return caches.delete(k); }));
+        }));
+      }
+    } catch (e) {}
+    var safety = window.setTimeout(done, 4000);
+    Promise.all(tasks).catch(function () {}).then(function () { window.clearTimeout(safety); done(); });
+  })();
+  </script>
+</body>
+</html>
+"""
+
+
 @require_GET
 @never_cache
 def service_worker_reset(request):
     """One-click escape hatch for a browser stuck on a stale service worker.
 
-    Renders a minimal standalone page (no shell, no SW registration) whose
-    script unregisters every service worker for this origin and deletes every
-    Cache Storage bucket, then reloads. A normal hard-refresh cannot do this —
-    it bypasses the SW for one request but never unregisters it, which is why a
+    Serves a minimal standalone page (no shell, no SW registration) whose script
+    unregisters every service worker for this origin and deletes every Cache
+    Storage bucket, then reloads. A normal hard-refresh cannot do this — it
+    bypasses the SW for one request but never unregisters it, which is why a
     cache-first worker keeps serving stale post-deploy HTML/CSS/JS for days.
 
     Public + no-cache: a new URL has nothing cached against it, so even a stale
     cache-first worker fetches this page fresh from the network.
     """
-    response = render(request, "sw_reset.html")
+    nonce = getattr(request, "csp_nonce", "") or ""
+    html = _SW_RESET_HTML.replace("__CSP_NONCE__", nonce)
+    response = HttpResponse(html, content_type="text/html; charset=utf-8")
     response["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response["Pragma"] = "no-cache"
     response["CDN-Cache-Control"] = "no-store"
