@@ -36,7 +36,6 @@ def build_setup_wizard_stages(school: Any) -> dict[str, Any]:
     try:
         from apps.setup_studio import wizard_engine
         from apps.setup_studio.wizard_categories import group_wizards_by_category
-        from apps.setup_studio.wizard_extras import wizard_status_map
         from apps.setup_studio.wizard_labels import humanize_wizard_token
 
         wizards = wizard_engine.list_wizards_for_audience(TENANT_AUDIENCE)
