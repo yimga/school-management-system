@@ -1188,6 +1188,68 @@ def direct_thread_read_state(request, user_id):
     return JsonResponse({"messages": payload})
 
 
+#: Max messages returned by one live-poll fetch (bounds the payload; a backlog
+#: larger than this drains across successive polls).
+_THREAD_LIVE_POLL_LIMIT = 50
+
+
+@login_required
+def direct_thread_messages_since(request, user_id):
+    """JSON of thread messages newer than ``?after`` for live delivery (IM-3).
+
+    Powers the open-thread live updater: the client passes the highest message id
+    it has rendered, and this returns anything newer between the two participants
+    (same school-scoped target as the thread itself). It also marks the OTHER
+    party's now-visible messages read — the user is actively looking — so the
+    sender's "Seen" receipt updates without either side reloading.
+    """
+    from apps.communication.models import Message
+    from django.http import JsonResponse
+
+    other = get_object_or_404(_direct_message_user_queryset(request), pk=user_id)
+    try:
+        after = int(request.GET.get("after") or 0)
+    except (TypeError, ValueError):
+        after = 0
+
+    # tenant-isolation-allow: thread-rows-scoped-to-caller-and-other-participant
+    new_qs = (
+        Message.objects.filter(
+            Q(sender=request.user, recipient=other)
+            | Q(sender=other, recipient=request.user)
+        )
+        .filter(is_archived=False, id__gt=after)
+        .select_related("sender")
+        .order_by("created_at")[:_THREAD_LIVE_POLL_LIMIT]
+    )
+
+    items = []
+    for msg in new_qs:
+        sender = msg.sender
+        items.append(
+            {
+                "id": msg.id,
+                "mine": msg.sender_id == request.user.id,
+                "sender_name": (
+                    (sender.get_full_name() if sender else "")
+                    or getattr(sender, "username", "")
+                    or "Someone"
+                ),
+                "body": msg.body or "",
+                "created_at": msg.created_at.isoformat(),
+                "is_read": bool(msg.is_read),
+            }
+        )
+
+    # The viewer is live on the thread → mark the other party's unread as read.
+    # tenant-isolation-allow: scoped-to-messages-other-sent-to-caller
+    Message.objects.filter(
+        sender=other, recipient=request.user, is_read=False
+    ).update(is_read=True, read_at=timezone.now())
+
+    return JsonResponse({"messages": items})
+
+
 @login_required
 def direct_compose(request):
     """Start a new direct message; staff/teacher only; parents use Contact School (RBAC)."""

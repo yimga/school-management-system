@@ -20,6 +20,7 @@ from .views import (
     direct_compose,
     direct_thread,
     direct_thread_read_state,
+    direct_thread_messages_since,
     message_attachment_download,
     login_view,
     logout_view,
@@ -277,6 +278,11 @@ urlpatterns = [
         "messages/direct/<int:user_id>/read-state/",
         direct_thread_read_state,
         name="direct_thread_read_state",
+    ),
+    path(
+        "messages/direct/<int:user_id>/since/",
+        direct_thread_messages_since,
+        name="direct_thread_messages_since",
     ),
     path(
         "messages/attachment/<int:attachment_id>/",

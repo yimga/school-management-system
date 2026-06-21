@@ -42,10 +42,15 @@
         </div>
 
         <div class="p-3 rmc-iso-scroll-zone rmc-iso-scroll-zone--h-50vh" data-rmc-iso-scroll-zone="1"
+             data-rmc-thread-messages
+             data-rmc-current-user-id="{{ request.user.id }}"
              data-rmc-thread-receipts-endpoint="{% url 'accounts:direct_thread_read_state' other_user.id %}"
-             data-rmc-thread-receipts-interval="20">
+             data-rmc-thread-receipts-interval="20"
+             data-rmc-thread-poll-endpoint="{% url 'accounts:direct_thread_messages_since' other_user.id %}"
+             data-rmc-thread-poll-interval="12">
           {% for msg in messages %}
-            <div class="mb-3 d-flex {% if msg.sender_id == request.user.id %}justify-content-end{% else %}justify-content-start{% endif %}">
+            <div class="mb-3 d-flex {% if msg.sender_id == request.user.id %}justify-content-end{% else %}justify-content-start{% endif %}"
+                 data-rmc-thread-msg data-message-id="{{ msg.id }}">
               <div class="rounded-3 px-3 py-2 {% if msg.sender_id == request.user.id %}bg-primary text-white{% else %}bg-light{% endif %} max-w-75p" >
                 <div class="small opacity-75">
                   {{ msg.sender.get_full_name|default:msg.sender.username }}
@@ -113,4 +118,8 @@
 {% comment %} GAP-6: live "Seen" receipt — polls the read-state endpoint and reveals the
    receipt on the sender's messages once the recipient has opened the thread. {% endcomment %}
 <script src="{% static 'js/rmc-direct-thread-receipts.js' %}" nonce="{{ csp_nonce }}"></script>
+{% comment %} IM-3: live new-message delivery — polls for messages newer than the last one
+   rendered and appends them in place (body via textContent — never innerHTML), so an open
+   thread updates without a reload. {% endcomment %}
+<script src="{% static 'js/rmc-direct-thread-live.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
