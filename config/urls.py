@@ -25,6 +25,7 @@ from apps.communication.views_delivery_dashboard import MessageDeliveryDashboard
 from apps.observability import views as obs_views
 from apps.siteconfig.views_service_worker import (
     service_worker_asset_manifest,
+    service_worker_reset,
     service_worker_script,
 )
 from apps.wal_stream.views_http import wal_websocket_http_stub
@@ -275,6 +276,10 @@ urlpatterns = [
     ),
     path("offline/", offline_page, name="offline"),
     path("sw.js", service_worker_script, name="service_worker_root"),
+    # One-click escape hatch for a browser stuck on a stale, cache-first service
+    # worker (serves days-old HTML/CSS/JS after a deploy; a hard-refresh can't
+    # clear it). Visiting /sw-reset/ unregisters all workers + clears caches.
+    path("sw-reset/", service_worker_reset, name="service_worker_reset"),
     # Wave P-C (v3.95.1): Embedded checkout endpoint for parent fee payments.
     path(
         "billing/embedded-checkout/",

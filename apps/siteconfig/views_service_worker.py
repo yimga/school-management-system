@@ -12,6 +12,7 @@ from pathlib import Path
 
 from django.contrib.staticfiles import finders
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
 from django.templatetags.static import static as django_static
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
@@ -68,6 +69,27 @@ def service_worker_script(request):
         )
     response = HttpResponse(body, content_type="application/javascript; charset=utf-8")
     response["Service-Worker-Allowed"] = "/"
+    response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response["Pragma"] = "no-cache"
+    response["CDN-Cache-Control"] = "no-store"
+    return response
+
+
+@require_GET
+@never_cache
+def service_worker_reset(request):
+    """One-click escape hatch for a browser stuck on a stale service worker.
+
+    Renders a minimal standalone page (no shell, no SW registration) whose
+    script unregisters every service worker for this origin and deletes every
+    Cache Storage bucket, then reloads. A normal hard-refresh cannot do this —
+    it bypasses the SW for one request but never unregisters it, which is why a
+    cache-first worker keeps serving stale post-deploy HTML/CSS/JS for days.
+
+    Public + no-cache: a new URL has nothing cached against it, so even a stale
+    cache-first worker fetches this page fresh from the network.
+    """
+    response = render(request, "sw_reset.html")
     response["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response["Pragma"] = "no-cache"
     response["CDN-Cache-Control"] = "no-store"
