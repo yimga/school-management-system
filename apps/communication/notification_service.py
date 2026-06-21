@@ -278,6 +278,92 @@ def _record_sms_route_attempts(outcome: Any, *, recipient: str, school: Any = No
         )
 
 
+def _sms_idempotency_reserve(*, key: str, to_phone: str, school: Any) -> Any:
+    """GAP-7 provider-level idempotency reservation.
+
+    Gate the *provider* send (not just the enqueue layer) on the persisted
+    ``SmsSendLog`` ledger so an SMS retry that reaches the provider twice never
+    double-sends a real message. Returns one of:
+
+    * ``"duplicate"`` — a SENT row already exists for this key, OR a concurrent
+      writer already holds the unique row (we lost the ``get_or_create`` race and
+      another in-flight send owns the dispatch); the caller MUST NOT call the
+      provider.
+    * an ``SmsSendLog`` instance (status PENDING) — this call owns the dispatch
+      and must finalize the row via :func:`_sms_idempotency_finalize`.
+    * ``None`` — fail-open: the ledger is unavailable (DB hiccup) so we proceed
+      with the send rather than block every SMS on an idempotency-ledger outage.
+
+    Recipient is stored hashed only (sha256 hex prefix via the canonical
+    ``delivery_receipts._hash_recipient`` — never the raw phone).
+    """
+    try:
+        from apps.communication.delivery_receipts import _hash_recipient
+        from apps.communication.models import SmsSendLog
+
+        # Already dispatched for this logical send → duplicate, do not re-send.
+        # tenant-isolation-allow: sms-send-log keyed by unique idempotency_key
+        already_sent = SmsSendLog.objects.filter(
+            idempotency_key=key, status=SmsSendLog.Status.SENT,
+        ).exists()
+        if already_sent:
+            return "duplicate"
+
+        log_row, created = SmsSendLog.objects.get_or_create(
+            idempotency_key=key,
+            defaults={
+                "recipient_hash": _hash_recipient(to_phone),
+                "school": school if (school is not None and getattr(school, "pk", None)) else None,
+                "status": SmsSendLog.Status.PENDING,
+            },
+        )
+        if not created:
+            # A concurrent PENDING/SENT row already owns this key — treat as a
+            # duplicate so only the first writer dispatches to the provider.
+            return "duplicate"
+        return log_row
+    except Exception as exc:  # broad-by-design — ledger outage must not block SMS
+        logger.warning(
+            "notification_service.sms_idempotency_reserve_failed err=%s (failing open)",
+            type(exc).__name__,
+        )
+        return None
+
+
+def _sms_idempotency_finalize(log_row: Any, *, sent: bool, outcome: Any = None) -> None:
+    """Mark a reserved ``SmsSendLog`` row SENT (+provider_message_id) or FAILED.
+
+    Best-effort — a ledger write error here never breaks the send path (the
+    message was already dispatched by the time we finalize). No raw PII is read
+    or logged.
+    """
+    if log_row is None:
+        return
+    try:
+        from apps.communication.models import SmsSendLog
+
+        if sent:
+            log_row.status = SmsSendLog.Status.SENT
+            provider_key = getattr(outcome, "provider_key", None)
+            if provider_key:
+                log_row.provider = str(provider_key)[:32]
+            result = getattr(outcome, "result", None)
+            provider_message_id = getattr(result, "provider_message_id", None)
+            if provider_message_id:
+                log_row.provider_message_id = str(provider_message_id)[:128]
+            log_row.save(
+                update_fields=["status", "provider", "provider_message_id"],
+            )
+        else:
+            log_row.status = SmsSendLog.Status.FAILED
+            log_row.save(update_fields=["status"])
+    except Exception as exc:  # broad-by-design — finalize never breaks the send
+        logger.warning(
+            "notification_service.sms_idempotency_finalize_failed err=%s",
+            type(exc).__name__,
+        )
+
+
 def send_sms(
     to_phone: str,
     body: str,
@@ -340,17 +426,38 @@ def send_sms(
         # success/failure per the *overall* routing outcome below.
         from apps.communication.sms_router import SMSMultiGatewayRouter
 
+        # GAP-7: provider-level idempotency. The enqueue layer only de-dupes at
+        # the OutboundMessageQueue; a retry that reaches the provider twice could
+        # still double-send a real SMS. When a non-empty idempotency_key is
+        # supplied we gate the actual provider call on the persisted SmsSendLog
+        # ledger: a prior SENT row (or a concurrent in-flight row) short-circuits
+        # the send. With no key the behaviour is unchanged (best-effort, no row).
+        idem_key = (idempotency_key or "").strip()[:128]
+        sms_log_row = None
+        if idem_key:
+            reservation = _sms_idempotency_reserve(
+                key=idem_key, to_phone=to_phone, school=school,
+            )
+            if reservation == "duplicate":
+                logger.info(
+                    "send_sms deduped: provider send already recorded for idempotency_key (no double-send)",
+                )
+                return True  # already sent — truthy, provider NOT called again
+            sms_log_row = reservation  # PENDING row we own, or None (fail-open)
+
         router = SMSMultiGatewayRouter.for_destination(site, to_phone)
         outcome = router.route(to_phone, body, idempotency_key=idempotency_key)
         _record_sms_route_attempts(
             outcome, recipient=to_phone, school=school,
         )
         if outcome.ok:
+            _sms_idempotency_finalize(sms_log_row, sent=True, outcome=outcome)
             circuit_record_success(school_id, "sms")
             _bump_sms_usage_meter(school, body)
             return True
         # Every provider in the chain failed — now (and only now) trip the
         # breaker and fall through to the existing fallback / enqueue path.
+        _sms_idempotency_finalize(sms_log_row, sent=False, outcome=outcome)
         circuit_record_failure(school_id, "sms")
         if fallback_email and body:
             send_email(
