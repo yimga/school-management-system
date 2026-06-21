@@ -355,9 +355,13 @@ def get_school_onboarding_progress(
             or _reverse_tenant("siteconfig:console_domains_hub"),
         }
 
-    # 3–5 items for card: prefer incomplete first
+    # Show EVERY step as a card (incomplete first), not a truncated slice — the
+    # ring/count report the full total, so a cap left the surface saying e.g.
+    # "8/9" while rendering only 5 cards. get_onboarding_steps returns a bounded,
+    # curated milestone list and the cards use a responsive auto-fill grid, so the
+    # full set simply wraps to more rows.
     ordered = [s for s in steps if not s.get("done")] + [s for s in steps if s.get("done")]
-    display_steps = ordered[:5]
+    display_steps = ordered
 
     pct = min(100, max(0, percent))
     quality = onboarding_import_quality_display(pct)
