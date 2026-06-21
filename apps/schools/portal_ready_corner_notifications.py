@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from django.db import DatabaseError
 from django.urls import reverse
 
 logger = logging.getLogger(__name__)
@@ -45,15 +46,22 @@ def portal_ready_corner_for_request(request) -> list[dict[str, Any]]:
     except ImportError:
         return []
 
-    note = (
-        Notification.objects.filter(
-            recipient=user,
-            title=PORTAL_READY_INBOX_TITLE,
-            is_read=False,
+    try:
+        note = (
+            Notification.objects.filter(
+                recipient=user,
+                title=PORTAL_READY_INBOX_TITLE,
+                is_read=False,
+            )
+            .order_by("-created_at")
+            .first()
         )
-        .order_by("-created_at")
-        .first()
-    )
+    except DatabaseError:
+        logger.warning(
+            "portal_ready_corner_for_request: finance_notification schema drift",
+            exc_info=True,
+        )
+        return []
     if not note:
         return []
     nid = str(note.pk)
@@ -97,15 +105,22 @@ def nudge_portal_ready_web_push(user) -> int:
     except ImportError:
         return 0
 
-    note = (
-        Notification.objects.filter(
-            recipient=user,
-            title=PORTAL_READY_INBOX_TITLE,
-            is_read=False,
+    try:
+        note = (
+            Notification.objects.filter(
+                recipient=user,
+                title=PORTAL_READY_INBOX_TITLE,
+                is_read=False,
+            )
+            .order_by("-created_at")
+            .first()
         )
-        .order_by("-created_at")
-        .first()
-    )
+    except DatabaseError:
+        logger.warning(
+            "nudge_portal_ready_web_push: finance_notification schema drift",
+            exc_info=True,
+        )
+        return 0
     if not note:
         return 0
     href = (note.link or "").strip()

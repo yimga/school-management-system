@@ -244,6 +244,10 @@ from apps.siteconfig.views_manifest_icon import (  # noqa: E402
     icon_any as _manifest_icon_any,
     icon_maskable as _manifest_icon_maskable,
 )
+from apps.siteconfig.views_service_worker import (  # noqa: E402
+    service_worker_asset_manifest,
+    service_worker_script,
+)
 
 urlpatterns = [
     # Language switcher (Django i18n) — must exist on every host urlconf or the
@@ -280,6 +284,12 @@ urlpatterns = [
     ),
     path("demo/flow/complete/", demo_flow_complete, name="demo_flow_complete"),
     path("favicon.ico", favicon_redirect),
+    path("sw.js", service_worker_script, name="service_worker_root"),
+    path(
+        "sw-asset-manifest.json",
+        service_worker_asset_manifest,
+        name="sw_asset_manifest",
+    ),
     path("manifest.json", _platform_manifest, name="pwa_manifest_platform"),
     path("manifest-portal.json", _portal_manifest, name="pwa_manifest_portal"),
     path(

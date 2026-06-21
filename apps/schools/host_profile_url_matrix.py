@@ -30,6 +30,9 @@ TENANT_HOST_CRITICAL_VIEWS: tuple[str, ...] = (
     "portal:parent_dashboard",
     "portal:teacher_dashboard_alias",
     "finance:invoices",
+    "service_worker_root",
+    "sw_asset_manifest",
+    "pwa_manifest_platform",
 )
 
 # Resolved with ``config.manager_urls`` (manager.runmycampus.com / control plane).

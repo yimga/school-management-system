@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 
+from django.db import DatabaseError, ProgrammingError
 from django.urls import NoReverseMatch, reverse
 
 from apps.accounts.platform_access_policy import user_meets_platform_security_minimum
@@ -26,8 +27,10 @@ logger = logging.getLogger(__name__)
 
 _SOFT = (
     AttributeError,
+    DatabaseError,
     ImportError,
     NoReverseMatch,
+    ProgrammingError,
     RuntimeError,
     TypeError,
     ValueError,

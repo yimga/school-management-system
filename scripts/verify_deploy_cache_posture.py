@@ -63,6 +63,7 @@ def main() -> int:
         ("config/urls.py", "config/urls.py"),
         ("config/manager_urls.py", "config/manager_urls.py"),
         ("config/public_urls.py", "config/public_urls.py"),
+        ("config/tenant_urls.py", "config/tenant_urls.py"),
     ):
         text = _read(rel)
         if 'path("sw.js"' not in text:
