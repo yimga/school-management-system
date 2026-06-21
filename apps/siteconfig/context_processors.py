@@ -678,6 +678,16 @@ def site_settings(request):
         "CAN_MANAGE_SETTINGS": can_manage_settings,
         "PORTAL_SIDEBAR_ITEMS": _get_portal_sidebar_items(request, site),
     }
+    # Copilot rail "Pending / Due" quickstats — previously dead template bindings.
+    # The helper is cached per (user, school) and fully failure-isolated, so this
+    # never raises and runs its COUNT queries at most once a minute per user.
+    try:
+        from apps.siteconfig.copilot_quickstats import build_copilot_quickstats
+
+        ctx.update(build_copilot_quickstats(request))
+    except Exception:  # noqa: BLE001 — quickstats are decorative; never 500 the page
+        ctx.setdefault("copilot_pending_approvals_count", 0)
+        ctx.setdefault("copilot_due_today_count", 0)
     try:
         ctx["PORTAL_DOCUMENT_LIBRARY_MANAGE_URL"] = reverse(
             "portal:document_library_manage"
