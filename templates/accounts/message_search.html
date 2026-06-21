@@ -1,0 +1,80 @@
+{% extends "portal_base.html" %}
+{% load i18n region_format %}
+
+{% block title %}{% trans "Search messages" %}{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid py-2" data-page-critical-read="1">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Messages" %}</a>
+    <h1 class="h5 mb-0">{% trans "Search messages" %}</h1>
+  </div>
+
+  <form method="get" action="{% url 'accounts:message_search' %}" class="mb-4" role="search">
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+      <label for="message-search-q" class="visually-hidden">{% trans "Search your messages" %}</label>
+      <input type="search" name="q" id="message-search-q" class="form-control" value="{{ q }}"
+             placeholder="{% trans 'Search your direct and group messages…' %}" autofocus>
+      <button type="submit" class="btn btn-primary">{% trans "Search" %}</button>
+    </div>
+  </form>
+
+  {% if searched %}
+    <p class="text-muted small">
+      {% blocktrans count counter=result_count %}{{ counter }} result for “{{ q }}”{% plural %}{{ counter }} results for “{{ q }}”{% endblocktrans %}
+    </p>
+
+    {% if direct_results %}
+    <div class="card shadow-sm mb-4">
+      <div class="card-header"><h2 class="h6 mb-0"><i class="bi bi-chat-dots me-2" aria-hidden="true"></i>{% trans "Direct messages" %}</h2></div>
+      <div class="list-group list-group-flush">
+        {% for r in direct_results %}
+        <a href="{{ r.url }}" class="list-group-item list-group-item-action">
+          <div class="d-flex justify-content-between">
+            <strong>{{ r.other.get_full_name|default:r.other.username|default:_("Unknown") }}</strong>
+            <span class="text-muted small">{{ r.created_at|format_date }}</span>
+          </div>
+          <div class="text-muted small">{{ r.snippet }}</div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if group_results %}
+    <div class="card shadow-sm mb-4">
+      <div class="card-header"><h2 class="h6 mb-0"><i class="bi bi-people me-2" aria-hidden="true"></i>{% trans "Group threads" %}</h2></div>
+      <div class="list-group list-group-flush">
+        {% for r in group_results %}
+        <a href="{{ r.url }}" class="list-group-item list-group-item-action">
+          <div class="d-flex justify-content-between">
+            <strong>{{ r.thread.title }}</strong>
+            <span class="text-muted small">{{ r.created_at|format_date }}</span>
+          </div>
+          <div class="text-muted small">
+            {{ r.author.get_full_name|default:r.author.username }}: {{ r.snippet }}
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if not result_count %}
+    <div class="card shadow-sm">
+      <div class="card-body text-center py-5 text-muted">
+        <i class="bi bi-search d-block mb-2" style="font-size: var(--type-size-headline-xl);"></i>
+        <p class="mb-0">{% trans "No messages matched your search." %}</p>
+      </div>
+    </div>
+    {% endif %}
+  {% else %}
+    <p class="text-muted">{% trans "Type at least two characters to search the messages you've sent or received and the group threads you belong to." %}</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -20,11 +20,29 @@
         <button type="submit" class="btn btn-sm btn-outline-warning">Close conversation</button>
       </form>
       {% endif %}
+      {% if can_block %}
+      {% comment %} IM-7: block / unblock direct messaging from this peer. {% endcomment %}
+      <form method="post" action="{% url 'accounts:direct_block_toggle' other_user.id %}" class="d-inline">
+        {% csrf_token %}
+        {% if i_blocked_them %}
+        <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-shield-check me-1" aria-hidden="true"></i>{% trans "Unblock" %}</button>
+        {% else %}
+        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-shield-x me-1" aria-hidden="true"></i>{% trans "Block" %}</button>
+        {% endif %}
+      </form>
+      {% endif %}
       <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:user_profile' %}">Profile</a>
     </div>
 
     {% if conversation_closed %}
     <div class="alert alert-info">This conversation is closed. You can no longer reply. To contact the school again, use <a href="{% url 'portal:parent_contact_school' %}">Contact School</a>.</div>
+    {% endif %}
+
+    {% if is_blocked %}
+    <div class="alert alert-warning">
+      {% if i_blocked_them %}{% trans "You've blocked this person. Neither of you can message the other until you unblock them." %}
+      {% else %}{% trans "You can no longer message this person." %}{% endif %}
+    </div>
     {% endif %}
 
     <div class="card shadow-sm">
@@ -87,6 +105,10 @@
 
         {% if can_reply %}
         <div class="border-top p-3">
+          {% comment %} IM-7: typing indicator host (endpoint) + display line. {% endcomment %}
+          <div class="pb-1" data-rmc-typing-endpoint="{{ typing_endpoint }}">
+            <small class="text-muted fst-italic" data-rmc-typing-display hidden></small>
+          </div>
           <form method="post" action="{% url 'accounts:direct_thread' other_user.id %}" aria-label="Reply in conversation"
                 enctype="multipart/form-data"
                 data-rmc-message-outbox
@@ -98,7 +120,7 @@
             <input type="hidden" name="recipient" value="{{ other_user.id }}">
             <div class="mb-2">
               <label for="direct-reply-body" class="visually-hidden">Message</label>
-              <textarea name="body" id="direct-reply-body" class="form-control" rows="3" placeholder="Type your message..."></textarea>
+              <textarea name="body" id="direct-reply-body" class="form-control" rows="3" placeholder="Type your message..." data-rmc-typing-input></textarea>
             </div>
             <div class="mb-2">
               <label for="direct-reply-attachments" class="form-label small text-muted">
@@ -122,4 +144,6 @@
    rendered and appends them in place (body via textContent — never innerHTML), so an open
    thread updates without a reload. {% endcomment %}
 <script src="{% static 'js/rmc-direct-thread-live.js' %}" nonce="{{ csp_nonce }}"></script>
+{% comment %} IM-7: typing indicator (cache-backed poll; textContent-only). {% endcomment %}
+<script src="{% static 'js/rmc-thread-typing.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

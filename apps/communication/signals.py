@@ -34,7 +34,7 @@ from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from apps.communication.models import Message, ThreadMessage
+from apps.communication.models import Message, ThreadMessage, ThreadMute
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +110,20 @@ def notify_on_message_received(sender, instance, created, **kwargs):  # noqa: AR
             return
         if getattr(instance, "is_archived", False):
             return
+
+        # If the recipient has blocked the sender, suppress the notification
+        # (the send itself is refused at the view; this is defense in depth — IM-7).
+        try:
+            from apps.communication.models import MessageBlock
+
+            sender_id = getattr(instance, "sender_id", None)
+            # tenant-isolation-allow: block-row-scoped-to-this-recipient-sender-pair
+            if sender_id and MessageBlock.objects.filter(
+                blocker_id=recipient_id, blocked_id=sender_id
+            ).exists():
+                return
+        except Exception:  # noqa: BLE001 — a block lookup must never break the send
+            pass
 
         recipient = instance.recipient
         message_sender = getattr(instance, "sender", None)
@@ -194,6 +208,7 @@ def notify_on_thread_message(sender, instance, created, **kwargs):  # noqa: ARG0
 
         thread_title = (getattr(thread, "title", "") or "").strip() or "a group"
         title = f"New message in {thread_title}"
+        author_name = _sender_display_name(getattr(instance, "author", None))
         raw = (instance.content or "").strip()
         preview = raw[:MESSAGE_PREVIEW_CHARS]
         if len(raw) > MESSAGE_PREVIEW_CHARS:
@@ -212,26 +227,58 @@ def notify_on_thread_message(sender, instance, created, **kwargs):  # noqa: ARG0
             "severity": "INFO",
         }
 
-        # Snapshot recipient ids up-front so the deferred closure doesn't depend on
-        # a lazily-evaluated M2M that could change post-commit. Bounded fan-out.
+        # Members who muted this thread get no "new message" notification (IM-7).
+        # A direct @mention still reaches them — that path is separate.
+        try:
+            # tenant-isolation-allow: mutes-scoped-to-this-threads-own-mute-rows
+            muted_ids = set(
+                ThreadMute.objects.filter(thread=thread).values_list(
+                    "user_id", flat=True
+                )
+            )
+        except Exception:  # noqa: BLE001 — a mute lookup must never break the send
+            muted_ids = set()
+
+        # Snapshot the non-muted, non-author member ids up-front so the deferred
+        # closure doesn't depend on a lazily-evaluated M2M. Bounded fan-out.
         try:
             member_ids = list(
-                thread.members.exclude(pk=author_id).values_list("pk", flat=True)[
-                    :GROUP_MESSAGE_MAX_FANOUT
-                ]
+                thread.members.exclude(pk=author_id)
+                .exclude(pk__in=muted_ids)
+                .values_list("pk", flat=True)[:GROUP_MESSAGE_MAX_FANOUT]
             )
         except Exception:  # noqa: BLE001 — a bad membership relation never breaks save
             member_ids = []
-        if not member_ids:
-            return
+
+        mention_title = f"{author_name} mentioned you in {thread_title}"
 
         def _dispatch():
             from apps.communication.dispatch import dispatch_event
+            from apps.communication.models import ThreadMessageMention
             from django.contrib.auth import get_user_model
 
             user_model = get_user_model()
-            # tenant-isolation-allow: member-ids-are-from-the-threads-own-member-set
-            for member in user_model.objects.filter(pk__in=member_ids):
+
+            # @mentions are recorded by the posting view before commit, so they're
+            # visible here. Mentioned members get a distinct, mute-piercing
+            # "mentioned you" notification; everyone else (non-muted, non-mentioned)
+            # gets the plain "new message" one — so nobody is double-notified, and
+            # a muted member is still reachable by an explicit @mention.
+            try:
+                # tenant-isolation-allow: mentions-scoped-to-this-committed-message-row
+                mentioned_ids = set(
+                    ThreadMessageMention.objects.filter(
+                        message_id=instance.pk
+                    ).values_list("user_id", flat=True)
+                )
+            except Exception:  # noqa: BLE001 — mention lookup must never break dispatch
+                mentioned_ids = set()
+            mentioned_ids.discard(author_id)
+
+            regular_ids = [mid for mid in member_ids if mid not in mentioned_ids]
+
+            # tenant-isolation-allow: recipient-ids-derived-from-this-threads-own-membership
+            for member in user_model.objects.filter(pk__in=regular_ids):
                 try:
                     dispatch_event(
                         "message.received",
@@ -244,6 +291,31 @@ def notify_on_thread_message(sender, instance, created, **kwargs):  # noqa: ARG0
                         "thread.message dispatch failed err=%s", type(exc).__name__
                     )
 
+            if mentioned_ids:
+                mention_context = {
+                    "title": mention_title,
+                    "message": preview,
+                    "link": link,
+                    "severity": "INFO",
+                }
+                bounded = list(mentioned_ids)[:GROUP_MESSAGE_MAX_FANOUT]
+                # tenant-isolation-allow: mention-recipient-ids-are-this-threads-own-members
+                for member in user_model.objects.filter(pk__in=bounded):
+                    try:
+                        dispatch_event(
+                            "message.received",
+                            recipient=member,
+                            context=mention_context,
+                            school=school,
+                        )
+                    except Exception as exc:  # noqa: BLE001 — never break post-commit hooks
+                        logger.warning(
+                            "thread.mention dispatch failed err=%s",
+                            type(exc).__name__,
+                        )
+
+        # Always defer: even with no plain recipients there may be mentioned
+        # (and muted) members to notify, which are only known post-commit.
         transaction.on_commit(_dispatch)
 
     except Exception as exc:  # noqa: BLE001 — a notification must never break save()

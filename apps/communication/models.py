@@ -773,6 +773,145 @@ class ThreadMessageAttachment(models.Model):
         return self.original_name
 
 
+class ThreadMute(models.Model):
+    """A member muting a group thread (IM-7).
+
+    The member stays in the thread and can still read it, but receives no
+    notifications for new posts. A direct @mention still pierces the mute.
+    """
+
+    thread = models.ForeignKey(
+        MessageThread, on_delete=models.CASCADE, related_name="mutes"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="thread_mutes",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="thread_mutes",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("thread", "user")
+        indexes = [models.Index(fields=["user", "thread"])]
+
+    def __str__(self):
+        return f"mute {self.user_id}@{self.thread_id}"
+
+    def save(self, *args, **kwargs):
+        if not self.school_id:
+            self.school_id = _pick_school_id(
+                getattr(self.thread, "school_id", None)
+                if getattr(self, "thread", None)
+                else None,
+                _primary_school_id_for_user(getattr(self, "user", None)),
+            )
+        super().save(*args, **kwargs)
+
+
+class MessageBlock(models.Model):
+    """One user blocking another from direct-messaging them (IM-7).
+
+    While a block exists the blocked user cannot open or post to a direct thread
+    with the blocker, and the blocker receives no direct messages or notifications
+    from them. Group threads are unaffected (membership there is curated).
+    """
+
+    blocker = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="message_blocks_made",
+    )
+    blocked = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="message_blocks_received",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="message_blocks",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("blocker", "blocked")
+        indexes = [models.Index(fields=["blocked", "blocker"])]
+
+    def __str__(self):
+        return f"block {self.blocker_id}->{self.blocked_id}"
+
+    def save(self, *args, **kwargs):
+        if not self.school_id:
+            self.school_id = _pick_school_id(
+                _primary_school_id_for_user(getattr(self, "blocker", None)),
+                _primary_school_id_for_user(getattr(self, "blocked", None)),
+            )
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def is_blocked_between(user_a_id, user_b_id) -> bool:
+        """True if EITHER user has blocked the other (messaging is severed both ways)."""
+        if not user_a_id or not user_b_id:
+            return False
+        # tenant-isolation-allow: symmetric-user-pair-block-lookup-users-are-school-bound
+        return MessageBlock.objects.filter(
+            Q(blocker_id=user_a_id, blocked_id=user_b_id)
+            | Q(blocker_id=user_b_id, blocked_id=user_a_id)
+        ).exists()
+
+
+class ThreadMessageMention(models.Model):
+    """An @mention of a thread member inside a ThreadMessage (IM-7).
+
+    Recorded at post time for resolved thread members only, so a mention can
+    never address a non-member, and so a future "mentions of me" filter can read
+    them back cheaply.
+    """
+
+    message = models.ForeignKey(
+        ThreadMessage, on_delete=models.CASCADE, related_name="mentions"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="thread_mentions",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="thread_mentions",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("message", "user")
+        indexes = [models.Index(fields=["user", "-created_at"])]
+
+    def __str__(self):
+        return f"mention {self.user_id}@msg{self.message_id}"
+
+    def save(self, *args, **kwargs):
+        if not self.school_id:
+            self.school_id = _pick_school_id(
+                getattr(self.message, "school_id", None)
+                if getattr(self, "message", None)
+                else None,
+                _primary_school_id_for_user(getattr(self, "user", None)),
+            )
+        super().save(*args, **kwargs)
+
+
 class AlertRule(models.Model):
     """
     User-defined alert rules for notifications

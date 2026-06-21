@@ -67,6 +67,17 @@ urlpatterns = [
         views_groups.group_message_delete,
         name="group_message_delete",
     ),
+    # IM-7: mute/unmute a group thread + cache-backed typing indicator.
+    path(
+        "groups/<int:thread_id>/mute/",
+        views_groups.group_mute_toggle,
+        name="group_mute_toggle",
+    ),
+    path(
+        "groups/<int:thread_id>/typing/",
+        views_groups.group_typing,
+        name="group_typing",
+    ),
     # Announcements
     path(
         "announcements/create/",

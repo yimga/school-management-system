@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static region_format i18n %}
+{% load static region_format i18n communication_extras %}
 
 {% block title %}{{ thread.title }}{% endblock %}
 
@@ -63,7 +63,7 @@
                   {% endif %}
                 </div>
               </div>
-              <div class="message-content">{{ message.content|linebreaks }}</div>
+              <div class="message-content">{{ message.content|render_message_body }}</div>
               {% if message.attachments.all %}
               <div class="mt-2 d-flex flex-column gap-1">
                 {% for att in message.attachments.all %}
@@ -89,11 +89,15 @@
           </div>
 
           {% if is_member %}
-          <form method="post" class="mt-3" enctype="multipart/form-data">
+          {% comment %} IM-7: typing indicator host (endpoint) + display line. {% endcomment %}
+          <div class="px-1 pb-1" data-rmc-typing-endpoint="{{ typing_endpoint }}">
+            <small class="text-muted fst-italic" data-rmc-typing-display hidden></small>
+          </div>
+          <form method="post" class="mt-1" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="mb-2">
               <label for="group-message-body" class="visually-hidden">{% trans "Message" %}</label>
-              <textarea name="message" id="group-message-body" class="form-control" rows="3" placeholder="{% trans 'Type your message...' %}"></textarea>
+              <textarea name="message" id="group-message-body" class="form-control" rows="3" placeholder="{% trans 'Type your message... use @name to mention a member' %}" data-rmc-typing-input></textarea>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
               <label for="group-attachments" class="form-label small text-muted mb-0">
@@ -152,6 +156,16 @@
             <i class="bi bi-person-plus me-1" aria-hidden="true"></i>{% trans "Join group" %}
           </a>
           {% else %}
+          {% comment %} IM-7: per-member mute toggle — stops new-post notifications; an
+             @mention still reaches you. {% endcomment %}
+          <form method="post" action="{% url 'communication:group_mute_toggle' thread_id=thread.id %}" class="mb-2">
+            {% csrf_token %}
+            {% if is_muted %}
+            <button type="submit" class="btn btn-outline-secondary w-100"><i class="bi bi-bell me-1" aria-hidden="true"></i>{% trans "Unmute notifications" %}</button>
+            {% else %}
+            <button type="submit" class="btn btn-outline-secondary w-100"><i class="bi bi-bell-slash me-1" aria-hidden="true"></i>{% trans "Mute notifications" %}</button>
+            {% endif %}
+          </form>
           {% comment %} Pass 8 Wave 2: replaced native onclick="return confirm(...)" with
              components/confirm_modal.html — themed, screen-reader-friendly, ESC-dismissable. {% endcomment %}
           <button type="button"
@@ -172,4 +186,6 @@
    Appends messages newer than the last rendered (content/author via textContent — never
    innerHTML) and updates "Read by N/M" counts in place, without a reload. {% endcomment %}
 <script src="{% static 'js/rmc-group-thread-live.js' %}" nonce="{{ csp_nonce }}"></script>
+{% comment %} IM-7: typing indicator (cache-backed poll; textContent-only). {% endcomment %}
+<script src="{% static 'js/rmc-thread-typing.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

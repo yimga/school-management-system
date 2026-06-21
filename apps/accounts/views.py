@@ -862,6 +862,109 @@ def user_messages(request):
     return render(request, "accounts/messages.html", context)
 
 
+#: Per-section result cap and snippet radius for message search (IM-7).
+_SEARCH_RESULT_LIMIT = 25
+_SEARCH_SNIPPET_RADIUS = 60
+_SEARCH_MIN_QUERY_LEN = 2
+
+
+def _search_snippet(text, q):
+    """A short excerpt of ``text`` centred on the first match of ``q``."""
+    text = text or ""
+    low = text.lower()
+    i = low.find((q or "").lower())
+    if i < 0:
+        return text[: _SEARCH_SNIPPET_RADIUS * 2]
+    start = max(0, i - _SEARCH_SNIPPET_RADIUS)
+    end = min(len(text), i + len(q) + _SEARCH_SNIPPET_RADIUS)
+    prefix = "…" if start > 0 else ""
+    suffix = "…" if end < len(text) else ""
+    return prefix + text[start:end] + suffix
+
+
+@login_required
+def message_search(request):
+    """Search the caller's own messages across direct + group threads (IM-7).
+
+    Direct results are messages the caller sent or received; group results are
+    posts in threads the caller is a member of. Both are membership/school
+    scoped, so search never reaches another tenant's or another thread's content.
+    """
+    if getattr(request.user, "role", None) == User.Role.PARENT:
+        return redirect(reverse("portal:parent_contact_school"))
+    q = (request.GET.get("q") or "").strip()
+    direct_results = []
+    group_results = []
+    searched = len(q) >= _SEARCH_MIN_QUERY_LEN
+    if searched:
+        from apps.communication.models import Message, ThreadMessage, MessageThread
+
+        # Direct: messages to/from the caller (the pair is inherently scoped).
+        # tenant-isolation-allow: direct-results-scoped-to-callers-own-sent-or-received
+        dm_qs = (
+            Message.objects.filter(
+                Q(sender=request.user) | Q(recipient=request.user),
+                body__icontains=q,
+                is_archived=False,
+            )
+            .select_related("sender", "recipient")
+            .order_by("-created_at")[:_SEARCH_RESULT_LIMIT]
+        )
+        for m in dm_qs:
+            other = m.recipient if m.sender_id == request.user.id else m.sender
+            direct_results.append(
+                {
+                    "snippet": _search_snippet(m.body, q),
+                    "other": other,
+                    "created_at": m.created_at,
+                    "url": (
+                        reverse("accounts:direct_thread", args=[other.pk])
+                        if other
+                        else ""
+                    ),
+                }
+            )
+
+        # Group: posts in threads the caller is a member of.
+        # tenant-isolation-allow: member-threads-scoped-to-callers-own-membership
+        member_thread_ids = list(
+            MessageThread.objects.filter(members=request.user).values_list(
+                "id", flat=True
+            )
+        )
+        # tenant-isolation-allow: group-results-scoped-to-callers-own-member-threads
+        tm_qs = (
+            ThreadMessage.objects.filter(
+                thread_id__in=member_thread_ids,
+                is_deleted=False,
+                content__icontains=q,
+            )
+            .select_related("author", "thread")
+            .order_by("-created_at")[:_SEARCH_RESULT_LIMIT]
+        )
+        for m in tm_qs:
+            group_results.append(
+                {
+                    "snippet": _search_snippet(m.content, q),
+                    "author": m.author,
+                    "thread": m.thread,
+                    "created_at": m.created_at,
+                    "url": reverse(
+                        "communication:group_detail", args=[m.thread_id]
+                    ),
+                }
+            )
+
+    context = {
+        "q": q,
+        "direct_results": direct_results,
+        "group_results": group_results,
+        "result_count": len(direct_results) + len(group_results),
+        "searched": searched,
+    }
+    return render(request, "accounts/message_search.html", context)
+
+
 def _is_staff_or_teacher(user):
     if not user or not getattr(user, "is_authenticated", False):
         return False
@@ -1035,7 +1138,7 @@ def message_attachment_download(request, attachment_id):
 @login_required
 def direct_thread(request, user_id):
     """View 1-on-1 thread. Parents and students can only open threads with staff/teacher (view/reply). Staff can close the loop."""
-    from apps.communication.models import Message, DirectConversation
+    from apps.communication.models import Message, DirectConversation, MessageBlock
     from django.utils import timezone
 
     User = request.user.__class__
@@ -1072,6 +1175,13 @@ def direct_thread(request, user_id):
     ):
         conv = DirectConversation.get_or_create_for(request.user, other)
 
+    # Block state (IM-7): a block in either direction severs direct messaging.
+    is_blocked = MessageBlock.is_blocked_between(request.user.pk, other.pk)
+    # tenant-isolation-allow: block-row-scoped-to-caller-and-this-thread-peer
+    i_blocked_them = MessageBlock.objects.filter(
+        blocker=request.user, blocked=other
+    ).exists()
+
     if request.method == "POST":
         action = request.POST.get("action")
         if (
@@ -1092,6 +1202,11 @@ def direct_thread(request, user_id):
         if body or attachment_files:
             if conv and conv.closed_at:
                 messages.error(request, _("This conversation is closed."))
+            elif is_blocked:
+                messages.error(
+                    request,
+                    _("You can't message this person while a block is in place."),
+                )
             else:
                 from apps.communication.comms_locale import locale_target_for_user
 
@@ -1145,7 +1260,7 @@ def direct_thread(request, user_id):
         and conv
         and not conv.closed_at
     )
-    can_reply = not conversation_closed
+    can_reply = not conversation_closed and not is_blocked
 
     context = {
         "other_user": other,
@@ -1153,6 +1268,12 @@ def direct_thread(request, user_id):
         "conversation_closed": conversation_closed,
         "can_close": can_close,
         "can_reply": can_reply,
+        "is_blocked": is_blocked,
+        "i_blocked_them": i_blocked_them,
+        "can_block": _can_access_direct_messages(request.user),
+        "typing_endpoint": reverse(
+            "accounts:direct_thread_typing", args=[other.pk]
+        ),
     }
     return render(request, "accounts/direct_thread.html", context)
 
@@ -1251,6 +1372,49 @@ def direct_thread_messages_since(request, user_id):
 
 
 @login_required
+def direct_block_toggle(request, user_id):
+    """Block / unblock a user from direct-messaging the caller (IM-7).
+
+    Blocking severs direct messaging both ways: the blocked user can no longer
+    open or post to a thread with the caller, and the caller stops receiving
+    their messages and notifications. Group threads are unaffected.
+    """
+    if getattr(request.user, "role", None) == User.Role.PARENT:
+        return redirect(reverse("portal:parent_contact_school"))
+    if not _can_access_direct_messages(request.user):
+        return HttpResponseForbidden("You don't have permission to block users.")
+    other = get_object_or_404(_direct_message_user_queryset(request), pk=user_id)
+    from apps.communication.models import MessageBlock
+
+    if request.method == "POST":
+        # tenant-isolation-allow: block-row-scoped-to-caller-and-the-resolved-peer
+        existing = MessageBlock.objects.filter(
+            blocker=request.user, blocked=other
+        ).first()
+        if existing:
+            existing.delete()
+            messages.success(request, _("Unblocked. They can message you again."))
+        else:
+            MessageBlock.objects.create(blocker=request.user, blocked=other)
+            messages.success(request, _("Blocked. They can no longer message you."))
+    return redirect("accounts:direct_thread", user_id=other.pk)
+
+
+@login_required
+def direct_thread_typing(request, user_id):
+    """Typing indicator for a 1:1 direct thread (IM-7), cache-backed (no DB).
+
+    POST marks the caller typing; GET returns whether the other party is typing.
+    Scoped to the same school-bound peer set as the thread itself.
+    """
+    other = get_object_or_404(_direct_message_user_queryset(request), pk=user_id)
+    from apps.communication.typing import typing_cache_key, typing_response
+
+    pair = "-".join(str(p) for p in sorted((request.user.pk, other.pk)))
+    return typing_response(request, typing_cache_key("dm", pair))
+
+
+@login_required
 def direct_compose(request):
     """Start a new direct message; staff/teacher only; parents use Contact School (RBAC)."""
     if getattr(request.user, "role", None) == User.Role.PARENT:
@@ -1279,7 +1443,14 @@ def direct_compose(request):
         if not recipient:
             messages.error(request, _("Selected recipient is not available."))
             return redirect("accounts:direct_compose")
-        from apps.communication.models import DirectConversation
+        from apps.communication.models import DirectConversation, MessageBlock
+
+        if MessageBlock.is_blocked_between(request.user.pk, recipient.pk):
+            messages.error(
+                request,
+                _("You can't message this person while a block is in place."),
+            )
+            return redirect("accounts:direct_compose")
 
         if getattr(
             recipient, "role", None

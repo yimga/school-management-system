@@ -5360,3 +5360,10 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   margin-bottom: var(--space-2, 0.5rem);
   color: var(--text-primary);
 }
+
+/* IM-7: @mention highlight inside a thread message body. Token-only so tenant
+   brand wins; falls back to the inherited text colour where no brand is set. */
+.rmc-mention {
+  font-weight: 600;
+  color: var(--brand-primary, currentColor);
+}

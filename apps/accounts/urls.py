@@ -21,7 +21,10 @@ from .views import (
     direct_thread,
     direct_thread_read_state,
     direct_thread_messages_since,
+    direct_block_toggle,
+    direct_thread_typing,
     message_attachment_download,
+    message_search,
     login_view,
     logout_view,
     PasswordChangeView,
@@ -272,6 +275,7 @@ urlpatterns = [
         name="notification_preferences",
     ),
     path("messages/", user_messages, name="user_messages"),
+    path("messages/search/", message_search, name="message_search"),
     path("messages/direct/compose/", direct_compose, name="direct_compose"),
     path("messages/direct/<int:user_id>/", direct_thread, name="direct_thread"),
     path(
@@ -283,6 +287,16 @@ urlpatterns = [
         "messages/direct/<int:user_id>/since/",
         direct_thread_messages_since,
         name="direct_thread_messages_since",
+    ),
+    path(
+        "messages/direct/<int:user_id>/typing/",
+        direct_thread_typing,
+        name="direct_thread_typing",
+    ),
+    path(
+        "messages/direct/<int:user_id>/block/",
+        direct_block_toggle,
+        name="direct_block_toggle",
     ),
     path(
         "messages/attachment/<int:attachment_id>/",

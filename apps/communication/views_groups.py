@@ -3,6 +3,7 @@ Views for message thread/group management.
 """
 
 import logging
+import re
 
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -23,6 +24,8 @@ from apps.communication.models import (
     MessageThread,
     ThreadMessage,
     ThreadMessageAttachment,
+    ThreadMessageMention,
+    ThreadMute,
     ThreadReadState,
 )
 from apps.communication.forms_groups import (
@@ -178,6 +181,55 @@ def _save_thread_attachments(message, files, uploader):
             logger.warning("thread attachment save failed", exc_info=False)
             errors.append("%s: %s" % (name, _("could not be saved")))
     return saved, errors
+
+
+#: Matches an @handle token in message text: @ + 2-40 of [A-Za-z0-9._-].
+_MENTION_TOKEN_RE = re.compile(r"@([A-Za-z0-9._\-]{2,40})")
+
+
+def _member_mention_handles(member) -> set:
+    """Handles an @token may use to address ``member`` (all lowercased)."""
+    handles = set()
+    uname = (getattr(member, "username", "") or "").lower()
+    if uname:
+        handles.add(uname)
+        handles.add(uname.split("@", 1)[0])  # email local-part
+    first = (getattr(member, "first_name", "") or "").lower()
+    last = (getattr(member, "last_name", "") or "").lower()
+    if first:
+        handles.add(first)
+    if first and last:
+        handles.add(f"{first}.{last}")
+        handles.add(f"{first}{last}")
+    handles.discard("")
+    return handles
+
+
+def _resolve_and_record_mentions(message, thread, author) -> None:
+    """Record @mentions of *thread members* in a freshly-posted message (IM-7).
+
+    Tokens are matched against the thread's own members only (by username, email
+    local-part, first name, or first.last), so a mention can never resolve to a
+    non-member or a cross-tenant user, and the author can't @mention themselves.
+    The mention rows drive a distinct, mute-piercing notification (see
+    ``signals.notify_on_thread_message``) and the in-thread highlight. Best
+    effort: never raises into the post path.
+    """
+    try:
+        tokens = {t.lower() for t in _MENTION_TOKEN_RE.findall(message.content or "")}
+    except Exception:  # noqa: BLE001 — a malformed body never breaks the post
+        tokens = set()
+    if not tokens:
+        return
+    for member in thread.members.exclude(pk=author.pk):
+        if tokens & _member_mention_handles(member):
+            try:
+                # tenant-isolation-allow: mention-row-for-this-message-and-resolved-member
+                ThreadMessageMention.objects.get_or_create(
+                    message=message, user=member
+                )
+            except Exception:  # noqa: BLE001 — a mention write never breaks the post
+                logger.warning("thread mention record failed", exc_info=False)
 
 
 def _can_moderate_thread(user, thread) -> bool:
@@ -359,6 +411,9 @@ def group_detail(request: HttpRequest, thread_id: int):
                         _("Some attachments were not added: %(errs)s")
                         % {"errs": "; ".join(attach_errors)},
                     )
+            # Record @mentions before the request commits so the notification
+            # signal's on_commit hook can see them (mute-piercing mention path).
+            _resolve_and_record_mentions(msg, thread, request.user)
             thread.touch_last_message()
             messages.success(request, _("Message sent."))
             return redirect("communication:group_detail", thread_id=thread.id)
@@ -398,14 +453,23 @@ def group_detail(request: HttpRequest, thread_id: int):
         else:
             m.show_read_by = False
 
+    # tenant-isolation-allow: mute-row-scoped-to-caller-and-this-fetched-thread
+    is_muted = ThreadMute.objects.filter(
+        thread=thread, user=request.user
+    ).exists()
+
     context = {
         "thread": thread,
         "messages": message_list,
         "is_member": is_member,
         "can_manage": can_manage,
+        "is_muted": is_muted,
         "current_user_id": request.user.id,
         "live_endpoint": reverse(
             "communication:group_messages_since", args=[thread.id]
+        ),
+        "typing_endpoint": reverse(
+            "communication:group_typing", args=[thread.id]
         ),
     }
     return render(request, "communication/group_detail.html", context)
@@ -724,3 +788,48 @@ def group_message_delete(request: HttpRequest, thread_id: int, message_id: int):
         )
         messages.success(request, _("Message deleted."))
     return redirect("communication:group_detail", thread_id=thread.id)
+
+
+@login_required
+def group_mute_toggle(request: HttpRequest, thread_id: int):
+    """Mute / unmute a group thread for the caller (IM-7).
+
+    Muting stops "new message" notifications for this thread; the member stays in
+    it and can still read it, and a direct @mention still notifies them.
+    """
+    if not _can_access_group_messaging(request.user):
+        return HttpResponseForbidden("You don't have permission to access this group.")
+    thread = get_object_or_404(_thread_queryset_for_request(request), id=thread_id)
+    if not thread.members.filter(id=request.user.id).exists():
+        return HttpResponseForbidden("Join this group before muting it.")
+    if request.method == "POST":
+        # tenant-isolation-allow: mute-row-scoped-to-caller-and-this-fetched-thread
+        existing = ThreadMute.objects.filter(
+            thread=thread, user=request.user
+        ).first()
+        if existing:
+            existing.delete()
+            messages.success(request, _("Notifications unmuted for this group."))
+        else:
+            ThreadMute.objects.create(thread=thread, user=request.user)
+            messages.success(
+                request, _("Muted. You won't be notified of new posts here.")
+            )
+    return redirect("communication:group_detail", thread_id=thread.id)
+
+
+@login_required
+def group_typing(request: HttpRequest, thread_id: int):
+    """Typing indicator for a group thread (IM-7), cache-backed (no DB).
+
+    POST marks the caller as typing for a few seconds; GET returns the other
+    members currently typing. Membership-gated; ephemeral and best-effort.
+    """
+    if not _can_access_group_messaging(request.user):
+        return HttpResponseForbidden("You don't have permission to access this group.")
+    thread = get_object_or_404(_thread_queryset_for_request(request), id=thread_id)
+    if not thread.members.filter(id=request.user.id).exists():
+        return HttpResponseForbidden("You're not a member of this group.")
+    from apps.communication.typing import typing_cache_key, typing_response
+
+    return typing_response(request, typing_cache_key("thread", thread.id))
