@@ -12,7 +12,7 @@
                    of vertical height). Active state is still page-aware + highlighted.
    hide_security → skip the trailing security-posture pill (it already lives in the
                    header actions cluster, so we don't want it twice on one row). {% endcomment %}
-<nav class="cp-primary-nav rmc-horizontal-nav-rail{% if MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--admin-backoffice{% endif %}{% if not MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--control-plane{% endif %}{% if rail %} cp-primary-nav--rail{% endif %} px-3 py-2 border-bottom" aria-label="{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans 'Platform backoffice navigation' %}{% else %}{% trans 'Primary product navigation' %}{% endif %}">
+<nav class="cp-primary-nav rmc-horizontal-nav-rail{% if MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--admin-backoffice{% endif %}{% if not MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--control-plane{% endif %}{% if rail %} cp-primary-nav--rail{% endif %} px-3 py-2 border-bottom"{% if rail %} data-rmc-proximity-reveal="1"{% endif %} aria-label="{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans 'Platform backoffice navigation' %}{% else %}{% trans 'Primary product navigation' %}{% endif %}">
   {% comment %} v4.02.x: vertical-space management — show the first 5 primary pills inline and
      fold the remainder into a native "More ▾" dropdown (details/summary, no JS, CSP-safe).
      Keeps the nav to a single compact row that never wraps. {% endcomment %}
@@ -60,4 +60,42 @@
   {% endif %}
   {% if not hide_security %}{% include "partials/rmc_security_posture_nav_button.html" %}{% endif %}
 </nav>
+{% if rail %}
+{% comment %} Proximity-reveal enhancer (rail only): sets a fractional --reveal (0..1)
+   per pill from cursor distance so labels bloom magnetically on approach. Pure
+   progressive enhancement — without it the CSS :hover / :focus baseline still
+   reveals each label. focusin/out keeps keyboard navigation labelled. {% endcomment %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  if (window.__rmcProximityReveal) return;
+  window.__rmcProximityReveal = true;
+  var REACH = 150;
+  function ss(v) { return v * v * (3 - 2 * v); } /* smoothstep */
+  document.querySelectorAll('[data-rmc-proximity-reveal]').forEach(function (nav) {
+    var pills = nav.querySelectorAll(
+      '.cp-primary-nav__pill:not(.cp-primary-nav__pill--active):not(.cp-primary-nav__more-trigger)');
+    if (!pills.length) return;
+    nav.addEventListener('pointermove', function (e) {
+      if (e.pointerType === 'touch') return;
+      for (var i = 0; i < pills.length; i++) {
+        var r = pills[i].getBoundingClientRect();
+        var d = Math.abs(e.clientX - (r.left + r.width / 2));
+        pills[i].style.setProperty('--reveal', ss(Math.max(0, 1 - d / REACH)).toFixed(3));
+      }
+    });
+    nav.addEventListener('pointerleave', function () {
+      for (var i = 0; i < pills.length; i++) pills[i].style.removeProperty('--reveal');
+    });
+    nav.addEventListener('focusin', function (e) {
+      var p = e.target.closest ? e.target.closest('.cp-primary-nav__pill') : null;
+      if (p) p.style.setProperty('--reveal', '1');
+    });
+    nav.addEventListener('focusout', function (e) {
+      var p = e.target.closest ? e.target.closest('.cp-primary-nav__pill') : null;
+      if (p && !p.classList.contains('cp-primary-nav__pill--active')) p.style.removeProperty('--reveal');
+    });
+  });
+})();
+</script>
+{% endif %}
 {% endif %}

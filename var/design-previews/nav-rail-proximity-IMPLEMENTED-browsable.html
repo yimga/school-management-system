@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" data-resolved-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Implemented: cp-primary-nav--rail proximity reveal (exact shipped CSS + JS)</title>
+<style>
+  /* ---- approximate cockpit tokens (real ones live in design-tokens.css) ---- */
+  :root{
+    --cp-bg:#070b18; --band-1:#0d1428; --band-2:#0b1120; --hairline:rgba(255,255,255,.08);
+    --ink:#f1f5f9; --ink-2:#aeb4c2; --ink-3:#7c8498; --brand:#6366f1; --emerald:#34d399;
+    --surface:#0f1530; --radius-md:11px; --topbar-h:54px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1100px 460px at 50% -10%,#0b1530,var(--cp-bg));color:var(--ink);
+    font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;padding:30px 22px 70px}
+  h1{font-size:21px;font-weight:780;margin:0 0 6px}
+  p.l{color:var(--ink-2);max-width:88ch;line-height:1.55;font-size:14px;margin:0 0 8px}
+  code{background:rgba(255,255,255,.07);padding:1px 6px;border-radius:6px;font-size:.86em}
+  .hint{display:inline-flex;gap:7px;align-items:center;font-size:12px;color:var(--ink-3);background:rgba(255,255,255,.04);border:1px solid var(--hairline);border-radius:999px;padding:5px 12px;margin:8px 0 18px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 0 4px rgba(52,211,153,.18)}
+  .ruler{display:flex;align-items:center;gap:8px;color:var(--ink-3);font-size:11px;margin:0 2px 4px}
+  .ruler i{flex:1;height:1px;background:repeating-linear-gradient(90deg,var(--hairline) 0 6px,transparent 6px 12px)}
+  .topbar{height:var(--topbar-h);display:flex;align-items:center;gap:14px;padding:0 14px;border:1px solid var(--hairline);
+    border-radius:14px;background:linear-gradient(180deg,var(--band-1),var(--band-2));box-shadow:0 12px 34px rgba(0,0,0,.4);overflow:visible}
+  .brand{display:flex;align-items:center;gap:9px;flex:none}
+  .brand__mark{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:linear-gradient(135deg,var(--brand),var(--emerald));font-size:14px;color:#fff}
+  .brand__name{font-weight:750;font-size:14px;white-space:nowrap}
+  .brand__name small{display:block;font:italic 400 10px/1 "Source Serif 4",Georgia,serif;color:var(--ink-3)}
+  .slot{flex:1 1 auto;min-width:0;display:flex;justify-content:center}
+  .ava{width:30px;height:30px;border-radius:999px;background:linear-gradient(135deg,#f59e0b,#ef4444);flex:none}
+  footer{margin-top:28px;color:var(--ink-3);font-size:12.5px;line-height:1.6;max-width:90ch;border-top:1px solid var(--hairline);padding-top:16px}
+
+  /* ===== base pill look (approx of control-plane-primary-nav.css + cockpit skin) ===== */
+  .cp-primary-nav{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-width:0}
+  .cp-primary-nav__pill{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;
+    color:var(--ink-2);background:rgba(255,255,255,.045);border:1px solid transparent;border-radius:var(--radius-md);
+    padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer}
+  .cp-primary-nav__pill:hover{color:var(--ink);background:rgba(255,255,255,.09)}
+  .cp-primary-nav__pill--active{color:#fff;background:linear-gradient(135deg,var(--brand),var(--emerald))}
+  .cp-nav-pill__glyph{font-size:15px;line-height:1}
+  .cp-primary-nav__more{position:relative;display:inline-flex;background:transparent}
+  .cp-primary-nav__more>summary{list-style:none;cursor:pointer}
+  .cp-primary-nav__more>summary::-webkit-details-marker{display:none}
+  .cp-primary-nav__more-menu{position:absolute;top:calc(100% + 6px);right:0;z-index:60;min-width:13rem;display:flex;flex-direction:column;gap:2px;
+    padding:6px;border-radius:var(--radius-md);background:var(--surface);border:1px solid var(--hairline);box-shadow:0 18px 48px rgba(8,11,28,.6)}
+  .cp-primary-nav__more-item{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;color:var(--ink-2);text-decoration:none;font-size:13px;white-space:nowrap}
+  .cp-primary-nav__more-item:hover{background:rgba(255,255,255,.09);color:var(--ink)}
+
+  /* ============================================================
+     ▼▼▼ EXACT shipped rule block from rmc-cockpit-skin-v8.css ▼▼▼
+     ============================================================ */
+  .cp-primary-nav--rail .cp-primary-nav__pill,
+  .cp-primary-nav--rail .cp-primary-nav__more-trigger { padding-inline: 8px; gap: 6px; }
+  .cp-primary-nav--rail .cp-primary-nav__pill .cp-nav-pill__glyph,
+  .cp-primary-nav--rail .cp-primary-nav__more-trigger .cp-nav-pill__glyph { font-size: 16px; line-height: 1; }
+  .cp-primary-nav--rail .cp-primary-nav__pill { --reveal: 0; }
+  .cp-primary-nav--rail .cp-primary-nav__pill--active,
+  .cp-primary-nav--rail .cp-primary-nav__more-trigger { --reveal: 1; }
+  .cp-primary-nav--rail .cp-primary-nav__pill:hover,
+  .cp-primary-nav--rail .cp-primary-nav__pill:focus-visible,
+  .cp-primary-nav--rail .cp-primary-nav__pill:focus-within { --reveal: 1; }
+  .cp-primary-nav--rail .cp-primary-nav__pill .rmc-text-container {
+    display: inline-block; overflow: hidden; white-space: nowrap;
+    max-width: calc(var(--reveal) * 16ch);
+    opacity: var(--reveal);
+    margin-left: calc(var(--reveal) * 6px - 6px);
+    transition: max-width 0.18s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.15s ease, margin-left 0.18s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .cp-primary-nav--rail .cp-primary-nav__pill--active .rmc-text-container { font-weight: 600; }
+  @media (prefers-reduced-motion: reduce){ .cp-primary-nav--rail .cp-primary-nav__pill .rmc-text-container { transition: none; } }
+  /* ▲▲▲ end shipped block ▲▲▲ */
+</style>
+</head>
+<body>
+  <h1>Implemented — exact shipped behavior</h1>
+  <p class="l">This embeds the <b>verbatim</b> CSS rule block and the <b>verbatim</b> inline script that now live in
+    <code>rmc-cockpit-skin-v8.css</code> + <code>control_plane_primary_nav.html</code>, using the real class names
+    (<code>cp-primary-nav--rail</code> / <code>cp-primary-nav__pill</code> / <code>rmc-text-container</code>). What you do
+    here is what deploys.</p>
+  <span class="hint"><span class="dot"></span> Glide your mouse across the nav — labels bloom by proximity (nearest fully, neighbours peek). Tab into it with the keyboard — focus reveals each label too.</span>
+
+  <div class="ruler"><i></i><span>54px — unchanged</span><i></i></div>
+  <div class="topbar">
+    <div class="brand"><span class="brand__mark">◆</span><span class="brand__name">RunMyCampus<small>operator</small></span></div>
+    <div class="slot">
+      <nav class="cp-primary-nav cp-primary-nav--rail" data-rmc-proximity-reveal="1" aria-label="Primary product navigation">
+        <a class="cp-primary-nav__pill cp-primary-nav__pill--active" title="Home"><span class="cp-nav-pill__glyph">⌂</span><span class="rmc-text-container">Home</span></a>
+        <a class="cp-primary-nav__pill" title="Studio"><span class="cp-nav-pill__glyph">◈</span><span class="rmc-text-container">Studio</span></a>
+        <a class="cp-primary-nav__pill" title="Operations"><span class="cp-nav-pill__glyph">⚙</span><span class="rmc-text-container">Operations</span></a>
+        <a class="cp-primary-nav__pill" title="Marketplace"><span class="cp-nav-pill__glyph">▦</span><span class="rmc-text-container">Marketplace</span></a>
+        <a class="cp-primary-nav__pill" title="Analytics"><span class="cp-nav-pill__glyph">▤</span><span class="rmc-text-container">Analytics</span></a>
+        <details class="cp-primary-nav__more">
+          <summary class="cp-primary-nav__pill cp-primary-nav__more-trigger" title="More"><span class="cp-nav-pill__glyph">⋯</span><span class="rmc-text-container">More</span></summary>
+          <div class="cp-primary-nav__more-menu">
+            <a class="cp-primary-nav__more-item"><span class="cp-nav-pill__glyph">⇄</span>Migration</a>
+            <a class="cp-primary-nav__more-item"><span class="cp-nav-pill__glyph">✦</span>Support</a>
+            <a class="cp-primary-nav__more-item"><span class="cp-nav-pill__glyph">⛨</span>Control</a>
+          </div>
+        </details>
+      </nav>
+    </div>
+    <div class="ava"></div>
+  </div>
+
+  <p class="l" style="margin-top:18px">Try, in order: (1) hover the strip slowly left→right; (2) press <code>Tab</code> repeatedly to keyboard-focus each pill — labels still reveal; (3) click <b>⋯ More</b> to confirm the dropdown (the one you approved earlier) still opens. Active page (Home) and the More trigger always stay labeled.</p>
+
+  <footer>
+    <b>Knobs I can tune in seconds if you want a different feel:</b> the reach distance (<code>REACH = 150px</code> — how early a label starts opening as you approach), the open speed (<code>0.18s</code>), and the max label width (<code>16ch</code>, generous for translated labels). Scoped to <code>cp-primary-nav--rail</code> only (the operator + manager-admin topbar) — non-rail header nav is unchanged, header height unchanged, no SW bump (inline script + content-hashed CSS). Pixel-approximate frame; the reveal logic is exact.
+  </footer>
+
+<script>
+/* ▼ verbatim inline enhancer now shipped in control_plane_primary_nav.html ▼ */
+(function () {
+  if (window.__rmcProximityReveal) return;
+  window.__rmcProximityReveal = true;
+  var REACH = 150;
+  function ss(v) { return v * v * (3 - 2 * v); } /* smoothstep */
+  document.querySelectorAll('[data-rmc-proximity-reveal]').forEach(function (nav) {
+    var pills = nav.querySelectorAll(
+      '.cp-primary-nav__pill:not(.cp-primary-nav__pill--active):not(.cp-primary-nav__more-trigger)');
+    if (!pills.length) return;
+    nav.addEventListener('pointermove', function (e) {
+      if (e.pointerType === 'touch') return;
+      for (var i = 0; i < pills.length; i++) {
+        var r = pills[i].getBoundingClientRect();
+        var d = Math.abs(e.clientX - (r.left + r.width / 2));
+        pills[i].style.setProperty('--reveal', ss(Math.max(0, 1 - d / REACH)).toFixed(3));
+      }
+    });
+    nav.addEventListener('pointerleave', function () {
+      for (var i = 0; i < pills.length; i++) pills[i].style.removeProperty('--reveal');
+    });
+    nav.addEventListener('focusin', function (e) {
+      var p = e.target.closest ? e.target.closest('.cp-primary-nav__pill') : null;
+      if (p) p.style.setProperty('--reveal', '1');
+    });
+    nav.addEventListener('focusout', function (e) {
+      var p = e.target.closest ? e.target.closest('.cp-primary-nav__pill') : null;
+      if (p && !p.classList.contains('cp-primary-nav__pill--active')) p.style.removeProperty('--reveal');
+    });
+  });
+})();
+</script>
+</body>
+</html>
