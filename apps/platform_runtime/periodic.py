@@ -82,6 +82,10 @@ HEAVY_JOB_LOCK_TTL_SECONDS = 1800  # magic-number-allow: heavy cron-only job loc
 # beyond 2x interval absorbs clock skew / scheduler lag.
 _LASTRUN_TTL_BUFFER_SECONDS = 3600  # magic-number-allow: last_run cache buffer (seconds)
 _CACHE_PREFIX = "rmc:periodic"
+_MS_PER_SECOND = 1000  # magic-number-allow: milliseconds per second
+# Scheduler health monitor (dead-man's-switch) cadence. Light + auto_eligible so
+# it runs off the /health/ tick; see scheduled_job_health.run_health_monitor.
+MONITOR_INTERVAL_SECONDS = 60 * 60
 
 
 @dataclass
@@ -327,6 +331,17 @@ def ensure_default_jobs() -> None:
             auto_eligible=False,
             tags=("communication", "digests"),
         )
+        # Scheduler observability (dead-man's-switch). LIGHT + auto_eligible so it
+        # runs off the /health/ tick and keeps watching the heavy, cron-driven jobs
+        # even when the external cron is down — turning a silent outage into an
+        # alert (and, when RMC_JOB_AUTO_RECOVER is on, a recovery run).
+        _REGISTRY["platform_runtime.monitor_scheduled_job_health"] = PeriodicJob(
+            name="platform_runtime.monitor_scheduled_job_health",
+            interval_seconds=MONITOR_INTERVAL_SECONDS,
+            func=_run_monitor_scheduled_job_health,
+            description="Hourly dead-man's-switch: alert/recover when any periodic job is overdue.",
+            tags=("platform", "monitor", "light"),
+        )
         _DEFAULTS_INSTALLED = True
 
 
@@ -531,6 +546,36 @@ def _release(job: PeriodicJob) -> None:
         logger.debug("periodic lock release failed for %s", job.name, exc_info=True)
 
 
+def _record_heartbeat_safe(job: PeriodicJob, *, status: str, duration_ms=None, error: str = "") -> None:
+    """Durably record a job's run outcome. Best-effort: never raises into run_job.
+
+    The durable heartbeat (``apps.platform_runtime.models_scheduling``) is what the
+    dead-man's-switch monitor reads — the cache ``last_run`` is wiped on every
+    deploy and cannot answer "did this job go silently dark?".
+    """
+    try:
+        from apps.platform_runtime.scheduled_job_health import record_heartbeat
+
+        record_heartbeat(
+            job.name,
+            status=status,
+            interval_seconds=job.interval_seconds,
+            duration_ms=duration_ms,
+            error=error,
+        )
+    except Exception:  # noqa: BLE001 — observability must never break the job
+        logger.debug("heartbeat record failed for %s", job.name, exc_info=True)
+
+
+def _run_monitor_scheduled_job_health() -> object:
+    # Dead-man's-switch monitor: alert (and, when RMC_JOB_AUTO_RECOVER is on,
+    # auto-recover) overdue jobs. Light + auto_eligible so it runs off /health/ and
+    # keeps watching the heavy, cron-driven jobs even when the external cron is down.
+    from apps.platform_runtime.scheduled_job_health import run_health_monitor
+
+    return run_health_monitor()
+
+
 def run_job(name: str, *, force: bool = False) -> dict:
     """Run a single registered job if due (or unconditionally with ``force``).
 
@@ -556,13 +601,16 @@ def run_job(name: str, *, force: bool = False) -> dict:
     started = time.monotonic()
     try:
         job.func()
+        duration_ms = int((time.monotonic() - started) * _MS_PER_SECOND)
+        _record_heartbeat_safe(job, status="ran", duration_ms=duration_ms)
         return {
             "job": name,
             "status": "ran",
-            "duration_s": round(time.monotonic() - started, 3),
+            "duration_s": round(duration_ms / _MS_PER_SECOND, 3),
         }
     except Exception as exc:  # noqa: BLE001 — a failing job must never crash the caller
         logger.exception("periodic job %s failed", name)
+        _record_heartbeat_safe(job, status="error", error=str(exc))
         return {"job": name, "status": "error", "error": str(exc)}
     finally:
         _release(job)

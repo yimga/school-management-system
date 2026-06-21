@@ -71,7 +71,13 @@ class SecurityPostureReviewMiddleware:
                 getattr(request, "path", "") or ""
             ):
                 school = getattr(request, "school", None)
-                if is_security_posture_review_due(user, school):
+                try:
+                    review_due = is_security_posture_review_due(user, school)
+                except Exception:
+                    # Policy resolver touches RuntimeDefaults; schema drift during deploy
+                    # must not block login → dashboard with a 500.
+                    review_due = False
+                if review_due:
                     request.session[SESSION_NAG_KEY] = True
                     review_url = reverse("accounts:security_posture_review")
                     path = request.get_full_path()

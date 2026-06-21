@@ -17,6 +17,11 @@ from django.conf import settings as dj_settings
 from django.urls import NoReverseMatch, reverse
 
 from apps.portal.ai_chrome_config import _effective_flags, resolve_ai_chrome_config
+from apps.siteconfig.realtime_capabilities import (
+    resolve_web_server_mode,
+    sse_streams_client_enabled,
+    wal_stream_client_enabled,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -228,19 +233,11 @@ def _hydrate_endpoints(request) -> list[dict[str, str]]:
 
 
 def _wal_stream_client_enabled() -> bool:
-    """
-    WAL WebSocket ingest (/ws/wal/) requires ASGI (Daphne/Uvicorn + Channels).
+    return wal_stream_client_enabled()
 
-    Render's default Gunicorn WSGI process cannot upgrade WebSockets — the client
-    would reconnect forever and spam the console. Opt in with RMC_WAL_STREAM_ENABLED=1
-    when the web tier runs config.asgi:application.
-    """
-    explicit = os.environ.get("RMC_WAL_STREAM_ENABLED", "").strip().lower()
-    if explicit in ("1", "true", "yes", "on"):
-        return True
-    if explicit in ("0", "false", "no", "off"):
-        return False
-    return False
+
+def _sse_streams_client_enabled() -> bool:
+    return sse_streams_client_enabled()
 
 
 def resolve_sms_offline_config(
@@ -331,6 +328,8 @@ def resolve_sms_offline_config(
         or api_urls.get("offline_encryption_key")
         or "",
         "walStreamEnabled": _wal_stream_client_enabled(),
+        "sseStreamsEnabled": _sse_streams_client_enabled(),
+        "webServerMode": resolve_web_server_mode(),
     }
 
 

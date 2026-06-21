@@ -1971,6 +1971,16 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 300.0,
         "options": {"expires": 240},
     },
+    # Scheduler dead-man's-switch (apps.platform_runtime.scheduled_job_health):
+    # hourly, alerts (and, when RMC_JOB_AUTO_RECOVER is on, auto-recovers) any
+    # periodic job overdue past its interval. The in-process /health/ scheduler
+    # runs this too when there is no broker; this beat entry keeps the watchdog
+    # alive once a real worker is provisioned (else the hand-off would silence it).
+    "platform-runtime-scheduled-job-health-monitor": {
+        "task": "platform_runtime.scheduled_job_health_monitor",
+        "schedule": 3600.0,
+        "options": {"expires": 3000},
+    },
     # Durable provisioning seal — every 10 min, finish any tenant left LIVE
     # (Phase A) but with Phase B unfinished (no academic year / seed). Catches a
     # half-provisioned tenant regardless of whether its workflow run is stuck,

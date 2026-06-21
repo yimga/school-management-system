@@ -4,5 +4,6 @@
 {% endcomment %}
 {% if request.user.is_authenticated and AI_CHROME_CONFIG_JSON %}
 <script type="application/json" id="page-data-rmc-ai-chrome" nonce="{{ csp_nonce }}">{{ AI_CHROME_CONFIG_JSON|safe }}</script>
+{% include "partials/ai/ai_mode_switch.html" %}
 {% endif %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

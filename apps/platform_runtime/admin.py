@@ -34,6 +34,7 @@ from .models import (
     PlatformPhaseBDomainSnapshot,
     PlatformReportPlatformSkuDefault,
     RuntimeDefaults,
+    ScheduledJobHeartbeat,
 )
 from .runtime_defaults_first_class import strip_runtime_defaults_first_class_keys_from_dict
 
@@ -378,6 +379,63 @@ class RuntimeDefaultsAdmin(ModelAdmin):
 
 
 register_platform_admin(RuntimeDefaults, RuntimeDefaultsAdmin)
+
+
+class ScheduledJobHeartbeatAdmin(ModelAdmin):
+    """Read-only operator view of periodic-job health — the dead-man's-switch's
+    durable record. Surfaces last success, status, failure streak and an Overdue
+    flag so an operator can see at a glance whether a scheduled job went dark.
+    """
+
+    list_display = [
+        "job_name",
+        "last_status",
+        "overdue",
+        "last_success_at",
+        "consecutive_failures",
+        "last_duration_ms",
+        "expected_interval_seconds",
+        "updated_at",
+    ]
+    list_filter = ["last_status"]
+    search_fields = ["job_name"]
+    ordering = ["job_name"]
+    readonly_fields = [
+        "job_name",
+        "expected_interval_seconds",
+        "last_started_at",
+        "last_success_at",
+        "last_status",
+        "last_duration_ms",
+        "last_error",
+        "consecutive_failures",
+        "created_at",
+        "updated_at",
+    ]
+
+    def has_add_permission(self, request):
+        # Heartbeats are written by the scheduler, never created by hand.
+        return False
+
+    @admin.display(boolean=True, description="Overdue")
+    def overdue(self, obj):
+        from django.utils import timezone
+
+        from apps.platform_runtime.scheduled_job_health import (
+            DEFAULT_STALE_GRACE_FACTOR,
+            staleness_threshold_seconds,
+        )
+
+        threshold = staleness_threshold_seconds(
+            obj.expected_interval_seconds or 0, DEFAULT_STALE_GRACE_FACTOR
+        )
+        ref = obj.last_success_at or obj.created_at
+        if ref is None:
+            return False
+        return (timezone.now() - ref).total_seconds() > threshold
+
+
+register_platform_admin(ScheduledJobHeartbeat, ScheduledJobHeartbeatAdmin)
 
 
 class PlatformOperatorPlaybookLinkAdmin(ModelAdmin):

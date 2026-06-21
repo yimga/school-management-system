@@ -431,3 +431,23 @@ def workflow_sla_breach_alert_sweep_task() -> dict:
         return {"ok": True, "scanned": len(candidates), "recorded": recorded}
     except Exception as exc:
         return {"ok": False, "reason": f"exception:{type(exc).__name__}"}
+
+
+@shared_task(name="platform_runtime.scheduled_job_health_monitor")
+def scheduled_job_health_monitor_task() -> dict:
+    """Beat entry point for the periodic-job dead-man's-switch.
+
+    The in-process scheduler (``apps.platform_runtime.periodic``) runs this same
+    monitor off ``/health/`` while there is no Celery broker, then stands down the
+    moment a real worker + beat are provisioned. Without this beat entry, that
+    hand-off would SILENCE the watchdog — so it is registered here too, keeping it
+    alive in every execution mode.
+    """
+    try:
+        from apps.platform_runtime.scheduled_job_health import run_health_monitor
+
+        findings = run_health_monitor()
+        stale = [f for f in findings if f.is_stale]
+        return {"ok": True, "checked": len(findings), "stale": len(stale)}
+    except Exception as exc:
+        return {"ok": False, "reason": f"exception:{type(exc).__name__}"}

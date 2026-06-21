@@ -474,11 +474,18 @@
 
   function shouldConnectStream() {
     if (document.querySelector("[data-rmc-auth-landing]")) return false;
+    if (document.querySelector("[data-rmc-wizard-shell]")) return false;
+    try {
+      if (window.SMS_OFFLINE_CONFIG && window.SMS_OFFLINE_CONFIG.sseStreamsEnabled === false) {
+        return false;
+      }
+    } catch (_) {}
     return true;
   }
 
   function connectStream() {
     if (!shouldConnectStream()) {
+      startPolling();
       return;
     }
     if (typeof EventSource === "undefined") {

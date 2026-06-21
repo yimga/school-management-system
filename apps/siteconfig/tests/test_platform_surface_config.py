@@ -75,13 +75,18 @@ class PlatformSurfaceConfigTests(SimpleTestCase):
         self.assertFalse(payload["walStreamEnabled"])
         json.loads(json.dumps(payload))
 
-    @mock.patch.dict("os.environ", {"RMC_WAL_STREAM_ENABLED": "1"}, clear=False)
+    @mock.patch.dict(
+        "os.environ",
+        {"RMC_WAL_STREAM_ENABLED": "1", "WEB_SERVER_MODE": "asgi"},
+        clear=False,
+    )
     @mock.patch("apps.siteconfig.platform_surface_config._hydrate_endpoints", return_value=[])
     @mock.patch("apps.siteconfig.platform_surface_config._effective_flags", return_value={})
-    def test_wal_stream_enabled_when_env_set(self, _mock_flags, _mock_hydrate):
+    def test_wal_stream_enabled_when_asgi_and_env_set(self, _mock_flags, _mock_hydrate):
         req = self.rf.get("/portal/")
         payload = resolve_sms_offline_config(req, offline_enabled_for_school=True)
         self.assertTrue(payload["walStreamEnabled"])
+        self.assertTrue(payload["sseStreamsEnabled"])
 
 
 class AssistDockFilterTests(SimpleTestCase):

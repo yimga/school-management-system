@@ -945,7 +945,7 @@
   }
 
   function startSSE() {
-    if (_authRealtimeStopped || isAuthLanding()) return false;
+    if (!shouldUseSseRealtime()) return false;
     if (_sseFallbackEngaged) return false;
     if (typeof EventSource === "undefined") return false;
     if (_sseSource !== null) return true;
@@ -1590,8 +1590,26 @@
     return !!document.querySelector("[data-rmc-auth-landing]");
   }
 
+  function isWizardShell() {
+    return !!document.querySelector("[data-rmc-wizard-shell]");
+  }
+
+  function sseStreamsEnabledFromConfig() {
+    try {
+      if (window.SMS_OFFLINE_CONFIG && window.SMS_OFFLINE_CONFIG.sseStreamsEnabled === false) {
+        return false;
+      }
+    } catch (_e) {}
+    return true;
+  }
+
+  function shouldUseSseRealtime() {
+    if (_authRealtimeStopped || isAuthLanding() || isWizardShell()) return false;
+    return sseStreamsEnabledFromConfig();
+  }
+
   function init() {
-    if (isAuthLanding()) return;
+    if (isAuthLanding() || isWizardShell()) return;
     if (document.body.dataset.rmcAssistDock === "off") return;
     mountDock(labels());
     // Wave A: annotate adopted nodes with their registry slot ids so the

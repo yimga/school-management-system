@@ -1,12 +1,12 @@
 {
   "date": "2026-06-20",
-  "generated_at": "2026-06-21T02:45:02+00:00",
+  "generated_at": "2026-06-21T10:55:00+00:00",
   "major": 4,
   "minor": 4,
-  "patch": 43,
-  "raw": "sms-v4.04.43-deploy-freshness-mandate-2026-06-20",
+  "patch": 45,
+  "raw": "sms-v4.04.45-realtime-wsgi-fix-2026-06-20",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "deploy-freshness-mandate",
+  "slug": "realtime-wsgi-fix",
   "valid": true
 }

@@ -6,10 +6,14 @@ reads from here when present, falling back to that singleton for file fields and
 
 from __future__ import annotations
 
+import logging
+
 from django.conf import settings
-from django.db import models
+from django.db import DatabaseError, models
 
 from apps.platform_runtime.append_only import AppendOnlyManager, AppendOnlyModelMixin
+
+logger = logging.getLogger(__name__)
 
 
 def _invalidate_effective_site_settings_cache():
@@ -682,7 +686,16 @@ class RuntimeDefaults(models.Model):
 
     @classmethod
     def get_singleton(cls) -> "RuntimeDefaults | None":
-        return cls.objects.filter(pk=1).first()
+        try:
+            return cls.objects.filter(pk=1).first()
+        except DatabaseError:
+            # Deploy/code can lead migrations (e.g. ai_mode on 0091); a missing column
+            # must not 500 every authenticated request until migrate_schemas --shared runs.
+            logger.warning(
+                "RuntimeDefaults.get_singleton: database schema drift (run migrate_schemas --shared)",
+                exc_info=True,
+            )
+            return None
 
     @classmethod
     def build_payload_from_site_settings(
@@ -2244,4 +2257,7 @@ from .models_agentic_audit import (  # noqa: E402,F401
     AIAgenticActionAuditReadOnlyError,
     AIAgenticActionOutcome,
     AIAgenticActionPhase,
+)
+from .models_scheduling import (  # noqa: E402,F401
+    ScheduledJobHeartbeat,
 )

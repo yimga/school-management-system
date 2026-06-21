@@ -36,6 +36,12 @@ _STATUS_FIELD_LEN = 32
 STATUS_RAN = "ran"
 STATUS_ERROR = "error"
 
+# PHASE 2 (self-healing). When an overdue job is CRON-ONLY (auto_eligible=False)
+# AND is not even being triggered (the external cron is down), the monitor kicks
+# a one-shot background recovery run. Capped: a job that IS being run but keeps
+# erroring is alerted, never hammered (that is a bug, not a trigger outage).
+MAX_AUTO_RECOVERY_FAILURES = 3
+
 
 @dataclass
 class JobHealth:
@@ -107,6 +113,84 @@ def evaluate_staleness(jobs, *, now=None, grace_factor=None) -> list[JobHealth]:
             )
         )
     return findings
+
+
+def auto_recovery_enabled() -> bool:
+    """Whether the monitor should auto-recover overdue cron-only jobs.
+
+    ``RMC_JOB_AUTO_RECOVER``: ``on`` | ``off`` | ``auto`` (default). In auto mode
+    it is enabled ONLY while no Celery broker is configured — mirroring
+    ``periodic.inprocess_scheduler_enabled`` so it yields automatically the moment
+    a real worker + beat are provisioned.
+    """
+    mode = (os.getenv("RMC_JOB_AUTO_RECOVER", "auto") or "auto").strip().lower()
+    if mode in ("off", "0", "false", "no", "disabled"):
+        return False
+    if mode in ("on", "1", "true", "yes", "enabled"):
+        return True
+    return not bool((os.getenv("CELERY_BROKER_URL") or "").strip())
+
+
+def select_recovery_candidates(enriched_jobs, *, now=None, max_failures=MAX_AUTO_RECOVERY_FAILURES):
+    """Pure: choose which overdue jobs to auto-recover. No DB / cache.
+
+    ``enriched_jobs`` = dicts with keys: job_name, interval_seconds, is_stale,
+    auto_eligible, last_started_epoch (float|None), consecutive_failures (int).
+
+    A job is recoverable iff ALL hold:
+      * it is stale (overdue), AND
+      * it is CRON-ONLY (``auto_eligible`` False) — light jobs already tick off
+        ``/health/`` so they never need recovery, AND
+      * it appears UN-TRIGGERED — ``last_started_epoch`` is None or older than one
+        interval, i.e. nothing is invoking it (vs running-and-erroring), AND
+      * ``consecutive_failures`` < ``max_failures`` — so a job that runs but keeps
+        failing is alerted, not hammered.
+    Returns the list of job names to recover.
+    """
+    if now is None:
+        now = time.time()
+    out: list[str] = []
+    for j in enriched_jobs:
+        if not j.get("is_stale"):
+            continue
+        if j.get("auto_eligible"):
+            continue
+        if int(j.get("consecutive_failures") or 0) >= int(max_failures):
+            continue
+        started = j.get("last_started_epoch")
+        interval = int(j["interval_seconds"])
+        untriggered = started is None or (float(now) - float(started)) > interval
+        if untriggered:
+            out.append(j["job_name"])
+    return out
+
+
+def _spawn_recovery(job_names) -> None:
+    """Run overdue cron-only jobs in ONE daemon thread, off the caller's thread,
+    with DB-connection cleanup. The per-job claim lock in ``periodic.run_job``
+    prevents a double-run if another trigger fires concurrently.
+    """
+    import threading
+
+    def _runner() -> None:
+        try:
+            from apps.platform_runtime import periodic
+
+            for name in job_names:
+                try:
+                    result = periodic.run_job(name, force=False)
+                    logger.warning("auto-recovery ran %s -> %s", name, result.get("status"))
+                except Exception:  # noqa: BLE001 — one job must not abort the rest
+                    logger.exception("auto-recovery failed for %s", name)
+        finally:
+            try:
+                from apps.platform_runtime import periodic
+
+                periodic.close_thread_connections()
+            except Exception:  # noqa: BLE001 — best-effort cleanup
+                logger.debug("auto-recovery connection close failed", exc_info=True)
+
+    threading.Thread(target=_runner, name="rmc-job-recovery", daemon=True).start()
 
 
 def record_heartbeat(job_name, *, status, interval_seconds, duration_ms=None, error="") -> None:
@@ -194,4 +278,39 @@ def run_health_monitor(*, grace_factor=None) -> list[JobHealth]:
         )
     if not stale:
         logger.info("scheduled-job health OK: %d job(s) within threshold", len(findings))
+
+    # PHASE 2 — self-healing: auto-recover overdue CRON-ONLY jobs that aren't even
+    # being triggered (external cron down), in a background thread. Best-effort.
+    if stale and auto_recovery_enabled():
+        try:
+            enriched = []
+            for f in stale:
+                row = registry.get(f.job_name)
+                if row is None:
+                    continue
+                hb = heartbeats.get(f.job_name)
+                enriched.append(
+                    {
+                        "job_name": f.job_name,
+                        "interval_seconds": row["interval_seconds"],
+                        "auto_eligible": row.get("auto_eligible", True),
+                        "is_stale": True,
+                        "last_started_epoch": (
+                            hb.last_started_at.timestamp()
+                            if (hb and hb.last_started_at)
+                            else None
+                        ),
+                        "consecutive_failures": (hb.consecutive_failures if hb else 0),
+                    }
+                )
+            candidates = select_recovery_candidates(enriched, now=now)
+            if candidates:
+                logger.warning(
+                    "scheduled-job auto-recovery: triggering %d overdue cron-only job(s): %s",
+                    len(candidates),
+                    candidates,
+                )
+                _spawn_recovery(candidates)
+        except Exception:  # noqa: BLE001 — recovery is best-effort; never crash the monitor
+            logger.exception("auto-recovery selection failed")
     return findings

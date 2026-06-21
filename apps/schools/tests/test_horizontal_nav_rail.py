@@ -10,6 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import Mock
 
+from django.template.loader import render_to_string
 from django.test import RequestFactory, SimpleTestCase
 
 from apps.schools.super_admin_paired_surfaces import (
@@ -97,3 +98,51 @@ class HorizontalNavRailTemplateContractTests(SimpleTestCase):
         )
         self.assertIn("rmc-operator-workspace-nav__spine-item", text)
         self.assertIn("rmc-horizontal-nav-rail--secondary", text)
+
+
+class RailProximityRevealContractTests(SimpleTestCase):
+    """Rail-mode "proximity reveal": labels collapse to icons at rest and bloom
+    on approach. The magnetic enhancer is wired ONLY in rail mode; the CSS
+    reveal is driven by a single --reveal custom property so it degrades to a
+    hover/focus reveal without JS."""
+
+    _ITEMS = [
+        {"id": "home", "url": "/h/", "label": "Home", "glyph": "H", "is_current": True, "icon": ""},
+        {"id": "studio", "url": "/s/", "label": "Studio", "glyph": "S", "is_current": False, "icon": ""},
+        {"id": "ops", "url": "/o/", "label": "Operations", "glyph": "O", "is_current": False, "icon": ""},
+        {"id": "mkt", "url": "/m/", "label": "Marketplace", "glyph": "M", "is_current": False, "icon": ""},
+        {"id": "ana", "url": "/a/", "label": "Analytics", "glyph": "A", "is_current": False, "icon": ""},
+        {"id": "mig", "url": "/mi/", "label": "Migration", "glyph": "G", "is_current": False, "icon": ""},
+    ]
+
+    def _render(self, rail):
+        return render_to_string(
+            "partials/control_plane_primary_nav.html",
+            {
+                "PRIMARY_CONTROL_PLANE_NAV": self._ITEMS,
+                "MANAGER_PLATFORM_ADMIN_SHELL": False,
+                "rail": rail,
+                "hide_security": True,
+                "csp_nonce": "TESTNONCE",
+            },
+        )
+
+    def test_rail_mode_wires_proximity_enhancer(self):
+        out = self._render(rail=True)
+        self.assertIn('data-rmc-proximity-reveal="1"', out)
+        self.assertIn("__rmcProximityReveal", out)
+        self.assertIn('nonce="TESTNONCE"', out)  # inline enhancer is CSP-safe
+
+    def test_non_rail_mode_has_no_proximity_enhancer(self):
+        # The two non-rail include sites already show full labels — they must
+        # not gain the hook or the script.
+        out = self._render(rail=False)
+        self.assertNotIn("data-rmc-proximity-reveal", out)
+        self.assertNotIn("__rmcProximityReveal", out)
+
+    def test_reveal_css_is_single_property_driven_with_focus_baseline(self):
+        css = (ROOT / "static/css/rmc-cockpit-skin-v8.css").read_text(encoding="utf-8")
+        # one --reveal property drives the label width...
+        self.assertIn("max-width: calc(var(--reveal)", css)
+        # ...and the baseline reveals on keyboard focus so it works without JS.
+        self.assertIn(":focus-visible", css)

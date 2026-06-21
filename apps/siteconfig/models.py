@@ -167,7 +167,7 @@ class SiteSettings(models.Model):
                 pl = rt.payload if isinstance(rt.payload, dict) else {}
                 if name in pl:
                     return pl[name]
-        except (AttributeError, ImportError, TypeError, ValueError):
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
             pass
         if is_runtime_payload_shadow_key(name):
             from .models_support import virtual_site_setting_default

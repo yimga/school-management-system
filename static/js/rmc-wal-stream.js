@@ -28,6 +28,9 @@
   let ws = null;
   let socketGen = 0;
   let backoff = 500;
+  let wsFailureStreak = 0;
+  let wsDisabledPermanently = false;
+  const MAX_WS_FAILURES = 3;
   let ackListeners = new Set();
   const pendingAck = new Map(); // txn_id -> resolve
 
@@ -239,7 +242,37 @@
     });
   }
 
+  function disableWalSocket() {
+    wsDisabledPermanently = true;
+    socketGen += 1;
+    try { ws?.close(); } catch (_e) {}
+    ws = null;
+  }
+
+  async function probeWalHttpCapability() {
+    try {
+      const resp = await fetch(WS_PATH, {
+        method: "GET",
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+      });
+      if (resp.status === 426) return false;
+      if (resp.status === 401 || resp.status === 403) return false;
+      const ct = (resp.headers.get("content-type") || "").toLowerCase();
+      if (ct.includes("application/json")) {
+        try {
+          const body = await resp.json();
+          if (body && body.error === "websocket_requires_asgi") return false;
+        } catch (_e) {}
+      }
+      return true;
+    } catch (_e) {
+      return false;
+    }
+  }
+
   function ensureSocket() {
+    if (wsDisabledPermanently) return null;
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
       return ws;
     }
@@ -255,6 +288,7 @@
     }
     ws.onopen = () => {
       backoff = 500;
+      wsFailureStreak = 0;
       flush();
     };
     ws.onmessage = (ev) => {
@@ -267,8 +301,18 @@
         ackListeners.forEach((cb) => { try { cb(msg.txn_id); } catch {} });
       }
     };
-    ws.onclose = () => { ws = null; scheduleReconnect(myGen); };
-    ws.onerror = () => { try { ws?.close(); } catch {} };
+    ws.onclose = () => {
+      ws = null;
+      wsFailureStreak += 1;
+      if (wsFailureStreak >= MAX_WS_FAILURES) {
+        disableWalSocket();
+        return;
+      }
+      scheduleReconnect(myGen);
+    };
+    ws.onerror = () => {
+      try { ws?.close(); } catch (_e) {}
+    };
     return ws;
   }
 
@@ -454,11 +498,21 @@
   }
 
   // Boot: open WS only on authenticated shells (not login/public landings).
+  async function bootWalSocket() {
+    if (!shouldBootWalSocket()) return;
+    const ok = await probeWalHttpCapability();
+    if (!ok) {
+      disableWalSocket();
+      return;
+    }
+    ensureSocket();
+  }
+
   if (shouldBootWalSocket()) {
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", ensureSocket, { once: true });
+      document.addEventListener("DOMContentLoaded", bootWalSocket, { once: true });
     } else {
-      ensureSocket();
+      bootWalSocket();
     }
   }
 })();
