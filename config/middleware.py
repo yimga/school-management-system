@@ -48,7 +48,7 @@ _SCANNER_PATH_PREFIXES = (
     "/stripe.js",
     "/checkout.js",
     "/payment.js",
-    "/sw.js",
+    # NOTE: /sw.js is the legitimate platform service worker — never block it here.
     "/settings.js",
 )
 _SCANNER_PATH_PATTERN = re.compile(

@@ -39,6 +39,8 @@ from apps.siteconfig.models_support import (
     default_announcement_submit_for_approval_roles,
 )
 
+import logging
+
 ANNOUNCEMENT_FLAG_FAILURES = (
     AttributeError,
     DatabaseError,
@@ -49,9 +51,34 @@ ANNOUNCEMENT_FLAG_FAILURES = (
     ValueError,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def _announcement_school(request: HttpRequest):
     return getattr(request, "school", None)
+
+
+def _deliver_published_announcement_best_effort(announcement) -> None:
+    """Fan out an immediately-published announcement, never breaking the response.
+
+    Skips delivery when ``scheduled_at`` is in the future — the periodic
+    ``send_due_scheduled_announcements`` job owns those. Any error in the
+    fan-out is swallowed (logged) so a delivery hiccup never turns a successful
+    publish into an HTTP 500.
+    """
+    try:
+        scheduled_at = getattr(announcement, "scheduled_at", None)
+        if scheduled_at is not None and scheduled_at > timezone.now():
+            return  # future schedule → handled by the periodic sender
+        from apps.communication.announcement_delivery import deliver_announcement
+
+        deliver_announcement(announcement)
+    except Exception:  # broad-by-design — delivery must never break the publish response
+        logger.warning(
+            "best-effort announcement delivery failed announcement=%s",
+            getattr(announcement, "pk", None),
+            exc_info=True,
+        )
 
 
 def _announcement_queryset(request: HttpRequest):
@@ -192,6 +219,9 @@ def announcement_create(request: HttpRequest):
         if form.is_valid():
             announcement = form.save(submit_action=submit_action)
             if submit_action == SUBMIT_ACTION_PUBLISH:
+                # Immediate publish → fan out now (future-scheduled ones are
+                # handled by the periodic sender; helper enforces that).
+                _deliver_published_announcement_best_effort(announcement)
                 messages.success(request, _("Announcement published successfully."))
             elif submit_action == SUBMIT_ACTION_SUBMIT_FOR_APPROVAL:
                 messages.success(
@@ -464,6 +494,9 @@ def announcement_approve(request: HttpRequest, announcement_id: int):
         AnnouncementAuditLog.Action.APPROVED,
         notes="Approved for publication",
     )
+    # Approval publishes the announcement → fan out now (future-scheduled ones
+    # are deferred to the periodic sender by the helper).
+    _deliver_published_announcement_best_effort(announcement)
     messages.success(
         request, f"Announcement «{announcement.title}» has been approved and published."
     )

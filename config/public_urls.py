@@ -111,6 +111,10 @@ from apps.schools.views_marketing_api import marketing_sandbox_validate
 from apps.marketplace.urls_developer_platform import (
     public_urlpatterns as marketplace_dev_public_urlpatterns,
 )
+from apps.siteconfig.views_service_worker import (
+    service_worker_asset_manifest,
+    service_worker_script,
+)
 
 
 def home(request):
@@ -136,6 +140,8 @@ urlpatterns = [
         name="marketing_personality_page",
     ),
     path("offline/", offline_page, name="offline"),
+    path("sw.js", service_worker_script, name="service_worker_root"),
+    path("sw-asset-manifest.json", service_worker_asset_manifest, name="sw_asset_manifest"),
     # PWA manifest endpoints (mirrored from config/urls.py so templates that emit
     # `{% url 'pwa_manifest_platform' %}` work under the public urlconf when
     # UrlConfSwitcherMiddleware swaps in this module for marketing hosts).

@@ -1,0 +1,6 @@
+{% comment %}
+Deploy freshness contract (v4.04.43): consumed by rmc-deploy-freshness.js to
+detect when the live server has moved ahead of the HTML the user is viewing.
+{% endcomment %}
+<meta name="rmc-deploy-sha" content="{{ rmc_deploy_commit_sha|default:'unknown' }}">
+<meta name="rmc-sw-cache-version" content="{{ rmc_sw_cache_version|default:'unknown' }}">

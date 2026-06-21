@@ -584,6 +584,21 @@ class RuntimeDefaults(models.Model):
         null=True,
         help_text="Default offline-sync conflict strategy (for example: show_both).",
     )
+    ai_mode = models.CharField(
+        max_length=16,
+        blank=True,
+        null=True,
+        choices=(
+            ("auto", "Auto (cloud when available, else on-device)"),
+            ("cloud", "Cloud (prefer remote AI gateway)"),
+            ("local", "Local (on-device only — data never leaves the box)"),
+        ),
+        help_text=(
+            "Platform-default AI provider mode. Blank/None = auto. Tenants may "
+            "override per-school via SiteSettings. Resolved by "
+            "services.ai_deployment_posture.resolve_effective_ai_mode."
+        ),
+    )
     compliance_profile_id = models.PositiveBigIntegerField(
         blank=True,
         null=True,

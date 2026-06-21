@@ -201,7 +201,7 @@
 // v4.03.63: operator provisioning queue (/super/provision-queue/ — all not-yet-live
 //   schools in one actionable list w/ requeue) + i18n: completion summary now server-
 //   translated/pluralized (completion_summary_text) and rendered by the progress JS.
-const CACHE_VERSION = "sms-v4.04.42-wizard-review-void-fix-2026-06-20";
+const CACHE_VERSION = "sms-v4.04.43-deploy-freshness-mandate-2026-06-20";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -390,15 +390,9 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
-      const names = await caches.keys();
-      await Promise.all(
-        names.map((name) => {
-          if (name !== STATIC_CACHE && name !== DYNAMIC_CACHE) {
-            return caches.delete(name);
-          }
-          return Promise.resolve();
-        }),
-      );
+      await purgeAllSmsCaches();
+      await caches.open(STATIC_CACHE);
+      await caches.open(DYNAMIC_CACHE);
       await self.clients.claim();
     })(),
   );
@@ -532,6 +526,17 @@ self.addEventListener("message", (event) => {
       }),
     );
   }
+  if (data.type === "PURGE_ALL_CACHES") {
+    event.waitUntil(
+      purgeAllSmsCaches().then(() => {
+        const source = event.source;
+        if (source) {
+          try { source.postMessage({ type: "all-caches-purged" }); } catch (_err) {}
+        }
+      }),
+    );
+    return;
+  }
   if (data.type === "PURGE_AUTH_CACHE") {
     // Shared-device hygiene: drop the authenticated read-cache so the next user
     // can never be served the previous user's cached PII. Acks back so a caller
@@ -546,6 +551,23 @@ self.addEventListener("message", (event) => {
     );
   }
 });
+
+async function purgeAllSmsCaches() {
+  try {
+    const names = await caches.keys();
+    await Promise.all(
+      names.map((name) => {
+        if (name.startsWith("sms-static-") || name.startsWith("sms-dynamic-")) {
+          return caches.delete(name);
+        }
+        return Promise.resolve();
+      }),
+    );
+    return true;
+  } catch (_err) {
+    return false;
+  }
+}
 
 /**
  * Delete the authenticated dynamic read-cache (API JSON, stale-while-revalidate).
@@ -602,12 +624,12 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // CSS/JS under /static/ use STALE-WHILE-REVALIDATE: serve cache immediately
-  // (fast, offline-safe) but always refresh from network in the background so
-  // deploys propagate without manual hard-refresh. Pure network-first (v4.04.38)
-  // caused blank/broken layouts when a CSS fetch failed or lagged on first paint.
+  // CSS/JS under /static/ are NETWORK-FIRST when online so deploys are visible on
+  // the very next load. A short timeout falls back to cache only when the network
+  // is slow/offline — avoids the stale-while-revalidate trap that served week-old
+  // bundles after deploy (v4.04.42 regression).
   if (isNetworkFirstStaticAsset(request, url)) {
-    event.respondWith(staleWhileRevalidateStatic(request));
+    event.respondWith(networkFirstStaticWithTimeout(request));
     return;
   }
 
@@ -749,6 +771,37 @@ function isNetworkFirstStaticAsset(request, url) {
   }
   const path = url.pathname.toLowerCase();
   return path.includes("/css/") || path.endsWith(".css") || path.includes("/js/") || path.endsWith(".js");
+}
+
+const STATIC_FETCH_TIMEOUT_MS = 3500;
+
+async function networkFirstStaticWithTimeout(request) {
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  let timeoutId = null;
+  try {
+    const fetchOpts = controller ? { signal: controller.signal } : {};
+    if (controller) {
+      timeoutId = setTimeout(function () {
+        try {
+          controller.abort();
+        } catch (_abortErr) {}
+      }, STATIC_FETCH_TIMEOUT_MS);
+    }
+    const response = await fetch(request, fetchOpts);
+    if (timeoutId) clearTimeout(timeoutId);
+    if (response && response.ok) {
+      const cache = await caches.open(STATIC_CACHE);
+      await cache.put(request, response.clone());
+    }
+    return response;
+  } catch (_err) {
+    if (timeoutId) clearTimeout(timeoutId);
+    const cached = await caches.match(request);
+    if (cached) {
+      return cached;
+    }
+    return new Response("Offline", { status: 503 });
+  }
 }
 
 async function staleWhileRevalidateStatic(request) {

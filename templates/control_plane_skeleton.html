@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token }}">
     {% include "partials/rmc_theme_meta.html" %}
+    {% include "partials/rmc_deploy_meta.html" %}
+    <script src="{% static 'js/rmc-deploy-freshness.js' %}"></script>
     {% include "partials/control_plane_operator_brand_style.html" %}
     {% comment %} Theme bootstrap must run before paint to avoid flash-of-wrong-theme.
        v2.47 (2026-05-15): Control plane defaults to LIGHT — manager-aesthetic-polish.css
@@ -308,7 +310,7 @@
     {% comment %} v4.02.70: operator PWA + offline config (globe/KB static precache on manager host). {% endcomment %}
     {% include "partials/rmc_sms_offline_config.html" %}
     <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-service-worker-url">{
-      "url": "{% static 'js/service-worker.js' %}"
+      "url": "{% url 'service_worker_root' %}"
     }</script>
     <script src="{% static 'js/rmc-service-worker-registration.js' %}"></script>
     <script src="{% static 'js/rmc-kb-offline-cache.js' %}" defer></script>

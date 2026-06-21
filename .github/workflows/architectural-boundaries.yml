@@ -37,6 +37,7 @@ on:
       - "scripts/scan_money_float.py"
       - "scripts/scan_locale_coverage.py"
       - "scripts/verify_service_worker_version.py"
+      - "scripts/verify_deploy_cache_posture.py"
       - "scripts/verify_slo_registry.py"
       - "scripts/verify_intelligence_model_producers.py"
       - "apps/customersuccess/models.py"
@@ -520,6 +521,20 @@ jobs:
         # must be >= baseline.
         run: |
           python scripts/verify_service_worker_version.py --check-monotonic
+
+  deploy-cache-posture:
+    name: "PWA: deploy cache posture (SW scope + freshness + no scanner block)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run deploy cache posture verifier
+        run: |
+          python scripts/verify_deploy_cache_posture.py
 
   slo-registry:
     name: "SRE: SLO registry structural integrity"

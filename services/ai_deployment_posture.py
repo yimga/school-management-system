@@ -98,6 +98,55 @@ def default_tier_chain_for_profile(profile: str | None = None) -> list[str]:
     return list(_EDGE_CHAIN)
 
 
+# --- AI mode (operator default + per-tenant override) -----------------------
+# A configurable, user-facing switch layered ON TOP of the deployment profile.
+# Operators set a platform default (RuntimeDefaults.ai_mode); tenants may override
+# per-school. Resolution flows through the existing SiteSettings cascade, so the
+# tenant override transparently wins over the platform default.
+VALID_AI_MODES = ("auto", "cloud", "local")
+
+
+def normalize_ai_mode(raw: str | None) -> str:
+    """Coerce any stored value to one of VALID_AI_MODES; blank/unknown -> 'auto'."""
+    value = str(raw or "").strip().lower()
+    return value if value in VALID_AI_MODES else "auto"
+
+
+def ai_mode_to_allowed_backends(mode: str | None) -> list[str] | None:
+    """Translate an AI mode into a gateway ``allowed_backends`` tier filter.
+
+    - ``auto``  -> None (no filter; the deployment profile decides)
+    - ``cloud`` -> prefer the cloud gateway, then on-device, then rules
+    - ``local`` -> on-device only (Ollama -> rules); data never leaves the box
+
+    ``rules`` always stays in the chain so the call still degrades to the
+    deterministic guided layer instead of failing when no model answers.
+    """
+    m = normalize_ai_mode(mode)
+    if m == "cloud":
+        return ["litellm", "ollama", "rules"]
+    if m == "local":
+        return ["ollama", "rules"]
+    return None  # auto -> profile default
+
+
+def resolve_effective_ai_mode(school: Any = None) -> str:
+    """Effective AI mode for a school.
+
+    The per-tenant override wins over the platform default — both live on the
+    ``ai_mode`` first-class SiteSettings field, which the config cascade already
+    resolves tenant-over-platform. Blank/unset -> ``auto``. Fails safe to ``auto``
+    on any resolution error so AI never hard-breaks on a config read.
+    """
+    try:
+        from apps.siteconfig.config_service import get_effective_site_settings
+
+        site = get_effective_site_settings(school=school)
+        return normalize_ai_mode(getattr(site, "ai_mode", None))
+    except Exception:  # noqa: BLE001 — config read is best-effort; default to auto
+        return "auto"
+
+
 def _parse_custom_task_tiers(raw: Any) -> dict[str, list[str]] | None:
     if not raw:
         return None

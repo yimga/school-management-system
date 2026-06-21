@@ -184,3 +184,43 @@ class FlowLeadInTests(SimpleTestCase):
     def test_hero_no_leadin_in_strict_mode(self):
         html = self._hero({"rmc_conversion_single_action_enforced": True})
         self.assertNotIn("rmc-flow-leadin", html)
+
+
+class PageHeaderLeadInTests(SimpleTestCase):
+    """Phase 3b: the shared page-header partials receive the flow on deep pages."""
+
+    _PARTIALS = ("components/page_header.html", "studio_os/components/page_header.html")
+
+    def _hdr(self, tpl, ctx):
+        base = {
+            "title": "Wedge registry",
+            "subtitle": "42 wedges",
+            "eyebrow": "Operator",
+            "rmc_page_explain_enabled": True,
+            "rmc_conversion_single_action_enforced": False,
+            "rmc_system_actions_available": True,
+            "rmc_system_actions": [_NEXT, _THEN],
+        }
+        base.update(ctx)
+        return render_to_string(tpl, base)
+
+    def test_both_partials_receive_leadin(self):
+        for tpl in self._PARTIALS:
+            html = self._hdr(tpl, {})
+            self.assertIn("rmc-flow-leadin", html, tpl)
+            self.assertIn("Wedge registry", html, tpl)  # header still renders its title
+
+    def test_no_leadin_with_single_action(self):
+        for tpl in self._PARTIALS:
+            html = self._hdr(tpl, {"rmc_system_actions": [_NEXT]})
+            self.assertNotIn("rmc-flow-leadin", html, tpl)
+
+    def test_no_leadin_in_strict_mode(self):
+        for tpl in self._PARTIALS:
+            html = self._hdr(tpl, {"rmc_conversion_single_action_enforced": True})
+            self.assertNotIn("rmc-flow-leadin", html, tpl)
+
+    def test_no_leadin_without_explain_bar(self):
+        for tpl in self._PARTIALS:
+            html = self._hdr(tpl, {"rmc_page_explain_enabled": False})
+            self.assertNotIn("rmc-flow-leadin", html, tpl)

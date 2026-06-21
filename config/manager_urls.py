@@ -24,6 +24,10 @@ from apps.schools.marketing_views import marketing_page
 from apps.schools.provision_email_urls import build_public_site_url
 from apps.schools.section8_views import find_school, global_login_discovery
 from apps.siteconfig.views_tour import tour_steps_public_api
+from apps.siteconfig.views_service_worker import (
+    service_worker_asset_manifest,
+    service_worker_script,
+)
 from apps.schools.control_plane import (
     require_control_plane_access,
     user_has_control_plane_access,
@@ -634,6 +638,8 @@ urlpatterns = [
     # action-registry endpoint. # rbac-allow: command-bar-server-filters-actions-per-user-and-tenant
     path("api/command-bar/actions/", CommandBarActionsView.as_view(), name="command_bar_actions"),
     path("offline/", offline_page, name="offline"),
+    path("sw.js", service_worker_script, name="service_worker_root"),
+    path("sw-asset-manifest.json", service_worker_asset_manifest, name="sw_asset_manifest"),
     path("offline/sync/", manager_offline_sync_center, name="manager_offline_sync_center"),
     path("manifest.json", _platform_manifest, name="pwa_manifest_platform"),
     path("manifest-portal.json", _portal_manifest, name="pwa_manifest_portal"),

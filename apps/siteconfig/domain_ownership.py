@@ -97,6 +97,7 @@ EXACT_FIELD_OWNERS: Final[dict[str, str]] = {
     "notify_parent_welcome_email": "policies_rules",
     "enable_offline_mode": "policies_rules",
     "offline_sync_conflict_resolution": "policies_rules",
+    "ai_mode": "policies_rules",
     "compliance_profile_id": "policies_rules",
     "referral_bonus_amount": "policies_rules",
     "cache_rankings_interval_minutes": "safe_platform_default",

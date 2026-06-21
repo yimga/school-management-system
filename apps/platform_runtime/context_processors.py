@@ -7,6 +7,13 @@ from django.urls import NoReverseMatch, reverse
 
 from apps.platform_runtime.rmc_os_shell import resolve_rmc_os_shell
 from apps.platform_runtime.shell_contract import resolve_shell_contract
+from apps.siteconfig.deploy_meta import build_deploy_freshness_context
+
+
+def deploy_freshness_context(request):
+    """Expose deploy commit + SW cache version for post-deploy reload guard."""
+    del request
+    return build_deploy_freshness_context()
 
 
 def click_tracking_context(request):

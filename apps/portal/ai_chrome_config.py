@@ -161,6 +161,36 @@ def _provider_status() -> dict[str, Any]:
         }
 
 
+def _ai_mode_chrome(request) -> dict[str, Any]:
+    """AI-mode state + switch endpoints for the chrome island.
+
+    Carries the effective mode, the modes a user may pick, whether they can change
+    the tenant override and/or the platform default, and the POST endpoints. The
+    switch control reads this to render itself and target the right scope.
+    """
+    try:
+        from apps.portal.views_ai_mode import ai_mode_state
+
+        state = dict(ai_mode_state(request))
+    except _FLAG_ERRORS:
+        state = {
+            "effective_mode": "auto",
+            "available_modes": ["auto", "cloud", "local"],
+            "can_set_tenant": False,
+            "can_set_platform": False,
+        }
+    endpoints: dict[str, str] = {}
+    from django.urls import NoReverseMatch, reverse
+
+    for key, name in (("tenant", "portal:ai_mode"), ("platform", "super:ai_mode")):
+        try:
+            endpoints[key] = reverse(name)
+        except NoReverseMatch:
+            pass
+    state["endpoints"] = endpoints
+    return state
+
+
 def resolve_ai_chrome_config(request) -> dict[str, Any]:
     """Build the full chrome config dict for templates and page-data islands."""
     user = getattr(request, "user", None)
@@ -277,6 +307,7 @@ def resolve_ai_chrome_config(request) -> dict[str, Any]:
             "provider": status.get("provider"),
             "posture_label": status.get("posture_label"),
         },
+        "ai_mode": _ai_mode_chrome(request),
         "local_ai": {
             "voice_languages": list(
                 getattr(settings, "LOCAL_VOICE_LANGUAGES", ["en"])

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tenant cache diagnostic — paste on live site</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+  pre { background: #0e1426; color: #eef2ff; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: 12px; }
+  .ok { color: #059669; } .bad { color: #dc2626; }
+  h1 { font-size: 1.25rem; }
+  p { color: #475569; }
+</style>
+</head>
+<body>
+<h1>Tenant page blank / stale UI — cache diagnostic</h1>
+<p><strong>Do not open this file for the test.</strong> Log into your tenant site (e.g. <code>new-school.runmycampus.com</code>), open DevTools → Console, paste the script below, press Enter. Copy the printed object back here if it still looks wrong.</p>
+
+<p class="ok"><strong>Server check (2026-06-21):</strong> Live host already serves SW <code>v4.04.42</code> and <code>rmc-wizard.css</code> with <code>min-height: auto</code>. If the page still looks broken, the problem is almost always <em>your browser</em> still running an old service worker or Cache Storage bucket.</p>
+
+<h2>Why <code>caches.keys()</code> showed nothing</h2>
+<p>It returns a <strong>Promise</strong>. Use <code>await caches.keys()</code> or the script below — not bare <code>caches.keys()</code>.</p>
+
+<h2>Paste this on the tenant origin</h2>
+<pre id="script">(async function rmcCacheDiagnostic() {
+  const out = { ts: new Date().toISOString(), url: location.href };
+  out.secureContext = window.isSecureContext;
+  out.swApi = "serviceWorker" in navigator;
+  out.cachesApi = "caches" in window;
+  try {
+    out.cacheKeys = await caches.keys();
+  } catch (e) {
+    out.cacheKeysError = String(e);
+  }
+  const reg = await navigator.serviceWorker.getRegistration();
+  out.swRegistered = !!reg;
+  out.pageControlledBySw = !!navigator.serviceWorker.controller;
+  out.activeUrl = reg?.active?.scriptURL || null;
+  out.activeState = reg?.active?.state || null;
+  out.hasWaitingWorker = !!reg?.waiting;
+  out.hasInstallingWorker = !!reg?.installing;
+  out.pwaConfig = window.SMS_OFFLINE_CONFIG ? {
+    pwaEnabled: window.SMS_OFFLINE_CONFIG.pwaEnabled,
+    enabled: window.SMS_OFFLINE_CONFIG.enabled,
+  } : null;
+  if (reg?.active?.scriptURL) {
+    try {
+      const swText = await (await fetch(reg.active.scriptURL, { cache: "no-store" })).text();
+      out.activeSwCacheVersion = (swText.match(/const CACHE_VERSION = "([^"]+)"/) || [])[1] || null;
+    } catch (e) {
+      out.activeSwFetchError = String(e);
+    }
+  }
+  try {
+    const css = await (await fetch("/static/css/rmc-wizard.css", { cache: "reload" })).text();
+    const block = (css.match(/\.rmc-wizard-shell\s*\{[\s\S]*?\}/) || [""])[0];
+    out.wizardShellHasAutoMinHeight = block.includes("min-height: auto");
+    out.wizardShellSnippet = block.slice(0, 120);
+  } catch (e) {
+    out.cssFetchError = String(e);
+  }
+  const shell = document.querySelector(".rmc-wizard-shell");
+  if (shell) {
+    const cs = getComputedStyle(shell);
+    out.liveShellMinHeight = cs.minHeight;
+    out.reviewMode = !document.body.classList.contains("rmc-wizard-shell-viewport-locked");
+  }
+  out.revealArmed = document.documentElement.getAttribute("data-rmc-reveal-armed");
+  out.hiddenRevealCount = document.querySelectorAll(".rmc-reveal:not(.is-revealed)").length;
+  console.log("RMC cache diagnostic:", out);
+  return out;
+})();</pre>
+
+<h2>How to read results</h2>
+<ul>
+  <li><code>activeSwCacheVersion</code> should be <code>sms-v4.04.42-wizard-review-void-fix-2026-06-20</code></li>
+  <li><code>cacheKeys</code> should list names containing <code>v4.04.42</code> (not only <code>v4.04.39</code> or older)</li>
+  <li><code>hasWaitingWorker: true</code> → click “Refresh” on the update toast or unregister SW</li>
+  <li><code>pageControlledBySw: false</code> → hard refresh once; if still false, SW may be blocked</li>
+  <li><code>wizardShellHasAutoMinHeight: false</code> → browser still serving old CSS from cache</li>
+</ul>
+
+<h2>Hard reset (if diagnostic shows old version)</h2>
+<ol>
+  <li>DevTools → Application → Service Workers → <strong>Unregister</strong></li>
+  <li>Application → Storage → <strong>Clear site data</strong></li>
+  <li>Close all tabs for that hostname</li>
+  <li>Reopen → hard reload (Ctrl+Shift+R)</li>
+  <li>Run the diagnostic script again</li>
+</ol>
+</body>
+</html>

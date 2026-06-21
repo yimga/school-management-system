@@ -1,0 +1,68 @@
+/* AI mode status + switch control.
+ * Compact pill that shows the live AI posture (local / cloud / guided) and, for
+ * users who may change it, a mode selector. Token-only (semantic + brand tokens
+ * and color-mix) so tenant brand and light/dark flip cleanly. */
+
+.rmc-ai-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-1, 0.25rem) var(--space-2, 0.5rem);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  font-size: var(--type-size-xs, 0.75rem);
+  line-height: 1.2;
+}
+
+.rmc-ai-mode[hidden] {
+  display: none;
+}
+
+.rmc-ai-mode__dot {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--text-tertiary, var(--text-secondary));
+  flex: 0 0 auto;
+}
+
+.rmc-ai-mode[data-posture="live_cloud"] .rmc-ai-mode__dot {
+  background: var(--ds-success, var(--brand-primary));
+}
+
+.rmc-ai-mode[data-posture="live_local"] .rmc-ai-mode__dot {
+  background: var(--brand-primary);
+}
+
+.rmc-ai-mode[data-posture="guided"] .rmc-ai-mode__dot,
+.rmc-ai-mode[data-posture="unavailable"] .rmc-ai-mode__dot {
+  background: color-mix(in srgb, var(--text-secondary) 60%, transparent);
+}
+
+.rmc-ai-mode__label {
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+.rmc-ai-mode__select {
+  appearance: auto;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 0.375rem);
+  background: var(--surface-bg);
+  color: var(--text-primary);
+  font-size: var(--type-size-xs, 0.75rem);
+  padding: 0 var(--space-1, 0.25rem);
+  max-inline-size: 9rem;
+}
+
+.rmc-ai-mode__select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rmc-ai-mode__select:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--brand-primary));
+  outline-offset: 1px;
+}

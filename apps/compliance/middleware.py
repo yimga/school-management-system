@@ -389,6 +389,8 @@ class IPCountryAccessMiddleware(MiddlewareMixin):
         "/authentication/",
         "/super/",
         "/offline/",
+        "/sw.js",
+        "/sw-asset-manifest.json",
         "/api/health/",
         "/api/weather/context/",
         "/status/",

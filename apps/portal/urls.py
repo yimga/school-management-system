@@ -150,6 +150,7 @@ from .views_education_pack import education_pack_parent, education_pack_teacher
 from .views_partner_docs import partner_documentation_assistant
 from .views_runmycampus_guide import runmycampus_guide
 # v4.00.9: streaming AI gateway view for the rmcStreamMount progressive client.
+from .views_ai_mode import ai_mode_view
 from .views_ai_stream import ai_stream_view
 from .views_copilot_rail import (
     TenantCopilotRailContextView,
@@ -186,6 +187,8 @@ app_name = "portal"
 urlpatterns = [
     # v4.00.9: streaming AI gateway — SSE chunks for rmcStreamMount.
     path("ai/stream/", ai_stream_view, name="ai_stream"),
+    # AI mode status + switch (operator platform default + per-tenant override).
+    path("ai/mode/", ai_mode_view, name="ai_mode"),
     # Tenant copilot rail endpoints (host-correct counterpart to studio_os:copilot_rail_*).
     # The shared rail template resolves these on tenant hosts so chat/insights work.
     path("copilot/rail/context/", TenantCopilotRailContextView.as_view(), name="copilot_rail_context"),

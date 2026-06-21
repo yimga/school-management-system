@@ -269,6 +269,24 @@ def invoke_with_request(
         resolved_school = getattr(request, "school", None)
     if require_available and not is_ai_available(resolved_school):
         return None
+    # Per-tenant inference budget (P8 boundary guard): a runaway loop on one
+    # tenant must not exhaust the shared gateway for everyone. Enforced only for a
+    # resolved tenant (operator/anon traffic isn't billed to a tenant bucket).
+    # check_inference_quota fails open on cache outage, so this never hard-breaks
+    # AI; on deny we return None and the caller's rules/guided fallback takes over.
+    if resolved_school is not None:
+        try:
+            from services.ai_helpers_quota import check_inference_quota
+
+            _quota_ok, _ = check_inference_quota(resolved_school)
+            if not _quota_ok:
+                logger.info(
+                    "ai_helpers: inference quota exhausted for school=%s; degrading",
+                    getattr(resolved_school, "pk", None),
+                )
+                return None
+        except Exception:  # noqa: BLE001 — quota must never hard-break AI traffic
+            logger.debug("ai_helpers: quota check failed", exc_info=True)
     try:
         from services.ai_gateway import TaskType, invoke as gateway_invoke
 
@@ -317,6 +335,26 @@ def invoke_with_request(
             if user_query:
                 user_query = redact_pii(user_query)
             md["pii_redacted"] = True
+        # AI mode switch (operator default + per-tenant override): translate the
+        # effective mode into the gateway's allowed_backends tier filter so
+        # "local"/"cloud" genuinely change which provider serves THIS call. A
+        # caller-supplied allowed_backends always wins; "auto" leaves the
+        # deployment profile in charge (no filter). "rules" always stays in the
+        # chain via the mapping, so the call still degrades to guided text.
+        if "allowed_backends" not in md:
+            try:
+                from services.ai_deployment_posture import (
+                    ai_mode_to_allowed_backends,
+                    resolve_effective_ai_mode,
+                )
+
+                effective_mode = resolve_effective_ai_mode(resolved_school)
+                md["ai_mode"] = effective_mode
+                mode_backends = ai_mode_to_allowed_backends(effective_mode)
+                if mode_backends:
+                    md["allowed_backends"] = mode_backends
+            except Exception:  # noqa: BLE001 — mode resolution is best-effort
+                logger.debug("ai_helpers: ai_mode resolution failed", exc_info=True)
         return gateway_invoke(
             resolved_task,
             prompt,
@@ -355,6 +393,16 @@ def invoke_with_request_stream(
         resolved_school = getattr(request, "school", None)
     if require_available and not is_ai_available(resolved_school):
         return None
+    # Per-tenant inference budget — same boundary guard as the non-streaming path.
+    if resolved_school is not None:
+        try:
+            from services.ai_helpers_quota import check_inference_quota
+
+            _q_ok, _ = check_inference_quota(resolved_school)
+            if not _q_ok:
+                return None
+        except Exception:  # noqa: BLE001 — quota must never hard-break AI traffic
+            logger.debug("ai_helpers: quota check (stream) failed", exc_info=True)
 
     try:
         from services.ai_gateway import TaskType
@@ -396,6 +444,22 @@ def invoke_with_request_stream(
             if local_user_query:
                 local_user_query = redact_pii(local_user_query)
             md["pii_redacted"] = True
+
+        # AI mode switch — same tier filter as the non-streaming path.
+        if "allowed_backends" not in md:
+            try:
+                from services.ai_deployment_posture import (
+                    ai_mode_to_allowed_backends,
+                    resolve_effective_ai_mode,
+                )
+
+                effective_mode = resolve_effective_ai_mode(resolved_school)
+                md["ai_mode"] = effective_mode
+                mode_backends = ai_mode_to_allowed_backends(effective_mode)
+                if mode_backends:
+                    md["allowed_backends"] = mode_backends
+            except Exception:  # noqa: BLE001 — mode resolution is best-effort
+                logger.debug("ai_helpers: ai_mode (stream) resolution failed", exc_info=True)
 
         return invoke_stream(
             resolved_task,

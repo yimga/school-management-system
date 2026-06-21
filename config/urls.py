@@ -23,6 +23,10 @@ from apps.platform_runtime.views_internal_cron import internal_cron_run
 from apps.schoolops.views_email_webhook import EmailProviderWebhookView
 from apps.communication.views_delivery_dashboard import MessageDeliveryDashboardView
 from apps.observability import views as obs_views
+from apps.siteconfig.views_service_worker import (
+    service_worker_asset_manifest,
+    service_worker_script,
+)
 from apps.wal_stream.views_http import wal_websocket_http_stub
 from apps.observability import views_friction as obs_friction_views
 from apps.portal.views_ai_copilot import (
@@ -132,65 +136,6 @@ def home(request):
 def offline_page(request):
     """Offline fallback shell served by service-worker navigation fallback."""
     return render(request, "offline.html", status=200)
-
-
-def service_worker_asset_manifest(request):
-    """Return the SW pre-cache asset manifest as JSON with `static()`-resolved
-    URLs. Lets the service worker pre-cache against the *actual* STATIC_URL
-    (CDN, hashed-filename manifest, etc.) rather than hardcoded `/static/...`.
-
-    Schema: `{ "version": str, "assets": [str, ...] }`. The version is taken
-    from the SW CACHE_VERSION via env so SW + manifest stay in lockstep.
-
-    See `docs/CONFIGURABILITY.md` (Layer B) + `reference_configurability_contract.md`.
-    """
-    from django.http import JsonResponse
-    from django.templatetags.static import static as _static
-    import os as _os
-
-    paths = [
-        "css/design-tokens.css",
-        "css/rmc-wizard.css",
-        "css/rmc-wizard-engine.css",
-        "css/rmc-wizard-assist.css",
-        "css/rmc-setup-surface.css",
-        "css/rmc-tenant-canvas-100x.css",
-        "css/rmc-operator-tools-tray.css",
-        "css/dashboard-responsive.css",
-        "css/reduce-motion-low-power.css",
-        "js/command-palette.js",
-        "js/dashboard-layout.js",
-        "js/vendor/dexie.min.js",
-        "js/offline-db.js",
-        "js/offline-crypto-wrapper.js",
-        "js/rmc-wizard-offline-intake.js",
-        "js/rmc-plickers-card-sweep.js",
-        "js/form-draft-save.js",
-        "js/sync-manager.js",
-        "js/low-power.js",
-        "js/offline-status-bar.js",
-        "js/auto-pilot.js",
-        "js/rmc-lexicon.js",
-        "js/rmc-friction.js",
-        "images/logo.png",
-        "manifest.json",
-    ]
-    assets = ["/offline/"]
-    for p in paths:
-        try:
-            assets.append(_static(p))
-        except Exception:
-            # collectstatic may not have run; fall through to raw /static/ path
-            assets.append(f"/static/{p}")
-    return JsonResponse(
-        {
-            "version": _os.getenv(
-                "SW_MANIFEST_VERSION",
-                "sms-v4.04.42-wizard-review-void-fix-2026-06-20",
-            ),
-            "assets": assets,
-        }
-    )
 
 
 def manager_offline_sync_root_fallback(request):
@@ -329,6 +274,7 @@ urlpatterns = [
         name="marketing_personality_page",
     ),
     path("offline/", offline_page, name="offline"),
+    path("sw.js", service_worker_script, name="service_worker_root"),
     # Wave P-C (v3.95.1): Embedded checkout endpoint for parent fee payments.
     path(
         "billing/embedded-checkout/",

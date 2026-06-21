@@ -255,6 +255,7 @@ SITESETTINGS_FIELD_ORDER = [
     "maintenance_mode",
     "enable_offline_mode",
     "offline_sync_conflict_resolution",
+    "ai_mode",
     "auto_tag_photos_from_exif",
     "default_dashboard_view",
     "default_refresh_rate",
@@ -513,6 +514,7 @@ class TenantSettingsForm(forms.ModelForm):
             "offline_sync_conflict_resolution": forms.Select(
                 attrs={"class": "form-select"}
             ),
+            "ai_mode": forms.Select(attrs={"class": "form-select"}),
             "default_term_report_style": forms.Select(attrs={"class": "form-select"}),
             "default_annual_report_style": forms.Select(attrs={"class": "form-select"}),
             "grade_approval_enabled": forms.CheckboxInput(

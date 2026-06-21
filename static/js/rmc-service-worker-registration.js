@@ -117,7 +117,7 @@
       // from the network on registration (not from the HTTP cache). Without this,
       // the SW file can stay cached for up to 24 hours, which means template /
       // CSS / JS fixes never reach users even after we bump CACHE_VERSION.
-      navigator.serviceWorker.register(swUrl, { updateViaCache: 'none' })
+      navigator.serviceWorker.register(swUrl, { scope: "/", updateViaCache: "none" })
         .then(function (registration) {
           pushConfigToWorker(registration);
 

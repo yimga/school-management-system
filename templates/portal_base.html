@@ -18,6 +18,8 @@
     External JS instead of inline keeps the page CSP-friendly.
     {% endcomment %}
     {% include "partials/rmc_theme_meta.html" %}
+    {% include "partials/rmc_deploy_meta.html" %}
+    <script src="{% static 'js/rmc-deploy-freshness.js' %}"></script>
     {% include "partials/rmc_social_meta.html" %}
     <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
     {% include "partials/rmc_viewport_engine.html" %}
@@ -597,7 +599,7 @@
     the registration JS can be a static, CSP-friendly file.
     {% endcomment %}
     <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-service-worker-url">{
-      "url": "{% static 'js/service-worker.js' %}"
+      "url": "{% url 'service_worker_root' %}"
     }</script>
     <script src="{% static 'js/rmc-service-worker-registration.js' %}"></script>
     

@@ -445,6 +445,7 @@ MIDDLEWARE += [
     # requests where the flag isn't set, so cheap to wire globally.
     "apps.migration_cloud.api.rate_limiting.SoftWarnHeaderMiddleware",
     "apps.observability.middleware_agent_template_debug.AgentTemplateMissingDebugMiddleware",
+    "apps.siteconfig.middleware.html_no_cache.HtmlNoCacheMiddleware",
     "apps.platform_runtime.middleware_transient_db.TransientDatabaseUnavailableMiddleware",
 ]
 
@@ -543,6 +544,7 @@ TEMPLATES = [
                 "apps.platform_runtime.context_processors.click_tracking_context",
                 "apps.platform_runtime.context_processors.rum_ingest_context",
                 "apps.platform_runtime.context_processors.demo_sandbox_banner",
+                "apps.platform_runtime.context_processors.deploy_freshness_context",
                 "apps.platform_runtime.context_processors.shell_contract_context",
                 "apps.platform_runtime.context_processors.rmc_os_shell_context",
                 "apps.platform_runtime.context_processors.ai_operating_layer_context",

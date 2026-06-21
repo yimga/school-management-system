@@ -13,6 +13,7 @@ from apps.marketplace import views_developer_platform as marketplace_dev_views
 from apps.customersuccess import views_super as cs_views
 from apps.orchestration import views as orchestration_views
 from . import super_views
+from apps.portal.views_ai_mode import ai_mode_view as _ai_mode_view
 from . import super_views_subscription_manage
 from . import super_views_beyond_reach
 from . import views_mat_group_hub
@@ -895,6 +896,11 @@ urlpatterns = [
         "funding/",
         require_super_access_with_host(super_views.super_funding_overview),
         name="funding_overview",
+    ),
+    path(
+        "ai/mode/",
+        require_super_access_with_host(_ai_mode_view),
+        name="ai_mode",
     ),
     path(
         "support/",

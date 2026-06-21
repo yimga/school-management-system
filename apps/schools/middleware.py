@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 # Paths that do not require a resolved school (Super Admin, static, health, etc.)
 # /admin/ is NOT skipped: on base domain we resolve no tenant → Main (Public) Admin; on tenant subdomain we redirect to Backend
 SUPER_PREFIXES = ("/super/",)
-STATIC_PREFIXES = ("/static/", "/media/", "/favicon.ico", "/api/schema", "/offline/")
+STATIC_PREFIXES = ("/static/", "/media/", "/favicon.ico", "/api/schema", "/offline/", "/sw.js", "/sw-asset-manifest.json")
 HEALTH_PREFIXES = (
     "/health",
     "/ready",
@@ -140,6 +140,8 @@ MANAGER_HOST_ALLOWED_PREFIXES = (
     "/media/",
     "/favicon.ico",
     "/offline/",
+    "/sw.js",
+    "/sw-asset-manifest.json",
     "/platform-runtime/",
     # v4.02.34: assist-dock realtime/API (badges, SSE, presence) — manager shell loads
     # rmc-assist-dock.js; without this prefix ReservedPublicHostAccessMiddleware
@@ -173,6 +175,8 @@ MANAGER_HOST_PUBLIC_ACCESS_PREFIXES = (
     "/status/",
     "/notifications/",
     "/offline/",
+    "/sw.js",
+    "/sw-asset-manifest.json",
     "/configuration/",
     "/internal-admin/",
     "/health",
@@ -234,6 +238,8 @@ VERIFY_HOST_ALLOWED_PREFIXES = (
     "/media/",
     "/favicon.ico",
     "/offline/",
+    "/sw.js",
+    "/sw-asset-manifest.json",
 )
 
 
@@ -300,6 +306,8 @@ SUPPORT_HOST_ALLOWED_PREFIXES = (
     "/media/",
     "/favicon.ico",
     "/offline/",
+    "/sw.js",
+    "/sw-asset-manifest.json",
 )
 
 
