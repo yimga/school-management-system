@@ -44,6 +44,29 @@ urlpatterns = [
     ),
     path("groups/<int:thread_id>/join/", views_groups.group_join, name="group_join"),
     path("groups/<int:thread_id>/leave/", views_groups.group_leave, name="group_leave"),
+    # IM-5: live new-message delivery for an open group thread (poll endpoint).
+    path(
+        "groups/<int:thread_id>/messages-since/",
+        views_groups.group_messages_since,
+        name="group_messages_since",
+    ),
+    # IM-5: group message attachment download (membership-gated).
+    path(
+        "groups/attachment/<int:attachment_id>/",
+        views_groups.group_attachment_download,
+        name="group_attachment_download",
+    ),
+    # IM-6: edit / soft-delete a group message.
+    path(
+        "groups/<int:thread_id>/message/<int:message_id>/edit/",
+        views_groups.group_message_edit,
+        name="group_message_edit",
+    ),
+    path(
+        "groups/<int:thread_id>/message/<int:message_id>/delete/",
+        views_groups.group_message_delete,
+        name="group_message_delete",
+    ),
     # Announcements
     path(
         "announcements/create/",

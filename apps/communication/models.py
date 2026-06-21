@@ -739,6 +739,40 @@ class ThreadReadState(models.Model):
         super().save(*args, **kwargs)
 
 
+class ThreadMessageAttachment(models.Model):
+    """File attachment on a group-thread :class:`ThreadMessage` (IM-5).
+
+    The group-thread twin of :class:`MessageAttachment` (which hangs off a 1:1
+    :class:`Message`). Same shape and validators apply at the view layer; the
+    parent ``ThreadMessage`` carries the tenant ``school``, so this row does not
+    duplicate it.
+    """
+
+    message = models.ForeignKey(
+        ThreadMessage,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+    )
+    file = models.FileField(upload_to="thread_attachments/%Y/%m/")
+    original_name = models.CharField(max_length=255)
+    content_type = models.CharField(max_length=128, blank=True)
+    size_bytes = models.PositiveIntegerField(default=0)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return self.original_name
+
+
 class AlertRule(models.Model):
     """
     User-defined alert rules for notifications

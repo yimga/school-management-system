@@ -1,30 +1,34 @@
 /*
- * rmc-direct-thread-live.js — live new-message delivery in an open thread (IM-3).
+ * rmc-group-thread-live.js — live delivery + live read receipts in an open
+ * GROUP thread (IM-5).
  *
- * Previously an open 1:1 thread stayed frozen until a full reload — a new
- * incoming message simply didn't appear. This poller fetches messages newer than
- * the last one rendered and appends them in place, so the conversation updates
- * live. It is the new-message twin of rmc-direct-thread-receipts.js (which only
- * updates the "Seen" indicator).
+ * The group-thread twin of rmc-direct-thread-live.js. Previously an open group
+ * thread stayed frozen until a full reload — a new post simply didn't appear,
+ * and "Read by N/M" never moved. This poller fetches messages newer than the
+ * last one rendered, appends them in place, and refreshes the read-receipt
+ * counts on the caller's own messages.
  *
  * Safety + design:
- *  - Message body and sender name are written via textContent ONLY — never
- *    innerHTML — so a message can't inject markup/script.
- *  - Endpoint + cadence come from data attributes on the thread scroll zone
+ *  - Message content, author name and attachment names are written via
+ *    textContent ONLY — never innerHTML — so a post can't inject markup/script.
+ *    Attachment hrefs come straight from the server (reversed URLs).
+ *  - Endpoint + cadence come from data attributes on the messages container
  *    (`data-rmc-thread-poll-endpoint`, `data-rmc-thread-poll-interval`); the URL
  *    is reversed server-side, never hardcoded.
  *  - Tracks the highest rendered message id and asks only for newer ones.
  *  - Auto-scrolls to the newest message only when the user was already near the
  *    bottom (doesn't yank them up while they read history).
  *  - Pauses while the tab is hidden; refreshes on focus; stops on 401/403.
+ *  - Live-appended messages intentionally carry no edit/delete controls (those
+ *    need a CSRF form and appear after the next reload).
  */
 (function () {
   "use strict";
 
-  if (window.__rmcThreadLiveInit) {
+  if (window.__rmcGroupThreadLiveInit) {
     return;
   }
-  window.__rmcThreadLiveInit = true;
+  window.__rmcGroupThreadLiveInit = true;
 
   var DEFAULT_INTERVAL_SECONDS = 12;
   var MIN_INTERVAL_SECONDS = 6;
@@ -62,13 +66,17 @@
     return max;
   }
 
-  function formatTime(iso) {
+  function formatWhen(iso) {
     try {
       var d = new Date(iso);
       if (isNaN(d.getTime())) {
         return "";
       }
-      return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      return (
+        d.toLocaleDateString() +
+        " " +
+        d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      );
     } catch (e) {
       return "";
     }
@@ -82,62 +90,63 @@
     return node;
   }
 
-  // Build a message bubble matching the server-rendered structure. ALL
-  // user-controlled text goes through textContent.
-  function buildBubble(msg) {
-    var row = el(
-      "div",
-      "mb-3 d-flex " + (msg.mine ? "justify-content-end" : "justify-content-start")
-    );
+  // Build a message row matching the server-rendered `.message-item` structure.
+  // ALL user-controlled text goes through textContent.
+  function buildItem(msg) {
+    var row = el("div", "message-item mb-3 p-3 border rounded");
     row.setAttribute("data-rmc-thread-msg", "");
     row.setAttribute("data-message-id", String(msg.id));
 
-    var bubble = el(
-      "div",
-      "rounded-3 px-3 py-2 " +
-        (msg.mine ? "bg-primary text-white" : "bg-light") +
-        " max-w-75p"
-    );
+    var head = el("div", "d-flex justify-content-between align-items-start mb-2");
+    var left = el("div");
+    var who = el("strong");
+    who.textContent = (msg.author_name || "").toString();
+    var when = el("span", "text-muted small ms-2");
+    when.textContent = formatWhen(msg.created_at);
+    left.appendChild(who);
+    left.appendChild(when);
+    head.appendChild(left);
 
-    var meta = el("div", "small opacity-75");
-    var who = (msg.sender_name || "").toString();
-    var time = formatTime(msg.created_at);
-    meta.textContent = who + (time ? " · " + time : "");
-
-    if (msg.mine) {
-      // Receipt span the receipts-poller will reveal when the recipient reads it.
-      var receipt = el("span", "ms-1");
-      receipt.setAttribute("data-rmc-msg-receipt", "");
-      receipt.setAttribute("data-message-id", String(msg.id));
-      receipt.setAttribute("title", "Seen");
-      if (!msg.is_read) {
-        receipt.setAttribute("hidden", "hidden");
-      }
-      var icon = el("i", "bi bi-check2-all");
-      icon.setAttribute("aria-hidden", "true");
-      var at = el("span");
-      at.setAttribute("data-rmc-msg-receipt-at", "");
-      receipt.appendChild(icon);
-      receipt.appendChild(at);
-      meta.appendChild(document.createTextNode(" "));
-      meta.appendChild(receipt);
+    var right = el("div", "d-flex align-items-center gap-2");
+    if (msg.edited) {
+      var badge = el("span", "badge bg-secondary");
+      badge.textContent = "Edited";
+      right.appendChild(badge);
     }
-    bubble.appendChild(meta);
+    head.appendChild(right);
+    row.appendChild(head);
 
-    if (msg.body) {
-      var body = el("div", "mt-1");
+    if (msg.content) {
+      var body = el("div", "message-content");
       // Preserve line breaks without innerHTML: split on \n, insert <br>.
-      var lines = String(msg.body).split("\n");
+      var lines = String(msg.content).split("\n");
       for (var i = 0; i < lines.length; i++) {
         if (i > 0) {
           body.appendChild(document.createElement("br"));
         }
         body.appendChild(document.createTextNode(lines[i]));
       }
-      bubble.appendChild(body);
+      row.appendChild(body);
     }
 
-    row.appendChild(bubble);
+    if (msg.attachments && msg.attachments.length) {
+      var wrap = el("div", "mt-2 d-flex flex-column gap-1");
+      for (var j = 0; j < msg.attachments.length; j++) {
+        var att = msg.attachments[j];
+        if (!att || !att.url) {
+          continue;
+        }
+        var link = el("a", "small d-inline-flex align-items-center gap-1");
+        link.setAttribute("href", att.url); // server-reversed URL
+        var icon = el("i", "bi bi-paperclip");
+        icon.setAttribute("aria-hidden", "true");
+        link.appendChild(icon);
+        link.appendChild(document.createTextNode(att.name || "attachment"));
+        wrap.appendChild(link);
+      }
+      row.appendChild(wrap);
+    }
+
     return row;
   }
 
@@ -149,13 +158,13 @@
   }
 
   function removeEmptyState() {
-    var empty = container.querySelector(".text-muted.text-center");
+    var empty = container.querySelector("[data-rmc-thread-empty]");
     if (empty) {
       empty.remove();
     }
   }
 
-  function append(messages) {
+  function appendMessages(messages) {
     if (!messages || !messages.length) {
       return;
     }
@@ -170,10 +179,36 @@
       ) {
         continue;
       }
-      container.appendChild(buildBubble(messages[i]));
+      container.appendChild(buildItem(messages[i]));
     }
     if (wasNearBottom) {
       container.scrollTop = container.scrollHeight;
+    }
+  }
+
+  function applyReceipts(receipts) {
+    if (!receipts || !receipts.length) {
+      return;
+    }
+    for (var i = 0; i < receipts.length; i++) {
+      var r = receipts[i];
+      if (!r || r.id == null) {
+        continue;
+      }
+      var host = document.querySelector(
+        '[data-rmc-thread-readby][data-message-id="' + r.id + '"]'
+      );
+      if (!host) {
+        continue;
+      }
+      var countEl = host.querySelector("[data-rmc-readby-count]");
+      var totalEl = host.querySelector("[data-rmc-readby-total]");
+      if (countEl && r.read_by != null) {
+        countEl.textContent = String(r.read_by);
+      }
+      if (totalEl && r.total != null) {
+        totalEl.textContent = String(r.total);
+      }
     }
   }
 
@@ -214,11 +249,12 @@
         return resp.json();
       })
       .then(function (data) {
-        if (!data || !data.messages) {
+        if (!data) {
           return;
         }
         try {
-          append(data.messages);
+          appendMessages(data.messages);
+          applyReceipts(data.receipts);
         } catch (e) {
           /* never break the thread on a DOM hiccup */
         }

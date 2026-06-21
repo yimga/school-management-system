@@ -59,7 +59,7 @@
                      recipient opened the thread (read_at). Kept live by
                      rmc-direct-thread-receipts.js, so it appears without a reload. {% endcomment %}
                   {% if msg.sender_id == request.user.id %}
-                    <span class="ms-1 rmc-msg-receipt" data-rmc-msg-receipt data-message-id="{{ msg.id }}"
+                    <span class="ms-1" data-rmc-msg-receipt data-message-id="{{ msg.id }}"
                           {% if not msg.is_read %}hidden{% endif %} title="{% trans 'Seen' %}">
                       <i class="bi bi-check2-all" aria-hidden="true"></i>
                       <span class="visually-hidden">{% trans "Seen" %}</span>
