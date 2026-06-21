@@ -2700,6 +2700,48 @@
   .rmc-flow-launchpad__step { flex-basis: 100%; }
 }
 
+/* Flow lead-in (Phase 3) — when the launchpad rail exists above, the page's
+   first content block (hero greeting / flight-deck header) RECEIVES the flow:
+   a short spine bridges the gap and lands on a node, so
+   bar → next step → your flow → here's your page reads as one continuous
+   descent. Generic modifier (works on any first block); applied in-template
+   ONLY under the launchpad condition. The spine lives inside a small
+   inline-start pad so it can never clip on a gutterless container. Token-only,
+   no animation. */
+.rmc-flow-leadin {
+  position: relative;
+  padding-inline-start: 1rem;
+}
+.rmc-flow-leadin::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0.28rem;
+  inset-block-start: -1.1rem;
+  block-size: 2.6rem;
+  inline-size: 2px;
+  border-radius: 2px;
+  /* off-token-allow: decorative-gradient */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ds-success, var(--brand-primary)) 45%, transparent), color-mix(in srgb, var(--brand-primary, var(--hairline)) 35%, transparent), transparent);
+}
+.rmc-flow-leadin::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0.03rem;
+  inset-block-start: 0.1rem;
+  inline-size: 0.55rem;
+  block-size: 0.55rem;
+  border-radius: 50%;
+  background: var(--surface-canvas, var(--surface-elevated));
+  border: 2px solid var(--brand-primary, var(--text-secondary));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-primary, var(--text-secondary)) 14%, transparent);
+}
+/* Narrow viewports: drop the spine, content stays flush. */
+@media (max-width: 720px) {
+  .rmc-flow-leadin { padding-inline-start: 0; }
+  .rmc-flow-leadin::before,
+  .rmc-flow-leadin::after { display: none; }
+}
+
 /* Bootstrap .text-muted → design-token contrast (batch 1225 sweep) */
 .rmc-text-muted,
 .text-muted {

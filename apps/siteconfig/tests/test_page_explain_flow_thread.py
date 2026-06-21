@@ -11,6 +11,8 @@ render_to_string with an explicit context (no context processors) keeps these
 deterministic and DB-free.
 """
 
+from types import SimpleNamespace
+
 from django.template.loader import render_to_string
 from django.test import SimpleTestCase
 
@@ -142,3 +144,43 @@ class FlowLaunchpadTests(SimpleTestCase):
         five = [dict(_NEXT, title=f"Action {i}", action_url=f"/a/{i}/") for i in range(5)]
         html = self._launchpad({"rmc_system_actions": five})
         self.assertEqual(html.count("rmc-flow-launchpad__step-link"), 3)
+
+
+class FlowLeadInTests(SimpleTestCase):
+    """Phase 3: the shared hero receives the flow only when the launchpad is above it."""
+
+    def _hero(self, ctx):
+        user = SimpleNamespace(
+            get_short_name=lambda: "Amara", username="amara", is_authenticated=True
+        )
+        base = {
+            "request": SimpleNamespace(user=user),
+            "tp_greeting_role": "ADMIN",
+            "portal_quick_actions": [],
+            "rmc_page_explain_enabled": True,
+            "rmc_conversion_single_action_enforced": False,
+            "rmc_system_actions_available": True,
+            "rmc_system_actions": [_NEXT, _THEN],
+        }
+        base.update(ctx)
+        return render_to_string("partials/tenant/hero_greeting.html", base)
+
+    def test_hero_receives_leadin_when_launchpad_present(self):
+        html = self._hero({})
+        self.assertIn("rmc-flow-leadin", html)
+        self.assertIn("tp-page-h1", html)  # hero still renders normally
+
+    def test_hero_no_leadin_without_flow(self):
+        html = self._hero(
+            {"rmc_system_actions_available": False, "rmc_system_actions": []}
+        )
+        self.assertNotIn("rmc-flow-leadin", html)
+
+    def test_hero_no_leadin_with_single_action(self):
+        # one action -> launchpad silent -> no rail above -> hero stays plain.
+        html = self._hero({"rmc_system_actions": [_NEXT]})
+        self.assertNotIn("rmc-flow-leadin", html)
+
+    def test_hero_no_leadin_in_strict_mode(self):
+        html = self._hero({"rmc_conversion_single_action_enforced": True})
+        self.assertNotIn("rmc-flow-leadin", html)

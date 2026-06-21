@@ -1,7 +1,7 @@
 {% load i18n %}
 {% comment %} v3 100x tenant role-home hero (preview_app_shell_tenant_portal_v3_100x). {% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="tp-hero-row rmc-reveal" data-rmc-reveal data-rmc-tp-hero-greeting="1">
+<div class="tp-hero-row rmc-reveal{% if rmc_page_explain_enabled and rmc_system_actions_available and not rmc_conversion_single_action_enforced and rmc_system_actions|length > 1 %} rmc-flow-leadin{% endif %}" data-rmc-reveal data-rmc-tp-hero-greeting="1">
   <div class="tp-greeting-block">
     <div class="tp-greeting-block__eyebrow">
       <span data-rmc-tp-greeting-datetime>{% now "l, F j · g:i A" %}</span>
