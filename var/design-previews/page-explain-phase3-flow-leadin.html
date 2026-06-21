@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 3 — Flow lead-in (current vs proposed)</title>
+<style>
+:root{
+  --surface-bg:#f5f5f7; --surface-canvas:#fbfbfd; --surface-elevated:#ffffff; --surface-overlay:rgba(0,0,0,.035);
+  --text-primary:#1d1d1f; --text-secondary:#424245; --text-tertiary:#6e6e73; --text-muted:#86868b;
+  --brand-primary:#4f46e5; --brand-accent:#10b981; --ds-success:#0f9d63;
+  --hairline:rgba(0,0,0,.10); --radius-md:12px; --radius-lg:16px; --radius-pill:9999px;
+  --elev-1:0 1px 2px rgba(0,0,0,.05),0 1px 1px rgba(0,0,0,.04); --elev-2:0 6px 20px rgba(0,0,0,.08);
+  --text-on-brand:#fff; --motion-fast:140ms; --ease-standard:cubic-bezier(.22,.61,.36,1);
+}
+[data-bs-theme="dark"]{
+  --surface-bg:#0b0b0f; --surface-canvas:#121218; --surface-elevated:#1a1a22; --surface-overlay:rgba(255,255,255,.04);
+  --text-primary:#f5f5f7; --text-secondary:#c7c7cc; --text-tertiary:#98989d; --text-muted:#8a8a8f;
+  --brand-primary:#7c74ff; --brand-accent:#34d399; --ds-success:#34d399;
+  --hairline:rgba(255,255,255,.12); --elev-1:0 1px 2px rgba(0,0,0,.4); --elev-2:0 10px 30px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;
+  background:var(--surface-bg);color:var(--text-primary);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 24px 80px}
+.toolbar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  padding:14px 16px;margin:-24px -24px 22px;background:color-mix(in srgb,var(--surface-bg) 86%,transparent);
+  backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--hairline)}
+.toolbar h1{font-size:15px;margin:0;font-weight:650;letter-spacing:-.01em}
+.toolbar .spacer{flex:1}
+.seg{display:inline-flex;background:var(--surface-overlay);border:1px solid var(--hairline);border-radius:var(--radius-pill);padding:3px;gap:2px}
+.seg button{appearance:none;border:0;background:transparent;color:var(--text-secondary);font:inherit;font-size:13px;
+  font-weight:600;padding:6px 14px;border-radius:var(--radius-pill);cursor:pointer;transition:all var(--motion-fast) var(--ease-standard)}
+.seg button[aria-pressed="true"]{background:var(--surface-elevated);color:var(--text-primary);box-shadow:var(--elev-1)}
+.ghost{appearance:none;border:1px solid var(--hairline);background:var(--surface-elevated);color:var(--text-secondary);
+  font:inherit;font-size:13px;font-weight:600;padding:7px 13px;border-radius:var(--radius-pill);cursor:pointer}
+.note{font-size:12.5px;color:var(--text-tertiary);margin:0 0 18px;line-height:1.55}
+.dirhead{display:flex;align-items:baseline;gap:10px;margin:6px 0 4px}
+.dirhead h2{font-size:18px;margin:0;letter-spacing:-.02em}
+.dirhead .tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--brand-primary);
+  background:color-mix(in srgb,var(--brand-primary) 12%,transparent);padding:3px 9px;border-radius:var(--radius-pill)}
+.dirsub{font-size:13.5px;color:var(--text-tertiary);margin:0 0 16px;max-width:74ch;line-height:1.55}
+
+.canvas{background:var(--surface-canvas);border:1px solid var(--hairline);border-radius:var(--radius-lg);
+  padding:18px;box-shadow:var(--elev-1);position:relative}
+
+/* Flow Thread bar (shipped) */
+.pe{display:flex;align-items:center;gap:12px;flex-wrap:nowrap;padding:10px 14px;border:1px solid var(--hairline);
+  border-radius:var(--radius-pill);background:var(--surface-elevated);box-shadow:var(--elev-1)}
+.pe__lead{display:flex;align-items:center;gap:8px;min-width:0;flex:0 1 auto}
+.pe__dot{width:9px;height:9px;border-radius:50%;background:var(--brand-primary);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--brand-primary) 18%,transparent);flex:none}
+.pe__kick{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-tertiary)}
+.pe__title{font-size:13.5px;font-weight:650;white-space:nowrap}
+.pe__tag{font-size:11px;color:var(--text-tertiary);border:1px solid var(--hairline);border-radius:var(--radius-pill);padding:2px 9px;white-space:nowrap}
+.pe__flow{flex:1 1 40px;height:2px;min-width:30px;position:relative;border-radius:2px;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--brand-primary) 55%,transparent),color-mix(in srgb,var(--ds-success) 60%,transparent))}
+.pe__flow::after{content:"";position:absolute;top:-2px;left:0;width:8px;height:6px;border-radius:6px;
+  background:var(--ds-success);box-shadow:0 0 8px var(--ds-success);animation:flow 3.2s var(--ease-standard) infinite}
+@keyframes flow{0%{left:0;opacity:0}15%{opacity:1}85%{opacity:1}100%{left:100%;opacity:0}}
+.pe__next{display:inline-flex;align-items:center;gap:8px;text-decoration:none;flex:none;
+  padding:7px 14px;border-radius:var(--radius-pill);background:var(--ds-success);color:var(--text-on-brand);
+  box-shadow:0 4px 14px color-mix(in srgb,var(--ds-success) 35%,transparent)}
+.pe__next .k{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;opacity:.85}
+.pe__next .n{font-size:13px;font-weight:650}
+
+/* Phase-2 launchpad */
+.lp{position:relative;margin-block:.5rem 0;padding-inline-start:1.5rem}
+.lp__rail{position:absolute;inset-inline-start:.45rem;inset-block:-.35rem .9rem;inline-size:2px;border-radius:2px;
+  background:linear-gradient(180deg,var(--ds-success),color-mix(in srgb,var(--brand-primary) 55%,transparent),transparent)}
+.lp__lead{margin:0 0 .5rem;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ds-success)}
+.lp__steps{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.6rem}
+.lp__step{flex:1 1 14rem;min-inline-size:0}
+.lp__link{position:relative;display:flex;align-items:flex-start;gap:.6rem;height:100%;padding:.6rem .75rem;
+  border-radius:var(--radius-md);border:1px solid var(--hairline);background:var(--surface-elevated);box-shadow:var(--elev-1);text-decoration:none}
+.lp__dot{width:.55rem;height:.55rem;margin-top:.2rem;flex:none;border-radius:50%;
+  background:var(--surface-canvas);border:2px solid var(--brand-primary)}
+.lp__step--live .lp__dot{background:var(--ds-success);border-color:var(--ds-success);box-shadow:0 0 0 4px color-mix(in srgb,var(--ds-success) 20%,transparent)}
+.lp__t{font-size:13.5px;font-weight:650;color:var(--text-primary)}
+.lp__d{font-size:12px;color:var(--text-tertiary)}
+
+/* hero + cockpit (the page's first content) */
+.heroblock{position:relative}
+.hero{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:4px}
+.hero .eyebrow{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:4px}
+.hero h3{font-size:24px;margin:0 0 4px;letter-spacing:-.02em}
+.hero p{margin:0;color:var(--text-tertiary);font-size:13.5px}
+.hero .acts{display:flex;gap:8px;flex:none}
+.hero .acts a{font-size:12.5px;font-weight:600;text-decoration:none;padding:8px 13px;border-radius:var(--radius-pill);
+  border:1px solid var(--hairline);color:var(--text-secondary);background:var(--surface-elevated)}
+.hero .acts a.pri{background:var(--brand-primary);color:var(--text-on-brand);border-color:transparent}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.card{background:var(--surface-elevated);border:1px solid var(--hairline);border-radius:var(--radius-md);padding:14px;box-shadow:var(--elev-1)}
+.card .lab{font-size:11.5px;color:var(--text-tertiary);font-weight:600}
+.card .val{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-top:2px}
+.card .meta{font-size:11.5px;color:var(--ds-success);font-weight:600;margin-top:2px}
+
+/* ============ CURRENT: flow stops, hard gap ============ */
+.current .heroblock{margin-top:22px}
+
+/* ============ PHASE 3: the spine continues into the hero ============ */
+.p3 .lp__rail{inset-block:-.35rem -1.4rem} /* rail descends past the launchpad toward the hero */
+.p3 .heroblock{margin-top:10px;padding-inline-start:1.5rem}
+.p3 .heroblock::before{ /* the continuing spine, aligned to bar dot + launchpad rail */
+  content:"";position:absolute;inset-inline-start:.45rem;inset-block-start:-1.4rem;block-size:calc(100% + 1.4rem);inline-size:2px;border-radius:2px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--brand-primary) 55%,transparent),color-mix(in srgb,var(--brand-primary) 22%,transparent),transparent)}
+.p3 .heroblock::after{ /* landing node where the flow arrives at the hero */
+  content:"";position:absolute;inset-inline-start:.1rem;inset-block-start:.55rem;inline-size:.7rem;block-size:.7rem;border-radius:50%;
+  background:var(--surface-canvas);border:2px solid var(--brand-primary);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand-primary) 14%,transparent)}
+.p3 .hero .eyebrow{color:var(--ds-success)} /* eyebrow echoes the flow's emerald */
+.p3 .grid{margin-left:1.5rem} /* cockpit aligns under the spine's content column */
+
+.hidden{display:none}
+@media (prefers-reduced-motion:reduce){.pe__flow::after{animation:none;display:none}}
+@media (max-width:760px){.grid{grid-template-columns:1fr 1fr}.pe{flex-wrap:wrap}.pe__flow{display:none}.hero{flex-direction:column}
+  .p3 .heroblock{padding-inline-start:0}.p3 .heroblock::before,.p3 .heroblock::after{display:none}.p3 .grid{margin-left:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="toolbar">
+    <h1>Phase 3 · Flow lead-in</h1>
+    <div class="seg" role="group" aria-label="State">
+      <button data-state="p3" aria-pressed="true">Phase 3 (proposed)</button>
+      <button data-state="current" aria-pressed="false">Current (shipped)</button>
+    </div>
+    <div class="spacer"></div>
+    <button class="ghost" id="theme">Toggle dark</button>
+  </div>
+
+  <p class="note">Same top-of-fold, two states. <strong>Current</strong> = what's live after Phase 1+2: the Flow Thread bar → launchpad, then the hero/cockpit sits below a hard gap, so the flow visually stops. <strong>Phase 3</strong> = a continuity spine (aligned to the bar's "you-are-here" dot + the launchpad rail) descends into the hero and lands on a node at the greeting, the eyebrow echoes the flow's emerald, and the cockpit aligns under the spine — so the whole descent reads as one guided flow. Token-only, reduced-motion-safe; applied via ~3 shared partials (hero_greeting / cockpit section / flight-deck header).</p>
+
+  <section class="dir p3" data-state="p3">
+    <div class="dirhead"><h2>Phase 3 — the flow leads into the page</h2><span class="tag">Proposed</span></div>
+    <p class="dirsub">The spine that starts at the bar's origin dot now runs unbroken through the launchpad and into the hero, landing on a node at "Good afternoon". One continuous descent — bar → next step → your flow → here's your day.</p>
+    <div class="canvas">
+      <div class="pe">
+        <div class="pe__lead"><span class="pe__dot"></span><span class="pe__kick">About</span><span class="pe__title">Manager dashboard</span><span class="pe__tag">Operations</span></div>
+        <span class="pe__flow"></span>
+        <a class="pe__next" href="#"><span class="k">Next</span><span class="n">Review pending admissions</span><span aria-hidden="true">→</span></a>
+      </div>
+      <div class="lp">
+        <div class="lp__rail"></div>
+        <div class="lp__lead">Your flow</div>
+        <ol class="lp__steps">
+          <li class="lp__step lp__step--live"><a class="lp__link" href="#"><span class="lp__dot"></span><span><span class="lp__t">Review pending admissions</span><br><span class="lp__d">6 waiting on your decision.</span></span></a></li>
+          <li class="lp__step"><a class="lp__link" href="#"><span class="lp__dot"></span><span><span class="lp__t">Approve June payroll</span><br><span class="lp__d">Closes Friday.</span></span></a></li>
+          <li class="lp__step"><a class="lp__link" href="#"><span class="lp__dot"></span><span><span class="lp__t">Publish report cards</span><br><span class="lp__d">All grades in.</span></span></a></li>
+        </ol>
+      </div>
+      <div class="heroblock">
+        <div class="hero">
+          <div><div class="eyebrow">Thursday · 20 June</div><h3>Good afternoon, Amara</h3><p>Everything's running smoothly across your campus.</p></div>
+          <div class="acts"><a class="pri" href="#">Quick add</a><a href="#">Reports</a></div>
+        </div>
+        <div class="grid">
+          <div class="card"><div class="lab">Attendance today</div><div class="val">96.2%</div><div class="meta">▲ 1.4 vs last week</div></div>
+          <div class="card"><div class="lab">Fees collected</div><div class="val">₦4.1M</div><div class="meta">82% of target</div></div>
+          <div class="card"><div class="lab">Open tasks</div><div class="val">7</div><div class="meta" style="color:var(--text-tertiary)">3 due today</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dir current hidden" data-state="current">
+    <div class="dirhead"><h2>Current — flow stops at the band</h2><span class="tag">Shipped</span></div>
+    <p class="dirsub">After Phase 1+2 the launchpad ends and the hero begins behind a plain gap — useful, but the eye loses the thread between "your flow" and the page itself.</p>
+    <div class="canvas">
+      <div class="pe">
+        <div class="pe__lead"><span class="pe__dot"></span><span class="pe__kick">About</span><span class="pe__title">Manager dashboard</span><span class="pe__tag">Operations</span></div>
+        <span class="pe__flow"></span>
+        <a class="pe__next" href="#"><span class="k">Next</span><span class="n">Review pending admissions</span><span aria-hidden="true">→</span></a>
+      </div>
+      <div class="lp">
+        <div class="lp__rail"></div>
+        <div class="lp__lead">Your flow</div>
+        <ol class="lp__steps">
+          <li class="lp__step lp__step--live"><a class="lp__link" href="#"><span class="lp__dot"></span><span><span class="lp__t">Review pending admissions</span><br><span class="lp__d">6 waiting on your decision.</span></span></a></li>
+          <li class="lp__step"><a class="lp__link" href="#"><span class="lp__dot"></span><span><span class="lp__t">Approve June payroll</span><br><span class="lp__d">Closes Friday.</span></span></a></li>
+          <li class="lp__step"><a class="lp__link" href="#"><span class="lp__dot"></span><span><span class="lp__t">Publish report cards</span><br><span class="lp__d">All grades in.</span></span></a></li>
+        </ol>
+      </div>
+      <div class="heroblock">
+        <div class="hero">
+          <div><div class="eyebrow">Thursday · 20 June</div><h3>Good afternoon, Amara</h3><p>Everything's running smoothly across your campus.</p></div>
+          <div class="acts"><a class="pri" href="#">Quick add</a><a href="#">Reports</a></div>
+        </div>
+        <div class="grid">
+          <div class="card"><div class="lab">Attendance today</div><div class="val">96.2%</div><div class="meta">▲ 1.4 vs last week</div></div>
+          <div class="card"><div class="lab">Fees collected</div><div class="val">₦4.1M</div><div class="meta">82% of target</div></div>
+          <div class="card"><div class="lab">Open tasks</div><div class="val">7</div><div class="meta" style="color:var(--text-tertiary)">3 due today</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<script>
+const segs=[...document.querySelectorAll('.seg button')];
+segs.forEach(b=>b.addEventListener('click',()=>{
+  segs.forEach(x=>x.setAttribute('aria-pressed',x===b));
+  document.querySelectorAll('.dir').forEach(s=>s.classList.toggle('hidden',s.dataset.state!==b.dataset.state));
+}));
+document.getElementById('theme').addEventListener('click',()=>{
+  const r=document.documentElement;r.setAttribute('data-bs-theme',r.getAttribute('data-bs-theme')==='dark'?'light':'dark');
+});
+</script>
+</body>
+</html>

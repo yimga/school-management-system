@@ -37,9 +37,9 @@
   </header>
 
   {% if rmc_setup_wizard_stages.stages %}
-  {# Full setup-studio wizard journey — real registry data grouped by lifecycle
+  {% comment %}Full setup-studio wizard journey — real registry data grouped by lifecycle
      stage (apps/setup_studio/setup_surface.build_setup_wizard_stages). Each card
-     deep-links to the tenant wizard runner. #}
+     deep-links to the tenant wizard runner.{% endcomment %}
   <div class="rmc-setup-surface__stages" data-rmc-setup-wizards="1">
     {% for stage in rmc_setup_wizard_stages.stages %}
     <div class="rmc-setup-surface__stage">
