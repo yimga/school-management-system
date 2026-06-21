@@ -34,9 +34,13 @@ from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from apps.communication.models import Message
+from apps.communication.models import Message, ThreadMessage
 
 logger = logging.getLogger(__name__)
+
+#: Per-message cap on the group-thread notification fan-out — a defensive bound so
+#: one post to a very large group can't spawn an unbounded dispatch loop.
+GROUP_MESSAGE_MAX_FANOUT = 500  # magic-number-allow: group message notification fan-out cap
 
 #: Body-preview length cap for the notification message (named, not a literal at
 #: the call site). Kept short so the in-app/push payload stays a teaser, not the
@@ -155,4 +159,94 @@ def notify_on_message_received(sender, instance, created, **kwargs):  # noqa: AR
         logger.warning(
             "message.received signal failed err=%s",
             type(exc).__name__,
+        )
+
+
+@receiver(
+    post_save,
+    sender=ThreadMessage,
+    dispatch_uid="communication_thread_message_notify",
+)
+def notify_on_thread_message(sender, instance, created, **kwargs):  # noqa: ARG001
+    """Notify a group thread's members of a newly-posted message (IM-2).
+
+    Group messages use :class:`ThreadMessage`, which had NO ``post_save`` receiver,
+    so posting in a group notified nobody — not in-app, push, or email. This
+    mirrors :func:`notify_on_message_received` but fans the event to every thread
+    member except the author, each routed through
+    :func:`apps.communication.dispatch.dispatch_event` on the ``message.received``
+    key so each member's MESSAGES-category preferences (mute / channels / quiet
+    hours) apply.
+
+    Created-only, on_commit-deferred, PII-safe (logs error *type* only), and the
+    fan-out is bounded by :data:`GROUP_MESSAGE_MAX_FANOUT`. The in-app transport's
+    unread ``(recipient, title)`` constraint collapses repeated posts to the same
+    thread into one unread row until the member reads it.
+    """
+    try:
+        if not created:
+            return
+        thread = getattr(instance, "thread", None)
+        if thread is None:
+            return
+        author_id = getattr(instance, "author_id", None)
+        school = getattr(thread, "school", None)
+
+        thread_title = (getattr(thread, "title", "") or "").strip() or "a group"
+        title = f"New message in {thread_title}"
+        raw = (instance.content or "").strip()
+        preview = raw[:MESSAGE_PREVIEW_CHARS]
+        if len(raw) > MESSAGE_PREVIEW_CHARS:
+            preview += "..."
+        try:
+            from django.urls import reverse
+
+            link = reverse("communication:group_detail", args=[thread.pk])
+        except Exception:  # noqa: BLE001 — missing/renamed URL must not break the send
+            link = ""
+
+        context = {
+            "title": title,
+            "message": preview,
+            "link": link,
+            "severity": "INFO",
+        }
+
+        # Snapshot recipient ids up-front so the deferred closure doesn't depend on
+        # a lazily-evaluated M2M that could change post-commit. Bounded fan-out.
+        try:
+            member_ids = list(
+                thread.members.exclude(pk=author_id).values_list("pk", flat=True)[
+                    :GROUP_MESSAGE_MAX_FANOUT
+                ]
+            )
+        except Exception:  # noqa: BLE001 — a bad membership relation never breaks save
+            member_ids = []
+        if not member_ids:
+            return
+
+        def _dispatch():
+            from apps.communication.dispatch import dispatch_event
+            from django.contrib.auth import get_user_model
+
+            user_model = get_user_model()
+            # tenant-isolation-allow: member-ids-are-from-the-threads-own-member-set
+            for member in user_model.objects.filter(pk__in=member_ids):
+                try:
+                    dispatch_event(
+                        "message.received",
+                        recipient=member,
+                        context=context,
+                        school=school,
+                    )
+                except Exception as exc:  # noqa: BLE001 — never break post-commit hooks
+                    logger.warning(
+                        "thread.message dispatch failed err=%s", type(exc).__name__
+                    )
+
+        transaction.on_commit(_dispatch)
+
+    except Exception as exc:  # noqa: BLE001 — a notification must never break save()
+        logger.warning(
+            "thread.message signal failed err=%s", type(exc).__name__
         )
