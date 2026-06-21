@@ -483,10 +483,27 @@
     var urls = cfg.urls || {};
     var counts = cfg.counts || {};
 
+    // When a tray chip launches an OUTSIDE overlay (copilot rail, command palette,
+    // help drawer, shortcuts sheet, support dialog, activity offcanvas), collapse the
+    // tray to its edge tab first. The tray sits at z-index ~10488 — far above those
+    // dialogs — so left open it would hide them behind its 520px panel. Collapsing it
+    // drops the launched dialog into an isolated, fully-visible spot while the edge tab
+    // stays put so the operator can reopen the tray (both remain in view, nothing is
+    // blocked). Inline tray panels (notebook, on-this-page) intentionally do NOT call
+    // this — they render inside the tray and need it open.
+    function dismissTrayForOverlay() {
+      var trayEl = document.getElementById("rmcOperatorToolsTray");
+      var tabEl = document.getElementById("rmcOperatorToolsTrayTab");
+      if (!trayEl || trayEl.getAttribute("aria-hidden") === "true") return;
+      trayEl.setAttribute("aria-hidden", "true");
+      if (tabEl) tabEl.setAttribute("aria-expanded", "false");
+    }
+
     var aiChip = getChip("ai-copilot");
     if (aiChip) {
       aiChip.addEventListener("click", function (ev) {
         ev.preventDefault();
+        dismissTrayForOverlay();
         var shell = document.querySelector(".rmc-app-shell");
         if (shell && shell.getAttribute("data-copilot") !== "expanded") {
           var toggle = document.querySelector("[data-rmc-copilot-toggle]");
@@ -502,6 +519,7 @@
     if (helpChip) {
       helpChip.addEventListener("click", function (ev) {
         ev.preventDefault();
+        dismissTrayForOverlay();
         var railHelp = document.querySelector(
           ".rmc-app-shell__copilot [data-rmc-page-help], .lx-copilot__page-help"
         );
@@ -556,6 +574,7 @@
     if (shortcuts) {
       shortcuts.addEventListener("click", function (ev) {
         ev.preventDefault();
+        dismissTrayForOverlay();
         var trigger = document.querySelector("[data-rmc-kbd-cheatsheet-trigger]");
         if (trigger) {
           trigger.click();
@@ -585,6 +604,7 @@
     if (support) {
       support.addEventListener("click", function (ev) {
         ev.preventDefault();
+        dismissTrayForOverlay();
         var quick = document.querySelector("[data-rmc-support-quick-create]");
         if (quick) {
           quick.click();
@@ -600,6 +620,7 @@
     if (search) {
       search.addEventListener("click", function (ev) {
         ev.preventDefault();
+        dismissTrayForOverlay();
         var cmdk = document.querySelector(
           "[data-rmc-cmdk-trigger], [data-rmc-command-palette-trigger], #studio-command-palette-btn"
         );
@@ -684,6 +705,7 @@
     if (activity) {
       activity.addEventListener("click", function (ev) {
         ev.preventDefault();
+        dismissTrayForOverlay();
         var drawerId = urls.activity_drawer_id || "rmcCpActivityDrawer";
         var drawer = document.getElementById(drawerId);
         if (drawer && window.bootstrap && window.bootstrap.Offcanvas) {
