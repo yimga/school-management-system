@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMyCampus · Tenant role dashboards — what to expect</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  :root{--bg:#060912;--canvas:#0e1426;--elevated:#141c33;--hairline:rgba(255,255,255,.08);--text:#eef2ff;--text-2:#aab3d4;--text-3:#7b86ad;--brand:#6366f1;--accent:#10b981;--warn:#f59e0b;--radius:14px;--font:Inter,system-ui,sans-serif}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14.5px;line-height:1.55}
+  .wrap{max-width:980px;margin:0 auto;padding:28px 22px 70px}
+  header{border-bottom:1px solid var(--hairline);padding-bottom:18px;margin-bottom:28px}
+  h1{margin:0 0 8px;font-size:24px;font-weight:750}
+  .sub{color:var(--text-3);font-size:13px;margin:0}
+  h2{font-size:17px;margin:32px 0 14px;display:flex;align-items:center;gap:10px}
+  .role-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:8px}
+  .role-card{background:var(--canvas);border:1px solid var(--hairline);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:10px;transition:.15s}
+  .role-card:hover{border-color:rgba(99,102,241,.45);transform:translateY(-2px)}
+  .role-card h3{margin:0;font-size:16px;display:flex;align-items:center;gap:8px}
+  .role-card p{margin:0;color:var(--text-2);font-size:13px;flex:1}
+  .role-card a{display:inline-flex;align-items:center;gap:6px;font-weight:650;font-size:13px;color:var(--brand);text-decoration:none;padding:8px 0}
+  .role-card a:hover{color:#a5b4fc}
+  .tag{display:inline-block;font-size:10px;font-weight:800;text-transform:uppercase;padding:3px 8px;border-radius:999px;margin-bottom:4px}
+  .tag--admin{background:rgba(99,102,241,.15);color:#a5b4fc;border:1px solid rgba(99,102,241,.35)}
+  .tag--parent{background:rgba(16,185,129,.12);color:#6ee7b7;border:1px solid rgba(16,185,129,.35)}
+  .tag--teacher{background:rgba(139,92,246,.15);color:#c4b5fd;border:1px solid rgba(139,92,246,.35)}
+  .tag--wizard{background:rgba(245,158,11,.12);color:#fcd34d;border:1px solid rgba(245,158,11,.35)}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+  th,td{border:1px solid var(--hairline);padding:10px 12px;text-align:left;vertical-align:top}
+  th{background:var(--elevated);color:var(--text);font-weight:650}
+  td{color:var(--text-2)}
+  td b{color:var(--text);font-weight:600}
+  .global{background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(16,185,129,.08));border:1px solid var(--hairline);border-radius:var(--radius);padding:16px 18px;margin-top:24px}
+  .global h3{margin:0 0 10px;font-size:15px}
+  .global ol{margin:0;padding-left:20px;color:var(--text-2)}
+  .global li{margin:7px 0}
+  code{background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px;font-size:12px;color:#c7d0f5}
+  .warn{color:#fcd34d}
+  .ok{color:#6ee7b7}
+  .sub-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .sub-links a{font-size:12px;color:var(--text-3);text-decoration:none;border:1px solid var(--hairline);padding:4px 9px;border-radius:8px}
+  .sub-links a:hover{color:var(--text);border-color:var(--text-3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Tenant dashboards — what to expect when pages load</h1>
+    <p class="sub">Static design previews for <strong>Admin</strong>, <strong>Parent</strong>, <strong>Teacher</strong>, and setup wizards. Open each card to see layout direction. Live data varies by tenant onboarding state and SiteSettings cockpit packs.</p>
+    <p class="sub" style="margin-top:8px">Latest wizard void fix: SW <code>sms-v4.04.42-wizard-review-void-fix-2026-06-20</code> · commit <code>3be1055c4</code></p>
+  </header>
+
+  <h2><i class="bi bi-grid-3x3-gap"></i> Open a role preview</h2>
+  <div class="role-grid">
+    <article class="role-card">
+      <span class="tag tag--admin">School admin</span>
+      <h3><i class="bi bi-shield-check"></i> Admin workspace</h3>
+      <p>Full command center: one-line header, deduped sidebar, onboarding hero + wizard stage cards, copilot rail. Shown while school is still onboarding.</p>
+      <a href="tenant-admin-workspace-preview.html">Open admin preview →</a>
+      <div class="sub-links">
+        <a href="setup-command-surface-browsable.html">Setup surface only</a>
+        <a href="tenant-admin-workspace-audit-2026-06-18.html">Live audit notes</a>
+      </div>
+    </article>
+
+    <article class="role-card">
+      <span class="tag tag--parent">Parent</span>
+      <h3><i class="bi bi-house-heart"></i> Family Home</h3>
+      <p>Greeting hero with children's names, next-action chips (fees/messages), collapsible cockpit sections: today snapshot, quick actions, events, financial timeline.</p>
+      <a href="tenant-parent-dashboard-preview.html">Open parent preview →</a>
+    </article>
+
+    <article class="role-card">
+      <span class="tag tag--teacher">Teacher</span>
+      <h3><i class="bi bi-mortarboard"></i> My Teaching Day</h3>
+      <p>Teaching hero, fast-workflow shortcuts, section jump nav, attention queue, today's classes, optional gradebook trend. Gradebook lives under Academics.</p>
+      <a href="tenant-teacher-dashboard-preview.html">Open teacher preview →</a>
+    </article>
+
+    <article class="role-card">
+      <span class="tag tag--wizard">Setup / Studio</span>
+      <h3><i class="bi bi-magic"></i> Wizards &amp; MFA</h3>
+      <p><strong>Wizard index</strong> lists all setup wizards. <strong>MFA review</strong> (completed) must NOT show a black void — fixed in v4.04.42.</p>
+      <a href="mfa-wizard-review-void-fix-preview.html">MFA review before/after →</a>
+      <div class="sub-links">
+        <a href="wizard-step-assist-preview.html">Wizard step assist</a>
+      </div>
+    </article>
+  </div>
+
+  <h2><i class="bi bi-table"></i> At-a-glance: live routes &amp; first paint</h2>
+  <table>
+    <thead>
+      <tr><th>Role</th><th>Primary URL (tenant path)</th><th>You should see on load</th><th>Empty / new tenant</th><th>Known gotchas</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Admin</b></td>
+        <td><code>/authentication/backend/</code></td>
+        <td>Hero “school command surface”, next-action strip, optional <b>setup command surface</b> (hero + % ring + wizard cards), cockpit sections if enabled</td>
+        <td>Setup surface prominent; cockpit widgets hidden until data + operator opt-in</td>
+        <td class="warn">Duplicate sidebar labels = separate bug. Stale SW = old gold theme or old JS.</td>
+      </tr>
+      <tr>
+        <td><b>Parent</b></td>
+        <td><code>/portal/parent/</code></td>
+        <td>“Good day” hero with child names, fee/message CTAs, collapsible cockpit blocks</td>
+        <td>Hero still renders; sections without data stay collapsed or hidden</td>
+        <td>Simplified home mode shows fewer widgets + link to full dashboard</td>
+      </tr>
+      <tr>
+        <td><b>Teacher</b></td>
+        <td><code>/portal/teacher/</code></td>
+        <td>Teaching hero, fast workflows, attention banner, today’s classes grid</td>
+        <td>Empty states in class/attention areas — not a full-page black void</td>
+        <td>Legacy <code>tdm-*</code> dashboard may appear below v2 cockpit if flag on</td>
+      </tr>
+      <tr>
+        <td><b>Wizard index</b></td>
+        <td><code>/school/studio/wizards/</code></td>
+        <td>Card grid of setup wizards by lifecycle stage</td>
+        <td>Empty state if role has no mapped wizards</td>
+        <td>Different from admin dashboard onboarding hero</td>
+      </tr>
+      <tr>
+        <td><b>MFA wizard</b></td>
+        <td><code>/school/studio/wizards/mfa_setup/</code></td>
+        <td><span class="ok">In progress:</span> full-height stepper + form. <span class="ok">Complete:</span> review banner + saved answers, page ends at content</td>
+        <td>Redirects through security posture gates until enrolled</td>
+        <td class="warn">Black void = old CSS (100dvh) — clear SW once after deploy</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2><i class="bi bi-palette"></i> Shared shell (all roles)</h2>
+  <table>
+    <thead><tr><th>Element</th><th>What to expect</th></tr></thead>
+    <tbody>
+      <tr><td><b>Theme</b></td><td>Indigo primary (<code>#4f46e5</code> / <code>#6366f1</code>) + emerald accent. Tenant branding overrides via SiteSettings cascade.</td></tr>
+      <tr><td><b>Header</b></td><td>School logo, role workspace pill, inline nav (Home / Finance / Messages… varies by role), search, Configure, avatar.</td></tr>
+      <tr><td><b>Sidebar</b></td><td>Desktop: persistent nav. Mobile: offcanvas menu (hidden on desktop ≥992px).</td></tr>
+      <tr><td><b>Right rail</b></td><td>Copilot + tools icons; expandable assist panel on some pages.</td></tr>
+      <tr><td><b>Toasts</b></td><td>At most one posture/security card (MFA review, portal ready) — not a stack of 25.</td></tr>
+      <tr><td><b>After deploy</b></td><td>Unregister service worker once → hard refresh. Confirm <code>caches.keys()</code> includes <code>v4.04.42</code>.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="global">
+    <h3><i class="bi bi-check2-circle"></i> Quick verification on live tenant</h3>
+    <ol>
+      <li>Pull latest <code>main</code> and restart the app.</li>
+      <li>DevTools → Application → Service Workers → <b>Unregister</b> → Storage → Clear site data → hard reload.</li>
+      <li>Log in as <b>admin</b> → backend dashboard → expect onboarding hero if school still onboarding.</li>
+      <li>Log in as <b>teacher</b> / <b>parent</b> (test accounts in AGENTS.md) → expect role-specific hero, no full-page black void.</li>
+      <li>Open completed <b>MFA wizard</b> → review banner visible, page height matches content.</li>
+    </ol>
+  </div>
+</div>
+</body>
+</html>

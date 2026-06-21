@@ -1,6 +1,6 @@
 {
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-06-16T16:36:31+00:00",
+  "generated_at": "2026-06-21T02:02:47+00:00",
   "rule": "every apps.* import (absolute, relative, dynamic-literal) must resolve to a real module + symbol; guard with try/except ImportError or # import-ref-allow: <reason> for intentional optional/deferred targets"
 }
