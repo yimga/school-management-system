@@ -435,7 +435,16 @@
     };
   }
 
+  function walStreamEnabledFromConfig() {
+    try {
+      return !!(window.SMS_OFFLINE_CONFIG && window.SMS_OFFLINE_CONFIG.walStreamEnabled);
+    } catch (_e) {
+      return false;
+    }
+  }
+
   function shouldBootWalSocket() {
+    if (!walStreamEnabledFromConfig()) return false;
     if (document.querySelector("[data-rmc-auth-landing]")) return false;
     // Manager / control-plane is WSGI-only on Render; /ws/wal/ needs ASGI (Daphne).
     const surface = document.documentElement.getAttribute("data-surface") || "";

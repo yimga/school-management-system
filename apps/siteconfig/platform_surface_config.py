@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 from typing import Any
 
@@ -226,6 +227,22 @@ def _hydrate_endpoints(request) -> list[dict[str, str]]:
     return endpoints
 
 
+def _wal_stream_client_enabled() -> bool:
+    """
+    WAL WebSocket ingest (/ws/wal/) requires ASGI (Daphne/Uvicorn + Channels).
+
+    Render's default Gunicorn WSGI process cannot upgrade WebSockets — the client
+    would reconnect forever and spam the console. Opt in with RMC_WAL_STREAM_ENABLED=1
+    when the web tier runs config.asgi:application.
+    """
+    explicit = os.environ.get("RMC_WAL_STREAM_ENABLED", "").strip().lower()
+    if explicit in ("1", "true", "yes", "on"):
+        return True
+    if explicit in ("0", "false", "no", "off"):
+        return False
+    return False
+
+
 def resolve_sms_offline_config(
     request,
     *,
@@ -313,6 +330,7 @@ def resolve_sms_offline_config(
         "encryptionKeyUrl": offline_urls.get("encryption_key")
         or api_urls.get("offline_encryption_key")
         or "",
+        "walStreamEnabled": _wal_stream_client_enabled(),
     }
 
 
