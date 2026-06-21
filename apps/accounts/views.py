@@ -904,6 +904,92 @@ def _can_access_direct_messages(user) -> bool:
     return _is_staff_or_teacher(user)
 
 
+#: Cap on attachments accepted per single message send — a defensive bound on one
+#: multipart POST (each file is independently size/type validated below).
+_MESSAGE_ATTACHMENT_MAX_FILES = 5
+
+
+def _save_message_attachments(message, files, uploader):
+    """Validate + persist uploaded files as ``MessageAttachment`` rows (GAP-6).
+
+    Each file is checked with the shared KB-attachment validators (PDF / Office /
+    image only) and a 10 MB size cap; the count is bounded. Nothing here is fatal
+    to the send — the text message is already saved, so a rejected / unstorable
+    file is collected into ``errors`` and surfaced to the user, never raised.
+    Returns ``(saved_count, error_messages)``.
+    """
+    from apps.communication.models import MessageAttachment
+    from apps.accounts.validators import (
+        validate_kb_attachment_file,
+        validate_file_size_10mb,
+    )
+    from django.core.exceptions import ValidationError
+
+    saved = 0
+    errors = []
+    for f in (files or [])[:_MESSAGE_ATTACHMENT_MAX_FILES]:
+        if not f:
+            continue
+        name = (getattr(f, "name", "") or "file")
+        try:
+            validate_file_size_10mb(f)
+            validate_kb_attachment_file(f)
+        except ValidationError as exc:
+            errors.append("%s: %s" % (name, "; ".join(exc.messages)))
+            continue
+        try:
+            MessageAttachment.objects.create(
+                message=message,
+                file=f,
+                original_name=name[:255],
+                content_type=(getattr(f, "content_type", "") or "")[:128],
+                size_bytes=getattr(f, "size", 0) or 0,
+                uploaded_by=uploader,
+            )
+            saved += 1
+        except Exception:  # noqa: BLE001 — a storage hiccup never breaks the send
+            logger.warning("message attachment save failed", exc_info=False)
+            errors.append("%s: %s" % (name, _("could not be saved")))
+    return saved, errors
+
+
+@login_required
+def message_attachment_download(request, attachment_id):
+    """Serve a message attachment to the sender or recipient only (GAP-6).
+
+    Access is gated on the parent message's sender / recipient (plus superuser),
+    so a guessed id can't leak another conversation's file. Served as an
+    attachment download with the stored content type.
+    """
+    from apps.communication.models import MessageAttachment
+    from django.http import FileResponse, Http404
+
+    # tenant-isolation-allow: access-gated-below-on-message-sender-or-recipient
+    attachment = get_object_or_404(
+        MessageAttachment.objects.select_related("message"), pk=attachment_id
+    )
+    message = attachment.message
+    allowed = request.user.pk in (
+        getattr(message, "sender_id", None),
+        getattr(message, "recipient_id", None),
+    ) or request.user.is_superuser
+    if not allowed:
+        return HttpResponseForbidden("You don't have access to this attachment.")
+
+    try:
+        handle = attachment.file.open("rb")
+    except (FileNotFoundError, ValueError):
+        raise Http404("Attachment file is unavailable.")
+    response = FileResponse(
+        handle,
+        as_attachment=True,
+        filename=attachment.original_name or "attachment",
+    )
+    if attachment.content_type:
+        response["Content-Type"] = attachment.content_type
+    return response
+
+
 @login_required
 def direct_thread(request, user_id):
     """View 1-on-1 thread. Parents and students can only open threads with staff/teacher (view/reply). Staff can close the loop."""
@@ -957,7 +1043,8 @@ def direct_thread(request, user_id):
             return redirect("accounts:user_messages")
         body = (request.POST.get("body") or "").strip()
         subject = (request.POST.get("subject") or "").strip() or "Direct message"
-        if body:
+        attachment_files = request.FILES.getlist("attachments")
+        if body or attachment_files:
             if conv and conv.closed_at:
                 messages.error(request, _("This conversation is closed."))
             else:
@@ -971,6 +1058,16 @@ def direct_thread(request, user_id):
                     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
                     locale_target=locale_target_for_user(other),
                 )
+                if attachment_files:
+                    _saved, attach_errors = _save_message_attachments(
+                        msg, attachment_files, request.user
+                    )
+                    if attach_errors:
+                        messages.warning(
+                            request,
+                            _("Some attachments were not added: %(errs)s")
+                            % {"errs": "; ".join(attach_errors)},
+                        )
                 _notify_new_direct_message(request.user, other, msg)
                 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
                 Message.objects.filter(
@@ -987,6 +1084,7 @@ def direct_thread(request, user_id):
         )
         .filter(is_archived=False)
         .select_related("sender", "recipient")
+        .prefetch_related("attachments")
         .order_by("created_at")
     )
 
@@ -1058,8 +1156,11 @@ def direct_compose(request):
         recipient_id = request.POST.get("recipient")
         body = (request.POST.get("body") or "").strip()
         subject = (request.POST.get("subject") or "").strip() or "Direct message"
-        if not body or not recipient_id:
-            messages.error(request, _("Select a recipient and enter a message."))
+        attachment_files = request.FILES.getlist("attachments")
+        if not recipient_id or (not body and not attachment_files):
+            messages.error(
+                request, _("Select a recipient and enter a message or attach a file.")
+            )
             return redirect("accounts:direct_compose")
         recipient = (
             User.objects.filter(pk=recipient_id, is_active=True)
@@ -1084,6 +1185,16 @@ def direct_compose(request):
             body=body,
             locale_target=locale_target_for_user(recipient),
         )
+        if attachment_files:
+            _saved, attach_errors = _save_message_attachments(
+                msg, attachment_files, request.user
+            )
+            if attach_errors:
+                messages.warning(
+                    request,
+                    _("Some attachments were not added: %(errs)s")
+                    % {"errs": "; ".join(attach_errors)},
+                )
         _notify_new_direct_message(request.user, recipient, msg)
         return redirect("accounts:direct_thread", user_id=recipient.pk)
 

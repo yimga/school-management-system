@@ -62,7 +62,17 @@
                     </span>
                   {% endif %}
                 </div>
-                <div class="mt-1">{{ msg.body|linebreaksbr }}</div>
+                {% if msg.body %}<div class="mt-1">{{ msg.body|linebreaksbr }}</div>{% endif %}
+                {% if msg.attachments.all %}
+                  <div class="mt-1 d-flex flex-column gap-1">
+                    {% for att in msg.attachments.all %}
+                      <a class="small d-inline-flex align-items-center gap-1 {% if msg.sender_id == request.user.id %}text-white{% else %}text-primary{% endif %}"
+                         href="{% url 'accounts:message_attachment_download' att.id %}">
+                        <i class="bi bi-paperclip" aria-hidden="true"></i>{{ att.original_name }}
+                      </a>
+                    {% endfor %}
+                  </div>
+                {% endif %}
               </div>
             </div>
           {% empty %}
@@ -73,6 +83,7 @@
         {% if can_reply %}
         <div class="border-top p-3">
           <form method="post" action="{% url 'accounts:direct_thread' other_user.id %}" aria-label="Reply in conversation"
+                enctype="multipart/form-data"
                 data-rmc-message-outbox
                 data-recipient-field="recipient" data-subject-field="subject" data-body-field="body"
                 data-success-url="{% url 'accounts:user_messages' %}?tab=direct"
@@ -82,7 +93,15 @@
             <input type="hidden" name="recipient" value="{{ other_user.id }}">
             <div class="mb-2">
               <label for="direct-reply-body" class="visually-hidden">Message</label>
-              <textarea name="body" id="direct-reply-body" class="form-control" rows="3" placeholder="Type your message..." required></textarea>
+              <textarea name="body" id="direct-reply-body" class="form-control" rows="3" placeholder="Type your message..."></textarea>
+            </div>
+            <div class="mb-2">
+              <label for="direct-reply-attachments" class="form-label small text-muted">
+                <i class="bi bi-paperclip" aria-hidden="true"></i> {% trans "Attach files" %}
+                <span class="visually-hidden">{% trans "(PDF, Office or images, up to 10 MB each)" %}</span>
+              </label>
+              <input type="file" name="attachments" id="direct-reply-attachments" class="form-control form-control-sm"
+                     multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.odt,.ods,.jpg,.jpeg,.png,.gif,.webp">
             </div>
             <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Send</button>
           </form>
