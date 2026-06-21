@@ -169,3 +169,40 @@ def render_payment_received_sms(
     if len(body) > SMS_MAX_CHARS:
         body = body[: SMS_MAX_CHARS - 1] + "…"
     return body
+
+
+# Grade-report-ready short form (GAP-4). PII-minimised like the other SMS forms:
+# carries the student's FIRST name only (the last name lives on the email/portal
+# surface, never the SMS one).
+SMS_GRADE_PUBLISHED_BY_LOCALE: Mapping[str, str] = {
+    "en": "Hi {guardian}, {student}'s {term} report is ready. View: {link}",
+    "fr": "Bonjour {guardian}, le bulletin de {term} de {student} est prêt. Voir : {link}",
+    "es": "Hola {guardian}, el boletín de {term} de {student} está listo. Ver: {link}",
+    "pt": "Olá {guardian}, o boletim de {term} de {student} está pronto. Ver: {link}",
+    "ar": "مرحباً {guardian}، تقرير {term} الخاص بـ {student} جاهز. اعرض: {link}",
+}
+
+
+def render_grade_published_sms(
+    *,
+    locale: str | None,
+    context: Mapping[str, str],
+) -> str:
+    """<=160 char SMS announcing a published grade report (GAP-4).
+
+    Context keys: ``guardian_first_name``, ``student_first_name``, ``term_label``,
+    ``link``. Locale falls back to 'en'. The student's last name is never included
+    (SMS PII-minimisation contract, shared with the low-balance form).
+    """
+    code = _normalize_locale(locale)
+    template = SMS_GRADE_PUBLISHED_BY_LOCALE.get(
+        code, SMS_GRADE_PUBLISHED_BY_LOCALE["en"],
+    )
+    guardian = (context.get("guardian_first_name") or "").strip()[:20]
+    student = (context.get("student_first_name") or "your student").strip()[:20]
+    term = (context.get("term_label") or "").strip()[:24]
+    link = (context.get("link") or "").strip()[:60]
+    body = template.format(guardian=guardian, student=student, term=term, link=link)
+    if len(body) > SMS_MAX_CHARS:
+        body = body[: SMS_MAX_CHARS - 1] + "…"
+    return body

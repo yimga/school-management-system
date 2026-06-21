@@ -95,17 +95,33 @@ class NotificationService:
             return False
 
     def send_grade_publication_sms(self, guardian, student, term):
-        """SMS with link when grades published."""
+        """SMS with link when grades published — localised + PII-minimised (GAP-4).
+
+        Routed through the shared SMS registry (render_grade_published_sms) in the
+        guardian's resolved locale instead of a hardcoded-English f-string, and the
+        student's FIRST name only (the SMS surface never carries the last name).
+        """
         try:
+            from apps.schoolops.sms_templates import render_grade_published_sms
+            from apps.communication.comms_locale import locale_target_for_user
+
             portal_link = (
                 f"{settings.BASE_URL}/portal/results/{student.id}/"
                 if hasattr(settings, "BASE_URL")
                 else "portal"
             )
-            message = (
-                f"Hi {guardian.guardian_user.first_name}, "
-                f"{student.get_full_name()}'s {term.label} report is ready. "
-                f"View: {portal_link}"
+            guardian_user = getattr(guardian, "guardian_user", None)
+            locale = locale_target_for_user(guardian_user) or "en"
+            message = render_grade_published_sms(
+                locale=locale,
+                context={
+                    "guardian_first_name": getattr(guardian_user, "first_name", "")
+                    or "",
+                    "student_first_name": (getattr(student, "first_name", "") or "")
+                    or "your student",
+                    "term_label": getattr(term, "label", "") or "",
+                    "link": portal_link,
+                },
             )
             return _send_sms(guardian.phone, message, site_settings=self.site_settings)
         except _EVALS_NOTIFICATION_SEND_ERRORS as e:
