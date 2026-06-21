@@ -457,6 +457,21 @@ body.admin-manager-shell .cp-header {
   max-width: 100%;
 }
 
+/* v4.04.x (2026-06-21): the `overflow-x: clip; overflow-y: visible` above is
+   meant to let the primary-nav "More ▾" dropdown drop below the band, but
+   Chromium can coerce `overflow-y: visible` back to clip when the X axis is
+   `clip` — re-clipping the menu so it never appears and the button reads as
+   inert ("nothing happens on click"). While the dropdown is actually OPEN,
+   drop all clipping on the header so the menu is guaranteed to escape. :has()
+   is live, so this engages the instant the native <details> toggles open and
+   reverts on close — horizontal containment is untouched in the normal
+   (closed) state, and the absolutely-positioned menu doesn't widen the header,
+   so opening it can't introduce horizontal scroll. */
+body.control-plane-shell .cp-header:has(.cp-primary-nav__more[open]),
+body.admin-manager-shell .cp-header:has(.cp-primary-nav__more[open]) {
+  overflow: visible;
+}
+
 body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-nav-row .cp-primary-nav {
   border-bottom: none;
 }
