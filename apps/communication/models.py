@@ -10,7 +10,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.db import models
-from django.db.models import Max
+from django.db.models import Max, Q
 from django.utils import timezone
 
 from apps.academics.models import Classroom, Department
@@ -154,6 +154,34 @@ class Message(models.Model):
                 _primary_school_id_for_user(getattr(self, "recipient", None)),
             )
         super().save(*args, **kwargs)
+
+
+class MessageAttachment(models.Model):
+    """File attachment on an internal :class:`Message`."""
+
+    message = models.ForeignKey(
+        Message,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+    )
+    file = models.FileField(upload_to="message_attachments/%Y/%m/")
+    original_name = models.CharField(max_length=255)
+    content_type = models.CharField(max_length=128, blank=True)
+    size_bytes = models.PositiveIntegerField(default=0)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return self.original_name
 
 
 class DirectConversation(models.Model):
@@ -300,6 +328,18 @@ class Announcement(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     expiry_date = models.DateTimeField(default=get_default_expiry)
+
+    scheduled_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Future publish time; null = immediate. A periodic sender fans it out when due (Phase 4).",
+    )
+    delivered_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Set once the fan-out sender has dispatched it (idempotency guard so it sends once).",
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -1149,6 +1189,153 @@ class CommunicationTemplate(models.Model):
     def __str__(self):
         scope = self.school_id or "platform"
         return f"{self.key} @ {scope} ({self.locale or 'any'})"
+
+
+class SmsSendLog(models.Model):
+    """Provider-level SMS idempotency send-log (audit GAP-7).
+
+    A retry that reaches the provider twice can double-send a real SMS. This is
+    the persisted send-log the SMS path gates on (via the partial-unique
+    ``idempotency_key``) BEFORE the provider call, so the same logical send is
+    never dispatched twice.
+
+    PII contract: we store ``recipient_hash`` only — an sha256 hex prefix of the
+    E.164 number, never the raw phone (mirrors ``models_consent`` /
+    ``models_delivery_receipt``).
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        SENT = "sent", "Sent"
+        FAILED = "failed", "Failed"
+
+    idempotency_key = models.CharField(max_length=128, blank=True)
+    recipient_hash = models.CharField(
+        max_length=64,
+        help_text="sha256 hex prefix of the E.164 number — never the raw phone.",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    provider = models.CharField(max_length=32, blank=True)
+    provider_message_id = models.CharField(max_length=128, blank=True)
+    status = models.CharField(
+        max_length=24,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["idempotency_key"],
+                condition=~Q(idempotency_key=""),
+                name="uniq_sms_send_idempotency_key",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["recipient_hash", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"SmsSendLog[{self.get_status_display()}] {self.recipient_hash}"
+
+
+class NotificationPreference(models.Model):
+    """Granular per-user notification preferences (audit MED-4).
+
+    Reinstates the deleted ``people.NotificationPreference`` so Phase 3 can
+    ENFORCE per-category mute, per-category channel overrides, quiet hours, and
+    digest cadence at send time.
+    """
+
+    class Category(models.TextChoices):
+        GRADES = "grades", "Grades"
+        FEES = "fees", "Fees"
+        ATTENDANCE = "attendance", "Attendance"
+        ANNOUNCEMENTS = "announcements", "Announcements"
+        MESSAGES = "messages", "Messages"
+        DISCIPLINE = "discipline", "Discipline"
+        ADMISSIONS = "admissions", "Admissions"
+        SYSTEM = "system", "System"
+
+    class Channel(models.TextChoices):
+        EMAIL = "email", "Email"
+        SMS = "sms", "SMS"
+        IN_APP = "in_app", "In-app"
+        PUSH = "push", "Push"
+        WHATSAPP = "whatsapp", "WhatsApp"
+
+    class Cadence(models.TextChoices):
+        IMMEDIATE = "immediate", "Immediate"
+        DAILY = "daily", "Daily"
+        WEEKLY = "weekly", "Weekly"
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="notification_preference",
+    )
+    muted_categories = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of Category values the user muted.",
+    )
+    channel_overrides = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Optional {category: [channel, ...]}; empty = channel defaults.",
+    )
+    quiet_hours_start = models.TimeField(null=True, blank=True)
+    quiet_hours_end = models.TimeField(null=True, blank=True)
+    digest_cadence = models.CharField(
+        max_length=16,
+        choices=Cadence.choices,
+        default=Cadence.IMMEDIATE,
+    )
+    timezone = models.CharField(max_length=64, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"NotificationPreference[{self.user_id}]"
+
+    def is_muted(self, category) -> bool:
+        """True if the given category is in the user's muted list."""
+        return category in (self.muted_categories or [])
+
+    def allows(self, category, channel) -> bool:
+        """Whether a notification in ``category`` may go out on ``channel``.
+
+        False if the category is muted; otherwise, if a channel override exists
+        for the category, the channel must be in that override list; otherwise
+        the channel defaults apply (allowed).
+        """
+        if self.is_muted(category):
+            return False
+        overrides = self.channel_overrides or {}
+        if category in overrides:
+            return channel in (overrides.get(category) or [])
+        return True
+
+    def in_quiet_hours(self, when_local_time) -> bool:
+        """True if ``when_local_time`` falls within the configured quiet window.
+
+        Both ends must be set. Handles a window that wraps past midnight (e.g.
+        22:00 → 07:00).
+        """
+        start = self.quiet_hours_start
+        end = self.quiet_hours_end
+        if start is None or end is None:
+            return False
+        if start <= end:
+            return start <= when_local_time <= end
+        # Wraps past midnight: inside if before end OR after start.
+        return when_local_time >= start or when_local_time <= end
 
 
 # Register video conferencing models under the communication app so migrations

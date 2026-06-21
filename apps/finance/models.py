@@ -1857,6 +1857,31 @@ class Notification(models.Model):
         blank=True,
         related_name="notifications",
     )
+    # Tenant scope. Nullable so platform/global notifications (and the historical
+    # rows created before this field existed) keep working; the inbox scopes by
+    # request.school where present (see views.user_notifications).
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        help_text="Tenant scope; null for platform/global notifications.",
+    )
+    # Retention: when set, the notification becomes eligible for the periodic
+    # purge job after this instant (only read+expired rows are purged).
+    expires_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Eligible for retention purge once read and past this time.",
+    )
+    # Dismissal: recipient removed it from their inbox (distinct from read).
+    dismissed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the recipient dismissed the notification from their inbox.",
+    )
 
     class Meta:
         ordering = ["-created_at"]
@@ -1870,6 +1895,10 @@ class Notification(models.Model):
 
     def __str__(self) -> str:
         return f"{self.title} ({self.severity})"
+
+    @property
+    def is_dismissed(self) -> bool:
+        return self.dismissed_at is not None
 
 
 class FinanceRequestAudit(models.Model):
