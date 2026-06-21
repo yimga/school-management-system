@@ -295,6 +295,38 @@ def ensure_default_jobs() -> None:
             auto_eligible=False,
             tags=("people", "reminders"),
         )
+        # 8. Phase-4 comms reach: deliver due scheduled announcements + parent digests.
+        # The announcement sender runs frequently so a scheduled post fans out within
+        # minutes of its scheduled_at (idempotent via delivered_at). Digests are split
+        # by cadence so each fires on its own period; the command itself only sends to
+        # guardians whose NotificationPreference.digest_cadence matches the run.
+        _REGISTRY["communication.send_due_scheduled_announcements"] = PeriodicJob(
+            name="communication.send_due_scheduled_announcements",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_send_due_scheduled_announcements,
+            description="Frequent: fan out announcements whose scheduled_at has passed (idempotent via delivered_at).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("communication", "announcements"),
+        )
+        _REGISTRY["communication.send_parent_digests_daily"] = PeriodicJob(
+            name="communication.send_parent_digests_daily",
+            interval_seconds=DAILY_SECONDS,
+            func=_run_send_parent_digests_daily,
+            description="Daily: parent digest for guardians on the daily cadence.",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("communication", "digests"),
+        )
+        _REGISTRY["communication.send_parent_digests_weekly"] = PeriodicJob(
+            name="communication.send_parent_digests_weekly",
+            interval_seconds=WEEKLY_SECONDS,
+            func=_run_send_parent_digests_weekly,
+            description="Weekly: parent digest for guardians on the weekly cadence.",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("communication", "digests"),
+        )
         _DEFAULTS_INSTALLED = True
 
 
@@ -389,6 +421,28 @@ def _run_check_badge_expiry_alerts() -> object:
     from apps.people.tasks import check_badge_expiry_alerts_task
 
     return check_badge_expiry_alerts_task.run()
+
+
+def _run_send_due_scheduled_announcements() -> object:
+    # Delivers announcements whose scheduled_at has passed via the dispatch engine
+    # (per-recipient pref/consent honoured inside). Idempotent via delivered_at.
+    from apps.communication.announcement_delivery import (
+        send_due_scheduled_announcements,
+    )
+
+    return send_due_scheduled_announcements()
+
+
+def _run_send_parent_digests_daily() -> object:
+    from django.core.management import call_command
+
+    return call_command("send_parent_digests", cadence="daily", apply=True)
+
+
+def _run_send_parent_digests_weekly() -> object:
+    from django.core.management import call_command
+
+    return call_command("send_parent_digests", cadence="weekly", apply=True)
 
 
 # --- mode / gating -----------------------------------------------------------
