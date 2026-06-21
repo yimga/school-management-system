@@ -117,16 +117,27 @@ def _maybe_dispatch_sms_short_form(
     first_name: str,
     balance,
     currency: str,
+    school=None,
 ) -> bool:
-    """Optional SMS hook. Returns True on dispatch, False otherwise.
+    """Optional SMS hook. Returns True only if at least one SMS was sent.
 
     v3.33.0: locale-aware short-form body (<=160 chars). Privacy gate
     inside :func:`render_low_balance_sms` ensures we NEVER include the
     balance numeric when ``balance < $1`` (very-low form just says "low").
 
-    Looks for ``apps.notifications.sms_helpers.send_sms`` or
-    ``apps.communication.sms_helpers.send_sms`` (either may exist in
-    different waves of this repo); if neither importable, no-op.
+    Sends through the canonical notification facade
+    :func:`apps.communication.notification_service.send_sms`, which threads
+    consent / circuit-breaker / durable-enqueue internally. Mirrors the
+    email half of the sweep: recipients are the student's guardian links
+    filtered to the SMS channel (``receives_sms=True``, the SMS-channel
+    analogue of the email path's ``receives_email=True``); the 7-day
+    cooldown is enforced by the calling task BEFORE this hook runs, so we
+    inherit the same gate. ``school`` is passed through so the facade keeps
+    the sweep's tenant scoping (consent lookup, usage metering, circuit
+    breaker are all school-scoped).
+
+    Honest dispatch: returns True only when ``send_sms`` actually reports a
+    send for at least one guardian — a falsy facade result is NOT counted.
     """
     from apps.schoolops.sms_templates import render_low_balance_sms
 
@@ -138,37 +149,27 @@ def _maybe_dispatch_sms_short_form(
     )
 
     try:
-        from importlib import import_module
-        for mod_path in (
-            "apps.notifications.sms_helpers",
-            "apps.communication.sms_helpers",
-        ):
+        from apps.communication.notification_service import send_sms
+        # tenant-isolation-allow: guardian-link-row-scoped-via-student-fk-already-tenant-bound
+        links = student.guardian_links.filter(receives_sms=True)
+        any_sent = False
+        for link in links:
+            phone = (getattr(link, "phone", "") or "").strip()
+            if not phone:
+                continue
             try:
-                mod = import_module(mod_path)
-            except ImportError:
+                sent = send_sms(phone, body_text, school=school)
+            except Exception:  # noqa: BLE001
+                logger.warning(
+                    "schoolops.sms_dispatch failed student_id=%s",
+                    getattr(student, "pk", None),
+                )
                 continue
-            send_sms = getattr(mod, "send_sms", None)
-            if not callable(send_sms):
-                continue
-            # tenant-isolation-allow: sms-helper-resolves-recipient-via-student-fk-tenant-graph
-            links = student.guardian_links.filter(
-                receives_sms=True,
-            )
-            for link in links:
-                phone = (getattr(link, "phone", "") or "").strip()
-                if not phone:
-                    continue
-                try:
-                    send_sms(phone, body_text)
-                except Exception:  # noqa: BLE001
-                    logger.warning(
-                        "schoolops.sms_dispatch failed student_id=%s",
-                        getattr(student, "pk", None),
-                    )
-            return True
+            if sent:
+                any_sent = True
+        return any_sent
     except Exception:  # noqa: BLE001
         return False
-    return False
 
 
 @shared_task(name="schoolops.notify_low_meal_plan_balance")
@@ -297,6 +298,7 @@ def notify_low_meal_plan_balance(meal_plan_balance_id: int) -> dict[str, Any]:
             first_name=first_name,
             balance=row.balance,
             currency=row.currency,
+            school=row.school,
         )
         result["delivered_sms"] = bool(sms_dispatched)
         result["locale"] = locale

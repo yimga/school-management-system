@@ -11,6 +11,17 @@ from abc import ABC, abstractmethod
 
 logger = logging.getLogger(__name__)
 
+# FCM signals that mean "this device token is permanently invalid" — the
+# device unregistered (app uninstalled / token rotated) or the token is
+# malformed. When we see one of these we deactivate the MobileDevice so the
+# dead token self-prunes (mirrors the web-push 404/410 deactivation pattern).
+# HTTP statuses (HTTP v1 returns 404 NOT_FOUND for an unregistered token; the
+# legacy API returned 410 GONE).
+_FCM_DEAD_TOKEN_HTTP_STATUSES = frozenset({404, 410})
+# FCM v1 canonical error codes (response JSON: error.details[].errorCode, or
+# error.status) that indicate the token — not the request — is the problem.
+_FCM_DEAD_TOKEN_ERROR_CODES = frozenset({"UNREGISTERED", "INVALID_ARGUMENT"})
+
 
 class WhatsAppProvider(ABC):
     """Abstract base for WhatsApp Business API backends (Meta, Twilio, etc.)."""
@@ -198,33 +209,46 @@ def _fcm_v1_access_token(config: dict) -> str:
         return ""
 
 
-def send_push(
-    school,
-    token_or_user,
+def _fcm_response_signals_dead_token(response) -> bool:
+    """True when an FCM HTTP v1 error response indicates the *token* is dead.
+
+    Distinguishes "this token is permanently invalid" (deactivate the device)
+    from "the send failed for a transient/config reason" (leave the device
+    alone). Reads the HTTP status first, then the canonical FCM error code in
+    the JSON body (``error.status`` and ``error.details[].errorCode``)."""
+    status = getattr(response, "status_code", None)
+    if status in _FCM_DEAD_TOKEN_HTTP_STATUSES:
+        return True
+    try:
+        err = (response.json() or {}).get("error") or {}
+    except (ValueError, TypeError, AttributeError):
+        return False
+    if (err.get("status") or "") in _FCM_DEAD_TOKEN_ERROR_CODES:
+        return True
+    for detail in err.get("details") or []:
+        if isinstance(detail, dict):
+            code = detail.get("errorCode") or detail.get("error_code") or ""
+            if code in _FCM_DEAD_TOKEN_ERROR_CODES:
+                return True
+    return False
+
+
+def _send_push_to_token(
+    config: dict,
+    provider: str,
+    device_token: str,
     title: str,
     body: str,
-    *,
-    data: dict | None = None,
-) -> bool:
-    """
-    Send push notification via tenant-configured FCM/APNS or webhook.
-    token_or_user: FCM device token (str) or User (we look up device token from a hypothetical PushDevice model or config).
-    Returns True if sent, False if no integration or failed.
-    """
-    config = _get_push_config(school)
-    if not config:
-        logger.debug("Push: no integration for school %s", getattr(school, "pk", None))
-        return False
-    provider = (config.get("provider") or "fcm").lower()
-    device_token = (
-        token_or_user
-        if isinstance(token_or_user, str)
-        else getattr(token_or_user, "fcm_token", None)
-        or getattr(token_or_user, "device_token", None)
-    )
+    data: dict | None,
+) -> tuple[bool, bool]:
+    """Deliver a single push to one device token.
+
+    Returns ``(sent, dead_token)``:
+      - ``sent`` True when the provider accepted the message.
+      - ``dead_token`` True when the failure proves the token is permanently
+        invalid (caller should deactivate the owning device)."""
     if not device_token:
-        logger.warning("Push: no device token")
-        return False
+        return (False, False)
     try:
         if provider == "fcm":
             # FCM HTTP v1 (audit H9). The legacy "/fcm/send" + "Authorization:
@@ -251,7 +275,9 @@ def send_push(
                     },
                     timeout=10,
                 )
-                return r.status_code == 200
+                if r.status_code == 200:
+                    return (True, False)
+                return (False, _fcm_response_signals_dead_token(r))
             # Explicit legacy opt-in only (deprecated; Google-disabled in 2024).
             server_key = config.get("server_key")
             if config.get("allow_legacy_fcm") and server_key:
@@ -270,16 +296,18 @@ def send_push(
                     },
                     timeout=10,
                 )
-                return r.status_code == 200
+                if r.status_code == 200:
+                    return (True, False)
+                return (False, r.status_code in _FCM_DEAD_TOKEN_HTTP_STATUSES)
             logger.warning(
                 "Push(fcm): missing project_id/access_token for HTTP v1 "
                 "(legacy API is disabled by Google)."
             )
-            return False
+            return (False, False)
         if provider == "web_push" or config.get("endpoint_url"):
             url = config.get("endpoint_url")
             if not url:
-                return False
+                return (False, False)
             import requests
 
             r = requests.post(
@@ -292,9 +320,88 @@ def send_push(
                 },
                 timeout=10,
             )
-            return r.status_code in (200, 201, 204)
+            if r.status_code in (200, 201, 204):
+                return (True, False)
+            return (False, r.status_code in _FCM_DEAD_TOKEN_HTTP_STATUSES)
         logger.warning("Push: unsupported provider %s", provider)
-        return False
+        return (False, False)
     except (OSError, ConnectionError, TimeoutError, ValueError, TypeError) as e:
         logger.exception("Push send failed: %s", e)
+        return (False, False)
+
+
+def send_push(
+    school,
+    token_or_user,
+    title: str,
+    body: str,
+    *,
+    data: dict | None = None,
+) -> bool:
+    """
+    Send push notification via tenant-configured FCM/APNS or webhook.
+
+    ``token_or_user`` is either a raw device-token string (delivered directly)
+    or a User. For a User we resolve every active registered device from the
+    ``MobileDevice`` registry and multicast to all of them. A hard FCM failure
+    that proves a token is invalid/expired (HTTP 404/410 or FCM error codes
+    UNREGISTERED / INVALID_ARGUMENT) deactivates that device so dead tokens
+    self-prune (mirrors the web-push deactivate-on-expiry convention).
+
+    Returns True if the message reached at least one device, False otherwise
+    (no integration, no token, no active devices, or every send failed).
+    """
+    config = _get_push_config(school)
+    if not config:
+        logger.debug("Push: no integration for school %s", getattr(school, "pk", None))
         return False
+    provider = (config.get("provider") or "fcm").lower()
+
+    # Raw-string token path: caller already resolved the token, send directly.
+    if isinstance(token_or_user, str):
+        if not token_or_user:
+            logger.warning("Push: no device token")
+            return False
+        sent, _dead = _send_push_to_token(
+            config, provider, token_or_user, title, body, data
+        )
+        return sent
+
+    user = token_or_user
+    if user is None or not getattr(user, "pk", None):
+        logger.warning("Push: no device token")
+        return False
+
+    # User path: multicast to every active registered device. The token
+    # registry lives in the mobile API; lazy-import it to avoid app-load
+    # cycles (matches apps/sync_engine/services.py).
+    from apps.api.mobile_api import MobileDevice
+
+    # MobileDevice has no tenant/school FK — it is owned by the User via the
+    # `user` FK, so filtering by `user=` is the correct isolation boundary.
+    # tenant-isolation-allow: mobile-device-registry-is-user-scoped-no-school-fk
+    devices = list(
+        MobileDevice.objects.filter(user=user, is_active=True).exclude(push_token="")
+    )
+    if not devices:
+        logger.info(
+            "Push: no active devices for user %s (no-op)", getattr(user, "pk", None)
+        )
+        return False
+
+    sent_count = 0
+    for device in devices:
+        sent, dead_token = _send_push_to_token(
+            config, provider, device.push_token, title, body, data
+        )
+        if sent:
+            sent_count += 1
+        elif dead_token:
+            device.is_active = False
+            device.save(update_fields=["is_active"])
+            logger.info(
+                "Push: deactivated dead device %s for user %s",
+                getattr(device, "device_id", device.pk),
+                getattr(user, "pk", None),
+            )
+    return sent_count > 0

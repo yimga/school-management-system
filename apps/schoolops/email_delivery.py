@@ -695,17 +695,30 @@ def _check_per_tenant_rate_limit(
 ) -> bool:
     """Return True when within budget; False when the tenant exceeded.
 
-    Sliding window: the bucket holds monotonic timestamps from the last
-    3600 seconds. On every call we prune entries older than the window
-    boundary, then compare ``len(bucket)`` to ``limit_per_hour``. When
-    over the budget we DO NOT append (the rejected attempt should not
-    eat budget); when under the budget we append then return True.
+    Primary path — **cluster-wide fixed-window counter on the Django
+    cache** (audit P2 / GAP-8). The window is keyed
+    ``em:rl:<tenant_hash>:<window_epoch>`` where
+    ``window_epoch = floor(time.time() / _RATE_LIMIT_WINDOW_SECONDS)``.
+    ``cache.add`` seeds the counter at 1 with TTL = the window length
+    (so the bucket self-expires — no sweeper), and each subsequent send
+    in the same window does an atomic ``cache.incr``. We allow the send
+    while the counter is ``<= cap`` — exactly ``cap`` sends per window,
+    matching the in-memory window below. On a shared backend (Redis /
+    Memcached in prod) the cap is therefore real across every gunicorn
+    worker and dyno and survives a process restart; on LocMemCache (dev)
+    it is per-process, which is no worse than the legacy behaviour.
 
-    The bucket lives in process memory — gunicorn workers each see their
-    own slice. That is intentional: per-worker visibility keeps the
-    hot-path lock-free except for the bucket itself, and the cap is a
-    safety guard for runaway loops (signup spam, broken Celery task,
-    template regression), not a billing-grade meter.
+    Fallback path — **per-process in-memory sliding window**, used ONLY
+    when the cache is unavailable (fail-open, see below). The bucket
+    holds monotonic timestamps from the last ``_RATE_LIMIT_WINDOW_SECONDS``;
+    we prune entries older than the window boundary, then compare
+    ``len(bucket)`` to ``cap``. Over budget we DO NOT append (a rejected
+    attempt must not eat budget); under budget we append then return True.
+
+    The cap is a safety guard for runaway loops (signup spam, broken
+    Celery task, template regression), not a billing-grade meter — so a
+    cache outage degrades to the in-memory window rather than blocking
+    all tenant mail.
     """
     if not tenant_hash:
         # Caller didn't (or couldn't) derive a tenant hash — skip the
@@ -733,7 +746,15 @@ def _check_per_tenant_rate_limit(
             return True
         return current <= cap
     except Exception:  # noqa: BLE001 — cache down → fall back to in-memory
-        pass
+        # Fail-OPEN: a cache outage must never block all tenant email. We
+        # log (PII-free event name + exc_info for the backend error type;
+        # the raw tenant_hash is never interpolated) and degrade to the
+        # per-process in-memory window below, which is no worse than the
+        # pre-cache behaviour.
+        logger.warning(
+            "schoolops.email_delivery.rate_limit_cache_unavailable",
+            exc_info=True,
+        )
 
     now = time.monotonic()
     cutoff = now - _RATE_LIMIT_WINDOW_SECONDS

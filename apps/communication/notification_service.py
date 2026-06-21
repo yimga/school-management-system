@@ -218,6 +218,66 @@ def _bump_sms_usage_meter(school: Any, body: str) -> None:
         logger.debug("SMS sms_count dimension rollup skipped", exc_info=True)
 
 
+def _record_sms_route_attempts(outcome: Any, *, recipient: str, school: Any = None) -> None:
+    """Persist every multi-gateway provider attempt to MessageDeliveryReceipt.
+
+    Maps the router's ``SMSRouteAttempt`` trail onto the existing delivery-receipt
+    table (PII-hashed recipient, tenant-scoped, terminal-flag) via the canonical
+    ``record_delivery_receipt`` helper:
+
+    * a successful attempt is keyed by the provider's real message id and stored
+      as ``accepted`` — so the later provider status-callback webhook upserts the
+      SAME row (``accepted`` → ``sent`` → ``delivered``);
+    * a failed attempt has no provider message id, so we synthesize a collision-
+      free key (``failover:<provider>:<hash>:<uuid>``) and store ``failed`` with
+      the provider error mapped onto ``error_code``.
+
+    Best-effort — receipt persistence NEVER breaks the send path.
+    """
+    attempts = getattr(outcome, "attempts", None) or []
+    if not attempts:
+        return
+    try:
+        import uuid as _uuid
+
+        from apps.communication.delivery_receipts import (
+            _hash_recipient,
+            record_delivery_receipt,
+        )
+
+        for attempt in attempts:
+            result = attempt.result
+            provider_key = attempt.provider_key
+            if result.ok and result.provider_message_id:
+                record_delivery_receipt(
+                    channel="sms",
+                    provider=provider_key,
+                    provider_message_id=result.provider_message_id,
+                    recipient=recipient,
+                    status="accepted",
+                    school=school,
+                )
+            else:
+                synthetic_id = (
+                    f"failover:{provider_key}:"
+                    f"{_hash_recipient(recipient)}:{_uuid.uuid4().hex[:12]}"
+                )
+                record_delivery_receipt(
+                    channel="sms",
+                    provider=provider_key,
+                    provider_message_id=synthetic_id,
+                    recipient=recipient,
+                    status="failed",
+                    error_code=(result.error or "")[:32],
+                    school=school,
+                )
+    except Exception as exc:  # broad-by-design — receipts never break the send
+        logger.warning(
+            "notification_service.sms_route_receipt_failed err=%s",
+            type(exc).__name__,
+        )
+
+
 def send_sms(
     to_phone: str,
     body: str,
@@ -271,11 +331,26 @@ def send_sms(
         return False
     provider = get_sms_provider(site)
     if provider:
-        result = provider.send(to_phone, body, idempotency_key=idempotency_key)
-        if result.ok:
+        # GAP-1 failover: route through the country-aware multi-gateway router so
+        # a primary-provider outage fails over to the next configured provider
+        # (e.g. Twilio → AfricasTalking) BEFORE the circuit breaker / fallback /
+        # enqueue path engages. With a single configured provider the chain has
+        # one live link, so behaviour is identical to the old direct send. The
+        # circuit-breaker open-check above already gated us in; we record
+        # success/failure per the *overall* routing outcome below.
+        from apps.communication.sms_router import SMSMultiGatewayRouter
+
+        router = SMSMultiGatewayRouter.for_destination(site, to_phone)
+        outcome = router.route(to_phone, body, idempotency_key=idempotency_key)
+        _record_sms_route_attempts(
+            outcome, recipient=to_phone, school=school,
+        )
+        if outcome.ok:
             circuit_record_success(school_id, "sms")
             _bump_sms_usage_meter(school, body)
             return True
+        # Every provider in the chain failed — now (and only now) trip the
+        # breaker and fall through to the existing fallback / enqueue path.
         circuit_record_failure(school_id, "sms")
         if fallback_email and body:
             send_email(

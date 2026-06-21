@@ -68,6 +68,11 @@ SCAN_THROTTLE_SECONDS = int(os.getenv("RMC_PERIODIC_SCAN_THROTTLE", "60"))
 DEFAULT_LOCK_TTL_SECONDS = 600  # magic-number-allow: default per-job lock TTL (seconds)
 WEEKLY_SECONDS = 7 * 24 * 60 * 60
 DAILY_SECONDS = 24 * 60 * 60
+# Reliability drainers (outbound message queue, event outbox) must drain far more
+# often than daily so a queued SMS/WhatsApp/push or an outbox-routed event delivers
+# within minutes, not a day. They are auto_eligible=False (secured cron path only),
+# so this cadence is the floor at which the cron tick will run them when invoked.
+FREQUENT_DRAIN_SECONDS = 5 * 60  # magic-number-allow: drainer min interval (seconds)
 # A heavy, tenant-fan-out job (e.g. the billing lifecycle) can run longer than the
 # default lock TTL, especially via the management-command / Render-cron path which
 # has no HTTP cap. Keep the claim lock well past its worst-case runtime so a second
@@ -191,6 +196,105 @@ def ensure_default_jobs() -> None:
             auto_eligible=False,
             tags=("advancement", "heavy"),
         )
+        # --- GAP-2: notification / reliability jobs that were beat-only (DEAD) ----
+        # The production topology has NO Celery worker, so every job below was wired
+        # only into CELERY_BEAT_SCHEDULE and therefore never fired. Each delegates to
+        # the SAME task/command the beat entry references, so a future worker runs
+        # identical code. All are auto_eligible=False — they iterate every tenant /
+        # touch send providers, so they belong on the secured cron path, never the
+        # constantly-pinged /health/ thread. Each task/command is already idempotent +
+        # atomic-claim safe; run_job() isolates a failure so one job cannot abort the
+        # others.
+        #
+        # 1. Outbound message queue drainer (SMS / WhatsApp / push retry). Frequent.
+        _REGISTRY["communication.process_outbound_message_queue"] = PeriodicJob(
+            name="communication.process_outbound_message_queue",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_process_outbound_message_queue,
+            description="Drain pending outbound SMS/WhatsApp/push queue (atomic-claim, per-tenant).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("communication", "drainer"),
+        )
+        # 2. Email dead-letter redrive (parked transactional sends). Frequent.
+        _REGISTRY["schoolops.redrive_email_dead_letters"] = PeriodicJob(
+            name="schoolops.redrive_email_dead_letters",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_redrive_email_dead_letters,
+            description="Redrive parked email dead-letters (no-op unless SCHOOLOPS_EMAIL_DLQ_ENABLED).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("schoolops", "drainer"),
+        )
+        # 3. Event outbox drainer — CRITICAL: outbox-routed domain events never
+        #    deliver without this. Frequent.
+        _REGISTRY["events.process_event_outbox"] = PeriodicJob(
+            name="events.process_event_outbox",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_process_event_outbox,
+            description="Drain the domain-event outbox (queue webhook deliveries + internal subscribers).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("events", "drainer"),
+        )
+        # 4. Payment reminders + retry of failed reminders. Daily.
+        _REGISTRY["finance.send_payment_reminders"] = PeriodicJob(
+            name="finance.send_payment_reminders",
+            interval_seconds=DAILY_SECONDS,
+            func=_run_send_payment_reminders,
+            description="Daily: send payment reminders for upcoming invoice due dates (per-tenant).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("finance", "reminders"),
+        )
+        _REGISTRY["finance.retry_failed_payment_reminders"] = PeriodicJob(
+            name="finance.retry_failed_payment_reminders",
+            interval_seconds=DAILY_SECONDS,
+            func=_run_retry_failed_payment_reminders,
+            description="Daily: retry payment reminders that previously failed to send (per-tenant).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("finance", "reminders"),
+        )
+        # 5. Grading deadline reminders to teachers. Daily.
+        _REGISTRY["analytics.send_deadline_reminders"] = PeriodicJob(
+            name="analytics.send_deadline_reminders",
+            interval_seconds=DAILY_SECONDS,
+            func=_run_send_deadline_reminders,
+            description="Daily: send grading-deadline reminders to teachers (per-tenant).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("analytics", "reminders"),
+        )
+        # 6. Low-meal-balance sweep (catch low rows the signal missed). Daily.
+        _REGISTRY["schoolops.sweep_low_meal_plan_balances"] = PeriodicJob(
+            name="schoolops.sweep_low_meal_plan_balances",
+            interval_seconds=DAILY_SECONDS,
+            func=_run_sweep_low_meal_plan_balances,
+            description="Daily: sweep low meal-plan balances and enqueue low-balance notifications.",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("schoolops", "reminders"),
+        )
+        # 7. Access-request assignee reminders + certification/badge-expiry alerts. Daily.
+        _REGISTRY["requests.remind_pending_assignees"] = PeriodicJob(
+            name="requests.remind_pending_assignees",
+            interval_seconds=DAILY_SECONDS,
+            func=_run_remind_pending_assignees,
+            description="Daily: remind staff assigned to pending access requests (per-tenant).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("requests", "reminders"),
+        )
+        _REGISTRY["people.check_badge_expiry_alerts"] = PeriodicJob(
+            name="people.check_badge_expiry_alerts",
+            interval_seconds=DAILY_SECONDS,
+            func=_run_check_badge_expiry_alerts,
+            description="Daily: alert on certifications/badges expiring within the configured window (per-tenant).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("people", "reminders"),
+        )
         _DEFAULTS_INSTALLED = True
 
 
@@ -216,6 +320,75 @@ def _run_mint_recurring_donation_pledges() -> object:
     from django.core.management import call_command
 
     return call_command("mint_recurring_donation_pledges")
+
+
+# --- GAP-2 notification / reliability delegates ------------------------------
+# Each delegates to the SAME Celery task / management command its beat entry
+# referenced. For a ``@shared_task`` object, ``.run(...)`` executes the wrapped
+# function body synchronously (binding ``self``) WITHOUT needing a worker or
+# broker — identical code to the future-worker path. Plain functions are called
+# directly. With no ``school_id`` argument, every per-tenant task iterates all
+# active tenants itself, which is exactly the cron-sweep behaviour we want.
+
+
+def _run_process_outbound_message_queue() -> object:
+    # Drains the outbound SMS/WhatsApp/push queue across every tenant (the task
+    # iterates active schools when school_id is omitted). Atomic-claim safe.
+    from apps.communication.tasks import process_outbound_message_queue
+
+    return process_outbound_message_queue.run()
+
+
+def _run_redrive_email_dead_letters() -> object:
+    # Same management command an operator runs by hand / a future beat task wraps.
+    # No-op (logs "DLQ disabled") unless SCHOOLOPS_EMAIL_DLQ_ENABLED.
+    from django.core.management import call_command
+
+    return call_command("redrive_email_dead_letters")
+
+
+def _run_process_event_outbox() -> object:
+    # CRITICAL: outbox-routed domain events never deliver without this. Delegates
+    # to the SAME batch helper the apps.events.process_event_outbox task wraps.
+    from apps.events.tasks import process_outbox_batch
+
+    return process_outbox_batch()
+
+
+def _run_send_payment_reminders() -> object:
+    from apps.finance.tasks import send_payment_reminders_task
+
+    return send_payment_reminders_task.run()
+
+
+def _run_retry_failed_payment_reminders() -> object:
+    from apps.finance.tasks import retry_failed_payment_reminders_task
+
+    return retry_failed_payment_reminders_task.run()
+
+
+def _run_send_deadline_reminders() -> object:
+    from apps.analytics.tasks import send_deadline_reminders_task
+
+    return send_deadline_reminders_task.run()
+
+
+def _run_sweep_low_meal_plan_balances() -> object:
+    from apps.schoolops.tasks import sweep_low_meal_plan_balances
+
+    return sweep_low_meal_plan_balances.run()
+
+
+def _run_remind_pending_assignees() -> object:
+    from apps.requests.tasks import remind_pending_assignees_task
+
+    return remind_pending_assignees_task.run()
+
+
+def _run_check_badge_expiry_alerts() -> object:
+    from apps.people.tasks import check_badge_expiry_alerts_task
+
+    return check_badge_expiry_alerts_task.run()
 
 
 # --- mode / gating -----------------------------------------------------------
