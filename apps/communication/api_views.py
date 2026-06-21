@@ -3,12 +3,16 @@ Communication API Views
 Messages, Announcements, and Communication management endpoints
 """
 
+import hashlib
+
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -548,12 +552,38 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         return Response({"status": "success", "is_active": False})
 
 
+# --- BroadcastAPI hardening constants (MED-5) ---
+# Hard cap on the fan-out audience: a single broadcast may not enqueue more
+# than this many Message rows synchronously. Protects against an
+# ``recipient_group="all"`` POST writing N rows on a large tenant.
+MAX_BROADCAST_RECIPIENTS = 5000  # magic-number-allow: broadcast fan-out hard cap
+# bulk_create batch size — bounds the size of each INSERT statement.
+BROADCAST_BULK_BATCH_SIZE = 500  # magic-number-allow: bulk_create batch size
+# Idempotency dedupe window (seconds). A repeat (admin + idempotency_key)
+# inside this TTL returns the prior result instead of re-broadcasting.
+BROADCAST_IDEMPOTENCY_TTL_SECONDS = 600  # magic-number-allow: idempotency dedupe window
+
+
+class BroadcastThrottle(UserRateThrottle):
+    """Per-admin rate limit for broadcast fan-out (MED-5).
+
+    Mirrors the ``MobileRateThrottle`` pattern (apps/api/mobile_api.py): a
+    ``UserRateThrottle`` subclass with the rate set directly on the class, so
+    it does not depend on ``DEFAULT_THROTTLE_RATES`` in settings. A distinct
+    ``scope`` keeps its cache bucket separate from the default ``user`` scope.
+    """
+
+    scope = "broadcast"
+    rate = "12/hour"  # magic-number-allow: broadcast send throttle
+
+
 class BroadcastAPI(APIView):
     """
     Send broadcast messages to groups
     """
 
     permission_classes = [IsAdminUser]
+    throttle_classes = [BroadcastThrottle]
 
     def post(self, request):
         """
@@ -565,14 +595,15 @@ class BroadcastAPI(APIView):
             "recipient_type": "user_ids",
             "subject": "Important Notice",
             "body": "Please read carefully",
-            "recipient_group": "all_teachers"  # Alternative to recipients list
+            "recipient_group": "all_teachers",  # Alternative to recipients list
+            "idempotency_key": "optional-client-supplied-dedupe-token"
         }
         """
         school, error = _tenant_school_or_response(request)
         if error is not None:
             return error
 
-        from apps.communication.models import Message
+        from apps.communication.models import Message, NotificationPreference
 
         users = _school_user_queryset(school)
 
@@ -580,12 +611,34 @@ class BroadcastAPI(APIView):
         recipient_group = request.data.get("recipient_group")
         subject = request.data.get("subject")
         body = request.data.get("body")
+        idempotency_key = request.data.get("idempotency_key")
 
         if not all([subject, body]):
             return Response(
                 {"error": "subject and body are required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        # --- Idempotency: short-circuit a recent duplicate (fail-open). ---
+        # Key is scoped to the requesting admin + tenant so two admins (or two
+        # schools) can't collide. Cache failure must not block a legitimate send.
+        cache_key = None
+        if idempotency_key:
+            digest = hashlib.sha256(
+                str(idempotency_key).encode("utf-8")
+            ).hexdigest()
+            cache_key = (
+                f"broadcast:idem:{getattr(school, 'id', 'none')}"
+                f":{getattr(request.user, 'id', 'anon')}:{digest}"
+            )
+            try:
+                prior = cache.get(cache_key)
+            except Exception:  # pragma: no cover - cache backend down → fail-open
+                prior = None
+            if prior is not None:
+                prior = dict(prior)
+                prior["deduplicated"] = True
+                return Response(prior, status=status.HTTP_200_OK)
 
         if recipient_group:
             if recipient_group == "all_teachers":
@@ -605,46 +658,102 @@ class BroadcastAPI(APIView):
                 users.filter(id__in=recipient_ids).values_list("id", flat=True)
             )
 
-        _COMMUNICATION_MESSAGE_CREATE_ERRORS = (
-            IntegrityError,
-            DatabaseError,
-            ValidationError,
-            ValueError,
-            TypeError,
-        )
+        total_resolved = len(recipient_ids)
+
+        # --- Recipient cap: truncate-and-report (never silently send a subset). ---
+        capped = False
+        if total_resolved > MAX_BROADCAST_RECIPIENTS:
+            capped = True
+            recipient_ids = recipient_ids[:MAX_BROADCAST_RECIPIENTS]
+
+        # --- Preference/consent filter (broadcasts are announcement-class). ---
+        # Bulk-load preferences keyed by user_id and drop anyone who muted
+        # ANNOUNCEMENTS. Missing preference row == no mute (default allow).
+        muted_user_ids = set()
+        try:
+            prefs = NotificationPreference.objects.filter(
+                user_id__in=recipient_ids
+            ).only("user_id", "muted_categories")
+            for pref in prefs:
+                if pref.is_muted(NotificationPreference.Category.ANNOUNCEMENTS):
+                    muted_user_ids.add(pref.user_id)
+        except (DatabaseError, ValueError, TypeError) as e:
+            # Don't let a preference-lookup failure block the whole broadcast;
+            # log and proceed as if no one had muted (fail-open, honest count).
+            log_exception_with_context(
+                "communication.api_views: NotificationPreference filter skipped",
+                school_id=getattr(school, "id", None),
+                extra={"error": str(e)},
+            )
+
+        deliverable_ids = [rid for rid in recipient_ids if rid not in muted_user_ids]
+        skipped_preference = len(recipient_ids) - len(deliverable_ids)
+
         from apps.communication.comms_locale import locale_target_for_user
 
         User = get_user_model()
-        rec_by_id = {u.pk: u for u in User.objects.filter(pk__in=recipient_ids)}
-        messages_created = 0
-        for recipient_id in recipient_ids:
-            try:
-                ru = rec_by_id.get(recipient_id)
-                Message.objects.create(
-                    sender=request.user,
-                    recipient_id=recipient_id,
-                    school=school,
-                    subject=subject,
-                    body=body,
-                    locale_target=locale_target_for_user(ru) if ru else "",
-                )
-                messages_created += 1
-            except _COMMUNICATION_MESSAGE_CREATE_ERRORS as e:
-                log_exception_with_context(
-                    "communication.api_views: Message.create skipped",
-                    school_id=getattr(school, "id", None),
-                    extra={"recipient_id": recipient_id, "error": str(e)},
-                )
-                continue
+        rec_by_id = {u.pk: u for u in User.objects.filter(pk__in=deliverable_ids)}
 
-        return Response(
-            {
-                "status": "success",
-                "messages_sent": messages_created,
-                "recipients": len(recipient_ids),
-            },
-            status=status.HTTP_201_CREATED,
-        )
+        # bulk_create is DELIBERATE here: it does NOT fire Message post_save
+        # signals. A sibling adds a per-DM notification signal for 1:1 messages
+        # that must NOT fan out once per broadcast row. Build all rows then
+        # insert in batches.
+        rows = [
+            Message(
+                sender=request.user,
+                recipient_id=recipient_id,
+                school=school,
+                subject=subject,
+                body=body,
+                locale_target=(
+                    locale_target_for_user(rec_by_id.get(recipient_id))
+                    if rec_by_id.get(recipient_id)
+                    else ""
+                ),
+            )
+            for recipient_id in deliverable_ids
+        ]
+
+        sent = 0
+        try:
+            created = Message.objects.bulk_create(
+                rows, batch_size=BROADCAST_BULK_BATCH_SIZE
+            )
+            sent = len(created)
+        except (IntegrityError, DatabaseError, ValidationError, ValueError, TypeError) as e:
+            log_exception_with_context(
+                "communication.api_views: Message.bulk_create failed",
+                school_id=getattr(school, "id", None),
+                extra={"deliverable": len(deliverable_ids), "error": str(e)},
+            )
+            return Response(
+                {"error": "Broadcast failed to send."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        result = {
+            "status": "success",
+            # Existing response shape preserved (back-compat):
+            "messages_sent": sent,
+            "recipients": len(deliverable_ids),
+            # New, honest counts:
+            "total_resolved": total_resolved,
+            "sent": sent,
+            "skipped_preference": skipped_preference,
+            "capped": capped,
+            "cap": MAX_BROADCAST_RECIPIENTS,
+        }
+
+        # Store the result for idempotent replay (fail-open on cache error).
+        if cache_key is not None:
+            try:
+                cache.set(
+                    cache_key, result, timeout=BROADCAST_IDEMPOTENCY_TTL_SECONDS
+                )
+            except Exception:  # pragma: no cover - cache backend down → fail-open
+                pass
+
+        return Response(result, status=status.HTTP_201_CREATED)
 
 
 class CommunicationAnalyticsAPI(APIView):

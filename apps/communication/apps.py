@@ -37,3 +37,11 @@ class CommunicationConfig(AppConfig):
             # Any unexpected failure (e.g. settings module half-loaded
             # in a degenerate test bootstrap) must not crash app init.
             logger.warning("email signing posture check skipped: %s", exc)
+
+        # MED-6: register the Message post_save receiver that surfaces a received
+        # direct message as a notification (via dispatch_event). Guarded so a
+        # signals-import problem can never break app loading.
+        try:
+            from apps.communication import signals  # noqa: F401
+        except Exception as exc:  # noqa: BLE001 — never crash app init on signals import
+            logger.warning("communication signals not registered: %s", exc)
