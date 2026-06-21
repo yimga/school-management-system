@@ -145,6 +145,17 @@ class FlowLaunchpadTests(SimpleTestCase):
         html = self._launchpad({"rmc_system_actions": five})
         self.assertEqual(html.count("rmc-flow-launchpad__step-link"), 3)
 
+    def test_launchpad_emits_has_hook_attribute(self):
+        # The CSS-only operator-header lead-in
+        # (body:has([data-rmc-flow-launchpad]) .rmc-page__header) depends on this
+        # attribute. Lock the contract so the hook can't silently disappear.
+        html = self._launchpad({})
+        self.assertIn("data-rmc-flow-launchpad", html)
+        # ...and it must NOT be emitted when the launchpad is silent (single action),
+        # otherwise the operator headers would get an orphan spine.
+        silent = self._launchpad({"rmc_system_actions": [_NEXT]})
+        self.assertNotIn("data-rmc-flow-launchpad", silent)
+
 
 class FlowLeadInTests(SimpleTestCase):
     """Phase 3: the shared hero receives the flow only when the launchpad is above it."""

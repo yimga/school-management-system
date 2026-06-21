@@ -2708,11 +2708,22 @@
    ONLY under the launchpad condition. The spine lives inside a small
    inline-start pad so it can never clip on a gutterless container. Token-only,
    no animation. */
-.rmc-flow-leadin {
+/* Two ways an element receives the lead-in:
+   1. `.rmc-flow-leadin` — applied in-template on shared first-content blocks
+      (hero greeting, flight-deck header, the two page_header partials).
+   2. `body:has([data-rmc-flow-launchpad]) .rmc-page__header` — the bespoke
+      operator/portal page header (`.rmc-page__header`, ~51 inline-header pages
+      with no shared partial) gets it CSS-only, gated on the launchpad's
+      presence in the page (the same condition the in-template class uses) so
+      no 51-file sweep is needed. `.rmc-page__header` carries no ::before/::after
+      of its own, so there is no pseudo-element collision. */
+.rmc-flow-leadin,
+body:has([data-rmc-flow-launchpad]) .rmc-page__header {
   position: relative;
   padding-inline-start: 1rem;
 }
-.rmc-flow-leadin::before {
+.rmc-flow-leadin::before,
+body:has([data-rmc-flow-launchpad]) .rmc-page__header::before {
   content: "";
   position: absolute;
   inset-inline-start: 0.28rem;
@@ -2723,7 +2734,8 @@
   /* off-token-allow: decorative-gradient */
   background: linear-gradient(180deg, color-mix(in srgb, var(--ds-success, var(--brand-primary)) 45%, transparent), color-mix(in srgb, var(--brand-primary, var(--hairline)) 35%, transparent), transparent);
 }
-.rmc-flow-leadin::after {
+.rmc-flow-leadin::after,
+body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   content: "";
   position: absolute;
   inset-inline-start: 0.03rem;
@@ -2737,9 +2749,12 @@
 }
 /* Narrow viewports: drop the spine, content stays flush. */
 @media (max-width: 720px) {
-  .rmc-flow-leadin { padding-inline-start: 0; }
+  .rmc-flow-leadin,
+  body:has([data-rmc-flow-launchpad]) .rmc-page__header { padding-inline-start: 0; }
   .rmc-flow-leadin::before,
-  .rmc-flow-leadin::after { display: none; }
+  .rmc-flow-leadin::after,
+  body:has([data-rmc-flow-launchpad]) .rmc-page__header::before,
+  body:has([data-rmc-flow-launchpad]) .rmc-page__header::after { display: none; }
 }
 
 /* Bootstrap .text-muted → design-token contrast (batch 1225 sweep) */

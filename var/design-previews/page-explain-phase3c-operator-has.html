@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 3c — operator header lead-in via :has() (validation)</title>
+<style>
+:root{
+  --surface-bg:#f5f5f7;--surface-canvas:#fbfbfd;--surface-elevated:#fff;--surface-overlay:rgba(0,0,0,.035);
+  --text-primary:#1d1d1f;--text-secondary:#424245;--text-tertiary:#6e6e73;
+  --brand-primary:#4f46e5;--ds-success:#0f9d63;--hairline:rgba(0,0,0,.10);
+  --radius-md:12px;--radius-pill:9999px;--elev-1:0 1px 2px rgba(0,0,0,.05);--text-on-brand:#fff;
+  --space-2:.5rem;--space-4:1rem;--ease-standard:cubic-bezier(.22,.61,.36,1);--motion-fast:140ms;
+}
+[data-bs-theme="dark"]{
+  --surface-bg:#0b0b0f;--surface-canvas:#121218;--surface-elevated:#1a1a22;--surface-overlay:rgba(255,255,255,.04);
+  --text-primary:#f5f5f7;--text-secondary:#c7c7cc;--text-tertiary:#98989d;
+  --brand-primary:#7c74ff;--ds-success:#34d399;--hairline:rgba(255,255,255,.12);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
+  background:var(--surface-bg);color:var(--text-primary);-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;padding:24px 24px 80px}
+.bar{display:flex;gap:10px;align-items:center;margin-bottom:18px}
+.ghost{appearance:none;border:1px solid var(--hairline);background:var(--surface-elevated);color:var(--text-secondary);
+  font:inherit;font-size:13px;font-weight:600;padding:8px 14px;border-radius:var(--radius-pill);cursor:pointer}
+.ghost[aria-pressed="true"]{background:var(--brand-primary);color:var(--text-on-brand);border-color:transparent}
+.note{font-size:12.5px;color:var(--text-tertiary);margin:0 0 16px;line-height:1.55}
+.canvas{background:var(--surface-canvas);border:1px solid var(--hairline);border-radius:16px;padding:20px;box-shadow:var(--elev-1)}
+.tag{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+  padding:3px 9px;border-radius:var(--radius-pill);margin-bottom:12px}
+.tag.on{background:color-mix(in srgb,var(--ds-success) 16%,transparent);color:var(--ds-success)}
+.tag.off{background:var(--surface-overlay);color:var(--text-tertiary)}
+
+/* a stand-in launchpad — the real one carries data-rmc-flow-launchpad */
+.lp{margin-bottom:18px;padding-inline-start:1.5rem;position:relative;font-size:12px;color:var(--ds-success);font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+.lp::before{content:"";position:absolute;inset-inline-start:.45rem;inset-block:0 -1.2rem;inline-size:2px;border-radius:2px;
+  background:linear-gradient(180deg,var(--ds-success),color-mix(in srgb,var(--brand-primary) 55%,transparent),transparent)}
+
+/* === THE REAL SHIPPED RULE (copied verbatim from rmc-class-grammar.css) === */
+.rmc-page__header{display:flex;flex-direction:column;gap:var(--space-2);padding-block-end:var(--space-4);border-block-end:1px solid var(--hairline)}
+.rmc-page__title{font-size:1.6rem;font-weight:600;letter-spacing:-.02em;margin:0}
+.rmc-page__subtitle{color:var(--text-secondary);margin-top:4px;font-size:13px}
+
+body:has([data-rmc-flow-launchpad]) .rmc-page__header{position:relative;padding-inline-start:1rem}
+body:has([data-rmc-flow-launchpad]) .rmc-page__header::before{content:"";position:absolute;inset-inline-start:.28rem;inset-block-start:-1.1rem;
+  block-size:2.6rem;inline-size:2px;border-radius:2px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--ds-success) 45%,transparent),color-mix(in srgb,var(--brand-primary) 35%,transparent),transparent)}
+body:has([data-rmc-flow-launchpad]) .rmc-page__header::after{content:"";position:absolute;inset-inline-start:.03rem;inset-block-start:.1rem;
+  inline-size:.55rem;block-size:.55rem;border-radius:50%;background:var(--surface-canvas);border:2px solid var(--brand-primary);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--brand-primary) 14%,transparent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <button class="ghost" id="toggle" aria-pressed="true">Launchpad present</button>
+    <button class="ghost" id="theme">Toggle dark</button>
+  </div>
+  <p class="note">This proves the CSS-only rule for the ~51 bespoke operator/portal headers (<code>.rmc-page__header</code>). The page header gets the flow spine <strong>only when</strong> a launchpad (<code>data-rmc-flow-launchpad</code>) exists on the page — driven by <code>body:has([data-rmc-flow-launchpad]) .rmc-page__header</code> (the real shipped rule, copied verbatim). Click <em>Launchpad present</em> to remove/add the launchpad node and watch the spine appear/disappear — no template change, no orphan spine when there's no flow.</p>
+
+  <div class="canvas">
+    <div id="lpwrap">
+      <span class="tag on" id="state">launchpad on page</span>
+      <!-- the real launchpad carries this attribute; :has() keys off it -->
+      <div class="lp" data-rmc-flow-launchpad="1">Your flow →</div>
+    </div>
+    <header class="rmc-page__header">
+      <h1 class="rmc-page__title">Wedge registry</h1>
+      <p class="rmc-page__subtitle">42 configured surface wedges across all tenants.</p>
+    </header>
+  </div>
+</div>
+<script>
+const t=document.getElementById('toggle'), wrap=document.getElementById('lpwrap'), state=document.getElementById('state');
+const lpHTML='<span class="tag on" id="state">launchpad on page</span><div class="lp" data-rmc-flow-launchpad="1">Your flow →</div>';
+const offHTML='<span class="tag off">no launchpad (single action / strict) — header stays plain</span>';
+t.addEventListener('click',()=>{const on=t.getAttribute('aria-pressed')!=='true';t.setAttribute('aria-pressed',on);
+  t.textContent=on?'Launchpad present':'Launchpad removed';wrap.innerHTML=on?lpHTML:offHTML;});
+document.getElementById('theme').addEventListener('click',()=>{const r=document.documentElement;
+  r.setAttribute('data-bs-theme',r.getAttribute('data-bs-theme')==='dark'?'light':'dark');});
+</script>
+</body>
+</html>

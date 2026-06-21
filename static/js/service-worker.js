@@ -201,7 +201,7 @@
 // v4.03.63: operator provisioning queue (/super/provision-queue/ — all not-yet-live
 //   schools in one actionable list w/ requeue) + i18n: completion summary now server-
 //   translated/pluralized (completion_summary_text) and rendered by the progress JS.
-const CACHE_VERSION = "sms-v4.04.43-deploy-freshness-mandate-2026-06-20";
+const CACHE_VERSION = "sms-v4.04.45-realtime-wsgi-fix-2026-06-20";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -583,11 +583,23 @@ async function purgeAuthCache() {
   }
 }
 
+function isRealtimeTransportRequest(url) {
+  const path = url.pathname || "";
+  return path.includes("/stream/") || path.startsWith("/ws/");
+}
+
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
   if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  // Never cache WebSocket upgrade paths or SSE streams — a cached HTML 502/login
+  // page here causes the "MIME type text/html is not text/event-stream" loop.
+  if (isRealtimeTransportRequest(url)) {
+    event.respondWith(fetch(request));
     return;
   }
 
