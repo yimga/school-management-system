@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flow Thread — final integrated look (as shipped)</title>
+<style>
+:root{
+  --surface-bg:#f5f5f7;--surface-canvas:#fbfbfd;--surface-elevated:#fff;--surface-overlay:rgba(0,0,0,.035);
+  --text-primary:#1d1d1f;--text-secondary:#424245;--text-tertiary:#6e6e73;
+  --brand-primary:#4f46e5;--brand-accent:#10b981;--ds-success:#0f9d63;--ds-warning:#b45309;
+  --hairline:rgba(0,0,0,.10);--radius-md:12px;--radius-lg:16px;--radius-pill:9999px;
+  --elev-1:0 1px 2px rgba(0,0,0,.05),0 1px 1px rgba(0,0,0,.04);--elev-2:0 6px 20px rgba(0,0,0,.08);
+  --text-on-brand:#fff;--space-2:.5rem;--space-4:1rem;--motion-fast:140ms;--ease-standard:cubic-bezier(.22,.61,.36,1);
+}
+[data-bs-theme="dark"]{
+  --surface-bg:#0b0b0f;--surface-canvas:#121218;--surface-elevated:#1a1a22;--surface-overlay:rgba(255,255,255,.04);
+  --text-primary:#f5f5f7;--text-secondary:#c7c7cc;--text-tertiary:#98989d;
+  --brand-primary:#7c74ff;--brand-accent:#34d399;--ds-success:#34d399;--ds-warning:#fbbf24;
+  --hairline:rgba(255,255,255,.12);--elev-1:0 1px 2px rgba(0,0,0,.4);--elev-2:0 10px 30px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;
+  background:var(--surface-bg);color:var(--text-primary);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding:24px 24px 80px}
+.toolbar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  padding:14px 16px;margin:-24px -24px 14px;background:color-mix(in srgb,var(--surface-bg) 86%,transparent);
+  backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--hairline)}
+.toolbar h1{font-size:15px;margin:0;font-weight:650;letter-spacing:-.01em}
+.toolbar .spacer{flex:1}
+.seg{display:inline-flex;background:var(--surface-overlay);border:1px solid var(--hairline);border-radius:var(--radius-pill);padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{appearance:none;border:0;background:transparent;color:var(--text-secondary);font:inherit;font-size:13px;font-weight:600;padding:6px 13px;border-radius:var(--radius-pill);cursor:pointer;transition:all var(--motion-fast) var(--ease-standard)}
+.seg button[aria-pressed="true"]{background:var(--surface-elevated);color:var(--text-primary);box-shadow:var(--elev-1)}
+.ghost{appearance:none;border:1px solid var(--hairline);background:var(--surface-elevated);color:var(--text-secondary);font:inherit;font-size:13px;font-weight:600;padding:7px 13px;border-radius:var(--radius-pill);cursor:pointer}
+.legend{font-size:12px;color:var(--text-tertiary);margin:0 0 16px;line-height:1.6}
+.legend b{color:var(--text-secondary)}
+.surfsub{font-size:13px;color:var(--text-tertiary);margin:2px 2px 14px}
+.browserchrome{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--surface-overlay);border:1px solid var(--hairline);border-bottom:0;border-radius:var(--radius-lg) var(--radius-lg) 0 0}
+.browserchrome .dot{width:10px;height:10px;border-radius:50%;background:var(--hairline)}
+.browserchrome .url{margin-left:8px;font-size:11px;color:var(--text-tertiary);font-family:ui-monospace,SFMono-Regular,monospace}
+.canvas{background:var(--surface-canvas);border:1px solid var(--hairline);border-radius:0 0 var(--radius-lg) var(--radius-lg);padding:20px;box-shadow:var(--elev-1)}
+
+/* ---- Flow Thread bar (P1, shipped) ---- */
+.pe{display:flex;align-items:center;gap:12px;flex-wrap:nowrap;padding:10px 14px;border:1px solid var(--hairline);border-radius:var(--radius-pill);background:var(--surface-elevated);box-shadow:var(--elev-1)}
+.pe__lead{display:flex;align-items:center;gap:8px;min-width:0;flex:0 1 auto}
+.pe__dot{width:9px;height:9px;border-radius:50%;background:var(--brand-primary);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand-primary) 18%,transparent);flex:none}
+.pe__kick{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-tertiary)}
+.pe__title{font-size:13.5px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pe__tag{font-size:11px;color:var(--text-tertiary);border:1px solid var(--hairline);border-radius:var(--radius-pill);padding:2px 9px;white-space:nowrap}
+.pe__flow{flex:1 1 40px;height:2px;min-width:24px;position:relative;border-radius:2px;background:linear-gradient(90deg,color-mix(in srgb,var(--brand-primary) 55%,transparent),color-mix(in srgb,var(--ds-success) 60%,transparent))}
+.pe__flow::after{content:"";position:absolute;top:-2px;left:0;width:8px;height:6px;border-radius:6px;background:var(--ds-success);box-shadow:0 0 8px var(--ds-success);animation:flow 3.2s var(--ease-standard) infinite}
+@keyframes flow{0%{left:0;opacity:0}15%{opacity:1}85%{opacity:1}100%{left:100%;opacity:0}}
+.pe__next{display:inline-flex;align-items:center;gap:8px;text-decoration:none;flex:none;padding:7px 14px;border-radius:var(--radius-pill);background:var(--ds-success);color:var(--text-on-brand);box-shadow:0 4px 14px color-mix(in srgb,var(--ds-success) 35%,transparent)}
+.pe__next .k{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;opacity:.85}
+.pe__next .n{font-size:13px;font-weight:650}
+
+/* ---- launchpad (P2, shipped) ---- */
+.lp{position:relative;margin-block:.5rem 0;padding-inline-start:1.5rem}
+.lp__rail{position:absolute;inset-inline-start:.45rem;inset-block:-.35rem .9rem;inline-size:2px;border-radius:2px;background:linear-gradient(180deg,var(--ds-success),color-mix(in srgb,var(--brand-primary) 55%,transparent),transparent)}
+.lp__lead{margin:0 0 .5rem;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ds-success)}
+.lp__steps{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.6rem}
+.lp__step{flex:1 1 13rem}
+.lp__link{display:flex;align-items:flex-start;gap:.6rem;padding:.6rem .75rem;border-radius:var(--radius-md);border:1px solid var(--hairline);background:var(--surface-elevated);box-shadow:var(--elev-1);text-decoration:none}
+.lp__dot{width:.55rem;height:.55rem;margin-top:.2rem;flex:none;border-radius:50%;background:var(--surface-canvas);border:2px solid var(--brand-primary)}
+.lp__step--live .lp__dot{background:var(--ds-success);border-color:var(--ds-success);box-shadow:0 0 0 4px color-mix(in srgb,var(--ds-success) 20%,transparent)}
+.lp__t{font-size:13px;font-weight:650;color:var(--text-primary)}
+.lp__d{font-size:11.5px;color:var(--text-tertiary)}
+
+/* ---- the lead-in modifier (P3/3b/3c, shipped) ---- */
+.leadin{position:relative;padding-inline-start:1rem}
+.leadin::before{content:"";position:absolute;inset-inline-start:.28rem;inset-block-start:-1.1rem;block-size:2.6rem;inline-size:2px;border-radius:2px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--ds-success) 45%,transparent),color-mix(in srgb,var(--brand-primary) 35%,transparent),transparent)}
+.leadin::after{content:"";position:absolute;inset-inline-start:.03rem;inset-block-start:.1rem;inline-size:.55rem;block-size:.55rem;border-radius:50%;
+  background:var(--surface-canvas);border:2px solid var(--brand-primary);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand-primary) 14%,transparent)}
+
+/* ---- dashboard hero + cockpit ---- */
+.hero{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.hero .eyebrow{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:4px}
+.hero h3{font-size:24px;margin:0 0 4px;letter-spacing:-.02em}
+.hero p{margin:0;color:var(--text-tertiary);font-size:13.5px}
+.acts{display:flex;gap:8px;flex:none}
+.acts a{font-size:12.5px;font-weight:600;text-decoration:none;padding:8px 13px;border-radius:var(--radius-pill);border:1px solid var(--hairline);color:var(--text-secondary);background:var(--surface-elevated)}
+.acts a.pri{background:var(--brand-primary);color:var(--text-on-brand);border-color:transparent}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.card{background:var(--surface-elevated);border:1px solid var(--hairline);border-radius:var(--radius-md);padding:14px;box-shadow:var(--elev-1)}
+.card .lab{font-size:11.5px;color:var(--text-tertiary);font-weight:600}
+.card .val{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-top:2px}
+.card .meta{font-size:11.5px;color:var(--ds-success);font-weight:600;margin-top:2px}
+
+/* ---- shared page_header (deep list page) ---- */
+.page-header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px}
+.page-header .eyebrow{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:4px}
+.page-h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;margin:0}
+.page-sub{font-size:13px;color:var(--text-tertiary);margin-top:3px}
+
+/* ---- operator rmc-page__header (column flex, :has-driven) ---- */
+.rmc-page__header{display:flex;flex-direction:column;gap:var(--space-2);padding-block-end:var(--space-4);border-block-end:1px solid var(--hairline)}
+.rmc-page__title{font-size:1.55rem;font-weight:600;letter-spacing:-.02em;margin:0}
+.rmc-page__subtitle{color:var(--text-secondary);margin-top:4px;font-size:13px;max-width:72ch}
+
+/* ---- list table ---- */
+.tbl{width:100%;border-collapse:collapse;background:var(--surface-elevated);border:1px solid var(--hairline);border-radius:var(--radius-md);overflow:hidden;font-size:13px;margin-top:14px}
+.tbl th,.tbl td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--hairline)}
+.tbl th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-tertiary);font-weight:600}
+.tbl tr:last-child td{border-bottom:0}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 9px;border-radius:var(--radius-pill);background:color-mix(in srgb,var(--ds-success) 14%,transparent);color:var(--ds-success)}
+
+.hidden{display:none}
+@media (prefers-reduced-motion:reduce){.pe__flow::after{animation:none;display:none}}
+@media (max-width:720px){.grid{grid-template-columns:1fr 1fr}.pe{flex-wrap:wrap}.pe__flow{display:none}.hero{flex-direction:column}
+  .leadin{padding-inline-start:0}.leadin::before,.leadin::after{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="toolbar">
+    <h1>Flow Thread · final look</h1>
+    <div class="seg" role="group" aria-label="Surface">
+      <button data-s="dash" aria-pressed="true">Dashboard</button>
+      <button data-s="list" aria-pressed="false">Deep list page</button>
+      <button data-s="op" aria-pressed="false">Operator console</button>
+    </div>
+    <div class="spacer"></div>
+    <button class="ghost" id="theme">Toggle dark</button>
+  </div>
+  <p class="legend">The complete shipped result, top-of-fold, on three representative surfaces. Every one shares the same descent:
+  <b>① the "About this page" bar with the Flow Thread</b> (origin dot → connector → emerald Next pill) →
+  <b>② the "Your flow" launchpad</b> in the reclaimed band →
+  <b>③ a spine that leads into the page's first block</b>, landing on a node. Toggle surfaces and dark mode.</p>
+
+  <!-- DASHBOARD -->
+  <section class="surf" data-s="dash">
+    <p class="surfsub">Tenant admin / operator manager dashboard — hero greeting receives the flow.</p>
+    <div class="browserchrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">manager.runmycampus.com/dashboard</span></div>
+    <div class="canvas">
+      <div class="pe"><div class="pe__lead"><span class="pe__dot"></span><span class="pe__kick">About</span><span class="pe__title">Manager dashboard</span><span class="pe__tag">Operations</span></div><span class="pe__flow"></span><a class="pe__next" href="#"><span class="k">Next</span><span class="n">Review pending admissions</span><span aria-hidden="true">→</span></a></div>
+      <div class="lp"><div class="lp__rail"></div><div class="lp__lead">Your flow</div><ol class="lp__steps">
+        <li class="lp__step lp__step--live"><a class="lp__link" href="#"><span class="lp__dot"></span><span><span class="lp__t">Review pending admissions</span><br><span class="lp__d">6 waiting on your decision.</span></span></a></li>
+        <li class="lp__step"><a class="lp__link" href="#"><span class="lp__dot"></span><span><span class="lp__t">Approve June payroll</span><br><span class="lp__d">Closes Friday.</span></span></a></li>
+        <li class="lp__step"><a class="lp__link" href="#"><span class="lp__dot"></span><span><span class="lp__t">Publish report cards</span><br><span class="lp__d">All grades in.</span></span></a></li>
+      </ol></div>
+      <div class="leadin" style="margin-top:10px"><div class="hero"><div><div class="eyebrow">Thursday · 21 June</div><h3>Good afternoon, Amara</h3><p>Everything's running smoothly across your campus.</p></div><div class="acts"><a class="pri" href="#">Quick add</a><a href="#">Reports</a></div></div>
+        <div class="grid"><div class="card"><div class="lab">Attendance today</div><div class="val">96.2%</div><div class="meta">▲ 1.4 vs last week</div></div><div class="card"><div class="lab">Fees collected</div><div class="val">₦4.1M</div><div class="meta">82% of target</div></div><div class="card"><div class="lab">Open tasks</div><div class="val">7</div><div class="meta" style="color:var(--text-tertiary)">3 due today</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEEP LIST -->
+  <section class="surf hidden" data-s="list">
+    <p class="surfsub">Deep list page (shared <code>page_header</code> partial, ~197 pages) — the title block receives the flow.</p>
+    <div class="browserchrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">school.runmycampus.com/backend/students</span></div>
+    <div class="canvas">
+      <div class="pe"><div class="pe__lead"><span class="pe__dot"></span><span class="pe__kick">About</span><span class="pe__title">Students</span><span class="pe__tag">Records</span></div><span class="pe__flow"></span><a class="pe__next" href="#"><span class="k">Next</span><span class="n">Finish enrolment for 4 pupils</span><span aria-hidden="true">→</span></a></div>
+      <div class="lp"><div class="lp__rail"></div><div class="lp__lead">Your flow</div><ol class="lp__steps">
+        <li class="lp__step lp__step--live"><a class="lp__link" href="#"><span class="lp__dot"></span><span><span class="lp__t">Finish enrolment for 4 pupils</span><br><span class="lp__d">Awaiting documents.</span></span></a></li>
+        <li class="lp__step"><a class="lp__link" href="#"><span class="lp__dot"></span><span><span class="lp__t">Assign Grade 5 classroom</span><br><span class="lp__d">2 unassigned.</span></span></a></li>
+      </ol></div>
+      <div class="leadin" style="margin-top:10px"><div class="page-header"><div><div class="eyebrow">Records</div><h2 class="page-h1">Students</h2><div class="page-sub">1,284 enrolled · 12 pending</div></div><div class="acts"><a class="pri" href="#">Add student</a><a href="#">Import</a></div></div>
+        <table class="tbl"><thead><tr><th>Name</th><th>Class</th><th>Guardian</th><th>Status</th></tr></thead><tbody>
+          <tr><td>Ada Obi</td><td>JSS 2</td><td>Mrs Obi</td><td><span class="pill">Active</span></td></tr>
+          <tr><td>Tunde Bello</td><td>JSS 1</td><td>Mr Bello</td><td><span class="pill">Active</span></td></tr>
+          <tr><td>Ngozi Eze</td><td>SS 1</td><td>Dr Eze</td><td><span class="pill">Active</span></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPERATOR CONSOLE -->
+  <section class="surf hidden" data-s="op">
+    <p class="surfsub">Operator console (bespoke <code>.rmc-page__header</code>, ~51 pages) — driven CSS-only via <code>:has()</code>.</p>
+    <div class="browserchrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">manager.runmycampus.com/super/wedges/</span></div>
+    <div class="canvas">
+      <div class="pe"><div class="pe__lead"><span class="pe__dot"></span><span class="pe__kick">About</span><span class="pe__title">Wedge registry</span><span class="pe__tag">Operator</span></div><span class="pe__flow"></span><a class="pe__next" href="#"><span class="k">Next</span><span class="n">Wire the 3 unmapped wedges</span><span aria-hidden="true">→</span></a></div>
+      <div class="lp"><div class="lp__rail"></div><div class="lp__lead">Your flow</div><ol class="lp__steps">
+        <li class="lp__step lp__step--live"><a class="lp__link" href="#"><span class="lp__dot"></span><span><span class="lp__t">Wire the 3 unmapped wedges</span><br><span class="lp__d">Missing surface links.</span></span></a></li>
+        <li class="lp__step"><a class="lp__link" href="#"><span class="lp__dot"></span><span><span class="lp__t">Review tenant rollout</span><br><span class="lp__d">128 schools.</span></span></a></li>
+      </ol></div>
+      <header class="rmc-page__header leadin" style="margin-top:10px"><h1 class="rmc-page__title">Wedge registry</h1><p class="rmc-page__subtitle">42 configured surface wedges across all tenants. Each has a stable operator URL with registry metadata and deep links into the implementing surface.</p></header>
+      <table class="tbl"><thead><tr><th>Wedge</th><th>Surface</th><th>Tenants</th><th>Status</th></tr></thead><tbody>
+        <tr><td>Onboarding checklist</td><td>Backend dashboard</td><td>128</td><td><span class="pill">Live</span></td></tr>
+        <tr><td>Fee reminder banner</td><td>Parent portal</td><td>96</td><td><span class="pill">Live</span></td></tr>
+        <tr><td>Attendance nudge</td><td>Teacher home</td><td>74</td><td><span class="pill">Live</span></td></tr>
+      </tbody></table>
+    </div>
+  </section>
+</div>
+<script>
+const segs=[...document.querySelectorAll('.seg button')];
+segs.forEach(b=>b.addEventListener('click',()=>{segs.forEach(x=>x.setAttribute('aria-pressed',x===b));
+  document.querySelectorAll('.surf').forEach(s=>s.classList.toggle('hidden',s.dataset.s!==b.dataset.s));}));
+document.getElementById('theme').addEventListener('click',()=>{const r=document.documentElement;r.setAttribute('data-bs-theme',r.getAttribute('data-bs-theme')==='dark'?'light':'dark');});
+</script>
+</body>
+</html>
