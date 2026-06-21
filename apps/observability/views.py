@@ -1512,3 +1512,18 @@ def runtime_inspect(request):
             "warnings": list(getattr(debug, "warnings", []) or []),
         }
     return JsonResponse(payload)
+
+
+@user_passes_test(lambda u: u.is_staff or u.is_superuser)
+def communication_delivery_health(request):
+    """Operator diagnostic: notification delivery-channel readiness (LOW-9).
+
+    Surfaces whether email / SMS / browser web push (VAPID) / native push are
+    configured on this deployment, plus active subscriber/device counts. Booleans
+    and counts ONLY — never any key material. Staff/superuser only. This closes
+    the web-push *visibility* gap; delivery itself is already wired into the
+    dispatch router (native + web push, each failure-isolated).
+    """
+    from apps.communication.delivery_health import collect_delivery_health
+
+    return JsonResponse(collect_delivery_health())

@@ -448,6 +448,11 @@ urlpatterns = [
         obs_views.runtime_inspect,
         name="runtime_inspect",
     ),
+    path(
+        "api/observability/delivery-health/",
+        obs_views.communication_delivery_health,
+        name="communication_delivery_health",
+    ),
     # Wave B — G5: user-friction telemetry ingest.
     path(
         "api/observability/friction/",
