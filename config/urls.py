@@ -9,7 +9,7 @@ from drf_spectacular.views import SpectacularAPIView
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.views import redirect_to_login
 from django.template.response import TemplateResponse
-from django.http import HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden
 
 from apps.platform_runtime.helpers import get_effective_flags
 from apps.platform_runtime.views_click_tracking import (
@@ -134,9 +134,55 @@ def home(request):
     return redirect("accounts:login")
 
 
+_OFFLINE_STATIC_FALLBACK = (
+    "<!doctype html><html lang=en><meta charset=utf-8>"
+    "<meta name=viewport content='width=device-width, initial-scale=1'>"
+    "<title>Offline · RunMyCampus</title>"
+    "<h1>You're offline</h1>"
+    "<p>Cached pages remain available. Any form work you started will retry "
+    "automatically once your network returns.</p>"
+    "<p><a href='/'>Home</a></p>"
+)
+
+
 def offline_page(request):
-    """Offline fallback shell served by service-worker navigation fallback."""
-    return render(request, "offline.html", status=200)
+    """Offline fallback shell served by the service-worker navigation fallback.
+
+    MUST NOT 500 — this is the safety net shown when the network (and sometimes
+    the tenant DB) is unreachable, so it cannot depend on the request-bound
+    context-processor stack. Try the normal branded render first (keeps operator
+    and marketing output identical); on failure — e.g. a tenant context processor
+    doing DB work for this anonymous hit — re-render the same branded template
+    WITHOUT the context-processor stack; finally fall back to a static shell.
+    """
+    import logging
+
+    from django.template import loader
+    from django.utils.translation import get_language
+
+    log = logging.getLogger(__name__)
+    try:
+        return render(request, "offline.html", status=200)
+    except Exception:
+        log.warning(
+            "offline_page: full render failed; retrying without context processors",
+            exc_info=True,
+        )
+    try:
+        html = loader.render_to_string(
+            "offline.html",
+            {"LANGUAGE_CODE": get_language() or "en"},
+            request=None,  # no RequestContext -> no context processors -> no tenant DB work
+        )
+        return HttpResponse(html, status=200, content_type="text/html; charset=utf-8")
+    except Exception:
+        log.error(
+            "offline_page: context-free render failed; serving static fallback",
+            exc_info=True,
+        )
+        return HttpResponse(
+            _OFFLINE_STATIC_FALLBACK, status=200, content_type="text/html; charset=utf-8"
+        )
 
 
 def manager_offline_sync_root_fallback(request):

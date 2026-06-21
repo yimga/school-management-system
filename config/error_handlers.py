@@ -7,9 +7,52 @@ re-entering ``config.urls`` during urlconf load (avoids circular ImportError).
 
 from __future__ import annotations
 
+import logging
+
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.template.loader import get_template
+
+logger = logging.getLogger(__name__)
+
+
+def _static_error_html(code: str, title: str, message: str) -> str:
+    """Fully self-contained error markup — no templates, no context, no DB.
+
+    Used as the last-resort fallback so an error page can render even when the
+    template chain or a context processor is exactly what failed.
+    """
+    return (
+        "<!doctype html><meta charset=utf-8>"
+        "<meta name=viewport content='width=device-width, initial-scale=1'>"
+        f"<title>{title} · RunMyCampus</title>"
+        f"<h1>{code} - {title}</h1>"
+        f"<p>{message}</p>"
+        "<p><a href='/'>Home</a></p>"
+    )
+
+
+def _safe_error_render(request, template, *, status, fallback_html, context=None):
+    """Render a branded error template but NEVER raise.
+
+    Error pages must survive a failing context processor — e.g. a tenant-scoped
+    processor that performs DB work for an anonymous hit — otherwise a 404/403/503
+    escalates into a 500 (the bug that made ``/sw-manifest.json`` and ``/offline/``
+    return 500 on tenant subdomains). Mirrors the long-standing ``server_error``
+    fallback so every handler is equally bulletproof.
+    """
+    try:
+        return render(request, template, context or {}, status=status)
+    except Exception:
+        logger.warning(
+            "error-page render failed (template=%s status=%s); serving static fallback",
+            template,
+            status,
+            exc_info=True,
+        )
+        return HttpResponse(
+            fallback_html, status=status, content_type="text/html; charset=utf-8"
+        )
 
 
 def _coerce_request_user_for_error_pages(request):
@@ -38,8 +81,14 @@ def permission_denied(request, exception):
         if getattr(request, "public_host_kind", None) == "manager"
         else "errors/403.html"
     )
-    return render(
-        request, template, {"is_admin_forbidden": is_admin_forbidden}, status=403
+    return _safe_error_render(
+        request,
+        template,
+        status=403,
+        context={"is_admin_forbidden": is_admin_forbidden},
+        fallback_html=_static_error_html(
+            "403", "Access denied", "You don't have permission to view this page."
+        ),
     )
 
 
@@ -51,7 +100,14 @@ def page_not_found(request, exception):
         if getattr(request, "public_host_kind", None) == "manager"
         else "errors/404.html"
     )
-    return render(request, template, status=404)
+    return _safe_error_render(
+        request,
+        template,
+        status=404,
+        fallback_html=_static_error_html(
+            "404", "Not found", "The page you requested doesn't exist."
+        ),
+    )
 
 
 def server_error(request):
@@ -87,4 +143,13 @@ def service_unavailable(request, exception=None):
         if getattr(request, "public_host_kind", None) == "manager"
         else "errors/503.html"
     )
-    return render(request, template, status=503)
+    return _safe_error_render(
+        request,
+        template,
+        status=503,
+        fallback_html=_static_error_html(
+            "503",
+            "Temporarily unavailable",
+            "We're briefly offline for maintenance. Please retry shortly.",
+        ),
+    )
