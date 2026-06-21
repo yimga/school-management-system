@@ -76,6 +76,7 @@ def mint_due_recurring_pledges(*, today=None, limit: int = 500) -> dict[str, Any
     from apps.schools.models import RecurringDonationSchedule
 
     today = today or timezone.now().date()
+    # tenant-isolation-allow: cross-tenant-celery-beat-recurring-pledge-due-mint
     due = RecurringDonationSchedule.objects.filter(
         status=RecurringDonationSchedule.Status.ACTIVE,
         next_run_date__lte=today,

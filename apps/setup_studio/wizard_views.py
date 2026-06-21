@@ -579,10 +579,20 @@ class TenantWizardIndexView(LoginRequiredMixin, View):
     def get(self, request: HttpRequest) -> HttpResponse:
         # v4.00.5: audience-aware index — non-admin tenant users (parent/teacher/student/staff)
         # see the wizards targeted at their audience, not a deny redirect.
-        user_audience = _user_audience(request)
-        if user_audience is None:
-            return redirect("/")
         if _user_is_tenant_admin(request):
+            user_audience = "tenant_admin"
+        else:
+            user_audience = _user_audience(request)
+        if user_audience is None:
+            context = _wizard_index_context([], status_map={})
+            context.update({
+                "resumable_wizards": [],
+                "user_audience": None,
+                "wizard_audience_unmapped": True,
+                "wizard_search_audience": "",
+            })
+            return render(request, "setup_studio/tenant_wizard_index.html", context)
+        if user_audience == "tenant_admin":
             wizards = wizard_engine.list_wizards_for_audience("tenant_admin")
         else:
             wizards = wizard_engine.list_wizards_for_audience(user_audience)

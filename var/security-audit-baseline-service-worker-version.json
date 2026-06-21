@@ -1,12 +1,12 @@
 {
-  "date": "2026-06-17",
-  "generated_at": "2026-06-17T22:30:00+00:00",
+  "date": "2026-06-20",
+  "generated_at": "2026-06-21T01:29:05+00:00",
   "major": 4,
   "minor": 4,
-  "patch": 8,
-  "raw": "sms-v4.04.08-workflow-flight-deck-gaps-closed-2026-06-17",
+  "patch": 39,
+  "raw": "sms-v4.04.39-tenant-lifecycle-hardening-2026-06-20",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "workflow-flight-deck-gaps-closed",
+  "slug": "tenant-lifecycle-hardening",
   "valid": true
 }

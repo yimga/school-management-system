@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, HttpResponseForbidden, JsonResponse
@@ -20,6 +21,8 @@ from apps.schools.tenant_offboarding import (
     run_wind_down_export,
 )
 from apps.siteconfig.control_plane_render import render_siteconfig_stem
+
+logger = logging.getLogger(__name__)
 
 
 def _parse_json(request) -> dict:
@@ -152,7 +155,18 @@ def api_tenant_offboarding_export(request):
     try:
         result = run_wind_down_export(school, full=True, actor=request.user)
     except Exception as exc:
-        return JsonResponse({"ok": False, "error": str(exc)}, status=500)
+        logger.exception(
+            "tenant offboarding export failed school_id=%s",
+            getattr(school, "pk", None),
+        )
+        return JsonResponse(
+            {
+                "ok": False,
+                "error": "export_failed",
+                "message": "Portability export could not be generated. Try again or contact support.",
+            },
+            status=500,
+        )
     log_control_plane_action(
         request,
         AuditLog.Action.EXPORT,
@@ -161,13 +175,20 @@ def api_tenant_offboarding_export(request):
         object_repr=school.name,
         reason="Tenant self-service portability export",
         sensitivity=AuditLog.Sensitivity.HIGH,
-        new_values={"export_zip": result.export_zip_path},
+        new_values={"student_export_count": result.student_export_count},
     )
+    try:
+        from django.urls import reverse
+
+        download_url = reverse("tenant_offboarding_export_download")
+    except Exception:
+        download_url = ""
     return JsonResponse(
         {
             "ok": True,
-            "export_zip_path": result.export_zip_path,
             "student_export_count": result.student_export_count,
+            "download_url": download_url,
+            "ready": bool(latest_export_zip_path(school)),
         }
     )
 
@@ -181,8 +202,23 @@ def api_tenant_offboarding_export_download(request):
     path = latest_export_zip_path(school)
     if not path:
         return JsonResponse({"ok": False, "error": "No export available"}, status=404)
+    try:
+        export_file = open(path, "rb")
+    except OSError:
+        logger.warning(
+            "tenant offboarding export missing on disk school_id=%s",
+            getattr(school, "pk", None),
+        )
+        return JsonResponse(
+            {
+                "ok": False,
+                "error": "export_stale",
+                "message": "Export file is no longer available. Generate a new export.",
+            },
+            status=410,
+        )
     return FileResponse(
-        open(path, "rb"),
+        export_file,
         as_attachment=True,
         filename=f"{school.slug}-portability-export.zip",
     )

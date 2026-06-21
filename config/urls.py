@@ -150,6 +150,12 @@ def service_worker_asset_manifest(request):
 
     paths = [
         "css/design-tokens.css",
+        "css/rmc-wizard.css",
+        "css/rmc-wizard-engine.css",
+        "css/rmc-wizard-assist.css",
+        "css/rmc-setup-surface.css",
+        "css/rmc-tenant-canvas-100x.css",
+        "css/rmc-operator-tools-tray.css",
         "css/dashboard-responsive.css",
         "css/reduce-motion-low-power.css",
         "js/command-palette.js",
@@ -180,7 +186,7 @@ def service_worker_asset_manifest(request):
         {
             "version": _os.getenv(
                 "SW_MANIFEST_VERSION",
-                "sms-v2.24.0-five-wave-closeout-2026-05-15",
+                "sms-v4.04.39-tenant-lifecycle-hardening-2026-06-20",
             ),
             "assets": assets,
         }

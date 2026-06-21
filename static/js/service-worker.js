@@ -201,7 +201,7 @@
 // v4.03.63: operator provisioning queue (/super/provision-queue/ — all not-yet-live
 //   schools in one actionable list w/ requeue) + i18n: completion summary now server-
 //   translated/pluralized (completion_summary_text) and rendered by the progress JS.
-const CACHE_VERSION = "sms-v4.04.37-flow-launchpad-2026-06-20";
+const CACHE_VERSION = "sms-v4.04.39-tenant-lifecycle-hardening-2026-06-20";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -320,6 +320,15 @@ const STATIC_ASSETS = [
   "/static/js/rmc-stream-mount.js",
   "/static/js/rmc-message-outbox.js",
   "/static/css/rmc-viewport-engine.css",
+  // v4.04.38: tenant onboarding + wizard surfaces — must revalidate on deploy
+  // (cache-first static was serving stale rmc-wizard.css / setup-surface long
+  // after commits landed; network-first below closes that trap).
+  "/static/css/rmc-wizard.css",
+  "/static/css/rmc-wizard-engine.css",
+  "/static/css/rmc-wizard-assist.css",
+  "/static/css/rmc-setup-surface.css",
+  "/static/css/rmc-tenant-canvas-100x.css",
+  "/static/css/rmc-operator-tools-tray.css",
   // v4.00.7–v4.00.10: adoption helpers (attendance, AI streaming, gradebook).
   "/static/js/_pages/rmc-attendance-wal-enhance.js",
   "/static/js/_pages/rmc-ai-stream-bridge.js",
@@ -593,6 +602,16 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // CSS/JS under /static/ are NETWORK-FIRST (online users always get the freshly
+  // deployed bundle). Cache is updated in the background for offline fallback
+  // only. Cache-first here was the root cause of "committed code but old UI":
+  // rmc-wizard.css, rmc-setup-surface.css, etc. stayed pinned until a manual
+  // hard-refresh or CACHE_VERSION bump + lucky SW activation.
+  if (isNetworkFirstStaticAsset(request, url)) {
+    event.respondWith(networkFirstStatic(request));
+    return;
+  }
+
   event.respondWith(cacheFirstNavigationAndStatic(request));
 });
 
@@ -719,6 +738,34 @@ async function networkFirstNavigation(request) {
       return cached;
     }
     return (await caches.match("/offline/")) || new Response("Offline", { status: 503 });
+  }
+}
+
+function isNetworkFirstStaticAsset(request, url) {
+  if (!url.pathname.startsWith("/static/")) {
+    return false;
+  }
+  if (request.destination === "style" || request.destination === "script") {
+    return true;
+  }
+  const path = url.pathname.toLowerCase();
+  return path.includes("/css/") || path.endsWith(".css") || path.includes("/js/") || path.endsWith(".js");
+}
+
+async function networkFirstStatic(request) {
+  try {
+    const response = await fetch(request);
+    if (response && response.ok) {
+      const cache = await caches.open(STATIC_CACHE);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (_err) {
+    const cached = await caches.match(request);
+    if (cached) {
+      return cached;
+    }
+    return new Response("Offline", { status: 503 });
   }
 }
 

@@ -25,6 +25,14 @@ from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.reports.services import get_promotion_status, _annual_average_for_student
 
 
+def _enqueue_rollover_task(task, *args, **kwargs):
+    """Prefer async Celery; fall back to in-process apply when broker is unavailable."""
+    try:
+        return task.apply_async(args=args, kwargs=kwargs)
+    except Exception:
+        return task.apply(args=args, kwargs=kwargs)
+
+
 def _is_admin_user(user):
     return user.is_authenticated and (
         user.is_superuser
@@ -530,18 +538,17 @@ def rollover_proposal_detail(request, proposal_id):
             carry_arrears = request.POST.get("carry_forward_arrears") == "on"
             from apps.accounts.tasks import apply_rollover_proposal
 
-            apply_rollover_proposal.apply(
-                args=[proposal_id],
-                kwargs=dict(
-                    lock_source=lock_source,
-                    notify_parents=notify_parents,
-                    allow_outstanding_returns=allow_outstanding,
-                    carry_forward_arrears=carry_arrears,
-                ),
+            _enqueue_rollover_task(
+                apply_rollover_proposal,
+                proposal_id,
+                lock_source=lock_source,
+                notify_parents=notify_parents,
+                allow_outstanding_returns=allow_outstanding,
+                carry_forward_arrears=carry_arrears,
             )
             messages.success(
                 request,
-                "Rollover applied. Students have been moved to the target year.",
+                "Rollover is running. Students will be moved to the target year shortly.",
             )
             return redirect("accounts:rollover_queue")
     return render(

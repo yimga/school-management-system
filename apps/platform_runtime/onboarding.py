@@ -351,8 +351,9 @@ def get_school_onboarding_progress(
     if next_action is None and steps:
         next_action = {
             "label": "Open full activation checklist",
+            # Tenant-facing only — never fall back to console_domains_hub (staff-only).
             "url": _reverse_tenant("siteconfig:onboarding")
-            or _reverse_tenant("siteconfig:console_domains_hub"),
+            or _reverse_tenant("setup_studio:tenant_wizard_index"),
         }
 
     # Show EVERY step as a card (incomplete first), not a truncated slice — the

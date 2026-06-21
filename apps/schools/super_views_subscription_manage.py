@@ -99,9 +99,10 @@ def tenant_subscription_manage(request, school_id):
     account_balance = None
     if billing_account is not None:
         ledger_entries = list(
-            PlatformLedgerEntry.objects.filter(billing_account=billing_account).order_by(
-                "-happened_at", "-created_at"
-            )[:_LEDGER_HISTORY_LIMIT]
+            PlatformLedgerEntry.objects.filter(
+                billing_account=billing_account,
+                school=school,
+            ).order_by("-happened_at", "-created_at")[:_LEDGER_HISTORY_LIMIT]
         )
         account_balance = platform_account_balance(billing_account)
 

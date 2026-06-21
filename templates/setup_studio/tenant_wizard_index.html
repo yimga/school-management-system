@@ -115,7 +115,15 @@
       {% endfor %}
     </div>
   {% else %}
-    <p class="rmc-wz-empty">{% trans "No wizards are configured yet." %}</p>
+    {% if wizard_audience_unmapped %}
+      <section class="rmc-wizard-empty rmc-reveal" role="status">
+        <h2 class="rmc-wizard-empty__title">{% trans "Setup wizards are not available for your role yet" %}</h2>
+        <p class="rmc-wizard-empty__lede">{% trans "Ask your school administrator to assign the correct portal role, or open the main dashboard for your daily work." %}</p>
+        <a class="btn btn-primary btn-sm" href="{% url 'accounts:redirect' %}">{% trans "Go to my dashboard" %}</a>
+      </section>
+    {% else %}
+      <p class="rmc-wz-empty">{% trans "No wizards are configured yet." %}</p>
+    {% endif %}
   {% endif %}
 </main>
 <script src="{% static 'js/_pages/rmc-wizard-search.js' %}" defer nonce="{{ csp_nonce }}"></script>
