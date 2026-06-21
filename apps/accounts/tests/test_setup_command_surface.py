@@ -67,6 +67,94 @@ class SetupCommandSurfaceRenderTests(SimpleTestCase):
         self.assertIn("Set up your", out)
 
 
+_WIZARD_STAGES = {
+    "stages": [
+        {
+            "key": "configure",
+            "label": "Configure",
+            "description": "Set up how your school runs.",
+            "step": 2,
+            "done": 1,
+            "total": 2,
+            "cards": [
+                {
+                    "key": "ai_helpcenter_knowledge_injection",
+                    "title": "AI Helpcenter Knowledge Injection",
+                    "status": "not_started",
+                    "minutes": 10,
+                    "steps": 4,
+                },
+                {
+                    "key": "cashless_campus_pos",
+                    "title": "Cashless Campus POS",
+                    "status": "done",
+                    "minutes": 8,
+                    "steps": 4,
+                },
+            ],
+        },
+    ],
+    "overall": {"done": 1, "total": 2, "pct": 50},
+}
+
+
+class SetupCommandSurfaceWizardStageTests(SimpleTestCase):
+    """The richer branch: real setup-studio wizards grouped by lifecycle stage."""
+
+    def _render(self, **overrides) -> str:
+        ctx = {
+            "show_setup_landing": True,
+            "backend_show_legacy_dashboard": False,
+            "rmc_school_onboarding": _ONBOARDING,
+            "rmc_setup_wizard_stages": _WIZARD_STAGES,
+        }
+        ctx.update(overrides)
+        return render_to_string(_PARTIAL, ctx)
+
+    def test_renders_real_wizard_cards_with_time_and_step_meta(self):
+        out = self._render()
+        self.assertIn("AI Helpcenter Knowledge Injection", out)
+        self.assertIn("Cashless Campus POS", out)
+        # real estimated_minutes + step count meta (matches the preview)
+        self.assertIn("10 min", out)
+        self.assertIn("4 steps", out)
+        # lifecycle stage heading + per-stage count
+        self.assertIn("Configure", out)
+        self.assertIn("1/2", out)
+        # the done card carries the is-done modifier
+        self.assertIn("is-done", out)
+
+    def test_falls_back_to_milestone_cards_when_no_wizard_stages(self):
+        out = self._render(rmc_setup_wizard_stages={"stages": []})
+        self.assertIn("Create academic year", out)  # milestone branch
+
+    def test_wizard_branch_classes_all_defined_in_css(self):
+        out = self._render()
+        css = _CSS.read_text(encoding="utf-8")
+        for cls in set(re.findall(r"rmc-setup-surface[\w-]*", out)):
+            self.assertIn("." + cls, css, f"{cls} referenced but undefined in CSS")
+
+
+class SetupWizardStagesHelperTests(SimpleTestCase):
+    """build_setup_wizard_stages decorates the real registry — no DB, no school."""
+
+    def test_builds_lifecycle_stages_from_real_registry(self):
+        from apps.setup_studio.setup_surface import build_setup_wizard_stages
+
+        result = build_setup_wizard_stages(None)
+        self.assertTrue(result["stages"], "expected non-empty wizard stages")
+        keys = {c["key"] for s in result["stages"] for c in s["cards"]}
+        self.assertIn("ai_helpcenter_knowledge_injection", keys)
+        for stage in result["stages"]:
+            self.assertTrue(stage["label"])
+            self.assertEqual(stage["total"], len(stage["cards"]))
+            for card in stage["cards"]:
+                self.assertTrue(card["title"])
+                self.assertGreaterEqual(card["minutes"], 0)
+                self.assertGreaterEqual(card["steps"], 0)
+                self.assertIn(card["status"], {"done", "in_progress", "not_started"})
+
+
 class SetupCommandSurfaceContractTests(SimpleTestCase):
     def test_css_has_no_hardcoded_hex_or_rgb_colour(self):
         # Every colour must route through a semantic / brand token so the

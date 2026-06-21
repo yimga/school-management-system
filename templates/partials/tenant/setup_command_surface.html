@@ -36,6 +36,41 @@
     </div>
   </header>
 
+  {% if rmc_setup_wizard_stages.stages %}
+  {# Full setup-studio wizard journey — real registry data grouped by lifecycle
+     stage (apps/setup_studio/setup_surface.build_setup_wizard_stages). Each card
+     deep-links to the tenant wizard runner. #}
+  <div class="rmc-setup-surface__stages" data-rmc-setup-wizards="1">
+    {% for stage in rmc_setup_wizard_stages.stages %}
+    <div class="rmc-setup-surface__stage">
+      <div class="rmc-setup-surface__stage-head">
+        <span class="rmc-setup-surface__stage-num" aria-hidden="true">{{ stage.step }}</span>
+        <div class="rmc-setup-surface__stage-meta">
+          <h3 class="rmc-setup-surface__stage-title">{{ stage.label }}</h3>
+          <p class="rmc-setup-surface__stage-desc">{{ stage.description }}</p>
+        </div>
+        <span class="rmc-setup-surface__stage-count">{{ stage.done }}/{{ stage.total }}</span>
+      </div>
+      <ul class="rmc-setup-surface__cards">
+        {% for card in stage.cards %}
+        {% url 'setup_studio:tenant_wizard' wizard_key=card.key as rmc_wiz_url %}
+        <li class="rmc-setup-surface__card{% if card.status == 'done' %} is-done{% endif %}">
+          <h4 class="rmc-setup-surface__card-title">{{ card.title }}</h4>
+          <p class="rmc-setup-surface__card-meta">{% blocktrans with mins=card.minutes steps=card.steps %}{{ mins }} min · {{ steps }} steps{% endblocktrans %}</p>
+          <div class="rmc-setup-surface__card-foot">
+            <span class="rmc-setup-surface__card-status">
+              {% if card.status == 'done' %}{% trans "Done" %}{% elif card.status == 'in_progress' %}{% trans "In progress" %}{% else %}{% trans "Not started" %}{% endif %}
+            </span>
+            {% if rmc_wiz_url %}<a class="rmc-setup-surface__card-cta" href="{{ rmc_wiz_url }}">{% if card.status == 'done' %}{% trans "Review" %}{% elif card.status == 'in_progress' %}{% trans "Resume" %}{% else %}{% trans "Start" %}{% endif %}</a>{% endif %}
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  {# Fallback: onboarding-milestone cards when the wizard registry build is empty. #}
   <div class="rmc-setup-surface__stage">
     <div class="rmc-setup-surface__stage-head">
       <span class="rmc-setup-surface__stage-num" aria-hidden="true"><i class="bi bi-sliders2"></i></span>
@@ -61,10 +96,11 @@
       </li>
       {% endfor %}
     </ul>
-
-    {% if rmc_setup_checklist_url %}
-    <a class="rmc-setup-surface__all" href="{{ rmc_setup_checklist_url }}">{% trans "Open full activation checklist" %}</a>
-    {% endif %}
   </div>
+  {% endif %}
+
+  {% if rmc_setup_checklist_url %}
+  <a class="rmc-setup-surface__all" href="{{ rmc_setup_checklist_url }}">{% trans "Open full activation checklist" %}</a>
+  {% endif %}
 </section>
 {% endif %}

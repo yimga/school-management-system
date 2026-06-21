@@ -17,6 +17,14 @@
   min-width: 0;
 }
 
+/* Multiple lifecycle stages (Get started / Configure / Operate / Govern) stack
+   with the same rhythm as a single stage. */
+.rmc-setup-surface__stages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
 /* ---------- Hero ---------- */
 .rmc-setup-surface__hero {
   display: flex;
@@ -175,6 +183,13 @@
   font-size: var(--type-size-sm, 0.875rem);
   font-weight: 650;
   color: var(--text-primary);
+}
+
+/* Wizard meta line — "10 min · 4 steps" (real estimated_minutes + step count). */
+.rmc-setup-surface__card-meta {
+  margin: 0;
+  font-size: var(--type-size-xs, 0.78rem);
+  color: var(--text-secondary);
 }
 
 .rmc-setup-surface__card-foot {

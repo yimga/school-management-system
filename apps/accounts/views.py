@@ -2835,6 +2835,20 @@ def backend_dashboard(request):
                 for _mod in BACKEND_SETUP_LANDING_HIDDEN_MODULES:
                     backend_module_visibility[_mod] = False
                 context["backend_intent_emphasize_setup"] = True
+                # Real setup-studio wizards, grouped by lifecycle stage, for the
+                # command-surface landing (built only while the setup surface
+                # shows). Fully failure-isolated → empty stages fall back to the
+                # onboarding-milestone cards.
+                try:
+                    from apps.setup_studio.setup_surface import (
+                        build_setup_wizard_stages,
+                    )
+
+                    context["rmc_setup_wizard_stages"] = build_setup_wizard_stages(
+                        _sch
+                    )
+                except ACCOUNTS_SOFT_FAILURES:
+                    context["rmc_setup_wizard_stages"] = None
             context["rmc_school_health"] = calculate_school_health(_sch)
             context["rmc_school_health_nudges"] = get_school_health_recommendations(
                 _sch, user=request.user, limit=3
@@ -2952,6 +2966,37 @@ def backend_dashboard(request):
     )
 
     context.setdefault("show_setup_landing", False)
+
+    # #region agent log
+    try:
+        import json as _json
+        import time as _time
+        from pathlib import Path as _Path
+
+        _onboarding = context.get("rmc_school_onboarding") or {}
+        _entry = {
+            "sessionId": "f895ad",
+            "timestamp": int(_time.time() * 1000),
+            "location": "views.py:backend_dashboard",
+            "message": "backend dashboard render context",
+            "data": {
+                "show_setup_landing": bool(context.get("show_setup_landing")),
+                "backend_show_legacy_dashboard": bool(context.get("backend_show_legacy_dashboard")),
+                "onboarding_percent": _onboarding.get("percent"),
+                "onboarding_total": _onboarding.get("total"),
+                "display_steps_count": len(_onboarding.get("display_steps") or []),
+                "template": "accounts/backend_dashboard.html",
+            },
+            "hypothesisId": "C",
+            "runId": "pre-fix",
+        }
+        with (_Path(__file__).resolve().parents[2] / "debug-f895ad.log").open(
+            "a", encoding="utf-8"
+        ) as _handle:
+            _handle.write(_json.dumps(_entry) + "\n")
+    except OSError:
+        pass
+    # #endregion
 
     return render(request, "accounts/backend_dashboard.html", context)
 
