@@ -14,6 +14,7 @@ from apps.communication.models import MessageThread
 from apps.people.models import (
     Applicant,
     TeacherProfile,
+    TeacherLeaveRequest,
     StudentGuardian,
     StudentProfile,
     TeacherAttendance,
@@ -425,6 +426,142 @@ def send_applicant_decision_email(sender, instance, created, **kwargs):
     except _SIGNAL_EMIT_ERRORS as e:
         logger.warning(
             "people.applicant_decision_email skipped err=%s", type(e).__name__
+        )
+
+    # MED-6: emit the `applicant.admitted` notification on the ACCEPTED transition.
+    # The Applicant has no linked User (contact is the `email` field only), so we
+    # dispatch with recipient=None over the EMAIL channel and pass the address in
+    # context — the router's email transport falls back to context["email"]. Routed
+    # via the Phase-3 dispatch_event so the ADMISSIONS preference/category applies.
+    # Deferred to on_commit + failure-isolated: notifying must never break the save.
+    if accepted:
+        _emit_applicant_admitted_notification(email=email, school=school)
+
+
+def _emit_applicant_admitted_notification(*, email: str, school) -> None:
+    """Fan an `applicant.admitted` notification to the applicant (email only).
+
+    PII-safe (logs error *type* only), on_commit-deferred, and broadly wrapped so a
+    notification failure can never roll back the admissions write.
+    """
+    try:
+        from django.db import transaction
+
+        context = {
+            "title": "Application accepted",
+            "message": "Congratulations — your application has been accepted.",
+            "email": email,
+        }
+
+        def _dispatch() -> None:
+            from apps.communication.dispatch import dispatch_event
+            from apps.communication.models import NotificationPreference
+
+            try:
+                dispatch_event(
+                    "applicant.admitted",
+                    recipient=None,
+                    context=context,
+                    school=school,
+                    # No User row to consult preferences for → drive the EMAIL
+                    # channel explicitly (the only deliverable channel for an
+                    # email-only applicant).
+                    channels=[NotificationPreference.Channel.EMAIL],
+                )
+            except Exception as exc:  # noqa: BLE001 — never break on-commit hooks
+                logger.warning(
+                    "applicant.admitted dispatch failed err=%s", type(exc).__name__
+                )
+
+        transaction.on_commit(_dispatch)
+    except Exception as exc:  # noqa: BLE001 — notify must never break save()
+        logger.warning(
+            "applicant.admitted emit failed err=%s", type(exc).__name__
+        )
+
+
+#: In-app/email body for a new pending leave request awaiting the approver's
+#: decision (named, not a literal at the dispatch call site).
+_LEAVE_PENDING_TITLE = "Leave request awaiting your approval"
+
+
+@receiver(
+    post_save,
+    sender=TeacherLeaveRequest,
+    dispatch_uid="people_teacher_leave_request_pending_notify",
+)
+def notify_leave_request_approver(sender, instance, created, **kwargs):  # noqa: ARG001
+    """Notify the assigned approver when a pending leave request is created.
+
+    MED-6: a newly-created :class:`TeacherLeaveRequest` should alert the person who
+    must act on it. There is no dedicated event key for leave approval, so this
+    routes through ``dispatch_event`` on the generic path with an explicit channel
+    set (it is an action-needed alert, not a behaviour escalation, so the
+    ``discipline.incident`` key would be wrong).
+
+    Fires ONLY when:
+
+    * ``created is True`` — never on a decision/update save (no re-notify);
+    * ``status == PENDING`` — only an actionable request;
+    * ``approver`` is set — a concrete person to notify.
+
+    Best-effort + on_commit-deferred + PII-safe (logs error *type* only). A
+    notification failure can never break the leave-request write.
+
+    Other request/approval models in the codebase that do NOT yet notify their
+    approver on create (noted, intentionally not wired here): ``payroll.LeaveRequest``
+    (no clean school FK), ``finance.RefundRequest``, ``communication.ContactRequest``,
+    ``automation.AutomationApprovalQueue``, ``platform_runtime.ConfigurationChangeRequest``.
+    ``evals.GradeApprovalRequest`` already notifies its approvers.
+    """
+    try:
+        if not created:
+            return
+        if getattr(instance, "status", None) != TeacherLeaveRequest.Status.PENDING:
+            return
+        approver_id = getattr(instance, "approver_id", None)
+        if not approver_id:
+            return
+
+        approver = instance.approver
+        school = getattr(getattr(instance, "teacher", None), "school", None)
+
+        from django.db import transaction
+
+        context = {
+            "title": _LEAVE_PENDING_TITLE,
+            "message": "A staff leave request is pending your approval.",
+            "link": "",
+            "severity": "INFO",
+        }
+
+        def _dispatch() -> None:
+            from apps.communication.dispatch import dispatch_event
+            from apps.communication.models import NotificationPreference
+
+            try:
+                dispatch_event(
+                    # No dedicated leave/approval event key — use the generic path
+                    # with an explicit channel set (in-app + email to the approver).
+                    "leave.request.pending",
+                    recipient=approver,
+                    context=context,
+                    school=school,
+                    channels=[
+                        NotificationPreference.Channel.IN_APP,
+                        NotificationPreference.Channel.EMAIL,
+                    ],
+                )
+            except Exception as exc:  # noqa: BLE001 — never break on-commit hooks
+                logger.warning(
+                    "leave.request.pending dispatch failed err=%s",
+                    type(exc).__name__,
+                )
+
+        transaction.on_commit(_dispatch)
+    except Exception as exc:  # noqa: BLE001 — notify must never break save()
+        logger.warning(
+            "leave.request.pending notify failed err=%s", type(exc).__name__
         )
 
 

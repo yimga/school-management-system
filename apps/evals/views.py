@@ -1975,6 +1975,28 @@ def teacher_marks_entry(request: HttpRequest):
                 )
                 return redirect("evals:teacher_marks_list")
 
+        # Direct post (no approval workflow): the approval branch above returns
+        # early, so reaching here means grades were saved directly and are now
+        # visible to the student. Notify the student + guardians via the Phase-3
+        # router. Best-effort + on_commit inside the helper — never breaks the save.
+        try:
+            from apps.evals.notify_published import notify_grades_published_direct
+
+            graded_students = [
+                students_map[entry["student_id"]]
+                for entry in entries_payload
+                if entry.get("has_scores") and entry["student_id"] in students_map
+            ]
+            notify_grades_published_direct(
+                students=graded_students,
+                subject_assignment=sa,
+                school=getattr(request, "school", None),
+            )
+        except Exception:  # noqa: BLE001 — notification must never break marks save
+            logger.warning(
+                "grade.published direct-notify wiring failed", exc_info=False
+            )
+
         messages.success(request, "Marks saved successfully.")
         return redirect("evals:teacher_marks_list")
 
