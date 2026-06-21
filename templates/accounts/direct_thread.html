@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load region_format %}
+{% load region_format i18n static %}
 
 {% block title %}Chat with {{ other_user.get_full_name|default:other_user.username }}{% endblock %}
 
@@ -41,15 +41,25 @@
           </div>
         </div>
 
-        <div class="p-3 rmc-iso-scroll-zone rmc-iso-scroll-zone--h-50vh" data-rmc-iso-scroll-zone="1">
+        <div class="p-3 rmc-iso-scroll-zone rmc-iso-scroll-zone--h-50vh" data-rmc-iso-scroll-zone="1"
+             data-rmc-thread-receipts-endpoint="{% url 'accounts:direct_thread_read_state' other_user.id %}"
+             data-rmc-thread-receipts-interval="20">
           {% for msg in messages %}
             <div class="mb-3 d-flex {% if msg.sender_id == request.user.id %}justify-content-end{% else %}justify-content-start{% endif %}">
               <div class="rounded-3 px-3 py-2 {% if msg.sender_id == request.user.id %}bg-primary text-white{% else %}bg-light{% endif %} max-w-75p" >
                 <div class="small opacity-75">
                   {{ msg.sender.get_full_name|default:msg.sender.username }}
                   · {{ msg.created_at|format_date }} {{ msg.created_at|time:"g:i A" }}
-                  {% if msg.sender_id != request.user.id and msg.is_read %}
-                    <span class="ms-1" title="Read">✓</span>
+                  {% comment %} Read receipt on the caller's OWN sent messages: shows once the
+                     recipient opened the thread (read_at). Kept live by
+                     rmc-direct-thread-receipts.js, so it appears without a reload. {% endcomment %}
+                  {% if msg.sender_id == request.user.id %}
+                    <span class="ms-1 rmc-msg-receipt" data-rmc-msg-receipt data-message-id="{{ msg.id }}"
+                          {% if not msg.is_read %}hidden{% endif %} title="{% trans 'Seen' %}">
+                      <i class="bi bi-check2-all" aria-hidden="true"></i>
+                      <span class="visually-hidden">{% trans "Seen" %}</span>
+                      <span data-rmc-msg-receipt-at>{% if msg.read_at %}{{ msg.read_at|time:"g:i A" }}{% endif %}</span>
+                    </span>
                   {% endif %}
                 </div>
                 <div class="mt-1">{{ msg.body|linebreaksbr }}</div>
@@ -81,4 +91,7 @@
       </div>
     </div>
   </div>
+{% comment %} GAP-6: live "Seen" receipt — polls the read-state endpoint and reveals the
+   receipt on the sender's messages once the recipient has opened the thread. {% endcomment %}
+<script src="{% static 'js/rmc-direct-thread-receipts.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

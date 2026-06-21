@@ -975,7 +975,7 @@ def direct_thread(request, user_id):
                 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
                 Message.objects.filter(
                     sender=other, recipient=request.user, is_read=False
-                ).update(is_read=True)
+                ).update(is_read=True, read_at=timezone.now())
             # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             return redirect("accounts:direct_thread", user_id=other.pk)
 
@@ -992,7 +992,7 @@ def direct_thread(request, user_id):
 
     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     Message.objects.filter(sender=other, recipient=request.user, is_read=False).update(
-        is_read=True
+        is_read=True, read_at=timezone.now()
     )
 
     conversation_closed = conv.closed_at if conv else False
@@ -1012,6 +1012,35 @@ def direct_thread(request, user_id):
         "can_reply": can_reply,
     }
     return render(request, "accounts/direct_thread.html", context)
+
+
+@login_required
+def direct_thread_read_state(request, user_id):
+    """JSON read-state of the caller's OWN messages to ``user_id`` (GAP-6).
+
+    Powers the live "Seen" receipt: the sender polls this to learn when the
+    recipient opened the thread (which stamps ``read_at``), without a full reload.
+    Only the caller's *sent* messages are exposed, so this leaks nothing the
+    sender doesn't already own.
+    """
+    from apps.communication.models import Message
+    from django.http import JsonResponse
+
+    user_model = request.user.__class__
+    other = get_object_or_404(user_model.objects.filter(is_active=True), pk=user_id)
+
+    # tenant-isolation-allow: scoped-to-callers-own-sent-messages-to-other
+    rows = (
+        Message.objects.filter(
+            sender=request.user, recipient=other, is_read=True
+        )
+        .exclude(read_at__isnull=True)
+        .values("id", "read_at")
+    )
+    payload = [
+        {"id": row["id"], "read_at": row["read_at"].isoformat()} for row in rows
+    ]
+    return JsonResponse({"messages": payload})
 
 
 @login_required

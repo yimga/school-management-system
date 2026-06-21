@@ -1,12 +1,12 @@
 {
   "date": "2026-06-21",
-  "generated_at": "2026-06-21T12:00:00+00:00",
+  "generated_at": "2026-06-21T12:30:00+00:00",
   "major": 4,
   "minor": 4,
-  "patch": 46,
-  "raw": "sms-v4.04.46-bell-poll-2026-06-21",
+  "patch": 47,
+  "raw": "sms-v4.04.47-thread-receipts-2026-06-21",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "bell-poll",
+  "slug": "thread-receipts",
   "valid": true
 }

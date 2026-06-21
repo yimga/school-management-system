@@ -120,6 +120,11 @@ class Message(models.Model):
     )
 
     is_read = models.BooleanField(default=False)
+    # Read-receipt timestamp: when the recipient first opened the thread and the
+    # message flipped to read. Distinct from ``is_read`` (the boolean) so the
+    # sender's view can show *when* it was seen, and so the live read-receipt poll
+    # has a stable value to surface. Null until first read.
+    read_at = models.DateTimeField(null=True, blank=True)
     is_archived = models.BooleanField(default=False)
 
     parent_message = models.ForeignKey(
