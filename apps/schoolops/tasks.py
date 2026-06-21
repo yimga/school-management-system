@@ -248,25 +248,21 @@ def notify_low_meal_plan_balance(meal_plan_balance_id: int) -> dict[str, Any]:
                 else "Cafeteria credit"
             ),
         }
-        # v3.33.0: pick per-locale templates based on first eligible
-        # guardian's preferred_language. Falls back to 'en' for unknown.
+        # v3.33.0: pick per-locale templates based on first eligible guardian's
+        # preferred_language. Now routed through the shared locale-email renderer
+        # (GAP-5) which owns the locale → fallback-locale → legacy-path cascade in
+        # one place; ``rendered.locale`` is the locale that actually rendered, kept
+        # so the downstream SMS stays in the same language.
+        from apps.communication.email_locale import render_localized_email
+
         locale = _resolve_guardian_locale(student)
         subject = f"Low meal plan balance for {first_name}"
-        try:
-            text_body = render_to_string(
-                f"schoolops/email/locale/{locale}/low_meal_balance.txt", ctx,
-            )
-            html_body = render_to_string(
-                f"schoolops/email/locale/{locale}/low_meal_balance.html", ctx,
-            )
-        except Exception:  # noqa: BLE001 -- defensive fallback to legacy template path
-            locale = "en"
-            text_body = render_to_string(
-                "schoolops/email/locale/en/low_meal_balance.txt", ctx,
-            )
-            html_body = render_to_string(
-                "schoolops/email/locale/en/low_meal_balance.html", ctx,
-            )
+        rendered = render_localized_email(
+            "schoolops/email", "low_meal_balance", locale, ctx
+        )
+        text_body = rendered.text
+        html_body = rendered.html
+        locale = rendered.locale
 
         from_email = getattr(
             settings, "DEFAULT_FROM_EMAIL", "no-reply@runmycampus.com",
