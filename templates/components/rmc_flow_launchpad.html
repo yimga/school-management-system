@@ -1,0 +1,46 @@
+{% load i18n %}
+{% comment %}
+  Flow continuation launchpad — Phase 2 of the Flow Thread, shell-level.
+  The Flow Thread bar (components/rmc_page_explain_strip.html) shows the single
+  primary next-action as a pill. This launchpad continues that thread DOWN into
+  the band reclaimed when the standalone next_action_strip was merged: a left
+  rail drops from the bar into 2-3 guided steps built from the SAME system
+  next-action engine (rmc_system_actions). The first step echoes the pill (the
+  live "you are here") and the rail leads the eye to what comes after.
+
+  Renders only when the bar is hosting the action AND there is more than one
+  action to flow toward — in conversion-single-action (strict) mode the bar's
+  pill is the whole story, so the launchpad stays silent (no redundant band).
+  Pulls only context-processor globals; no per-page wiring, platform-wide.
+{% endcomment %}
+{% if rmc_page_explain_enabled and rmc_system_actions_available and not rmc_conversion_single_action_enforced and rmc_system_actions|length > 1 %}
+<section class="rmc-flow-launchpad rmc-reveal" aria-label="{% trans 'Your flow' %}" data-rmc-flow-launchpad="1">
+  <span class="rmc-flow-launchpad__rail" aria-hidden="true"></span>
+  <p class="rmc-flow-launchpad__lead">{% trans "Your flow" %}</p>
+  <ol class="rmc-flow-launchpad__steps">
+    {% for action in rmc_system_actions|slice:":3" %}
+    <li class="rmc-flow-launchpad__step{% if forloop.first %} rmc-flow-launchpad__step--live{% endif %}">
+      <a class="rmc-flow-launchpad__step-link"
+         href="{{ action.action_url }}"
+         title="{{ action.description }}"
+         {% if forloop.first %}aria-current="step"{% endif %}
+         data-rmc-flow-step="{{ forloop.counter0 }}"
+         data-action="{% if action.recommendation_key %}ai-suggestion-open{% else %}{{ action.type }}-open{% endif %}"
+         data-task="{% if action.task_code %}{{ action.task_code }}{% else %}platform-next-action{% endif %}"
+         data-task-step="dashboard:flow-step"
+         data-action-type="{{ action.type }}"
+         data-action-source="{{ action.source }}"
+         data-action-urgency="{{ action.urgency|default:'normal' }}"
+         {% if action.recommendation_key %}data-ai-rec-key="{{ action.recommendation_key }}"{% endif %}>
+        <span class="rmc-flow-launchpad__step-dot" aria-hidden="true"></span>
+        <span class="rmc-flow-launchpad__step-body">
+          <span class="rmc-flow-launchpad__step-title">{{ action.title }}</span>
+          {% if action.description %}<span class="rmc-flow-launchpad__step-desc">{{ action.description }}</span>{% endif %}
+        </span>
+        <span class="rmc-flow-launchpad__step-go" aria-hidden="true">{% if forloop.first %}{% trans "Continue" %}{% else %}{% trans "Open" %}{% endif %} &rarr;</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endif %}

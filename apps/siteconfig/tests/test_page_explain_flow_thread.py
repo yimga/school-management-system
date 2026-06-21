@@ -25,6 +25,17 @@ _NEXT = {
     "task_code": "",
 }
 
+_THEN = {
+    "action_url": "/super/billing/",
+    "title": "Reconcile billing",
+    "description": "Close the open invoices for the month.",
+    "type": "billing",
+    "source": "role_default",
+    "urgency": "normal",
+    "recommendation_key": "",
+    "task_code": "",
+}
+
 
 class PageExplainFlowThreadTests(SimpleTestCase):
     def _explain(self, ctx):
@@ -87,3 +98,47 @@ class NextActionStripDedupTests(SimpleTestCase):
         html = self._strip({"rmc_page_explain_enabled": False})
         self.assertIn("rmc-next-action-strip", html)
         self.assertIn("School directory", html)
+
+
+class FlowLaunchpadTests(SimpleTestCase):
+    """Phase 2: the thread continues from the bar into the reclaimed band."""
+
+    def _launchpad(self, ctx):
+        base = {
+            "rmc_page_explain_enabled": True,
+            "rmc_system_actions_available": True,
+            "rmc_conversion_single_action_enforced": False,
+            "rmc_system_actions": [_NEXT, _THEN],
+        }
+        base.update(ctx)
+        return render_to_string("components/rmc_flow_launchpad.html", base)
+
+    def test_launchpad_renders_steps_when_multiple_actions(self):
+        html = self._launchpad({})
+        self.assertIn("rmc-flow-launchpad", html)
+        self.assertIn("rmc-flow-launchpad__step--live", html)  # first step is the live anchor
+        self.assertIn("School directory", html)  # echoes the pill
+        self.assertIn("Reconcile billing", html)  # the next step in the flow
+        self.assertIn('href="/super/billing/"', html)
+        self.assertIn('aria-current="step"', html)
+        # the launchpad never claims the page's single primary action (the pill owns it)
+        self.assertNotIn('data-rmc-primary-action="1"', html)
+
+    def test_launchpad_silent_with_single_action(self):
+        # only the pill's action -> the bar tells the whole story, no band.
+        html = self._launchpad({"rmc_system_actions": [_NEXT]})
+        self.assertNotIn("rmc-flow-launchpad", html)
+
+    def test_launchpad_silent_in_strict_mode(self):
+        # conversion-single-action focus suppresses the launchpad entirely.
+        html = self._launchpad({"rmc_conversion_single_action_enforced": True})
+        self.assertNotIn("rmc-flow-launchpad", html)
+
+    def test_launchpad_silent_without_explain_bar(self):
+        html = self._launchpad({"rmc_page_explain_enabled": False})
+        self.assertNotIn("rmc-flow-launchpad", html)
+
+    def test_launchpad_caps_at_three_steps(self):
+        five = [dict(_NEXT, title=f"Action {i}", action_url=f"/a/{i}/") for i in range(5)]
+        html = self._launchpad({"rmc_system_actions": five})
+        self.assertEqual(html.count("rmc-flow-launchpad__step-link"), 3)

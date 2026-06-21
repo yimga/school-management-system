@@ -2568,6 +2568,138 @@
   .rmc-page-explain-strip--flow .rmc-page-explain-strip__next { margin-inline-start: auto; }
 }
 
+/* Flow continuation launchpad — Phase 2: the thread drops from the bar into the
+   reclaimed band and lands in 2-3 guided steps. Fills the space the standalone
+   next-action strip used to occupy, with a narrative (here → and then these).
+   Token-only; the live step echoes the bar's pill as the "you are here" anchor. */
+.rmc-flow-launchpad {
+  position: relative;
+  margin-block: 0.5rem 0;
+  padding-inline-start: 1.5rem;
+}
+.rmc-flow-launchpad__rail {
+  position: absolute;
+  inset-inline-start: 0.45rem;
+  inset-block: -0.35rem 0.9rem;
+  inline-size: 2px;
+  border-radius: 2px;
+  /* off-token-allow: decorative-gradient */
+  background: linear-gradient(180deg, var(--ds-success, var(--brand-primary)), color-mix(in srgb, var(--brand-primary, var(--hairline)) 55%, transparent), transparent);
+}
+.rmc-flow-launchpad__lead {
+  margin: 0 0 0.5rem;
+  font-size: var(--type-size-micro, 0.6875rem);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ds-success, var(--text-tertiary));
+}
+.rmc-flow-launchpad__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.rmc-flow-launchpad__step {
+  flex: 1 1 14rem;
+  min-inline-size: 0;
+}
+.rmc-flow-launchpad__step-link {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  block-size: 100%;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-md, 0.625rem);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+  box-shadow: var(--elev-1, 0 1px 2px rgba(0, 0, 0, 0.04));
+  text-decoration: none;
+  transition: border-color var(--motion-fast, 120ms) var(--ease-standard, ease),
+              box-shadow var(--motion-fast, 120ms) var(--ease-standard, ease),
+              transform var(--motion-fast, 120ms) var(--ease-standard, ease);
+}
+.rmc-flow-launchpad__step-link:hover,
+.rmc-flow-launchpad__step-link:focus-visible {
+  border-color: color-mix(in srgb, var(--brand-primary, var(--hairline)) 45%, transparent);
+  box-shadow: var(--elev-2, 0 6px 20px rgba(0, 0, 0, 0.08));
+  transform: translateY(-1px);
+}
+.rmc-flow-launchpad__step-link:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--brand-primary, currentColor));
+  outline-offset: 2px;
+}
+.rmc-flow-launchpad__step-dot {
+  inline-size: 0.55rem;
+  block-size: 0.55rem;
+  margin-block-start: 0.2rem;
+  flex: none;
+  border-radius: 50%;
+  background: var(--surface-canvas, var(--surface-elevated));
+  border: 2px solid var(--brand-primary, var(--text-secondary));
+}
+.rmc-flow-launchpad__step--live .rmc-flow-launchpad__step-dot {
+  background: var(--ds-success, var(--brand-primary));
+  border-color: var(--ds-success, var(--brand-primary));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ds-success, var(--brand-primary)) 20%, transparent);
+}
+.rmc-flow-launchpad__step-body {
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.rmc-flow-launchpad__step-title {
+  font-size: var(--type-size-sm, 0.875rem);
+  font-weight: 650;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: truncates-with-ellipsis */
+}
+.rmc-flow-launchpad__step-desc {
+  font-size: var(--type-size-caption, 0.75rem);
+  color: var(--text-tertiary, var(--text-secondary));
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rmc-flow-launchpad__step-go {
+  margin-inline-start: auto;
+  align-self: center;
+  flex: none;
+  font-size: var(--type-size-micro, 0.6875rem);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--brand-primary, var(--text-secondary));
+  opacity: 0;
+  transform: translateX(-0.2rem);
+  transition: opacity var(--motion-fast, 120ms) var(--ease-standard, ease),
+              transform var(--motion-fast, 120ms) var(--ease-standard, ease);
+}
+.rmc-flow-launchpad__step--live .rmc-flow-launchpad__step-go { color: var(--ds-success, var(--brand-primary)); }
+.rmc-flow-launchpad__step-link:hover .rmc-flow-launchpad__step-go,
+.rmc-flow-launchpad__step-link:focus-visible .rmc-flow-launchpad__step-go {
+  opacity: 1;
+  transform: translateX(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rmc-flow-launchpad__step-link { transition: none; }
+  .rmc-flow-launchpad__step-link:hover { transform: none; }
+  .rmc-flow-launchpad__step-go { opacity: 1; transform: none; transition: none; }
+}
+/* Narrow viewports: drop the rail, stack the steps full width. */
+@media (max-width: 720px) {
+  .rmc-flow-launchpad { padding-inline-start: 0; }
+  .rmc-flow-launchpad__rail { display: none; }
+  .rmc-flow-launchpad__step { flex-basis: 100%; }
+}
+
 /* Bootstrap .text-muted → design-token contrast (batch 1225 sweep) */
 .rmc-text-muted,
 .text-muted {
