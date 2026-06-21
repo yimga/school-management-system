@@ -1,12 +1,12 @@
 {
-  "date": "2026-06-20",
-  "generated_at": "2026-06-21T10:55:00+00:00",
+  "date": "2026-06-21",
+  "generated_at": "2026-06-21T12:00:00+00:00",
   "major": 4,
   "minor": 4,
-  "patch": 45,
-  "raw": "sms-v4.04.45-realtime-wsgi-fix-2026-06-20",
+  "patch": 46,
+  "raw": "sms-v4.04.46-bell-poll-2026-06-21",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "realtime-wsgi-fix",
+  "slug": "bell-poll",
   "valid": true
 }

@@ -4,7 +4,9 @@
 {% firstof NOTIFICATIONS_UNREAD_COUNT unread_notifications_count 0 as rmc_unread_count %}
 {% with nav_role=EFFECTIVE_PORTAL_ROLE|default:request.user.role %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="user-dropdown-wrapper" data-rmc-shell-viewport-safe="1">
+<div class="user-dropdown-wrapper" data-rmc-shell-viewport-safe="1"
+     data-rmc-unread-endpoint="{% url 'api:notification-unread-count' %}"
+     data-rmc-unread-interval="60">
   <div class="dropdown">
     <button class="user-dropdown-trigger" type="button" id="userDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-boundary="viewport" data-bs-display="dynamic" data-bs-offset="0,8" aria-expanded="false" aria-haspopup="true">
       <div class="user-avatar">
@@ -28,13 +30,16 @@
         {% comment %} Improvement A (2026-05-12): AI health micro-dot on the avatar so degraded
            mode is visible without opening the copilot. Driven by /api/ai/health/. {% endcomment %}
         <span class="user-avatar-ai-pulse" data-rmc-user-ai-pulse aria-hidden="true" title="{% trans 'AI status' %}"></span>
-        {% comment %} Improvement B (2026-05-12): unread notification badge (server-rendered). {% endcomment %}
+        {% comment %} Improvement B (2026-05-12): unread notification badge. Server-rendered
+           for first paint, then kept live by rmc-notification-bell-poll.js. The element is
+           ALWAYS present (hidden at 0) so the poller can reveal/update it in place when the
+           count crosses 0 without rebuilding DOM. {% endcomment %}
         {% with unread_count=rmc_unread_count|default:0|add:0 %}
-          {% if unread_count %}
-            <span class="user-avatar-unread" aria-label="{% blocktrans count counter=unread_count %}{{ counter }} unread notification{% plural %}{{ counter }} unread notifications{% endblocktrans %}">
-              {% if unread_count > 99 %}99+{% else %}{{ unread_count }}{% endif %}
-            </span>
-          {% endif %}
+          <span class="user-avatar-unread" data-rmc-unread-badge data-rmc-unread-badge-style="avatar" aria-live="polite"
+                {% if not unread_count %}hidden{% endif %}
+                aria-label="{% blocktrans count counter=unread_count %}{{ counter }} unread notification{% plural %}{{ counter }} unread notifications{% endblocktrans %}">
+            {% if unread_count > 99 %}99+{% else %}{{ unread_count }}{% endif %}
+          </span>
         {% endwith %}
       </div>
       <div class="user-info">
@@ -183,7 +188,7 @@
         <a class="dropdown-item" href="{% url 'accounts:user_notifications' %}">
           <i class="bi bi-bell"></i>
           <span>{% trans "Notifications" %}</span>
-          <span class="badge bg-primary">{{ rmc_unread_count|default:"0" }}</span>
+          <span class="badge bg-primary" data-rmc-unread-badge data-rmc-unread-badge-style="pill">{{ rmc_unread_count|default:"0" }}</span>
         </a>
       </li>
       <li>
@@ -354,3 +359,7 @@ JSON data island so the inline executable script can be removed
 }</script>
 <script src="{% static 'js/_pages/components__user_dropdown.js' %}"></script>
 <script src="{% static 'js/rmc-theme-toggle.js' %}"></script>
+{% comment %} GAP-2: keep the unread bell badge live (polls the unread-count endpoint;
+   pauses when the tab is hidden, stops on 401/403). Ships with the bell wherever this
+   partial is included, so it covers every authenticated shell. {% endcomment %}
+<script src="{% static 'js/rmc-notification-bell-poll.js' %}" nonce="{{ csp_nonce }}"></script>
