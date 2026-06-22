@@ -3,9 +3,12 @@
 Covers the two-template contract:
   * rmc_page_explain_strip.html renders the Flow Thread destination (origin dot,
     connector, next-step pill) only when a system next-action is available, and
-  * next_action_strip.html suppresses itself whenever the bar is hosting that
-    action (page-explain enabled AND a system action available) — so the action
-    renders exactly once, with no double strip.
+    marks request.rmc_page_explain_bar_present as it renders, and
+  * next_action_strip.html suppresses itself whenever the bar is PRESENT on the
+    page (request.rmc_page_explain_bar_present) — regardless of whether an action
+    was available — so the action renders exactly once, with no double strip, and
+    the standalone still renders (with its own fallback) on shells that do NOT
+    mount the bar, so a next-action is never erased there.
 
 render_to_string with an explicit context (no context processors) keeps these
 deterministic and DB-free.
@@ -89,17 +92,74 @@ class NextActionStripDedupTests(SimpleTestCase):
         base.update(ctx)
         return render_to_string("components/next_action_strip.html", base)
 
-    def test_suppressed_when_bar_hosts_action(self):
-        # page-explain enabled + an action available -> the bar owns it, strip is silent.
-        html = self._strip({"rmc_page_explain_enabled": True})
+    def test_suppressed_when_bar_present(self):
+        # The bar is mounted on this page (it marked the request) -> the bar owns
+        # the action and the standalone strip is silent. The merge.
+        html = self._strip(
+            {
+                "rmc_page_explain_enabled": True,
+                "request": SimpleNamespace(rmc_page_explain_bar_present=True),
+            }
+        )
         self.assertNotIn("rmc-next-action-strip", html)
         self.assertNotIn("rmc-nas-chip", html)
 
+    def test_suppressed_when_bar_present_even_without_action(self):
+        # The merge holds platform-wide even when the engine returned no rows: the
+        # bar still owns the band, so the standalone never doubles up beneath it
+        # with a fallback strip. (This is the exact bug owners saw on /configuration/,
+        # /studio/, /help-center/: bar with no pill + a separate "Next up" block.)
+        html = self._strip(
+            {
+                "rmc_page_explain_enabled": True,
+                "rmc_system_actions": [],
+                "rmc_system_actions_available": False,
+                "request": SimpleNamespace(rmc_page_explain_bar_present=True),
+            }
+        )
+        self.assertNotIn("rmc-next-action-strip", html)
+
+    def test_renders_standalone_when_bar_absent_but_enabled(self):
+        # Bar-less shell (studio embed / developer console / marketing / login):
+        # page-explain is enabled platform-wide, but the bar was never mounted here
+        # (the request flag is unset) -> the standalone strip still renders, so the
+        # next-action is NOT erased. This is what makes keying on bar PRESENCE safe.
+        html = self._strip(
+            {
+                "rmc_page_explain_enabled": True,
+                "request": SimpleNamespace(),  # bar never marked the request
+            }
+        )
+        self.assertIn("rmc-next-action-strip", html)
+        self.assertIn("School directory", html)
+
     def test_renders_standalone_without_explain_bar(self):
-        # no page-explain bar -> the standalone strip still renders (no regression).
+        # page-explain disabled entirely (e.g. anonymous) -> standalone renders.
         html = self._strip({"rmc_page_explain_enabled": False})
         self.assertIn("rmc-next-action-strip", html)
         self.assertIn("School directory", html)
+
+    def test_bar_marks_request_then_strip_suppresses_end_to_end(self):
+        # End-to-end mechanism in production order: rendering the bar (shell chrome,
+        # above the content) marks the request, then the standalone strip rendered
+        # afterward against the SAME request suppresses itself.
+        request = SimpleNamespace()
+        render_to_string(
+            "components/rmc_page_explain_strip.html",
+            {
+                "request": request,
+                "rmc_page_explain_enabled": True,
+                "rmc_page_help": {"title": "Manager dashboard"},
+                "rmc_page_workflow_tags": [],
+                "rmc_system_actions": [_NEXT],
+                "rmc_system_actions_available": True,
+            },
+        )
+        self.assertTrue(getattr(request, "rmc_page_explain_bar_present", False))
+        html = self._strip(
+            {"rmc_page_explain_enabled": True, "request": request}
+        )
+        self.assertNotIn("rmc-next-action-strip", html)
 
 
 class FlowLaunchpadTests(SimpleTestCase):

@@ -29,6 +29,26 @@ def rmc_info_tag(context, entity="", field="", feature="", title="", body="", pl
     }
 
 
+@register.simple_tag(takes_context=True)
+def mark_page_explain_bar_present(context):
+    """Flag, on the request, that the page-explain (Flow Thread) bar is rendering here.
+
+    The bar is shell chrome rendered ABOVE the page content, so this fires before
+    any ``components/next_action_strip.html`` lower on the page is rendered. The
+    standalone strip reads ``request.rmc_page_explain_bar_present`` and suppresses
+    itself whenever the bar is present — the action then renders exactly once (in
+    the bar), with no double strip. Pages whose shell does NOT mount the bar
+    (studio embeds, developer console, marketing/login shells) never set this flag,
+    so their standalone strip still renders — no next-action is ever erased.
+
+    Returns an empty string so the tag emits no markup.
+    """
+    request = context.get("request")
+    if request is not None:
+        request.rmc_page_explain_bar_present = True
+    return ""
+
+
 @register.simple_tag
 def rmc_tour_trigger(context_name, *, steps_url="", complete_url="", label=""):
     """Emit a tour trigger button (caller supplies translated label)."""

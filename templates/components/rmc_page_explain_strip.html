@@ -10,6 +10,9 @@
   no double strip and the standalone block's vertical space reclaimed.
 {% endcomment %}
 {% if rmc_page_explain_enabled %}
+{% comment %} Mark the bar present on the request so the standalone next_action_strip
+   (rendered lower on the page) suppresses itself — the action renders once, here. {% endcomment %}
+{% mark_page_explain_bar_present %}
 {% with rmc_pe_next=rmc_system_actions.0 %}
 <section class="rmc-page-explain-strip rmc-reveal{% if rmc_system_actions_available and rmc_pe_next %} rmc-page-explain-strip--flow{% endif %}" aria-label="{% trans 'Page guidance' %}" data-rmc-page-explain="1">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

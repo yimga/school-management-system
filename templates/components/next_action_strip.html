@@ -1,12 +1,15 @@
 {% load i18n %}
 {% comment %} Global next-action strip — data from apps.platform_runtime.action_engine via system_actions_context.
-   Suppressed when the page-explain bar (components/rmc_page_explain_strip.html) is already hosting the
-   primary action as its Flow Thread destination — i.e. when rmc_page_explain_enabled AND
-   rmc_system_actions_available — so the action renders once (in the bar), with no double strip and this
-   block's vertical space reclaimed. Still renders standalone on pages without the explain bar, and as the
-   fallback when the engine returns no rows. {% endcomment %}
+   Suppressed whenever the page-explain bar (components/rmc_page_explain_strip.html) is PRESENT on this page.
+   The bar is shell chrome rendered above this strip; as it renders it sets request.rmc_page_explain_bar_present,
+   and it hosts the primary action as its Flow Thread destination — so the action renders once (in the bar),
+   with no double strip and this block's vertical space reclaimed. Keying on bar PRESENCE (not on
+   rmc_system_actions_available) is what makes the merge hold platform-wide: even when the engine returns no
+   rows the bar still owns the band, so the standalone never doubles up beneath it. Still renders standalone —
+   with its own fallback — on the pages whose shell does NOT mount the bar (studio embeds, developer console,
+   marketing / login shells), so a next-action is never erased there. {% endcomment %}
 {% with strict=rmc_conversion_single_action_enforced|default:False %}
-{% if not rmc_page_explain_enabled or not rmc_system_actions_available %}
+{% if not rmc_page_explain_enabled or not request.rmc_page_explain_bar_present %}
 {% if rmc_system_actions_available and rmc_system_actions %}
 <section class="rmc-next-action-strip" data-rmc-next-action-strip="1" data-rmc-next-action-strict="{% if strict %}1{% else %}0{% endif %}" aria-label="{% trans 'What to do next' %}">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
