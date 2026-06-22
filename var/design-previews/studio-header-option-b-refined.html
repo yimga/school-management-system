@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio header — Option B, refined</title>
+<style>
+  :root{
+    --page:#16140f;
+    --band:#29241f;
+    --band-2:#2f2a23;
+    --edge:#3b352d;
+    --edge-strong:#4a4338;
+    --ink:#f6f3ee;
+    --ink-2:#cdc6ba;
+    --muted:#938a7c;
+    --btn:#322c25;
+    --btn-edge:#4a4338;
+    --field:#1e1a15;
+    --accent:#6366f1;
+    --accent-2:#818cf8;
+    --accent-soft:rgba(99,102,241,.16);
+    --accent-edge:rgba(129,132,248,.55);
+    --good:#34d399;
+    --radius-sm:10px;
+    --shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 10px 30px -16px rgba(0,0,0,.75);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:
+     radial-gradient(1100px 480px at 78% -8%, rgba(99,102,241,.10), transparent 60%),
+     var(--page);
+    color:var(--ink);font-family:-apple-system,"Segoe UI",Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1140px;margin:0 auto;padding:40px 28px 110px}
+  h2.section{font:600 12px/1.4 inherit;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:48px 0 6px}
+  .lede{color:var(--ink-2);font-size:15px;max-width:760px;margin:6px 0 22px;line-height:1.62}
+  .lede b{color:var(--ink)}
+  code{background:#1c1813;border:1px solid var(--edge);border-radius:5px;padding:1px 6px;font-size:.86em;color:#c7c9ff}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:999px;vertical-align:middle}
+  .tag.rec{background:var(--accent-soft);color:#c7c9ff;border:1px solid var(--accent-edge)}
+  .tag.save{background:rgba(52,211,153,.13);color:#6ee7b7;border:1px solid rgba(52,211,153,.32)}
+
+  .demo{position:relative;background:var(--page);border:1px dashed #2c2720;border-radius:18px;padding:20px;margin-bottom:4px}
+  .hint{font-size:12.5px;color:var(--muted);margin:9px 4px 0;line-height:1.55}
+  .hint b{color:var(--ink-2)}
+
+  /* ---- band ---- */
+  .band{background:var(--band);border:1px solid var(--edge);border-radius:14px;box-shadow:var(--shadow);padding:16px 20px;position:relative;overflow:visible}
+  .row{display:flex;align-items:center;gap:12px}
+  .title{font-size:28px;font-weight:800;letter-spacing:-.01em;line-height:1;display:flex;align-items:baseline;gap:10px}
+  .title .crumb{font-size:15px;font-weight:600;color:var(--muted);letter-spacing:0}
+  .title .live{width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 4px rgba(52,211,153,.16);align-self:center}
+  .cluster{display:flex;align-items:center;gap:10px;margin-left:auto}
+
+  .ibtn{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;background:var(--btn);
+    border:1px solid var(--btn-edge);color:var(--ink-2);border-radius:var(--radius-sm);cursor:pointer;transition:.18s}
+  .ibtn:hover{border-color:#6a6253;color:var(--ink);transform:translateY(-1px)}
+  .ico{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  kbd{font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;background:#191510;border:1px solid var(--edge-strong);
+    border-bottom-width:2px;border-radius:5px;padding:4px 6px;color:var(--ink-2)}
+
+  /* ---- the signature command pill ---- */
+  .cmd{position:relative}
+  .pill{display:flex;align-items:center;gap:11px;min-width:360px;cursor:text;color:var(--muted);font-size:14.5px;
+    background:linear-gradient(180deg,#221e18,#1b1712);
+    border:1px solid var(--edge);border-radius:999px;padding:10px 10px 10px 16px;
+    transition:box-shadow .2s, border-color .2s, transform .2s}
+  .pill .sicon{color:var(--accent-2)}
+  .pill .ph{position:relative;height:18px;overflow:hidden;flex:0 0 auto}
+  .pill .ph span{display:block;animation:roll 9s infinite}
+  @keyframes roll{0%,28%{transform:translateY(0)}33%,61%{transform:translateY(-18px)}66%,94%{transform:translateY(-36px)}100%{transform:translateY(-54px)}}
+  .pill .spacer{margin-left:auto}
+  .pill:hover,.pill.open{border-color:var(--accent-edge);box-shadow:0 0 0 4px var(--accent-soft);transform:translateY(-1px)}
+  .pill .meta{display:flex;align-items:center;gap:4px}
+
+  /* ---- palette dropdown ---- */
+  .palette{position:absolute;top:calc(100% + 10px);right:0;width:420px;background:#211d17;border:1px solid var(--edge-strong);
+    border-radius:16px;box-shadow:0 24px 60px -24px rgba(0,0,0,.85);padding:8px;z-index:30;
+    opacity:0;transform:translateY(-6px) scale(.99);pointer-events:none;transition:.18s}
+  .palette.show{opacity:1;transform:none;pointer-events:auto}
+  .palette .pin{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--edge);margin-bottom:6px}
+  .palette .pin input{flex:1;background:transparent;border:0;outline:0;color:var(--ink);font-size:15px}
+  .palette .pin input::placeholder{color:var(--muted)}
+  .grp{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:8px 12px 4px}
+  .opt{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:10px;cursor:pointer;color:var(--ink-2);font-size:14px}
+  .opt:hover,.opt.active{background:var(--accent-soft);color:var(--ink)}
+  .opt .k{margin-left:auto;color:var(--muted);font-size:12px}
+  .opt .sq{width:26px;height:26px;border-radius:7px;background:#2c2720;display:flex;align-items:center;justify-content:center;color:var(--accent-2)}
+  .opt.ai .sq{background:linear-gradient(135deg,var(--accent),#a855f7);color:#fff}
+
+  /* ---- B2 segmented launcher ---- */
+  .seg{display:flex;align-items:center;background:linear-gradient(180deg,#221e18,#1b1712);border:1px solid var(--edge);border-radius:999px;overflow:hidden}
+  .seg>*{border:0;background:transparent;border-radius:0}
+  .seg .ibtn{width:44px;height:42px;border-radius:0}
+  .seg .div{width:1px;align-self:stretch;background:var(--edge)}
+  .seg .pill{border:0;border-radius:0;min-width:300px;background:transparent;box-shadow:none;transform:none}
+  .seg:hover{border-color:var(--accent-edge);box-shadow:0 0 0 4px var(--accent-soft)}
+
+  /* ---- B3 full title rail ---- */
+  .rail{display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,var(--band-2),var(--band));
+    border:1px solid var(--edge);border-radius:999px;padding:9px 9px 9px 20px;box-shadow:var(--shadow)}
+  .rail .title{font-size:20px}
+  .rail .title .crumb{font-size:13px}
+  .rail .cluster{gap:8px}
+  .rail .pill{min-width:300px}
+  .rail .ibtn{width:38px;height:38px}
+
+  .pickbar{position:fixed;left:0;right:0;bottom:0;background:rgba(20,18,14,.86);backdrop-filter:blur(10px);
+    border-top:1px solid var(--edge);padding:14px 24px;display:flex;align-items:center;gap:14px;justify-content:center;z-index:50}
+  .pickbar span{color:var(--muted);font-size:13px}
+  .pickbar b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h2 class="section" style="margin-top:0">Option B — refined <span class="tag rec">command pill</span></h2>
+  <p class="lede">One control instead of two. The pill <b>is</b> the search and the command palette — click it (or hit
+  <kbd>Ctrl</kbd><kbd>K</kbd>) and the palette drops right out of it. Try the three treatments below; they all open.</p>
+
+  <!-- B1 SIGNATURE -->
+  <h2 class="section">B1 · Signature pill <span class="tag save">~75px · 1 row</span></h2>
+  <p class="lede">Gradient fill, indigo focus glow, a rotating placeholder that teaches what’s searchable, and an
+  <b>Ask&nbsp;AI</b> row at the top of the palette (ties into your copilot). Home &amp; apps are quiet icons.</p>
+  <div class="demo">
+    <div class="band">
+      <div class="row">
+        <div class="title"><span class="live"></span>Studio <span class="crumb">· Overview</span></div>
+        <div class="cluster">
+          <button class="ibtn" title="Home — control plane"><svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></button>
+          <button class="ibtn" title="All apps"><svg class="ico" viewBox="0 0 24 24"><path d="M4 4h4v4H4zM10 4h4v4h-4zM16 4h4v4h-4zM4 10h4v4H4zM10 10h4v4h-4zM16 10h4v4h-4zM4 16h4v4H4zM10 16h4v4h-4zM16 16h4v4h-4z"/></svg></button>
+          <div class="cmd">
+            <div class="pill" data-pop="p1">
+              <svg class="ico sicon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+              <div class="ph"><span>Search or jump to…</span><span>Search modes &amp; outputs…</span><span>Ask the assistant…</span></div>
+              <span class="spacer"></span>
+              <span class="meta"><kbd>Ctrl</kbd><kbd>K</kbd></span>
+            </div>
+            <div class="palette" id="p1">
+              <div class="pin"><svg class="ico sicon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input placeholder="Search or jump to…" /></div>
+              <div class="opt ai"><span class="sq">✦</span> Ask the assistant about this page <span class="k">AI</span></div>
+              <div class="grp">Jump to mode</div>
+              <div class="opt active"><span class="sq">▷</span> Experience <span class="k">G E</span></div>
+              <div class="opt"><span class="sq">⚙</span> Automation <span class="k">G A</span></div>
+              <div class="opt"><span class="sq">▦</span> Outputs <span class="k">G O</span></div>
+              <div class="grp">Actions</div>
+              <div class="opt"><span class="sq">+</span> New automation</div>
+              <div class="opt"><span class="sq">↥</span> Publish current draft</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hint"><b>Why it’s better:</b> the placeholder rotates (teaches scope), the glow signals it’s interactive, and the palette anchors to the pill so the eye never jumps. Search + Commands = one object.</div>
+  </div>
+
+  <!-- B2 SEGMENTED -->
+  <h2 class="section">B2 · Segmented launcher <span class="tag save">~75px · most unified</span></h2>
+  <p class="lede">Home, apps, and the pill live inside <b>one continuous capsule</b> with hairline dividers — it reads as a single
+  instrument rather than three floating chips. Quietest, tidiest trailing edge.</p>
+  <div class="demo">
+    <div class="band">
+      <div class="row">
+        <div class="title"><span class="live"></span>Studio <span class="crumb">· Overview</span></div>
+        <div class="cluster">
+          <div class="seg">
+            <button class="ibtn" title="Home"><svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></button>
+            <span class="div"></span>
+            <button class="ibtn" title="All apps"><svg class="ico" viewBox="0 0 24 24"><path d="M4 4h4v4H4zM10 4h4v4h-4zM16 4h4v4h-4zM4 10h4v4H4zM10 10h4v4h-4zM16 10h4v4h-4zM4 16h4v4H4zM10 16h4v4h-4zM16 16h4v4h-4z"/></svg></button>
+            <span class="div"></span>
+            <div class="cmd">
+              <div class="pill" data-pop="p2">
+                <svg class="ico sicon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+                <div class="ph"><span>Search or jump to…</span><span>Search modes &amp; outputs…</span><span>Ask the assistant…</span></div>
+                <span class="spacer"></span><span class="meta"><kbd>Ctrl</kbd><kbd>K</kbd></span>
+              </div>
+              <div class="palette" id="p2">
+                <div class="pin"><svg class="ico sicon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input placeholder="Search or jump to…" /></div>
+                <div class="opt ai"><span class="sq">✦</span> Ask the assistant <span class="k">AI</span></div>
+                <div class="grp">Jump to mode</div>
+                <div class="opt active"><span class="sq">▷</span> Experience <span class="k">G E</span></div>
+                <div class="opt"><span class="sq">⚙</span> Automation <span class="k">G A</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hint"><b>Why it’s better:</b> one bordered capsule = less visual noise than separate buttons; the whole capsule lights up on focus.</div>
+  </div>
+
+  <!-- B3 RAIL -->
+  <h2 class="section">B3 · Full title rail <span class="tag save">~58px · slimmest</span></h2>
+  <p class="lede">Goes furthest: the title itself joins the capsule, so the entire header becomes a <b>single rounded rail</b>.
+  Smallest height of the B family while keeping the title prominent.</p>
+  <div class="demo">
+    <div class="rail">
+      <div class="title"><span class="live"></span>Studio <span class="crumb">/ Overview</span></div>
+      <div class="cluster">
+        <button class="ibtn" title="Home"><svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></button>
+        <button class="ibtn" title="All apps"><svg class="ico" viewBox="0 0 24 24"><path d="M4 4h4v4H4zM10 4h4v4h-4zM16 4h4v4h-4zM4 10h4v4H4zM10 10h4v4h-4zM16 10h4v4h-4zM4 16h4v4H4zM10 16h4v4h-4zM16 16h4v4h-4z"/></svg></button>
+        <div class="cmd">
+          <div class="pill" data-pop="p3">
+            <svg class="ico sicon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+            <div class="ph"><span>Search or jump to…</span><span>Search modes &amp; outputs…</span><span>Ask the assistant…</span></div>
+            <span class="spacer"></span><span class="meta"><kbd>Ctrl</kbd><kbd>K</kbd></span>
+          </div>
+          <div class="palette" id="p3">
+            <div class="pin"><svg class="ico sicon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input placeholder="Search or jump to…" /></div>
+            <div class="opt ai"><span class="sq">✦</span> Ask the assistant <span class="k">AI</span></div>
+            <div class="grp">Jump to mode</div>
+            <div class="opt active"><span class="sq">▷</span> Experience <span class="k">G E</span></div>
+            <div class="opt"><span class="sq">⚙</span> Automation <span class="k">G A</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hint"><b>Why it’s better:</b> the band stops being a band — it’s a line. Most space reclaimed without hiding the title.</div>
+  </div>
+
+</div>
+
+<div class="pickbar">
+  <span>Click any pill to open the palette · pick <b>B1</b>, <b>B2</b>, or <b>B3</b> — and say which flourishes to keep (rotating placeholder · Ask&nbsp;AI row · live dot)</span>
+</div>
+
+<script>
+  function closeAll(){document.querySelectorAll('.palette.show').forEach(function(p){p.classList.remove('show')});
+    document.querySelectorAll('.pill.open').forEach(function(p){p.classList.remove('open')});}
+  document.querySelectorAll('.pill').forEach(function(pill){
+    pill.addEventListener('click',function(e){e.stopPropagation();
+      var id=pill.getAttribute('data-pop');var pal=document.getElementById(id);
+      var isOpen=pal.classList.contains('show');closeAll();
+      if(!isOpen){pal.classList.add('show');pill.classList.add('open');
+        var inp=pal.querySelector('input');if(inp)inp.focus();}});
+  });
+  document.addEventListener('click',closeAll);
+  document.querySelectorAll('.palette').forEach(function(p){p.addEventListener('click',function(e){e.stopPropagation()})});
+  document.addEventListener('keydown',function(e){
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();
+      var first=document.querySelector('.pill');if(first)first.click();}
+    if(e.key==='Escape')closeAll();
+  });
+</script>
+</body>
+</html>

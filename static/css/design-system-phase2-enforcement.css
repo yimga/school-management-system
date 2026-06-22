@@ -224,6 +224,23 @@ html[data-bs-theme="dark"] .ds-action-bar--sticky {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Filter / search bars — same space bug class as the Studio header (2026-06-22).
+   Bootstrap's .form-control / .form-select are width:100%. A bare one as a flex
+   item in a `role="search"` flex-wrap bar claims the whole line, shoving its
+   Search/Clear button(s) onto a second row. Cap + let it shrink so the bar stays
+   one row. Scoped with :has(.btn) so a lone full-width search (no button beside
+   it) is intentionally left full-width and untouched.                           */
+/* -------------------------------------------------------------------------- */
+form[role="search"].d-flex:has(.btn) > .form-control,
+form[role="search"].d-flex:has(.btn) > .form-select,
+[role="search"].d-flex:has(.btn) > .form-control,
+[role="search"].d-flex:has(.btn) > .form-select {
+  flex: 1 1 16rem;
+  min-width: 0;
+  max-width: 28rem;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Motion: respect reduced motion                                              */
 /* -------------------------------------------------------------------------- */
 

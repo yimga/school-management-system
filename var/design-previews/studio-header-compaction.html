@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio header — compaction directions</title>
+<style>
+  :root{
+    --page:#16140f;
+    --band:#29241f;
+    --band-2:#2f2a23;
+    --edge:#3b352d;
+    --edge-strong:#4a4338;
+    --ink:#f6f3ee;
+    --ink-2:#cdc6ba;
+    --muted:#938a7c;
+    --btn:#322c25;
+    --btn-edge:#4a4338;
+    --field:#211d18;
+    --accent:#6366f1;       /* indigo */
+    --accent-soft:rgba(99,102,241,.16);
+    --accent-edge:rgba(129,132,248,.5);
+    --good:#34d399;
+    --radius:14px;
+    --radius-sm:9px;
+    --shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 8px 26px -14px rgba(0,0,0,.7);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--page);color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Inter,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 28px 80px}
+  h2.section{font:600 13px/1.4 inherit;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);margin:46px 0 12px}
+  .lede{color:var(--ink-2);font-size:15px;max-width:760px;margin:0 0 26px;line-height:1.6}
+  .lede b{color:var(--ink)}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
+    letter-spacing:.04em;padding:3px 9px;border-radius:999px;vertical-align:middle}
+  .tag.now{background:rgba(248,113,113,.14);color:#fca5a5;border:1px solid rgba(248,113,113,.3)}
+  .tag.rec{background:var(--accent-soft);color:#c7c9ff;border:1px solid var(--accent-edge)}
+  .tag.save{background:rgba(52,211,153,.13);color:#6ee7b7;border:1px solid rgba(52,211,153,.32)}
+
+  .demo{position:relative;background:var(--page);border:1px dashed #2c2720;border-radius:18px;
+    padding:18px;margin-bottom:6px}
+  .h{font-size:12px;color:var(--muted);margin:2px 4px 10px;display:flex;justify-content:space-between}
+
+  /* ---- the studio header band ---- */
+  .band{background:var(--band);border:1px solid var(--edge);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:18px 22px}
+  .band .title{font-size:30px;font-weight:800;letter-spacing:-.01em;color:var(--ink);line-height:1}
+  .band .title small{font-weight:500;color:var(--muted);font-size:18px;letter-spacing:0}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;background:var(--btn);
+    border:1px solid var(--btn-edge);color:var(--ink-2);border-radius:var(--radius-sm);
+    padding:9px 14px;font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer}
+  .btn.icon{padding:9px 11px}
+  .btn:hover{border-color:#5a5246;color:var(--ink)}
+  .ico{width:16px;height:16px;display:inline-block;stroke:currentColor;fill:none;stroke-width:1.8}
+  kbd{font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;background:#1c1813;
+    border:1px solid var(--edge-strong);border-bottom-width:2px;border-radius:5px;
+    padding:3px 6px;color:var(--ink-2)}
+
+  .field{display:flex;align-items:center;gap:9px;background:var(--field);
+    border:1px solid var(--edge);border-radius:var(--radius-sm);padding:9px 13px;color:var(--muted);font-size:14px}
+
+  /* ===== CURRENT (broken / tall) ===== */
+  .cur .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .cur .cluster{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto;max-width:300px}
+  .cur .field{width:100%}              /* the width:100% bug → forces wrap */
+
+  /* ===== A. single row ===== */
+  .a .row{display:flex;align-items:center;gap:12px;flex-wrap:nowrap}
+  .a .cluster{display:flex;align-items:center;gap:10px;margin-left:auto}
+  .a .field{width:300px}
+
+  /* ===== B. command pill ===== */
+  .b .row{display:flex;align-items:center;gap:12px}
+  .b .cluster{display:flex;align-items:center;gap:10px;margin-left:auto}
+  .b .cmdpill{display:flex;align-items:center;gap:10px;background:var(--field);
+    border:1px solid var(--edge);border-radius:999px;padding:9px 9px 9px 15px;
+    min-width:340px;color:var(--muted);font-size:14px;cursor:text}
+  .b .cmdpill:hover{border-color:var(--accent-edge);box-shadow:0 0 0 3px var(--accent-soft)}
+  .b .cmdpill .spacer{margin-left:auto}
+
+  /* ===== C. icon rail ===== */
+  .c .row{display:flex;align-items:center;gap:12px}
+  .c .cluster{display:flex;align-items:center;gap:8px;margin-left:auto}
+  .c .field.expand{width:0;opacity:0;padding-left:0;padding-right:0;border-color:transparent;
+    overflow:hidden;transition:.28s cubic-bezier(.2,.7,.3,1)}
+  .c .demo-expanded .field.expand{width:280px;opacity:1;padding-left:13px;padding-right:13px;border-color:var(--edge)}
+
+  /* ===== D. zero-header / fold into strip ===== */
+  .d .strip{display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,var(--band-2),var(--band));
+    border:1px solid var(--edge);border-radius:999px;padding:8px 10px 8px 18px}
+  .d .strip .dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 4px rgba(52,211,153,.15)}
+  .d .strip .crumb{font-size:14px;font-weight:700;color:var(--ink)}
+  .d .strip .sep{color:var(--muted)}
+  .d .strip .ctx{font-size:13px;color:var(--muted)}
+  .d .strip .cmdpill{margin-left:auto;display:flex;align-items:center;gap:9px;background:var(--field);
+    border:1px solid var(--edge);border-radius:999px;padding:7px 8px 7px 13px;min-width:260px;color:var(--muted);font-size:13px}
+  .d .strip .cmdpill .spacer{margin-left:auto}
+
+  .note{font-size:13px;color:var(--muted);margin:10px 4px 0;line-height:1.55}
+  .savings{position:absolute;top:14px;right:16px}
+  .compare{display:flex;gap:8px;align-items:baseline;font-size:12px;color:var(--muted);margin:8px 4px 0}
+  .compare b{color:var(--good)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h2 class="section" style="margin-top:0">Studio header · space-reclaim study</h2>
+  <p class="lede">Same four controls every time — <b>Home</b>, the <b>apps grid</b>, <b>search</b>, and the <b>command palette</b>.
+  The only question is how little vertical space they can occupy. Pick a direction (or mix); I’ll wire it into the real
+  template and ship it. Nothing below is committed yet.</p>
+
+  <!-- CURRENT -->
+  <h2 class="section">Current <span class="tag now">≈ 140px tall</span></h2>
+  <div class="demo cur">
+    <div class="savings"><span class="tag now">3 rows</span></div>
+    <div class="band">
+      <div class="row">
+        <div class="title">Studio</div>
+        <div class="cluster">
+          <button class="btn"><svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>Home</button>
+          <button class="btn icon"><svg class="ico" viewBox="0 0 24 24"><path d="M4 4h4v4H4zM10 4h4v4h-4zM16 4h4v4h-4zM4 10h4v4H4zM10 10h4v4h-4zM16 10h4v4h-4zM4 16h4v4H4zM10 16h4v4h-4zM16 16h4v4h-4z"/></svg></button>
+          <div class="field"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>Search Studio…</div>
+          <button class="btn">Commands</button>
+        </div>
+      </div>
+    </div>
+    <div class="note">The search field’s <code style="color:#fca5a5">width:100%</code> hijacks a full line, so the cluster can never sit on one row.</div>
+  </div>
+
+  <!-- A -->
+  <h2 class="section">A · Single row <span class="tag save">saves ~70px</span></h2>
+  <p class="lede">The minimal, surgical fix: drop the search’s <code>width:100%</code>, give it a fixed width, keep everything you have.
+  Title pinned left, controls ride the trailing edge — one clean line.</p>
+  <div class="demo a">
+    <div class="savings"><span class="tag save">1 row</span></div>
+    <div class="band">
+      <div class="row">
+        <div class="title">Studio</div>
+        <div class="cluster">
+          <button class="btn"><svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>Home</button>
+          <button class="btn icon"><svg class="ico" viewBox="0 0 24 24"><path d="M4 4h4v4H4zM10 4h4v4h-4zM16 4h4v4h-4zM4 10h4v4H4zM10 10h4v4h-4zM16 10h4v4h-4zM4 16h4v4H4zM10 16h4v4h-4zM16 16h4v4h-4z"/></svg></button>
+          <div class="field"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>Search Studio…</div>
+          <button class="btn">Commands</button>
+        </div>
+      </div>
+    </div>
+    <div class="compare">Risk: <b style="color:#6ee7b7">tiny</b> · one CSS line · keeps every control exactly where users expect it.</div>
+  </div>
+
+  <!-- B -->
+  <h2 class="section">B · One command pill (⌘K) <span class="tag rec">recommended</span> <span class="tag save">saves ~75px</span></h2>
+  <p class="lede">The search box and the <b>Commands</b> button do the same job — find &amp; jump. Fuse them into a single
+  <b>⌘K pill</b> (the Linear / Raycast / Spotlight pattern): one elegant control that opens your existing command palette.
+  Two controls become one, the header reads as premium, not crowded.</p>
+  <div class="demo b">
+    <div class="savings"><span class="tag rec">1 row · 1 control</span></div>
+    <div class="band">
+      <div class="row">
+        <div class="title">Studio</div>
+        <div class="cluster">
+          <button class="btn icon" title="Home"><svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></button>
+          <button class="btn icon" title="All apps"><svg class="ico" viewBox="0 0 24 24"><path d="M4 4h4v4H4zM10 4h4v4h-4zM16 4h4v4h-4zM4 10h4v4H4zM10 10h4v4h-4zM16 10h4v4h-4zM4 16h4v4H4zM10 16h4v4h-4zM16 16h4v4h-4z"/></svg></button>
+          <div class="cmdpill">
+            <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+            <span>Search or jump to…</span>
+            <span class="spacer"></span>
+            <kbd>Ctrl</kbd><kbd>K</kbd>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="compare">Bonus: Home &amp; grid shrink to icons too. The palette overlay already exists — this just becomes its only doorway.</div>
+  </div>
+
+  <!-- C -->
+  <h2 class="section">C · Icon rail, search expands on demand <span class="tag save">saves ~75px</span></h2>
+  <p class="lede">Ultra-minimal: the trailing edge is three quiet icons — Home, apps, search. Click search and an input
+  <b>slides open inline</b> (shown expanded on the right). Nothing but the title until you reach for it.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="demo c">
+      <div class="h"><span>Resting</span></div>
+      <div class="band">
+        <div class="row">
+          <div class="title">Studio</div>
+          <div class="cluster">
+            <button class="btn icon" title="Home"><svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></button>
+            <button class="btn icon" title="All apps"><svg class="ico" viewBox="0 0 24 24"><path d="M4 4h4v4H4zM10 4h4v4h-4zM16 4h4v4h-4zM4 10h4v4H4zM10 10h4v4h-4zM16 10h4v4h-4zM4 16h4v4H4zM10 16h4v4h-4zM16 16h4v4h-4z"/></svg></button>
+            <button class="btn icon" title="Search"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="demo c">
+      <div class="h"><span>Search focused</span></div>
+      <div class="band">
+        <div class="row demo-expanded">
+          <div class="title">Studio</div>
+          <div class="cluster">
+            <div class="field expand"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>Search Studio…</div>
+            <button class="btn icon" title="All apps"><svg class="ico" viewBox="0 0 24 24"><path d="M4 4h4v4H4zM10 4h4v4h-4zM16 4h4v4h-4zM4 10h4v4H4zM10 10h4v4h-4zM16 10h4v4h-4zM4 16h4v4H4zM10 16h4v4h-4zM16 16h4v4h-4z"/></svg></button>
+            <button class="btn icon" title="Close"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- D -->
+  <h2 class="section">D · No header band at all <span class="tag save">saves ~120px</span></h2>
+  <p class="lede">The boldest move: delete the dedicated Studio band and fold the title + ⌘K pill into a single slim
+  breadcrumb strip (it sits where the page-explain strip already lives). The header stops being a “band” and becomes a line.</p>
+  <div class="demo d">
+    <div class="savings"><span class="tag save">~52px line</span></div>
+    <div class="strip">
+      <span class="dot"></span>
+      <span class="crumb">Studio</span>
+      <span class="sep">/</span>
+      <span class="ctx">Overview</span>
+      <div class="cmdpill">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <span>Search or jump to…</span>
+        <span class="spacer"></span>
+        <kbd>⌘</kbd><kbd>K</kbd>
+      </div>
+    </div>
+    <div class="compare">Biggest reclaim, most reach — touches layout, not just the toolbar. Best if you want Studio to feel like one continuous workspace.</div>
+  </div>
+
+  <p class="note" style="margin-top:40px">Tell me a letter (A / B / C / D) — or “B but keep Home as text” etc. — and I’ll implement it against
+  <code>shell_main_content.html</code> + <code>shell.html</code> + <code>studio-shell-layout.css</code>, token-only, then test &amp; ship.</p>
+
+</div>
+</body>
+</html>

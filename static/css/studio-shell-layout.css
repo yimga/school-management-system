@@ -169,9 +169,81 @@ html[data-bs-theme="dark"] .studio-os-subpage-canvas .studio-os__card {
   flex-wrap: wrap;
 }
 
-.studio-os-search {
-  max-width: min(20rem, 100%);
-  width: 100%;
+/* Studio command pill (B1, 2026-06-22) — single search + commands control that
+   opens the unified ⌘K palette. Replaced the old `.studio-os-search` input
+   (its width:100% inside a wrapping toolbar forced a 3-row band). One row now.
+   Reusable via templates/studio_os/partials/studio_command_pill.html. */
+.studio-cmd-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: min(18rem, 100%);
+  max-width: 22rem;
+  padding: 0.4rem 0.55rem 0.4rem 0.8rem;
+  font-size: var(--studio-font-base);
+  line-height: 1.2;
+  text-align: start;
+  color: var(--text-secondary, var(--color-base-600)); /* theme-locked-allow: manual-review */
+  background: var(--surface-elevated, var(--color-base-0)); /* theme-locked-allow: manual-review */
+  border: 1px solid var(--hairline, var(--color-base-200)); /* theme-locked-allow: manual-review */
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color var(--motion-fast, 150ms) var(--ease-standard, ease),
+              box-shadow var(--motion-fast, 150ms) var(--ease-standard, ease);
+}
+.studio-cmd-pill:hover {
+  border-color: var(--brand-primary, var(--accent, var(--color-primary-500))); /* theme-locked-allow: manual-review */
+}
+.studio-cmd-pill:focus-visible {
+  outline: none;
+  border-color: var(--brand-primary, var(--accent, var(--color-primary-500))); /* theme-locked-allow: manual-review */
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary, var(--accent, #6366f1)) 22%, transparent); /* off-token-allow: focus-ring-fallback-tint */
+}
+.studio-cmd-pill__icon {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--brand-primary, var(--accent, currentColor)); /* theme-locked-allow: manual-review */
+}
+.studio-cmd-pill__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.studio-cmd-pill__kbd {
+  flex: 0 0 auto;
+  display: inline-flex;
+  gap: 0.15rem;
+  margin-inline-start: auto;
+  opacity: 0.85;
+}
+/* Dark Studio (warm-charcoal band): mirror the toolbar's dark treatment so the
+   pill reads as an inset control even where studio surface tokens aren't set.
+   Theme-scoped → literals are the dark-shell fallbacks, not off-token colors. */
+html[data-theme="dark"] .studio-cmd-pill,
+html[data-resolved-theme="dark"] .studio-cmd-pill,
+html[data-bs-theme="dark"] .studio-cmd-pill {
+  background: var(--surface-elevated, rgba(245, 220, 180, 0.04));
+  border-color: var(--hairline-strong, rgba(245, 220, 180, 0.18));
+  color: var(--text-secondary, rgba(245, 239, 227, 0.78));
+}
+/* Mobile: collapse to an icon so the header never wraps. */
+@media (max-width: 36rem) {
+  .studio-cmd-pill {
+    min-width: 0;
+    padding: 0.4rem;
+  }
+  .studio-cmd-pill__label,
+  .studio-cmd-pill__kbd {
+    display: none;
+  }
 }
 
 .studio-os-skip-link {

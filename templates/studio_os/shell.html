@@ -46,8 +46,7 @@
     <a href="{% url 'studio_os:shell' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Studio home' %}">
       <i class="bi bi-grid-3x3-gap"></i>
     </a>
-    <input type="search" class="form-control form-control-sm studio-os-search" id="studio-global-search" placeholder="{% trans 'Search Studio...' %}" aria-label="{% trans 'Search' %}" style="max-width: 16rem;">
-    <button type="button" class="btn btn-sm btn-outline-secondary studio-os-cmd-btn" id="studio-command-palette-btn" aria-label="{% trans 'Commands' %} (Ctrl+K)">{% trans "Commands" %}<kbd class="ms-1">Ctrl+K</kbd></button>
+    {% include "studio_os/partials/studio_command_pill.html" %}
     {% if rmc_conversion_single_action_enforced|default:False %}
       </div>
     </details>
@@ -286,16 +285,13 @@
   {% endif %}
 </div>
 
-<div class="studio-os-cmd-backdrop d-none" id="studio-cmd-backdrop" aria-hidden="true"></div>
-<div class="studio-os-cmd-palette d-none" id="studio-cmd-palette" role="dialog" aria-modal="true" aria-label="{% trans 'Command palette' %}" aria-describedby="studio-cmd-filter">
-  <input type="text" class="form-control" id="studio-cmd-filter" placeholder="{% trans 'Type to filter...' %}" autocomplete="off" aria-controls="studio-cmd-list">
-  <ul id="studio-cmd-list" aria-live="polite" aria-label="{% trans 'Commands' %}">
-    {% for e in studio_command_palette_entries %}
-    <li><a href="{{ e.url }}" data-keywords="{{ e.keywords|default:'' }}">{{ e.label }}</a></li>
-    {% endfor %}
-  </ul>
-</div>
-
+{% comment %}
+Studio command access is the unified ⌘K palette (#rmc-cmdk, mounted on
+portal_base.html). The in-header `studio_command_pill.html` opens it. The old
+studio-local overlay (#studio-cmd-palette) was retired here on 2026-06-22 — it
+duplicated the unified engine. studio_os__shell.js still carries the shell's
+theme-save / focus-trap logic and its palette IIFE safely no-ops without it.
+{% endcomment %}
 <script src="{% static 'js/_pages/studio_os__shell.js' %}"></script>
 {% if request.public_host_kind == 'manager' %}
 {% include "partials/cp_context_drawer_shell.html" %}

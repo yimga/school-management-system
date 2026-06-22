@@ -1,0 +1,31 @@
+{% load i18n %}
+{% comment %}
+  Studio command pill — the single search + commands control (B1, 2026-06-22).
+  Replaces the old `studio-os-search` input + `Commands` button (two controls,
+  width:100% search forced a 3-row toolbar). One pill, one row.
+
+  Opens the platform-wide unified ⌘K palette (#rmc-cmdk, rmc-command-palette.js,
+  mounted on portal_base.html which every Studio shell extends):
+    - data-rmc-cmdk-open    → the engine's global click-delegate opens the palette
+                              (no per-page JS). No data-rmc-cmdk-prefix, so it opens
+                              clean (no seeded query).
+    - data-rmc-cmdk-trigger → the canonical hook rmc-cockpit-page-actions.js and
+                              rmc-operator-tools-tray.js look up + .click() to open
+                              the palette (it superseded #studio-command-palette-btn).
+
+  Reusable: {% include "studio_os/partials/studio_command_pill.html" %} from any
+  Studio header so the control stays identical platform-wide.
+{% endcomment %}
+<button type="button"
+        class="studio-cmd-pill"
+        data-rmc-cmdk-open
+        data-rmc-cmdk-trigger
+        aria-haspopup="dialog"
+        aria-keyshortcuts="Control+K Meta+K"
+        aria-label="{% trans 'Search Studio or open commands' %} (Ctrl+K)">
+  <svg class="studio-cmd-pill__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4"></path>
+  </svg>
+  <span class="studio-cmd-pill__label">{% trans "Search Studio" %}</span>
+  <span class="studio-cmd-pill__kbd" aria-hidden="true"><kbd>Ctrl</kbd><kbd>K</kbd></span>
+</button>

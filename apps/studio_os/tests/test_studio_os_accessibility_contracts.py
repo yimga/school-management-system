@@ -23,6 +23,11 @@ TEMPLATES_STUDIO_OS = REPO_ROOT / "templates" / "studio_os"
 PARTIALS_DIR = TEMPLATES_STUDIO_OS / "partials"
 SHELL = TEMPLATES_STUDIO_OS / "shell.html"
 RAIL_CSS = REPO_ROOT / "static" / "css" / "studio-mode-rail.css"
+# B1 (2026-06-22): the studio-local command overlay was retired in favour of the
+# platform-wide unified ⌘K palette. Studio command access is now the in-header
+# pill (opens the unified palette) + the unified palette partial itself.
+COMMAND_PILL = PARTIALS_DIR / "studio_command_pill.html"
+UNIFIED_PALETTE = REPO_ROOT / "templates" / "components" / "rmc_command_palette.html"
 
 
 def _list_studio_templates() -> list[Path]:
@@ -68,23 +73,57 @@ class SkipLinkTargetTests(SimpleTestCase):
 
 
 class CommandPaletteAriaTests(SimpleTestCase):
-    """Command palette uses role=dialog + aria-modal=true + aria-describedby."""
+    """Studio command access is accessible after the B1 unification:
+    the in-header pill is a labelled dialog-trigger, and the unified ⌘K
+    palette it opens is a proper role=dialog + aria-modal surface.
+    """
 
-    def test_command_palette_has_dialog_role_and_aria(self) -> None:
-        src = SHELL.read_text(encoding="utf-8")
-        m = re.search(
-            r'<div\b[^>]*id="studio-cmd-palette"[^>]*>',
-            src,
-        )
-        self.assertIsNotNone(
-            m, "studio-cmd-palette element not found in shell.html"
-        )
-        attrs = m.group(0) if m else ""
-        for required in ('role="dialog"', 'aria-modal="true"', 'aria-describedby='):
+    def test_command_pill_is_a_labelled_dialog_trigger(self) -> None:
+        src = COMMAND_PILL.read_text(encoding="utf-8")
+        btn_m = re.search(r"<button\b[^>]*>", src)
+        self.assertIsNotNone(btn_m, "studio_command_pill.html must render a <button>.")
+        btn = btn_m.group(0) if btn_m else ""
+        for required in (
+            "data-rmc-cmdk-open",      # opens the unified palette (engine delegate)
+            "data-rmc-cmdk-trigger",   # found + clicked by cockpit/tools-tray lookups
+            'aria-haspopup="dialog"',
+            "aria-keyshortcuts=",
+            "aria-label=",
+        ):
             with self.subTest(required=required):
                 self.assertIn(
-                    required, attrs,
-                    f"studio-cmd-palette missing required a11y attribute: {required}",
+                    required, btn,
+                    f"studio command pill <button> missing required hook/a11y: {required}",
+                )
+        # It must NOT seed a prefix, or it would open with an unexpected query.
+        self.assertNotIn(
+            "data-rmc-cmdk-prefix", btn,
+            "the studio command pill must open the palette clean (no seeded query).",
+        )
+
+    def test_unified_palette_is_a_dialog_with_accessible_name(self) -> None:
+        src = UNIFIED_PALETTE.read_text(encoding="utf-8")
+        m = re.search(r'<div\b[^>]*id="rmc-cmdk"[^>]*>', src)
+        self.assertIsNotNone(
+            m, "unified palette (#rmc-cmdk) not found in rmc_command_palette.html"
+        )
+        attrs = m.group(0) if m else ""
+        for required in ('role="dialog"', 'aria-modal="true"'):
+            with self.subTest(required=required):
+                self.assertIn(required, attrs, f"#rmc-cmdk missing: {required}")
+        self.assertTrue(
+            ("aria-label=" in attrs) or ("aria-describedby=" in attrs),
+            "#rmc-cmdk must carry an accessible name (aria-label or aria-describedby).",
+        )
+
+    def test_studio_shell_no_longer_ships_the_duplicate_overlay(self) -> None:
+        """The retired studio-local overlay must not creep back (it duplicated
+        the unified engine and was the second ⌘K-bound dialog on the page)."""
+        for path in (SHELL, PARTIALS_DIR / "shell_main_content.html"):
+            with self.subTest(template=path.name):
+                self.assertNotIn(
+                    'id="studio-cmd-palette"', path.read_text(encoding="utf-8"),
+                    f"{path.name} should use the unified ⌘K palette, not a local overlay.",
                 )
 
 

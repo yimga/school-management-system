@@ -14,15 +14,14 @@
         {% trans "Studio" %}
       {% endif %}
     </h1>
-    <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
+    <div class="d-flex align-items-center gap-2 ms-auto">
       {% if request.public_host_kind == 'manager' %}
       <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Home — control plane' %}"><i class="bi bi-house-door me-1"></i>{% trans "Home" %}</a>
       {% endif %}
       <a href="{% url 'studio_os:shell' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Studio home' %}">
         <i class="bi bi-grid-3x3-gap"></i>
       </a>
-      <input type="search" class="form-control form-control-sm studio-os-search" id="studio-global-search" placeholder="{% trans 'Search Studio...' %}" aria-label="{% trans 'Search' %}">
-      <button type="button" class="btn btn-sm btn-outline-secondary studio-os-cmd-btn" id="studio-command-palette-btn" aria-label="{% trans 'Commands' %}">{% trans "Commands" %}</button>
+      {% include "studio_os/partials/studio_command_pill.html" %}
     </div>
   </div>
 
@@ -233,19 +232,11 @@
   {% endif %}
 </div>
 
-<div class="studio-os-cmd-backdrop d-none" id="studio-cmd-backdrop" aria-hidden="true"></div>
-<div class="studio-os-cmd-palette d-none" id="studio-cmd-palette" role="dialog" aria-modal="true" aria-label="{% trans 'Command palette' %}" aria-describedby="studio-cmd-filter">
-  <input type="text" class="form-control" id="studio-cmd-filter" placeholder="{% trans 'Type to filter...' %}" autocomplete="off" aria-controls="studio-cmd-list">
-  <ul id="studio-cmd-list" aria-live="polite" aria-label="{% trans 'Commands' %}">
-    {% for e in studio_command_palette_entries %}
-    <li><a href="{{ e.url }}" data-keywords="{{ e.keywords|default:'' }}">{{ e.label }}</a></li>
-    {% endfor %}
-  </ul>
-</div>
-
 {% comment %}
-Studio OS command palette JS (Ctrl+K, filter, focus-trap) was previously
-inlined and unterminated. Now externalised — see
-static/js/_pages/studio_os__shell_command_palette.js.
+Studio command access is the unified ⌘K palette (#rmc-cmdk, mounted on
+portal_base.html). The in-header `studio_command_pill.html` opens it. The old
+studio-local overlay (#studio-cmd-palette) was retired here on 2026-06-22 — it
+duplicated the unified engine. The externalised JS below still carries the
+shell's focus-trap helpers and safely no-ops when the old overlay is absent.
 {% endcomment %}
 <script src="{% static 'js/_pages/studio_os__shell_command_palette.js' %}" defer></script>
