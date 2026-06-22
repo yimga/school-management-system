@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Density 3A — reclaimed bento rows (before / after)</title>
+<style>
+  :root{
+    --surface-bg:#fff; --surface-elevated:#f7f8fb; --hairline:rgba(15,23,42,.10);
+    --text-primary:#0e1426; --text-secondary:#5b6478; --brand:#4f46e5;
+    --gap:.55rem;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,sans-serif;background:#eaecf2;color:var(--text-primary);padding:26px}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--text-secondary);margin:0 0 22px;font-size:14px;max-width:90ch}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1180px;margin:0 auto;align-items:start}
+  .case{background:var(--surface-bg);border:1px solid var(--hairline);border-radius:16px;padding:16px}
+  .tag{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;padding:4px 10px;border-radius:999px;margin-bottom:12px}
+  .tag.before{background:#fde2e1;color:#b42318}
+  .tag.after{background:#d1fadf;color:#027a48}
+  .bento{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--gap)}
+  .card{background:var(--surface-elevated);border:1px solid var(--hairline);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px}
+  .card h4{margin:0;font-size:12.5px}
+  .card .body{font-size:11.5px;color:var(--text-secondary)}
+  .card .spark{height:34px;border-radius:6px;background:linear-gradient(90deg,#4f46e5,#10b981);opacity:.85;margin-top:auto}
+  /* explicit bento placement (mirrors the live :not(--fluid) contract) */
+  .c-trends{grid-column:1 / span 2}
+  .c-fees{grid-column:1 / span 2}
+  /* BEFORE: forced floors manufacture empty space */
+  .before .bento{grid-template-rows:236px 200px 210px}
+  /* AFTER: floors lowered → rows hug content (minmax(floor,auto)) */
+  .after .bento{grid-template-rows:minmax(168px,auto) minmax(150px,auto) minmax(156px,auto)}
+  .voidnote{margin-top:8px;font-size:11px;color:#b42318}
+  .winnote{margin-top:8px;font-size:11px;color:#027a48}
+  .empty{flex:1;border:1px dashed #e0a4a0;border-radius:6px;margin-top:6px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#b42318;background:repeating-linear-gradient(45deg,rgba(180,35,24,.04),rgba(180,35,24,.04) 7px,transparent 7px,transparent 14px)}
+</style>
+</head>
+<body>
+  <h1>Density 3A — bento rows hug content</h1>
+  <p class="sub">The desktop dashboard contract forced every bento row to a 236 / 200 / 210px floor, so a content-light card (e.g. a short list or a 3-row table) still stretched to the floor and manufactured grey emptiness — ~250–400px wasted per view. The rows are <code>minmax(floor, auto)</code>, so <b>lowering the floor only removes the manufactured emptiness — it can never clip content</b> (tall charts still grow past it). The designed 3-column bento placement is unchanged.</p>
+
+  <div class="cols">
+    <div class="case before">
+      <span class="tag before">Before · 236/200/210 floors</span>
+      <div class="bento">
+        <div class="card c-trends"><h4>Enrollment trends</h4><div class="body">Chart fills its row.</div><div class="spark"></div></div>
+        <div class="card"><h4>Recent admissions</h4><div class="body">3 rows of content…</div><div class="empty">card forced to 236px →<br>grey void below content</div></div>
+        <div class="card c-fees"><h4>Outstanding fees</h4><div class="body">2-row mini table…</div><div class="empty">forced to 200px floor</div></div>
+        <div class="card"><h4>At-risk students</h4><div class="body">Short list.</div><div class="empty">stretched</div></div>
+        <div class="card"><h4>Recent activity</h4><div class="body">Few items.</div><div class="empty">forced to 210px</div></div>
+        <div class="card"><h4>Top performing</h4><div class="body">Short.</div><div class="empty">stretched</div></div>
+      </div>
+      <p class="voidnote">↑ dashed = grey space manufactured by the row floors.</p>
+    </div>
+
+    <div class="case after">
+      <span class="tag after">After · 168/150/156 floors (content-aware)</span>
+      <div class="bento">
+        <div class="card c-trends"><h4>Enrollment trends</h4><div class="body">Chart fills its row — grows past the floor exactly as before.</div><div class="spark"></div></div>
+        <div class="card"><h4>Recent admissions</h4><div class="body">3 rows of content sit snug — no manufactured space.</div></div>
+        <div class="card c-fees"><h4>Outstanding fees</h4><div class="body">2-row mini table hugs its height.</div></div>
+        <div class="card"><h4>At-risk students</h4><div class="body">Short list, tight card.</div></div>
+        <div class="card"><h4>Recent activity</h4><div class="body">Few items, no void.</div></div>
+        <div class="card"><h4>Top performing</h4><div class="body">Compact.</div></div>
+      </div>
+      <p class="winnote">↑ same bento, ~180–250px of grey reclaimed per view; charts unchanged.</p>
+    </div>
+  </div>
+</body>
+</html>

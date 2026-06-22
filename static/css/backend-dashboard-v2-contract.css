@@ -306,9 +306,14 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="bac
 /* Desktop contract: balanced rows without locking every card to viewport height */
 @media (min-width: 1201px) {
   body[data-dashboard-page="backend"] {
-    --backend-row-1-min: clamp(236px, 30vh, 332px);
-    --backend-row-2-min: clamp(200px, 24vh, 290px);
-    --backend-row-3-min: clamp(210px, 24vh, 300px);
+    /* Density 3A (2026-06-22): the desktop contract forced every bento row to a
+       236/200/210px floor, so content-light cards manufactured ~250-400px of grey
+       per view (owner: "wasted empty space"). These are minmax(floor, auto) rows —
+       lowering the floor reclaims the emptiness but can NEVER clip content (tall
+       charts still grow past it), so this is a pure space-reclaim, not a resize. */
+    --backend-row-1-min: clamp(168px, 22vh, 280px);
+    --backend-row-2-min: clamp(150px, 18vh, 240px);
+    --backend-row-3-min: clamp(156px, 18vh, 250px);
     --backend-scroll-cap-main: clamp(190px, 30vh, 320px);
     --backend-scroll-cap-rail: clamp(190px, 28vh, 300px);
   }
@@ -340,7 +345,7 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="bac
   body[data-dashboard-page="backend"] .backend-v2-rail {
     display: grid;
     gap: var(--dash-gap);
-    grid-template-rows: minmax(220px, auto) minmax(208px, auto) minmax(228px, auto);
+    grid-template-rows: minmax(168px, auto) minmax(160px, auto) minmax(176px, auto);
     align-content: start;
   }
 
