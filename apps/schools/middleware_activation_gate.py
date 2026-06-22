@@ -59,6 +59,15 @@ class ActivationGateMiddleware:
         if self._path_exempt(path):
             return None
 
+        # Never 302 a background fetch/XHR to the HTML activation wizard — a
+        # fetch() cannot follow the redirect, so it fails and the page retries,
+        # storming every data widget (the empty-void regression). Gate ONLY
+        # top-level page navigations; let subresource fetches reach their views.
+        from apps.schools.gate_request_kind import is_document_navigation
+
+        if not is_document_navigation(request):
+            return None
+
         # v4.00.2 audit — ``activation_first_action`` is registered in both
         # ``config.urls`` and ``config.tenant_urls``; the literal-path
         # fallback below is a defensive backstop for any edge case where

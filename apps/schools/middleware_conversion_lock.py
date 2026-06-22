@@ -66,6 +66,14 @@ class ConversionLockMiddleware:
         extra = getattr(settings, "CONVERSION_LOCK_ALLOWED_PREFIXES", ()) or ()
         if path_matches_conversion_allowlist(path, extra):
             return None
+        # Never 302 a background fetch/XHR to the HTML activation wizard — a
+        # fetch() cannot follow the redirect, so it fails and the page retries,
+        # storming every data widget (the empty-void regression). Gate ONLY
+        # top-level page navigations; let subresource fetches reach their views.
+        from apps.schools.gate_request_kind import is_document_navigation
+
+        if not is_document_navigation(request):
+            return None
         # v4.00.2 audit — single SOT for the path + url-name (see
         # apps.schools.activation_views).
         from apps.schools.activation_views import (
