@@ -76,6 +76,19 @@ class PaletteEngineContractTests(SimpleTestCase):
         self.assertIn('getElementById("rmc-cmdk")', js)
         self.assertIn("yielded", js)
 
+    def test_engine_mounted_on_every_authenticated_shell(self):
+        # Platform-wide: the engine must be on ALL authenticated root shells, not
+        # a subset. (marketing/base_marketing is public/pre-auth → intentionally
+        # excluded.) base.html is a standalone root (the others don't extend it),
+        # so it needs its own include.
+        for shell in (
+            "templates/base.html",
+            "templates/portal_base.html",
+            "templates/control_plane_skeleton.html",
+            "templates/admin/base_site.html",
+        ):
+            self.assertIn("components/rmc_command_palette.html", _read(shell), shell)
+
     def test_template_emits_contract(self):
         tpl = _read("templates/components/rmc_command_palette.html")
         for attr in (

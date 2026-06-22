@@ -400,6 +400,8 @@
     {% if request.user.is_authenticated and '/authentication/onboarding/' not in request.path %}
     {% include "partials/rmc_platform_surface_page_data.html" %}
     {% include "partials/rmc_ai_chrome_page_data.html" %}
+    {# Unified command engine — mounted here too so the palette is platform-wide; the command bar below yields to it. #}
+    {% include 'components/rmc_command_palette.html' %}
     {% url 'command_bar_actions' as command_bar_actions_url %}
     {% if command_bar_actions_url %}
     {% include "partials/rmc_command_bar.html" %}
