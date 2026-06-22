@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loading-States Lab — audit &amp; elevate (Surface 5)</title>
+<style>
+  :root{--bg:#f4f6fb;--card:#fff;--ink:#1c2433;--muted:#5b6677;--line:#e3e8f0;--brand:#3b5bfd;--ok:#1f9d55;--err:#d23b3b;--shadow:0 1px 2px rgba(20,30,60,.06),0 8px 24px rgba(20,30,60,.08);--radius:14px;}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  header.top{padding:28px 24px 12px;max-width:1000px;margin:0 auto}
+  header.top h1{margin:0 0 4px;font-size:24px}
+  header.top p{margin:0;color:var(--muted)}
+  .wrap{max-width:1000px;margin:0 auto;padding:12px 24px 120px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:22px}
+  .card h2{margin:0;padding:14px 18px;font-size:13px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
+  .card .body{padding:18px}
+  .btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer;position:relative}
+  .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .btn.busy{pointer-events:none;opacity:.95}
+  .btn.busy::after{content:"";position:absolute;top:0;bottom:0;right:.6rem;margin:auto;width:.85rem;height:.85rem;border-radius:50%;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;animation:sp .7s linear infinite}
+  .btn:not(.primary).busy::after{border-color:#cdd5e4;border-top-color:var(--brand)}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  /* top progress bar */
+  #pp{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--brand),#7d93ff);box-shadow:0 0 8px rgba(59,91,253,.6);transition:width .2s ease,opacity .3s;z-index:99;opacity:0}
+  #pp.on{opacity:1}
+  /* skeleton */
+  .skeleton{background:linear-gradient(100deg,#eef1f7 30%,#f7f9fc 50%,#eef1f7 70%);background-size:200% 100%;animation:sh 1.6s linear infinite;border-radius:8px}
+  @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .sk-line{height:12px;margin:8px 0;width:100%}
+  .sk-line.short{width:60%}
+  .sk-row{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+  .sk-av{width:40px;height:40px;border-radius:50%;flex:0 0 auto}
+  .sk-col{flex:1}
+  .real-row{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+  .real-av{width:40px;height:40px;border-radius:50%;background:#dde6ff;color:var(--brand);display:grid;place-items:center;font-weight:700;flex:0 0 auto}
+  .note{background:#fffbef;border:1px solid #f0e3b8;border-radius:10px;padding:8px 12px;font-size:13px;color:#6a5a1e;margin-top:12px}
+  .gtab{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-top:8px}
+  .gtab td,.gtab th{text-align:left;padding:10px 13px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:top}
+  .gtab th{background:#f0f3fa;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+  .chk{color:var(--ok);font-weight:700}.x{color:var(--err);font-weight:700}
+  .gapwrap{max-width:1000px;margin:24px auto 0;padding:0 24px}
+</style>
+</head>
+<body>
+<div id="pp"></div>
+<header class="top">
+  <h1>Loading-States Lab <span style="font-weight:400;color:var(--muted)">— Surface 5</span></h1>
+  <p>The top progress bar, skeleton grammar, and form submit-pending already exist. The loading engine <i>connects</i> them to the operations that today give zero feedback — slow action buttons, downloads, and async sections. Click the buttons below.</p>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <section class="card">
+      <h2>Slow action button — Before</h2>
+      <div class="body">
+        <button class="btn primary" onclick="fakeWait(this,0)">Export CSV</button>
+        <div class="note">Today: click "Export CSV" and… nothing visible happens for a few seconds until the file downloads. Users click again (and again), firing duplicate exports.</div>
+      </div>
+    </section>
+    <section class="card">
+      <h2>Slow action button — After</h2>
+      <div class="body">
+        <button class="btn primary" id="exp" onclick="fakeWait(this,1)" data-loading-label="Exporting…">Export CSV</button>
+        <div class="note">The engine locks the button, swaps the label to "Exporting…", shows a spinner + the top progress bar, and blocks double-clicks — for ANY <code>[data-rmc-loading]</code> button and every <code>a[download]</code> link, no per-page JS. Watchdog releases it so it's never stuck.</div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Async section — skeleton on load</h2>
+    <div class="body">
+      <button class="btn" onclick="loadList()">Load people</button>
+      <div id="list" style="margin-top:14px;min-height:60px"></div>
+      <div class="note">While an async section fetches, the engine fills it with a content-shaped skeleton (from the existing grammar) instead of a blank gap — then the real rows replace it. Wired to HTMX targets via <code>[data-rmc-skeleton="list"]</code>.</div>
+    </div>
+  </section>
+</div>
+
+<div class="gapwrap">
+  <h2 style="font-size:16px">What's there today vs. what the engine adds</h2>
+  <table class="gtab">
+    <tr><th>Operation</th><th>Today</th><th>Loading engine</th></tr>
+    <tr><td><b>Full-page nav / HTMX</b></td><td><span class="chk">✓</span> top progress bar (rmc-page-progress.js)</td><td>unchanged — composes it</td></tr>
+    <tr><td><b>Form submit</b></td><td><span class="chk">✓</span> button pending (rmc-form-intelligence.js)</td><td>unchanged — defers to it</td></tr>
+    <tr><td><b>Export / generate / bulk buttons</b></td><td><span class="x">✗</span> no feedback, double-clickable</td><td><span class="chk">✓</span> spinner + lock + top bar via <code>[data-rmc-loading]</code></td></tr>
+    <tr><td><b>Download links</b></td><td><span class="x">✗</span> silent until file arrives</td><td><span class="chk">✓</span> auto pending on every <code>a[download]</code></td></tr>
+    <tr><td><b>Async section content</b></td><td><span class="x">✗</span> blank gap → pops in</td><td><span class="chk">✓</span> skeleton-on-load via <code>[data-rmc-skeleton]</code></td></tr>
+    <tr><td><b>Config</b></td><td>n/a</td><td><span class="chk">✓</span> SITE cascade + admin page (no migration)</td></tr>
+  </table>
+</div>
+
+<script>
+  var pp=document.getElementById("pp"),ppN=0;
+  function ppStart(){ppN++;pp.classList.add("on");pp.style.width="75%";}
+  function ppDone(){ppN=Math.max(0,ppN-1);if(ppN===0){pp.style.width="100%";setTimeout(function(){pp.classList.remove("on");pp.style.width="0";},300);}}
+  function fakeWait(btn,enhanced){
+    if(!enhanced){return;}
+    if(btn.classList.contains("busy"))return;
+    var orig=btn.textContent;btn.classList.add("busy");btn.textContent=btn.getAttribute("data-loading-label")||orig;ppStart();
+    setTimeout(function(){btn.classList.remove("busy");btn.textContent=orig;ppDone();},2200);
+  }
+  function loadList(){
+    var box=document.getElementById("list");
+    box.innerHTML="";
+    for(var i=0;i<4;i++){var r=document.createElement("div");r.className="sk-row";var a=document.createElement("div");a.className="skeleton sk-av";var c=document.createElement("div");c.className="sk-col";var l1=document.createElement("div");l1.className="skeleton sk-line";var l2=document.createElement("div");l2.className="skeleton sk-line short";c.appendChild(l1);c.appendChild(l2);r.appendChild(a);r.appendChild(c);box.appendChild(r);}
+    ppStart();
+    setTimeout(function(){
+      box.innerHTML="";var people=[["AL","Ada Lovelace","JSS 1"],["AT","Alan Turing","JSS 2"],["GH","Grace Hopper","JSS 3"],["KJ","Katherine Johnson","JSS 1"]];
+      people.forEach(function(p){var r=document.createElement("div");r.className="real-row";var a=document.createElement("div");a.className="real-av";a.textContent=p[0];var c=document.createElement("div");var n=document.createElement("div");n.textContent=p[1];n.style.fontWeight="600";var s=document.createElement("div");s.textContent=p[2];s.style.color="#5b6677";s.style.fontSize="13px";c.appendChild(n);c.appendChild(s);r.appendChild(a);r.appendChild(c);box.appendChild(r);});
+      ppDone();
+    },1600);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Loading defaults" %}{% endblock %}
+
+{% block content %}
+<div class="content-max-640 py-3">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+    <h1 class="h5 mb-0">{% trans "Loading & skeletons — school defaults" %}</h1>
+  </div>
+  <p class="text-muted">
+    {% trans "Control the perceived-performance touches for everyone at this school. These switches drive the shared loading engine — there's nothing to add per page." %}
+  </p>
+
+  {% if not can_manage %}
+  <div class="alert alert-info">{% trans "You can view these defaults, but only an administrator can change them." %}</div>
+  {% endif %}
+
+  <form method="post" class="card shadow-sm" data-rmc-form-enhance="0">
+    {% csrf_token %}
+    <div class="card-body d-flex flex-column gap-3">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="loading-intelligence" name="loading_intelligence" {% if loading_intelligence %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="loading-intelligence">
+          <strong>{% trans "Smart loading" %}</strong>
+          <span class="d-block text-muted small">{% trans "Master switch. Off = no action spinners or skeleton screens from this engine." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="loading-actions" name="loading_actions" {% if loading_actions %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="loading-actions">
+          <strong>{% trans "Action pending state" %}</strong>
+          <span class="d-block text-muted small">{% trans "Show a spinner and lock buttons / download links while a slow action (export, generate, bulk) is running, so a double-click can't fire it twice." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="loading-skeletons" name="loading_skeletons" {% if loading_skeletons %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="loading-skeletons">
+          <strong>{% trans "Skeleton screens" %}</strong>
+          <span class="d-block text-muted small">{% trans "While an async section loads, show a content-shaped placeholder instead of a blank area." %}</span>
+        </label>
+      </div>
+    </div>
+    {% if can_manage %}
+    <div class="card-footer text-end">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1" aria-hidden="true"></i>{% trans "Save defaults" %}</button>
+    </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

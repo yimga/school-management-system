@@ -1,0 +1,17 @@
+{% load static %}
+{% comment %}
+  Loading-intelligence engine (v4.04.64) — loaded on authenticated shells.
+  Composes the existing top progress bar (rmc-page-progress.js) + skeleton CSS
+  grammar + form submit pending-state. The JSON island carries the SITE-cascade
+  config (default-on, school/operator overridable, zero migration). The engine
+  adds action pending-state for non-form buttons/links ([data-rmc-loading] +
+  auto for a[download]) and skeleton-on-load for HTMX targets
+  ([data-rmc-skeleton]); no-op where neither is present. nonce satisfies
+  verify_csp_nonce_emission.
+{% endcomment %}
+<script nonce="{{ csp_nonce }}" type="application/json" id="rmc-loading-config">{
+  "intelligence": {% if SITE.loading_intelligence == False %}false{% else %}true{% endif %},
+  "actions": {% if SITE.loading_actions == False %}false{% else %}true{% endif %},
+  "skeletons": {% if SITE.loading_skeletons == False %}false{% else %}true{% endif %}
+}</script>
+<script src="{% static 'js/rmc-loading-intelligence.js' %}" defer></script>

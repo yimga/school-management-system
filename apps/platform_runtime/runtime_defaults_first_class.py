@@ -347,6 +347,12 @@ _WIZARD_RUNTIME_DEFAULT_KEYS: frozenset[str] = frozenset({
     "empty_table_data",
     "empty_adopt",
     "empty_first_run",
+    # Loading-intelligence engine defaults (read via SITE façade → emitted in the
+    # #rmc-loading-config island). Payload-backed (no migration); owned by
+    # brand_experience via the "loading_" prefix.
+    "loading_intelligence",
+    "loading_actions",
+    "loading_skeletons",
 })
 
 
