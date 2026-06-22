@@ -5483,6 +5483,15 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   cursor: pointer;
 }
 .rmc-sb-prefs__cb { accent-color: var(--brand-primary, currentColor); }
+.rmc-sb-prefs__link {
+  margin-top: 2px;
+  padding-top: 8px;
+  border-top: 1px solid var(--hairline, currentColor);
+  font-size: 0.75rem;
+  color: var(--brand-primary, currentColor);
+  text-decoration: none;
+}
+.rmc-sb-prefs__link:hover { text-decoration: underline; }
 
 .rmc-sb-out { display: none !important; }
 .rmc-sb-group-out { display: none !important; }
