@@ -183,13 +183,13 @@
       <table class="table table-sm mb-0 align-middle">
         <thead>
           <tr>
-            <th>{% trans "User" %}</th>
-            <th>{% trans "Role tag" %}</th>
-            <th>{% trans "Primary" %}</th>
-            <th>{% trans "Starts" %}</th>
-            <th>{% trans "Ends" %}</th>
-            <th>{% trans "Notes" %}</th>
-            <th></th>
+            <th scope="col">{% trans "User" %}</th>
+            <th scope="col">{% trans "Role tag" %}</th>
+            <th scope="col">{% trans "Primary" %}</th>
+            <th scope="col">{% trans "Starts" %}</th>
+            <th scope="col">{% trans "Ends" %}</th>
+            <th scope="col">{% trans "Notes" %}</th>
+            <th scope="col"></th>
           </tr>
         </thead>
         <tbody>
@@ -224,7 +224,7 @@
     <div class="card-body p-0 table-responsive">
       <table class="table table-sm mb-0 align-middle">
         <thead>
-          <tr><th>{% trans "User" %}</th><th>{% trans "Starts" %}</th><th>{% trans "Ends" %}</th><th>{% trans "Primary" %}</th></tr>
+          <tr><th scope="col">{% trans "User" %}</th><th scope="col">{% trans "Starts" %}</th><th scope="col">{% trans "Ends" %}</th><th scope="col">{% trans "Primary" %}</th></tr>
         </thead>
         <tbody>
           {% for s in past %}

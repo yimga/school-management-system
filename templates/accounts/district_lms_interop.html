@@ -42,7 +42,7 @@
       <div class="table-responsive">
         <table class="table table-sm table-hover mb-0 small table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Interop workbench (Phase 9)" %}</caption>
-          <thead><tr><th>{% trans "When" %}</th><th>{% trans "Service" %}</th><th>{% trans "Endpoint" %}</th><th>{% trans "IP" %}</th><th>{% trans "Token" %}</th></tr></thead>
+          <thead><tr><th scope="col">{% trans "When" %}</th><th scope="col">{% trans "Service" %}</th><th scope="col">{% trans "Endpoint" %}</th><th scope="col">{% trans "IP" %}</th><th scope="col">{% trans "Token" %}</th></tr></thead>
           <tbody>
             {% for row in interop_access_recent %}
             <tr>
@@ -108,7 +108,7 @@
       <div class="table-responsive">
         <table class="table table-sm table-borderless mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "SSO / IdP login health" %} {% trans "Wedge 45" %}</caption>
-          <thead><tr><th>{% trans "Integration" %}</th><th>{% trans "Last OK" %}</th><th>{% trans "Last fail" %}</th><th>{% trans "Fails" %}</th><th>{% trans "Last error" %}</th></tr></thead>
+          <thead><tr><th scope="col">{% trans "Integration" %}</th><th scope="col">{% trans "Last OK" %}</th><th scope="col">{% trans "Last fail" %}</th><th scope="col">{% trans "Fails" %}</th><th scope="col">{% trans "Last error" %}</th></tr></thead>
           <tbody>
             {% for row in federation_sso_rows %}
             <tr>

@@ -39,7 +39,7 @@
         <!-- large-collection-allow: dashboard-widget-capped-list -->
 <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Active installs" %}</caption>
-          <thead><tr><th>{% trans "Package" %}</th><th>{% trans "Version" %}</th><th>{% trans "Type" %}</th><th>{% trans "Stage" %}</th><th>{% trans "Reconciliation" %}</th><th>{% trans "Dependencies (snapshot)" %}</th><th>{% trans "Applied" %}</th><th>{% trans "Graph" %}</th><th></th></tr></thead>
+          <thead><tr><th scope="col">{% trans "Package" %}</th><th scope="col">{% trans "Version" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Stage" %}</th><th scope="col">{% trans "Reconciliation" %}</th><th scope="col">{% trans "Dependencies (snapshot)" %}</th><th scope="col">{% trans "Applied" %}</th><th scope="col">{% trans "Graph" %}</th><th scope="col"></th></tr></thead>
           <tbody>
             {% for p in active_packages %}
             <tr>
@@ -91,14 +91,14 @@
           <caption class="visually-hidden">{% trans "Package rollback" %} — {{ school.name }}</caption>
           <thead>
             <tr>
-              <th>{% trans "When" %}</th>
-              <th>{% trans "Action" %}</th>
-              <th>{% trans "Package" %}</th>
-              <th>{% trans "Version" %}</th>
-              <th>{% trans "Mode" %}</th>
-              <th>{% trans "Status" %}</th>
-              <th>{% trans "Actor" %}</th>
-              <th>{% trans "Token" %}</th>
+              <th scope="col">{% trans "When" %}</th>
+              <th scope="col">{% trans "Action" %}</th>
+              <th scope="col">{% trans "Package" %}</th>
+              <th scope="col">{% trans "Version" %}</th>
+              <th scope="col">{% trans "Mode" %}</th>
+              <th scope="col">{% trans "Status" %}</th>
+              <th scope="col">{% trans "Actor" %}</th>
+              <th scope="col">{% trans "Token" %}</th>
             </tr>
           </thead>
           <tbody>

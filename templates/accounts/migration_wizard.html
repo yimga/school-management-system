@@ -114,7 +114,7 @@
       <div class="table-responsive">
         <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Step 2: Map columns → target fields" %}</caption>
-          <thead><tr><th>CSV column</th><th>→ Target field</th></tr></thead>
+          <thead><tr><th scope="col">CSV column</th><th scope="col">→ Target field</th></tr></thead>
           <tbody id="mapping-body">
             {% for header in wizard_data.headers %}
             <tr>
@@ -151,7 +151,7 @@
           <thead class="table-light">
             <tr>
               {% for header in wizard_data.headers %}
-              <th>{{ header }}</th>
+              <th scope="col">{{ header }}</th>
               {% endfor %}
             </tr>
           </thead>

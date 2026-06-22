@@ -103,10 +103,10 @@
     <caption class="visually-hidden">{% trans "Annual results by term — average, class rank, and promotion decision" %}</caption>
     <thead>
       <tr>
-        <th>{{ labels.term|default:"Term / Trimestre" }}</th>
-        <th>{{ labels.average|default:"Average / Moyenne" }}</th>
-        <th>{{ labels.class_rank|default:"Class Rank / Rang Classe" }}</th>
-        <th>{{ labels.promotion|default:"Promotion / Decision" }}</th>
+        <th scope="col">{{ labels.term|default:"Term / Trimestre" }}</th>
+        <th scope="col">{{ labels.average|default:"Average / Moyenne" }}</th>
+        <th scope="col">{{ labels.class_rank|default:"Class Rank / Rang Classe" }}</th>
+        <th scope="col">{{ labels.promotion|default:"Promotion / Decision" }}</th>
       </tr>
     </thead>
     <tbody>

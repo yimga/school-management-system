@@ -65,7 +65,7 @@
         <div class="card-body p-0">
           <table class="table table-sm mb-0">
             <caption class="visually-hidden">{% trans "Access counts grouped by username." %}</caption>
-            <thead class="table-light"><tr><th>{% trans "User" %}</th><th scope="col" class="text-end">{% trans "Accesses" %}</th><th scope="col" class="text-end">{% trans "Avg ms" %}</th></tr></thead>
+            <thead class="table-light"><tr><th scope="col">{% trans "User" %}</th><th scope="col" class="text-end">{% trans "Accesses" %}</th><th scope="col" class="text-end">{% trans "Avg ms" %}</th></tr></thead>
             <tbody>
               {% for entry in by_user %}
               <tr>
@@ -87,7 +87,7 @@
         <div class="card-body p-0">
           <table class="table table-sm mb-0">
             <caption class="visually-hidden">{% trans "Access counts grouped by access type." %}</caption>
-            <thead class="table-light"><tr><th>{% trans "Type" %}</th><th scope="col" class="text-end">{% trans "Count" %}</th></tr></thead>
+            <thead class="table-light"><tr><th scope="col">{% trans "Type" %}</th><th scope="col" class="text-end">{% trans "Count" %}</th></tr></thead>
             <tbody>
               {% for entry in by_type %}
               <tr><td>{{ entry.access_type|default:"—" }}</td><td class="text-end">{{ entry.count }}</td></tr>
@@ -106,7 +106,7 @@
     <div class="card-body p-0">
       <table class="table table-sm mb-0">
         <caption class="visually-hidden">{% trans "Most-accessed resource paths with success and failure counts." %}</caption>
-        <thead class="table-light"><tr><th>{% trans "Resource" %}</th><th scope="col" class="text-end">{% trans "Accesses" %}</th><th scope="col" class="text-end">{% trans "Failures" %}</th></tr></thead>
+        <thead class="table-light"><tr><th scope="col">{% trans "Resource" %}</th><th scope="col" class="text-end">{% trans "Accesses" %}</th><th scope="col" class="text-end">{% trans "Failures" %}</th></tr></thead>
         <tbody>
           {% for entry in by_resource %}
           <tr>

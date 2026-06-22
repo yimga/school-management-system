@@ -9,7 +9,7 @@
 
 <section class="cp-page" data-page-marker="rmc-pack-installations" data-rmc-scroll-policy="paginate">
   <header class="cp-page-header"><p class="cp-eyebrow">Installation history</p><h1>Pack installations</h1></header>
-  <div class="cp-table-wrap"><table class="cp-table table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1"><thead><tr><th>Pack</th><th>Type</th><th>School</th><th>Status</th><th>Applied</th><th></th></tr></thead><tbody>
+  <div class="cp-table-wrap"><table class="cp-table table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1"><thead><tr><th scope="col">Pack</th><th scope="col">Type</th><th scope="col">School</th><th scope="col">Status</th><th scope="col">Applied</th><th scope="col"></th></tr></thead><tbody>
     {% for row in installations %}
       <tr><td>{{ row.pack_key }}</td><td>{{ row.pack_type }}</td><td>{{ row.school.name }}</td><td>{{ row.status }}</td><td>{{ row.applied_at }}</td><td><a href="{% url 'configuration:pack_installation_detail' row.id %}">Open</a></td></tr>
     {% endfor %}

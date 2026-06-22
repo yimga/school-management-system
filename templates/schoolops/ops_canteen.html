@@ -18,7 +18,7 @@
       </form>
     </div>
   </div>
-  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1"><thead><tr><th>{% trans "Meal" %}</th><th>{% trans "Price" %}</th></tr></thead>
+  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1"><thead><tr><th scope="col">{% trans "Meal" %}</th><th scope="col">{% trans "Price" %}</th></tr></thead>
     <caption class="visually-hidden">{% trans "Canteen" %} — {{ school.name }}</caption>
     <tbody>{% for m in meals %}<tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ m.name }}" data-rmc-row-subtitle="{{ m.price }}"><td>{{ m.name }}</td><td>{{ m.price }}</td></tr>{% empty %}<tr><td colspan="2" class="rmc-empty-state rmc-empty-state--row">
       <i class="bi bi-cup-hot rmc-empty-state__icon" aria-hidden="true"></i>

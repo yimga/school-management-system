@@ -50,7 +50,7 @@
     {% if top_requests %}
     <table class="table table-sm table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead class="table-light">
-        <tr><th>{% trans "Request" %}</th><th>{% trans "Status" %}</th><th>{% trans "Votes" %}</th><th>{% trans "Score" %}</th></tr>
+        <tr><th scope="col">{% trans "Request" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Votes" %}</th><th scope="col">{% trans "Score" %}</th></tr>
       </thead>
       <tbody>
         {% for fr in top_requests %}

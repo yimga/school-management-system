@@ -39,7 +39,7 @@
       <div class="table-responsive">
         <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Recent transactions" %}</caption>
-          <thead class="table-light"><tr><th>{% trans "Date" %}</th><th>{% trans "Type" %}</th><th>{% trans "Amount" %}</th><th>{% trans "Balance after" %}</th></tr></thead>
+          <thead class="table-light"><tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Amount" %}</th><th scope="col">{% trans "Balance after" %}</th></tr></thead>
           <tbody>
             {% for tx in transactions %}
             <tr data-rmc-row-detail="1"

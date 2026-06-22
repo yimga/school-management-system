@@ -21,7 +21,7 @@
       <p><a href="{% url 'apicenter:webhook_subscription_create' %}" class="btn btn-sm btn-primary">{% trans "Create subscription" %}</a></p>
       <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Subscriptions" %}</caption>
-        <thead><tr><th>URL</th><th>{% trans "Events" %}</th><th>{% trans "Active" %}</th><th>{% trans "Updated" %}</th><th></th></tr></thead>
+        <thead><tr><th scope="col">URL</th><th scope="col">{% trans "Events" %}</th><th scope="col">{% trans "Active" %}</th><th scope="col">{% trans "Updated" %}</th><th scope="col"></th></tr></thead>
         <tbody>
           {% for sub in subscriptions %}
           <tr>

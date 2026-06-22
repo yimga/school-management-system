@@ -18,7 +18,7 @@
     <!-- large-collection-allow: dashboard-widget-capped-list -->
 <table class="table table-sm">
       <thead class="table-light">
-        <tr><th>{% trans "App" %}</th><th>{% trans "URL" %}</th><th>{% trans "Topics" %}</th><th>{% trans "Active" %}</th><th>{% trans "Failures" %}</th><th>{% trans "Last success" %}</th></tr>
+        <tr><th scope="col">{% trans "App" %}</th><th scope="col">{% trans "URL" %}</th><th scope="col">{% trans "Topics" %}</th><th scope="col">{% trans "Active" %}</th><th scope="col">{% trans "Failures" %}</th><th scope="col">{% trans "Last success" %}</th></tr>
       </thead>
       <tbody>
       {% for e in endpoints %}
@@ -42,7 +42,7 @@
     <!-- large-collection-allow: dashboard-widget-capped-list -->
 <table class="table table-sm align-middle">
       <thead class="table-light">
-        <tr><th>{% trans "Created" %}</th><th>{% trans "App" %}</th><th>{% trans "Topic" %}</th><th>{% trans "Status" %}</th><th>{% trans "Attempts" %}</th><th>{% trans "HTTP" %}</th><th>{% trans "Latency" %}</th><th>{% trans "Error" %}</th></tr>
+        <tr><th scope="col">{% trans "Created" %}</th><th scope="col">{% trans "App" %}</th><th scope="col">{% trans "Topic" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Attempts" %}</th><th scope="col">{% trans "HTTP" %}</th><th scope="col">{% trans "Latency" %}</th><th scope="col">{% trans "Error" %}</th></tr>
       </thead>
       <tbody>
       {% for d in deliveries %}

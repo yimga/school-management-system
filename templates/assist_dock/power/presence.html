@@ -29,7 +29,7 @@
       {% for entry in present %}
         <li data-rmc-presence-row="{{ entry.user_id }}">
           {% if entry.avatar_url %}
-            <img class="rmc-assist-power__avatar" src="{{ entry.avatar_url }}" alt="" aria-hidden="true">
+            <img class="rmc-assist-power__avatar" src="{{ entry.avatar_url }}" alt="" aria-hidden="true" loading="lazy" decoding="async">
           {% else %}
             <span class="rmc-assist-power__avatar rmc-assist-power__avatar--text" aria-hidden="true">{{ entry.display_name|slice:":1"|upper|default:"?" }}</span>
           {% endif %}

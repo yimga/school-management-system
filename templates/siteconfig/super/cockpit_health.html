@@ -102,10 +102,10 @@
     <div class="table-responsive">
       <table class="table table-sm mb-0 small">
         <thead><tr>
-          <th>{% trans "Module" %}</th>
-          <th>{% trans "Import" %}</th>
-          <th class="text-end">{% trans "Sections" %}</th>
-          <th>{% trans "Error" %}</th>
+          <th scope="col">{% trans "Module" %}</th>
+          <th scope="col">{% trans "Import" %}</th>
+          <th scope="col" class="text-end">{% trans "Sections" %}</th>
+          <th scope="col">{% trans "Error" %}</th>
         </tr></thead>
         <tbody>
           {% for mod in helper_modules %}
@@ -128,11 +128,11 @@
     <div class="table-responsive">
       <table class="table table-sm mb-0 small">
         <thead><tr>
-          <th>{% trans "Section key" %}</th>
-          <th>{% trans "Enabled" %}</th>
-          <th>{% trans "Content" %}</th>
-          <th>{% trans "Would render" %}</th>
-          <th>{% trans "Missing keys" %}</th>
+          <th scope="col">{% trans "Section key" %}</th>
+          <th scope="col">{% trans "Enabled" %}</th>
+          <th scope="col">{% trans "Content" %}</th>
+          <th scope="col">{% trans "Would render" %}</th>
+          <th scope="col">{% trans "Missing keys" %}</th>
         </tr></thead>
         <tbody>
           {% for section in group_sections %}

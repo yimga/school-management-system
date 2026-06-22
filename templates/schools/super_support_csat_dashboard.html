@@ -60,7 +60,7 @@
     <div class="card-body p-0 table-responsive">
       <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "By month" %}</caption>
-        <thead><tr><th>{% trans "Month" %}</th><th>{% trans "Avg score" %}</th><th>{% trans "Count" %}</th></tr></thead>
+        <thead><tr><th scope="col">{% trans "Month" %}</th><th scope="col">{% trans "Avg score" %}</th><th scope="col">{% trans "Count" %}</th></tr></thead>
         <tbody>
           {% for row in by_month %}
           <tr>
@@ -80,7 +80,7 @@
     <div class="card-body p-0 table-responsive">
       <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Recent responses" %}</caption>
-        <thead><tr><th>{% trans "Submitted" %}</th><th>{% trans_term "School" key="school" %}</th><th>{% trans "Score" %}</th><th>{% trans_term "Subject" key="subject" %}</th></tr></thead>
+        <thead><tr><th scope="col">{% trans "Submitted" %}</th><th scope="col">{% trans_term "School" key="school" %}</th><th scope="col">{% trans "Score" %}</th><th scope="col">{% trans_term "Subject" key="subject" %}</th></tr></thead>
         <tbody>
           {% for t in recent %}
           <tr>

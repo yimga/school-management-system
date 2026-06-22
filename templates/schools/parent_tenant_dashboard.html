@@ -41,11 +41,11 @@
           <caption class="visually-hidden">{% trans "Child schools" %} ({{ parent_school.name }})</caption>
           <thead class="table-light">
             <tr>
-              <th>{% trans_term "School" key="school" %}</th>
-              <th>{% trans_term "Students" key="student" plural=True %}</th>
-              <th>{% trans_term "Teachers" key="teacher" plural=True %}</th>
-              <th>{% trans "Invoiced" %}</th>
-              <th>{% trans "Paid" %}</th>
+              <th scope="col">{% trans_term "School" key="school" %}</th>
+              <th scope="col">{% trans_term "Students" key="student" plural=True %}</th>
+              <th scope="col">{% trans_term "Teachers" key="teacher" plural=True %}</th>
+              <th scope="col">{% trans "Invoiced" %}</th>
+              <th scope="col">{% trans "Paid" %}</th>
             </tr>
           </thead>
           <tbody>

@@ -29,7 +29,7 @@
   <div class="table-responsive mb-4">
     <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Currently on site" %}</caption>
-      <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Host" %}</th><th>{% trans "In" %}</th><th></th></tr></thead>
+      <thead><tr><th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "Host" %}</th><th scope="col">{% trans "In" %}</th><th scope="col"></th></tr></thead>
       <tbody>
         {% for v in on_site %}
         <tr>
@@ -60,7 +60,7 @@
   <div class="table-responsive">
     <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Recent (incl. checked out)" %}</caption>
-      <thead><tr><th>{% trans "Name" %}</th><th>{% trans "In" %}</th><th>{% trans "Out" %}</th></tr></thead>
+      <thead><tr><th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "In" %}</th><th scope="col">{% trans "Out" %}</th></tr></thead>
       <tbody>
         {% for v in recent %}
         <tr>

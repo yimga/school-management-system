@@ -13,11 +13,11 @@
     <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-caption);">
       <thead>
         <tr style="text-align: left; color: var(--text-secondary); font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em;">
-          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Code" %}</th>
-          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Label" %}</th>
-          {% if picker.kind == "authorizers" %}<th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Region" %}</th>{% endif %}
-          {% if picker.kind == "programmes" %}<th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Age band" %}</th>{% endif %}
-          {% if picker.kind == "all-types" %}<th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Wedge" %}</th>{% endif %}
+          <th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Code" %}</th>
+          <th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Label" %}</th>
+          {% if picker.kind == "authorizers" %}<th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Region" %}</th>{% endif %}
+          {% if picker.kind == "programmes" %}<th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Age band" %}</th>{% endif %}
+          {% if picker.kind == "all-types" %}<th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Wedge" %}</th>{% endif %}
         </tr>
       </thead>
       <tbody>

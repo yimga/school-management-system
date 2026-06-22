@@ -13,7 +13,7 @@
   <p class="small text-muted">{% trans "Draft and published master schedules. Generate or validate via API (scheduler) from integrations." %}</p>
   <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
     <caption class="visually-hidden">{% trans "Timetabling" %} — {{ school.name }}</caption>
-    <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Year" %}</th><th>{% trans_term "Term" key="term" %}</th><th>{% trans "Status" %}</th><th>{% trans "Generated" %}</th></tr></thead>
+    <thead><tr><th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "Year" %}</th><th scope="col">{% trans_term "Term" key="term" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Generated" %}</th></tr></thead>
     <tbody>
       {% for s in schedules %}
       <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ s.name }}" data-rmc-row-subtitle="{{ s.status }}"><td>{{ s.name }}</td><td>{{ s.academic_year.name }}</td><td>{{ s.term.name }}</td><td>{{ s.status }}</td><td>{{ s.generated_at|date:"Y-m-d H:i" }}</td></tr>

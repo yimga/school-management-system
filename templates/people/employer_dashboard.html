@@ -17,7 +17,7 @@
       <div class="table-responsive">
         <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Apprentice progress" %}</caption>
-          <thead><tr><th>{% trans "Student" %}</th><th>{% trans "School" %}</th><th>{% trans "Confirmed hours" %}</th><th>{% trans "Last confirmed" %}</th><th></th></tr></thead>
+          <thead><tr><th scope="col">{% trans "Student" %}</th><th scope="col">{% trans "School" %}</th><th scope="col">{% trans "Confirmed hours" %}</th><th scope="col">{% trans "Last confirmed" %}</th><th scope="col"></th></tr></thead>
           <tbody>
             {% for p in placements %}
             <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ p.student.get_full_name }}" data-rmc-row-subtitle="{{ p.school.name }}">

@@ -89,7 +89,7 @@
       <!-- large-collection-allow: dashboard-widget-capped-list -->
 <table class="table table-sm table-bordered">
         <caption class="visually-hidden">{% trans "Tenant lifecycle (recent schools sample)" %}</caption>
-        <thead><tr><th>{% trans "State" %}</th><th>{% trans "Schools (sample)" %}</th></tr></thead>
+        <thead><tr><th scope="col">{% trans "State" %}</th><th scope="col">{% trans "Schools (sample)" %}</th></tr></thead>
         <tbody>
           {% for k, v in growth.lifecycle_distribution_sample.items %}
           <tr><td><code>{{ k }}</code></td><td>{{ v }}</td></tr>
@@ -105,7 +105,7 @@
     <div class="table-responsive">
       <table class="table table-sm table-bordered">
         <caption class="visually-hidden">{% trans "Stage counts (last 30 days)" %}</caption>
-        <thead><tr><th>{% trans "Stage" %}</th><th>{% trans "Count" %}</th></tr></thead>
+        <thead><tr><th scope="col">{% trans "Stage" %}</th><th scope="col">{% trans "Count" %}</th></tr></thead>
         <tbody>
           {% for k, v in growth.counts_period.items %}
           <tr><td><code>{{ k }}</code></td><td>{{ v }}</td></tr>
@@ -120,7 +120,7 @@
     <div class="table-responsive">
       <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Drop-offs (forward rate, 30d)" %}</caption>
-        <thead><tr><th>{% trans "From" %}</th><th>{% trans "To" %}</th><th>{% trans "Forward %" %}</th></tr></thead>
+        <thead><tr><th scope="col">{% trans "From" %}</th><th scope="col">{% trans "To" %}</th><th scope="col">{% trans "Forward %" %}</th></tr></thead>
         <tbody>
           {% for row in growth.dropoffs %}
           <tr>
@@ -204,16 +204,16 @@
         <caption class="visually-hidden">{% trans "By channel (last 30 days)" %}</caption>
         <thead>
           <tr>
-            <th>{% trans "utm_source" %}</th>
-            <th>{% trans "utm_medium" %}</th>
-            <th>{% trans "Visit" %}</th>
-            <th>{% trans "Discovery" %}</th>
-            <th>{% trans "Demo" %}</th>
-            <th>{% trans "Signup" %}</th>
-            <th>{% trans "Verified" %}</th>
-            <th>{% trans "Activation" %}</th>
-            <th>{% trans "1st dash" %}</th>
-            <th>{% trans "Sub" %}</th>
+            <th scope="col">{% trans "utm_source" %}</th>
+            <th scope="col">{% trans "utm_medium" %}</th>
+            <th scope="col">{% trans "Visit" %}</th>
+            <th scope="col">{% trans "Discovery" %}</th>
+            <th scope="col">{% trans "Demo" %}</th>
+            <th scope="col">{% trans "Signup" %}</th>
+            <th scope="col">{% trans "Verified" %}</th>
+            <th scope="col">{% trans "Activation" %}</th>
+            <th scope="col">{% trans "1st dash" %}</th>
+            <th scope="col">{% trans "Sub" %}</th>
           </tr>
         </thead>
         <tbody>

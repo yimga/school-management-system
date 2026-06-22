@@ -50,7 +50,7 @@
   <div class="table-responsive">
     <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Record cover" %}</caption>
-      <thead><tr><th>{% trans "Date" %}</th><th>{% trans "Absent" %}</th><th>{% trans "Cover" %}</th><th>{% trans_term "Period" key="period" %}</th><th>{% trans "Notes" %}</th></tr></thead>
+      <thead><tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans "Absent" %}</th><th scope="col">{% trans "Cover" %}</th><th scope="col">{% trans_term "Period" key="period" %}</th><th scope="col">{% trans "Notes" %}</th></tr></thead>
       <tbody>
         {% for c in covers %}
         <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ c.absent_teacher.get_full_name|default:c.absent_teacher.username }}" data-rmc-row-subtitle="{{ c.work_date }}">

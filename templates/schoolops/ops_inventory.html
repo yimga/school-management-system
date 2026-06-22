@@ -19,7 +19,7 @@
       </form>
     </div>
   </div>
-  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1"><thead><tr><th>{% trans "Name" %}</th><th>{% trans "Qty" %}</th><th>{% trans "Location" %}</th></tr></thead>
+  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1"><thead><tr><th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "Qty" %}</th><th scope="col">{% trans "Location" %}</th></tr></thead>
     <caption class="visually-hidden">{% trans "Inventory" %} — {{ school.name }}</caption>
     <tbody>{% for it in items %}<tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ it.name }}" data-rmc-row-subtitle="{{ it.location|default:'—' }}"><td>{{ it.name }}</td><td>{{ it.quantity }}</td><td>{{ it.location|default:"—" }}</td></tr>{% empty %}<tr><td colspan="3" class="rmc-empty-state rmc-empty-state--row">
       <i class="bi bi-box-seam rmc-empty-state__icon" aria-hidden="true"></i>

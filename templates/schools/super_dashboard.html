@@ -425,7 +425,7 @@
                 <table class="table table-family table-sm mb-0 cp-table cp-table-compact align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
                   <caption class="visually-hidden">{% trans "Storage by schema" %}</caption>
                   <thead>
-                    <tr><th>{% trans "Schema" %}</th><th>{% trans "Size" %}</th><th>{% trans "Tables" %}</th></tr>
+                    <tr><th scope="col">{% trans "Schema" %}</th><th scope="col">{% trans "Size" %}</th><th scope="col">{% trans "Tables" %}</th></tr>
                   </thead>
                   <tbody>
                     {% for row in health_schema_stats %}
@@ -449,7 +449,7 @@
                 <table class="table table-family table-sm mb-0 cp-table cp-table-compact align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
                   <caption class="visually-hidden">{% trans "Largest tables" %}</caption>
                   <thead>
-                    <tr><th>{% trans "Table" %}</th><th>{% trans "Size" %}</th><th>{% trans "Rows" %}</th></tr>
+                    <tr><th scope="col">{% trans "Table" %}</th><th scope="col">{% trans "Size" %}</th><th scope="col">{% trans "Rows" %}</th></tr>
                   </thead>
                   <tbody>
                     {% for row in health_top_tables %}
@@ -518,7 +518,7 @@
                 <table class="table table-family table-sm mb-0 cp-table align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
                   <caption class="visually-hidden">{% trans "Top active countries" %}</caption>
                   <thead>
-                    <tr><th>{% trans "Country" %}</th><th>{% trans_term "Schools" key="school" plural=True %}</th><th>{% trans_term "Students" key="student" plural=True %}</th><th>{% trans "Revenue" %}</th><th>{% trans "Waived" %}</th></tr>
+                    <tr><th scope="col">{% trans "Country" %}</th><th scope="col">{% trans_term "Schools" key="school" plural=True %}</th><th scope="col">{% trans_term "Students" key="student" plural=True %}</th><th scope="col">{% trans "Revenue" %}</th><th scope="col">{% trans "Waived" %}</th></tr>
                   </thead>
                   <tbody>
                     {% for row in country_rollup %}
@@ -601,13 +601,13 @@
             <caption class="visually-hidden">{% trans "Search, triage, and drill into every school" %}</caption>
             <thead>
               <tr>
-                <th>{% trans_term "School" key="school" %}</th>
-                <th>{% trans "Geography" %}</th>
-                <th>{% trans "Education footprint" %}</th>
-                <th>{% trans "Brand and domain" %}</th>
-                <th>{% trans "Subscription" %}</th>
-                <th>{% trans "Operational state" %}</th>
-                <th>{% trans "Actions" %}</th>
+                <th scope="col">{% trans_term "School" key="school" %}</th>
+                <th scope="col">{% trans "Geography" %}</th>
+                <th scope="col">{% trans "Education footprint" %}</th>
+                <th scope="col">{% trans "Brand and domain" %}</th>
+                <th scope="col">{% trans "Subscription" %}</th>
+                <th scope="col">{% trans "Operational state" %}</th>
+                <th scope="col">{% trans "Actions" %}</th>
               </tr>
             </thead>
             <tbody>

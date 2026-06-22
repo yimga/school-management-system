@@ -14,7 +14,7 @@
   <div class="table-responsive">
     <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Clinic log" %} — {{ school.name }}</caption>
-      <thead><tr><th>{% trans "When" %}</th><th>{% trans_term "Student" key="student" %}</th><th>{% trans "Type" %}</th><th>{% trans "Notes" %}</th></tr></thead>
+      <thead><tr><th scope="col">{% trans "When" %}</th><th scope="col">{% trans_term "Student" key="student" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Notes" %}</th></tr></thead>
       <tbody>
         {% for r in records %}
         <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ r.student.get_full_name|default:r.student_id }}" data-rmc-row-subtitle="{{ r.record_type }}">

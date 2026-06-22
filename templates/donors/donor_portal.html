@@ -18,7 +18,7 @@
   <div class="table-responsive mb-4">
     <table class="table table-sm align-middle">
       <caption class="visually-hidden">{% trans "Gifts" %}</caption>
-      <thead><tr><th>{% trans "Date" %}</th><th>{% trans "Amount" %}</th><th>{% trans "Campaign" %}</th><th>{% trans "Receipt" %}</th></tr></thead>
+      <thead><tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans "Amount" %}</th><th scope="col">{% trans "Campaign" %}</th><th scope="col">{% trans "Receipt" %}</th></tr></thead>
       <tbody>
         {% for g in gifts %}
         <tr>
@@ -40,7 +40,7 @@
   <div class="table-responsive mb-4">
     <table class="table table-sm align-middle">
       <caption class="visually-hidden">{% trans "In-kind" %}</caption>
-      <thead><tr><th>{% trans "Date" %}</th><th>{% trans "Item" %}</th><th>{% trans "Qty" %}</th><th>{% trans "Status" %}</th></tr></thead>
+      <thead><tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans "Item" %}</th><th scope="col">{% trans "Qty" %}</th><th scope="col">{% trans "Status" %}</th></tr></thead>
       <tbody>
         {% for d in in_kind %}
         <tr>

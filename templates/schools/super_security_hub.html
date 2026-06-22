@@ -75,7 +75,7 @@
       <!-- large-collection-allow: dashboard-widget-capped-list -->
 <table class="table table-sm table-family mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Impersonation & proxy (platform operator)" %}</caption>
-        <thead><tr><th>{% trans "When (UTC)" %}</th><th>{% trans "Actor" %}</th><th>{% trans "Peer / approval" %}</th><th>{% trans_term "School" key="school" %}</th><th>{% trans "Action" %}</th><th>{% trans "Reason" %}</th><th>{% trans "Read-only" %}</th></tr></thead>
+        <thead><tr><th scope="col">{% trans "When (UTC)" %}</th><th scope="col">{% trans "Actor" %}</th><th scope="col">{% trans "Peer / approval" %}</th><th scope="col">{% trans_term "School" key="school" %}</th><th scope="col">{% trans "Action" %}</th><th scope="col">{% trans "Reason" %}</th><th scope="col">{% trans "Read-only" %}</th></tr></thead>
         <tbody>
           {% for row in impersonation_rows %}
           <tr>
@@ -147,7 +147,7 @@
         <div class="card-body p-0 table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
           <table class="table table-sm table-family table-hover mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Security events (recent)" %}</caption>
-            <thead><tr><th>{% trans "When" %}</th><th>{% trans "Type" %}</th><th>{% trans "User" %}</th><th>{% trans "Flag" %}</th></tr></thead>
+            <thead><tr><th scope="col">{% trans "When" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "User" %}</th><th scope="col">{% trans "Flag" %}</th></tr></thead>
             <tbody>
               {% for e in security_events %}
               <tr class="{% if e.is_suspicious %}table-warning{% endif %}">
@@ -170,7 +170,7 @@
         <div class="card-body p-0 table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
           <table class="table table-sm table-family table-hover mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Suspicious / flagged (7 days)" %}</caption>
-            <thead><tr><th>{% trans "When" %}</th><th>{% trans "Type" %}</th><th>{% trans "User" %}</th></tr></thead>
+            <thead><tr><th scope="col">{% trans "When" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "User" %}</th></tr></thead>
             <tbody>
               {% for e in suspicious_security_events %}
               <tr>
@@ -192,7 +192,7 @@
         <div class="card-body p-0 table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
           <table class="table table-sm table-family table-hover mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Permission changes (compliance log)" %}</caption>
-            <thead><tr><th>{% trans "When" %}</th><th>{% trans "Action" %}</th><th>{% trans "Object" %}</th></tr></thead>
+            <thead><tr><th scope="col">{% trans "When" %}</th><th scope="col">{% trans "Action" %}</th><th scope="col">{% trans "Object" %}</th></tr></thead>
             <tbody>
               {% for e in perm_events %}
               <tr>
@@ -214,7 +214,7 @@
         <div class="card-body p-0 table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
           <table class="table table-sm table-family table-hover mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Access denied (compliance log)" %}</caption>
-            <thead><tr><th>{% trans "When" %}</th><th>{% trans "Object" %}</th><th>{% trans "User" %}</th></tr></thead>
+            <thead><tr><th scope="col">{% trans "When" %}</th><th scope="col">{% trans "Object" %}</th><th scope="col">{% trans "User" %}</th></tr></thead>
             <tbody>
               {% for e in access_denied_events %}
               <tr>
@@ -236,7 +236,7 @@
         <div class="card-body p-0 table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
           <table class="table table-sm table-family table-hover mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Approvals (workflow)" %}</caption>
-            <thead><tr><th>{% trans "When" %}</th><th>{% trans "Object" %}</th><th>{% trans "Actor" %}</th></tr></thead>
+            <thead><tr><th scope="col">{% trans "When" %}</th><th scope="col">{% trans "Object" %}</th><th scope="col">{% trans "Actor" %}</th></tr></thead>
             <tbody>
               {% for e in approval_events %}
               <tr>
@@ -259,7 +259,7 @@
           <!-- large-collection-allow: dashboard-widget-capped-list -->
           <table class="table table-sm table-family table-hover mb-0 small rmc-data-table" data-rmc-export-timeline="1" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Export timeline (compliance log + integrity)" %}</caption>
-            <thead><tr><th>{% trans "When" %}</th><th>{% trans "Tenant" %}</th><th>{% trans "Type" %}</th><th>{% trans "Summary" %}</th><th>{% trans "Actor" %}</th><th>{% trans "Status" %}</th><th>{% trans "Integrity" %}</th><th>{% trans "Verification" %}</th></tr></thead>
+            <thead><tr><th scope="col">{% trans "When" %}</th><th scope="col">{% trans "Tenant" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Summary" %}</th><th scope="col">{% trans "Actor" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Integrity" %}</th><th scope="col">{% trans "Verification" %}</th></tr></thead>
             <tbody>
               {% for row in export_timeline_rows %}
               <tr data-rmc-export-integrity="{{ row.integrity_token }}">
@@ -287,7 +287,7 @@
     <div class="card-body p-0 table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-16" data-rmc-iso-scroll-zone="1">
       <table class="table table-sm table-family mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Active sessions (sample)" %}</caption>
-        <thead><tr><th>{% trans_term "Session" key="session" %}</th><th>{% trans "Expires" %}</th><th>{% trans "User" %}</th></tr></thead>
+        <thead><tr><th scope="col">{% trans_term "Session" key="session" %}</th><th scope="col">{% trans "Expires" %}</th><th scope="col">{% trans "User" %}</th></tr></thead>
         <tbody>
           {% for s in session_rows %}
           <tr>

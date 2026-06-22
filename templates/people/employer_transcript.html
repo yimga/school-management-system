@@ -29,7 +29,7 @@
       {% if context.term_rows %}
       <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans_term "Transcript" key="transcript" %}</caption>
-        <thead><tr><th>{% trans_term "Term" key="term" %}</th><th>{% trans "Average" %}</th></tr></thead>
+        <thead><tr><th scope="col">{% trans_term "Term" key="term" %}</th><th scope="col">{% trans "Average" %}</th></tr></thead>
         <tbody>
           {% for row in context.term_rows %}
           <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ row.term }}" data-rmc-row-subtitle="{{ row.avg|floatformat:2|default:'—' }}"><td>{{ row.term }}</td><td>{{ row.avg|floatformat:2|default:"—" }}</td></tr>

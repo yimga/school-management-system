@@ -52,7 +52,7 @@
     <div class="table-responsive">
       <table class="table table-sm rmc-data-table align-middle" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Recent knowledge base articles" %}</caption>
-        <thead><tr><th>{% trans "Title" %}</th><th>{% trans "Category" %}</th><th>{% trans "Linked office doc" %}</th><th></th></tr></thead>
+        <thead><tr><th scope="col">{% trans "Title" %}</th><th scope="col">{% trans "Category" %}</th><th scope="col">{% trans "Linked office doc" %}</th><th scope="col"></th></tr></thead>
         <tbody>
           {% for article in recent_articles %}
           <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ article.title }}" data-rmc-row-subtitle="{{ article.category.name }}">
@@ -83,7 +83,7 @@
     <div class="table-responsive">
       <table class="table table-sm rmc-data-table align-middle" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Hosted office documents" %}</caption>
-        <thead><tr><th>{% trans "Title" %}</th><th>{% trans "Audience" %}</th><th>{% trans "Updated" %}</th><th></th></tr></thead>
+        <thead><tr><th scope="col">{% trans "Title" %}</th><th scope="col">{% trans "Audience" %}</th><th scope="col">{% trans "Updated" %}</th><th scope="col"></th></tr></thead>
         <tbody>
           {% for doc in office_documents %}
           <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ doc.title }}" data-rmc-row-subtitle="{{ doc.help_audience }}">

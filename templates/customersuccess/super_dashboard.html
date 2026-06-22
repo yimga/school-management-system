@@ -95,7 +95,7 @@
           <div class="table-responsive">
             <table class="table table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "Risk alerts" %}</caption>
-              <thead class="table-light"><tr><th>School</th><th>Severity</th><th>Reason</th><th>When</th></tr></thead>
+              <thead class="table-light"><tr><th scope="col">School</th><th scope="col">Severity</th><th scope="col">Reason</th><th scope="col">When</th></tr></thead>
               <tbody>
                 {% for a in alerts %}
                 <tr>
@@ -120,7 +120,7 @@
           <div class="table-responsive">
             <table class="table table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "Intervention suggestions" %}</caption>
-              <thead class="table-light"><tr><th>School</th><th>Category</th><th>Title</th><th>When</th></tr></thead>
+              <thead class="table-light"><tr><th scope="col">School</th><th scope="col">Category</th><th scope="col">Title</th><th scope="col">When</th></tr></thead>
               <tbody>
                 {% for s in suggestions %}
                 <tr>
@@ -148,7 +148,7 @@
           <div class="table-responsive">
             <table class="table table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "Recent workflow failures" %}</caption>
-              <thead class="table-light"><tr><th>School</th><th>Workflow</th><th>Error</th><th>When</th></tr></thead>
+              <thead class="table-light"><tr><th scope="col">School</th><th scope="col">Workflow</th><th scope="col">Error</th><th scope="col">When</th></tr></thead>
               <tbody>
                 {% for e in workflow_failures %}
                 <tr>
@@ -176,7 +176,7 @@
           <div class="table-responsive">
             <table class="table table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans "School health scores (latest)" %}</caption>
-              <thead class="table-light"><tr><th>School</th><th>Score</th><th>Dimensions</th><th>Computed</th></tr></thead>
+              <thead class="table-light"><tr><th scope="col">School</th><th scope="col">Score</th><th scope="col">Dimensions</th><th scope="col">Computed</th></tr></thead>
               <tbody>
                 {% for h in health_scores %}
                 <tr>

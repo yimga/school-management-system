@@ -32,10 +32,10 @@
     <table class="lx-cohort__table">
       <thead>
         <tr>
-          <th class="lx-cohort__col-label">{% trans "Cohort" %}</th>
-          <th class="lx-cohort__col-count">{% trans "Size" %}</th>
+          <th scope="col" class="lx-cohort__col-label">{% trans "Cohort" %}</th>
+          <th scope="col" class="lx-cohort__col-count">{% trans "Size" %}</th>
           {% for m in cockpit.revenue_cohort.month_labels %}
-            <th class="lx-cohort__col-month">{{ m }}</th>
+            <th scope="col" class="lx-cohort__col-month">{{ m }}</th>
           {% endfor %}
         </tr>
       </thead>

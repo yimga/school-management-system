@@ -6,7 +6,7 @@
   <p><a href="{{ panel_url }}">Feature control panel</a> · <a href="{{ audit_url }}">Legacy audit view</a></p>
   <table class="table table-sm table-striped table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
     <caption class="visually-hidden">{% trans "Feature control ledger" %}</caption>
-    <thead><tr><th>When</th><th>User</th><th>Action</th><th>Changes (summary)</th></tr></thead>
+    <thead><tr><th scope="col">When</th><th scope="col">User</th><th scope="col">Action</th><th scope="col">Changes (summary)</th></tr></thead>
     <tbody>
       {% for e in entries %}
       <tr>

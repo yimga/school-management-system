@@ -81,10 +81,10 @@
             <caption class="visually-hidden">{% trans "Downstream" %} ({{ summary.consumer_count }})</caption>
             <thead>
               <tr>
-                <th>{% trans "Type" %}</th>
-                <th>{% trans "Code" %}</th>
-                <th>{% trans "Entities" %}</th>
-                <th>{% trans "Fields" %}</th>
+                <th scope="col">{% trans "Type" %}</th>
+                <th scope="col">{% trans "Code" %}</th>
+                <th scope="col">{% trans "Entities" %}</th>
+                <th scope="col">{% trans "Fields" %}</th>
               </tr>
             </thead>
             <tbody>
@@ -122,9 +122,9 @@
             <caption class="visually-hidden">{% trans "Packages" %} ({{ packages|length }})</caption>
             <thead>
               <tr>
-                <th>{% trans "Package" %}</th>
-                <th>{% trans "Version" %}</th>
-                <th>{% trans "Consumers" %}</th>
+                <th scope="col">{% trans "Package" %}</th>
+                <th scope="col">{% trans "Version" %}</th>
+                <th scope="col">{% trans "Consumers" %}</th>
               </tr>
             </thead>
             <tbody>

@@ -37,7 +37,7 @@
   {% if endpoints %}
   <table class="table table-sm align-middle">
     <thead class="table-light">
-      <tr><th>{% trans "URL" %}</th><th>{% trans "Topics" %}</th><th>{% trans "Active" %}</th><th>{% trans "Failures" %}</th><th>{% trans "Last success" %}</th><th>{% trans "Actions" %}</th></tr>
+      <tr><th scope="col">{% trans "URL" %}</th><th scope="col">{% trans "Topics" %}</th><th scope="col">{% trans "Active" %}</th><th scope="col">{% trans "Failures" %}</th><th scope="col">{% trans "Last success" %}</th><th scope="col">{% trans "Actions" %}</th></tr>
     </thead>
     <tbody>
     {% for e in endpoints %}

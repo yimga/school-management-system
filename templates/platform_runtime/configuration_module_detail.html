@@ -58,7 +58,7 @@
   <div class="table-responsive">
     <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{{ blueprint.name }}</caption>
-      <thead><tr><th>{% trans "Pack" %}</th><th>{% trans "Target" %}</th><th>{% trans "Included" %}</th><th>{% trans "Owner" %}</th><th>{% trans "Status" %}</th><th>{% trans "Action" %}</th></tr></thead>
+      <thead><tr><th scope="col">{% trans "Pack" %}</th><th scope="col">{% trans "Target" %}</th><th scope="col">{% trans "Included" %}</th><th scope="col">{% trans "Owner" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Action" %}</th></tr></thead>
       <tbody>
       {% for pack in packs %}
         <tr data-pack-row="{{ pack.name }}">
@@ -77,7 +77,7 @@
   <div class="table-responsive" tabindex="0" role="region" aria-label="{% trans 'Registry health table' %}">
     <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{{ module.title }}</caption>
-      <thead><tr><th>{% trans "Registry" %}</th><th>{% trans "Owner" %}</th><th>{% trans "Scope" %}</th><th>{% trans "Generated" %}</th><th>{% trans "Drift" %}</th><th>{% trans "Route" %}</th><th>{% trans "Proof" %}</th></tr></thead>
+      <thead><tr><th scope="col">{% trans "Registry" %}</th><th scope="col">{% trans "Owner" %}</th><th scope="col">{% trans "Scope" %}</th><th scope="col">{% trans "Generated" %}</th><th scope="col">{% trans "Drift" %}</th><th scope="col">{% trans "Route" %}</th><th scope="col">{% trans "Proof" %}</th></tr></thead>
       <tbody>
       {% for registry in registries %}
         <tr data-registry-row="{{ registry.name }}">

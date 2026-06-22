@@ -110,7 +110,7 @@
     <div class="card-header">{% trans "Active sessions (sample)" %}</div>
     <div class="card-body p-0 table-responsive">
       <table class="table table-sm mb-0 rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
-        <thead><tr><th>{% trans "Session" %}</th><th>{% trans "Expires" %}</th></tr></thead>
+        <thead><tr><th scope="col">{% trans "Session" %}</th><th scope="col">{% trans "Expires" %}</th></tr></thead>
         <tbody>
           {% for s in sessions %}
           <tr><td>{{ s.key_prefix }}</td><td>{{ s.expire_date }}</td></tr>
@@ -130,11 +130,11 @@
         <caption class="visually-hidden">{% trans "Impersonation & proxy (platform operator)" %}</caption>
         <thead>
           <tr>
-            <th>{% trans "When (UTC)" %}</th>
-            <th>{% trans "Peer / approval" %}</th>
-            <th>{% trans_term "School" key="school" %}</th>
-            <th>{% trans "Action" %}</th>
-            <th>{% trans "Reason" %}</th>
+            <th scope="col">{% trans "When (UTC)" %}</th>
+            <th scope="col">{% trans "Peer / approval" %}</th>
+            <th scope="col">{% trans_term "School" key="school" %}</th>
+            <th scope="col">{% trans "Action" %}</th>
+            <th scope="col">{% trans "Reason" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -158,7 +158,7 @@
     <div class="card-header">{% trans "Promotion history" %}</div>
     <div class="card-body p-0 table-responsive">
       <table class="table table-sm mb-0">
-        <thead><tr><th>{% trans "Tier" %}</th><th>{% trans "Status" %}</th><th>{% trans "When" %}</th></tr></thead>
+        <thead><tr><th scope="col">{% trans "Tier" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "When" %}</th></tr></thead>
         <tbody>
           {% for p in promotion_rows %}
           <tr>

@@ -85,7 +85,7 @@
       <div class="table-responsive">
         <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "EWS signals (portal-linked students)" %}</caption>
-          <thead><tr><th>{% trans "Student user" %}</th><th>{% trans "Score" %}</th><th>{% trans "Status" %}</th><th>{% trans "Factors" %}</th></tr></thead>
+          <thead><tr><th scope="col">{% trans "Student user" %}</th><th scope="col">{% trans "Score" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Factors" %}</th></tr></thead>
           <tbody>
             {% for s in ews_signals %}
             <tr>
@@ -108,7 +108,7 @@
       <div class="table-responsive">
         <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Ongoing interventions" %}</caption>
-          <thead><tr><th>{% trans_term "Student" key="student" %}</th><th>{% trans "Action" %}</th><th>{% trans "Trigger" %}</th><th></th></tr></thead>
+          <thead><tr><th scope="col">{% trans_term "Student" key="student" %}</th><th scope="col">{% trans "Action" %}</th><th scope="col">{% trans "Trigger" %}</th><th scope="col"></th></tr></thead>
           <tbody>
             {% for i in interventions %}
             <tr>

@@ -47,7 +47,7 @@
       <div class="card-body p-0">
         <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "By country / region" %}</caption>
-          <thead><tr><th>Region</th><th>Schools</th><th>Students</th></tr></thead>
+          <thead><tr><th scope="col">Region</th><th scope="col">Schools</th><th scope="col">Students</th></tr></thead>
           <tbody>
             {% for row in by_country %}
             <tr>
@@ -81,7 +81,7 @@
           <table class="table table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans_term "Schools" key="school" plural=True %}</caption>
             <thead class="table-light">
-              <tr><th>School</th><th>Slug</th><th>Students</th><th>Last activity</th></tr>
+              <tr><th scope="col">School</th><th scope="col">Slug</th><th scope="col">Students</th><th scope="col">Last activity</th></tr>
             </thead>
             <tbody>
               {% for t in tenants %}

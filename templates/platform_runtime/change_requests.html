@@ -37,7 +37,7 @@
   <div class="cp-card">
     <table data-world-class-table="summarized-first">
       <caption>{% trans "Configuration change requests with target, type, risk, status, tenant, and action." %}</caption>
-      <thead><tr><th>{% trans "Target" %}</th><th>{% trans "Type" %}</th><th>{% trans "Risk" %}</th><th>{% trans "Status" %}</th><th>{% trans "Tenant" %}</th><th></th></tr></thead>
+      <thead><tr><th scope="col">{% trans "Target" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Risk" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Tenant" %}</th><th scope="col"></th></tr></thead>
       <tbody>
         {% for row in change_requests %}
           <tr>

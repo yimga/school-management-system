@@ -29,7 +29,7 @@
         <div class="card-body p-0">
           <table class="table table-sm mb-0">
             <caption class="visually-hidden">{% trans "Count of users grouped by role." %}</caption>
-            <thead class="table-light"><tr><th>{% trans "Role" %}</th><th scope="col" class="text-end">{% trans "Users" %}</th></tr></thead>
+            <thead class="table-light"><tr><th scope="col">{% trans "Role" %}</th><th scope="col" class="text-end">{% trans "Users" %}</th></tr></thead>
             <tbody>
               {% for entry in users_by_role %}
               <tr><td>{{ entry.role|default:"—" }}</td><td class="text-end">{{ entry.count }}</td></tr>
@@ -47,7 +47,7 @@
         <div class="card-body p-0">
           <table class="table table-sm mb-0">
             <caption class="visually-hidden">{% trans "Total accesses and failure counts grouped by role." %}</caption>
-            <thead class="table-light"><tr><th>{% trans "Role" %}</th><th scope="col" class="text-end">{% trans "Total" %}</th><th scope="col" class="text-end">{% trans "Failed" %}</th></tr></thead>
+            <thead class="table-light"><tr><th scope="col">{% trans "Role" %}</th><th scope="col" class="text-end">{% trans "Total" %}</th><th scope="col" class="text-end">{% trans "Failed" %}</th></tr></thead>
             <tbody>
               {% for entry in access_by_role %}
               <tr>
@@ -70,7 +70,7 @@
         <div class="card-body p-0">
           <table class="table table-sm mb-0">
             <caption class="visually-hidden">{% trans "Resources with the most accesses." %}</caption>
-            <thead class="table-light"><tr><th>{% trans "Resource" %}</th><th scope="col" class="text-end">{% trans "Accesses" %}</th></tr></thead>
+            <thead class="table-light"><tr><th scope="col">{% trans "Resource" %}</th><th scope="col" class="text-end">{% trans "Accesses" %}</th></tr></thead>
             <tbody>
               {% for entry in top_resources %}
               <tr><td class="small"><code>{{ entry.resource|truncatechars:80 }}</code></td><td class="text-end">{{ entry.access_count }}</td></tr>
@@ -88,7 +88,7 @@
         <div class="card-body p-0">
           <table class="table table-sm mb-0">
             <caption class="visually-hidden">{% trans "Resources where 403 forbidden responses were recorded." %}</caption>
-            <thead class="table-light"><tr><th>{% trans "Resource" %}</th><th scope="col" class="text-end">{% trans "Denials" %}</th></tr></thead>
+            <thead class="table-light"><tr><th scope="col">{% trans "Resource" %}</th><th scope="col" class="text-end">{% trans "Denials" %}</th></tr></thead>
             <tbody>
               {% for entry in denied_resources %}
               <tr><td class="small"><code>{{ entry.resource|truncatechars:80 }}</code></td><td class="text-end text-danger">{{ entry.denial_count }}</td></tr>
