@@ -410,7 +410,8 @@
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
     {% if is_manager_host %}{% include "partials/rmc_operator_tools_scripts.html" %}{% elif cockpit.tenant_tools.enabled|default:False %}{% include "partials/rmc_tenant_tools_scripts.html" %}{% endif %}
     {% if is_manager_host %}{% include "partials/rmc_nav_sidebar_page_data.html" %}{% endif %}
-    {% if is_manager_host %}<script src="{% static 'js/rmc-nav-sidebar.js' %}" defer></script>{% endif %}
+    {% if is_manager_host %}<script src="{% static 'js/rmc-nav-sidebar.js' %}" defer></script>
+    <script src="{% static 'js/rmc-sidebar-intelligence.js' %}" defer></script>{% endif %}
     {% comment %} v4.01.03: g-chord → chip click bridge — closes advertised-but-unbound shortcut gap. {% endcomment %}
     {% include "partials/rmc_assist_dock_shortcut_bridge.html" %}
     <script src="{% static 'js/rmc-workflow-track-headers.js' %}" nonce="{{ csp_nonce }}"></script>

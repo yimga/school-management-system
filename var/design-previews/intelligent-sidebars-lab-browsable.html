@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en" data-surface="operator" data-density="comfortable" data-smart="on">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intelligent Sidebar Lab · RunMyCampus</title>
+<style>
+  /* ───────────────────────────────────────────────────────────────────────
+     Intelligent Sidebar Lab — a browsable, self-contained mockup.
+     No external assets. Demonstrates the proposed intelligence layer on both
+     the operator (dark control-plane) and tenant (light portal) surfaces.
+     Everything here maps to a real, build-able feature — see the right panel.
+  ─────────────────────────────────────────────────────────────────────── */
+  :root{
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, system-ui, sans-serif;
+    --r-sm:8px; --r-md:12px; --r-lg:16px; --r-pill:999px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --gap: 4px;            /* density-driven */
+    --pad-y: 9px;          /* density-driven */
+    --fs: 13.5px;          /* density-driven */
+  }
+  /* Operator (dark control-plane) palette */
+  html[data-surface="operator"]{
+    --bg:#0c1020; --canvas:#121a30; --elevated:#16203c; --popover:#1b2747;
+    --ink:#eef2fb; --ink-2:#9fb0d0; --ink-3:#6b7ca0; --hairline:#243155;
+    --brand:#6d8bff; --brand-soft:#23315e; --accent:#34d399;
+    --danger:#fb7185; --warn:#fbbf24; --ok:#34d399;
+    --shadow:0 10px 40px rgba(0,0,0,.45);
+    --surface-name:"Operator · manager.runmycampus.com";
+  }
+  /* Tenant (light portal) palette */
+  html[data-surface="tenant"]{
+    --bg:#eef1f7; --canvas:#ffffff; --elevated:#ffffff; --popover:#ffffff;
+    --ink:#0f1729; --ink-2:#56617a; --ink-3:#8a93a8; --hairline:#e6e9f1;
+    --brand:#4f46e5; --brand-soft:#eceafe; --accent:#059669;
+    --danger:#e11d48; --warn:#d97706; --ok:#059669;
+    --shadow:0 14px 44px rgba(31,38,63,.12);
+    --surface-name:"Tenant · new-school.runmycampus.com";
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--font);background:var(--bg);color:var(--ink);
+    -webkit-font-smoothing:antialiased;transition:background .4s var(--ease),color .4s var(--ease);}
+  /* density */
+  html[data-density="compact"]{--gap:1px;--pad-y:5px;--fs:13px;}
+  html[data-density="comfortable"]{--gap:4px;--pad-y:9px;--fs:13.5px;}
+  html[data-density="spacious"]{--gap:8px;--pad-y:13px;--fs:14.5px;}
+
+  /* ── top bar ───────────────────────────────────────────────────────── */
+  .topbar{display:flex;align-items:center;gap:14px;padding:14px 22px;
+    border-bottom:1px solid var(--hairline);background:var(--canvas);position:sticky;top:0;z-index:20;}
+  .topbar h1{font-size:15px;margin:0;font-weight:650;letter-spacing:-.01em;}
+  .topbar .sub{color:var(--ink-3);font-size:12px;}
+  .spacer{flex:1;}
+  .seg{display:inline-flex;background:var(--bg);border:1px solid var(--hairline);
+    border-radius:var(--r-pill);padding:3px;gap:2px;}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--ink-2);
+    font:inherit;font-size:12.5px;padding:6px 13px;border-radius:var(--r-pill);cursor:pointer;
+    transition:all .2s var(--ease);}
+  .seg button[aria-pressed="true"]{background:var(--brand);color:#fff;box-shadow:var(--shadow);}
+  .ghost{appearance:none;border:1px solid var(--hairline);background:var(--canvas);color:var(--ink-2);
+    font:inherit;font-size:12.5px;padding:7px 13px;border-radius:var(--r-pill);cursor:pointer;}
+  .ghost:hover{color:var(--ink);border-color:var(--brand);}
+
+  /* ── layout ────────────────────────────────────────────────────────── */
+  .stage{display:grid;grid-template-columns: 312px 1fr;gap:0;min-height:calc(100vh - 59px);}
+  @media(max-width:880px){.stage{grid-template-columns:1fr;}}
+
+  /* ── the sidebar itself ────────────────────────────────────────────── */
+  .sb{background:var(--canvas);border-right:1px solid var(--hairline);
+    padding:14px 12px;display:flex;flex-direction:column;gap:10px;position:relative;}
+  .sb-brand{display:flex;align-items:center;gap:10px;padding:2px 6px 8px;}
+  .sb-logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--accent));
+    display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;}
+  .sb-brand b{font-size:14px;letter-spacing:-.01em;}
+  .sb-brand small{display:block;color:var(--ink-3);font-size:11px;}
+
+  /* search */
+  .sb-search{position:relative;}
+  .sb-search input{width:100%;border:1px solid var(--hairline);background:var(--bg);color:var(--ink);
+    border-radius:var(--r-md);padding:9px 12px 9px 34px;font:inherit;font-size:13px;outline:none;
+    transition:border-color .2s var(--ease),box-shadow .2s var(--ease);}
+  .sb-search input:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft);}
+  .sb-search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;opacity:.5;}
+  .sb-search kbd{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:10.5px;
+    color:var(--ink-3);border:1px solid var(--hairline);border-radius:5px;padding:2px 6px;background:var(--canvas);}
+
+  .sb-scroll{overflow:auto;display:flex;flex-direction:column;gap:var(--gap);padding-right:2px;}
+  .sb-scroll::-webkit-scrollbar{width:7px;}
+  .sb-scroll::-webkit-scrollbar-thumb{background:var(--hairline);border-radius:9px;}
+
+  .group{display:flex;flex-direction:column;gap:var(--gap);}
+  .group-h{display:flex;align-items:center;gap:6px;padding:8px 8px 4px;cursor:pointer;
+    color:var(--ink-3);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+    user-select:none;}
+  .group-h .chev{transition:transform .2s var(--ease);font-size:9px;opacity:.7;}
+  .group.collapsed .chev{transform:rotate(-90deg);}
+  .group.collapsed .items{display:none;}
+  .group--smart .group-h{color:var(--brand);}
+  .items{display:flex;flex-direction:column;gap:var(--gap);}
+
+  .item{display:flex;align-items:center;gap:10px;padding:var(--pad-y) 9px;border-radius:10px;
+    color:var(--ink);text-decoration:none;font-size:var(--fs);cursor:pointer;position:relative;
+    transition:background .15s var(--ease),color .15s var(--ease);border:1px solid transparent;}
+  .item:hover{background:var(--bg);}
+  .item.active{background:var(--brand-soft);color:var(--brand);font-weight:600;}
+  html[data-surface="operator"] .item.active{color:#fff;background:linear-gradient(90deg,var(--brand),transparent 240%);}
+  .item.kbd-cursor{border-color:var(--brand);}
+  .item .ico{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;font-size:13px;flex:none;
+    background:var(--bg);}
+  .item.active .ico{background:rgba(255,255,255,.18);}
+  .item .lbl{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .item .lbl mark{background:transparent;color:var(--brand);font-weight:700;}
+  html[data-surface="operator"] .item.active .lbl mark{color:#dfe6ff;}
+  .item .tag{font-size:9.5px;color:var(--accent);font-weight:700;letter-spacing:.04em;opacity:0;
+    transform:translateX(4px);transition:.2s var(--ease);}
+  html[data-smart="on"] .item.is-hot .tag{opacity:1;transform:none;}
+  .badge{min-width:18px;height:18px;padding:0 5px;border-radius:var(--r-pill);background:var(--danger);color:#fff;
+    font-size:10.5px;font-weight:700;display:grid;place-items:center;flex:none;}
+  .badge.warn{background:var(--warn);} .badge.ok{background:var(--ok);}
+  .badge.pulse{animation:pulse .9s var(--ease);}
+  @keyframes pulse{0%{transform:scale(1);}40%{transform:scale(1.45);}100%{transform:scale(1);}}
+  .pin{opacity:0;border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:13px;flex:none;
+    width:22px;height:22px;border-radius:6px;transition:.15s var(--ease);}
+  .item:hover .pin{opacity:.7;} .pin:hover{opacity:1 !important;color:var(--brand);background:var(--bg);}
+  .pin.pinned{opacity:1;color:var(--brand);}
+
+  .empty{display:none;padding:18px 10px;color:var(--ink-3);font-size:12.5px;text-align:center;}
+  body.no-results .empty{display:block;}
+
+  /* ── info / explainer panel ────────────────────────────────────────── */
+  .panel{padding:26px 30px;overflow:auto;}
+  .panel h2{font-size:18px;margin:0 0 4px;letter-spacing:-.02em;}
+  .panel .lead{color:var(--ink-2);font-size:13.5px;margin:0 0 20px;max-width:60ch;line-height:1.55;}
+  .feat{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:24px;}
+  .card{background:var(--canvas);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:15px 16px;}
+  .card h3{margin:0 0 5px;font-size:13.5px;display:flex;align-items:center;gap:8px;letter-spacing:-.01em;}
+  .card h3 .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;}
+  .card p{margin:0;color:var(--ink-2);font-size:12.5px;line-height:1.5;}
+  .card .try{margin-top:9px;font-size:11.5px;color:var(--brand);font-weight:600;}
+  .cfg{background:var(--canvas);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:6px 4px;}
+  .cfg-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--hairline);font-size:13px;}
+  .cfg-row:last-child{border-bottom:0;}
+  .cfg-row .k{flex:1;} .cfg-row .lv{color:var(--ink-3);font-size:11.5px;}
+  .pilldot{font-size:10px;color:var(--ink-3);border:1px solid var(--hairline);border-radius:var(--r-pill);padding:2px 9px;}
+  .scope-op{color:var(--brand);border-color:var(--brand);}
+  .scope-tn{color:var(--accent);border-color:var(--accent);}
+  .note{margin-top:18px;color:var(--ink-3);font-size:11.5px;line-height:1.5;border-top:1px dashed var(--hairline);padding-top:14px;}
+  .kbd-hint{display:inline-block;border:1px solid var(--hairline);border-radius:5px;padding:1px 6px;font-size:11px;color:var(--ink-2);}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="sb-logo" style="width:26px;height:26px;font-size:13px;">R</div>
+    <div>
+      <h1>Intelligent Sidebar Lab</h1>
+      <div class="sub" id="surfaceName">Operator · manager.runmycampus.com</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="seg" role="group" aria-label="Surface">
+      <button data-surface-btn="operator" aria-pressed="true">Operator</button>
+      <button data-surface-btn="tenant" aria-pressed="false">Tenant</button>
+    </div>
+    <div class="seg" role="group" aria-label="Density">
+      <button data-density-btn="compact" aria-pressed="false">Compact</button>
+      <button data-density-btn="comfortable" aria-pressed="true">Comfortable</button>
+      <button data-density-btn="spacious" aria-pressed="false">Spacious</button>
+    </div>
+    <button class="ghost" id="smartToggle">Adaptive: ON</button>
+    <button class="ghost" id="liveBtn">Simulate live update</button>
+  </div>
+
+  <div class="stage">
+    <!-- ── SIDEBAR ─────────────────────────────────────────────────── -->
+    <nav class="sb" aria-label="Primary">
+      <div class="sb-brand">
+        <div class="sb-logo" id="sbLogo">R</div>
+        <div><b id="sbTitle">Control Plane</b><small id="sbRole">Platform operator</small></div>
+      </div>
+      <div class="sb-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="filter" type="text" placeholder="Filter… (press /)" aria-label="Filter navigation">
+        <kbd>/</kbd>
+      </div>
+      <div class="sb-scroll" id="nav"></div>
+      <div class="empty">No matches — try another word, or <span style="color:var(--brand)">⌘K</span> for the full command palette.</div>
+    </nav>
+
+    <!-- ── EXPLAINER ───────────────────────────────────────────────── -->
+    <div class="panel">
+      <h2>The seven things that make a sidebar <em>intelligent</em></h2>
+      <p class="lead">Each card below is a live, working behaviour in the sidebar to the left — and each maps to a real, build-able feature on top of infrastructure the platform already has (the <code>sidebar_registry</code>, the command bar, the 7-layer config cascade, the badge-context keys). Toggle <b>Operator/Tenant</b> to see it work identically on both surfaces.</p>
+
+      <div class="feat">
+        <div class="card"><h3><span class="dot"></span>1 · Type-to-filter</h3><p>Instant fuzzy filter inside the sidebar — the #1 gap today (the operator sidebar has 70+ items and no search). Empty groups fold away automatically.</p><div class="try">Try: press <span class="kbd-hint">/</span> and type “aud”, “sign”, “grade”…</div></div>
+        <div class="card"><h3><span class="dot"></span>2 · Adaptive “For you”</h3><p>A smart top section that learns your most-used destinations and floats them up — beyond manual pinning. Hot items get a subtle <b style="color:var(--accent)">★ often</b> tag.</p><div class="try">Try: toggle <span class="kbd-hint">Adaptive</span> in the toolbar.</div></div>
+        <div class="card"><h3><span class="dot"></span>3 · Live awareness badges</h3><p>Counts that mean something — pending approvals, open incidents, unread messages — wired from the registry’s existing <code>badge_context_key</code>, polled lightly (no websocket needed).</p><div class="try">Try: click <span class="kbd-hint">Simulate live update</span>.</div></div>
+        <div class="card"><h3><span class="dot"></span>4 · Pin to Quick access</h3><p>One click promotes any item to a personal Quick-access band (already persisted today via <code>DashboardUserPreference</code>).</p><div class="try">Try: hover an item and click the ☆.</div></div>
+        <div class="card"><h3><span class="dot"></span>5 · Keyboard-native</h3><p><span class="kbd-hint">/</span> focuses filter, <span class="kbd-hint">↑/↓</span> walk results, <span class="kbd-hint">↵</span> navigates, <span class="kbd-hint">⌘K</span> bridges to the existing command palette.</p><div class="try">Try: <span class="kbd-hint">/</span> then arrow keys.</div></div>
+        <div class="card"><h3><span class="dot"></span>6 · Density & shape</h3><p>Compact / Comfortable / Spacious — a real per-user + per-tenant config field, so the same nav fits a power operator and a first-time parent.</p><div class="try">Try: the <span class="kbd-hint">Density</span> switch above.</div></div>
+        <div class="card"><h3><span class="dot"></span>7 · One brain, two skins</h3><p>Operator (dark) and every tenant role (light, indigo/emerald) render from one <code>sidebar_registry</code> SOT — so intelligence ships everywhere at once, never forked per shell.</p><div class="try">Try: the <span class="kbd-hint">Operator/Tenant</span> switch above.</div></div>
+      </div>
+
+      <h2 style="font-size:15px;margin-bottom:8px;">Everything configurable — the cascade owns it</h2>
+      <div class="cfg">
+        <div class="cfg-row"><span class="k">Which items show / order</span><span class="lv">per role + per user override</span><span class="pilldot scope-op">operator</span><span class="pilldot scope-tn">tenant</span></div>
+        <div class="cfg-row"><span class="k">Density (compact/comfortable/spacious)</span><span class="lv">RuntimeDefaults → user pref</span><span class="pilldot scope-op">operator</span><span class="pilldot scope-tn">tenant</span></div>
+        <div class="cfg-row"><span class="k">Icon style (emoji / line / brand)</span><span class="lv">brand_experience domain</span><span class="pilldot scope-tn">tenant</span></div>
+        <div class="cfg-row"><span class="k">Show live badges / which counts</span><span class="lv">feature flag + per-section</span><span class="pilldot scope-op">operator</span><span class="pilldot scope-tn">tenant</span></div>
+        <div class="cfg-row"><span class="k">Adaptive ordering on/off</span><span class="lv">per user, opt-out safe</span><span class="pilldot scope-op">operator</span><span class="pilldot scope-tn">tenant</span></div>
+        <div class="cfg-row"><span class="k">Default collapsed groups</span><span class="lv">default_sidebar_collapsed (exists)</span><span class="pilldot scope-tn">tenant</span></div>
+      </div>
+
+      <p class="note"><b>This is a mockup</b> — no platform code is touched. It lives in <code>var/design-previews/</code>. The behaviours are real and build on existing primitives: <code>sidebar_registry.py</code> (NavItem SOT with <code>badge_context_key</code>), <code>command_bar_registry.py</code> (⌘K), the 7-layer config cascade, <code>DashboardUserPreference</code> (pins), and the <code>.cp-pin-btn</code>/<code>.rmc-section-nav</code> class grammar. Pick which of the seven to ship and on which surface first, and I’ll build it for real with tests + gates.</p>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  // ── data: two surfaces, grounded in the real audited nav ────────────────
+  const DATA = {
+    operator: {
+      title:"Control Plane", role:"Platform operator", logo:"R",
+      groups:[
+        {name:"Platform", items:[
+          {id:"dash",label:"Dashboard",ico:"◎",use:9},
+          {id:"cc",label:"Command Center",ico:"⌘",use:14,badge:{n:2}},
+          {id:"aig",label:"AI Gateway",ico:"✦",use:3},
+          {id:"aic",label:"AI Center",ico:"✶",use:2},
+        ]},
+        {name:"Tenants", items:[
+          {id:"schools",label:"Schools",ico:"⌂",use:11},
+          {id:"verif",label:"Signup verifications",ico:"✓",use:6,badge:{n:5,cls:"warn"}},
+          {id:"health",label:"Tenant health",ico:"♥",use:7},
+          {id:"district",label:"District & enterprise",ico:"▤",use:1},
+        ]},
+        {name:"Runtime & governance", items:[
+          {id:"inc",label:"Incidents",ico:"!",use:8,badge:{n:2}},
+          {id:"insp",label:"Runtime inspector",ico:"◴",use:4},
+          {id:"sim",label:"Workflow simulator",ico:"⟳",use:2},
+          {id:"play",label:"Playbook hub",ico:"❏",use:1},
+        ]},
+        {name:"Marketplace", items:[
+          {id:"gov",label:"Governance",ico:"§",use:3},
+          {id:"apps",label:"App catalog",ico:"▦",use:5},
+          {id:"roll",label:"Package rollout",ico:"↥",use:2},
+          {id:"cs",label:"Customer success",ico:"☺",use:4},
+        ]},
+        {name:"Observability & billing", items:[
+          {id:"usage",label:"Usage",ico:"∿",use:6},
+          {id:"pulse",label:"Pulse",ico:"♒",use:3},
+          {id:"ana",label:"Analytics",ico:"▰",use:10},
+          {id:"bill",label:"Billing",ico:"$",use:2},
+        ]},
+        {name:"Trust & compliance", items:[
+          {id:"trust",label:"Trust center",ico:"⛨",use:1},
+          {id:"comp",label:"Compliance",ico:"✜",use:2},
+          {id:"audit",label:"Audit center",ico:"❂",use:3},
+        ]},
+      ],
+    },
+    tenant: {
+      title:"St. Mary’s College", role:"Teacher · Mr. Adeyemi", logo:"S",
+      groups:[
+        {name:"My workflow", items:[
+          {id:"t-dash",label:"Dashboard",ico:"◎",use:12},
+          {id:"t-att",label:"Take attendance",ico:"✓",use:15,badge:{n:1,cls:"warn"}},
+          {id:"t-grade",label:"Gradebook",ico:"▦",use:13},
+          {id:"t-lesson",label:"Lesson plans",ico:"❏",use:5},
+          {id:"t-time",label:"Timetable",ico:"◷",use:7},
+        ]},
+        {name:"Learning", items:[
+          {id:"t-assign",label:"Assignments",ico:"✎",use:8,badge:{n:3}},
+          {id:"t-res",label:"Resources",ico:"▤",use:4},
+          {id:"t-cahier",label:"Cahier de texte",ico:"❒",use:2},
+        ]},
+        {name:"People", items:[
+          {id:"t-stu",label:"My students",ico:"☺",use:9},
+          {id:"t-msg",label:"Parent messages",ico:"✉",use:11,badge:{n:3}},
+        ]},
+        {name:"Performance", items:[
+          {id:"t-rep",label:"Reports",ico:"▰",use:3},
+          {id:"t-ana",label:"Analytics",ico:"∿",use:2},
+        ]},
+        {name:"Account", items:[
+          {id:"t-pref",label:"Preferences",ico:"⚙",use:2},
+          {id:"t-help",label:"Help center",ico:"?",use:1},
+        ]},
+      ],
+    },
+  };
+
+  const html=document.documentElement, body=document.body;
+  const nav=document.getElementById("nav");
+  const filter=document.getElementById("filter");
+  const pinned={operator:new Set(), tenant:new Set()};
+  const collapsed={operator:new Set(), tenant:new Set()};
+  let activeId=null, cursor=-1;
+
+  function surface(){return html.getAttribute("data-surface");}
+  function smart(){return html.getAttribute("data-smart")==="on";}
+
+  // ── render ───────────────────────────────────────────────────────────
+  function render(){
+    const s=surface(), d=DATA[s];
+    document.getElementById("sbTitle").textContent=d.title;
+    document.getElementById("sbRole").textContent=d.role;
+    document.getElementById("sbLogo").textContent=d.logo;
+    document.getElementById("surfaceName").textContent=
+      s==="operator"?"Operator · manager.runmycampus.com":"Tenant · new-school.runmycampus.com";
+    nav.innerHTML="";
+
+    // flat list for adaptive "For you" + pins
+    const all=[]; d.groups.forEach(g=>g.items.forEach(it=>all.push(it)));
+
+    // Quick access (pinned)
+    if(pinned[s].size){
+      const items=all.filter(it=>pinned[s].has(it.id));
+      nav.appendChild(renderGroup({name:"Quick access",items,_key:"__pins"},true));
+    }
+    // Adaptive "For you"
+    if(smart()){
+      const hot=[...all].sort((a,b)=>b.use-a.use).slice(0,3);
+      hot.forEach(it=>it._hot=true);
+      nav.appendChild(renderGroup({name:"For you",items:hot,_key:"__smart",_smart:true},false));
+    } else {
+      all.forEach(it=>it._hot=false);
+    }
+    // real groups
+    d.groups.forEach((g,i)=>{
+      const items = smart()? [...g.items].sort((a,b)=>(b.use)-(a.use)) : g.items;
+      nav.appendChild(renderGroup({...g,items,_key:"g"+i},false));
+    });
+    applyFilter();
+  }
+
+  function renderGroup(g,openAlways){
+    const s=surface();
+    const wrap=document.createElement("div");
+    wrap.className="group"+(g._smart?" group--smart":"");
+    if(!openAlways && collapsed[s].has(g._key)) wrap.classList.add("collapsed");
+    const h=document.createElement("div");
+    h.className="group-h"; h.innerHTML='<span class="chev">▾</span>'+g.name;
+    if(!openAlways) h.addEventListener("click",()=>{
+      wrap.classList.toggle("collapsed");
+      const on=wrap.classList.contains("collapsed");
+      on?collapsed[s].add(g._key):collapsed[s].delete(g._key);
+    });
+    wrap.appendChild(h);
+    const box=document.createElement("div"); box.className="items";
+    g.items.forEach(it=>box.appendChild(renderItem(it,g._key)));
+    wrap.appendChild(box);
+    return wrap;
+  }
+
+  function renderItem(it,gkey){
+    const s=surface();
+    const a=document.createElement("a");
+    a.className="item"+(it.id===activeId?" active":"")+(it._hot?" is-hot":"");
+    a.href="#"; a.dataset.id=it.id; a.dataset.label=it.label.toLowerCase();
+    a.innerHTML=
+      '<span class="ico">'+it.ico+'</span>'+
+      '<span class="lbl">'+it.label+'</span>'+
+      (it._hot?'<span class="tag">★ often</span>':'')+
+      (it.badge?'<span class="badge '+(it.badge.cls||'')+'" data-badge="'+it.id+'">'+it.badge.n+'</span>':'')+
+      '<button class="pin'+(pinned[s].has(it.id)?' pinned':'')+'" title="Pin to Quick access" aria-label="Pin">'+
+        (pinned[s].has(it.id)?'★':'☆')+'</button>';
+    a.addEventListener("click",e=>{
+      if(e.target.closest(".pin")){e.preventDefault();togglePin(it.id);return;}
+      e.preventDefault(); setActive(it.id);
+    });
+    return a;
+  }
+
+  function setActive(id){ activeId=id; render(); }
+  function togglePin(id){ const s=surface(); pinned[s].has(id)?pinned[s].delete(id):pinned[s].add(id); render(); }
+
+  // ── filter ───────────────────────────────────────────────────────────
+  function applyFilter(){
+    const q=filter.value.trim().toLowerCase();
+    let any=false;
+    nav.querySelectorAll(".item").forEach(a=>{
+      const lbl=a.dataset.label;
+      const hit=!q||lbl.includes(q);
+      a.style.display=hit?"":"none";
+      const lblEl=a.querySelector(".lbl");
+      const raw=lblEl.textContent;
+      if(q&&hit){ const i=lbl.indexOf(q);
+        lblEl.innerHTML=raw.slice(0,i)+"<mark>"+raw.slice(i,i+q.length)+"</mark>"+raw.slice(i+q.length);
+      } else { lblEl.textContent=raw; }
+      if(hit)any=true;
+    });
+    // fold empty groups
+    nav.querySelectorAll(".group").forEach(g=>{
+      const vis=[...g.querySelectorAll(".item")].some(a=>a.style.display!=="none");
+      g.style.display=vis?"":"none";
+      if(q&&vis)g.classList.remove("collapsed");
+    });
+    body.classList.toggle("no-results",!any);
+    cursor=-1; updateCursor();
+  }
+
+  function visibleItems(){return [...nav.querySelectorAll(".item")].filter(a=>a.style.display!=="none");}
+  function updateCursor(){
+    const items=visibleItems();
+    items.forEach((a,i)=>a.classList.toggle("kbd-cursor",i===cursor));
+    if(cursor>=0&&items[cursor])items[cursor].scrollIntoView({block:"nearest"});
+  }
+
+  // ── toolbar wiring ───────────────────────────────────────────────────
+  document.querySelectorAll("[data-surface-btn]").forEach(b=>b.addEventListener("click",()=>{
+    document.querySelectorAll("[data-surface-btn]").forEach(x=>x.setAttribute("aria-pressed",x===b));
+    html.setAttribute("data-surface",b.dataset.surfaceBtn); activeId=null; filter.value=""; render();
+  }));
+  document.querySelectorAll("[data-density-btn]").forEach(b=>b.addEventListener("click",()=>{
+    document.querySelectorAll("[data-density-btn]").forEach(x=>x.setAttribute("aria-pressed",x===b));
+    html.setAttribute("data-density",b.dataset.densityBtn);
+  }));
+  document.getElementById("smartToggle").addEventListener("click",function(){
+    const on=smart(); html.setAttribute("data-smart",on?"off":"on");
+    this.textContent="Adaptive: "+(on?"OFF":"ON"); render();
+  });
+  document.getElementById("liveBtn").addEventListener("click",()=>{
+    const s=surface(), d=DATA[s], all=[]; d.groups.forEach(g=>g.items.forEach(it=>all.push(it)));
+    const withBadge=all.filter(it=>it.badge);
+    const it=withBadge[Math.floor(Date.now()/1000)%withBadge.length]||withBadge[0];
+    if(!it)return; it.badge.n+=1; render();
+    const el=nav.querySelector('[data-badge="'+it.id+'"]'); if(el)el.classList.add("pulse");
+  });
+
+  filter.addEventListener("input",applyFilter);
+  filter.addEventListener("keydown",e=>{
+    const items=visibleItems();
+    if(e.key==="ArrowDown"){e.preventDefault();cursor=Math.min(cursor+1,items.length-1);updateCursor();}
+    else if(e.key==="ArrowUp"){e.preventDefault();cursor=Math.max(cursor-1,0);updateCursor();}
+    else if(e.key==="Enter"&&cursor>=0&&items[cursor]){e.preventDefault();setActive(items[cursor].dataset.id);filter.value="";applyFilter();}
+    else if(e.key==="Escape"){filter.value="";applyFilter();filter.blur();}
+  });
+  document.addEventListener("keydown",e=>{
+    if(e.key==="/"&&document.activeElement!==filter){e.preventDefault();filter.focus();}
+    if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){e.preventDefault();filter.focus();filter.select();}
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

@@ -5367,3 +5367,107 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   font-weight: 600;
   color: var(--brand-primary, currentColor);
 }
+
+/* ───────────────────────────────────────────────────────────────────────
+   Sidebar intelligence (rmc-sidebar-intelligence.js). One engine, both skins
+   (operator control-plane + tenant portal). All classes are JS-injected, so
+   they never touch the undefined-CSS template gate. Token-only — no literal
+   colours — so tenant brand wins and dark/light resolve via the cascade.
+─────────────────────────────────────────────────────────────────────── */
+.rmc-sb-has-filter { position: relative; }
+
+.rmc-sb-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 8px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-bg, transparent);
+}
+.rmc-sb-filter__field { position: relative; flex: 1 1 auto; }
+.rmc-sb-filter__input {
+  width: 100%;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: var(--text-primary, currentColor);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  border: 1px solid var(--hairline, currentColor);
+  border-radius: var(--radius-md, 10px);
+  padding: 7px 30px 7px 11px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.rmc-sb-filter__input:focus {
+  border-color: var(--brand-primary, currentColor);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 22%, transparent);
+}
+.rmc-sb-filter__hint {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.6875rem;
+  color: var(--text-tertiary, currentColor);
+  border: 1px solid var(--hairline, currentColor);
+  border-radius: 5px;
+  padding: 1px 6px;
+  pointer-events: none;
+}
+.rmc-sb-filter__density {
+  flex: none;
+  appearance: none;
+  border: 1px solid var(--hairline, currentColor);
+  background: transparent;
+  color: var(--text-secondary, currentColor);
+  border-radius: var(--radius-md, 10px);
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.rmc-sb-filter__density:hover { color: var(--brand-primary, currentColor); border-color: var(--brand-primary, currentColor); }
+
+.rmc-sb-out { display: none !important; }
+.rmc-sb-group-out { display: none !important; }
+.rmc-sb-cursor {
+  outline: 2px solid color-mix(in srgb, var(--brand-primary) 60%, transparent);
+  outline-offset: -2px;
+  border-radius: 10px;
+}
+.rmc-sb-mark { background: transparent; color: var(--brand-primary, currentColor); font-weight: 700; }
+
+.rmc-sb-frequent { padding: 4px 8px 6px; }
+.rmc-sb-frequent__head {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-tertiary, currentColor);
+  padding: 6px 8px 4px;
+}
+.rmc-sb-frequent__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  color: var(--text-primary, currentColor);
+  text-decoration: none;
+  font-size: 0.84rem;
+}
+.rmc-sb-frequent__item:hover { background: color-mix(in srgb, currentColor 6%, transparent); }
+.rmc-sb-frequent__item i { width: 18px; text-align: center; opacity: 0.8; flex: none; }
+.rmc-sb-frequent__label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rmc-sb-frequent__tag { color: var(--brand-primary, currentColor); font-size: 0.72rem; flex: none; }
+
+/* Density — per-user (localStorage) over cascade default (data-rmc-sidebar-density). */
+[data-rmc-density="compact"] .cp-sidebar__item,
+[data-rmc-density="compact"] .nav-pill,
+[data-rmc-density="compact"] .rmc-sb-frequent__item { padding-block: 4px; }
+[data-rmc-density="spacious"] .cp-sidebar__item,
+[data-rmc-density="spacious"] .nav-pill,
+[data-rmc-density="spacious"] .rmc-sb-frequent__item { padding-block: 11px; }
