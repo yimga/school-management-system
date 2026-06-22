@@ -26,6 +26,7 @@ from apps.schools.section8_views import find_school, global_login_discovery
 from apps.siteconfig.views_tour import tour_steps_public_api
 from apps.siteconfig.views_service_worker import (
     service_worker_asset_manifest,
+    service_worker_reset,
     service_worker_script,
 )
 from apps.schools.control_plane import (
@@ -639,6 +640,9 @@ urlpatterns = [
     path("api/command-bar/actions/", CommandBarActionsView.as_view(), name="command_bar_actions"),
     path("offline/", offline_page, name="offline"),
     path("sw.js", service_worker_script, name="service_worker_root"),
+    # Stale-service-worker escape hatch — mirrored from config/urls.py so operators
+    # on manager.runmycampus.com can also force-clear a stuck worker.
+    path("sw-reset/", service_worker_reset, name="service_worker_reset"),
     path("sw-asset-manifest.json", service_worker_asset_manifest, name="sw_asset_manifest"),
     path("offline/sync/", manager_offline_sync_center, name="manager_offline_sync_center"),
     path("manifest.json", _platform_manifest, name="pwa_manifest_platform"),

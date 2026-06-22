@@ -113,6 +113,7 @@ from apps.marketplace.urls_developer_platform import (
 )
 from apps.siteconfig.views_service_worker import (
     service_worker_asset_manifest,
+    service_worker_reset,
     service_worker_script,
 )
 
@@ -141,6 +142,10 @@ urlpatterns = [
     ),
     path("offline/", offline_page, name="offline"),
     path("sw.js", service_worker_script, name="service_worker_root"),
+    # Stale-service-worker escape hatch — mirrored from config/urls.py so it is
+    # reachable on marketing/public hosts too (UrlConfSwitcherMiddleware swaps in
+    # this module for those hosts).
+    path("sw-reset/", service_worker_reset, name="service_worker_reset"),
     path("sw-asset-manifest.json", service_worker_asset_manifest, name="sw_asset_manifest"),
     # PWA manifest endpoints (mirrored from config/urls.py so templates that emit
     # `{% url 'pwa_manifest_platform' %}` work under the public urlconf when

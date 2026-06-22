@@ -246,6 +246,7 @@ from apps.siteconfig.views_manifest_icon import (  # noqa: E402
 )
 from apps.siteconfig.views_service_worker import (  # noqa: E402
     service_worker_asset_manifest,
+    service_worker_reset,
     service_worker_script,
 )
 
@@ -285,6 +286,11 @@ urlpatterns = [
     path("demo/flow/complete/", demo_flow_complete, name="demo_flow_complete"),
     path("favicon.ico", favicon_redirect),
     path("sw.js", service_worker_script, name="service_worker_root"),
+    # One-click escape hatch for a browser stuck on a stale service worker. MUST
+    # exist on the tenant urlconf — a tenant subdomain resolves through this
+    # module, so without it /sw-reset/ 404s exactly where a stuck cache-first
+    # worker is serving days-old HTML (the "deploys never show up" report).
+    path("sw-reset/", service_worker_reset, name="service_worker_reset"),
     path(
         "sw-asset-manifest.json",
         service_worker_asset_manifest,
