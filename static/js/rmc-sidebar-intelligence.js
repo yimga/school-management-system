@@ -337,6 +337,37 @@
     }, true);
   }
 
+  // ── active-page marker ───────────────────────────────────────────────────
+  // The portal sidebar never marked the current page, so clicking the item for
+  // the page you are already on re-landed in place and read as "it just reloaded
+  // the same page" (owner complaint). Mark the longest path-prefix match with
+  // aria-current="page" so the active item is always visually obvious. The
+  // [aria-current="page"] styling already ships in portal-sidebar.css and mirrors
+  // the header's tp-primary-nav contract. Fails soft — never breaks the sidebar.
+  function markActive(root) {
+    try {
+      var here = (location.pathname || "/").replace(/\/+$/, "") || "/";
+      var links = [].slice.call(root.querySelectorAll("a.nav-link[href]"));
+      var best = null, bestLen = -1;
+      links.forEach(function (a) {
+        var href = a.getAttribute("href") || "";
+        if (!href || href.charAt(0) === "#") return;
+        var path;
+        try { path = new URL(href, location.origin).pathname.replace(/\/+$/, "") || "/"; }
+        catch (e) { return; }
+        if (path === "/") {
+          if (here === "/" && bestLen < 0) { best = a; bestLen = 0; }
+          return;
+        }
+        if (here === path || here.indexOf(path + "/") === 0) {
+          if (path.length > bestLen) { best = a; bestLen = path.length; }
+        }
+      });
+      links.forEach(function (a) { if (a !== best) a.removeAttribute("aria-current"); });
+      if (best) best.setAttribute("aria-current", "page");
+    } catch (err) { /* never break the sidebar over an active marker */ }
+  }
+
   // ── density (config default + per-user override) ────────────────────────
   function applyDensity(root) {
     var pref = readJSON(PREFS_KEY).density || readJSON(DENSITY_KEY).d; // PREFS wins; legacy fallback
@@ -401,6 +432,7 @@
       var ad = adapter(root);
       applyDensity(root);
       trackClicks(root);
+      markActive(root);
       liveBadges(root);
 
       var list = items(root, ad).map(function (a) {
