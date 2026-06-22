@@ -20,12 +20,16 @@ ENFORCEMENT_CSS = REPO_ROOT / "static" / "css" / "design-system-phase2-enforceme
 TEMPLATES = REPO_ROOT / "templates"
 
 # The genuine twins found by the platform audit (full-width search forcing a wrap).
+# Broader re-audit (2026-06-22) confirmed every genuine case is a role="search"
+# bar (covered by the rule); the only non-search candidates were benign
+# div-wrapped labelled fields / standalone prompts, not naked toolbar controls.
 TARGET_TEMPLATES = [
     "schools/super_fleet_wall.html",
     "schools/super_pulse.html",
     "schools/super_tenant_health.html",
     "schools/super_usage.html",
     "portal/operator/kb_docs_hub_body.html",
+    "portal/kb_docs_hub.html",
 ]
 
 
