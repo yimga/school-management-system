@@ -102,6 +102,38 @@ def missing_tenant_tables(conn=None) -> list[tuple[str, str, str]]:
     return sorted(missing)
 
 
+def missing_tenant_columns(conn=None) -> list[tuple[str, str, str, str]]:
+    """READ-ONLY: tenant-app columns absent from an EXISTING table in this schema.
+
+    Returns a sorted list of (app_label, model_name, db_table, column). This is the
+    drift class ``missing_tenant_tables`` cannot see: an ``AddField`` recorded as
+    applied whose column never physically landed (e.g.
+    ``finance_notification.dismissed_at``), which 500s any query that selects it.
+    Tables that are missing entirely are skipped here — that is
+    ``missing_tenant_tables``' job. Run inside ``tenant_context`` / ``schema_context``.
+    """
+    conn = conn or connection
+    with conn.cursor() as cursor:
+        existing_tables = set(conn.introspection.table_names(cursor))
+    missing: list[tuple[str, str, str, str]] = []
+    for model in _managed_tenant_models():
+        table = model._meta.db_table
+        if table not in existing_tables:
+            continue
+        with conn.cursor() as cursor:
+            cols = {
+                col.name
+                for col in conn.introspection.get_table_description(cursor, table)
+            }
+        for field in model._meta.local_concrete_fields:
+            column = field.column
+            if column and column not in cols:
+                missing.append(
+                    (model._meta.app_label, model.__name__, table, column)
+                )
+    return sorted(missing)
+
+
 def scan_all_tenant_schemas(only_schema=None) -> dict[str, list[tuple[str, str, str]]]:
     """Run ``missing_tenant_tables`` against every tenant schema (or just one).
 
@@ -170,6 +202,58 @@ def ensure_models_tables(schema_editor, models) -> list[str]:
     return created
 
 
+def ensure_models_columns(schema_editor, models) -> list[str]:
+    """Best-effort add of any missing column among ``models`` in the current schema.
+
+    The column-granularity twin of ``ensure_models_tables``: heals the generic
+    drift class (an ``AddField`` recorded as applied whose column never landed)
+    for ANY tenant model, not just the hand-written per-app repairs in
+    ``_COLUMN_REPAIRS``. Each field is added in its OWN savepoint, so one failure
+    (e.g. a NOT NULL add on a populated table) is logged and skipped and never
+    aborts the rest. Tables that are missing entirely are skipped (that is
+    ``ensure_models_tables``' job). Returns the ``"table.column"`` list actually
+    added; a no-op on a healthy schema.
+    """
+    conn = schema_editor.connection
+    schema_name = getattr(conn, "schema_name", "?")
+    with conn.cursor() as cursor:
+        existing_tables = set(conn.introspection.table_names(cursor))
+    added: list[str] = []
+    for model in models:
+        table = model._meta.db_table
+        if table not in existing_tables:
+            continue
+        with conn.cursor() as cursor:
+            cols = {
+                col.name
+                for col in conn.introspection.get_table_description(cursor, table)
+            }
+        for field in model._meta.local_concrete_fields:
+            column = field.column
+            if not column or column in cols:
+                continue
+            try:
+                with transaction.atomic(using=conn.alias):
+                    schema_editor.add_field(model, field)
+                added.append(f"{table}.{column}")
+                logger.warning(
+                    "tenant_schema_guard: added missing column %s.%s in schema %s",
+                    table,
+                    column,
+                    schema_name,
+                )
+            except _HEAL_ERRORS as exc:
+                logger.exception(
+                    "tenant_schema_guard: could not add column %s.%s in schema %s "
+                    "(left for a full migrate): %s",
+                    table,
+                    column,
+                    schema_name,
+                    exc,
+                )
+    return added
+
+
 # Per-app COLUMN-drift heals. Each entry is (label, module path, callable name).
 # These heals introspect the LIVE table columns (NOT django_migrations), so they
 # fix the drift class that `migrate` cannot: a heal migration recorded as applied
@@ -183,6 +267,11 @@ _COLUMN_REPAIRS: tuple[tuple[str, str, str], ...] = (
     ("academics_school_id", "apps.academics.schema_repair", "ensure_academics_school_id_columns"),
     ("people_schema", "apps.people.schema_repair", "ensure_people_schema_current"),
     ("schoolops_visitorcheckin_offline_id", "apps.schoolops.schema_repair", "ensure_visitorcheckin_offline_id_column"),
+    # Notification.dismissed_at/expires_at/school_id from finance 0071 — the drift
+    # that 500'd /api/notifications/unread_count/ on every authenticated page. This
+    # is a TRUE column heal; the finance OfflinePaymentIntent INDEX heal stays out
+    # of this list (it is owned by its own migration) per the note above.
+    ("finance_notification_columns", "apps.finance.schema_repair", "ensure_finance_notification_columns"),
 )
 
 

@@ -11,12 +11,17 @@ from __future__ import annotations
 
 import logging
 
+from django.core.exceptions import FieldDoesNotExist
 from django.db import connection
 
 logger = logging.getLogger(__name__)
 
 _OFFLINE_PAYMENT_TABLE = "finance_offlinepaymentintent"
 _OFFLINE_PAYMENT_INDEX = "uniq_offlinepaymentintent_invoice_client_id"
+
+_NOTIFICATION_TABLE = "finance_notification"
+# Field NAMES (resolved to columns via the live model: ``school`` -> ``school_id``).
+_NOTIFICATION_DRIFT_FIELDS = ("dismissed_at", "expires_at", "school")
 
 
 def ensure_offlinepaymentintent_client_id_index() -> bool:
@@ -70,6 +75,53 @@ def ensure_offlinepaymentintent_client_id_index() -> bool:
     return True
 
 
+def ensure_finance_notification_columns() -> bool:
+    """Add ``dismissed_at`` / ``expires_at`` / ``school_id`` to ``finance_notification``.
+
+    Heals the drift class where finance ``0071`` is recorded as applied but its
+    ``AddField`` never physically landed in a tenant schema, so
+    ``/api/notifications/unread_count/`` (and therefore the notification bell on
+    EVERY authenticated page) 500s with
+    ``column finance_notification.dismissed_at does not exist``.
+
+    Each missing field is resolved from the LIVE model so the column type / null /
+    FK definition exactly matches the migration, then added via the schema editor.
+    Idempotent: introspects the live columns first and skips any that already
+    exist; a no-op (one introspection) on a healthy schema. Returns True if it
+    added at least one column.
+    """
+    from apps.finance.models import Notification
+
+    table = Notification._meta.db_table
+    with connection.cursor() as cursor:
+        if table not in set(connection.introspection.table_names(cursor)):
+            return False
+        existing = {
+            col.name
+            for col in connection.introspection.get_table_description(cursor, table)
+        }
+
+    changed = False
+    for field_name in _NOTIFICATION_DRIFT_FIELDS:
+        try:
+            field = Notification._meta.get_field(field_name)
+        except FieldDoesNotExist:
+            continue
+        if field.column in existing:
+            continue
+        # rls-bypass-allow: schema-repair-ddl-must-bypass-row-policies-to-add-column
+        with connection.schema_editor() as editor:
+            editor.add_field(Notification, field)
+        existing.add(field.column)
+        changed = True
+        logger.warning(
+            "finance schema_repair: added missing column %s.%s", table, field.column
+        )
+    return changed
+
+
 def ensure_finance_schema_current() -> bool:
     """Run every idempotent finance-table schema repair. Returns True if any ran."""
-    return bool(ensure_offlinepaymentintent_client_id_index())
+    ran_index = ensure_offlinepaymentintent_client_id_index()
+    ran_notif = ensure_finance_notification_columns()
+    return bool(ran_index or ran_notif)
