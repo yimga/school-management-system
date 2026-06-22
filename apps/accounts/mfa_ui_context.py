@@ -51,3 +51,40 @@ def build_mfa_ui_context(request) -> dict:
 
 def operator_mfa_context(request):
     return build_mfa_ui_context(request)
+
+
+def mfa_nudge_context(request):
+    """Persistent "set up 2FA" nudge for grace / optional enforcement modes.
+
+    ``RequireMFAMiddleware`` stamps ``request.rmc_mfa_nudge`` when a required
+    user is let through under grace/optional mode (instead of a hard wall). This
+    surfaces it to the shells, honoring a per-session dismissal so the banner
+    can be closed but reappears next session (it is a security prompt).
+    """
+    nudge = getattr(request, "rmc_mfa_nudge", None)
+    if not nudge:
+        return {"rmc_mfa_nudge": None}
+    try:
+        if request.session.get("mfa_banner_dismissed"):
+            return {"rmc_mfa_nudge": None}
+    except (AttributeError, TypeError):
+        pass
+
+    data = dict(nudge)
+    try:
+        # legacy=1 → the polished enrollment page (not the bare studio wizard).
+        data["setup_url"] = reverse("accounts:mfa_setup") + "?legacy=1"
+    except MFA_CONTEXT_SOFT_FAILURES:
+        data["setup_url"] = ""
+    try:
+        next_path = getattr(request, "get_full_path", lambda: "")() or ""
+        data["dismiss_url"] = reverse("accounts:dismiss_mfa_banner")
+        if next_path:
+            data["dismiss_url"] += "?next=" + next_path
+    except MFA_CONTEXT_SOFT_FAILURES:
+        data["dismiss_url"] = ""
+    try:
+        data["policy_url"] = reverse("portal:mfa_policy")
+    except MFA_CONTEXT_SOFT_FAILURES:
+        data["policy_url"] = ""
+    return {"rmc_mfa_nudge": data}

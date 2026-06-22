@@ -56,8 +56,116 @@ def role_requires_mfa(role: str | None, tenant_required: list[str] | tuple[str, 
     return str(role).strip().upper() in effective_required_roles(tenant_required)
 
 
+# ---------------------------------------------------------------------------
+# Enforcement posture — strict / grace / optional (v4.04.5x)
+# ---------------------------------------------------------------------------
+#
+# Best-in-class platforms (Salesforce, AWS, GitHub, Microsoft 365) all mandate
+# MFA for privileged roles, but differ in HOW they roll it out: a hard wall on
+# the very first navigation reads as "the app is broken", so they use a grace
+# window + a persistent nudge instead. This resolver lets a tenant pick the
+# posture per-school via the runtime-defaults cascade
+# (RuntimeDefaults.mfa_enforcement_mode / mfa_grace_period_days). The platform
+# default stays "strict" so existing tenants see zero behavior change.
+
+from collections import namedtuple
+from datetime import timedelta
+
+from django.utils import timezone
+
+#: Modes for ``RuntimeDefaults.mfa_enforcement_mode``. "strict" preserves the
+#: original hard-wall behavior and is the platform default.
+MFA_MODE_STRICT = "strict"
+MFA_MODE_GRACE = "grace"
+MFA_MODE_OPTIONAL = "optional"
+VALID_MFA_ENFORCEMENT_MODES: tuple[str, ...] = (
+    MFA_MODE_STRICT,
+    MFA_MODE_GRACE,
+    MFA_MODE_OPTIONAL,
+)
+
+#: Default grace-window length when a tenant selects "grace" but leaves the day
+#: count blank. Mirrored as the façade default in
+#: ``apps.siteconfig.models_support.virtual_site_setting_default`` ("_ints").
+DEFAULT_MFA_GRACE_PERIOD_DAYS = 7
+
+#: Resolver verdict consumed by ``RequireMFAMiddleware`` and the nudge banner.
+#: ``action`` is one of: "none" (not required / already enrolled — no-op),
+#: "enforce" (hard wall — redirect to setup), "grace" (allow + nudge, deadline
+#: known), "nudge" (allow + nudge, no deadline — optional mode).
+MfaEnforcementDecision = namedtuple(
+    "MfaEnforcementDecision",
+    ("action", "mode", "grace_days_remaining", "grace_deadline"),
+)
+
+
+def normalize_mfa_mode(raw: object) -> str:
+    """Map a raw stored value to a valid mode, defaulting to strict."""
+    value = str(raw or "").strip().lower()
+    if value in VALID_MFA_ENFORCEMENT_MODES:
+        return value
+    return MFA_MODE_STRICT
+
+
+def resolve_mfa_enforcement(
+    *,
+    must_have_mfa: bool,
+    has_device: bool,
+    mode: object,
+    grace_period_days: object = None,
+    user: object = None,
+) -> MfaEnforcementDecision:
+    """Decide how to treat a required-role user who may lack an MFA device.
+
+    Only ``must_have_mfa and not has_device`` users are ever gated; everyone
+    else returns ``action="none"``. The grace window is anchored on the user's
+    ``date_joined`` (no per-user migration needed): a brand-new owner gets the
+    full window before any wall, while long-standing admins past the window are
+    enforced. ``optional`` never walls — it only nudges.
+    """
+    norm_mode = normalize_mfa_mode(mode)
+
+    if not must_have_mfa or has_device:
+        return MfaEnforcementDecision("none", norm_mode, None, None)
+
+    if norm_mode == MFA_MODE_STRICT:
+        return MfaEnforcementDecision("enforce", norm_mode, None, None)
+
+    if norm_mode == MFA_MODE_OPTIONAL:
+        return MfaEnforcementDecision("nudge", norm_mode, None, None)
+
+    # grace: allow until date_joined + grace_period_days, then enforce.
+    try:
+        days = int(grace_period_days)
+    except (TypeError, ValueError):
+        days = DEFAULT_MFA_GRACE_PERIOD_DAYS
+    if days < 0:
+        days = DEFAULT_MFA_GRACE_PERIOD_DAYS
+
+    joined = getattr(user, "date_joined", None)
+    if joined is None:
+        # No anchor (e.g. synthetic request user) — treat as still in grace so a
+        # config-only test or odd account is never hard-walled by grace mode.
+        return MfaEnforcementDecision("grace", norm_mode, days, None)
+
+    deadline = joined + timedelta(days=days)
+    now = timezone.now()
+    if now >= deadline:
+        return MfaEnforcementDecision("enforce", norm_mode, 0, deadline)
+    remaining = (deadline - now).days
+    return MfaEnforcementDecision("grace", norm_mode, max(remaining, 0), deadline)
+
+
 __all__ = [
     "BASELINE_REQUIRED_ROLES",
     "effective_required_roles",
     "role_requires_mfa",
+    "MFA_MODE_STRICT",
+    "MFA_MODE_GRACE",
+    "MFA_MODE_OPTIONAL",
+    "VALID_MFA_ENFORCEMENT_MODES",
+    "DEFAULT_MFA_GRACE_PERIOD_DAYS",
+    "MfaEnforcementDecision",
+    "normalize_mfa_mode",
+    "resolve_mfa_enforcement",
 ]

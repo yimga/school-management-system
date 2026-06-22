@@ -5612,3 +5612,72 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   from { opacity: 0; transform: translate(-50%, 0.5rem); }
   to { opacity: 1; transform: translate(-50%, 0); }
 }
+
+/* MFA enrollment nudge (grace / optional enforcement modes) — token-only.
+   Surfaced by apps.accounts.mfa_ui_context.mfa_nudge_context on every shell
+   when a required user is let through instead of hard-walled. */
+.rmc-mfa-nudge {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  max-width: 64rem;
+  margin: 0.75rem auto;
+  padding: 0.75rem 1rem;
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--brand-primary);
+  border-radius: var(--radius-sm, 0.5rem);
+  box-shadow: var(--elev-1, var(--elev-3));
+}
+.rmc-mfa-nudge__icon {
+  flex: none;
+  color: var(--brand-primary);
+  font-size: var(--type-size-lg, 1.125rem);
+  line-height: 1.4;
+}
+.rmc-mfa-nudge__body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+.rmc-mfa-nudge__title { color: var(--text-primary); font-weight: 600; }
+.rmc-mfa-nudge__msg {
+  color: var(--text-secondary);
+  font-size: var(--type-size-sm, 0.875rem);
+  line-height: 1.4;
+}
+.rmc-mfa-nudge__actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.rmc-mfa-nudge__cta {
+  display: inline-block;
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--radius-sm, 0.5rem);
+  background: var(--brand-primary);
+  color: var(--text-on-brand);
+  font-size: var(--type-size-sm, 0.875rem);
+  font-weight: 600;
+  text-decoration: none;
+}
+.rmc-mfa-nudge__cta:hover { filter: brightness(1.05); }
+.rmc-mfa-nudge__link {
+  color: var(--brand-primary);
+  font-size: var(--type-size-sm, 0.875rem);
+  text-decoration: none;
+}
+.rmc-mfa-nudge__link:hover { text-decoration: underline; }
+.rmc-mfa-nudge__dismiss {
+  flex: none;
+  color: var(--text-secondary);
+  font-size: var(--type-size-lg, 1.125rem);
+  line-height: 1;
+  text-decoration: none;
+  padding: 0 0.25rem;
+}

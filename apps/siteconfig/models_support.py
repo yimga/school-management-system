@@ -429,6 +429,10 @@ def virtual_site_setting_default(name: str) -> object:
         "default_dashboard_view": "",
         "default_report_preview_type": "TERM",
         "offline_sync_conflict_resolution": "show_both",
+        # Required-role MFA enforcement posture. "strict" = current hard-wall
+        # behavior (platform default). Tenants override per-school via the
+        # runtime-defaults cascade. Resolved in apps.accounts.mfa_defaults.
+        "mfa_enforcement_mode": "strict",
         "report_preview_contact_email": PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL,
         "report_preview_contact_phone": "",
         "sms_provider": "",
@@ -464,6 +468,9 @@ def virtual_site_setting_default(name: str) -> object:
     _ints = {
         "cache_rankings_interval_minutes": 60,
         "requests_reminder_interval_hours": 24,
+        # Grace-window length (days) for "grace" MFA enforcement mode; mirrors
+        # apps.accounts.mfa_defaults.DEFAULT_MFA_GRACE_PERIOD_DAYS.
+        "mfa_grace_period_days": 7,
         "teacher_reminder_time_of_day": 8,
         "top_students_default_limit": 5,
         "default_refresh_rate": 60,

@@ -305,6 +305,8 @@
     <main id="main-content" class="container py-4 rmc-shell-main" role="main" data-rmc-shell-main="base">
       {% include "partials/shell_chrome_django_messages_base_bootstrap.html" %}
       {% include "components/rmc_page_explain_strip.html" %}
+      {% comment %} MFA enrollment nudge — shown under grace/optional enforcement. {% endcomment %}
+      {% include "partials/rmc_mfa_nudge.html" %}
 
       {% include "partials/breadcrumbs.html" %}
 

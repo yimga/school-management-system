@@ -91,6 +91,8 @@ EXACT_FIELD_OWNERS: Final[dict[str, str]] = {
     "enable_practical_assessment": "policies_rules",
     "require_mfa_roles": "policies_rules",
     "require_mfa_all_staff": "policies_rules",
+    "mfa_enforcement_mode": "policies_rules",
+    "mfa_grace_period_days": "policies_rules",
     "requests_reminder_interval_hours": "policies_rules",
     "teacher_reminder_time_of_day": "policies_rules",
     "use_promotion_rule_for_pass": "policies_rules",

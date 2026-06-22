@@ -582,6 +582,31 @@ class RuntimeDefaults(models.Model):
         null=True,
         help_text="Default role codes requiring MFA setup.",
     )
+    mfa_enforcement_mode = models.CharField(
+        max_length=16,
+        blank=True,
+        null=True,
+        choices=(
+            ("strict", "Strict (require MFA before access — hard wall)"),
+            ("grace", "Grace (allow access, nudge, enforce after grace window)"),
+            ("optional", "Optional (never block — nudge only)"),
+        ),
+        help_text=(
+            "How required-role MFA is enforced when the user has no device. "
+            "Blank/None = strict (platform default, current behavior). Tenants "
+            "may override per-school via SiteSettings. Resolved by "
+            "apps.accounts.mfa_defaults.resolve_mfa_enforcement."
+        ),
+    )
+    mfa_grace_period_days = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        help_text=(
+            "Days a required-role user may access without MFA before the grace "
+            "window closes (grace mode only). Blank/None = platform default. "
+            "Measured from the user's date_joined."
+        ),
+    )
     offline_sync_conflict_resolution = models.CharField(
         max_length=32,
         blank=True,

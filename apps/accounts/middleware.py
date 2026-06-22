@@ -681,7 +681,10 @@ class RequireMFAMiddleware:
             # privileged roles (finance, super_admin, auditor, …) ALWAYS need
             # MFA even on tenants that forgot to configure it. See
             # apps/accounts/mfa_defaults.py.
-            from apps.accounts.mfa_defaults import effective_required_roles
+            from apps.accounts.mfa_defaults import (
+                effective_required_roles,
+                resolve_mfa_enforcement,
+            )
 
             role = get_user_role(user, getattr(request, "school", None))
             must_have_mfa = False
@@ -708,19 +711,47 @@ class RequireMFAMiddleware:
 
                 has_device = UserPasskey.objects.filter(user=user).exists()
 
-            # If MFA is required OR user has MFA configured, enforce verification
-            if must_have_mfa and not has_device:
+            # Enforcement posture is tenant-configurable (strict / grace /
+            # optional) via the runtime-defaults cascade; the platform default
+            # is strict (= the original hard wall). grace/optional let a
+            # required user through with a persistent nudge instead of a
+            # first-click wall — the Salesforce/Shopify rollout pattern.
+            decision = resolve_mfa_enforcement(
+                must_have_mfa=must_have_mfa,
+                has_device=has_device,
+                mode=getattr(site, "mfa_enforcement_mode", None),
+                grace_period_days=getattr(site, "mfa_grace_period_days", None),
+                user=user,
+            )
+            if decision.action == "enforce":
                 mfa_setup_url = reverse("accounts:mfa_setup")
                 if path != mfa_setup_url.rstrip("/") and not path.endswith(
                     mfa_setup_url
                 ):
+                    # ``legacy=1`` routes to the polished, branded enrollment
+                    # page (templates/accounts/partials/mfa_setup_page_body.html)
+                    # via the sanctioned wizard-engine escape hatch, instead of
+                    # the bare studio wizard.
                     return redirect(
                         mfa_setup_url
-                        + "?next="
+                        + "?legacy=1&next="
                         + (request.GET.get("next") or request.path)
                     )
                 return self.get_response(request)
+            if decision.action in ("grace", "nudge"):
+                # Allowed through. Record the nudge for the banner context
+                # processor and return immediately — never fall into the
+                # re-verify gate below (there is no device to verify yet), or
+                # the page would never render.
+                request.rmc_mfa_nudge = {
+                    "mode": decision.mode,
+                    "action": decision.action,
+                    "grace_days_remaining": decision.grace_days_remaining,
+                }
+                return self.get_response(request)
 
+            # action == "none": device-holders (and non-required users) fall
+            # through to the per-session re-verify gate.
             if has_device or must_have_mfa:
                 if not self._is_mfa_verified(request):
                     mfa_verify_url = reverse("accounts:mfa_verify")

@@ -152,6 +152,7 @@ from .views_partner_docs import partner_documentation_assistant
 from .views_runmycampus_guide import runmycampus_guide
 # v4.00.9: streaming AI gateway view for the rmcStreamMount progressive client.
 from .views_ai_mode import ai_mode_view
+from .views_mfa_policy import mfa_policy_view
 from .views_ai_stream import ai_stream_view
 from .views_copilot_rail import (
     TenantCopilotRailContextView,
@@ -190,6 +191,9 @@ urlpatterns = [
     path("ai/stream/", ai_stream_view, name="ai_stream"),
     # AI mode status + switch (operator platform default + per-tenant override).
     path("ai/mode/", ai_mode_view, name="ai_mode"),
+    # MFA enforcement policy (strict / grace / optional) — platform default +
+    # per-tenant override. Server-rendered form; consumed by RequireMFAMiddleware.
+    path("security/mfa-policy/", mfa_policy_view, name="mfa_policy"),
     # Tenant copilot rail endpoints (host-correct counterpart to studio_os:copilot_rail_*).
     # The shared rail template resolves these on tenant hosts so chat/insights work.
     path("copilot/rail/context/", TenantCopilotRailContextView.as_view(), name="copilot_rail_context"),

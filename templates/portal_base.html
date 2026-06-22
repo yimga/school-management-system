@@ -446,6 +446,8 @@
             {% include "components/rmc_page_explain_strip.html" %}
             {% comment %} v4.02.10: incident banner in Tools tray context stack. {% endcomment %}
             {% include "partials/shell_chrome_security_posture_banner.html" %}
+            {% comment %} MFA enrollment nudge — shown under grace/optional enforcement. {% endcomment %}
+            {% include "partials/rmc_mfa_nudge.html" %}
 
             {% if request.user.is_authenticated and not tp_v3_tenant_shell %}
             {% block rmc_zero_click_strip %}

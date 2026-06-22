@@ -1,0 +1,19 @@
+{% load i18n %}
+{% if rmc_mfa_nudge %}
+<div class="rmc-mfa-nudge" role="status" aria-live="polite" data-rmc-mfa-nudge="1">
+  <i class="bi bi-shield-lock rmc-mfa-nudge__icon" aria-hidden="true"></i>
+  <div class="rmc-mfa-nudge__body">
+    <strong class="rmc-mfa-nudge__title">{% trans "Set up two-factor authentication" %}</strong>
+    {% if rmc_mfa_nudge.action == "grace" and rmc_mfa_nudge.grace_days_remaining is not None %}
+      <span class="rmc-mfa-nudge__msg">{% blocktrans count days=rmc_mfa_nudge.grace_days_remaining %}Your role requires 2FA. {{ days }} day left before it's required to continue.{% plural %}Your role requires 2FA. {{ days }} days left before it's required to continue.{% endblocktrans %}</span>
+    {% else %}
+      <span class="rmc-mfa-nudge__msg">{% trans "Your role requires two-factor authentication. Add it now to secure your account." %}</span>
+    {% endif %}
+  </div>
+  <div class="rmc-mfa-nudge__actions">
+    {% if rmc_mfa_nudge.setup_url %}<a class="rmc-mfa-nudge__cta" href="{{ rmc_mfa_nudge.setup_url }}">{% trans "Set up now" %}</a>{% endif %}
+    {% if rmc_mfa_nudge.policy_url %}<a class="rmc-mfa-nudge__link" href="{{ rmc_mfa_nudge.policy_url }}">{% trans "Policy" %}</a>{% endif %}
+    {% if rmc_mfa_nudge.dismiss_url %}<a class="rmc-mfa-nudge__dismiss" href="{{ rmc_mfa_nudge.dismiss_url }}" aria-label="{% trans 'Dismiss' %}" title="{% trans 'Dismiss for this session' %}">&times;</a>{% endif %}
+  </div>
+</div>
+{% endif %}

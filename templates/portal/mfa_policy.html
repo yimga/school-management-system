@@ -1,0 +1,95 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "MFA enforcement policy" %} · {% trans "Security" %}{% endblock %}
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" data-page-critical-read="1" aria-hidden="true"></div>
+
+<main class="rmc-page" id="main">
+  <h1 class="rmc-h1">{% trans "Two-factor enforcement" %}</h1>
+  <p class="text-muted">
+    {% blocktrans %}Privileged roles always require two-factor authentication (the same posture as Salesforce, AWS and GitHub). What you choose here is <strong>how</strong> that requirement is rolled out — a hard wall, a grace window, or a nudge.{% endblocktrans %}
+  </p>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} py-2" role="status">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <section class="card mt-3 mb-4">
+    <div class="card-body">
+      <h2 class="h6 mb-2">{% trans "Current state" %}</h2>
+      <dl class="row mb-0 small">
+        <dt class="col-sm-5">{% trans "Effective mode (this context)" %}</dt>
+        <dd class="col-sm-7"><span class="badge text-bg-primary text-uppercase">{{ effective_mode }}</span>
+          {% if effective_mode == "grace" %}<span class="text-muted">· {{ effective_grace_days }} {% trans "day grace" %}</span>{% endif %}
+        </dd>
+        <dt class="col-sm-5">{% trans "Platform default" %}</dt>
+        <dd class="col-sm-7">{{ platform_default_mode }}{% if platform_default_mode == "grace" %} · {{ platform_default_grace_days }} {% trans "days" %}{% endif %}</dd>
+        {% if has_school %}
+        <dt class="col-sm-5">{% trans "This school's override" %}</dt>
+        <dd class="col-sm-7">{% if tenant_override.mode %}{{ tenant_override.mode }}{% else %}<span class="text-muted">{% trans "none (inherits platform default)" %}</span>{% endif %}</dd>
+        {% endif %}
+      </dl>
+    </div>
+  </section>
+
+  {% if can_set_tenant or can_set_platform %}
+  <section class="card mt-3 mb-4">
+    <form method="post" class="card-body">
+      {% csrf_token %}
+      <h2 class="h6 mb-3">{% trans "Change policy" %}</h2>
+
+      <div class="mb-3">
+        <label class="form-label" for="mfa-mode">{% trans "Enforcement mode" %}</label>
+        <select id="mfa-mode" name="mode" class="form-select">
+          <option value="strict" {% if effective_mode == "strict" %}selected{% endif %}>{% trans "Strict — require 2FA before access (hard wall)" %}</option>
+          <option value="grace" {% if effective_mode == "grace" %}selected{% endif %}>{% trans "Grace — allow access, nudge, enforce after the grace window (recommended)" %}</option>
+          <option value="optional" {% if effective_mode == "optional" %}selected{% endif %}>{% trans "Optional — never block, nudge only (test / demo tenants)" %}</option>
+        </select>
+        <div class="form-text">{% trans "Grace and Optional still surface a persistent “set up 2FA” prompt; only Strict blocks the page." %}</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="mfa-grace-days">{% trans "Grace window (days)" %}</label>
+        <input id="mfa-grace-days" name="grace_period_days" type="number" min="0" max="{{ max_grace_days }}"
+               value="{{ effective_grace_days }}" class="form-control" style="max-width: 10rem;">
+        <div class="form-text">{% blocktrans %}Used by Grace mode only. Measured from each user's join date; default is {{ default_grace_days }} days.{% endblocktrans %}</div>
+      </div>
+
+      <fieldset class="mb-3">
+        <legend class="form-label">{% trans "Apply to" %}</legend>
+        {% if can_set_tenant %}
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="scope" id="scope-tenant" value="tenant" checked>
+          <label class="form-check-label" for="scope-tenant">{% trans "This school only" %}{% if school_name %} — {{ school_name }}{% endif %}</label>
+        </div>
+        {% endif %}
+        {% if can_set_platform %}
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="scope" id="scope-platform" value="platform" {% if not can_set_tenant %}checked{% endif %}>
+          <label class="form-check-label" for="scope-platform">{% trans "Platform default (all schools that don't override)" %}</label>
+        </div>
+        {% endif %}
+      </fieldset>
+
+      <div class="d-flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-primary">{% trans "Save policy" %}</button>
+        {% if can_set_tenant %}
+        <button type="submit" name="mode" value="inherit" class="btn btn-outline-secondary"
+                title="{% trans 'Clear this school’s override so it follows the platform default' %}">
+          {% trans "Reset to platform default" %}
+        </button>
+        {% endif %}
+      </div>
+    </form>
+  </section>
+  {% else %}
+  <p class="text-muted">{% trans "You do not have permission to change the MFA enforcement policy." %}</p>
+  {% endif %}
+
+  <p class="small text-muted">
+    {% blocktrans %}Tip: users who already have 2FA are never affected by this setting. It only governs how required-role users without a device are treated.{% endblocktrans %}
+  </p>
+</main>
+{% endblock %}

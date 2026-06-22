@@ -22,7 +22,11 @@
 
       <div class="rmc-account-mfa-card__body">
         {% if not has_mfa and not qr_code %}
+          {% if next_url %}
+          <div class="alert alert-warning mb-3" role="status"><i class="bi bi-shield-lock me-1" aria-hidden="true"></i><strong>{% trans "Your organization requires two-factor authentication" %}</strong> — {% trans "for your role. Set it up below to continue to your dashboard; it takes about a minute." %}</div>
+          {% else %}
           <div class="alert alert-info mb-3"><i class="bi bi-info-circle me-1"></i><strong>{% trans "MFA is currently disabled" %}</strong> {% trans "for your account." %}</div>
+          {% endif %}
           <p>{% trans "Multi-factor authentication adds a second layer of security: a one-time code from your phone on top of your password." %}</p>
           <ol class="rmc-account-step-list">
             <li>{% trans "Install an authenticator app such as Google Authenticator, Authy, 1Password, or Microsoft Authenticator." %}</li>

@@ -519,6 +519,7 @@ TEMPLATES = [
                 "apps.accounts.context_processors.dashboard_context",  # Dashboard header/footer data
                 "apps.platform_runtime.context_processors.tenant_experience_context",
                 "apps.accounts.mfa_ui_context.operator_mfa_context",  # Manager MFA header icon + profile links
+                "apps.accounts.mfa_ui_context.mfa_nudge_context",  # Grace/optional MFA "set up 2FA" nudge banner (all shells)
                 "apps.accounts.context_processors_security.account_security_context",
                 "apps.accounts.context_processors.sidebar_record_context",
                 "apps.schools.context_processors.marketing_base_url",  # MARKETING_BASE_URL for cross-host links

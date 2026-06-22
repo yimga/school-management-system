@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MFA enforcement experience — strict / grace / optional</title>
+<style>
+  :root{
+    --brand-primary:#4F46E5; --brand-2:#10B981; --text-on-brand:#fff;
+    --bg:#f6f7fb; --surface:#ffffff; --surface-2:#f9fafb;
+    --text-primary:#0f172a; --text-secondary:#475569; --hairline:#e2e8f0;
+    --warn-bg:#fffbeb; --warn-bd:#fde68a; --warn-tx:#92400e;
+    --ok-bg:#ecfdf5; --ok-bd:#a7f3d0; --ok-tx:#065f46;
+    --bad-bg:#fef2f2; --bad-bd:#fecaca; --bad-tx:#991b1b;
+    --radius:14px; --shadow:0 1px 2px rgba(15,23,42,.06),0 8px 24px rgba(15,23,42,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text-primary);line-height:1.5}
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 20px 80px}
+  header.hero{background:linear-gradient(135deg,#4F46E5,#7c3aed 60%,#10B981);color:#fff;border-radius:20px;padding:34px 32px;box-shadow:var(--shadow)}
+  header.hero h1{margin:0 0 6px;font-size:30px;letter-spacing:-.02em}
+  header.hero p{margin:0;opacity:.92;max-width:64ch}
+  .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:700;opacity:.85;margin-bottom:8px}
+  h2.sec{font-size:21px;letter-spacing:-.01em;margin:42px 0 14px}
+  h3{font-size:16px;margin:0 0 8px}
+  .card{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px}
+  .grid{display:grid;gap:16px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:1.1fr .9fr}
+  @media(max-width:840px){.g3,.g2{grid-template-columns:1fr}}
+  .muted{color:var(--text-secondary)}
+  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .pill.strict{background:#eef2ff;color:#3730a3}
+  .pill.grace{background:#ecfdf5;color:#065f46}
+  .pill.optional{background:#fff7ed;color:#9a3412}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--hairline);vertical-align:top}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary)}
+  code{background:#f1f5f9;border-radius:6px;padding:1px 6px;font-size:13px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:ui-monospace,monospace;font-size:13px}
+  .step{background:#fff;border:1px solid var(--hairline);border-radius:8px;padding:6px 10px}
+  .arrow{color:var(--text-secondary)}
+  .bad-step{background:var(--bad-bg);border-color:var(--bad-bd);color:var(--bad-tx)}
+  .ok-step{background:var(--ok-bg);border-color:var(--ok-bd);color:var(--ok-tx)}
+  /* faithful copy of the shipped .rmc-mfa-nudge token CSS */
+  .rmc-mfa-nudge{display:flex;align-items:flex-start;gap:.75rem;max-width:64rem;margin:.75rem 0;padding:.75rem 1rem;background:var(--surface);color:var(--text-primary);border:1px solid var(--hairline);border-left:3px solid var(--brand-primary);border-radius:10px;box-shadow:var(--shadow)}
+  .rmc-mfa-nudge__icon{flex:none;color:var(--brand-primary);font-size:1.2rem;line-height:1.4}
+  .rmc-mfa-nudge__body{flex:1 1 auto;display:flex;flex-direction:column;gap:.125rem;min-width:0}
+  .rmc-mfa-nudge__title{font-weight:600}
+  .rmc-mfa-nudge__msg{color:var(--text-secondary);font-size:.875rem}
+  .rmc-mfa-nudge__actions{flex:none;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+  .rmc-mfa-nudge__cta{display:inline-block;padding:.375rem .875rem;border-radius:8px;background:var(--brand-primary);color:#fff;font-size:.875rem;font-weight:600;text-decoration:none}
+  .rmc-mfa-nudge__link{color:var(--brand-primary);font-size:.875rem;text-decoration:none}
+  .rmc-mfa-nudge__dismiss{flex:none;color:var(--text-secondary);font-size:1.2rem;text-decoration:none;padding:0 .25rem}
+  /* mock form */
+  label.fld{display:block;font-size:13px;font-weight:600;margin:14px 0 4px}
+  select.mck,input.mck{width:100%;max-width:520px;padding:9px 11px;border:1px solid var(--hairline);border-radius:9px;font-size:14px;background:#fff}
+  input.mck.short{max-width:140px}
+  .btn{display:inline-block;border:0;border-radius:9px;padding:9px 16px;font-weight:600;font-size:14px;cursor:default;text-decoration:none}
+  .btn.primary{background:var(--brand-primary);color:#fff}
+  .btn.ghost{background:#fff;border:1px solid var(--hairline);color:var(--text-primary)}
+  .radio{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:14px}
+  .tag{font-size:12px;font-weight:700;color:var(--brand-2)}
+  .filelist li{margin:3px 0;font-size:13.5px}
+  .check{color:var(--brand-2);font-weight:800}
+  .qr{width:150px;height:150px;border-radius:12px;background:
+     repeating-conic-gradient(#0f172a 0 25%, #fff 0 50%) 50%/22px 22px;border:8px solid #fff;box-shadow:inset 0 0 0 1px var(--hairline)}
+  .enr{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+  .badge{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:8px;padding:4px 10px;font-size:13px;font-weight:600;margin:2px}
+  .note{background:var(--surface-2);border:1px dashed var(--hairline);border-radius:10px;padding:12px 14px;font-size:13.5px;color:var(--text-secondary)}
+  .warnbox{background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--warn-tx);border-radius:10px;padding:10px 14px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">RunMyCampus · Security</div>
+    <h1>Two-factor enforcement — strict · grace · optional</h1>
+    <p>Privileged roles still require 2FA (the Salesforce / AWS / GitHub posture). What's now configurable per tenant is <strong>how</strong> that requirement is rolled out — so a school admin is never hard-walled out of their own dashboard on the first click.</p>
+  </header>
+
+  <h2 class="sec">1 · The bug this fixes</h2>
+  <div class="card">
+    <p style="margin-top:0">Your <code>ADMIN</code> account is a required-MFA role with no enrolled device, so the old middleware redirected <em>every</em> navigation straight to the setup wizard. The dashboards you built were live — you just couldn't reach them.</p>
+    <div class="flow" style="margin:10px 0">
+      <span class="step">click sidebar → /portal/…</span><span class="arrow">→ 302</span>
+      <span class="step bad-step">/mfa/setup?next=…</span><span class="arrow">→ 302</span>
+      <span class="step bad-step">/wizards/mfa_setup/ (the "ugly page")</span>
+    </div>
+    <p class="muted" style="margin-bottom:0">Now the same account, with the tenant set to <span class="pill optional">optional</span> or <span class="pill grace">grace</span>:</p>
+    <div class="flow" style="margin-top:10px">
+      <span class="step">click sidebar → /portal/…</span><span class="arrow">→ 200</span>
+      <span class="step ok-step">your real dashboard renders</span><span class="arrow">+</span>
+      <span class="step ok-step">a persistent “set up 2FA” nudge</span>
+    </div>
+  </div>
+
+  <h2 class="sec">2 · The three modes (tenant-configurable, default unchanged)</h2>
+  <div class="grid g3">
+    <div class="card">
+      <span class="pill strict">strict</span>
+      <h3 style="margin-top:10px">Hard wall</h3>
+      <p class="muted">Require 2FA before any access. This is the <strong>platform default</strong> — every existing tenant behaves exactly as before. Zero behavior change unless someone opts in.</p>
+    </div>
+    <div class="card" style="outline:2px solid var(--brand-2)">
+      <span class="pill grace">grace</span> <span class="tag">recommended</span>
+      <h3 style="margin-top:10px">Grace window</h3>
+      <p class="muted">Full access immediately + a nudge; hard-enforced only after <em>N</em> days (measured from each user's join date). The Salesforce/Shopify rollout pattern — no first-click wall for new owners.</p>
+    </div>
+    <div class="card">
+      <span class="pill optional">optional</span>
+      <h3 style="margin-top:10px">Nudge only</h3>
+      <p class="muted">Never blocks; shows the prompt only. Ideal for this test / demo tenant so you can walk the whole product without juggling an authenticator.</p>
+    </div>
+  </div>
+  <p class="note" style="margin-top:14px">Users who <strong>already have 2FA</strong> are never affected by this setting — it only governs how required-role users <em>without</em> a device are treated.</p>
+
+  <h2 class="sec">3 · The persistent nudge (grace + optional) — shipped, rendered live</h2>
+  <div class="card">
+    <p class="muted" style="margin-top:0">Appears on every tenant shell when a required user is let through instead of walled. Token-only CSS, dismissible per session, links straight to enrollment and the policy page.</p>
+    <div class="rmc-mfa-nudge" role="status">
+      <span class="rmc-mfa-nudge__icon">🛡️</span>
+      <div class="rmc-mfa-nudge__body">
+        <strong class="rmc-mfa-nudge__title">Set up two-factor authentication</strong>
+        <span class="rmc-mfa-nudge__msg">Your role requires 2FA. 6 days left before it's required to continue.</span>
+      </div>
+      <div class="rmc-mfa-nudge__actions">
+        <a class="rmc-mfa-nudge__cta" href="#">Set up now</a>
+        <a class="rmc-mfa-nudge__link" href="#">Policy</a>
+        <a class="rmc-mfa-nudge__dismiss" href="#" aria-label="Dismiss">×</a>
+      </div>
+    </div>
+    <div class="rmc-mfa-nudge" role="status" style="margin-top:14px">
+      <span class="rmc-mfa-nudge__icon">🛡️</span>
+      <div class="rmc-mfa-nudge__body">
+        <strong class="rmc-mfa-nudge__title">Set up two-factor authentication</strong>
+        <span class="rmc-mfa-nudge__msg">Your role requires two-factor authentication. Add it now to secure your account.</span>
+      </div>
+      <div class="rmc-mfa-nudge__actions">
+        <a class="rmc-mfa-nudge__cta" href="#">Set up now</a>
+        <a class="rmc-mfa-nudge__link" href="#">Policy</a>
+        <a class="rmc-mfa-nudge__dismiss" href="#" aria-label="Dismiss">×</a>
+      </div>
+    </div>
+    <p class="muted" style="margin-bottom:0;font-size:13px">↑ Top: grace mode (counts down). Bottom: optional mode (no deadline).</p>
+  </div>
+
+  <h2 class="sec">4 · The control — <code>/portal/security/mfa-policy/</code></h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Change policy</h3>
+      <label class="fld">Enforcement mode</label>
+      <select class="mck">
+        <option>Strict — require 2FA before access (hard wall)</option>
+        <option selected>Grace — allow access, nudge, enforce after the grace window (recommended)</option>
+        <option>Optional — never block, nudge only (test / demo tenants)</option>
+      </select>
+      <label class="fld">Grace window (days)</label>
+      <input class="mck short" type="number" value="7">
+      <label class="fld">Apply to</label>
+      <div class="radio"><input type="radio" checked> This school only — <strong>&nbsp;New School</strong></div>
+      <div class="radio"><input type="radio"> Platform default (all schools that don't override)</div>
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+        <span class="btn primary">Save policy</span>
+        <span class="btn ghost">Reset to platform default</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>How it routes (the cascade)</h3>
+      <p class="muted" style="margin-top:0">Same 7-layer runtime-defaults cascade as <code>ai_mode</code> — no hardcoding.</p>
+      <table>
+        <tr><th>Scope</th><th>Wins over</th></tr>
+        <tr><td>This school override<br><span class="muted">school.settings → runtime_defaults</span></td><td>Platform default</td></tr>
+        <tr><td>Platform default<br><span class="muted">RuntimeDefaults singleton</span></td><td>Façade default</td></tr>
+        <tr><td>Façade default<br><span class="muted">strict / 7 days</span></td><td>—</td></tr>
+      </table>
+      <p class="note" style="margin-top:14px">Tenant scope needs <code>settings.manage</code>; platform scope needs control-plane access — identical to the AI-mode switch.</p>
+    </div>
+  </div>
+
+  <h2 class="sec">5 · When 2FA <em>is</em> required — the polished enrollment page</h2>
+  <div class="card">
+    <p class="muted" style="margin-top:0">Enforced enrollment now routes to the branded page (via the sanctioned <code>?legacy=1</code> escape hatch) instead of the bare wizard, with a clear “why am I here” banner.</p>
+    <div class="warnbox" style="margin-bottom:14px">🛡️ <strong>Your organization requires two-factor authentication</strong> — for your role. Set it up below to continue to your dashboard; it takes about a minute.</div>
+    <div class="enr">
+      <div>
+        <h3>Step 1 · Scan</h3>
+        <div class="qr" aria-label="QR code"></div>
+      </div>
+      <div style="flex:1;min-width:260px">
+        <h3>Step 2 · Manual code</h3>
+        <p><code>JBSW Y3DP EHPK 3PXP</code> <span class="btn ghost" style="padding:4px 10px">Copy</span></p>
+        <h3>Step 3 · Verify</h3>
+        <input class="mck short" placeholder="000000"> <span class="btn primary">Verify &amp; enable</span>
+        <div style="margin-top:14px">
+          <div class="muted" style="font-size:13px;margin-bottom:4px">Backup codes</div>
+          <span class="badge">19283746</span><span class="badge">55012984</span><span class="badge">73910028</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="sec">6 · Why mandatory 2FA is correct — what the giants do</h2>
+  <div class="card">
+    <table>
+      <tr><th>Platform</th><th>Admin / privileged 2FA</th></tr>
+      <tr><td>Salesforce</td><td>Mandatory for all logins since Feb 2022 — contractual, no opt-out</td></tr>
+      <tr><td>AWS</td><td>Mandatory for root users of management accounts (2024)</td></tr>
+      <tr><td>Microsoft 365 / Azure</td><td>Enforced for all admin portal sign-ins (2024)</td></tr>
+      <tr><td>GitHub</td><td>Mandatory 2FA for everyone who contributes code (2023)</td></tr>
+      <tr><td>Shopify / Stripe / Google</td><td>Required for staff &amp; admin dashboards</td></tr>
+    </table>
+    <p class="muted" style="margin-bottom:0">We keep the mandate (default <span class="pill strict">strict</span>) and add the graceful rollout they all use. We don't weaken security — we fix the experience.</p>
+  </div>
+
+  <h2 class="sec">7 · What shipped (audited · tested · gated)</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Files changed</h3>
+      <ul class="filelist">
+        <li><span class="check">✓</span> <code>platform_runtime/models.py</code> + migration <code>0093</code> — 2 columns</li>
+        <li><span class="check">✓</span> <code>runtime_defaults_first_class.py</code> — first-class tuple + string set</li>
+        <li><span class="check">✓</span> <code>siteconfig/domain_ownership.py</code> + <code>models_support.py</code> — owners + façade defaults</li>
+        <li><span class="check">✓</span> <code>accounts/mfa_defaults.py</code> — <code>resolve_mfa_enforcement()</code></li>
+        <li><span class="check">✓</span> <code>accounts/middleware.py</code> — mode-aware gate</li>
+        <li><span class="check">✓</span> <code>accounts/mfa_ui_context.py</code> + partial + 2 shells — nudge banner</li>
+        <li><span class="check">✓</span> <code>portal/views_mfa_policy.py</code> + template + URL — control page</li>
+        <li><span class="check">✓</span> <code>accounts/.../mfa_setup_page_body.html</code> — enforcement callout</li>
+        <li><span class="check">✓</span> <code>rmc-class-grammar.css</code> — token-only banner styles</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Validation</h3>
+      <ul class="filelist">
+        <li><span class="check">✓</span> <code>makemigrations --check</code> — no drift (0093 matches model)</li>
+        <li><span class="check">✓</span> resolver + middleware mode tests (strict/grace/optional)</li>
+        <li><span class="check">✓</span> existing MFA redirect-safety tests still green</li>
+        <li><span class="check">✓</span> domain-ownership test (new keys covered)</li>
+        <li><span class="check">✓</span> scan_undefined_css_classes — 0</li>
+        <li><span class="check">✓</span> scan_off_token_colors / theme-locked / inline-style — 0</li>
+        <li><span class="check">✓</span> audit_template_render_safety — 0</li>
+        <li><span class="check">✓</span> magic-number / role-string / attribute-include gates</li>
+        <li><span class="check">✓</span> SW bumped <code>v4.04.57</code> (monotonic OK)</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="muted" style="margin-top:28px;font-size:13px">RunMyCampus · MFA enforcement experience · service worker <code>sms-v4.04.57-mfa-enforcement-modes-2026-06-22</code></p>
+
+</div>
+</body>
+</html>

@@ -22,6 +22,8 @@ _VIRTUAL_SITE_SETTING_DEFAULT_EXPLICIT_KEYS: frozenset[str] = frozenset(
         "delegation_role_mapping",
         "notification_channels",
         "require_mfa_roles",
+        "mfa_enforcement_mode",
+        "mfa_grace_period_days",
         "default_widgets_per_role",
         "site_name",
         "school_code",
