@@ -721,13 +721,15 @@ def get_actions_for_user(
     if school is None and request is not None:
         school = getattr(request, "school", None)
     if school is None:
-        # Control-plane surfaces live under /super/ and have no tenant school.
-        path = ""
-        if request is not None:
-            path = getattr(request, "path", "") or ""
-        if path.startswith("/super/"):
-            return get_control_plane_actions(user, limit=limit, request=request)
-        return []
+        # Control-plane / manager-host surfaces have no tenant school. Surface
+        # operational next steps for EVERY such page (configuration, studio,
+        # help-center, /super/, ...) — not only /super/ — so the Flow Thread bar
+        # hosts a "next" and the standalone strip is suppressed, i.e. the merge
+        # happens platform-wide on the manager host instead of leaving a separate
+        # "Next up" block. get_control_plane_actions is staff/superuser-gated and
+        # returns [] otherwise, so anon / non-staff school-less contexts are
+        # unaffected (the strip then keeps its standalone fallback).
+        return get_control_plane_actions(user, limit=limit, request=request)
 
     bucket = infer_primary_audience(user)
     merged: list[SystemAction] = []

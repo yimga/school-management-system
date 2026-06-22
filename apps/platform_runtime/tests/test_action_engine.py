@@ -88,7 +88,10 @@ class ActionEngineTests(TestCase):
         urls = {a.action_url for a in actions}
         self.assertTrue(all(urls))
 
-    def test_no_school_non_super_path_returns_empty(self):
+    def test_no_school_non_staff_returns_empty(self):
+        # A school-less request from a NON-staff user gets no control-plane
+        # actions — get_control_plane_actions is staff/superuser-gated. (The path
+        # is irrelevant; the staff gate is what makes this empty.)
         from django.test import RequestFactory
 
         user = User.objects.create_user(
@@ -101,6 +104,31 @@ class ActionEngineTests(TestCase):
         req.user = user
         req.school = None
         self.assertEqual(get_actions_for_user(user, None, request=req), [])
+
+    def test_no_school_staff_non_super_path_gets_control_plane_actions(self):
+        # Regression (Flow Thread platform-wide): manager-host pages OUTSIDE
+        # /super/ (e.g. /configuration/, /studio/, /help-center/) must surface
+        # control-plane next actions so the "About this page" bar hosts a "next"
+        # and the standalone strip is suppressed (the merge). Previously these
+        # returned [] because only /super/ paths were handled, leaving a separate
+        # "Next up" block on every non-/super/ manager page.
+        from django.test import RequestFactory
+
+        staff = User.objects.create_user(
+            username="ae_cp_path",
+            password="x",
+            role=User.Role.ADMIN,
+            is_staff=True,
+        )
+        rf = RequestFactory()
+        req = rf.get("/configuration/")
+        req.user = staff
+        req.school = None
+        actions = get_actions_for_user(staff, None, request=req)
+        self.assertTrue(
+            actions, "staff on a non-/super/ manager page must get control-plane actions"
+        )
+        self.assertTrue(all(a.action_url for a in actions))
 
     def test_request_provides_school_when_omitted(self):
         school = School.objects.create(
