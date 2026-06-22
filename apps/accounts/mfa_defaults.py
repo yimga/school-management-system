@@ -62,11 +62,21 @@ def role_requires_mfa(role: str | None, tenant_required: list[str] | tuple[str, 
 #
 # Best-in-class platforms (Salesforce, AWS, GitHub, Microsoft 365) all mandate
 # MFA for privileged roles, but differ in HOW they roll it out: a hard wall on
-# the very first navigation reads as "the app is broken", so they use a grace
-# window + a persistent nudge instead. This resolver lets a tenant pick the
-# posture per-school via the runtime-defaults cascade
+# the very first navigation reads as "the app is broken", so they SOFT-LAUNCH
+# with a persistent nudge, then a grace countdown, and only then a hard wall.
+# This resolver lets a tenant/operator pick the posture per-school (or
+# platform-wide) via the runtime-defaults cascade
 # (RuntimeDefaults.mfa_enforcement_mode / mfa_grace_period_days). The platform
-# default stays "strict" so existing tenants see zero behavior change.
+# default is "optional" (nudge-only) — the soft-launch phase — so a brand-new
+# owner is never locked out of their own dashboard before they have had a
+# chance to enroll. Operators tighten to "grace"/"strict" when ready.
+#
+# NOTE on "grace": the window is currently anchored on ``user.date_joined``, so
+# an EXISTING admin whose account predates the grace window is enforced
+# immediately. For a platform-wide rollout to existing users, anchor on the
+# enforcement-start date instead (Microsoft 365's 14-day model) — see
+# ``resolve_mfa_enforcement`` below. Until that anchor lands, prefer "optional"
+# for a platform-wide default and reserve "grace" for new-tenant cohorts.
 
 from collections import namedtuple
 from datetime import timedelta

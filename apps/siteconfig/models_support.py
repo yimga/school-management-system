@@ -429,10 +429,14 @@ def virtual_site_setting_default(name: str) -> object:
         "default_dashboard_view": "",
         "default_report_preview_type": "TERM",
         "offline_sync_conflict_resolution": "show_both",
-        # Required-role MFA enforcement posture. "strict" = current hard-wall
-        # behavior (platform default). Tenants override per-school via the
-        # runtime-defaults cascade. Resolved in apps.accounts.mfa_defaults.
-        "mfa_enforcement_mode": "strict",
+        # Required-role MFA enforcement posture. Platform default is "optional"
+        # (nudge-only — never hard-walls a no-device required user; shows a
+        # persistent "enable 2FA" banner instead). This is the soft-launch
+        # phase of the standard mandatory-MFA rollout (Microsoft 365 / GitHub /
+        # Salesforce all nudge before they wall). Operators tighten to "grace"
+        # (countdown) or "strict" (hard wall) per-tenant or platform-wide via
+        # the runtime-defaults cascade. Resolved in apps.accounts.mfa_defaults.
+        "mfa_enforcement_mode": "optional",
         "report_preview_contact_email": PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL,
         "report_preview_contact_phone": "",
         "sms_provider": "",
