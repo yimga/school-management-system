@@ -1,6 +1,24 @@
 /* Shared portal sidebar styles.
    Loaded once in portal_base to avoid duplicate inline CSS from repeated includes. */
 
+/* ------------------------------------------------------------------
+   Duplicate-nav guard (2026-06-22). portal_base.html includes the
+   sidebar partial TWICE: the desktop column (.portal-sidebar-col,
+   d-none d-lg-block) AND the mobile offcanvas (d-lg-none, marked
+   data-shell-sidebar-mount="offcanvas"). On lg+ the offcanvas copy
+   must NEVER render. The template relied only on Bootstrap's
+   `.d-lg-none` / `.offcanvas` positioning, which FAILS when Bootstrap
+   CSS is delayed (stale service worker / slow first paint): the
+   offcanvas copy then renders inline under the desktop sidebar and
+   DOUBLES every nav row — the live "every item shows twice" bug.
+   This project-owned rule (no Bootstrap dependency) force-hides the
+   offcanvas mount on lg+ regardless of Bootstrap load timing. */
+@media (min-width: 992px) {
+  [data-shell-sidebar-mount="offcanvas"] {
+    display: none !important;
+  }
+}
+
 .portal-sidebar-collapse-wrap {
   display: flex;
   justify-content: flex-end;
