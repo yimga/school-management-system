@@ -979,6 +979,97 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
 .backend-role-home-actions {
   display: grid;
   gap: 0.85rem;
+  /* Void-fill 2A (2026-06-22): stretch the actions column to the full height of the
+     tall gradient copy card and keep the buttons top-anchored, so the readiness glance
+     (margin-top:auto) drops to the base — the column now reads as a full companion
+     panel instead of floating short over grey space. */
+  align-content: start;
+}
+/* The copy card on the left is tall; let the right column match its height. */
+.backend-role-home-top {
+  align-items: stretch;
+}
+.backend-role-home-readiness {
+  margin-top: auto;
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem 1.05rem;
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  background: var(--surface-elevated, var(--surface-bg));
+}
+.backend-role-home-readiness__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.backend-role-home-readiness__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: var(--type-size-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+.backend-role-home-readiness__pct {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.backend-role-home-readiness__bar {
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-overlay, var(--hairline));
+}
+.backend-role-home-readiness__bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  width: var(--rmc-readiness-pct, 0%);
+  background: linear-gradient(90deg, var(--brand-primary, var(--school-primary)), var(--brand-accent, var(--school-accent)));
+  transition: width var(--motion-slow, 400ms) var(--ease-out, ease);
+}
+.backend-role-home-readiness__tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+.backend-role-home-readiness__tile {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 12px;
+  background: var(--surface-bg);
+  border: 1px solid var(--hairline);
+}
+.backend-role-home-readiness__tile-num {
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+.backend-role-home-readiness__tile-label {
+  font-size: var(--type-size-caption);
+  color: var(--text-secondary);
+}
+.backend-role-home-readiness__next {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: var(--type-size-caption);
+  font-weight: 600;
+  color: var(--brand-primary, var(--school-primary));
+  text-decoration: none;
+}
+.backend-role-home-readiness__next:hover {
+  text-decoration: underline;
+}
+@media (max-width: 991.98px) {
+  .backend-role-home-readiness {
+    margin-top: 0;
+  }
 }
 .backend-role-home-command {
   display: flex;

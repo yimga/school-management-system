@@ -591,6 +591,40 @@ backend-shell dashboard-page-backend
                 </div>
                 {% endif %}
                 {% endif %}
+                {% comment %} Void-fill 2A (2026-06-22): a compact readiness glance anchored at the
+                   base of the actions column so the role-home right side reads as a full-height
+                   companion panel instead of floating short over grey space. Reads the onboarding
+                   payload already in context (views.py rmc_school_onboarding) — no new query, no
+                   RBAC surface; the full step detail still lives in #section-readiness below. {% endcomment %}
+                {% if rmc_school_onboarding and rmc_school_onboarding.total %}
+                <div class="backend-role-home-readiness" data-widget-id="backend-role-home-readiness" aria-label="{% trans 'School readiness at a glance' %}">
+                  <div class="backend-role-home-readiness__head">
+                    <span class="backend-role-home-readiness__eyebrow"><i class="bi bi-clipboard-check" aria-hidden="true"></i> {% trans "Readiness" %}</span>
+                    <span class="backend-role-home-readiness__pct">{{ rmc_school_onboarding.percent|default:0 }}%</span>
+                  </div>
+                  <div class="backend-role-home-readiness__bar" role="progressbar" aria-valuenow="{{ rmc_school_onboarding.percent|default:0 }}" aria-valuemin="0" aria-valuemax="100" style="--rmc-readiness-pct: {{ rmc_school_onboarding.percent|default:0 }}%;">
+                    <span class="backend-role-home-readiness__bar-fill" aria-hidden="true"></span>
+                  </div>
+                  <div class="backend-role-home-readiness__tiles">
+                    <div class="backend-role-home-readiness__tile">
+                      <span class="backend-role-home-readiness__tile-num">{{ rmc_school_onboarding.completed|default:0 }}/{{ rmc_school_onboarding.total }}</span>
+                      <span class="backend-role-home-readiness__tile-label">{% trans "Essentials done" %}</span>
+                    </div>
+                    {% if rmc_school_onboarding.import_quality_label %}
+                    <div class="backend-role-home-readiness__tile">
+                      <span class="backend-role-home-readiness__tile-num">{{ rmc_school_onboarding.import_quality_label }}</span>
+                      <span class="backend-role-home-readiness__tile-label">{% trans "Data quality" %}</span>
+                    </div>
+                    {% endif %}
+                  </div>
+                  {% if rmc_school_onboarding.next_action and rmc_school_onboarding.next_action.url %}
+                  <a class="backend-role-home-readiness__next" href="{{ rmc_school_onboarding.next_action.url }}">
+                    <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
+                    <span>{% trans "Next" %}: {{ rmc_school_onboarding.next_action.label }}</span>
+                  </a>
+                  {% endif %}
+                </div>
+                {% endif %}
               </div>
             </div>
             {% if phase7_de and role_home_declaration %}
