@@ -58,9 +58,13 @@ body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .container-
   display: flex !important; /* style-allow: tenant-header-flex-override-bootstrap */
   flex-wrap: nowrap !important; /* style-allow: tenant-header-single-line-guarantee */
   align-items: center;
-  gap: 12px;
-  padding: calc(12px * 1.1) calc(24px * 1.1);
-  min-height: calc(64px * 1.1);
+  gap: 10px;
+  /* Header compaction (2026-06-22): owner "header should be at least 50% less the
+     size it is now". Halved the vertical rhythm — min-height 70.4px -> 36px and
+     vertical padding 13.2px -> 5px (horizontal kept so the row still breathes).
+     Icon buttons + search field shrink to match below so nothing clips. */
+  padding: 5px calc(24px * 1.1);
+  min-height: 36px;
   min-width: 0;
   width: 100%;
 }
@@ -95,7 +99,7 @@ body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-sea
   background: rgba(15, 23, 42, 0.04); /* off-token-allow: fixed-shell-accent */
   border: 1px solid var(--hairline);
   border-radius: var(--radius-pill, 999px);
-  padding: 8px 16px;
+  padding: 5px 14px;
 }
 
 body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-controls {
@@ -112,8 +116,8 @@ body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-con
 }
 
 body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-icon-btn {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
