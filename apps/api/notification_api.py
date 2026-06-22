@@ -17,6 +17,7 @@ from rest_framework import serializers, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.db import DatabaseError
 from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
@@ -129,7 +130,17 @@ class NotificationViewSet(viewsets.ViewSet):
         queryset = queryset.filter(created_at__gte=start_date)
 
         data = []
-        for notif in queryset[:50]:
+        try:
+            notifs = list(queryset[:50])
+        except DatabaseError:
+            # finance_notification schema drift (recorded-but-not-landed AddField,
+            # healed by migration 0072): degrade to empty instead of 500-ing.
+            logger.warning(
+                "notification_api.list: finance_notification schema drift",
+                exc_info=True,
+            )
+            notifs = []
+        for notif in notifs:
             notif_type = "message"
             if notif.severity == "ALERT":
                 notif_type = "alert"
@@ -162,7 +173,16 @@ class NotificationViewSet(viewsets.ViewSet):
     def unread_count(self, request):
         """Get count of unread notifications"""
 
-        count = self.get_queryset().filter(is_read=False).count()
+        try:
+            count = self.get_queryset().filter(is_read=False).count()
+        except DatabaseError:
+            # finance_notification schema drift (healed by migration 0072): the
+            # bell polls this on every authenticated page — degrade to 0, never 500.
+            logger.warning(
+                "notification_api.unread_count: finance_notification schema drift",
+                exc_info=True,
+            )
+            count = 0
         return Response({"unread_count": count})
 
     @action(detail=True, methods=["post"])
