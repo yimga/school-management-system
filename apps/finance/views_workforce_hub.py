@@ -58,6 +58,7 @@ def workforce_command_center(request: HttpRequest):
     if school_id:
         teacher_leave_pending = teacher_leave_pending.filter(teacher__school_id=school_id)
 
+    # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
     finance_access_alerts = Notification.objects.filter(
         recipient=request.user,
         title__icontains="finance access request",

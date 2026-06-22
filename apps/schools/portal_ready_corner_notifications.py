@@ -48,6 +48,7 @@ def portal_ready_corner_for_request(request) -> list[dict[str, Any]]:
 
     try:
         note = (
+            # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
             Notification.objects.filter(
                 recipient=user,
                 title=PORTAL_READY_INBOX_TITLE,
@@ -107,6 +108,7 @@ def nudge_portal_ready_web_push(user) -> int:
 
     try:
         note = (
+            # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
             Notification.objects.filter(
                 recipient=user,
                 title=PORTAL_READY_INBOX_TITLE,

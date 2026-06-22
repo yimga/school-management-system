@@ -148,6 +148,7 @@ def _due_today_for(user, school) -> int:
         from apps.finance.models import Invoice
 
         today = timezone.localdate()
+        # tenant-isolation-allow: base-qs-always-narrowed-by-school-or-user-before-eval
         base = Invoice.objects.filter(
             due_date=today, status__in=_UNSETTLED_INVOICE_STATUSES
         )

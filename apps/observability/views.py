@@ -703,6 +703,7 @@ def api_notifications_mark_all_read(request):
         from apps.finance.models import Notification
 
         user = request.user
+        # tenant-isolation-allow: scoped-to-recipient-or-creator-current-user
         qs = Notification.objects.filter(Q(recipient=user) | Q(created_by=user)).filter(
             is_read=False
         )
@@ -734,6 +735,7 @@ def api_notifications(request):
         from apps.finance.models import Notification
 
         user = request.user
+        # tenant-isolation-allow: scoped-to-recipient-or-creator-current-user
         notifications_qs = Notification.objects.filter(
             Q(recipient=user) | Q(created_by=user)
         ).order_by("-created_at")[:50]

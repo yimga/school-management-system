@@ -518,6 +518,7 @@ def _query_finance_inbox(query_context: dict[str, Any]) -> dict[str, Any]:
         }
 
     try:
+        # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
         finance_requests_qs = Notification.objects.filter(
             recipient=query_context["request"].user,
             title__icontains="finance access request",

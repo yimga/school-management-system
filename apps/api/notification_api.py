@@ -100,6 +100,7 @@ class NotificationViewSet(viewsets.ViewSet):
         from apps.finance.models import Notification
 
         user = self.request.user
+        # tenant-isolation-allow: scoped-to-recipient-or-creator-current-user
         qs = Notification.objects.filter(Q(recipient=user) | Q(created_by=user))
 
         school = getattr(self.request, "school", None)

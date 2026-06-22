@@ -463,11 +463,13 @@ def site_settings(request):
         # reset the (possibly aborted) connection state and fall back to 0
         # instead of 500-ing the page.
         try:
+            # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
             finance_request_alerts = Notification.objects.filter(
                 recipient=user,
                 title__icontains="finance access request",
                 is_read=False,
             ).count()
+            # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
             notifications_unread_count = Notification.objects.filter(
                 recipient=user,
                 is_read=False,

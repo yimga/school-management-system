@@ -264,6 +264,7 @@ def dashboard(request: HttpRequest):
             "icon": "bi-bell",
         },
     ]
+    # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
     finance_requests_qs = Notification.objects.filter(
         recipient=request.user,
         title__icontains="finance access request",

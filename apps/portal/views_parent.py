@@ -727,6 +727,7 @@ def parent_dashboard(request: HttpRequest):
         "request_url": finance_request_url if can_request_finance_access else None,
         "cta": "Request finance access" if can_request_finance_access else None,
     }
+    # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
     finance_requests_qs = Notification.objects.filter(
         recipient=request.user,
         title__icontains="finance access request",

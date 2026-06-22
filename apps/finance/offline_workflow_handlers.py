@@ -412,6 +412,7 @@ def _apply_requests_inbox(
             continue
     updated = 0
     if ids:
+        # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
         updated = Notification.objects.filter(
             pk__in=ids,
             recipient_id=user_id,

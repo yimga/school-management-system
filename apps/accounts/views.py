@@ -549,6 +549,7 @@ def _notification_inbox_queryset(request):
     from django.db.models import Q
     from django.utils import timezone
 
+    # tenant-isolation-allow: scoped-to-recipient-or-creator-current-user
     qs = Notification.objects.filter(
         Q(recipient=request.user) | Q(created_by=request.user)
     )
@@ -671,6 +672,7 @@ def mark_all_notifications_read(request):
     from apps.finance.models import Notification
 
     count = (
+        # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
         Notification.objects.filter(recipient=request.user, is_read=False)
         .update(is_read=True)
     )

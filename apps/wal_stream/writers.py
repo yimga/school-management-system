@@ -592,12 +592,12 @@ def _apply_thread_message_create(envelope: dict[str, Any]) -> None:
         return
     # The author may only post to their own (non-archived) member threads, scoped
     # to the bound tenant. One membership query, then filter the actions.
+    # tenant-isolation-allow: threads-scoped-to-author-membership-and-bound-school
     threads_qs = MessageThread.objects.filter(
         pk__in=wanted_thread_ids, members__id=author_id, is_archived=False
     )
     if school_id:
         threads_qs = threads_qs.filter(school_id=school_id)
-    # tenant-isolation-allow: threads-scoped-to-author-membership-and-bound-school
     allowed_thread_ids = set(threads_qs.values_list("id", flat=True))
 
     dropped = 0

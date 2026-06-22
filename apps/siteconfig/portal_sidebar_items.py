@@ -150,6 +150,7 @@ def _sidebar_badge_counts(user, role, staff_like):
             from apps.finance.models import Notification
 
             finance_pending = _badge_or_none(
+                # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
                 Notification.objects.filter(
                     recipient=user,
                     title__icontains="finance access request",

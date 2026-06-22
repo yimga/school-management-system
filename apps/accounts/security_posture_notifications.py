@@ -115,6 +115,7 @@ def ensure_quarterly_posture_notification(user, school=None):
             if len(unread) > 1:
                 keeper = unread[0]
                 dupe_ids = [n.pk for n in unread[1:]]
+                # tenant-isolation-allow: pk-set-from-recipient-scoped-query
                 Notification.objects.filter(pk__in=dupe_ids).update(is_read=True)
                 logger.info(
                     "collapsed %d duplicate posture notifications for user=%s",
@@ -138,6 +139,7 @@ def ensure_quarterly_posture_notification(user, school=None):
                 )
             except IntegrityError:
                 note = (
+                    # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
                     Notification.objects.filter(
                         recipient=user,
                         title=POSTURE_NOTIFICATION_TITLE,

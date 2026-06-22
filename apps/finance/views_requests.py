@@ -33,6 +33,7 @@ def notifications(request: HttpRequest):
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
+    # tenant-isolation-allow: scoped-to-recipient-or-creator-current-user
     qs = Notification.objects.filter(
         models.Q(recipient=request.user) | models.Q(created_by=request.user)
     ).order_by("-created_at")
@@ -61,6 +62,7 @@ def notifications(request: HttpRequest):
 
 @staff_member_required(login_url=settings.LOGIN_URL)
 def finance_requests(request: HttpRequest):
+    # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
     base_qs = Notification.objects.filter(
         recipient=request.user,
         title__icontains="finance access request",
@@ -111,6 +113,7 @@ def finance_requests(request: HttpRequest):
         if request.POST.get("mark_all_unread"):
             targets = list(base_qs.filter(is_read=False))
             if targets:
+                # tenant-isolation-allow: id-set-from-recipient-scoped-base-query
                 Notification.objects.filter(id__in=[n.id for n in targets]).update(
                     is_read=True
                 )
@@ -131,6 +134,7 @@ def finance_requests(request: HttpRequest):
         if selected:
             targets = list(base_qs.filter(id__in=selected))
             if targets:
+                # tenant-isolation-allow: id-set-from-recipient-scoped-base-query
                 Notification.objects.filter(id__in=[n.id for n in targets]).update(
                     is_read=True
                 )

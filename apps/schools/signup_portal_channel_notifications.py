@@ -77,6 +77,7 @@ def ensure_portal_ready_in_app_notification(
             from apps.finance.models import Notification
 
             return (
+                # tenant-isolation-allow: recipient-scoped-school-owner-owns-notification
                 Notification.objects.filter(
                     recipient=admin_user,
                     title=PORTAL_READY_INBOX_TITLE,
@@ -92,6 +93,7 @@ def ensure_portal_ready_in_app_notification(
 
         if not force:
             existing = (
+                # tenant-isolation-allow: recipient-scoped-school-owner-owns-notification
                 Notification.objects.filter(
                     recipient=admin_user,
                     title=PORTAL_READY_INBOX_TITLE,

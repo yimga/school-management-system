@@ -322,6 +322,7 @@ def security_posture_review(request):
         try:
             from apps.finance.models import Notification
 
+            # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
             Notification.objects.filter(
                 recipient=user,
                 title=POSTURE_NOTIFICATION_TITLE,
@@ -392,6 +393,7 @@ def notification_corner_dismiss(request):
             mark_portal_ready_corner_dismissed,
         )
 
+        # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
         qs = Notification.objects.filter(recipient=request.user, is_read=False)
         if notification_id:
             qs = qs.filter(pk=notification_id)
@@ -420,6 +422,7 @@ def notification_corner_mark_read(request):
     try:
         from apps.finance.models import Notification
 
+        # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
         qs = Notification.objects.filter(recipient=request.user, is_read=False)
         if notification_id:
             qs = qs.filter(pk=notification_id)
