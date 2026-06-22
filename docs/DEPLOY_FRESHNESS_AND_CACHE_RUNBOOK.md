@@ -23,6 +23,32 @@ A change has to clear **two** gates to become visible:
 > These are unrelated. Server-side **Valkey/Redis** is NOT either gate — it caches
 > data + login sessions, never rendered pages. Clearing it changes nothing here.
 
+## Render dashboard setup (do this once — prevents the whole problem)
+
+These two settings live in the Render dashboard, not in code. They are the
+highest-leverage fix: with them on, a push to `main` is live in ~5–10 min
+automatically, and any failure is visible immediately.
+
+**1. Turn Auto-Deploy ON** (so every push to `main` builds automatically):
+- Render dashboard → the **`school-management-system`** web service →
+  **Settings** → **Build & Deploy**.
+- **Auto-Deploy** → set to **On / Yes**. Confirm **Branch** = `main`.
+- This was turned **off** during the migration-freeze incident to stop deploy
+  thrash; that reason is gone now that predeploy migrations are idempotent, so
+  turning it back on is safe — and is the fix for "commits sit for days."
+
+**2. Catch up now** (one-time, to land the commits already on `main`):
+- Same service → **Manual Deploy** (top-right) → **Deploy latest commit**.
+
+**3. Turn on deploy notifications** (so a failed deploy is seen in seconds):
+- Render → **Workspace Settings → Notifications** (and/or the service's
+  **Settings → Notifications** for a per-service override).
+- Enable **Deploy** notifications — at minimum **Failures**; "All" also tells you
+  each success. Email works out of the box; **Slack** can be connected here too.
+
+After this, the only thing left to ever check is `/health/` `render_git_commit`
+vs `main` (server) and Incognito (browser) — per the diagnosis below.
+
 ## 30-second diagnosis: which gate is stuck?
 
 1. **Check what's actually live (server truth, browser-independent):**
