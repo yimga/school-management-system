@@ -76,3 +76,22 @@ class OfflinePageBulletproofTests(SimpleTestCase):
             resp = cu.offline_page(req)
         self.assertEqual(resp.status_code, 200)
         self.assertIn(b"offline", resp.content.lower())
+
+
+class TenantNotFoundBulletproofTests(SimpleTestCase):
+    """The tenant urlconf's handler404 -> school_not_found must also degrade to a
+    clean 404, not a 500, when the branded render's context-processor stack raises.
+    This is what made /sw-manifest.json and /offline/ (unmatched on the tenant) 500.
+    """
+
+    def setUp(self):
+        self.rf = RequestFactory()
+
+    def test_school_not_found_falls_back_to_static_when_render_raises(self):
+        from apps.schools import error_views
+
+        req = self.rf.get("/sw-manifest.json")
+        with mock.patch.object(error_views, "render", side_effect=RuntimeError("ctx boom")):
+            resp = error_views.school_not_found(req)
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn(b"404", resp.content)
