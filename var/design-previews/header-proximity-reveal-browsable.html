@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en" data-resolved-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proximity-reveal header — labels bloom on approach (platform-wide)</title>
+<style>
+  :root{
+    --cp-bg:#070b18; --band-1:#0d1428; --band-2:#0b1120; --hairline:rgba(255,255,255,.08);
+    --ink:#f1f5f9; --ink-2:#aeb4c2; --ink-3:#7c8498;
+    --brand:#6366f1; --brand-2:#8b5cf6; --emerald:#34d399;
+    --surface:#0f1530; --r-md:11px; --r-sm:8px; --r-pill:999px;
+    --topbar-h:54px;
+    /* tenant plane (indigo+emerald on light recessive) approximation */
+    --t-band:#11183a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 500px at 50% -10%,#0b1530,var(--cp-bg));
+    color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;padding:28px 22px 80px}
+  h1{font-size:22px;font-weight:780;margin:0 0 5px;letter-spacing:-.01em}
+  .lede{color:var(--ink-2);max-width:88ch;line-height:1.55;margin:0 0 6px;font-size:14px}
+  .lede b{color:var(--ink)}
+  code{background:rgba(255,255,255,.07);padding:1px 6px;border-radius:6px;font-size:.86em}
+  .tiny{color:var(--ink-3);font-size:12.5px;max-width:88ch;line-height:1.5;margin:0 0 24px}
+  .section-h{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:30px 0 4px}
+  .case{margin:0 0 24px}
+  .case__head{display:flex;align-items:baseline;gap:10px;margin:0 0 8px;flex-wrap:wrap}
+  .case__n{font-size:11px;font-weight:800;letter-spacing:.05em;color:var(--cp-bg);background:var(--emerald);border-radius:999px;padding:3px 9px}
+  .case__n--star{background:linear-gradient(135deg,var(--brand),var(--emerald))}
+  .case__n--css{background:#93c5fd}
+  .case__t{font-size:15px;font-weight:700;margin:0}
+  .case__d{color:var(--ink-2);font-size:13px;margin:0;flex:1 1 300px;min-width:0}
+  .pilltag{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
+  .pilltag--js{background:rgba(139,92,246,.18);color:#c4b5fd}
+  .pilltag--css{background:rgba(147,197,253,.16);color:#bfdbfe}
+
+  .ruler{display:flex;align-items:center;gap:8px;color:var(--ink-3);font-size:11px;margin:0 2px 4px}
+  .ruler i{flex:1;height:1px;background:repeating-linear-gradient(90deg,var(--hairline) 0 6px,transparent 6px 12px)}
+
+  /* ===== topbar frame ===== */
+  .topbar{height:var(--topbar-h);display:flex;align-items:center;gap:14px;padding:0 14px;
+    border:1px solid var(--hairline);border-radius:14px;
+    background:linear-gradient(180deg,var(--band-1),var(--band-2));box-shadow:0 12px 34px rgba(0,0,0,.4);overflow:visible}
+  .topbar--tenant{background:linear-gradient(180deg,var(--t-band),#0a0f24)}
+  .brand{display:flex;align-items:center;gap:9px;flex:none}
+  .brand__mark{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:linear-gradient(135deg,var(--brand),var(--emerald));font-size:14px;color:#fff;flex:none}
+  .brand__name{font-weight:750;font-size:14px;white-space:nowrap}
+  .brand__name small{display:block;font:italic 400 10px/1 "Source Serif 4",Georgia,serif;color:var(--ink-3)}
+  @media (max-width:640px){.brand__name{display:none}}
+  .navslot{flex:1 1 auto;min-width:0;display:flex;justify-content:center}
+  .right{display:flex;align-items:center;gap:6px;flex:none}
+  .ava{width:30px;height:30px;border-radius:var(--r-pill);background:linear-gradient(135deg,#f59e0b,#ef4444);flex:none}
+
+  /* ===== shared pill grammar ===== */
+  .nav{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-width:0}
+  .pill{position:relative;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;
+    color:var(--ink-2);background:rgba(255,255,255,.045);border:1px solid transparent;border-radius:var(--r-md);
+    padding:7px 11px;font-size:12.5px;font-weight:600;cursor:pointer;flex:none}
+  .pill:hover{color:var(--ink)}
+  .pill--active{color:#fff;background:linear-gradient(135deg,var(--brand),var(--emerald))}
+  .pill .g{font-size:15px;line-height:1;flex:none}
+  .pill .t{display:inline-block;line-height:1;overflow:hidden;white-space:nowrap}
+
+  /* label collapsed by default everywhere (icons at rest) */
+  .reveal .pill .t{max-width:0;opacity:0;margin-left:-6px;
+    transition:max-width .26s cubic-bezier(.22,.61,.36,1),opacity .18s ease,margin-left .26s cubic-bezier(.22,.61,.36,1)}
+  .reveal .pill--active .t{max-width:11ch;opacity:1;margin-left:0} /* active always reads */
+
+  /* ---- Flavor 1: MAGNETIC proximity (JS sets --reveal 0..1 per pill) ---- */
+  .reveal--magnetic .pill .t{max-width:calc(var(--reveal,0) * 11ch);opacity:var(--reveal,0);
+    margin-left:calc(var(--reveal,0) * 6px - 6px);transition:max-width .12s linear,opacity .12s linear,margin-left .12s linear}
+  .reveal--magnetic .pill{transition:transform .14s ease,background .14s ease}
+  .reveal--magnetic .pill[style*="--reveal"]{} /* placeholder */
+  .reveal--magnetic .pill{transform:translateY(calc(var(--reveal,0) * -1px))}
+  .reveal--magnetic .pill:not(.pill--active){background:rgba(255,255,255,calc(.045 + var(--reveal,0) * .06))}
+
+  /* ---- Flavor 2: RAIL BLOOM (pure CSS, hover the whole strip) ---- */
+  .reveal--bloom:hover .pill .t{max-width:11ch;opacity:1;margin-left:0}
+
+  /* ---- Flavor 3: PER-PILL PEEK (pure CSS, hover/focus a single pill) ---- */
+  .reveal--peek .pill:hover .t,.reveal--peek .pill:focus-visible .t{max-width:11ch;opacity:1;margin-left:0}
+
+  .legend{font-size:12px;color:var(--ink-3);margin:7px 2px 0;line-height:1.45}
+  .legend b{color:var(--ink-2)}
+  .hintbar{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-3);
+    background:rgba(255,255,255,.04);border:1px solid var(--hairline);border-radius:999px;padding:5px 12px;margin:6px 2px 0}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 0 4px rgba(52,211,153,.18)}
+  footer{margin-top:34px;color:var(--ink-3);font-size:12.5px;line-height:1.6;max-width:90ch;border-top:1px solid var(--hairline);padding-top:18px}
+  .rec{background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(52,211,153,.08));border:1px solid var(--hairline);
+    border-radius:14px;padding:14px 16px;margin:6px 0 0}
+  .rec b{color:var(--ink)}
+</style>
+</head>
+<body>
+  <h1>Proximity-reveal header — labels bloom on approach</h1>
+  <p class="lede">
+    Your pick (<b>D</b>), taken further: at rest the header is a clean row of <b>icons</b> (no extra height, no clutter);
+    the moment your cursor gets <b>near</b> an icon, its label <b>blooms open immediately</b> — and the closer you are,
+    the more it opens. Move along the row and labels follow your cursor like a magnet. Same <code>54px</code> height,
+    every control self-explains on approach, and it’s consistent <b>platform-wide</b>.
+  </p>
+  <p class="tiny">Move your mouse across each header below. The first flavor is the “magnetic” one you described; the next two are simpler pure-CSS versions for comparison. Then scroll to “Platform-wide” to see the same idea on the right-hand controls and across operator / admin / tenant.</p>
+  <span class="hintbar"><span class="dot"></span> Tip: glide slowly across a strip — watch labels open as you approach, neighbours peek, the rest stay tidy icons.</span>
+
+  <!-- ================= THE INTERACTION ================= -->
+  <div class="section-h">The interaction — three flavors</div>
+
+  <!-- Flavor 1: Magnetic -->
+  <div class="case">
+    <div class="case__head">
+      <span class="case__n case__n--star">★ D+</span>
+      <h2 class="case__t">Magnetic reveal</h2>
+      <p class="case__d">Label opens by <em>proximity</em>: nearest icon fully expands + lifts, neighbours peek, far ones stay icons. Feels alive.</p>
+      <span class="pilltag pilltag--js">CSS + ~12 lines JS</span>
+    </div>
+    <div class="ruler"><i></i><span>54px</span><i></i></div>
+    <div class="topbar">
+      <div class="brand"><span class="brand__mark">◆</span><span class="brand__name">RunMyCampus<small>operator</small></span></div>
+      <div class="navslot"><nav class="nav reveal reveal--magnetic" data-proximity>
+        <a class="pill pill--active"><span class="g">⌂</span><span class="t">Home</span></a>
+        <a class="pill"><span class="g">◈</span><span class="t">Studio</span></a>
+        <a class="pill"><span class="g">⚙</span><span class="t">Operations</span></a>
+        <a class="pill"><span class="g">▦</span><span class="t">Marketplace</span></a>
+        <a class="pill"><span class="g">▤</span><span class="t">Analytics</span></a>
+        <a class="pill"><span class="g">⇄</span><span class="t">Migration</span></a>
+        <a class="pill"><span class="g">✦</span><span class="t">Support</span></a>
+        <a class="pill"><span class="g">⛨</span><span class="t">Control</span></a>
+      </nav></div>
+      <div class="right"><span class="ava"></span></div>
+    </div>
+    <p class="legend"><b>Why it wins:</b> creative + immediate, yet the resting state is dead-simple icons. The active page always stays labeled so you’re never lost.</p>
+  </div>
+
+  <!-- Flavor 2: Bloom -->
+  <div class="case">
+    <div class="case__head">
+      <span class="case__n case__n--css">simple</span>
+      <h2 class="case__t">Rail bloom</h2>
+      <p class="case__d">Approach anywhere on the strip → <em>all</em> labels open together; leave → back to icons. Zero JS.</p>
+      <span class="pilltag pilltag--css">pure CSS</span>
+    </div>
+    <div class="ruler"><i></i><span>54px</span><i></i></div>
+    <div class="topbar">
+      <div class="brand"><span class="brand__mark">◆</span><span class="brand__name">RunMyCampus<small>operator</small></span></div>
+      <div class="navslot"><nav class="nav reveal reveal--bloom">
+        <a class="pill pill--active"><span class="g">⌂</span><span class="t">Home</span></a>
+        <a class="pill"><span class="g">◈</span><span class="t">Studio</span></a>
+        <a class="pill"><span class="g">⚙</span><span class="t">Operations</span></a>
+        <a class="pill"><span class="g">▦</span><span class="t">Marketplace</span></a>
+        <a class="pill"><span class="g">▤</span><span class="t">Analytics</span></a>
+        <a class="pill"><span class="g">⇄</span><span class="t">Migration</span></a>
+        <a class="pill"><span class="g">✦</span><span class="t">Support</span></a>
+        <a class="pill"><span class="g">⛨</span><span class="t">Control</span></a>
+      </nav></div>
+      <div class="right"><span class="ava"></span></div>
+    </div>
+    <p class="legend">Simplest of all — but it expands the whole row at once (can get wide on small screens).</p>
+  </div>
+
+  <!-- Flavor 3: Peek -->
+  <div class="case">
+    <div class="case__head">
+      <span class="case__n case__n--css">simple</span>
+      <h2 class="case__t">Per-pill peek</h2>
+      <p class="case__d">Only the icon you’re actually over reveals its label. Tidy and precise. Zero JS.</p>
+      <span class="pilltag pilltag--css">pure CSS</span>
+    </div>
+    <div class="ruler"><i></i><span>54px</span><i></i></div>
+    <div class="topbar">
+      <div class="brand"><span class="brand__mark">◆</span><span class="brand__name">RunMyCampus<small>operator</small></span></div>
+      <div class="navslot"><nav class="nav reveal reveal--peek">
+        <a class="pill pill--active"><span class="g">⌂</span><span class="t">Home</span></a>
+        <a class="pill"><span class="g">◈</span><span class="t">Studio</span></a>
+        <a class="pill"><span class="g">⚙</span><span class="t">Operations</span></a>
+        <a class="pill"><span class="g">▦</span><span class="t">Marketplace</span></a>
+        <a class="pill"><span class="g">▤</span><span class="t">Analytics</span></a>
+        <a class="pill"><span class="g">⇄</span><span class="t">Migration</span></a>
+        <a class="pill"><span class="g">✦</span><span class="t">Support</span></a>
+        <a class="pill"><span class="g">⛨</span><span class="t">Control</span></a>
+      </nav></div>
+      <div class="right"><span class="ava"></span></div>
+    </div>
+    <p class="legend">Needs the cursor directly over the icon (no “approach” anticipation) — the least magical, the most minimal.</p>
+  </div>
+
+  <!-- ================= PLATFORM-WIDE ================= -->
+  <div class="section-h">Platform-wide — the whole header, every surface</div>
+  <p class="tiny">The same magnetic reveal applied to <b>all</b> icon-only header affordances — not just the product nav, but the right-hand controls too — across the three surfaces. One learnable behavior everywhere.</p>
+
+  <!-- Operator full header -->
+  <div class="case">
+    <div class="case__head"><span class="case__n">OPERATOR</span><h2 class="case__t">manager.runmycampus.com</h2>
+      <p class="case__d">Nav + utilities all reveal on approach.</p></div>
+    <div class="ruler"><i></i><span>54px</span><i></i></div>
+    <div class="topbar">
+      <div class="brand"><span class="brand__mark">◆</span><span class="brand__name">RunMyCampus<small>operator</small></span></div>
+      <div class="navslot"><nav class="nav reveal reveal--magnetic" data-proximity>
+        <a class="pill pill--active"><span class="g">⌂</span><span class="t">Home</span></a>
+        <a class="pill"><span class="g">◈</span><span class="t">Studio</span></a>
+        <a class="pill"><span class="g">⚙</span><span class="t">Operations</span></a>
+        <a class="pill"><span class="g">▦</span><span class="t">Marketplace</span></a>
+        <a class="pill"><span class="g">▤</span><span class="t">Analytics</span></a>
+        <a class="pill"><span class="g">⇄</span><span class="t">Migration</span></a>
+        <a class="pill"><span class="g">✦</span><span class="t">Support</span></a>
+        <a class="pill"><span class="g">⛨</span><span class="t">Control</span></a>
+      </nav></div>
+      <nav class="nav reveal reveal--magnetic right" data-proximity>
+        <a class="pill"><span class="g">🔍</span><span class="t">Search</span></a>
+        <a class="pill"><span class="g">🛡</span><span class="t">Security</span></a>
+        <a class="pill"><span class="g">🔔</span><span class="t">Alerts</span></a>
+        <a class="pill"><span class="g">▦</span><span class="t">Workspace</span></a>
+        <a class="pill"><span class="g">👤</span><span class="t">You</span></a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Admin full header -->
+  <div class="case">
+    <div class="case__head"><span class="case__n">ADMIN</span><h2 class="case__t">/admin/ backoffice</h2>
+      <p class="case__d">Same grammar, backoffice pills.</p></div>
+    <div class="ruler"><i></i><span>54px</span><i></i></div>
+    <div class="topbar">
+      <div class="brand"><span class="brand__mark">◆</span><span class="brand__name">RunMyCampus<small>backoffice</small></span></div>
+      <div class="navslot"><nav class="nav reveal reveal--magnetic" data-proximity>
+        <a class="pill pill--active"><span class="g">▤</span><span class="t">Backoffice</span></a>
+        <a class="pill"><span class="g">⚙</span><span class="t">Config center</span></a>
+        <a class="pill"><span class="g">◈</span><span class="t">Studio</span></a>
+        <a class="pill"><span class="g">⛨</span><span class="t">Control plane</span></a>
+        <a class="pill"><span class="g">▦</span><span class="t">Catalog</span></a>
+        <a class="pill"><span class="g">🔑</span><span class="t">Access</span></a>
+        <a class="pill"><span class="g">♥</span><span class="t">Health</span></a>
+      </nav></div>
+      <nav class="nav reveal reveal--magnetic right" data-proximity>
+        <a class="pill"><span class="g">🔍</span><span class="t">Search</span></a>
+        <a class="pill"><span class="g">🔔</span><span class="t">Alerts</span></a>
+        <a class="pill"><span class="g">👤</span><span class="t">You</span></a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Tenant full header -->
+  <div class="case">
+    <div class="case__head"><span class="case__n">TENANT</span><h2 class="case__t">school portal</h2>
+      <p class="case__d">Role nav keeps its words; the utility icons gain the reveal — one consistent feel.</p></div>
+    <div class="ruler"><i></i><span>54px</span><i></i></div>
+    <div class="topbar topbar--tenant">
+      <div class="brand"><span class="brand__mark">🎓</span><span class="brand__name">Northgate Academy<small>portal</small></span></div>
+      <div class="navslot"><nav class="nav">
+        <a class="pill pill--active"><span class="g">🏠</span><span class="t" style="max-width:11ch;opacity:1;margin-left:0">Home</span></a>
+        <a class="pill"><span class="g">💳</span><span class="t" style="max-width:11ch;opacity:1;margin-left:0">Finance</span></a>
+        <a class="pill"><span class="g">💬</span><span class="t" style="max-width:11ch;opacity:1;margin-left:0">Messages</span></a>
+        <a class="pill"><span class="g">📊</span><span class="t" style="max-width:11ch;opacity:1;margin-left:0">Analytics</span></a>
+      </nav></div>
+      <nav class="nav reveal reveal--magnetic right" data-proximity>
+        <a class="pill"><span class="g">🔍</span><span class="t">Search</span></a>
+        <a class="pill"><span class="g">🔔</span><span class="t">Alerts</span></a>
+        <a class="pill"><span class="g">✨</span><span class="t">Copilot</span></a>
+        <a class="pill"><span class="g">👤</span><span class="t">You</span></a>
+      </nav>
+    </div>
+    <p class="legend">Tenant role nav already has labels (few items, lots of room) — so there the reveal is reserved for the icon-only utilities, keeping the brand-forward portal clean.</p>
+  </div>
+
+  <footer>
+    <div class="rec">
+      <b>My recommendation:</b> ship <b>Magnetic reveal (★ D+)</b> as the hero behavior, but layer it so it degrades gracefully:
+      the <b>pure-CSS per-pill peek</b> is the baseline (works with zero JS, keyboard-focus reveals the label for a11y),
+      and the <b>~12-line proximity script</b> progressively enhances it into the magnetic feel on pointer devices.
+      That’s creativity + innovation with a genuinely simple floor.
+    </div>
+    <p style="margin-top:12px">
+      Accessibility + behavior are honored by design: labels are clipped (not removed) so screen-readers + keyboard focus
+      always read them; <code>prefers-reduced-motion</code> will snap instead of animate; on touch (no hover) the active label
+      shows and the rest fall back to tap-to-navigate with title tooltips. Implementation will be scoped to the header rail only,
+      same <code>54px</code> height, real brand tokens. <b>Nothing is implemented yet</b> — tell me which flavor (or the layered combo)
+      and I’ll build it. Pixel-approximate mock.
+    </p>
+  </footer>
+
+<script>
+  // Magnetic proximity: per-pill label opens 0..1 by horizontal distance to cursor.
+  // This is the entire enhancement — declarative CSS does the rest.
+  (function(){
+    var REACH = 150;           // px: how early a label starts opening as you approach
+    document.querySelectorAll('[data-proximity]').forEach(function(nav){
+      var pills = Array.prototype.slice.call(nav.querySelectorAll('.pill'));
+      function paint(clientX){
+        pills.forEach(function(p){
+          if(p.classList.contains('pill--active')){ p.style.setProperty('--reveal','1'); return; }
+          var r = p.getBoundingClientRect(), cx = r.left + r.width/2;
+          var d = Math.abs(clientX - cx);
+          var v = Math.max(0, 1 - d/REACH);
+          v = v*v*(3-2*v); // smoothstep
+          p.style.setProperty('--reveal', v.toFixed(3));
+        });
+      }
+      nav.addEventListener('pointermove', function(e){ if(e.pointerType==='touch') return; paint(e.clientX); });
+      nav.addEventListener('pointerleave', function(){ pills.forEach(function(p){ if(!p.classList.contains('pill--active')) p.style.setProperty('--reveal','0'); }); });
+      // active always reads
+      pills.forEach(function(p){ if(p.classList.contains('pill--active')) p.style.setProperty('--reveal','1'); });
+    });
+  })();
+</script>
+</body>
+</html>

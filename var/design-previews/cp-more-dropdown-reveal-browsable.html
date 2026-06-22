@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en" data-resolved-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operator/Admin header "More ▾" dropdown — before vs after</title>
+<style>
+  /* ----- approximate cockpit dark-chrome tokens (real values live in design-tokens.css) ----- */
+  :root{
+    --cp-bg:#070b18; --cp-band:#0b1220; --cp-hairline:rgba(255,255,255,.08);
+    --cp-ink:#f1f5f9; --cp-ink-2:#aeaeb2; --cp-ink-3:#8e8e93;
+    --brand-primary:#6366f1; --brand-emerald:#34d399;
+    --chrome-surface:#0f1530;
+    --radius-md:12px; --radius-sm:8px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--cp-bg); color:var(--cp-ink);
+    font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased; padding:28px 22px 64px;
+  }
+  h1{font-size:20px; font-weight:750; margin:0 0 4px}
+  .lede{color:var(--cp-ink-2); margin:0 0 22px; max-width:74ch; line-height:1.5; font-size:14px}
+  .lede code{background:rgba(255,255,255,.06); padding:1px 6px; border-radius:6px; font-size:12px}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:20px}
+  @media (max-width:880px){.grid{grid-template-columns:1fr}}
+  .panel{border:1px solid var(--cp-hairline); border-radius:16px; overflow:visible; background:linear-gradient(180deg,rgba(255,255,255,.02),transparent)}
+  .panel__cap{display:flex; align-items:center; gap:8px; padding:12px 16px; border-bottom:1px solid var(--cp-hairline); font-size:13px; font-weight:650}
+  .tag{font-size:11px; font-weight:700; letter-spacing:.04em; padding:2px 8px; border-radius:999px}
+  .tag--bad{background:rgba(239,68,68,.16); color:#fca5a5}
+  .tag--good{background:rgba(52,211,153,.16); color:#6ee7b7}
+  .panel__note{padding:8px 16px 0; font-size:12px; color:var(--cp-ink-3); line-height:1.45}
+
+  /* ============ real header / nav structure (mirrors the live classes) ============ */
+  .demo-shell{padding:0 0 14px}
+  .cp-header{           /* the clipping ancestor — this is where the bug lives */
+    background:var(--cp-band); border-bottom:1px solid var(--cp-hairline);
+    max-width:100%;
+  }
+  /* BEFORE: effective result of Chromium coercing overflow-y:visible -> clip
+     when overflow-x:clip. We use overflow:hidden to reliably reproduce it. */
+  .demo-shell[data-variant="before"] .cp-header{ overflow:hidden; }
+  /* AFTER: the shipped fix — normal state keeps horizontal containment, and a
+     live :has() drops all clipping the instant the dropdown opens. */
+  .demo-shell[data-variant="after"] .cp-header{ overflow-x:clip; overflow-y:visible; }
+  .demo-shell[data-variant="after"] .cp-header:has(.cp-primary-nav__more[open]){ overflow:visible; }
+
+  .cp-primary-nav{
+    display:flex; flex-wrap:nowrap; align-items:center; gap:6px;
+    padding:10px 14px;
+  }
+  .cp-primary-nav__pill{
+    display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+    padding:7px 12px; border-radius:var(--radius-md); text-decoration:none;
+    font-size:13px; font-weight:600; color:var(--cp-ink-2);
+    background:rgba(255,255,255,.04); border:1px solid transparent; cursor:pointer;
+  }
+  .cp-primary-nav__pill:hover{color:var(--cp-ink); background:rgba(255,255,255,.08)}
+  .cp-primary-nav__pill--active{
+    color:#fff; background:linear-gradient(135deg,var(--brand-primary),var(--brand-emerald));
+  }
+  .cp-nav-pill__glyph{font-size:15px; line-height:1}
+
+  /* --- the native <details> "More" dropdown --- */
+  .cp-primary-nav__more{position:relative; display:inline-flex; background:transparent; margin-left:auto}
+  .cp-primary-nav__more > summary{list-style:none; cursor:pointer; user-select:none}
+  .cp-primary-nav__more > summary::-webkit-details-marker{display:none}
+  .cp-primary-nav__more > summary::marker{content:""}
+  .cp-primary-nav__more-menu{
+    position:absolute; top:calc(100% + 6px); right:0; z-index:1200;
+    min-width:13rem; display:flex; flex-direction:column; gap:2px; padding:6px;
+    border-radius:var(--radius-md); background:var(--chrome-surface);
+    border:1px solid var(--cp-hairline); box-shadow:0 18px 48px rgba(8,11,28,.55);
+  }
+  .cp-primary-nav__more-item{
+    display:flex; align-items:center; gap:6px; padding:6px 8px;
+    border-radius:var(--radius-sm); font-size:13px; color:var(--cp-ink-2);
+    text-decoration:none; white-space:nowrap;
+  }
+  .cp-primary-nav__more-item:hover{background:rgba(255,255,255,.09); color:var(--cp-ink)}
+  .cp-primary-nav__more-item--active{
+    background:linear-gradient(135deg,rgba(99,102,241,.30),rgba(168,85,247,.20)); color:#ddd6fe; font-weight:600;
+  }
+
+  /* a little page body so the dropdown has something to drop over (and so the
+     "before" clip is obvious — the menu would extend into this area). */
+  .demo-body{padding:18px 16px; color:var(--cp-ink-3); font-size:13px; line-height:1.6}
+  .demo-body .row{height:10px; border-radius:6px; background:rgba(255,255,255,.04); margin:8px 0}
+  .demo-body .row:nth-child(2){width:70%} .demo-body .row:nth-child(3){width:85%} .demo-body .row:nth-child(4){width:55%}
+
+  .hint{margin-top:10px; font-size:12px; color:var(--cp-ink-3)}
+  .kbd{font:600 11px/1 ui-monospace,monospace; background:rgba(255,255,255,.07); padding:2px 6px; border-radius:5px; color:var(--cp-ink-2)}
+  footer{margin-top:26px; color:var(--cp-ink-3); font-size:12px; line-height:1.5; max-width:80ch}
+</style>
+</head>
+<body>
+  <h1>Header “More ▾” dropdown — before vs. after the fix</h1>
+  <p class="lede">
+    On <code>/super/</code> and <code>/admin/</code> the header folds nav items 6+ into a native
+    <code>&lt;details&gt;</code> “More ▾” dropdown. Clicking it <em>does</em> toggle open — but the menu was
+    being <strong>clipped</strong> because Chromium coerces <code>overflow-y:visible</code> back to <code>clip</code>
+    when <code>overflow-x:clip</code> is set on <code>.cp-header</code>. Click <strong>“⋯ More”</strong> in each
+    panel below to feel the difference.
+  </p>
+
+  <div class="grid">
+    <!-- ===================== BEFORE ===================== -->
+    <section class="panel">
+      <div class="panel__cap"><span class="tag tag--bad">BEFORE</span> menu clipped — “nothing happens”</div>
+      <div class="panel__note">Header clips its overflow → the dropdown opens but is invisible.</div>
+      <div class="demo-shell" data-variant="before">
+        <header class="cp-header">
+          <nav class="cp-primary-nav" aria-label="Primary (before)">
+            <a class="cp-primary-nav__pill cp-primary-nav__pill--active"><span class="cp-nav-pill__glyph">◆</span>Home</a>
+            <a class="cp-primary-nav__pill"><span class="cp-nav-pill__glyph">▤</span>Studio</a>
+            <a class="cp-primary-nav__pill"><span class="cp-nav-pill__glyph">⚙</span>Operations</a>
+            <a class="cp-primary-nav__pill"><span class="cp-nav-pill__glyph">▦</span>Marketplace</a>
+            <a class="cp-primary-nav__pill"><span class="cp-nav-pill__glyph">📊</span>Analytics</a>
+            <details class="cp-primary-nav__more">
+              <summary class="cp-primary-nav__pill"><span class="cp-nav-pill__glyph">⋯</span>More</summary>
+              <div class="cp-primary-nav__more-menu" role="menu">
+                <a class="cp-primary-nav__more-item"><span class="cp-nav-pill__glyph">⇄</span>Migration</a>
+                <a class="cp-primary-nav__more-item"><span class="cp-nav-pill__glyph">✦</span>Support</a>
+                <a class="cp-primary-nav__more-item"><span class="cp-nav-pill__glyph">⛨</span>Control</a>
+              </div>
+            </details>
+          </nav>
+        </header>
+        <div class="demo-body">
+          <div class="row"></div><div class="row"></div><div class="row"></div><div class="row"></div>
+        </div>
+      </div>
+      <p class="hint" style="padding:0 16px 14px">Open it → the menu is cut off at the header’s edge.</p>
+    </section>
+
+    <!-- ===================== AFTER ===================== -->
+    <section class="panel">
+      <div class="panel__cap"><span class="tag tag--good">AFTER</span> menu reveals on click</div>
+      <div class="panel__note"><code>:has(.cp-primary-nav__more[open]) → overflow:visible</code> while open.</div>
+      <div class="demo-shell" data-variant="after">
+        <header class="cp-header">
+          <nav class="cp-primary-nav" aria-label="Primary (after)">
+            <a class="cp-primary-nav__pill cp-primary-nav__pill--active"><span class="cp-nav-pill__glyph">◆</span>Home</a>
+            <a class="cp-primary-nav__pill"><span class="cp-nav-pill__glyph">▤</span>Studio</a>
+            <a class="cp-primary-nav__pill"><span class="cp-nav-pill__glyph">⚙</span>Operations</a>
+            <a class="cp-primary-nav__pill"><span class="cp-nav-pill__glyph">▦</span>Marketplace</a>
+            <a class="cp-primary-nav__pill"><span class="cp-nav-pill__glyph">📊</span>Analytics</a>
+            <details class="cp-primary-nav__more">
+              <summary class="cp-primary-nav__pill"><span class="cp-nav-pill__glyph">⋯</span>More</summary>
+              <div class="cp-primary-nav__more-menu" role="menu">
+                <a class="cp-primary-nav__more-item"><span class="cp-nav-pill__glyph">⇄</span>Migration</a>
+                <a class="cp-primary-nav__more-item cp-primary-nav__more-item--active"><span class="cp-nav-pill__glyph">✦</span>Support</a>
+                <a class="cp-primary-nav__more-item"><span class="cp-nav-pill__glyph">⛨</span>Control</a>
+              </div>
+            </details>
+          </nav>
+        </header>
+        <div class="demo-body">
+          <div class="row"></div><div class="row"></div><div class="row"></div><div class="row"></div>
+        </div>
+      </div>
+      <p class="hint" style="padding:0 16px 14px">Open it → the menu drops cleanly over the page.</p>
+    </section>
+  </div>
+
+  <footer>
+    Faithful to the live classes in <code>templates/partials/control_plane_primary_nav.html</code> +
+    <code>static/css/rmc-cockpit-skin-v8.css</code>; the only added rule is the shipped one-liner in
+    <code>static/css/rmc-cp-header-200x.css</code>. The native <code>&lt;details&gt;</code> needs no JS — this whole
+    page has zero JavaScript. “Empty” case isn’t shown because the live button is guarded by
+    <span class="kbd">length &gt; 5</span> and can never render with an empty menu; tenant shells have no “More” button.
+  </footer>
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en" data-resolved-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operator header nav — give every pill icon + text (same height) · directions</title>
+<style>
+  :root{
+    --cp-bg:#070b18; --band-1:#0d1428; --band-2:#0b1120; --hairline:rgba(255,255,255,.08);
+    --ink:#f1f5f9; --ink-2:#aeb4c2; --ink-3:#7c8498;
+    --brand:#6366f1; --brand-2:#8b5cf6; --emerald:#34d399;
+    --surface:#0f1530;
+    --r-md:11px; --r-sm:8px; --r-pill:999px;
+    --topbar-h:54px;            /* every header below is locked to this exact height */
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--cp-bg);color:var(--ink);
+    font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;padding:26px 22px 70px}
+  h1{font-size:21px;font-weight:760;margin:0 0 4px}
+  .lede{color:var(--ink-2);max-width:84ch;line-height:1.55;margin:0 0 8px;font-size:14px}
+  .lede code,.tiny code{background:rgba(255,255,255,.07);padding:1px 6px;border-radius:6px;font-size:.86em}
+  .tiny{color:var(--ink-3);font-size:12.5px;max-width:84ch;line-height:1.5;margin:0 0 26px}
+  .case{margin:0 0 30px}
+  .case__head{display:flex;align-items:baseline;gap:10px;margin:0 0 9px;flex-wrap:wrap}
+  .case__n{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--cp-bg);
+    background:var(--emerald);border-radius:999px;padding:3px 9px}
+  .case__n--base{background:#fca5a5}
+  .case__t{font-size:15px;font-weight:700;margin:0}
+  .case__d{color:var(--ink-2);font-size:13px;margin:0;flex:1 1 320px;min-width:0}
+  .verdict{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
+  .verdict--full{background:rgba(52,211,153,.16);color:#6ee7b7}
+  .verdict--partial{background:rgba(251,191,36,.16);color:#fcd34d}
+  .verdict--bad{background:rgba(239,68,68,.16);color:#fca5a5}
+
+  /* =================== realistic operator topbar frame =================== */
+  .topbar{
+    height:var(--topbar-h); display:flex; align-items:center; gap:14px;
+    padding:0 14px; border:1px solid var(--hairline); border-radius:14px;
+    background:linear-gradient(180deg,var(--band-1),var(--band-2));
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
+    overflow:visible; /* lets the More dropdown escape, per the shipped header fix */
+  }
+  .brand{display:flex;align-items:center;gap:9px;flex:none;min-width:0}
+  .brand__mark{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--brand),var(--emerald));font-size:14px;color:#fff;flex:none}
+  .brand__name{font-weight:750;font-size:14px;letter-spacing:-.01em;white-space:nowrap}
+  .brand__name small{display:block;font:italic 400 10px/1 "Source Serif 4",Georgia,serif;color:var(--ink-3)}
+  @media (max-width:680px){.brand__name{display:none}}
+
+  .navslot{flex:1 1 auto;min-width:0;display:flex;justify-content:center}
+
+  .right{display:flex;align-items:center;gap:8px;flex:none}
+  .ctl{width:32px;height:32px;border-radius:var(--r-pill);display:grid;place-items:center;
+    background:rgba(255,255,255,.05);border:1px solid var(--hairline);font-size:14px;color:var(--ink-2)}
+  .chip{height:32px;display:inline-flex;align-items:center;gap:6px;padding:0 11px;border-radius:var(--r-pill);
+    background:rgba(255,255,255,.05);border:1px solid var(--hairline);font-size:12px;color:var(--ink-2);white-space:nowrap}
+  .ava{width:30px;height:30px;border-radius:var(--r-pill);background:linear-gradient(135deg,#f59e0b,#ef4444);flex:none}
+  @media (max-width:780px){.chip,.ctl--hideable{display:none}}
+
+  /* =================== shared pill grammar =================== */
+  .nav{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-width:0}
+  .pill{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;
+    color:var(--ink-2);background:rgba(255,255,255,.045);border:1px solid transparent;
+    border-radius:var(--r-md);padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;flex:none}
+  .pill:hover{color:var(--ink);background:rgba(255,255,255,.09)}
+  .pill--active{color:#fff;background:linear-gradient(135deg,var(--brand),var(--emerald))}
+  .pill .g{font-size:15px;line-height:1;flex:none}
+  .pill .t{line-height:1}
+
+  /* ---------- BASELINE: rail mode (only active labeled) ---------- */
+  .nav--base .pill:not(.pill--active) .t{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .nav--base .pill{padding-inline:9px}
+
+  /* ---------- A: compact always-label chips ---------- */
+  .nav--a{gap:4px}
+  .nav--a .pill{padding:6px 9px;font-size:11.5px;gap:5px;letter-spacing:-.01em}
+  .nav--a .pill .g{font-size:13.5px}
+
+  /* ---------- B: priority+ (labels that fit, rest fold into More) ---------- */
+  .more{position:relative;display:inline-flex;flex:none;margin:0}
+  .more>summary{list-style:none;cursor:pointer}
+  .more>summary::-webkit-details-marker{display:none}
+  .more>summary::marker{content:""}
+  .more__menu{position:absolute;top:calc(100% + 8px);right:0;z-index:50;min-width:13rem;
+    display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:var(--r-md);
+    background:var(--surface);border:1px solid var(--hairline);box-shadow:0 18px 48px rgba(8,11,28,.6)}
+  .more__item{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:var(--r-sm);
+    color:var(--ink-2);text-decoration:none;font-size:13px;white-space:nowrap}
+  .more__item:hover{background:rgba(255,255,255,.09);color:var(--ink)}
+  .more__item .g{font-size:15px}
+
+  /* ---------- C: glide rail (scroll-snap + edge fades) ---------- */
+  .glide{flex:1 1 auto;min-width:0;position:relative}
+  .glide__track{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x proximity;
+    padding:2px 30px;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 26px,#000 calc(100% - 26px),transparent);
+            mask-image:linear-gradient(90deg,transparent,#000 26px,#000 calc(100% - 26px),transparent)}
+  .glide__track::-webkit-scrollbar{display:none}
+  .glide__track .pill{scroll-snap-align:center}
+  .glide__edge{position:absolute;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:999px;
+    display:grid;place-items:center;background:var(--surface);border:1px solid var(--hairline);
+    color:var(--ink-2);font-size:12px;cursor:default;z-index:2}
+  .glide__edge--l{left:-2px} .glide__edge--r{right:-2px}
+
+  /* ---------- D: hover/focus expand ---------- */
+  .nav--d .pill .t{max-width:0;overflow:hidden;opacity:0;margin-left:-5px;
+    transition:max-width .28s ease,opacity .2s ease,margin-left .28s ease}
+  .nav--d .pill:hover .t,.nav--d .pill:focus-visible .t,.nav--d .pill--active .t{max-width:9ch;opacity:1;margin-left:0}
+  .nav--d .pill{transition:background .15s ease}
+
+  .frame-note{font-size:12px;color:var(--ink-3);margin:8px 2px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .kbd{font:600 11px/1 ui-monospace,monospace;background:rgba(255,255,255,.08);padding:2px 6px;border-radius:5px;color:var(--ink-2)}
+  .ruler{display:flex;align-items:center;gap:8px;color:var(--ink-3);font-size:11px;margin:4px 2px 0}
+  .ruler i{flex:1;height:1px;background:repeating-linear-gradient(90deg,var(--hairline) 0 6px,transparent 6px 12px)}
+  footer{margin-top:30px;color:var(--ink-3);font-size:12.5px;line-height:1.55;max-width:86ch;border-top:1px solid var(--hairline);padding-top:16px}
+  .legend{font-size:12px;color:var(--ink-3);margin:2px 0 0}
+</style>
+</head>
+<body>
+  <h1>Operator header nav — every pill gets icon + text, same height</h1>
+  <p class="lede">
+    Today the operator/manager topbar runs in <strong>“rail” mode</strong>: the nav was moved into the header’s
+    utility row to save a whole row of height, so only the <em>active</em> pill (Home) keeps its label and the rest
+    collapse to bare icons. Below is the current state plus <strong>4 creative directions</strong> — every one keeps
+    the <strong>exact same header height</strong> (<span class="kbd">54px</span>, marked by the dotted rulers) and gives
+    every item a readable label. Each sits in a realistic topbar (brand left, controls right) so you can see how it
+    handles the tight middle slot. <strong>Resize your window</strong> to feel how each behaves.
+  </p>
+  <p class="tiny">Pills shown: Home · Studio · Operations · Marketplace · Analytics · Migration · Support · Control (8) — the real operator product nav.</p>
+
+  <!-- ============ BASELINE ============ -->
+  <div class="case">
+    <div class="case__head">
+      <span class="case__n case__n--base">NOW</span>
+      <h2 class="case__t">Current — rail mode</h2>
+      <p class="case__d">Only the active pill is labeled; everything else is icon-only with a hover tooltip.</p>
+      <span class="verdict verdict--bad">icon-only</span>
+    </div>
+    <div class="ruler"><i></i><span>54px</span><i></i></div>
+    <div class="topbar">
+      <div class="brand"><span class="brand__mark">◆</span><span class="brand__name">RunMyCampus<small>operator</small></span></div>
+      <div class="navslot"><nav class="nav nav--base">
+        <a class="pill pill--active"><span class="g">⌂</span><span class="t">Home</span></a>
+        <a class="pill"><span class="g">◈</span><span class="t">Studio</span></a>
+        <a class="pill"><span class="g">⚙</span><span class="t">Operations</span></a>
+        <a class="pill"><span class="g">▦</span><span class="t">Marketplace</span></a>
+        <a class="pill"><span class="g">▤</span><span class="t">Analytics</span></a>
+        <a class="pill"><span class="g">⇄</span><span class="t">Migration</span></a>
+        <a class="pill"><span class="g">✦</span><span class="t">Support</span></a>
+        <a class="pill"><span class="g">⛨</span><span class="t">Control</span></a>
+      </nav></div>
+      <div class="right"><span class="ctl ctl--hideable">🔍</span><span class="ctl">🔔</span><span class="chip">Workspace ▾</span><span class="ava"></span></div>
+    </div>
+  </div>
+
+  <!-- ============ A ============ -->
+  <div class="case">
+    <div class="case__head">
+      <span class="case__n">A</span>
+      <h2 class="case__t">Compact label chips</h2>
+      <p class="case__d">Shrink the typography + spacing (not the height) so all 8 icon+text chips fit one row. Most direct; densest.</p>
+      <span class="verdict verdict--full">all labeled</span>
+    </div>
+    <div class="ruler"><i></i><span>54px</span><i></i></div>
+    <div class="topbar">
+      <div class="brand"><span class="brand__mark">◆</span><span class="brand__name">RunMyCampus<small>operator</small></span></div>
+      <div class="navslot"><nav class="nav nav--a">
+        <a class="pill pill--active"><span class="g">⌂</span><span class="t">Home</span></a>
+        <a class="pill"><span class="g">◈</span><span class="t">Studio</span></a>
+        <a class="pill"><span class="g">⚙</span><span class="t">Operations</span></a>
+        <a class="pill"><span class="g">▦</span><span class="t">Marketplace</span></a>
+        <a class="pill"><span class="g">▤</span><span class="t">Analytics</span></a>
+        <a class="pill"><span class="g">⇄</span><span class="t">Migration</span></a>
+        <a class="pill"><span class="g">✦</span><span class="t">Support</span></a>
+        <a class="pill"><span class="g">⛨</span><span class="t">Control</span></a>
+      </nav></div>
+      <div class="right"><span class="ctl ctl--hideable">🔍</span><span class="ctl">🔔</span><span class="chip">Workspace ▾</span><span class="ava"></span></div>
+    </div>
+    <p class="legend">↳ Trade-off: on narrow widths 8 chips can still get tight — pairs well with B’s overflow as a fallback.</p>
+  </div>
+
+  <!-- ============ B ============ -->
+  <div class="case">
+    <div class="case__head">
+      <span class="case__n">B</span>
+      <h2 class="case__t">Smart overflow (priority+)</h2>
+      <p class="case__d">Show fully-labeled pills for as many as fit; the rest fold into “More ▾” — which also shows icon+text. No bare icons, ever.</p>
+      <span class="verdict verdict--full">all labeled</span>
+    </div>
+    <div class="ruler"><i></i><span>54px</span><i></i></div>
+    <div class="topbar">
+      <div class="brand"><span class="brand__mark">◆</span><span class="brand__name">RunMyCampus<small>operator</small></span></div>
+      <div class="navslot"><nav class="nav">
+        <a class="pill pill--active"><span class="g">⌂</span><span class="t">Home</span></a>
+        <a class="pill"><span class="g">◈</span><span class="t">Studio</span></a>
+        <a class="pill"><span class="g">⚙</span><span class="t">Operations</span></a>
+        <a class="pill"><span class="g">▦</span><span class="t">Marketplace</span></a>
+        <a class="pill"><span class="g">▤</span><span class="t">Analytics</span></a>
+        <details class="more">
+          <summary class="pill"><span class="g">⋯</span><span class="t">More</span></summary>
+          <div class="more__menu">
+            <a class="more__item"><span class="g">⇄</span>Migration</a>
+            <a class="more__item"><span class="g">✦</span>Support</a>
+            <a class="more__item"><span class="g">⛨</span>Control</a>
+          </div>
+        </details>
+      </nav></div>
+      <div class="right"><span class="ctl ctl--hideable">🔍</span><span class="ctl">🔔</span><span class="chip">Workspace ▾</span><span class="ava"></span></div>
+    </div>
+    <p class="legend">↳ Click “⋯ More” to open the overflow (uses the same native dropdown you just approved).</p>
+  </div>
+
+  <!-- ============ C ============ -->
+  <div class="case">
+    <div class="case__head">
+      <span class="case__n">C</span>
+      <h2 class="case__t">Glide rail (scroll-snap + edge fades)</h2>
+      <p class="case__d">All 8 stay fully labeled on one row; the slot scrolls horizontally with soft edge fades and snap. Active auto-sits in view.</p>
+      <span class="verdict verdict--full">all labeled</span>
+    </div>
+    <div class="ruler"><i></i><span>54px</span><i></i></div>
+    <div class="topbar">
+      <div class="brand"><span class="brand__mark">◆</span><span class="brand__name">RunMyCampus<small>operator</small></span></div>
+      <div class="glide">
+        <span class="glide__edge glide__edge--l">‹</span>
+        <div class="glide__track">
+          <a class="pill pill--active"><span class="g">⌂</span><span class="t">Home</span></a>
+          <a class="pill"><span class="g">◈</span><span class="t">Studio</span></a>
+          <a class="pill"><span class="g">⚙</span><span class="t">Operations</span></a>
+          <a class="pill"><span class="g">▦</span><span class="t">Marketplace</span></a>
+          <a class="pill"><span class="g">▤</span><span class="t">Analytics</span></a>
+          <a class="pill"><span class="g">⇄</span><span class="t">Migration</span></a>
+          <a class="pill"><span class="g">✦</span><span class="t">Support</span></a>
+          <a class="pill"><span class="g">⛨</span><span class="t">Control</span></a>
+        </div>
+        <span class="glide__edge glide__edge--r">›</span>
+      </div>
+      <div class="right"><span class="ctl">🔔</span><span class="chip">Workspace ▾</span><span class="ava"></span></div>
+    </div>
+    <p class="legend">↳ Scroll/trackpad-swipe the nav strip horizontally — every label is reachable, none clipped.</p>
+  </div>
+
+  <!-- ============ D ============ -->
+  <div class="case">
+    <div class="case__head">
+      <span class="case__n">D</span>
+      <h2 class="case__t">Expand-on-hover chips</h2>
+      <p class="case__d">Icons at rest; the label slides open on hover/focus (active pill stays open). Saves the most space, but at rest it’s icon-only.</p>
+      <span class="verdict verdict--partial">label on hover</span>
+    </div>
+    <div class="ruler"><i></i><span>54px</span><i></i></div>
+    <div class="topbar">
+      <div class="brand"><span class="brand__mark">◆</span><span class="brand__name">RunMyCampus<small>operator</small></span></div>
+      <div class="navslot"><nav class="nav nav--d">
+        <a class="pill pill--active"><span class="g">⌂</span><span class="t">Home</span></a>
+        <a class="pill"><span class="g">◈</span><span class="t">Studio</span></a>
+        <a class="pill"><span class="g">⚙</span><span class="t">Operations</span></a>
+        <a class="pill"><span class="g">▦</span><span class="t">Marketplace</span></a>
+        <a class="pill"><span class="g">▤</span><span class="t">Analytics</span></a>
+        <a class="pill"><span class="g">⇄</span><span class="t">Migration</span></a>
+        <a class="pill"><span class="g">✦</span><span class="t">Support</span></a>
+        <a class="pill"><span class="g">⛨</span><span class="t">Control</span></a>
+      </nav></div>
+      <div class="right"><span class="ctl ctl--hideable">🔍</span><span class="ctl">🔔</span><span class="chip">Workspace ▾</span><span class="ava"></span></div>
+    </div>
+    <p class="legend">↳ Hover any pill to see the label glide in. (Doesn’t fully meet “always show text” — included for completeness.)</p>
+  </div>
+
+  <footer>
+    <p class="legend"><strong>My read:</strong> <strong>B (Smart overflow)</strong> is the most robust — it literally cannot ever show a bare icon and reuses the dropdown you just approved. <strong>A (Compact chips)</strong> is best if you want <em>all 8 visible at once</em> and accept denser text. <strong>C (Glide rail)</strong> is the most distinctive and scales to any number of items. <strong>A + B together</strong> is the belt-and-suspenders combo (compact labels, overflow only when truly out of room).</p>
+    <p class="legend">All four are pure CSS (B reuses the no-JS native <code>&lt;details&gt;</code>); none change the 54px header height. Pick one (or a combo) and I’ll implement it on <code>cp-primary-nav--rail</code> only, so the non-rail include sites are untouched. Pixel-approximate mock — real tokens/brand apply on implementation.</p>
+  </footer>
+</body>
+</html>
