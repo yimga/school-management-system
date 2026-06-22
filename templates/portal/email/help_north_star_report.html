@@ -47,8 +47,8 @@
               <p class="rmc-email__meta" style="color:#6b655d;font-size:13px;margin:0 0 16px 0;/*inline-style-allow:email-template-inline*/">Generated {{ generated_at }}</p>
               <table class="rmc-email__data-table" role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;width:100%;margin-top:12px;font-size:13px;/*inline-style-allow:email-template-inline*/">
                 <tr>
-                  <th style="border:1px solid #e9e6dc;padding:8px 10px;text-align:left;background:#f9f7f1;color:#1c1a17;font-weight:600;/*inline-style-allow:email-template-inline*/">Metric</th>
-                  <th style="border:1px solid #e9e6dc;padding:8px 10px;text-align:left;background:#f9f7f1;color:#1c1a17;font-weight:600;/*inline-style-allow:email-template-inline*/">Value</th>
+                  <th scope="col" style="border:1px solid #e9e6dc;padding:8px 10px;text-align:left;background:#f9f7f1;color:#1c1a17;font-weight:600;/*inline-style-allow:email-template-inline*/">Metric</th>
+                  <th scope="col" style="border:1px solid #e9e6dc;padding:8px 10px;text-align:left;background:#f9f7f1;color:#1c1a17;font-weight:600;/*inline-style-allow:email-template-inline*/">Value</th>
                 </tr>
                 {% with d=bundle.deflection %}
                 <tr><td style="border:1px solid #e9e6dc;padding:8px 10px;/*inline-style-allow:email-template-inline*/">Deflection rate</td><td style="border:1px solid #e9e6dc;padding:8px 10px;/*inline-style-allow:email-template-inline*/">{{ d.deflection_rate_pct|default:"&mdash;" }}%</td></tr>

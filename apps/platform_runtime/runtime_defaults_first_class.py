@@ -339,6 +339,14 @@ _WIZARD_RUNTIME_DEFAULT_KEYS: frozenset[str] = frozenset({
     "form_pending",
     "form_validation",
     "form_section_nav",
+    # Empty-state intelligence engine defaults (read via SITE façade → emitted in
+    # the #rmc-empty-config island + the first-run zero-state card). Payload-backed
+    # (no migration); owned by brand_experience via the "empty_" prefix.
+    "empty_intelligence",
+    "empty_table_filter",
+    "empty_table_data",
+    "empty_adopt",
+    "empty_first_run",
 })
 
 

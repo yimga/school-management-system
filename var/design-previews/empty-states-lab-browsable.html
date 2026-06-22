@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Empty-States Lab — audit &amp; elevate (Surface 4)</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#fff; --ink:#1c2433; --muted:#5b6677; --faint:#8590a2; --line:#e3e8f0;
+    --brand:#3b5bfd; --ok:#1f9d55; --warn:#b9770a; --err:#d23b3b;
+    --shadow:0 1px 2px rgba(20,30,60,.06),0 8px 24px rgba(20,30,60,.08);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  header.top{padding:28px 24px 12px;max-width:1080px;margin:0 auto}
+  header.top h1{margin:0 0 4px;font-size:24px}
+  header.top p{margin:0;color:var(--muted)}
+  .wrap{max-width:1080px;margin:0 auto;padding:12px 24px 120px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:22px}
+  .card h2{margin:0;padding:14px 18px;font-size:13px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;justify-content:space-between}
+  .card .body{padding:18px}
+  .tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid var(--line)}
+  .tag.before{background:#fff4f4;color:var(--err);border-color:#f3caca}
+  .tag.after{background:#eefaf1;color:var(--ok);border-color:#bfe6cb}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-size:14px}
+  th{background:#f0f3fa;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+  .tbar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .tbar input{flex:1;padding:8px 11px;border:1px solid var(--line);border-radius:9px;font:inherit}
+  .tbar .count{font-size:12px;color:var(--faint);white-space:nowrap}
+  .btnrow{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+  .btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 13px;font:inherit;font-weight:600;cursor:pointer;font-size:13px}
+  .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  /* canonical empty state */
+  .rmc-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:2.5rem 1rem;text-align:center;background:#fbfcfe;border:1px solid var(--line);border-radius:var(--radius);color:var(--ink)}
+  .rmc-empty__icon{width:56px;height:56px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#eef2ff;color:var(--brand);font-size:26px}
+  .rmc-empty__title{font-size:17px;font-weight:600;margin:0}
+  .rmc-empty__msg{margin:0;max-width:36ch;color:var(--faint);font-size:14px}
+  .rmc-empty__actions{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;margin-top:.25rem}
+  .rmc-empty--row{background:transparent;border:none;padding:1.75rem 1rem}
+  .adhoc{color:var(--faint);text-align:center;padding:18px;font-size:14px}
+  .gapwrap{max-width:1080px;margin:24px auto 0;padding:0 24px}
+  .gtab{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .gtab td,.gtab th{vertical-align:top}
+  .gtab .chk{color:var(--ok);font-weight:700}
+  .pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;background:#eef2ff;color:var(--brand);border:1px solid #d4ddff;margin:2px 4px 2px 0}
+  .ring{--p:35;width:54px;height:54px;border-radius:50%;background:conic-gradient(var(--brand) calc(var(--p)*1%),#e7ebf5 0);display:grid;place-items:center;flex:0 0 auto}
+  .ring span{width:40px;height:40px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:13px;font-weight:700}
+  .fr{display:flex;gap:14px;align-items:center}
+  .fr .steps{font-size:13px;color:var(--muted)}
+  .fr .steps b{color:var(--ink)}
+  .note{background:#fffbef;border:1px solid #f0e3b8;border-radius:10px;padding:8px 12px;font-size:13px;color:#6a5a1e;margin-top:12px}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Empty-States Lab <span style="font-weight:400;color:var(--muted)">— Surface 4</span></h1>
+  <p>The platform already has a beautiful empty-state component — but only ~28% of "nothing here" moments use it, and a filtered-to-zero table looks identical to a genuinely empty one. Type in the filters below to feel the difference.</p>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <!-- FILTER EMPTY: BEFORE -->
+    <section class="card">
+      <h2>Filtered to zero <span class="tag before">Before</span></h2>
+      <div class="body">
+        <div class="tbar">
+          <input id="f1" placeholder="Filter… (try 'zzz')" oninput="filt('1')">
+          <span class="count" id="c1">3 rows</span>
+        </div>
+        <table id="t1"><thead><tr><th>Student</th><th>Class</th></tr></thead>
+          <tbody>
+            <tr><td>Ada Lovelace</td><td>JSS 1</td></tr>
+            <tr><td>Alan Turing</td><td>JSS 2</td></tr>
+            <tr><td>Grace Hopper</td><td>JSS 3</td></tr>
+          </tbody></table>
+        <div class="note">Today, filtering to zero just empties the table. The user can't tell: is there no data, or did my filter hide it all? Dead end.</div>
+      </div>
+    </section>
+
+    <!-- FILTER EMPTY: AFTER -->
+    <section class="card">
+      <h2>Filtered to zero <span class="tag after">After</span></h2>
+      <div class="body">
+        <div class="tbar">
+          <input id="f2" placeholder="Filter… (try 'zzz')" oninput="filt('2')">
+          <span class="count" id="c2">3 rows</span>
+        </div>
+        <table id="t2"><thead><tr><th>Student</th><th>Class</th></tr></thead>
+          <tbody>
+            <tr><td>Ada Lovelace</td><td>JSS 1</td></tr>
+            <tr><td>Alan Turing</td><td>JSS 2</td></tr>
+            <tr><td>Grace Hopper</td><td>JSS 3</td></tr>
+          </tbody>
+          <tbody id="fe2" hidden><tr><td colspan="2">
+            <div class="rmc-empty rmc-empty--row">
+              <div class="rmc-empty__icon" aria-hidden="true">🔍</div>
+              <h3 class="rmc-empty__title">No matches for "<span id="term2"></span>"</h3>
+              <p class="rmc-empty__msg">Nothing in this list matches your filter.</p>
+              <div class="rmc-empty__actions"><button class="btn primary" onclick="clr('2')">Clear filter</button></div>
+            </div>
+          </td></tr></tbody>
+        </table>
+        <div class="note">The table engine we already shipped owns the filter — so this "no matches → clear filter" state appears on <b>all 377 tables</b> with zero per-page edits.</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- DATA EMPTY -->
+  <div class="grid">
+    <section class="card">
+      <h2>Genuinely empty list <span class="tag before">Before — ad-hoc (72% of cases)</span></h2>
+      <div class="body">
+        <table><thead><tr><th>Message</th></tr></thead><tbody>
+          <tr><td><div class="adhoc">No messages yet.</div></td></tr>
+        </tbody></table>
+        <div class="note">A bare <code>&lt;p class="text-muted"&gt;No data.&lt;/p&gt;</code> — no icon, no hierarchy, no way forward. This is the default 284 places reach for because it's the easiest to type.</div>
+      </div>
+    </section>
+    <section class="card">
+      <h2>Genuinely empty list <span class="tag after">After — canonical, with a way forward</span></h2>
+      <div class="body">
+        <div class="rmc-empty">
+          <div class="rmc-empty__icon" aria-hidden="true">✉️</div>
+          <h3 class="rmc-empty__title">No messages yet</h3>
+          <p class="rmc-empty__msg">When you send or receive a message, it'll show up here.</p>
+          <div class="rmc-empty__actions"><button class="btn primary">Start a message</button></div>
+        </div>
+        <div class="note">Same canonical component already in the codebase — icon, title, supporting line, and a role-aware call-to-action. The elevation makes this the path of least resistance everywhere.</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- FIRST RUN -->
+  <section class="card">
+    <h2>First-run dashboard — progress-aware welcome <span class="tag after">After (optional add-on)</span></h2>
+    <div class="body">
+      <div class="fr">
+        <div class="ring" style="--p:35"><span>35%</span></div>
+        <div class="steps">
+          <b>You're 35% set up.</b> Next: <b>Add your first class</b> — then invite teachers.<br>
+          <span style="color:var(--faint)">Today the welcome card says the same thing at 0% and 90%. This reads the onboarding progress that already exists and nudges the actual next step.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- GAP TABLE -->
+<div class="gapwrap">
+  <h2 style="font-size:16px">What's there today vs. what the engine adds</h2>
+  <table class="gtab">
+    <tr><th>Capability</th><th>Today</th><th>Empty-state intelligence engine</th></tr>
+    <tr><td><b>Filter → zero rows</b></td><td>Table just empties; only a "0 of 9" count</td><td><span class="chk">✓</span> "No matches for X — Clear filter", auto on all 377 tables</td></tr>
+    <tr><td><b>Genuinely empty table</b></td><td>Blank table body</td><td><span class="chk">✓</span> Canonical empty state injected automatically (icon + title + CTA)</td></tr>
+    <tr><td><b>Ad-hoc empty blocks</b></td><td>~284 bare <code>&lt;p&gt;No data&lt;/p&gt;</code> (72%)</td><td><span class="chk">✓</span> Opt-in upgrade of <code>[data-rmc-empty]</code> to the canonical look</td></tr>
+    <tr><td><b>Deprecated variants</b></td><td>cp_empty / tp_empty / world_class still in 8 templates</td><td><span class="chk">✓</span> Retire onto the single canonical component</td></tr>
+    <tr><td><b>First-run welcome</b></td><td>Same message at 0% and 90% set up</td><td><span class="chk">✓</span> Progress-aware next-step nudge (reads existing onboarding %)</td></tr>
+    <tr><td><b>Config</b></td><td>n/a</td><td><span class="chk">✓</span> SITE cascade + admin page (no migration)</td></tr>
+  </table>
+  <p style="color:var(--muted);max-width:760px;margin-top:14px">The centerpiece is the <b>table filter-empty + data-empty</b> states — they ride the table engine we already shipped, so they reach every list page with zero per-page edits, exactly like the table wave did.</p>
+</div>
+
+<script>
+  var DATA={1:["Ada Lovelace JSS 1","Alan Turing JSS 2","Grace Hopper JSS 3"],2:["Ada Lovelace JSS 1","Alan Turing JSS 2","Grace Hopper JSS 3"]};
+  function filt(n){
+    var q=document.getElementById("f"+n).value.toLowerCase().trim();
+    var rows=document.querySelectorAll("#t"+n+" tbody:first-of-type tr");
+    var shown=0;
+    rows.forEach(function(r){var hit=!q||r.textContent.toLowerCase().indexOf(q)!==-1;r.style.display=hit?"":"none";if(hit)shown++;});
+    document.getElementById("c"+n).textContent=q?(shown+" of "+rows.length):(rows.length+" rows");
+    if(n==="2"){
+      var fe=document.getElementById("fe2");
+      if(q&&shown===0){fe.hidden=false;document.getElementById("term2").textContent=document.getElementById("f2").value;}
+      else{fe.hidden=true;}
+    }
+  }
+  function clr(n){document.getElementById("f"+n).value="";filt(n);}
+</script>
+</body>
+</html>

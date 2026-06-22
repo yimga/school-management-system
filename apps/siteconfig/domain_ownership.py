@@ -181,6 +181,9 @@ PREFIX_FIELD_OWNERS: Final[tuple[tuple[str, str], ...]] = (
     # Form-intelligence engine: unsaved guard / pending / validation / section-nav
     # switches for the shared form engine. Payload-backed (no migration); UX chrome.
     ("form_", "brand_experience"),
+    # Empty-state intelligence engine: table filter/data empty + ad-hoc adoption
+    # + first-run nudge switches. Payload-backed (no migration); UX chrome.
+    ("empty_", "brand_experience"),
     ("show_header_", "brand_experience"),
     ("secondary_font", "brand_experience"),
     ("base_font", "brand_experience"),

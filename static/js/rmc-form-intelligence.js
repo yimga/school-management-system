@@ -29,9 +29,11 @@
   var COUNTER_WARN = 12;       // chars-remaining at which the counter turns amber
   var COUNTER_DANGER = 4;      // …and red
   var SECTION_MIN = 3;         // a "long form" worth a section nav
-  var AJAX_RELEASE_MS = 0;     // microtask check of defaultPrevented (set below)
+  var AJAX_RELEASE_MS = 0;     // microtask check of defaultPrevented
   var REGUARD_MS = 1200;       // re-arm the double-submit guard after an AJAX submit
+  var WATCHDOG_MS = 8000;      // hard safety net: never leave a form locked forever
   var SPY_OFFSET = 140;        // scrollspy activation offset from the top
+  var _secSeq = 0;             // module-wide counter for unique injected section ids
 
   var cfg = {
     intelligence: true,
@@ -89,7 +91,10 @@
     if (form.getAttribute("data-rmc-form-enhance") === "0") { return false; }
     if (form.hasAttribute("data-rmc-autosubmit")) { return false; }      // filter forms
     if ((form.getAttribute("role") || "") === "search") { return false; }
-    if (form.querySelector('input[type="search"]')) { return false; }    // search forms
+    // A real search form opts out — but ignore the table engine's injected
+    // filter <input type=search> (it can land inside a form lacking a
+    // .table-responsive wrapper); it carries a data-rmc-tbl-filter sentinel.
+    if (form.querySelector('input[type="search"]:not([data-rmc-tbl-filter])')) { return false; }
     if (!enhanceableControls(form).length) { return false; }             // nothing to guard
     return true;
   }
@@ -108,8 +113,13 @@
     );
   }
 
-  function setBusy(form, busy) {
-    submitButtons(form).forEach(function (btn) {
+  function setBusy(form, busy, only) {
+    // Lock ONLY the activated submitter when known (so multi-action forms — e.g.
+    // Save vs Submit-for-review — don't dead-lock the other button); fall back to
+    // all submit buttons when the submitter is unknown.
+    var btns = only ? [only] : submitButtons(form);
+    btns.forEach(function (btn) {
+      if (!btn) { return; }
       if (busy) {
         if (btn.getAttribute("aria-busy") === "true") { return; }
         btn.setAttribute("aria-busy", "true");
@@ -138,20 +148,30 @@
       // but guard anyway so we never lock an unsubmittable form.
       if (form.checkValidity && !form.checkValidity()) { return; }
 
+      var submitter = e.submitter || null;
       form.dataset.rmcSubmitting = "1";
-      setBusy(form, true);
+      setBusy(form, true, submitter);
       if (typeof onSubmitClean === "function") { try { onSubmitClean(); } catch (_) {} }
 
-      // After all synchronous submit handlers have run, defaultPrevented is
-      // final. If something prevented the navigation (AJAX / SPA), release the
-      // lock so the button isn't dead — keeping a short re-guard window.
+      var unlocked = false;
+      function unlock() {
+        if (unlocked) { return; }
+        unlocked = true;
+        setBusy(form, false, submitter);
+        form.dataset.rmcSubmitting = "0";
+      }
+      // Fast path: if a handler prevented navigation synchronously (AJAX/SPA),
+      // release the visual lock now and re-arm the guard after a short window.
       setTimeout(function () {
         if (e.defaultPrevented) {
-          setBusy(form, false);
-          setTimeout(function () { form.dataset.rmcSubmitting = "0"; }, REGUARD_MS);
+          setBusy(form, false, submitter);
+          setTimeout(function () { if (!unlocked) { form.dataset.rmcSubmitting = "0"; } }, REGUARD_MS);
         }
-        // Otherwise the page is navigating away; leave it locked.
+        // Otherwise the page is navigating away; leave it locked (page unloads).
       }, AJAX_RELEASE_MS);
+      // Hard safety net: covers AJAX that prevents default *asynchronously* (or
+      // never navigates) — a real navigation unloads the page long before this.
+      setTimeout(unlock, WATCHDOG_MS);
     }, false);
   }
 
@@ -172,9 +192,12 @@
 
     var bar = document.createElement("div");
     bar.className = "rmc-fi-savebar";
-    bar.setAttribute("role", "status");
+    // A labelled region (not role=status) so the Save/Discard buttons aren't
+    // announced as part of a live region; the message carries its own live role.
+    bar.setAttribute("role", "region");
+    bar.setAttribute("aria-label", "Unsaved changes");
     var dot = document.createElement("span"); dot.className = "rmc-fi-savebar__dot"; dot.setAttribute("aria-hidden", "true");
-    var msg = document.createElement("span"); msg.className = "rmc-fi-savebar__msg"; msg.textContent = "Unsaved changes";
+    var msg = document.createElement("span"); msg.className = "rmc-fi-savebar__msg"; msg.setAttribute("role", "status"); msg.setAttribute("aria-live", "polite"); msg.textContent = "Unsaved changes";
     var discard = document.createElement("button");
     discard.type = "button"; discard.className = "rmc-fi-savebar__btn"; discard.textContent = "Discard";
     var save = document.createElement("button");
@@ -190,6 +213,13 @@
     }
     function recheck() { setDirty(differs(initial, snapshot(form))); }
 
+    // Re-baseline the snapshot the first time the user actually touches the form,
+    // so programmatic field changes between load and first interaction (draft
+    // restore, input masks, prefill) don't trigger a false "unsaved changes".
+    var rebaselined = false;
+    form.addEventListener("focusin", function () {
+      if (!rebaselined && !dirty) { rebaselined = true; initial = snapshot(form); }
+    });
     form.addEventListener("input", recheck);
     form.addEventListener("change", recheck);
 
@@ -280,7 +310,7 @@
     nav.setAttribute("aria-label", "Form sections");
     var links = [];
     secs.forEach(function (sec, i) {
-      if (!sec.id) { sec.id = "rmc-fi-sec-" + i; }
+      if (!sec.id) { sec.id = "rmc-fi-sec-" + (_secSeq++); }
       var a = document.createElement("a");
       a.className = "rmc-fi-nav__link";
       a.href = "#" + sec.id;

@@ -5956,3 +5956,13 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   .rmc-fi-savebar { transition: none; }
   .rmc-fi-busy::after { animation: none; }
 }
+
+/* ----------------------------------------------------------------------------
+   Empty-state intelligence engine (v4.04.62) — classes injected by
+   rmc-table-intelligence.js (table filter/data empty rows) and
+   rmc-empty-intelligence.js. The canonical .rmc-empty* grammar is defined in
+   rmc-long-page-grammar.css; only the engine-specific bits live here.
+---------------------------------------------------------------------------- */
+.rmc-tbl-empty-row > td { padding: 0; background: transparent; cursor: default; }
+.rmc-tbl-empty-row:hover > td { background: transparent; }
+.rmc-empty__term { font-weight: 600; color: var(--text-primary); }

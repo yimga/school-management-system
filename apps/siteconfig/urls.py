@@ -79,6 +79,7 @@ from .views_command_palette import command_palette_settings_view
 from .views_tables import table_settings_view
 from .views_dashboard_prefs import dashboard_prefs_view, dashboard_settings_view
 from .views_forms import form_settings_view
+from .views_empty import empty_settings_view
 from .views_custom_requirement import request_custom_requirement
 from .views_sync_center import sync_center, sync_center_resolve
 from .views_school_theme import school_theme_settings
@@ -424,6 +425,7 @@ urlpatterns = [
     path("dashboard/prefs/", dashboard_prefs_view, name="dashboard_prefs"),
     path("dashboard/settings/", dashboard_settings_view, name="dashboard_settings"),
     path("forms/settings/", form_settings_view, name="form_settings"),
+    path("empty-states/settings/", empty_settings_view, name="empty_settings"),
     path("reports/download/<slug:slug>/", download_report, name="report_download"),
     path("reports/bulk-letters/", bulk_letters, name="bulk_letters"),
     path(

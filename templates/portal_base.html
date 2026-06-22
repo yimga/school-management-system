@@ -494,6 +494,11 @@
             {% endif %}
             {% if first_run_zero_state %}
             <section class="mb-4" data-rmc-first-run-zero-state aria-label="{% trans 'Getting started' %}">
+              {% if first_run_zero_state.progress_percent != None %}
+              <p class="text-muted small mb-2 text-center" data-rmc-first-run-progress>
+                <strong>{{ first_run_zero_state.progress_percent }}%</strong> {% trans "set up" %}{% if first_run_zero_state.primary_label %} · {% trans "Next" %}: {{ first_run_zero_state.primary_label }}{% endif %}
+              </p>
+              {% endif %}
               {% include "components/rmc_empty_state.html" with illustration=first_run_zero_state.illustration title=first_run_zero_state.headline message=first_run_zero_state.message primary_url=first_run_zero_state.primary_url primary_label=first_run_zero_state.primary_label primary_icon=first_run_zero_state.primary_icon %}
             </section>
             {% endif %}
@@ -637,6 +642,7 @@
       {% include "partials/rmc_tables_engine.html" %}
       {% include "partials/rmc_dashboard_engine.html" %}
       {% include "partials/rmc_forms_engine.html" %}
+      {% include "partials/rmc_empty_engine.html" %}
       {% include "partials/portal_row_detail_drawer_bundle.html" %}
       {% comment %} Phase N (2026-05-12): deterministic avatar gradients. {% endcomment %}
       <script src="{% static 'js/rmc-avatar-seed.js' %}" defer></script>

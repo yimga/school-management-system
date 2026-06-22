@@ -1,0 +1,66 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Empty-state defaults" %}{% endblock %}
+
+{% block content %}
+<div class="content-max-640 py-3">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-inbox" aria-hidden="true"></i>
+    <h1 class="h5 mb-0">{% trans "Empty states — school defaults" %}</h1>
+  </div>
+  <p class="text-muted">
+    {% trans "Control how 'nothing here yet' moments look across the platform. These switches drive the shared empty-state engine — there's nothing to add per page." %}
+  </p>
+
+  {% if not can_manage %}
+  <div class="alert alert-info">{% trans "You can view these defaults, but only an administrator can change them." %}</div>
+  {% endif %}
+
+  <form method="post" class="card shadow-sm" data-rmc-form-enhance="0">
+    {% csrf_token %}
+    <div class="card-body d-flex flex-column gap-3">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="empty-intelligence" name="empty_intelligence" {% if empty_intelligence %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="empty-intelligence">
+          <strong>{% trans "Smart empty states" %}</strong>
+          <span class="d-block text-muted small">{% trans "Master switch. Off = plain blank tables and no first-run nudge." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="empty-table-filter" name="empty_table_filter" {% if empty_table_filter %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="empty-table-filter">
+          <strong>{% trans "Filter → no matches" %}</strong>
+          <span class="d-block text-muted small">{% trans "When the table filter hides every row, show a 'No matches — clear filter' message instead of a blank table." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="empty-table-data" name="empty_table_data" {% if empty_table_data %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="empty-table-data">
+          <strong>{% trans "Empty list state" %}</strong>
+          <span class="d-block text-muted small">{% trans "When a list has no rows, show a tidy empty state instead of a header-only table." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="empty-adopt" name="empty_adopt" {% if empty_adopt %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="empty-adopt">
+          <strong>{% trans "Adopt opt-in blocks" %}</strong>
+          <span class="d-block text-muted small">{% trans "Upgrade any element marked data-rmc-empty into the polished canonical empty state." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="empty-first-run" name="empty_first_run" {% if empty_first_run %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="empty-first-run">
+          <strong>{% trans "First-run progress nudge" %}</strong>
+          <span class="d-block text-muted small">{% trans "On a brand-new tenant, show the setup progress and the actual next step on the welcome card (instead of one static message)." %}</span>
+        </label>
+      </div>
+    </div>
+    {% if can_manage %}
+    <div class="card-footer text-end">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1" aria-hidden="true"></i>{% trans "Save defaults" %}</button>
+    </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

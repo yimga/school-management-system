@@ -1,11 +1,3 @@
 {% load i18n %}
-{% comment %} DEPRECATED v4.01.06 — migrate callers to {% include "components/rmc_empty_state.html" with title="..." body="..." icon="bi-..." cta_label="..." cta_url="..." %}. Scheduled for retirement v4.02.0. {% endcomment %}
-<section class="rmc-wcx-empty-state" data-world-class-empty-state="1" aria-labelledby="{{ empty_id|default:'world-class-empty-title' }}">
-  <h2 id="{{ empty_id|default:'world-class-empty-title' }}" class="h5">{{ title|default:_("Nothing needs attention") }}</h2>
-  <p class="small text-muted">{{ body|default:_("There are no records in this queue. Continue with the next guided action or review the audit trail.") }}</p>
-  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div data-world-class-primary-action-slot="1">
-    {% if primary_url and primary_label %}<a class="btn btn-primary btn-sm" href="{{ primary_url }}">{{ primary_label }}</a>{% endif %}
-    {% if secondary_url and secondary_label %}<a class="btn btn-outline-secondary btn-sm" href="{{ secondary_url }}">{{ secondary_label }}</a>{% endif %}
-  </div>
-</section>
+{% comment %} DEPRECATED v4.01.06 → now DELEGATES to the canonical empty-state component (Surface 4, 2026-06-22): same params, unified .rmc-empty look. Scheduled for file removal v4.02.0 once callers include components/rmc_empty_state.html directly. {% endcomment %}
+{% include "components/rmc_empty_state.html" with title=title|default:_("Nothing needs attention") message=body|default:_("There are no records in this queue. Continue with the next guided action or review the audit trail.") primary_url=primary_url primary_label=primary_label secondary_url=secondary_url secondary_label=secondary_label %}

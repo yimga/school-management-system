@@ -1,10 +1,3 @@
 {% load i18n %}
-{% comment %} DEPRECATED v4.01.06 — migrate callers to {% include "components/rmc_empty_state.html" with title="..." body="..." icon="bi-..." cta_label="..." cta_url="..." %}. Scheduled for retirement v4.02.0. {% endcomment %}
-<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="cp-empty" role="status"{% if cp_empty_id %} id="{{ cp_empty_id }}"{% endif %}>
-  <div class="cp-empty__icon" aria-hidden="true">{{ cp_empty_icon|default:"∅" }}</div>
-  <div class="cp-empty__title">{{ cp_empty_title|default:_("Nothing here yet") }}</div>
-  {% if cp_empty_hint %}
-  <div class="cp-empty__hint">{{ cp_empty_hint }}</div>
-  {% endif %}
-</div>
+{% comment %} DEPRECATED v4.01.06 → now DELEGATES to the canonical empty-state component (Surface 4, 2026-06-22): same params, unified .rmc-empty look. Scheduled for file removal v4.02.0 once callers include components/rmc_empty_state.html directly. {% endcomment %}
+{% include "components/rmc_empty_state.html" with title=cp_empty_title|default:_("Nothing here yet") message=cp_empty_hint %}

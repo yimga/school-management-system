@@ -16,6 +16,11 @@
  * Config comes from the SITE cascade via the #rmc-tables-config island
  * (default-on, operator/school overridable). Everything is wrapped in try/catch
  * so a table always degrades to its server-rendered self.
+ *
+ * v4.04.62 (Surface 4): also owns the two TABLE empty states — a "no matches —
+ * clear filter" row when the instant filter hides every row, and a canonical
+ * data-empty state when a list renders with zero rows. Both read the
+ * #rmc-empty-config island (default-on) so they share the empty engine's switch.
  */
 (function () {
   "use strict";
@@ -26,16 +31,54 @@
 
   var cfg = { intelligence: true, filter: true, sort: true, columns: true, export: true, density: "comfortable" };
 
+  // Empty-state intelligence (Surface 4) shares this engine for the two TABLE
+  // empty states (filter-to-zero + zero-data), read from the #rmc-empty-config
+  // island. Default-on; the empty engine's master switch gates both.
+  var emptyCfg = { intelligence: true, table_filter: true, table_data: true };
+
   function readConfig() {
     var node = document.getElementById("rmc-tables-config");
-    if (!node || !node.textContent) { return; }
-    try {
-      var d = JSON.parse(node.textContent);
-      ["intelligence", "filter", "sort", "columns", "export"].forEach(function (k) {
-        if (d[k] === false || d[k] === 0 || d[k] === "0") { cfg[k] = false; }
-      });
-      if (typeof d.density === "string" && DENSITIES.indexOf(d.density) !== -1) { cfg.density = d.density; }
-    } catch (_) {}
+    if (node && node.textContent) {
+      try {
+        var d = JSON.parse(node.textContent);
+        ["intelligence", "filter", "sort", "columns", "export"].forEach(function (k) {
+          if (d[k] === false || d[k] === 0 || d[k] === "0") { cfg[k] = false; }
+        });
+        if (typeof d.density === "string" && DENSITIES.indexOf(d.density) !== -1) { cfg.density = d.density; }
+      } catch (_) {}
+    }
+    var en = document.getElementById("rmc-empty-config");
+    if (en && en.textContent) {
+      try {
+        var e = JSON.parse(en.textContent);
+        ["intelligence", "table_filter", "table_data"].forEach(function (k) {
+          if (e[k] === false || e[k] === 0 || e[k] === "0") { emptyCfg[k] = false; }
+        });
+      } catch (_) {}
+    }
+  }
+
+  /* ---- CSP-safe canonical empty row (Surface 4) ---- */
+  function makeEmptyRow(ncols, kind) {
+    var tr = document.createElement("tr");
+    tr.className = "rmc-tbl-empty-row";
+    tr.setAttribute("data-rmc-empty-kind", kind);
+    var td = document.createElement("td");
+    td.colSpan = ncols || 1;
+    var wrap = document.createElement("div");
+    wrap.className = "rmc-empty rmc-empty--row";
+    wrap.setAttribute("role", "status");
+    var ic = document.createElement("div");
+    ic.className = "rmc-empty__icon";
+    var i = document.createElement("i");
+    i.className = "bi " + (kind === "filter" ? "bi-search" : "bi-inbox");
+    i.setAttribute("aria-hidden", "true");
+    ic.appendChild(i);
+    var h = document.createElement("h3"); h.className = "rmc-empty__title";
+    var p = document.createElement("p"); p.className = "rmc-empty__message";
+    wrap.appendChild(ic); wrap.appendChild(h); wrap.appendChild(p);
+    td.appendChild(wrap); tr.appendChild(td);
+    return { tr: tr, wrap: wrap, title: h, msg: p };
   }
 
   /* ---- per-user prefs (localStorage, keyed per table) ---- */
@@ -69,7 +112,10 @@
   function bodyRows(table) {
     var tbody = table.querySelector("tbody");
     if (!tbody) { return []; }
-    return Array.prototype.filter.call(tbody.children, function (r) { return r.tagName === "TR"; });
+    // Exclude engine-injected empty rows so they never get filtered/sorted/counted/exported.
+    return Array.prototype.filter.call(tbody.children, function (r) {
+      return r.tagName === "TR" && !(r.classList && r.classList.contains("rmc-tbl-empty-row"));
+    });
   }
   function cellText(cell) { return (cell.textContent || "").replace(/\s+/g, " ").trim(); }
 
@@ -170,6 +216,37 @@
     }
 
     /* filter */
+    var filterEmpty = null;
+    function toggleFilterEmpty(on, displayTerm) {
+      if (!(emptyCfg.intelligence && emptyCfg.table_filter)) { return; }
+      var tbody = table.querySelector("tbody");
+      if (!tbody) { return; }
+      if (on) {
+        if (!filterEmpty) {
+          filterEmpty = makeEmptyRow(ncols, "filter");
+          filterEmpty.msg.textContent = "Nothing on this page matches your filter.";
+          filterEmpty.title.appendChild(document.createTextNode("No matches for "));
+          var term = document.createElement("span"); term.className = "rmc-empty__term";
+          filterEmpty.title.appendChild(term);
+          filterEmpty._term = term;
+          var act = document.createElement("div"); act.className = "rmc-empty__actions";
+          var btn = document.createElement("button");
+          btn.type = "button"; btn.className = "btn btn-sm btn-outline-secondary";
+          btn.textContent = "Clear filter";
+          btn.addEventListener("click", function () {
+            if (bar && bar.input) { bar.input.value = ""; }
+            state.q = ""; applyFilter();
+            if (bar && bar.input) { try { bar.input.focus(); } catch (_) {} }
+          });
+          act.appendChild(btn); filterEmpty.wrap.appendChild(act);
+        }
+        filterEmpty._term.textContent = '"' + displayTerm + '"';
+        if (filterEmpty.tr.parentNode !== tbody) { tbody.appendChild(filterEmpty.tr); }
+        filterEmpty.tr.hidden = false;
+      } else if (filterEmpty) {
+        filterEmpty.tr.hidden = true;
+      }
+    }
     function applyFilter() {
       var needle = state.q.toLowerCase().trim();
       var shown = 0;
@@ -183,6 +260,7 @@
         }
       });
       if (bar) { bar.count.textContent = needle ? (shown + " of " + rows.length) : (rows.length + " rows"); }
+      toggleFilterEmpty(!!needle && shown === 0 && rows.length > 0, state.q.trim());
       state.cursor = -1;
       paintCursor();
     }
@@ -245,6 +323,19 @@
     if (!table.hasAttribute("tabindex")) { table.setAttribute("tabindex", "-1"); }
 
     if (bar) { bar.count.textContent = rows.length + " rows"; }
+
+    /* data-empty: a list that rendered with zero rows gets a canonical empty
+       state instead of a bare, header-only table. */
+    if (emptyCfg.intelligence && emptyCfg.table_data && rows.length === 0) {
+      var tb = table.querySelector("tbody");
+      if (!tb) { tb = document.createElement("tbody"); table.appendChild(tb); }
+      if (!tb.querySelector(".rmc-tbl-empty-row")) {
+        var de = makeEmptyRow(ncols, "data");
+        de.title.textContent = "Nothing here yet";
+        de.msg.textContent = "There's no data to show on this page yet.";
+        tb.appendChild(de.tr);
+      }
+    }
   }
 
   /* ---- toolbar builder (CSP-safe; createElement only) ---- */
@@ -255,6 +346,8 @@
 
     var count = document.createElement("span");
     count.className = "rmc-tbl-bar__count";
+    count.setAttribute("role", "status");
+    count.setAttribute("aria-live", "polite");
 
     if (opts.cfg.filter) {
       var fwrap = document.createElement("div");
@@ -262,9 +355,18 @@
       var input = document.createElement("input");
       input.type = "search";
       input.className = "rmc-tbl-bar__input";
+      // Sentinel so the form engine doesn't mistake this injected filter for a
+      // real search form and skip enhancing a host form it may land inside.
+      input.setAttribute("data-rmc-tbl-filter", "1");
       input.setAttribute("placeholder", "Filter these results…");
       input.setAttribute("aria-label", "Filter the rows on this page");
-      input.addEventListener("input", function () { opts.onFilter(input.value || ""); });
+      var debounce;
+      input.addEventListener("input", function () {
+        clearTimeout(debounce);
+        debounce = setTimeout(function () { opts.onFilter(input.value || ""); }, 90);
+      });
+      // If this filter ever lands inside a <form>, Enter must not submit it.
+      input.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); } });
       fwrap.appendChild(input);
       bar.appendChild(fwrap);
     }
@@ -335,7 +437,7 @@
 
     var anchor = table.closest(".table-responsive") || table;
     if (anchor.parentNode) { anchor.parentNode.insertBefore(bar, anchor); }
-    return { el: bar, count: count };
+    return { el: bar, count: count, input: bar.querySelector(".rmc-tbl-bar__input") };
   }
 
   function exportCsv(table, heads, hidden) {

@@ -197,13 +197,61 @@ def build_first_run_zero_state(request) -> dict[str, Any] | None:
             url = reverse(payload["primary_url_name"])
         except (NoReverseMatch, KeyError):
             url = None
+
+        # Surface 4: progress-aware nudge. Instead of one static welcome message
+        # at every stage, surface the live onboarding progress + the real next
+        # step (the card's CTA then points straight at it). Gated by the
+        # empty_first_run cascade switch; fully fail-soft.
+        progress_percent = None
+        next_action = None
+        try:
+            from apps.platform_runtime.helpers import get_effective_site_settings
+
+            site = get_effective_site_settings(request=request)
+            if getattr(site, "empty_first_run", None) is not False:
+                school = _resolve_school(request)
+                if school is not None:
+                    # get_school_onboarding_progress runs ~13 queries (and a
+                    # write-on-GET); cache the tiny enrichment per-school so a
+                    # first-run landing reload doesn't re-run it every time.
+                    cache_key = f"rmc:first_run_progress:{getattr(school, 'pk', '')}"
+                    cached = cache.get(cache_key)
+                    if cached is not None:
+                        progress_percent = cached.get("percent")
+                        next_action = cached.get("next_action")
+                    else:
+                        from apps.platform_runtime.onboarding import get_school_onboarding_progress
+
+                        prog = get_school_onboarding_progress(school, user=user) or {}
+                        pct = prog.get("percent")
+                        if isinstance(pct, int):
+                            progress_percent = pct
+                        na = prog.get("next_action")
+                        if isinstance(na, dict) and (na.get("url") or "").strip():
+                            next_action = {"label": (na.get("label") or "").strip(), "url": na["url"]}
+                        cache.set(
+                            cache_key,
+                            {"percent": progress_percent, "next_action": next_action},
+                            _FIRST_RUN_CACHE_TTL_SECONDS,
+                        )
+        except Exception as exc:  # noqa: BLE001 — enrichment is best-effort; never break the card
+            logger.debug("first-run progress enrichment failed: %s", exc)
+
+        if next_action:
+            cta_url = next_action["url"]
+            cta_label = next_action["label"] or payload["primary_label"]
+        else:
+            cta_url = url
+            cta_label = payload["primary_label"] if url else None
+
         return {
             "headline": payload["headline"],
             "message": payload["message"],
-            "primary_url": url,
-            "primary_label": payload["primary_label"] if url else None,
+            "primary_url": cta_url,
+            "primary_label": cta_label if cta_url else None,
             "primary_icon": payload["primary_icon"],
             "illustration": "first_run",
+            "progress_percent": progress_percent,
         }
     except Exception as exc:  # noqa: BLE001 — a landing card must never break the page
         logger.debug("build_first_run_zero_state failed: %s", exc)
