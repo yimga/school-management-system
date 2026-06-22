@@ -27,6 +27,18 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-header__live-banner .
   margin: 0;
 }
 
+/* Operator-matched single band (2026-06-22). On desktop (lg+) the tenant header
+   collapses to ONE band like /super/ and /admin/ (cp-header--consolidated): the
+   separate LIVE-ticker band is hidden because the SAME feed already renders inline
+   in the header row (_activity_ticker_inline.html, portal_base.html:301). Reclaims
+   a full row (~40-48px) of vertical space. Mobile (<lg) keeps the band — the inline
+   ticker has no room there, and the below-lg nav band already lives on its own row. */
+@media (min-width: 992px) {
+  body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .tp-header__live-banner {
+    display: none;
+  }
+}
+
 body.portal-body-with-layout:not(.control-plane-shell) .tp-header .rmc-cp-ticker-inline,
 body.portal-body-with-layout:not(.control-plane-shell) .tp-header__row .rmc-cp-ticker-inline {
   max-width: min(220px, 26vw);
