@@ -872,8 +872,13 @@ AUTHENTICATION_BACKENDS = [
     "apps.accounts.auth_backends_legacy.LegacyHashUpgradeBackend",
     # Accept the EMAIL the owner signed up with (not just the derived username).
     "apps.accounts.auth_backends_email.EmailOrUsernameModelBackend",
-    # Kept last so post_reset_login_backend="...ModelBackend" stays resolvable.
+    # Kept here so post_reset_login_backend="...ModelBackend" stays resolvable.
     "django.contrib.auth.backends.ModelBackend",
+    # Permission-only bridge (never authenticates): grants the people/academics
+    # management perms that the @permission_required backend views require to
+    # admin-like roles, so a non-superuser ADMIN isn't 403'd off teacher / student /
+    # classroom management. Additive — unions with the backends above.
+    "apps.accounts.auth_backends_role_perms.RolePermissionBackend",
 ]
 
 # --- Password hashing ---
