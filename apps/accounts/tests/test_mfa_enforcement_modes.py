@@ -167,6 +167,22 @@ class RequireMfaModeMiddlewareTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.assertIn("/mfa/setup", resp.url)
 
+    def test_mfa_policy_page_reachable_while_strict_walled(self):
+        # Catch-22 guard: even in strict mode, a required no-device admin must
+        # reach the policy page (where they switch to grace/optional) instead of
+        # being bounced to setup — otherwise the toggle is unreachable.
+        resp = self._run_with_site("/portal/security/mfa-policy/", mode="strict")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content, b"ok")
+
+    def test_sw_reset_reachable_while_strict_walled(self):
+        # The service-worker reset escape hatch must always work, even for a
+        # required no-device user behind the strict wall (it only clears the
+        # browser's stale SW/caches).
+        resp = self._run_with_site("/sw-reset/", mode="strict")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content, b"ok")
+
     def test_optional_sets_nudge_attribute(self):
         self.user.date_joined = timezone.now()
         self.user.save(update_fields=["date_joined"])

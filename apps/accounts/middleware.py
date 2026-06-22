@@ -662,6 +662,16 @@ class RequireMFAMiddleware:
             or "/mfa/passkey/" in path
             or "wizards/mfa_setup" in path
             or "wizards/mfa_verify" in path
+            # The MFA enforcement-policy page is where an admin switches this
+            # tenant to grace/optional. In strict mode the wall would otherwise
+            # gate that page too — a catch-22 where the toggle that disarms the
+            # wall is itself behind the wall. Reachable here; writes stay gated
+            # by settings.manage / control-plane inside the view.
+            or "security/mfa-policy" in path
+            # The service-worker reset escape hatch must always work — it only
+            # clears the browser's stale SW/caches (no data exposure). Walling
+            # it would trap a user with a stale worker AND no MFA device.
+            or path == "/sw-reset"
         ):
             return self.get_response(request)
 
