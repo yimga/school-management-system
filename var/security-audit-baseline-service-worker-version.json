@@ -1,12 +1,12 @@
 {
   "date": "2026-06-22",
-  "generated_at": "2026-06-22T15:00:00+00:00",
+  "generated_at": "2026-06-22T16:30:00+00:00",
   "major": 4,
   "minor": 4,
-  "patch": 55,
-  "raw": "sms-v4.04.55-sidebar-prefs-popover-2026-06-22",
+  "patch": 58,
+  "raw": "sms-v4.04.58-sidebar-school-defaults-2026-06-22",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "sidebar-prefs-popover",
+  "slug": "sidebar-school-defaults",
   "valid": true
 }

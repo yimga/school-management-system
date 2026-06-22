@@ -206,3 +206,78 @@ class SidebarCascadeWriteTests(TestCase):
         self.assertFalse(
             set_runtime_default(school=school, field="not_a_real_sidebar_key", value="x")
         )
+
+
+class SidebarConfigUIContractTests(SimpleTestCase):
+    """Admin 'set school default' config surface (isolated from the monolithic form)."""
+
+    def test_engine_declares_config_link(self):
+        js = _read("static/js/rmc-sidebar-intelligence.js")
+        self.assertIn("data-rmc-sidebar-config-url", js)
+        self.assertIn("rmc-sb-prefs__link", js)
+
+    def test_settings_route_and_template_exist(self):
+        self.assertIn('name="sidebar_settings"', _read("apps/siteconfig/urls.py"))
+        # template renders the four controls
+        tpl = _read("templates/siteconfig/sidebar_settings.html")
+        for name in ("sidebar_intelligence", "sidebar_search", "sidebar_adaptive_order", "sidebar_density"):
+            self.assertIn(name, tpl, name)
+
+    def test_can_manage_logic(self):
+        from apps.siteconfig.views_sidebar import _can_manage_sidebar
+
+        class _U:
+            def __init__(self, su, perm):
+                self.is_authenticated = True
+                self.is_superuser = su
+                self._perm = perm
+
+            def has_feature_permission(self, p):
+                return self._perm
+
+        self.assertTrue(_can_manage_sidebar(_U(True, False)))
+        self.assertTrue(_can_manage_sidebar(_U(False, True)))
+        self.assertFalse(_can_manage_sidebar(_U(False, False)))
+        self.assertFalse(_can_manage_sidebar(None))
+
+
+class SidebarConfigPostTests(TestCase):
+    """POST persists the school defaults via set_runtime_default."""
+
+    def test_post_writes_school_defaults(self):
+        import uuid
+
+        from django.contrib.messages.storage.fallback import FallbackStorage
+        from django.contrib.sessions.middleware import SessionMiddleware
+        from django.test import RequestFactory
+
+        from apps.accounts.models import User
+        from apps.schools.models import School
+        from apps.siteconfig.views_sidebar import sidebar_settings_view
+
+        school = School.objects.create(
+            name="Sidebar UI",
+            slug=f"sbui-{uuid.uuid4().hex[:10]}",
+            subdomain=f"sbui-{uuid.uuid4().hex[:10]}",
+        )
+        admin = User.objects.create_user(username=f"a-{uuid.uuid4().hex[:8]}@t.test", password="x")
+        admin.is_superuser = True
+        admin.save(update_fields=["is_superuser"])
+
+        req = RequestFactory().post(
+            "/sidebar/settings/",
+            {"sidebar_intelligence": "on", "sidebar_search": "on", "sidebar_density": "compact"},
+        )
+        SessionMiddleware(lambda r: None).process_request(req)
+        req.session.save()
+        setattr(req, "_messages", FallbackStorage(req))
+        req.user = admin
+        req.school = school
+
+        resp = sidebar_settings_view(req)
+        self.assertEqual(resp.status_code, 302)
+        school.refresh_from_db()
+        rd = (school.settings or {}).get("runtime_defaults", {})
+        self.assertEqual(rd.get("sidebar_density"), "compact")
+        self.assertTrue(rd.get("sidebar_intelligence"))
+        self.assertFalse(rd.get("sidebar_adaptive_order"))  # checkbox omitted = off

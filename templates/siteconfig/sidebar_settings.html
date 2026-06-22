@@ -1,0 +1,60 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Sidebar defaults" %}{% endblock %}
+
+{% block content %}
+<div class="content-max-640 py-3">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-layout-sidebar" aria-hidden="true"></i>
+    <h1 class="h5 mb-0">{% trans "Intelligent sidebar — school defaults" %}</h1>
+  </div>
+  <p class="text-muted">
+    {% trans "Set the default sidebar behaviour for everyone at this school. Each person can still personalise their own sidebar from the ⚙ button in the sidebar's filter bar; their choice always wins over these defaults." %}
+  </p>
+
+  {% if not can_manage %}
+  <div class="alert alert-info">{% trans "You can view these defaults, but only an administrator can change them." %}</div>
+  {% endif %}
+
+  <form method="post" class="card shadow-sm">
+    {% csrf_token %}
+    <div class="card-body d-flex flex-column gap-3">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="sb-intelligence" name="sidebar_intelligence" {% if sidebar_intelligence %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="sb-intelligence">
+          <strong>{% trans "Intelligent sidebar" %}</strong>
+          <span class="d-block text-muted small">{% trans "Master switch. Off = a plain, server-rendered sidebar with no filter, badges, or adaptive ordering." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="sb-search" name="sidebar_search" {% if sidebar_search %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="sb-search">
+          <strong>{% trans "Type-to-filter box" %}</strong>
+          <span class="d-block text-muted small">{% trans "Show the instant filter at the top of the sidebar (appears when there are enough items)." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="sb-adaptive" name="sidebar_adaptive_order" {% if sidebar_adaptive_order %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="sb-adaptive">
+          <strong>{% trans "Adaptive “Frequent” band" %}</strong>
+          <span class="d-block text-muted small">{% trans "Surface each person's most-used destinations in a band at the top of their sidebar." %}</span>
+        </label>
+      </div>
+      <div>
+        <label class="form-label" for="sb-density"><strong>{% trans "Default density" %}</strong></label>
+        <select class="form-select" id="sb-density" name="sidebar_density" {% if not can_manage %}disabled{% endif %}>
+          {% for choice in density_choices %}
+          <option value="{{ choice }}" {% if choice == sidebar_density %}selected{% endif %}>{{ choice|capfirst }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    {% if can_manage %}
+    <div class="card-footer text-end">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1" aria-hidden="true"></i>{% trans "Save defaults" %}</button>
+    </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

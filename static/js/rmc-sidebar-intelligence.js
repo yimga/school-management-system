@@ -183,6 +183,17 @@
     var adaptiveCb = toggleRow("Adaptive ordering", "adaptive");
     var searchCb = toggleRow("Filter box", "search");
 
+    // Admin-only link to set the SCHOOL DEFAULTS (shown when the server exposes
+    // the config URL, i.e. the viewer can manage settings).
+    var cfgUrl = root.getAttribute("data-rmc-sidebar-config-url");
+    if (cfgUrl) {
+      var link = document.createElement("a");
+      link.className = "rmc-sb-prefs__link";
+      link.href = cfgUrl;
+      link.textContent = "School defaults…";
+      pop.appendChild(link);
+    }
+
     field.appendChild(input); field.appendChild(hint);
     bar.appendChild(field); bar.appendChild(prefsBtn); bar.appendChild(pop);
 
