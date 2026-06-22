@@ -5415,7 +5415,7 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   padding: 1px 6px;
   pointer-events: none;
 }
-.rmc-sb-filter__density {
+.rmc-sb-filter__prefs {
   flex: none;
   appearance: none;
   border: 1px solid var(--hairline, currentColor);
@@ -5429,7 +5429,60 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   cursor: pointer;
   transition: color 0.15s ease, border-color 0.15s ease;
 }
-.rmc-sb-filter__density:hover { color: var(--brand-primary, currentColor); border-color: var(--brand-primary, currentColor); }
+.rmc-sb-filter__prefs:hover { color: var(--brand-primary, currentColor); border-color: var(--brand-primary, currentColor); }
+
+/* Per-user preferences popover (Phase 3) — anchored under the prefs button in
+   the (positioned) sticky filter bar. Token-only surfaces. */
+.rmc-sb-prefs {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 8px;
+  z-index: 30;
+  min-width: 200px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--hairline, currentColor);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-popover, var(--surface-elevated, var(--surface-bg)));
+  box-shadow: var(--elev-3, 0 14px 44px rgba(0, 0, 0, 0.18)); /* off-token-allow: neutral elevation shadow, not a themeable surface colour */
+}
+.rmc-sb-prefs__group { display: flex; flex-direction: column; gap: 6px; }
+.rmc-sb-prefs__lbl {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-tertiary, currentColor);
+}
+.rmc-sb-prefs__seg { display: flex; gap: 3px; }
+.rmc-sb-prefs__seg-btn {
+  flex: 1;
+  appearance: none;
+  border: 1px solid var(--hairline, currentColor);
+  background: transparent;
+  color: var(--text-secondary, currentColor);
+  border-radius: var(--radius-sm, 8px);
+  padding: 5px 4px;
+  font-size: 0.6875rem;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.rmc-sb-prefs__seg-btn.is-active {
+  color: var(--brand-primary, currentColor);
+  border-color: var(--brand-primary, currentColor);
+  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+}
+.rmc-sb-prefs__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  color: var(--text-primary, currentColor);
+  cursor: pointer;
+}
+.rmc-sb-prefs__cb { accent-color: var(--brand-primary, currentColor); }
 
 .rmc-sb-out { display: none !important; }
 .rmc-sb-group-out { display: none !important; }

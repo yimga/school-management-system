@@ -140,3 +140,69 @@ class SidebarBadgeEndpointTests(TestCase):
         self.assertIn("badges", data)
         self.assertIn("interval", data)
         self.assertIsInstance(data["badges"], dict)
+
+
+class SidebarPreferencesContractTests(SimpleTestCase):
+    """Phase 3: per-user preferences popover (client-side) + cascade write-key."""
+
+    def test_engine_declares_prefs_popover(self):
+        js = _read("static/js/rmc-sidebar-intelligence.js")
+        self.assertIn("rmc-sb-prefs", js)
+        self.assertIn("rmcSidebarPrefs", js)         # localStorage key
+        self.assertIn("applyVisibility", js)         # toggle re-apply
+        self.assertIn("prefBool", js)                # user-pref-over-cascade
+
+    def test_prefs_popover_css_defined(self):
+        css = _read("static/css/rmc-class-grammar.css")
+        for cls in (".rmc-sb-prefs", ".rmc-sb-prefs__seg-btn", ".rmc-sb-filter__prefs"):
+            self.assertIn(cls, css, cls)
+
+    def test_cascade_write_keys_whitelisted(self):
+        from apps.platform_runtime.runtime_defaults_first_class import (
+            _WIZARD_RUNTIME_DEFAULT_KEYS,
+        )
+
+        for key in (
+            "sidebar_intelligence",
+            "sidebar_search",
+            "sidebar_adaptive_order",
+            "sidebar_density",
+        ):
+            self.assertIn(key, _WIZARD_RUNTIME_DEFAULT_KEYS, key)
+
+
+class SidebarCascadeWriteTests(TestCase):
+    """set_runtime_default persists a per-tenant sidebar default (no migration)."""
+
+    def test_set_sidebar_density_persists(self):
+        import uuid
+
+        from apps.platform_runtime.runtime_defaults_first_class import set_runtime_default
+        from apps.schools.models import School
+
+        school = School.objects.create(
+            name="Sidebar Cfg",
+            slug=f"sbcfg-{uuid.uuid4().hex[:10]}",
+            subdomain=f"sbcfg-{uuid.uuid4().hex[:10]}",
+        )
+        changed = set_runtime_default(school=school, field="sidebar_density", value="compact")
+        self.assertTrue(changed)
+        school.refresh_from_db()
+        self.assertEqual(
+            school.settings.get("runtime_defaults", {}).get("sidebar_density"), "compact"
+        )
+
+    def test_unknown_field_is_rejected(self):
+        import uuid
+
+        from apps.platform_runtime.runtime_defaults_first_class import set_runtime_default
+        from apps.schools.models import School
+
+        school = School.objects.create(
+            name="Sidebar Cfg2",
+            slug=f"sbcfg2-{uuid.uuid4().hex[:10]}",
+            subdomain=f"sbcfg2-{uuid.uuid4().hex[:10]}",
+        )
+        self.assertFalse(
+            set_runtime_default(school=school, field="not_a_real_sidebar_key", value="x")
+        )

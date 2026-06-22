@@ -25,6 +25,7 @@
 
   var USAGE_KEY = "rmcSidebarUsage:v1";
   var DENSITY_KEY = "rmcSidebarDensity:v1";
+  var PREFS_KEY = "rmcSidebarPrefs:v1"; // per-user {density, adaptive, search}
   var MIN_ITEMS_FOR_FILTER = 8; // tiny sidebars don't need a filter
   var FREQUENT_MAX = 4;
   var FREQUENT_MIN_HITS = 2;
@@ -44,6 +45,13 @@
     // treat anything that isn't an explicit "0" as on (cascade default = on)
     var v = root.getAttribute(name);
     return v !== "0" && v !== "false";
+  }
+  // Effective boolean for a capability: per-user pref (localStorage) wins over
+  // the cascade default emitted on the root (data-rmc-sidebar-<name>).
+  function prefBool(root, name) {
+    var p = readJSON(PREFS_KEY);
+    if (typeof p[name] === "boolean") return p[name];
+    return attrOn(root, "data-rmc-sidebar-" + name);
   }
 
   // ── per-surface adapter ────────────────────────────────────────────────
@@ -121,20 +129,72 @@
     var hint = document.createElement("kbd");
     hint.className = "rmc-sb-filter__hint";
     hint.textContent = "/";
-    var density = document.createElement("button");
-    density.type = "button";
-    density.className = "rmc-sb-filter__density";
-    density.setAttribute("aria-label", "Cycle sidebar density");
-    density.title = "Density";
-    density.textContent = "≡";
-    field.appendChild(input); field.appendChild(hint);
-    bar.appendChild(field); bar.appendChild(density);
+    // Per-user preferences popover (localStorage) — density + the two capability
+    // toggles, layered over the cascade defaults. No backend round-trip.
+    var prefsBtn = document.createElement("button");
+    prefsBtn.type = "button";
+    prefsBtn.className = "rmc-sb-filter__prefs";
+    prefsBtn.setAttribute("aria-label", "Sidebar preferences");
+    prefsBtn.setAttribute("aria-expanded", "false");
+    prefsBtn.title = "Sidebar preferences";
+    prefsBtn.textContent = "⚙"; // gear
+    var pop = document.createElement("div");
+    pop.className = "rmc-sb-prefs";
+    pop.hidden = true;
 
-    density.addEventListener("click", function () {
-      var cur = root.getAttribute("data-rmc-density") || "comfortable";
-      var next = DENSITIES[(DENSITIES.indexOf(cur) + 1) % DENSITIES.length];
-      root.setAttribute("data-rmc-density", next);
-      writeJSON(DENSITY_KEY, { d: next });
+    var dgroup = document.createElement("div");
+    dgroup.className = "rmc-sb-prefs__group";
+    var dlbl = document.createElement("span");
+    dlbl.className = "rmc-sb-prefs__lbl";
+    dlbl.textContent = "Density";
+    var seg = document.createElement("div");
+    seg.className = "rmc-sb-prefs__seg";
+    DENSITIES.forEach(function (d) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "rmc-sb-prefs__seg-btn";
+      b.setAttribute("data-density", d);
+      b.textContent = d.charAt(0).toUpperCase() + d.slice(1);
+      b.addEventListener("click", function () {
+        root.setAttribute("data-rmc-density", d);
+        var p = readJSON(PREFS_KEY); p.density = d; writeJSON(PREFS_KEY, p);
+        [].slice.call(seg.children).forEach(function (c) { c.classList.toggle("is-active", c === b); });
+      });
+      seg.appendChild(b);
+    });
+    dgroup.appendChild(dlbl); dgroup.appendChild(seg);
+    pop.appendChild(dgroup);
+
+    function toggleRow(label, key) {
+      var row = document.createElement("label");
+      row.className = "rmc-sb-prefs__row";
+      var cb = document.createElement("input");
+      cb.type = "checkbox"; cb.className = "rmc-sb-prefs__cb";
+      var txt = document.createElement("span");
+      txt.textContent = label;
+      row.appendChild(cb); row.appendChild(txt);
+      cb.addEventListener("change", function () {
+        var p = readJSON(PREFS_KEY); p[key] = cb.checked; writeJSON(PREFS_KEY, p);
+        applyVisibility();
+      });
+      pop.appendChild(row);
+      return cb;
+    }
+    var adaptiveCb = toggleRow("Adaptive ordering", "adaptive");
+    var searchCb = toggleRow("Filter box", "search");
+
+    field.appendChild(input); field.appendChild(hint);
+    bar.appendChild(field); bar.appendChild(prefsBtn); bar.appendChild(pop);
+
+    prefsBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      pop.hidden = !pop.hidden;
+      prefsBtn.setAttribute("aria-expanded", pop.hidden ? "false" : "true");
+    });
+    document.addEventListener("click", function (e) {
+      if (!pop.hidden && !bar.contains(e.target)) {
+        pop.hidden = true; prefsBtn.setAttribute("aria-expanded", "false");
+      }
     });
 
     function apply() {
@@ -150,6 +210,19 @@
       root.classList.toggle("rmc-sb-no-results", !!q && !any);
       state.cursor = -1; paintCursor(state);
     }
+    function applyVisibility() {
+      var effSearch = prefBool(root, "search");
+      var effAdaptive = prefBool(root, "adaptive");
+      field.style.display = effSearch ? "" : "none";
+      if (!effSearch && input.value) { input.value = ""; apply(); }
+      searchCb.checked = effSearch;
+      adaptiveCb.checked = effAdaptive;
+      var dcur = root.getAttribute("data-rmc-density") || "comfortable";
+      [].slice.call(seg.children).forEach(function (c) {
+        c.classList.toggle("is-active", c.getAttribute("data-density") === dcur);
+      });
+      if (state.band) state.band.hidden = !effAdaptive;
+    }
     input.addEventListener("input", apply);
     input.addEventListener("keydown", function (e) {
       var vis = visibleItems(state);
@@ -159,6 +232,7 @@
       else if (e.key === "Escape") { input.value = ""; apply(); input.blur(); }
     });
     state.input = input;
+    state.applyVisibility = applyVisibility;
     return bar;
   }
 
@@ -254,9 +328,9 @@
 
   // ── density (config default + per-user override) ────────────────────────
   function applyDensity(root) {
-    var override = readJSON(DENSITY_KEY).d;
+    var pref = readJSON(PREFS_KEY).density || readJSON(DENSITY_KEY).d; // PREFS wins; legacy fallback
     var dflt = root.getAttribute("data-rmc-sidebar-density") || "comfortable";
-    var val = DENSITIES.indexOf(override) >= 0 ? override : dflt;
+    var val = DENSITIES.indexOf(pref) >= 0 ? pref : dflt;
     root.setAttribute("data-rmc-density", val);
   }
 
@@ -324,15 +398,21 @@
       });
       var state = { items: list, cursor: -1, adRow: ad.row };
 
-      // adaptive band first (top of nav), then filter bar above it
-      if (attrOn(root, "data-rmc-sidebar-adaptive")) {
-        var band = buildFrequent(root, ad, state);
-        if (band) root.insertBefore(band, root.firstChild);
-      }
-      if (attrOn(root, "data-rmc-sidebar-search") && list.length >= MIN_ITEMS_FOR_FILTER) {
+      // Adaptive "Frequent" band — built whenever there's usage history; its
+      // visibility follows the effective adaptive pref (user over cascade), so
+      // the popover toggle can always show/hide it.
+      var band = buildFrequent(root, ad, state);
+      if (band) { root.insertBefore(band, root.firstChild); state.band = band; }
+
+      // Filter bar + preferences popover — built whenever the list is long
+      // enough; the search field's visibility follows the effective pref.
+      if (list.length >= MIN_ITEMS_FOR_FILTER) {
         var bar = buildFilterBar(root, ad, state);
         root.insertBefore(bar, root.firstChild);
         root.classList.add("rmc-sb-has-filter");
+        state.applyVisibility();
+      } else if (band) {
+        band.hidden = !prefBool(root, "adaptive");
       }
     } catch (err) {
       // never break the sidebar — degrade to the server-rendered list

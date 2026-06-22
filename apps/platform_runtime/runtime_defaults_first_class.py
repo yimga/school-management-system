@@ -295,6 +295,14 @@ _WIZARD_RUNTIME_DEFAULT_KEYS: frozenset[str] = frozenset({
     "brand_primary_color",
     "brand_secondary_color",
     "brand_type_scale_anchor",
+    # Intelligent-sidebar defaults (read via the SITE façade → emitted as nav
+    # data-attributes; per-tenant override lands in school.settings). Payload-
+    # backed (no first-class column / migration); owned by brand_experience via
+    # the "sidebar_" prefix in EXACT/PREFIX field ownership.
+    "sidebar_intelligence",
+    "sidebar_search",
+    "sidebar_adaptive_order",
+    "sidebar_density",
 })
 
 
