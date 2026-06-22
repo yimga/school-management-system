@@ -390,9 +390,11 @@ services:
   # jobs than the in-process /health/ tick should carry. Billed per-run (cheap),
   # not always-on — but it IS a paid line, so it's commented out by default.
   #
-  # The truly-FREE alternative is .github/workflows/cron-trigger.yml, which hits
-  # the secured /api/internal/cron/run/ endpoint on a GitHub Actions schedule for
-  # $0. Use whichever you prefer; both converge on the same locked registry.
+  # The truly-FREE alternative is a third-party pinger (cron-job.org / UptimeRobot)
+  # that POSTs the secured /api/internal/cron/run/ endpoint with INTERNAL_CRON_TOKEN
+  # on a schedule for $0. (A GitHub Actions cron previously did this but was removed
+  # — it overran the free Actions-minute tier; the in-process scheduler covers light
+  # jobs.) Both converge on the same locked registry.
   #
   # TO ENABLE: uncomment this block. The schedule below ticks every 15 min and
   # runs whatever is DUE; the registry's per-job interval still controls cadence.

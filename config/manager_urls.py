@@ -854,9 +854,9 @@ urlpatterns = [
         include(("apps.metadata.urls", "metadata"), namespace="metadata"),
     ),
     path(  # rbac-allow: machine endpoint authed by INTERNAL_CRON_TOKEN shared secret (constant-time)
-        # The free external scheduler (.github/workflows/cron-trigger.yml) posts to
-        # this on the manager host. It lives in config.urls too, but prod manager
-        # traffic resolves config.manager_urls — so without this it 404s in prod.
+        # A free external scheduler (cron-job.org / UptimeRobot) can POST here to
+        # tick the periodic-job registry. It lives in config.urls too, but prod
+        # manager traffic resolves config.manager_urls — so without this it 404s.
         "api/internal/cron/run/",
         internal_cron_run,
         name="internal_cron_run",

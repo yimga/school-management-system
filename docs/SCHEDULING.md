@@ -46,9 +46,13 @@ workers runs it per interval.
 - `GET` the same URL → registry status (intervals, last run, due-now) for
   monitoring.
 
-The **free** scheduler is [`.github/workflows/cron-trigger.yml`](../.github/workflows/cron-trigger.yml)
-— a GitHub Actions cron that hits the endpoint every 15 min. Set repo secrets
-`RMC_CRON_URL` and `INTERNAL_CRON_TOKEN`. (cron-job.org / UptimeRobot work too.)
+The **free, zero-infra** path is a third-party pinger (cron-job.org / UptimeRobot)
+that POSTs this endpoint with the `INTERNAL_CRON_TOKEN` Bearer header on a schedule
+— zero GitHub Actions minutes. (A `.github/workflows/cron-trigger.yml` GitHub
+Actions cron previously did this but was **removed**: GitHub bills Actions per job
+rounded up to the minute, so the tick overran the free 2,000-min/mo tier and made
+scheduled jobs silently go dark. The in-process scheduler above already covers
+light jobs without any external tick.)
 
 ### 3. Render cron (own process, for heavy jobs)
 
