@@ -38,7 +38,7 @@
 
           <div class="mb-3 p-2 bg-light rounded small">
             <strong>{% trans "CNAME record (add at your DNS):" %}</strong> your host (e.g. portal) → <code>{{ cname_target }}</code>
-            <button type="button" class="btn btn-sm btn-link p-0 ms-1 copy-txt" data-txt="{{ cname_target }}"><i class="bi bi-clipboard"></i></button>
+            <button type="button" class="btn btn-sm btn-link p-0 ms-1 copy-txt" data-txt="{{ cname_target }}" aria-label="{% trans 'Copy CNAME target' %}"><i class="bi bi-clipboard" aria-hidden="true"></i></button>
           </div>
 
           <h2 class="h6 mb-3">{% trans "Your domains" %}</h2>
@@ -59,8 +59,8 @@
                 <div class="bg-light rounded p-2 font-monospace small" title="{% trans 'TXT record value' %}">
                   runmycampus-verify={{ d.dns_token }}
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-primary copy-txt" data-txt="runmycampus-verify={{ d.dns_token }}">
-                  <i class="bi bi-clipboard"></i>
+                <button type="button" class="btn btn-sm btn-outline-primary copy-txt" data-txt="runmycampus-verify={{ d.dns_token }}" aria-label="{% trans 'Copy TXT verification value' %}">
+                  <i class="bi bi-clipboard" aria-hidden="true"></i>
                 </button>
                 <button type="button" class="btn btn-sm btn-primary verify-btn" data-id="{{ d.id }}">
                   <i class="bi bi-check-circle"></i> {% trans "Check DNS" %}

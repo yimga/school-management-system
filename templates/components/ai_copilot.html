@@ -46,8 +46,8 @@
           <span class="ai-status-dot" aria-hidden="true"></span>
           <span class="ai-status-text">{% trans "Checking…" %}</span>
         </span>
-        <button type="button" class="btn btn-sm btn-link text-white" id="aiCopilotClose">
-          <i class="bi bi-x-lg"></i>
+        <button type="button" class="btn btn-sm btn-link text-white" id="aiCopilotClose" aria-label="{% trans 'Close assistant' %}">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
       </div>
     </div>
@@ -155,8 +155,8 @@
           rows="2" 
           placeholder="{{ AI_CHROME_CONFIG.ui.floating_input_placeholder|default:_('Ask me anything...') }}"
           maxlength="{{ AI_CHROME_CONFIG.ui.floating_max_message_chars|default:500 }}"></textarea>
-        <button type="button" class="btn btn-primary ai-send-btn" id="aiCopilotSend" disabled>
-          <i class="bi bi-send-fill"></i>
+        <button type="button" class="btn btn-primary ai-send-btn" id="aiCopilotSend" disabled aria-label="{% trans 'Send message' %}">
+          <i class="bi bi-send-fill" aria-hidden="true"></i>
         </button>
       </div>
       <div class="small text-muted text-center mt-2">
