@@ -5,6 +5,7 @@ Page explain context — workflow tags, route help, and field manifests for shel
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 from apps.siteconfig.ui_field_help import UI_FIELD_HELP, _ensure_platform_catalog
@@ -94,27 +95,53 @@ def build_field_manifest(request: Any, route_help: dict[str, Any]) -> list[dict[
     return manifest
 
 
+# Fallback "About this page" title — so the page-explain strip renders on EVERY
+# authenticated page, not only routes with registered help. Skip opaque path
+# segments (numeric ids, hex hashes, admin action verbs) and humanise the last
+# meaningful one.
+_PE_TITLE_SKIP_RE = re.compile(r"^\d+$|^[0-9a-fA-F]{8,}$")
+_PE_TITLE_SKIP_WORDS = frozenset(
+    {"change", "add", "delete", "history", "autocomplete", "edit", "view", "detail"}
+)
+
+
+def _fallback_page_title(request: Any) -> str:
+    """Human title for the strip when a route registers no help of its own."""
+    path = getattr(request, "path", "") or ""
+    for part in reversed([p for p in path.split("/") if p]):
+        if _PE_TITLE_SKIP_RE.match(part) or part.lower() in _PE_TITLE_SKIP_WORDS:
+            continue
+        cleaned = part.replace("-", " ").replace("_", " ").strip()
+        if cleaned:
+            return cleaned.title()
+    return "Dashboard"
+
+
 def build_page_explain_context(request: Any) -> dict[str, Any]:
-    """Context dict for ``page_explain_context`` processor and templates."""
+    """Context dict for ``page_explain_context`` processor and templates.
+
+    Platform-wide contract: the "About this page" / Flow Thread strip renders on
+    EVERY authenticated page. Routes that register help / workflow tags / field
+    guidance surface it; routes that register nothing fall back to a path-derived
+    title so the bar is informative rather than absent. (It previously
+    self-suppressed unless a route had registered content, which is why it was
+    missing on most operator + tenant pages.)
+    """
     user = getattr(request, "user", None)
     if user is None or not getattr(user, "is_authenticated", False):
         return {}
 
-    route_help = resolve_route_help(request)
+    route_help = resolve_route_help(request) or {}
     workflow, workflow_tags = _workflow_context(request)
     manifest = build_field_manifest(request, route_help)
 
-    show_strip = bool(
-        route_help.get("title")
-        or route_help.get("body")
-        or workflow_tags
-        or manifest
-    )
+    if not route_help.get("title"):
+        route_help = {**route_help, "title": _fallback_page_title(request)}
 
     return {
         "rmc_page_help": route_help,
         "rmc_page_workflow": workflow,
         "rmc_page_workflow_tags": workflow_tags,
         "rmc_page_field_manifest": manifest,
-        "rmc_page_explain_enabled": show_strip,
+        "rmc_page_explain_enabled": True,
     }

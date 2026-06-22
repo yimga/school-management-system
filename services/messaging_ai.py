@@ -26,7 +26,7 @@ _MAX_PROMPT_CHARS = 4000
 _MAX_OUT_CHARS = 2000
 _THREAD_SUMMARY_MAX_TURNS = 40
 _THREAD_TURN_CHARS = 300  # magic-number-allow: per-turn excerpt length for thread summary
-_THREAD_QUERY_PREVIEW_CHARS = 240  # magic-number-allow: user_query preview length for RBAC/audit context
+_QUERY_PREVIEW_CHARS = 240  # magic-number-allow: user_query preview length for RBAC/audit context
 
 
 def _safe_invoke(
@@ -114,7 +114,7 @@ def suggest_subject_lines(*, school, body_excerpt: str, count: int = 3, user=Non
         prompt,
         school=school,
         user=user,
-        user_query=body_excerpt[:240],
+        user_query=body_excerpt[:_QUERY_PREVIEW_CHARS],
     )
     if not text:
         return []
@@ -419,7 +419,7 @@ def summarize_thread(
         prompt,
         school=school,
         user=user,
-        user_query=block[:_THREAD_QUERY_PREVIEW_CHARS],
+        user_query=block[:_QUERY_PREVIEW_CHARS],
         surface="messaging_ai_thread_summary",
     )
 

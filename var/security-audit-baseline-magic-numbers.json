@@ -97,7 +97,7 @@
   "excluded_path_fragments": [
     "management/commands/"
   ],
-  "finding_count": 913,
+  "finding_count": 912,
   "findings": [
     {
       "line": 126,
@@ -5498,12 +5498,6 @@
       "path": "services/messaging_ai.py",
       "snippet": "f\"line, no numbering.\\n\\nMessage:\\n{body_excerpt[:1500]}\\n\"",
       "value": 1500
-    },
-    {
-      "line": 114,
-      "path": "services/messaging_ai.py",
-      "snippet": "user_query=body_excerpt[:240],",
-      "value": 240
     },
     {
       "line": 175,

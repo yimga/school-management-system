@@ -315,6 +315,14 @@
 
 {% block title %}{% if site_title %}{{ site_title }}{% else %}{% trans 'Site administration' %}{% endif %}{% endblock %}
 
+{% comment %} Platform-wide "About this page" / Flow Thread strip on /admin/ too
+   (operator + tenant backoffice). pretitle is the canonical top-of-content block
+   that admin page templates (changelist/change_form/index) do NOT override, so the
+   strip shows on every admin page. The partial self-guards on rmc_page_explain_enabled,
+   so it no-ops on anonymous admin (login) pages. CSS (.rmc-page-explain-strip) is in
+   rmc-class-grammar.css, already loaded in extrastyle above. {% endcomment %}
+{% block pretitle %}{{ block.super }}{% include "components/rmc_page_explain_strip.html" %}{% endblock %}
+
 {% block branding %}
   {% include 'components/admin_nav_bridge.html' %}
   {% if PREVIEW_MODE_ENABLED %}
