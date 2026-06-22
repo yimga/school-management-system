@@ -62,12 +62,12 @@
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar-ext.css' %}">
     {% comment %} v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
     {% comment %} v2.53 (2026-05-15): platform-wide cool-apple polish (Apple elev/material/focus/typography). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
-    <link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="{% static 'css/rmc-cool-apple-polish.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">
@@ -102,13 +102,13 @@
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-assist-dock.css' %}">
     {% include "partials/rmc_operator_tools_styles.html" %}
-    <link rel="stylesheet" href="{% static 'css/rmc-workflow-progress.css' %}">
-    <link rel="stylesheet" href="{% static 'css/rmc-workflow-guidance.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-workflow-progress.css' %}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{% static 'css/rmc-workflow-guidance.css' %}" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="{% static 'css/phase2-control-plane-bundle.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css/glocal-text-expansion.css' %}">
     {% include "partials/rmc_platform_chrome_styles.html" %}
-    <link rel="stylesheet" href="{% static 'css/rmc-account-security-chip.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-account-security-chip.css' %}" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="{% static 'css/ultra-luxury-ui-system.css' %}">
     {% comment %} Phase G (2026-05-12): platform-wide long-page grammar. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
@@ -117,10 +117,10 @@
     <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
-    <link rel="stylesheet" href="{% static 'css/migration-cloud-ui.css' %}">
+    <link rel="stylesheet" href="{% static 'css/migration-cloud-ui.css' %}" media="print" onload="this.media='all'">
     {% comment %} v3.53.0 (2026-05-21): signature motion + command bar styles. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-signature-motion.css' %}">
-    <link rel="stylesheet" href="{% static 'css/rmc-command-bar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-command-bar.css' %}" media="print" onload="this.media='all'">
     {% comment %} v3.55.0 (2026-05-21): Platform-wide app-shell — grid layout + own-scroll canvas + static header/sidebar.
        Loaded LAST among layout sheets so the shell grid wins specificity over legacy chrome rules. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-app-shell.css' %}">
@@ -135,7 +135,7 @@
     {% comment %} Self-hosted Inter covers body UI; Source Serif / JetBrains fall back to Georgia / ui-monospace (no blocking CDN). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-cp-header-200x.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">
-    <link rel="stylesheet" href="{% static 'css/rmc-cp-activity-tiers.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-activity-tiers.css' %}" media="print" onload="this.media='all'">
     {% comment %} v3.55.0+ (2026-05-21): 200x luxury cockpit — 10 elements layered over v7
        (AI Copilot rail, world map, forecast lane, operator notebook, tenant heatmap,
        revenue waterfall, audit feed, trust nutrition, SLO clocks, operator presence).
@@ -144,11 +144,11 @@
     {% comment %} Critical path: operator 3-col grid + copilot col-3 pin must not wait on deferred chrome loader. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-isomorphic-grid.css' %}">
     {% comment %} v3.57.0 (2026-05-21): canonical pagination grammar + print v2 civic layer (adoption wave). {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="{% static 'css/rmc-print-v2.css' %}" media="print,screen">
     {% comment %} v3.58.x Wave 10 (2026-05-22): trust pillars alerts feed — closes v8 200x preview gap.
        Loaded AFTER rmc-cp-200x.css so .lx-trust-pillars composes with shared .lx-card chrome. {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/rmc-trust-pillars.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-trust-pillars.css' %}" media="print" onload="this.media='all'">
     {% comment %} rmc-data-viz.css loads via rmc_conditional_feature_boot when sparklines present. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
     {% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
@@ -167,14 +167,14 @@
     <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
     {% endif %}
     <link rel="stylesheet" href="{% static 'css/rmc-backoffice-scroll-10x.css' %}">
-    <link rel="stylesheet" href="{% static 'css/rmc-list-bulk-select.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-list-bulk-select.css' %}" media="print" onload="this.media='all'">
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-nav-sidebar.css' %}">
     {% comment %} Styles the in-content next-action strip (.rmc-nas-*); without it
        the strip rendered as raw stacked text/links on control-plane pages. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
     {% comment %} Terminal copilot col-3 pin — must load after every other shell layout sheet. {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/rmc-cp-copilot-grid-lock.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-copilot-grid-lock.css' %}" media="print" onload="this.media='all'">
     {% if cockpit.ai_copilot_rail.enabled %}
     {% comment %} Critical inline pin (attribute-keyed + self-activating :has() fallback) — survives stale SW/CDN CSS when external grid-lock 404s or caches pre-fix sheets, so the copilot rail can never regress to the full-width bottom band. {% endcomment %}
     <style nonce="{{ csp_nonce }}" id="rmc-cp-copilot-grid-critical">html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]{display:grid!important;grid-template-columns:var(--rmc-app-shell-sidebar-w,clamp(240px,18vw,320px)) minmax(0,1fr) var(--rmc-app-shell-copilot-w,44px)!important;grid-template-areas:"rmc-shell-h rmc-shell-h rmc-shell-h" "rmc-shell-sb rmc-shell-cv rmc-shell-cp" "rmc-shell-f rmc-shell-f rmc-shell-f"!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.rmc-app-shell__header{grid-area:rmc-shell-h!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.rmc-app-shell__sidebar{grid-area:rmc-shell-sb!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.rmc-app-shell__canvas{grid-area:rmc-shell-cv!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.rmc-app-shell__copilot{grid-area:rmc-shell-cp!important;grid-row:2!important;grid-column:3!important;width:var(--rmc-app-shell-copilot-w,44px)!important;max-width:var(--rmc-app-shell-copilot-w,44px)!important;min-width:0!important;position:relative!important;inset:auto!important;left:auto!important;right:auto!important;bottom:auto!important;top:auto!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.rmc-app-shell__footer{grid-area:rmc-shell-f!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>dialog.rmc-sheet:not([open]),html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>[data-rmc-operator-notebook],html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.lx-notebook{position:fixed!important;grid-column:1!important;grid-row:1!important;width:auto!important;height:auto!important;margin:0!important;pointer-events:auto!important}@media (max-width:1199.98px){html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.rmc-app-shell__copilot{display:none!important}}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(> .rmc-app-shell__copilot){display:grid!important;grid-template-columns:var(--rmc-app-shell-sidebar-w,clamp(240px,18vw,320px)) minmax(0,1fr) var(--rmc-app-shell-copilot-w,44px)!important;grid-template-areas:"rmc-shell-h rmc-shell-h rmc-shell-h" "rmc-shell-sb rmc-shell-cv rmc-shell-cp" "rmc-shell-f rmc-shell-f rmc-shell-f"!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-copilot="expanded"]:has(> .rmc-app-shell__copilot){--rmc-app-shell-copilot-w:360px}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(> .rmc-app-shell__copilot)>.rmc-app-shell__header{grid-area:rmc-shell-h!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(> .rmc-app-shell__copilot)>.rmc-app-shell__sidebar{grid-area:rmc-shell-sb!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(> .rmc-app-shell__copilot)>.rmc-app-shell__canvas{grid-area:rmc-shell-cv!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(> .rmc-app-shell__copilot)>.rmc-app-shell__copilot{grid-area:rmc-shell-cp!important;grid-row:2!important;grid-column:3!important;width:var(--rmc-app-shell-copilot-w,44px)!important;max-width:var(--rmc-app-shell-copilot-w,44px)!important;min-width:0!important;position:relative!important;inset:auto!important;left:auto!important;right:auto!important;bottom:auto!important;top:auto!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(> .rmc-app-shell__copilot)>.rmc-app-shell__footer{grid-area:rmc-shell-f!important}@media (max-width:1199.98px){html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(> .rmc-app-shell__copilot)>.rmc-app-shell__copilot{display:none!important}}</style>

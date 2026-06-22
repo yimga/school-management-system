@@ -55,11 +55,12 @@ DEFER = {
     "rmc-cp-copilot-grid-lock.css",    # copilot grid feature
     "rmc-collapsable.css",             # collapsibles (content hidden until expanded)
     "rmc-pagination-grammar.css",      # pager (below the fold, end of lists)
-    "rmc-signup-form.css",             # signup form page only
-    "rmc-data-viz.css",                # data-viz/chart styling (below-fold panels)
-    "admin-platform-catalog.css",      # admin app-catalog page only
-    "rmc-admin-changelist-live.css",   # admin changelist live-update chrome
+    "rmc-admin-changelist-live.css",   # admin changelist live-update chrome (layers on the table)
 }
+# Deliberately NOT deferred even though tempting — they style PRIMARY page content
+# and would flash unstyled: rmc-signup-form.css (the signup form itself),
+# rmc-data-viz.css (charts can sit above the fold), admin-platform-catalog.css
+# (the catalog grid IS the page).
 
 # A <link rel="stylesheet" ...> for a given css basename that has NO media= yet.
 def link_re(basename: str) -> re.Pattern:
