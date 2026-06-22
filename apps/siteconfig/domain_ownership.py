@@ -175,6 +175,9 @@ PREFIX_FIELD_OWNERS: Final[tuple[tuple[str, str], ...]] = (
     # + sidebar-federation knobs. Payload-backed (no migration); brand_experience
     # owns the nav/UX chrome, same as the sidebar_ prefix above.
     ("command_palette_", "brand_experience"),
+    # Table-intelligence engine: filter / sort / columns / export / density knobs
+    # for the shared list engine. Payload-backed (no migration); UX chrome.
+    ("table_", "brand_experience"),
     ("show_header_", "brand_experience"),
     ("secondary_font", "brand_experience"),
     ("base_font", "brand_experience"),

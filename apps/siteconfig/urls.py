@@ -76,6 +76,7 @@ from .dashboard_views import (
 from .views_waiver import request_waiver
 from .views_sidebar import sidebar_badge_counts, sidebar_settings_view
 from .views_command_palette import command_palette_settings_view
+from .views_tables import table_settings_view
 from .views_custom_requirement import request_custom_requirement
 from .views_sync_center import sync_center, sync_center_resolve
 from .views_school_theme import school_theme_settings
@@ -417,6 +418,7 @@ urlpatterns = [
     path("sidebar/badges/", sidebar_badge_counts, name="sidebar_badges"),
     path("sidebar/settings/", sidebar_settings_view, name="sidebar_settings"),
     path("command-palette/settings/", command_palette_settings_view, name="command_palette_settings"),
+    path("tables/settings/", table_settings_view, name="table_settings"),
     path("reports/download/<slug:slug>/", download_report, name="report_download"),
     path("reports/bulk-letters/", bulk_letters, name="bulk_letters"),
     path(

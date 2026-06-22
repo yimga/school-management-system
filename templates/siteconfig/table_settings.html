@@ -1,0 +1,74 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Table defaults" %}{% endblock %}
+
+{% block content %}
+<div class="content-max-640 py-3">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-table" aria-hidden="true"></i>
+    <h1 class="h5 mb-0">{% trans "List tables — school defaults" %}</h1>
+  </div>
+  <p class="text-muted">
+    {% trans "Set the default behaviour for list tables across this school. Each person can still change their own density and hide columns from the table's toolbar; their choice always wins over these defaults." %}
+  </p>
+
+  {% if not can_manage %}
+  <div class="alert alert-info">{% trans "You can view these defaults, but only an administrator can change them." %}</div>
+  {% endif %}
+
+  <form method="post" class="card shadow-sm">
+    {% csrf_token %}
+    <div class="card-body d-flex flex-column gap-3">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="tbl-intelligence" name="table_intelligence" {% if table_intelligence %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="tbl-intelligence">
+          <strong>{% trans "Smart tables" %}</strong>
+          <span class="d-block text-muted small">{% trans "Master switch. Off = plain server-rendered tables with no filter, sort, column toggle, or density bar." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="tbl-filter" name="table_filter" {% if table_filter %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="tbl-filter">
+          <strong>{% trans "Instant filter box" %}</strong>
+          <span class="d-block text-muted small">{% trans "Type-to-filter the rows already loaded on the page (appears on larger tables)." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="tbl-sort" name="table_sort" {% if table_sort %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="tbl-sort">
+          <strong>{% trans "Click-to-sort columns" %}</strong>
+          <span class="d-block text-muted small">{% trans "Make column headers clickable to sort the loaded rows (text / number aware)." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="tbl-columns" name="table_columns" {% if table_columns %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="tbl-columns">
+          <strong>{% trans "Column show / hide" %}</strong>
+          <span class="d-block text-muted small">{% trans "Let each person choose which columns to show via the ⚙ button (saved for them)." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="tbl-export" name="table_export" {% if table_export %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="tbl-export">
+          <strong>{% trans "CSV export button" %}</strong>
+          <span class="d-block text-muted small">{% trans "Show a button that downloads the visible rows as CSV." %}</span>
+        </label>
+      </div>
+      <div>
+        <label class="form-label" for="tbl-density"><strong>{% trans "Default row density" %}</strong></label>
+        <select class="form-select" id="tbl-density" name="table_density" {% if not can_manage %}disabled{% endif %}>
+          {% for choice in density_choices %}
+          <option value="{{ choice }}" {% if choice == table_density %}selected{% endif %}>{{ choice|capfirst }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    {% if can_manage %}
+    <div class="card-footer text-end">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1" aria-hidden="true"></i>{% trans "Save defaults" %}</button>
+    </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

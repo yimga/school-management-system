@@ -1,0 +1,17 @@
+{% load static %}
+{% comment %}
+  Table-intelligence engine (v4.04.60) — loaded on every authenticated shell.
+  The JSON island carries the SITE-cascade config (default-on, school/operator
+  overridable, zero migration); the engine auto-attaches to every
+  `table.rmc-data-table` already on the page. nonce on the data block satisfies
+  verify_csp_nonce_emission (mirrors rmc_command_bar.html).
+{% endcomment %}
+<script nonce="{{ csp_nonce }}" type="application/json" id="rmc-tables-config">{
+  "intelligence": {% if SITE.table_intelligence == False %}false{% else %}true{% endif %},
+  "filter": {% if SITE.table_filter == False %}false{% else %}true{% endif %},
+  "sort": {% if SITE.table_sort == False %}false{% else %}true{% endif %},
+  "columns": {% if SITE.table_columns == False %}false{% else %}true{% endif %},
+  "export": {% if SITE.table_export == False %}false{% else %}true{% endif %},
+  "density": "{{ SITE.table_density|default:'comfortable'|escapejs }}"
+}</script>
+<script src="{% static 'js/rmc-table-intelligence.js' %}" defer></script>

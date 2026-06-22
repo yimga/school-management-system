@@ -314,6 +314,15 @@ _WIZARD_RUNTIME_DEFAULT_KEYS: frozenset[str] = frozenset({
     "command_palette_fuzzy",
     "command_palette_adaptive",
     "command_palette_federate_sidebar",
+    # Shared table-intelligence engine defaults (read via SITE façade → emitted
+    # in the #rmc-tables-config island; per-tenant override in school.settings).
+    # Payload-backed (no migration); owned by brand_experience via "table_".
+    "table_intelligence",
+    "table_filter",
+    "table_sort",
+    "table_columns",
+    "table_export",
+    "table_density",
 })
 
 

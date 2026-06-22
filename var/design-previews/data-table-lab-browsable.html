@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Table Lab — Audit → Elevate</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --canvas:#fff; --ink:#0f1729; --ink-2:#5b6577; --ink-3:#8a93a3;
+    --line:#e6e9ef; --line-2:#d7dbe3; --brand:#3b5bdb; --brand-soft:#eef2ff;
+    --good:#0f9d58; --good-soft:#e9f7ef; --warn:#b8860b; --warn-soft:#fff7e6; --bad:#c0392b; --bad-soft:#fdecea;
+    --mark:#fff3bf; --zebra:#fafbfc; --r:12px; --hover:#f2f5ff;
+  }
+  html[data-theme="dark"]{
+    --bg:#0c0f16; --canvas:#11151f; --ink:#eef1f6; --ink-2:#a7b0c0; --ink-3:#727c8e;
+    --line:#222838; --line-2:#2c3346; --brand:#7c9cff; --brand-soft:#1b2440;
+    --good-soft:#10261a; --warn-soft:#2b2410; --bad-soft:#2c1716; --mark:#5a4a00; --zebra:#0e131d; --hover:#161d2e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  header.lab{padding:28px 28px 8px;max-width:1100px;margin:0 auto}
+  h1{font-size:23px;margin:0 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--ink-2);margin:0 0 18px;max-width:820px}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 28px 64px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--canvas);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+  .card h3{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+  .diag li{margin:4px 0;color:var(--ink-2)} .diag b{color:var(--ink)}
+  .tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;margin-left:6px}
+  .tag.bad{background:var(--bad-soft);color:var(--bad)} .tag.warn{background:var(--warn-soft);color:var(--warn)} .tag.good{background:var(--good-soft);color:var(--good)}
+
+  /* ---- the elevated table ---- */
+  .panel{background:var(--canvas);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .toolbar{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .filter{flex:1;min-width:180px;display:flex;align-items:center;gap:8px;border:1px solid var(--line-2);border-radius:9px;padding:7px 11px;background:var(--bg)}
+  .filter input{border:0;background:transparent;font:inherit;color:var(--ink);outline:none;flex:1}
+  .filter svg{color:var(--ink-3);flex:none}
+  .count{font-size:12px;color:var(--ink-3);white-space:nowrap}
+  .tbtn{border:1px solid var(--line-2);background:var(--canvas);color:var(--ink-2);border-radius:8px;padding:6px 11px;font:inherit;font-size:13px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+  .tbtn:hover{border-color:var(--brand);color:var(--brand)}
+  .seg{display:inline-flex;border:1px solid var(--line-2);border-radius:8px;overflow:hidden}
+  .seg button{border:0;background:transparent;padding:6px 10px;font:inherit;font-size:12px;color:var(--ink-2);cursor:pointer}
+  .seg button[aria-pressed=true]{background:var(--brand);color:#fff}
+  .pop{position:relative}
+  .pop__menu{position:absolute;right:0;top:calc(100% + 6px);background:var(--canvas);border:1px solid var(--line-2);border-radius:10px;box-shadow:0 14px 40px rgba(15,23,41,.18);padding:8px;min-width:200px;z-index:10;display:none}
+  .pop.open .pop__menu{display:block}
+  .pop__menu label{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;font-size:13px;color:var(--ink-2);cursor:pointer}
+  .pop__menu label:hover{background:var(--hover)}
+  .scroll{overflow:auto;max-height:60vh}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  thead th{position:sticky;top:0;background:var(--canvas);text-align:left;padding:11px 14px;border-bottom:1px solid var(--line-2);color:var(--ink-2);font-weight:600;white-space:nowrap;user-select:none}
+  th.sortable{cursor:pointer}
+  th.sortable:hover{color:var(--brand)}
+  th .arrow{opacity:.35;font-size:11px;margin-left:4px}
+  th[aria-sort="ascending"] .arrow,th[aria-sort="descending"] .arrow{opacity:1;color:var(--brand)}
+  tbody td{padding:10px 14px;border-bottom:1px solid var(--line)}
+  tbody tr:nth-child(even){background:var(--zebra)}
+  tbody tr.cur{background:var(--brand-soft);outline:2px solid var(--brand);outline-offset:-2px}
+  tbody tr:hover{background:var(--hover)}
+  mark{background:var(--mark);color:inherit;border-radius:3px;padding:0 1px}
+  .chip{font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px}
+  .chip.active{background:var(--good-soft);color:var(--good)} .chip.prob{background:var(--warn-soft);color:var(--warn)} .chip.alum{background:var(--bad-soft);color:var(--bad)}
+  /* density */
+  [data-density=compact] tbody td,[data-density=compact] thead th{padding-top:5px;padding-bottom:5px}
+  [data-density=spacious] tbody td,[data-density=spacious] thead th{padding-top:16px;padding-bottom:16px}
+  .empty{padding:34px;text-align:center;color:var(--ink-3)}
+  .foot{padding:9px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3);display:flex;gap:14px;flex-wrap:wrap}
+  .foot .k{font-family:ui-monospace,monospace;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+  .col-hidden{display:none}
+  .themebtn{position:fixed;right:16px;top:16px;border:1px solid var(--line-2);background:var(--canvas);color:var(--ink);border-radius:999px;padding:7px 13px;font:inherit;font-size:13px;cursor:pointer;z-index:20}
+  footer.note{color:var(--ink-3);font-size:13px;margin-top:22px;border-top:1px solid var(--line);padding-top:16px}
+  code{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12px}
+</style>
+</head>
+<body>
+<button class="themebtn" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">◐ theme</button>
+
+<header class="lab">
+  <h1>Data Table Lab — Audit → Elevate</h1>
+  <p class="sub">Third in the platform-wide series after the sidebar &amp; ⌘K palette. <b>377 list pages already carry the <code>.rmc-data-table</code> class</b> — so one progressive-enhancement engine attaching to it lights them all up with <b>zero per-page edits</b>. Below is the proposed elevation, fully interactive.</p>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <div class="card">
+      <h3>What we found (the "before")</h3>
+      <ul class="diag">
+        <li><b>Strong base already exists:</b> shared density (localStorage), pagination grammar, bulk-select + sticky action bar (with copilot), row-detail drawer, mobile card-stacking.<span class="tag good">reuse</span></li>
+        <li><b>No click-to-sort.</b> Sort is hardcoded server <code>.order_by()</code> — headers aren't clickable.<span class="tag warn">gap</span></li>
+        <li><b>No instant filter.</b> Every filter is a full page reload via GET form.<span class="tag warn">gap</span></li>
+        <li><b>No column show/hide.</b> Columns fixed per template.<span class="tag warn">gap</span></li>
+        <li><b>Density isn't cascade-configurable.</b> Per-browser only, no per-tenant default.<span class="tag warn">gap</span></li>
+        <li><b>No keyboard row nav.</b> <code>tabindex</code> present, no arrow handling.<span class="tag warn">gap</span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>The elevation (the "after")</h3>
+      <ul class="diag">
+        <li><b>One engine</b> attaches to existing <code>.rmc-data-table</code> → hundreds of pages, no template churn.<span class="tag good">platform-wide</span></li>
+        <li><b>Instant filter</b> of loaded rows + <code>&lt;mark&gt;</code> highlight (CSP-safe).<span class="tag good">live</span></li>
+        <li><b>Click-to-sort</b> columns with <code>aria-sort</code> (numbers/dates/text aware).<span class="tag good">a11y</span></li>
+        <li><b>Column show/hide</b> (⚙) + density toggle, both per-user.<span class="tag good">personal</span></li>
+        <li><b>Keyboard nav</b> ↑/↓ rows, ↵ opens; composes with existing bulk-select.<span class="tag good">fast</span></li>
+        <li><b>Cascade-configurable</b> defaults (platform→school→user). No migration.<span class="tag good">genius</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="panel" id="tbl" data-density="comfortable">
+    <div class="toolbar">
+      <div class="filter">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="q" placeholder="Filter this list… (try “grade 9”, “prob”, a name)" autocomplete="off">
+      </div>
+      <span class="count" id="count"></span>
+      <span class="seg" id="dens" title="Row density">
+        <button data-d="compact">Compact</button>
+        <button data-d="comfortable" aria-pressed="true">Cozy</button>
+        <button data-d="spacious">Roomy</button>
+      </span>
+      <div class="pop" id="colpop">
+        <button class="tbtn" id="colbtn">⚙ Columns</button>
+        <div class="pop__menu" id="colmenu"></div>
+      </div>
+      <button class="tbtn" id="csv">⤓ CSV</button>
+    </div>
+    <div class="scroll">
+      <table id="grid" aria-label="Students">
+        <thead><tr id="head"></tr></thead>
+        <tbody id="body"></tbody>
+      </table>
+      <div class="empty" id="empty" style="display:none">No rows match your filter.</div>
+    </div>
+    <div class="foot">
+      <span><span class="k">↑↓</span> move</span><span><span class="k">↵</span> open</span>
+      <span>click a header to sort</span>
+      <span style="margin-left:auto">platform → school → you · cascade-configurable · attaches to <code>.rmc-data-table</code></span>
+    </div>
+  </div>
+
+  <footer class="note">
+    Mockup only — no backend. The shipping engine (<code>rmc-table-intelligence.js</code>) would progressive-enhance any <code>table.rmc-data-table</code> already on the page (377 templates), compose with the existing bulk-select / row-drawer / pagination, read defaults from the SITE cascade (new <code>table_*</code> prefix owner, zero migration), and persist per-user density + hidden columns to localStorage. <b>Honest scope:</b> filter &amp; sort act on the rows loaded into the page (server pagination unchanged); a later phase can push sort to a <code>?sort=</code> query param for full-dataset sorting.
+  </footer>
+</div>
+
+<script>
+var COLS = [
+  {id:"name", label:"Name", type:"text"},
+  {id:"adm", label:"Adm. no", type:"text"},
+  {id:"grade", label:"Class", type:"text"},
+  {id:"guardian", label:"Guardian", type:"text"},
+  {id:"balance", label:"Balance", type:"num"},
+  {id:"status", label:"Status", type:"status"}
+];
+var ROWS = [
+  ["Amara Okafor","ADM-1021","Grade 9 · Blue","N. Okafor",0,"active"],
+  ["Liam Patel","ADM-1044","Grade 9 · Blue","R. Patel",120,"active"],
+  ["Sofia Mendez","ADM-0991","Grade 10 · Gold","C. Mendez",0,"active"],
+  ["Kwame Mensah","ADM-1133","Grade 8 · Green","A. Mensah",340,"prob"],
+  ["Yuki Tanaka","ADM-1007","Grade 10 · Gold","H. Tanaka",0,"active"],
+  ["Fatima Al-Sayed","ADM-1190","Grade 7 · Red","M. Al-Sayed",60,"active"],
+  ["Diego Rossi","ADM-0975","Grade 11 · Silver","P. Rossi",0,"alum"],
+  ["Aisha Bello","ADM-1156","Grade 8 · Green","S. Bello",500,"prob"],
+  ["Noah Kim","ADM-1088","Grade 9 · Blue","J. Kim",0,"active"],
+  ["Priya Nair","ADM-1012","Grade 11 · Silver","V. Nair",25,"active"],
+  ["Tomas Novak","ADM-1201","Grade 7 · Red","E. Novak",0,"active"],
+  ["Zara Haddad","ADM-1063","Grade 10 · Gold","L. Haddad",210,"prob"]
+];
+var hidden = {}, sortCol = null, sortDir = 1, cursor = 0, view = [];
+var q = document.getElementById("q"), body = document.getElementById("body"), head = document.getElementById("head"),
+    countEl = document.getElementById("count"), emptyEl = document.getElementById("empty"), tbl = document.getElementById("tbl");
+
+function chip(s){ var c={active:["active","Active"],prob:["prob","Probation"],alum:["alum","Alumni"]}[s]; var sp=document.createElement("span"); sp.className="chip "+c[0]; sp.textContent=c[1]; return sp; }
+function fmt(col,v){ if(col.type==="num") return v?("$"+v):"—"; return v; }
+
+function buildHead(){
+  head.textContent="";
+  COLS.forEach(function(col){
+    var th=document.createElement("th"); th.className="sortable"+(hidden[col.id]?" col-hidden":"");
+    th.dataset.col=col.id; th.setAttribute("scope","col");
+    th.appendChild(document.createTextNode(col.label));
+    var ar=document.createElement("span"); ar.className="arrow"; ar.textContent = sortCol===col.id?(sortDir>0?"▲":"▼"):"↕"; th.appendChild(ar);
+    if(sortCol===col.id) th.setAttribute("aria-sort", sortDir>0?"ascending":"descending");
+    th.addEventListener("click",function(){ if(sortCol===col.id){sortDir=-sortDir;}else{sortCol=col.id;sortDir=1;} render(); });
+    head.appendChild(th);
+  });
+}
+function buildColMenu(){
+  var m=document.getElementById("colmenu"); m.textContent="";
+  COLS.forEach(function(col){
+    var l=document.createElement("label"); var cb=document.createElement("input"); cb.type="checkbox"; cb.checked=!hidden[col.id];
+    cb.addEventListener("change",function(){ hidden[col.id]=!cb.checked; buildHead(); render(); });
+    l.appendChild(cb); l.appendChild(document.createTextNode(" "+col.label)); m.appendChild(l);
+  });
+}
+function hl(td,text,needle){
+  if(!needle){ td.textContent=text; return; }
+  var low=String(text).toLowerCase(), i=low.indexOf(needle); if(i<0){ td.textContent=text; return; }
+  td.appendChild(document.createTextNode(text.slice(0,i)));
+  var mk=document.createElement("mark"); mk.textContent=text.slice(i,i+needle.length); td.appendChild(mk);
+  td.appendChild(document.createTextNode(text.slice(i+needle.length)));
+}
+function render(){
+  var needle=(q.value||"").toLowerCase().trim();
+  view = ROWS.map(function(r,i){return {r:r,i:i};}).filter(function(o){
+    if(!needle) return true; return o.r.join(" ").toLowerCase().indexOf(needle)!==-1;
+  });
+  if(sortCol){
+    var ci=COLS.findIndex(function(c){return c.id===sortCol;}), type=COLS[ci].type;
+    view.sort(function(a,b){ var x=a.r[ci],y=b.r[ci]; if(type==="num"){x=+x;y=+y;} else {x=String(x).toLowerCase();y=String(y).toLowerCase();}
+      return (x<y?-1:x>y?1:0)*sortDir; });
+  }
+  body.textContent="";
+  view.forEach(function(o,idx){
+    var tr=document.createElement("tr"); tr.tabIndex=0; if(idx===cursor) tr.className="cur";
+    tr.addEventListener("mouseenter",function(){cursor=idx;mark();});
+    COLS.forEach(function(col,ci){
+      var td=document.createElement("td"); if(hidden[col.id]) td.className="col-hidden";
+      if(col.type==="status"){ td.appendChild(chip(o.r[ci])); }
+      else { hl(td, fmt(col,o.r[ci]), col.type==="text"?needle:""); }
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+  countEl.textContent = view.length+" of "+ROWS.length;
+  emptyEl.style.display = view.length?"none":"block";
+  if(cursor>=view.length) cursor=Math.max(0,view.length-1);
+  mark();
+}
+function mark(){ Array.prototype.forEach.call(body.children,function(tr,i){ tr.classList.toggle("cur",i===cursor); if(i===cursor){try{tr.scrollIntoView({block:"nearest"});}catch(e){}} }); }
+
+q.addEventListener("input",function(){cursor=0;render();});
+document.addEventListener("keydown",function(e){
+  if(e.key==="ArrowDown"&&document.activeElement!==q){e.preventDefault();cursor=Math.min(view.length-1,cursor+1);mark();}
+  else if(e.key==="ArrowUp"&&document.activeElement!==q){e.preventDefault();cursor=Math.max(0,cursor-1);mark();}
+  else if(e.key==="Enter"&&view.length){ var name=view[cursor].r[0]; countEl.textContent="↵ would open: "+name; }
+});
+document.getElementById("dens").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;[].forEach.call(this.children,function(x){x.setAttribute("aria-pressed",x===b);});tbl.dataset.density=b.dataset.d;});
+var colpop=document.getElementById("colpop");
+document.getElementById("colbtn").addEventListener("click",function(e){e.stopPropagation();colpop.classList.toggle("open");});
+document.addEventListener("click",function(){colpop.classList.remove("open");});
+document.getElementById("colmenu").addEventListener("click",function(e){e.stopPropagation();});
+document.getElementById("csv").addEventListener("click",function(){countEl.textContent="⤓ would export "+view.length+" visible rows to CSV";});
+
+buildHead(); buildColMenu(); render();
+</script>
+</body>
+</html>
