@@ -417,3 +417,49 @@
   background: var(--surface-elevated, transparent);
   color: var(--text-primary);
 }
+
+/* ==========================================================================
+   Platform chrome-strip density pass (Option B "Compact", 2026-06-22)
+   --------------------------------------------------------------------------
+   Tightens the vertical rhythm of the shell-level Flow Thread bar + flow
+   launchpad so above-the-fold space is reclaimed platform-wide (operator +
+   every tenant) from one place — same components, less air (~39px/page).
+   Base rules live in rmc-class-grammar.css; these overrides load right after
+   it on every strip-hosting shell (base / portal_base / control_plane_skeleton
+   / admin). They live here, in the grammar-EXTENSION file, on purpose: the base
+   grammar file was under concurrent edit, and -ext is the designated, cascade-
+   correct companion (loaded immediately after the grammar on all four shells).
+   Layout-only props (margin / padding / flex / gap / inset) — no colour, so the
+   theme + off-token scanners are unaffected.
+   "Compact" = tighter paddings/margins + the "Your flow" label folds INLINE
+   beside the steps (removing a whole label row). Pure CSS, no markup change, so
+   every analytics hook and the data-rmc-flow-launchpad contract are untouched.
+   Swap to "Lean" (drop the flex/inline block, keep only the strip+margin
+   trims) or revert by deleting this block.
+   ========================================================================== */
+.rmc-page-explain-strip {
+  margin-block-end: 0.4rem;
+  padding: 0.375rem 0.75rem;
+}
+.rmc-flow-launchpad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-block: 0.3rem 0;
+}
+.rmc-flow-launchpad__lead {
+  margin: 0;
+  flex: none;
+}
+.rmc-flow-launchpad__steps {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  gap: 0.45rem;
+}
+.rmc-flow-launchpad__step-link {
+  padding: 0.45rem 0.7rem;
+}
+.rmc-flow-launchpad__rail {
+  inset-block: -0.25rem 0.35rem;
+}

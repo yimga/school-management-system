@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Platform chrome strips — density options</title>
+<style>
+  :root{
+    --canvas:#f7f8fb; --elevated:#ffffff; --page:#eef0f4;
+    --hair:rgba(20,22,30,.10); --ink:#1c1f27; --ink2:#5b6170; --ink3:#8a91a0;
+    --brand:#4f46e5; --brandsoft:rgba(79,70,229,.16); --good:#10b981;
+    --radius:10px;
+    /* CURRENT metrics (from rmc-class-grammar.css) */
+    --bar-pad:.5rem .75rem; --bar-mb:.75rem;
+    --lp-mt:.5rem; --lead-mb:.5rem; --steps-gap:.6rem; --step-pad:.6rem .75rem;
+    --lead-show:block;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1140px;margin:0 auto;padding:36px 26px 90px}
+  h1{font-size:21px;margin:0 0 4px}
+  .sub{color:var(--ink2);font-size:14.5px;margin:0 0 26px;line-height:1.6;max-width:780px}
+  .sub b{color:var(--ink)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:880px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--page);border:1px solid var(--hair);border-radius:16px;padding:16px;position:relative}
+  .panel h2{font-size:13px;letter-spacing:.04em;margin:0 0 3px;display:flex;align-items:center;gap:8px}
+  .panel .meta{font-size:12px;color:var(--ink3);margin:0 0 14px}
+  .badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+  .badge.now{background:rgba(120,126,140,.16);color:#6b7180}
+  .badge.save{background:rgba(16,185,129,.14);color:#0b8f63}
+  .badge.rec{background:var(--brandsoft);color:#4338ca}
+
+  /* ===== the real chrome stack, driven by vars so before/after is faithful ===== */
+  .stack{background:var(--canvas);border:1px dashed var(--hair);border-radius:12px;padding:14px}
+  /* Flow Thread bar */
+  .bar{display:flex;align-items:center;gap:.5rem 1rem;flex-wrap:nowrap;
+    padding:var(--bar-pad);margin-block-end:var(--bar-mb);
+    border:1px solid var(--hair);border-radius:var(--radius);background:var(--elevated)}
+  .dot{width:.5rem;height:.5rem;border-radius:50%;background:var(--brand);
+    box-shadow:0 0 0 4px var(--brandsoft);flex:none}
+  .bar .lbl{font-size:11px;color:var(--ink3)}
+  .bar .ttl{font-weight:650;font-size:13.5px}
+  .bar .i{width:15px;height:15px;border-radius:50%;border:1px solid var(--hair);color:var(--ink3);
+    font-size:10px;display:inline-flex;align-items:center;justify-content:center}
+  .bar .conn{flex:1 1 auto;height:2px;border-radius:2px;min-width:24px;
+    background:linear-gradient(90deg,var(--brandsoft),var(--brand))}
+  .bar .next{display:inline-flex;align-items:center;gap:6px;background:var(--good);color:#fff;
+    border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:650;white-space:nowrap}
+  .bar .next .k{opacity:.8;font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+
+  /* Flow launchpad */
+  .lp{position:relative;margin-block:var(--lp-mt) 0;padding-inline-start:1.5rem}
+  .lp .rail{position:absolute;inset-inline-start:.45rem;inset-block:-.35rem .9rem;width:2px;border-radius:2px;
+    background:linear-gradient(180deg,var(--good),var(--brandsoft),transparent)}
+  .lp .lead{display:var(--lead-show);margin:0 0 var(--lead-mb);font-size:10.5px;font-weight:700;
+    letter-spacing:.07em;text-transform:uppercase;color:var(--good)}
+  .lp .steps{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:var(--steps-gap);align-items:stretch}
+  .lp .step{flex:1 1 14rem;min-width:0}
+  .lp .step a{display:flex;align-items:flex-start;gap:.6rem;height:100%;padding:var(--step-pad);
+    border-radius:var(--radius);border:1px solid var(--hair);background:var(--elevated);text-decoration:none;color:inherit}
+  .lp .sdot{width:.55rem;height:.55rem;margin-top:.2rem;border-radius:50%;border:2px solid var(--brand);
+    background:var(--canvas);flex:none}
+  .lp .step--live .sdot{background:var(--good);border-color:var(--good);box-shadow:0 0 0 4px rgba(16,185,129,.2)}
+  .lp .sbody{min-width:0}
+  .lp .stitle{font-size:13.5px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lp .sdesc{font-size:11.5px;color:var(--ink2);margin-top:1px}
+  /* inline-lead variant (Compact/Merge): YOUR FLOW becomes a leading chip on the steps row */
+  .lp.inline .lead{display:inline-flex;align-items:center;margin:0;align-self:center;flex:none;
+    padding:0 .2rem 0 0;color:var(--good)}
+  .lp.inline .steps{align-items:center}
+
+  /* content placeholder */
+  .content{margin-top:10px;height:74px;border-radius:12px;border:1px solid var(--hair);
+    background:repeating-linear-gradient(135deg,#fff,#fff 12px,#fafbfd 12px,#fafbfd 24px);
+    display:flex;align-items:center;justify-content:center;color:var(--ink3);font-size:12px}
+
+  .ruler{position:absolute;top:16px;right:16px;font-size:11px;color:var(--ink3);text-align:right}
+  .note{font-size:12.5px;color:var(--ink2);margin-top:12px;line-height:1.5}
+  .legend{font-size:12.5px;color:var(--ink2);margin:8px 2px 24px}
+  .full{grid-column:1/-1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Platform chrome strips — vertical density</h1>
+  <p class="sub">The Flow Thread bar + launchpad stack above content on every authenticated page. They’re driven by a
+  handful of rules in <b>one</b> shared file (<code>rmc-class-grammar.css</code>), so tightening the rhythm reclaims space
+  <b>platform-wide</b> — operator and every tenant — from one edit. Same components, same tokens, just less air.
+  Pick a density; nothing is committed yet.</p>
+  <p class="legend">Each block below is rendered with the <b>real</b> metrics (CURRENT = the live values). Heights are approximate at 16px/rem.</p>
+
+  <div class="grid">
+
+    <!-- CURRENT -->
+    <div class="panel">
+      <div class="ruler">≈ 125&nbsp;px chrome</div>
+      <h2>Current <span class="badge now">live</span></h2>
+      <p class="meta">bar pad .5rem · bar mb .75rem · launchpad mt .5rem + label row · steps gap .6rem · card pad .6rem</p>
+      <div class="stack">
+        <div class="bar">
+          <span class="dot"></span><span class="lbl">About this page</span>
+          <span class="ttl">Admissions</span><span class="i">i</span>
+          <span class="conn"></span>
+          <span class="next"><span class="k">Next</span> Review 3 applications →</span>
+        </div>
+        <div class="lp">
+          <span class="rail"></span>
+          <div class="lead">Your flow</div>
+          <ul class="steps">
+            <li class="step step--live"><a><span class="sdot"></span><span class="sbody"><div class="stitle">Review applications</div><div class="sdesc">3 awaiting decision</div></span></a></li>
+            <li class="step"><a><span class="sdot"></span><span class="sbody"><div class="stitle">Send offers</div><div class="sdesc">After review</div></span></a></li>
+          </ul>
+        </div>
+        <div class="content">page content starts here</div>
+      </div>
+    </div>
+
+    <!-- A LEAN -->
+    <div class="panel" style="--bar-pad:.375rem .75rem;--bar-mb:.5rem;--lp-mt:.375rem;--lead-mb:.3rem;--steps-gap:.45rem;--step-pad:.45rem .7rem">
+      <div class="ruler" style="color:#0b8f63">≈ 108&nbsp;px · −17</div>
+      <h2>A · Lean <span class="badge save">~17px back</span></h2>
+      <p class="meta">Just tighter air — smaller paddings + margins. Identical layout, lowest risk.</p>
+      <div class="stack">
+        <div class="bar">
+          <span class="dot"></span><span class="lbl">About this page</span>
+          <span class="ttl">Admissions</span><span class="i">i</span>
+          <span class="conn"></span>
+          <span class="next"><span class="k">Next</span> Review 3 applications →</span>
+        </div>
+        <div class="lp">
+          <span class="rail"></span>
+          <div class="lead">Your flow</div>
+          <ul class="steps">
+            <li class="step step--live"><a><span class="sdot"></span><span class="sbody"><div class="stitle">Review applications</div><div class="sdesc">3 awaiting decision</div></span></a></li>
+            <li class="step"><a><span class="sdot"></span><span class="sbody"><div class="stitle">Send offers</div><div class="sdesc">After review</div></span></a></li>
+          </ul>
+        </div>
+        <div class="content">page content starts here</div>
+      </div>
+    </div>
+
+    <!-- B COMPACT -->
+    <div class="panel" style="--bar-pad:.375rem .75rem;--bar-mb:.4rem;--lp-mt:.3rem;--steps-gap:.4rem;--step-pad:.4rem .7rem">
+      <div class="ruler" style="color:#0b8f63">≈ 86&nbsp;px · −39</div>
+      <h2>B · Compact <span class="badge rec">recommended</span> <span class="badge save">~39px back</span></h2>
+      <p class="meta">“Your flow” label moves <b>inline</b> as a leading chip on the steps row (kills a whole label row), tighter cards.</p>
+      <div class="stack">
+        <div class="bar">
+          <span class="dot"></span><span class="lbl">About this page</span>
+          <span class="ttl">Admissions</span><span class="i">i</span>
+          <span class="conn"></span>
+          <span class="next"><span class="k">Next</span> Review 3 applications →</span>
+        </div>
+        <div class="lp inline">
+          <span class="rail"></span>
+          <ul class="steps">
+            <li class="lead" style="list-style:none">Your flow</li>
+            <li class="step step--live"><a><span class="sdot"></span><span class="sbody"><div class="stitle">Review applications</div><div class="sdesc">3 awaiting decision</div></span></a></li>
+            <li class="step"><a><span class="sdot"></span><span class="sbody"><div class="stitle">Send offers</div><div class="sdesc">After review</div></span></a></li>
+          </ul>
+        </div>
+        <div class="content">page content starts here</div>
+      </div>
+    </div>
+
+    <!-- C MERGE -->
+    <div class="panel" style="--bar-pad:.375rem .75rem;--bar-mb:.3rem;--lp-mt:.25rem;--steps-gap:.4rem;--step-pad:.4rem .7rem">
+      <div class="ruler" style="color:#0b8f63">≈ 80&nbsp;px · −45</div>
+      <h2>C · Merge <span class="badge save">~45px back</span></h2>
+      <p class="meta">Steps tuck directly under the bar — no label, minimal gap. Tightest, but the “Your flow” cue is gone.</p>
+      <div class="stack">
+        <div class="bar">
+          <span class="dot"></span><span class="lbl">About this page</span>
+          <span class="ttl">Admissions</span><span class="i">i</span>
+          <span class="conn"></span>
+          <span class="next"><span class="k">Next</span> Review 3 applications →</span>
+        </div>
+        <div class="lp inline">
+          <span class="rail" style="inset-block:-.2rem .6rem"></span>
+          <ul class="steps">
+            <li class="step step--live"><a><span class="sdot"></span><span class="sbody"><div class="stitle">Review applications</div><div class="sdesc">3 awaiting decision</div></span></a></li>
+            <li class="step"><a><span class="sdot"></span><span class="sbody"><div class="stitle">Send offers</div><div class="sdesc">After review</div></span></a></li>
+          </ul>
+        </div>
+        <div class="content">page content starts here</div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="note full" style="margin-top:26px">My pick: <b>B · Compact</b> — it reclaims a real ~39px on every page by removing the dead “Your flow” label
+  row (folded inline) plus tighter rhythm, while keeping the flow cue and all the analytics hooks. <b>A</b> is the
+  no-judgement-needed safe trim; <b>C</b> is tightest but drops the “Your flow” signpost. All three are pure CSS in one
+  shared file → instantly platform-wide, no per-page edits, no markup churn. Reply A / B / C (or “B without inlining the label”).</p>
+</div>
+</body>
+</html>
