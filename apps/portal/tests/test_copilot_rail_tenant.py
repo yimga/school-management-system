@@ -101,14 +101,31 @@ class TenantRailSendTests(SimpleTestCase):
         self.assertEqual(data["source"], "rules")
 
     def test_unavailable_when_invoke_returns_none(self):
+        # Governance ON but the gateway yielded nothing → transient "unavailable".
         allow = SimpleNamespace(allowed=True, denial_reason="", metadata={}, prompt="P")
         with mock.patch("services.ai_copilot_rbac.prepare_copilot_invoke", return_value=allow), \
                 mock.patch.object(onb, "build_onboarding_context_for_ai", return_value={}), \
                 mock.patch.object(onb, "onboarding_prompt_preamble", return_value=""), \
+                mock.patch("apps.platform_runtime.ai_governance.resolve_effective_enabled", return_value=True), \
                 mock.patch("services.ai_helpers.invoke_with_request", return_value=None):
             resp = rail.TenantCopilotRailSendView.as_view()(_authed_post({"message": "what next?"}))
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(json.loads(resp.content)["source"], "unavailable")
+
+    def test_disabled_reply_when_ai_governance_off(self):
+        # AI governance OFF (RUNMYCAMPUS_AI_ENABLED unset / tenant disabled) → say so
+        # plainly instead of a generic "unavailable" that reads as a broken copilot.
+        allow = SimpleNamespace(allowed=True, denial_reason="", metadata={}, prompt="P")
+        with mock.patch("services.ai_copilot_rbac.prepare_copilot_invoke", return_value=allow), \
+                mock.patch.object(onb, "build_onboarding_context_for_ai", return_value={}), \
+                mock.patch.object(onb, "onboarding_prompt_preamble", return_value=""), \
+                mock.patch("apps.platform_runtime.ai_governance.resolve_effective_enabled", return_value=False), \
+                mock.patch("services.ai_helpers.invoke_with_request", return_value=None):
+            resp = rail.TenantCopilotRailSendView.as_view()(_authed_post({"message": "what next?"}))
+        self.assertEqual(resp.status_code, 200)
+        data = json.loads(resp.content)
+        self.assertEqual(data["source"], "disabled")
+        self.assertIn("turned off", data["reply"].lower())
 
 
 class TenantRailContextTests(SimpleTestCase):

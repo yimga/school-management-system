@@ -220,6 +220,34 @@ def _reply_text(ai_result) -> str:
     return text or "I didn't have a useful reply for that. Try asking about a specific setup step."
 
 
+def _unavailable_reply(request) -> dict[str, str]:
+    """'No answer' payload that distinguishes AI-turned-off from a transient outage.
+
+    The copilot rail renders independently of the platform AI governance gate
+    (``RUNMYCAMPUS_AI_ENABLED``) and the tenant's own ``ai_policy``. When AI is
+    governance-disabled, ``resolve_effective_enabled`` is False and the invoke
+    yields nothing — surfacing a generic "unavailable" then reads as silently
+    broken (owner spent days thinking the copilot was an RBAC bug). Say plainly
+    that AI is off and where to switch it on instead.
+    """
+    try:
+        from apps.platform_runtime.ai_governance import resolve_effective_enabled
+
+        if not resolve_effective_enabled(school=getattr(request, "school", None)):
+            return {
+                "reply": "AI assistance is turned off for this school. An administrator can switch it on in Settings → AI.",
+                "source": "disabled",
+                "posture_mode": "disabled",
+            }
+    except Exception:  # noqa: BLE001 — never let the probe break the reply
+        logger.debug("tenant copilot rail: governance probe failed", exc_info=True)
+    return {
+        "reply": "The assistant is unavailable right now. The setup wizards in the sidebar walk you through every step.",
+        "source": "unavailable",
+        "posture_mode": "unavailable",
+    }
+
+
 @method_decorator(never_cache, name="dispatch")
 class TenantCopilotRailSendView(LoginRequiredMixin, View):
     """Tenant chat — POST a message, return a single AI reply (rules-mode safe)."""
@@ -271,11 +299,7 @@ class TenantCopilotRailSendView(LoginRequiredMixin, View):
             })
 
         if result is None:
-            return JsonResponse({
-                "reply": "The assistant is unavailable right now. The setup wizards in the sidebar walk you through every step.",
-                "source": "unavailable",
-                "posture_mode": "unavailable",
-            })
+            return JsonResponse(_unavailable_reply(request))
 
         try:
             ai_result, md = result
@@ -350,7 +374,7 @@ class TenantCopilotRailSendStreamView(LoginRequiredMixin, View):
                 yield _sse("done", {"reply": "Sorry — the assistant had trouble responding.", "source": "unavailable", "posture_mode": "unavailable", "request_id": ""})
                 return
             if result is None:
-                yield _sse("done", {"reply": "The assistant is unavailable right now. Use the setup wizards in the sidebar.", "source": "unavailable", "posture_mode": "unavailable", "request_id": ""})
+                yield _sse("done", {**_unavailable_reply(request), "request_id": ""})
                 return
             try:
                 ai_result, md = result
