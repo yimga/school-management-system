@@ -5831,3 +5831,68 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 .rmc-tbl-sortable:hover { color: var(--brand-primary); }
 .rmc-tbl-sortable[aria-sort="ascending"]::after { content: " \25B2"; opacity: 1; color: var(--brand-primary); }
 .rmc-tbl-sortable[aria-sort="descending"]::after { content: " \25BC"; opacity: 1; color: var(--brand-primary); }
+
+/* ============================================================
+   Dashboard intelligence (v4.04.61) — appended classes for the per-user
+   cockpit personalization engine (static/js/rmc-dashboard-intelligence.js).
+   Token-only; JS-injected. Composes with rmc-collapsable.css cockpit sections.
+   ============================================================ */
+.rmc-dash-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+.rmc-dash-btn {
+  border: 1px solid var(--hairline);
+  background: var(--surface-canvas);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm, 0.5rem);
+  padding: 0.3125rem 0.6875rem;
+  font: inherit;
+  font-size: var(--type-size-xs, 0.75rem);
+  cursor: pointer;
+}
+.rmc-dash-btn:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+.rmc-dash-seg { display: inline-flex; border: 1px solid var(--hairline); border-radius: var(--radius-sm, 0.5rem); overflow: hidden; }
+.rmc-dash-seg__btn {
+  border: none; background: transparent; padding: 0.3125rem 0.625rem;
+  font: inherit; font-size: var(--type-size-xs, 0.75rem); color: var(--text-secondary); cursor: pointer;
+}
+.rmc-dash-seg__btn[aria-pressed="true"] { background: var(--brand-primary); color: var(--text-on-brand); }
+.rmc-dash-cust {
+  display: none;
+  background: var(--surface-popover, var(--surface-elevated));
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.625rem);
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+.rmc-dash-cust.is-open { display: block; }
+.rmc-dash-cust__head { font-size: var(--type-size-2xs, 0.625rem); font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 0.375rem; }
+.rmc-dash-cust__item { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0; font-size: var(--type-size-sm, 0.875rem); color: var(--text-secondary); cursor: pointer; }
+.rmc-dash-focus {
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.625rem);
+  padding: 0.625rem 0.875rem;
+  margin-bottom: 0.875rem;
+}
+.rmc-dash-focus__head { font-size: var(--type-size-2xs, 0.625rem); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 0.5rem; }
+.rmc-dash-focus__row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.rmc-dash-focus__chip {
+  display: inline-flex; align-items: center; gap: 0.375rem;
+  border: 1px solid var(--hairline); background: var(--surface-elevated);
+  color: var(--text-primary); border-radius: var(--radius-pill, 999px);
+  padding: 0.25rem 0.75rem; font: inherit; font-size: var(--type-size-sm, 0.875rem); cursor: pointer;
+}
+.rmc-dash-focus__chip:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+.rmc-dash-focus__chip.is-attn { border-color: var(--text-warning, var(--brand-primary)); }
+.rmc-dash-focus__count { font-size: var(--type-size-2xs, 0.625rem); font-weight: 700; background: var(--brand-soft, var(--surface-overlay)); color: var(--brand-primary); border-radius: var(--radius-pill, 999px); padding: 0.0625rem 0.4375rem; }
+.rmc-dash-grip { cursor: grab; color: var(--text-tertiary); font-size: var(--type-size-md, 1rem); margin-right: 0.375rem; user-select: none; }
+.rmc-dash-hidden { display: none; }
+.rmc-dash-dragging { opacity: 0.5; }
+.rmc-dash-dragover { box-shadow: 0 0 0 2px var(--brand-primary) inset; }
+[data-rmc-dash-density="compact"] > .rmc-collapsable { margin-bottom: 0.375rem; }
+[data-rmc-dash-density="spacious"] > .rmc-collapsable { margin-bottom: 1.25rem; }

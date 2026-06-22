@@ -1,0 +1,60 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Dashboard defaults" %}{% endblock %}
+
+{% block content %}
+<div class="content-max-640 py-3">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-grid-1x2" aria-hidden="true"></i>
+    <h1 class="h5 mb-0">{% trans "Dashboards — school defaults" %}</h1>
+  </div>
+  <p class="text-muted">
+    {% trans "Set the default dashboard behaviour for everyone at this school. Each person can still reorder, hide sections, and pick their own density from the dashboard toolbar — their choices are saved to their account and follow them across devices, and always win over these defaults." %}
+  </p>
+
+  {% if not can_manage %}
+  <div class="alert alert-info">{% trans "You can view these defaults, but only an administrator can change them." %}</div>
+  {% endif %}
+
+  <form method="post" class="card shadow-sm">
+    {% csrf_token %}
+    <div class="card-body d-flex flex-column gap-3">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="dash-intelligence" name="dashboard_intelligence" {% if dashboard_intelligence %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="dash-intelligence">
+          <strong>{% trans "Smart dashboard" %}</strong>
+          <span class="d-block text-muted small">{% trans "Master switch. Off = a plain dashboard with no customize, reorder, density, or focus band." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="dash-reorder" name="dashboard_reorder" {% if dashboard_reorder %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="dash-reorder">
+          <strong>{% trans "Drag to reorder" %}</strong>
+          <span class="d-block text-muted small">{% trans "Let each person drag the top-level dashboard sections into their preferred order." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="dash-adaptive" name="dashboard_adaptive" {% if dashboard_adaptive %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="dash-adaptive">
+          <strong>{% trans "Focus band" %}</strong>
+          <span class="d-block text-muted small">{% trans "Show a band of jump-links at the top for sections that need attention (carry a count) plus the ones each person opens most." %}</span>
+        </label>
+      </div>
+      <div>
+        <label class="form-label" for="dash-density"><strong>{% trans "Default density" %}</strong></label>
+        <select class="form-select" id="dash-density" name="dashboard_density" {% if not can_manage %}disabled{% endif %}>
+          {% for choice in density_choices %}
+          <option value="{{ choice }}" {% if choice == dashboard_density %}selected{% endif %}>{{ choice|capfirst }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    {% if can_manage %}
+    <div class="card-footer text-end">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1" aria-hidden="true"></i>{% trans "Save defaults" %}</button>
+    </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

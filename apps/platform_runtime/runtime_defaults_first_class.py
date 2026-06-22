@@ -323,6 +323,14 @@ _WIZARD_RUNTIME_DEFAULT_KEYS: frozenset[str] = frozenset({
     "table_columns",
     "table_export",
     "table_density",
+    # Dashboard-intelligence engine defaults (read via SITE façade → emitted in
+    # the #rmc-dashboard-config island; per-user reorder/hide/density persist in
+    # DashboardUserPreference). Payload-backed (no migration); the "dashboard_"
+    # prefix is already a shadow-key owner (runtime_blueprints).
+    "dashboard_intelligence",
+    "dashboard_reorder",
+    "dashboard_adaptive",
+    "dashboard_density",
 })
 
 

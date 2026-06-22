@@ -1,0 +1,17 @@
+{% load static %}
+{% comment %}
+  Dashboard-intelligence engine (v4.04.61) — loaded on authenticated shells.
+  The JSON island carries the SITE-cascade config (default-on, school/operator
+  overridable, zero migration) + the per-user prefs endpoint URL. The engine
+  auto-attaches to any [data-rmc-tp-dashboard-cockpit] grid on the page (no-op
+  elsewhere). nonce on the data block satisfies verify_csp_nonce_emission.
+{% endcomment %}
+{% url 'siteconfig:dashboard_prefs' as dashboard_prefs_url %}
+<script nonce="{{ csp_nonce }}" type="application/json" id="rmc-dashboard-config">{
+  "intelligence": {% if SITE.dashboard_intelligence == False %}false{% else %}true{% endif %},
+  "reorder": {% if SITE.dashboard_reorder == False %}false{% else %}true{% endif %},
+  "adaptive": {% if SITE.dashboard_adaptive == False %}false{% else %}true{% endif %},
+  "density": "{{ SITE.dashboard_density|default:'comfortable'|escapejs }}",
+  "prefs_url": "{{ dashboard_prefs_url|default:''|escapejs }}"
+}</script>
+<script src="{% static 'js/rmc-dashboard-intelligence.js' %}" defer></script>

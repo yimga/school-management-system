@@ -1,12 +1,12 @@
 {
   "date": "2026-06-22",
-  "generated_at": "2026-06-22T20:00:00+00:00",
+  "generated_at": "2026-06-22T22:00:00+00:00",
   "major": 4,
   "minor": 4,
-  "patch": 60,
-  "raw": "sms-v4.04.60-table-intelligence-engine-2026-06-22",
+  "patch": 61,
+  "raw": "sms-v4.04.61-dashboard-intelligence-engine-2026-06-22",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "table-intelligence-engine",
+  "slug": "dashboard-intelligence-engine",
   "valid": true
 }

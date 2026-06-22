@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Lab — Audit → Elevate</title>
+<style>
+  :root{
+    --bg:#f6f7f9;--canvas:#fff;--ink:#0f1729;--ink-2:#5b6577;--ink-3:#8a93a3;
+    --line:#e6e9ef;--line-2:#d7dbe3;--brand:#3b5bdb;--brand-soft:#eef2ff;
+    --good:#0f9d58;--good-soft:#e9f7ef;--warn:#b8860b;--warn-soft:#fff7e6;--bad:#c0392b;--bad-soft:#fdecea;
+    --r:14px;--focus:#fff8e6;--focus-line:#e8c969;
+  }
+  html[data-theme="dark"]{
+    --bg:#0c0f16;--canvas:#11151f;--ink:#eef1f6;--ink-2:#a7b0c0;--ink-3:#727c8e;
+    --line:#222838;--line-2:#2c3346;--brand:#7c9cff;--brand-soft:#1b2440;
+    --good-soft:#10261a;--warn-soft:#2b2410;--bad-soft:#2c1716;--focus:#241f10;--focus-line:#5a4a00;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  header.lab{padding:28px 28px 8px;max-width:1080px;margin:0 auto}
+  h1{font-size:23px;margin:0 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--ink-2);margin:0 0 18px;max-width:820px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 28px 64px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr}}
+  .card{background:var(--canvas);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+  .card h3{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+  .diag li{margin:4px 0;color:var(--ink-2)}.diag b{color:var(--ink)}
+  .tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;margin-left:6px}
+  .tag.bad{background:var(--bad-soft);color:var(--bad)}.tag.warn{background:var(--warn-soft);color:var(--warn)}.tag.good{background:var(--good-soft);color:var(--good)}
+
+  .toolbar{display:flex;align-items:center;gap:10px;background:var(--canvas);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin:18px 0;flex-wrap:wrap}
+  .tbtn{border:1px solid var(--line-2);background:var(--canvas);color:var(--ink);border-radius:9px;padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
+  .tbtn:hover{border-color:var(--brand);color:var(--brand)}
+  .seg{display:inline-flex;border:1px solid var(--line-2);border-radius:9px;overflow:hidden}
+  .seg button{border:0;background:transparent;padding:6px 11px;font:inherit;font-size:12px;color:var(--ink-2);cursor:pointer}
+  .seg button[aria-pressed=true]{background:var(--brand);color:#fff}
+  .spacer{flex:1}
+
+  /* dashboard grid */
+  .dash{display:grid;gap:14px}
+  [data-density=compact] .dash{gap:8px}
+  [data-density=spacious] .dash{gap:22px}
+  .focusband{background:var(--focus);border:1px solid var(--focus-line);border-radius:var(--r);padding:14px 16px;margin-bottom:14px}
+  .focusband h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--warn)}
+  .focusband ul{margin:0;padding-left:18px;color:var(--ink)}
+  .focusband li{margin:3px 0}
+  .sec{background:var(--canvas);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:box-shadow .15s}
+  .sec.dragging{opacity:.5}
+  .sec.dragover{box-shadow:0 0 0 2px var(--brand) inset}
+  .sec__head{display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:default}
+  .sec__grip{cursor:grab;color:var(--ink-3);font-size:16px;user-select:none}
+  .sec__title{font-weight:600;flex:1}
+  .sec__count{font-size:11px;font-weight:600;background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:2px 9px}
+  .sec__chev{color:var(--ink-3);background:none;border:0;cursor:pointer;font-size:14px}
+  [data-density=compact] .sec__head{padding:8px 14px}
+  .sec__body{padding:0 16px 16px;color:var(--ink-2);font-size:14px}
+  .sec.collapsed .sec__body{display:none}
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+  .kpi{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .kpi .v{font-size:20px;font-weight:700}.kpi .l{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+  .hidden-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .pill{font-size:12px;border:1px dashed var(--line-2);border-radius:999px;padding:3px 10px;color:var(--ink-3);cursor:pointer}
+  .pill:hover{border-color:var(--brand);color:var(--brand)}
+  /* customize panel */
+  .cust{background:var(--canvas);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:14px;display:none}
+  .cust.open{display:block}
+  .cust h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3)}
+  .cust label{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:14px;color:var(--ink-2)}
+  .themebtn{position:fixed;right:16px;top:16px;border:1px solid var(--line-2);background:var(--canvas);color:var(--ink);border-radius:999px;padding:7px 13px;font:inherit;font-size:13px;cursor:pointer;z-index:20}
+  footer.note{color:var(--ink-3);font-size:13px;margin-top:22px;border-top:1px solid var(--line);padding-top:16px}
+  code{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12px}
+</style>
+</head>
+<body>
+<button class="themebtn" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">◐ theme</button>
+
+<header class="lab">
+  <h1>Dashboard Lab — Audit → Elevate</h1>
+  <p class="sub">Surface 2 of the series. The cockpit system is already deep (40+ section partials, widget models, Chart.js, sticky ticker, localStorage-persisted collapse). What's missing is <b>per-user personalization of the cockpit sections</b>. This is the proposed client-side engine attaching to the existing <code>data-rmc-tp-dashboard-cockpit</code> grid — drag to reorder, customize to hide, adaptive Focus band — all per-user, zero migration.</p>
+</header>
+
+<div class="wrap">
+  <div class="grid2">
+    <div class="card">
+      <h3>What we found (the "before")</h3>
+      <ul class="diag">
+        <li><b>Mature base:</b> cockpit sections, widget catalog, Chart.js, metric ticker, collapsable sections with localStorage collapse.<span class="tag good">reuse</span></li>
+        <li><b>No section reorder.</b> Order is fixed by the server compose loop.<span class="tag warn">gap</span></li>
+        <li><b>No hide/show.</b> Sections are all-or-nothing per server flag.<span class="tag warn">gap</span></li>
+        <li><b>No dashboard density.</b> No compact mode for the whole grid.<span class="tag warn">gap</span></li>
+        <li><b>No "what needs me now".</b> Nothing surfaces urgent items first.<span class="tag warn">gap</span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>The elevation (the "after")</h3>
+      <ul class="diag">
+        <li><b>One engine</b> attaches to the existing <code>data-rmc-tp-dashboard-cockpit</code> hook → tenant dashboards platform-wide.<span class="tag good">platform-wide</span></li>
+        <li><b>Drag to reorder</b> sections; order saved per-user (localStorage).<span class="tag good">personal</span></li>
+        <li><b>Customize</b> gear hides/shows sections; hidden ones one-click back.<span class="tag good">declutter</span></li>
+        <li><b>Adaptive Focus band</b> — sections you open most + flagged-urgent rise to a band on top.<span class="tag good">genius</span></li>
+        <li><b>Density</b> compact/cozy/roomy for the whole grid.<span class="tag good">fit</span></li>
+        <li><b>Cascade-configurable</b> defaults (platform→school→user). No migration.<span class="tag good">configurable</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <strong style="font-size:14px">Backend dashboard</strong>
+    <span style="color:var(--ink-3);font-size:13px">drag the ⠿ grips to reorder</span>
+    <span class="spacer"></span>
+    <button class="tbtn" id="custbtn">⚙ Customize</button>
+    <span class="seg" id="dens">
+      <button data-d="compact">Compact</button>
+      <button data-d="comfortable" aria-pressed="true">Cozy</button>
+      <button data-d="spacious">Roomy</button>
+    </span>
+    <button class="tbtn" id="reset">↺ Reset</button>
+  </div>
+
+  <div id="root" data-density="comfortable">
+    <div class="focusband" id="focus">
+      <h4>⚡ Needs you now</h4>
+      <ul>
+        <li>3 fee approvals pending · <a href="#">review</a></li>
+        <li>Attendance not taken for 2 classes · <a href="#">open</a></li>
+      </ul>
+    </div>
+    <div class="cust" id="cust">
+      <h4>Show / hide sections</h4>
+      <div id="custlist"></div>
+    </div>
+    <div class="dash" id="dash"></div>
+    <div class="hidden-list" id="hiddenwrap"></div>
+  </div>
+
+  <footer class="note">
+    Mockup only. The shipping engine (<code>rmc-dashboard-intelligence.js</code>) would progressive-enhance the existing <code>[data-rmc-tp-dashboard-cockpit]</code> grid (no template restructure), reorder/hide/density the existing <code>.rmc-collapsable</code> sections (which already carry keys + persist collapse state), persist order/hidden/density per-user to localStorage, surface an adaptive Focus band from open-frequency + server "urgent" flags, and read defaults from the SITE cascade (<code>dashboard_*</code> keys, no migration). <b>Honest scope:</b> this is client-side personalization of existing sections — it does NOT add live metric polling or new widget models (deferred as a heavier, migration-bearing phase).
+  </footer>
+</div>
+
+<script>
+var SECTIONS = [
+  {key:"today", title:"Today's snapshot", count:"", metrics:[["Present","94%"],["Late","12"],["Absent","5"]]},
+  {key:"finance", title:"Finance", count:"3", body:"Outstanding balances, recent payments, fee runs."},
+  {key:"academics", title:"Academic pulse", count:"", metrics:[["Avg grade","B+"],["At risk","7"],["Top class","10-Gold"]]},
+  {key:"messages", title:"Messages", count:"5", body:"Latest parent & staff threads."},
+  {key:"admissions", title:"Admissions pipeline", count:"2", body:"New applicants by stage."},
+  {key:"calendar", title:"Calendar & events", count:"", body:"This week's events and reminders."}
+];
+var order = SECTIONS.map(function(s){return s.key;});
+var hidden = {}, collapsed = {}, opens = {};
+
+var dash=document.getElementById("dash"), custlist=document.getElementById("custlist"),
+    hiddenwrap=document.getElementById("hiddenwrap"), root=document.getElementById("root");
+
+function byKey(k){ return SECTIONS.find(function(s){return s.key===k;}); }
+
+function render(){
+  dash.textContent="";
+  // adaptive: sections opened >=2 times float to the top (after server order otherwise)
+  var ord = order.slice().sort(function(a,b){ return (opens[b]||0)-(opens[a]||0); });
+  ord.forEach(function(k){
+    if(hidden[k]) return;
+    var s=byKey(k);
+    var sec=document.createElement("div"); sec.className="sec"+(collapsed[k]?" collapsed":""); sec.dataset.key=k; sec.draggable=false;
+    var head=document.createElement("div"); head.className="sec__head";
+    var grip=document.createElement("span"); grip.className="sec__grip"; grip.textContent="⠿"; grip.title="Drag to reorder"; grip.draggable=true;
+    var title=document.createElement("span"); title.className="sec__title"; title.textContent=s.title;
+    head.appendChild(grip); head.appendChild(title);
+    if(s.count){ var c=document.createElement("span"); c.className="sec__count"; c.textContent=s.count; head.appendChild(c); }
+    if((opens[k]||0)>=2){ var star=document.createElement("span"); star.className="sec__count"; star.style.background="var(--focus)"; star.style.color="var(--warn)"; star.textContent="★ frequent"; head.appendChild(star); }
+    var chev=document.createElement("button"); chev.className="sec__chev"; chev.textContent=collapsed[k]?"▸":"▾";
+    chev.addEventListener("click",function(){ collapsed[k]=!collapsed[k]; if(!collapsed[k]){opens[k]=(opens[k]||0)+1;} render(); });
+    head.appendChild(chev);
+    sec.appendChild(head);
+    var body=document.createElement("div"); body.className="sec__body";
+    if(s.metrics){ var m=document.createElement("div"); m.className="metrics"; s.metrics.forEach(function(kv){ var k2=document.createElement("div"); k2.className="kpi"; var v=document.createElement("div"); v.className="v"; v.textContent=kv[1]; var l=document.createElement("div"); l.className="l"; l.textContent=kv[0]; k2.appendChild(v); k2.appendChild(l); m.appendChild(k2); }); body.appendChild(m); }
+    else { body.textContent=s.body||""; }
+    sec.appendChild(body);
+    // drag wiring
+    grip.addEventListener("dragstart",function(e){ sec.classList.add("dragging"); e.dataTransfer.setData("text/plain",k); });
+    grip.addEventListener("dragend",function(){ sec.classList.remove("dragging"); });
+    sec.addEventListener("dragover",function(e){ e.preventDefault(); sec.classList.add("dragover"); });
+    sec.addEventListener("dragleave",function(){ sec.classList.remove("dragover"); });
+    sec.addEventListener("drop",function(e){ e.preventDefault(); sec.classList.remove("dragover"); var from=e.dataTransfer.getData("text/plain"); reorder(from,k); });
+    dash.appendChild(sec);
+  });
+  renderCust(); renderHidden();
+}
+function reorder(from,to){ if(from===to)return; var a=order.indexOf(from), b=order.indexOf(to); order.splice(a,1); order.splice(order.indexOf(to)+(a<b?1:0),0,from); render(); }
+function renderCust(){
+  custlist.textContent="";
+  SECTIONS.forEach(function(s){
+    var l=document.createElement("label"); var cb=document.createElement("input"); cb.type="checkbox"; cb.checked=!hidden[s.key];
+    cb.addEventListener("change",function(){ hidden[s.key]=!cb.checked; render(); });
+    l.appendChild(cb); l.appendChild(document.createTextNode(" "+s.title)); custlist.appendChild(l);
+  });
+}
+function renderHidden(){
+  hiddenwrap.textContent="";
+  Object.keys(hidden).filter(function(k){return hidden[k];}).forEach(function(k){
+    var p=document.createElement("span"); p.className="pill"; p.textContent="+ "+byKey(k).title;
+    p.addEventListener("click",function(){ hidden[k]=false; render(); });
+    hiddenwrap.appendChild(p);
+  });
+}
+document.getElementById("custbtn").addEventListener("click",function(){ document.getElementById("cust").classList.toggle("open"); });
+document.getElementById("dens").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;[].forEach.call(this.children,function(x){x.setAttribute("aria-pressed",x===b);});root.dataset.density=b.dataset.d;});
+document.getElementById("reset").addEventListener("click",function(){ order=SECTIONS.map(function(s){return s.key;}); hidden={};collapsed={};opens={}; root.dataset.density="comfortable";[].forEach.call(document.getElementById("dens").children,function(x){x.setAttribute("aria-pressed",x.dataset.d==="comfortable");}); render(); });
+render();
+</script>
+</body>
+</html>
