@@ -63,7 +63,8 @@
       {% endblock %}
     </title>
     <link rel="icon" href="{% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% elif SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% elif PUBLIC_BRAND_MODE %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
-    {% if not PUBLIC_BRAND_MODE and not SITE_FAVICON_URL %}<link rel="icon" href="{% static 'images/runmycampus-icon-bell.svg' %}" type="image/svg+xml" sizes="32x32">{% endif %}
+    {% comment %} Tenant (non-public-brand) with no uploaded favicon → brand-initial squircle, never the RunMyCampus bell. {% endcomment %}
+    {% if not PUBLIC_BRAND_MODE and not SITE_FAVICON_URL %}{% include "partials/tenant/tenant_initial_favicon.html" %}{% endif %}
     {% block extrahead %}{% endblock %}
 
     <!-- Bootstrap (self-hosted) -->

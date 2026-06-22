@@ -1,0 +1,13 @@
+{% comment %}
+tenant_initial_favicon.html — browser-tab favicon for a tenant that hasn't
+uploaded one. A brand-coloured squircle with the school's first initial, so a new
+tenant NEVER inherits the RunMyCampus bell in the browser tab (owner: "when a
+tenant is created it should NOT inherit our platform logo").
+
+Data-URI SVG — no per-tenant file generation; CSP img-src allows `data:`
+(apps/security/csp_middleware.py). Colour comes from the tenant brand
+(SITE_PRIMARY_COLOR); the letter from SITE.site_name. Both have safe fallbacks so
+this never renders a broken icon, and both degrade to the same initial the header
+brand mark already shows (templates/partials/tenant/tp_header_brand.html).
+{% endcomment %}
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='{{ SITE_PRIMARY_COLOR|default:'#4f46e5'|urlencode }}'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Inter,system-ui,sans-serif' font-size='18' font-weight='700' fill='%23ffffff'%3E{{ SITE.site_name|default:'S'|slice:':1'|upper|urlencode }}%3C/text%3E%3C/svg%3E">

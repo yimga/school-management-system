@@ -54,8 +54,12 @@
     {% comment %} Critical-read KB route signatures: /kb/article/ /kb/search /kb/category/ path === "/kb" kb-article kb-search kb-category kb-home kb-hub {% endcomment %}
     <script src="{% static 'js/kb-route-signature.js' %}" defer></script>
     <title>{% block title %}{{ rmc_shell.portal_default_document_title|default:_("Portal") }}{% endblock %}</title>
-    <link rel="icon" href="{% if SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
-    {% if not SITE_FAVICON_URL %}<link rel="icon" href="{% static 'images/runmycampus-icon-bell.svg' %}" type="image/svg+xml" sizes="32x32">{% endif %}
+    {% if SITE_FAVICON_URL %}
+    <link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/png">
+    {% else %}
+    {% comment %} No uploaded favicon → a brand-initial squircle, never the RunMyCampus bell. {% endcomment %}
+    {% include "partials/tenant/tenant_initial_favicon.html" %}
+    {% endif %}
     {% comment %} Wave 6 web: installable surface + home-screen hint (native store apps = external). {% endcomment %}
     {% comment %} v2.58 (2026-05-15) — per-tenant manifest. Pulls name/theme/
        icons from the active tenant's SiteSettings via apps/siteconfig/
