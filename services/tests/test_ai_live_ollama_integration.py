@@ -37,14 +37,24 @@ def _require_live() -> bool:
 
 
 def _live_guard() -> None:
-    if _ollama_reachable():
-        return
-    if _require_live():
+    # The FULL environment these tests need — Ollama actually serving the configured
+    # MODEL (process up + model pulled; /api/tags answering is NOT enough — generate
+    # times out with error 'unavailable' when the model isn't pulled) AND the gateway
+    # routing to Ollama (edge deployment profile; a cloud-first box routes to litellm
+    # and tier != 'ollama') — exists only in the dedicated ai-live-ollama.yml job,
+    # which sets RMC_AI_REQUIRE_LIVE=1. So these are OPT-IN: skip everywhere else
+    # (dev boxes, default PR matrix) — even when an Ollama process happens to answer
+    # /api/tags — so the default suite stays green instead of failing spuriously.
+    if not _require_live():
+        raise unittest.SkipTest(
+            "ai_live_ollama: opt-in live tests. Set RMC_AI_REQUIRE_LIVE=1 with Ollama "
+            "serving OLLAMA_MODEL and an edge AI profile (CI: ai-live-ollama.yml)."
+        )
+    if not _ollama_reachable():
         raise AssertionError(
             "Live Ollama required (RMC_AI_REQUIRE_LIVE=1) but /api/tags probe failed. "
             "Start Ollama on OLLAMA_ENDPOINT and pull OLLAMA_MODEL."
         )
-    raise unittest.SkipTest("Ollama not reachable — start ollama serve and pull model")
 
 
 @tag("ai_live_ollama")

@@ -24,25 +24,38 @@ _T_HOST = "ailive.runmycampus.com"
 
 
 def _ollama_reachable() -> bool:
-    from apps.portal.ai_provider import probe_ai_provider_reachable
+    # Ollama-SPECIFIC /api/tags probe — NOT the generic provider probe, which reports
+    # reachable when a litellm/degraded fallback is up even with Ollama itself down.
+    from apps.portal.ai_provider import _probe_ollama_base, resolve_ollama_connection
 
-    return bool(probe_ai_provider_reachable().get("reachable"))
+    conn = resolve_ollama_connection(force_refresh=True)
+    return _probe_ollama_base(conn.get("base_url") or "")[0]
+
+
+def _require_live() -> bool:
+    return os.getenv("RMC_AI_REQUIRE_LIVE", "").strip().lower() in ("1", "true", "yes")
 
 
 def _live_guard() -> None:
-    if _ollama_reachable():
-        return
-    if os.getenv("RMC_AI_REQUIRE_LIVE", "").strip().lower() in ("1", "true", "yes"):
-        raise AssertionError("Live Ollama required but unreachable")
-    raise unittest.SkipTest("Ollama not reachable")
+    # Opt-in: the full live env (Ollama serving the MODEL + edge routing so tier is
+    # 'ollama') exists only in ai-live-ollama.yml, which sets RMC_AI_REQUIRE_LIVE=1.
+    # Skip everywhere else — even when an Ollama process answers /api/tags — so the
+    # default suite stays green instead of failing on model-unavailable / cloud-first.
+    if not _require_live():
+        raise unittest.SkipTest(
+            "ai_live_ollama: opt-in live tests — set RMC_AI_REQUIRE_LIVE=1 (CI: ai-live-ollama.yml)"
+        )
+    if not _ollama_reachable():
+        raise AssertionError(
+            "Live Ollama required (RMC_AI_REQUIRE_LIVE=1) but /api/tags probe failed."
+        )
 
 
 @tag("ai_live_ollama")
 @override_settings(ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", _T_HOST])
 @unittest.skipUnless(
-    os.getenv("RMC_AI_REQUIRE_LIVE", "").strip().lower() in ("1", "true", "yes")
-    or _ollama_reachable(),
-    "live Ollama only",
+    _require_live(),
+    "ai_live_ollama: opt-in live tests — set RMC_AI_REQUIRE_LIVE=1 (CI: ai-live-ollama.yml)",
 )
 class AILiveHttpIntegrationTests(TestCase):
     databases = {"default"}
