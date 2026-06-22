@@ -786,10 +786,148 @@
 
   var activePanel = null;
 
+  // --- Floating portal popover for tray-OWNED panels (notebook, on-this-page) ---
+  // The tray is overflow:hidden and a positioned stacking context at z ~10488, so a panel
+  // shown INSIDE it is clipped to the tray box and trapped behind the tray chrome. Rather
+  // than collapse the tray (that is for EXTERNAL overlays — see dismissTrayForOverlay),
+  // we PORTAL a tray-owned panel out to <body>, float it in a clear area beside the tray —
+  // in front (z above the tray), content scrollable — and draw a connector back to the
+  // tray so the relationship stays legible. Degrades to the in-tray panel if anything
+  // throws, and stays in-tray below the operator breakpoint.
+  var POPOVER_GAP = 16; // magic-number-allow: px gap between floated panel and the tray
+  var POPOVER_MIN_VW = 992; // magic-number-allow: operator desktop breakpoint
+  var POPOVER_CONNECTOR_Y = 28; // magic-number-allow: connector y-offset from panel top
+  var _floatReturn = {};
+  var _popoverHandlersBound = false;
+
+  function popoverHost() {
+    var host = document.getElementById("rmcTrayPopoverHost");
+    if (!host) {
+      host = document.createElement("div");
+      host.id = "rmcTrayPopoverHost";
+      host.className = "rmc-tray-popover-host";
+      document.body.appendChild(host);
+    }
+    return host;
+  }
+
+  function canFloatPanels() {
+    return window.innerWidth >= POPOVER_MIN_VW;
+  }
+
+  function floatingPanelEl() {
+    return document.querySelector(".rmc-operator-tools__panel--floating");
+  }
+
+  function positionFloatingPanel(panel) {
+    var tray = document.getElementById("rmcOperatorToolsTray");
+    if (!tray || !panel) return;
+    var trayRect = tray.getBoundingClientRect();
+    panel.style.top = "auto";
+    panel.style.left = "auto";
+    panel.style.bottom = Math.max(8, window.innerHeight - trayRect.bottom) + "px";
+    panel.style.right = window.innerWidth - trayRect.left + POPOVER_GAP + "px";
+    var conn = document.getElementById("rmcTrayPopoverConnector");
+    if (!conn || !window.requestAnimationFrame) return;
+    window.requestAnimationFrame(function () {
+      var pr = panel.getBoundingClientRect();
+      var tr = tray.getBoundingClientRect();
+      var width = Math.max(0, tr.left - pr.right);
+      conn.style.left = pr.right + "px";
+      conn.style.top = pr.top + Math.min(POPOVER_CONNECTOR_Y, pr.height / 2) + "px";
+      conn.style.width = width + "px";
+      conn.hidden = width <= 2;
+    });
+  }
+
+  function ensurePopoverGlobalHandlers() {
+    if (_popoverHandlersBound) return;
+    _popoverHandlersBound = true;
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape" && activePanel) togglePanel(activePanel);
+    });
+    document.addEventListener(
+      "click",
+      function (ev) {
+        if (!activePanel) return;
+        var panel = floatingPanelEl();
+        if (!panel) return;
+        var tray = document.getElementById("rmcOperatorToolsTray");
+        var tab = document.getElementById("rmcOperatorToolsTrayTab");
+        var t = ev.target;
+        if (
+          panel.contains(t) ||
+          (tray && tray.contains(t)) ||
+          (tab && tab.contains(t))
+        )
+          return;
+        togglePanel(activePanel);
+      },
+      true
+    );
+    window.addEventListener("resize", function () {
+      var panel = floatingPanelEl();
+      if (panel) positionFloatingPanel(panel);
+    });
+  }
+
+  function floatPanel(panel) {
+    if (!panel || !canFloatPanels()) return false;
+    var id = panel.getAttribute("data-rmc-operator-tools-panel");
+    if (!_floatReturn[id]) {
+      _floatReturn[id] = { parent: panel.parentNode, next: panel.nextSibling };
+    }
+    var host = popoverHost();
+    var conn = document.getElementById("rmcTrayPopoverConnector");
+    if (!conn) {
+      conn = document.createElement("span");
+      conn.id = "rmcTrayPopoverConnector";
+      conn.className = "rmc-tray-popover__connector";
+      conn.setAttribute("aria-hidden", "true");
+      conn.hidden = true;
+      host.appendChild(conn);
+    }
+    panel.classList.add("rmc-operator-tools__panel--floating");
+    host.appendChild(panel);
+    positionFloatingPanel(panel);
+    ensurePopoverGlobalHandlers();
+    return true;
+  }
+
+  function unfloatPanel(panel) {
+    if (!panel) return;
+    var id = panel.getAttribute("data-rmc-operator-tools-panel");
+    panel.classList.remove("rmc-operator-tools__panel--floating");
+    panel.style.top = "";
+    panel.style.left = "";
+    panel.style.right = "";
+    panel.style.bottom = "";
+    var conn = document.getElementById("rmcTrayPopoverConnector");
+    if (conn) conn.hidden = true;
+    var ret = _floatReturn[id];
+    if (ret && ret.parent) {
+      if (ret.next && ret.next.parentNode === ret.parent) {
+        ret.parent.insertBefore(panel, ret.next);
+      } else {
+        ret.parent.appendChild(panel);
+      }
+      delete _floatReturn[id];
+    }
+  }
+
   function togglePanel(id) {
     var panelNb = document.querySelector('[data-rmc-operator-tools-panel="' + PANEL_NOTEBOOK + '"]');
     var panelSec = document.querySelector('[data-rmc-operator-tools-panel="' + PANEL_SECTIONS + '"]');
+    var panelFor = function (pid) {
+      return pid === PANEL_NOTEBOOK ? panelNb : panelSec;
+    };
     if (activePanel === id) {
+      try {
+        var cur = panelFor(activePanel);
+        if (cur) unfloatPanel(cur);
+      } catch (_e) {
+        /* fall back to in-tray panel */
+      }
       activePanel = null;
       if (panelNb) panelNb.hidden = true;
       if (panelSec) panelSec.hidden = true;
@@ -797,12 +935,26 @@
       if (nb) nb.setAttribute("data-rmc-notebook-tray-hidden", "1");
       return;
     }
+    if (activePanel) {
+      try {
+        var prev = panelFor(activePanel);
+        if (prev) unfloatPanel(prev);
+      } catch (_e) {
+        /* ignore */
+      }
+    }
     activePanel = id;
     if (panelNb) panelNb.hidden = id !== PANEL_NOTEBOOK;
     if (panelSec) panelSec.hidden = id !== PANEL_SECTIONS;
     if (id === PANEL_NOTEBOOK) {
       var notebook = document.querySelector("[data-rmc-operator-notebook]");
       if (notebook) notebook.removeAttribute("data-rmc-notebook-tray-hidden");
+    }
+    try {
+      var active = panelFor(id);
+      if (active) floatPanel(active);
+    } catch (_e) {
+      /* panel stays in-tray (still shown via hidden=false) */
     }
   }
 
