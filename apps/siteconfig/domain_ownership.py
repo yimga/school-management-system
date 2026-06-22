@@ -187,6 +187,9 @@ PREFIX_FIELD_OWNERS: Final[tuple[tuple[str, str], ...]] = (
     # Loading-intelligence engine: action pending-state + skeleton switches.
     # Payload-backed (no migration); UX chrome.
     ("loading_", "brand_experience"),
+    # Notification-intelligence engine: live bell preview + inline triage +
+    # instant badge sync switches. Payload-backed (no migration); UX chrome.
+    ("notify_", "brand_experience"),
     ("show_header_", "brand_experience"),
     ("secondary_font", "brand_experience"),
     ("base_font", "brand_experience"),

@@ -353,6 +353,13 @@ _WIZARD_RUNTIME_DEFAULT_KEYS: frozenset[str] = frozenset({
     "loading_intelligence",
     "loading_actions",
     "loading_skeletons",
+    # Notification-intelligence engine defaults (read via SITE façade → emitted
+    # in the #rmc-notification-config island). Payload-backed (no migration);
+    # owned by brand_experience via the "notify_" prefix.
+    "notify_intelligence",
+    "notify_bell_preview",
+    "notify_inline_actions",
+    "notify_toast_sync",
 })
 
 

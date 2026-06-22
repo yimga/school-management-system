@@ -1,0 +1,23 @@
+{% load static %}
+{% comment %}
+  Notification-intelligence engine (Surface 6) — loaded on authenticated shells.
+  Composes the existing bell poller (rmc-notification-bell-poll.js), the toast
+  self-capture system, and the Notification REST API. The JSON island carries
+  the SITE-cascade config (default-on, school/operator overridable, zero
+  migration) + the API URLs reversed server-side (never hardcoded in JS). The
+  engine turns the account-menu "Notifications" count into a live in-place
+  mini-inbox (lazy fetch), adds per-item + bulk mark-read, and bumps the tenant
+  unread badge the instant a toast self-captures. No-op on shells without the
+  avatar bell. nonce satisfies verify_csp_nonce_emission. The pk=987654321
+  sentinel in the read URL is replaced with the real id client-side.
+{% endcomment %}
+<script nonce="{{ csp_nonce }}" type="application/json" id="rmc-notification-config">{
+  "intelligence": {% if SITE.notify_intelligence == False %}false{% else %}true{% endif %},
+  "bellPreview": {% if SITE.notify_bell_preview == False %}false{% else %}true{% endif %},
+  "inlineActions": {% if SITE.notify_inline_actions == False %}false{% else %}true{% endif %},
+  "toastSync": {% if SITE.notify_toast_sync == False %}false{% else %}true{% endif %},
+  "listUrl": "{% url 'api:notification-list' %}",
+  "markAllUrl": "{% url 'api:notification-mark-all-read' %}",
+  "readUrlTemplate": "{% url 'api:notification-read' pk=987654321 %}"
+}</script>
+<script src="{% static 'js/rmc-notification-intelligence.js' %}" defer></script>

@@ -5986,3 +5986,29 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 @media (prefers-reduced-motion: reduce) {
   .rmc-loading-busy::after { animation: none; }
 }
+
+/* ----------------------------------------------------------------------------
+   Notification-intelligence engine (v4.04.65) — classes injected by
+   rmc-notification-intelligence.js into the account-menu dropdown to turn the
+   static "Notifications" count into a live in-place mini-inbox. Token-only
+   (semantic, theme-aware) so the preview inherits the shell surface; severity
+   chips tint from currentColor via color-mix so they flip with the theme.
+---------------------------------------------------------------------------- */
+.rmc-noti-preview { padding-block: 0.25rem; border-block-start: 1px solid var(--hairline); background: var(--surface-canvas, transparent); }
+.rmc-noti-preview__hd { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 1rem; font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary); }
+.rmc-noti-preview__title { font-weight: 600; }
+.rmc-noti-preview__all { margin-inline-start: auto; border: 0; background: none; padding: 0; font: inherit; text-transform: none; letter-spacing: 0; font-size: 0.75rem; font-weight: 600; color: var(--brand-primary, currentColor); cursor: pointer; }
+.rmc-noti-preview__all[disabled] { opacity: 0.5; cursor: default; }
+.rmc-noti-preview__list { max-height: 17rem; overflow-y: auto; }
+.rmc-noti-item { display: flex; gap: 0.625rem; align-items: flex-start; padding: 0.5rem 1rem; border-block-start: 1px solid var(--hairline); }
+.rmc-noti-item__ic { flex: 0 0 auto; width: 1.625rem; height: 1.625rem; border-radius: var(--radius-md, 0.5rem); display: grid; place-items: center; font-size: 0.8125rem; color: var(--text-secondary); background: color-mix(in srgb, currentColor 12%, transparent); }
+.rmc-noti-ic--info { color: var(--brand-primary, var(--color-info, currentColor)); }
+.rmc-noti-ic--warn { color: var(--color-warning, currentColor); }
+.rmc-noti-ic--alert { color: var(--color-danger, currentColor); }
+.rmc-noti-item__bd { flex: 1 1 auto; min-width: 0; display: block; text-decoration: none; color: inherit; }
+.rmc-noti-item__t { font-weight: 600; font-size: 0.8125rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rmc-noti-item__m { font-size: 0.75rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rmc-noti-item__time { font-size: 0.6875rem; color: var(--text-muted, var(--text-secondary)); margin-block-start: 0.125rem; }
+.rmc-noti-item__rd { flex: 0 0 auto; border: 0; background: none; padding: 0.125rem 0.25rem; font: inherit; font-size: 0.6875rem; font-weight: 600; color: var(--brand-primary, currentColor); cursor: pointer; }
+.rmc-noti-item__rd[disabled] { opacity: 0.5; cursor: default; }
+.rmc-noti-empty, .rmc-noti-loading { padding: 0.875rem 1rem; text-align: center; font-size: 0.8125rem; color: var(--text-secondary); }

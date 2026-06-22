@@ -1,0 +1,59 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Notification defaults" %}{% endblock %}
+
+{% block content %}
+<div class="content-max-640 py-3">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-bell" aria-hidden="true"></i>
+    <h1 class="h5 mb-0">{% trans "Notifications — school defaults" %}</h1>
+  </div>
+  <p class="text-muted">
+    {% trans "Control how the notification bell behaves for everyone at this school. These switches drive the shared notification engine — it builds on the existing bell, the toast inbox, and the notifications API, so there's nothing to add per page." %}
+  </p>
+
+  {% if not can_manage %}
+  <div class="alert alert-info">{% trans "You can view these defaults, but only an administrator can change them." %}</div>
+  {% endif %}
+
+  <form method="post" class="card shadow-sm" data-rmc-form-enhance="0">
+    {% csrf_token %}
+    <div class="card-body d-flex flex-column gap-3">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="notify-intelligence" name="notify_intelligence" {% if notify_intelligence %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="notify-intelligence">
+          <strong>{% trans "Smart notifications" %}</strong>
+          <span class="d-block text-muted small">{% trans "Master switch. Off = the bell stays a plain unread count with no preview or inline actions." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="notify-bell-preview" name="notify_bell_preview" {% if notify_bell_preview %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="notify-bell-preview">
+          <strong>{% trans "Live bell preview" %}</strong>
+          <span class="d-block text-muted small">{% trans "Expand the account-menu \"Notifications\" count into a live mini-inbox of recent unread items, fetched on open." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="notify-inline-actions" name="notify_inline_actions" {% if notify_inline_actions %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="notify-inline-actions">
+          <strong>{% trans "Inline triage" %}</strong>
+          <span class="d-block text-muted small">{% trans "Mark a single notification read, or clear them all, straight from the bell preview without opening the full page." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="notify-toast-sync" name="notify_toast_sync" {% if notify_toast_sync %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="notify-toast-sync">
+          <strong>{% trans "Instant badge sync" %}</strong>
+          <span class="d-block text-muted small">{% trans "Bump the unread badge the moment a toast is captured into the inbox, instead of waiting for the next background poll." %}</span>
+        </label>
+      </div>
+    </div>
+    {% if can_manage %}
+    <div class="card-footer text-end">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1" aria-hidden="true"></i>{% trans "Save defaults" %}</button>
+    </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}
