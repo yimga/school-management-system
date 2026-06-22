@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wave C — Badge grammar unification (before / after)</title>
+<style>
+  /* ---- Faithful slice of the real token system (design-tokens.css) ---- */
+  :root[data-theme="light"]{
+    --surface-bg:#f6f5f2; --surface-canvas:#fbfaf8; --surface-elevated:#ffffff;
+    --text-primary:#1f2430; --text-secondary:#5b616e; --hairline:rgba(20,20,30,.10);
+    --brand-primary:#4f46e5; --brand-accent:#0ea5a4;
+    --status-success:#10b981; --status-success-fg:#047857;
+    --status-warning:#f59e0b; --status-warning-fg:#92400e;
+    --status-danger:#ef4444;  --status-danger-fg:#b91c1c;
+    --status-info:#3b82f6;     --status-info-fg:#1d4ed8;
+    --radius-pill:999px; --type-size-xs:.75rem; --space-1:.25rem; --space-2:.5rem;
+  }
+  :root[data-theme="dark"]{
+    --surface-bg:#0f1115; --surface-canvas:#141821; --surface-elevated:#1a1f29;
+    --text-primary:#e7e9ee; --text-secondary:#9aa1ad; --hairline:rgba(255,255,255,.12);
+    --brand-primary:#8b85f0; --brand-accent:#2dd4bf;
+    --status-success:#34d399; --status-success-fg:#6ee7b7;
+    --status-warning:#fbbf24; --status-warning-fg:#fcd34d;
+    --status-danger:#f87171;  --status-danger-fg:#fca5a5;
+    --status-info:#60a5fa;     --status-info-fg:#93c5fd;
+    --radius-pill:999px; --type-size-xs:.75rem; --space-1:.25rem; --space-2:.5rem;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:var(--surface-bg);color:var(--text-primary);line-height:1.55;
+    -webkit-font-smoothing:antialiased;padding:0 0 6rem}
+  header.page{position:sticky;top:0;z-index:5;background:var(--surface-canvas);
+    border-bottom:1px solid var(--hairline);padding:1.1rem 2rem;display:flex;
+    align-items:center;justify-content:space-between;gap:1rem;backdrop-filter:saturate(1.2) blur(8px)}
+  header.page h1{font-size:1.05rem;margin:0;font-weight:650;letter-spacing:-.01em}
+  header.page p{margin:.15rem 0 0;color:var(--text-secondary);font-size:.82rem}
+  .wrap{max-width:1080px;margin:0 auto;padding:2rem}
+  .toggle{display:inline-flex;border:1px solid var(--hairline);border-radius:var(--radius-pill);
+    overflow:hidden;background:var(--surface-elevated)}
+  .toggle button{border:0;background:transparent;color:var(--text-secondary);
+    padding:.4rem .9rem;font-size:.8rem;cursor:pointer;font-weight:550}
+  .toggle button[aria-pressed="true"]{background:var(--brand-primary);color:#fff}
+  section{margin:2.4rem 0}
+  h2.sec{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--text-secondary);margin:0 0 1rem;font-weight:650}
+  .panel{background:var(--surface-elevated);border:1px solid var(--hairline);
+    border-radius:16px;padding:1.5rem 1.6rem;box-shadow:0 1px 2px rgba(20,20,30,.04)}
+  .panel + .panel{margin-top:1rem}
+  .panel h3{margin:0 0 .25rem;font-size:.95rem;font-weight:620}
+  .panel .lede{margin:0 0 1.1rem;color:var(--text-secondary);font-size:.82rem}
+  .row{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+  .label-col{display:flex;flex-direction:column;gap:.55rem}
+  .mini{font-size:.72rem;color:var(--text-secondary);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .bad{border-left:3px solid var(--status-danger)}
+  .good{border-left:3px solid var(--status-success)}
+  .callout{display:flex;gap:.5rem;align-items:flex-start;font-size:.8rem;
+    color:var(--text-secondary);margin-top:.9rem}
+  .callout b{color:var(--text-primary)}
+
+  /* =================== CURRENT (Bootstrap, fragmented) =================== */
+  /* Bootstrap 5 solid */
+  .bs-badge{display:inline-block;padding:.35em .65em;font-size:.75em;font-weight:700;
+    line-height:1;text-align:center;white-space:nowrap;vertical-align:baseline;border-radius:.375rem}
+  .bs-pill{border-radius:999px}
+  .bg-secondary{background:#6c757d;color:#fff}
+  .bg-success{background:#198754;color:#fff}
+  .bg-warning{background:#ffc107;color:#000}
+  .bg-danger{background:#dc3545;color:#fff}
+  .bg-primary{background:#0d6efd;color:#fff}
+  .bg-info{background:#0dcaf0;color:#000}
+  .bg-light{background:#f8f9fa;color:#000}
+  .subtle-success{background:#d1e7dd;color:#0a3622}
+  /* Dead BS4 syntax (.badge-* removed in BS5) → renders as PLAIN, no color */
+  .bs4-dead{display:inline-block;padding:.35em .65em;font-size:.75em;font-weight:700;
+    line-height:1;border-radius:.375rem;background:transparent;color:inherit;border:1px dashed var(--status-danger)}
+
+  /* =================== PROPOSED (.rmc-badge unified) =================== */
+  .rmc-badge{display:inline-flex;align-items:center;gap:var(--space-1);
+    padding:.125rem var(--space-2);font-size:var(--type-size-xs);font-weight:500;
+    border-radius:var(--radius-pill);background:color-mix(in srgb,var(--text-primary) 7%,transparent);
+    color:var(--text-primary);line-height:1.4;border:1px solid transparent}
+  .rmc-badge--brand{background:color-mix(in srgb,var(--brand-primary) 12%,transparent);color:var(--brand-primary)}
+  .rmc-badge--success{background:color-mix(in srgb,var(--status-success) 12%,transparent);color:var(--status-success-fg)}
+  .rmc-badge--warning{background:color-mix(in srgb,var(--status-warning) 14%,transparent);color:var(--status-warning-fg)}
+  .rmc-badge--danger{background:color-mix(in srgb,var(--status-danger) 12%,transparent);color:var(--status-danger-fg)}
+  .rmc-badge--info{background:color-mix(in srgb,var(--status-info) 12%,transparent);color:var(--status-info-fg)}
+  .rmc-badge--muted{background:color-mix(in srgb,var(--text-secondary) 10%,transparent);color:var(--text-secondary)}
+  /* dot + count modifiers */
+  .rmc-badge__dot{width:.4rem;height:.4rem;border-radius:50%;background:currentColor;opacity:.9}
+  .rmc-badge--solid{background:var(--brand-primary);color:#fff;font-weight:600}
+  .rmc-badge--count{min-width:1.25rem;justify-content:center;padding:.05rem .4rem;
+    background:var(--brand-primary);color:#fff;font-weight:600;font-variant-numeric:tabular-nums}
+
+  table.map{width:100%;border-collapse:collapse;font-size:.8rem}
+  table.map th,table.map td{text-align:left;padding:.55rem .6rem;border-bottom:1px solid var(--hairline);vertical-align:middle}
+  table.map th{color:var(--text-secondary);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
+  table.map td code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.74rem;color:var(--text-secondary)}
+  .arrow{color:var(--text-secondary)}
+</style>
+</head>
+<body>
+<header class="page">
+  <div>
+    <h1>Wave C · Badge grammar unification</h1>
+    <p>1,061 badges · 5+ conflicting dialects · ~47 rendering broken — proposed: one <code>.rmc-badge</code> system</p>
+  </div>
+  <div class="toggle" role="group" aria-label="Theme">
+    <button aria-pressed="true" onclick="setTheme('light',this)">Light</button>
+    <button aria-pressed="false" onclick="setTheme('dark',this)">Dark</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section>
+    <h2 class="sec">The problem — today's badges (rendered as the codebase actually shows them)</h2>
+    <div class="panel bad">
+      <h3>Five dialects for the same six meanings</h3>
+      <p class="lede">Each row is one semantic meaning. Today it's spelled 2–3 different ways with different
+        color, weight, radius and contrast — and the Bootstrap-4 spellings render with <b>no color at all</b>.</p>
+
+      <div class="label-col">
+        <div class="row">
+          <span class="bs-badge bg-secondary">Neutral</span>
+          <span class="bs-badge bg-secondary bs-pill">Neutral</span>
+          <span class="bs-badge bg-light">Neutral</span>
+          <span class="mini">badge bg-secondary · text-bg-secondary · bg-light text-dark&nbsp;&nbsp;(182 + 48)</span>
+        </div>
+        <div class="row">
+          <span class="bs-badge bg-success">Active</span>
+          <span class="bs-badge subtle-success">Active</span>
+          <span class="bs4-dead">Active</span>
+          <span class="mini">bg-success · text-bg-success · bg-success-subtle · <b>badge-success ⟵ dead</b>&nbsp;&nbsp;(~119)</span>
+        </div>
+        <div class="row">
+          <span class="bs-badge bg-warning">Pending</span>
+          <span class="bs-badge bg-warning">Pending</span>
+          <span class="bs4-dead">Pending</span>
+          <span class="mini">bg-warning text-dark · text-bg-warning · <b>badge-warning ⟵ dead</b>&nbsp;&nbsp;(~90)</span>
+        </div>
+        <div class="row">
+          <span class="bs-badge bg-danger">Overdue</span>
+          <span class="bs-badge bg-danger">Overdue</span>
+          <span class="bs4-dead">Overdue</span>
+          <span class="mini">bg-danger · text-bg-danger · <b>badge-danger ⟵ dead</b>&nbsp;&nbsp;(~49)</span>
+        </div>
+        <div class="row">
+          <span class="bs-badge bg-primary">Featured</span>
+          <span class="bs-badge bg-info">Info</span>
+          <span class="bs4-dead">Info</span>
+          <span class="mini">bg-primary · text-bg-primary · bg-info · <b>badge-info ⟵ dead</b>&nbsp;&nbsp;(~71)</span>
+        </div>
+      </div>
+      <div class="callout">⚠️ <span>The dashed-red chips above are the <b>~47 Bootstrap-4 <code>.badge-danger/-success/-warning/-info/-light</code></b>
+        usages. Bootstrap 5 deleted those classes, so on the live platform they show as <b>plain, colorless badges</b> — a real bug, not just inconsistency.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec">The proposal — one quiet-luxury grammar (extends the existing <code>.rmc-badge</code>)</h2>
+    <div class="panel good">
+      <h3>Six semantic tones, one spelling, light + dark correct by token</h3>
+      <p class="lede">Tinted (not loud-solid) backgrounds at 7–14% color-mix, pill radius, tabular weight — the
+        existing <code>.rmc-badge</code> grammar, with one new <code>--brand</code> tone added to cover today's <code>bg-primary</code>.</p>
+      <div class="row" style="gap:.8rem">
+        <span class="rmc-badge">Neutral</span>
+        <span class="rmc-badge rmc-badge--brand">Featured</span>
+        <span class="rmc-badge rmc-badge--success"><span class="rmc-badge__dot"></span>Active</span>
+        <span class="rmc-badge rmc-badge--warning">Pending</span>
+        <span class="rmc-badge rmc-badge--danger">Overdue</span>
+        <span class="rmc-badge rmc-badge--info">Info</span>
+        <span class="rmc-badge rmc-badge--muted">Archived</span>
+      </div>
+      <div class="callout">✓ <span><b>Count &amp; emphasis</b> cases (the unread pills) keep a loud, legible solid variant so they still grab the eye:</span></div>
+      <div class="row" style="margin-top:.6rem">
+        Inbox <span class="rmc-badge rmc-badge--count">12</span>
+        &nbsp;&nbsp;Tasks <span class="rmc-badge rmc-badge--count">3</span>
+        &nbsp;&nbsp;<span class="rmc-badge rmc-badge--solid">New</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec">Side by side</h2>
+    <div class="grid2">
+      <div class="panel bad">
+        <h3 style="font-size:.82rem">Before</h3>
+        <div class="row" style="margin-top:.6rem">
+          <span class="bs-badge bg-success">Paid</span>
+          <span class="bs-badge bg-warning">Due soon</span>
+          <span class="bs-badge bg-danger">Overdue</span>
+          <span class="bs4-dead">Refunded</span>
+          <span class="bs-badge bg-secondary bs-pill">Draft</span>
+        </div>
+      </div>
+      <div class="panel good">
+        <h3 style="font-size:.82rem">After</h3>
+        <div class="row" style="margin-top:.6rem">
+          <span class="rmc-badge rmc-badge--success">Paid</span>
+          <span class="rmc-badge rmc-badge--warning">Due soon</span>
+          <span class="rmc-badge rmc-badge--danger">Overdue</span>
+          <span class="rmc-badge rmc-badge--info">Refunded</span>
+          <span class="rmc-badge rmc-badge--muted">Draft</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="sec">Migration map — every current spelling → one target (mechanical codemod)</h2>
+    <div class="panel">
+      <table class="map">
+        <thead><tr><th>Today (count)</th><th></th><th>Unified target</th></tr></thead>
+        <tbody>
+          <tr><td><code>badge bg-secondary</code> / <code>text-bg-secondary</code> / <code>bg-light text-dark</code> <span class="mini">(~230)</span></td><td class="arrow">→</td><td><code>rmc-badge</code> <span class="rmc-badge">Neutral</span></td></tr>
+          <tr><td><code>badge bg-primary</code> / <code>text-bg-primary</code> <span class="mini">(~33)</span></td><td class="arrow">→</td><td><code>rmc-badge rmc-badge--brand</code> <span class="rmc-badge rmc-badge--brand">Brand</span></td></tr>
+          <tr><td><code>badge bg-success</code> / <code>text-bg-success</code> / <code>*-subtle</code> / <code>badge-success</code> <span class="mini">(~119)</span></td><td class="arrow">→</td><td><code>rmc-badge rmc-badge--success</code> <span class="rmc-badge rmc-badge--success">Success</span></td></tr>
+          <tr><td><code>badge bg-warning *</code> / <code>text-bg-warning</code> / <code>badge-warning</code> <span class="mini">(~90)</span></td><td class="arrow">→</td><td><code>rmc-badge rmc-badge--warning</code> <span class="rmc-badge rmc-badge--warning">Warning</span></td></tr>
+          <tr><td><code>badge bg-danger</code> / <code>text-bg-danger</code> / <code>badge-danger</code> <span class="mini">(~49)</span></td><td class="arrow">→</td><td><code>rmc-badge rmc-badge--danger</code> <span class="rmc-badge rmc-badge--danger">Danger</span></td></tr>
+          <tr><td><code>badge bg-info</code> / <code>text-bg-info</code> / <code>badge-info</code> <span class="mini">(~38)</span></td><td class="arrow">→</td><td><code>rmc-badge rmc-badge--info</code> <span class="rmc-badge rmc-badge--info">Info</span></td></tr>
+          <tr><td><code>badge bg-primary rounded-pill</code> + number <span class="mini">(count pills)</span></td><td class="arrow">→</td><td><code>rmc-badge rmc-badge--count</code> <span class="rmc-badge rmc-badge--count">9</span></td></tr>
+        </tbody>
+      </table>
+      <div class="callout">How it ships: add <code>--brand</code>/<code>--count</code>/<code>--solid</code> to the grammar (via
+        <code>rmc-class-grammar-ext.css</code>, cascade-safe), then a context-aware codemod rewrites the classes.
+        Zero new dependencies, zero migration, fully reversible. <b>Nothing ships until you approve this look.</b></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  function setTheme(t,btn){
+    document.documentElement.setAttribute('data-theme',t);
+    document.querySelectorAll('.toggle button').forEach(b=>b.setAttribute('aria-pressed', b===btn?'true':'false'));
+  }
+</script>
+</body>
+</html>
