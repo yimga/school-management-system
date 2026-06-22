@@ -24,6 +24,9 @@ logger = logging.getLogger(__name__)
 
 _MAX_PROMPT_CHARS = 4000
 _MAX_OUT_CHARS = 2000
+_THREAD_SUMMARY_MAX_TURNS = 40
+_THREAD_TURN_CHARS = 300  # magic-number-allow: per-turn excerpt length for thread summary
+_THREAD_QUERY_PREVIEW_CHARS = 240  # magic-number-allow: user_query preview length for RBAC/audit context
 
 
 def _safe_invoke(
@@ -382,6 +385,45 @@ def summarize_digest(*, school, audience: str, facts: Iterable[str]) -> tuple[st
     )
 
 
+# ── 10. Conversation thread summary ─────────────────────────────────────────
+def summarize_thread(
+    *, school, messages, user=None, kind: str = "conversation"
+) -> tuple[str, dict]:
+    """Summarize an internal conversation thread for a busy staff member.
+
+    ``messages`` is an already-fetched, ACCESS-CHECKED list of
+    ``(author_name, text)`` tuples — the caller does the tenant-scoped query;
+    this function never touches the ORM, it only narrates. Returns ("", meta) on
+    failure / empty so the UI can fall back to "no summary"."""
+    lines = []
+    for author, text in (messages or []):
+        t = (text or "").strip().replace("\n", " ")
+        if t:
+            lines.append(f"{author}: {t[:_THREAD_TURN_CHARS]}")
+    if not lines:
+        return "", {"skipped": True}
+    block = "\n".join(lines[-_THREAD_SUMMARY_MAX_TURNS:])
+    prompt = (
+        f"Summarize this {kind} for a busy staff member in 2-4 sentences. Cover "
+        "the main topic, any decisions made, and any open questions or action "
+        "items still needing a reply. Be neutral and concise. Do not invent "
+        "anything not present in the thread.\n\nThread (oldest to newest):\n"
+        f"{block}\n"
+    )
+    try:
+        from services.ai_gateway import TaskType
+    except ImportError:
+        return "", {"error": "TaskType unavailable"}
+    return _safe_invoke(
+        TaskType.NARRATIVE,
+        prompt,
+        school=school,
+        user=user,
+        user_query=block[:_THREAD_QUERY_PREVIEW_CHARS],
+        surface="messaging_ai_thread_summary",
+    )
+
+
 __all__ = [
     "draft_announcement",
     "suggest_subject_lines",
@@ -392,4 +434,5 @@ __all__ = [
     "suggest_replies",
     "detect_safeguarding_signal",
     "summarize_digest",
+    "summarize_thread",
 ]

@@ -162,11 +162,70 @@
     });
   }
 
+  // ── Group thread posts ───────────────────────────────────────────────────
+  // A group post is a ThreadMessage in a thread the author already belongs to.
+  // It rides its own WAL domain (`thread_message_create`); the server writer
+  // DROPS any post to a thread the (socket-authenticated) author is not a member
+  // of, or in another tenant — the client cannot forge a cross-thread post.
+  // Text only: offline attachments can't ride the WAL, so a queued offline post
+  // carries the message body, not files (rare edge; the user re-attaches online).
+  //
+  //   <form ... data-rmc-thread-outbox
+  //         data-thread-id="42" data-message-field="message"
+  //         data-success-url="...">
+  async function queueThreadMessage(payload) {
+    if (!window.rmcWAL || typeof window.rmcWAL.append !== "function") {
+      return false;
+    }
+    var threadId = parseInt(payload.threadId, 10);
+    if (!threadId || !payload.content) return false;
+    try {
+      await window.rmcWAL.append("thread_message_create", [
+        {
+          thread_id: threadId,
+          content: payload.content,
+          locale_target: payload.localeTarget || "",
+        },
+      ]);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function enhanceThreadMessage(form) {
+    if (form.__rmcThreadOutboxBound) return;
+    form.__rmcThreadOutboxBound = true;
+    form.addEventListener("submit", function (ev) {
+      if (navigator.onLine !== false) return;
+      var messageField = form.getAttribute("data-message-field") || "message";
+      var content = fieldValue(form, messageField);
+      var threadId = form.getAttribute("data-thread-id") || "";
+      if (!content || !threadId) return; // let native validation handle empties
+      ev.preventDefault();
+      var successUrl = form.getAttribute("data-success-url") || "";
+      queueThreadMessage({
+        threadId: threadId,
+        content: content,
+        localeTarget: form.getAttribute("data-locale-target") || "",
+      }).then(function (ok) {
+        if (ok) {
+          showQueuedNotice(form, successUrl);
+        } else {
+          form.submit();
+        }
+      });
+    });
+  }
+
   function init() {
     document.querySelectorAll("form[data-rmc-message-outbox]").forEach(enhance);
     document
       .querySelectorAll("form[data-rmc-announcement-outbox]")
       .forEach(enhanceAnnouncement);
+    document
+      .querySelectorAll("form[data-rmc-thread-outbox]")
+      .forEach(enhanceThreadMessage);
   }
 
   window.rmcMessageOutbox = {
@@ -174,6 +233,8 @@
     enhance: enhance,
     queueAnnouncement: queueAnnouncement,
     enhanceAnnouncement: enhanceAnnouncement,
+    queueThreadMessage: queueThreadMessage,
+    enhanceThreadMessage: enhanceThreadMessage,
   };
 
   if (document.readyState === "loading") {

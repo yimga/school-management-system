@@ -145,6 +145,7 @@ from .views_ai_draft import (
     ai_rewrite_plain_language,
     ai_suggest_replies,
     ai_suggest_subject_lines,
+    ai_summarize_thread,
 )
 from .views_education_pack import education_pack_parent, education_pack_teacher
 from .views_partner_docs import partner_documentation_assistant
@@ -249,6 +250,7 @@ urlpatterns = [
     path("ai/suggest/subject-lines/", ai_suggest_subject_lines, name="ai_suggest_subject_lines"),
     path("ai/rewrite/plain-language/", ai_rewrite_plain_language, name="ai_rewrite_plain_language"),
     path("ai/suggest/replies/", ai_suggest_replies, name="ai_suggest_replies"),
+    path("ai/summarize/thread/", ai_summarize_thread, name="ai_summarize_thread"),
     path("guide/", runmycampus_guide, name="runmycampus_guide"),
     path("education/teacher/", education_pack_teacher, name="education_pack_teacher"),
     path("education/parent/", education_pack_parent, name="education_pack_parent"),

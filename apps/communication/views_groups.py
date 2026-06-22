@@ -458,6 +458,18 @@ def group_detail(request: HttpRequest, thread_id: int):
         thread=thread, user=request.user
     ).exists()
 
+    # AI assist (IM-8): group messaging is already staff/teacher-only, so the
+    # only extra gate is the tenant entitlement. Fails closed.
+    ai_assist_enabled = False
+    school = getattr(request, "school", None)
+    if school is not None:
+        try:
+            from apps.billing.entitlements import can as _ent_can
+
+            ai_assist_enabled = bool(_ent_can(school, "AI_TEACHER_COMMS"))
+        except Exception:  # noqa: BLE001 — fail closed
+            ai_assist_enabled = False
+
     context = {
         "thread": thread,
         "messages": message_list,
@@ -471,6 +483,9 @@ def group_detail(request: HttpRequest, thread_id: int):
         "typing_endpoint": reverse(
             "communication:group_typing", args=[thread.id]
         ),
+        "ai_assist_enabled": ai_assist_enabled,
+        "ai_improve_endpoint": reverse("portal:ai_rewrite_plain_language"),
+        "ai_summarize_endpoint": reverse("portal:ai_summarize_thread"),
     }
     return render(request, "communication/group_detail.html", context)
 

@@ -1007,6 +1007,25 @@ def _can_access_direct_messages(user) -> bool:
     return _is_staff_or_teacher(user)
 
 
+def _direct_ai_assist_enabled(request) -> bool:
+    """Whether to show AI assist on the direct-thread compose box (IM-8).
+
+    Staff/teacher only (students/parents excluded) AND the tenant owns the
+    AI_TEACHER_COMMS entitlement. Fails closed on any error.
+    """
+    if not _can_access_direct_messages(request.user):
+        return False
+    school = getattr(request, "school", None)
+    if school is None:
+        return False
+    try:
+        from apps.billing.entitlements import can as _ent_can
+
+        return bool(_ent_can(school, "AI_TEACHER_COMMS"))
+    except Exception:  # noqa: BLE001 — fail closed
+        return False
+
+
 def _direct_message_user_queryset(request):
     """Active users the caller may direct-message — SAME SCHOOL only.
 
@@ -1274,6 +1293,9 @@ def direct_thread(request, user_id):
         "typing_endpoint": reverse(
             "accounts:direct_thread_typing", args=[other.pk]
         ),
+        "ai_assist_enabled": _direct_ai_assist_enabled(request),
+        "ai_improve_endpoint": reverse("portal:ai_rewrite_plain_language"),
+        "ai_summarize_endpoint": reverse("portal:ai_summarize_thread"),
     }
     return render(request, "accounts/direct_thread.html", context)
 

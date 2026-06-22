@@ -59,6 +59,17 @@
           </div>
         </div>
 
+        {% if ai_assist_enabled %}
+        {% comment %} IM-8: AI assist — summarize this conversation. {% endcomment %}
+        <div class="px-3 pt-2 d-flex flex-wrap align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary"
+                  data-rmc-ai-summarize data-endpoint="{{ ai_summarize_endpoint }}"
+                  data-scope="direct" data-id="{{ other_user.id }}" data-panel="#rmc-ai-summary">
+            <i class="bi bi-stars me-1" aria-hidden="true"></i>{% trans "Summarize" %}
+          </button>
+        </div>
+        <div id="rmc-ai-summary" class="alert alert-light border small mx-3 mt-2" role="status" aria-live="polite" hidden></div>
+        {% endif %}
         <div class="p-3 rmc-iso-scroll-zone rmc-iso-scroll-zone--h-50vh" data-rmc-iso-scroll-zone="1"
              data-rmc-thread-messages
              data-rmc-current-user-id="{{ request.user.id }}"
@@ -130,6 +141,15 @@
               <input type="file" name="attachments" id="direct-reply-attachments" class="form-control form-control-sm"
                      multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.odt,.ods,.jpg,.jpeg,.png,.gif,.webp">
             </div>
+            {% if ai_assist_enabled %}
+            <div class="d-inline-flex align-items-center gap-2 me-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary"
+                      data-rmc-ai-improve data-endpoint="{{ ai_improve_endpoint }}" data-target="direct-reply-body">
+                <i class="bi bi-magic me-1" aria-hidden="true"></i>{% trans "Improve" %}
+              </button>
+              <span class="small text-muted" data-rmc-ai-status role="status" aria-live="polite"></span>
+            </div>
+            {% endif %}
             <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Send</button>
           </form>
         </div>
@@ -146,4 +166,8 @@
 <script src="{% static 'js/rmc-direct-thread-live.js' %}" nonce="{{ csp_nonce }}"></script>
 {% comment %} IM-7: typing indicator (cache-backed poll; textContent-only). {% endcomment %}
 <script src="{% static 'js/rmc-thread-typing.js' %}" nonce="{{ csp_nonce }}"></script>
+{% if ai_assist_enabled %}
+{% comment %} IM-8: in-thread AI assist (improve draft + summarize). {% endcomment %}
+<script src="{% static 'js/rmc-thread-ai.js' %}" nonce="{{ csp_nonce }}"></script>
+{% endif %}
 {% endblock %}

@@ -360,3 +360,107 @@ def ai_draft_lesson_outline(request):
             {"error": meta.get("error") or "No draft returned."}, status=503
         )
     return JsonResponse({"draft": text, "provider": meta.get("provider", "")})
+
+
+#: Most recent messages pulled into a thread summary (caps the AI prompt size).
+_THREAD_SUMMARY_FETCH_LIMIT = 80
+
+
+def _display(person) -> str:
+    if person is None:
+        return "Someone"
+    try:
+        full = (person.get_full_name() or "").strip()
+    except Exception:  # noqa: BLE001
+        full = ""
+    return full or getattr(person, "username", "") or "Someone"
+
+
+def _collect_thread_for_summary(request, school, scope: str, raw_id):
+    """Return ``([(author, text), ...], kind)`` for a thread the caller is in.
+
+    Access-checked + tenant-scoped: group requires membership; direct requires
+    the peer to be in the caller's same-school messageable set. Returns
+    ``(None, "")`` when the conversation isn't found / not accessible.
+    """
+    user = request.user
+    try:
+        obj_id = int(raw_id)
+    except (TypeError, ValueError):
+        return None, ""
+
+    if scope == "group":
+        from apps.communication.models import MessageThread, ThreadMessage
+
+        # tenant-isolation-allow: thread-scoped-to-caller-membership-then-messages
+        thread = MessageThread.objects.filter(pk=obj_id, members=user).first()
+        if thread is None:
+            return None, ""
+        # tenant-isolation-allow: messages-scoped-to-callers-own-member-thread
+        msgs = (
+            ThreadMessage.objects.filter(thread=thread, is_deleted=False)
+            .select_related("author")
+            .order_by("created_at")[:_THREAD_SUMMARY_FETCH_LIMIT]
+        )
+        return [(_display(m.author), m.content) for m in msgs], "group conversation"
+
+    if scope == "direct":
+        from django.db.models import Q
+
+        from apps.communication.models import Message
+        from apps.accounts.views import _direct_message_user_queryset
+
+        other = _direct_message_user_queryset(request).filter(pk=obj_id).first()
+        if other is None:
+            return None, ""
+        # tenant-isolation-allow: messages-scoped-to-the-caller-and-peer-pair
+        msgs = (
+            Message.objects.filter(
+                Q(sender=user, recipient=other) | Q(sender=other, recipient=user),
+                is_archived=False,
+            )
+            .select_related("sender")
+            .order_by("created_at")[:_THREAD_SUMMARY_FETCH_LIMIT]
+        )
+        return [(_display(m.sender), m.body) for m in msgs], "direct conversation"
+
+    return None, ""
+
+
+@login_required
+@require_POST
+def ai_summarize_thread(request):
+    """Summarize a direct or group thread the caller participates in (IM-8)."""
+    if not _can_draft(request.user):
+        return HttpResponseForbidden("You don't have permission to use AI assist.")
+    school = _school_from_request(request)
+    if school is None:
+        return JsonResponse({"error": "School context required."}, status=400)
+    if not _entitlement_ok(school, "AI_TEACHER_COMMS"):
+        return JsonResponse(
+            {"error": "AI assist not enabled for this school."}, status=402
+        )
+    payload = _decode_json(request)
+    scope = (payload.get("scope") or "").strip().lower()
+    messages, kind = _collect_thread_for_summary(
+        request, school, scope, payload.get("id")
+    )
+    if messages is None:
+        return JsonResponse({"error": "Conversation not found."}, status=404)
+    if not messages:
+        return JsonResponse({"error": "Nothing to summarize yet."}, status=400)
+    try:
+        from services.messaging_ai import summarize_thread
+    except ImportError:
+        return JsonResponse({"error": "Service unavailable."}, status=503)
+    out, meta = summarize_thread(
+        school=school, messages=messages, user=request.user, kind=kind
+    )
+    denied = _permission_refusal_response(out, meta)
+    if denied:
+        return denied
+    if not out:
+        return JsonResponse(
+            {"error": meta.get("error") or "No summary returned."}, status=503
+        )
+    return JsonResponse({"summary": out, "provider": meta.get("provider", "")})

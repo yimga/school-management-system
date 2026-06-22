@@ -559,6 +559,75 @@ def _apply_communication_send(envelope: dict[str, Any]) -> None:
         Message.objects.bulk_create(rows)
 
 
+def _apply_thread_message_create(envelope: dict[str, Any]) -> None:
+    """Apply offline-composed GROUP thread posts against ``ThreadMessage``.
+
+    Action shape: ``{"thread_id": int, "content": str, "locale_target": str}``.
+
+    The **author is derived server-side from the authenticated socket's
+    ``user_id``** (never trusted from the client), and a post is DROPPED unless
+    that author is a current member of the target thread AND the thread belongs
+    to the bound tenant — a disconnected client must not be able to post into a
+    thread it is not in, or into another school's thread. Unlike
+    ``_apply_communication_send`` this uses ``.create()`` (not ``bulk_create``)
+    so ``ThreadMessage.save()`` runs and the post_save fan-out (member
+    notifications + mute handling) fires for each offline-delivered post.
+    """
+    actions = envelope.get("actions") or []
+    if not actions:
+        return
+    try:
+        from apps.communication.models import MessageThread, ThreadMessage
+    except ImportError:
+        logger.debug("wal_stream.thread_message_model_unavailable")
+        return
+    author_id = envelope.get("user_id")
+    if not author_id:
+        logger.warning("wal_stream.thread_message_no_author")
+        return
+    school_id = envelope.get("school_id")
+
+    wanted_thread_ids = {a.get("thread_id") for a in actions if a.get("thread_id")}
+    if not wanted_thread_ids:
+        return
+    # The author may only post to their own (non-archived) member threads, scoped
+    # to the bound tenant. One membership query, then filter the actions.
+    threads_qs = MessageThread.objects.filter(
+        pk__in=wanted_thread_ids, members__id=author_id, is_archived=False
+    )
+    if school_id:
+        threads_qs = threads_qs.filter(school_id=school_id)
+    # tenant-isolation-allow: threads-scoped-to-author-membership-and-bound-school
+    allowed_thread_ids = set(threads_qs.values_list("id", flat=True))
+
+    dropped = 0
+    for a in actions:
+        tid = a.get("thread_id")
+        content = (a.get("content") or "").strip()
+        if not tid or tid not in allowed_thread_ids:
+            if tid:
+                dropped += 1
+            continue
+        if not content:
+            continue
+        try:
+            ThreadMessage.objects.create(
+                thread_id=tid,
+                author_id=author_id,
+                school_id=school_id,
+                content=content,
+                locale_target=str(a.get("locale_target") or "")[:10],
+            )
+        except (ValueError, TypeError) as exc:
+            logger.warning(
+                "wal_stream.thread_message_bad_action err=%s", type(exc).__name__
+            )
+    if dropped:
+        logger.warning(
+            "wal_stream.thread_message_unauthorized_dropped dropped=%s", dropped
+        )
+
+
 def _apply_announcement_create(envelope: dict[str, Any]) -> None:
     """Apply an offline-composed school-wide announcement.
 
@@ -704,6 +773,7 @@ _REGISTRY: dict[str, Callable[[dict[str, Any]], None]] = {
     "teacher_attendance": _apply_teacher_attendance,
     "grade": _apply_grade,
     "communication_send": _apply_communication_send,
+    "thread_message_create": _apply_thread_message_create,
     "announcement_create": _apply_announcement_create,
     "audit_event": _apply_audit_event,
 }

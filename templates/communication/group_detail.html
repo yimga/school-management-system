@@ -33,6 +33,17 @@
           </div>
         </div>
         <div class="card-body">
+          {% if ai_assist_enabled %}
+          {% comment %} IM-8: AI assist — summarize the thread (panel) + improve draft (below). {% endcomment %}
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary"
+                    data-rmc-ai-summarize data-endpoint="{{ ai_summarize_endpoint }}"
+                    data-scope="group" data-id="{{ thread.id }}" data-panel="#rmc-ai-summary">
+              <i class="bi bi-stars me-1" aria-hidden="true"></i>{% trans "Summarize thread" %}
+            </button>
+          </div>
+          <div id="rmc-ai-summary" class="alert alert-light border small" role="status" aria-live="polite" hidden></div>
+          {% endif %}
           {% comment %} IM-5: data-rmc-thread-* attrs feed rmc-group-thread-live.js so new
              messages + read-receipt counts update without a reload. {% endcomment %}
           <div class="messages-container rmc-iso-scroll-zone rmc-iso-scroll-zone--h-31" data-rmc-iso-scroll-zone="1"
@@ -93,7 +104,16 @@
           <div class="px-1 pb-1" data-rmc-typing-endpoint="{{ typing_endpoint }}">
             <small class="text-muted fst-italic" data-rmc-typing-display hidden></small>
           </div>
-          <form method="post" class="mt-1" enctype="multipart/form-data">
+          {% comment %} IM-8: offline-first — when the browser is offline the post is queued on
+             the WAL (`thread_message_create`) and sent on reconnect; `data-draft-key` keeps an
+             unsent draft across reloads. Both scripts load at the portal shell level. {% endcomment %}
+          <form method="post" class="mt-1" enctype="multipart/form-data"
+                data-rmc-thread-outbox
+                data-thread-id="{{ thread.id }}"
+                data-message-field="message"
+                data-success-url="{% url 'communication:group_detail' thread_id=thread.id %}"
+                data-draft-key="group_thread_{{ thread.id }}"
+                data-draft-max-age-hours="24">
             {% csrf_token %}
             <div class="mb-2">
               <label for="group-message-body" class="visually-hidden">{% trans "Message" %}</label>
@@ -106,6 +126,13 @@
               </label>
               <input type="file" name="attachments" id="group-attachments" class="form-control form-control-sm w-auto"
                      multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.odt,.ods,.jpg,.jpeg,.png,.gif,.webp">
+              {% if ai_assist_enabled %}
+              <button type="button" class="btn btn-sm btn-outline-secondary"
+                      data-rmc-ai-improve data-endpoint="{{ ai_improve_endpoint }}" data-target="group-message-body">
+                <i class="bi bi-magic me-1" aria-hidden="true"></i>{% trans "Improve" %}
+              </button>
+              <span class="small text-muted" data-rmc-ai-status role="status" aria-live="polite"></span>
+              {% endif %}
               <button type="submit" class="btn btn-primary ms-auto">
                 <i class="bi bi-send me-1"></i>{% trans "Send" %}
               </button>
@@ -188,4 +215,8 @@
 <script src="{% static 'js/rmc-group-thread-live.js' %}" nonce="{{ csp_nonce }}"></script>
 {% comment %} IM-7: typing indicator (cache-backed poll; textContent-only). {% endcomment %}
 <script src="{% static 'js/rmc-thread-typing.js' %}" nonce="{{ csp_nonce }}"></script>
+{% if ai_assist_enabled %}
+{% comment %} IM-8: in-thread AI assist (improve draft + summarize). {% endcomment %}
+<script src="{% static 'js/rmc-thread-ai.js' %}" nonce="{{ csp_nonce }}"></script>
+{% endif %}
 {% endblock %}
