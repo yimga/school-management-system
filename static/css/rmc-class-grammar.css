@@ -5471,3 +5471,61 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 [data-rmc-density="spacious"] .cp-sidebar__item,
 [data-rmc-density="spacious"] .nav-pill,
 [data-rmc-density="spacious"] .rmc-sb-frequent__item { padding-block: 11px; }
+
+/* ── Deploy-freshness toast ─────────────────────────────────────────────────
+   Surfaced by static/js/rmc-deploy-freshness.js when a NEW version deploys while
+   the user is mid-session (the on-arrival case silently auto-reloads instead).
+   Token-only so it inverts cleanly in dark mode and respects the tenant brand. */
+.rmc-deploy-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%);
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: min(92vw, 30rem);
+  padding: 0.625rem 0.75rem 0.625rem 1rem;
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.75rem);
+  box-shadow: var(--elev-3);
+}
+.rmc-deploy-toast__msg {
+  font-size: var(--type-size-sm, 0.875rem);
+  line-height: 1.4;
+}
+.rmc-deploy-toast__refresh {
+  flex: none;
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--radius-sm, 0.5rem);
+  background: var(--brand-primary);
+  color: var(--text-on-brand);
+  font-size: var(--type-size-sm, 0.875rem);
+  font-weight: 600;
+}
+.rmc-deploy-toast__refresh:hover { filter: brightness(1.05); }
+.rmc-deploy-toast__refresh:disabled { opacity: 0.6; cursor: default; }
+.rmc-deploy-toast__dismiss {
+  flex: none;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: var(--type-size-lg, 1.125rem);
+  line-height: 1;
+  padding: 0.25rem 0.375rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rmc-deploy-toast { animation: rmc-deploy-toast-in 0.18s var(--ease-out, ease-out); }
+}
+@keyframes rmc-deploy-toast-in {
+  from { opacity: 0; transform: translate(-50%, 0.5rem); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
