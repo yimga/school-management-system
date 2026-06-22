@@ -178,6 +178,9 @@ PREFIX_FIELD_OWNERS: Final[tuple[tuple[str, str], ...]] = (
     # Table-intelligence engine: filter / sort / columns / export / density knobs
     # for the shared list engine. Payload-backed (no migration); UX chrome.
     ("table_", "brand_experience"),
+    # Form-intelligence engine: unsaved guard / pending / validation / section-nav
+    # switches for the shared form engine. Payload-backed (no migration); UX chrome.
+    ("form_", "brand_experience"),
     ("show_header_", "brand_experience"),
     ("secondary_font", "brand_experience"),
     ("base_font", "brand_experience"),

@@ -1,0 +1,66 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Form defaults" %}{% endblock %}
+
+{% block content %}
+<div class="content-max-640 py-3">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-input-cursor-text" aria-hidden="true"></i>
+    <h1 class="h5 mb-0">{% trans "Forms — school defaults" %}</h1>
+  </div>
+  <p class="text-muted">
+    {% trans "Set how forms behave for everyone at this school. These switches drive the shared form engine that runs on every page — there's nothing to add per form." %}
+  </p>
+
+  {% if not can_manage %}
+  <div class="alert alert-info">{% trans "You can view these defaults, but only an administrator can change them." %}</div>
+  {% endif %}
+
+  <form method="post" class="card shadow-sm" data-rmc-form-enhance="0">
+    {% csrf_token %}
+    <div class="card-body d-flex flex-column gap-3">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="form-intelligence" name="form_intelligence" {% if form_intelligence %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="form-intelligence">
+          <strong>{% trans "Smart forms" %}</strong>
+          <span class="d-block text-muted small">{% trans "Master switch. Off = plain forms with no save bar, pending state, counters, or section nav." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="form-unsaved" name="form_unsaved_guard" {% if form_unsaved_guard %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="form-unsaved">
+          <strong>{% trans "Unsaved-changes guard" %}</strong>
+          <span class="d-block text-muted small">{% trans "Show a sticky Save / Discard bar when a form has edits, and warn before navigating away with unsaved changes." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="form-pending" name="form_pending" {% if form_pending %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="form-pending">
+          <strong>{% trans "Submit pending state" %}</strong>
+          <span class="d-block text-muted small">{% trans "Lock the submit button with a spinner while a form is sending, so a double-click can't fire it twice." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="form-validation" name="form_validation" {% if form_validation %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="form-validation">
+          <strong>{% trans "Live validation &amp; counters" %}</strong>
+          <span class="d-block text-muted small">{% trans "Surface field errors as soon as a field is left, and show a live character counter on length-limited fields." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="form-section-nav" name="form_section_nav" {% if form_section_nav %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="form-section-nav">
+          <strong>{% trans "Long-form section nav" %}</strong>
+          <span class="d-block text-muted small">{% trans "On long forms with several sections, show a jump-to nav that highlights the section you're in." %}</span>
+        </label>
+      </div>
+    </div>
+    {% if can_manage %}
+    <div class="card-footer text-end">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1" aria-hidden="true"></i>{% trans "Save defaults" %}</button>
+    </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

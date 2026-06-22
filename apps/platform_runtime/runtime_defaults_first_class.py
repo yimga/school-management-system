@@ -331,6 +331,14 @@ _WIZARD_RUNTIME_DEFAULT_KEYS: frozenset[str] = frozenset({
     "dashboard_reorder",
     "dashboard_adaptive",
     "dashboard_density",
+    # Form-intelligence engine defaults (read via SITE façade → emitted in the
+    # #rmc-forms-config island; the engine auto-attaches to every POST form).
+    # Payload-backed (no migration); owned by brand_experience via "form_".
+    "form_intelligence",
+    "form_unsaved_guard",
+    "form_pending",
+    "form_validation",
+    "form_section_nav",
 })
 
 

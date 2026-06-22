@@ -115,6 +115,7 @@ _PLATFORM_ACTION_DEFS: tuple[tuple, ...] = (
     ("settings", "Sidebar settings", "🧭", "siteconfig:sidebar_settings", "tenant_admin", None),
     ("settings", "Table settings", "🧮", "siteconfig:table_settings", "tenant_admin", None),
     ("settings", "Dashboard settings", "🧩", "siteconfig:dashboard_settings", "tenant_admin", None),
+    ("settings", "Form settings", "📝", "siteconfig:form_settings", "tenant_admin", None),
     # ---- Studio palette generators ----
     ("palette", "Generate palette", "🎨", "studio_os:experience_recommendations", "tenant_admin", None),
     ("palette", "Compare themes", "🔁", "studio_os:experience_compare", "tenant_admin", None),

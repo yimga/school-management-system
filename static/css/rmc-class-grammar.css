@@ -5896,3 +5896,63 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 .rmc-dash-dragover { box-shadow: 0 0 0 2px var(--brand-primary) inset; }
 [data-rmc-dash-density="compact"] > .rmc-collapsable { margin-bottom: 0.375rem; }
 [data-rmc-dash-density="spacious"] > .rmc-collapsable { margin-bottom: 1.25rem; }
+
+/* ----------------------------------------------------------------------------
+   Form-intelligence engine (v4.04.62) — classes injected by
+   static/js/rmc-form-intelligence.js (no template references them, so they are
+   exempt from the undefined-CSS gate; defined here for the visual contract).
+   Token-only colours so the tenant theme + dark mode flip correctly.
+---------------------------------------------------------------------------- */
+.rmc-fi-savebar {
+  position: sticky; bottom: 0; z-index: 5;
+  display: flex; align-items: center; gap: 0.75rem;
+  margin-top: 1rem; padding: 0.75rem 1rem;
+  background: var(--surface-elevated, var(--surface-canvas));
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.75rem);
+  box-shadow: var(--elev-2);
+  transform: translateY(140%); opacity: 0;
+  transition: transform var(--motion-medium, 0.22s) var(--ease-out, ease), opacity var(--motion-medium, 0.22s) var(--ease-out, ease);
+  pointer-events: none;
+}
+.rmc-fi-savebar.is-dirty { transform: translateY(0); opacity: 1; pointer-events: auto; }
+.rmc-fi-savebar__dot { width: 0.5625rem; height: 0.5625rem; border-radius: var(--radius-pill, 999px); background: var(--warning, var(--brand-primary)); flex: 0 0 auto; }
+.rmc-fi-savebar__msg { flex: 1 1 auto; font-size: var(--type-size-sm, 0.875rem); color: var(--text-secondary); }
+.rmc-fi-savebar__btn {
+  appearance: none; cursor: pointer;
+  font: inherit; font-weight: 600; font-size: var(--type-size-sm, 0.875rem);
+  padding: 0.4375rem 0.875rem; border-radius: var(--radius-sm, 0.5rem);
+  border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary);
+}
+.rmc-fi-savebar__btn--primary { background: var(--brand-primary); border-color: var(--brand-primary); color: var(--brand-on-primary, var(--surface-canvas)); }
+
+.rmc-fi-counter { font-size: var(--type-size-xs, 0.75rem); color: var(--text-tertiary); text-align: right; margin-top: 0.1875rem; }
+.rmc-fi-counter.is-warn { color: var(--warning, var(--text-secondary)); }
+.rmc-fi-counter.is-danger { color: var(--danger, var(--text-secondary)); }
+
+.rmc-fi-nav {
+  position: sticky; top: var(--rmc-fi-nav-top, 0.75rem); z-index: 4;
+  display: flex; flex-wrap: wrap; gap: 0.375rem;
+  margin-bottom: 1.25rem; padding: 0.5rem;
+  background: var(--surface-elevated, var(--surface-canvas));
+  border: 1px solid var(--hairline); border-radius: var(--radius-md, 0.75rem);
+}
+.rmc-fi-nav__link {
+  font-size: var(--type-size-xs, 0.75rem); text-decoration: none;
+  color: var(--text-secondary); padding: 0.3125rem 0.625rem;
+  border-radius: var(--radius-pill, 999px); border: 1px solid transparent;
+}
+.rmc-fi-nav__link.is-active { color: var(--brand-primary); background: var(--brand-soft, var(--surface-overlay)); border-color: var(--hairline); font-weight: 600; }
+
+.rmc-fi-busy { position: relative; pointer-events: none; }
+.rmc-fi-busy::after {
+  content: ""; position: absolute; inset-block: 0; right: 0.625rem; margin: auto;
+  width: 0.875rem; height: 0.875rem; border-radius: var(--radius-pill, 999px);
+  border: 2px solid var(--hairline); border-top-color: var(--brand-primary);
+  animation: rmc-fi-spin 0.7s linear infinite;
+}
+@keyframes rmc-fi-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .rmc-fi-savebar { transition: none; }
+  .rmc-fi-busy::after { animation: none; }
+}

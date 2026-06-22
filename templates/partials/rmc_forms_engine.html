@@ -1,0 +1,19 @@
+{% load static %}
+{% comment %}
+  Form-intelligence engine (v4.04.62) — loaded on authenticated shells.
+  The JSON island carries the SITE-cascade config (default-on, school/operator
+  overridable, zero migration). The engine auto-attaches to every real
+  <form method="post"> (smart skips + data-rmc-form-enhance="0" opt-out) and
+  orchestrates the unsaved-changes guard / save bar, submit pending-state,
+  character counters, blur-surfaced validation, and long-form section nav. It
+  composes the existing rmc-form-dirty.js + rmc-form-validation.js (does not
+  duplicate them). nonce on the data block satisfies verify_csp_nonce_emission.
+{% endcomment %}
+<script nonce="{{ csp_nonce }}" type="application/json" id="rmc-forms-config">{
+  "intelligence": {% if SITE.form_intelligence == False %}false{% else %}true{% endif %},
+  "unsaved": {% if SITE.form_unsaved_guard == False %}false{% else %}true{% endif %},
+  "pending": {% if SITE.form_pending == False %}false{% else %}true{% endif %},
+  "validation": {% if SITE.form_validation == False %}false{% else %}true{% endif %},
+  "section_nav": {% if SITE.form_section_nav == False %}false{% else %}true{% endif %}
+}</script>
+<script src="{% static 'js/rmc-form-intelligence.js' %}" defer></script>
