@@ -4,7 +4,7 @@
 {% block title %}{% trans "School portal login" %}{% endblock %}
 
 {% block extrastyle %}
-  
+  <link rel="stylesheet" href="{% static 'css/auth-login-canvas.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -13,250 +13,217 @@
 
 {% include "components/next_action_strip.html" %}
 
-  {% if TENANT_WALLPAPER_URL %}
-  <div data-rmc-scroll-policy="paginate" class="login-split" id="preview-login-page">
-    <div class="login-split__left" style="background-image: url('{{ TENANT_WALLPAPER_URL|escape }}');" role="img" aria-hidden="true"></div>
-    <div class="login-split__right">
-  {% else %}
-  <section class="auth-landing py-5" id="preview-login-page">
-    <div class="container">
-  {% endif %}
-      <div class="auth-hero" id="preview-login-hero" data-preview-label="{% trans 'Login hero (colors & branding)' %}" data-preview-changes="{% trans 'Primary/accent colors, logo, heading' %}">
-        <div class="hero-brand" id="preview-login-brand" data-preview-label="{% trans 'Logo & site name' %}" data-preview-changes="{% trans 'Site name, tagline, hero heading' %}">
-          <div class="hero-logo">
-            {% if is_manager_host and not SITE_LOGO_URL and not PUBLIC_BRAND_FAVICON_URL %}
-              <span>R</span>
-            {% elif PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}
-              <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="80" height="80" decoding="async" loading="eager" style="width:100%;height:100%;object-fit:contain;">
-            {% elif SITE_LOGO_URL %}
-              <img src="{{ SITE_LOGO_URL }}" alt="" width="80" height="80" decoding="async" loading="eager" style="width:100%;height:100%;object-fit:contain;">
-            {% else %}
-              <span>{% if PUBLIC_BRAND_MODE %}R{% elif SITE.site_name %}{{ SITE.site_name|slice:":1" }}{% else %}S{% endif %}</span>
-            {% endif %}
-          </div>
-          <div>
-            {% if is_manager_host %}
-              <strong>RunMyCampus</strong>
-              <small>{% trans "Platform & school management" %}</small>
-              <small class="d-block mt-1 opacity-75">{% trans "You're signing in to manage schools and tenants" %}</small>
-            {% else %}
-              <strong>{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% elif SITE.login_hero_heading %}{{ SITE.login_hero_heading }}{% else %}{{ SITE.site_name|default:"School Management System" }}{% endif %}</strong>
-              <small>{% if PUBLIC_BRAND_MODE %}{% trans "Platform & school management" %}{% elif SITE.login_hero_subtext %}{{ SITE.login_hero_subtext }}{% else %}{{ SITE.tagline|default:"Sign in for staff, families, and admins" }}{% endif %}</small>
-              {% if SITE_BRANDED_DOMAIN %}
-                <small class="d-block mt-1 opacity-75">{% trans "You're logging in to" %} {{ SITE_BRANDED_DOMAIN }}</small>
-              {% endif %}
-            {% endif %}
-          </div>
-        </div>
-        {% if request.user.is_authenticated %}
-          <div class="auth-hero hero-meta">
-            <div class="d-flex align-items-center gap-2">
-              <span>{% blocktrans with name=request.user.username %}Logged in as {{ name }}{% endblocktrans %}</span>
-            </div>
-          </div>
+{% comment %} Login A — branded canvas split (2026-06-22). Left = the school's own
+brand canvas (wallpaper if set, else the tenant brand gradient + logo + motto +
+a value line); right = a clean sign-in. The <form> and every security/host guard
+below are preserved verbatim from the prior login. {% endcomment %}
+<div class="rmc-auth-split" id="preview-login-page" data-rmc-scroll-policy="paginate"{% if TENANT_WALLPAPER_URL %} data-rmc-auth-has-wallpaper="1"{% endif %}>
+
+  <aside class="rmc-auth-split__canvas" id="preview-login-hero"{% if TENANT_WALLPAPER_URL %} style="--rmc-auth-wallpaper: url('{{ TENANT_WALLPAPER_URL|escape }}');"{% endif %} data-preview-label="{% trans 'Login canvas (brand)' %}" data-preview-changes="{% trans 'Logo, school name, motto, brand colors' %}">
+    <div class="rmc-auth-split__brand" id="preview-login-brand">
+      <div class="rmc-auth-split__logo hero-logo">
+        {% if is_manager_host and not SITE_LOGO_URL and not PUBLIC_BRAND_FAVICON_URL %}
+          <span>R</span>
+        {% elif PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}
+          <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="80" height="80" decoding="async" loading="eager">
+        {% elif SITE_LOGO_URL %}
+          <img src="{{ SITE_LOGO_URL }}" alt="" width="80" height="80" decoding="async" loading="eager">
+        {% else %}
+          <span>{% if PUBLIC_BRAND_MODE %}R{% elif SITE.site_name %}{{ SITE.site_name|slice:":1" }}{% else %}S{% endif %}</span>
         {% endif %}
       </div>
-      {% if not TENANT_WALLPAPER_URL %}
-      <div class="auth-breadcrumb text-muted text-uppercase small">
-        <span>{% trans "Home" %} / {% trans "Authentication" %} / {% trans "Login" %}</span>
+      <div class="rmc-auth-split__brandtext">
+        {% if is_manager_host %}
+          <strong>RunMyCampus</strong>
+          <small>{% trans "Platform & school management" %}</small>
+          <small class="rmc-auth-split__note">{% trans "You're signing in to manage schools and tenants" %}</small>
+        {% else %}
+          <strong>{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% elif SITE.login_hero_heading %}{{ SITE.login_hero_heading }}{% else %}{{ SITE.site_name|default:"School Management System" }}{% endif %}</strong>
+          <small>{% if PUBLIC_BRAND_MODE %}{% trans "Platform & school management" %}{% elif SITE.login_hero_subtext %}{{ SITE.login_hero_subtext }}{% else %}{{ SITE.tagline|default:"Sign in for staff, families, and admins" }}{% endif %}</small>
+          {% if SITE_BRANDED_DOMAIN %}
+            <small class="rmc-auth-split__note">{% trans "You're logging in to" %} {{ SITE_BRANDED_DOMAIN }}</small>
+          {% endif %}
+        {% endif %}
       </div>
+    </div>
+
+    <p class="rmc-auth-split__value">
+      {% if is_manager_host %}
+        {% trans "One console for every school, tenant, and operator workflow." %}
+      {% else %}
+        {% trans "Attendance, marks, fees, and messages — one secure place for staff and families." %}
       {% endif %}
+    </p>
 
-      <div class="row justify-content-center g-4 align-items-stretch {% if TENANT_WALLPAPER_URL %}mx-0{% endif %} rmc-reveal-stagger">
-        <div class="col-lg-5 rmc-reveal">
-          <div class="card shadow-sm login-card" id="preview-login-form" data-preview-label="{% trans 'Sign-in form' %}" data-preview-changes="{% trans 'Form layout and styling' %}">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
-                <div>
-                  {% comment %} Aesthetic-v2 eyebrow + page-h1 grammar. Styled by patterns.css. {% endcomment %}
-                  <div class="eyebrow mb-1">{% trans "Staff & admin access" %}</div>
-                  <h1 class="page-h1 h5 mb-0">{% trans "Secure sign in" %}</h1>
-                </div>
-                <span class="badge rounded-pill text-primary border border-primary px-3 py-1">
-                  {% trans "Portal credentials" %}
-                </span>
-              </div>
+    {% if request.user.is_authenticated %}
+      <div class="rmc-auth-split__signedin">
+        <span>{% blocktrans with name=request.user.username %}Logged in as {{ name }}{% endblocktrans %}</span>
+      </div>
+    {% endif %}
+  </aside>
 
-              <form method="post" novalidate>
-                {% csrf_token %}
-                {% if request.GET.next %}
-                  <input type="hidden" name="next" value="{{ request.GET.next }}">
-                {% elif request.POST.next %}
-                  <input type="hidden" name="next" value="{{ request.POST.next }}">
-                {% endif %}
-                {% comment %} Bot honeypot: a real field hidden from people; automated submitters fill it. {% endcomment %}
-                <div class="visually-hidden" aria-hidden="true">
-                  <label for="{{ honeypot_field }}">{% trans "Leave this field blank" %}</label>
-                  <input type="text" name="{{ honeypot_field }}" id="{{ honeypot_field }}" tabindex="-1" autocomplete="off" value="">
-                </div>
-                {% comment %} Timing trap: signed render time (rejects sub-second bot submissions). {% endcomment %}
-                <input type="hidden" name="form_ts" value="{{ form_ts }}">
-                <div class="mb-3">
-                  <label class="form-label">{% trans "I am signing in as" %}</label>
-                  <select class="form-select" name="role" id="login-role">
-                    <option value="staff">{{ TENANT_LABELS.staff|default:"Staff" }}</option>
-                    <option value="student">{{ TENANT_LABELS.student|default:"Student" }}</option>
-                    <option value="parent">{{ TENANT_LABELS.parent|default:"Parent" }}</option>
-                  </select>
-                </div>
-                {% if LOGIN_SSO_INTEGRATIONS %}
-                <div class="mb-3">
-                  {% for item in LOGIN_SSO_INTEGRATIONS %}
-                  <a href="{{ item.url }}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn btn-outline-secondary w-100 mb-2">{{ item.label }}</a>
-                  {% endfor %}
-                  <p class="small text-muted text-center my-2">{% trans "— or sign in with username —" %}</p>
-                </div>
-                {% endif %}
-                {% comment %} v4.00.68 — SAML LoginInitiator surface. Renders only when the operator {% endcomment %}
-                {% comment %} has configured RMC_SAML_IDP_SSO_URL; safe no-op otherwise. The button {% endcomment %}
-                {% comment %} carries ?next= through via the prebuilt start_url (open-redirect-safe). {% endcomment %}
-                {% if saml_login_initiator.available %}
-                <div class="mb-3" id="saml-login-initiator" data-rmc-saml-sso-block="1">
-                  <a href="{{ saml_login_initiator.start_url }}" class="btn btn-outline-primary w-100 mb-2" data-rmc-saml-sso-button="1" rel="nofollow">
-                    {{ saml_login_initiator.label }}
-                  </a>
-                  <p class="small text-muted text-center my-2">{% trans "— or sign in with username —" %}</p>
-                </div>
-                {% endif %}
-                <div class="mb-3">
-                  <label class="form-label" for="login-username">{% trans "Email or username" %}</label>
-                  <input id="login-username" class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" placeholder="{{ LOGIN_EMAIL_PLACEHOLDER|default:'School Email' }}" required autofocus>
-                </div>
-                {% trans "Password" as login_password_label %}
-                {% include "components/rmc_password_field.html" with field_id="login-password" field_name="password" label=login_password_label autocomplete="current-password" %}
-                {% if pow_required and pow_challenge %}
-                <div class="mb-3" id="rmc-pow"
-                     data-salt="{{ pow_challenge.salt }}" data-bits="{{ pow_challenge.bits }}"
-                     data-busy-label="{% trans 'Verifying you’re human…' %}"
-                     data-wait-label="{% trans 'Verifying… one moment.' %}"
-                     data-done-label="{% trans 'Verified ✓' %}">
-                  <input type="hidden" name="pow_token" value="{{ pow_challenge.token }}">
-                  <input type="hidden" name="pow_nonce" value="">
-                  <p class="small text-muted mb-0"><span id="rmc-pow-status" role="status" aria-live="polite">{% trans "Verifying you’re human…" %}</span></p>
-                </div>
-                <script src="{% static 'js/rmc-login-pow.js' %}" defer></script>
-                <noscript>
-                  <p class="small text-danger mb-2">{% trans "JavaScript is needed to verify you’re human. If it’s turned off, use “Reset your password” below to sign in." %}</p>
-                </noscript>
-                <p class="small text-muted mb-2">
-                  {% trans "Trouble verifying?" %}
-                  <a href="{% url 'accounts:password_reset' %}">{% trans "Reset your password instead." %}</a>
-                </p>
-                {% elif turnstile_required and turnstile_site_key %}
-                <div class="mb-3">
-                  <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
-                </div>
-                <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-                <p class="small text-muted mb-2">
-                  {% trans "Trouble with the verification?" %}
-                  <a href="{% url 'accounts:password_reset' %}">{% trans "Reset your password instead." %}</a>
-                </p>
-                {% endif %}
-                <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
-              </form>
-              <p class="small text-center mt-2 mb-0">
-                <a href="{% url 'accounts:password_reset' %}" data-rmc-parent-password-reset="1">{% trans "Forgot password?" %}</a>
-              </p>
-              {% comment %} Resend link only on hosts whose urlconf carries the public route {% endcomment %}
-              {% comment %} (it lives in the marketing urlconf, not the tenant/manager one) — {% endcomment %}
-              {% comment %} a bare {% url %} would NoReverseMatch and 500 the whole login page. {% endcomment %}
-              {% url 'resend_signup_verification' as resend_url %}
-              {% if resend_url %}
-              <p class="small text-center text-muted mt-1 mb-0">
-                {% trans "Just signed up and didn’t get your verification email?" %}
-                <a href="{{ resend_url }}">{% trans "Resend it" %}</a>
-              </p>
-              {% endif %}
-
-              <p class="small text-muted mt-3 mb-0">
-                {% trans "Teachers land on the teacher dashboard, admins land on the console, and parents claim invites to link students." %}
-                <br>
-                {% trans "New parents can claim an invite" %} <a href="{% url 'accounts:claim_invite' %}">{% trans "here" %}</a>.
-              </p>
-              {% if is_manager_host and public_site_url %}
-              <p class="small text-muted mt-3 mb-0 text-center">
-                <a href="{{ public_site_url }}" class="text-muted">{% trans "School accounts sign in at runmycampus.com" %}</a>
-              </p>
-              {% endif %}
-            </div>
+  <div class="rmc-auth-split__panel">
+    <div class="rmc-auth-split__formcard card login-card" id="preview-login-form" data-preview-label="{% trans 'Sign-in form' %}" data-preview-changes="{% trans 'Form layout and styling' %}">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
+          <div>
+            <div class="eyebrow mb-1">{% trans "Staff & admin access" %}</div>
+            <h1 class="page-h1 h5 mb-0">{% trans "Secure sign in" %}</h1>
           </div>
+          <span class="badge rounded-pill text-primary border border-primary px-3 py-1">
+            {% trans "Portal credentials" %}
+          </span>
         </div>
 
-        <div class="col-lg-6 rmc-reveal">
-          <div class="card shadow-sm info-card">
-            <div>
-              <p class="text-uppercase small text-muted mb-1">{% trans "Families & guardians" %}</p>
-              <h3 class="h5 mb-2">
-                {% if is_manager_host %}
-                  {% trans "Use your school login" %}
-                {% else %}
-                  {% trans "Link your children securely" %}
-                {% endif %}
-              </h3>
-              <p class="text-muted mb-3">
-                {% if is_manager_host %}
-                  {% trans "The manager host is reserved for platform operators. Families and school staff should sign in through their own school workspace or claim an invite first." %}
-                {% else %}
-                  {% trans "Use the invite email, SMS, or WhatsApp token sent by the school to claim your learner and unlock attendance, marks, and open invoices." %}
-                {% endif %}
-              </p>
-              {% if is_manager_host %}
-                <a class="btn btn-outline-primary" href="{{ public_site_url|default:'https://runmycampus.com' }}/discover/">{% trans "Find your school" %}</a>
-              {% else %}
-                {% comment %} portal: is absent from the public-host urlconf — guard or this 500s the page. {% endcomment %}
-                {% url 'portal:link_child' as claim_invite_url %}
-                {% if not claim_invite_url %}{% url 'accounts:claim_invite' as claim_invite_url %}{% endif %}
-                {% if claim_invite_url %}<a class="btn btn-outline-primary" href="{{ claim_invite_url }}">{% trans "Claim an invite" %}</a>{% endif %}
-              {% endif %}
-            </div>
-
-            <div>
-              <p class="text-uppercase small text-muted mb-2">{% trans "Quick links" %}</p>
-              <div class="d-flex flex-wrap gap-2">
-                {% if is_manager_host %}
-                  <a class="quick-link" href="{% url 'accounts:claim_invite' %}">{% trans "Claim an invite" %}</a>
-                  <a class="quick-link" href="{% url 'manager_help_center' %}">{% trans "Help center" %}</a>
-                  <a
-                    class="quick-link quick-link-muted"
-                    href="{% url 'super:dashboard' %}"
-                    title="{% trans "Platform operators only" %}"
-                  >
-                    {% trans "Control plane" %}
-                  </a>
-                {% else %}
-                  {% comment %} portal:/siteconfig:/studio_os: are tenant-host routes, absent from the {% endcomment %}
-                  {% comment %} public-host urlconf — guard each so the public login page can't 500. {% endcomment %}
-                  {% url 'portal:parent_dashboard' as parent_dash_url %}
-                  {% if parent_dash_url %}<a class="quick-link" href="{{ parent_dash_url }}">{% trans "Parent portal" %}</a>{% endif %}
-                  {% url 'siteconfig:user_preferences' as prefs_url %}
-                  {% if prefs_url %}<a class="quick-link" href="{{ prefs_url }}">{% trans "Preferences" %}</a>{% endif %}
-                  {% url 'studio_os:experience' as studio_exp_url %}
-                  {% if studio_exp_url %}<a
-                    class="quick-link quick-link-muted"
-                    href="{{ studio_exp_url }}"
-                    title="{% trans "Admins only: Site Settings & theme packs" %}"
-                  >
-                    {% trans "Site Settings (admin only)" %}
-                  </a>{% endif %}
-                {% endif %}
-              </div>
-              <p class="small text-muted mt-3 mb-0">
-                {% if is_manager_host %}
-                  {% trans "Control-plane operators can manage schools from the manager host. Everyone else should sign in through their school or use an invite link." %}
-                {% else %}
-                  {% trans "Customizer controls now live inside Site Settings or your Preferences so you can always control how the dashboard looks." %}
-                {% endif %}
-              </p>
-            </div>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% if request.GET.next %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+          {% elif request.POST.next %}
+            <input type="hidden" name="next" value="{{ request.POST.next }}">
+          {% endif %}
+          {% comment %} Bot honeypot: a real field hidden from people; automated submitters fill it. {% endcomment %}
+          <div class="visually-hidden" aria-hidden="true">
+            <label for="{{ honeypot_field }}">{% trans "Leave this field blank" %}</label>
+            <input type="text" name="{{ honeypot_field }}" id="{{ honeypot_field }}" tabindex="-1" autocomplete="off" value="">
           </div>
+          {% comment %} Timing trap: signed render time (rejects sub-second bot submissions). {% endcomment %}
+          <input type="hidden" name="form_ts" value="{{ form_ts }}">
+          <div class="mb-3">
+            <label class="form-label">{% trans "I am signing in as" %}</label>
+            <select class="form-select" name="role" id="login-role">
+              <option value="staff">{{ TENANT_LABELS.staff|default:"Staff" }}</option>
+              <option value="student">{{ TENANT_LABELS.student|default:"Student" }}</option>
+              <option value="parent">{{ TENANT_LABELS.parent|default:"Parent" }}</option>
+            </select>
+          </div>
+          {% if LOGIN_SSO_INTEGRATIONS %}
+          <div class="mb-3">
+            {% for item in LOGIN_SSO_INTEGRATIONS %}
+            <a href="{{ item.url }}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn btn-outline-secondary w-100 mb-2">{{ item.label }}</a>
+            {% endfor %}
+            <p class="small text-muted text-center my-2">{% trans "— or sign in with username —" %}</p>
+          </div>
+          {% endif %}
+          {% comment %} v4.00.68 — SAML LoginInitiator surface. Renders only when the operator {% endcomment %}
+          {% comment %} has configured RMC_SAML_IDP_SSO_URL; safe no-op otherwise. The button {% endcomment %}
+          {% comment %} carries ?next= through via the prebuilt start_url (open-redirect-safe). {% endcomment %}
+          {% if saml_login_initiator.available %}
+          <div class="mb-3" id="saml-login-initiator" data-rmc-saml-sso-block="1">
+            <a href="{{ saml_login_initiator.start_url }}" class="btn btn-outline-primary w-100 mb-2" data-rmc-saml-sso-button="1" rel="nofollow">
+              {{ saml_login_initiator.label }}
+            </a>
+            <p class="small text-muted text-center my-2">{% trans "— or sign in with username —" %}</p>
+          </div>
+          {% endif %}
+          <div class="mb-3">
+            <label class="form-label" for="login-username">{% trans "Email or username" %}</label>
+            <input id="login-username" class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" placeholder="{{ LOGIN_EMAIL_PLACEHOLDER|default:'School Email' }}" required autofocus>
+          </div>
+          {% trans "Password" as login_password_label %}
+          {% include "components/rmc_password_field.html" with field_id="login-password" field_name="password" label=login_password_label autocomplete="current-password" %}
+          {% if pow_required and pow_challenge %}
+          <div class="mb-3" id="rmc-pow"
+               data-salt="{{ pow_challenge.salt }}" data-bits="{{ pow_challenge.bits }}"
+               data-busy-label="{% trans 'Verifying you’re human…' %}"
+               data-wait-label="{% trans 'Verifying… one moment.' %}"
+               data-done-label="{% trans 'Verified ✓' %}">
+            <input type="hidden" name="pow_token" value="{{ pow_challenge.token }}">
+            <input type="hidden" name="pow_nonce" value="">
+            <p class="small text-muted mb-0"><span id="rmc-pow-status" role="status" aria-live="polite">{% trans "Verifying you’re human…" %}</span></p>
+          </div>
+          <script src="{% static 'js/rmc-login-pow.js' %}" defer></script>
+          <noscript>
+            <p class="small text-danger mb-2">{% trans "JavaScript is needed to verify you’re human. If it’s turned off, use “Reset your password” below to sign in." %}</p>
+          </noscript>
+          <p class="small text-muted mb-2">
+            {% trans "Trouble verifying?" %}
+            <a href="{% url 'accounts:password_reset' %}">{% trans "Reset your password instead." %}</a>
+          </p>
+          {% elif turnstile_required and turnstile_site_key %}
+          <div class="mb-3">
+            <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
+          </div>
+          <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script> <!-- sri-allow: cloudflare-turnstile-loader-rotates-no-sri -->
+          <p class="small text-muted mb-2">
+            {% trans "Trouble with the verification?" %}
+            <a href="{% url 'accounts:password_reset' %}">{% trans "Reset your password instead." %}</a>
+          </p>
+          {% endif %}
+          <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
+        </form>
+        <p class="small text-center mt-2 mb-0">
+          <a href="{% url 'accounts:password_reset' %}" data-rmc-parent-password-reset="1">{% trans "Forgot password?" %}</a>
+        </p>
+        {% comment %} Resend link only on hosts whose urlconf carries the public route {% endcomment %}
+        {% comment %} (it lives in the marketing urlconf, not the tenant/manager one) — {% endcomment %}
+        {% comment %} a bare {% url %} would NoReverseMatch and 500 the whole login page. {% endcomment %}
+        {% url 'resend_signup_verification' as resend_url %}
+        {% if resend_url %}
+        <p class="small text-center text-muted mt-1 mb-0">
+          {% trans "Just signed up and didn’t get your verification email?" %}
+          <a href="{{ resend_url }}">{% trans "Resend it" %}</a>
+        </p>
+        {% endif %}
+
+        <p class="small text-muted mt-3 mb-0">
+          {% trans "Teachers land on the teacher dashboard, admins land on the console, and parents claim invites to link students." %}
+          <br>
+          {% trans "New parents can claim an invite" %} <a href="{% url 'accounts:claim_invite' %}">{% trans "here" %}</a>.
+        </p>
+        {% if is_manager_host and public_site_url %}
+        <p class="small text-muted mt-3 mb-0 text-center">
+          <a href="{{ public_site_url }}" class="text-muted">{% trans "School accounts sign in at runmycampus.com" %}</a>
+        </p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="rmc-auth-split__families card info-card">
+      <div>
+        <p class="text-uppercase small text-muted mb-1">{% trans "Families & guardians" %}</p>
+        <h3 class="h6 mb-2">
+          {% if is_manager_host %}
+            {% trans "Use your school login" %}
+          {% else %}
+            {% trans "Link your children securely" %}
+          {% endif %}
+        </h3>
+        <p class="text-muted small mb-3">
+          {% if is_manager_host %}
+            {% trans "The manager host is reserved for platform operators. Families and school staff should sign in through their own school workspace or claim an invite first." %}
+          {% else %}
+            {% trans "Use the invite email, SMS, or WhatsApp token sent by the school to claim your learner and unlock attendance, marks, and open invoices." %}
+          {% endif %}
+        </p>
+        {% if is_manager_host %}
+          <a class="btn btn-outline-primary btn-sm" href="{{ public_site_url|default:'https://runmycampus.com' }}/discover/">{% trans "Find your school" %}</a>
+        {% else %}
+          {% comment %} portal: is absent from the public-host urlconf — guard or this 500s the page. {% endcomment %}
+          {% url 'portal:link_child' as claim_invite_url %}
+          {% if not claim_invite_url %}{% url 'accounts:claim_invite' as claim_invite_url %}{% endif %}
+          {% if claim_invite_url %}<a class="btn btn-outline-primary btn-sm" href="{{ claim_invite_url }}">{% trans "Claim an invite" %}</a>{% endif %}
+        {% endif %}
+        <div class="rmc-auth-split__quicklinks d-flex flex-wrap gap-2 mt-3">
+          {% if is_manager_host %}
+            <a class="quick-link" href="{% url 'accounts:claim_invite' %}">{% trans "Claim an invite" %}</a>
+            <a class="quick-link" href="{% url 'manager_help_center' %}">{% trans "Help center" %}</a>
+            <a class="quick-link quick-link-muted" href="{% url 'super:dashboard' %}" title="{% trans 'Platform operators only' %}">{% trans "Control plane" %}</a>
+          {% else %}
+            {% comment %} portal:/siteconfig:/studio_os: are tenant-host routes, absent from the {% endcomment %}
+            {% comment %} public-host urlconf — guard each so the public login page can't 500. {% endcomment %}
+            {% url 'portal:parent_dashboard' as parent_dash_url %}
+            {% if parent_dash_url %}<a class="quick-link" href="{{ parent_dash_url }}">{% trans "Parent portal" %}</a>{% endif %}
+            {% url 'siteconfig:user_preferences' as prefs_url %}
+            {% if prefs_url %}<a class="quick-link" href="{{ prefs_url }}">{% trans "Preferences" %}</a>{% endif %}
+            {% url 'studio_os:experience' as studio_exp_url %}
+            {% if studio_exp_url %}<a class="quick-link quick-link-muted" href="{{ studio_exp_url }}" title="{% trans 'Admins only: Site Settings & theme packs' %}">{% trans "Site Settings (admin only)" %}</a>{% endif %}
+          {% endif %}
         </div>
       </div>
-    {% if TENANT_WALLPAPER_URL %}
     </div>
   </div>
-  {% else %}
-    </div>
-  </section>
-  {% endif %}
+
+</div>
 {% include "components/rmc_password_toggle_script.html" %}
 {% endblock %}

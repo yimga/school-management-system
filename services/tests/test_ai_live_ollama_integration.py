@@ -19,9 +19,17 @@ from django.test import SimpleTestCase, tag
 
 
 def _ollama_reachable() -> bool:
-    from apps.portal.ai_provider import probe_ai_provider_reachable
+    # Ollama-SPECIFIC /api/tags probe. The generic probe_ai_provider_reachable()
+    # reports reachable when a litellm/degraded fallback is up even though Ollama
+    # itself is down, which made these live tests FAIL instead of SKIP off-Ollama
+    # (e.g. dev boxes / PR CI with a cloud provider configured). Probe the resolved
+    # Ollama base directly so the guard matches this module's documented "/api/tags"
+    # intent: run only when Ollama truly answers, skip everywhere else.
+    from apps.portal.ai_provider import _probe_ollama_base, resolve_ollama_connection
 
-    return bool(probe_ai_provider_reachable().get("reachable"))
+    conn = resolve_ollama_connection(force_refresh=True)
+    ok, _status = _probe_ollama_base(conn.get("base_url") or "")
+    return ok
 
 
 def _require_live() -> bool:

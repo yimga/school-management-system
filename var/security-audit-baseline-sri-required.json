@@ -1,21 +1,8 @@
 {
   "allow_marker": "<!-- sri-allow: <reason> -->",
-  "finding_count": 2,
-  "findings": [
-    {
-      "kind": "script",
-      "line": 149,
-      "path": "templates/auth/login.html",
-      "url": "https://challenges.cloudflare.com/turnstile/v0/api.js"
-    },
-    {
-      "kind": "script",
-      "line": 99,
-      "path": "templates/auth/manager_login.html",
-      "url": "https://challenges.cloudflare.com/turnstile/v0/api.js"
-    }
-  ],
-  "generated_at": "2026-06-21T10:50:55+00:00",
+  "finding_count": 0,
+  "findings": [],
+  "generated_at": "2026-06-22T19:04:36+00:00",
   "rule": "third-party <script src=>/<link rel=stylesheet href=> over HTTPS must carry an integrity= SRI hash",
   "same_origin_hosts": [
     "runmycampus.com",
