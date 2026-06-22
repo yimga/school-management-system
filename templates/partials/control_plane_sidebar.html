@@ -8,6 +8,7 @@
      data-rmc-sidebar-search="{% if SITE.sidebar_search == False %}0{% else %}1{% endif %}"
      data-rmc-sidebar-adaptive="{% if SITE.sidebar_adaptive_order == False %}0{% else %}1{% endif %}"
      data-rmc-sidebar-density="{{ SITE.sidebar_density|default:'comfortable' }}"
+     {% if request.public_host_kind == 'manager' %}data-rmc-badge-poll="{% url 'super:sidebar_badges' %}"{% endif %}
      data-shell-nav-family="control-plane"
      data-rmc-os-nav="1"
      data-rmc-cp-sidebar-v8="1"

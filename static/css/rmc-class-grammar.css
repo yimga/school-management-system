@@ -5472,6 +5472,27 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 [data-rmc-density="spacious"] .nav-pill,
 [data-rmc-density="spacious"] .rmc-sb-frequent__item { padding-block: 11px; }
 
+/* Live awareness badge (Phase 2) — managed by the engine's poll. Token-only
+   tinted count chip; right-aligned via the flex class the engine adds to the
+   item it badges. Reconciles with server-rendered .badge (no double count). */
+.rmc-sb-has-livebadge { display: flex; align-items: center; }
+.rmc-sb-livebadge {
+  margin-left: auto;
+  flex: none;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  border-radius: var(--radius-pill, 999px);
+  color: var(--brand-primary, currentColor);
+  background: color-mix(in srgb, var(--brand-primary) 16%, transparent);
+}
+
 /* ── Deploy-freshness toast ─────────────────────────────────────────────────
    Surfaced by static/js/rmc-deploy-freshness.js when a NEW version deploys while
    the user is mid-session (the on-arrival case silently auto-reloads instead).

@@ -91,6 +91,7 @@ from .super_views_signup_verifications import (
     SignupVerificationActionView,
     SignupVerificationConsoleView,
 )
+from .super_views_sidebar_badges import operator_sidebar_badges
 from .super_views_invite_school import InviteSchoolConsoleView
 
 app_name = "super"
@@ -1304,6 +1305,11 @@ urlpatterns = [
         SignupVerificationActionView.as_view(),
         name="signup_verification_action",
     ),  # rbac-allow: super-staff-signup-verification-action
+    path(
+        "sidebar/badges/",
+        require_super_access_with_host(operator_sidebar_badges),
+        name="sidebar_badges",
+    ),  # rbac-allow: super-staff-operator-sidebar-badge-counts
     # 2026-06-06 — invite a whole school onto the platform (vs self-signup).
     path(
         "invite-school/",

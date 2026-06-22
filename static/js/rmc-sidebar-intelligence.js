@@ -260,6 +260,54 @@
     root.setAttribute("data-rmc-density", val);
   }
 
+  // ── 3. live awareness badges ────────────────────────────────────────────
+  // Poll a JSON endpoint ({ "badges": {id: count}, "interval": sec }) and keep
+  // nav badges current without a reload. Reconciles with any server-rendered
+  // badge so tenant items don't double up; operator items (no server badge) get
+  // a managed .rmc-sb-livebadge. Fails soft and gives up after repeated errors.
+  var SAFE_ID = /^[\w:.\-]+$/;
+  function setLiveBadge(root, id, count) {
+    id = String(id);
+    if (!SAFE_ID.test(id)) return;
+    var sel = '[data-cp-primary-id="' + id + '"], [data-sidebar-id="' + id + '"], [data-rmc-unified-nav-id="' + id + '"]';
+    [].slice.call(root.querySelectorAll(sel)).forEach(function (a) {
+      if (a.classList.contains("rmc-sb-frequent__item")) return;
+      var existing = a.querySelector(".badge, .rmc-sb-livebadge");
+      if (count > 0) {
+        var text = count > 99 ? "99+" : String(count);
+        if (existing) { existing.textContent = text; existing.hidden = false; existing.style.display = ""; }
+        else {
+          var b = document.createElement("span");
+          b.className = "rmc-sb-livebadge";
+          b.textContent = text;
+          a.appendChild(b);
+          a.classList.add("rmc-sb-has-livebadge");
+        }
+      } else if (existing) {
+        if (existing.classList.contains("rmc-sb-livebadge")) { existing.remove(); a.classList.remove("rmc-sb-has-livebadge"); }
+        else { existing.style.display = "none"; }
+      }
+    });
+  }
+  function liveBadges(root) {
+    var url = root.getAttribute("data-rmc-badge-poll");
+    if (!url) return;
+    var fails = 0, timer = null;
+    function schedule(ms) { if (timer) clearTimeout(timer); timer = setTimeout(poll, ms); }
+    function poll() {
+      fetch(url, { credentials: "same-origin", headers: { "X-Requested-With": "XMLHttpRequest" } })
+        .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+        .then(function (d) {
+          fails = 0;
+          var badges = (d && d.badges) || {};
+          Object.keys(badges).forEach(function (id) { setLiveBadge(root, id, parseInt(badges[id], 10) || 0); });
+          schedule(Math.max(20, parseInt(d && d.interval, 10) || 60) * 1000);
+        })
+        .catch(function () { fails += 1; if (fails < 3) schedule(60000); });
+    }
+    poll();
+  }
+
   // ── init one sidebar ────────────────────────────────────────────────────
   function init(root) {
     if (root.__rmcIntel) return;
@@ -268,6 +316,7 @@
       var ad = adapter(root);
       applyDensity(root);
       trackClicks(root);
+      liveBadges(root);
 
       var list = items(root, ad).map(function (a) {
         var raw = itemLabel(a, ad);

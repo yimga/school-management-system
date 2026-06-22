@@ -16,7 +16,7 @@ noise, not signal). We assert:
 from pathlib import Path
 
 from django.template import Context, Template
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
 _ROOT = Path(__file__).resolve().parents[3]  # …/beta/school-management-system
 
@@ -91,3 +91,52 @@ class SidebarIntelligenceWiringTests(SimpleTestCase):
         css = _read("static/css/rmc-class-grammar.css")
         for cls in (".rmc-sb-filter", ".rmc-sb-frequent", ".rmc-sb-mark", ".rmc-sb-cursor"):
             self.assertIn(cls, css, cls)
+
+
+class SidebarLiveBadgeContractTests(SimpleTestCase):
+    """Phase 2: live awareness badges, wired on both surfaces."""
+
+    def test_engine_declares_live_badges(self):
+        js = _read("static/js/rmc-sidebar-intelligence.js")
+        self.assertIn("data-rmc-badge-poll", js)
+        self.assertIn("rmc-sb-livebadge", js)
+        self.assertIn("liveBadges", js)
+
+    def test_both_nav_roots_poll_for_badges(self):
+        for rel in (
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/control_plane_sidebar.html",
+        ):
+            self.assertIn("data-rmc-badge-poll", _read(rel), rel)
+
+    def test_livebadge_css_defined(self):
+        css = _read("static/css/rmc-class-grammar.css")
+        self.assertIn(".rmc-sb-livebadge", css)
+        self.assertIn(".rmc-sb-has-livebadge", css)
+
+    def test_both_badge_routes_registered(self):
+        self.assertIn(
+            'name="sidebar_badges"', _read("apps/siteconfig/urls.py")
+        )
+        self.assertIn(
+            'name="sidebar_badges"', _read("apps/schools/super_urls.py")
+        )
+
+
+class SidebarBadgeEndpointTests(TestCase):
+    """The endpoints fail soft to a well-formed payload (a badge poll must never
+    error the shell)."""
+
+    def test_operator_endpoint_shape(self):
+        from django.test import RequestFactory
+
+        from apps.schools.super_views_sidebar_badges import operator_sidebar_badges
+
+        resp = operator_sidebar_badges(RequestFactory().get("/super/sidebar/badges/"))
+        self.assertEqual(resp.status_code, 200)
+        import json
+
+        data = json.loads(resp.content)
+        self.assertIn("badges", data)
+        self.assertIn("interval", data)
+        self.assertIsInstance(data["badges"], dict)

@@ -1,12 +1,12 @@
 {
   "date": "2026-06-22",
-  "generated_at": "2026-06-22T12:00:00+00:00",
+  "generated_at": "2026-06-22T13:30:00+00:00",
   "major": 4,
   "minor": 4,
-  "patch": 53,
-  "raw": "sms-v4.04.53-intelligent-sidebars-2026-06-22",
+  "patch": 54,
+  "raw": "sms-v4.04.54-sidebar-live-badges-2026-06-22",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "intelligent-sidebars",
+  "slug": "sidebar-live-badges",
   "valid": true
 }
