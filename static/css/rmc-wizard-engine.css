@@ -117,8 +117,14 @@
   gap: var(--space-5, 1.25rem);
 }
 
+/* Elevation hierarchy (2026-06-22): match the signed-off workspace preview's
+   3-level depth — page (--surface-bg) < stage container (--surface-canvas) <
+   card tile (--surface-elevated). The stage is the recessed container so its
+   cards visibly tone-lift above it; previously the stage was --surface-elevated
+   and the cards were --surface-bg (pure #000 in dark mode), which inverted the
+   depth so the cards read as flat black holes blending into the page. */
 .rmc-wz-stage {
-  background: var(--surface-elevated);
+  background: var(--surface-canvas);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-lg, 14px);
   padding: var(--space-5, 1.25rem);
@@ -199,7 +205,9 @@
   gap: var(--space-1, 0.25rem);
   padding: var(--space-4, 1rem);
   padding-inline-start: calc(var(--space-4, 1rem) + 3px);
-  background: var(--surface-bg);
+  /* Elevated tile so it tone-lifts above the recessed stage container (see
+     .rmc-wz-stage). Was --surface-bg (#000 in dark) → flat, invisible cards. */
+  background: var(--surface-elevated);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md, 10px);
   text-decoration: none;
@@ -294,7 +302,7 @@
 .rmc-wz-card[data-rmc-wz-status="done"]::before {
   background: color-mix(in srgb, var(--brand-accent) 55%, transparent);
 }
-.rmc-wz-card[data-rmc-wz-status="done"] { background: color-mix(in srgb, var(--brand-accent) 4%, var(--surface-bg)); }
+.rmc-wz-card[data-rmc-wz-status="done"] { background: color-mix(in srgb, var(--brand-accent) 4%, var(--surface-elevated)); }
 .rmc-wz-card[data-rmc-wz-status="done"] .rmc-wz-card__status {
   color: var(--brand-accent);
   border-color: color-mix(in srgb, var(--brand-accent) 35%, transparent);
