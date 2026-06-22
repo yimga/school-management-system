@@ -306,6 +306,14 @@ _WIZARD_RUNTIME_DEFAULT_KEYS: frozenset[str] = frozenset({
     "sidebar_search",
     "sidebar_adaptive_order",
     "sidebar_density",
+    # Unified ⌘K command-palette engine defaults (read via the SITE façade →
+    # emitted as #rmc-cmdk data-attributes; per-tenant override lands in
+    # school.settings). Payload-backed (no migration); owned by brand_experience
+    # via the "command_palette_" prefix in field ownership.
+    "command_palette_intelligence",
+    "command_palette_fuzzy",
+    "command_palette_adaptive",
+    "command_palette_federate_sidebar",
 })
 
 

@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Command Palette Lab — Audit → Elevate</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --canvas:#ffffff; --ink:#0f1729; --ink-2:#5b6577; --ink-3:#8a93a3;
+    --line:#e6e9ef; --line-2:#d7dbe3; --brand:#3b5bdb; --brand-soft:#eef2ff;
+    --good:#0f9d58; --warn:#b8860b; --bad:#c0392b; --warn-soft:#fff7e6; --bad-soft:#fdecea; --good-soft:#e9f7ef;
+    --pop:#ffffff; --elev:0 18px 60px rgba(15,23,41,.22); --r:14px; --mark:#fff3bf;
+    --chip-nav:#eef2ff; --chip-nav-ink:#3b5bdb; --chip-act:#e9f7ef; --chip-act-ink:#0f7d44;
+    --chip-side:#fdf0ff; --chip-side-ink:#9c36b5; --chip-ai:#fff4e6; --chip-ai-ink:#b8860b;
+  }
+  html[data-theme="dark"]{
+    --bg:#0c0f16; --canvas:#11151f; --ink:#eef1f6; --ink-2:#a7b0c0; --ink-3:#727c8e;
+    --line:#222838; --line-2:#2c3346; --brand:#7c9cff; --brand-soft:#1b2440; --pop:#161b27;
+    --mark:#5a4a00; --warn-soft:#2b2410; --bad-soft:#2c1716; --good-soft:#10261a;
+    --chip-nav:#1b2440; --chip-nav-ink:#9cb2ff; --chip-act:#10261a; --chip-act-ink:#5fd49a;
+    --chip-side:#271032; --chip-side-ink:#e599f7; --chip-ai:#2b2410; --chip-ai-ink:#ffd866;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  header.lab{padding:28px 28px 8px;max-width:1080px;margin:0 auto}
+  h1{font-size:23px;margin:0 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--ink-2);margin:0 0 18px;max-width:760px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 28px 64px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--canvas);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+  .card h3{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+  .diag li{margin:4px 0;color:var(--ink-2)}
+  .diag b{color:var(--ink)}
+  .tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;margin-left:6px}
+  .tag.bad{background:var(--bad-soft);color:var(--bad)} .tag.warn{background:var(--warn-soft);color:var(--warn)} .tag.good{background:var(--good-soft);color:var(--good)}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--canvas);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin:18px 0}
+  .toolbar .grp{display:flex;align-items:center;gap:8px;padding-right:14px;border-right:1px solid var(--line);margin-right:4px}
+  .toolbar .grp:last-child{border-right:0}
+  label.sw{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2);cursor:pointer;user-select:none}
+  input[type=checkbox]{accent-color:var(--brand);width:16px;height:16px}
+  .seg{display:inline-flex;border:1px solid var(--line-2);border-radius:9px;overflow:hidden}
+  .seg button{border:0;background:transparent;padding:5px 11px;font:inherit;font-size:12px;color:var(--ink-2);cursor:pointer}
+  .seg button[aria-pressed=true]{background:var(--brand);color:#fff}
+  .stage{position:relative;background:linear-gradient(180deg,var(--canvas),var(--bg));border:1px solid var(--line);border-radius:var(--r);min-height:560px;padding:0;overflow:hidden}
+  .stagehint{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--ink-3)}
+  .kbd{display:inline-flex;gap:5px}
+  .kbd b{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--canvas);border:1px solid var(--line-2);border-bottom-width:2px;border-radius:6px;padding:3px 8px;color:var(--ink-2)}
+  .openbtn{border:1px solid var(--line-2);background:var(--canvas);color:var(--ink);border-radius:10px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer}
+  .openbtn:hover{border-color:var(--brand);color:var(--brand)}
+
+  /* ---- the elevated palette ---- */
+  .scrim{position:absolute;inset:0;background:rgba(8,11,18,.34);backdrop-filter:blur(2px);display:none;align-items:flex-start;justify-content:center;padding-top:64px;z-index:5}
+  .scrim.open{display:flex}
+  .pal{width:min(640px,92%);background:var(--pop);border:1px solid var(--line-2);border-radius:16px;box-shadow:var(--elev);overflow:hidden;display:flex;flex-direction:column;max-height:78%}
+  .pal__in{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
+  .pal__in svg{flex:0 0 auto;color:var(--ink-3)}
+  .pal__in input{flex:1;border:0;background:transparent;font:inherit;font-size:17px;color:var(--ink);outline:none}
+  .pal__scope{font-size:11px;color:var(--ink-3);border:1px solid var(--line);border-radius:7px;padding:3px 7px;white-space:nowrap}
+  .pal__list{overflow:auto;padding:6px 6px 8px}
+  .pal__band{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);padding:10px 12px 4px;display:flex;align-items:center;gap:6px}
+  .row{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;cursor:pointer;position:relative}
+  .row[aria-selected=true]{background:var(--brand-soft)}
+  .row .ic{width:26px;height:26px;flex:0 0 auto;display:grid;place-items:center;border-radius:7px;background:var(--bg);font-size:14px}
+  .row .bd{flex:1;min-width:0}
+  .row .lb{font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .sb{font-size:12px;color:var(--ink-3)}
+  .row mark{background:var(--mark);color:inherit;border-radius:3px;padding:0 1px}
+  .src{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;white-space:nowrap}
+  .src.nav{background:var(--chip-nav);color:var(--chip-nav-ink)} .src.action{background:var(--chip-act);color:var(--chip-act-ink)}
+  .src.sidebar{background:var(--chip-side);color:var(--chip-side-ink)} .src.ai{background:var(--chip-ai);color:var(--chip-ai-ink)}
+  .pin{opacity:0;border:0;background:transparent;cursor:pointer;font-size:14px;color:var(--ink-3);padding:2px 4px;border-radius:6px}
+  .row:hover .pin,.row[aria-selected=true] .pin{opacity:1}
+  .pin.on{opacity:1;color:var(--warn)}
+  .badge{font-size:11px;font-weight:700;background:var(--bad);color:#fff;border-radius:999px;padding:1px 7px;min-width:18px;text-align:center}
+  .pal__foot{display:flex;align-items:center;gap:14px;padding:9px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3);flex-wrap:wrap}
+  .pal__foot .k{font-family:ui-monospace,monospace;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+  .empty{padding:26px 14px;text-align:center;color:var(--ink-3)}
+  .empty b{color:var(--ink-2)}
+  /* density */
+  .pal[data-density=compact] .row{padding:6px 11px} .pal[data-density=compact] .row .ic{width:22px;height:22px}
+  .pal[data-density=spacious] .row{padding:13px 11px}
+  .off-note{display:none;padding:30px;text-align:center;color:var(--ink-3)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--ink-2)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  footer.note{color:var(--ink-3);font-size:13px;margin-top:22px;border-top:1px solid var(--line);padding-top:16px}
+  .themebtn{position:fixed;right:16px;top:16px;border:1px solid var(--line-2);background:var(--canvas);color:var(--ink);border-radius:999px;padding:7px 13px;font:inherit;font-size:13px;cursor:pointer;z-index:20}
+</style>
+</head>
+<body>
+<button class="themebtn" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">◐ theme</button>
+
+<header class="lab">
+  <h1>Command Palette Lab — Audit → Elevate</h1>
+  <p class="sub">The sibling of the intelligent sidebar. Today the platform ships <b>two</b> palettes both bound to <b>⌘K</b> with no frequency, no highlighting, no federation, and zero operator config. This is the proposed <b>one-engine</b> elevation — interactive, so you can feel it before we build it.</p>
+</header>
+
+<div class="wrap">
+
+  <div class="grid">
+    <div class="card">
+      <h3>What we found (the "before")</h3>
+      <ul class="diag">
+        <li><b>Two palettes, one key.</b> <code>rmc-command-palette.js</code> &amp; <code>rmc-command-bar.js</code> both grab ⌘K — load order decides the winner.<span class="tag bad">conflict</span></li>
+        <li><b>173 actions, hardcoded.</b> No cascade config — operators can't toggle or scope it per-tenant.<span class="tag warn">not configurable</span></li>
+        <li><b>Recent only, no frequency.</b> A 6-item localStorage list; no usage-weighted ranking.<span class="tag warn">shallow</span></li>
+        <li><b>No matched-text highlight.</b> You can't see <i>why</i> a result ranked.<span class="tag warn">opaque</span></li>
+        <li><b>Sidebar registry not federated.</b> Misses ~30–40% of nav targets.<span class="tag warn">gap</span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>The elevation (the "after")</h3>
+      <ul class="diag">
+        <li><b>One engine</b> behind ⌘K — unifies both palettes, keeps the rich one's powers (page-aware, AI, voice).<span class="tag good">unified</span></li>
+        <li><b>Frequent + Recent</b> adaptive bands (same usage model as the sidebar).<span class="tag good">adaptive</span></li>
+        <li><b>Fuzzy match + live highlight</b> of the matched substring.<span class="tag good">legible</span></li>
+        <li><b>Federated sources</b> — Nav · Actions · Sidebar · AI — with source chips &amp; live badges.<span class="tag good">complete</span></li>
+        <li><b>Configurable</b> via cascade (platform→school→user) + per-user pinning.<span class="tag good">genius</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="toolbar" id="cfg">
+    <div class="grp"><label class="sw"><input type="checkbox" id="c_on" checked> Palette enabled <span style="color:var(--ink-3)">(school default)</span></label></div>
+    <div class="grp"><label class="sw"><input type="checkbox" id="c_freq" checked> Frequent/Recent</label>
+      <label class="sw"><input type="checkbox" id="c_fuzzy" checked> Fuzzy</label>
+      <label class="sw"><input type="checkbox" id="c_hl" checked> Highlight</label></div>
+    <div class="grp"><label class="sw"><input type="checkbox" id="c_side" checked> Federate sidebar</label>
+      <label class="sw"><input type="checkbox" id="c_ai" checked> AI line</label></div>
+    <div class="grp">Density
+      <span class="seg" id="dens">
+        <button data-d="compact">Compact</button>
+        <button data-d="comfortable" aria-pressed="true">Comfortable</button>
+        <button data-d="spacious">Spacious</button>
+      </span>
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="stagehint" id="hint">
+      <div class="kbd"><b>⌘</b><b>K</b></div>
+      <button class="openbtn" onclick="openPal()">Open command palette</button>
+      <div style="font-size:12px">…or press <b style="font-family:monospace">/</b> on a real page to focus the sidebar instead (no conflict)</div>
+    </div>
+
+    <div class="scrim" id="scrim" onclick="if(event.target===this)closePal()">
+      <div class="off-note" id="offnote">⛔ The command palette is turned off for this school. Operators control this from <b>Settings → Command palette</b>.</div>
+      <div class="pal" id="pal" data-density="comfortable" role="dialog" aria-modal="true" aria-label="Command palette">
+        <div class="pal__in">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="q" placeholder="Search anywhere — pages, actions, students…  try “fee”, “new”, or “/”" autocomplete="off">
+          <span class="pal__scope" id="scope">Tenant admin</span>
+        </div>
+        <div class="pal__list" id="list"></div>
+        <div class="pal__foot">
+          <span><span class="k">↑↓</span> move</span><span><span class="k">↵</span> open</span><span><span class="k">esc</span> close</span>
+          <span><span class="k">⭐</span> pin</span>
+          <span style="margin-left:auto;color:var(--ink-3)">platform → school → you · cascade-configurable</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><span class="src nav">NAV</span> destinations</span>
+    <span><span class="src action">ACTION</span> do-something</span>
+    <span><span class="src sidebar">SIDEBAR</span> federated nav items</span>
+    <span><span class="src ai">AI</span> natural-language intent</span>
+    <span><span class="badge">3</span> live badge</span>
+  </div>
+
+  <footer class="note">
+    Mockup only — no real data, no network. The shipping engine would be a progressive-enhancement layer (CSP-safe createElement/textContent), reading the same registries already in the codebase, configured through the existing 7-layer cascade with zero migration. Toggle the switches above and reopen the palette to see how each capability changes the surface.
+  </footer>
+</div>
+
+<script>
+// ---- sample federated catalog (stand-in for the real registries) ----
+var ITEMS = [
+  {id:'dash', label:'Dashboard', sub:'Your home', icon:'🏠', src:'nav', kw:'home overview', freq:9, recent:1},
+  {id:'students', label:'Students', sub:'People · directory', icon:'🎓', src:'nav', kw:'pupils learners directory', freq:7, recent:1},
+  {id:'fees', label:'Fees & invoices', sub:'Finance', icon:'💳', src:'nav', kw:'finance billing payment invoice', freq:8, badge:3},
+  {id:'fee-new', label:'Create fee structure', sub:'Finance · action', icon:'➕', src:'action', kw:'new add fee finance setup'},
+  {id:'attendance', label:'Take attendance', sub:'Academic · action', icon:'✓', src:'action', kw:'mark present absent register', freq:6, recent:1},
+  {id:'student-new', label:'Add new student', sub:'People · action', icon:'➕', src:'action', kw:'new enrol admission create'},
+  {id:'timetable', label:'Timetable', sub:'Academic', icon:'🗓', src:'nav', kw:'schedule periods classes'},
+  {id:'reports', label:'Report cards', sub:'Academic', icon:'📄', src:'nav', kw:'grades results transcript'},
+  {id:'msg', label:'Messages', sub:'Communication', icon:'✉️', src:'sidebar', kw:'inbox chat communication', badge:5, freq:5},
+  {id:'announce', label:'Post announcement', sub:'Communication · action', icon:'📣', src:'action', kw:'broadcast notice send'},
+  {id:'staff', label:'Staff', sub:'People', icon:'👥', src:'sidebar', kw:'teachers employees hr'},
+  {id:'library', label:'Library', sub:'Operations', icon:'📚', src:'sidebar', kw:'books catalog loans'},
+  {id:'hostel', label:'Hostel', sub:'Operations', icon:'🛏', src:'sidebar', kw:'boarding dormitory rooms'},
+  {id:'transport', label:'Transport', sub:'Operations', icon:'🚌', src:'sidebar', kw:'bus routes fleet'},
+  {id:'settings', label:'Settings', sub:'Configure your school', icon:'⚙️', src:'nav', kw:'config preferences admin', freq:4},
+  {id:'theme', label:'Toggle theme', sub:'Switch light / dark', icon:'◐', src:'action', kw:'dark light appearance'},
+  {id:'security', label:'Security & MFA', sub:'Settings', icon:'🛡', src:'sidebar', kw:'mfa password access policy'},
+  {id:'admissions', label:'Admissions', sub:'Pipeline', icon:'📥', src:'nav', kw:'enrol applicants intake', badge:2},
+  {id:'donors', label:'Advancement', sub:'Giving & grants', icon:'🎁', src:'sidebar', kw:'donation fundraising grants'},
+  {id:'export', label:'Export data', sub:'Action', icon:'📤', src:'action', kw:'download csv backup'},
+  {id:'help', label:'Help & how-to', sub:'Support', icon:'❓', src:'nav', kw:'docs guide support'},
+  {id:'signout', label:'Sign out', sub:'End session', icon:'⏻', src:'action', kw:'logout exit', danger:1}
+];
+var PINNED = new Set(['fees']);
+
+var cfg = {on:1,freq:1,fuzzy:1,hl:1,side:1,ai:1};
+function readCfg(){
+  cfg.on=c_on.checked; cfg.freq=c_freq.checked; cfg.fuzzy=c_fuzzy.checked;
+  cfg.hl=c_hl.checked; cfg.side=c_side.checked; cfg.ai=c_ai.checked;
+}
+['c_on','c_freq','c_fuzzy','c_hl','c_side','c_ai'].forEach(function(id){
+  document.getElementById(id).addEventListener('change',function(){readCfg();if(scrim.classList.contains('open'))render();});
+});
+document.getElementById('dens').addEventListener('click',function(e){
+  var b=e.target.closest('button'); if(!b)return;
+  [].forEach.call(this.children,function(x){x.setAttribute('aria-pressed', x===b);});
+  pal.dataset.density=b.dataset.d;
+});
+
+var q=document.getElementById('q'), list=document.getElementById('list'),
+    scrim=document.getElementById('scrim'), pal=document.getElementById('pal'),
+    offnote=document.getElementById('offnote'), cursor=0, flat=[];
+
+function openPal(){
+  readCfg();
+  if(!cfg.on){ offnote.style.display='block'; pal.style.display='none'; scrim.classList.add('open'); return; }
+  offnote.style.display='none'; pal.style.display='flex';
+  scrim.classList.add('open'); q.value=''; render(); setTimeout(function(){q.focus();},30);
+}
+function closePal(){ scrim.classList.remove('open'); }
+
+// fuzzy: subsequence match returns matched index set; substring is the strong case
+function match(item, raw){
+  var hay=(item.label+' '+item.kw).toLowerCase(), q=raw.toLowerCase().trim();
+  if(!q) return {score:1, hits:[]};
+  var lab=item.label.toLowerCase(), idx=lab.indexOf(q);
+  if(idx===0) return {score:5, hits:span(idx,q.length)};
+  if(idx>0) return {score:4, hits:span(idx,q.length)};
+  if(hay.indexOf(q)!==-1) return {score:3, hits:findInLabel(lab,q)};
+  if(!cfg.fuzzy) return {score:0, hits:[]};
+  // subsequence fuzzy over the label
+  var h=[], j=0;
+  for(var i=0;i<lab.length && j<q.length;i++){ if(lab[i]===q[j]){h.push(i);j++;} }
+  return j===q.length ? {score:2, hits:h} : {score:0, hits:[]};
+}
+function span(start,len){var a=[];for(var i=0;i<len;i++)a.push(start+i);return a;}
+function findInLabel(lab,q){var i=lab.indexOf(q);return i===-1?[]:span(i,q.length);}
+
+function hl(label, hits){
+  if(!cfg.hl || !hits.length) return document.createTextNode(label);
+  var set=new Set(hits), frag=document.createDocumentFragment(), buf='', marking=false;
+  function flush(){ if(!buf)return; if(marking){var m=document.createElement('mark');m.textContent=buf;frag.appendChild(m);} else frag.appendChild(document.createTextNode(buf)); buf=''; }
+  for(var i=0;i<label.length;i++){ var on=set.has(i); if(on!==marking){flush();marking=on;} buf+=label[i]; }
+  flush(); return frag;
+}
+
+function pool(){
+  return ITEMS.filter(function(it){ return cfg.side || it.src!=='sidebar'; });
+}
+
+function render(){
+  list.innerHTML=''; flat=[]; cursor=0;
+  var raw=q.value, items=pool();
+  if(!raw.trim()){
+    if(cfg.freq){
+      var pin=items.filter(function(i){return PINNED.has(i.id);});
+      var freq=items.filter(function(i){return !PINNED.has(i.id)&&i.freq;}).sort(function(a,b){return b.freq-a.freq;}).slice(0,4);
+      var rec=items.filter(function(i){return !PINNED.has(i.id)&&i.recent;}).slice(0,4);
+      if(pin.length) band('★ Pinned', pin);
+      if(freq.length) band('Frequent', freq);
+      if(rec.length) band('Recent', rec);
+    } else {
+      band('All commands', items);
+    }
+    if(cfg.ai) band('Ask AI', [{id:'ai',label:'Ask AI anything…',sub:'Type a question or “/new student”',icon:'✨',src:'ai',_ai:1}]);
+    bindRows(); return;
+  }
+  var scored=items.map(function(it){var m=match(it,raw);return {it:it,m:m};}).filter(function(x){return x.m.score>0;})
+    .sort(function(a,b){ return (b.m.score-a.m.score) || ((b.it.freq||0)-(a.it.freq||0)); });
+  if(scored.length){
+    var bygrp={nav:[],action:[],sidebar:[]};
+    scored.forEach(function(x){ (bygrp[x.it.src]||(bygrp[x.it.src]=[])).push(x); });
+    if(bygrp.nav.length) band('Go to', bygrp.nav);
+    if(bygrp.action.length) band('Do', bygrp.action);
+    if(bygrp.sidebar.length) band('From sidebar', bygrp.sidebar);
+  } else {
+    var e=document.createElement('div'); e.className='empty';
+    e.innerHTML='No exact match for <b>“'+raw.replace(/</g,'&lt;')+'”</b>';
+    list.appendChild(e);
+  }
+  if(cfg.ai){ band('Ask AI', [{it:{id:'ai',label:'Ask AI: “'+raw+'”',sub:'Interpret as a natural-language command',icon:'✨',src:'ai',_ai:1},m:{hits:[]}}], true); }
+  bindRows();
+}
+
+function band(title, rows, prescored){
+  var h=document.createElement('div'); h.className='pal__band'; h.textContent=title; list.appendChild(h);
+  rows.forEach(function(r){
+    var it = prescored||r.m ? (r.it||r) : r;
+    var m = (r.m)?r.m:{hits:[]};
+    var item = r.it ? r.it : r;
+    addRow(item, m);
+  });
+}
+
+function addRow(item, m){
+  var row=document.createElement('div'); row.className='row'; row.setAttribute('role','option');
+  var ic=document.createElement('div'); ic.className='ic'; ic.textContent=item.icon||'•'; row.appendChild(ic);
+  var bd=document.createElement('div'); bd.className='bd';
+  var lb=document.createElement('div'); lb.className='lb'; lb.appendChild(hl(item.label, (m&&m.hits)||[])); bd.appendChild(lb);
+  if(item.sub){var sb=document.createElement('div');sb.className='sb';sb.textContent=item.sub;bd.appendChild(sb);}
+  row.appendChild(bd);
+  if(item.badge){var bg=document.createElement('span');bg.className='badge';bg.textContent=item.badge;row.appendChild(bg);}
+  var src=document.createElement('span'); src.className='src '+item.src; src.textContent=item.src.toUpperCase(); row.appendChild(src);
+  if(!item._ai){
+    var pin=document.createElement('button'); pin.className='pin'+(PINNED.has(item.id)?' on':''); pin.textContent='★'; pin.title='Pin to top';
+    pin.addEventListener('click',function(ev){ev.stopPropagation();PINNED.has(item.id)?PINNED.delete(item.id):PINNED.add(item.id);render();});
+    row.appendChild(pin);
+  }
+  row.addEventListener('mouseenter',function(){select(flat.indexOf(row));});
+  row.addEventListener('click',function(){closePal();});
+  list.appendChild(row); flat.push(row);
+}
+function bindRows(){ select(0); }
+function select(i){ if(!flat.length)return; cursor=(i+flat.length)%flat.length; flat.forEach(function(r,k){r.setAttribute('aria-selected', k===cursor);}); var el=flat[cursor]; if(el)el.scrollIntoView({block:'nearest'}); }
+
+q.addEventListener('input',render);
+document.addEventListener('keydown',function(e){
+  if((e.metaKey||e.ctrlKey)&&(e.key==='k'||e.key==='K')){e.preventDefault();scrim.classList.contains('open')?closePal():openPal();return;}
+  if(!scrim.classList.contains('open'))return;
+  if(e.key==='Escape'){closePal();}
+  else if(e.key==='ArrowDown'){e.preventDefault();select(cursor+1);}
+  else if(e.key==='ArrowUp'){e.preventDefault();select(cursor-1);}
+  else if(e.key==='Enter'){e.preventDefault();closePal();}
+});
+</script>
+</body>
+</html>

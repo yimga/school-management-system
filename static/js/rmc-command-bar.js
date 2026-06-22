@@ -302,6 +302,26 @@
   function _init() {
     var root = document.getElementById(ROOT_ID);
     if (!root) return;
+
+    /* Unified-engine wave (v4.04.59): rmc-command-palette.js (#rmc-cmdk) is now
+       the single ⌘K engine and federates this registry itself. Wherever the
+       engine is mounted we YIELD — remove our dormant overlay and do NOT bind a
+       second ⌘K listener (the duplicate-binding bug). We stay as the keybinding
+       owner only on shells that don't mount the engine. */
+    if (document.getElementById("rmc-cmdk")) {
+      if (root.parentNode) { root.parentNode.removeChild(root); }
+      window.RMCCommandBar = {
+        open: function () { if (window.RMCCommandPalette) window.RMCCommandPalette.open(); },
+        close: function () { if (window.RMCCommandPalette) window.RMCCommandPalette.close(); },
+        toggle: function () {
+          if (!window.RMCCommandPalette) return;
+          (STATE.open ? window.RMCCommandPalette.close : window.RMCCommandPalette.open)();
+        },
+        yielded: true,
+      };
+      return;
+    }
+
     STATE.actionsUrl = root.getAttribute("data-actions-url") || "";
     root.setAttribute("data-state", "closed");
     root.setAttribute("aria-hidden", "true");

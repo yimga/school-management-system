@@ -5681,3 +5681,56 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   text-decoration: none;
   padding: 0 0.25rem;
 }
+
+/* ============================================================
+   Command palette intelligence (v4.04.59) — appended classes for
+   the unified ⌘K engine (static/js/rmc-command-palette.js). Token-only.
+   Base .rmc-cmdk / .rmc-cmdk__item styling lives in the shell bundles;
+   these are the NEW federation + adaptive + highlight affordances.
+   ============================================================ */
+.rmc-cmdk__band {
+  list-style: none;
+  padding: 0.625rem 1rem 0.25rem;
+  font-size: var(--type-size-2xs, 0.625rem);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.rmc-cmdk__mark {
+  background: var(--surface-highlight, var(--surface-overlay));
+  color: inherit;
+  border-radius: var(--radius-xs, 0.1875rem);
+  padding: 0 0.0625rem;
+}
+.rmc-cmdk__src {
+  flex: none;
+  font-size: var(--type-size-2xs, 0.625rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.0625rem 0.4375rem;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-overlay);
+  color: var(--text-tertiary);
+}
+.rmc-cmdk__src[data-src="action"] { color: var(--text-success, var(--text-secondary)); }
+.rmc-cmdk__src[data-src="sidebar"] { color: var(--text-info, var(--text-secondary)); }
+.rmc-cmdk__src[data-src="ai"] { color: var(--brand-primary, var(--text-secondary)); }
+.rmc-cmdk__src[data-src="recent"] { color: var(--text-tertiary); }
+.rmc-cmdk__pin {
+  flex: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: var(--type-size-sm, 0.875rem);
+  line-height: 1;
+  color: var(--text-tertiary);
+  opacity: 0;
+  padding: 0.125rem 0.25rem;
+  border-radius: var(--radius-xs, 0.1875rem);
+  transition: opacity var(--motion-signature-micro, 120ms ease);
+}
+.rmc-cmdk__item:hover .rmc-cmdk__pin,
+.rmc-cmdk__item.is-active .rmc-cmdk__pin,
+.rmc-cmdk__pin:focus-visible { opacity: 1; }
+.rmc-cmdk__pin.is-on { opacity: 1; color: var(--text-warning, var(--brand-primary)); }

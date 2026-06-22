@@ -1,0 +1,59 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Command palette defaults" %}{% endblock %}
+
+{% block content %}
+<div class="content-max-640 py-3">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-command" aria-hidden="true"></i>
+    <h1 class="h5 mb-0">{% trans "Command palette (⌘K) — school defaults" %}</h1>
+  </div>
+  <p class="text-muted">
+    {% trans "Set the default ⌘K command-palette behaviour for everyone at this school. Each person's most-used and recent commands still rise to the top automatically, and they can pin their own favourites — that personalisation always layers over these defaults." %}
+  </p>
+
+  {% if not can_manage %}
+  <div class="alert alert-info">{% trans "You can view these defaults, but only an administrator can change them." %}</div>
+  {% endif %}
+
+  <form method="post" class="card shadow-sm">
+    {% csrf_token %}
+    <div class="card-body d-flex flex-column gap-3">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="cp-intelligence" name="command_palette_intelligence" {% if command_palette_intelligence %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="cp-intelligence">
+          <strong>{% trans "Command palette" %}</strong>
+          <span class="d-block text-muted small">{% trans "Master switch for the ⌘K palette. Off = ⌘K does nothing platform-wide for this school." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="cp-fuzzy" name="command_palette_fuzzy" {% if command_palette_fuzzy %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="cp-fuzzy">
+          <strong>{% trans "Fuzzy matching" %}</strong>
+          <span class="d-block text-muted small">{% trans "Tolerate typos and abbreviations (e.g. “atnd” finds “Take attendance”). Off = exact substring only." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="cp-adaptive" name="command_palette_adaptive" {% if command_palette_adaptive %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="cp-adaptive">
+          <strong>{% trans "Adaptive Frequent / Recent bands" %}</strong>
+          <span class="d-block text-muted small">{% trans "Surface each person's pinned, most-used, and recent commands at the top when the palette opens." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="cp-federate" name="command_palette_federate_sidebar" {% if command_palette_federate_sidebar %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="cp-federate">
+          <strong>{% trans "Include sidebar destinations" %}</strong>
+          <span class="d-block text-muted small">{% trans "Federate the sidebar's navigation links into palette results so ⌘K reaches everything the sidebar does." %}</span>
+        </label>
+      </div>
+    </div>
+    {% if can_manage %}
+    <div class="card-footer text-end">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1" aria-hidden="true"></i>{% trans "Save defaults" %}</button>
+    </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

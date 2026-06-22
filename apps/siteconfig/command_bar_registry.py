@@ -111,6 +111,8 @@ _PLATFORM_ACTION_DEFS: tuple[tuple, ...] = (
     ("settings", "Brand import from URL", "🌐", "siteconfig:brand_import_from_url", "tenant_admin", None),
     ("settings", "Grading settings", "📊", "siteconfig:grading_settings", "tenant_admin", None),
     ("settings", "Module market", "🧱", "siteconfig:module_market", "tenant_admin", None),
+    ("settings", "Command palette settings", "⌘", "siteconfig:command_palette_settings", "tenant_admin", None),
+    ("settings", "Sidebar settings", "🧭", "siteconfig:sidebar_settings", "tenant_admin", None),
     # ---- Studio palette generators ----
     ("palette", "Generate palette", "🎨", "studio_os:experience_recommendations", "tenant_admin", None),
     ("palette", "Compare themes", "🔁", "studio_os:experience_compare", "tenant_admin", None),

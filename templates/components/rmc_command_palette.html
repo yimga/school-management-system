@@ -4,7 +4,11 @@
    any page, student, class, fee, setting, or AI action. Uses semantic
    --surface-popover so it inherits light/dark from the theme system. {% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div id="rmc-cmdk" class="rmc-cmdk" role="dialog" aria-modal="true" aria-label="{% trans 'Command palette' %}" hidden>
+<div id="rmc-cmdk" class="rmc-cmdk" role="dialog" aria-modal="true" aria-label="{% trans 'Command palette' %}" hidden
+     data-rmc-cmdk-enabled="{% if SITE.command_palette_intelligence == False %}0{% else %}1{% endif %}"
+     data-rmc-cmdk-fuzzy="{% if SITE.command_palette_fuzzy == False %}0{% else %}1{% endif %}"
+     data-rmc-cmdk-adaptive="{% if SITE.command_palette_adaptive == False %}0{% else %}1{% endif %}"
+     data-rmc-cmdk-federate-sidebar="{% if SITE.command_palette_federate_sidebar == False %}0{% else %}1{% endif %}">
   <div class="rmc-cmdk__backdrop" data-rmc-cmdk-dismiss="1"></div>
   <div class="rmc-cmdk__panel" role="document">
     <div class="rmc-cmdk__inputbar">
@@ -31,6 +35,7 @@
   </div>
 </div>
 {% url 'siteconfig:ai_center' as cmdk_ai_center_global %}
+{% url 'command_bar_actions' as cmdk_actions_global %}
 {% url 'api:ai-command-bar' as cmdk_api_global %}
 {% url 'api:ai-line-interpret' as cmdk_ai_line_global %}
 {% url 'super:ai_gateway_console' as cmdk_gw %}
@@ -42,6 +47,7 @@
 {% cmdk_best_locale as cmdk_resolved_locale %}
 <script type="application/json" id="rmc-cmdk-data">{
   "api_url": "{{ cmdk_api_global|default:''|escapejs }}",
+  "actions_url": "{{ cmdk_actions_global|default:''|escapejs }}",
   "ai_center_url": "{{ cmdk_ai_center_global|default:''|escapejs }}",
   "help_center_url": "{{ cmdk_help_center_global|default:''|escapejs }}",
   "ai_gateway_console_url": "{{ cmdk_gw|default:''|escapejs }}",

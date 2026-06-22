@@ -171,6 +171,10 @@ PREFIX_FIELD_OWNERS: Final[tuple[tuple[str, str], ...]] = (
     ("login_", "brand_experience"),
     ("sidebar_", "brand_experience"),
     ("portal_sidebar_", "brand_experience"),
+    # ⌘K command-palette engine (unified-engine wave): on/off + fuzzy + adaptive
+    # + sidebar-federation knobs. Payload-backed (no migration); brand_experience
+    # owns the nav/UX chrome, same as the sidebar_ prefix above.
+    ("command_palette_", "brand_experience"),
     ("show_header_", "brand_experience"),
     ("secondary_font", "brand_experience"),
     ("base_font", "brand_experience"),
