@@ -24,7 +24,7 @@
     <div class="card-header bg-light fw-semibold">{% trans "Commercial tier (packaging)" %}</div>
     <div class="card-body small">
       <p class="mb-2">{% trans "Your plan maps to a Free / Pro / Enterprise ladder for marketplace gates and upgrade messaging. Technical feature codes are listed below on the assigned plan." %}</p>
-      <p class="mb-2"><strong>{% trans "Resolved tier" %}</strong>: <span class="badge text-bg-secondary">{{ plan_tier_ctx.tier_label }}</span>
+      <p class="mb-2"><strong>{% trans "Resolved tier" %}</strong>: <span class="rmc-badge">{{ plan_tier_ctx.tier_label }}</span>
         {% if plan_tier_ctx.slug %}<span class="text-muted">(<code>{{ plan_tier_ctx.slug }}</code>)</span>{% endif %}
       </p>
       {% if upgrade_next_tier %}
@@ -124,9 +124,9 @@
     <div class="card-body small">
       <dl class="row mb-0">
         <dt class="col-sm-4 text-muted">{% trans "Billing account status" %}</dt>
-        <dd class="col-sm-8"><span class="badge text-bg-secondary">{{ billing_account.get_status_display }}</span></dd>
+        <dd class="col-sm-8"><span class="rmc-badge">{{ billing_account.get_status_display }}</span></dd>
         <dt class="col-sm-4 text-muted">{% trans "Subscription status" %}</dt>
-        <dd class="col-sm-8"><span class="badge text-bg-secondary">{{ platform_subscription.get_status_display }}</span></dd>
+        <dd class="col-sm-8"><span class="rmc-badge">{{ platform_subscription.get_status_display }}</span></dd>
         <dt class="col-sm-4 text-muted">{% trans "Billing cycle" %}</dt>
         <dd class="col-sm-8">{{ platform_subscription.get_billing_cycle_display }}</dd>
         <dt class="col-sm-4 text-muted">{% trans "Current period" %}</dt>

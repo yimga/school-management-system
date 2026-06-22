@@ -11,7 +11,7 @@
           <p class="text-muted small mb-0">{% trans "Capability families below. Use operator tools for impact, audit, and fleet rollout before high-risk changes." %}</p>
         </div>
         <div class="d-flex align-items-center flex-wrap gap-2" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
-          <span class="badge bg-light text-dark border px-3 py-2">
+          <span class="rmc-badge rmc-badge--muted border px-3 py-2">
             <span class="text-success fw-semibold">{{ active_count }}</span><span class="text-muted">/{{ total_count }}</span> active
           </span>
           <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:feature_control_audit' %}"><i class="bi bi-clock-history me-1"></i>Audit Log</a>
@@ -42,7 +42,7 @@
     <div class="card-body {% if studio_inline %}p-2 p-md-3{% else %}p-4{% endif %}">
       {% if studio_inline %}
       <div class="d-flex flex-wrap align-items-center gap-2 mb-2" data-rmc-studio-inline-control-summary="1">
-        <span class="badge bg-light text-dark border px-2 py-1 small">
+        <span class="rmc-badge rmc-badge--muted border px-2 py-1 small">
           <span class="text-success fw-semibold">{{ active_count }}</span><span class="text-muted">/{{ total_count }}</span> {% trans "active" %}
         </span>
         <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:feature_control_audit' %}">{% trans "Audit log" %}</a>
@@ -85,7 +85,7 @@
                 aria-controls="feature-cat-pane-{{ cat.id }}">
           <i class="bi {{ cat.icon }} me-1" aria-hidden="true"></i>
           <span class="feature-cat-tab__label">{{ cat.label }}</span>
-          <span class="badge text-bg-light ms-1 feature-cat-tab__count" data-cat-count="{{ cat.id }}">{{ cat.items|length }}</span>
+          <span class="rmc-badge rmc-badge--muted ms-1 feature-cat-tab__count" data-cat-count="{{ cat.id }}">{{ cat.items|length }}</span>
         </button>
         {% endfor %}
         <button type="button"
@@ -111,7 +111,7 @@
               <h2 class="h6 mb-1">Header Weather Location</h2>
               <p class="text-muted small mb-0">Select country then city from the global catalog (all ISO countries; search loads up to 500 cities). Coordinates and timezone resolve automatically.</p>
             </div>
-            <span class="badge bg-light text-dark border" id="weatherLocationPreview">
+            <span class="rmc-badge rmc-badge--muted border" id="weatherLocationPreview">
               {{ weather_state.label|default:"Weather location" }}
             </span>
           </div>
@@ -184,7 +184,7 @@
                 <div class="d-flex align-items-center gap-2">
                   <i class="bi {{ cat.icon }} text-primary"></i>
                   <span class="fw-semibold small text-uppercase">{{ cat.label }}</span>
-                  <span class="badge text-bg-light text-muted ms-1" data-cat-active-count="{{ cat.id }}">{{ cat.items|length }} {% trans "features" %}</span>
+                  <span class="rmc-badge rmc-badge--muted ms-1" data-cat-active-count="{{ cat.id }}">{{ cat.items|length }} {% trans "features" %}</span>
                 </div>
                 <div class="btn-group btn-group-sm">
                   <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 enable-all-cat" data-cat="{{ cat.id }}" title="Enable all">On</button>
@@ -218,7 +218,7 @@
                       {% endif %}
                     </div>
                     {% if item.critical %}
-                    <span class="badge bg-warning text-dark flex-shrink-0 mt-1" style="font-size: var(--type-size-micro);" title="Disabling may affect user access">!</span>
+                    <span class="rmc-badge rmc-badge--warning flex-shrink-0 mt-1" style="font-size: var(--type-size-micro);" title="Disabling may affect user access">!</span>
                     {% endif %}
                   </div>
                   <span class="badge flex-shrink-0 status-badge align-self-center {% if item.enabled %}bg-success{% else %}bg-secondary{% endif %}" style="font-size: var(--type-size-micro);">

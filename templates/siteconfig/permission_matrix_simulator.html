@@ -54,9 +54,9 @@
           <td>{{ cap.label }}</td>
           <td>
             {% if cap.visible %}
-            <span class="badge bg-success">{% trans "Yes" %}</span>
+            <span class="rmc-badge rmc-badge--success">{% trans "Yes" %}</span>
             {% else %}
-            <span class="badge bg-secondary">{% trans "No" %}</span>
+            <span class="rmc-badge">{% trans "No" %}</span>
             {% endif %}
           </td>
           <td>{% if cap.school_action_ok %}{% trans "OK" %}{% else %}{% trans "Denied" %}{% endif %}</td>

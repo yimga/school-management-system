@@ -7,7 +7,7 @@
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="d-flex justify-content-between gap-2">
     <h3 class="h5">{{ title|default:_("Readiness blocker") }}</h3>
-    <span class="badge rounded-pill text-bg-warning">{{ severity|default:_("medium") }}</span>
+    <span class="rmc-badge rmc-badge--warning">{{ severity|default:_("medium") }}</span>
   </div>
   <p class="small text-muted mb-2">{{ why|default:_("This item is blocked until the owner completes the listed next step.") }}</p>
   <p class="rmc-wcx-risk-card__meta mb-1"><strong>{% trans "Owner" %}:</strong> {{ owner|default:_("Platform operator") }}</p>

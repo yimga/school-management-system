@@ -150,16 +150,16 @@
                   <td>
                     {% if req.status == 'PENDING' %}
                       {% if req.is_expired %}
-                        <span class="badge bg-danger">Expired</span>
+                        <span class="rmc-badge rmc-badge--danger">Expired</span>
                       {% else %}
-                        <span class="badge bg-warning text-dark">Pending</span>
+                        <span class="rmc-badge rmc-badge--warning">Pending</span>
                       {% endif %}
                     {% elif req.status == 'SIGNED' %}
-                      <span class="badge bg-success">Signed</span>
+                      <span class="rmc-badge rmc-badge--success">Signed</span>
                     {% elif req.status == 'REJECTED' %}
-                      <span class="badge bg-danger">Rejected</span>
+                      <span class="rmc-badge rmc-badge--danger">Rejected</span>
                     {% else %}
-                      <span class="badge bg-secondary">{{ req.get_status_display }}</span>
+                      <span class="rmc-badge">{{ req.get_status_display }}</span>
                     {% endif %}
                   </td>
                   <td class="text-end">

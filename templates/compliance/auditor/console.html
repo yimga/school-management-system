@@ -109,9 +109,9 @@
                   <td>{{ g.inspector }}</td>
                   <td class="text-muted small">{{ g.school }}</td>
                   <td>
-                    {% if g.revoked %}<span class="badge bg-secondary">{% trans "Revoked" %}</span>
-                    {% elif g.valid %}<span class="badge bg-success">{% trans "Active" %}</span>
-                    {% else %}<span class="badge bg-warning text-dark">{% trans "Expired" %}</span>{% endif %}
+                    {% if g.revoked %}<span class="rmc-badge">{% trans "Revoked" %}</span>
+                    {% elif g.valid %}<span class="rmc-badge rmc-badge--success">{% trans "Active" %}</span>
+                    {% else %}<span class="rmc-badge rmc-badge--warning">{% trans "Expired" %}</span>{% endif %}
                   </td>
                   <td class="small">
                     {% if g.ip_allowlist %}

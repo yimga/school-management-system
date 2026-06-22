@@ -77,10 +77,10 @@
             {% if row.bound_school %}<br><span class="text-success small">→ {{ row.bound_school }}</span>{% endif %}
           </td>
           <td>
-            {% if row.status == 'accepted' %}<span class="badge bg-success">{% trans "Accepted" %}</span>
-            {% elif row.status == 'expired' %}<span class="badge bg-danger">{% trans "Expired" %}</span>
+            {% if row.status == 'accepted' %}<span class="rmc-badge rmc-badge--success">{% trans "Accepted" %}</span>
+            {% elif row.status == 'expired' %}<span class="rmc-badge rmc-badge--danger">{% trans "Expired" %}</span>
             {% elif row.status == 'revoked' %}<span class="badge bg-dark">{% trans "Revoked" %}</span>
-            {% else %}<span class="badge bg-secondary">{% trans "Pending" %}</span>{% endif %}
+            {% else %}<span class="rmc-badge">{% trans "Pending" %}</span>{% endif %}
           </td>
           <td><span class="small text-muted">{{ row.created_at|date:"Y-m-d H:i" }}</span></td>
           <td><span class="small text-muted">{{ row.expires_at|date:"Y-m-d H:i" }}</span></td>

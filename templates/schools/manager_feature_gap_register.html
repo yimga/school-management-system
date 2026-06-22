@@ -18,10 +18,10 @@
       </p>
     </div>
     <div class="d-flex flex-wrap gap-2">
-      <span class="badge text-bg-success">{{ shipped }} {% trans "shipped" %}</span>
-      <span class="badge text-bg-secondary">{{ total }} {% trans "total" %}</span>
+      <span class="rmc-badge rmc-badge--success">{{ shipped }} {% trans "shipped" %}</span>
+      <span class="rmc-badge">{{ total }} {% trans "total" %}</span>
       {% if broken %}
-      <span class="badge text-bg-danger">{{ broken }} {% trans "broken proofs" %}</span>
+      <span class="rmc-badge rmc-badge--danger">{{ broken }} {% trans "broken proofs" %}</span>
       {% endif %}
     </div>
   </div>
@@ -49,11 +49,11 @@
             </td>
             <td>
               {% if r.status == "shipped" %}
-                <span class="badge text-bg-success">{% trans "shipped" %}</span>
+                <span class="rmc-badge rmc-badge--success">{% trans "shipped" %}</span>
               {% elif r.status == "in_progress" %}
-                <span class="badge text-bg-warning text-dark">{% trans "in progress" %}</span>
+                <span class="rmc-badge rmc-badge--warning">{% trans "in progress" %}</span>
               {% else %}
-                <span class="badge text-bg-secondary">{% trans "planned" %}</span>
+                <span class="rmc-badge">{% trans "planned" %}</span>
               {% endif %}
             </td>
             <td>
@@ -75,7 +75,7 @@
             </td>
             <td>
               {% if r.public_promise %}
-                <span class="badge text-bg-info">{% trans "yes" %}</span>
+                <span class="rmc-badge rmc-badge--info">{% trans "yes" %}</span>
               {% else %}
                 <span class="text-tertiary small">{% trans "internal" %}</span>
               {% endif %}

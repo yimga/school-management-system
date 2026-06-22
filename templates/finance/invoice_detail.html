@@ -212,9 +212,9 @@
             <div class="text-muted small">{% trans "Status" %}</div>
             <div>
               {% if reminder.is_active %}
-                <span class="badge bg-success">{% trans "Active" %}</span>
+                <span class="rmc-badge rmc-badge--success">{% trans "Active" %}</span>
               {% else %}
-                <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                <span class="rmc-badge">{% trans "Inactive" %}</span>
               {% endif %}
             </div>
           </div>
@@ -382,15 +382,15 @@
               <td>{{ upload.uploaded_amount|format_currency|default:"-" }}</td>
               <td>
                 {% if upload.status == 'VERIFIED' %}
-                  <span class="badge bg-success">{% trans "Verified" %}</span>
+                  <span class="rmc-badge rmc-badge--success">{% trans "Verified" %}</span>
                 {% elif upload.status == 'PENDING' %}
-                  <span class="badge bg-warning">{% trans "Pending" %}</span>
+                  <span class="rmc-badge rmc-badge--warning">{% trans "Pending" %}</span>
                 {% elif upload.status == 'VERIFYING' %}
-                  <span class="badge bg-info">{% trans "Verifying..." %}</span>
+                  <span class="rmc-badge rmc-badge--info">{% trans "Verifying..." %}</span>
                 {% elif upload.status == 'DISCREPANCY' %}
-                  <span class="badge bg-danger">{% trans "Needs Review" %}</span>
+                  <span class="rmc-badge rmc-badge--danger">{% trans "Needs Review" %}</span>
                 {% elif upload.status == 'REJECTED' %}
-                  <span class="badge bg-secondary">{% trans "Rejected" %}</span>
+                  <span class="rmc-badge">{% trans "Rejected" %}</span>
                 {% endif %}
               </td>
               <td>

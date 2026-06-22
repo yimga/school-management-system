@@ -139,7 +139,7 @@
   <section class="mkt-section mkt-trust-glob-strip py-4 mkt-glob-strip-dark rmc-reveal" aria-label="{% trans 'Global positioning' %}">
     <div class="container">
       <div class="d-flex flex-wrap gap-2 justify-content-center">
-        {% for pill in trust_badges %}<span class="badge rounded-pill mkt-glob-pill">{{ pill }}</span>{% endfor %}
+        {% for pill in trust_badges %}<span class="rmc-badge mkt-glob-pill">{{ pill }}</span>{% endfor %}
       </div>
     </div>
   </section>
@@ -474,7 +474,7 @@
       {% for step in get_started_three_steps %}
       <div class="col-md-4">
         <div class="border rounded p-3 text-center">
-          <span class="badge bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:2rem;height:2rem;">{{ step.step }}</span>
+          <span class="rmc-badge rmc-badge--brand rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width:2rem;height:2rem;">{{ step.step }}</span>
           <h4 class="h6">{{ step.title }}</h4>
           <p class="small text-muted mb-0">{{ step.body }}</p>
         </div>
@@ -804,7 +804,7 @@
     <h2 class="mkt-section-heading">{% trans "Awards & recognition" %}</h2>
     <div class="d-flex flex-wrap justify-content-center gap-2">
       {% for award in awards_recognition %}
-      <span class="badge bg-secondary">{{ award }}</span>
+      <span class="rmc-badge">{{ award }}</span>
       {% endfor %}
     </div>
   </section>

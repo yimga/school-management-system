@@ -55,7 +55,7 @@
       <div class="border rounded p-3 mb-2">
         <div class="d-flex justify-content-between align-items-center">
           <span class="fw-semibold">{{ p.action }}</span>
-          <span class="badge text-bg-secondary">{% trans "confidence" %} {{ p.confidence }}</span>
+          <span class="rmc-badge">{% trans "confidence" %} {{ p.confidence }}</span>
         </div>
         {% if p.rationale %}<p class="small text-muted mb-2">{{ p.rationale }}</p>{% endif %}
         <form method="post" class="d-flex flex-wrap gap-2 align-items-end">
@@ -83,7 +83,7 @@
   <section class="card mt-3 mb-4">
     <div class="card-header fw-semibold">
       {% trans "Result" %}: {{ exec_result.action }}
-      {% if exec_result.ok %}<span class="badge text-bg-success">{% trans "ok" %}</span>{% else %}<span class="badge text-bg-danger">{{ exec_result.blocked_reason|default:_("error") }}</span>{% endif %}
+      {% if exec_result.ok %}<span class="rmc-badge rmc-badge--success">{% trans "ok" %}</span>{% else %}<span class="rmc-badge rmc-badge--danger">{{ exec_result.blocked_reason|default:_("error") }}</span>{% endif %}
     </div>
     <div class="card-body">
       {% if exec_result.ok %}

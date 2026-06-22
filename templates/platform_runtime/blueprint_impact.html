@@ -17,7 +17,7 @@
   </header>
   <div data-rmc-scroll-policy="paginate" class="card border-0 shadow-sm mb-3"><div class="card-body">
     <h2 class="h5">{% trans "Risk categories" %}</h2>
-    <p>{% for category in impact.impact_categories %}<span class="badge bg-light border me-1">{{ category }}</span>{% endfor %}</p>
+    <p>{% for category in impact.impact_categories %}<span class="rmc-badge rmc-badge--muted border me-1">{{ category }}</span>{% endfor %}</p>
     <dl class="row small mb-0">
       <dt class="col-sm-4">{% trans "Requires confirmation" %}</dt><dd class="col-sm-8">{{ impact.requires_confirmation|yesno:"yes,no" }}</dd>
       <dt class="col-sm-4">{% trans "Can apply" %}</dt><dd class="col-sm-8">{{ impact.can_apply|yesno:"yes,no" }}</dd>

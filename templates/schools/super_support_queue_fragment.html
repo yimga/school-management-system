@@ -31,7 +31,7 @@
       <td>{% if t.assigned_to %}{{ t.assigned_to.get_full_name|default:t.assigned_to.email|default:t.assigned_to.username }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
       <td>{{ t.created_at|date:"M d, H:i" }}</td>
       <td>{{ t.age_hours|default:"-" }}</td>
-      <td>{% if t.sla_response_breach %}<span class="badge bg-danger" title="{% trans 'Response SLA breach' %}">R</span>{% endif %}{% if t.sla_resolution_breach %}<span class="badge bg-danger" title="{% trans 'Resolution SLA breach' %}">Res</span>{% endif %}{% if not t.sla_response_breach and not t.sla_resolution_breach %}<span class="text-muted">—</span>{% endif %}</td>
+      <td>{% if t.sla_response_breach %}<span class="rmc-badge rmc-badge--danger" title="{% trans 'Response SLA breach' %}">R</span>{% endif %}{% if t.sla_resolution_breach %}<span class="rmc-badge rmc-badge--danger" title="{% trans 'Resolution SLA breach' %}">Res</span>{% endif %}{% if not t.sla_response_breach and not t.sla_resolution_breach %}<span class="text-muted">—</span>{% endif %}</td>
       <td>
         <details class="rmc-row-disclosure">
           <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>

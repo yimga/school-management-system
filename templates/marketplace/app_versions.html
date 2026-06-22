@@ -49,12 +49,12 @@
     {% for v in versions %}
       <tr>
         <td><code>{{ v.version }}</code></td>
-        <td><span class="badge bg-light text-muted">{{ v.get_channel_display }}</span></td>
+        <td><span class="rmc-badge rmc-badge--muted">{{ v.get_channel_display }}</span></td>
         <td><small>{{ v.published_at|default:"draft"|date:"Y-m-d H:i" }}</small></td>
         <td>
-          {% if v.is_yanked %}<span class="badge bg-danger">{% trans "Yanked" %}</span>
-          {% elif v.is_published %}<span class="badge bg-success">{% trans "Published" %}</span>
-          {% else %}<span class="badge bg-secondary">{% trans "Draft" %}</span>{% endif %}
+          {% if v.is_yanked %}<span class="rmc-badge rmc-badge--danger">{% trans "Yanked" %}</span>
+          {% elif v.is_published %}<span class="rmc-badge rmc-badge--success">{% trans "Published" %}</span>
+          {% else %}<span class="rmc-badge">{% trans "Draft" %}</span>{% endif %}
         </td>
         <td>{% if v.changelog %}<details><summary class="small">{% trans "View" %}</summary><pre class="small mb-0">{{ v.changelog }}</pre></details>{% else %}—{% endif %}</td>
       </tr>

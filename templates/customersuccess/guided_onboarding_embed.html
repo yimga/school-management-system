@@ -41,7 +41,7 @@
       <article class="setup-studio-panel h-100">
         <div class="setup-studio-section-head">
           <div class="fw-semibold">{% trans "Current step" %}</div>
-          <span class="badge text-bg-light">{{ progress_percent|default:0 }}%</span>
+          <span class="rmc-badge rmc-badge--muted">{{ progress_percent|default:0 }}%</span>
         </div>
         {% if current_step %}
         <div class="setup-studio-mini-title">{{ current_step.label }}</div>
@@ -60,7 +60,7 @@
       <article class="setup-studio-panel h-100">
         <div class="setup-studio-section-head">
           <div class="fw-semibold">{% trans "Launch blockers" %}</div>
-          <span class="badge text-bg-warning">{{ launch_blockers|length }}</span>
+          <span class="rmc-badge rmc-badge--warning">{{ launch_blockers|length }}</span>
         </div>
         <div class="setup-studio-list">
           {% for blocker in launch_blockers|slice:":4" %}
@@ -81,7 +81,7 @@
       <article class="setup-studio-panel h-100">
         <div class="setup-studio-section-head">
           <div class="fw-semibold">{% trans "Checklist pulse" %}</div>
-          <span class="badge text-bg-light">{{ launch_checklist|length }}</span>
+          <span class="rmc-badge rmc-badge--muted">{{ launch_checklist|length }}</span>
         </div>
         <div class="setup-studio-list">
           {% for item in launch_checklist|slice:":6" %}

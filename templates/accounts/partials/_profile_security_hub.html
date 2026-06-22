@@ -8,9 +8,9 @@
       <h2 id="profile-security-hub-title" class="h6 mb-0">{% trans "Security center" %}</h2>
     </div>
     {% if security_posture_review_due %}
-    <span class="badge text-bg-warning">{% trans "Review due" %}</span>
+    <span class="rmc-badge rmc-badge--warning">{% trans "Review due" %}</span>
     {% elif profile_security %}
-    <span class="badge text-bg-secondary">{{ profile_security.strength_label }}</span>
+    <span class="rmc-badge">{{ profile_security.strength_label }}</span>
     {% endif %}
   </div>
 

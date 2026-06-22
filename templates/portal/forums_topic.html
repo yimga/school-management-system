@@ -48,7 +48,7 @@
       <p class="small text-muted mb-1">
         {% if reply.author %}{{ reply.author.get_full_name|default:reply.author.username }}{% endif %}
         · {{ reply.created_at|date:"SHORT_DATETIME_FORMAT" }}
-        {% if reply.is_staff_answer %}<span class="badge bg-primary">{% trans "Staff" %}</span>{% endif %}
+        {% if reply.is_staff_answer %}<span class="rmc-badge rmc-badge--brand">{% trans "Staff" %}</span>{% endif %}
       </p>
       <div>{{ reply.body|linebreaksbr }}</div>
     </div>

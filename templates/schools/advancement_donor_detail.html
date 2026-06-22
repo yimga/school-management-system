@@ -86,7 +86,7 @@
           <td>{{ g.received_at }}</td>
           <td>{{ g.amount }} {{ g.currency }}</td>
           <td>{{ g.campaign_name|default:"—" }}</td>
-          <td class="small">{% if g.award_source %}{{ g.award_source.name }}{% if g.credited_to_fund_at %} <span class="badge bg-success-subtle text-success-emphasis">{% trans "credited" %}</span>{% endif %}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+          <td class="small">{% if g.award_source %}{{ g.award_source.name }}{% if g.credited_to_fund_at %} <span class="rmc-badge rmc-badge--success">{% trans "credited" %}</span>{% endif %}{% else %}<span class="text-muted">—</span>{% endif %}</td>
           <td class="small text-muted">{{ g.notes|truncatewords:8 }}</td>
           <td>
           <details class="rmc-row-disclosure">

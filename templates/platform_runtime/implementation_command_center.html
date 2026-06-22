@@ -24,7 +24,7 @@
       <p class="mb-1">
         <span class="display-6">{{ go_live_readiness_score }}</span>
         <span class="text-muted">/ 100</span>
-        <span class="badge bg-light border ms-2">{{ go_live_readiness_band }}</span>
+        <span class="rmc-badge rmc-badge--muted border ms-2">{{ go_live_readiness_band }}</span>
       </p>
       {% if consolidated_blockers %}
       <p class="small text-muted mb-2">{% trans "Consolidated blockers (missing + partial checklist items)" %}</p>
@@ -92,7 +92,7 @@
         {% for row in checklist_items %}
         <tr>
           <td>{{ row.title }}</td>
-          <td><span class="badge bg-light border">{{ row.status }}</span></td>
+          <td><span class="rmc-badge rmc-badge--muted border">{{ row.status }}</span></td>
           <td class="small text-muted">{{ row.detail }}</td>
           <td><a href="{{ row.primary_action.url }}">{{ row.primary_action.label }}</a></td>
         </tr>

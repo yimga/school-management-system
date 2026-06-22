@@ -17,7 +17,7 @@
       </p>
     </div>
     <div class="text-end">
-      <span class="badge rounded-pill text-bg-secondary">
+      <span class="rmc-badge">
         {% blocktrans count count=override_count %}{{ count }} override{% plural %}{{ count }} overrides{% endblocktrans %}
       </span>
     </div>
@@ -74,7 +74,7 @@
                     <div class="fw-semibold">{{ row.key }}</div>
                     <div class="text-muted small">{{ row.description }}</div>
                     {% if row.is_overridden %}
-                      <span class="badge text-bg-info mt-1">{% trans "Overridden" %}</span>
+                      <span class="rmc-badge rmc-badge--info mt-1">{% trans "Overridden" %}</span>
                     {% endif %}
                   </td>
                   <td>

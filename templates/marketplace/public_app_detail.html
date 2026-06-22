@@ -35,15 +35,15 @@
         · v{{ app.version }}
       </p>
       <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
-        <span class="badge bg-warning text-dark">
+        <span class="rmc-badge rmc-badge--warning">
           ★ {{ rating_stats.average }} ({{ rating_stats.count }} {% trans "reviews" %})
         </span>
         {% if app.pricing_model == 'free' %}
-          <span class="badge bg-success">{% trans "Free" %}</span>
+          <span class="rmc-badge rmc-badge--success">{% trans "Free" %}</span>
         {% else %}
-          <span class="badge bg-primary">{{ app.get_pricing_model_display }} · {{ app.price }} {{ app.billing_interval }}</span>
+          <span class="rmc-badge rmc-badge--brand">{{ app.get_pricing_model_display }} · {{ app.price }} {{ app.billing_interval }}</span>
         {% endif %}
-        {% if listing.category %}<span class="badge bg-secondary">{{ listing.category }}</span>{% endif %}
+        {% if listing.category %}<span class="rmc-badge">{{ listing.category }}</span>{% endif %}
       </div>
       <p>{{ listing.short_description|default:app.description|linebreaksbr }}</p>
       {% if is_installed_here %}
@@ -115,7 +115,7 @@
             <li class="border-bottom py-2">
               <div class="d-flex align-items-center gap-2 mb-1">
                 <strong>★ {{ r.stars }}</strong>
-                {% if r.verified_install %}<span class="badge bg-info text-dark">{% trans "Verified install" %}</span>{% endif %}
+                {% if r.verified_install %}<span class="rmc-badge rmc-badge--info">{% trans "Verified install" %}</span>{% endif %}
                 <span class="text-muted small">{{ r.created_at|date:"Y-m-d" }}</span>
               </div>
               {% if r.headline %}<div class="fw-semibold">{{ r.headline }}</div>{% endif %}
@@ -145,8 +145,8 @@
                 <strong>{{ v.version }}</strong>
                 <span class="text-muted">{{ v.published_at|date:"Y-m-d"|default:"draft" }}</span>
               </div>
-              {% if v.channel != 'stable' %}<span class="badge bg-secondary">{{ v.get_channel_display }}</span>{% endif %}
-              {% if v.is_yanked %}<span class="badge bg-danger">{% trans "Yanked" %}</span>{% endif %}
+              {% if v.channel != 'stable' %}<span class="rmc-badge">{{ v.get_channel_display }}</span>{% endif %}
+              {% if v.is_yanked %}<span class="rmc-badge rmc-badge--danger">{% trans "Yanked" %}</span>{% endif %}
               {% if v.changelog %}<details class="mt-1"><summary>{% trans "Changelog" %}</summary><pre class="small mb-0">{{ v.changelog }}</pre></details>{% endif %}
             </li>
           {% endfor %}

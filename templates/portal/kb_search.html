@@ -42,7 +42,7 @@
             {% if query %}
             <p class="text-muted">
                 Results for: <strong>"{{ query }}"</strong>
-                <span class="badge badge-info">{{ total_results }} result{{ total_results|pluralize }}</span>
+                <span class="rmc-badge rmc-badge--info">{{ total_results }} result{{ total_results|pluralize }}</span>
             </p>
             {% endif %}
         </div>
@@ -90,7 +90,7 @@
                                        id="diffBeginner" name="difficulty" value="BEGINNER"
                                        {% if 'BEGINNER' in selected_difficulties %}checked{% endif %}>
                                 <label class="custom-control-label" for="diffBeginner">
-                                    <span class="badge badge-success">Beginner</span>
+                                    <span class="rmc-badge rmc-badge--success">Beginner</span>
                                 </label>
                             </div>
                             <div class="custom-control custom-checkbox">
@@ -98,7 +98,7 @@
                                        id="diffIntermediate" name="difficulty" value="INTERMEDIATE"
                                        {% if 'INTERMEDIATE' in selected_difficulties %}checked{% endif %}>
                                 <label class="custom-control-label" for="diffIntermediate">
-                                    <span class="badge badge-warning">Intermediate</span>
+                                    <span class="rmc-badge rmc-badge--warning">Intermediate</span>
                                 </label>
                             </div>
                             <div class="custom-control custom-checkbox">
@@ -106,7 +106,7 @@
                                        id="diffAdvanced" name="difficulty" value="ADVANCED"
                                        {% if 'ADVANCED' in selected_difficulties %}checked{% endif %}>
                                 <label class="custom-control-label" for="diffAdvanced">
-                                    <span class="badge badge-danger">Advanced</span>
+                                    <span class="rmc-badge rmc-badge--danger">Advanced</span>
                                 </label>
                             </div>
                         </div>
@@ -162,15 +162,15 @@
                                 </p>
                                 <div class="result-meta">
                                     {% if faq.category %}
-                                    <span class="badge badge-light">
+                                    <span class="rmc-badge rmc-badge--muted">
                                         {{ faq.category.name }}
                                     </span>
                                     {% endif %}
-                                    <span class="badge badge-light">
+                                    <span class="rmc-badge rmc-badge--muted">
                                         <i class="bi bi-eye"></i> {{ faq.views }} views
                                     </span>
                                     {% if faq.is_featured %}
-                                    <span class="badge badge-success">
+                                    <span class="rmc-badge rmc-badge--success">
                                         <i class="bi bi-star"></i> Featured
                                     </span>
                                     {% endif %}
@@ -203,7 +203,7 @@
                                         </p>
                                         <div class="result-meta">
                                             {% if article.category %}
-                                            <span class="badge badge-light">
+                                            <span class="rmc-badge rmc-badge--muted">
                                                 {{ article.category.name }}
                                             </span>
                                             {% endif %}
@@ -215,7 +215,7 @@
                                                 {{ article.get_difficulty_display }}
                                             </span>
                                             {% endif %}
-                                            <span class="badge badge-light">
+                                            <span class="rmc-badge rmc-badge--muted">
                                                 <i class="bi bi-clock"></i> {{ article.read_time }} min
                                             </span>
                                         </div>

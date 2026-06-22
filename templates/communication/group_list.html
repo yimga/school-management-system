@@ -67,13 +67,13 @@
                 <div>
                   <h6 class="mb-1">
                     {{ thread.title }}
-                    {% if thread.unread_count %}<span class="badge bg-primary rounded-pill ms-1" title="{% blocktrans count counter=thread.unread_count %}{{ counter }} unread message{% plural %}{{ counter }} unread messages{% endblocktrans %}">{{ thread.unread_count }}</span>{% endif %}
+                    {% if thread.unread_count %}<span class="rmc-badge rmc-badge--count ms-1" title="{% blocktrans count counter=thread.unread_count %}{{ counter }} unread message{% plural %}{{ counter }} unread messages{% endblocktrans %}">{{ thread.unread_count }}</span>{% endif %}
                   </h6>
                   {% if thread.description %}
                   <p class="text-muted small mb-0">{{ thread.description|truncatechars:100 }}</p>
                   {% endif %}
                 </div>
-                <span class="badge bg-secondary">{{ thread.members.count }} members</span>
+                <span class="rmc-badge">{{ thread.members.count }} members</span>
               </div>
               <div class="d-flex gap-2">
                 <a href="{% url 'communication:group_detail' thread_id=thread.id %}" class="btn btn-sm btn-outline-primary">
@@ -119,13 +119,13 @@
             <tr>
               <td>
                 <strong>{{ thread.title }}</strong>
-                {% if thread.unread_count %}<span class="badge bg-primary rounded-pill ms-1" title="{% blocktrans count counter=thread.unread_count %}{{ counter }} unread message{% plural %}{{ counter }} unread messages{% endblocktrans %}">{{ thread.unread_count }}</span>{% endif %}
+                {% if thread.unread_count %}<span class="rmc-badge rmc-badge--count ms-1" title="{% blocktrans count counter=thread.unread_count %}{{ counter }} unread message{% plural %}{{ counter }} unread messages{% endblocktrans %}">{{ thread.unread_count }}</span>{% endif %}
                 {% if thread.description %}
                 <div class="text-muted small">{{ thread.description|truncatechars:60 }}</div>
                 {% endif %}
               </td>
               <td>
-                <span class="badge bg-secondary">{{ thread.get_scope_display }}</span>
+                <span class="rmc-badge">{{ thread.get_scope_display }}</span>
                 {% if thread.department %}
                 <div class="small text-muted">{{ thread.department.name }}</div>
                 {% elif thread.classroom %}

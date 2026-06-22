@@ -56,7 +56,7 @@
                 <td>{{ item.student.classroom.name|default:"—" }}</td>
                 <td>{{ item.annual_average|default:"—" }}</td>
                 <td><span class="badge {% if item.promotion_status == 'PROMOTED' %}bg-success{% elif item.promotion_status == 'REPEAT' or item.promotion_status == 'DEMOTED' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ item.promotion_status }}</span></td>
-                <td>{% if item.outstanding_returns %}<span class="badge bg-warning text-dark">{{ item.outstanding_returns }}</span>{% else %}0{% endif %}</td>
+                <td>{% if item.outstanding_returns %}<span class="rmc-badge rmc-badge--warning">{{ item.outstanding_returns }}</span>{% else %}0{% endif %}</td>
                 <td>
                   <select name="classroom_{{ item.id }}" class="form-select form-select-sm" style="min-width:140px;">
                     {% for c in target_classrooms %}

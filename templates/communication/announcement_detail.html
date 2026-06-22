@@ -19,11 +19,11 @@
           <h4 class="mb-0"><i class="bi bi-megaphone me-2"></i>{{ announcement.title }}</h4>
           <div class="d-flex gap-2">
             {% if announcement.status == 'pending_approval' %}
-            <span class="badge bg-warning text-dark">Pending approval</span>
+            <span class="rmc-badge rmc-badge--warning">Pending approval</span>
             {% elif announcement.status == 'draft' %}
-            <span class="badge bg-secondary">Draft</span>
+            <span class="rmc-badge">Draft</span>
             {% else %}
-            <span class="badge bg-success">Published</span>
+            <span class="rmc-badge rmc-badge--success">Published</span>
             {% endif %}
             {% if can_edit %}
             <a href="{% url 'communication:announcement_edit' announcement_id=announcement.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
@@ -51,7 +51,7 @@
           <div class="announcement-content">{{ announcement.content|linebreaks }}</div>
           <div class="mt-3 text-muted small">
             Expires: {{ announcement.expiry_date|format_date }}
-            {% if not announcement.is_active %}<span class="badge bg-secondary ms-2">Inactive</span>{% endif %}
+            {% if not announcement.is_active %}<span class="rmc-badge ms-2">Inactive</span>{% endif %}
           </div>
         </div>
       </div>

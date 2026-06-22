@@ -126,11 +126,11 @@
                                 </td>
                                 <td>
                                     {% if teacher.status == 'compliant' %}
-                                        <span class="badge badge-success">✓ Compliant</span>
+                                        <span class="rmc-badge rmc-badge--success">✓ Compliant</span>
                                     {% elif teacher.status == 'at_risk' %}
-                                        <span class="badge badge-warning">⚠ At Risk</span>
+                                        <span class="rmc-badge rmc-badge--warning">⚠ At Risk</span>
                                     {% else %}
-                                        <span class="badge badge-danger">✗ Overdue</span>
+                                        <span class="rmc-badge rmc-badge--danger">✗ Overdue</span>
                                     {% endif %}
                                 </td>
                                 <td>

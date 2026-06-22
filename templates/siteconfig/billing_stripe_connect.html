@@ -44,9 +44,9 @@
         <dt class="col-sm-4 text-muted">{% trans "Onboarding" %}</dt>
         <dd class="col-sm-8">
           {% if stripe_connected %}
-          <span class="badge text-bg-success">{% trans "Connected" %}</span>
+          <span class="rmc-badge rmc-badge--success">{% trans "Connected" %}</span>
           {% else %}
-          <span class="badge text-bg-secondary">{{ stripe_connect.onboarding_status|default:"pending" }}</span>
+          <span class="rmc-badge">{{ stripe_connect.onboarding_status|default:"pending" }}</span>
           {% endif %}
         </dd>
         <dt class="col-sm-4 text-muted">{% trans "Charges enabled" %}</dt>

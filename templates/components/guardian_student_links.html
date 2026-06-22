@@ -9,7 +9,7 @@
   <span class="text-muted">{% trans "Students" %}:</span>
   {% for link in guardian_student_links_chrome.links %}
   <a
-    class="badge rounded-pill text-bg-light text-decoration-none"
+    class="rmc-badge rmc-badge--muted text-decoration-none"
     href="{% url 'portal:parent_dashboard' %}?student={{ link.student_id }}"
   >{{ link.label }}</a>
   {% empty %}

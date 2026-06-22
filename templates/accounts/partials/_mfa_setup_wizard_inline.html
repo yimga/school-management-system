@@ -55,7 +55,7 @@
       <p class="small text-muted mb-2">{% trans "Backup codes (store securely):" %}</p>
       <div class="d-flex flex-wrap gap-1 mb-3">
         {% for code in backup_tokens|slice:":6" %}
-        <span class="badge text-bg-secondary font-monospace">{{ code }}</span>
+        <span class="rmc-badge font-monospace">{{ code }}</span>
         {% endfor %}
       </div>
       <form method="post" action="{% url 'accounts:user_profile' %}#profile-mfa-wizard" class="d-inline">

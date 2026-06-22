@@ -144,7 +144,7 @@
             {% for log in recent_logs %}
             <tr>
               <td class="small text-nowrap">{{ log.started_at }}</td>
-              <td><span class="badge bg-light">{{ log.status }}</span></td>
+              <td><span class="rmc-badge rmc-badge--muted">{{ log.status }}</span></td>
               <td class="small">{% if log.playbook_slug_short %}<code class="small">{{ log.playbook_slug_short }}</code>{% else %}—{% endif %}</td>
               <td class="small">{{ log.display_school }}</td>
               <td class="small"><code>{{ log.schema_name|default:"—" }}</code></td>

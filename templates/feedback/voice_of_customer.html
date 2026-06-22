@@ -75,13 +75,13 @@
               <td>{{ item.role }}</td>
               <td>{{ item.module|default:"-" }}</td>
               <td>
-                <span class="badge text-bg-light">{{ item.source_channel }}</span>
+                <span class="rmc-badge rmc-badge--muted">{{ item.source_channel }}</span>
                 {% if item.related_kb_article_id %}<div class="small text-muted">KB linked</div>{% endif %}
                 {% if item.related_faq_id %}<div class="small text-muted">FAQ linked</div>{% endif %}
               </td>
               <td>
                 {% if item.support_escalated %}
-                  <span class="badge text-bg-warning">ticket</span>
+                  <span class="rmc-badge rmc-badge--warning">ticket</span>
                   <div class="small text-muted">{{ item.related_support_ticket_id|truncatechars:10 }}</div>
                 {% else %}
                   <span class="text-muted">-</span>
@@ -112,7 +112,7 @@
   </section>
   <section class="col-xl-4 rmc-reveal">
     <div class="card mb-3"><div class="card-header fw-semibold">Top Pain Points</div><div class="card-body">
-      {% for module,count in pain_points %}<span class="badge text-bg-secondary me-1 mb-1">{{ module }} {{ count }}</span>{% empty %}<span class="text-muted">No pain points yet.</span>{% endfor %}
+      {% for module,count in pain_points %}<span class="rmc-badge me-1 mb-1">{{ module }} {{ count }}</span>{% empty %}<span class="text-muted">No pain points yet.</span>{% endfor %}
     </div></div>
     <div class="card"><div class="card-header fw-semibold">Sentiment by Role</div><div class="list-group list-group-flush">
       {% for row in by_role %}<div class="list-group-item d-flex justify-content-between"><span>{{ row.role|default:"unknown" }}</span><strong>{{ row.total }}</strong></div>{% empty %}<div class="list-group-item text-muted">No role sentiment yet.</div>{% endfor %}

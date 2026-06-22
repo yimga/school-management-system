@@ -47,7 +47,7 @@
             <tr>
               <td>{{ intake.requested_at|date:"Y-m-d" }}</td>
               <td>{{ intake.get_vendor_slug_display }}</td>
-              <td><span class="badge bg-secondary">{{ intake.get_state_display }}</span></td>
+              <td><span class="rmc-badge">{{ intake.get_state_display }}</span></td>
               <td>{{ intake.pct_complete }}%</td>
               <td>
                 <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="btn btn-sm btn-outline-primary">{% trans "Open" %}</a>

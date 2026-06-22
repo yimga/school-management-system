@@ -27,14 +27,14 @@
       <li class="nav-item">
         <a class="nav-link {% if active_tab == 'direct' %}active{% endif %}" href="{% url 'accounts:user_messages' %}?tab=direct">
           <i class="bi bi-chat-dots me-1"></i>Direct
-          {% if direct_conversations %}<span class="badge bg-secondary ms-1">{{ direct_conversations|length }}</span>{% endif %}
+          {% if direct_conversations %}<span class="rmc-badge ms-1">{{ direct_conversations|length }}</span>{% endif %}
         </a>
       </li>
       {% if not direct_only %}
       <li class="nav-item">
         <a class="nav-link {% if active_tab == 'groups' %}active{% endif %}" href="{% url 'accounts:user_messages' %}?tab=groups">
           <i class="bi bi-people me-1"></i>Groups
-          {% if threads %}<span class="badge bg-secondary ms-1">{{ threads|length }}</span>{% endif %}
+          {% if threads %}<span class="rmc-badge ms-1">{{ threads|length }}</span>{% endif %}
         </a>
       </li>
       {% endif %}
@@ -63,7 +63,7 @@
                       <div class="text-muted small mt-1">{{ conv.last_message_at|timesince }} ago</div>
                     </div>
                   </div>
-                  {% if conv.unread_count %}<span class="badge bg-primary rounded-pill ms-2">{{ conv.unread_count }}</span>{% endif %}
+                  {% if conv.unread_count %}<span class="rmc-badge rmc-badge--count ms-2">{{ conv.unread_count }}</span>{% endif %}
                 </a>
               {% endfor %}
             </div>
@@ -86,14 +86,14 @@
                   <div>
                     <div class="d-flex align-items-center gap-2">
                       <span class="fw-semibold">{{ t.title }}</span>
-                      {% if t.scope == 'DEPARTMENT' %}<span class="badge bg-info">Department</span>{% endif %}
-                      {% if t.scope == 'CLASSROOM' %}<span class="badge bg-secondary">Class</span>{% endif %}
-                      {% if t.scope == 'ROLE' %}<span class="badge bg-secondary">Role</span>{% endif %}
+                      {% if t.scope == 'DEPARTMENT' %}<span class="rmc-badge rmc-badge--info">Department</span>{% endif %}
+                      {% if t.scope == 'CLASSROOM' %}<span class="rmc-badge">Class</span>{% endif %}
+                      {% if t.scope == 'ROLE' %}<span class="rmc-badge">Role</span>{% endif %}
                     </div>
                     {% if t.snippet %}<div class="text-muted small mt-1">{{ t.snippet|truncatewords:18 }}</div>{% endif %}
                     <div class="text-muted small mt-1">Updated: {{ t.last_message_at|timesince }} ago</div>
                   </div>
-                  {% if t.unread_count %}<span class="badge bg-primary rounded-pill">{{ t.unread_count }}</span>{% endif %}
+                  {% if t.unread_count %}<span class="rmc-badge rmc-badge--count">{{ t.unread_count }}</span>{% endif %}
                 </a>
               {% endfor %}
             </div>

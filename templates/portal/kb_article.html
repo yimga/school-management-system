@@ -55,7 +55,7 @@
                             </span>
                             {% endif %}
                             {% if article.is_featured %}
-                            <span class="badge badge-warning ml-2">
+                            <span class="rmc-badge rmc-badge--warning ml-2">
                                 <i class="bi bi-star"></i> Featured
                             </span>
                             {% endif %}
@@ -158,7 +158,7 @@
                     <div class="mt-4 pt-4 border-top">
                         <strong>Tags:</strong><br>
                         {% for tag in article.tags.all %}
-                        <a href="{% url 'kb:kb_search' %}?q={{ tag.name }}" class="badge badge-info">
+                        <a href="{% url 'kb:kb_search' %}?q={{ tag.name }}" class="rmc-badge rmc-badge--info">
                             {{ tag.name }}
                         </a>
                         {% endfor %}
@@ -231,7 +231,7 @@
                                     </small>
                                 </div>
                                 {% if comment.is_helpful %}
-                                <span class="badge badge-success">
+                                <span class="rmc-badge rmc-badge--success">
                                     <i class="bi bi-check2"></i> Helpful
                                 </span>
                                 {% endif %}

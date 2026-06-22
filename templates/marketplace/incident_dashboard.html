@@ -56,7 +56,7 @@
           {% for e in recent_events %}
           <tr>
             <td>{{ e.created_at|date:"Y-m-d H:i" }}</td>
-            <td><span class="badge bg-secondary">{{ e.action }}</span></td>
+            <td><span class="rmc-badge">{{ e.action }}</span></td>
             <td>{% if e.app %}{{ e.app.name }} ({{ e.app.slug }}){% else %}—{% endif %}</td>
             <td>{% if e.school %}{{ e.school.name }}{% else %}—{% endif %}</td>
             <td>{% if e.actor %}{{ e.actor.get_full_name|default:e.actor.email }}{% else %}—{% endif %}</td>

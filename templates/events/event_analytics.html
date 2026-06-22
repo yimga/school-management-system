@@ -95,7 +95,7 @@
   </div>
 
   <div class="card shadow-sm mb-3">
-    <div class="card-header"><h5 class="mb-0">{% trans "Domain volume by type" %} {% if filter_event_type %}<span class="badge bg-secondary">{{ filter_event_type }}</span>{% endif %}</h5></div>
+    <div class="card-header"><h5 class="mb-0">{% trans "Domain volume by type" %} {% if filter_event_type %}<span class="rmc-badge">{{ filter_event_type }}</span>{% endif %}</h5></div>
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
@@ -122,7 +122,7 @@
           <thead class="table-light"><tr><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Count" %}</th></tr></thead>
           <tbody>
             {% for row in domain_by_status %}
-            <tr><td><span class="badge bg-secondary">{{ row.status }}</span></td><td>{{ row.c }}</td></tr>
+            <tr><td><span class="rmc-badge">{{ row.status }}</span></td><td>{{ row.c }}</td></tr>
             {% empty %}
             <tr><td colspan="2" class="text-muted px-3 py-3">{% trans "No rows." %}</td></tr>
             {% endfor %}

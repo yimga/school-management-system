@@ -33,13 +33,13 @@
 
   {% comment %} Severity counters — Apple Mail-style filter pill row {% endcomment %}
   <div class="d-flex flex-wrap align-items-center gap-2 mb-3" role="group" aria-label="{% trans 'Severity summary' %}">
-    <span class="badge text-bg-danger">
+    <span class="rmc-badge rmc-badge--danger">
       {% blocktrans count counter=counts.blocker %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}
     </span>
-    <span class="badge text-bg-warning text-dark">
+    <span class="rmc-badge rmc-badge--warning">
       {% blocktrans count counter=counts.warning %}{{ counter }} warning{% plural %}{{ counter }} warnings{% endblocktrans %}
     </span>
-    <span class="badge text-bg-info text-dark">
+    <span class="rmc-badge rmc-badge--info">
       {% blocktrans count counter=counts.info %}{{ counter }} info{% plural %}{{ counter }} info{% endblocktrans %}
     </span>
   </div>
@@ -61,7 +61,7 @@
                   {% endif %}
                   {{ issue.title }}
                 </h2>
-                <span class="badge text-bg-light">
+                <span class="rmc-badge rmc-badge--muted">
                   {% blocktrans count counter=issue.record_count %}{{ counter }} record{% plural %}{{ counter }} records{% endblocktrans %}
                 </span>
               </div>

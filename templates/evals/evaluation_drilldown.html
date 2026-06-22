@@ -49,7 +49,7 @@
             <dd class="col-sm-7">{{ evaluation.internship_score|default:"—" }}</dd>
             {% if evaluation.letter_grade %}
             <dt class="col-sm-5">{% trans "Letter grade" %}</dt>
-            <dd class="col-sm-7"><span class="badge bg-secondary">{{ evaluation.letter_grade }}</span></dd>
+            <dd class="col-sm-7"><span class="rmc-badge">{{ evaluation.letter_grade }}</span></dd>
             {% endif %}
           </dl>
         </div>
@@ -105,7 +105,7 @@
             <tr>
               <td><time datetime="{{ row.changed_at|date:'c' }}">{{ row.changed_at|date:"SHORT_DATETIME_FORMAT" }}</time></td>
               <td>{% if row.changed_by %}{{ row.changed_by.get_full_name|default:row.changed_by.username }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
-              <td><span class="badge bg-light text-dark">{{ row.get_change_type_display }}</span></td>
+              <td><span class="rmc-badge rmc-badge--muted">{{ row.get_change_type_display }}</span></td>
               <td class="small">{{ row.seq1_before|default_if_none:"—" }} &rarr; <strong>{{ row.seq1_after|default_if_none:"—" }}</strong></td>
               <td class="small">{{ row.seq2_before|default_if_none:"—" }} &rarr; <strong>{{ row.seq2_after|default_if_none:"—" }}</strong></td>
               <td class="small">{{ row.exam_before|default_if_none:"—" }} &rarr; <strong>{{ row.exam_after|default_if_none:"—" }}</strong></td>

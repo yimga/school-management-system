@@ -58,7 +58,7 @@
                   <label class="form-check-label" for="id_user_role-roles_{{ role.pk }}">
                     <span class="fw-medium rbac-role-title">{{ role.code }} &mdash; {{ role.name }}</span>
                     {% if role.permissions.all %}
-                    <span class="d-block small text-muted mt-0 rbac-role-perms" title="{% for p in role.permissions.all %}{{ p.code }}{% if not forloop.last %}, {% endif %}{% endfor %}">{% for p in role.permissions.all %}<span class="badge text-bg-light rbac-badge">{{ p.code }}</span>{% endfor %}</span>
+                    <span class="d-block small text-muted mt-0 rbac-role-perms" title="{% for p in role.permissions.all %}{{ p.code }}{% if not forloop.last %}, {% endif %}{% endfor %}">{% for p in role.permissions.all %}<span class="rmc-badge rmc-badge--muted rbac-badge">{{ p.code }}</span>{% endfor %}</span>
                     {% endif %}
                   </label>
                 </div>
@@ -71,7 +71,7 @@
                   <label class="form-check-label" for="id_user_role-roles_{{ role.pk }}">
                     <span class="fw-medium rbac-role-title">{{ role.code }} &mdash; {{ role.name }}</span>
                     {% if role.permissions.all %}
-                    <span class="d-block small text-muted mt-0 rbac-role-perms">{% for p in role.permissions.all %}<span class="badge text-bg-light rbac-badge">{{ p.code }}</span>{% endfor %}</span>
+                    <span class="d-block small text-muted mt-0 rbac-role-perms">{% for p in role.permissions.all %}<span class="rmc-badge rmc-badge--muted rbac-badge">{{ p.code }}</span>{% endfor %}</span>
                     {% endif %}
                   </label>
                 </div>
@@ -270,7 +270,7 @@
                     {% if role.permissions.all %}
                       <div class="d-flex flex-wrap gap-1 max-w-100">
                         {% for perm in role.permissions.all %}
-                          <span class="badge text-bg-light rbac-badge">{{ perm.code }}</span>
+                          <span class="rmc-badge rmc-badge--muted rbac-badge">{{ perm.code }}</span>
                         {% endfor %}
                       </div>
                     {% else %}

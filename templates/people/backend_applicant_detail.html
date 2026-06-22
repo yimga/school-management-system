@@ -39,7 +39,7 @@
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
           <strong>{% trans "Documents" %}</strong>
-          <span class="badge text-bg-light">{{ summary.document_count_received }}/{{ summary.document_count_required }}</span>
+          <span class="rmc-badge rmc-badge--muted">{{ summary.document_count_received }}/{{ summary.document_count_required }}</span>
         </div>
         <ul class="list-group list-group-flush">
           {% for doc in document_rows %}

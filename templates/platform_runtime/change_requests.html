@@ -22,13 +22,13 @@
   {% include "components/world_class_guided_stepper.html" %}
   <nav class="rmc-cr-stepper mb-3" aria-label="{% trans 'Change request lifecycle' %}">
     <ol class="rmc-cr-stepper__list list-unstyled d-flex flex-wrap gap-2 small mb-0">
-      <li><span class="badge text-bg-secondary">{% trans "Requested" %}</span></li>
+      <li><span class="rmc-badge">{% trans "Requested" %}</span></li>
       <li aria-hidden="true">→</li>
-      <li><span class="badge text-bg-secondary">{% trans "Approved" %}</span></li>
+      <li><span class="rmc-badge">{% trans "Approved" %}</span></li>
       <li aria-hidden="true">→</li>
-      <li><span class="badge text-bg-secondary">{% trans "Scheduled" %}</span></li>
+      <li><span class="rmc-badge">{% trans "Scheduled" %}</span></li>
       <li aria-hidden="true">→</li>
-      <li><span class="badge text-bg-secondary">{% trans "Applied" %}</span></li>
+      <li><span class="rmc-badge">{% trans "Applied" %}</span></li>
     </ol>
   </nav>
   {% include "components/apple_class_visual_workflow_path.html" %}

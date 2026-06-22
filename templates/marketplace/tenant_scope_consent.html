@@ -41,7 +41,7 @@
   <section class="card shadow-sm mb-4 border-warning border-opacity-50">
     <div class="card-header bg-warning bg-opacity-10 d-flex justify-content-between align-items-center flex-wrap gap-2">
       <strong><i class="bi bi-hourglass-split me-1" aria-hidden="true"></i>{% trans "Pending approval" %}</strong>
-      <span class="badge text-bg-warning text-dark">{{ pending_grant_rows|length }}</span>
+      <span class="rmc-badge rmc-badge--warning">{{ pending_grant_rows|length }}</span>
     </div>
     <div class="table-responsive">
       <table class="table table-sm align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
@@ -63,8 +63,8 @@
                 <details class="rmc-row-disclosure">
                   <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
                   <div class="rmc-row-disclosure__body mt-1">
-<code>{{ g.scope.scope_code }}</code>{% if g.scope.sensitive %} <span class="badge text-bg-warning">{% trans "Sensitive" %}</span>{% endif %}</td>
-            <td><span class="badge text-bg-secondary">{{ row.access_tier }}</span></td>
+<code>{{ g.scope.scope_code }}</code>{% if g.scope.sensitive %} <span class="rmc-badge rmc-badge--warning">{% trans "Sensitive" %}</span>{% endif %}</td>
+            <td><span class="rmc-badge">{{ row.access_tier }}</span></td>
             <td>{{ g.installation.app.name }}</td>
             <td class="small text-muted">{% if g.scope.description %}{{ g.scope.description }}{% else %}—{% endif %}</td>
             <td class="text-end">
@@ -91,7 +91,7 @@
   <section class="card shadow-sm mb-4 rmc-reveal">
     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
       <strong><i class="bi bi-shield-check me-1" aria-hidden="true"></i>{% trans "Granted scopes" %}</strong>
-      <span class="badge text-bg-secondary">{{ granted_grant_rows|length }}</span>
+      <span class="rmc-badge">{{ granted_grant_rows|length }}</span>
     </div>
     {% if granted_grant_rows %}
     <div class="table-responsive">
@@ -109,8 +109,8 @@
           {% for row in granted_grant_rows %}
           {% with g=row.grant %}
           <tr data-rmc-mkt-scope-row="granted">
-            <td><code>{{ g.scope.scope_code }}</code>{% if g.scope.sensitive %} <span class="badge border text-secondary bg-light">{% trans "Sensitive" %}</span>{% endif %}</td>
-            <td><span class="badge text-bg-light text-dark border">{{ row.access_tier }}</span></td>
+            <td><code>{{ g.scope.scope_code }}</code>{% if g.scope.sensitive %} <span class="rmc-badge rmc-badge--muted border text-secondary">{% trans "Sensitive" %}</span>{% endif %}</td>
+            <td><span class="rmc-badge rmc-badge--muted border">{{ row.access_tier }}</span></td>
             <td>{{ g.installation.app.name }}</td>
             <td class="small text-muted">{{ g.granted_at|date:"Y-m-d H:i" }}{% if g.granted_by %} · {{ g.granted_by.get_full_name|default:g.granted_by.username }}{% endif %}</td>
           </tr>

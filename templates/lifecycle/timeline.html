@@ -21,11 +21,11 @@
     </p>
     <div class="rmc-lifecycle-360__chips d-flex flex-wrap gap-2 align-items-center">
       {% if latest_stage %}
-        <span class="badge text-bg-secondary">{% trans "Latest" %}: {% firstof stage_labels latest_stage %}</span>
+        <span class="rmc-badge">{% trans "Latest" %}: {% firstof stage_labels latest_stage %}</span>
       {% else %}
-        <span class="badge text-bg-light">{% trans "No lifecycle events yet" %}</span>
+        <span class="rmc-badge rmc-badge--muted">{% trans "No lifecycle events yet" %}</span>
       {% endif %}
-      {% if is_live %}<span class="badge text-bg-success">{% trans "Live" %}</span>{% endif %}
+      {% if is_live %}<span class="rmc-badge rmc-badge--success">{% trans "Live" %}</span>{% endif %}
       {% if is_terminal %}<span class="badge text-bg-dark">{% trans "Terminal" %}</span>{% endif %}
       <a href="{% url 'super:tenant_360' school.id %}" class="btn btn-sm btn-outline-secondary">{% trans "Tenant 360" %}</a>
       <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "Dashboard" %}</a>
@@ -35,7 +35,7 @@
   {% if counts %}
   <div class="rmc-lifecycle-360__counts mb-3 d-flex flex-wrap gap-2">
     {% for stage_value, count in counts.items %}
-      <span class="badge text-bg-light border">
+      <span class="rmc-badge rmc-badge--muted border">
         {% firstof stage_labels stage_value %} · <strong>{{ count }}</strong>
       </span>
     {% endfor %}

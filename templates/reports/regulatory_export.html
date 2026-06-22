@@ -41,7 +41,7 @@
           <div>
             <strong>{{ p.name }}</strong>
             <div class="small text-muted">{{ p.description }}</div>
-            <span class="badge bg-secondary mt-1">{{ p.region_hint }}</span>
+            <span class="rmc-badge mt-1">{{ p.region_hint }}</span>
           </div>
           <form method="post" action="{% url 'reports:regulatory_export' %}" class="d-flex flex-wrap align-items-center gap-2">
             {% csrf_token %}

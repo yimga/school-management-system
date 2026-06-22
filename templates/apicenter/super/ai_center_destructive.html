@@ -9,7 +9,7 @@
 
 <main class="rmc-page" id="main">
   {% include "apicenter/super/ai_center_nav.html" %}
-  <h1 class="rmc-h1">{% trans "Destructive actions" %} <span class="badge text-bg-danger align-middle">{% trans "dual-control" %}</span></h1>
+  <h1 class="rmc-h1">{% trans "Destructive actions" %} <span class="rmc-badge rmc-badge--danger align-middle">{% trans "dual-control" %}</span></h1>
   <p class="text-muted">{% blocktrans %}Phase 3 — irreversible. One operator requests; a different operator must approve before anything runs. Approval routes through the platform's GDPR Art. 17 erasure pipeline (anonymization, audited). Every step is recorded.{% endblocktrans %}</p>
 
   {% if error %}<p class="text-danger" role="alert">{{ error }}</p>{% endif %}
@@ -50,7 +50,7 @@
   <section class="card mt-3 mb-4">
     <div class="card-header fw-semibold">
       {% trans "Result" %}: {{ op_result.action }}
-      {% if op_result.ok %}<span class="badge text-bg-success">{% trans "ok" %}</span>{% else %}<span class="badge text-bg-danger">{{ op_result.blocked_reason|default:_("error") }}</span>{% endif %}
+      {% if op_result.ok %}<span class="rmc-badge rmc-badge--success">{% trans "ok" %}</span>{% else %}<span class="rmc-badge rmc-badge--danger">{{ op_result.blocked_reason|default:_("error") }}</span>{% endif %}
     </div>
     <div class="card-body">
       {% if op_result.ok %}<pre class="mb-2">{{ op_result.result }}</pre>{% else %}<p class="text-danger mb-2">{{ op_result.error }}</p>{% endif %}
@@ -78,7 +78,7 @@
             <td>{{ p.action }}</td>
             <td><code>{{ p.student_pk }}</code></td>
             <td><code>{{ p.requester }}</code></td>
-            <td>{{ p.created_at }}{% if p.expired %} <span class="badge text-bg-warning">{% trans "expired" %}</span>{% endif %}</td>
+            <td>{{ p.created_at }}{% if p.expired %} <span class="rmc-badge rmc-badge--warning">{% trans "expired" %}</span>{% endif %}</td>
             <td>
               <form method="post" class="d-flex flex-wrap gap-1 align-items-center">
                 {% csrf_token %}

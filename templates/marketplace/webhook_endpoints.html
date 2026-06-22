@@ -46,7 +46,7 @@
           <details class="small mt-1"><summary>{% trans "Secret" %}</summary><code class="small">{{ e.secret }}</code></details>
         </td>
         <td><small>{{ e.topics|join:", " }}</small></td>
-        <td>{% if e.is_active %}<span class="badge bg-success">{% trans "Yes" %}</span>{% else %}<span class="badge bg-secondary">{% trans "Disabled" %}</span>{% endif %}</td>
+        <td>{% if e.is_active %}<span class="rmc-badge rmc-badge--success">{% trans "Yes" %}</span>{% else %}<span class="rmc-badge">{% trans "Disabled" %}</span>{% endif %}</td>
         <td>{{ e.consecutive_failures }}</td>
         <td><small>{{ e.last_success_at|default:"—"|date:"Y-m-d H:i" }}</small></td>
         <td class="d-flex gap-1">

@@ -42,7 +42,7 @@
         {% for topic in topics %}
         <a class="list-group-item list-group-item-action" href="{% url 'portal:forum_topic' topic_id=topic.pk %}">
           <div class="d-flex w-100 justify-content-between">
-            <h6 class="mb-1">{{ topic.title }}{% if topic.is_pinned %} <span class="badge bg-info">{% trans "Pinned" %}</span>{% endif %}{% if topic.is_locked %} <span class="badge bg-secondary">{% trans "Locked" %}</span>{% endif %}</h6>
+            <h6 class="mb-1">{{ topic.title }}{% if topic.is_pinned %} <span class="rmc-badge rmc-badge--info">{% trans "Pinned" %}</span>{% endif %}{% if topic.is_locked %} <span class="rmc-badge">{% trans "Locked" %}</span>{% endif %}</h6>
             <small class="text-muted">{{ topic.last_activity_at|date:"SHORT_DATE_FORMAT" }}</small>
           </div>
           <p class="mb-1 small text-muted">{{ topic.body|truncatewords:24 }}</p>

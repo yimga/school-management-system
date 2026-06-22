@@ -60,7 +60,7 @@
               <td>{% if ev.campus_id %}#{{ ev.campus_id }}{% else %}<span class="text-muted small">{% trans "school" %}</span>{% endif %}</td>
               <td>
                 {% for k in ev.payload_keys %}
-                  <span class="badge text-bg-secondary">{{ k }}</span>
+                  <span class="rmc-badge">{{ k }}</span>
                 {% empty %}
                   <span class="text-muted small">{% trans "(empty)" %}</span>
                 {% endfor %}

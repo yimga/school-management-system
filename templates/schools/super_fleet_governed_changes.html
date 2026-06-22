@@ -46,7 +46,7 @@
             <div class="fw-semibold">{{ row.title|default:row.change_type }}</div>
             <div class="small">{{ row.change_type }}</div>
           </td>
-          <td><span class="badge bg-secondary">{{ row.status }}</span></td>
+          <td><span class="rmc-badge">{{ row.status }}</span></td>
           <td class="small">
             {% if row.apply_surface_url %}
             <a class="link-secondary text-break" href="{{ row.apply_surface_url }}">{{ row.apply_surface_url|truncatechars:48 }}</a>

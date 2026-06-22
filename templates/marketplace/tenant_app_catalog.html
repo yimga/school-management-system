@@ -237,36 +237,36 @@
           </div>
           <div class="proof-app-meta proof-trust-badges" data-rmc-mkt-lifecycle-badges="1">
             {% if listing.app.kind == 'first_party' %}
-            <span class="badge text-bg-primary" title="{% trans 'Built and supported by RunMyCampus' %}"><i class="bi bi-star-fill"></i> {% trans "First-party" %}</span>
+            <span class="rmc-badge rmc-badge--brand" title="{% trans 'Built and supported by RunMyCampus' %}"><i class="bi bi-star-fill"></i> {% trans "First-party" %}</span>
             {% endif %}
             <span class="badge {% if listing.publisher and listing.publisher.verification_status == 'verified' %}text-bg-success{% else %}text-bg-secondary{% endif %}" title="{% trans 'Publisher verification' %}">
               <i class="bi bi-shield-check"></i> {% if listing.publisher and listing.publisher.verification_status == 'verified' %}{% trans "Verified publisher" %}{% else %}{% trans "Review required" %}{% endif %}
             </span>
             {% if listing.mkt_governance_badge == 'certified' %}
-            <span class="badge text-bg-primary" title="{% trans 'Governance: certified listing' %}"><i class="bi bi-patch-check-fill"></i> {% trans "Certified" %}</span>
+            <span class="rmc-badge rmc-badge--brand" title="{% trans 'Governance: certified listing' %}"><i class="bi bi-patch-check-fill"></i> {% trans "Certified" %}</span>
             {% elif listing.mkt_governance_badge == 'beta' %}
-            <span class="badge text-bg-warning text-dark" title="{% trans 'Governance: beta rollout' %}"><i class="bi bi-flask"></i> {% trans "Beta" %}</span>
+            <span class="rmc-badge rmc-badge--warning" title="{% trans 'Governance: beta rollout' %}"><i class="bi bi-flask"></i> {% trans "Beta" %}</span>
             {% elif listing.mkt_governance_badge == 'internal' %}
-            <span class="badge text-bg-secondary" title="{% trans 'Governance: internal / tenant-private' %}"><i class="bi bi-building-lock"></i> {% trans "Internal" %}</span>
+            <span class="rmc-badge" title="{% trans 'Governance: internal / tenant-private' %}"><i class="bi bi-building-lock"></i> {% trans "Internal" %}</span>
             {% elif listing.mkt_governance_badge == 'verified' %}
-            <span class="badge text-bg-info" title="{% trans 'Governance: verified' %}"><i class="bi bi-patch-check"></i> {% trans "Verified" %}</span>
+            <span class="rmc-badge rmc-badge--info" title="{% trans 'Governance: verified' %}"><i class="bi bi-patch-check"></i> {% trans "Verified" %}</span>
             {% endif %}
             {% if listing.security_review_status == 'approved' and listing.mkt_governance_badge != 'verified' %}
-            <span class="badge text-bg-info" title="{% trans 'Security review passed' %}"><i class="bi bi-shield-lock"></i> {% trans "Security reviewed" %}</span>
+            <span class="rmc-badge rmc-badge--info" title="{% trans 'Security review passed' %}"><i class="bi bi-shield-lock"></i> {% trans "Security reviewed" %}</span>
             {% endif %}
             {% if listing.certification_status == 'approved' and listing.mkt_governance_badge != 'certified' %}
-            <span class="badge text-bg-info" title="{% trans 'Certification passed' %}"><i class="bi bi-patch-check"></i> {% trans "Listed certified" %}</span>
+            <span class="rmc-badge rmc-badge--info" title="{% trans 'Certification passed' %}"><i class="bi bi-patch-check"></i> {% trans "Listed certified" %}</span>
             {% endif %}
             {% if listing.app.slug in installed_slugs %}
-            <span class="badge text-bg-success" data-rmc-mkt-lifecycle="{{ listing.mkt_lifecycle }}">{% if listing.mkt_lifecycle == 'installed' %}{% trans "Sandbox" %}{% elif listing.mkt_lifecycle == 'active' %}{% trans "Active" %}{% elif listing.mkt_lifecycle == 'disabled' %}{% trans "Disabled" %}{% else %}{% trans "Installed" %}{% endif %}</span>
+            <span class="rmc-badge rmc-badge--success" data-rmc-mkt-lifecycle="{{ listing.mkt_lifecycle }}">{% if listing.mkt_lifecycle == 'installed' %}{% trans "Sandbox" %}{% elif listing.mkt_lifecycle == 'active' %}{% trans "Active" %}{% elif listing.mkt_lifecycle == 'disabled' %}{% trans "Disabled" %}{% else %}{% trans "Installed" %}{% endif %}</span>
             {% else %}
-            <span class="badge text-bg-light text-dark border" data-rmc-mkt-lifecycle="{{ listing.mkt_lifecycle }}">{% trans "Available" %}</span>
+            <span class="rmc-badge rmc-badge--muted border" data-rmc-mkt-lifecycle="{{ listing.mkt_lifecycle }}">{% trans "Available" %}</span>
             {% endif %}
             {% if listing.mkt_show_update %}
-            <span class="badge text-bg-warning text-dark" data-rmc-mkt-update-available="1"><i class="bi bi-arrow-up-circle"></i> {% trans "Update available" %}</span>
+            <span class="rmc-badge rmc-badge--warning" data-rmc-mkt-update-available="1"><i class="bi bi-arrow-up-circle"></i> {% trans "Update available" %}</span>
             {% endif %}
             {% if listing.mkt_show_rollback %}
-            <span class="badge border border-secondary text-secondary bg-light" data-rmc-mkt-rollback-hint="1"><i class="bi bi-arrow-counterclockwise"></i> {% trans "Rollback-friendly" %}</span>
+            <span class="rmc-badge rmc-badge--muted border border-secondary text-secondary" data-rmc-mkt-rollback-hint="1"><i class="bi bi-arrow-counterclockwise"></i> {% trans "Rollback-friendly" %}</span>
             {% endif %}
           </div>
         </div>
@@ -320,7 +320,7 @@
             <strong class="small">{% trans "Required permissions:" %}</strong>
             <ul class="list-unstyled small mb-0 mt-1">
               {% for scope in listing.app.scopes.all %}
-              <li><code>{{ scope.scope_code }}</code>{% if scope.description %} — {{ scope.description }}{% endif %}{% if scope.sensitive %} <span class="badge text-bg-warning">{% trans "Sensitive" %}</span>{% endif %}</li>
+              <li><code>{{ scope.scope_code }}</code>{% if scope.description %} — {{ scope.description }}{% endif %}{% if scope.sensitive %} <span class="rmc-badge rmc-badge--warning">{% trans "Sensitive" %}</span>{% endif %}</li>
               {% endfor %}
             </ul>
           </div>

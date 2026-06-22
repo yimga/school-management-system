@@ -21,7 +21,7 @@
       <h2 class="h6 mb-2">{% trans "Active bundle" %}</h2>
       <dl class="row mb-0 small">
         <dt class="col-sm-4">{% trans "Label" %}</dt><dd class="col-sm-8">{{ snapshot.active_bundle.label }}</dd>
-        <dt class="col-sm-4">{% trans "Status" %}</dt><dd class="col-sm-8"><span class="badge text-bg-secondary">{{ snapshot.active_bundle.status }}</span></dd>
+        <dt class="col-sm-4">{% trans "Status" %}</dt><dd class="col-sm-8"><span class="rmc-badge">{{ snapshot.active_bundle.status }}</span></dd>
         <dt class="col-sm-4">{% trans "Intake" %}</dt><dd class="col-sm-8"><code>{{ snapshot.active_bundle.intake_method }}</code></dd>
         {% if snapshot.active_bundle.vendor_hint %}<dt class="col-sm-4">{% trans "Vendor hint" %}</dt><dd class="col-sm-8">{{ snapshot.active_bundle.vendor_hint }}</dd>{% endif %}
         <dt class="col-sm-4">{% trans "SLA tier" %}</dt><dd class="col-sm-8">{{ snapshot.active_bundle.sla_tier }}</dd>
@@ -44,7 +44,7 @@
         {% for b in snapshot.bundles %}
         <tr>
           <td>{{ b.label }}</td>
-          <td><span class="badge text-bg-light">{{ b.status }}</span></td>
+          <td><span class="rmc-badge rmc-badge--muted">{{ b.status }}</span></td>
           <td><code class="small">{{ b.intake_method }}</code></td>
           <td>{{ b.sla_tier }}</td>
         </tr>

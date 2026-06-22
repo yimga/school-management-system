@@ -59,7 +59,7 @@
                   <span class="text-muted small ms-2">{{ message.created_at|format_date }} {{ message.created_at|time:"H:i" }}</span>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                  {% if message.edited_at %}<span class="badge bg-secondary">{% trans "Edited" %}</span>{% endif %}
+                  {% if message.edited_at %}<span class="rmc-badge">{% trans "Edited" %}</span>{% endif %}
                   {% if message.author_id == current_user_id %}
                   <a class="btn btn-sm btn-link text-muted p-0" href="{% url 'communication:group_message_edit' thread_id=thread.id message_id=message.id %}" title="{% trans 'Edit' %}" aria-label="{% trans 'Edit message' %}"><i class="bi bi-pencil" aria-hidden="true"></i></a>
                   {% endif %}

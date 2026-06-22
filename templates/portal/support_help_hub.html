@@ -106,7 +106,7 @@
           {% for t in my_tickets %}
           <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ t.subject|truncatechars:64 }}" data-rmc-row-subtitle="{{ t.get_status_display }}">
             <td><a href="{% url 'portal:support_ticket_detail' t.id %}">{{ t.subject|truncatechars:64 }}</a></td>
-            <td><span class="badge bg-secondary">{{ t.get_status_display }}</span></td>
+            <td><span class="rmc-badge">{{ t.get_status_display }}</span></td>
             <td class="text-muted small">{{ t.updated_at|date:"M j, Y H:i" }}</td>
           </tr>
           {% endfor %}

@@ -58,7 +58,7 @@
           <p class="card-text small text-secondary">
             {% blocktrans with t=sso_health.integrations_tracked ok=sso_health.ok_last_7d fl=sso_health.fail_last_7d %}Federation integrations tracked: {{ t }}. Successful logins (7d): {{ ok }}. Failures (7d): {{ fl }}.{% endblocktrans %}
           </p>
-          <span class="badge bg-info">{% trans "Live" %}</span>
+          <span class="rmc-badge rmc-badge--info">{% trans "Live" %}</span>
         </div>
       </div>
     </div>
@@ -103,7 +103,7 @@
         <div class="card-body">
           <h6 class="card-title"><span class="bi bi-geo-alt me-2" aria-hidden="true"></span>{% trans "Data residency & sovereignty" %}</h6>
           <p class="card-text small text-secondary">{% trans "Where data lives; region-specific compliance (GDPR, FERPA). Region packs define default data residency per continent." %}</p>
-          {% if geography_url %}<a href="{{ geography_url }}" class="btn btn-outline-primary btn-sm">{% trans "Geography & region packs" %}</a>{% else %}<span class="badge bg-secondary">{% trans "Docs" %}</span>{% endif %}
+          {% if geography_url %}<a href="{{ geography_url }}" class="btn btn-outline-primary btn-sm">{% trans "Geography & region packs" %}</a>{% else %}<span class="rmc-badge">{% trans "Docs" %}</span>{% endif %}
         </div>
       </div>
     </div>
@@ -112,7 +112,7 @@
         <div class="card-body">
           <h6 class="card-title"><span class="bi bi-award me-2" aria-hidden="true"></span>{% trans "Certifications & attestations" %}</h6>
           <p class="card-text small text-secondary">{% trans "SOC 2 and ISO 27001 (or equivalent) on roadmap; security review and trust signals for marketplace and partners (North star N16)." %}</p>
-          <span class="badge bg-secondary">{% trans "Roadmap" %}</span>
+          <span class="rmc-badge">{% trans "Roadmap" %}</span>
         </div>
       </div>
     </div>
@@ -121,7 +121,7 @@
         <div class="card-body">
           <h6 class="card-title"><span class="bi bi-shield-lock me-2" aria-hidden="true"></span>{% trans "Security posture" %}</h6>
           <p class="card-text small text-secondary">{% trans "Least-privilege support access; audit of data access; trust-center-grade transparency. See BEYOND_REACH_BLOCKED_AND_MEASUREMENT and compliance docs." %}</p>
-          <span class="badge bg-secondary">{% trans "Docs" %}</span>
+          <span class="rmc-badge">{% trans "Docs" %}</span>
         </div>
       </div>
     </div>
@@ -170,7 +170,7 @@
         <div class="card-body">
           <h6 class="card-title"><span class="bi bi-shield-lock me-2" aria-hidden="true"></span>{% trans "School admin: Security & trust" %}</h6>
           <p class="card-text small text-secondary">{% trans "On each tenant: Backend → Security & trust (/authentication/backend/security-trust/) for MFA, sessions, RBAC/compliance/API links, platform events, and support impersonation log." %}</p>
-          <span class="badge bg-secondary">{% trans "Tenant UI" %}</span>
+          <span class="rmc-badge">{% trans "Tenant UI" %}</span>
         </div>
       </div>
     </div>

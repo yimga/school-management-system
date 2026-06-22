@@ -57,9 +57,9 @@
   {% if year %}
   <div class="card shadow-sm mb-3">
     <div class="card-body py-2">
-      <span class="badge bg-info me-2">{{ year.name }}</span>
+      <span class="rmc-badge rmc-badge--info me-2">{{ year.name }}</span>
       {% if borderline_count %}
-      <span class="badge bg-warning text-dark">{{ borderline_count }} borderline (for council)</span>
+      <span class="rmc-badge rmc-badge--warning">{{ borderline_count }} borderline (for council)</span>
       {% endif %}
     </div>
   </div>
@@ -84,7 +84,7 @@
               <td>{{ row.student.get_full_name|default:row.student.last_name }}</td>
               <td>{{ row.annual_average|default:"—" }}</td>
               <td><span class="badge {% if row.promotion_status == 'PROMOTED' %}bg-success{% elif row.promotion_status == 'REPEAT' or row.promotion_status == 'DEMOTED' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ row.promotion_status }}</span></td>
-              <td>{% if row.is_borderline %}<span class="badge bg-warning text-dark">Yes</span>{% else %}—{% endif %}</td>
+              <td>{% if row.is_borderline %}<span class="rmc-badge rmc-badge--warning">Yes</span>{% else %}—{% endif %}</td>
             </tr>
             {% empty %}
             <tr>

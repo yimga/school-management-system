@@ -6,7 +6,7 @@
     {% if breadcrumb_label %}<nav aria-label="{% trans 'Breadcrumb' %}" class="small mb-2"><a href="{{ breadcrumb_url }}">{{ breadcrumb_label }}</a></nav>{% endif %}
     <div class="rmc-wcx-hero__eyebrow rmc-page-eyebrow">{{ role|default:_("RunMyCampus workspace") }}</div>
     <h1 id="{{ hero_id|default:'world-class-page-title' }}" class="rmc-wcx-hero__title">{{ title }}</h1>
-    {% if status %}<span class="badge rounded-pill text-bg-secondary" data-world-class-status-pill="1">{{ status }}</span>{% endif %}
+    {% if status %}<span class="rmc-badge" data-world-class-status-pill="1">{{ status }}</span>{% endif %}
     <p class="rmc-wcx-hero__copy">{{ subtitle }}</p>
     <div class="rmc-wcx-actions" data-world-class-primary-action-slot="1">
       {% if primary_url and primary_label %}<a class="btn btn-primary" href="{{ primary_url }}">{{ primary_label }}</a>{% endif %}

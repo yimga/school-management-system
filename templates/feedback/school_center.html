@@ -118,7 +118,7 @@
           <div class="list-group-item">
             <div class="d-flex justify-content-between gap-2">
               <strong>{{ item.title }}</strong>
-              <span class="badge text-bg-secondary">{{ item.status }}</span>
+              <span class="rmc-badge">{{ item.status }}</span>
             </div>
             <div class="small text-muted">{{ item.get_category_display }} · {{ item.module|default:"general" }} · {{ item.created_at|date:"M j, Y" }}</div>
           </div>
@@ -134,7 +134,7 @@
           <div class="list-group-item">
             <div class="d-flex justify-content-between gap-2">
               <strong>{{ item.title }}</strong>
-              <span class="badge text-bg-info">{{ item.status }}</span>
+              <span class="rmc-badge rmc-badge--info">{{ item.status }}</span>
             </div>
             <p class="small mb-2">{{ item.problem_statement|truncatewords:22 }}</p>
             <form method="post" action="{% url 'feedback:vote_feature' item.pk %}">

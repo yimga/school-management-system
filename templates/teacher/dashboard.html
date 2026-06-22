@@ -290,7 +290,7 @@
                     <div class="tdm-class-title">{{ a.subject_assignment.subject.name }}</div>
                     <div class="tdm-class-meta">{{ a.subject_assignment.classroom.name }}</div>
                   </div>
-                  <span class="badge text-bg-light">{{ p.total|default:0 }} {% trans "students" %}</span>
+                  <span class="rmc-badge rmc-badge--muted">{{ p.total|default:0 }} {% trans "students" %}</span>
                 </header>
                 <div class="tdm-progress-row">
                   <div class="tdm-progress-track">
@@ -355,7 +355,7 @@
             <article class="tdm-compact-card rmc-reveal">
               <div class="tdm-compact-head">
                 <h4>{% term "student" capitalize=True %} {% trans "attention queue" %}</h4>
-                <span class="badge rounded-pill text-bg-light">{{ ews_list|length|default:0 }}</span>
+                <span class="rmc-badge rmc-badge--muted">{{ ews_list|length|default:0 }}</span>
               </div>
               {% if ews_list %}
               <ul class="tdm-compact-list">
@@ -365,7 +365,7 @@
                     <strong>{{ item.student_name|truncatechars:28 }}</strong>
                     <small>{{ item.subject }} | {{ item.classroom }}</small>
                   </div>
-                  <span class="badge text-bg-warning">-{{ item.drop_points }}</span>
+                  <span class="rmc-badge rmc-badge--warning">-{{ item.drop_points }}</span>
                 </li>
                 {% endfor %}
               </ul>
@@ -388,7 +388,7 @@
             <article class="tdm-compact-card rmc-reveal">
               <div class="tdm-compact-head">
                 <h4>{% trans "Upcoming deadlines" %}</h4>
-                <span class="badge rounded-pill text-bg-light">{{ dashboard_events|length|default:0 }}</span>
+                <span class="rmc-badge rmc-badge--muted">{{ dashboard_events|length|default:0 }}</span>
               </div>
               {% if dashboard_events %}
               <ul class="tdm-compact-list">
@@ -416,7 +416,7 @@
             <article class="tdm-action-card rmc-reveal">
               <div class="tdm-compact-head">
                 <h4>{% trans "At-risk follow-up" %}</h4>
-                <span class="badge rounded-pill text-bg-light">{{ teacher_followup_items|length|default:0 }}</span>
+                <span class="rmc-badge rmc-badge--muted">{{ teacher_followup_items|length|default:0 }}</span>
               </div>
               {% if teacher_followup_items %}
               <ul class="tdm-compact-list">
@@ -426,7 +426,7 @@
                     <strong>{{ item.student_name|truncatechars:30 }}</strong>
                     <small>{{ item.subject }} | {{ item.classroom }}</small>
                   </div>
-                  <span class="badge text-bg-warning">-{{ item.drop_points }}</span>
+                  <span class="rmc-badge rmc-badge--warning">-{{ item.drop_points }}</span>
                 </li>
                 {% endfor %}
               </ul>
@@ -442,7 +442,7 @@
             <article class="tdm-action-card rmc-reveal">
               <div class="tdm-compact-head">
                 <h4>{% trans "This week deadlines" %}</h4>
-                <span class="badge rounded-pill text-bg-light">{{ teacher_deadline_items|length|default:0 }}</span>
+                <span class="rmc-badge rmc-badge--muted">{{ teacher_deadline_items|length|default:0 }}</span>
               </div>
               <div class="tdm-deadline-metrics">
                 <div class="tdm-badge-tile">
@@ -484,7 +484,7 @@
             <article class="tdm-balance-card rmc-reveal">
               <div class="tdm-compact-head">
                 <h4>{% trans "Teaching pulse" %}</h4>
-                <span class="badge rounded-pill text-bg-light">{{ workflow_summary.completion_pct|default:0 }}%</span>
+                <span class="rmc-badge rmc-badge--muted">{{ workflow_summary.completion_pct|default:0 }}%</span>
               </div>
               <div class="tdm-pulse-grid">
                 <div class="tdm-pulse-item">

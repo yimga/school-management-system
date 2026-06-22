@@ -23,8 +23,8 @@
     <h1 class="h3 mb-1">{% trans "School Studio" %}</h1>
     <p class="text-muted small mb-0">
       {% trans "Launch rail" %} —
-      <span class="badge text-bg-secondary">{{ launch_rail.creation_path_label }}</span>
-      <span class="badge text-bg-primary">{{ unified_lifecycle.label }}</span>
+      <span class="rmc-badge">{{ launch_rail.creation_path_label }}</span>
+      <span class="rmc-badge rmc-badge--brand">{{ unified_lifecycle.label }}</span>
     </p>
   </header>
 
@@ -86,9 +86,9 @@
       <div class="border rounded-3 p-3 h-100 {% if launch_ready %}border-success{% else %}border-warning{% endif %}">
         <div class="text-uppercase text-muted small">{% trans "Launch" %}</div>
         {% if launch_ready %}
-        <span class="badge text-bg-success">{% trans "Ready to review launch" %}</span>
+        <span class="rmc-badge rmc-badge--success">{% trans "Ready to review launch" %}</span>
         {% else %}
-        <span class="badge text-bg-warning">{% trans "Blocked" %}</span>
+        <span class="rmc-badge rmc-badge--warning">{% trans "Blocked" %}</span>
         {% endif %}
         {% if onboarding.next_action and onboarding.next_action.url %}
         <div class="mt-2">
@@ -168,7 +168,7 @@
       {% for step in launch_rail.fast_path %}
       <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2 {% if step.done %}list-group-item-success{% endif %}">
         <span class="rmc-text-container">{{ step.label }}</span>
-        {% if step.done %}<span class="badge text-bg-success">{% trans "Done" %}</span>
+        {% if step.done %}<span class="rmc-badge rmc-badge--success">{% trans "Done" %}</span>
         {% elif step.url %}<a class="btn btn-sm btn-outline-primary" href="{{ step.url }}">{% trans "Open" %}</a>{% endif %}
       </li>
       {% endfor %}
@@ -185,7 +185,7 @@
       <div>
         <span class="fw-medium">{{ lane.label }}</span>
         <div class="small text-muted">{{ lane.purpose }}</div>
-        <span class="badge text-bg-secondary">{{ lane.owner }}</span>
+        <span class="rmc-badge">{{ lane.owner }}</span>
       </div>
       {% if lane.url %}
       <a class="btn btn-sm btn-outline-primary" href="{{ lane.url }}">{% trans "Open" %}</a>

@@ -39,7 +39,7 @@
             <td>{% if inc.student %}{{ inc.student.get_full_name|default:inc.student }}{% elif inc.teacher %}{{ inc.teacher.user.get_full_name|default:inc.teacher }}{% else %}—{% endif %}</td>
             <td>{{ inc.get_severity_display }}</td>
             <td>{{ inc.get_status_display }}</td>
-            <td>{% if inc.notify_parent and inc.student %}<span class="badge bg-warning">Yes</span>{% else %}—{% endif %}</td>
+            <td>{% if inc.notify_parent and inc.student %}<span class="rmc-badge rmc-badge--warning">Yes</span>{% else %}—{% endif %}</td>
           </tr>
           {% endfor %}
         </tbody>

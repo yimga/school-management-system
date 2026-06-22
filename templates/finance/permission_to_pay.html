@@ -62,25 +62,25 @@
             <dt class="col-sm-5">{% trans "Amount" %}</dt>
             <dd class="col-sm-7">{{ in_flight.amount }} {{ in_flight.currency }}</dd>
             <dt class="col-sm-5">{% trans "State" %}</dt>
-            <dd class="col-sm-7"><span class="badge bg-info">{{ in_flight.state }}</span></dd>
+            <dd class="col-sm-7"><span class="rmc-badge rmc-badge--info">{{ in_flight.state }}</span></dd>
             <dt class="col-sm-5">{% trans "Guardian approval" %}</dt>
             <dd class="col-sm-7">
               {% if in_flight.guardian_approval %}
               <code>{{ in_flight.guardian_approval.guardian_id }}</code>
               ({{ in_flight.guardian_approval.method }})
               {% elif in_flight.requires_guardian_approval %}
-              <span class="badge bg-warning text-dark">{% trans "Required, not yet recorded" %}</span>
+              <span class="rmc-badge rmc-badge--warning">{% trans "Required, not yet recorded" %}</span>
               {% else %}
-              <span class="badge bg-secondary">{% trans "Not required" %}</span>
+              <span class="rmc-badge">{% trans "Not required" %}</span>
               {% endif %}
             </dd>
             {% if in_flight.payment_result %}
             <dt class="col-sm-5">{% trans "Payment" %}</dt>
             <dd class="col-sm-7">
               {% if in_flight.payment_result.success %}
-              <span class="badge bg-success">{% trans "Paid" %}</span>
+              <span class="rmc-badge rmc-badge--success">{% trans "Paid" %}</span>
               {% else %}
-              <span class="badge bg-danger">{% trans "Failed" %}</span>
+              <span class="rmc-badge rmc-badge--danger">{% trans "Failed" %}</span>
               {% endif %}
               via <code>{{ in_flight.payment_result.rail_id }}</code>
               — ref <code>{{ in_flight.payment_result.reference }}</code>

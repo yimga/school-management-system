@@ -22,9 +22,9 @@
   <section class="mb-5" aria-labelledby="lane2-psp">
     <h2 class="h5 mb-2" id="lane2-psp">{% trans "Payments providers (PSP)" %}</h2>
     <div class="d-flex flex-wrap gap-2 mb-2">
-      <span class="badge text-bg-success">{{ psp_counts.live|default:0 }} {% trans "live" %}</span>
-      <span class="badge text-bg-warning text-dark">{{ psp_counts.in_progress|default:0 }} {% trans "in progress" %}</span>
-      <span class="badge text-bg-secondary">{{ psp_counts.planned|default:0 }} {% trans "planned" %}</span>
+      <span class="rmc-badge rmc-badge--success">{{ psp_counts.live|default:0 }} {% trans "live" %}</span>
+      <span class="rmc-badge rmc-badge--warning">{{ psp_counts.in_progress|default:0 }} {% trans "in progress" %}</span>
+      <span class="rmc-badge">{{ psp_counts.planned|default:0 }} {% trans "planned" %}</span>
     </div>
     <div class="table-responsive">
       <table class="table table-sm table-hover align-middle">
@@ -41,9 +41,9 @@
             <td><div class="fw-semibold">{{ p.label }}</div><code class="text-tertiary small">{{ p.psp_slug }}</code></td>
             <td>{{ p.region }}</td>
             <td>
-              {% if p.adapter_status == "live" %}<span class="badge text-bg-success">{% trans "live" %}</span>
-              {% elif p.adapter_status == "in_progress" %}<span class="badge text-bg-warning text-dark">{% trans "in progress" %}</span>
-              {% else %}<span class="badge text-bg-secondary">{% trans "planned" %}</span>{% endif %}
+              {% if p.adapter_status == "live" %}<span class="rmc-badge rmc-badge--success">{% trans "live" %}</span>
+              {% elif p.adapter_status == "in_progress" %}<span class="rmc-badge rmc-badge--warning">{% trans "in progress" %}</span>
+              {% else %}<span class="rmc-badge">{% trans "planned" %}</span>{% endif %}
             </td>
             <td class="small">{{ p.capabilities|join:", " }}</td>
             <td class="small">{{ p.settlement_currencies|join:", " }}</td>
@@ -58,9 +58,9 @@
   <section class="mb-5" aria-labelledby="lane2-soc2">
     <h2 class="h5 mb-2" id="lane2-soc2">{% trans "SOC2 control register" %}</h2>
     <div class="d-flex flex-wrap gap-2 mb-2">
-      <span class="badge text-bg-success">{{ soc2_counts.implemented|default:0 }} {% trans "implemented" %}</span>
-      <span class="badge text-bg-warning text-dark">{{ soc2_counts.partial|default:0 }} {% trans "partial" %}</span>
-      <span class="badge text-bg-secondary">{{ soc2_counts.planned|default:0 }} {% trans "planned" %}</span>
+      <span class="rmc-badge rmc-badge--success">{{ soc2_counts.implemented|default:0 }} {% trans "implemented" %}</span>
+      <span class="rmc-badge rmc-badge--warning">{{ soc2_counts.partial|default:0 }} {% trans "partial" %}</span>
+      <span class="rmc-badge">{{ soc2_counts.planned|default:0 }} {% trans "planned" %}</span>
     </div>
     <div class="table-responsive">
       <table class="table table-sm table-hover align-middle">
@@ -77,9 +77,9 @@
             <td><div class="fw-semibold">{{ c.control_id }}</div><div class="small text-tertiary">{{ c.label }}</div></td>
             <td>{{ c.category }}</td>
             <td>
-              {% if c.status == "implemented" %}<span class="badge text-bg-success">{% trans "implemented" %}</span>
-              {% elif c.status == "partial" %}<span class="badge text-bg-warning text-dark">{% trans "partial" %}</span>
-              {% else %}<span class="badge text-bg-secondary">{% trans "planned" %}</span>{% endif %}
+              {% if c.status == "implemented" %}<span class="rmc-badge rmc-badge--success">{% trans "implemented" %}</span>
+              {% elif c.status == "partial" %}<span class="rmc-badge rmc-badge--warning">{% trans "partial" %}</span>
+              {% else %}<span class="rmc-badge">{% trans "planned" %}</span>{% endif %}
             </td>
             <td class="small">
               {% if c.evidence_url %}<a href="{{ c.evidence_url }}"><code>{{ c.evidence_route_name }}</code></a><br>{% endif %}
@@ -98,7 +98,7 @@
     <h2 class="h5 mb-2" id="lane2-pilots">{% trans "Pilot tracker" %}</h2>
     <div class="d-flex flex-wrap gap-2 mb-2">
       {% for stage, n in pilot_counts.items %}
-      <span class="badge text-bg-secondary">{{ n }} {{ stage }}</span>
+      <span class="rmc-badge">{{ n }} {{ stage }}</span>
       {% endfor %}
     </div>
     <div class="table-responsive">

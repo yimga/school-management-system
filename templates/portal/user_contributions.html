@@ -117,23 +117,23 @@
                                         </td>
                                         <td>
                                             {% if faq.status == 'APPROVED' %}
-                                            <span class="badge badge-success">
+                                            <span class="rmc-badge rmc-badge--success">
                                                 <i class="bi bi-check2"></i> {% trans "Approved" %}
                                             </span>
                                             {% elif faq.status == 'PENDING' %}
-                                            <span class="badge badge-warning">
+                                            <span class="rmc-badge rmc-badge--warning">
                                                 <i class="bi bi-clock"></i> {% trans "Pending" %}
                                             </span>
                                             {% elif faq.status == 'DRAFT' %}
-                                            <span class="badge badge-secondary">
+                                            <span class="rmc-badge">
                                                 <i class="bi bi-pencil"></i> {% trans "Draft" %}
                                             </span>
                                             {% elif faq.status == 'REJECTED' %}
-                                            <span class="badge badge-danger">
+                                            <span class="rmc-badge rmc-badge--danger">
                                                 <i class="bi bi-x-lg"></i> {% trans "Rejected" %}
                                             </span>
                                             {% else %}
-                                            <span class="badge badge-light">{{ faq.get_status_display }}</span>
+                                            <span class="rmc-badge rmc-badge--muted">{{ faq.get_status_display }}</span>
                                             {% endif %}
                                         </td>
                                         <td>
@@ -188,23 +188,23 @@
                                         </td>
                                         <td>
                                             {% if article.status == 'APPROVED' %}
-                                            <span class="badge badge-success">
+                                            <span class="rmc-badge rmc-badge--success">
                                                 <i class="bi bi-check2"></i> {% trans "Approved" %}
                                             </span>
                                             {% elif article.status == 'PENDING' %}
-                                            <span class="badge badge-warning">
+                                            <span class="rmc-badge rmc-badge--warning">
                                                 <i class="bi bi-clock"></i> {% trans "Pending" %}
                                             </span>
                                             {% elif article.status == 'DRAFT' %}
-                                            <span class="badge badge-secondary">
+                                            <span class="rmc-badge">
                                                 <i class="bi bi-pencil"></i> {% trans "Draft" %}
                                             </span>
                                             {% elif article.status == 'REJECTED' %}
-                                            <span class="badge badge-danger">
+                                            <span class="rmc-badge rmc-badge--danger">
                                                 <i class="bi bi-x-lg"></i> {% trans "Rejected" %}
                                             </span>
                                             {% else %}
-                                            <span class="badge badge-light">{{ article.get_status_display }}</span>
+                                            <span class="rmc-badge rmc-badge--muted">{{ article.get_status_display }}</span>
                                             {% endif %}
                                         </td>
                                         <td>
@@ -243,21 +243,21 @@
                                         <li class="mb-2">
                                             <strong>{% trans "FAQ Submissions:" %}</strong>
                                             {{ approved_faqs }} × 5 =
-                                            <span class="badge badge-primary">{{ faq_points }}</span>
+                                            <span class="rmc-badge rmc-badge--brand">{{ faq_points }}</span>
                                         </li>
                                         <li class="mb-2">
                                             <strong>{% trans "KB Articles:" %}</strong>
                                             {{ approved_articles }} × 20 =
-                                            <span class="badge badge-primary">{{ article_points }}</span>
+                                            <span class="rmc-badge rmc-badge--brand">{{ article_points }}</span>
                                         </li>
                                         <li class="mb-2">
                                             <strong>{% trans "Comments:" %}</strong>
                                             {{ comment_count }} × 1 =
-                                            <span class="badge badge-primary">{{ comment_points }}</span>
+                                            <span class="rmc-badge rmc-badge--brand">{{ comment_points }}</span>
                                         </li>
                                         <li>
                                             <strong>{% trans "Featured Content:" %}</strong>
-                                            <span class="badge badge-primary">{{ featured_bonus }}</span>
+                                            <span class="rmc-badge rmc-badge--brand">{{ featured_bonus }}</span>
                                         </li>
                                     </ul>
                                 </div>
@@ -280,7 +280,7 @@
                                         <li>
                                             <i class="bi bi-arrow-up-right"></i>
                                             <strong>{% trans "Contribution Rank:" %}</strong>
-                                            <span class="badge badge-success">{{ user_rank }}</span>
+                                            <span class="rmc-badge rmc-badge--success">{{ user_rank }}</span>
                                         </li>
                                     </ul>
                                 </div>

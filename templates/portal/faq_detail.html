@@ -52,7 +52,7 @@
                             <i class="bi bi-eye"></i> {{ faq.views }} views
                         </small>
                         {% if faq.is_featured %}
-                        <span class="badge badge-success ml-2">
+                        <span class="rmc-badge rmc-badge--success ml-2">
                             <i class="bi bi-star"></i> Featured
                         </span>
                         {% endif %}
@@ -68,7 +68,7 @@
                     <div class="mb-4">
                         <strong>Tags:</strong><br>
                         {% for tag in faq.tags.all %}
-                        <a href="{% url 'kb:faq_list' %}?q={{ tag.name }}" class="badge badge-info">
+                        <a href="{% url 'kb:faq_list' %}?q={{ tag.name }}" class="rmc-badge rmc-badge--info">
                             {{ tag.name }}
                         </a>
                         {% endfor %}

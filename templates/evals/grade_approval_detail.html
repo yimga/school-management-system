@@ -26,7 +26,7 @@
         <p class="mb-1"><strong>Academic Year:</strong> {% if approval.academic_year %}{{ approval.academic_year.name }}{% else %}—{% endif %}</p>
         <p class="mb-0">
           <strong>Status:</strong>
-          <span class="badge bg-info text-uppercase">{{ approval.get_status_display }}</span>
+          <span class="rmc-badge rmc-badge--info text-uppercase">{{ approval.get_status_display }}</span>
         </p>
       </div>
     </div>
@@ -51,7 +51,7 @@
 <div class="alert alert-outline-primary mb-4 d-flex justify-content-between align-items-center">
   <div>
     <strong>Decision deadline:</strong> {{ deadline_display }}
-    {% if deadline_overdue %}<span class="badge bg-danger ms-2">Overdue</span>{% endif %}
+    {% if deadline_overdue %}<span class="rmc-badge rmc-badge--danger ms-2">Overdue</span>{% endif %}
     {% if deadline_note %}<div class="small text-muted">{{ deadline_note }}</div>{% endif %}
   </div>
 </div>

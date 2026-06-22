@@ -26,9 +26,9 @@
       <li class="d-flex align-items-center justify-content-between gap-2 py-1 small{% if not forloop.first %} border-top{% endif %}">
         <span>{{ row.label }}</span>
         {% if row.done %}
-        <span class="badge text-bg-success">{% trans "Done" %}</span>
+        <span class="rmc-badge rmc-badge--success">{% trans "Done" %}</span>
         {% else %}
-        <span class="badge text-bg-secondary">{% trans "To do" %}</span>
+        <span class="rmc-badge">{% trans "To do" %}</span>
         {% endif %}
       </li>
       {% endfor %}

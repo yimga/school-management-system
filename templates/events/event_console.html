@@ -48,7 +48,7 @@
             {% for r in domain_rows %}
             <tr>
               <td><code>{{ r.contract.event_type }}</code></td>
-              <td><span class="badge bg-secondary">{{ r.contract.status }}</span></td>
+              <td><span class="rmc-badge">{{ r.contract.status }}</span></td>
               <td class="small text-muted text-break">{{ r.summary }}</td>
               <td>{{ r.contract.created_at }}</td>
               <td><a href="{{ r.detail_url }}">{% trans "Detail" %}</a></td>

@@ -34,9 +34,9 @@
                   <td>{{ mod.price|default:"Free" }}</td>
                   <td>
                     {% if mod.code in active_codes %}
-                      <span class="badge bg-success">{% trans "Active" %}</span>
+                      <span class="rmc-badge rmc-badge--success">{% trans "Active" %}</span>
                     {% else %}
-                      <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                      <span class="rmc-badge">{% trans "Inactive" %}</span>
                     {% endif %}
                   </td>
                   <td>

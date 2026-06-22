@@ -75,7 +75,7 @@
           <td class="small">{{ line.created_at|date:"Y-m-d H:i" }}</td>
           <td>
             {{ line.item_label }}
-            {% if line.inventory_item %}<div><span class="badge bg-info text-dark">{{ line.inventory_item.name }}</span></div>{% endif %}
+            {% if line.inventory_item %}<div><span class="rmc-badge rmc-badge--info">{{ line.inventory_item.name }}</span></div>{% endif %}
           </td>
           <td>{{ line.quantity }} × {{ line.unit_price }}</td>
           <td>

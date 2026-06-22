@@ -6,9 +6,9 @@
       {% trans "Live consumption view of friction events, feedback submissions, and AI assistant interactions." %}
     </p>
     <div class="d-flex flex-wrap gap-2">
-      <span class="badge text-bg-secondary">{{ total_signal_7d }} {% trans "signals (7d)" %}</span>
+      <span class="rmc-badge">{{ total_signal_7d }} {% trans "signals (7d)" %}</span>
       {% if feedback.critical_open %}
-      <span class="badge text-bg-danger">{{ feedback.critical_open }} {% trans "critical open" %}</span>
+      <span class="rmc-badge rmc-badge--danger">{{ feedback.critical_open }} {% trans "critical open" %}</span>
       {% endif %}
     </div>
   </header>

@@ -463,3 +463,46 @@
 .rmc-flow-launchpad__rail {
   inset-block: -0.25rem 0.35rem;
 }
+
+/* ==========================================================================
+   Badge grammar unification (Wave C, 2026-06-22)
+   --------------------------------------------------------------------------
+   The platform carried 1,061 badges in 5+ conflicting dialects (Bootstrap-5
+   `bg-*`, `text-bg-*`, deprecated Bootstrap-4 `badge-*` which render colorless
+   under our BS5 build, `*-subtle`, and the canonical `.rmc-badge`). A codemod
+   folds them all onto `.rmc-badge` + a semantic modifier. The base grammar
+   (`.rmc-badge`, `--success/--warning/--danger/--info/--muted`) lives in
+   rmc-class-grammar.css; these three tones complete the set so every prior
+   spelling has a home — placed here, the cascade-correct extension file, since
+   the base grammar is under concurrent edit. Token-first with hex fallback
+   inside var() (same contract as `.rmc-btn-primary` above) so the off-token +
+   theme-locked scanners stay green and the tenant brand cascade still wins.
+   ========================================================================== */
+.rmc-badge--brand {
+  background: var(--brand-primary-bg, color-mix(in srgb, var(--brand-primary, #4f46e5) 12%, transparent));
+  color: var(--brand-primary-fg, var(--brand-primary, #4338ca));
+}
+/* Solid emphasis — high-attention labels ("New") that must still grab the eye. */
+.rmc-badge--solid {
+  background: var(--brand-primary, #4f46e5);
+  color: var(--text-on-brand, #fff);
+  font-weight: 600;
+}
+/* Count pill — the unread/notification numerics; solid + tabular for legibility. */
+.rmc-badge--count {
+  min-inline-size: 1.25rem;
+  justify-content: center;
+  padding: 0.05rem var(--space-2, 0.4rem);
+  background: var(--brand-primary, #4f46e5);
+  color: var(--text-on-brand, #fff);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+/* Leading status dot for tone badges (e.g. a green "Active" with a dot). */
+.rmc-badge__dot {
+  inline-size: 0.4rem;
+  block-size: 0.4rem;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.9;
+}

@@ -21,7 +21,7 @@
       <a class="btn btn-sm btn-outline-secondary" href="{% if request.public_host_kind == 'manager' %}{% url 'kb:kb_search' %}?q=reports+downloads{% else %}{% url 'kb:kb_search' %}?q=reports+downloads{% endif %}" title="Search help articles">
         <i class="bi bi-question-circle"></i> Help
       </a>
-      <span class="badge bg-success">CSV · Excel · ODS · PDF</span>
+      <span class="rmc-badge rmc-badge--success">CSV · Excel · ODS · PDF</span>
     </div>
   </div>
 
@@ -35,7 +35,7 @@
                 <h2 class="h5 mb-1">Report Packs</h2>
                 <p class="text-muted small mb-0">Preview seeded fixtures and inspect pack dependencies before rollout.</p>
               </div>
-              <span class="badge text-bg-light">{{ report_packs|length }} active</span>
+              <span class="rmc-badge rmc-badge--muted">{{ report_packs|length }} active</span>
             </div>
             <div class="list-group list-group-flush">
               {% for pack in report_packs %}
@@ -62,7 +62,7 @@
                   <h2 class="h5 mb-1">{{ report_pack_preview.title }}</h2>
                   <p class="text-muted mb-0">{{ report_pack_preview.description|default:"Seeded sample rows for operator preview." }}</p>
                 </div>
-                <span class="badge text-bg-primary">{{ selected_report_pack.code }}</span>
+                <span class="rmc-badge rmc-badge--brand">{{ selected_report_pack.code }}</span>
               </div>
               <div class="row g-3 mb-3">
                 {% for key, value in report_pack_preview.summary.items %}

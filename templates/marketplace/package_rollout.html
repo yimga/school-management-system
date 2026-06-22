@@ -43,8 +43,8 @@
         <div>
           <strong>{{ pkg.package_id }}</strong>
           <span class="text-muted small ms-1">v{{ pkg.version }}</span>
-          <span class="badge bg-secondary ms-1">{{ pkg.get_package_type_display }}</span>
-          <span class="badge bg-secondary ms-1">@ {{ pkg.school.name }}</span>
+          <span class="rmc-badge ms-1">{{ pkg.get_package_type_display }}</span>
+          <span class="rmc-badge ms-1">@ {{ pkg.school.name }}</span>
           <span class="small text-muted">applied {{ pkg.applied_at|timesince }} ago</span>
         </div>
         <form method="post" action="{% url 'super:package_promote' %}" class="d-inline">

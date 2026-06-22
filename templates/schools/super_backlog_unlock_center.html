@@ -24,7 +24,7 @@
     <div>
       <p class="small mb-0">
         {% trans "Viewing profile" %}:
-        <span class="badge bg-secondary">{{ evaluation_profile }}</span>
+        <span class="rmc-badge">{{ evaluation_profile }}</span>
         {% if evaluation %}
         <span class="ms-2">{% trans "Items in profile" %} {{ evaluation.items_in_profile }} / {% trans "registry total" %} {{ evaluation.items_total_in_registry }}</span>
         {% endif %}
@@ -94,10 +94,10 @@
   </p>
 
   <div class="d-flex flex-wrap gap-2 mb-4">
-    <span class="badge bg-success">{% trans "Ready" %}: {{ evaluation.summary.ready }}</span>
-    <span class="badge bg-info">{% trans "Attention" %}: {{ evaluation.summary.ready_attention }}</span>
-    <span class="badge bg-warning">{% trans "Waiting" %}: {{ evaluation.summary.waiting }}</span>
-    <span class="badge bg-secondary">{% trans "External" %}: {{ evaluation.summary.blocked_external }}</span>
+    <span class="rmc-badge rmc-badge--success">{% trans "Ready" %}: {{ evaluation.summary.ready }}</span>
+    <span class="rmc-badge rmc-badge--info">{% trans "Attention" %}: {{ evaluation.summary.ready_attention }}</span>
+    <span class="rmc-badge rmc-badge--warning">{% trans "Waiting" %}: {{ evaluation.summary.waiting }}</span>
+    <span class="rmc-badge">{% trans "External" %}: {{ evaluation.summary.blocked_external }}</span>
     {% if evaluation.sla_summary %}
     <span class="badge {% if evaluation.sla_summary.breached_waiting or evaluation.sla_summary.breached_ready_attention %}bg-danger{% else %}bg-dark border border-secondary{% endif %}">
       {% trans "SLA breach" %}:
@@ -131,10 +131,10 @@
               {% if item.kind %}· {{ item.kind }}{% endif %}
               {% if item.display_status == "waiting" and item.days_in_waiting is not None %}
               · {% trans "days in waiting" %}: {{ item.days_in_waiting }}/{{ item.sla_waiting_max_days|default:"—" }}
-              {% if item.sla_waiting_breached %}<span class="badge bg-danger ms-1">{% trans "SLA over" %}</span>{% endif %}
+              {% if item.sla_waiting_breached %}<span class="rmc-badge rmc-badge--danger ms-1">{% trans "SLA over" %}</span>{% endif %}
               {% elif item.display_status == "ready_attention" and item.days_in_ready_attention is not None %}
               · {% trans "days in attention" %}: {{ item.days_in_ready_attention }}/{{ item.sla_ready_attention_max_days|default:"—" }}
-              {% if item.sla_ready_attention_breached %}<span class="badge bg-danger ms-1">{% trans "SLA over" %}</span>{% endif %}
+              {% if item.sla_ready_attention_breached %}<span class="rmc-badge rmc-badge--danger ms-1">{% trans "SLA over" %}</span>{% endif %}
               {% endif %}
             </p>
             {% if item.action_hint %}

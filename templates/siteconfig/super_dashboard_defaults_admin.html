@@ -81,7 +81,7 @@
                              {% if cw.id in promoted_ids_set %}checked{% endif %}>
                       <label class="form-check-label small" for="pc_{{ cw.id }}">
                         <strong>{{ cw.name }}</strong>
-                        <span class="badge bg-light text-dark ms-1">{{ cw.cockpit_host_scope|default:"any" }}</span>
+                        <span class="rmc-badge rmc-badge--muted ms-1">{{ cw.cockpit_host_scope|default:"any" }}</span>
                         {% if cw.description %}<div class="text-muted">{{ cw.description|truncatewords:20 }}</div>{% endif %}
                       </label>
                     </div>

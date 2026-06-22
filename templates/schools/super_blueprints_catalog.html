@@ -50,7 +50,7 @@
             <td>{{ p.name }}</td>
             <td>{{ p.family|default:"—" }}</td>
             <td>{{ p.category|default:"—" }}</td>
-            <td>{% for b in p.sector_badges %}<span class="badge bg-secondary me-1">{{ b }}</span>{% empty %}—{% endfor %}</td>
+            <td>{% for b in p.sector_badges %}<span class="rmc-badge me-1">{{ b }}</span>{% empty %}—{% endfor %}</td>
             <td>{{ p.version }}</td>
             <td>{% if p.admin_url %}<a href="{{ p.admin_url }}" class="btn btn-sm btn-outline-light">{% trans "Edit" %}</a>{% endif %}</td>
           </tr>

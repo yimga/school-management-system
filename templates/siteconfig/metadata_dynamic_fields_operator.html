@@ -42,7 +42,7 @@
   </div>
   {% for section in operator_sections %}
   <section class="mb-4" data-entity-type="{{ section.entity_type|escape }}">
-    <h2 class="h6 text-uppercase mb-2">{{ section.entity_type }} <span class="badge bg-secondary">{% trans "Value rows" %}: {{ section.value_row_count }}</span></h2>
+    <h2 class="h6 text-uppercase mb-2">{{ section.entity_type }} <span class="rmc-badge">{% trans "Value rows" %}: {{ section.value_row_count }}</span></h2>
     <p class="small mb-0">{% trans "Per-entity value row counts include only keys matching this entity type." %}</p>
     <div class="table-responsive mt-2">
       <table class="table table-sm table-family table-bordered rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">

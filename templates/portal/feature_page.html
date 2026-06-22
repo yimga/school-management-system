@@ -59,7 +59,7 @@
                       </a>
                       {% endif %}
                       {% if item.requires_signature %}
-                        <span class="badge bg-warning text-dark">
+                        <span class="rmc-badge rmc-badge--warning">
                           <i class="bi bi-pen me-1"></i>Requires Signature
                         </span>
                       {% endif %}
@@ -69,7 +69,7 @@
                       </a>
                     {% endif %}
                     {% if item.document_type %}
-                      <span class="badge bg-secondary">{{ item.get_document_type_display }}</span>
+                      <span class="rmc-badge">{{ item.get_document_type_display }}</span>
                     {% endif %}
                   </div>
                 </div>

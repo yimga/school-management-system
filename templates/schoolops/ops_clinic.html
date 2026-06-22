@@ -21,7 +21,7 @@
           <td>{{ r.recorded_at|date:"Y-m-d H:i" }}</td>
           <td>{{ r.student.get_full_name|default:r.student_id }}</td>
           <td>{{ r.record_type }}</td>
-          <td>{% if r.confidential %}<span class="badge bg-warning">{% trans "Confidential" %}</span>{% else %}{{ r.notes|truncatechars:80|default:"—" }}{% endif %}</td>
+          <td>{% if r.confidential %}<span class="rmc-badge rmc-badge--warning">{% trans "Confidential" %}</span>{% else %}{{ r.notes|truncatechars:80|default:"—" }}{% endif %}</td>
         </tr>
         {% empty %}<tr><td colspan="4" class="rmc-empty-state rmc-empty-state--row">
           <i class="bi bi-heart-pulse rmc-empty-state__icon" aria-hidden="true"></i>

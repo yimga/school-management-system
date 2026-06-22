@@ -57,7 +57,7 @@
                 {% for t in support_hub.my_tickets %}
                 <tr>
                   <td><a href="{% url 'portal:support_ticket_detail' t.id %}">{{ t.subject|truncatechars:64 }}</a></td>
-                  <td><span class="badge bg-secondary">{{ t.get_status_display }}</span></td>
+                  <td><span class="rmc-badge">{{ t.get_status_display }}</span></td>
                   <td class="text-muted small">{{ t.updated_at|date:"M j, Y H:i" }}</td>
                 </tr>
                 {% endfor %}

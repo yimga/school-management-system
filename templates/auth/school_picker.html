@@ -29,7 +29,7 @@
                 <div style="font-weight:600;letter-spacing:-0.005em">{{ m.school.name }}</div>
                 {% if m.role %}<div style="font-size:var(--type-size-caption);color:var(--admin-content-text-muted)">{{ m.role|title }}</div>{% endif %}
               </div>
-              {% if m.is_primary %}<span class="badge" data-tone="soft-primary" style="font-size:var(--type-size-micro)">{% trans "Primary" %}</span>{% endif %}
+              {% if m.is_primary %}<span class="rmc-badge" data-tone="soft-primary" style="font-size:var(--type-size-micro)">{% trans "Primary" %}</span>{% endif %}
             </label>
           {% endfor %}
         </div>

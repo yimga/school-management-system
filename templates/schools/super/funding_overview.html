@@ -60,7 +60,7 @@
           <td>{{ r.name }}</td>
           <td>{{ r.raised }}</td>
           <td>{{ r.gifts }}</td>
-          <td>{% if r.advancement_enabled %}<span class="badge bg-success-subtle text-success-emphasis">{% trans "Enabled" %}</span>{% else %}<span class="badge bg-secondary-subtle text-secondary-emphasis">{% trans "Disabled" %}</span>{% endif %}</td>
+          <td>{% if r.advancement_enabled %}<span class="rmc-badge rmc-badge--success">{% trans "Enabled" %}</span>{% else %}<span class="rmc-badge">{% trans "Disabled" %}</span>{% endif %}</td>
         </tr>
         {% endfor %}
       </tbody>

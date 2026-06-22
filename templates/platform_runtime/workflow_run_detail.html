@@ -10,7 +10,7 @@
       <h1 class="h3 mb-1">{{ detail.workflow_label|default:detail.workflow_key }}</h1>
       <p class="text-muted mb-0">
         {% trans "Run" %} #{{ detail.id }}
-        · <span class="badge text-bg-secondary">{{ detail.status }}</span>
+        · <span class="rmc-badge">{{ detail.status }}</span>
         {% if detail.tenant_schema %}· {{ detail.tenant_schema }}{% endif %}
       </p>
     </div>
@@ -119,7 +119,7 @@
                     <div class="small text-danger">{{ step.error_text }}</div>
                     {% endif %}
                   </td>
-                  <td><span class="badge text-bg-secondary">{{ step.status }}</span></td>
+                  <td><span class="rmc-badge">{{ step.status }}</span></td>
                   <td>{% if step.duration_ms %}{{ step.duration_ms }} ms{% else %}—{% endif %}</td>
                 </tr>
                 {% endfor %}

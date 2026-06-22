@@ -68,7 +68,7 @@
               <div class="mt-3 pt-2 border-top">
                 <p class="text-muted small mb-1">{% trans "Information tags" %}</p>
                 {% for tag in information_tags %}
-                  <span class="badge me-1 mb-1" style="background-color: {{ tag.color_hex|default:'var(--bs-secondary)' }}; color: var(--text-on-brand);" title="{{ tag.get_category_display }}{% if tag.is_private %} ({% trans 'private' %}){% endif %}">{{ tag.name }}</span>
+                  <span class="rmc-badge me-1 mb-1" style="background-color: {{ tag.color_hex|default:'var(--bs-secondary)' }}; color: var(--text-on-brand);" title="{{ tag.get_category_display }}{% if tag.is_private %} ({% trans 'private' %}){% endif %}">{{ tag.name }}</span>
                 {% empty %}
                   <span class="text-muted small">{% trans "No tags assigned." %}</span>
                 {% endfor %}
@@ -88,7 +88,7 @@
               {% for identity in identity_matrix %}
               <div class="border-bottom py-2">
                 <strong>{{ identity.label }}</strong>
-                <span class="badge bg-light text-dark border ms-1">{{ identity.schedule_mode }}</span>
+                <span class="rmc-badge rmc-badge--muted border ms-1">{{ identity.schedule_mode }}</span>
                 {% if identity.academic_year %}<span class="text-muted small d-block">{{ identity.academic_year }}</span>{% endif %}
                 {% if identity.meeting_windows %}<span class="text-muted small d-block">{{ identity.meeting_windows|join:", " }}</span>{% endif %}
               </div>

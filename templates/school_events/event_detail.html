@@ -60,7 +60,7 @@
                 <strong>{{ commitment.sponsor.name }}</strong>
                 <div class="small text-muted">{{ commitment.sponsor.get_tier_display }} | {{ commitment.status|title }}</div>
               </div>
-              <span class="badge text-bg-light">{{ commitment.pledged_amount|format_currency }}</span>
+              <span class="rmc-badge rmc-badge--muted">{{ commitment.pledged_amount|format_currency }}</span>
             </li>
             {% empty %}
             <li class="list-group-item text-muted">No sponsor commitments configured.</li>

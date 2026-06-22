@@ -49,9 +49,9 @@
               <div>
                 <span class="fw-medium">{{ d.domain }}</span>
                 {% if d.is_verified %}
-                <span class="badge bg-success ms-2">{% trans "Verified" %}</span>
+                <span class="rmc-badge rmc-badge--success ms-2">{% trans "Verified" %}</span>
                 {% else %}
-                <span class="badge bg-warning text-dark ms-2">{% trans "Pending" %}</span>
+                <span class="rmc-badge rmc-badge--warning ms-2">{% trans "Pending" %}</span>
                 {% endif %}
               </div>
               {% if not d.is_verified %}

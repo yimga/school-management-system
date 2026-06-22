@@ -125,7 +125,7 @@
                 {% for s in suggestions %}
                 <tr>
                   <td>{{ s.school.name }}</td>
-                  <td><span class="badge bg-secondary">{{ s.category }}</span></td>
+                  <td><span class="rmc-badge">{{ s.category }}</span></td>
                   <td>{{ s.title|truncatewords:6 }}</td>
                   <td class="small text-muted">{{ s.created_at|date:"M d, H:i" }}</td>
                 </tr>

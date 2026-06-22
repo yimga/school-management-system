@@ -26,7 +26,7 @@
           <td>{{ e.app.name }}</td>
           <td><code>{{ e.url }}</code></td>
           <td><small>{{ e.topics|join:", " }}</small></td>
-          <td>{% if e.is_active %}<span class="badge bg-success">{% trans "Yes" %}</span>{% else %}<span class="badge bg-danger">{% trans "Disabled" %}</span>{% endif %}</td>
+          <td>{% if e.is_active %}<span class="rmc-badge rmc-badge--success">{% trans "Yes" %}</span>{% else %}<span class="rmc-badge rmc-badge--danger">{% trans "Disabled" %}</span>{% endif %}</td>
           <td>{{ e.consecutive_failures }}</td>
           <td><small>{{ e.last_success_at|default:"—"|date:"Y-m-d H:i" }}</small></td>
         </tr>
@@ -51,10 +51,10 @@
           <td>{{ d.app.slug }}</td>
           <td><code>{{ d.topic }}</code></td>
           <td>
-            {% if d.status == 'succeeded' %}<span class="badge bg-success">{{ d.get_status_display }}</span>
-            {% elif d.status == 'abandoned' %}<span class="badge bg-danger">{{ d.get_status_display }}</span>
-            {% elif d.status == 'failed' %}<span class="badge bg-warning text-dark">{{ d.get_status_display }}</span>
-            {% else %}<span class="badge bg-secondary">{{ d.get_status_display }}</span>{% endif %}
+            {% if d.status == 'succeeded' %}<span class="rmc-badge rmc-badge--success">{{ d.get_status_display }}</span>
+            {% elif d.status == 'abandoned' %}<span class="rmc-badge rmc-badge--danger">{{ d.get_status_display }}</span>
+            {% elif d.status == 'failed' %}<span class="rmc-badge rmc-badge--warning">{{ d.get_status_display }}</span>
+            {% else %}<span class="rmc-badge">{{ d.get_status_display }}</span>{% endif %}
           </td>
           <td>{{ d.attempt_count }}/{{ d.max_attempts }}</td>
           <td>{{ d.response_status_code|default:"—" }}</td>

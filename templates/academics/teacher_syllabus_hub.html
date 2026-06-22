@@ -33,15 +33,15 @@
                 <p class="card-text text-muted small mb-2">{{ card.subject_assignment.classroom.name }} · {{ card.subject_assignment.term.label }}</p>
                 <p class="mb-2">
                   {% if card.status_label == "Missing" %}
-                    <span class="badge bg-secondary">Missing</span>
+                    <span class="rmc-badge">Missing</span>
                   {% elif card.status_label == "Draft" %}
-                    <span class="badge bg-warning text-dark">Draft</span>
+                    <span class="rmc-badge rmc-badge--warning">Draft</span>
                   {% elif card.status_label == "Pending approval" %}
-                    <span class="badge bg-info">Pending</span>
+                    <span class="rmc-badge rmc-badge--info">Pending</span>
                   {% elif card.status_label == "Needs revision" %}
-                    <span class="badge bg-warning text-dark">Needs revision</span>
+                    <span class="rmc-badge rmc-badge--warning">Needs revision</span>
                   {% else %}
-                    <span class="badge bg-success">Approved</span>
+                    <span class="rmc-badge rmc-badge--success">Approved</span>
                   {% endif %}
                 </p>
                 <div class="d-flex flex-wrap gap-1">

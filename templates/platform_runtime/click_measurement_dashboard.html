@@ -63,11 +63,11 @@
       <p class="mb-1">
         <strong>{% trans "50% program verdict" %}:</strong>
         {% if click_stats.insufficient_data %}
-          <span class="badge bg-secondary">{% trans "INSUFFICIENT DATA" %}</span>
+          <span class="rmc-badge">{% trans "INSUFFICIENT DATA" %}</span>
         {% elif click_stats.fifty_pct_reduction_claim_allowed %}
-          <span class="badge bg-success">PASS</span>
+          <span class="rmc-badge rmc-badge--success">PASS</span>
         {% else %}
-          <span class="badge bg-danger">FAIL</span>
+          <span class="rmc-badge rmc-badge--danger">FAIL</span>
         {% endif %}
       </p>
       <p class="mb-1">
@@ -108,11 +108,11 @@
           </td>
           <td>
             {% if row.insufficient_data %}
-              <span class="badge bg-secondary">{% trans "Insufficient data" %}</span>
+              <span class="rmc-badge">{% trans "Insufficient data" %}</span>
             {% elif row.fifty_pct_reduction_claim_allowed %}
-              <span class="badge bg-success">{% trans "≥50% observed" %}</span>
+              <span class="rmc-badge rmc-badge--success">{% trans "≥50% observed" %}</span>
             {% else %}
-              <span class="badge bg-light border">{% trans "Below threshold or no lift" %}</span>
+              <span class="rmc-badge rmc-badge--muted border">{% trans "Below threshold or no lift" %}</span>
             {% endif %}
           </td>
         </tr>

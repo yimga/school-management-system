@@ -43,7 +43,7 @@
                         <div class="mb-3">
                             <label for="{{ form.title.id_for_label }}">
                                 <strong>Article Title</strong>
-                                <span class="badge badge-danger">Required</span>
+                                <span class="rmc-badge rmc-badge--danger">Required</span>
                             </label>
                             {{ form.title }}
                             {% if form.title.help_text %}
@@ -62,7 +62,7 @@
                         <div class="mb-3">
                             <label for="{{ form.summary.id_for_label }}">
                                 <strong>Summary</strong>
-                                <span class="badge badge-danger">Required</span>
+                                <span class="rmc-badge rmc-badge--danger">Required</span>
                             </label>
                             {{ form.summary }}
                             <small class="form-text text-muted d-block mt-1">
@@ -79,7 +79,7 @@
                         <div class="mb-3">
                             <label for="{{ form.content.id_for_label }}">
                                 <strong>Article Content</strong>
-                                <span class="badge badge-danger">Required</span>
+                                <span class="rmc-badge rmc-badge--danger">Required</span>
                             </label>
                             <p class="small text-muted mb-2">
                                 Write the full article content. You can use HTML formatting and markdown.
@@ -102,7 +102,7 @@
                         <div class="mb-3">
                             <label for="{{ form.category.id_for_label }}">
                                 <strong>Category</strong>
-                                <span class="badge badge-danger">Required</span>
+                                <span class="rmc-badge rmc-badge--danger">Required</span>
                             </label>
                             {{ form.category }}
                             {% if form.category.errors %}

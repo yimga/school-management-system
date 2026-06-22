@@ -74,7 +74,7 @@
                   <div>
                     <strong>#{{ forloop.counter }}</strong> {{ row.0 }}
                   </div>
-                  <span class="badge bg-primary">{{ row.1|format_number:2 }}</span>
+                  <span class="rmc-badge rmc-badge--brand">{{ row.1|format_number:2 }}</span>
                 </div>
               </li>
             {% empty %}
@@ -132,7 +132,7 @@
             {% for row in weak_subjects %}
               <li class="list-group-item d-flex justify-content-between align-items-center">
                 {{ row.subject.name }}
-                <span class="badge bg-warning text-dark">{{ row.average|format_number:2 }}</span>
+                <span class="rmc-badge rmc-badge--warning">{{ row.average|format_number:2 }}</span>
               </li>
             {% empty %}
               <li class="list-group-item">

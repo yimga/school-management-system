@@ -79,7 +79,7 @@
               <td>{% if run.school %}{{ run.school.name }}{% else %}—{% endif %}</td>
               <td>
                 <span class="badge {% if run.status == 'failed' %}bg-danger{% elif run.status == 'completed' %}bg-success{% elif run.status == 'running' %}bg-primary{% else %}bg-secondary{% endif %}">{{ run.get_status_display }}</span>
-                {% if run.sla_overdue %} <span class="badge bg-warning text-dark">{% trans "Overdue" %}</span>{% endif %}
+                {% if run.sla_overdue %} <span class="rmc-badge rmc-badge--warning">{% trans "Overdue" %}</span>{% endif %}
               </td>
               <td class="text-muted small">{% if run.sla_deadline %}{{ run.sla_deadline|format_date:"YYYY-MM-DD" }} {{ run.sla_deadline|time:"H:i" }}{% else %}—{% endif %}</td>
               <td>{{ run.retry_count }}</td>

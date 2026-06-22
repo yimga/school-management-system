@@ -20,7 +20,7 @@
   <div class="col-lg-6 rmc-reveal">
     <div class="card mb-3">
       <div class="card-body">
-        <p class="mb-1"><strong>Status:</strong> <span class="badge bg-info text-uppercase">{{ ticket.status }}</span></p>
+        <p class="mb-1"><strong>Status:</strong> <span class="rmc-badge rmc-badge--info text-uppercase">{{ ticket.status }}</span></p>
         <p class="mb-1"><strong>Audience:</strong> {{ ticket.get_audience_display }}</p>
         <p class="mb-1"><strong>Preferred channel:</strong> {{ ticket.get_preferred_channel_display }}</p>
         <p class="mb-1"><strong>Student:</strong> {{ ticket.student|default:"—" }}</p>

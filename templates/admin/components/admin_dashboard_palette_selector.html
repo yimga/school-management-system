@@ -26,14 +26,14 @@
         <input id="theme-pack-apply-site" class="form-check-input" type="checkbox" checked>
         <span class="form-check-label small">{% trans "Also set Site theme pack" %}</span>
       </label>
-      <span class="badge text-bg-light">{{ admin_theme_packs|length }} {% trans "packs" %}</span>
+      <span class="rmc-badge rmc-badge--muted">{{ admin_theme_packs|length }} {% trans "packs" %}</span>
     </div>
     <div class="theme-pack-active-legend mb-3">
-      <span class="badge text-bg-primary-subtle" id="theme-pack-active-site-label">
+      <span class="rmc-badge rmc-badge--brand" id="theme-pack-active-site-label">
         {% trans "Site active:" %}
         {% if site_settings.theme_pack %}{{ site_settings.theme_pack.name }}{% else %}{% trans "None selected" %}{% endif %}
       </span>
-      <span class="badge text-bg-success-subtle" id="theme-pack-active-admin-label">
+      <span class="rmc-badge rmc-badge--success" id="theme-pack-active-admin-label">
         {% trans "Admin active:" %}
         {% if site_settings.admin_theme_pack %}{{ site_settings.admin_theme_pack.name }}{% else %}{% trans "None selected" %}{% endif %}
       </span>
@@ -72,7 +72,7 @@
                 <div class="admin-dashboard-palette-name">{{ pack.name }}</div>
                 {% if pack.description %}<div class="admin-dashboard-palette-desc">{{ pack.description|truncatewords:9 }}</div>{% endif %}
                 <div class="admin-dashboard-palette-meta d-flex flex-wrap gap-1">
-                  <span class="badge text-bg-secondary-subtle">{{ group_label }}</span>
+                  <span class="rmc-badge">{{ group_label }}</span>
                   <span class="badge text-bg-primary-subtle theme-pack-pill theme-pack-pill-site {% if site_settings.theme_pack_id != pack.pk %}d-none{% endif %}" data-role="site-active">{% trans "Site active" %}</span>
                   <span class="badge text-bg-success-subtle theme-pack-pill theme-pack-pill-admin {% if site_settings.admin_theme_pack_id != pack.pk %}d-none{% endif %}" data-role="admin-active">{% trans "Admin active" %}</span>
                 </div>

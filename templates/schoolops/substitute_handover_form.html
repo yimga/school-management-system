@@ -65,9 +65,9 @@
             <dt class="col-sm-5">{% trans "Medical / IEP" %}</dt>
             <dd class="col-sm-7">
               {% if packet.medical_iep_gated %}
-              <span class="badge bg-secondary">{% trans "Gated (not exposed)" %}</span>
+              <span class="rmc-badge">{% trans "Gated (not exposed)" %}</span>
               {% else %}
-              <span class="badge bg-warning text-dark">{% trans "Exposed by admin" %}</span>
+              <span class="rmc-badge rmc-badge--warning">{% trans "Exposed by admin" %}</span>
               {% endif %}
             </dd>
             <dt class="col-sm-5">{% trans "Audit event" %}</dt>

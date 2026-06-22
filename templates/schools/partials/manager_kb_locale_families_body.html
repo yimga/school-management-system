@@ -31,9 +31,9 @@
       <li class="list-group-item d-flex flex-wrap justify-content-between gap-2 align-items-center">
         <div>
           <strong>{{ art.title }}</strong>
-          <span class="badge text-bg-light ms-1">{{ art.locale|default:"all" }}</span>
-          <span class="badge text-bg-secondary">{{ art.get_status_display }}</span>
-          {% if art.translation_of_id %}<span class="badge text-bg-info">{% trans "translation" %}</span>{% endif %}
+          <span class="rmc-badge rmc-badge--muted ms-1">{{ art.locale|default:"all" }}</span>
+          <span class="rmc-badge">{{ art.get_status_display }}</span>
+          {% if art.translation_of_id %}<span class="rmc-badge rmc-badge--info">{% trans "translation" %}</span>{% endif %}
         </div>
         <form method="post" class="d-flex flex-wrap gap-1 align-items-center">
           {% csrf_token %}

@@ -41,7 +41,7 @@
       <a href="{% url 'kb:kb_category' category.slug %}" class="card h-100 text-decoration-none">
         <div class="card-body">
           <h4 class="h6">{{ category.name }}</h4>
-          <span class="badge text-bg-secondary">{{ category.article_count }} {% trans "articles" %}</span>
+          <span class="rmc-badge">{{ category.article_count }} {% trans "articles" %}</span>
         </div>
       </a>
     </div>

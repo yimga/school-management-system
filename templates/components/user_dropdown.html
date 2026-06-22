@@ -173,7 +173,7 @@
         <a class="dropdown-item text-warning" href="{{ security_posture_review_url }}">
           <i class="bi bi-shield-exclamation"></i>
           <span>{% trans "Quarterly security review" %}</span>
-          <span class="badge bg-warning text-dark ms-auto">{% trans "Due" %}</span>
+          <span class="rmc-badge rmc-badge--warning ms-auto">{% trans "Due" %}</span>
         </a>
       </li>
       {% endif %}
@@ -181,14 +181,14 @@
         <a class="dropdown-item" href="{% url 'accounts:mfa_setup' %}">
           <i class="bi bi-shield-lock"></i>
           <span>{% trans "Multi-factor authentication" %}</span>
-          {% if mfa_setup_needed %}<span class="badge bg-warning text-dark ms-auto">{% trans "Set up" %}</span>{% elif mfa_enrolled %}<span class="badge bg-success ms-auto">{% trans "On" %}</span>{% endif %}
+          {% if mfa_setup_needed %}<span class="rmc-badge rmc-badge--warning ms-auto">{% trans "Set up" %}</span>{% elif mfa_enrolled %}<span class="rmc-badge rmc-badge--success ms-auto">{% trans "On" %}</span>{% endif %}
         </a>
       </li>
       <li>
         <a class="dropdown-item" href="{% url 'accounts:user_notifications' %}">
           <i class="bi bi-bell"></i>
           <span>{% trans "Notifications" %}</span>
-          <span class="badge bg-primary" data-rmc-unread-badge data-rmc-unread-badge-style="pill">{{ rmc_unread_count|default:"0" }}</span>
+          <span class="rmc-badge rmc-badge--brand" data-rmc-unread-badge data-rmc-unread-badge-style="pill">{{ rmc_unread_count|default:"0" }}</span>
         </a>
       </li>
       <li>

@@ -89,7 +89,7 @@
             </div>
             <div style="flex:1;min-width:0">
               <div style="font-weight:600;font-size:var(--type-size-body-l);letter-spacing:-0.01em;line-height:1.25">{{ request.user.get_full_name|default:request.user.username }}</div>
-              <div style="color:var(--admin-content-text-muted);font-size:var(--type-size-caption);margin-top:2px">{{ request.user.username }}{% if request.user.role %} · <span class="badge rmc-account-role-badge" data-tone="soft-primary">{{ request.user.role|title }}</span>{% endif %}</div>
+              <div style="color:var(--admin-content-text-muted);font-size:var(--type-size-caption);margin-top:2px">{{ request.user.username }}{% if request.user.role %} · <span class="rmc-badge rmc-account-role-badge" data-tone="soft-primary">{{ request.user.role|title }}</span>{% endif %}</div>
             </div>
           </div>
           <hr>
@@ -262,7 +262,7 @@
                 {% for item in parent_children_tree.children %}
                   <li class="d-flex flex-wrap align-items-center gap-2 py-2 border-bottom border-light">
                     <span class="fw-semibold">{{ item.student }}</span>
-                    <span class="badge bg-secondary profile-chip">{{ item.relationship }}</span>
+                    <span class="rmc-badge profile-chip">{{ item.relationship }}</span>
                     <span class="text-muted small">{{ item.classroom }}{% if item.academic_year %} ({{ item.academic_year }}){% endif %}</span>
                     {% if item.student.admission_number %}
                       <span class="text-muted small">ID: {{ item.student.admission_number }}</span>
@@ -320,7 +320,7 @@
                   <span class="text-muted small">Feature permissions:</span>
                   <div class="d-flex flex-wrap gap-1 mt-1">
                     {% for code in admin_context.permissions_summary %}
-                      <span class="badge bg-light text-dark border">{{ code }}</span>
+                      <span class="rmc-badge rmc-badge--muted border">{{ code }}</span>
                     {% endfor %}
                   </div>
                 </div>

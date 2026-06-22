@@ -62,7 +62,7 @@
         <div class="card border-0 shadow-sm h-100">
           <div class="card-header bg-light d-flex justify-content-between align-items-center">
             <strong>{{ column.stage.label }}</strong>
-            <span class="badge text-bg-secondary">{{ column.leads|length }}</span>
+            <span class="rmc-badge">{{ column.leads|length }}</span>
           </div>
           <div class="card-body p-2">
             {% for lead in column.leads|slice:":5" %}
@@ -70,7 +70,7 @@
               <div class="d-flex align-items-start justify-content-between gap-2">
                 <a class="fw-semibold text-decoration-none" href="{% url 'sales:lead_detail' lead.pk %}">{{ lead.school_name }}</a>
                 {% if lead.next_follow_up and lead.next_follow_up < now %}
-                <span class="badge text-bg-warning">{% trans "Overdue" %}</span>
+                <span class="rmc-badge rmc-badge--warning">{% trans "Overdue" %}</span>
                 {% endif %}
               </div>
               <div class="small text-muted">{{ lead.contact_name|default:"-" }} · {{ lead.email|default:"-" }}</div>
@@ -109,7 +109,7 @@
           <td><a href="{% url 'sales:lead_detail' lead.pk %}">{{ lead.school_name }}</a></td>
           <td>{{ lead.contact_name }}</td>
           <td class="text-break small">{{ lead.email }}</td>
-          <td><span class="badge text-bg-secondary">{{ lead.stage.label }}</span></td>
+          <td><span class="rmc-badge">{{ lead.stage.label }}</span></td>
           <td class="small text-muted">{% if lead.next_follow_up %}{{ lead.next_follow_up }}{% else %}—{% endif %}</td>
           <td class="small text-muted">{% if lead.last_contact_at %}{{ lead.last_contact_at }}{% else %}—{% endif %}</td>
         </tr>

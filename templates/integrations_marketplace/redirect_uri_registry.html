@@ -64,17 +64,17 @@
             <td><code class="small">{{ row.redirect_uri }}</code></td>
             <td>
               {% if row.has_client_id %}
-                <span class="badge text-bg-success-subtle text-success-emphasis">{% trans "set" %}</span>
+                <span class="rmc-badge rmc-badge--success">{% trans "set" %}</span>
               {% else %}
-                <span class="badge text-bg-warning-subtle text-warning-emphasis">{% trans "not set" %}</span>
+                <span class="rmc-badge rmc-badge--warning">{% trans "not set" %}</span>
               {% endif %}
               <code class="small d-block text-muted">{{ row.env_id_var }}</code>
             </td>
             <td>
               {% if row.has_client_secret %}
-                <span class="badge text-bg-success-subtle text-success-emphasis">{% trans "set" %}</span>
+                <span class="rmc-badge rmc-badge--success">{% trans "set" %}</span>
               {% else %}
-                <span class="badge text-bg-warning-subtle text-warning-emphasis">{% trans "not set" %}</span>
+                <span class="rmc-badge rmc-badge--warning">{% trans "not set" %}</span>
               {% endif %}
               <code class="small d-block text-muted">{{ row.env_secret_var }}</code>
             </td>

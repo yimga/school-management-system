@@ -27,7 +27,7 @@
   {% if counts_by_reason %}
     <div class="d-flex flex-wrap gap-2 mb-3">
       {% for reason, count in counts_by_reason %}
-        <span class="badge text-bg-warning-subtle text-warning-emphasis">
+        <span class="rmc-badge rmc-badge--warning">
           <code>{{ reason }}</code>: {{ count }}
         </span>
       {% endfor %}

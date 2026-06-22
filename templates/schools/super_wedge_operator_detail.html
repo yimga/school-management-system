@@ -21,7 +21,7 @@
   {% phase8_dashboard_declaration "schools/super_wedge_operator_detail.html" %}
   <header class="mb-4 pb-3 border-bottom border-secondary">
     <h1 class="h4 mb-1 fw-bold">{% trans "Wedge" %} {{ wedge_id }}: {{ wedge.name }}</h1>
-    <p class="small mb-1">{% trans "Tier" %} <span class="badge bg-secondary">{{ wedge.tier }}</span> · {% trans "Execution phase" %} {{ wedge.phase }}</p>
+    <p class="small mb-1">{% trans "Tier" %} <span class="rmc-badge">{{ wedge.tier }}</span> · {% trans "Execution phase" %} {{ wedge.phase }}</p>
     {% if canonical_path %}<p class="small text-info mb-0"><strong>{% trans "Canonical URL" %}:</strong> <code>{{ canonical_path }}</code></p>{% endif %}
   </header>
   {% include "schools/partials/wedge_super_premium_proof.html" %}

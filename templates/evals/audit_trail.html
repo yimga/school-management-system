@@ -32,15 +32,15 @@
                                     <div>
                                         <h6 class="mb-1">
                                             {% if entry.change_type == 'created' %}
-                                                <span class="badge badge-success">Created</span>
+                                                <span class="rmc-badge rmc-badge--success">Created</span>
                                             {% elif entry.change_type == 'updated' %}
-                                                <span class="badge badge-primary">Updated</span>
+                                                <span class="rmc-badge rmc-badge--brand">Updated</span>
                                             {% elif entry.change_type == 'validated' %}
-                                                <span class="badge badge-info">Validated</span>
+                                                <span class="rmc-badge rmc-badge--info">Validated</span>
                                             {% elif entry.change_type == 'offline_synced' %}
-                                                <span class="badge badge-warning">Offline Sync</span>
+                                                <span class="rmc-badge rmc-badge--warning">Offline Sync</span>
                                             {% else %}
-                                                <span class="badge badge-secondary">{{ entry.change_type }}</span>
+                                                <span class="rmc-badge">{{ entry.change_type }}</span>
                                             {% endif %}
                                         </h6>
                                         <p class="text-muted mb-2">
@@ -71,14 +71,14 @@
                                                 <td><strong>{{ component|title }}</strong></td>
                                                 <td>
                                                     {% if change.before %}
-                                                        <span class="badge badge-light">{{ change.before }}</span>
+                                                        <span class="rmc-badge rmc-badge--muted">{{ change.before }}</span>
                                                     {% else %}
                                                         <span class="text-muted">-</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>
                                                     {% if change.after %}
-                                                        <span class="badge badge-primary">{{ change.after }}</span>
+                                                        <span class="rmc-badge rmc-badge--brand">{{ change.after }}</span>
                                                     {% else %}
                                                         <span class="text-muted">-</span>
                                                     {% endif %}

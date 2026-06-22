@@ -26,7 +26,7 @@
 
   {% comment %} Honest reframe: only the defined corridors carry a real readiness verdict {% endcomment %}
   <div class="alert alert-secondary d-flex flex-wrap gap-2 align-items-center py-2 px-3 mb-3" role="note">
-    <span class="badge text-bg-secondary">{{ summary.placeholder_corridors }}</span>
+    <span class="rmc-badge">{{ summary.placeholder_corridors }}</span>
     <span class="small mb-0">
       {% blocktrans with d=summary.defined_corridors %}Of {{ summary.total_countries|default:250 }} ISO countries, only <strong>{{ d }}</strong> have a researched payment corridor (real currency + dominant rails). The rest are placeholder stubs — defining a corridor is <em>data</em> work, distinct from the <em>adapter</em> work of promoting a PSP to live.{% endblocktrans %}
     </span>
@@ -57,7 +57,7 @@
     <h2 class="h6 text-tertiary mb-2" id="cr-leverage">{% trans "Highest-leverage adapters (countries unblocked if promoted to live)" %}</h2>
     <div class="d-flex flex-wrap gap-2">
       {% for label, count in summary.by_blocking_psp.items %}
-      <span class="badge text-bg-light border">{{ label }} <span class="text-primary fw-bold">{{ count }}</span></span>
+      <span class="rmc-badge rmc-badge--muted border">{{ label }} <span class="text-primary fw-bold">{{ count }}</span></span>
       {% endfor %}
     </div>
     <p class="text-tertiary small mt-2 mb-0">
@@ -98,26 +98,26 @@
         <tr>
           <td>
             <span class="fw-semibold">{{ r.label }}</span> <code class="text-tertiary small">{{ r.country_code }}</code>
-            {% if r.data_state == "placeholder" %}<span class="badge text-bg-secondary ms-1" title="{% trans 'Corridor not yet researched — currency/rails are placeholder' %}">{% trans "stub" %}</span>{% endif %}
+            {% if r.data_state == "placeholder" %}<span class="rmc-badge ms-1" title="{% trans 'Corridor not yet researched — currency/rails are placeholder' %}">{% trans "stub" %}</span>{% endif %}
           </td>
           <td>
             <code>{{ r.currency }}</code>
-            {% if r.zero_decimal %}<span class="badge text-bg-warning text-dark ms-1" title="{% trans 'Zero-decimal currency — charge whole units, not cents' %}">0d</span>{% endif %}
+            {% if r.zero_decimal %}<span class="rmc-badge rmc-badge--warning ms-1" title="{% trans 'Zero-decimal currency — charge whole units, not cents' %}">0d</span>{% endif %}
           </td>
-          <td class="small">{% for rail in r.primary_rails %}<span class="badge text-bg-light border me-1">{{ rail }}</span>{% endfor %}</td>
+          <td class="small">{% for rail in r.primary_rails %}<span class="rmc-badge rmc-badge--muted border me-1">{{ rail }}</span>{% endfor %}</td>
           <td><span class="badge text-bg-{{ r.overall_tone }}">{{ r.overall_label }}</span></td>
           <td class="small">
-            {% if r.risk_tier == "high" %}<span class="badge text-bg-danger">{% trans "high" %}</span>
-            {% elif r.risk_tier == "medium" %}<span class="badge text-bg-warning text-dark">{% trans "med" %}</span>
-            {% elif r.risk_tier %}<span class="badge text-bg-success">{{ r.risk_tier }}</span>
+            {% if r.risk_tier == "high" %}<span class="rmc-badge rmc-badge--danger">{% trans "high" %}</span>
+            {% elif r.risk_tier == "medium" %}<span class="rmc-badge rmc-badge--warning">{% trans "med" %}</span>
+            {% elif r.risk_tier %}<span class="rmc-badge rmc-badge--success">{{ r.risk_tier }}</span>
             {% else %}<span class="text-tertiary">—</span>{% endif %}
           </td>
           <td class="small text-tertiary">{{ r.tenant_action }}</td>
           <td class="small text-tertiary">{{ r.platform_action }}</td>
           <td class="small">
-            {% if r.locale_state == "localized" %}<span class="badge text-bg-success">{% trans "localized" %}</span>
-            {% elif r.locale_state == "partial" %}<span class="badge text-bg-warning text-dark">{% trans "partial" %}</span>
-            {% else %}<span class="badge text-bg-secondary">{% trans "English" %}</span>{% endif %}
+            {% if r.locale_state == "localized" %}<span class="rmc-badge rmc-badge--success">{% trans "localized" %}</span>
+            {% elif r.locale_state == "partial" %}<span class="rmc-badge rmc-badge--warning">{% trans "partial" %}</span>
+            {% else %}<span class="rmc-badge">{% trans "English" %}</span>{% endif %}
           </td>
         </tr>
         {% empty %}

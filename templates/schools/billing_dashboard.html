@@ -143,7 +143,7 @@
                 {% for subscription in active_subscriptions %}
                 <tr>
                   <td>{{ subscription.school.name }}</td>
-                  <td><span class="badge text-bg-light">{{ subscription.status }}</span></td>
+                  <td><span class="rmc-badge rmc-badge--muted">{{ subscription.status }}</span></td>
                   <td>{{ subscription.plan.name|default:"-" }}</td>
                   <td>{{ subscription.billing_account.currency_code }} {{ subscription.billed_amount|default:subscription.base_amount }}</td>
                   <td>{{ subscription.get_billing_cycle_display }}</td>

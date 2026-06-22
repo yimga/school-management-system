@@ -85,12 +85,12 @@
         {% if m.workflow_step_count or m.workflow_typical_minutes %}
         <div class="rmc-overview-mode-card__workflow-chips d-flex flex-wrap gap-1 mt-1" aria-label="{% trans 'Workflow summary' %}">
           {% if m.workflow_step_count %}
-          <span class="badge text-bg-light border rmc-workflow-info-chip">
+          <span class="rmc-badge rmc-badge--muted border rmc-workflow-info-chip">
             {% blocktrans count steps=m.workflow_step_count %}{{ steps }} step{% plural %}{{ steps }} steps{% endblocktrans %}
           </span>
           {% endif %}
           {% if m.workflow_typical_minutes %}
-          <span class="badge text-bg-light border rmc-workflow-info-chip">
+          <span class="rmc-badge rmc-badge--muted border rmc-workflow-info-chip">
             {% blocktrans with mins=m.workflow_typical_minutes %}~{{ mins }} min{% endblocktrans %}
           </span>
           {% endif %}

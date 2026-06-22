@@ -116,7 +116,7 @@
               <td>{{ c.payment_transaction_id|default:"—" }}</td>
               <td class="text-end">{{ c.payment_amount_fcfa|default:0|format_currency }}</td>
               <td>
-                <span class="badge bg-light text-dark">{{ c.get_status_display }}</span>
+                <span class="rmc-badge rmc-badge--muted">{{ c.get_status_display }}</span>
               </td>
             </tr>
             {% endfor %}

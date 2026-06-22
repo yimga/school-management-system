@@ -52,7 +52,7 @@
                 <strong>{{ notif.title }}</strong>
                 <div class="small text-muted">{{ notif.message|truncatechars:120 }}</div>
               </div>
-              <span class="badge bg-secondary">{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</span>
+              <span class="rmc-badge">{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</span>
             </li>
           {% endfor %}
         </ul>

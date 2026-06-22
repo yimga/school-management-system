@@ -6,9 +6,9 @@
   <p class="text-muted small mb-3">{% trans "Use the action link to work in the real tool. Mark done only when the work is complete (including when completion is not yet detected automatically)." %}</p>
   <ul class="list-unstyled d-flex flex-wrap gap-2 mb-3">
     {% if step.done %}
-    <li><span class="badge text-bg-success">{% trans "Done" %}</span></li>
+    <li><span class="rmc-badge rmc-badge--success">{% trans "Done" %}</span></li>
     {% else %}
-    <li><span class="badge text-bg-warning">{% trans "Pending" %}</span></li>
+    <li><span class="rmc-badge rmc-badge--warning">{% trans "Pending" %}</span></li>
     {% endif %}
   </ul>
   {% if step.link %}

@@ -45,13 +45,13 @@
                     <a href="{% url 'kb:kb_category' cat.slug %}" 
                        class="list-group-item list-group-item-action {% if category.slug == cat.slug %}active{% endif %}">
                         <i class="{{ cat.icon|fa_to_bi }}"></i> {{ cat.name }}
-                        <span class="badge badge-secondary float-right">{{ cat.article_count }}</span>
+                        <span class="rmc-badge float-right">{{ cat.article_count }}</span>
                     </a>
                     {% for subcat in cat.children.all %}
                     <a href="{% url 'kb:kb_category' subcat.slug %}" 
                        class="list-group-item list-group-item-action pl-5 {% if category.slug == subcat.slug %}active{% endif %}">
                         <i class="bi bi-chevron-right"></i> {{ subcat.name }}
-                        <span class="badge badge-secondary float-right">{{ subcat.article_count }}</span>
+                        <span class="rmc-badge float-right">{{ subcat.article_count }}</span>
                     </a>
                     {% endfor %}
                     {% endfor %}
@@ -72,7 +72,7 @@
                                    name="difficulty" value="BEGINNER"
                                    {% if 'BEGINNER' in selected_difficulties %}checked{% endif %}>
                             <label class="custom-control-label" for="beginner">
-                                <span class="badge badge-success">Beginner</span>
+                                <span class="rmc-badge rmc-badge--success">Beginner</span>
                             </label>
                         </div>
                         <div class="custom-control custom-checkbox">
@@ -80,7 +80,7 @@
                                    name="difficulty" value="INTERMEDIATE"
                                    {% if 'INTERMEDIATE' in selected_difficulties %}checked{% endif %}>
                             <label class="custom-control-label" for="intermediate">
-                                <span class="badge badge-warning">Intermediate</span>
+                                <span class="rmc-badge rmc-badge--warning">Intermediate</span>
                             </label>
                         </div>
                         <div class="custom-control custom-checkbox">
@@ -88,7 +88,7 @@
                                    name="difficulty" value="ADVANCED"
                                    {% if 'ADVANCED' in selected_difficulties %}checked{% endif %}>
                             <label class="custom-control-label" for="advanced">
-                                <span class="badge badge-danger">Advanced</span>
+                                <span class="rmc-badge rmc-badge--danger">Advanced</span>
                             </label>
                         </div>
                         <button type="submit" class="btn btn-sm btn-primary mt-2 w-100">Apply</button>
@@ -105,7 +105,7 @@
                     <i class="{{ category.icon|fa_to_bi }}"></i> {{ category.name }}
                 </h1>
                 <p class="text-muted">{{ category.description }}</p>
-                <div class="badge badge-info">
+                <div class="rmc-badge rmc-badge--info">
                     {{ articles.count }} article{{ articles.count|pluralize }}
                 </div>
             </div>
@@ -123,7 +123,7 @@
                                             <i class="bi bi-file-earmark-text"></i> {{ article.title }}
                                         </a>
                                         {% if article.is_featured %}
-                                        <span class="badge badge-success">
+                                        <span class="rmc-badge rmc-badge--success">
                                             <i class="bi bi-star"></i> Featured
                                         </span>
                                         {% endif %}
@@ -150,7 +150,7 @@
                                 </div>
                                 <div class="col-lg-3 text-right">
                                     {% if article.attachments.count %}
-                                    <span class="badge badge-info">
+                                    <span class="rmc-badge rmc-badge--info">
                                         <i class="bi bi-images"></i> {{ article.attachments.count }}
                                     </span>
                                     {% endif %}

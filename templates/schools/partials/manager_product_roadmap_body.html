@@ -13,7 +13,7 @@
     <div class="list-group-item">
       <div class="d-flex justify-content-between gap-2">
         <strong>{{ item.title }}</strong>
-        <span class="badge text-bg-secondary">{{ item.get_status_display }}</span>
+        <span class="rmc-badge">{{ item.get_status_display }}</span>
       </div>
       <p class="small text-tertiary mb-0">{{ item.problem|truncatewords:28 }}</p>
       {% if item.release_target %}<span class="small text-tertiary">{% trans "Target" %}: {{ item.release_target }}</span>{% endif %}

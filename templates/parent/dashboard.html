@@ -451,7 +451,7 @@
                       {% term "student" capitalize=True as pd_student_sg %}
                       <div class="d-flex flex-wrap gap-1 mt-1" role="list" aria-label="{% blocktrans with t=pd_student_sg %}{{ t }} badges{% endblocktrans %}">
                         {% for b in card.badges %}
-                        <span class="badge rounded-pill" style="background: var(--school-primary); color: var(--text-on-brand);" role="listitem">{{ b.badge_type.label }}</span>
+                        <span class="rmc-badge" style="background: var(--school-primary); color: var(--text-on-brand);" role="listitem">{{ b.badge_type.label }}</span>
                         {% endfor %}
                       </div>
                       {% endif %}
@@ -510,9 +510,9 @@
                     <h3 class="child-fill-head">
                       <span><i class="bi bi-activity me-1"></i>{% trans "At-risk follow-up" %}</span>
                       {% if focus_child.missing_work or has_fees_due or focus_child.attendance < 80 %}
-                      <span class="badge text-bg-warning">{% trans "Action" %}</span>
+                      <span class="rmc-badge rmc-badge--warning">{% trans "Action" %}</span>
                       {% else %}
-                      <span class="badge text-bg-success">{% trans "Stable" %}</span>
+                      <span class="rmc-badge rmc-badge--success">{% trans "Stable" %}</span>
                       {% endif %}
                     </h3>
                     <ul class="child-fill-list">
@@ -529,7 +529,7 @@
                   <div class="child-fill-section">
                     <h3 class="child-fill-head">
                       <span><i class="bi bi-calendar-week me-1"></i>{% trans "This week deadlines" %}</span>
-                      <span class="badge text-bg-light">{{ widget_data.events|length|default:0 }}</span>
+                      <span class="rmc-badge rmc-badge--muted">{{ widget_data.events|length|default:0 }}</span>
                     </h3>
                     {% if widget_data.events %}
                     <ul class="child-fill-deadlines">
@@ -539,7 +539,7 @@
                           <strong>{{ item.title|default:_("Upcoming item")|truncatechars:34 }}</strong>
                           <small>{{ item.when|default:_("This week") }}</small>
                         </div>
-                        <span class="badge rounded-pill text-bg-secondary">{{ forloop.counter }}</span>
+                        <span class="rmc-badge">{{ forloop.counter }}</span>
                       </li>
                       {% endfor %}
                     </ul>
@@ -578,7 +578,7 @@
                 <li class="list-group-item d-flex align-items-center gap-2 px-0 py-2 small">
                   <i class="bi bi-circle-fill text-muted" style="font-size: var(--type-size-micro);" aria-hidden="true"></i>
                   <span class="flex-grow-1">{{ item.title }}</span>
-                  <span class="badge bg-secondary">{% if item.when %}{{ item.when }}{% else %}{% trans "Upcoming" %}{% endif %}</span>
+                  <span class="rmc-badge">{% if item.when %}{{ item.when }}{% else %}{% trans "Upcoming" %}{% endif %}</span>
                 </li>
                 {% endfor %}
               </ul>
@@ -588,7 +588,7 @@
                 <li class="list-group-item d-flex align-items-center gap-2 px-0 py-2 small">
                   <i class="bi bi-circle-fill text-muted" style="font-size: var(--type-size-micro);" aria-hidden="true"></i>
                   <span class="flex-grow-1">{{ item.title }}</span>
-                  <span class="badge bg-secondary">{{ item.when|default:_("Upcoming") }}</span>
+                  <span class="rmc-badge">{{ item.when|default:_("Upcoming") }}</span>
                 </li>
                 {% endfor %}
               </ul>
@@ -696,7 +696,7 @@
                     <strong>{{ payment.invoice.student.get_full_name|default:_("Student") }}</strong>
                     <small>{{ payment.paid_at|date:"M j, Y" }}</small>
                   </div>
-                  <span class="badge bg-success-subtle text-success-emphasis border">{{ payment.amount|default:"0.00"|format_currency }}</span>
+                  <span class="rmc-badge rmc-badge--success border">{{ payment.amount|default:"0.00"|format_currency }}</span>
                 </li>
                 {% endfor %}
               </ul>

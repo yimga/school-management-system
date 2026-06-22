@@ -80,12 +80,12 @@
       <div class="card card-body">
         <div class="d-flex justify-content-between align-items-baseline">
           <span class="fw-semibold">{{ c.name }}</span>
-          <span class="badge text-bg-light">{{ c.status|capfirst }}</span>
+          <span class="rmc-badge rmc-badge--muted">{{ c.status|capfirst }}</span>
         </div>
         <div class="progress my-2" role="progressbar" aria-label="{{ c.name }}" aria-valuenow="{{ c.pct_to_goal }}" aria-valuemin="0" aria-valuemax="100">
           <div class="progress-bar" style="width: {{ c.pct_to_goal }}%"></div>
         </div>
-        <p class="small mb-0">{{ c.raised }} / {{ c.goal_amount }} {{ c.currency }} · {{ c.pct_to_goal }}%{% if c.over_goal %} <span class="badge bg-success-subtle text-success-emphasis">{% trans "over goal" %}</span>{% endif %}</p>
+        <p class="small mb-0">{{ c.raised }} / {{ c.goal_amount }} {{ c.currency }} · {{ c.pct_to_goal }}%{% if c.over_goal %} <span class="rmc-badge rmc-badge--success">{% trans "over goal" %}</span>{% endif %}</p>
         <p class="small text-muted mb-0">{{ c.gift_count }} {% trans "gifts" %} · {{ c.in_kind_count }} {% trans "in-kind" %} ({{ c.in_kind_value }} {{ c.currency }})</p>
       </div>
     </div>
@@ -126,7 +126,7 @@
           <td>{{ f.remaining_funds }} {{ f.currency }}</td>
           <td>{{ f.committed }} {{ f.currency }}</td>
           <td>{{ f.net_liquidity }} {{ f.currency }}</td>
-          <td>{% if f.status == "HEALTHY" %}<span class="badge bg-success-subtle text-success-emphasis">{% trans "Healthy" %}</span>{% else %}<span class="badge bg-danger-subtle text-danger-emphasis">{% trans "Critical" %}</span>{% endif %}</td>
+          <td>{% if f.status == "HEALTHY" %}<span class="rmc-badge rmc-badge--success">{% trans "Healthy" %}</span>{% else %}<span class="rmc-badge rmc-badge--danger">{% trans "Critical" %}</span>{% endif %}</td>
         </tr>
         {% endfor %}
       </tbody>

@@ -104,7 +104,7 @@
           <div class="fw-semibold">{% trans "Progress rail" %}</div>
           <div class="setup-studio-muted">{% trans "Eight steps, no hidden setup debt." %}</div>
         </div>
-        <span class="badge text-bg-light">{{ steps|length }}</span>
+        <span class="rmc-badge rmc-badge--muted">{{ steps|length }}</span>
       </div>
       <div class="setup-studio-step-list">
         {% for step in steps %}
@@ -128,7 +128,7 @@
           <div class="fw-semibold">{% trans "Current task" %}</div>
           <div class="setup-studio-muted">{% trans "One dominant task. Advanced controls stay secondary." %}</div>
         </div>
-        <span class="badge text-bg-primary">{{ current_step.group|default:"launch" }}</span>
+        <span class="rmc-badge rmc-badge--brand">{{ current_step.group|default:"launch" }}</span>
       </div>
 
       {% if school and csv_dry_run_url and csv_apply_url %}
@@ -236,7 +236,7 @@
           <div class="fw-semibold">{% trans "Launch blockers" %}</div>
           <div class="setup-studio-muted">{% trans "Clear these before go-live." %}</div>
         </div>
-        <span class="badge text-bg-warning">{{ launch_blockers|length }}</span>
+        <span class="rmc-badge rmc-badge--warning">{{ launch_blockers|length }}</span>
       </div>
       <div class="setup-studio-list mb-3">
         {% for blocker in launch_blockers %}
@@ -325,7 +325,7 @@
           <div class="fw-semibold">{% trans "Live previews" %}</div>
           <div class="setup-studio-muted">{% trans "Preview website, admin, teacher, parent, student, and finance surfaces." %}</div>
         </div>
-        {% if ai_recommended %}<span class="badge text-bg-info" title="{% trans 'Blueprint and stack recommendations from platform recommendation engine' %}">AI recommends</span>{% endif %}
+        {% if ai_recommended %}<span class="rmc-badge rmc-badge--info" title="{% trans 'Blueprint and stack recommendations from platform recommendation engine' %}">AI recommends</span>{% endif %}
       </div>
       {% if preview_workspace.preview_note %}
       <p class="setup-studio-muted small mb-2">{{ preview_workspace.preview_note }}</p>
@@ -350,8 +350,8 @@
         <div class="setup-studio-mini-title">{{ preview_workspace.title }}</div>
         <div class="setup-studio-muted">{{ preview_workspace.detail }}</div>
         <div class="setup-studio-actions">
-          <span class="badge text-bg-success">{{ preview_workspace.ready_count }} {% trans "ready" %}</span>
-          <span class="badge text-bg-warning">{{ preview_workspace.pending_count }} {% trans "still pending" %}</span>
+          <span class="rmc-badge rmc-badge--success">{{ preview_workspace.ready_count }} {% trans "ready" %}</span>
+          <span class="rmc-badge rmc-badge--warning">{{ preview_workspace.pending_count }} {% trans "still pending" %}</span>
         </div>
         {% if preview_workspace.recommended_sequence %}
         <div class="setup-studio-inline-list">
@@ -375,7 +375,7 @@
             {% if surface.url and surface.url != '#' %}
             <a href="{{ surface.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm">{% trans "Open in new tab" %}</a>
             {% else %}
-            <span class="badge text-bg-light">{% trans "Unavailable" %}</span>
+            <span class="rmc-badge rmc-badge--muted">{% trans "Unavailable" %}</span>
             {% endif %}
           </div>
           {% endfor %}
@@ -412,7 +412,7 @@
               <div class="setup-studio-muted">{{ blueprint.detail }}</div>
               <div class="setup-studio-muted mt-2">{{ blueprint.fit_label }}{% if blueprint.reason_summary %} • {{ blueprint.reason_summary }}{% endif %}</div>
             </div>
-            <span class="badge text-bg-light">{{ blueprint.fit_score }}</span>
+            <span class="rmc-badge rmc-badge--muted">{{ blueprint.fit_score }}</span>
           </div>
           <div class="setup-studio-actions">
             <a href="{{ blueprint.cta_url }}" class="btn btn-outline-primary btn-sm">{{ blueprint.cta_label }}</a>
@@ -453,7 +453,7 @@
           </div>
           <div class="setup-studio-actions">
             <a href="{{ choice.cta_url }}" class="btn btn-outline-primary btn-sm">{{ choice.cta_label }}</a>
-            {% if choice.recommended %}<span class="badge text-bg-light">{% trans "Recommended path" %}</span>{% endif %}
+            {% if choice.recommended %}<span class="rmc-badge rmc-badge--muted">{% trans "Recommended path" %}</span>{% endif %}
           </div>
         </div>
         {% endfor %}
@@ -484,7 +484,7 @@
           {% if preview.url and preview.url != '#' %}
           <a href="{{ preview.url }}" class="btn btn-outline-primary btn-sm">{% trans "Open" %}</a>
           {% else %}
-          <span class="badge text-bg-light">{% trans "Unavailable" %}</span>
+          <span class="rmc-badge rmc-badge--muted">{% trans "Unavailable" %}</span>
           {% endif %}
         </div>
         {% empty %}

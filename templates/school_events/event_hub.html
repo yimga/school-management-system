@@ -44,8 +44,8 @@
               <div class="text-muted small">{{ event.start_at|date:"Y-m-d H:i" }}{% if event.venue %} | {{ event.venue.name }}{% endif %}</div>
             </div>
             <div class="text-end">
-              {% if event.ticketing_enabled %}<span class="badge text-bg-primary">Ticketing</span>{% endif %}
-              {% if event.sponsorship_enabled %}<span class="badge text-bg-warning">Sponsors</span>{% endif %}
+              {% if event.ticketing_enabled %}<span class="rmc-badge rmc-badge--brand">Ticketing</span>{% endif %}
+              {% if event.sponsorship_enabled %}<span class="rmc-badge rmc-badge--warning">Sponsors</span>{% endif %}
             </div>
           </div>
           {% if event.summary %}<p class="mt-3 mb-3">{{ event.summary }}</p>{% endif %}

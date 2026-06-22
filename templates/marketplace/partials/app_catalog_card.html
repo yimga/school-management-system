@@ -21,9 +21,9 @@
         {% if listing.publisher and listing.publisher.verification_status == 'verified' %}{% trans "Verified" %}{% else %}{% trans "Review" %}{% endif %}
       </span>
       {% if listing.security_review_status == 'approved' %}
-      <span class="badge text-bg-info"><i class="bi bi-shield-lock" aria-hidden="true"></i> {% trans "Secured" %}</span>
+      <span class="rmc-badge rmc-badge--info"><i class="bi bi-shield-lock" aria-hidden="true"></i> {% trans "Secured" %}</span>
       {% endif %}
-      <span class="badge text-bg-light">{{ listing.app.get_kind_display }}</span>
+      <span class="rmc-badge rmc-badge--muted">{{ listing.app.get_kind_display }}</span>
     </div>
   </div>
 
@@ -57,7 +57,7 @@
           <li class="mb-1">
             <code>{{ scope.scope_code }}</code>
             {% if scope.description %}<span class="text-muted">— {{ scope.description|truncatewords:12 }}</span>{% endif %}
-            {% if scope.sensitive %}<span class="badge text-bg-warning">{% trans "Sensitive" %}</span>{% endif %}
+            {% if scope.sensitive %}<span class="rmc-badge rmc-badge--warning">{% trans "Sensitive" %}</span>{% endif %}
           </li>
           {% endfor %}
         </ul>

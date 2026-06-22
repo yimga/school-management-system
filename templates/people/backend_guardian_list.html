@@ -78,7 +78,7 @@
                   <td>{{ g.guardian_user.email|default:"-" }}</td>
                   <td>{{ g.student.get_full_name|default:g.student.admission_number }}</td>
                   <td>{{ g.student.classroom.name|default:"-" }}</td>
-                  <td>{% if g.can_view_finance %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                  <td>{% if g.can_view_finance %}<span class="rmc-badge rmc-badge--success">Yes</span>{% else %}<span class="rmc-badge">No</span>{% endif %}</td>
                 </tr>
                 {% endfor %}
               </tbody>

@@ -105,7 +105,7 @@
           <div class="border rounded-2 p-2 h-100">
             <div class="d-flex justify-content-between gap-2 align-items-start">
               <h2 class="h6 mb-1">{{ workflow.label }}</h2>
-              <span class="badge text-bg-light">{{ workflow.value_count }}</span>
+              <span class="rmc-badge rmc-badge--muted">{{ workflow.value_count }}</span>
             </div>
             <p class="small mb-1"><strong>{% trans "Current state" %}:</strong> {{ workflow.current_state }}</p>
             {% if workflow.missing_setup %}

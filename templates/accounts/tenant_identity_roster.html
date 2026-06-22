@@ -54,12 +54,12 @@
               <strong>{{ row.user.get_username }}</strong>
               {% if row.user.email %}<div class="small text-muted">{{ row.user.email }}</div>{% endif %}
             </td>
-            <td><span class="badge text-bg-secondary">{{ row.effective_role }}</span></td>
+            <td><span class="rmc-badge">{{ row.effective_role }}</span></td>
             <td>
               {% if row.mfa_ok %}
-              <span class="badge text-bg-success">{% trans "Enrolled" %}</span>
+              <span class="rmc-badge rmc-badge--success">{% trans "Enrolled" %}</span>
               {% else %}
-              <span class="badge text-bg-warning">{% trans "Not enrolled" %}</span>
+              <span class="rmc-badge rmc-badge--warning">{% trans "Not enrolled" %}</span>
               {% endif %}
             </td>
             <td class="text-end">

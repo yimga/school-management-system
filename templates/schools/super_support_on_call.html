@@ -197,7 +197,7 @@
           <tr>
             <td>{{ s.user.get_full_name|default:s.user.email|default:s.user.username }}</td>
             <td>{{ s.role_tag|default:"—" }}</td>
-            <td>{% if s.is_primary %}<span class="badge text-bg-primary">{% trans "Primary" %}</span>{% else %}<span class="badge text-bg-secondary">{% trans "Backup" %}</span>{% endif %}</td>
+            <td>{% if s.is_primary %}<span class="rmc-badge rmc-badge--brand">{% trans "Primary" %}</span>{% else %}<span class="rmc-badge">{% trans "Backup" %}</span>{% endif %}</td>
             <td><span class="small">{{ s.starts_at|date:"Y-m-d H:i" }}</span></td>
             <td><span class="small">{{ s.ends_at|date:"Y-m-d H:i" }}</span></td>
             <td><span class="small text-muted">{{ s.notes|default:"—" }}</span></td>
@@ -232,7 +232,7 @@
             <td>{{ s.user.get_full_name|default:s.user.email|default:s.user.username }}</td>
             <td><span class="small">{{ s.starts_at|date:"Y-m-d H:i" }}</span></td>
             <td><span class="small">{{ s.ends_at|date:"Y-m-d H:i" }}</span></td>
-            <td>{% if s.is_primary %}<span class="badge text-bg-primary">P</span>{% else %}<span class="badge text-bg-secondary">B</span>{% endif %}</td>
+            <td>{% if s.is_primary %}<span class="rmc-badge rmc-badge--brand">P</span>{% else %}<span class="rmc-badge">B</span>{% endif %}</td>
           </tr>
           {% endfor %}
         </tbody>

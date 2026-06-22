@@ -15,10 +15,10 @@
         <div class="card-body">
           <h1 class="h6">{{ c.label }}</h1>
           {% if c.enabled %}
-          <span class="badge bg-success mb-2">{% trans "Active" %}</span>
+          <span class="rmc-badge rmc-badge--success mb-2">{% trans "Active" %}</span>
           <a href="{{ c.url }}" class="btn btn-primary btn-sm d-block">{% trans "Open" %}</a>
           {% else %}
-          <span class="badge bg-secondary mb-2">{% trans "Inactive" %}</span>
+          <span class="rmc-badge mb-2">{% trans "Inactive" %}</span>
           <a href="{{ module_market_url }}" class="btn btn-outline-secondary btn-sm d-block">{% trans "Enable in Module Market" %}</a>
           {% endif %}
         </div>

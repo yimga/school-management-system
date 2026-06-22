@@ -16,9 +16,9 @@
     </div>
     <div class="d-flex flex-wrap gap-2">
       {% if policies %}
-      <span class="badge text-bg-warning text-dark">{% trans "autopilot policies active" %}</span>
+      <span class="rmc-badge rmc-badge--warning">{% trans "autopilot policies active" %}</span>
       {% else %}
-      <span class="badge text-bg-success">{% trans "shadow-only (no autonomous mutations)" %}</span>
+      <span class="rmc-badge rmc-badge--success">{% trans "shadow-only (no autonomous mutations)" %}</span>
       {% endif %}
     </div>
   </div>
@@ -83,11 +83,11 @@
     <h2 class="h5 mb-2 text-uppercase text-tertiary small">{% trans "AI status &amp; surfaces" %}</h2>
     <div class="d-flex flex-wrap gap-2 mb-2">
       {% if ai_enabled %}
-      <span class="badge text-bg-info">{% trans "inbuilt AI: enabled" %}</span>
+      <span class="rmc-badge rmc-badge--info">{% trans "inbuilt AI: enabled" %}</span>
       {% else %}
-      <span class="badge text-bg-secondary">{% trans "inbuilt AI: disabled (deterministic rules only)" %}</span>
+      <span class="rmc-badge">{% trans "inbuilt AI: disabled (deterministic rules only)" %}</span>
       {% endif %}
-      <span class="badge text-bg-light text-dark">{% trans "AI match floor" %} {{ ai_min_confidence }}</span>
+      <span class="rmc-badge rmc-badge--muted">{% trans "AI match floor" %} {{ ai_min_confidence }}</span>
     </div>
     {% if ai_surfaces %}
     <div class="table-responsive">
@@ -183,14 +183,14 @@
             </td>
             <td>
               {% if p.source == 'ai' %}
-                <span class="badge text-bg-info">{% trans "ai" %}</span> <span class="text-tertiary small">{{ p.confidence }}</span>
+                <span class="rmc-badge rmc-badge--info">{% trans "ai" %}</span> <span class="text-tertiary small">{{ p.confidence }}</span>
               {% else %}
                 <span class="text-tertiary small">{{ p.source }}</span>
               {% endif %}
             </td>
             <td>
               {% if p.available %}
-                <span class="badge text-bg-success">{% trans "yes" %}</span>
+                <span class="rmc-badge rmc-badge--success">{% trans "yes" %}</span>
               {% else %}
                 <span class="text-tertiary small">{% trans "no" %}</span>
               {% endif %}
@@ -247,7 +247,7 @@
             </td>
             <td>
               {% if n.source == 'ai' %}
-                <span class="badge text-bg-info">{% trans "ai" %}</span>
+                <span class="rmc-badge rmc-badge--info">{% trans "ai" %}</span>
               {% else %}
                 <span class="text-tertiary small">{% trans "rules" %}</span>
               {% endif %}
@@ -286,7 +286,7 @@
           <tr>
             <td><code>{{ pol.tenant_schema|default:"* (global)" }}</code></td>
             <td>{{ pol.allowed_auto_fix_kinds }}</td>
-            <td>{% if pol.enabled %}<span class="badge text-bg-warning text-dark">{% trans "yes" %}</span>{% else %}<span class="text-tertiary small">{% trans "no" %}</span>{% endif %}</td>
+            <td>{% if pol.enabled %}<span class="rmc-badge rmc-badge--warning">{% trans "yes" %}</span>{% else %}<span class="text-tertiary small">{% trans "no" %}</span>{% endif %}</td>
             <td class="text-tertiary small">{{ pol.updated_at }}</td>
           </tr>
           {% endfor %}
@@ -318,7 +318,7 @@
           <tr>
             <td><span class="fw-semibold">{{ c.kind }}</span></td>
             <td class="text-tertiary">{{ c.scope }}</td>
-            <td>{% if c.reversible %}<span class="badge text-bg-success">{% trans "yes" %}</span>{% else %}<span class="badge text-bg-danger">{% trans "no" %}</span>{% endif %}</td>
+            <td>{% if c.reversible %}<span class="rmc-badge rmc-badge--success">{% trans "yes" %}</span>{% else %}<span class="rmc-badge rmc-badge--danger">{% trans "no" %}</span>{% endif %}</td>
             <td class="text-tertiary small">{{ c.description }}</td>
           </tr>
           {% endfor %}
@@ -353,13 +353,13 @@
             <td>{{ row.kind|default:"—" }}</td>
             <td class="text-tertiary small">{{ row.source }}</td>
             <td>
-              {% if row.mode == 'manual' %}<span class="badge text-bg-primary">{% trans "manual" %}</span>
-              {% elif row.mode == 'apply' %}<span class="badge text-bg-warning text-dark">{% trans "autopilot" %}</span>
+              {% if row.mode == 'manual' %}<span class="rmc-badge rmc-badge--brand">{% trans "manual" %}</span>
+              {% elif row.mode == 'apply' %}<span class="rmc-badge rmc-badge--warning">{% trans "autopilot" %}</span>
               {% else %}<span class="text-tertiary small">{{ row.mode }}</span>{% endif %}
             </td>
             <td>
-              {% if row.outcome == 'applied' %}<span class="badge text-bg-success">{{ row.outcome }}</span>
-              {% elif row.outcome == 'failed' %}<span class="badge text-bg-danger">{{ row.outcome }}</span>
+              {% if row.outcome == 'applied' %}<span class="rmc-badge rmc-badge--success">{{ row.outcome }}</span>
+              {% elif row.outcome == 'failed' %}<span class="rmc-badge rmc-badge--danger">{{ row.outcome }}</span>
               {% else %}<span class="text-tertiary small">{{ row.outcome }}</span>{% endif %}
             </td>
           </tr>

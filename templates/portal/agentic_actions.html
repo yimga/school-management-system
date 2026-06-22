@@ -47,7 +47,7 @@
       <div class="border rounded p-3 mb-2">
         <div class="d-flex justify-content-between align-items-center">
           <span class="fw-semibold">{{ p.action }}</span>
-          <span class="badge text-bg-secondary">{% trans "confidence" %} {{ p.confidence }}</span>
+          <span class="rmc-badge">{% trans "confidence" %} {{ p.confidence }}</span>
         </div>
         {% if p.rationale %}<p class="small text-muted mb-2">{{ p.rationale }}</p>{% endif %}
         <form method="post" class="d-flex flex-wrap gap-2 align-items-end">
@@ -77,7 +77,7 @@
   <section class="card mt-3 mb-4">
     <div class="card-header fw-semibold">
       {% trans "Result" %}: {{ exec_result.action }}
-      {% if exec_result.ok %}<span class="badge text-bg-success">{% trans "done" %}</span>{% else %}<span class="badge text-bg-danger">{{ exec_result.blocked_reason|default:_("error") }}</span>{% endif %}
+      {% if exec_result.ok %}<span class="rmc-badge rmc-badge--success">{% trans "done" %}</span>{% else %}<span class="rmc-badge rmc-badge--danger">{{ exec_result.blocked_reason|default:_("error") }}</span>{% endif %}
     </div>
     <div class="card-body">
       {% if exec_result.ok %}<pre class="mb-2">{{ exec_result.result }}</pre>{% else %}<p class="text-danger mb-2">{{ exec_result.error }}</p>{% endif %}
@@ -88,7 +88,7 @@
 
   {% if reverse_result %}
   <section class="card mt-3 mb-4">
-    <div class="card-header fw-semibold">{% trans "Undo" %}: {% if reverse_result.ok %}<span class="badge text-bg-success">{% trans "reversed" %}</span>{% else %}<span class="badge text-bg-danger">{{ reverse_result.blocked_reason|default:_("error") }}</span>{% endif %}</div>
+    <div class="card-header fw-semibold">{% trans "Undo" %}: {% if reverse_result.ok %}<span class="rmc-badge rmc-badge--success">{% trans "reversed" %}</span>{% else %}<span class="rmc-badge rmc-badge--danger">{{ reverse_result.blocked_reason|default:_("error") }}</span>{% endif %}</div>
     <div class="card-body">
       {% if reverse_result.ok %}<p class="mb-0">{% trans "The action was undone." %}</p>{% else %}<p class="text-danger mb-0">{{ reverse_result.error }}</p>{% endif %}
     </div>

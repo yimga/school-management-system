@@ -12,7 +12,7 @@
   <h1 class="rmc-h1">{% trans "FAQ candidates" %}</h1>
   <ul>
     {% for f in faqs %}
-    <li>{{ f.question }} <span class="badge bg-secondary">{{ f.status }}</span></li>
+    <li>{{ f.question }} <span class="rmc-badge">{{ f.status }}</span></li>
     {% empty %}
     <li>{% trans "No candidates." %}</li>
     {% endfor %}

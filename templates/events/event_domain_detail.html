@@ -41,7 +41,7 @@
             {% for d in deliveries %}
             <tr>
               <td class="small text-break">{{ d.subscription.url }}</td>
-              <td><span class="badge bg-secondary">{{ d.status }}</span></td>
+              <td><span class="rmc-badge">{{ d.status }}</span></td>
               <td>{{ d.http_status|default:"—" }}</td>
               <td>{{ d.retry_count }}</td>
               <td>{{ d.attempted_at|default:d.created_at }}</td>

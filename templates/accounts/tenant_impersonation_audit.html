@@ -30,7 +30,7 @@
         {% for r in rows %}
         <tr>
           <td class="small text-nowrap">{{ r.created_at|date:"SHORT_DATETIME_FORMAT" }}</td>
-          <td><span class="badge bg-secondary">{{ r.get_action_display }}</span></td>
+          <td><span class="rmc-badge">{{ r.get_action_display }}</span></td>
           <td class="small">{% if r.actor %}{{ r.actor.get_full_name|default:r.actor.username }}{% else %}—{% endif %}</td>
           <td class="small">{% if r.peer_actor %}{{ r.peer_actor.get_full_name|default:r.peer_actor.username }}{% else %}—{% endif %}</td>
           <td class="small">{% if r.read_only is None %}—{% elif r.read_only %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>

@@ -41,9 +41,9 @@
             <td><small>{{ s.created_at|date:"Y-m-d H:i" }}</small></td>
             <td>
               {% if s.status == 'email_pending' %}
-                <span class="badge bg-warning text-dark">{% trans "Email pending" %}</span>
+                <span class="rmc-badge rmc-badge--warning">{% trans "Email pending" %}</span>
               {% else %}
-                <span class="badge bg-info text-dark">{% trans "Email verified" %}</span>
+                <span class="rmc-badge rmc-badge--info">{% trans "Email verified" %}</span>
               {% endif %}
             </td>
             <td>

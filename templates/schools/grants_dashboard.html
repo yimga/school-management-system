@@ -36,7 +36,7 @@
           <td>{{ g.program|default:"—" }}</td>
           <td>{{ g.requested_amount }} {{ g.currency }}</td>
           <td>{% if g.awarded_amount %}{{ g.awarded_amount }} {{ g.currency }}{% else %}—{% endif %}</td>
-          <td><span class="badge text-bg-light">{{ g.get_status_display }}</span></td>
+          <td><span class="rmc-badge rmc-badge--muted">{{ g.get_status_display }}</span></td>
           <td>{% if g.award_source %}{{ g.award_source.name }}{% else %}—{% endif %}</td>
         </tr>
         {% endfor %}

@@ -42,9 +42,9 @@
     <ul class="small mb-2 ps-3">
       {% for p in platform_pack_catalog.workflow_packs %}
       <li class="mb-1">
-        <span class="badge text-bg-light text-dark border me-1">{{ p.pack_key }} · v{{ p.version }}</span>
-        {% if p.pricing_type %}<span class="badge text-bg-secondary me-1">{{ p.pricing_type }}{% if p.price_display %} · {{ p.price_display }}{% endif %}</span>{% endif %}
-        {% if p.required_commercial_tier %}<span class="badge text-bg-light border text-muted">{% trans "Min tier" %} {{ p.required_commercial_tier }}</span>{% endif %}
+        <span class="rmc-badge rmc-badge--muted border me-1">{{ p.pack_key }} · v{{ p.version }}</span>
+        {% if p.pricing_type %}<span class="rmc-badge me-1">{{ p.pricing_type }}{% if p.price_display %} · {{ p.price_display }}{% endif %}</span>{% endif %}
+        {% if p.required_commercial_tier %}<span class="rmc-badge rmc-badge--muted border">{% trans "Min tier" %} {{ p.required_commercial_tier }}</span>{% endif %}
         {% if school %}
           {% with entitled=school|pack_row_entitled_filter:p %}
           {% if not entitled %}<span class="text-muted">— {% trans "Preview/install gated — upgrade plan" %}</span>{% endif %}
@@ -59,9 +59,9 @@
     <ul class="small mb-2 ps-3">
       {% for p in platform_pack_catalog.dashboard_packs %}
       <li class="mb-1">
-        <span class="badge text-bg-light text-dark border me-1">{{ p.pack_key }} · v{{ p.version }}</span>
-        {% if p.pricing_type %}<span class="badge text-bg-secondary me-1">{{ p.pricing_type }}{% if p.price_display %} · {{ p.price_display }}{% endif %}</span>{% endif %}
-        {% if p.required_commercial_tier %}<span class="badge text-bg-light border text-muted">{% trans "Min tier" %} {{ p.required_commercial_tier }}</span>{% endif %}
+        <span class="rmc-badge rmc-badge--muted border me-1">{{ p.pack_key }} · v{{ p.version }}</span>
+        {% if p.pricing_type %}<span class="rmc-badge me-1">{{ p.pricing_type }}{% if p.price_display %} · {{ p.price_display }}{% endif %}</span>{% endif %}
+        {% if p.required_commercial_tier %}<span class="rmc-badge rmc-badge--muted border">{% trans "Min tier" %} {{ p.required_commercial_tier }}</span>{% endif %}
         {% if school %}
           {% with entitled=school|pack_row_entitled_filter:p %}
           {% if not entitled %}<span class="text-muted">— {% trans "Preview/install gated — upgrade plan" %}</span>{% endif %}
@@ -76,9 +76,9 @@
     <ul class="small mb-0 ps-3">
       {% for p in platform_pack_catalog.theme_packs %}
       <li class="mb-1">
-        <span class="badge text-bg-light text-dark border me-1">{{ p.pack_key }} · v{{ p.version }}</span>
-        {% if p.pricing_type %}<span class="badge text-bg-secondary me-1">{{ p.pricing_type }}{% if p.price_display %} · {{ p.price_display }}{% endif %}</span>{% endif %}
-        {% if p.required_commercial_tier %}<span class="badge text-bg-light border text-muted">{% trans "Min tier" %} {{ p.required_commercial_tier }}</span>{% endif %}
+        <span class="rmc-badge rmc-badge--muted border me-1">{{ p.pack_key }} · v{{ p.version }}</span>
+        {% if p.pricing_type %}<span class="rmc-badge me-1">{{ p.pricing_type }}{% if p.price_display %} · {{ p.price_display }}{% endif %}</span>{% endif %}
+        {% if p.required_commercial_tier %}<span class="rmc-badge rmc-badge--muted border">{% trans "Min tier" %} {{ p.required_commercial_tier }}</span>{% endif %}
         {% if school %}
           {% with entitled=school|pack_row_entitled_filter:p %}
           {% if not entitled %}<span class="text-muted">— {% trans "Preview/install gated — upgrade plan" %}</span>{% endif %}

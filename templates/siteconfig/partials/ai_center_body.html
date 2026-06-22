@@ -141,7 +141,7 @@ OLLAMA_MODEL=llama3</code></pre>
               </span>
               <span class="text-muted small mt-1">{{ a.domain }}</span>
               {% if not a.is_ready %}
-                <span class="badge text-bg-secondary mt-1">
+                <span class="rmc-badge mt-1">
                   {% if not a.api_url %}{% trans "No backend bound" %}{% else %}{% trans "Permission required" %}{% endif %}
                 </span>
               {% endif %}

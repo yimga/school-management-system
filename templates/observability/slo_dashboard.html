@@ -85,9 +85,9 @@
             <tr>
               <td><strong>{{ row.region_name }}</strong> <span class="text-muted">({{ row.region_code }})</span></td>
               <td>
-                {% if row.status == "healthy" %}<span class="badge bg-success">{% trans "Healthy" %}</span>
-                {% elif row.status == "warning" %}<span class="badge bg-warning text-dark">{% trans "Warning" %}</span>
-                {% else %}<span class="badge bg-danger">{% trans "Critical" %}</span>{% endif %}
+                {% if row.status == "healthy" %}<span class="rmc-badge rmc-badge--success">{% trans "Healthy" %}</span>
+                {% elif row.status == "warning" %}<span class="rmc-badge rmc-badge--warning">{% trans "Warning" %}</span>
+                {% else %}<span class="rmc-badge rmc-badge--danger">{% trans "Critical" %}</span>{% endif %}
               </td>
               <td>{{ row.active_schools }}</td>
               <td>{{ row.webhook.success_rate_percent|format_number:1 }}%</td>

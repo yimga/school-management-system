@@ -247,7 +247,7 @@
                 <td data-label="{% term 'student' capitalize=True %}">{{ invoice.student|default:"-" }}</td>
                 <td data-label="{% trans 'Due & status' %}">
                   <div>{{ invoice.due_date|format_date|default:"—" }}</div>
-                  <span class="badge bg-light text-dark border">{{ invoice.get_status_display }}</span>
+                  <span class="rmc-badge rmc-badge--muted border">{{ invoice.get_status_display }}</span>
                   <div class="small text-muted">{{ row.preferred_method }}</div>
                 </td>
                 <td class="text-end" data-label="{% trans 'Balance' %}">
@@ -296,7 +296,7 @@
               {% if entry.payment_link %}
                 <a class="btn btn-sm btn-outline-primary" href="{{ entry.payment_link.url }}" target="_blank" rel="noopener noreferrer">{% trans "Send pay link" %}</a>
               {% else %}
-                <span class="badge bg-secondary">{% trans "No integration" %}</span>
+                <span class="rmc-badge">{% trans "No integration" %}</span>
               {% endif %}
             </div>
           {% endfor %}

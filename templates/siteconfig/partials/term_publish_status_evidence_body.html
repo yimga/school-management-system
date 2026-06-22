@@ -52,7 +52,7 @@
           <td>{{ r.academic_year.name|default:"—" }}</td>
           <td>{{ r.term.label }}</td>
           <td>{% if r.classroom %}{{ r.classroom.name|default:r.classroom.code }}{% else %}<span class="text-muted">{% trans "Whole school" %}</span>{% endif %}</td>
-          <td>{% if r.is_published %}<span class="badge bg-success">{% trans "Yes" %}</span>{% else %}<span class="badge bg-secondary">{% trans "No" %}</span>{% endif %}</td>
+          <td>{% if r.is_published %}<span class="rmc-badge rmc-badge--success">{% trans "Yes" %}</span>{% else %}<span class="rmc-badge">{% trans "No" %}</span>{% endif %}</td>
           <td class="text-nowrap">{% if r.published_at %}{{ r.published_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</td>
           <td class="small">{% if r.published_by %}{{ r.published_by.get_full_name|default:r.published_by.email|default:r.published_by_id }}{% else %}—{% endif %}</td>
         </tr>

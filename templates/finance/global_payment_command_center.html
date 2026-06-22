@@ -47,7 +47,7 @@
           <td><strong>{{ row.country_code }}</strong> — {{ row.label }}</td>
           <td class="small">{{ row.currency_display|default:row.currency }}</td>
           <td>{{ row.primary_rail }}</td>
-          <td><span class="badge bg-secondary">{{ row.risk_tier }}</span></td>
+          <td><span class="rmc-badge">{{ row.risk_tier }}</span></td>
           <td>{% if row.small_market_fallback %}{% trans "Yes" %}{% else %}—{% endif %}</td>
         </tr>
         {% empty %}

@@ -35,7 +35,7 @@
   <div class="card border-0 shadow-sm mb-3" data-phase9-connector-health>
     <div class="card-header fw-semibold d-flex justify-content-between align-items-center flex-wrap gap-2">
       <span>{% trans "Connector access log (recent)" %}</span>
-      <span class="badge bg-secondary">{{ interop_access_recent|length }} {% trans "rows" %}</span>
+      <span class="rmc-badge">{{ interop_access_recent|length }} {% trans "rows" %}</span>
     </div>
     <div class="card-body p-0">
       {% if interop_access_recent %}
@@ -102,7 +102,7 @@
   </div>
 
   <div class="card border-0 shadow-sm mb-3">
-    <div class="card-header fw-semibold">{% trans "SSO / IdP login health" %} <span class="badge bg-secondary">{% trans "Wedge 45" %}</span></div>
+    <div class="card-header fw-semibold">{% trans "SSO / IdP login health" %} <span class="rmc-badge">{% trans "Wedge 45" %}</span></div>
     <div class="card-body small">
       {% if federation_sso_rows %}
       <div class="table-responsive">
@@ -203,7 +203,7 @@
   </div>
 
   <div class="card border-0 shadow-sm mb-3">
-    <div class="card-header fw-semibold">{% trans "OneRoster 1.1 endpoints" %} <span class="badge bg-secondary">GET</span></div>
+    <div class="card-header fw-semibold">{% trans "OneRoster 1.1 endpoints" %} <span class="rmc-badge">GET</span></div>
     <div class="card-body small font-monospace">
       <p class="mb-1"><strong>manifest</strong><br><a href="{{ oneroster_manifest }}" class="text-break">{{ oneroster_manifest }}</a></p>
       <p class="mb-1"><strong>academicSessions</strong><br><a href="{{ oneroster_academic_sessions }}" class="text-break">{{ oneroster_academic_sessions }}</a></p>

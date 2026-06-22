@@ -87,9 +87,9 @@
             <dt class="col-sm-5">{% blocktrans with t=ferpa_parent_sg %}{{ t }} consent on file{% endblocktrans %}</dt>
             <dd class="col-sm-7">
               {% if disclosure.parent_consent_obtained %}
-                <span class="badge bg-success">{% trans "Yes" %}</span>
+                <span class="rmc-badge rmc-badge--success">{% trans "Yes" %}</span>
               {% else %}
-                <span class="badge bg-warning text-dark">{% trans "No (exception applies)" %}</span>
+                <span class="rmc-badge rmc-badge--warning">{% trans "No (exception applies)" %}</span>
               {% endif %}
             </dd>
           </dl>

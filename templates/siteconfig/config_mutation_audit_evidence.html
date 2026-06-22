@@ -47,7 +47,7 @@
         {% for r in rows %}
         <tr>
           <td class="text-nowrap">{{ r.created_at|date:"Y-m-d H:i" }}</td>
-          <td><span class="badge bg-secondary">{{ r.scope }}</span></td>
+          <td><span class="rmc-badge">{{ r.scope }}</span></td>
           <td><code>{{ r.target_type }}</code>{% if r.target_id %} <span >#{{ r.target_id|truncatechars:24 }}</span>{% endif %}</td>
           <td class="small">{{ r.impact_summary|default:"—"|truncatechars:120 }}</td>
           <td class="small">{{ r.reason|default:"—"|truncatechars:80 }}</td>

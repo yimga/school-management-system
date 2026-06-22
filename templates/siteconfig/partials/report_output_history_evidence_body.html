@@ -67,7 +67,7 @@
           <td>{{ r.get_type_display|default:r.type }}</td>
           <td>{{ r.academic_year.name|default:"—" }}</td>
           <td>{% if r.term %}{{ r.term.label|default:r.term.name }}{% else %}<span class="text-muted">{% trans "Annual" %}</span>{% endif %}</td>
-          <td>{% if r.pdf_file %}<span class="badge bg-success">{% trans "Stored" %}</span>{% else %}<span class="badge bg-secondary">{% trans "None" %}</span>{% endif %}</td>
+          <td>{% if r.pdf_file %}<span class="rmc-badge rmc-badge--success">{% trans "Stored" %}</span>{% else %}<span class="rmc-badge">{% trans "None" %}</span>{% endif %}</td>
         </tr>
         {% empty %}
         <tr><td colspan="6" class="text-muted">{% trans "No generated report output rows for this school yet." %}</td></tr>

@@ -56,13 +56,13 @@
           {% with attachments=ticket.attachments.all %}
             {% if attachments %}
             <hr class="my-3">
-            <h2 class="h6 mb-2">{% trans "Attachments" %} <span class="badge text-bg-secondary">{{ attachments|length }}</span></h2>
+            <h2 class="h6 mb-2">{% trans "Attachments" %} <span class="rmc-badge">{{ attachments|length }}</span></h2>
             <ul class="list-unstyled mb-0 small">
               {% for a in attachments %}
               <li class="mb-1">
                 <a href="{{ a.file.url }}" target="_blank" rel="noopener noreferrer">{{ a.filename }}</a>
                 <span class="text-muted">({{ a.byte_size|filesizeformat }}, {{ a.get_source_display }})</span>
-                {% if not a.visible_to_submitter %}<span class="badge text-bg-warning ms-1">{% trans "operator-only" %}</span>{% endif %}
+                {% if not a.visible_to_submitter %}<span class="rmc-badge rmc-badge--warning ms-1">{% trans "operator-only" %}</span>{% endif %}
               </li>
               {% endfor %}
             </ul>
@@ -73,7 +73,7 @@
       {% with children=ticket.linked_children.all %}
         {% if children %}
         <div class="card border-0 shadow-sm mt-3">
-          <div class="card-header">{% trans "Child incidents" %} <span class="badge text-bg-secondary">{{ children|length }}</span></div>
+          <div class="card-header">{% trans "Child incidents" %} <span class="rmc-badge">{{ children|length }}</span></div>
           <div class="card-body">
             <ul class="list-unstyled mb-0 small">
               {% for c in children %}
@@ -224,7 +224,7 @@
   <div class="card border-0 shadow-sm mt-3">
     <div class="card-header d-flex justify-content-between align-items-center">
       <span>{% trans "AI triage suggestion" %}</span>
-      <span class="badge text-bg-secondary">{{ ai_triage.model|default:ai_triage.provider|default:"AI" }}</span>
+      <span class="rmc-badge">{{ ai_triage.model|default:ai_triage.provider|default:"AI" }}</span>
     </div>
     <div class="card-body">
       <div class="row g-3 small">
@@ -296,7 +296,7 @@
   <div class="card border-0 shadow-sm mt-3">
     <div class="card-header d-flex justify-content-between align-items-center">
       <span>{% trans "AI drafted reply" %}</span>
-      {% if draft %}<span class="badge text-bg-secondary">{{ draft.confidence|default:"medium" }} · {{ draft.tone|default:"warm" }}</span>{% endif %}
+      {% if draft %}<span class="rmc-badge">{{ draft.confidence|default:"medium" }} · {{ draft.tone|default:"warm" }}</span>{% endif %}
     </div>
     <div class="card-body">
       {% if draft %}

@@ -23,7 +23,7 @@
         <ul class="list-group list-group-flush mb-3">
           {% for row in platform_catalog_preview.rows %}
           <li class="list-group-item small">
-            <span class="badge bg-light border me-2">{{ row|attr:"_catalog_section" }}</span>
+            <span class="rmc-badge rmc-badge--muted border me-2">{{ row|attr:"_catalog_section" }}</span>
             <strong>{{ row.pack_key }}</strong>
             <span class="text-muted">· {% trans "modules" %}: {{ row.modules|join:", " }}</span>
             <span class="text-muted">· v{{ row.version }}</span>
@@ -37,7 +37,7 @@
           {% for p in packs %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
               <span>{{ p.name }} <span class="text-muted">({{ p.category }})</span></span>
-              <span class="badge bg-secondary">v{{ p.version }}</span>
+              <span class="rmc-badge">v{{ p.version }}</span>
             </li>
           {% endfor %}
         </ul>

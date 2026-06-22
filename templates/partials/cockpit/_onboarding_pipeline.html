@@ -23,7 +23,7 @@
         <li class="list-group-item d-flex justify-content-between align-items-center">
           <span>
             <strong>{{ stage.name }}</strong>
-            {% if stage.stalled %}<span class="badge bg-warning text-dark ms-1">{% trans "Stalled" %}</span>{% endif %}
+            {% if stage.stalled %}<span class="rmc-badge rmc-badge--warning ms-1">{% trans "Stalled" %}</span>{% endif %}
           </span>
           <span class="font-monospace">{{ stage.count|default:0 }}</span>
         </li>

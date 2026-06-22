@@ -57,7 +57,7 @@
             </td>
             <td>{{ request.teacher.user.get_full_name|default:request.teacher.user.username }}</td>
             <td>
-              <span class="badge bg-secondary text-uppercase">{{ request.get_status_display }}</span>
+              <span class="rmc-badge text-uppercase">{{ request.get_status_display }}</span>
               <div class="small text-muted">{{ request.summary.submitted_rows }} / {{ request.summary.total_students }} {% trans "rows" %}</div>
             </td>
             <td>{{ request.requested_at|date:"d/m/Y" }} {{ request.requested_at|time:"H:i" }}</td>

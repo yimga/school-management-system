@@ -28,7 +28,7 @@
   <section class="card mt-3 mb-4">
     <div class="card-header fw-semibold">{% trans "Proposed help topics" %}</div>
     <ul class="list-group list-group-flush">
-      {% for t in topics %}<li class="list-group-item">{{ t.topic }} <span class="badge text-bg-secondary">{{ t.status }}</span></li>{% empty %}<li class="list-group-item text-muted">{% trans "No topics — enter one or more error codes." %}</li>{% endfor %}
+      {% for t in topics %}<li class="list-group-item">{{ t.topic }} <span class="rmc-badge">{{ t.status }}</span></li>{% empty %}<li class="list-group-item text-muted">{% trans "No topics — enter one or more error codes." %}</li>{% endfor %}
     </ul>
   </section>
   {% endif %}

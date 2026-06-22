@@ -323,7 +323,7 @@
                             {% for item in blocked_access.top_ips|slice:":5" %}
                                 <li>
                                     <strong>{{ item.ip }}</strong>
-                                    <span class="badge">{{ item.count }}x</span>
+                                    <span class="rmc-badge">{{ item.count }}x</span>
                                     <br><small>{% blocktrans with day=item.last_seen|format_date time=item.last_seen|time:"H:i" %}Last: {{ day }} {{ time }}{% endblocktrans %}</small>
                                 </li>
                             {% endfor %}
@@ -339,7 +339,7 @@
                             {% for item in blocked_access.top_countries|slice:":5" %}
                                 <li>
                                     <strong>{{ item.code|upper }}</strong> 
-                                    <span class="badge">{{ item.count }}x</span>
+                                    <span class="rmc-badge">{{ item.count }}x</span>
                                 </li>
                             {% endfor %}
                         </ul>

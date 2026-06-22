@@ -32,7 +32,7 @@
                   <div class="rmc-row-disclosure__body mt-1">
 {{ t.title }}<br><span class="small text-secondary">{{ t.description|truncatechars:80|default:"" }}</span></td>
           <td>{{ t.location|default:"—" }}</td>
-          <td><span class="badge bg-secondary">{{ t.get_status_display }}</span></td>
+          <td><span class="rmc-badge">{{ t.get_status_display }}</span></td>
           <td class="small">{{ t.created_at|date:"Y-m-d H:i" }}</td>
           <td>
             <form method="post" class="d-flex flex-wrap gap-1">{% csrf_token %}

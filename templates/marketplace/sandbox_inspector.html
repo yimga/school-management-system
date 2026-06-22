@@ -51,7 +51,7 @@
         <div>
           <strong>{{ inst.app.name }}</strong>
           <span class="text-muted small ms-1">({{ inst.app.slug }})</span>
-          <span class="badge bg-secondary ms-1">@ {{ inst.school.name }}</span>
+          <span class="rmc-badge ms-1">@ {{ inst.school.name }}</span>
           <span class="small text-muted">{% blocktrans with ago=inst.installed_at|timesince %}installed {{ ago }} ago{% endblocktrans %}</span>
         </div>
         <form method="post" action="{% url 'super:marketplace_activate_sandbox' %}" class="d-inline">

@@ -24,7 +24,7 @@
   <form method="post">{% csrf_token %}
     <h2 class="h6">{% trans "Learning delivery" %} (23–30)</h2>
     {% for m in delivery_modes %}
-    <div class="form-check"><input class="form-check-input" type="checkbox" name="delivery_modes" value="{{ m.code }}" id="d{{ m.code }}" {% if m.code in selected_delivery_codes %}checked{% endif %}><label class="form-check-label" for="d{{ m.code }}"><span class="badge bg-secondary me-1">{{ m.wedge }}</span>{{ m.label }} — <code class="small">{{ m.code }}</code></label></div>
+    <div class="form-check"><input class="form-check-input" type="checkbox" name="delivery_modes" value="{{ m.code }}" id="d{{ m.code }}" {% if m.code in selected_delivery_codes %}checked{% endif %}><label class="form-check-label" for="d{{ m.code }}"><span class="rmc-badge me-1">{{ m.wedge }}</span>{{ m.label }} — <code class="small">{{ m.code }}</code></label></div>
     {% endfor %}
     <h2 class="h6 mt-3">{% trans "Institution type" %} (31–43)</h2>
     <select name="institution_type" class="form-select form-select-sm" style="max-width:28rem">

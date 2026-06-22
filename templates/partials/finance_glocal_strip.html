@@ -2,9 +2,9 @@
 {% if FINANCE_GLOCAL.country_code %}
 <p class="small text-muted mb-2" data-rmc-finance-glocal="1">
   {% trans "Locale" %}:
-  <span class="badge bg-secondary bg-opacity-50">{{ FINANCE_GLOCAL.country_code|upper }}</span>
+  <span class="rmc-badge bg-opacity-50">{{ FINANCE_GLOCAL.country_code|upper }}</span>
   {% if FINANCE_GLOCAL.currency_code %}
-  <span class="badge bg-secondary bg-opacity-50">{{ FINANCE_GLOCAL.currency_code }}</span>
+  <span class="rmc-badge bg-opacity-50">{{ FINANCE_GLOCAL.currency_code }}</span>
   {% endif %}
   {% if FINANCE_GLOCAL.terminology.invoice %}
   <span class="visually-hidden">{% trans "Invoice label" %}</span>

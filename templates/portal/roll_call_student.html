@@ -63,7 +63,7 @@
               <summary>{% trans "Printable student tokens" %}</summary>
               <ul class="list-unstyled mb-0 mt-1">
                 {% for row in students_with_status %}
-                  <li><span class="badge text-bg-light border">{% trans "Verified via card sweep" %}</span> {{ row.student.last_name }}, {{ row.student.first_name }} — <code>{{ qr_tokens_by_student|get_item:row.student.id }}</code></li>
+                  <li><span class="rmc-badge rmc-badge--muted border">{% trans "Verified via card sweep" %}</span> {{ row.student.last_name }}, {{ row.student.first_name }} — <code>{{ qr_tokens_by_student|get_item:row.student.id }}</code></li>
                 {% endfor %}
               </ul>
             </details>

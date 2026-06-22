@@ -157,9 +157,9 @@
                     {% endif %}
                   </td>
                   <td>
-                    <span class="badge bg-secondary">{{ doc.get_document_type_display }}</span>
+                    <span class="rmc-badge">{{ doc.get_document_type_display }}</span>
                     {% if doc.requires_signature %}
-                      <span class="badge bg-warning text-dark d-block mt-1">
+                      <span class="rmc-badge rmc-badge--warning d-block mt-1">
                         <i class="bi bi-pen me-1"></i>{% trans "Signature" %}
                       </span>
                     {% endif %}
@@ -169,9 +169,9 @@
                       {{ doc.get_lifecycle_state_display|default:doc.lifecycle_state|title }}
                     </span>
                     {% if doc.is_active %}
-                      <span class="badge bg-success d-block mt-1">{% trans "Active" %}</span>
+                      <span class="rmc-badge rmc-badge--success d-block mt-1">{% trans "Active" %}</span>
                     {% else %}
-                      <span class="badge bg-secondary d-block mt-1">{% trans "Inactive" %}</span>
+                      <span class="rmc-badge d-block mt-1">{% trans "Inactive" %}</span>
                     {% endif %}
                   </td>
                   <td>

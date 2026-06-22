@@ -372,7 +372,7 @@ backend-shell dashboard-page-backend
                   <h3 class="h6 mb-0">{% trans "KPI snapshot" %}</h3>
                   <p class="small text-muted mb-0">{% trans "Click or press Enter to expand details" %}</p>
                 </div>
-                <span class="badge text-bg-secondary">{% trans "Drill-down" %}</span>
+                <span class="rmc-badge">{% trans "Drill-down" %}</span>
               </div>
               <div class="backend-bento-spark-combo">
                 {% for metric in overview_cards %}
@@ -508,7 +508,7 @@ backend-shell dashboard-page-backend
                     <strong>{% if role_home_primary_action.icon %}<i class="bi {{ role_home_primary_action.icon }} me-1"></i>{% endif %}{{ role_home_primary_action.label }}</strong>
                     <span class="backend-role-home-command-hint">{{ role_home_primary_action.reason|default:_("Primary action for this role home.") }}</span>
                   </span>
-                  <span class="badge text-bg-primary">{% trans "Do now" %}</span>
+                  <span class="rmc-badge rmc-badge--brand">{% trans "Do now" %}</span>
                 </a>
                 <details class="rmc-conversion-more-actions border rounded px-2 py-2 w-100">
                   <summary class="small fw-semibold user-select-none cursor-pointer" >{% trans "Navigation and more" %}</summary>
@@ -518,7 +518,7 @@ backend-shell dashboard-page-backend
                         <strong>{% trans "Command center" %}</strong>
                         <span class="backend-role-home-command-hint">{{ role_home.search_hint }} <kbd class="ms-1">Ctrl+K</kbd></span>
                       </span>
-                      <span class="badge text-bg-secondary">{% trans "Palette" %}</span>
+                      <span class="rmc-badge">{% trans "Palette" %}</span>
                     </button>
                     <div class="backend-role-home-secondary mb-0">
                       <a class="backend-v2-cta" href="{{ backend_school_config_url }}" data-tour="school-configuration-link">
@@ -543,7 +543,7 @@ backend-shell dashboard-page-backend
                     <strong>{% trans "Command center" %}</strong>
                     <span class="backend-role-home-command-hint">{{ role_home.search_hint }} <kbd class="ms-1">Ctrl+K</kbd></span>
                   </span>
-                  <span class="badge text-bg-primary">{% trans "Primary" %}</span>
+                  <span class="rmc-badge rmc-badge--brand">{% trans "Primary" %}</span>
                 </button>
                 {% if role_home_primary_action %}
                 <a class="backend-role-home-primary-cta" href="{{ role_home_primary_action.url }}">
@@ -551,7 +551,7 @@ backend-shell dashboard-page-backend
                     <strong>{% if role_home_primary_action.icon %}<i class="bi {{ role_home_primary_action.icon }} me-1"></i>{% endif %}{{ role_home_primary_action.label }}</strong>
                     <span class="backend-role-home-command-hint">{{ role_home_primary_action.reason|default:_("Primary action for this role home.") }}</span>
                   </span>
-                  <span class="badge text-bg-primary">{% trans "Do now" %}</span>
+                  <span class="rmc-badge rmc-badge--brand">{% trans "Do now" %}</span>
                 </a>
                 {% endif %}
                 {% if rmc_conversion_single_action_enforced|default:False %}
@@ -630,7 +630,7 @@ backend-shell dashboard-page-backend
             {% if phase7_de and role_home_declaration %}
             <div class="backend-role-home-decision card border-0 shadow-sm p-3 mt-2 mb-2" data-phase8-role-home="1" data-dashboard-type="{{ role_home_declaration.dashboard_type }}">
               <p class="small text-muted mb-2">
-                <span class="badge text-bg-secondary me-2 text-uppercase">{{ role_home_declaration.dashboard_type }}</span>
+                <span class="rmc-badge me-2 text-uppercase">{{ role_home_declaration.dashboard_type }}</span>
                 {{ role_home_declaration.main_question }}
               </p>
               <p class="small mb-3 text-body-secondary"><strong>{% trans "Job to be done" %}:</strong> {{ role_home_declaration.jtbd }}</p>
@@ -754,7 +754,7 @@ backend-shell dashboard-page-backend
           <div class="card-body">
             <div class="backend-v2-panel-head">
               <h5 class="backend-v2-panel-title mb-0">{% trans "At-Risk Students" %}</h5>
-              <span class="badge text-bg-light">{{ at_risk_students|length }}</span>
+              <span class="rmc-badge rmc-badge--muted">{{ at_risk_students|length }}</span>
             </div>
             {% if backend_visual_settings.show_progress_rings %}
             <div class="backend-v2-progress-ring-wrap" aria-hidden="true">
@@ -772,7 +772,7 @@ backend-shell dashboard-page-backend
                     <strong>{{ student.name }}</strong>
                     <div class="small text-muted">{{ student.classroom }} - {{ student.tag }}</div>
                   </div>
-                  <span class="badge text-bg-warning">{{ student.value }}</span>
+                  <span class="rmc-badge rmc-badge--warning">{{ student.value }}</span>
                 </div>
                 {% empty %}
                 <div class="rmc-empty rmc-empty--inline" role="status">
@@ -823,7 +823,7 @@ backend-shell dashboard-page-backend
                     <div class="backend-v2-trend-ribbon" aria-hidden="true"><span style="width: calc(42% + {{ forloop.counter0 }} * 9%);"></span></div>
                     {% endif %}
                   </div>
-                  <span class="badge text-bg-light">{{ student.admission_number }}</span>
+                  <span class="rmc-badge rmc-badge--muted">{{ student.admission_number }}</span>
                 </div>
                 {% empty %}
                 <div class="rmc-empty rmc-empty--inline" role="status">
@@ -845,7 +845,7 @@ backend-shell dashboard-page-backend
           <div class="card-body">
             <div class="backend-v2-panel-head">
               <h5 class="backend-v2-panel-title mb-0">{% trans "Recent Activity" %}</h5>
-              <span class="badge text-bg-light">{% trans "Live feed" %}</span>
+              <span class="rmc-badge rmc-badge--muted">{% trans "Live feed" %}</span>
             </div>
             <div class="dashboard-card-scroll">
               <div class="backend-v2-list">
@@ -877,7 +877,7 @@ backend-shell dashboard-page-backend
           <div class="card-body">
             <div class="backend-v2-panel-head">
               <h5 class="backend-v2-panel-title mb-0">{% trans "Top-Performing" %}</h5>
-              <span class="badge text-bg-light">{% trans "This term" %}</span>
+              <span class="rmc-badge rmc-badge--muted">{% trans "This term" %}</span>
             </div>
             <div class="dashboard-card-scroll">
               <div class="backend-v2-list">
@@ -890,7 +890,7 @@ backend-shell dashboard-page-backend
                     <div class="backend-v2-rank-ribbon" aria-hidden="true"><span style="width: {{ student.ribbon_pct|default:0 }}%;"></span></div>
                     {% endif %}
                   </div>
-                  <span class="badge text-bg-success">{{ student.score }}/20</span>
+                  <span class="rmc-badge rmc-badge--success">{{ student.score }}/20</span>
                 </div>
                 {% empty %}
                 <div class="rmc-empty rmc-empty--inline" role="status">
@@ -912,7 +912,7 @@ backend-shell dashboard-page-backend
           <div class="card-body">
             <div class="backend-v2-panel-head">
               <h5 class="backend-v2-panel-title mb-0">{% trans_term "Attendance" key="attendance" %}</h5>
-              <span class="badge text-bg-light">{% trans_term "Staff" key="staff" plural=True %}</span>
+              <span class="rmc-badge rmc-badge--muted">{% trans_term "Staff" key="staff" plural=True %}</span>
             </div>
             <div class="backend-attendance-pulse">
               <div class="backend-attendance-pulse-row">
@@ -964,7 +964,7 @@ backend-shell dashboard-page-backend
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="mb-0">{% trans "Operations watch" %}</h6>
-            <span class="badge bg-light text-dark" id="backendOpsWatchUpdatedAt">{% blocktrans with time=local_time|date:"h:i A" %}Live - {{ time }}{% endblocktrans %}</span>
+            <span class="rmc-badge rmc-badge--muted" id="backendOpsWatchUpdatedAt">{% blocktrans with time=local_time|date:"h:i A" %}Live - {{ time }}{% endblocktrans %}</span>
           </div>
           <div class="d-grid gap-2 mb-3 small js-ops-watch-list" data-refresh-url="{{ ops_watch_refresh_url }}" data-finance-url="{{ finance_request_link }}">
             {% for item in operations_watch|slice:backend_max_items_slice %}
@@ -997,7 +997,7 @@ backend-shell dashboard-page-backend
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="mb-0">{% trans "Role destinations" %}</h6>
-            <span class="badge bg-light text-dark">{% trans "Top 5" %}</span>
+            <span class="rmc-badge rmc-badge--muted">{% trans "Top 5" %}</span>
           </div>
           <div class="backend-quick-links-list">
             {% for quick in quick_links|slice:backend_max_items_slice %}
@@ -1024,7 +1024,7 @@ backend-shell dashboard-page-backend
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="mb-0">{% trans "Planner" %}</h6>
-            <a class="badge bg-light text-dark text-decoration-none" href="{% url 'portal:unified_calendar' %}">{% trans "View calendar" %}</a>
+            <a class="rmc-badge rmc-badge--muted text-decoration-none" href="{% url 'portal:unified_calendar' %}">{% trans "View calendar" %}</a>
           </div>
           <div class="backend-planner-sections">
             <section class="backend-planner-section rmc-reveal">
@@ -1034,7 +1034,7 @@ backend-shell dashboard-page-backend
               <div class="backend-planner-list backend-planner-events">
                 {% for item in upcoming_events|slice:backend_max_items_slice %}
                 <div class="backend-quick-link d-flex align-items-start gap-2 small py-1">
-                  <span class="badge bg-secondary text-white flex-shrink-0 backend-planner-date-badge">{{ item.when|format_date }}</span>
+                  <span class="rmc-badge flex-shrink-0 backend-planner-date-badge">{{ item.when|format_date }}</span>
                   <div class="min-width-0">
                     <span class="fw-medium">{{ item.title|truncatechars:32 }}</span>
                     {% if item.detail %}<div class="text-muted backend-planner-detail">{{ item.detail|truncatechars:28 }}</div>{% endif %}

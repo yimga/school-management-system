@@ -33,7 +33,7 @@
   <section class="card mb-4">
     <div class="card-body">
       <h2 class="h5 mb-3">{% trans "Stuck tokens" %}
-        <span class="badge bg-warning text-dark">{{ stuck|length }}</span>
+        <span class="rmc-badge rmc-badge--warning">{{ stuck|length }}</span>
       </h2>
       <p class="text-secondary small">{% blocktrans %}Tokens issued more than 7 days ago that have not yet been opened. Resend up to 3 times per token; cooldown of 24 hours between sends.{% endblocktrans %}</p>
       <table class="table table-sm">
@@ -87,7 +87,7 @@
               <tr>
                 <td>{{ t.guardian_name }}</td>
                 <td><small>{{ t.token_issued_at|date:"Y-m-d H:i" }}</small></td>
-                <td><span class="badge bg-secondary">{{ t.get_consent_decision_display }}</span></td>
+                <td><span class="rmc-badge">{{ t.get_consent_decision_display }}</span></td>
                 <td><small>{% if t.token_first_seen_at %}{{ t.token_first_seen_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</small></td>
                 <td><small>{% if t.consented_at %}{{ t.consented_at|date:"Y-m-d H:i" }}{% elif t.declined_at %}{{ t.declined_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}</small></td>
               </tr>

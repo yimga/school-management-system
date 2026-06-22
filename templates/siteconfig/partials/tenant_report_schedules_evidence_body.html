@@ -58,7 +58,7 @@
           <td class="text-nowrap">{{ s.next_run|date:"Y-m-d H:i" }}</td>
           <td class="text-nowrap">{% if s.last_run %}{{ s.last_run|date:"Y-m-d H:i" }}{% else %}<span class="text-muted">{% trans "Never" %}</span>{% endif %}</td>
           <td>{% if s.is_active and s.recipients|length == 0 %}<span class="text-warning">{{ s.recipients|length }} {% trans "missing" %}</span>{% else %}{{ s.recipients|length }}{% endif %}</td>
-          <td>{% if s.is_active %}<span class="badge bg-success">{% trans "Yes" %}</span>{% else %}<span class="badge bg-secondary">{% trans "No" %}</span>{% endif %}</td>
+          <td>{% if s.is_active %}<span class="rmc-badge rmc-badge--success">{% trans "Yes" %}</span>{% else %}<span class="rmc-badge">{% trans "No" %}</span>{% endif %}</td>
         </tr>
         {% empty %}
         <tr><td colspan="7" class="text-muted">{% trans "No scheduled report rows for this school yet." %}</td></tr>

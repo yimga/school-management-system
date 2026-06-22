@@ -89,7 +89,7 @@
             <tr>
               <td>{{ row.role }}</td>
               <td>{{ row.rail_code }}</td>
-              <td><span class="badge bg-secondary text-uppercase">{{ row.status }}</span></td>
+              <td><span class="rmc-badge text-uppercase">{{ row.status }}</span></td>
               <td class="small">{{ row.message }}</td>
               <td class="small">{{ row.action_required|default:"—" }}</td>
             </tr>
@@ -121,7 +121,7 @@
             {% for row in lane2_corridors %}
             <tr>
               <td>{{ row.label }}</td>
-              <td><span class="badge bg-secondary">{{ row.register_status }}</span></td>
+              <td><span class="rmc-badge">{{ row.register_status }}</span></td>
               <td>{% if row.integration_configured %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
               <td class="small"><code>{{ row.evidence_path }}</code></td>
             </tr>

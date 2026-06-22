@@ -46,7 +46,7 @@
           </div>
           <div class="d-flex flex-wrap gap-2 align-items-center">
             {% if preview.exists %}
-              <span class="badge bg-success-subtle text-success-emphasis">
+              <span class="rmc-badge rmc-badge--success">
                 {{ preview.size_kb }} KB
               </span>
               <a href="{% url 'siteconfig:cockpit_preview_serve' slug=preview.slug %}"
@@ -55,7 +55,7 @@
                 {% trans "Open in new tab ↗" %}
               </a>
             {% else %}
-              <span class="badge bg-warning-subtle text-warning-emphasis">
+              <span class="rmc-badge rmc-badge--warning">
                 {% trans "Missing — re-build via docs/generated/" %}
               </span>
             {% endif %}

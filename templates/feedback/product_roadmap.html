@@ -13,7 +13,7 @@
     <section class="col-lg-4">
       <div class="card h-100">
         <div class="card-body">
-          <span class="badge text-bg-primary">{{ item.get_status_display }}</span>
+          <span class="rmc-badge rmc-badge--brand">{{ item.get_status_display }}</span>
           <h2 class="h5 mt-2">{{ item.title }}</h2>
           <p>{{ item.problem|truncatewords:30 }}</p>
           <div class="small text-muted">Tenant: {{ item.tenant_visibility|yesno:"visible,hidden" }} · Public: {{ item.public_visibility|yesno:"visible,hidden" }}</div>

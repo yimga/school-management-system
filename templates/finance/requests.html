@@ -13,7 +13,7 @@
 {% trans "Back to Finance" as back_action %}
 {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-  <div class="badge bg-warning text-dark">{% trans "Unread" %} {{ unread_count }}</div>
+  <div class="rmc-badge rmc-badge--warning">{% trans "Unread" %} {{ unread_count }}</div>
 </div>
 
 <form method="post" id="finance-requests-inbox-form" data-draft-key="finance_requests_inbox_{{ request.user.id }}" data-draft-max-age-hours="24"
@@ -25,7 +25,7 @@
     <div class="btn-group" role="group" aria-label="{% trans 'Severity filter' %}">
       {% for option in severity_options %}
         <a class="btn btn-sm {% if severity_filter == option.key %}btn-primary{% else %}btn-outline-secondary{% endif %}" href="{% url 'finance:requests' %}?view={{ view_mode }}&severity={{ option.param }}">
-          {{ option.label }} <span class="badge bg-light text-dark">{{ option.count }}</span>
+          {{ option.label }} <span class="rmc-badge rmc-badge--muted">{{ option.count }}</span>
         </a>
       {% endfor %}
     </div>
@@ -67,9 +67,9 @@
                   </td>
                   <td>
                     {% if notif.is_read %}
-                      <span class="badge bg-success">{% trans "Read" %}</span>
+                      <span class="rmc-badge rmc-badge--success">{% trans "Read" %}</span>
                     {% else %}
-                      <span class="badge bg-warning text-dark">{% trans "Unread" %}</span>
+                      <span class="rmc-badge rmc-badge--warning">{% trans "Unread" %}</span>
                     {% endif %}
                   </td>
                   <td>{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</td>
@@ -107,7 +107,7 @@
           <h5 class="mb-0">Finance request audit trail</h5>
           <p class="text-muted small mb-0">Track who touched each notification and when.</p>
         </div>
-        <span class="badge bg-info text-dark">{{ finance_request_audits|length }} records</span>
+        <span class="rmc-badge rmc-badge--info">{{ finance_request_audits|length }} records</span>
       </div>
       <div class="table-responsive">
         <table class="table table-sm table-hover align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">

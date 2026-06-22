@@ -73,7 +73,7 @@ SiteSettings.cockpit_payload.
           <div class="sidebar-nav-item-wrapper d-flex align-items-center gap-0">
             <a class="nav-link nav-pill flex-grow-1{% if item.badge %} d-flex align-items-center justify-content-between{% endif %}" href="{{ item.url }}" title="{{ item.label }}" data-sidebar-id="{{ item.id }}">
               <span><i class="bi {{ item.icon|default:'bi-circle' }} me-2"></i>{{ item.label }}</span>
-              {% if item.badge %}<span class="badge bg-primary rounded-pill">{{ item.badge }}</span>{% endif %}
+              {% if item.badge %}<span class="rmc-badge rmc-badge--count">{{ item.badge }}</span>{% endif %}
             </a>
             <button type="button" class="sidebar-pin-btn btn btn-link p-0 me-1 {% if item.id in PINNED_SIDEBAR_IDS %}sidebar-pin-pinned{% endif %}" data-sidebar-id="{{ item.id }}" aria-label="{% if item.id in PINNED_SIDEBAR_IDS %}{% trans 'Remove from Quick access' %}{% else %}{% trans 'Add to Quick access' %}{% endif %}" title="{% if item.id in PINNED_SIDEBAR_IDS %}{% trans 'Remove from Quick access' %}{% else %}{% trans 'Add to Quick access' %}{% endif %}">
               <i class="bi {% if item.id in PINNED_SIDEBAR_IDS %}bi-pin-angle-fill text-primary{% else %}bi-pin-angle text-muted{% endif %}"></i>
@@ -104,7 +104,7 @@ SiteSettings.cockpit_payload.
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_feed' %}"><i class="bi bi-newspaper me-2"></i>{% trans "Feed" %}</a>
         <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
           <span><i class="bi bi-chat-dots me-2"></i>{% trans_term "Messages" key="message" plural=True %}</span>
-          {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
+          {% if messages_unread_count %}<span class="rmc-badge rmc-badge--count">{{ messages_unread_count }}</span>{% endif %}
         </a>
         <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}"><i class="bi bi-people me-2"></i>{% trans "Message Groups" %}</a>
       {% elif nav_role == 'PARENT' %}
@@ -114,7 +114,7 @@ SiteSettings.cockpit_payload.
         <div class="sidebar-section-title">{% trans "Communication" %}</div>
         <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
           <span><i class="bi bi-chat-dots me-2"></i>{% trans_term "Messages" key="message" plural=True %}</span>
-          {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
+          {% if messages_unread_count %}<span class="rmc-badge rmc-badge--count">{{ messages_unread_count }}</span>{% endif %}
         </a>
         <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}"><i class="bi bi-people me-2"></i>{% trans "Message Groups" %}</a>
         {% if can_access_school_wide_announcement_create %}
@@ -183,7 +183,7 @@ SiteSettings.cockpit_payload.
         <div class="sidebar-section-title">{% trans "Communication" %}</div>
         <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
           <span><i class="bi bi-chat-dots me-2"></i>{% trans_term "Messages" key="message" plural=True %}</span>
-          {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
+          {% if messages_unread_count %}<span class="rmc-badge rmc-badge--count">{{ messages_unread_count }}</span>{% endif %}
         </a>
         <div class="sidebar-section-title">{% trans "Support" %}</div>
         <a class="nav-link nav-pill" href="{% url 'accounts:user_profile' %}"><i class="bi bi-person me-2"></i>{% trans "My Profile" %}</a>
@@ -272,7 +272,7 @@ SiteSettings.cockpit_payload.
             <li class="sidebar-activity-item px-2 py-1 rounded mb-1" style="border-left: 3px solid color-mix(in srgb, var(--stat-admin) 50%, transparent); padding-left: 0.6rem !important;">
               <span class="fw-semibold d-block" style="font-size: var(--type-size-caption);">{{ activity.user.username }}</span>
               <span class="small text-muted">{{ activity.action }} {{ activity.model }}</span>
-              <span class="badge bg-secondary ms-1" style="font-size: var(--type-size-micro);">{% blocktrans with ago=activity.time_ago %}{{ ago }} ago{% endblocktrans %}</span>
+              <span class="rmc-badge ms-1" style="font-size: var(--type-size-micro);">{% blocktrans with ago=activity.time_ago %}{{ ago }} ago{% endblocktrans %}</span>
             </li>
           {% endfor %}
         {% else %}

@@ -75,11 +75,11 @@
         <dd class="col-md-8"><code>{{ host_kind }}</code></dd>
         <dt class="col-md-4">{% trans "COCKPIT_200X_RENDER_PREVIEW_DEMO" %}</dt>
         <dd class="col-md-8">
-          {% if cockpit_200x_demo_flag %}<span class="badge bg-success-subtle text-success-emphasis">True</span>{% else %}<span class="badge bg-secondary-subtle text-secondary-emphasis">False</span>{% endif %}
+          {% if cockpit_200x_demo_flag %}<span class="rmc-badge rmc-badge--success">True</span>{% else %}<span class="rmc-badge">False</span>{% endif %}
         </dd>
         <dt class="col-md-4">{% trans "COCKPIT_100X_RENDER_PREVIEW_DEMO" %}</dt>
         <dd class="col-md-8">
-          {% if cockpit_100x_demo_flag %}<span class="badge bg-success-subtle text-success-emphasis">True</span>{% else %}<span class="badge bg-secondary-subtle text-secondary-emphasis">False</span>{% endif %}
+          {% if cockpit_100x_demo_flag %}<span class="rmc-badge rmc-badge--success">True</span>{% else %}<span class="rmc-badge">False</span>{% endif %}
         </dd>
         <dt class="col-md-4">{% trans "Operator overlay keys" %}</dt>
         <dd class="col-md-8">
@@ -111,7 +111,7 @@
           {% for mod in helper_modules %}
           <tr>
             <td><code>{{ mod.module }}</code></td>
-            <td>{% if mod.ok %}<span class="badge bg-success-subtle text-success-emphasis">OK</span>{% else %}<span class="badge bg-danger-subtle text-danger-emphasis">FAIL</span>{% endif %}</td>
+            <td>{% if mod.ok %}<span class="rmc-badge rmc-badge--success">OK</span>{% else %}<span class="rmc-badge rmc-badge--danger">FAIL</span>{% endif %}</td>
             <td class="text-end">{{ mod.section_count }}</td>
             <td><code class="text-danger">{{ mod.error|default:"" }}</code></td>
           </tr>
@@ -138,9 +138,9 @@
           {% for section in group_sections %}
           <tr>
             <td><code>{{ section.key }}</code></td>
-            <td>{% if section.enabled %}<span class="badge bg-success-subtle text-success-emphasis">Y</span>{% else %}<span class="badge bg-secondary-subtle text-secondary-emphasis">N</span>{% endif %}</td>
-            <td>{% if section.content_present %}<span class="badge bg-success-subtle text-success-emphasis">Y</span>{% else %}<span class="badge bg-warning-subtle text-warning-emphasis">N</span>{% endif %}</td>
-            <td>{% if section.would_render %}<span class="badge bg-success-subtle text-success-emphasis">✓</span>{% else %}<span class="badge bg-danger-subtle text-danger-emphasis">✗</span>{% endif %}</td>
+            <td>{% if section.enabled %}<span class="rmc-badge rmc-badge--success">Y</span>{% else %}<span class="rmc-badge">N</span>{% endif %}</td>
+            <td>{% if section.content_present %}<span class="rmc-badge rmc-badge--success">Y</span>{% else %}<span class="rmc-badge rmc-badge--warning">N</span>{% endif %}</td>
+            <td>{% if section.would_render %}<span class="rmc-badge rmc-badge--success">✓</span>{% else %}<span class="rmc-badge rmc-badge--danger">✗</span>{% endif %}</td>
             <td><code>{% if section.missing_keys %}{% for k in section.missing_keys %}{{ k }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</code></td>
           </tr>
           {% endfor %}

@@ -10,7 +10,7 @@
 <div class="backend-planner-section-head d-flex align-items-center justify-content-between">
     <span class="small fw-semibold text-muted">{% trans "Recommended next" %}</span>
     {% if finance_requests_count %}
-    <a class="badge text-bg-warning text-decoration-none" href="{{ finance_request_link }}">{% trans "Finance" %} {{ finance_requests_count }}</a>
+    <a class="rmc-badge rmc-badge--warning text-decoration-none" href="{{ finance_request_link }}">{% trans "Finance" %} {{ finance_requests_count }}</a>
     {% endif %}
   </div>
   <div class="backend-planner-list backend-planner-next">

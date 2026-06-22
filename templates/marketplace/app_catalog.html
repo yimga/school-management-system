@@ -134,7 +134,7 @@
           class="nav-link {% if active_kind == tab.key %}active{% endif %}"
           href="?kind={{ tab.key }}{% if search_query %}&amp;q={{ search_query|urlencode }}{% endif %}{% if selected_school_id %}&amp;school_id={{ selected_school_id }}{% endif %}"
           role="tab"
-        >{{ tab.label }} <span class="badge text-bg-secondary ms-1">{{ tab.count }}</span></a>
+        >{{ tab.label }} <span class="rmc-badge ms-1">{{ tab.count }}</span></a>
       </li>
       {% endfor %}
     </ul>

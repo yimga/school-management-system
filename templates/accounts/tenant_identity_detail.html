@@ -26,13 +26,13 @@
             <dt class="col-sm-4">{% trans "Email" %}</dt>
             <dd class="col-sm-8">{{ staff_user.email|default:"—" }}</dd>
             <dt class="col-sm-4">{% trans "Effective role" %}</dt>
-            <dd class="col-sm-8"><span class="badge text-bg-secondary">{{ effective_role }}</span></dd>
+            <dd class="col-sm-8"><span class="rmc-badge">{{ effective_role }}</span></dd>
             <dt class="col-sm-4">{% trans "MFA" %}</dt>
             <dd class="col-sm-8">
               {% if mfa_ok %}
-              <span class="badge text-bg-success">{% trans "Enrolled" %}</span>
+              <span class="rmc-badge rmc-badge--success">{% trans "Enrolled" %}</span>
               {% else %}
-              <span class="badge text-bg-warning">{% trans "Not enrolled" %}</span>
+              <span class="rmc-badge rmc-badge--warning">{% trans "Not enrolled" %}</span>
               {% endif %}
             </dd>
           </dl>

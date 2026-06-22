@@ -21,7 +21,7 @@
       <h2 class="h6 mb-2">{% trans "Current state" %}</h2>
       <dl class="row mb-0 small">
         <dt class="col-sm-5">{% trans "Effective mode (this context)" %}</dt>
-        <dd class="col-sm-7"><span class="badge text-bg-primary text-uppercase">{{ effective_mode }}</span>
+        <dd class="col-sm-7"><span class="rmc-badge rmc-badge--brand text-uppercase">{{ effective_mode }}</span>
           {% if effective_mode == "grace" %}<span class="text-muted">· {{ effective_grace_days }} {% trans "day grace" %}</span>{% endif %}
         </dd>
         <dt class="col-sm-5">{% trans "Platform default" %}</dt>

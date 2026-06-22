@@ -260,7 +260,7 @@
                   <tr>
                     <td>{{ run.started_at|date:"Y-m-d H:i" }}</td>
                     <td>{{ run.school.name|default:"-" }}</td>
-                    <td>{{ run.migration_type }}{% if run.dry_run %} <span class="badge bg-secondary">dry</span>{% endif %}</td>
+                    <td>{{ run.migration_type }}{% if run.dry_run %} <span class="rmc-badge">dry</span>{% endif %}</td>
                     <td>{{ run.status }}</td>
                     <td class="text-end">{{ run.row_count }}</td>
                     <td class="text-end text-success">{{ run.created_count }}</td>

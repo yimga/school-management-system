@@ -57,9 +57,9 @@
                 <td>{{ c.value|floatformat:2 }}</td>
                 <td>
                   {% if c.direction == "elevates" %}
-                    <span class="badge bg-danger">{% trans "Elevates risk" %}</span>
+                    <span class="rmc-badge rmc-badge--danger">{% trans "Elevates risk" %}</span>
                   {% else %}
-                    <span class="badge bg-success">{% trans "Lowers risk" %}</span>
+                    <span class="rmc-badge rmc-badge--success">{% trans "Lowers risk" %}</span>
                   {% endif %}
                 </td>
                 <td class="text-end">{{ c.importance|floatformat:3 }}</td>

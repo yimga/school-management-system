@@ -37,7 +37,7 @@
             <p class="text-uppercase small text-muted mb-1 fw-semibold">{% trans "Information tags" %}</p>
             {% for tag in d.tags.items %}
               {% if not tag.is_private or can_see_private_tags %}
-                <span class="badge me-1 mb-1" style="background-color: {{ tag.color_hex|default:'var(--bs-secondary)' }}; color: var(--text-on-brand);" title="{{ tag.category_display }}{% if tag.is_private %} ({% trans 'private' %}){% endif %}{% if tag.is_critical %} · {% trans 'critical' %}{% endif %}">{{ tag.name }}</span>
+                <span class="rmc-badge me-1 mb-1" style="background-color: {{ tag.color_hex|default:'var(--bs-secondary)' }}; color: var(--text-on-brand);" title="{{ tag.category_display }}{% if tag.is_private %} ({% trans 'private' %}){% endif %}{% if tag.is_critical %} · {% trans 'critical' %}{% endif %}">{{ tag.name }}</span>
               {% endif %}
             {% empty %}
               <span class="text-muted small">{% trans "No tags assigned." %}</span>

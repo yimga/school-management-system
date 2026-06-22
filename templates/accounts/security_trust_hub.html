@@ -20,9 +20,9 @@
           <h2 class="h6 card-title"><span class="bi bi-shield-lock me-2" aria-hidden="true"></span>{% trans "Multi-factor authentication" %}</h2>
           <p class="card-text small text-secondary">{% trans "TOTP, backup codes, or passkeys strengthen sign-in." %}</p>
           {% if mfa_enabled %}
-            <span class="badge bg-success mb-2">{% trans "Enabled" %}</span>
+            <span class="rmc-badge rmc-badge--success mb-2">{% trans "Enabled" %}</span>
           {% else %}
-            <span class="badge bg-warning text-dark mb-2">{% trans "Not enabled" %}</span>
+            <span class="rmc-badge rmc-badge--warning mb-2">{% trans "Not enabled" %}</span>
           {% endif %}
           {% if urls.mfa_setup %}
             <div><a href="{{ urls.mfa_setup }}" class="btn btn-outline-primary btn-sm">{% trans "MFA settings" %}</a></div>

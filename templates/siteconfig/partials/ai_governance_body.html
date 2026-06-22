@@ -17,11 +17,11 @@
     <div class="card-body small">
       <dl class="row mb-0">
         <dt class="col-sm-5 text-muted">{% trans "AI enabled (policy)" %}</dt>
-        <dd class="col-sm-7">{% if ai_policy.ai_enabled %}<span class="badge text-bg-success">{% trans "On" %}</span>{% else %}<span class="badge text-bg-secondary">{% trans "Off" %}</span>{% endif %}</dd>
+        <dd class="col-sm-7">{% if ai_policy.ai_enabled %}<span class="rmc-badge rmc-badge--success">{% trans "On" %}</span>{% else %}<span class="rmc-badge">{% trans "Off" %}</span>{% endif %}</dd>
         <dt class="col-sm-5 text-muted">{% trans "Block external PII in prompts" %}</dt>
-        <dd class="col-sm-7">{% if ai_policy.no_pii_external_prompt %}<span class="badge text-bg-info">{% trans "Required" %}</span>{% else %}<span class="badge text-bg-warning">{% trans "Not required" %}</span>{% endif %}</dd>
+        <dd class="col-sm-7">{% if ai_policy.no_pii_external_prompt %}<span class="rmc-badge rmc-badge--info">{% trans "Required" %}</span>{% else %}<span class="rmc-badge rmc-badge--warning">{% trans "Not required" %}</span>{% endif %}</dd>
         <dt class="col-sm-5 text-muted">{% trans "Prompt audit trail" %}</dt>
-        <dd class="col-sm-7">{% if ai_policy.prompt_audit_trail %}<span class="badge text-bg-info">{% trans "On" %}</span>{% else %}<span class="badge text-bg-secondary">{% trans "Off" %}</span>{% endif %}</dd>
+        <dd class="col-sm-7">{% if ai_policy.prompt_audit_trail %}<span class="rmc-badge rmc-badge--info">{% trans "On" %}</span>{% else %}<span class="rmc-badge">{% trans "Off" %}</span>{% endif %}</dd>
       </dl>
     </div>
   </div>
@@ -39,7 +39,7 @@
       {% if policy_copilot_result %}
       <div class="border-top pt-2">
         {% if policy_copilot_result.honest_refusal %}
-        <p class="mb-1"><span class="badge text-bg-warning">{% trans "No grounded answer" %}</span> <code>{{ policy_copilot_result.answer }}</code></p>
+        <p class="mb-1"><span class="rmc-badge rmc-badge--warning">{% trans "No grounded answer" %}</span> <code>{{ policy_copilot_result.answer }}</code></p>
         {% else %}
         <p class="mb-1"><strong>{% trans "Intent" %}</strong>: <code>{{ policy_copilot_result.intent }}</code></p>
         <p class="mb-1">{{ policy_copilot_result.answer }}</p>

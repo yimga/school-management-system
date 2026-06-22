@@ -4,7 +4,7 @@
   {% csrf_token %}
   <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
     <strong class="small mb-0">{% trans "AI drafts (North Star)" %}</strong>
-    <span class="badge text-bg-secondary small">{% trans "Review required before any action" %}</span>
+    <span class="rmc-badge small">{% trans "Review required before any action" %}</span>
   </div>
   <div class="card-body small">
     {% if rmc_ai_governance %}
@@ -15,9 +15,9 @@
         {% trans "AI operational layer: off (enable RUNMYCAMPUS_AI_ENABLED and tenant policy in School settings if allowed)." %}
       {% endif %}
       {% if rmc_ai_governance.external_network_effective %}
-        <span class="badge text-bg-warning ms-1">{% trans "External providers" %}</span>
+        <span class="rmc-badge rmc-badge--warning ms-1">{% trans "External providers" %}</span>
       {% else %}
-        <span class="badge text-bg-secondary ms-1">{% trans "Local / rules first" %}</span>
+        <span class="rmc-badge ms-1">{% trans "Local / rules first" %}</span>
       {% endif %}
     </p>
     {% endif %}

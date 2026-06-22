@@ -23,13 +23,13 @@
                     <a href="{% url 'kb:faq_list' %}" 
                        class="list-group-item list-group-item-action {% if not category %}active{% endif %}">
                         <i class="bi bi-question-circle"></i> All FAQs
-                        <span class="badge badge-primary float-right">{{ all_count }}</span>
+                        <span class="rmc-badge rmc-badge--brand float-right">{{ all_count }}</span>
                     </a>
                     {% for cat in categories %}
                     <a href="?category={{ cat.slug }}" 
                        class="list-group-item list-group-item-action {% if category.slug == cat.slug %}active{% endif %}">
                         <i class="{{ cat.icon|fa_to_bi }}"></i> {{ cat.name }}
-                        <span class="badge badge-secondary float-right">{{ cat.faq_count }}</span>
+                        <span class="rmc-badge float-right">{{ cat.faq_count }}</span>
                     </a>
                     {% endfor %}
                 </div>
@@ -79,13 +79,13 @@
                 {% if category %}
                 <p class="text-muted">
                     <strong>Category:</strong> {{ category.name }}
-                    <a href="{% url 'kb:faq_list' %}" class="badge badge-warning">Clear filter</a>
+                    <a href="{% url 'kb:faq_list' %}" class="rmc-badge rmc-badge--warning">Clear filter</a>
                 </p>
                 {% endif %}
                 {% if query %}
                 <p class="text-muted">
                     <strong>Search Results for:</strong> "{{ query }}"
-                    <a href="{% url 'kb:faq_list' %}" class="badge badge-warning">Clear search</a>
+                    <a href="{% url 'kb:faq_list' %}" class="rmc-badge rmc-badge--warning">Clear search</a>
                 </p>
                 {% endif %}
             </div>
@@ -105,7 +105,7 @@
                                     <i class="bi bi-chevron-down"></i>
                                     {{ faq.question }}
                                     {% if faq.is_featured %}
-                                    <span class="badge badge-success ml-2">
+                                    <span class="rmc-badge rmc-badge--success ml-2">
                                         <i class="bi bi-star"></i> Featured
                                     </span>
                                     {% endif %}
@@ -158,7 +158,7 @@
                                     {% if faq.tags.all %}
                                     <div class="mt-2">
                                         {% for tag in faq.tags.all %}
-                                        <a href="?q={{ tag.name }}" class="badge badge-info">{{ tag.name }}</a>
+                                        <a href="?q={{ tag.name }}" class="rmc-badge rmc-badge--info">{{ tag.name }}</a>
                                         {% endfor %}
                                     </div>
                                     {% endif %}

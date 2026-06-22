@@ -34,20 +34,20 @@
           <div>
             <strong>{{ i.app.name }}</strong>
             <span class="text-muted small ms-1">({{ i.app.slug }})</span>
-            {% if i.app.version %}<span class="badge bg-secondary ms-1">{{ i.app.version }}</span>{% endif %}
-            {% if i.install_phase == 'sandbox' %}<span class="badge bg-warning text-dark ms-1">{% trans "Sandbox" %}</span>{% endif %}
+            {% if i.app.version %}<span class="rmc-badge ms-1">{{ i.app.version }}</span>{% endif %}
+            {% if i.install_phase == 'sandbox' %}<span class="rmc-badge rmc-badge--warning ms-1">{% trans "Sandbox" %}</span>{% endif %}
             {% if i.catalog_signals %}
             {% with sig=i.catalog_signals %}
-            {% if sig.lifecycle == 'installed' %}<span class="badge text-bg-secondary ms-1" data-rmc-mkt-lifecycle="{{ sig.lifecycle }}">{% trans "Sandbox install" %}</span>
-            {% elif sig.lifecycle == 'active' %}<span class="badge text-bg-success ms-1" data-rmc-mkt-lifecycle="{{ sig.lifecycle }}">{% trans "Active" %}</span>
-            {% elif sig.lifecycle == 'disabled' %}<span class="badge text-bg-danger ms-1" data-rmc-mkt-lifecycle="{{ sig.lifecycle }}">{% trans "Disabled" %}</span>
+            {% if sig.lifecycle == 'installed' %}<span class="rmc-badge ms-1" data-rmc-mkt-lifecycle="{{ sig.lifecycle }}">{% trans "Sandbox install" %}</span>
+            {% elif sig.lifecycle == 'active' %}<span class="rmc-badge rmc-badge--success ms-1" data-rmc-mkt-lifecycle="{{ sig.lifecycle }}">{% trans "Active" %}</span>
+            {% elif sig.lifecycle == 'disabled' %}<span class="rmc-badge rmc-badge--danger ms-1" data-rmc-mkt-lifecycle="{{ sig.lifecycle }}">{% trans "Disabled" %}</span>
             {% endif %}
-            {% if sig.governance_badge == 'certified' %}<span class="badge text-bg-primary ms-1"><i class="bi bi-patch-check"></i> {% trans "Certified" %}</span>{% endif %}
-            {% if sig.governance_badge == 'beta' %}<span class="badge text-bg-warning text-dark ms-1">{% trans "Beta" %}</span>{% endif %}
+            {% if sig.governance_badge == 'certified' %}<span class="rmc-badge rmc-badge--brand ms-1"><i class="bi bi-patch-check"></i> {% trans "Certified" %}</span>{% endif %}
+            {% if sig.governance_badge == 'beta' %}<span class="rmc-badge rmc-badge--warning ms-1">{% trans "Beta" %}</span>{% endif %}
             {% if sig.governance_badge == 'internal' %}<span class="badge text-bg-dark ms-1">{% trans "Internal" %}</span>{% endif %}
-            {% if sig.show_update %}<span class="badge text-bg-warning text-dark ms-1" data-rmc-mkt-update-available="1"><i class="bi bi-arrow-up-circle"></i> {% trans "Update available" %}</span>{% endif %}
-            {% if sig.show_rollback %}<span class="badge border border-secondary text-secondary bg-light ms-1" data-rmc-mkt-rollback-hint="1"><i class="bi bi-arrow-counterclockwise"></i> {% trans "Rollback-friendly" %}</span>{% endif %}
-            {% if sig.manifest_ui.pricing_type %}<span class="badge text-bg-light text-dark border ms-1" title="{% trans 'Pricing display — no live billing in this view.' %}"><i class="bi bi-tag"></i> {{ sig.manifest_ui.pricing_type }}{% if sig.manifest_ui.price_display %} · {{ sig.manifest_ui.price_display }}{% endif %}</span>{% endif %}
+            {% if sig.show_update %}<span class="rmc-badge rmc-badge--warning ms-1" data-rmc-mkt-update-available="1"><i class="bi bi-arrow-up-circle"></i> {% trans "Update available" %}</span>{% endif %}
+            {% if sig.show_rollback %}<span class="rmc-badge rmc-badge--muted border border-secondary text-secondary ms-1" data-rmc-mkt-rollback-hint="1"><i class="bi bi-arrow-counterclockwise"></i> {% trans "Rollback-friendly" %}</span>{% endif %}
+            {% if sig.manifest_ui.pricing_type %}<span class="rmc-badge rmc-badge--muted border ms-1" title="{% trans 'Pricing display — no live billing in this view.' %}"><i class="bi bi-tag"></i> {{ sig.manifest_ui.pricing_type }}{% if sig.manifest_ui.price_display %} · {{ sig.manifest_ui.price_display }}{% endif %}</span>{% endif %}
             {% endwith %}
             {% endif %}
           </div>
@@ -115,7 +115,7 @@
                   <tbody>
                     {% for row in i.scope_display_rows %}
                     <tr>
-                      <td><code>{{ row.code }}</code>{% if row.sensitive %} <span class="badge text-bg-warning">{% trans "Sensitive" %}</span>{% endif %}</td>
+                      <td><code>{{ row.code }}</code>{% if row.sensitive %} <span class="rmc-badge rmc-badge--warning">{% trans "Sensitive" %}</span>{% endif %}</td>
                       <td>{{ row.access_tier }}</td>
                       <td>{% if row.grant_status %}{{ row.grant_status }}{% else %}—{% endif %}</td>
                     </tr>

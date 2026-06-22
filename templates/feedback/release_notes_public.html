@@ -30,7 +30,7 @@
                 <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
                   <h2 class="h5 mb-0">{{ note.title }}</h2>
                   {% if note.published_at %}
-                    <span class="badge bg-light text-dark">{{ note.published_at|date:"Y-m-d" }}</span>
+                    <span class="rmc-badge rmc-badge--muted">{{ note.published_at|date:"Y-m-d" }}</span>
                   {% endif %}
                 </div>
                 <p class="mb-2">{{ note.summary|linebreaksbr }}</p>

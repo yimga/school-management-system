@@ -66,7 +66,7 @@
             <td>{{ erase.id }}</td>
             <td class="small">{{ erase.school }}</td>
             <td class="small">{{ erase.subject_user|default:"—" }}</td>
-            <td><span class="badge bg-secondary">{{ erase.status }}</span></td>
+            <td><span class="rmc-badge">{{ erase.status }}</span></td>
             <td class="small text-muted">{{ erase.created_at|date:"Y-m-d" }}</td>
             <td class="small {% if erase.due_at and erase.due_at < now %}text-danger fw-semibold{% endif %}">{{ erase.due_at|date:"Y-m-d"|default:"—" }}</td>
             <td>
@@ -131,7 +131,7 @@
             <td>{{ job.id }}</td>
             <td class="small">{{ job.school }}</td>
             <td class="small">{{ job.scope }}{% if job.scope_id %} <code class="small">{{ job.scope_id|truncatechars:12 }}</code>{% endif %}</td>
-            <td><span class="badge bg-secondary">{{ job.status }}</span></td>
+            <td><span class="rmc-badge">{{ job.status }}</span></td>
             <td class="small text-muted">{{ job.created_at|date:"Y-m-d" }}</td>
             <td class="small {% if job.due_at and job.due_at < now %}text-danger fw-semibold{% endif %}">{{ job.due_at|date:"Y-m-d"|default:"—" }}</td>
             <td>

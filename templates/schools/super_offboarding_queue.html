@@ -90,13 +90,13 @@
           <td>{{ row.school.name }} <code class="small">{{ row.school.slug }}</code></td>
           <td>{{ row.status }}</td>
           <td>{{ row.scheduled_purge_at|default:"—" }}</td>
-          <td>{% if row.purge_due %}<span class="badge text-bg-danger">{% trans "Due" %}</span>{% else %}—{% endif %}</td>
+          <td>{% if row.purge_due %}<span class="rmc-badge rmc-badge--danger">{% trans "Due" %}</span>{% else %}—{% endif %}</td>
           <td>{{ row.row_total }}</td>
           <td>{% if row.legal_hold %}{% trans "Yes" %}{% else %}—{% endif %}</td>
           <td>
-            {% if row.billing_state == "cleared" %}<span class="badge text-bg-success">{% trans "Cleared" %}</span>
-            {% elif row.billing_state == "outstanding" %}<span class="badge text-bg-warning" title="{{ row.billing_reason }}">{% trans "Outstanding" %}</span>
-            {% else %}<span class="badge text-bg-light" title="{{ row.billing_reason }}">{% trans "Unknown" %}</span>{% endif %}
+            {% if row.billing_state == "cleared" %}<span class="rmc-badge rmc-badge--success">{% trans "Cleared" %}</span>
+            {% elif row.billing_state == "outstanding" %}<span class="rmc-badge rmc-badge--warning" title="{{ row.billing_reason }}">{% trans "Outstanding" %}</span>
+            {% else %}<span class="rmc-badge rmc-badge--muted" title="{{ row.billing_reason }}">{% trans "Unknown" %}</span>{% endif %}
           </td>
           <td><a href="{{ offboard_tenant_360_url }}#offboarding" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();">{% trans "Offboarding" %}</a></td>
         </tr>

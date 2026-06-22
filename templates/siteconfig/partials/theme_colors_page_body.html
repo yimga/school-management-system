@@ -33,7 +33,7 @@
     <div class="card border theme-state-strip mb-2">
       <div class="card-body py-2">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
-          <span id="theme-draft-status-badge" class="badge text-bg-success-subtle">
+          <span id="theme-draft-status-badge" class="rmc-badge rmc-badge--success">
             {% trans "Saved state" %}
           </span>
           <div class="d-flex flex-wrap align-items-center gap-2">
@@ -58,13 +58,13 @@
         </div>
         <div id="theme-contrast-remediate-panel" class="small text-secondary d-none mb-2" role="status"></div>
         <div class="d-flex flex-wrap gap-2 small">
-          <span class="badge text-bg-light border">
+          <span class="rmc-badge rmc-badge--muted border">
             {% trans "Site pack:" %}
             <strong id="theme-active-site-pack" class="ms-1" data-empty-label="{% trans 'None selected' %}">
               {% if site_settings.theme_pack %}{{ site_settings.theme_pack.name }}{% else %}{% trans "None selected" %}{% endif %}
             </strong>
           </span>
-          <span class="badge text-bg-light border">
+          <span class="rmc-badge rmc-badge--muted border">
             {% trans "Admin pack:" %}
             <strong id="theme-active-admin-pack" class="ms-1" data-empty-label="{% trans 'None selected' %}">
               {% if site_settings.admin_theme_pack %}{{ site_settings.admin_theme_pack.name }}{% else %}{% trans "None selected" %}{% endif %}

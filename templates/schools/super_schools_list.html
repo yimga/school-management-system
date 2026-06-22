@@ -128,7 +128,7 @@
           <td>{{ school.primary_sector|default:"—" }}</td>
           <td>
             <span class="badge {% if school.is_active %}text-bg-success{% else %}text-bg-secondary{% endif %}">{% if school.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}</span>
-            <span class="badge text-bg-secondary ms-1">{{ school.offboarding_chip|default:"—" }}</span>
+            <span class="rmc-badge ms-1">{{ school.offboarding_chip|default:"—" }}</span>
           </td>
           <td>{{ school.country_code|default:"—" }}</td>
           <td class="text-end text-muted" aria-hidden="true">›</td>

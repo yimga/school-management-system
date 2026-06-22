@@ -56,9 +56,9 @@
           {% for r in rules %}
           <tr>
             <td>{{ r.name }}</td>
-            <td><span class="badge text-bg-secondary">{{ r.get_trigger_display }}</span></td>
+            <td><span class="rmc-badge">{{ r.get_trigger_display }}</span></td>
             <td><code class="small">{{ r.config }}</code></td>
-            <td>{% if r.is_active %}<span class="badge text-bg-success">{% trans "On" %}</span>{% else %}<span class="badge text-bg-warning">{% trans "Off" %}</span>{% endif %}</td>
+            <td>{% if r.is_active %}<span class="rmc-badge rmc-badge--success">{% trans "On" %}</span>{% else %}<span class="rmc-badge rmc-badge--warning">{% trans "Off" %}</span>{% endif %}</td>
             <td><span class="small text-muted">{{ r.updated_at|date:"Y-m-d H:i" }}</span></td>
             <td class="text-end">
               <form method="post" action="{% url 'super:support_auto_rules_save' %}" class="d-inline">

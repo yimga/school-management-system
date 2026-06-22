@@ -41,9 +41,9 @@
                 <div class="small text-muted">{{ item.detail }}</div>
               </div>
               {% if item.done %}
-              <span class="badge bg-success">Done</span>
+              <span class="rmc-badge rmc-badge--success">Done</span>
               {% else %}
-              <span class="badge bg-warning text-dark">To do</span>
+              <span class="rmc-badge rmc-badge--warning">To do</span>
               {% endif %}
             </li>
             {% endfor %}
@@ -59,7 +59,7 @@
           <ul class="list-unstyled mb-0">
             {% for choice in simple_payment_flow.choices %}
             <li class="mb-2">
-              <span class="badge bg-secondary me-1">{{ choice.role }}</span>
+              <span class="rmc-badge me-1">{{ choice.role }}</span>
               <strong>{{ choice.label }}</strong>
               <span class="text-muted small">({{ choice.code }})</span>
             </li>
@@ -126,9 +126,9 @@
             <dt class="col-sm-6">{% trans "Connected" %}</dt>
             <dd class="col-sm-6">
               {% if stripe_connect.connected %}
-              <span class="badge bg-success">{% trans "Yes" %}</span>
+              <span class="rmc-badge rmc-badge--success">{% trans "Yes" %}</span>
               {% else %}
-              <span class="badge bg-warning text-dark">{% trans "Not yet" %}</span>
+              <span class="rmc-badge rmc-badge--warning">{% trans "Not yet" %}</span>
               {% endif %}
             </dd>
             {% if stripe_connect.account_id %}
@@ -173,22 +173,22 @@
                 {% for row in lane2_corridors %}
                 <tr>
                   <td>
-                    <span class="badge bg-secondary me-1">{{ row.engine }}</span>
+                    <span class="rmc-badge me-1">{{ row.engine }}</span>
                     {{ row.label }}
                   </td>
                   <td><code class="small">{{ row.register_status }}</code></td>
                   <td>
                     {% if row.integration_configured %}
-                    <span class="badge bg-success">{% trans "Keys row" %}</span>
+                    <span class="rmc-badge rmc-badge--success">{% trans "Keys row" %}</span>
                     {% else %}
-                    <span class="badge bg-warning text-dark">{% trans "Missing" %}</span>
+                    <span class="rmc-badge rmc-badge--warning">{% trans "Missing" %}</span>
                     {% endif %}
                   </td>
                   <td>
                     {% if row.live_proof %}
-                    <span class="badge bg-success">verified_live</span>
+                    <span class="rmc-badge rmc-badge--success">verified_live</span>
                     {% else %}
-                    <span class="badge bg-secondary">{% trans "Pending" %}</span>
+                    <span class="rmc-badge">{% trans "Pending" %}</span>
                     {% endif %}
                   </td>
                 </tr>

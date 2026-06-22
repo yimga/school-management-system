@@ -50,7 +50,7 @@
         <tbody>
           {% for row in pack_compare_rows %}
           <tr>
-            <th scope="row"><span class="badge bg-secondary me-1">{{ row.code }}</span> {{ row.name }}</th>
+            <th scope="row"><span class="rmc-badge me-1">{{ row.code }}</span> {{ row.name }}</th>
             <td>{{ row.currency }}</td>
             <td>{{ row.language }}</td>
             <td>{{ row.grading_scale }}</td>
@@ -70,7 +70,7 @@
       <div class="card border-secondary">
         <div class="card-header d-flex justify-content-between align-items-center">
           <span>{% trans "Wedge" %} {{ item.wedge }}: {{ item.continent }}</span>
-          <span class="badge bg-secondary">{% trans "Wedge" %} {{ item.wedge }}</span>
+          <span class="rmc-badge">{% trans "Wedge" %} {{ item.wedge }}</span>
         </div>
         <div class="card-body">
           <p class="small mb-2">{{ item.description }}</p>
@@ -79,7 +79,7 @@
             <div class="d-flex align-items-center mb-1 flex-wrap gap-1">
               <span class="badge bg-dark me-2">{{ pack.code }}</span>
               <strong>{{ pack.name }}</strong>
-              {% if pack.is_rtl %}<span class="badge bg-info ms-2" title="{% trans 'Right-to-left layout' %}">RTL</span>{% endif %}
+              {% if pack.is_rtl %}<span class="rmc-badge rmc-badge--info ms-2" title="{% trans 'Right-to-left layout' %}">RTL</span>{% endif %}
               {% if pack.create_school_with_pack_url %}
               <a href="{{ pack.create_school_with_pack_url }}" class="btn btn-outline-primary btn-sm ms-2">{% trans "Create school (this pack)" %}</a>
               {% endif %}

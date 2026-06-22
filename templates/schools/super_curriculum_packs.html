@@ -34,7 +34,7 @@
         <div class="card-body">
           <ul class="list-unstyled mb-0">
             {% for item in curriculum_list %}
-            <li class="mb-2"><span class="badge bg-secondary me-2">{{ item.code }}</span>{{ item.name }}</li>
+            <li class="mb-2"><span class="rmc-badge me-2">{{ item.code }}</span>{{ item.name }}</li>
             {% endfor %}
           </ul>
           {% if create_school_url %}
@@ -49,7 +49,7 @@
         <div class="card-body">
           <ul class="list-unstyled mb-0">
             {% for item in region_list %}
-            <li class="mb-2"><span class="badge bg-secondary me-2">{{ item.code }}</span>{{ item.name }}</li>
+            <li class="mb-2"><span class="rmc-badge me-2">{{ item.code }}</span>{{ item.name }}</li>
             {% endfor %}
           </ul>
           {% if setup_studio_url %}

@@ -141,21 +141,21 @@
           <td>{{ row.email }}</td>
           <td>
             {% if row.status == 'verified' %}
-              <span class="badge bg-success">{% trans "Verified" %}</span>
+              <span class="rmc-badge rmc-badge--success">{% trans "Verified" %}</span>
             {% elif row.status == 'expired' %}
-              <span class="badge bg-danger">{% trans "Expired" %}</span>
+              <span class="rmc-badge rmc-badge--danger">{% trans "Expired" %}</span>
             {% elif row.is_stale %}
-              <span class="badge bg-warning text-dark">{% trans "Stale" %}</span>
+              <span class="rmc-badge rmc-badge--warning">{% trans "Stale" %}</span>
             {% else %}
-              <span class="badge bg-secondary">{% trans "Pending" %}</span>
+              <span class="rmc-badge">{% trans "Pending" %}</span>
             {% endif %}
           </td>
           <td>
             {% if row.status == 'verified' %}
               {% if row.school_active %}
-                <span class="badge bg-success">{% trans "Live" %}</span>
+                <span class="rmc-badge rmc-badge--success">{% trans "Live" %}</span>
               {% else %}
-                <span class="badge bg-warning text-dark">{% trans "Provisioning" %}</span>
+                <span class="rmc-badge rmc-badge--warning">{% trans "Provisioning" %}</span>
               {% endif %}
             {% else %}
               <span class="text-muted small">—</span>
@@ -163,11 +163,11 @@
           </td>
           <td>
             {% if row.health.state == 'delivered' %}
-              <span class="badge bg-success-subtle text-success" title="{{ row.health.when|date:'Y-m-d H:i' }}">{% trans "Delivered" %}</span>
+              <span class="rmc-badge rmc-badge--success text-success" title="{{ row.health.when|date:'Y-m-d H:i' }}">{% trans "Delivered" %}</span>
             {% elif row.health.state == 'bounced' %}
-              <span class="badge bg-danger" title="{{ row.health.detail }} · {{ row.health.when|date:'Y-m-d H:i' }}">{% trans "Bounced" %}</span>
+              <span class="rmc-badge rmc-badge--danger" title="{{ row.health.detail }} · {{ row.health.when|date:'Y-m-d H:i' }}">{% trans "Bounced" %}</span>
             {% elif row.health.state == 'failed' %}
-              <span class="badge bg-warning text-dark" title="{{ row.health.when|date:'Y-m-d H:i' }}">{% trans "Send failed" %}</span>
+              <span class="rmc-badge rmc-badge--warning" title="{{ row.health.when|date:'Y-m-d H:i' }}">{% trans "Send failed" %}</span>
             {% else %}
               <span class="text-muted small">—</span>
             {% endif %}

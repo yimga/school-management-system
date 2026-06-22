@@ -155,9 +155,9 @@
                 {% if guardians|length %}
                   {% with guardian=guardians|dictsort:"-can_view_finance"|first %}
                     {% if guardian and guardian.can_view_finance %}
-                      <span class="badge bg-success-subtle text-success">{% trans "Enabled" %}</span>
+                      <span class="rmc-badge rmc-badge--success text-success">{% trans "Enabled" %}</span>
                     {% else %}
-                      <span class="badge bg-light text-muted">{% trans "Not enabled" %}</span>
+                      <span class="rmc-badge rmc-badge--muted">{% trans "Not enabled" %}</span>
                     {% endif %}
                   {% endwith %}
                 {% else %}

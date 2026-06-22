@@ -117,7 +117,7 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="h6 text-muted mb-0">{% trans "Performance" %}</span>
-              <span class="badge bg-primary">{{ summary.promotion_status }}</span>
+              <span class="rmc-badge rmc-badge--brand">{{ summary.promotion_status }}</span>
             </div>
             <p class="h3 fw-bold mb-1">{{ summary.average|default:"-"|format_number:2 }}</p>
             <p class="small text-muted mb-0">
@@ -192,11 +192,11 @@
                   <td data-label="{% trans 'Avg' %}">{{ r.avg|default_if_none:"" }}</td>
                   <td data-label="{% trans 'Status' %}">
                     {% if r.avg is None %}
-                      <span class="badge bg-secondary">{% trans "Pending" %}</span>
+                      <span class="rmc-badge">{% trans "Pending" %}</span>
                     {% elif r.avg >= 10 %}
-                      <span class="badge bg-success">{% trans "Pass" %}</span>
+                      <span class="rmc-badge rmc-badge--success">{% trans "Pass" %}</span>
                     {% else %}
-                      <span class="badge bg-danger">{% trans "Needs work" %}</span>
+                      <span class="rmc-badge rmc-badge--danger">{% trans "Needs work" %}</span>
                     {% endif %}
                   </td>
                 </tr>

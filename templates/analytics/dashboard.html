@@ -61,7 +61,7 @@
                 <strong>{{ notif.title }}</strong>
                 <div class="small text-muted">{{ notif.message|truncatechars:120 }}</div>
               </div>
-              <span class="badge bg-secondary">{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</span>
+              <span class="rmc-badge">{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</span>
             </li>
           {% endfor %}
         </ul>
@@ -118,7 +118,7 @@
           <p class="text-muted small mb-0">{% trans "Live KPI snapshot for principal & admin teams." %}</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
-          <span class="badge bg-success">{% trans "Real-time" %}</span>
+          <span class="rmc-badge rmc-badge--success">{% trans "Real-time" %}</span>
           <span class="badge bg-outline-primary">{% trans "2026 insights" %}</span>
         </div>
       </div>
@@ -173,11 +173,11 @@
       <ul class="list-group list-group-flush mb-3">
         <li class="list-group-item py-2 d-flex justify-content-between align-items-center">
           <span>{% term "teacher" capitalize=True %} {% trans "compliance" %}</span>
-          <span class="badge bg-success">{{ teacher_rows|length }}</span>
+          <span class="rmc-badge rmc-badge--success">{{ teacher_rows|length }}</span>
         </li>
         <li class="list-group-item py-2 d-flex justify-content-between align-items-center">
           <span>{% trans "Weak thresholds" %}</span>
-          <span class="badge bg-warning">{{ weak_subjects|length }}</span>
+          <span class="rmc-badge rmc-badge--warning">{{ weak_subjects|length }}</span>
         </li>
       </ul>
       <div class="d-grid gap-2">
@@ -300,7 +300,7 @@
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <h5 class="mb-0">{% trans "Top class performers" %}</h5>
-          <span class="badge bg-primary">{{ top_class_students|length }}</span>
+          <span class="rmc-badge rmc-badge--brand">{{ top_class_students|length }}</span>
         </div>
         <ul class="list-group list-group-flush">
           {% for student in top_class_students|slice:":4" %}
@@ -329,7 +329,7 @@
       <div class="card-body d-flex flex-column">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <h5 class="mb-0">{% trans "Weak subjects" %}</h5>
-          <span class="badge bg-warning">{{ weak_subjects|length }}</span>
+          <span class="rmc-badge rmc-badge--warning">{{ weak_subjects|length }}</span>
         </div>
         <p class="small text-muted mb-2">{% trans "Subjects that need attention this term." %}</p>
         <ul class="list-group list-group-flush">
@@ -352,7 +352,7 @@
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <h5 class="mb-0">{% term "teacher" capitalize=True %} {% trans "compliance" %}</h5>
-          <span class="badge bg-success">{{ teacher_stats|length }}</span>
+          <span class="rmc-badge rmc-badge--success">{{ teacher_stats|length }}</span>
         </div>
         <div class="d-flex flex-column gap-1 small mb-3">
           {% for stat in teacher_stats|slice:":4" %}
@@ -424,7 +424,7 @@
               <tbody>
                 {% for row in top_class_students %}
                   <tr>
-                    <td><span class="badge bg-primary">{{ row.rank }}</span></td>
+                    <td><span class="rmc-badge rmc-badge--brand">{{ row.rank }}</span></td>
                     <td>{{ row.student }}</td>
                     <td class="text-end">{{ row.average|format_number:2 }}</td>
                   </tr>
@@ -457,7 +457,7 @@
             <tbody>
               {% for row in top_school_students %}
                 <tr>
-                  <td><span class="badge bg-primary">{{ row.rank }}</span></td>
+                  <td><span class="rmc-badge rmc-badge--brand">{{ row.rank }}</span></td>
                   <td>{{ row.student }}</td>
                   <td class="text-end">{{ row.average|format_number:2 }}</td>
                 </tr>
@@ -491,7 +491,7 @@
               <tbody>
                 {% for row in top_annual_class %}
                   <tr>
-                    <td><span class="badge bg-success">{{ row.rank }}</span></td>
+                    <td><span class="rmc-badge rmc-badge--success">{{ row.rank }}</span></td>
                     <td>{{ row.student }}</td>
                     <td class="text-end">{{ row.average|format_number:2 }}</td>
                   </tr>
@@ -524,7 +524,7 @@
             <tbody>
               {% for row in top_annual_school %}
                 <tr>
-                  <td><span class="badge bg-success">{{ row.rank }}</span></td>
+                  <td><span class="rmc-badge rmc-badge--success">{{ row.rank }}</span></td>
                   <td>{{ row.student }}</td>
                   <td class="text-end">{{ row.average|format_number:2 }}</td>
                 </tr>

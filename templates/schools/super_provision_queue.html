@@ -10,11 +10,11 @@
   <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h1 class="h4 mb-0">{% trans "Provisioning queue" %}</h1>
     <div class="d-flex flex-wrap gap-2 small">
-      <span class="badge text-bg-warning">{% trans "Running" %}: {{ counts.running }}</span>
-      <span class="badge text-bg-danger">{% trans "Stuck" %}: {{ counts.stuck }}</span>
-      <span class="badge text-bg-danger">{% trans "Failed" %}: {{ counts.failed }}</span>
-      <span class="badge text-bg-secondary">{% trans "Queued" %}: {{ counts.queued }}</span>
-      <span class="badge text-bg-light text-dark">{% trans "Total pending" %}: {{ total_pending_count }}</span>
+      <span class="rmc-badge rmc-badge--warning">{% trans "Running" %}: {{ counts.running }}</span>
+      <span class="rmc-badge rmc-badge--danger">{% trans "Stuck" %}: {{ counts.stuck }}</span>
+      <span class="rmc-badge rmc-badge--danger">{% trans "Failed" %}: {{ counts.failed }}</span>
+      <span class="rmc-badge">{% trans "Queued" %}: {{ counts.queued }}</span>
+      <span class="rmc-badge rmc-badge--muted">{% trans "Total pending" %}: {{ total_pending_count }}</span>
     </div>
   </div>
 
@@ -46,10 +46,10 @@
             <div class="text-muted small">{{ row.school.slug }}</div>
           </td>
           <td>
-            {% if row.bucket == "failed" %}<span class="badge text-bg-danger">{% trans "Failed" %}</span>
-            {% elif row.bucket == "stuck" %}<span class="badge text-bg-danger">{% trans "Stuck" %}</span>
-            {% elif row.bucket == "running" %}<span class="badge text-bg-warning">{% trans "Running" %}</span>
-            {% else %}<span class="badge text-bg-secondary">{% trans "Queued" %}</span>{% endif %}
+            {% if row.bucket == "failed" %}<span class="rmc-badge rmc-badge--danger">{% trans "Failed" %}</span>
+            {% elif row.bucket == "stuck" %}<span class="rmc-badge rmc-badge--danger">{% trans "Stuck" %}</span>
+            {% elif row.bucket == "running" %}<span class="rmc-badge rmc-badge--warning">{% trans "Running" %}</span>
+            {% else %}<span class="rmc-badge">{% trans "Queued" %}</span>{% endif %}
             {% if row.last_error %}<div class="text-danger small">{{ row.last_error|truncatechars:80 }}</div>{% endif %}
           </td>
           <td style="min-width: 120px;">

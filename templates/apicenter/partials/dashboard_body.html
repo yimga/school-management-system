@@ -17,7 +17,7 @@
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
               <h5 class="card-title mb-1">{{ integration.name }}</h5>
-              <span class="badge bg-secondary">{{ integration.get_provider_display }}</span>
+              <span class="rmc-badge">{{ integration.get_provider_display }}</span>
             </div>
             <span class="rounded-circle d-inline-block {{ integration.enabled|yesno:'bg-success,bg-danger' }}" style="width:10px;height:10px;" title="{% if integration.enabled %}{% trans 'Enabled' %}{% else %}{% trans 'Disabled' %}{% endif %}"></span>
           </div>

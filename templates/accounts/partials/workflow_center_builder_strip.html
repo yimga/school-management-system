@@ -5,7 +5,7 @@
   <h2 id="studio-builder-strip-heading" class="h6 mb-2">{% trans "Studio OS · pack & workflow preview" %}</h2>
   <p class="small text-muted mb-2">{% trans "Read-only registry slice. Simulation stays non-destructive — use Automation dry-run and Workflow health for execution evidence." %}</p>
   <p class="small mb-1">
-    <span class="badge text-bg-secondary">{% trans "Catalog schema" %} v{{ studio_pack_catalog_strip.schema_version|default:"—" }}</span>
+    <span class="rmc-badge">{% trans "Catalog schema" %} v{{ studio_pack_catalog_strip.schema_version|default:"—" }}</span>
     {% if studio_pack_catalog_strip.workflow_packs %}
     <span class="text-muted">{% trans "Workflow packs:" %} {{ studio_pack_catalog_strip.workflow_packs|length }}</span>
     {% endif %}
