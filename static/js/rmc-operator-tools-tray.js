@@ -495,8 +495,23 @@
       var trayEl = document.getElementById("rmcOperatorToolsTray");
       var tabEl = document.getElementById("rmcOperatorToolsTrayTab");
       if (!trayEl || trayEl.getAttribute("aria-hidden") === "true") return;
+      // Collapse INSTANTLY: suppress the fade/scale transition for this one
+      // dismissal so the launched overlay is never momentarily occluded behind
+      // the still-opaque tray (which sits above it at z-index ~10488). Also drop
+      // pointer-events immediately so the collapsing tray can't intercept the
+      // overlay's first click. The transition is restored on the next frame so a
+      // normal tab-toggle close still animates smoothly. Shared by every chip
+      // that launches an out-of-tray overlay, so this hardens all of them at once.
+      trayEl.style.transition = "none";
+      trayEl.style.pointerEvents = "none";
       trayEl.setAttribute("aria-hidden", "true");
       if (tabEl) tabEl.setAttribute("aria-expanded", "false");
+      var restore = function () {
+        trayEl.style.transition = "";
+        trayEl.style.pointerEvents = "";
+      };
+      if (window.requestAnimationFrame) window.requestAnimationFrame(restore);
+      else restore();
     }
 
     var aiChip = getChip("ai-copilot");
