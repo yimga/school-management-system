@@ -28,9 +28,11 @@
 
   width: 100%;
   /* v4.01.41: ~30% vertical reduction vs v3.57.8 (16→11, 14→9, gap 7→5). */
-  padding: 11px clamp(20px, 4vw, 40px) 9px;
-  font-size: 11px;
-  line-height: 1.3;
+  /* 2026-06-23: owner "footer almost nonexistent — increase size by 50%".
+     Legibility bump (layout unchanged): padding 11/9→14/11, font 11→13, line 1.3→1.45. */
+  padding: 14px clamp(20px, 4vw, 40px) 11px;
+  font-size: 13px;
+  line-height: 1.45;
   color: var(--rmc-civic-fg);
   background: var(--rmc-civic-surface);
   border-top: 1px solid var(--rmc-civic-hairline);
@@ -57,18 +59,18 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 4px;
-  font-size: 12.5px;
+  font-size: 14px;
   line-height: 1.2;
 }
 .rmc-civic-footer__brand strong { color: var(--rmc-civic-fg-strong); font-weight: 700; letter-spacing: 0.01em; }
 .rmc-civic-footer__motto {
   font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   font-style: italic;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--rmc-civic-fg-muted);
   letter-spacing: 0.015em;
 }
-.rmc-civic-footer__est { color: var(--rmc-civic-fg-muted); font-size: 11.5px; }
+.rmc-civic-footer__est { color: var(--rmc-civic-fg-muted); font-size: 12.5px; }
 
 /* ------------------------------------------------------------------ */
 /* Tier 2 — trust + lang + app + social (single dense row)             */
@@ -86,7 +88,7 @@
   padding: 2px 6px;
   border-radius: var(--radius-pill, 999px);
   background: var(--rmc-civic-surface-sunken);
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--rmc-civic-fg);
   white-space: nowrap; /* horizontal-overflow-risk-allow: short-pill-content-bounded */
 }
@@ -119,7 +121,7 @@
   border-radius: var(--radius-pill, 999px);
   background: var(--rmc-civic-surface);
   color: var(--rmc-civic-fg);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
@@ -143,7 +145,7 @@
   border: 1px solid var(--rmc-civic-hairline);
   background: var(--rmc-civic-surface);
   color: var(--rmc-civic-fg-strong);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 700;
   text-decoration: none;
   transition: border-color 140ms ease, transform 140ms ease;
@@ -162,7 +164,7 @@
   gap: 4px;
 }
 .rmc-civic-footer__social-label {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--rmc-civic-fg-muted);
   margin-right: 2px;
 }
@@ -176,7 +178,7 @@
   background: var(--rmc-civic-surface);
   color: var(--rmc-civic-fg);
   text-decoration: none;
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 700;
   font-family: 'Helvetica Neue', Arial, sans-serif;
   transition: border-color 160ms ease, color 160ms ease, transform 160ms ease;
@@ -195,7 +197,7 @@
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  font-size: 10.5px;
+  font-size: 12px;
   justify-content: center;
   align-items: center;
 }
@@ -203,7 +205,7 @@
 .rmc-civic-footer__contact a { text-decoration: none; color: inherit; }
 .rmc-civic-footer__contact a:hover { color: var(--rmc-civic-fg-strong); }
 .rmc-civic-footer__stat {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--rmc-civic-fg-muted);
   letter-spacing: 0.01em;
 }
@@ -221,7 +223,7 @@
   padding-top: 7px;
   margin-top: 1px;
   border-top: 1px solid var(--rmc-civic-hairline);
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--rmc-civic-fg-faint);
   width: 100%;
   max-width: 1100px;
