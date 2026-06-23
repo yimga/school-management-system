@@ -9,41 +9,83 @@
 
 {% include "components/next_action_strip.html" %}
 
-{% comment %} Pass 8 Wave 2: migrated to components/form_field + form_actions. Profile photo
-   field renders an inline preview when the user already has a photo — kept that
-   wrapper since form_field handles the field, the preview is supplementary. {% endcomment %}
-  <div data-rmc-scroll-policy="paginate" class="container py-4">
-    <div class="row justify-content-center">
-      <div class="col-lg-6">
-        <div class="card shadow-sm">
+{% comment %} Role-aware self-edit. The base card (name / email / photo) is always
+   shown. Teachers/staff additionally get a contact-phone field; parents/guardians
+   get a full contact + notifications card. When the second card is present we use
+   the width with a two-column layout; otherwise the form stays centred and narrow
+   for readability. {% endcomment %}
+<div data-rmc-scroll-policy="paginate" data-page="profile-edit" class="container-fluid px-3 px-lg-4 py-4">
+  <form method="post" action="" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="rmc-banner rmc-banner--error" role="alert" aria-live="polite">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="row g-4{% if not form.guardian_phone %} justify-content-center{% endif %}">
+      <div class="{% if form.guardian_phone %}col-lg-6{% else %}col-lg-7 col-xl-6{% endif %}">
+        <div class="card shadow-sm h-100">
           <div class="card-body">
-            <h1 class="h4 mb-3">{% trans "Edit profile" %}</h1>
-            <form method="post" action="" enctype="multipart/form-data">
-              {% csrf_token %}
-              {% if form.non_field_errors %}
-                <div class="rmc-banner rmc-banner--error" role="alert" aria-live="polite">{{ form.non_field_errors }}</div>
-              {% endif %}
+            <h1 class="h4 mb-1">{% trans "Your details" %}</h1>
+            <p class="text-muted small mb-3">{% trans "Your name, email and profile photo." %}</p>
 
-              {% include "components/form_field.html" with field=form.first_name %}
-              {% include "components/form_field.html" with field=form.last_name %}
-              {% include "components/form_field.html" with field=form.email %}
-              {% if form.contact_phone %}
+            {% include "components/form_field.html" with field=form.first_name %}
+            {% include "components/form_field.html" with field=form.last_name %}
+            {% include "components/form_field.html" with field=form.email %}
+            {% if form.contact_phone %}
               {% include "components/form_field.html" with field=form.contact_phone %}
-              {% endif %}
+            {% endif %}
 
-              {% include "components/form_field.html" with field=form.profile_photo %}
-              {% if request.user.profile_photo %}
-                <div class="mt-n2 mb-3">
-                  <img src="{{ request.user.profile_photo.url }}" alt="{% trans 'Current profile photo' %}" style="max-height:80px;border-radius:8px;">
-                </div>
-              {% endif %}
-
-              {% url 'accounts:user_profile' as cancel_url %}
-              {% include "components/form_actions.html" with submit_label=_("Save changes") cancel_url=cancel_url %}
-            </form>
+            {% include "components/form_field.html" with field=form.profile_photo %}
+            {% if request.user.profile_photo %}
+              <div class="mt-n2 mb-3">
+                <img src="{{ request.user.profile_photo.url }}" alt="{% trans 'Current profile photo' %}" style="max-height:80px;border-radius:8px;">
+              </div>
+            {% endif %}
           </div>
         </div>
       </div>
+
+      {% if form.guardian_phone %}
+      <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <h2 class="h4 mb-1">{% trans "Contact and notifications" %}</h2>
+            <p class="text-muted small mb-3">{% trans "How the school reaches you. These details apply to all of your children." %}</p>
+
+            {% include "components/form_field.html" with field=form.guardian_phone %}
+            {% include "components/form_field.html" with field=form.guardian_whatsapp %}
+            {% include "components/form_field.html" with field=form.guardian_address %}
+            {% include "components/form_field.html" with field=form.preferred_contact %}
+
+            <fieldset class="mt-2">
+              <legend class="form-label">{% trans "Notify me by" %}</legend>
+              <div class="d-flex flex-wrap gap-4">
+                <div class="form-check form-switch">
+                  {{ form.receives_email }}
+                  <label class="form-check-label" for="{{ form.receives_email.id_for_label }}">{{ form.receives_email.label }}</label>
+                </div>
+                <div class="form-check form-switch">
+                  {{ form.receives_sms }}
+                  <label class="form-check-label" for="{{ form.receives_sms.id_for_label }}">{{ form.receives_sms.label }}</label>
+                </div>
+                <div class="form-check form-switch">
+                  {{ form.receives_whatsapp }}
+                  <label class="form-check-label" for="{{ form.receives_whatsapp.id_for_label }}">{{ form.receives_whatsapp.label }}</label>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      </div>
+      {% endif %}
     </div>
-  </div>
+
+    <div class="row mt-1{% if not form.guardian_phone %} justify-content-center{% endif %}">
+      <div class="{% if form.guardian_phone %}col-12{% else %}col-lg-7 col-xl-6{% endif %}">
+        {% url 'accounts:user_profile' as cancel_url %}
+        {% include "components/form_actions.html" with submit_label=_("Save changes") cancel_url=cancel_url %}
+      </div>
+    </div>
+  </form>
+</div>
 {% endblock %}

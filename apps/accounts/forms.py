@@ -176,11 +176,23 @@ class UserPermissionForm(forms.Form):
 class UserProfileEditForm(forms.ModelForm):
     """My profile: edit name, email, profile photo (user can only edit self).
 
-    Teachers can additionally self-edit their contact phone
-    (``TeacherProfile.phone``) — a safe role-profile field. Sensitive role data
-    (pay scale, salary, permissions, staff_id) stays admin-managed and is never
-    exposed here. The field is added only when the user actually has a teacher
-    profile, so non-teacher roles see exactly the base form.
+    The form is role-aware and only ever exposes *safe*, self-owned fields:
+
+    * **Teachers / staff** can self-edit their contact phone
+      (``TeacherProfile.phone`` — the generic staff profile). Sensitive role
+      data (pay scale, salary, permissions, staff_id) stays admin-managed and
+      is never exposed here.
+    * **Parents / guardians** can self-edit their contact details and
+      notification preferences (``StudentGuardian`` phone / WhatsApp / address /
+      preferred channel + the three ``receives_*`` toggles). A parent holds one
+      link per child; on save the values are written uniformly across every
+      link so their contact stays consistent for all their children. The
+      admin-managed permission fields (``can_view_results`` / ``can_view_finance``)
+      are never exposed.
+
+    Each block of extra fields is added only when the user actually has the
+    matching profile, so a user sees exactly the fields they own and nothing
+    more.
     """
 
     contact_phone = forms.CharField(
@@ -232,8 +244,100 @@ class UserProfileEditForm(forms.ModelForm):
         if self._teacher_profile is not None:
             self.fields["contact_phone"].initial = self._teacher_profile.phone or ""
         else:
-            # Only teachers have a self-editable role-profile contact field today.
+            # Only teachers/staff have a self-editable role-profile contact field.
             self.fields.pop("contact_phone", None)
+
+        # Parent/guardian contact + notification self-edit. A guardian holds one
+        # StudentGuardian link per child; contact details are logically
+        # per-parent, so we surface a single set of fields (seeded from a
+        # representative link) and write them uniformly across every link on
+        # save. Fields are added only when the user actually has guardian links,
+        # so non-parents never see them. Permission fields (can_view_results /
+        # can_view_finance) are admin-managed and deliberately never surfaced.
+        self._guardian_links = []
+        if instance is not None and getattr(instance, "pk", None):
+            self._guardian_links = list(instance.guardian_links.all())
+        if self._guardian_links:
+            from apps.people.models import StudentGuardian
+
+            rep = self._guardian_links[0]
+
+            def _guardian_max_length(field_name):
+                # Derive widths from the model so they never drift / hardcode.
+                return StudentGuardian._meta.get_field(field_name).max_length
+
+            self.fields["guardian_phone"] = forms.CharField(
+                required=False,
+                max_length=_guardian_max_length("phone"),
+                label="Phone",
+                initial=rep.phone or "",
+                widget=forms.TextInput(
+                    attrs={
+                        "class": "form-control",
+                        "placeholder": "Phone",
+                        "autocomplete": "tel",
+                        "inputmode": "tel",
+                    }
+                ),
+            )
+            self.fields["guardian_whatsapp"] = forms.CharField(
+                required=False,
+                max_length=_guardian_max_length("whatsapp_number"),
+                label="WhatsApp number",
+                initial=rep.whatsapp_number or "",
+                widget=forms.TextInput(
+                    attrs={
+                        "class": "form-control",
+                        "placeholder": "WhatsApp number",
+                        "autocomplete": "tel",
+                        "inputmode": "tel",
+                    }
+                ),
+            )
+            self.fields["guardian_address"] = forms.CharField(
+                required=False,
+                max_length=_guardian_max_length("address"),
+                label="Address",
+                initial=rep.address or "",
+                widget=forms.TextInput(
+                    attrs={
+                        "class": "form-control",
+                        "placeholder": "Address",
+                        "autocomplete": "street-address",
+                    }
+                ),
+            )
+            self.fields["preferred_contact"] = forms.ChoiceField(
+                required=False,
+                label="Preferred contact method",
+                choices=StudentGuardian.PreferredContact.choices,
+                initial=rep.preferred_contact,
+                widget=forms.Select(attrs={"class": "form-select"}),
+            )
+            self.fields["receives_email"] = forms.BooleanField(
+                required=False,
+                label="Email notifications",
+                initial=rep.receives_email,
+                widget=forms.CheckboxInput(
+                    attrs={"class": "form-check-input", "role": "switch"}
+                ),
+            )
+            self.fields["receives_sms"] = forms.BooleanField(
+                required=False,
+                label="SMS notifications",
+                initial=rep.receives_sms,
+                widget=forms.CheckboxInput(
+                    attrs={"class": "form-check-input", "role": "switch"}
+                ),
+            )
+            self.fields["receives_whatsapp"] = forms.BooleanField(
+                required=False,
+                label="WhatsApp notifications",
+                initial=rep.receives_whatsapp,
+                widget=forms.CheckboxInput(
+                    attrs={"class": "form-check-input", "role": "switch"}
+                ),
+            )
 
     def save(self, commit: bool = True):
         user = super().save(commit=commit)
@@ -243,6 +347,27 @@ class UserProfileEditForm(forms.ModelForm):
             if profile.phone != new_phone:
                 profile.phone = new_phone
                 profile.save(update_fields=["phone"])
+
+        links = getattr(self, "_guardian_links", None)
+        if commit and links and "guardian_phone" in self.cleaned_data:
+            cd = self.cleaned_data
+            updates = {
+                "phone": (cd.get("guardian_phone") or "").strip(),
+                "whatsapp_number": (cd.get("guardian_whatsapp") or "").strip(),
+                "address": (cd.get("guardian_address") or "").strip(),
+                "receives_email": bool(cd.get("receives_email")),
+                "receives_sms": bool(cd.get("receives_sms")),
+                "receives_whatsapp": bool(cd.get("receives_whatsapp")),
+            }
+            preferred = cd.get("preferred_contact")
+            if preferred:
+                # Skip an empty submission rather than write an invalid choice.
+                updates["preferred_contact"] = preferred
+            update_fields = list(updates.keys())
+            for link in links:
+                for model_field, value in updates.items():
+                    setattr(link, model_field, value)
+                link.save(update_fields=update_fields)
         return user
 
 
