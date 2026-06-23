@@ -25,7 +25,7 @@
           {% endif %}{% endif %}
         </div>
       </div>
-      <div class="alert alert-light border mt-2 mb-0 py-2 px-3 small">
+      <div class="rmc-banner border mt-2 mb-0 py-2 px-3 small">
         <strong>{% trans "Capabilities" %}</strong> — {% blocktrans %}grouped by module family below. Each flag is explainable via <strong>Audit log</strong> (who/when); effective state may also depend on runtime, packs, policy, entitlements, and tenant overrides — see Configuration Control Center for the full outcome map.{% endblocktrans %}
         {% if SUPER_ADMIN_UI_ENABLED and request.public_host_kind == 'manager' %}{% if request.user.is_superuser or request.user.role == "SUPERADMIN" %}
         {% blocktrans %}To <strong>create a new school/site</strong>, use{% endblocktrans %} <a href="{% url 'super:dashboard' %}">{% trans_term "Schools" key="school" plural=True %}</a> → {% trans "Create School" %} ({% trans "multi-tenant provisioning" %}).
@@ -65,7 +65,7 @@
           </div>
         </div>
       </div>
-      <div id="noSearchResults" class="alert alert-secondary py-3 d-none" role="status">
+      <div id="noSearchResults" class="rmc-banner py-3 d-none" role="status">
         <i class="bi bi-search me-2"></i>No features match your search. Try different keywords.
       </div>
 

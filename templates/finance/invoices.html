@@ -19,7 +19,7 @@
 {% include "studio_os/components/page_header.html" with eyebrow=_("Finance · invoices") title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
 
 {% if finance_access_required and not finance_access_granted %}
-<div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert">
+<div class="rmc-banner rmc-banner--warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert">
   <div class="d-flex align-items-center gap-2">
     <i class="bi bi-shield-lock"></i>
     <div>
@@ -40,7 +40,7 @@
   {% endif %}
 </div>
 {% elif finance_access_summary %}
-<div class="alert alert-info d-flex align-items-center gap-2 mb-3" role="alert">
+<div class="rmc-banner rmc-banner--info d-flex align-items-center gap-2 mb-3" role="alert">
   <i class="bi bi-shield-check"></i>
   <div>{{ finance_access_summary }}</div>
   {% if can_request_finance_access %}

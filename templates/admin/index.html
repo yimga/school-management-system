@@ -307,7 +307,7 @@
 
 <div class="dashboard-container">
   {% if PREVIEW_MODE_ENABLED %}
-  <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div class="rmc-banner rmc-banner--warning d-flex flex-wrap align-items-center justify-content-between mb-3">
     <div>
       <strong>{% trans "Preview mode" %}</strong> — {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:_("Sandbox data will not persist.") }}
     </div>
@@ -317,7 +317,7 @@
     </div>
   </div>
   {% elif PREVIEW_TOGGLE_ENABLED %}
-  <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div class="rmc-banner rmc-banner--info d-flex flex-wrap align-items-center justify-content-between mb-3">
     <div>
       <strong>{% trans "Preview ready" %}</strong> — {{ PREVIEW_BANNER_TEXT|default:_("Staged changes can be reviewed without publishing.") }}
     </div>
@@ -328,7 +328,7 @@
   {% endif %}
 
   {% if FINANCE_REQUEST_ALERT_COUNT %}
-  <div class="alert alert-danger d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div class="rmc-banner rmc-banner--error d-flex flex-wrap align-items-center justify-content-between mb-3">
     <div>
       <strong>{% blocktrans count counter=FINANCE_REQUEST_ALERT_COUNT %}{{ counter }} pending finance access request{% plural %}{{ counter }} pending finance access requests{% endblocktrans %}</strong>
       <div class="small text-muted">{% trans "Handle guardian approvals without leaving the admin hub." %}</div>

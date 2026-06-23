@@ -52,7 +52,7 @@
   <div class="card shadow-sm">
     <div class="card-body">
       {% if not classroom_list %}
-      <div class="alert alert-info mb-0">
+      <div class="rmc-banner rmc-banner--info mb-0">
         <i class="bi bi-info-circle"></i> {% trans "No classrooms found. Add an academic year and classrooms in" %} <a href="{% url 'studio_os:workflow_center' %}">{% trans "Workflow Center" %}</a>, {% trans "then return here to generate letters." %}
       </div>
       {% else %}

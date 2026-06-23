@@ -12,7 +12,7 @@
   </div>
   <p class="text-muted small mb-4">{% trans "Choose a template to apply to your school. Review package impact and dependencies, then confirm apply." %}</p>
   {% if impact_bundle %}
-  <div class="alert alert-info border mb-4" role="region" aria-label="{% trans 'Package impact preview' %}">
+  <div class="rmc-banner rmc-banner--info border mb-4" role="region" aria-label="{% trans 'Package impact preview' %}">
     <h2 class="h6">{% trans "Impact preview" %} — {{ impact_bundle.package_id }} @ {{ impact_bundle.version }}</h2>
     <p class="small mb-2 text-muted">{% trans "Declared dependency edges (advisory; not a full solver)." %}</p>
     <div class="row small">

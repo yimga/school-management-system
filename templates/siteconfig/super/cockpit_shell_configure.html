@@ -37,7 +37,7 @@ classes assigned in the form widgets) so there are no inline styles.
   <form method="post" novalidate>
     {% csrf_token %}
     {% if form.non_field_errors %}
-    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    <div class="rmc-banner rmc-banner--error">{{ form.non_field_errors }}</div>
     {% endif %}
 
     <div class="row g-3">

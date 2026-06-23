@@ -21,11 +21,11 @@
   </header>
 
   {% if not allow_tenant_connect %}
-  <div class="alert alert-warning" role="status">{% trans "Platform operator has disabled tenant Stripe Connect onboarding." %}</div>
+  <div class="rmc-banner rmc-banner--warning" role="status">{% trans "Platform operator has disabled tenant Stripe Connect onboarding." %}</div>
   {% elif not processor_ready %}
-  <div class="alert alert-warning" role="status">{% trans "Platform Stripe credentials are not configured yet." %}</div>
+  <div class="rmc-banner rmc-banner--warning" role="status">{% trans "Platform Stripe credentials are not configured yet." %}</div>
   {% elif not connect_enabled %}
-  <div class="alert alert-warning" role="status">{% trans "Stripe Connect is not enabled on the platform billing processor." %}</div>
+  <div class="rmc-banner rmc-banner--warning" role="status">{% trans "Stripe Connect is not enabled on the platform billing processor." %}</div>
   {% else %}
   <section class="card border-0 shadow-sm mb-3" aria-labelledby="stripe-connect-status-heading">
     <div class="card-body">

@@ -13,7 +13,7 @@
   <header class="mb-4">
     <h1 class="h3">{% trans "Pilot evidence dashboard" %}</h1>
     {% if not schema_ok %}
-    <div class="alert alert-warning">{% trans "Schema issues:" %} {{ schema_issues|join:", " }}</div>
+    <div class="rmc-banner rmc-banner--warning">{% trans "Schema issues:" %} {{ schema_issues|join:", " }}</div>
     {% else %}
     <p class="text-muted small mb-0">{{ north_star_metric }}</p>
     {% endif %}

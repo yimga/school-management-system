@@ -1,7 +1,7 @@
 {% load i18n %}
 {% with current_role=request.user.role|default:"Administrator" %}
 <noscript>
-  <p class="alert alert-info mb-2">{% trans "Theme preview requires JavaScript. Use the form fields to change colors; save to see changes on the site." %}</p>
+  <p class="rmc-banner rmc-banner--info mb-2">{% trans "Theme preview requires JavaScript. Use the form fields to change colors; save to see changes on the site." %}</p>
 </noscript>
 <section class="theme-preview-section">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

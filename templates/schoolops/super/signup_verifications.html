@@ -75,7 +75,7 @@
 
   {% comment %} ── Deliverability alert: links that bounced never reached the inbox ──── {% endcomment %}
   {% if bounced_count %}
-  <div class="alert alert-danger d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
+  <div class="rmc-banner rmc-banner--error d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
     <span>
       <i class="bi bi-exclamation-octagon me-1"></i>
       {% blocktrans trimmed count n=bounced_count %}
@@ -90,7 +90,7 @@
 
   {% comment %} ── Stale callout + bulk resend ──────────────────────────────────────── {% endcomment %}
   {% if counts.stale %}
-  <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
+  <div class="rmc-banner rmc-banner--warning d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
     <span>
       <i class="bi bi-clock-history me-1"></i>
       {% blocktrans trimmed count n=counts.stale with hours=stale_after_hours %}

@@ -21,7 +21,7 @@
   </header>
 
   {% if minted_count is not None %}
-    <div data-rmc-scroll-policy="paginate" class="alert alert-success" role="status">
+    <div data-rmc-scroll-policy="paginate" class="rmc-banner rmc-banner--success" role="status">
       <strong>{% blocktrans count counter=minted_count %}{{ counter }} consent request sent.{% plural %}{{ counter }} consent requests sent.{% endblocktrans %}</strong>
       {% if bad_line_count %}
         <div class="mt-2">
@@ -54,7 +54,7 @@
             <input type="file" name="csv_file" accept=".csv,text/csv" class="form-control" required>
           </fieldset>
 
-          <div class="alert alert-info" role="status">
+          <div class="rmc-banner rmc-banner--info" role="status">
             <strong>{% trans "What happens after submit:" %}</strong>
             <ul class="mb-0">
               <li>{% trans "A unique unguessable consent URL is generated for each row." %}</li>

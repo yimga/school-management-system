@@ -33,7 +33,7 @@
     <h2 class="h6">{% trans "Platform pack catalog (reference)" %}</h2>
     <p class="small text-muted mb-2">{% trans "Read-only registry of workflow, dashboard, and theme packs aligned with marketplace governance. Install or apply packs through governed flows — not from this preview." %}</p>
     {% if platform_pack_catalog_warnings %}
-    <div class="alert alert-warning py-2 small mb-2" role="status">
+    <div class="rmc-banner rmc-banner--warning py-2 small mb-2" role="status">
       {% trans "Catalog validation warnings:" %} {{ platform_pack_catalog_warnings|join:"; " }}
     </div>
     {% endif %}

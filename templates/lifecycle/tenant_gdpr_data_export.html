@@ -20,10 +20,10 @@
   </div>
 
   {% if error %}
-  <div class="alert alert-warning" role="alert">{{ error }}</div>
+  <div class="rmc-banner rmc-banner--warning" role="alert">{{ error }}</div>
   {% endif %}
   {% if success %}
-  <div class="alert alert-success" role="status">
+  <div class="rmc-banner rmc-banner--success" role="status">
     {% blocktrans with count=student_export_count %}Export ready ({{ count }} student bundles included).{% endblocktrans %}
   </div>
   {% endif %}

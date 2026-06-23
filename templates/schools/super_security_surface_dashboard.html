@@ -66,13 +66,13 @@
     </div>
   </div>
   {% elif post_surface_missing %}
-  <div class="alert alert-warning mb-3">
+  <div class="rmc-banner rmc-banner--warning mb-3">
     {% trans "Combined POST surface ledger not found. Run:" %} <code>python scripts/audit_post_surface.py</code>
   </div>
   {% endif %}
 
   {% if audit_missing %}
-  <div class="alert alert-warning">
+  <div class="rmc-banner rmc-banner--warning">
     {% trans "Generated audit JSON not found or unreadable. Run:" %} <code>python scripts/audit_security_surface.py</code>
   </div>
   {% else %}

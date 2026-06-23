@@ -17,10 +17,10 @@
   {% endif %}
 
   {% if not school %}
-  <div class="alert alert-warning">{% trans "No tenant school on this request. Open the checklist from a school (tenant) host." %}</div>
+  <div class="rmc-banner rmc-banner--warning">{% trans "No tenant school on this request. Open the checklist from a school (tenant) host." %}</div>
   {% else %}
   {% if misconfiguration_flags %}
-  <div class="alert alert-warning border-warning mb-3" role="alert">
+  <div class="rmc-banner rmc-banner--warning border-warning mb-3" role="alert">
     <strong>{% trans "Misconfiguration / risk signals" %}:</strong>
     <ul class="mb-0 mt-2">
       {% if "setup_needed" in misconfiguration_flags %}

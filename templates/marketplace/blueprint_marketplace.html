@@ -30,7 +30,7 @@
   {% endif %}
 
   {% if preview %}
-  <div class="alert alert-info mb-3" role="status">
+  <div class="rmc-banner rmc-banner--info mb-3" role="status">
     <strong>{% trans "Preview" %}</strong> — {{ preview.pack_name }} ({{ preview.pack_slug }}) v{{ preview.pack_version }}.
     {% trans "Policy keys" %}: {{ preview.policy_keys|join:", "|default:"—" }}.
   </div>

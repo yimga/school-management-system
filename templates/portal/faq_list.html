@@ -174,7 +174,7 @@
                 {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
                 {% endif %}
             {% else %}
-                <div class="alert alert-info" role="alert">
+                <div class="rmc-banner rmc-banner--info" role="alert">
                     <i class="bi bi-info-circle"></i>
                     <strong>No FAQs found.</strong>
                     Try adjusting your search or browse other categories.
@@ -182,7 +182,7 @@
             {% endif %}
 
             <!-- CTA: Submit FAQ -->
-            <div class="alert alert-light border border-primary mt-4">
+            <div class="rmc-banner border border-primary mt-4">
                 <h6 class="alert-heading">
                     <i class="bi bi-plus-circle text-primary"></i> Couldn't find your answer?
                 </h6>

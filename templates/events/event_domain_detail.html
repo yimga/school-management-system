@@ -60,7 +60,7 @@
     <div class="card-header"><h5 class="mb-0">{% trans "Subscriber path" %}</h5></div>
     <div class="card-body">
       <p class="mb-2 small text-muted">{% trans "Internal subscribers run during outbox processing (apps.events.bus.dispatch_internal_subscribers)." %}</p>
-      {% if replay_note %}<p class="small alert alert-warning mb-0">{{ replay_note }}</p>{% endif %}
+      {% if replay_note %}<p class="rmc-banner rmc-banner--warning small mb-0">{{ replay_note }}</p>{% endif %}
     </div>
   </div>
 

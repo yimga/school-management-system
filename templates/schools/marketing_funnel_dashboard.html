@@ -56,7 +56,7 @@
       <li>{% trans "Gap (verified → subscription events)" %}: {{ growth.why_not_paying_hints.gap_verified_to_subscription_events|default:"—" }}</li>
     </ul>
     {% if growth.insufficient_volume_for_claims %}
-    <div class="alert alert-warning py-2 small mb-0">{% trans "Insufficient visit volume in the last 30 days for stable conversion benchmarks." %}</div>
+    <div class="rmc-banner rmc-banner--warning py-2 small mb-0">{% trans "Insufficient visit volume in the last 30 days for stable conversion benchmarks." %}</div>
     {% endif %}
     {% if growth.time_to_value_fast_path %}
     <div class="row g-3 mb-3 rmc-reveal-stagger">

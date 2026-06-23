@@ -27,12 +27,12 @@
     {% blocktrans with sl=sae_student_sg_lc tp=sae_teacher_pl_lc cp=sae_classroom_pl_lc %}Download {{ sl }} attendance rows for this school only. {{ tp }} only see {{ cp }} they are assigned to teach (marks assignments). Admins see the full school for the selected range.{% endblocktrans %}
   </p>
   {% if filter_error %}
-  <div class="alert alert-danger small" role="alert">
+  <div class="rmc-banner rmc-banner--error small" role="alert">
     {{ filter_error }}
   </div>
   {% endif %}
   {% if not classrooms %}
-  <div class="alert alert-warning small" role="status">
+  <div class="rmc-banner rmc-banner--warning small" role="status">
     {% trans "No classes are available for export in your current access scope." %}
   </div>
   {% endif %}

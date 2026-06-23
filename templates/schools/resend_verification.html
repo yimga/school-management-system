@@ -12,10 +12,10 @@
     <div class="col-md-6">
       <h1 class="h3 mb-3">{% trans "Resend verification link" %}</h1>
       {% if sent %}
-      <div class="alert alert-success">{{ message }}</div>
+      <div class="rmc-banner rmc-banner--success">{{ message }}</div>
       <p><a href="{% url 'global_login_discovery' %}">{% trans "Go to login" %}</a></p>
       {% else %}
-      {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+      {% if error %}<div class="rmc-banner rmc-banner--error">{{ error }}</div>{% endif %}
       <p class="text-muted">{% trans "Your signup verification link is valid for 2 days. If it expired or never arrived, enter the email you signed up with and we'll send a fresh link — no need to sign up again." %}</p>
       <form method="post" action="{% url 'resend_signup_verification' %}" novalidate>
         {% csrf_token %}

@@ -42,7 +42,7 @@
               <i class="bi bi-stars me-1" aria-hidden="true"></i>{% trans "Summarize thread" %}
             </button>
           </div>
-          <div id="rmc-ai-summary" class="alert alert-light border small" role="status" aria-live="polite" hidden></div>
+          <div id="rmc-ai-summary" class="rmc-banner border small" role="status" aria-live="polite" hidden></div>
           {% endif %}
           {% comment %} IM-5: data-rmc-thread-* attrs feed rmc-group-thread-live.js so new
              messages + read-receipt counts update without a reload. {% endcomment %}
@@ -139,7 +139,7 @@
             </div>
           </form>
           {% else %}
-          <div class="alert alert-info">
+          <div class="rmc-banner rmc-banner--info">
             <i class="bi bi-info-circle me-2"></i>You're not a member of this group.
             <a href="{% url 'communication:group_join' thread_id=thread.id %}" class="btn btn-sm btn-primary ms-2">Join Group</a>
           </div>

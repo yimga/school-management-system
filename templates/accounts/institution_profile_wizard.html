@@ -13,7 +13,7 @@
   <h1 class="h4">{% trans "What kind of institution are you?" %}</h1>
   <p class="small text-muted">{% trans "Applies delivery modes (wedges 23–30) and institution type (31–43) to runtime: features, workflow/report hints, ministry stub slugs." %}</p>
   {% if runtime_summary.institution_wedge or runtime_summary.delivery_wedges %}
-  <div class="alert alert-secondary small mb-3">
+  <div class="rmc-banner small mb-3">
     <strong>{% trans "Current runtime" %}:</strong>
     {% trans "Delivery wedges" %} {{ runtime_summary.delivery_wedges|default:"—" }};
     {% trans "Institution wedge" %} {{ runtime_summary.institution_wedge|default:"—" }};

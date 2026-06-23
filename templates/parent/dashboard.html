@@ -31,7 +31,7 @@
 {% url 'portal:portal_operational_health_stream' as tenant_health_stream_url %}
 {% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="parent" %}
 {% if show_pwa_install_cta %}
-<section class="alert alert-light border shadow-sm mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2" role="region" aria-label="{% trans 'Install app' %}" data-rmc-pwa-install-cta="1">
+<section class="rmc-banner border shadow-sm mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2" role="region" aria-label="{% trans 'Install app' %}" data-rmc-pwa-install-cta="1">
   <div data-rmc-scroll-policy="paginate">
     <strong><i class="bi bi-phone me-1" aria-hidden="true"></i>{% trans "Install on your phone" %}</strong>
     <span class="d-block small text-muted">{% trans "Add RunMyCampus to your home screen for faster fee payments and alerts." %}</span>
@@ -78,7 +78,7 @@
        primary CTAs, and "what needs attention" decision zone — that's the single
        page-h1 grammar a screen reader should hear. {% endcomment %}
     {% if parent_simplified %}
-    <div class="alert alert-info border-0 shadow-sm rounded-4 mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2" role="region" aria-label="{% trans 'Simplified home' %}" data-parent-simplified="1">
+    <div class="rmc-banner rmc-banner--info border-0 shadow-sm rounded-4 mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2" role="region" aria-label="{% trans 'Simplified home' %}" data-parent-simplified="1">
       <div>
         <strong>{% trans "Simplified home" %}</strong>
         <span class="d-block small text-muted">{% trans "Quick links to the essentials. Open the full dashboard for charts and every widget." %}</span>
@@ -125,7 +125,7 @@
     {% endif %}
 
     {% if PREVIEW_MODE_ENABLED %}
-    <div class="alert alert-warning rounded-3 mb-3 py-2 d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <div class="rmc-banner rmc-banner--warning rounded-3 mb-3 py-2 d-flex flex-wrap align-items-center justify-content-between gap-2">
       <div class="small">
         <strong class="text-uppercase">{% trans "Preview mode" %}</strong> - {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:_("Changes are staged and will not persist until preview is cleared.") }}
       </div>
@@ -199,7 +199,7 @@
     </div>
     {% endif %}
     {% if not can_view_finance %}
-    <div class="alert alert-warning d-flex align-items-center gap-2 mb-3" role="alert">
+    <div class="rmc-banner rmc-banner--warning d-flex align-items-center gap-2 mb-3" role="alert">
       <i class="bi bi-shield-lock"></i>
       <div>
         {% trans "Finance access is not enabled for your account yet. If you need to view invoices or make payments, please contact the school admin to enable finance access for your linked students." %}

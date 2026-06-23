@@ -23,9 +23,9 @@
       <div class="rmc-account-mfa-card__body">
         {% if not has_mfa and not qr_code %}
           {% if next_url %}
-          <div class="alert alert-warning mb-3" role="status"><i class="bi bi-shield-lock me-1" aria-hidden="true"></i><strong>{% trans "Your organization requires two-factor authentication" %}</strong> — {% trans "for your role. Set it up below to continue to your dashboard; it takes about a minute." %}</div>
+          <div class="rmc-banner rmc-banner--warning mb-3" role="status"><i class="bi bi-shield-lock me-1" aria-hidden="true"></i><strong>{% trans "Your organization requires two-factor authentication" %}</strong> — {% trans "for your role. Set it up below to continue to your dashboard; it takes about a minute." %}</div>
           {% else %}
-          <div class="alert alert-info mb-3"><i class="bi bi-info-circle me-1"></i><strong>{% trans "MFA is currently disabled" %}</strong> {% trans "for your account." %}</div>
+          <div class="rmc-banner rmc-banner--info mb-3"><i class="bi bi-info-circle me-1"></i><strong>{% trans "MFA is currently disabled" %}</strong> {% trans "for your account." %}</div>
           {% endif %}
           <p>{% trans "Multi-factor authentication adds a second layer of security: a one-time code from your phone on top of your password." %}</p>
           <ol class="rmc-account-step-list">
@@ -46,7 +46,7 @@
           </div>
           {% if use_passkey %}<div id="passkey-message-first" class="mt-2 small text-muted"></div>{% endif %}
         {% elif qr_code %}
-          <div class="alert alert-warning mb-3"><i class="bi bi-exclamation-triangle me-1"></i><strong>{% trans "Important." %}</strong> {% trans "Save your secret key in a secure place." %}</div>
+          <div class="rmc-banner rmc-banner--warning mb-3"><i class="bi bi-exclamation-triangle me-1"></i><strong>{% trans "Important." %}</strong> {% trans "Save your secret key in a secure place." %}</div>
           <h2 class="h6">{% trans "Step 1: Scan this QR code" %}</h2>
           <div class="rmc-account-mfa-qr-wrap">
             <img src="data:image/png;base64,{{ qr_code }}" alt="{% trans 'MFA QR code' %}" class="img-fluid" width="240" height="240" decoding="async">
@@ -68,7 +68,7 @@
           </form>
           <div class="small text-muted"><i class="bi bi-lightbulb me-1"></i>{% trans "Enter the 6-digit code from your authenticator app to complete setup." %}</div>
         {% else %}
-          <div class="alert alert-success mb-3"><i class="bi bi-check2-circle me-1"></i><strong>{% trans "MFA is enabled" %}</strong> {% trans "and protecting your account." %}</div>
+          <div class="rmc-banner rmc-banner--success mb-3"><i class="bi bi-check2-circle me-1"></i><strong>{% trans "MFA is enabled" %}</strong> {% trans "and protecting your account." %}</div>
           <p>{% trans "Your account is protected with multi-factor authentication. You will enter a code when signing in from a new device." %}</p>
           <dl class="data-list">
             <dt>{% trans "MFA type" %}</dt><dd>{% trans "Time-based One-Time Password (TOTP)" %}</dd>

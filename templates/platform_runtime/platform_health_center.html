@@ -102,7 +102,7 @@
   <section class="mb-4">
     <h2 class="h5 mb-2 text-uppercase text-tertiary small">{% trans "Over-SLA backlog items" %}</h2>
     {% if not backlog_snapshot_available %}
-    <div class="alert alert-info py-2 small" role="status">
+    <div class="rmc-banner rmc-banner--info py-2 small" role="status">
       {% trans "No backlog evaluation snapshot is cached, so SLA breaches can't be shown. Run it once:" %}
       <code>python manage.py evaluate_backlog_unlocks --profile full --update-cache</code>
       {% trans "or schedule the daily refresh by setting" %} <code>ENABLE_BACKLOG_UNLOCK_BEAT=1</code>.

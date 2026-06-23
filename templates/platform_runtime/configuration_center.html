@@ -18,7 +18,7 @@
   {% include "components/world_class_summary_strip.html" with readiness=summary.readiness_display readiness_label=summary.readiness_label risk=summary.risk_level risk_label=summary.risk_label next_step=summary.next_step next_step_label=summary.next_step_label blockers=summary.blockers_display blockers_label=summary.blockers_label %}
   {% include "components/platform_readiness_strip.html" with inline_field_prefix='cfg-center' hide_inline=1 %}
 
-  <div data-rmc-scroll-policy="paginate" class="alert alert-secondary border-0 shadow-sm mb-3" role="note">
+  <div data-rmc-scroll-policy="paginate" class="rmc-banner border-0 shadow-sm mb-3" role="note">
     <strong>{% trans "Raw admin remains technical fallback." %}</strong>
     {% trans "Use /super/ for platform operations, /configuration/ for governed platform configuration, tenant school settings for school-scoped changes, and /internal-admin/ only for raw model fallback." %}
     <a class="ms-2" href="{% url 'configuration:change_requests' %}">{% trans "Review change requests" %}</a>

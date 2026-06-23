@@ -16,7 +16,7 @@
     </div>
   </div>
   {% if not collabora_enabled %}
-  <div class="alert alert-warning">{% trans "Collabora is not configured. Set" %} <code>COLLABORA_BASE_URL</code>. {% trans "PDF/DOCX download still works via LibreOffice headless." %}</div>
+  <div class="rmc-banner rmc-banner--warning">{% trans "Collabora is not configured. Set" %} <code>COLLABORA_BASE_URL</code>. {% trans "PDF/DOCX download still works via LibreOffice headless." %}</div>
   {% endif %}
   <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
     <caption class="visually-hidden">{% trans "Office Documents" %}</caption>

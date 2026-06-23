@@ -23,7 +23,7 @@
   </header>
 
   {% if metrics.insufficient_data %}
-  <div class="alert alert-warning border-0 shadow-sm mb-4" role="status" data-rmc-ux-section="system-pulse">
+  <div class="rmc-banner rmc-banner--warning border-0 shadow-sm mb-4" role="status" data-rmc-ux-section="system-pulse">
     <strong>{% trans "Insufficient cohort data" %}</strong>
     {% blocktrans with n=metrics.min_sample %}Need at least {{ n }} distinct schools with onboarding_start events for portfolio activation/conversion rates.{% endblocktrans %}
     <div class="mt-3">
@@ -50,7 +50,7 @@
   {% endif %}
 
   {% if metrics.time_to_first_value_insufficient_data %}
-  <div class="alert alert-secondary border-0 shadow-sm mb-4" role="status">
+  <div class="rmc-banner border-0 shadow-sm mb-4" role="status">
     {% trans "Median time-to-first-action unavailable (need more schools with both onboarding_start and first_action)." %}
   </div>
   {% else %}

@@ -30,7 +30,7 @@
       </form>
 
     {% elif qr_code %}
-      <div class="alert alert-warning py-2 small mb-3">{% trans "Save your secret key before closing this page." %}</div>
+      <div class="rmc-banner rmc-banner--warning py-2 small mb-3">{% trans "Save your secret key before closing this page." %}</div>
       <div class="rmc-account-mfa-qr-wrap mb-3">
         <img src="data:image/png;base64,{{ qr_code }}" alt="{% trans 'MFA QR code' %}" width="200" height="200" decoding="async" class="img-fluid" style="max-width:200px;border-radius:8px;background:var(--color-base-0);padding:10px">
       </div>
@@ -50,7 +50,7 @@
       </form>
 
     {% else %}
-      <div class="alert alert-success py-2 small mb-2">{% trans "MFA is enabled on this account." %}</div>
+      <div class="rmc-banner rmc-banner--success py-2 small mb-2">{% trans "MFA is enabled on this account." %}</div>
       {% if backup_tokens %}
       <p class="small text-muted mb-2">{% trans "Backup codes (store securely):" %}</p>
       <div class="d-flex flex-wrap gap-1 mb-3">

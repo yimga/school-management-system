@@ -15,7 +15,7 @@
     <p class="small text-secondary">{% trans "New school will inherit branding, locale, blueprint, and settings from the source — minus status flags and PII." %}</p>
   </header>
 
-  {% if error %}<div class="alert alert-danger py-2 small">{{ error }}</div>{% endif %}
+  {% if error %}<div class="rmc-banner rmc-banner--error py-2 small">{{ error }}</div>{% endif %}
 
   <form method="post" class="card border-0 shadow-sm p-3" style="max-width: 540px;">
     {% csrf_token %}

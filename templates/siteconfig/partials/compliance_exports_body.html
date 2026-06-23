@@ -18,12 +18,12 @@
   {% if school %}
   <p class="small text-muted mb-3"><strong>{% trans_term "School" key="school" %}</strong>: {{ school.name }}</p>
   {% else %}
-  <div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert">
+  <div class="rmc-banner rmc-banner--warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert">
     <span>{% trans "No tenant context." %}</span>
     <a class="btn btn-sm btn-primary" href="{% url 'accounts:backend_dashboard' %}" data-action="tenant-context-fallback">{% trans "Open backend dashboard" %}</a>
   </div>
   {% endif %}
-  <div class="alert alert-light border small mb-3" role="status">
+  <div class="rmc-banner border small mb-3" role="status">
     <strong>{% trans "Recommended flow" %}:</strong>
     {% trans "Review missing data warnings first, then use Download CSV as the primary action on each export card." %}
   </div>
@@ -98,7 +98,7 @@
         <dd class="col-sm-8"><code>{{ row.permission_required }}</code></dd>
       </dl>
       {% if row.missing_data %}
-      <div class="alert alert-warning small mb-2" role="status">
+      <div class="rmc-banner rmc-banner--warning small mb-2" role="status">
         <strong>{% trans "Missing or insufficient data" %}:</strong>
         <ul class="mb-0 ps-3">
           {% for m in row.missing_data %}<li>{{ m }}</li>{% endfor %}

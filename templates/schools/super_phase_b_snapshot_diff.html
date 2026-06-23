@@ -32,18 +32,18 @@
     <a class="btn btn-sm btn-outline-secondary" href="{{ phase_b_snapshot_diff_url }}?export=json">{% trans "Export drift summary (JSON)" %}</a>
   </div>
 
-  <div class="alert alert-secondary border-0 shadow-sm mb-3" role="note">
+  <div class="rmc-banner border-0 shadow-sm mb-3" role="note">
     {% trans "In sync means whole-row canonical JSON fingerprint matches. Key-level table shows top-level fields that differ. The Scope column summarizes each payload slice for operators (aligned with domain ownership — not a substitute for first-class tables per field)." %}
     {% trans "If drift appears after SiteSettings.save, use the button above or open" %}
     <a href="{{ snapshot_admin_list }}">{% trans "Phase B snapshots (admin)" %}</a>.
   </div>
 
   {% if drift_count %}
-  <div class="alert alert-warning border-0 shadow-sm mb-3" role="status">
+  <div class="rmc-banner rmc-banner--warning border-0 shadow-sm mb-3" role="status">
     {% blocktrans count c=drift_count %}One domain is out of sync.{% plural %}{{ c }} domains are out of sync.{% endblocktrans %}
   </div>
   {% else %}
-  <div class="alert alert-success border-0 shadow-sm mb-3" role="status">
+  <div class="rmc-banner rmc-banner--success border-0 shadow-sm mb-3" role="status">
     {% trans "All domains match stored snapshots." %}
   </div>
   {% endif %}

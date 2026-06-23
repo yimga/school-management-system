@@ -42,7 +42,7 @@
 </div>
 
 {% if ticket.merged_into_id %}
-<div class="alert alert-info small mb-4" role="status">
+<div class="rmc-banner rmc-banner--info small mb-4" role="status">
   {% trans "This ticket was merged as a duplicate. The team is tracking your issue on a single thread." %}
 </div>
 {% endif %}
@@ -109,7 +109,7 @@
   </div>
 </div>
 {% elif ticket.csat_score %}
-<div class="alert alert-light border small">{% trans "Thank you — you rated this ticket" %} {{ ticket.csat_score }}/5.</div>
+<div class="rmc-banner border small">{% trans "Thank you — you rated this ticket" %} {{ ticket.csat_score }}/5.</div>
 {% endif %}
 </div>
 {% endblock %}

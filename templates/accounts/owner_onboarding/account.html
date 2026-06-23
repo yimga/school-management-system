@@ -26,7 +26,7 @@
       <p class="form-help-muted text-start mb-3">{% trans "Your password must meet the requirements listed below — pick one you will use to sign in with your email." %}</p>
       <form method="post">
         {% csrf_token %}
-        {% if form.non_field_errors %}<div class="alert alert-danger mb-3">{{ form.non_field_errors }}</div>{% endif %}
+        {% if form.non_field_errors %}<div class="rmc-banner rmc-banner--error mb-3">{{ form.non_field_errors }}</div>{% endif %}
         <div class="row g-2 mb-3">
           <div class="col">
             <label for="id_first_name" class="form-label">{% trans "First name" %}</label>

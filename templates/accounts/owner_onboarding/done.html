@@ -38,7 +38,7 @@
       {% include "components/rmc_tenant_provision_progress.html" with provision_progress_api_url=provision_progress_api_url provision_apply_fix_url=provision_apply_fix_url provision_dashboard_href=dashboard_href %}
     </div>
     {% if last_provisioning_error %}
-    <div class="alert alert-warning text-start small mt-3 mb-0" role="status">
+    <div class="rmc-banner rmc-banner--warning text-start small mt-3 mb-0" role="status">
       <strong>{% trans "Latest issue" %}</strong>
       <div class="mt-1">{{ last_provisioning_error }}</div>
     </div>

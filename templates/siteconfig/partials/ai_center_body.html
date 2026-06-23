@@ -20,7 +20,7 @@
   </header>
 
   {% if provider_status %}
-  <div class="alert border d-flex flex-wrap align-items-center gap-2 py-2 mb-3 rmc-surface-muted-panel"
+  <div class="rmc-banner border d-flex flex-wrap align-items-center gap-2 py-2 mb-3 rmc-surface-muted-panel"
        data-rmc-ai-health-root
        data-health-url="{% url 'ai_health' %}"
        data-deployment-profile="{{ provider_status.deployment_profile|default:'online' }}"
@@ -59,13 +59,13 @@
   {% endif %}
 
   {% if provider_status.litellm_configured and not provider_status.reachable and provider_status.deployment_profile == "online" %}
-  <div class="alert alert-warning py-2 mb-3 small" role="alert">
+  <div class="rmc-banner rmc-banner--warning py-2 mb-3 small" role="alert">
     {% trans "Cloud AI is configured but the app server cannot reach the LiteLLM proxy. Check" %}
     <code>LITELLM_PROXY_URL</code>, <code>LITELLM_API_KEY</code>,
     {% trans "and outbound HTTPS from Render. Until then, assistants use guided help-center fallback." %}
   </div>
   {% elif provider_status.ollama_configured and not provider_status.reachable and provider_status.deployment_profile != "online" %}
-  <div class="alert alert-warning py-2 mb-3 small" role="alert">
+  <div class="rmc-banner rmc-banner--warning py-2 mb-3 small" role="alert">
     {% trans "Ollama is set in the environment but the app server cannot reach it. Start" %}
     <code>ollama serve</code>
     {% trans "on the Django host, pull your model, then run" %}
@@ -73,7 +73,7 @@
     {% trans "Until then, assistants use grounded rules fallback (not live model answers)." %}
   </div>
   {% elif provider_status.ollama_configured and not provider_status.reachable and provider_status.deployment_profile == "online" and not provider_status.litellm_configured %}
-  <div class="alert alert-warning py-2 mb-3 small" role="alert">
+  <div class="rmc-banner rmc-banner--warning py-2 mb-3 small" role="alert">
     {% trans "No cloud AI proxy is configured and Ollama is not reachable from Render. Set" %}
     <code>LITELLM_PROXY_URL</code>
     {% trans "for SaaS live AI, or run Ollama only on a LAN hub (edge profile)." %}
@@ -203,7 +203,7 @@ OLLAMA_MODEL=llama3</code></pre>
               aria-live="polite"
               hidden
             ></pre>
-            <div class="alert alert-warning py-2 px-3 mt-2 small d-none" data-rmc-ai-escalation hidden role="status">
+            <div class="rmc-banner rmc-banner--warning py-2 px-3 mt-2 small d-none" data-rmc-ai-escalation hidden role="status">
               {% trans "Documentation gap detected." %}
               <a href="{{ ai_escalate_url }}" class="alert-link ms-1" data-rmc-ai-escalate-link data-rmc-dead-link-allow="escalate-href-set-by-ai-assistant-js">{% trans "Escalate to Campus Helpdesk" %}</a>
             </div>

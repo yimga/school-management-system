@@ -33,7 +33,7 @@
     <div class="col-lg-6">
       <h1 class="h3 mb-4">{% trans "Find your school" %}</h1>
       {% if pending_school %}
-      <div class="alert alert-info text-start mb-4">
+      <div class="rmc-banner rmc-banner--info text-start mb-4">
         <h2 class="h6 mb-2">{% trans "Campus setup in progress" %}</h2>
         <p class="mb-2">{% blocktrans with campus=pending_school.name %}We found {{ campus }} for this email, but the private portal is not live yet.{% endblocktrans %}</p>
         {% if pending_state == "awaiting_verification" %}
@@ -50,7 +50,7 @@
       </div>
       {% else %}
       <p class="text-muted">Enter your email to be redirected to your school portal.</p>
-      {% if error %}<div class="alert alert-warning">{{ error }}</div>{% endif %}
+      {% if error %}<div class="rmc-banner rmc-banner--warning">{{ error }}</div>{% endif %}
       <form method="post" action="{% url 'global_login_discovery' %}">
         {% csrf_token %}
         <div class="mb-3">

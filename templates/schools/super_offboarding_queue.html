@@ -19,19 +19,19 @@
     {% trans "Due today" %}: <strong>{{ due_count }}</strong>.
   </p>
   {% if not auto_purge_enabled %}
-  <div class="alert alert-info py-2 small mb-3" role="status" data-rmc-auto-purge-disabled-banner="1">
+  <div class="rmc-banner rmc-banner--info py-2 small mb-3" role="status" data-rmc-auto-purge-disabled-banner="1">
     <strong>{% trans "Auto-purge is off." %}</strong>
     {% trans "Scheduled purge dates are stored and schools appear in this queue, but nothing deletes automatically until you enable TENANT_AUTO_PURGE_ENABLED=1 on the platform or run due purges manually below (operator confirmation required)." %}
   </div>
   {% endif %}
   {% if billing_outstanding_count %}
-  <div class="alert alert-warning py-2 small mb-3" role="status">
+  <div class="rmc-banner rmc-banner--warning py-2 small mb-3" role="status">
     <strong>{% trans "Billing alert:" %}</strong>
     {% blocktrans count counter=billing_outstanding_count %}{{ counter }} school has an outstanding billing balance — purge may require dual-approval.{% plural %}{{ counter }} schools have outstanding billing balances — purge may require dual-approval.{% endblocktrans %}
   </div>
   {% endif %}
   {% if provisioning_failure_count %}
-  <div class="alert alert-danger py-2 small mb-3" role="status" data-rmc-provisioning-failures-banner="1">
+  <div class="rmc-banner rmc-banner--error py-2 small mb-3" role="status" data-rmc-provisioning-failures-banner="1">
     <strong>{% trans "Provisioning failures (last 7 days):" %}</strong>
     {% blocktrans count counter=provisioning_failure_count %}{{ counter }} tenant has a recent provisioning failure.{% plural %}{{ counter }} tenants have recent provisioning failures.{% endblocktrans %}
     <ul class="mb-0 mt-1">

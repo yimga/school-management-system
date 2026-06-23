@@ -15,10 +15,10 @@
     <p class="text-secondary">{% trans "Per GDPR / FERPA, you can request a full export of your school's data and initiate closure of this tenant. The closure is reversible during the grace period." %}</p>
   </header>
 
-  {% if error %}<div class="alert alert-danger small">{{ error }}</div>{% endif %}
+  {% if error %}<div class="rmc-banner rmc-banner--error small">{{ error }}</div>{% endif %}
 
   {% if phase == "submitted" %}
-  <div class="alert alert-success">
+  <div class="rmc-banner rmc-banner--success">
     <strong>{% trans "Request received." %}</strong>
     <p class="mb-1">{% trans "Your school is now in the grace period." %}</p>
     {% if grace_expires_at %}<p class="mb-1">{% trans "Closure scheduled for:" %} <strong>{{ grace_expires_at|date:"Y-m-d H:i" }} UTC</strong>.</p>{% endif %}

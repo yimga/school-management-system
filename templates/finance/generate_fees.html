@@ -19,7 +19,7 @@
   {% include "components/rmc_empty_state.html" with icon="bi-receipt-cutoff" title="No fee plans yet" message="Create a fee plan to generate invoices for students. Fee plans define amounts per classroom and specialty." primary_url=generate_fees_back_url primary_label="Open Finance" %}
 {% else %}
   {% if last_generated_count %}
-  <div class="alert alert-success d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3" role="alert">
+  <div class="rmc-banner rmc-banner--success d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3" role="alert">
     <span><i class="bi bi-check-circle me-2"></i>Generated {{ last_generated_count }} invoice(s). Notify guardians with finance access so they see the new invoices in the portal.</span>
     <div class="d-flex gap-2">
       <form method="post" action="{% url 'finance:notify_guardians_new_invoices' %}" class="d-inline">

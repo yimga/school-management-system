@@ -28,7 +28,7 @@
         {% if plan_tier_ctx.slug %}<span class="text-muted">(<code>{{ plan_tier_ctx.slug }}</code>)</span>{% endif %}
       </p>
       {% if upgrade_next_tier %}
-      <div class="alert alert-light border py-2 mb-0" role="status" data-rmc-upgrade-messaging="1">
+      <div class="rmc-banner border py-2 mb-0" role="status" data-rmc-upgrade-messaging="1">
         <strong>{% trans "Upgrade path" %}</strong> — {% blocktrans with next=upgrade_next_tier|title %}Higher marketplace apps and automation often need {{ next }} or Enterprise. Billing and contracts are handled with your account team; this page stays read-only.{% endblocktrans %}
         {% if app_catalog_url %}
         <span class="d-block mt-2"><a href="{{ app_catalog_url }}">{% trans "Browse app catalog" %}</a> {% trans "(blocked apps show upgrade hints on each card)." %}</span>
@@ -220,7 +220,7 @@
     {% endif %}
   </div>
 
-  <div class="alert alert-light border small" role="status" data-rmc-billing-next-steps="1">
+  <div class="rmc-banner border small" role="status" data-rmc-billing-next-steps="1">
     <strong>{% trans "What happens next" %}</strong>
     <ol class="mb-0 mt-2 ps-3">
       <li>{% trans "Review current plan and usage limits above." %}</li>

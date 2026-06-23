@@ -26,7 +26,7 @@
     </div>
 
     {% if active_as_delegate %}
-      <div class="alert alert-info mb-3">
+      <div class="rmc-banner rmc-banner--info mb-3">
         <strong>You are currently acting for:</strong> {{ active_as_delegate.delegator.get_full_name|default:active_as_delegate.delegator.username }}
         (until {{ active_as_delegate.effective_end_date|date }}).
       </div>

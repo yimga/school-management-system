@@ -19,7 +19,7 @@
 
   <section class="rmc-card" style="padding: 16px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
     {% if not is_admin_user %}
-      <div class="alert alert-warning" role="alert" style="margin-bottom: 14px;">
+      <div class="rmc-banner rmc-banner--warning" role="alert" style="margin-bottom: 14px;">
         {% trans "Read-only — only school admins can save changes." %}
       </div>
     {% endif %}

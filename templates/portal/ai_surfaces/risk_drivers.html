@@ -31,7 +31,7 @@
   {% blocktrans with t=stu_sg_lc asvar risk_drivers_empty_title %}No risk score has been computed for this {{ t }} yet. The nightly scorer runs once a day.{% endblocktrans %}
   {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=risk_drivers_empty_title message=_("Nothing here yet — check back after your school adds data.") %}
 {% elif not has_ml_explanation %}
-  <div class="alert alert-info">
+  <div class="rmc-banner rmc-banner--info">
     {% trans "This score was served by the heuristic baseline (no ML model in production)." %}
     <br>
     <span class="small text-muted">{{ risk_factor.reason_summary }}</span>

@@ -27,7 +27,7 @@
 <div class="cp-admin-v1-index cp-admin-index rmc-admin-catalog-index" data-rmc-os-shell="control-plane" data-page-archetype="operator-command-center" data-rmc-admin-catalog-index="1" data-rmc-page-fold-nav="required" data-rmc-section-nav="curated" data-rmc-scroll-policy="paginate">
 
   {% if PREVIEW_MODE_ENABLED %}
-  <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between mx-4 mt-3 mb-0">
+  <div class="rmc-banner rmc-banner--warning d-flex flex-wrap align-items-center justify-content-between mx-4 mt-3 mb-0">
     <span>{% trans "Preview mode" %} — {{ PREVIEW_BANNER_TEXT|default:"Sandbox data will not persist." }}</span>
     <a class="btn btn-sm btn-light" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{% trans "Toggle sandbox" %}</a>
   </div>

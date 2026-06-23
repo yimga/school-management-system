@@ -121,7 +121,7 @@
         {% if provisioning_progress.elapsed_seconds %}· <span class="text-muted">{% blocktrans with s=provisioning_progress.elapsed_seconds %}{{ s }}s elapsed{% endblocktrans %}</span>{% endif %}
       </p>
       {% if provisioning_progress.stuck %}
-      <div class="alert alert-danger small py-2">{% trans "Provisioning appears stalled (heartbeat went silent). Requeue to retry." %}</div>
+      <div class="rmc-banner rmc-banner--error small py-2">{% trans "Provisioning appears stalled (heartbeat went silent). Requeue to retry." %}</div>
       {% endif %}
       {% if provisioning_progress.phase_message %}
       <p class="small text-muted mb-2">{{ provisioning_progress.phase_message }}</p>
@@ -148,7 +148,7 @@
       {% endwith %}
       {% endif %}
       {% if provisioning_progress.last_error %}
-      <div class="alert alert-warning small">{{ provisioning_progress.last_error }}</div>
+      <div class="rmc-banner rmc-banner--warning small">{{ provisioning_progress.last_error }}</div>
       {% endif %}
       {% endif %}
       <div class="d-flex flex-wrap gap-2">
@@ -283,7 +283,7 @@
         <h3 id="offboarding-step-purge" class="h6 text-danger">{% trans "Step 5 — Permanent delete tenant" %}</h3>
         <p class="small">{% trans "Deletes: tenant schema (when applicable), School row, and tenant-scoped database rows via cascade. Keeps: platform-wide audit logs, archive manifest on disk. Does not delete: shared User rows without membership cleanup, remote object storage without the media cleanup job." %}</p>
         {% if offboarding.purge_blockers %}
-        <div class="alert alert-warning small py-2" role="alert">{% trans "Blocked:" %} {{ offboarding.purge_blockers|join:", " }}</div>
+        <div class="rmc-banner rmc-banner--warning small py-2" role="alert">{% trans "Blocked:" %} {{ offboarding.purge_blockers|join:", " }}</div>
         {% endif %}
         {% if offboarding.dual_approval_required %}
         <div class="border border-warning rounded p-2 mb-3 small" data-rmc-dual-approval-panel>
@@ -330,9 +330,9 @@
           </table>
           <nav class="mt-2 d-none" data-rmc-inventory-pager aria-label="{% trans 'Inventory pagination' %}"></nav>
         </div>
-        <div class="alert alert-success d-none mt-2" role="status" data-rmc-purge-receipt></div>
+        <div class="rmc-banner rmc-banner--success d-none mt-2" role="status" data-rmc-purge-receipt></div>
       </section>
-      <div class="alert d-none" role="alert" data-rmc-offboarding-status></div>
+      <div class="rmc-banner d-none" role="alert" data-rmc-offboarding-status></div>
     </div>
   </div>
   <div class="card shadow-sm border-secondary mb-3">

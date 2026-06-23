@@ -29,7 +29,7 @@
     </select>
     <button type="submit" class="btn btn-primary ms-2">{% trans "Run" %}</button>
   </form>
-  {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+  {% if error %}<div class="rmc-banner rmc-banner--error">{{ error }}</div>{% endif %}
   {% if result %}<div class="card"><div class="card-body"><pre>{{ result }}</pre></div></div>{% endif %}
 </div>
 {% endblock %}

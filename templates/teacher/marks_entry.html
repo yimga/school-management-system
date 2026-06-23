@@ -27,13 +27,13 @@
 </div>
 
 {% if year and term %}
-  <div class="alert alert-info">
+  <div class="rmc-banner rmc-banner--info">
     <b>Active Year:</b> {{ year.name }} | <b>Term:</b> {{ term.get_name_display }}
   </div>
 {% endif %}
 
 {% if locked %}
-  <div class="alert alert-danger">
+  <div class="rmc-banner rmc-banner--error">
     <b>LOCKED:</b> This term has been published. Marks entry is disabled.
   </div>
 {% endif %}
@@ -89,12 +89,12 @@
           Using <code>{{ marksheet_ocr_command }}</code>{% if marksheet_ocr_version %} (v{{ marksheet_ocr_version }}){% endif %}.
         </div>
       {% else %}
-        <div class="alert alert-warning mb-3">
+        <div class="rmc-banner rmc-banner--warning mb-3">
           Tesseract isn’t configured on the backend (<code>{{ marksheet_ocr_command }}</code> failed). Install it or set the command in Site Settings before uploading.
         </div>
       {% endif %}
       {% if not marksheet_ocr_enabled %}
-        <div class="alert alert-warning mb-3">
+        <div class="rmc-banner rmc-banner--warning mb-3">
           Marksheet OCR uploads are controlled from Site Settings. Contact an admin to enable this feature.
         </div>
       {% endif %}
@@ -148,7 +148,7 @@
             {{ upload_form.subject_assignment_id }}
             <input type="hidden" name="confirm_pending" value="1">
         {% endif %}
-        <div class="alert alert-info mb-3">
+        <div class="rmc-banner rmc-banner--info mb-3">
           <strong>Delta mode:</strong> {% if upload_summary.delta_mode %}ON (only fills missing marks){% else %}OFF (updates all marks){% endif %}
           {% if upload_summary.field_confidences %}
             <br><small>Field confidence: 
@@ -243,7 +243,7 @@
 {% if grade_approval_enabled %}
   <div class="mb-3">
     {% if grade_approval_requests %}
-      <div class="alert alert-info">
+      <div class="rmc-banner rmc-banner--info">
         <p class="mb-1"><strong>Recent approval requests for this assignment:</strong></p>
         <ul class="mb-0 small">
           {% for req in grade_approval_requests %}
@@ -256,7 +256,7 @@
         <small class="text-muted">Grade approvals land with {{ grade_approval_roles|join:", " }}.</small>
       </div>
     {% else %}
-      <div class="alert alert-secondary">
+      <div class="rmc-banner">
         Grade approvals are enabled. Use the action button below to submit your changes for review.
       </div>
     {% endif %}

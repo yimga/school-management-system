@@ -53,7 +53,7 @@
     </div>
   </div>
 
-  <div class="alert alert-secondary border-secondary mb-3 small">
+  <div class="rmc-banner border-secondary mb-3 small">
     {% blocktrans %}Running evaluation executes repository verification scripts and logs backlog_dependency_met transitions when items leave waiting (same as CI when emit-events is on). Full matrix can take many minutes and overlaps other gate bundles by design. For automation use{% endblocktrans %}
     <code class="user-select-all">python manage.py evaluate_backlog_unlocks --profile full --update-cache --emit-events</code>
     {% trans "or a quick cache refresh" %}
@@ -81,7 +81,7 @@
   {% endif %}
 
   {% if not evaluation %}
-  <div class="alert alert-warning border-warning">
+  <div class="rmc-banner rmc-banner--warning border-warning">
     {% blocktrans %}No cached snapshot for this profile yet. Run Refresh above or use the management command. If you expected data, try the other profile (smoke and full use separate cache keys).{% endblocktrans %}
   </div>
   {% else %}

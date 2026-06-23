@@ -10,7 +10,7 @@
     <a href="{% url 'kb:office_document_list' %}" class="btn btn-sm btn-outline-secondary">Back</a>
   </div>
   {% if error %}
-    <div class="alert alert-warning">{{ error }}</div>
+    <div class="rmc-banner rmc-banner--warning">{{ error }}</div>
   {% elif collabora_url %}
     <iframe title="Office editor" src="{{ collabora_url }}" style="width:100%;min-height:80vh;border:var(--border-width-subtle) solid var(--color-base-200);border-radius:8px;"></iframe>
   {% endif %}

@@ -25,7 +25,7 @@
       <form method="post" novalidate>
         {% csrf_token %}
         {% if form.non_field_errors %}
-          <div class="alert alert-danger mb-3">{{ form.non_field_errors }}</div>
+          <div class="rmc-banner rmc-banner--error mb-3">{{ form.non_field_errors }}</div>
         {% endif %}
         {% trans "New password" as guardian_pwd1_label %}
         {% trans "Confirm new password" as guardian_pwd2_label %}

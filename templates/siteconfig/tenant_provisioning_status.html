@@ -24,7 +24,7 @@
     {% include "components/rmc_tenant_provision_progress.html" with provision_progress_api_url=api_status_url %}
   </div>
   {% elif unified.state == "activating" or unified.state == "live" %}
-  <div class="alert alert-success" role="status">
+  <div class="rmc-banner rmc-banner--success" role="status">
     {% trans "Your school workspace is ready. Continue with the fast path or full launch rail." %}
   </div>
   {% endif %}

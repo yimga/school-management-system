@@ -15,7 +15,7 @@
     <p class="small text-secondary">{% trans "Upload a CSV to create many schools at once. Bulk-created schools start gated (is_active=False) and skip the multi-phase wizard pipeline — for full provisioning use the one-by-one wizard." %}</p>
   </header>
 
-  {% if error %}<div class="alert alert-danger py-2 small">{{ error }}</div>{% endif %}
+  {% if error %}<div class="rmc-banner rmc-banner--error py-2 small">{{ error }}</div>{% endif %}
 
   {% if phase == "form" %}
   <form method="post" enctype="multipart/form-data" class="card border-0 shadow-sm p-3">
@@ -44,7 +44,7 @@
   {% endif %}
 
   {% if phase == "preview" %}
-  <div class="alert alert-info py-2 small mb-3">
+  <div class="rmc-banner rmc-banner--info py-2 small mb-3">
     {% blocktrans with v=valid_count i=invalid_count %}<strong>{{ v }}</strong> valid · <strong>{{ i }}</strong> invalid out of {{ valid_count|add:invalid_count }} parsed rows.{% endblocktrans %}
   </div>
   <div class="table-responsive mb-3">

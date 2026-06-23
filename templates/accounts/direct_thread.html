@@ -35,11 +35,11 @@
     </div>
 
     {% if conversation_closed %}
-    <div class="alert alert-info">This conversation is closed. You can no longer reply. To contact the school again, use <a href="{% url 'portal:parent_contact_school' %}">Contact School</a>.</div>
+    <div class="rmc-banner rmc-banner--info">This conversation is closed. You can no longer reply. To contact the school again, use <a href="{% url 'portal:parent_contact_school' %}">Contact School</a>.</div>
     {% endif %}
 
     {% if is_blocked %}
-    <div class="alert alert-warning">
+    <div class="rmc-banner rmc-banner--warning">
       {% if i_blocked_them %}{% trans "You've blocked this person. Neither of you can message the other until you unblock them." %}
       {% else %}{% trans "You can no longer message this person." %}{% endif %}
     </div>
@@ -68,7 +68,7 @@
             <i class="bi bi-stars me-1" aria-hidden="true"></i>{% trans "Summarize" %}
           </button>
         </div>
-        <div id="rmc-ai-summary" class="alert alert-light border small mx-3 mt-2" role="status" aria-live="polite" hidden></div>
+        <div id="rmc-ai-summary" class="rmc-banner border small mx-3 mt-2" role="status" aria-live="polite" hidden></div>
         {% endif %}
         <div class="p-3 rmc-iso-scroll-zone rmc-iso-scroll-zone--h-50vh" data-rmc-iso-scroll-zone="1"
              data-rmc-thread-messages

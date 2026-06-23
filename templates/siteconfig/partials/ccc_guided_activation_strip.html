@@ -13,7 +13,7 @@
     </div>
     <p class="small text-muted mb-2">{% blocktrans with done=ccc_onboarding.completed total=ccc_onboarding.total %}{{ done }} of {{ total }} steps complete (weighted).{% endblocktrans %}</p>
     {% if ccc_onboarding.next_action %}
-    <div class="alert alert-primary py-2 small mb-2" role="status">
+    <div class="rmc-banner rmc-banner--brand py-2 small mb-2" role="status">
       <strong>{% trans "Next action:" %}</strong>
       <a href="{{ ccc_onboarding.next_action.url }}" data-action="ccc-next-step" data-task="ccc_activation" data-task-step="ccc:guided-next">{{ ccc_onboarding.next_action.label }}</a>
     </div>

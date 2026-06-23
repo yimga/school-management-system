@@ -12,7 +12,7 @@
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
   {% if not year or not term %}
-    <div class="alert alert-warning">No active academic year or term is set. Ask an admin to set the current year and term.</div>
+    <div class="rmc-banner rmc-banner--warning">No active academic year or term is set. Ask an admin to set the current year and term.</div>
   {% elif not schedule %}
     {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("
       No timetable is published for the current term yet. When the admin publishes a schedule for {{ year.name }} – {{ term.custom_label|default:term.name }}, your sessions will appear here.

@@ -21,7 +21,7 @@
   {% include "components/rmc_operational_center_frame.html" with os_center_key="fleet_governed_changes" center_eyebrow=_("Platform operators") center_title=_("Fleet governed changes") center_purpose=_("Draft → approval → apply spine. Execution stays on existing rollout/staging UIs; use the apply path on each row, then update status in platform admin.") primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
 
   {% if not changes %}
-  <div class="alert alert-secondary border-secondary">
+  <div class="rmc-banner border-secondary">
     {% trans "No records yet. Create one from platform admin (Fleet governed changes)." %}
   </div>
   {% else %}

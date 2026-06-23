@@ -217,7 +217,7 @@ backend-shell dashboard-page-backend
   <div class="backend-v2-shell" data-dashboard-intent="{{ dashboard_intent|default:'operational' }}" data-tour="dashboard-main">
     {% include "partials/_resumable_wizards_banner.html" with banner_variant="compact" %}
     {% if backend_intent_emphasize_setup %}
-    <div class="alert alert-info py-2 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2" role="region" aria-label="{% trans 'Setup focus' %}">
+    <div class="rmc-banner rmc-banner--info py-2 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2" role="region" aria-label="{% trans 'Setup focus' %}">
       <span>{% trans "Focus: Setup — Complete your school setup for the best experience." %}</span>
       <a href="{% url 'siteconfig:guided_onboarding' %}" class="btn btn-sm btn-primary" data-tour="setup-studio-link">{% trans "Open Setup Studio" %}</a>
     </div>

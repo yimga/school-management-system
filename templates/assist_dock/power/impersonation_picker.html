@@ -18,7 +18,7 @@
   </header>
 
   {% if active_session.active %}
-  <div class="alert alert-warning rmc-assist-power__active-session" role="alert"
+  <div class="rmc-banner rmc-banner--warning rmc-assist-power__active-session" role="alert"
        data-rmc-impersonation-active="1">
     <strong>{% trans "Impersonation active in this session." %}</strong>
     <form method="post" action="{% url 'assist_dock:impersonation_stop_redirect' %}" class="d-inline ms-2">

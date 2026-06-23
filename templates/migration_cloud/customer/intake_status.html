@@ -33,7 +33,7 @@
   </header>
 
   {% if next_action %}
-    <div class="alert alert-info" role="status" data-rmc-banner="next-action">
+    <div class="rmc-banner rmc-banner--info" role="status" data-rmc-banner="next-action">
       <strong>{% trans "Next:" %}</strong> {{ next_action }}
       {% if intake.state == 'maa-pending-counsel' %}
         <a href="{% url 'migration_intake_customer:migration-intake-sign-maa' id=intake.id %}" class="btn btn-sm btn-primary ms-2">{% trans "Sign agreement" %}</a>

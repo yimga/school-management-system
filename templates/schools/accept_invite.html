@@ -12,7 +12,7 @@
     <div class="col-md-6">
       {% if invalid %}
       <h1 class="h3 mb-3">{% trans "Invitation not valid" %}</h1>
-      <div class="alert alert-danger">{% trans "This invitation link is invalid, expired, revoked, or has already been accepted." %}</div>
+      <div class="rmc-banner rmc-banner--error">{% trans "This invitation link is invalid, expired, revoked, or has already been accepted." %}</div>
       <p><a href="{% url 'signup_school' %}">{% trans "You can still sign up your school here" %}</a>.</p>
       {% else %}
       <h1 class="h3 mb-2">{% trans "You're invited to RunMyCampus" %}</h1>

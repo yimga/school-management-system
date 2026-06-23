@@ -11,7 +11,7 @@
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 
   {% if fresh_grant %}
-  <div class="alert alert-success" role="status">
+  <div class="rmc-banner rmc-banner--success" role="status">
     <h2 class="h6 mb-1">{% trans "Magic link created" %} — {{ fresh_grant.inspector }}</h2>
     <p class="mb-2 small text-muted">{% trans "Copy this link now. For security it is shown only once." %}</p>
     <div class="input-group input-group-sm mb-2">

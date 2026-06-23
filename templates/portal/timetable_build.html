@@ -53,20 +53,20 @@
     var raw = textarea.value || "{}";
     var payload;
     try { payload = JSON.parse(raw); } catch(e) {
-      resultArea.innerHTML = '<div data-rmc-scroll-policy="paginate" class="alert alert-danger">Invalid JSON: ' + e.message + '</div>';
+      resultArea.innerHTML = '<div data-rmc-scroll-policy="paginate" class="rmc-banner rmc-banner--error">Invalid JSON: ' + e.message + '</div>';
       return;
     }
     resultArea.innerHTML = '<div class="text-muted">Solving...</div>';
     var post = (window.rmcBulkActions && window.rmcBulkActions.postWithCsrf) ? window.rmcBulkActions.postWithCsrf : null;
     if (!post) {
-      resultArea.innerHTML = '<div class="alert alert-warning">Bulk-actions helper not loaded.</div>';
+      resultArea.innerHTML = '<div class="rmc-banner rmc-banner--warning">Bulk-actions helper not loaded.</div>';
       return;
     }
     post("{% url 'academics:timetable_build' %}", payload).then(function(resp){
       return resp.json();
     }).then(function(body){
       if (body.error) {
-        resultArea.innerHTML = '<div class="alert alert-warning">' + body.error + (body.detail ? ': ' + body.detail : '') + '</div>';
+        resultArea.innerHTML = '<div class="rmc-banner rmc-banner--warning">' + body.error + (body.detail ? ': ' + body.detail : '') + '</div>';
         return;
       }
       var html = '<h3 class="h6">Strategy: <code>' + (body.strategy || '?') + '</code></h3>';
@@ -76,7 +76,7 @@
       html += '<pre class="bg-light p-2 small font-monospace">' + JSON.stringify(body.placed || [], null, 2) + '</pre>';
       resultArea.innerHTML = html;
     }).catch(function(err){
-      resultArea.innerHTML = '<div class="alert alert-danger">' + (err && err.message || err) + '</div>';
+      resultArea.innerHTML = '<div class="rmc-banner rmc-banner--error">' + (err && err.message || err) + '</div>';
     });
   });
 })();

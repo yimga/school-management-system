@@ -14,7 +14,7 @@
   <p class="text-muted">
     {% trans "Apply to publish apps on the RunMyCampus marketplace. Verify your email; an operator will review your application within a few business days." %}
   </p>
-  {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+  {% if error %}<div class="rmc-banner rmc-banner--error">{{ error }}</div>{% endif %}
   <form method="post" novalidate>
     {% csrf_token %}
     <div class="mb-3">

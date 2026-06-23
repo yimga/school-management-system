@@ -18,7 +18,7 @@
 
   {% if base_url_state %}
     {% if base_url_state.level == "warning" %}
-      <div class="alert alert-warning rmc-alert" role="alert">
+      <div class="rmc-banner rmc-banner--warning rmc-alert" role="alert">
         <strong>{% trans "OAUTH_CALLBACK_BASE_URL advisory" %}:</strong>
         {{ base_url_state.summary }}
         {% if base_url_state.env_var_hint %}
@@ -29,7 +29,7 @@
         {% endif %}
       </div>
     {% elif base_url_state.level == "info" and not base_url_state.configured %}
-      <div class="alert alert-info rmc-alert" role="alert">
+      <div class="rmc-banner rmc-banner--info rmc-alert" role="alert">
         <small>{{ base_url_state.summary }}</small>
         {% if base_url_state.env_var_hint %}
           <div class="small mt-1">

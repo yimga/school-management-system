@@ -28,7 +28,7 @@
   {% include "siteconfig/partials/configuration_control_center_outcomes.html" %}
 
   {% if studio_experience_url or guided_onboarding_url %}
-  <div class="alert alert-dark border border-secondary py-2 mb-3 d-flex flex-wrap align-items-center justify-content-between gap-3" role="region">
+  <div class="rmc-banner border border-secondary py-2 mb-3 d-flex flex-wrap align-items-center justify-content-between gap-3" role="region">
     <span class="small mb-0">{% blocktrans %}Outcome-first: preview in Studio Experience; new schools via Setup Studio.{% endblocktrans %}</span>
     <div class="d-flex flex-wrap gap-2">
       {% if studio_experience_url %}<a href="{{ studio_experience_url }}" class="btn btn-sm btn-outline-light">{% trans "Studio Experience" %}</a>{% endif %}

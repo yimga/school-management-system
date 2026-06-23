@@ -19,7 +19,7 @@
         </div>
         <div class="card-body">
           {% if user_department %}
-          <div class="alert alert-info" role="status" aria-live="polite">
+          <div class="rmc-banner rmc-banner--info" role="status" aria-live="polite">
             <i class="bi bi-info-circle me-2" aria-hidden="true"></i>
             {% blocktrans with name=user_department.name %}This announcement will be sent to all teachers in <strong>{{ name }}</strong> department.{% endblocktrans %}
           </div>

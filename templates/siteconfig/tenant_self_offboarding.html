@@ -45,7 +45,7 @@
     <button type="button" class="btn btn-outline-secondary btn-sm ms-2" data-rmc-tenant-cancel-closure>{% trans "Cancel scheduled closure" %}</button>
   </section>
 
-  <div class="alert d-none" role="alert" data-rmc-tenant-offboard-status></div>
+  <div class="rmc-banner d-none" role="alert" data-rmc-tenant-offboard-status></div>
 </div>
 <script type="application/json" id="page-data-tenant_self_offboarding-1" nonce="{{ csp_nonce }}">{
   "api_snapshot": "{% url 'tenant_offboarding_snapshot' %}",

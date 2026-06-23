@@ -22,7 +22,7 @@
 {% phase8_dashboard_declaration "schools/super_runtime_truth_hub.html" %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="runtime_truth_hub" center_eyebrow=_("Platform operators") center_title="Runtime truth hub" center_purpose="Read-only view of RuntimeDefaults.payload and the slim tenant settings row (platform singleton, Phase B bridge)." primary_url=dashboard_url primary_label="Back to dashboard" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
 
-  <div class="alert alert-secondary border-0 shadow-sm mb-3" role="note">
+  <div class="rmc-banner border-0 shadow-sm mb-3" role="note">
     <strong>{% trans "Read-only." %}</strong>
     {% trans "Behavioral settings live in RuntimeDefaults.payload; the slim tenant row holds media, theme/report FKs, and maintenance." %}
   </div>

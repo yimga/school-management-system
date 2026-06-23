@@ -46,7 +46,7 @@
       <input type="hidden" name="step" value="{{ step }}">
 
       {% if form.non_field_errors %}
-        <div class="alert alert-danger mb-3">
+        <div class="rmc-banner rmc-banner--error mb-3">
           {{ form.non_field_errors }}
         </div>
       {% endif %}
@@ -59,7 +59,7 @@
         </p>
 
         {% if school_code %}
-          <div class="alert alert-info small mb-3">
+          <div class="rmc-banner rmc-banner--info small mb-3">
             <strong>School code:</strong> {{ school_code }}<br>
             <strong>Format:</strong> YY + {{ school_code }} + #### + SPEC + CLASS (no dashes)
           </div>
@@ -290,7 +290,7 @@
                 <div class="form-text">{{ form.referral_code.help_text }}</div>
               {% endif %}
               {% if referral_bonus and referral_bonus > 0 %}
-                <div class="alert alert-info small mt-2 mb-0">
+                <div class="rmc-banner rmc-banner--info small mt-2 mb-0">
                   <i class="bi bi-info-circle me-1"></i>
                   Referral bonus: {{ referral_bonus|format_number:2 }} credits
                 </div>

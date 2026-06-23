@@ -13,7 +13,7 @@
             <h1 class="mb-4">
                 <i class="bi bi-clock-history"></i> Grade Audit Trail
             </h1>
-            <div class="alert alert-info">
+            <div class="rmc-banner rmc-banner--info">
                 <strong>{{ student_name }}</strong> - {{ subject_name }}
             </div>
         </div>
@@ -92,7 +92,7 @@
                                 
                                 <!-- Remarks -->
                                 {% if entry.changes.remarks %}
-                                <div class="alert alert-light mt-2 mb-0">
+                                <div class="rmc-banner mt-2 mb-0">
                                     <small>
                                         <strong>Remarks Updated:</strong><br>
                                         <em>Before:</em> {{ entry.changes.remarks.before|default:"(empty)" }}<br>
@@ -104,7 +104,7 @@
                                 
                                 <!-- Validation Errors -->
                                 {% if entry.validation_errors %}
-                                <div class="alert alert-danger mt-2 mb-0">
+                                <div class="rmc-banner rmc-banner--error mt-2 mb-0">
                                     <strong>Validation Errors:</strong>
                                     <ul class="mb-0 mt-1">
                                         {% for error in entry.validation_errors %}
@@ -116,7 +116,7 @@
                                 
                                 <!-- Offline Conflict -->
                                 {% if entry.offline_conflict_resolved %}
-                                <div class="alert alert-warning mt-2 mb-0">
+                                <div class="rmc-banner rmc-banner--warning mt-2 mb-0">
                                     <i class="bi bi-exclamation-triangle"></i>
                                     Offline conflict resolved (merged with offline entry)
                                 </div>

@@ -170,7 +170,7 @@
                 {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
                 {% endif %}
             {% else %}
-                <div class="alert alert-info" role="alert">
+                <div class="rmc-banner rmc-banner--info" role="alert">
                     <i class="bi bi-info-circle"></i>
                     <strong>No articles found</strong> in this category yet.
                     Check back soon for more content!
@@ -178,7 +178,7 @@
             {% endif %}
 
             <!-- CTA: Contribute -->
-            <div class="alert alert-light border border-primary mt-4">
+            <div class="rmc-banner border border-primary mt-4">
                 <h6 class="alert-heading">
                     <i class="bi bi-lightbulb text-primary"></i> Ready to Contribute?
                 </h6>

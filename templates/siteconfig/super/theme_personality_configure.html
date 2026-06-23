@@ -48,7 +48,7 @@
   </header>
 
   {% if saved_flag %}
-    <div class="alert alert-success" role="status">
+    <div class="rmc-banner rmc-banner--success" role="status">
       {% trans "Saved. Reload any tenant page to see the new personality." %}
     </div>
   {% endif %}
@@ -62,7 +62,7 @@
   {% endif %}
 
   {% if form.non_field_errors %}
-    <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+    <div class="rmc-banner rmc-banner--error" role="alert">{{ form.non_field_errors }}</div>
   {% endif %}
 
   <form method="post" action="{{ theme_personality_url }}" novalidate>

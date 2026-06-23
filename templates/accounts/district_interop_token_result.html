@@ -7,7 +7,7 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <h1 class="h4 mb-3">{% trans "OneRoster token" %}</h1>
-  <div class="alert alert-warning">
+  <div class="rmc-banner rmc-banner--warning">
     <strong>{% trans "Copy this token now." %}</strong> {% trans "Store it in your district secret manager or LMS roster config." %}
   </div>
   <pre class="p-3 bg-dark text-warning rounded small text-break user-select-all">{{ plain_token }}</pre>

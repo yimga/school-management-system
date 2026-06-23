@@ -22,7 +22,7 @@
   {% include "components/rmc_operational_center_frame.html" with os_center_key="operator_team_detail" center_eyebrow=_("Platform operators") center_title=operator_user.get_username center_purpose=_("Profile, MFA posture, scopes, sessions, and promotion history.") primary_url=roster_url primary_label=_("Back to roster") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
 
   {% if is_canonical_admin %}
-  <div class="alert alert-info py-2 small mb-3" role="status">
+  <div class="rmc-banner rmc-banner--info py-2 small mb-3" role="status">
     {% trans "This is the canonical platform super-admin account (admin). It cannot be offboarded and always retains break_glass tier." %}
   </div>
   {% endif %}

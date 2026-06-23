@@ -27,7 +27,7 @@
       {% include "studio_os/components/page_header.html" with title=stu_create_title subtitle=stu_create_sub action_url=list_url action_text=stu_create_back %}
 
       {% if has_draft %}
-      <div class="alert alert-info d-flex align-items-center justify-content-between mb-3" role="alert">
+      <div class="rmc-banner rmc-banner--info d-flex align-items-center justify-content-between mb-3" role="alert">
         <span><i class="bi bi-file-earmark-check me-2"></i>Draft saved{% if draft_updated_at %} on {{ draft_updated_at|date:"M j, Y g:i A" }}{% endif %}.</span>
         <button type="button" class="btn btn-sm btn-outline-primary" id="form-draft-discard" data-form-draft-url="{{ form_draft_url }}">{% trans "Discard draft" %}</button>
       </div>

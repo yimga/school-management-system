@@ -15,11 +15,11 @@
     data-cp-evidence-surface="curriculum-templates"
     data-rmc-curriculum-templates="1"
    data-rmc-scroll-policy="paginate" data-page-critical-read="1">
-    <div class="alert alert-light border mb-3 small" role="region" data-rmc-school-ops-links="1">
+    <div class="rmc-banner border mb-3 small" role="region" data-rmc-school-ops-links="1">
       <a href="{% url 'siteconfig:school_group_hierarchy' %}" class="alert-link">{% trans "School group hierarchy" %}</a>
       · <a href="{% url 'siteconfig:tenant_runtime_configuration_hub' %}" class="alert-link">{% trans "Tenant runtime hub" %}</a>
     </div>
-    <div class="alert alert-secondary border mb-3 small" role="region" aria-label="{% trans 'Regional UI status' %}" data-rmc-regional-ui-status="1">
+    <div class="rmc-banner border mb-3 small" role="region" aria-label="{% trans 'Regional UI status' %}" data-rmc-regional-ui-status="1">
       <strong>{% trans "Regional UI" %}:</strong>
       {% trans "Locale" %} <code>{{ rmc_locale|default:'en' }}</code>,
       {% trans "text direction" %} <code>{{ rmc_text_direction|default:'ltr' }}</code>.
@@ -27,7 +27,7 @@
       · {% trans "Active terminology resolution" %}: {{ terminology_resolution|truncatechars:120 }}
       {% endif %}
     </div>
-    <div class="alert alert-warning border mb-3" role="region" aria-label="{% trans 'Preview notice' %}" data-rmc-curriculum-preview-notice="1">
+    <div class="rmc-banner rmc-banner--warning border mb-3" role="region" aria-label="{% trans 'Preview notice' %}" data-rmc-curriculum-preview-notice="1">
       <strong>{% trans "Preview only." %}</strong>
       {% trans "Applying templates requires a future guided setup flow." %}
     </div>

@@ -29,7 +29,7 @@
   </header>
 
   {% if wind_down_mode %}
-  <div class="alert alert-warning" role="alert" data-rmc-wind-down-banner="1">
+  <div class="rmc-banner rmc-banner--warning" role="alert" data-rmc-wind-down-banner="1">
     <strong>{% trans "Wind-down mode" %}</strong>
     {% trans "This school is closing. New charges and enrollments are paused. Export your data from Close account." %}
     {% if studio_link_urls.offboarding %}
@@ -39,7 +39,7 @@
   {% endif %}
 
   {% if unified_lifecycle.state == "provisioning" and studio_link_urls.provisioning %}
-  <div class="alert alert-info mb-3" role="status">
+  <div class="rmc-banner rmc-banner--info mb-3" role="status">
     {% trans "Your workspace is still provisioning." %}
     <a href="{{ studio_link_urls.provisioning }}" class="alert-link">{% trans "View build status" %}</a>
   </div>
@@ -102,7 +102,7 @@
   </div>
 
   {% if launch_blockers %}
-  <div class="alert alert-warning" role="alert" data-rmc-tenant-studio-blockers="1">
+  <div class="rmc-banner rmc-banner--warning" role="alert" data-rmc-tenant-studio-blockers="1">
     <strong>{% trans "Launch blockers" %}</strong>
     <ul class="mb-0 mt-2">
       {% for b in launch_blockers %}<li>{{ b }}</li>{% endfor %}

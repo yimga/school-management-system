@@ -33,7 +33,7 @@
   </div>
 
   {% if click_stats.insufficient_data %}
-  <div class="alert alert-warning border-0 shadow-sm mb-4" role="status">
+  <div class="rmc-banner rmc-banner--warning border-0 shadow-sm mb-4" role="status">
     <strong>{% trans "Insufficient data" %}</strong>
     {% blocktrans with n=click_stats.min_completed_sessions %}Complete at least {{ n }} sessions per phase per workflow with telemetry before comparing phases.{% endblocktrans %}
   </div>

@@ -21,9 +21,9 @@
   </header>
 
   {% if request.GET.applied %}
-  <div class="alert alert-success" role="alert">{% trans "Fix applied successfully." %}</div>
+  <div class="rmc-banner rmc-banner--success" role="alert">{% trans "Fix applied successfully." %}</div>
   {% elif request.GET.error %}
-  <div class="alert alert-warning" role="alert">
+  <div class="rmc-banner rmc-banner--warning" role="alert">
     {% blocktrans with reason=request.GET.error %}Action did not complete: {{ reason }}{% endblocktrans %}
   </div>
   {% endif %}

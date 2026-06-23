@@ -11,7 +11,7 @@
   {% phase8_dashboard_declaration "accounts/migration_wizard.html" %}
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
 
-  <div class="alert alert-light border mb-3" role="region" aria-label="{% trans 'Related ecosystem workflows' %}">
+  <div class="rmc-banner border mb-3" role="region" aria-label="{% trans 'Related ecosystem workflows' %}">
     <div class="small fw-semibold mb-2">{% trans "Staged rollout & safety" %}</div>
     <p class="small text-muted mb-2">{% trans "Validate with dry run, review the scorecard, then commit. Use run history for audit; interop and API Center cover connectors and webhooks." %}</p>
     <div class="d-flex flex-wrap gap-2">
@@ -77,7 +77,7 @@
   </div>
   {% else %}
   {% if wizard_data.header_source_detection %}
-  <div class="alert alert-secondary border mb-3" role="status" data-migration-source-detection>
+  <div class="rmc-banner border mb-3" role="status" data-migration-source-detection>
     <h3 class="h6 alert-heading mb-1">{% trans "Source detection (from CSV headers)" %}</h3>
     <p class="small mb-1">
       {% trans "Best guess" %}: <strong>{{ wizard_data.header_source_detection.suggested_system|title }}</strong>
@@ -97,7 +97,7 @@
   </div>
   {% endif %}
   {% if profile_suggestions %}
-  <div class="alert alert-info border-info mb-3" role="status">
+  <div class="rmc-banner rmc-banner--info border-info mb-3" role="status">
     <h3 class="h6 alert-heading mb-1">{% trans "Suggested connector profiles (schema match)" %}</h3>
     <p class="small mb-2 text-muted">{% trans "Ranked by column-header overlap with seeded MigrationProfile schema hints. Pick a closer profile in Import Hub if you need a different connector." %}</p>
     <ul class="small mb-0">

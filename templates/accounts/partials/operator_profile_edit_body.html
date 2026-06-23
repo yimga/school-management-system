@@ -9,7 +9,7 @@
           <form method="post" action="" enctype="multipart/form-data">
             {% csrf_token %}
             {% if form.non_field_errors %}
-              <div class="alert alert-danger" role="alert" aria-live="polite">{{ form.non_field_errors }}</div>
+              <div class="rmc-banner rmc-banner--error" role="alert" aria-live="polite">{{ form.non_field_errors }}</div>
             {% endif %}
             {% include "components/form_field.html" with field=form.first_name %}
             {% include "components/form_field.html" with field=form.last_name %}

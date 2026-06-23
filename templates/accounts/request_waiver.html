@@ -30,7 +30,7 @@
                   data-draft-key="request_waiver_{{ request.user.id }}" data-draft-max-age-hours="48">
               {% csrf_token %}
               {% if form.non_field_errors %}
-                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                <div class="rmc-banner rmc-banner--error">{{ form.non_field_errors }}</div>
               {% endif %}
               <div class="mb-3">
                 <label for="id_reason" class="form-label">{{ form.reason.label }}</label>

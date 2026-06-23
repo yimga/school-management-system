@@ -22,7 +22,7 @@
     </div>
   </div>
   {% if not school_id %}
-  <div class="alert alert-warning">{% trans "Tenant context required." %}</div>
+  <div class="rmc-banner rmc-banner--warning">{% trans "Tenant context required." %}</div>
   {% endif %}
   <label class="form-label">{% trans "Describe what you need" %}</label>
   <textarea id="nl-text" class="form-control mb-2" rows="3" placeholder="{% trans 'e.g. show unpaid invoices by class' %}"></textarea>

@@ -25,7 +25,7 @@
   </header>
 
   {% comment %} Honest reframe: only the defined corridors carry a real readiness verdict {% endcomment %}
-  <div class="alert alert-secondary d-flex flex-wrap gap-2 align-items-center py-2 px-3 mb-3" role="note">
+  <div class="rmc-banner d-flex flex-wrap gap-2 align-items-center py-2 px-3 mb-3" role="note">
     <span class="rmc-badge">{{ summary.placeholder_corridors }}</span>
     <span class="small mb-0">
       {% blocktrans with d=summary.defined_corridors %}Of {{ summary.total_countries|default:250 }} ISO countries, only <strong>{{ d }}</strong> have a researched payment corridor (real currency + dominant rails). The rest are placeholder stubs — defining a corridor is <em>data</em> work, distinct from the <em>adapter</em> work of promoting a PSP to live.{% endblocktrans %}

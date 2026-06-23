@@ -6,7 +6,7 @@
   {% include "studio_os/components/page_header.html" with title=_("Theme & Experience") subtitle=_("These settings apply to Site Settings (Theme pack & Admin theme pack).") action_url=back_url action_text=_("Back to Site Settings") %}
 
   {% if preview_mode_active %}
-  <div class="alert alert-info py-2 mb-2" role="status">
+  <div class="rmc-banner rmc-banner--info py-2 mb-2" role="status">
     <strong>{% trans "Preview mode is ON." %}</strong> {% trans "You are viewing draft theme. Other users see the last saved theme." %}
   </div>
   {% endif %}
@@ -202,7 +202,7 @@
                 <small class="text-muted">
                   {% trans "If 'Admin use site primary' is enabled, admin primary/accent will follow site primary/accent even when an admin pack is selected." %}
                 </small>
-                <div id="admin-use-site-primary-guard" class="alert alert-info py-1 px-2 mt-1 mb-0 small d-none" role="status">
+                <div id="admin-use-site-primary-guard" class="rmc-banner rmc-banner--info py-1 px-2 mt-1 mb-0 small d-none" role="status">
                   {% trans "Admin/site color lock is ON: pack clicks will keep Site theme pack aligned so admin primary/accent stay consistent." %}
                 </div>
               </div>

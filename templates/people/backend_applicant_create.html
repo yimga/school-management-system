@@ -16,7 +16,7 @@
       {% include "studio_os/components/page_header.html" with title=_("Add applicant") subtitle=_("Record a lead or new application.") action_url=list_url action_text=_("Back to list") %}
 
       {% if has_draft %}
-      <div class="alert alert-info d-flex align-items-center justify-content-between mb-3" role="alert">
+      <div class="rmc-banner rmc-banner--info d-flex align-items-center justify-content-between mb-3" role="alert">
         <span><i class="bi bi-file-earmark-check me-2"></i>{% trans "Draft saved" %}{% if draft_updated_at %} {% blocktrans with date=draft_updated_at|date:"M j, Y g:i A" %}on {{ date }}{% endblocktrans %}{% endif %}.</span>
         <button type="button" class="btn btn-sm btn-outline-primary" id="form-draft-discard" data-form-draft-url="{{ form_draft_url }}">{% trans "Discard draft" %}</button>
       </div>

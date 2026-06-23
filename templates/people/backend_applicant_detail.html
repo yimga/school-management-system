@@ -77,7 +77,7 @@
           {% endif %}
 
           {% if enrolled_student %}
-          <div class="alert alert-success mb-0 py-2 small">
+          <div class="rmc-banner rmc-banner--success mb-0 py-2 small">
             {% trans "Enrolled into the system." %}
             <a href="{% url 'accounts:backend_student_detail' enrolled_student.pk %}" class="alert-link">{% trans "Open student record" %}</a>
           </div>
@@ -97,7 +97,7 @@
               <button type="submit" class="btn btn-sm btn-primary">{% trans "Enroll student" %}</button>
             </form>
             {% else %}
-            <div class="alert alert-warning mb-0 py-2 small">
+            <div class="rmc-banner rmc-banner--warning mb-0 py-2 small">
               <p class="mb-1">{% trans "Cannot enroll yet:" %}</p>
               <ul class="mb-0 ps-3">
                 {% for b in enroll_blockers %}<li>{{ b }}</li>{% endfor %}

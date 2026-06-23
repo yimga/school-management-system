@@ -73,7 +73,7 @@
   <div class="card">
     <div class="card-body">
       {% if school_code %}
-        <div class="alert alert-info small" dir="auto">
+        <div class="rmc-banner rmc-banner--info small" dir="auto">
           {% trans "School code:" %} <strong>{{ school_code }}</strong>.
           {% blocktrans with code=school_code %}Admission format: YY + {{ code }} + #### + SPEC + CLASS (no dashes).{% endblocktrans %}
           {% trans "Use the code provided by the school to avoid typos." %}
@@ -84,7 +84,7 @@
         {% csrf_token %}
         {% if form.non_field_errors %}
           <div class="col-12">
-            <div class="alert alert-danger mb-2">
+            <div class="rmc-banner rmc-banner--error mb-2">
               {{ form.non_field_errors }}
             </div>
           </div>

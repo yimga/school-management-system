@@ -21,7 +21,7 @@
     <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:dashboard' %}" data-action="nav-money-center" data-task="payment_readiness" data-task-step="finance:nav-dashboard">{% trans "Open Money Center" %}</a>
   </div>
 
-  <div class="alert alert-secondary border-0 shadow-sm mb-4" data-rmc-payment-next-action="1">
+  <div class="rmc-banner border-0 shadow-sm mb-4" data-rmc-payment-next-action="1">
     <div class="fw-semibold mb-1">{% trans "Current status & next action" %}</div>
     <p class="mb-0 small">{{ next_action }}</p>
     <p class="mb-0 small mt-2 text-muted">{% trans "Status vocabulary: ready, degraded, missing credentials, external required, manual fallback." %}</p>

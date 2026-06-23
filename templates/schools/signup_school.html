@@ -54,10 +54,10 @@
     {% endif %}
 
     {% if signup_ref == 'demo' %}
-      <div class="alert alert-success mb-3" role="status"><i class="bi bi-info-circle me-1"></i>{% trans "You opened signup from the demo. Fields below may be prefilled; submit when ready." %}</div>
+      <div class="rmc-banner rmc-banner--success mb-3" role="status"><i class="bi bi-info-circle me-1"></i>{% trans "You opened signup from the demo. Fields below may be prefilled; submit when ready." %}</div>
     {% endif %}
     {% if signup_region_hint %}
-      <div class="alert alert-info mb-3" role="status">
+      <div class="rmc-banner rmc-banner--info mb-3" role="status">
         <strong>{% trans "Region preset" %}:</strong> {{ signup_region_hint }}{% if curriculum_hint %} — {{ curriculum_hint }}{% endif %}
         <div class="rmc-signup-deeplink-hint">{% trans "Deep link" %}: <code>?region=…&country_code=…&term_preset=UK&curriculum=…</code></div>
       </div>

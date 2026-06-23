@@ -70,10 +70,10 @@
           </div>
           <div class="card-body">
             {% if initial_pack_name %}
-            <p class="alert alert-info small mb-3" role="status">{% blocktrans with name=initial_pack_name %}Pre-selected region pack: <strong>{{ name }}</strong>. Country and defaults are set for this pack.{% endblocktrans %}</p>
+            <p class="rmc-banner rmc-banner--info small mb-3" role="status">{% blocktrans with name=initial_pack_name %}Pre-selected region pack: <strong>{{ name }}</strong>. Country and defaults are set for this pack.{% endblocktrans %}</p>
             {% endif %}
             {% if parent_school_name %}
-            <p class="alert alert-secondary small mb-3" role="status">{% blocktrans with name=parent_school_name %}Adding as campus under: <strong>{{ name }}</strong>.{% endblocktrans %}</p>
+            <p class="rmc-banner small mb-3" role="status">{% blocktrans with name=parent_school_name %}Adding as campus under: <strong>{{ name }}</strong>.{% endblocktrans %}</p>
             <input type="hidden" id="parent_school_id" name="parent_school_id" value="{{ parent_school_id }}">
             {% endif %}
 
@@ -316,8 +316,8 @@
                     </div>
                   </div>
                 </form>
-                <div id="wizard-success" class="alert alert-success mt-3 d-none" role="alert"></div>
-                <div id="wizard-error" class="alert alert-danger mt-3 d-none" role="alert"></div>
+                <div id="wizard-success" class="rmc-banner rmc-banner--success mt-3 d-none" role="alert"></div>
+                <div id="wizard-error" class="rmc-banner rmc-banner--error mt-3 d-none" role="alert"></div>
               </div>
             </div>
           </div>

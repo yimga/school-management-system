@@ -15,7 +15,7 @@
     <p class="rmc-muted">{% trans "Configure your school's SMTP server. Credentials stay on the server — never on devices." %}</p>
   </header>
   {% if not allow_tenant_override %}
-  <div data-rmc-scroll-policy="paginate" class="alert alert-warning" role="status">{% trans "Platform operator has disabled tenant SMTP overrides." %}</div>
+  <div data-rmc-scroll-policy="paginate" class="rmc-banner rmc-banner--warning" role="status">{% trans "Platform operator has disabled tenant SMTP overrides." %}</div>
   {% else %}
   <form id="rmc-infra-email-form" class="rmc-form-stack" method="post" action="">
     {% csrf_token %}

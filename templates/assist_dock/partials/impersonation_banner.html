@@ -1,7 +1,7 @@
 {% load i18n %}
 {% if request.assist_dock_impersonation.active %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="rmc-impersonation-banner alert alert-warning"
+<div class="rmc-banner rmc-banner--warning rmc-impersonation-banner"
      role="status"
      data-rmc-impersonation-banner="1"
      data-rmc-impersonation-grant-id="{{ request.assist_dock_impersonation.grant_id }}">

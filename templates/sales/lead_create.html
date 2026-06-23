@@ -10,7 +10,7 @@
 <div class="container py-3" style="max-width: 32rem">
   <h1 class="h3">{% trans "Add lead" %}</h1>
   {% if error %}
-  <div class="alert alert-warning">{{ error }}</div>
+  <div class="rmc-banner rmc-banner--warning">{{ error }}</div>
   {% endif %}
   <form method="post" class="mt-2">
     {% csrf_token %}

@@ -32,12 +32,12 @@
   {% endif %}
 
   {% if not row %}
-    <div class="alert alert-info rmc-alert" role="alert">
+    <div class="rmc-banner rmc-banner--info rmc-alert" role="alert">
       {% blocktrans with c=connector.label %}{{ c }} is not connected at this scope yet. Connect it first, then come back here to narrow scopes.{% endblocktrans %}
     </div>
   {% else %}
     {% if is_overriding %}
-      <div class="alert alert-info rmc-alert" role="alert">
+      <div class="rmc-banner rmc-banner--info rmc-alert" role="alert">
         <small>{% trans "A custom scope set is active for this connection." %}</small>
       </div>
     {% endif %}
