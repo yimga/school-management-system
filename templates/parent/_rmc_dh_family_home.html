@@ -1,0 +1,194 @@
+{% comment %}
+  Premium .rmc-dh "family home" — the per-role dashboard rebuild validated in
+  var/design-previews/tenant-shell-100x-before-after.html. Wired to the existing
+  parent_dashboard context (child_cards, widget_data, attendance_pct, finance_*,
+  parent_upcoming_events, workflow_summary, signature_stats, badges). Money stays
+  Decimal via |format_currency. Degrade-safe: every list has an empty path.
+{% endcomment %}
+{% load i18n static region_format terminology_tags rmc_dh %}
+
+<div class="rmc-dh container-fluid px-3 px-lg-4 py-3" data-page-archetype="parent-dashboard" data-rmc-ux-role-dashboard="family-home">
+
+  {% if not links %}
+  {# No child linked yet — focused onboarding instead of an empty dashboard. #}
+  {% include "components/dashboard/rmc_dh_hero.html" with dh_eyebrow=_("Family Home") dh_title=_("Welcome — let's link your first child") dh_sub=_("Link a child to see attendance, results, fees and school updates in one calm view.") %}
+  <div class="rmc-dh-aicard">
+    <div class="rmc-dh-aicard__ic"><i class="bi bi-rocket-takeoff" aria-hidden="true"></i></div>
+    <div class="rmc-dh-aicard__body">
+      <h4>{% trans "Two ways to link your child" %}</h4>
+      <p>{% trans "Use an invite code from the school, or your child's admission number." %}</p>
+      <div class="rmc-dh-aicard__acts">
+        <a class="rmc-dh-chip rmc-dh-chip--primary" href="{% url 'portal:claim_invite' %}"><i class="bi bi-envelope-check" aria-hidden="true"></i> {% trans "I have an invite code" %}</a>
+        <a class="rmc-dh-chip" href="{% url 'portal:link_child' %}"><i class="bi bi-link-45deg" aria-hidden="true"></i> {% trans "I have an admission number" %}</a>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  {% url 'portal:portal_stats' as ph_stats_url %}
+  {% url 'portal:parent_finance' as ph_finance_url %}
+  {% url 'portal:parent_contact_school' as ph_contact_url %}
+  {% url 'portal:parent_workflow' as ph_workflow_url %}
+  {% url 'portal:signature_pending_list' as ph_signatures_url %}
+  {% url 'portal:unified_calendar' as ph_calendar_url %}
+
+  {# ---------- Hero + attendance ring ---------- #}
+  {% blocktrans count n=links.count asvar dh_parent_sub %}{{ n }} child linked · attendance, results and fees at a glance.{% plural %}{{ n }} children linked · attendance, results and fees at a glance.{% endblocktrans %}
+  {% blocktrans with name=request.user.get_full_name|default:request.user.username asvar dh_parent_title %}Good day, {{ name }}{% endblocktrans %}
+  {% include "components/dashboard/rmc_dh_hero.html" with dh_accent=True dh_eyebrow=_("Family Home") dh_title=dh_parent_title dh_sub=dh_parent_sub dh_ring_pct=attendance_pct dh_ring_label=attendance_pct|stringformat:"d"|add:"%" dh_ring_aria=_("Overall attendance") %}
+
+  {# ---------- KPI tiles ---------- #}
+  <div class="rmc-dh-tiles">
+    {% if attendance_pct >= 90 %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-check2-circle" dh_k=_("Attendance") dh_v=attendance_pct|stringformat:"d"|add:"%" dh_d=_("on track") dh_dir="up" dh_href=ph_stats_url %}
+    {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-check2-circle" dh_k=_("Attendance") dh_v=attendance_pct|stringformat:"d"|add:"%" dh_d=_("watch") dh_dir="down" dh_href=ph_stats_url %}{% endif %}
+    {% if can_view_finance %}
+      {% if finance_balance and finance_balance > 0 %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-wallet2" dh_k=_("Balance due") dh_v=finance_balance|format_currency dh_d=_("due") dh_dir="down" dh_href=ph_finance_url %}
+      {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-wallet2" dh_k=_("Balance due") dh_v=finance_balance|format_currency dh_d=_("cleared") dh_dir="up" dh_href=ph_finance_url %}{% endif %}
+    {% endif %}
+    {% if widget_data.performance.average %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-mortarboard" dh_k=_("Average") dh_v=widget_data.performance.average|floatformat:0 dh_d=widget_data.performance.trend|default:"" dh_dir="flat" %}{% endif %}
+    {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-bell" dh_k=_("Messages") dh_v=unread_messages_aggregate|default:0 dh_d=_("unread") dh_dir="flat" dh_href=ph_contact_url %}
+  </div>
+
+  {# ---------- What needs you ---------- #}
+  {% if missing_work_count > 0 or unread_messages_aggregate > 0 or signature_stats.pending or can_view_finance and finance_balance > 0 %}
+  <div class="rmc-dh-attention">
+    <h2 class="rmc-dh-attention__title"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "What needs you" %}</h2>
+    {% if can_view_finance and finance_balance and finance_balance > 0 %}{% blocktrans with amt=finance_balance|format_currency asvar dh_balrow %}A fee balance of {{ amt }} is due{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-cash-coin" dh_text=dh_balrow dh_go_label=_("Pay") dh_go_href=ph_finance_url %}{% endif %}
+    {% if missing_work_count > 0 %}{% blocktrans count n=missing_work_count asvar dh_followup %}{{ n }} learning task needs follow-up{% plural %}{{ n }} learning tasks need follow-up{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-journal-x" dh_text=dh_followup dh_go_label=_("View") dh_go_href=ph_workflow_url %}{% endif %}
+    {% if signature_stats.pending %}{% blocktrans count n=signature_stats.pending asvar dh_sign %}{{ n }} document waiting for your signature{% plural %}{{ n }} documents waiting for your signature{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-pen" dh_text=dh_sign dh_go_label=_("Sign") dh_go_href=ph_signatures_url %}{% endif %}
+    {% if unread_messages_aggregate > 0 %}{% blocktrans count n=unread_messages_aggregate asvar dh_unread %}{{ n }} unread message from school{% plural %}{{ n }} unread messages from school{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-chat-dots" dh_text=dh_unread dh_go_label=_("Open") dh_go_href=ph_contact_url %}{% endif %}
+  </div>
+  {% endif %}
+
+  {% if not can_view_finance %}
+  <div class="rmc-dh-attention rmc-dh-attention--good" role="note">
+    <h2 class="rmc-dh-attention__title"><i class="bi bi-shield-lock" aria-hidden="true"></i> {% trans "Finance access" %}</h2>
+    <div class="rmc-dh-attn-row">
+      <span>{{ finance_access_banner.text|default:_("Ask the school to enable finance access to view invoices and pay fees online.") }}</span>
+      {% if finance_access_banner.request_url %}
+      <form method="post" action="{{ finance_access_banner.request_url }}" class="ms-auto mb-0">{% csrf_token %}<button type="submit" class="rmc-dh-attn-row__go rmc-dh-attn-row__go--btn">{{ finance_access_banner.cta|default:_("Request access") }}</button></form>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# ---------- My children ---------- #}
+  {% term "student" plural=True capitalize=True as student_pl %}
+  <div class="rmc-dh-section-label"><i class="bi bi-people" aria-hidden="true"></i> {% blocktrans with t=student_pl %}My {{ t }}{% endblocktrans %}</div>
+  <div class="rmc-dh-cards rmc-dh-cards--wide">
+    {% for card in child_cards %}
+    <a class="rmc-dh-child" href="{% url 'portal:parent_child_results' card.link.student.id %}">
+      <div class="rmc-dh-child__ring" style="--rmc-dh-ring-pct:{{ card.attendance|default:0 }}" aria-hidden="true"><span>{{ card.attendance|default:0 }}%</span></div>
+      <div class="rmc-dh-child__body">
+        <h4>{{ card.link.student.get_full_name }}</h4>
+        <div class="rmc-dh-child__meta">
+          {% if can_view_results %}{% if card.rank %}{% blocktrans with r=card.rank %}Rank {{ r }}{% endblocktrans %} · {% endif %}{% if card.average %}{% trans "Avg" %} {{ card.average|floatformat:0 }}{% endif %}{% else %}{% trans "Linked" %}{% endif %}
+        </div>
+        <div class="rmc-dh-child__tags">
+          {% if card.attendance >= 80 %}<span class="rmc-dh-tag rmc-dh-tag--good">{% trans "On track" %}</span>{% else %}<span class="rmc-dh-tag rmc-dh-tag--warn">{% trans "Attendance" %}</span>{% endif %}
+          {% if can_view_finance %}{% if card.finance_balance and card.finance_balance > 0 %}<span class="rmc-dh-tag rmc-dh-tag--warn">{% trans "Fees due" %}</span>{% else %}<span class="rmc-dh-tag rmc-dh-tag--good">{% trans "Cleared" %}</span>{% endif %}{% endif %}
+          {% if card.missing_work %}<span class="rmc-dh-tag rmc-dh-tag--warn">{% blocktrans count n=card.missing_work %}{{ n }} task{% plural %}{{ n }} tasks{% endblocktrans %}</span>{% endif %}
+          {% for b in card.badges|slice:":2" %}<span class="rmc-dh-tag">{{ b.badge_type.label }}</span>{% endfor %}
+        </div>
+      </div>
+    </a>
+    {% empty %}
+    <div class="rmc-dh-panel">{% include "components/tp_empty.html" with tp_empty_title=_("No children linked yet") tp_empty_hint=_("Add one using your invite code from the school.") %}</div>
+    {% endfor %}
+  </div>
+
+  {# ---------- Two-column body ---------- #}
+  <div class="rmc-dh-grid2">
+    <div>
+      {% if widget_data.grade_trend %}
+      <section class="rmc-dh-panel">
+        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-graph-up-arrow" dh_title=_("Grade trend") dh_more_label=_("Reports")|add:" →" dh_more_href=ph_stats_url %}
+        <div class="rmc-dh-minichart" role="img" aria-label="{% trans 'Recent grade trend' %}">
+          {% for g in widget_data.grade_trend %}<div class="rmc-dh-minichart__col rmc-dh-minichart__col--accent" style="--rmc-dh-col-h:{{ g.value|dh_ratio:100 }}%"></div>{% endfor %}
+        </div>
+        <div class="rmc-dh-minichart-x" aria-hidden="true">{% for g in widget_data.grade_trend %}<span>{{ g.label }}</span>{% endfor %}</div>
+      </section>
+      {% endif %}
+
+      <section class="rmc-dh-panel">
+        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-lightning" dh_title=_("Quick actions") %}
+        <div class="rmc-dh-cards">
+          {% if can_view_finance %}<a class="rmc-dh-card" href="{% url 'portal:parent_finance' %}"><span class="rmc-dh-card__title">{% trans "Pay fees" %}</span><span class="rmc-dh-card__meta">{% trans "Card · transfer · mobile" %}</span></a>{% endif %}
+          <a class="rmc-dh-card" href="{% url 'portal:parent_contact_school' %}"><span class="rmc-dh-card__title">{% trans "Message teacher" %}</span><span class="rmc-dh-card__meta">{% trans "Reach the school" %}</span></a>
+          <a class="rmc-dh-card" href="{% url 'portal:parent_workflow' %}"><span class="rmc-dh-card__title">{% trans "My workflow" %}</span><span class="rmc-dh-card__meta">{{ workflow_summary.completion_pct|default:0 }}% {% trans "complete" %}</span></a>
+          <a class="rmc-dh-card" href="{% url 'portal:unified_calendar' %}"><span class="rmc-dh-card__title">{% trans "School calendar" %}</span><span class="rmc-dh-card__meta">{% trans "Events & deadlines" %}</span></a>
+        </div>
+      </section>
+
+      {% if class_threads %}
+      <section class="rmc-dh-panel">
+        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-chat-square-text" dh_title=_("Class messages") dh_more_label=_("Open")|add:" →" dh_more_href=ph_contact_url %}
+        <ul class="rmc-dh-lead">
+          {% for thread in class_threads|slice:":3" %}
+          <li>
+            <span class="rmc-dh-lead__rk"><i class="bi bi-chat-dots" aria-hidden="true"></i></span>
+            <span class="rmc-dh-lead__main"><span class="rmc-dh-lead__nm">{{ thread.title|default:_("Class thread")|truncatechars:34 }}</span><br><span class="rmc-dh-lead__sub">{{ thread.snippet|default:thread.description|default:_("No new summary.")|truncatechars:60 }}</span></span>
+            {% if thread.unread_count %}<span class="rmc-dh-lead__rt rmc-dh-lead__rt--down">{{ thread.unread_count }}</span>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+    </div>
+
+    <div>
+      {% if can_view_finance %}
+      <section class="rmc-dh-panel">
+        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-wallet2" dh_title=_("Fee status") dh_more_label=_("Finance")|add:" →" dh_more_href=ph_finance_url %}
+        <div class="rmc-dh-progress">
+          <span class="rmc-dh-progress__lbl">{% trans "Paid" %}</span>
+          <span class="rmc-dh-progress__bar"><i style="width:{{ finance_paid_pct|default:0 }}%"></i></span>
+          <span class="rmc-dh-progress__pct">{{ finance_paid_pct|default:0 }}%</span>
+        </div>
+        <div class="rmc-dh-segbar-key">
+          <span><span class="rmc-dh-legend__sw rmc-dh-fill--paid"></span> {% trans "Paid" %} {{ finance_paid|format_currency }}</span>
+          <span><span class="rmc-dh-legend__sw rmc-dh-fill--overdue"></span> {% trans "Balance" %} {{ finance_balance|format_currency }}</span>
+          {% if widget_data.finance.overdue %}<span><span class="rmc-dh-legend__sw rmc-dh-fill--warn"></span> {% blocktrans count n=widget_data.finance.overdue %}{{ n }} overdue{% plural %}{{ n }} overdue{% endblocktrans %}</span>{% endif %}
+        </div>
+      </section>
+      {% endif %}
+
+      {% if parent_upcoming_events %}
+      <section class="rmc-dh-panel">
+        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-calendar-week" dh_title=_("Upcoming at school") dh_more_label=_("Calendar")|add:" →" dh_more_href=ph_calendar_url %}
+        <ul class="rmc-dh-timeline">
+          {% for ev in parent_upcoming_events|slice:":4" %}
+          <li><span class="rmc-dh-timeline__t" aria-hidden="true"></span> {{ ev.title|truncatechars:40 }}{% if ev.when %}<span class="rmc-dh-timeline__when">{{ ev.when|date:"M j" }}</span>{% endif %}</li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+
+      {% if recent_payments %}
+      <section class="rmc-dh-panel">
+        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-receipt" dh_title=_("Recent payments") %}
+        <ul class="rmc-dh-timeline">
+          {% for payment in recent_payments|slice:":3" %}
+          <li><span class="rmc-dh-timeline__t rmc-dh-timeline__t--done" aria-hidden="true"></span> {{ payment.invoice.student.get_full_name|default:_("Student")|truncatechars:28 }} <span class="rmc-dh-timeline__when">{{ payment.amount|format_currency }}</span></li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+
+      {% if class_announcements or portal_announcements %}
+      <section class="rmc-dh-panel">
+        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-megaphone" dh_title=_("School feed") %}
+        <ul class="rmc-dh-timeline">
+          {% for ann in class_announcements|slice:":3" %}
+          <li><span class="rmc-dh-timeline__t" aria-hidden="true"></span> {{ ann.title|truncatechars:42 }}<span class="rmc-dh-timeline__when">{{ ann.created_at|date:"M j" }}</span></li>
+          {% empty %}
+          {% for item in portal_announcements|slice:":3" %}
+          <li><span class="rmc-dh-timeline__t" aria-hidden="true"></span> {{ item.title|truncatechars:42 }}{% if item.meta %}<span class="rmc-dh-timeline__when">{{ item.meta }}</span>{% endif %}</li>
+          {% endfor %}
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>

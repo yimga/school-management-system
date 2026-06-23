@@ -183,6 +183,7 @@
 }
 .rmc-dh-attention--good .rmc-dh-attn-row__go { color: var(--rmc-dh-accent); }
 .rmc-dh-attn-row__go:hover { text-decoration: underline; }
+.rmc-dh-attn-row__go--btn { background: none; border: none; cursor: pointer; font: inherit; padding: 0; }
 
 /* ============================ AI insight card ============================ */
 .rmc-dh-aicard {
