@@ -19,55 +19,37 @@
 
 {% include "components/next_action_strip.html" %}
 
-{% include "partials/tenant/hero_greeting.html" %}
 {% url 'portal:portal_operational_health_json' as tenant_health_api_url %}
 {% url 'portal:portal_operational_health_stream' as tenant_health_stream_url %}
 {% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="student" %}
-{% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings.
 
-   v3.58.x Wave 10 Agent T (2026-05-22): each cockpit section wrapped in the collapsable
-   primitive so students can fold sections they don't need. State persists per-section
-   via localStorage. Inner partials keep their cockpit.<section>.enabled self-gate. {% endcomment %}
-<div data-rmc-scroll-policy="paginate" class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="student">
-  {% comment %} v3.59.x Wave A (2026-05-22): year-progress strip sits above the cockpit sections per v3 100x preview. {% endcomment %}
-  {% include "partials/cockpit/_year_progress.html" %}
-  {% include "partials/cockpit/_collapsable_section.html" with title=_("Today snapshot") key="student__today_snapshot" include_partial="partials/cockpit/_today_snapshot.html" chrome="section" %}
-  {% include "partials/cockpit/_collapsable_section.html" with title=_("Quick actions") key="student__quick_actions_grid" include_partial="partials/cockpit/_quick_actions_grid.html" chrome="section" %}
-  {% include "partials/cockpit/_collapsable_section.html" with title=_("Upcoming events") key="student__upcoming_events_strip" include_partial="partials/cockpit/_upcoming_events_strip.html" chrome="section" %}
+{% phase8_dashboard_declaration "student/learning_home.html" %}
+{% comment %} v4.04 (2026-06-23) tenant 100X: the premium .rmc-dh student home is the single
+   primary role-home surface — it always renders rich content (the previous role-home
+   skipped all content when tp_v3_role_home was true). Honest: presents only the data
+   the view provides (status / class / unread / urgent queue / next actions). Operator
+   cockpit sections render below, each gated on cockpit.<section>.enabled. {% endcomment %}
+{% include "student/_rmc_dh_student_home.html" %}
+
+<div class="tp-dashboard-cockpit container-fluid px-3 px-lg-4" data-rmc-tp-dashboard-cockpit="student">
+  {% if cockpit.year_progress.enabled %}{% include "partials/cockpit/_year_progress.html" %}{% endif %}
+  {% if cockpit.today_snapshot.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Today snapshot") key="student__today_snapshot" include_partial="partials/cockpit/_today_snapshot.html" chrome="section" %}{% endif %}
+  {% if cockpit.quick_actions.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Quick actions") key="student__quick_actions_grid" include_partial="partials/cockpit/_quick_actions_grid.html" chrome="section" %}{% endif %}
+  {% if cockpit.upcoming_events.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Upcoming events") key="student__upcoming_events_strip" include_partial="partials/cockpit/_upcoming_events_strip.html" chrome="section" %}{% endif %}
+  {% if cockpit.activity_timeline.enabled or cockpit.achievements.enabled or cockpit.teacher_spotlight.enabled %}
   <div class="tp-grid-2">
-    {% include "partials/cockpit/_collapsable_section.html" with title=_("Activity timeline") key="student__activity_timeline" include_partial="partials/cockpit/_activity_timeline.html" chrome="section" %}
+    {% if cockpit.activity_timeline.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Activity timeline") key="student__activity_timeline" include_partial="partials/cockpit/_activity_timeline.html" chrome="section" %}{% endif %}
     <div class="tp-grid-stack">
-      {% include "partials/cockpit/_collapsable_section.html" with title=_("Achievements") key="student__achievements_card" include_partial="partials/cockpit/_achievements_card.html" chrome="section" %}
-      {% include "partials/cockpit/_collapsable_section.html" with title=_("Teacher spotlight") key="student__teacher_spotlight_card" include_partial="partials/cockpit/_teacher_spotlight_card.html" chrome="section" %}
+      {% if cockpit.achievements.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Achievements") key="student__achievements_card" include_partial="partials/cockpit/_achievements_card.html" chrome="section" %}{% endif %}
+      {% if cockpit.teacher_spotlight.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Teacher spotlight") key="student__teacher_spotlight_card" include_partial="partials/cockpit/_teacher_spotlight_card.html" chrome="section" %}{% endif %}
     </div>
   </div>
-  {% comment %} v3.57.10 (2026-05-22): student-appropriate v3 100x extended sections rendered
-     ONLY on the student learning-home landing. Each partial self-gates on
-     cockpit.<section>.enabled. {% endcomment %}
-  {% include "partials/cockpit/_collapsable_section.html" with title=_("AI study buddy") key="student__ai_study_buddy" include_partial="partials/cockpit/_ai_study_buddy.html" chrome="section" %}
-  {% include "partials/cockpit/_collapsable_section.html" with title=_("Lesson of the day") key="student__lesson_of_day" include_partial="partials/cockpit/_lesson_of_day.html" chrome="section" %}
-  {% include "partials/cockpit/_collapsable_section.html" with title=_("Gradebook trend") key="student__gradebook_trend" include_partial="partials/cockpit/_gradebook_trend.html" chrome="section" %}
-  {% include "partials/cockpit/_collapsable_section.html" with title=_("Attendance heatmap") key="student__attendance_heatmap" include_partial="partials/cockpit/_attendance_heatmap.html" chrome="section" %}
-  {% include "partials/cockpit/_collapsable_section.html" with title=_("Realtime presence") key="student__realtime_presence" default_state="collapsed" include_partial="partials/cockpit/_realtime_presence.html" chrome="section" %}
-</div>
-<div class="container-lg py-3" data-page-archetype="role-home" data-rmc-student-learning-home="1" data-rmc-page="student-portal" data-task="student_home" data-task-step="student:dashboard">
-  {% phase8_dashboard_declaration "student/learning_home.html" %}
-  {% if not tp_v3_role_home %}
-  {% comment %} Aesthetic-v2 page header (eyebrow + page-h1 + page-sub). Styled by patterns.css. {% endcomment %}
-  {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` for v8 200x preview parity. {% endcomment %}
-  <header class="rmc-page-header rmc-page-header-glow mb-3" data-rmc-aesthetic-page-header="student" data-tour="student-header">
-    <div class="eyebrow rmc-page-eyebrow">{% trans "My learning" %}</div>
-    {% comment %} v3.59.x Wave A (2026-05-22): wrap dynamic name in <strong> for `.page-h1 strong` gradient-text rule. {% endcomment %}
-    {% firstof request.user.first_name student_sg as greet_name %}
-    <h1 class="page-h1" data-rmc-injected-h1="1">{% blocktrans with name=greet_name %}Hi <strong>{{ name }}</strong>.{% endblocktrans %}</h1>
-    <p class="page-sub">{% trans "Your priorities for today." %}</p>
-  </header>
-  <div data-tour="student-decision-strip">
-  {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
-  </div>
-  <p class="text-muted small mb-2" role="note">{% trans "Your highest-priority next steps appear in the strip above when your school assigns work or announcements." %}</p>
-  <p class="text-muted small mb-0">{% trans "Need the family view?" %} <a href="{% url 'accounts:logout' %}?next={% url 'accounts:login' %}" data-task-step="student:switch-account">{% trans "Switch account" %}</a></p>
   {% endif %}
+  {% if cockpit.ai_study_buddy.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("AI study buddy") key="student__ai_study_buddy" include_partial="partials/cockpit/_ai_study_buddy.html" chrome="section" %}{% endif %}
+  {% if cockpit.lesson_of_day.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Lesson of the day") key="student__lesson_of_day" include_partial="partials/cockpit/_lesson_of_day.html" chrome="section" %}{% endif %}
+  {% if cockpit.gradebook_trend.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Gradebook trend") key="student__gradebook_trend" include_partial="partials/cockpit/_gradebook_trend.html" chrome="section" %}{% endif %}
+  {% if cockpit.attendance_heatmap.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Attendance heatmap") key="student__attendance_heatmap" include_partial="partials/cockpit/_attendance_heatmap.html" chrome="section" %}{% endif %}
+  {% if cockpit.realtime_presence.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Realtime presence") key="student__realtime_presence" default_state="collapsed" include_partial="partials/cockpit/_realtime_presence.html" chrome="section" %}{% endif %}
 </div>
 {% endblock %}
 
