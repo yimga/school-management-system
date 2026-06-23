@@ -29,6 +29,8 @@ defaults**, not structural holes.
 | Templates | `reports/term_report.html`, `teacher/marks_entry.html` | hardcoded "Sequence 1/2" → `{% term "sequence" %}` (English default preserved) |
 | Templates | `reports/annual_report.html:110` | hardcoded "Principal" → `{% term "principal" %}` |
 | CI gate | `scripts/lint_gilead_residue.py` | pattern `gilead` → `gilead|small soppo`; reworded 2 prior "De-Gilead" comments the gate was already (silently) flagging |
+| Dashboard scale (`561f277fc`) | `accounts/views.py` + `backend_dashboard.html` | top-performer/at-risk `/20` + the `>= 10` at-risk pass threshold were Cameroon-/20-baked; now derived from `resolve_school_score_scale()` (denominator = scale max, pass = half scale). `/20` school unchanged; `/100`/GPA correct. Defensive `grading_scale_max=20` on the no-data path |
+| Role gate (`561f277fc`) | `accounts/auth_backends_role_perms.py` | greened the `role-strings --compare` gate (was red on a peer-added admin-like role set) via two `# role-string-allow` markers — comment-only |
 
 RBAC per-school OWNER role also shipped this session (commit `936d5ebd4`) — the deferred
 Phase-0 item; see `project_rbac_school_owner_2026_06_23` memory.
@@ -36,15 +38,15 @@ Phase-0 item; see `project_rbac_school_owner_2026_06_23` memory.
 ## Deferred — needs a supervised pass (exact targets + fix)
 
 ### P0 (non-/20 tenants are actively wrong) — grade-scale plumbed into context
-These touch **grade entry / report rendering**, so they need view-context plumbing AND
-browser verification before shipping (do-not-break-the-working-Cameroon-tenant).
-
-- `templates/teacher/marks_entry.html:326-334` — four mark inputs hardcode `max="20"`. A
-  /100 (US) or /10 (EU) or /7 (IB) tenant cannot enter valid marks. **Fix:** the marks-entry
-  view computes `max_score` from the school's grading scale (default 20 for back-compat) and
-  the template uses `max="{{ max_score }}"`.
-- `templates/accounts/backend_dashboard.html` — score badge prints `{{ score }}/20`. **Fix:**
-  render the denominator from the tenant's `score_scale` / grading bands.
+- `templates/accounts/backend_dashboard.html` — **SHIPPED `561f277fc`** (see above).
+- `templates/teacher/marks_entry.html:326-334` — six mark inputs hardcode `max="20"`. A
+  /100 (US) or /10 (EU) or /7 (IB) tenant cannot enter valid marks. **Fix is ready** (view
+  computes `max_score` via `resolve_school_score_scale()`, template binds `max="{{ max_score }}"`)
+  but **NOT shipped by this pass**: `apps/evals/views.py` has in-flight peer grade-scale work
+  (the OCR path + `_validate_ocr_entries(max_score=…)` already call the same resolver), so
+  committing the marks-entry view change would absorb the peer's uncommitted work. Hand to
+  whoever owns that file's grade-scale wave — the view block + the 6 `max="20"` bindings are
+  the only remaining edit, and it's backward-compatible (Cameroon `score_scale=20` → `max="20"`).
 
 ### P1 — founding-tenant seed history + structural binding
 - `schools/migrations/0012`, `0013`, `customers/migrations/0003` — seed a Gilead-specific
