@@ -71,11 +71,6 @@
 }
 
 /* JS-injected content: let containers reflow when fetch/HTMX add content */
-.recent-activity-list {
-  min-width: 0;
-  height: auto;
-}
-
 #calendarGrid {
   min-width: 0;
   height: auto;

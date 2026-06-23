@@ -19,36 +19,6 @@
     return "";
   }
 
-  function initRecentActivityCollapse() {
-    var key = "portal-sidebar-recent-activity-collapsed";
-    var collapsed = localStorage.getItem(key) === "true";
-
-    function applyState(block, isCollapsed) {
-      var header = block.querySelector(".recent-activity-toggle");
-      var content = block.querySelector(".recent-activity-content");
-      var chevron = block.querySelector(".recent-activity-chevron");
-      if (!header || !content) return;
-      content.classList.toggle("collapsed", isCollapsed);
-      header.setAttribute("aria-expanded", String(!isCollapsed));
-      if (chevron) chevron.classList.toggle("collapsed", isCollapsed);
-    }
-
-    var blocks = Array.from(document.querySelectorAll(".recent-activity-block"));
-    if (!blocks.length) return;
-    blocks.forEach(function (block) {
-      applyState(block, collapsed);
-      var header = block.querySelector(".recent-activity-toggle");
-      if (!header) return;
-      header.addEventListener("click", function () {
-        collapsed = !collapsed;
-        localStorage.setItem(key, collapsed ? "true" : "false");
-        blocks.forEach(function (b) {
-          applyState(b, collapsed);
-        });
-      });
-    });
-  }
-
   function initPinnedItems() {
     var buttons = Array.from(document.querySelectorAll(".sidebar-pin-btn[data-sidebar-id]"));
     if (!buttons.length) return;
@@ -157,7 +127,6 @@
   }
 
   ready(function () {
-    initRecentActivityCollapse();
     initPinnedItems();
     initActiveLinkState();
   });

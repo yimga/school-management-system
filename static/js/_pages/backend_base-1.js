@@ -21,42 +21,5 @@
     document.documentElement.setAttribute('data-resolved-theme', resolved);
     document.documentElement.setAttribute('data-bs-theme', resolved);
     document.documentElement.classList.toggle('dark', resolved === 'dark');
-    // Load recent activity into left sidebar when present (desktop + mobile sidebars)
-    (function() {
-      var lists = document.querySelectorAll('.recent-activity-list');
-      if (!lists.length) return;
-      function escapeHtml(text) {
-        var div = document.createElement('div');
-        div.textContent = String(text || '');
-        return div.innerHTML;
-      }
-      function setContent(html) {
-        for (var i = 0; i < lists.length; i++) lists[i].innerHTML = html;
-      }
-      function buildItems(data) {
-        if (!data || !Array.isArray(data.activities) || data.activities.length === 0) {
-          return '<li class="text-muted small px-2">No recent activity.</li>';
-        }
-        var html = '';
-        data.activities.slice(0, 8).forEach(function(item) {
-          html += '<li class="sidebar-activity-item px-2 py-1 rounded mb-1" style="border-left:3px solid rgba(99,102,241,0.5);padding-left:0.6rem">' +
-            '<span class="fw-semibold d-block" style="font-size:0.8rem">' + escapeHtml(item.title || item.type || 'Event') + '</span>' +
-            '<span class="small text-muted">' + escapeHtml(item.description || '') + '</span>' +
-            '<span class="badge bg-secondary ms-1" style="font-size:0.65rem">' + escapeHtml(item.when || item.time || '') + '</span></li>';
-        });
-        return html;
-      }
-      var activitiesUrl = (window.RMCPlatformSurface && window.RMCPlatformSurface.url('activities')) || '';
-      if (!activitiesUrl) {
-        setContent('<li class="text-muted small px-2">No recent activity.</li>');
-        return;
-      }
-      var actSep = activitiesUrl.indexOf('?') >= 0 ? '&' : '?';
-      fetch(activitiesUrl + actSep + 'page=1').then(function(r) { return r.json(); }).then(function(data) {
-        setContent(buildItems(data));
-      }).catch(function() {
-        setContent('<li class="text-muted small px-2">No recent activity.</li>');
-      });
-    })();
   });
 })();

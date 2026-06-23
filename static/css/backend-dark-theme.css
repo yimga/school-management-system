@@ -480,20 +480,6 @@ body.portal-backend-dark .dropdown-item:hover {
   color: var(--text-tertiary, var(--color-base-100)) !important;
 }
 
-/* Sidebar Recent Activity block (same dark sidebar surface) */
-body.portal-backend-dark .sidebar-activity-item {
-  background: rgba(44, 36, 29, 0.5); /* off-token-allow: rgba-decorative */
-  border-left-color: rgba(99, 102, 241, 0.6); /* off-token-allow: rgba-decorative */
-  color: var(--text-tertiary, var(--color-base-200));
-}
-
-body.portal-backend-dark .sidebar-activity-item .small {
-  color: var(--text-tertiary, var(--color-base-350)) !important;
-}
-
-body.portal-backend-dark .sidebar-activity-item .badge {
-  color: var(--text-tertiary, var(--color-base-100)) !important;
-}
 
 /* Right sidebar (Copilot, etc.): card text readable */
 body.portal-backend-dark .backend-right-sidebar .card,
