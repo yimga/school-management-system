@@ -1101,6 +1101,17 @@ class SchoolMembership(models.Model):
         default=False,
         help_text="When user has multiple schools, which one is primary",
     )
+    is_school_owner = models.BooleanField(
+        default=False,
+        help_text=(
+            "Per-school OWNER (the tenant's 'super admin'). The user who created "
+            "the school is the owner by default; ownership is transferable and a "
+            "school may have multiple owners. Distinct from is_primary (a per-user "
+            "default-school pointer with no authority) and from User.role=SUPERADMIN "
+            "(a control-plane/operator role that is redirected off tenant hosts). "
+            "Owners are admin-like; granting ownership ensures the ADMIN role."
+        ),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1109,9 +1120,30 @@ class SchoolMembership(models.Model):
         ordering = ["-is_primary", "school__name"]
         verbose_name = "School membership"
         verbose_name_plural = "School memberships"
+        indexes = [
+            # Hot path for the ownership gate + last-owner guard: "owners of this school".
+            models.Index(
+                fields=["school", "is_school_owner"],
+                name="schoolmember_owner_idx",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.user.username} @ {self.school.name} ({self.role})"
+
+    @staticmethod
+    def owner_memberships(school):
+        """Active owner memberships for a school (queryset)."""
+        return SchoolMembership.objects.filter(school=school, is_school_owner=True)
+
+    @staticmethod
+    def is_owner(user, school) -> bool:
+        """True if ``user`` is an owner of ``school`` (membership flag only)."""
+        if not user or not getattr(user, "is_authenticated", False):
+            return False
+        return SchoolMembership.objects.filter(
+            school=school, user_id=getattr(user, "pk", None), is_school_owner=True
+        ).exists()
 
 
 class SignupVerification(models.Model):

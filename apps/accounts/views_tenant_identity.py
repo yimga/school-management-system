@@ -67,6 +67,51 @@ def _can_manage_tenant_identity(user, school) -> bool:
         return False
 
 
+def _is_school_owner(user, school) -> bool:
+    """Ownership gate for transfer/grant/release.
+
+    Deliberately STRICTER than ``_can_manage_tenant_identity``: changing who owns
+    the tenant is an authority-bearing act, so it must require *actual ownership*
+    (the per-school ``is_school_owner`` flag), never the broad identity-hub manage
+    role set (which admits IT_ADMIN / VICE_PRINCIPAL / LEADERSHIP and would be a
+    privilege-escalation path into ownership). Platform superusers are allowed for
+    support/recovery.
+    """
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    return SchoolMembership.objects.filter(
+        school_id=school.pk, user_id=user.pk, is_school_owner=True
+    ).exists()
+
+
+def _audit_ownership(request, school, action: str, target_user_id) -> None:
+    """Record an ownership change in the security trail (no PII in logs)."""
+    try:
+        from apps.accounts.models import SecurityAuditLog
+        from apps.accounts.security_audit import log_security_event
+
+        log_security_event(
+            request.user,
+            SecurityAuditLog.EventType.OWNERSHIP_CHANGED,
+            request=request,
+            school=school,
+        )
+    except Exception:
+        logger.warning(
+            "tenant_ownership.audit_failed action=%s", action, exc_info=True
+        )
+    # PK-only structured line — no usernames/emails (passes pii-logging-smell gate).
+    logger.info(
+        "tenant_ownership.%s actor=%s target=%s school=%s",
+        action,
+        getattr(request.user, "pk", None),
+        target_user_id,
+        getattr(school, "pk", None),
+    )
+
+
 @tenant_identity_hub_pdp
 @login_required
 @require_school
@@ -91,6 +136,7 @@ def tenant_identity_roster(request):
                 "user": user,
                 "effective_role": localized_role_for_user(user, school),
                 "role_code": membership.role or "",
+                "is_owner": membership.is_school_owner,
                 "mfa_ok": mfa_rows.get(user.pk, mfa_enrolled_for_user(user)),
                 "detail_url": reverse(
                     "accounts:tenant_identity_detail", args=[user.pk]
@@ -148,6 +194,10 @@ def tenant_identity_detail(request, user_id: int):
     detail_url = reverse("accounts:tenant_identity_detail", args=[user.pk])
     return_url = mutation_return_url(request, roster_url, list_url=roster_url)
     detail_return_url = mutation_return_url(request, detail_url, list_url=detail_url)
+    caller_is_owner = _is_school_owner(request.user, school)
+    owner_count = SchoolMembership.objects.filter(
+        school=school, is_school_owner=True
+    ).count()
     return render(
         request,
         "accounts/tenant_identity_detail.html",
@@ -163,6 +213,20 @@ def tenant_identity_detail(request, user_id: int):
             "return_url": return_url,
             "detail_return_url": detail_return_url,
             "can_manage": _can_manage_tenant_identity(request.user, school),
+            # Ownership controls — only an actual owner may transfer/grant/release.
+            "caller_is_owner": caller_is_owner,
+            "target_is_owner": membership.is_school_owner,
+            "target_is_self": request.user.pk == user.pk,
+            "owner_count": owner_count,
+            "grant_ownership_url": reverse(
+                "accounts:tenant_identity_grant_ownership", args=[user.pk]
+            ),
+            "revoke_ownership_url": reverse(
+                "accounts:tenant_identity_revoke_ownership", args=[user.pk]
+            ),
+            "transfer_ownership_url": reverse(
+                "accounts:tenant_identity_transfer_ownership", args=[user.pk]
+            ),
             "offboard_url": reverse(
                 "accounts:tenant_identity_offboard", args=[user.pk]
             ),
@@ -388,6 +452,159 @@ def tenant_identity_offboard(request, user_id: int):
     messages.success(request, _("Staff member removed from this school."))
     roster_url = reverse("accounts:tenant_identity_roster")
     return redirect_after_delete(request, roster_url, list_url=roster_url)
+
+
+def _owner_detail_redirect(request, user_id):
+    return redirect_after_detail_mutation(
+        request, reverse("accounts:tenant_identity_detail", args=[user_id])
+    )
+
+
+@login_required
+@require_school
+@require_POST
+def tenant_identity_grant_ownership(request, user_id: int):
+    """Make another active member a co-owner (multi-owner is allowed).
+
+    Owner-gated. Granting ownership also ensures the target carries the ADMIN role
+    (owners are admin-like). Caller keeps their own ownership.
+    """
+    school = request.school
+    if not _is_school_owner(request.user, school):
+        return HttpResponseForbidden("Only a school owner can grant ownership.")
+    with transaction.atomic():
+        target = get_object_or_404(
+            SchoolMembership.objects.select_for_update(),
+            school=school,
+            user_id=user_id,
+        )
+        if target.is_school_owner:
+            messages.info(request, _("That member is already an owner."))
+        else:
+            target.is_school_owner = True
+            update_fields = ["is_school_owner", "updated_at"]
+            if str(target.role or "").strip().upper() != User.Role.ADMIN:
+                target.role = User.Role.ADMIN
+                update_fields.append("role")
+            target.save(update_fields=update_fields)
+            _audit_ownership(request, school, "grant", target.user_id)
+            messages.success(
+                request, _("Ownership granted — this member is now a co-owner.")
+            )
+    return _owner_detail_redirect(request, user_id)
+
+
+@login_required
+@require_school
+@require_POST
+def tenant_identity_revoke_ownership(request, user_id: int):
+    """Remove a member's ownership (or step yourself down).
+
+    Owner-gated, with a hard last-owner guard: a school can never be left with
+    zero owners. The target's other roles/membership are untouched — only the
+    owner flag is cleared.
+    """
+    school = request.school
+    if not _is_school_owner(request.user, school):
+        return HttpResponseForbidden("Only a school owner can change ownership.")
+    with transaction.atomic():
+        target = get_object_or_404(
+            SchoolMembership.objects.select_for_update(),
+            school=school,
+            user_id=user_id,
+        )
+        if not target.is_school_owner:
+            messages.info(request, _("That member is not an owner."))
+            return _owner_detail_redirect(request, user_id)
+        # Last-owner guard — lock the owner rows so two concurrent revokes can't
+        # both read "2 owners" and race the school down to zero.
+        owner_count = (
+            SchoolMembership.objects.select_for_update()
+            .filter(school=school, is_school_owner=True)
+            .count()
+        )
+        if owner_count <= 1:
+            messages.error(
+                request,
+                _(
+                    "You can't remove the last owner. Grant ownership to another "
+                    "member first, then remove this one."
+                ),
+            )
+            return _owner_detail_redirect(request, user_id)
+        target.is_school_owner = False
+        target.save(update_fields=["is_school_owner", "updated_at"])
+        _audit_ownership(request, school, "revoke", target.user_id)
+        if target.user_id == request.user.pk:
+            messages.success(request, _("You have stepped down as owner."))
+        else:
+            messages.success(request, _("Ownership removed from this member."))
+    return _owner_detail_redirect(request, user_id)
+
+
+@login_required
+@require_school
+@require_POST
+def tenant_identity_transfer_ownership(request, user_id: int):
+    """Transfer ownership to a chosen member and step down — atomically.
+
+    The headline "release the role to a chosen person" action. The target becomes
+    an owner (and ADMIN) and the caller relinquishes their own ownership in the
+    same transaction. Because the target is promoted before the caller steps down,
+    the school always retains at least one owner.
+    """
+    school = request.school
+    if not _is_school_owner(request.user, school):
+        return HttpResponseForbidden("Only a school owner can transfer ownership.")
+    if request.user.pk == user_id:
+        messages.error(request, _("Choose a different member to transfer ownership to."))
+        return _owner_detail_redirect(request, user_id)
+    with transaction.atomic():
+        # Transfer means "hand off MY ownership", so the caller must actually hold
+        # an owner membership here. A platform superuser doing support/recovery has
+        # no membership to step down from — point them at "Make co-owner" instead,
+        # which assigns ownership without implying the actor relinquishes any.
+        caller = (
+            SchoolMembership.objects.select_for_update()
+            .filter(school=school, user_id=request.user.pk, is_school_owner=True)
+            .first()
+        )
+        if caller is None:
+            messages.error(
+                request,
+                _(
+                    "Use “Make co-owner” to assign an owner — transfer "
+                    "steps you down, and you don't currently hold ownership of this "
+                    "school."
+                ),
+            )
+            return _owner_detail_redirect(request, user_id)
+        target = get_object_or_404(
+            SchoolMembership.objects.select_for_update(),
+            school=school,
+            user_id=user_id,
+        )
+        # Promote the chosen member to owner (+ ADMIN) FIRST, so the school always
+        # retains at least one owner across the handoff.
+        target_fields = ["is_school_owner", "updated_at"]
+        if not target.is_school_owner:
+            target.is_school_owner = True
+        if str(target.role or "").strip().upper() != User.Role.ADMIN:
+            target.role = User.Role.ADMIN
+            target_fields.append("role")
+        target.save(update_fields=target_fields)
+        # Step the caller down.
+        caller.is_school_owner = False
+        caller.save(update_fields=["is_school_owner", "updated_at"])
+        _audit_ownership(request, school, "transfer", target.user_id)
+        messages.success(
+            request,
+            _(
+                "Ownership transferred. You remain an admin; the new owner now "
+                "controls the school."
+            ),
+        )
+    return _owner_detail_redirect(request, user_id)
 
 
 @require_http_methods(["GET", "POST"])

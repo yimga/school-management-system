@@ -151,11 +151,14 @@ from apps.accounts.views_tenant_observability import tenant_activity_log
 from apps.accounts.views_trust_hub import security_trust_hub, tenant_impersonation_audit
 from apps.accounts.views_tenant_identity import (
     tenant_identity_detail,
+    tenant_identity_grant_ownership,
     tenant_identity_invite,
     tenant_identity_offboard,
     tenant_identity_regulator_grant,
+    tenant_identity_revoke_ownership,
     tenant_identity_revoke_sessions,
     tenant_identity_roster,
+    tenant_identity_transfer_ownership,
     tenant_staff_invite_accept,
 )
 from apps.schoolops.views_tenant_ops import (
@@ -428,6 +431,21 @@ urlpatterns = [
         "backend/identity/<int:user_id>/revoke-sessions/",
         tenant_identity_revoke_sessions,
         name="tenant_identity_revoke_sessions",
+    ),
+    path(
+        "backend/identity/<int:user_id>/grant-ownership/",
+        tenant_identity_grant_ownership,
+        name="tenant_identity_grant_ownership",
+    ),
+    path(
+        "backend/identity/<int:user_id>/revoke-ownership/",
+        tenant_identity_revoke_ownership,
+        name="tenant_identity_revoke_ownership",
+    ),
+    path(
+        "backend/identity/<int:user_id>/transfer-ownership/",
+        tenant_identity_transfer_ownership,
+        name="tenant_identity_transfer_ownership",
     ),
     path("backend/ops/", ops_hub, name="ops_hub"),
     path("backend/ops/library/", ops_library, name="ops_library"),

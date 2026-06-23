@@ -484,6 +484,7 @@ class SecurityAuditLog(models.Model):
         DATA_EXPORT = "DATA_EXPORT", "Data export"
         LOCKDOWN_TRIGGERED = "LOCKDOWN_TRIGGERED", "Emergency lockdown"
         SESSION_REVOKED = "SESSION_REVOKED", "Sessions revoked"
+        OWNERSHIP_CHANGED = "OWNERSHIP_CHANGED", "School ownership changed"
         IMPOSSIBLE_TRAVEL = (
             "IMPOSSIBLE_TRAVEL",
             "Impossible travel (login from distant location)",

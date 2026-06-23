@@ -26,7 +26,10 @@
             <dt class="col-sm-4">{% trans "Email" %}</dt>
             <dd class="col-sm-8">{{ staff_user.email|default:"—" }}</dd>
             <dt class="col-sm-4">{% trans "Effective role" %}</dt>
-            <dd class="col-sm-8"><span class="rmc-badge">{{ effective_role }}</span></dd>
+            <dd class="col-sm-8">
+              <span class="rmc-badge">{{ effective_role }}</span>
+              {% if target_is_owner %}<span class="rmc-badge rmc-badge--brand ms-1">{% trans "Owner" %}</span>{% endif %}
+            </dd>
             <dt class="col-sm-4">{% trans "MFA" %}</dt>
             <dd class="col-sm-8">
               {% if mfa_ok %}
@@ -63,6 +66,53 @@
       </div>
     </div>
   </div>
+
+  {% if caller_is_owner %}
+  <div class="card shadow-sm mt-3">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <span>{% trans "School ownership" %}</span>
+      {% if target_is_owner %}<span class="rmc-badge rmc-badge--brand">{% trans "Owner" %}</span>{% endif %}
+    </div>
+    <div class="card-body">
+      <p class="small text-muted mb-3">
+        {% trans "Owners are the school's super admins: they configure the tenant and control who else owns it. Ownership is transferable, and a school can have more than one owner." %}
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        {% if target_is_owner %}
+          {% if target_is_self %}
+          <form method="post" action="{{ revoke_ownership_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Step down as owner of this school?" %}');">
+            {% csrf_token %}
+            {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
+            <button type="submit" class="btn btn-sm btn-outline-danger"{% if owner_count <= 1 %} disabled{% endif %}>{% trans "Step down as owner" %}</button>
+          </form>
+          {% else %}
+          <form method="post" action="{{ revoke_ownership_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Remove ownership from this member?" %}');">
+            {% csrf_token %}
+            {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
+            <button type="submit" class="btn btn-sm btn-outline-danger"{% if owner_count <= 1 %} disabled{% endif %}>{% trans "Remove ownership" %}</button>
+          </form>
+          {% endif %}
+          {% if owner_count <= 1 %}
+          <p class="small text-muted mb-0 w-100">{% trans "This is the only owner. Grant ownership to another member before removing it here." %}</p>
+          {% endif %}
+        {% else %}
+          <form method="post" action="{{ grant_ownership_url }}" class="d-inline" data-rmc-post-mutation="1">
+            {% csrf_token %}
+            {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
+            <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Make co-owner" %}</button>
+          </form>
+          {% if not target_is_self %}
+          <form method="post" action="{{ transfer_ownership_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Transfer ownership to this member and step yourself down?" %}');">
+            {% csrf_token %}
+            {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
+            <button type="submit" class="btn btn-sm btn-primary">{% trans "Transfer ownership & step down" %}</button>
+          </form>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   {% if can_manage %}
   <div class="d-flex flex-wrap gap-2 mt-3">
