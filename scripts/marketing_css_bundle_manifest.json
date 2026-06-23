@@ -27,6 +27,8 @@
     "static/marketing/css/tokens-threshold-era.css",
     "static/marketing/css/mkt-threshold-era.css",
     "static/marketing/css/mkt-ascension.css",
+    "static/marketing/css/mkt-ascension-media.css",
+    "static/marketing/css/mkt-revolution-lab.css",
     "static/css/rmc-warm-bright-school.css",
     "static/css/rmc-cool-apple-polish.css",
     "static/css/design-tokens-luxury.css",
@@ -48,7 +50,7 @@
   ],
   "size_budget_bytes": {
     "critical_max": 45000,
-    "enhanced_max": 350000,
-    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (284KB as of 2026-05-21 after batch 1372 off-token-allow / theme-locked-allow CI markers preserved through minify). Deferred load via media=print onload."
+    "enhanced_max": 425000,
+    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (418KB as of 2026-06-23 after mkt-ascension-media + mkt-revolution-lab). Deferred load via media=print onload."
   }
 }

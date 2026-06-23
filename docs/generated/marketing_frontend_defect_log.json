@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-01T16:11:18.192831+00:00",
+  "generated_at": "2026-06-23T21:44:09.321127+00:00",
   "defects": [
     {
       "id": "P1",
@@ -195,7 +195,7 @@
     }
   ],
   "bundles": {
-    "critical_bytes": 21386,
-    "enhanced_bytes": 347235
+    "critical_bytes": 21619,
+    "enhanced_bytes": 418174
   }
 }

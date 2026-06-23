@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice — De-Gilead consolidation + marketing ascension closeout (2026-06-23)
+
+**A. Scope:** Close the in-flight merge/consolidation pass (post-`b8c0ea798`), branch inventory, gap analysis, and ship remaining marketing ascension media + tenant dashboard polish.
+
+**B. Shipped:** Marketing stock registry + ascension/revolution-lab partials (`mkt_ascension_arena`, cinematic film, verb nav, inner threshold hero); `marketing_stock_figure` templatetag; enhanced CSS budget **350000 → 425000** B; teacher/parent/admin `.rmc-dh` dashboard partial polish; `docs/DE_GILEAD_AUDIT_2026_06_23.md` consolidation closeout table. Prior commit **`939f2fe20`** landed student 100X role home + `student_results_visibility` cascade.
+
+**C. Proof:** `manage.py check` 0; `makemigrations --check` clean; marks-entry + lexicon + student visibility + rmc_dh **70 tests OK**; `lint_gilead_residue` 0; `scan_role_strings --compare` OK; `INTERACTION_INTEGRITY_PASS`; `verify:marketing` OK; dead hrefs **0**. All June 2026 + eight legacy remote branches **0 ahead of main**.
+
+**D. Honest:** P1 seed-migration parametrization and P2 terminology/exam-board CI gates remain deferred per audit; marketing enhanced bundle at **418174 B** (under 425000 cap).
+
 ## Slice — Residual closure proof wave (2026-06-10)
 
 **A. Scope:** Batch **1701** — tenant isolation regressions, Z-F phases 0–8, Playwright phase1/2 harness, 50-app matrix isolation mode, `demo-school` sandbox fix.

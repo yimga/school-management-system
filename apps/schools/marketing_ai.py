@@ -20,6 +20,9 @@ MARKETING_AI_ASSET_KEYS = (
     "hero_setup_studio",
     "hero_ecosystem",
     "hero_marketplace",
+    "ascension_classroom",
+    "ascension_parent",
+    "ascension_gate",
 )
 
 
@@ -53,6 +56,9 @@ def get_marketing_ai_asset_url(key: str) -> str | None:
         "hero_setup_studio": "images/marketing/setup-studio-flow.svg",
         "hero_ecosystem": "images/marketing/ecosystem-diagram.svg",
         "hero_marketplace": "images/marketing/platform-diagram-marketing.svg",
+        "ascension_classroom": "marketing/img/ascension/classroom-cinematic.png",
+        "ascension_parent": "marketing/img/ascension/parent-window-cinematic.png",
+        "ascension_gate": "marketing/img/ascension/gate-aurora-campus.svg",
     }
     rel = static_fallbacks.get(key)
     return static(rel) if rel else None

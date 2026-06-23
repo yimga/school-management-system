@@ -1,0 +1,11 @@
+{% load i18n %}
+<figure class="mkt-th-inner-hero__figure" data-mkt-parallax>
+  {% if media.video_url %}
+  <video class="mkt-asc-film__media" poster="{{ media.poster_url }}" preload="metadata" playsinline muted loop aria-hidden="true">
+    <source src="{{ media.video_url }}" type="video/mp4">
+  </video>
+  {% elif media.photo_url %}
+  <img src="{{ media.photo_url }}" alt="{{ media.alt }}" width="1600" height="900" loading="eager" decoding="async">
+  {% endif %}
+  {% if media.credit %}<figcaption>{{ media.credit }}</figcaption>{% endif %}
+</figure>

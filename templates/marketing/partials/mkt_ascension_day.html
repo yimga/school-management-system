@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n static %}
 <section class="mkt-asc-day" id="asc-day" aria-labelledby="asc-day-title">
   <div class="mkt-asc-day__thread" aria-hidden="true"><div class="mkt-asc-day__thread-fill" id="asc-day-thread"></div></div>
   <p class="mkt-asc-day__clock" id="asc-day-clock" aria-live="polite">6:45</p>
@@ -35,6 +35,9 @@
       <a href="{% url 'marketing_intent_homepage' %}" class="mkt-asc-chapter__link">{% trans "See parent storefront" %} →</a>
     </div>
     <div class="mkt-asc-chapter__viz">
+      <div class="mkt-asc-chapter__film">
+        <img src="{% static 'marketing/img/ascension/parent-window-cinematic.png' %}" alt="{% trans 'Parent receiving calm school update — illustrative AI editorial' %}" loading="lazy" decoding="async">
+      </div>
       <div class="mkt-asc-parent-cards">
         <div class="mkt-asc-parent-card mkt-asc-parent-card--calm">
           <strong>Amina</strong>
@@ -56,6 +59,9 @@
       <a href="#mkt-fluid-classroom" class="mkt-asc-chapter__link">{% trans "Open fluid classroom sim" %} →</a>
     </div>
     <div class="mkt-asc-chapter__viz">
+      <div class="mkt-asc-chapter__film mb-3">
+        <img src="{% static 'marketing/img/ascension/classroom-cinematic.png' %}" alt="{% trans 'Collaborative classroom — illustrative AI editorial' %}" loading="lazy" decoding="async">
+      </div>
       <div class="mkt-asc-grade-btns" role="group" aria-label="{% trans 'Grade scale preview' %}">
         <button type="button" data-grade-scale="US" class="is-active">US %</button>
         <button type="button" data-grade-scale="IB">IB 1–7</button>

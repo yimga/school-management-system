@@ -69,6 +69,8 @@
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/tokens-threshold-era.css" %}
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/mkt-threshold-era.css" %}
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/mkt-ascension.css" %}
+  {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/mkt-ascension-media.css" %}
+  {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/mkt-revolution-lab.css" %}
   {% endif %}
   {% block extrastyle %}{% endblock %}
 </head>
@@ -81,6 +83,9 @@
   {% include 'marketing/_local_first_band.html' %}
   {% endif %}
   {% include 'marketing/marketing_header.html' %}
+  {% if marketing_threshold_era_enabled|default:False %}
+  {% include 'marketing/partials/mkt_verb_nav_strip.html' %}
+  {% endif %}
 
   <main id="main-content" class="mkt-main {% block marketing_main_extra_classes %}container py-4{% endblock %}" role="main" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
     {% if messages %}
@@ -135,6 +140,8 @@
   {% if marketing_threshold_era_enabled|default:False %}
   <script src="{% static 'marketing/js/mkt-threshold-era.js' %}" defer nonce="{{ csp_nonce }}"></script>
   <script src="{% static 'marketing/js/mkt-ascension.js' %}" defer nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'marketing/js/mkt-ascension-viz.js' %}" defer nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'marketing/js/mkt-revolution-lab.js' %}" defer nonce="{{ csp_nonce }}"></script>
   {% endif %}
   {% block extrajs %}{% endblock %}
 </body>

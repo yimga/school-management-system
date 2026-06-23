@@ -1,0 +1,34 @@
+{% load i18n marketing_public_urls marketing_media static %}
+{% if marketing_threshold_era_enabled|default:False %}
+<section class="mkt-th-inner-hero mkt-th-reveal" aria-labelledby="mkt-th-inner-title">
+  <div class="mkt-th-inner-hero__copy">
+    <p class="mkt-th-inner-hero__eyebrow">runmycampus.com · {{ page.label }}</p>
+    <h1 id="mkt-th-inner-title" class="mkt-th-inner-hero__title">{{ page.headline }}</h1>
+    <p class="mkt-th-inner-hero__lead">{{ page.subheadline }}</p>
+    <div class="mkt-th-inner-hero__metrics">
+      <div class="mkt-th-inner-hero__metric">
+        <strong data-mkt-count-up="180" data-mkt-count-suffix="+">0+</strong>
+        <span>{% trans "currencies" %}</span>
+      </div>
+      <div class="mkt-th-inner-hero__metric">
+        <strong data-mkt-count-up="29">0</strong>
+        <span>{% trans "languages" %}</span>
+      </div>
+      <div class="mkt-th-inner-hero__metric">
+        <strong data-mkt-count-up="6">0</strong>
+        <span>{% trans "verbs · one thread" %}</span>
+      </div>
+    </div>
+    <div class="hero-cta d-flex flex-wrap gap-2 mt-3">
+      <a href="{% marketing_public_href 'marketing_demo' %}" class="btn btn-primary" data-cta="demo">{% trans "Book demo" %}</a>
+      <a href="{% url 'marketing_threshold_era_preview' %}" class="btn btn-outline-secondary">{% trans "Watch Ascension" %}</a>
+    </div>
+  </div>
+  <div class="mkt-th-inner-hero__media">
+    {% marketing_stock_figure %}
+    {% if marketing_stock_media.viz_key %}
+    <div class="mkt-asc-orbit-viz mt-3" data-mkt-orbit-viz aria-hidden="true"></div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}

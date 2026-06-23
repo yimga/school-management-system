@@ -1,0 +1,26 @@
+{% load i18n %}
+<section class="mkt-rev-arena" data-mkt-revolution-arena aria-labelledby="rev-arena-title">
+  <div class="mkt-rev-arena__head">
+    <p class="mkt-asc-gate__kicker">{% trans "Why switch" %}</p>
+    <h2 id="rev-arena-title">{% trans "They optimized a module." %}<br>{% trans "Drag the line. We built the OS." %}</h2>
+  </div>
+  <div class="mkt-rev-arena__pickers" role="tablist">
+    <button type="button" class="mkt-rev-arena__pick is-active" data-rev-vs="ps" role="tab">PowerSchool</button>
+    <button type="button" class="mkt-rev-arena__pick" data-rev-vs="toddle" role="tab">Toddle</button>
+    <button type="button" class="mkt-rev-arena__pick" data-rev-vs="arbor" role="tab">Arbor / SIMS</button>
+    <button type="button" class="mkt-rev-arena__pick" data-rev-vs="bright" role="tab">Brightwheel</button>
+  </div>
+  <div class="mkt-rev-arena__stage">
+    <div class="mkt-rev-arena__half mkt-rev-arena__half--them">
+      <span class="mkt-rev-arena__tag">{% trans "Legacy stack" %}</span>
+      <p data-rev-them-text></p>
+    </div>
+    <div class="mkt-rev-arena__half mkt-rev-arena__half--us">
+      <span class="mkt-rev-arena__tag">RunMyCampus</span>
+      <p data-rev-us-text></p>
+    </div>
+    <div class="mkt-rev-arena__handle" role="separator" aria-orientation="vertical" aria-label="{% trans 'Compare legacy vs RunMyCampus' %}"></div>
+  </div>
+  <input type="range" class="mkt-rev-arena__slider" min="12" max="88" value="50" aria-label="{% trans 'Comparison split' %}">
+  <p class="mkt-rev-arena__honest">{% trans "Positioning only · verify against your procurement checklist and our trust center." %}</p>
+</section>

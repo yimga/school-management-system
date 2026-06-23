@@ -1,0 +1,40 @@
+{% load i18n static marketing_media %}
+<div class="mkt-asc-root">
+  <div class="asc-progress-track" aria-hidden="true"><div id="asc-progress"></div></div>
+
+  <section class="mkt-asc-gate mkt-rev-gate" aria-labelledby="asc-gate-title">
+    <div class="mkt-rev-gate__video" aria-hidden="true">
+      <video autoplay muted loop playsinline poster="{% static 'marketing/img/ascension/gate-aurora-campus.svg' %}">
+        <source src="https://videos.pexels.com/video-files/7978565/7978565-uhd_2560_1440_25fps.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div class="mkt-rev-gate__veil" aria-hidden="true"></div>
+    <div class="mkt-asc-gate__film" aria-hidden="true">
+      {% marketing_cinematic_film "ascension-gate" %}
+    </div>
+    <div class="mkt-asc-canvas-wrap" id="asc-canvas-wrap" aria-hidden="true"></div>
+    <div class="mkt-asc-gate__inner mkt-rev-gate__inner mkt-asc-reveal">
+      <p class="mkt-asc-gate__kicker">{% trans "Cross the threshold · education OS" %}</p>
+      <h1 id="asc-gate-title" class="mkt-asc-gate__title mkt-rev-gate__title">
+        {% trans "Schools don't need another" %} <em>{% trans "dashboard" %}</em>.<br>
+        {% trans "They need a" %} <em>{% trans "day that flows" %}</em>.
+      </h1>
+      <p class="mkt-asc-gate__lead mkt-rev-gate__lead">
+        {% trans "Live sims below — Speed Duel, sovereign wizard, split ledger, offline terminal, gradebook morph. One thread from inquiry to invoice." %}
+      </p>
+      <div class="mkt-asc-monoliths" role="navigation" aria-label="{% trans 'Platform verbs' %}">
+        <button type="button" class="mkt-asc-monolith" data-v="run"><span class="mkt-asc-monolith__glyph"><i class="bi bi-lightning-charge" aria-hidden="true"></i></span><span class="mkt-asc-monolith__label">{% trans "Run" %}</span></button>
+        <button type="button" class="mkt-asc-monolith" data-v="teach"><span class="mkt-asc-monolith__glyph"><i class="bi bi-mortarboard" aria-hidden="true"></i></span><span class="mkt-asc-monolith__label">{% trans "Teach" %}</span></button>
+        <button type="button" class="mkt-asc-monolith" data-v="pay"><span class="mkt-asc-monolith__glyph"><i class="bi bi-wallet2" aria-hidden="true"></i></span><span class="mkt-asc-monolith__label">{% trans "Pay" %}</span></button>
+        <button type="button" class="mkt-asc-monolith" data-v="talk"><span class="mkt-asc-monolith__glyph"><i class="bi bi-chat-heart" aria-hidden="true"></i></span><span class="mkt-asc-monolith__label">{% trans "Talk" %}</span></button>
+        <button type="button" class="mkt-asc-monolith" data-v="govern"><span class="mkt-asc-monolith__glyph"><i class="bi bi-shield-check" aria-hidden="true"></i></span><span class="mkt-asc-monolith__label">{% trans "Govern" %}</span></button>
+        <button type="button" class="mkt-asc-monolith" data-v="grow"><span class="mkt-asc-monolith__glyph"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i></span><span class="mkt-asc-monolith__label">{% trans "Grow" %}</span></button>
+      </div>
+      <div class="mkt-asc-cta-row">
+        <button type="button" class="mkt-rev-enter" data-mkt-rev-enter>{% trans "Enter · run the sims" %}</button>
+        <a href="#asc-day" class="mkt-asc-cta mkt-asc-cta--ghost">{% trans "Watch one school day" %}</a>
+      </div>
+      <p class="mkt-asc-pill">{% trans "Illustrative · competitor contrast is positioning, not legal claim" %}</p>
+    </div>
+  </section>
+</div>

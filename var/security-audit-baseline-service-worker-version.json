@@ -1,12 +1,12 @@
 {
   "date": "2026-06-23",
-  "generated_at": "2026-06-23T21:32:35+00:00",
+  "generated_at": "2026-06-23T22:00:00+00:00",
   "major": 4,
   "minor": 4,
-  "patch": 77,
-  "raw": "sms-v4.04.77-tenant-100x-role-home-complete-2026-06-23",
+  "patch": 78,
+  "raw": "sms-v4.04.78-marketing-ascension-revolution-lab-2026-06-23",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "tenant-100x-role-home-complete",
+  "slug": "marketing-ascension-revolution-lab",
   "valid": true
 }

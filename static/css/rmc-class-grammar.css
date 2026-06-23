@@ -3469,16 +3469,20 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
     border-color var(--motion-stage-1, 120ms) var(--ease-signature-in, ease);
 }
 
-.rmc-card-interactive:hover {
+.rmc-card-interactive:hover,
+.rmc-card-interactive:focus-visible {
   box-shadow: var(--elev-2, 0 4px 12px rgba(0, 0, 0, 0.06));
   /* Premium hover-lift (2026-06-23): the same luxe affordance the .rmc-dh-* dashboards
      use, extended to the canonical interactive card so every surface gets it. Subtle
-     (-2px), hover-only, reduced-motion-guarded below. */
+     (-2px), hover/focus-visible, reduced-motion-guarded below. */
   transform: translateY(-2px);
+  border-color: var(--hairline-strong, var(--hairline));
+  outline: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rmc-card-interactive:hover { transform: none; }
+  .rmc-card-interactive:hover,
+  .rmc-card-interactive:focus-visible { transform: none; }
 }
 
 .rmc-code--sample {

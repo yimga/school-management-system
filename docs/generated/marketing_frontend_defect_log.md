@@ -1,13 +1,13 @@
 # Marketing frontend conversion defect log
 
-- **Generated:** `2026-06-01T16:11:18Z`
+- **Generated:** `2026-06-23T21:44:09Z`
 - **Surface:** runmycampus.com public marketing (Django templates + static/marketing/)
 - **Wave:** v3.35.3 + v3.37.1 impact + v3.37.2 gear-up — see `docs/CSS_RETIREMENT_DOCKET.md`
 
 ## Bundle metrics (post-fix)
 
-- Critical min.css: **21,386** bytes
-- Enhanced min.css: **347,235** bytes (deferred)
+- Critical min.css: **21,619** bytes
+- Enhanced min.css: **418,174** bytes (deferred)
 
 ## Defect register
 

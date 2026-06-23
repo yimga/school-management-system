@@ -65,6 +65,40 @@ def marketing_platform_visual_strip(context):
     return {"viz_key": viz_key, "show_apm_strip": show_apm}
 
 
+@register.inclusion_tag("marketing/components/_marketing_stock_figure.html", takes_context=True)
+def marketing_stock_figure(context, slug: str = ""):
+    from apps.schools.marketing_stock_registry import stock_media_for_page_slug
+
+    page = context.get("page") or {}
+    if not slug:
+        if hasattr(page, "slug"):
+            slug = str(page.slug or "")
+        elif isinstance(page, dict):
+            slug = str(page.get("slug") or "")
+    return {"media": stock_media_for_page_slug(slug)}
+
+
+@register.inclusion_tag("marketing/partials/mkt_cinematic_film.html", takes_context=True)
+def marketing_cinematic_film(context, slug: str = "", compact: bool = False):
+    from apps.schools.marketing_stock_registry import stock_media_for_page_slug
+
+    media = stock_media_for_page_slug(slug or "home")
+    geo = context.get("geo") or {}
+    assets = geo.get("assets") or {}
+    loop_mp4 = assets.get("sovereign_hero_loop_mp4", "")
+    loop_webm = assets.get("sovereign_hero_loop_webm", "")
+    if loop_mp4:
+        loop_mp4 = static(loop_mp4)
+    if loop_webm:
+        loop_webm = static(loop_webm)
+    return {
+        "media": media,
+        "loop_mp4": loop_mp4,
+        "loop_webm": loop_webm,
+        "compact": compact,
+    }
+
+
 @register.simple_tag(takes_context=True)
 def marketing_copy(context, token: str) -> str:
     ml = context.get("marketing_local") or {}

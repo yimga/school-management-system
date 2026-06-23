@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-17T21:32:26.374609+00:00",
+  "generated_at": "2026-06-23T21:44:19.571637+00:00",
   "verdict": "INTERACTION_INTEGRITY_PASS",
   "pass_count": 19,
   "fail_count": 0,
@@ -116,7 +116,7 @@
       "id": "17",
       "label": "Contract tests green",
       "status": "PASS",
-      "proof": "fast: rotocol=- request_scheme=- server_name=- wizard registry: loaded 36 wizards\n..........................\n----------------------------------------------------------------------\nRan 26 tests in 1.375s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
+      "proof": "fast: rotocol=- request_scheme=- server_name=- wizard registry: loaded 36 wizards\n..........................\n----------------------------------------------------------------------\nRan 26 tests in 3.974s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
     }
   ]
 }

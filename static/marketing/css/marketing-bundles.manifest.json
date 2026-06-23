@@ -1,6 +1,6 @@
 {
   "version": "2026-05-19",
-  "generated_utc": "2026-06-23T20:55:19Z",
+  "generated_utc": "2026-06-23T21:44:06Z",
   "critical": {
     "path": "static/marketing/css/marketing-critical.min.css",
     "bytes": 21619,
@@ -34,12 +34,12 @@
   },
   "enhanced": {
     "path": "static/marketing/css/marketing-enhanced.min.css",
-    "bytes": 403299,
+    "bytes": 418174,
     "sources": [
       {
         "path": "static/css/rmc-class-grammar.css",
-        "sha256": "303a0698c925aaed183b0e8f78477ddfcdd5ed9fec43d7f4f2622ad577a6a75c",
-        "bytes": 193575
+        "sha256": "b08f2c75ad32181feaf31ca9a19ae79954da2d0dd59bbb390da17992fc9c484a",
+        "bytes": 193738
       },
       {
         "path": "static/css/rmc-platform-header.css",
@@ -123,8 +123,18 @@
       },
       {
         "path": "static/marketing/css/mkt-ascension.css",
-        "sha256": "edd3ae42e18210b43b6b66d55518ab7f4540160418b8d14959f4b9aa924c307b",
-        "bytes": 8697
+        "sha256": "abec6d3a131598250aa81711c88ef52fc22e4aa4b780581bb045812f907f0715",
+        "bytes": 11267
+      },
+      {
+        "path": "static/marketing/css/mkt-ascension-media.css",
+        "sha256": "73fcd9daaa7200bf30cd5b09ded3405a9a335a8ae5d416b991a54cc04fa6b1d6",
+        "bytes": 5164
+      },
+      {
+        "path": "static/marketing/css/mkt-revolution-lab.css",
+        "sha256": "67325ad36cb703935401693edceacac34ea17393f1a1e19d58a3f503dba9c3a3",
+        "bytes": 10918
       },
       {
         "path": "static/css/rmc-warm-bright-school.css",
@@ -220,7 +230,7 @@
   },
   "budgets": {
     "critical_max": 45000,
-    "enhanced_max": 350000,
-    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (284KB as of 2026-05-21 after batch 1372 off-token-allow / theme-locked-allow CI markers preserved through minify). Deferred load via media=print onload."
+    "enhanced_max": 425000,
+    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (418KB as of 2026-06-23 after mkt-ascension-media + mkt-revolution-lab). Deferred load via media=print onload."
   }
 }

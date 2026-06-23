@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>RunMyCampus · Ascension — once-in-a-lifetime marketing</title>
+<title>RunMyCampus · Revolution lab — live sims, not cards</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
@@ -11,376 +11,399 @@
 <link rel="stylesheet" href="../../static/marketing/css/tokens-threshold-era.css">
 <link rel="stylesheet" href="../../static/marketing/css/mkt-threshold-era.css">
 <link rel="stylesheet" href="../../static/marketing/css/mkt-ascension.css">
+<link rel="stylesheet" href="../../static/marketing/css/mkt-ascension-media.css">
+<link rel="stylesheet" href="../../static/marketing/css/mkt-revolution-lab.css">
+<link rel="stylesheet" href="../../static/marketing/css/marketing-visual-engine.css">
+<link rel="stylesheet" href="../../static/marketing/css/marketing-intent-home.css">
+<link rel="stylesheet" href="../../static/marketing/css/marketing-acquisition-engine.css">
+<link rel="stylesheet" href="../../static/marketing/css/mkt-hero-velocity.css">
+<link rel="stylesheet" href="../../static/marketing/css/mkt-hero-sovereign.css">
+<link rel="stylesheet" href="../../static/marketing/css/mkt-clinical-ledger.css">
+<link rel="stylesheet" href="../../static/marketing/css/mkt-rugged-terminal.css">
+<link rel="stylesheet" href="../../static/marketing/css/mkt-fluid-classroom.css">
+<link rel="stylesheet" href="../../static/marketing/css/mkt-simulations-hub.css">
 <style>
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
-  body { margin: 0; font-family: Inter, system-ui, sans-serif; }
+  body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #f8f6f2; }
   @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-
   .asc-chrome {
     position: fixed; inset-inline: 0; top: 0; z-index: 3000;
     display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
     padding: 10px 16px; font-size: 11px; font-weight: 600;
-    background: rgba(3,3,8,0.88); color: rgba(250,247,242,0.9);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    backdrop-filter: blur(14px);
+    background: rgba(3,3,8,0.92); color: rgba(250,247,242,0.9);
+    border-bottom: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(14px);
   }
   .asc-chrome__brand { font-family: "Source Serif 4", serif; font-size: 13px; margin-right: 8px; }
   .asc-chrome button, .asc-chrome select {
     border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04);
     color: inherit; border-radius: 999px; padding: 5px 12px; font: inherit; cursor: pointer;
   }
-  .asc-chrome select { padding: 5px 10px; }
   .asc-chrome__spacer { flex: 1; }
-  .asc-progress-track {
-    position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 3100;
-    background: rgba(255,255,255,0.06);
-  }
-  .asc-progress-track div {
-    height: 100%; width: 0;
-    background: linear-gradient(90deg, #c2410c, #6366f1);
-    transition: width 0.12s linear;
-  }
+  .asc-progress-track { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 3100; background: rgba(255,255,255,0.06); }
+  .asc-progress-track div { height: 100%; width: 0; background: linear-gradient(90deg, #c2410c, #6366f1); }
   .mkt-asc-root { padding-top: 48px; }
   .mkt-asc-cta-row { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; margin-top: 0.5rem; }
   .mkt-asc-cta {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    padding: 0.85rem 1.6rem; border-radius: 999px; font-weight: 650;
-    text-decoration: none; font-size: 0.9375rem; border: none; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.85rem 1.6rem;
+    border-radius: 999px; font-weight: 650; text-decoration: none; font-size: 0.9375rem; border: none; cursor: pointer;
   }
-  .mkt-asc-cta--primary {
-    background: linear-gradient(135deg, #c2410c, #fb923c); color: #faf7f2;
-    box-shadow: 0 12px 40px rgba(194,65,12,0.35);
+  .mkt-asc-cta--ghost { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #faf7f2; }
+  .mkt-asc-pill { display: inline-block; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; background: rgba(245,158,11,0.15); color: #fcd34d; margin-top: 0.75rem; }
+  .mkt-asc-reveal.is-visible { opacity: 1; transform: none; }
+  .mkt-rev-lab-footer {
+    padding: 1.5rem 1.25rem 2rem;
+    background: #121018;
+    color: rgba(250, 247, 242, 0.85);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    text-align: center;
   }
-  .mkt-asc-cta--ghost {
-    background: transparent; border: 1px solid rgba(18,16,24,0.15); color: #5c5768;
+  .mkt-rev-lab-footer__eyebrow {
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin: 0 0 0.5rem;
   }
-  .mkt-asc-pill {
-    display: inline-block; font-size: 0.65rem; font-weight: 700;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 4px 10px; border-radius: 999px;
-    background: rgba(245,158,11,0.15); color: #b45309; margin-top: 0.75rem;
+  .mkt-rev-lab-footer__note {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    max-width: 36rem;
+    margin: 0 auto 0.75rem;
+    opacity: 0.75;
   }
-  .mkt-asc-split-bar { background: #10b981; }
-  .mkt-asc-split-bar:nth-child(2) { background: #6366f1; }
-  .mkt-asc-split-bar:nth-child(3) { background: #f59e0b; }
-  #asc-net-toggle.is-offline { background: #ef4444; color: #fff; }
-  .mkt-asc-grade-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
-  .mkt-asc-grade-btns button {
-    border: 1px solid rgba(99,102,241,0.35); background: #fff;
-    border-radius: 999px; padding: 0.4rem 0.85rem; font-size: 0.75rem;
-    font-weight: 650; cursor: pointer; font-family: inherit;
+  .mkt-rev-lab-footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
   }
-  .mkt-asc-grade-btns button.is-active { background: #6366f1; color: #fff; border-color: #6366f1; }
-  #asc-grade-out { font-size: 1.25rem; font-weight: 700; margin-top: 1rem; }
-  .mkt-asc-sov-grid {
-    position: absolute; inset: 0; opacity: 0.35; pointer-events: none;
-    background-image:
-      linear-gradient(rgba(99,102,241,0.12) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(99,102,241,0.12) 1px, transparent 1px);
-    background-size: 40px 40px;
+  .mkt-rev-lab-footer__links a {
+    color: #fb923c;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
   }
-  .mkt-asc-honest { font-size: 0.7rem; opacity: 0.55; margin-top: 1rem; font-style: italic; }
 </style>
 </head>
-<body data-mkt-edition="threshold-era">
+<body>
+
+<header class="asc-chrome" aria-label="Lab controls">
+  <span class="asc-chrome__brand">RunMyCampus · Revolution lab</span>
+  <label>Region <select id="asc-region"><option value="US">US</option><option value="NG">NG</option><option value="GB">GB</option><option value="KE">KE</option><option value="AE">AE</option></select></label>
+  <span class="asc-chrome__spacer"></span>
+  <button type="button" id="asc-fullscreen">Fullscreen</button>
+</header>
 <div class="asc-progress-track" aria-hidden="true"><div id="asc-progress"></div></div>
 
-<header class="asc-chrome">
-  <span class="asc-chrome__brand">Ascension · runmycampus.com</span>
-  <label>
-    <span class="visually-hidden">Region</span>
-    <select id="asc-region" aria-label="Preview region">
-      <option value="US">US</option>
-      <option value="NG" selected>NG</option>
-      <option value="GB">GB</option>
-      <option value="BR">BR</option>
-      <option value="KE">KE</option>
-      <option value="AE">AE (RTL)</option>
-    </select>
-  </label>
-  <button type="button" id="asc-fullscreen" title="Fullscreen">Full</button>
-  <span class="asc-chrome__spacer"></span>
-  <span>Live route: <a href="/experience/threshold-era/" style="color:#fb923c">/experience/threshold-era/</a></span>
-</header>
-
-<div class="mkt-asc-root mkt-th-root">
-  <div class="mkt-th-heartbeat" aria-hidden="true"></div>
-
-  <!-- ═══ I. THE GATE — cinematic portal ═══ -->
-  <section class="mkt-asc-gate" aria-labelledby="asc-gate-title">
-    <div class="mkt-asc-canvas-wrap" id="asc-canvas-wrap" aria-hidden="true"></div>
-    <div class="mkt-asc-gate__inner mkt-asc-reveal">
-      <p class="mkt-asc-gate__kicker">Cross the threshold · education OS</p>
-      <h1 id="asc-gate-title" class="mkt-asc-gate__title">
-        Schools don't need another <em>dashboard</em>.<br>They need a <em>day that flows</em>.
-      </h1>
-      <p class="mkt-asc-gate__lead">
-        PowerSchool locks you in months of deploy. Toddle stops at the classroom wall.
-        Brightwheel ends at early years. RunMyCampus is the thread from inquiry to invoice to parent trust — live in your browser below.
-      </p>
-
-      <div class="mkt-asc-monoliths" role="navigation" aria-label="Platform verbs">
-        <button type="button" class="mkt-asc-monolith" data-v="run"><span class="mkt-asc-monolith__glyph"><i class="bi bi-lightning-charge"></i></span><span class="mkt-asc-monolith__label">Run</span></button>
-        <button type="button" class="mkt-asc-monolith" data-v="teach"><span class="mkt-asc-monolith__glyph"><i class="bi bi-mortarboard"></i></span><span class="mkt-asc-monolith__label">Teach</span></button>
-        <button type="button" class="mkt-asc-monolith" data-v="pay"><span class="mkt-asc-monolith__glyph"><i class="bi bi-wallet2"></i></span><span class="mkt-asc-monolith__label">Pay</span></button>
-        <button type="button" class="mkt-asc-monolith" data-v="talk"><span class="mkt-asc-monolith__glyph"><i class="bi bi-chat-heart"></i></span><span class="mkt-asc-monolith__label">Talk</span></button>
-        <button type="button" class="mkt-asc-monolith" data-v="govern"><span class="mkt-asc-monolith__glyph"><i class="bi bi-shield-check"></i></span><span class="mkt-asc-monolith__label">Govern</span></button>
-        <button type="button" class="mkt-asc-monolith" data-v="grow"><span class="mkt-asc-monolith__glyph"><i class="bi bi-graph-up-arrow"></i></span><span class="mkt-asc-monolith__label">Grow</span></button>
-      </div>
-
-      <div class="mkt-asc-cta-row">
-        <a href="#asc-finale" class="mkt-asc-cta mkt-asc-cta--primary">Book a demo</a>
-        <a href="#asc-day" class="mkt-asc-cta mkt-asc-cta--ghost">Watch one school day</a>
-      </div>
-      <p class="mkt-asc-pill">Illustrative · competitor contrast is positioning, not legal claim</p>
+<!-- GATE -->
+<section class="mkt-asc-gate mkt-rev-gate" aria-labelledby="asc-gate-title">
+  <div class="mkt-rev-gate__video" aria-hidden="true">
+    <video autoplay muted loop playsinline poster="../../static/marketing/img/ascension/gate-aurora-campus.svg">
+      <source src="https://videos.pexels.com/video-files/7978565/7978565-uhd_2560_1440_25fps.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="mkt-rev-gate__veil" aria-hidden="true"></div>
+  <div class="mkt-asc-canvas-wrap" id="asc-canvas-wrap" aria-hidden="true"></div>
+  <div class="mkt-asc-gate__inner mkt-rev-gate__inner mkt-asc-reveal is-visible">
+    <p class="mkt-asc-gate__kicker">Cross the threshold · education OS</p>
+    <h1 id="asc-gate-title" class="mkt-asc-gate__title mkt-rev-gate__title">
+      Schools don't need another <em>dashboard</em>.<br>They need a <em>day that flows</em>.
+    </h1>
+    <p class="mkt-asc-gate__lead mkt-rev-gate__lead">
+      Live sims below — Speed Duel, sovereign wizard, split ledger, offline terminal, gradebook morph. One thread from inquiry to invoice.
+    </p>
+    <div class="mkt-asc-monoliths" role="navigation" aria-label="Platform verbs">
+      <button type="button" class="mkt-asc-monolith" data-v="run"><span class="mkt-asc-monolith__glyph"><i class="bi bi-lightning-charge"></i></span><span class="mkt-asc-monolith__label">Run</span></button>
+      <button type="button" class="mkt-asc-monolith" data-v="teach"><span class="mkt-asc-monolith__glyph"><i class="bi bi-mortarboard"></i></span><span class="mkt-asc-monolith__label">Teach</span></button>
+      <button type="button" class="mkt-asc-monolith" data-v="pay"><span class="mkt-asc-monolith__glyph"><i class="bi bi-wallet2"></i></span><span class="mkt-asc-monolith__label">Pay</span></button>
+      <button type="button" class="mkt-asc-monolith" data-v="talk"><span class="mkt-asc-monolith__glyph"><i class="bi bi-chat-heart"></i></span><span class="mkt-asc-monolith__label">Talk</span></button>
+      <button type="button" class="mkt-asc-monolith" data-v="govern"><span class="mkt-asc-monolith__glyph"><i class="bi bi-shield-check"></i></span><span class="mkt-asc-monolith__label">Govern</span></button>
+      <button type="button" class="mkt-asc-monolith" data-v="grow"><span class="mkt-asc-monolith__glyph"><i class="bi bi-graph-up-arrow"></i></span><span class="mkt-asc-monolith__label">Grow</span></button>
     </div>
-  </section>
+    <div class="mkt-asc-cta-row">
+      <button type="button" class="mkt-rev-enter" data-mkt-rev-enter>Enter · run the sims</button>
+      <a href="#asc-day" class="mkt-asc-cta mkt-asc-cta--ghost">Watch one school day</a>
+    </div>
+    <p class="mkt-asc-pill">Illustrative · competitor contrast is positioning, not legal claim</p>
+  </div>
+</section>
 
-  <!-- ═══ II. ONE SCHOOL DAY — scrollytelling ═══ -->
-  <section class="mkt-asc-day" id="asc-day" aria-labelledby="asc-day-title">
-    <h2 id="asc-day-title" class="visually-hidden">One school day on RunMyCampus</h2>
-    <nav class="mkt-asc-day__sticky" aria-label="Day chapters">
-      <button type="button" class="mkt-asc-day__chip is-active" data-ch="ch-run">6:45 Run</button>
-      <button type="button" class="mkt-asc-day__chip" data-ch="ch-teach">10:00 Teach</button>
-      <button type="button" class="mkt-asc-day__chip" data-ch="ch-pay">14:30 Pay</button>
-      <button type="button" class="mkt-asc-day__chip" data-ch="ch-talk">8:14 Talk</button>
-      <button type="button" class="mkt-asc-day__chip" data-ch="ch-govern">16:00 Govern</button>
-      <button type="button" class="mkt-asc-day__chip" data-ch="ch-grow">17:30 Grow</button>
-    </nav>
+<section class="mkt-rev-proof-strip" aria-label="Proof before prose">
+  <p><strong>Proof before prose</strong> — Fifteen clicks vs one command. Tap both sides.</p>
+</section>
 
-    <article class="mkt-asc-chapter" id="ch-run">
-      <div>
-        <p class="mkt-asc-chapter__time">6:45 · Admissions pulse</p>
-        <h3 class="mkt-asc-chapter__title">Inquiry becomes enrollment — no re-entry</h3>
-        <p class="mkt-asc-chapter__body">While legacy SIS tools treat admissions as a separate product bolted on, RunMyCampus carries the same student thread from campaign form to roster. Region-aware terms, currency, and compliance follow automatically.</p>
-        <div id="asc-region-out" style="font-size:0.9rem;color:rgba(255,255,255,0.8)"></div>
+<div class="mkt-rev-flow">
+<div class="mkt-intent-home__stack" data-mkt-intent-home>
+<section id="mkt-hero-speed-duel" class="mkt-ve-section mkt-ve-section--hero-duel" data-mkt-personality="acquisition" aria-labelledby="mkt-speed-duel-headline">
+  <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
+    <header class="mkt-ve-section__header">
+      <p class="mkt-edt-eyebrow">Conversion engine</p>
+      <h1 id="mkt-speed-duel-headline" class="mkt-ve-section__title">Fifteen clicks vs one command.</h1>
+      <p class="mkt-ve-section__lead">Legacy SIS stacks make staff hunt through nested menus. RunMyCampus compiles intent into governed tool calls — simulated sub-100ms on this page.</p>
+    </header>
+    <div class="mkt-ve-speed-duel" data-mkt-speed-duel>
+      <div class="mkt-ve-speed-duel__panel mkt-ve-speed-duel__panel--legacy">
+        <p class="mkt-ve-speed-duel__label">Legacy stack</p>
+        <ol class="mkt-ve-speed-duel__trail" data-mkt-legacy-trail>
+          <li>Reports</li><li>Academic</li><li>Report cards</li><li>Filter cohort</li><li>Export PDF</li>
+        </ol>
+        <p class="mkt-ve-speed-duel__metric"><span data-mkt-legacy-clicks>0</span> clicks · <span data-mkt-legacy-ms>—</span></p>
+        <button type="button" class="mkt-edt-cta mkt-edt-cta--ghost mkt-ve-speed-duel__run" data-mkt-legacy-run>Simulate legacy path</button>
       </div>
-      <div class="mkt-asc-chapter__viz" style="position:relative;overflow:hidden">
-        <div class="mkt-asc-sov-grid"></div>
-        <p style="position:relative;margin:0;font-size:0.8rem;opacity:0.7">Deployment matrix · pick region above</p>
-        <p style="position:relative;margin:1rem 0 0;font-family:'Source Serif 4',serif;font-size:1.5rem">One record. Six verbs. Zero swivel chair.</p>
-      </div>
-    </article>
-
-    <article class="mkt-asc-chapter" id="ch-talk">
-      <div>
-        <p class="mkt-asc-chapter__time">8:14 · Parent window</p>
-        <h3 class="mkt-asc-chapter__title">The message a parent opens before coffee cools</h3>
-        <p class="mkt-asc-chapter__body">Not a portal buried under tabs — fee posture, attendance, and teacher thread in one calm surface. Competitors send parents to three apps; RunMyCampus sends one push with context.</p>
-      </div>
-      <div class="mkt-asc-chapter__viz" style="display:flex;gap:0.75rem;align-items:stretch">
-        <div style="flex:1;border-radius:0.75rem;background:linear-gradient(180deg,#1e3a5f,#166534);padding:1rem;display:flex;flex-direction:column;justify-content:flex-end;color:#fff;font-size:0.8rem"><strong>Amina</strong><span style="opacity:0.8">All clear · 94% attendance</span></div>
-        <div style="flex:1;border-radius:0.75rem;background:linear-gradient(180deg,#1e293b,#92400e);padding:1rem;display:flex;flex-direction:column;justify-content:flex-end;color:#fff;font-size:0.8rem;border:2px solid #10b981"><strong>Kwame</strong><span style="opacity:0.8">Balance due · tap to pay</span></div>
-      </div>
-    </article>
-
-    <article class="mkt-asc-chapter" id="ch-teach">
-      <div>
-        <p class="mkt-asc-chapter__time">10:00 · Classroom stage</p>
-        <h3 class="mkt-asc-chapter__title">One gradebook, every framework</h3>
-        <p class="mkt-asc-chapter__body">Toddle owns IB workflows but stops at the wall. Arbor excels at UK registers. RunMyCampus morphs the same underlying record across US, IB, and competency scales — zero layout break.</p>
-      </div>
-      <div class="mkt-asc-chapter__viz">
-        <div class="mkt-asc-grade-btns">
-          <button type="button" data-grade-scale="US" class="is-active">US %</button>
-          <button type="button" data-grade-scale="IB">IB 1–7</button>
-          <button type="button" data-grade-scale="CM">Competency</button>
+      <div class="mkt-ve-speed-duel__panel mkt-ve-speed-duel__panel--rmc">
+        <p class="mkt-ve-speed-duel__label">RunMyCampus OS</p>
+        <label class="mkt-ve-speed-duel__command">
+          <input type="text" readonly value="Publish Q2 report cards for Grade 10-A" data-mkt-rmc-command>
+        </label>
+        <div class="mkt-ve-speed-duel__stream" data-mkt-rmc-stream hidden aria-live="polite"></div>
+        <div class="mkt-ve-speed-duel__cards" data-mkt-rmc-cards hidden>
+          <div class="mkt-ve-speed-duel__card" data-mkt-stream-slot="card-roster">Roster verified</div>
+          <div class="mkt-ve-speed-duel__card" data-mkt-stream-slot="card-grade">Grades locked</div>
+          <div class="mkt-ve-speed-duel__card mkt-ve-speed-duel__card--action" data-mkt-stream-slot="action-publish">Publish</div>
         </div>
-        <div id="asc-grade-out">A- · 92% · Honor roll</div>
-      </div>
-    </article>
-
-    <article class="mkt-asc-chapter" id="ch-pay">
-      <div>
-        <p class="mkt-asc-chapter__time">14:30 · Clinical ledger</p>
-        <h3 class="mkt-asc-chapter__title">Fees split the way your region actually pays</h3>
-        <p class="mkt-asc-chapter__body">Card-only gateways fail unbanked families. Bolt-on invoicing fails auditors. RunMyCampus routes tuition, transport, and lunch with region-aware rails — Pix, M-Pesa, SPEI, and more in one ledger.</p>
-      </div>
-      <div class="mkt-asc-chapter__viz">
-        <button type="button" id="asc-split-run" class="mkt-asc-cta mkt-asc-cta--primary" style="font-size:0.8rem;padding:0.5rem 1rem">Animate split</button>
-        <div class="mkt-asc-sim-bar" aria-hidden="true">
-          <span class="mkt-asc-split-bar" data-w="80" style="width:80%"></span>
-          <span class="mkt-asc-split-bar" data-w="10" style="width:10%"></span>
-          <span class="mkt-asc-split-bar" data-w="10" style="width:10%"></span>
-        </div>
-        <p style="margin:0.75rem 0 0;font-size:0.75rem;opacity:0.65">80 / 10 / 10 · tuition · transport · lunch</p>
-      </div>
-    </article>
-
-    <article class="mkt-asc-chapter" id="ch-govern">
-      <div>
-        <p class="mkt-asc-chapter__time">16:00 · Rugged terminal</p>
-        <h3 class="mkt-asc-chapter__title">When the cloud dies, school doesn't</h3>
-        <p class="mkt-asc-chapter__body">Load-shedding, fiber cuts, rural latency — competitors go dark. RunMyCampus queues attendance and marks locally, then reconciles with honest conflict flags when connectivity returns.</p>
-      </div>
-      <div class="mkt-asc-chapter__viz" style="font-family:ui-monospace,monospace;font-size:0.8rem">
-        <button type="button" id="asc-net-toggle" class="mkt-asc-cta mkt-asc-cta--ghost" style="font-size:0.75rem">Simulate drop</button>
-        <p id="asc-net-label" style="margin:1rem 0 0;color:#6ee7b7">Fiber · sync queue idle</p>
-        <pre style="margin:1rem 0 0;opacity:0.7;white-space:pre-wrap">queue: 0 pending
-ussd: standby
-rfid: armed</pre>
-      </div>
-    </article>
-
-    <article class="mkt-asc-chapter" id="ch-grow">
-      <div>
-        <p class="mkt-asc-chapter__time">17:30 · Leadership grow</p>
-        <h3 class="mkt-asc-chapter__title">Analytics that defend themselves in board review</h3>
-        <p class="mkt-asc-chapter__body">Multi-campus groups need roll-ups without crushing local autonomy. One governance layer, campus calendars intact, audit trails operators can actually export.</p>
-      </div>
-      <div class="mkt-asc-chapter__viz">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;text-align:center;font-size:0.75rem">
-          <div style="padding:1rem;background:rgba(99,102,241,0.15);border-radius:0.75rem"><strong style="font-size:1.25rem">98%</strong><br>collection</div>
-          <div style="padding:1rem;background:rgba(16,185,129,0.15);border-radius:0.75rem"><strong style="font-size:1.25rem">12</strong><br>campuses</div>
-          <div style="padding:1rem;background:rgba(245,158,11,0.15);border-radius:0.75rem"><strong style="font-size:1.25rem">0</strong><br>unscoped queries</div>
-        </div>
-        <p class="mkt-asc-honest">Illustrative ranges · your metrics after go-live</p>
-      </div>
-    </article>
-  </section>
-
-  <!-- ═══ III. COMPETITOR WALL — honest contrast ═══ -->
-  <section class="mkt-asc-vs" aria-labelledby="asc-vs-title">
-    <div class="mkt-asc-vs__head">
-      <p class="mkt-asc-gate__kicker" style="color:#5c5768">Why switch</p>
-      <h2 id="asc-vs-title">They optimized a module.<br>We built the operating system.</h2>
-    </div>
-    <div class="mkt-asc-vs__tabs" role="tablist">
-      <button type="button" class="mkt-asc-vs__tab is-active" data-vs="ps" role="tab">PowerSchool</button>
-      <button type="button" class="mkt-asc-vs__tab" data-vs="toddle" role="tab">Toddle</button>
-      <button type="button" class="mkt-asc-vs__tab" data-vs="arbor" role="tab">Arbor / SIMS</button>
-      <button type="button" class="mkt-asc-vs__tab" data-vs="bright" role="tab">Brightwheel</button>
-    </div>
-
-    <div class="mkt-asc-vs__panel is-active" data-vs="ps" role="tabpanel">
-      <div class="mkt-asc-vs__them">
-        <div class="mkt-asc-vs__tag">Their reality</div>
-        <p><strong>Months to deploy.</strong> Relational schema — every custom field is a dev ticket. Internet-only posture locks rural campuses out.</p>
-      </div>
-      <div class="mkt-asc-vs__us">
-        <div class="mkt-asc-vs__tag">RunMyCampus proof</div>
-        <p><strong>Runtime-configurable manifests.</strong> Drag-drop migration wizard. Offline queue with reconciliation. <em>Try the sims above.</em></p>
+        <p class="mkt-ve-speed-duel__metric">TTFT <span data-mkt-rmc-ttft>—</span> · total <span data-mkt-rmc-total>—</span></p>
+        <button type="button" class="mkt-edt-cta mkt-edt-cta--primary mkt-ve-speed-duel__run" data-mkt-rmc-run>Run command</button>
       </div>
     </div>
-    <div class="mkt-asc-vs__panel" data-vs="toddle" role="tabpanel">
-      <div class="mkt-asc-vs__them">
-        <div class="mkt-asc-vs__tag">Their reality</div>
-        <p><strong>Best-in-class IB classroom.</strong> Stops at the classroom wall — finance and admissions live elsewhere.</p>
-      </div>
-      <div class="mkt-asc-vs__us">
-        <div class="mkt-asc-vs__tag">RunMyCampus proof</div>
-        <p><strong>IB morph + fees + parent window</strong> on one student thread. Gradebook sim switches US / IB / competency live.</p>
-      </div>
-    </div>
-    <div class="mkt-asc-vs__panel" data-vs="arbor" role="tabpanel">
-      <div class="mkt-asc-vs__them">
-        <div class="mkt-asc-vs__tag">Their reality</div>
-        <p><strong>UK register excellence.</strong> SIMS exodus pain — legacy UX, single-curriculum assumptions.</p>
-      </div>
-      <div class="mkt-asc-vs__us">
-        <div class="mkt-asc-vs__tag">RunMyCampus proof</div>
-        <p><strong>Polymorphic grading + GDPR posture</strong> without forking layout. RTL-native — not a translation plugin.</p>
-      </div>
-    </div>
-    <div class="mkt-asc-vs__panel" data-vs="bright" role="tabpanel">
-      <div class="mkt-asc-vs__them">
-        <div class="mkt-asc-vs__tag">Their reality</div>
-        <p><strong>Early-years delight.</strong> Schools outgrow it when secondary ops, fees, and compliance arrive.</p>
-      </div>
-      <div class="mkt-asc-vs__us">
-        <div class="mkt-asc-vs__tag">RunMyCampus proof</div>
-        <p><strong>K-12 through network scale</strong> — same calm parent surface from nursery to multi-campus group.</p>
-      </div>
-    </div>
-    <p class="mkt-asc-honest" style="text-align:center;max-width:36rem;margin:2rem auto 0">Positioning only · verify against your procurement checklist and our trust center.</p>
-  </section>
-
-  <!-- ═══ IV. FOUR CATHEDRALS — personalities amplified ═══ -->
-  <section class="mkt-asc-cathedral mkt-asc-cathedral--sovereign" aria-labelledby="cat-sov">
-    <div class="mkt-asc-cathedral__inner">
-      <div>
-        <p class="mkt-asc-chapter__time" style="color:#818cf8">Sovereign kernel</p>
-        <h2 id="cat-sov" style="font-family:'Source Serif 4',serif;font-size:clamp(2rem,4vw,3rem);margin:0 0 1rem;line-height:1.08">Region is not a dropdown.<br>It's the engine.</h2>
-        <p style="opacity:0.78;line-height:1.6;margin:0">180 currencies · 29 languages · RTL native · deployment matrix runs client-side so buyers never hit a dead validation service.</p>
-      </div>
-      <div style="position:relative;min-height:200px;border-radius:1rem;border:1px solid rgba(255,255,255,0.1);padding:1.25rem">
-        <div class="mkt-asc-sov-grid"></div>
-        <p style="position:relative;margin:0;font-size:2rem;font-weight:700">8<span style="font-size:1rem;opacity:0.6"> wks migration target</span></p>
-      </div>
-    </div>
-  </section>
-
-  <section class="mkt-asc-cathedral mkt-asc-cathedral--clinical">
-    <div class="mkt-asc-cathedral__inner">
-      <div>
-        <p class="mkt-asc-chapter__time" style="color:#059669">Clinical ledger</p>
-        <h2 style="font-family:'Source Serif 4',serif;font-size:clamp(2rem,4vw,3rem);margin:0 0 1rem">Finance auditors smile.<br>Parents still pay with cash.</h2>
-        <p style="color:#475569;line-height:1.6;margin:0">NF-e, CFDI, Pix, SPEI, M-Pesa — illustrated e-invoice stamps and split rails ship in the storefront sim.</p>
-      </div>
-      <div style="background:#fff;border-radius:1rem;padding:1.25rem;border:1px solid #e2e8f0;box-shadow:0 20px 50px rgba(15,23,42,0.08)">
-        <div style="height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden;display:flex">
-          <span style="width:80%;background:#10b981"></span><span style="width:10%;background:#6366f1"></span><span style="width:10%;background:#f59e0b"></span>
-        </div>
-        <p style="margin:0.75rem 0 0;font-size:0.8rem;color:#64748b">E-invoice · tax authority stamp · parent receipt</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="mkt-asc-cathedral mkt-asc-cathedral--rugged">
-    <div class="mkt-asc-cathedral__inner">
-      <div>
-        <p class="mkt-asc-chapter__time">Rugged terminal</p>
-        <h2 style="font-family:'Source Serif 4',serif;font-size:clamp(2rem,4vw,3rem);margin:0 0 1rem;color:#ecfdf5">Offline is not a mode.<br>It's a contract.</h2>
-        <p style="opacity:0.75;line-height:1.6;margin:0">Network-drop sim · USSD fallback · QR attendance · sync queue that never silently drops protected records.</p>
-      </div>
-      <pre style="margin:0;padding:1.25rem;background:#0f172a;border-radius:0.75rem;border:1px solid #065f46;font-size:0.75rem">&gt; rmc mesh status
-[OK] local queue: 847 events
-[WARN] fiber: down 12m
-[OK] ussd bridge: listening
-[OK] reconcile: deferred 3 conflicts</pre>
-    </div>
-  </section>
-
-  <section class="mkt-asc-cathedral mkt-asc-cathedral--fluid">
-    <div class="mkt-asc-cathedral__inner">
-      <div>
-        <p class="mkt-asc-chapter__time" style="color:#6366f1">Fluid classroom</p>
-        <h2 style="font-family:'Source Serif 4',serif;font-size:clamp(2rem,4vw,3rem);margin:0 0 1rem">Students aren't rows.<br>They're stories in motion.</h2>
-        <p style="color:#475569;line-height:1.6;margin:0">Soft indigo cards, avatar color, competency tags — the emotional opposite of legacy SIS grids.</p>
-      </div>
-      <div style="display:flex;gap:0.75rem">
-        <div style="flex:1;background:#fff;border-radius:1rem;padding:1rem;box-shadow:0 8px 24px rgba(99,102,241,0.12)"><div style="width:40px;height:40px;border-radius:50%;background:#c4b5fd;margin-bottom:0.5rem"></div><strong>Jordan M.</strong><br><span style="font-size:0.75rem;color:#64748b">IB · rising</span></div>
-        <div style="flex:1;background:#fff;border-radius:1rem;padding:1rem;box-shadow:0 8px 24px rgba(16,185,129,0.12)"><div style="width:40px;height:40px;border-radius:50%;background:#6ee7b7;margin-bottom:0.5rem"></div><strong>Sara K.</strong><br><span style="font-size:0.75rem;color:#64748b">Competency · mastery</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ V. FINALE ═══ -->
-  <section class="mkt-asc-finale" id="asc-finale">
-    <div>
-      <p class="mkt-asc-gate__kicker" style="color:rgba(250,247,242,0.5)">The threshold is open</p>
-      <h2>You've seen the day.<br>Now walk your campus through it.</h2>
-      <div class="mkt-asc-cta-row">
-        <a href="#" class="mkt-asc-cta mkt-asc-cta--primary">Book a demo</a>
-        <a href="#" class="mkt-asc-cta mkt-asc-cta--ghost" style="border-color:rgba(255,255,255,0.2);color:rgba(250,247,242,0.85)">Start a sandbox school</a>
-      </div>
-    </div>
-  </section>
-
-  <footer class="mkt-footer mkt-corporate-footer" style="padding:3rem 1.5rem">
-    <div style="max-width:72rem;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2rem">
-      <div>
-        <h2 style="font-family:'Source Serif 4',serif;font-size:1.5rem;margin:0 0 0.5rem">RunMyCampus</h2>
-        <p style="opacity:0.65;font-size:0.875rem;margin:0">One public gateway for buyers, families, developers, and campus routing.</p>
-      </div>
-      <div><a href="#" style="color:inherit;opacity:0.7;display:block;padding:0.25rem 0">Trust center</a><a href="#" style="color:inherit;opacity:0.7;display:block;padding:0.25rem 0">Procurement packet</a><a href="#" style="color:inherit;opacity:0.7;display:block;padding:0.25rem 0">Find my campus</a></div>
-      <div><a href="#" style="color:inherit;opacity:0.7;display:block;padding:0.25rem 0">Developers</a><a href="#" style="color:inherit;opacity:0.7;display:block;padding:0.25rem 0">Status</a><a href="#" style="color:inherit;opacity:0.7;display:block;padding:0.25rem 0">Privacy</a></div>
-    </div>
-  </footer>
+    <p class="mkt-edt-illustrative-pill">Simulated benchmarks · not a live tenant</p>
+  </div>
+</section>
 </div>
 
-<script src="../../static/marketing/js/mkt-threshold-era.js"></script>
+<!-- ONE SCHOOL DAY -->
+<section class="mkt-asc-day" id="asc-day">
+  <div class="mkt-asc-day__thread" aria-hidden="true"><div class="mkt-asc-day__thread-fill" id="asc-day-thread"></div></div>
+  <p class="mkt-asc-day__clock" id="asc-day-clock">6:45</p>
+  <nav class="mkt-asc-day__sticky" aria-label="Day chapters">
+    <button type="button" class="mkt-asc-day__chip is-active" data-ch="ch-run">6:45 Run</button>
+    <button type="button" class="mkt-asc-day__chip" data-ch="ch-teach">10:00 Teach</button>
+    <button type="button" class="mkt-asc-day__chip" data-ch="ch-pay">14:30 Pay</button>
+    <button type="button" class="mkt-asc-day__chip" data-ch="ch-govern">16:00 Govern</button>
+  </nav>
+  <article class="mkt-asc-chapter" id="ch-run" data-asc-time="6:45">
+    <div>
+      <p class="mkt-asc-chapter__time">6:45 · Admissions pulse</p>
+      <h3 class="mkt-asc-chapter__title">Inquiry becomes enrollment — no re-entry</h3>
+      <p class="mkt-asc-chapter__body">Pick a region in the chrome bar, then run the sovereign deployment matrix below.</p>
+      <div id="asc-region-out" class="mkt-asc-region-out"></div>
+      <a href="#mkt-sovereign-kernel" class="mkt-asc-chapter__link">Run the sovereign sim →</a>
+    </div>
+    <div class="mkt-asc-chapter__viz mkt-asc-chapter__viz--sov">
+      <div class="mkt-asc-sov-grid" aria-hidden="true"></div>
+      <p class="mkt-asc-chapter__viz-headline">One record. Six verbs. Zero swivel chair.</p>
+    </div>
+  </article>
+  <article class="mkt-asc-chapter" id="ch-teach" data-asc-time="10:00">
+    <div>
+      <p class="mkt-asc-chapter__time">10:00 · Classroom stage</p>
+      <h3 class="mkt-asc-chapter__title">One gradebook, every framework</h3>
+      <p class="mkt-asc-chapter__body">Toddle owns IB but stops at the wall. RunMyCampus morphs the same record — open the fluid classroom sim.</p>
+      <a href="#mkt-fluid-classroom" class="mkt-asc-chapter__link">Open fluid classroom sim →</a>
+    </div>
+    <div class="mkt-asc-chapter__viz">
+      <img src="../../static/marketing/img/ascension/classroom-cinematic.png" alt="Collaborative classroom — illustrative" loading="lazy" style="width:100%;border-radius:1rem">
+    </div>
+  </article>
+  <article class="mkt-asc-chapter" id="ch-pay" data-asc-time="14:30">
+    <div>
+      <p class="mkt-asc-chapter__time">14:30 · Clinical ledger</p>
+      <h3 class="mkt-asc-chapter__title">Fees split the way your region actually pays</h3>
+      <a href="#mkt-clinical-ledger" class="mkt-asc-chapter__link">Run split-ledger sim →</a>
+    </div>
+  </article>
+  <article class="mkt-asc-chapter" id="ch-govern" data-asc-time="16:00">
+    <div>
+      <p class="mkt-asc-chapter__time">16:00 · Rugged terminal</p>
+      <h3 class="mkt-asc-chapter__title">When the cloud dies, school doesn't</h3>
+      <a href="#mkt-rugged-engine" class="mkt-asc-chapter__link">Simulate network drop →</a>
+    </div>
+  </article>
+</section>
+
+<!-- COMPETITOR ARENA -->
+<section class="mkt-rev-arena" data-mkt-revolution-arena aria-labelledby="rev-arena-title">
+  <div class="mkt-rev-arena__head">
+    <p class="mkt-asc-gate__kicker">Why switch</p>
+    <h2 id="rev-arena-title">They optimized a module.<br>Drag the line. We built the OS.</h2>
+  </div>
+  <div class="mkt-rev-arena__pickers">
+    <button type="button" class="mkt-rev-arena__pick is-active" data-rev-vs="ps">PowerSchool</button>
+    <button type="button" class="mkt-rev-arena__pick" data-rev-vs="toddle">Toddle</button>
+    <button type="button" class="mkt-rev-arena__pick" data-rev-vs="arbor">Arbor / SIMS</button>
+    <button type="button" class="mkt-rev-arena__pick" data-rev-vs="bright">Brightwheel</button>
+  </div>
+  <div class="mkt-rev-arena__stage">
+    <div class="mkt-rev-arena__half mkt-rev-arena__half--them"><span class="mkt-rev-arena__tag">Legacy stack</span><p data-rev-them-text></p></div>
+    <div class="mkt-rev-arena__half mkt-rev-arena__half--us"><span class="mkt-rev-arena__tag">RunMyCampus</span><p data-rev-us-text></p></div>
+    <div class="mkt-rev-arena__handle" role="separator" aria-label="Compare"></div>
+  </div>
+  <input type="range" class="mkt-rev-arena__slider" min="12" max="88" value="50" aria-label="Comparison split">
+  <p class="mkt-rev-arena__honest">Positioning only · verify against your procurement checklist</p>
+</section>
+
+<section class="mkt-asc-cathedral-bridge mkt-rev-sims-bridge" aria-labelledby="asc-sims-title">
+  <div class="mkt-asc-cathedral-bridge__inner">
+    <p class="mkt-asc-gate__kicker">Four cathedrals · live now</p>
+    <h2 id="asc-sims-title" class="mkt-asc-cathedral-bridge__title">Every claim is a simulation you can run.</h2>
+    <p class="mkt-asc-cathedral-bridge__lead">Sovereign · Clinical · Rugged · Fluid — tap through.</p>
+  </div>
+</section>
+
+<!-- LIVE SIM STACK -->
+<div class="mkt-intent-home__stack mkt-rev-sims-bridge" data-mkt-intent-home>
+
+<section id="mkt-sovereign-kernel" class="mkt-ve-section mkt-ve-section--sovereign" data-mkt-personality="sovereign">
+  <div class="mkt-sov-grid" aria-hidden="true"></div>
+  <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
+    <div class="mkt-sov-layout">
+      <div class="mkt-sov-copy">
+        <p class="mkt-sov-eyebrow">Sovereign kernel · region-aware</p>
+        <h2 class="mkt-sov-headline">The Sovereign Operating System for Modern Districts</h2>
+        <p class="mkt-sov-lead">One control plane for admissions, fees, and the message you send at 8:14 a.m.</p>
+      </div>
+      <div class="mkt-ve-wizard" id="mkt-sovereign-kernel-wizard" data-mkt-sandbox-wizard>
+        <div class="mkt-ve-wizard__head">
+          <h2 class="mkt-ve-wizard__title">Deployment matrix · sandbox</h2>
+          <span class="mkt-ve-wizard__badge" data-mkt-sandbox-badge>US Core Active</span>
+        </div>
+        <form class="mkt-ve-wizard__form" data-mkt-sandbox-form novalidate>
+          <label class="mkt-ve-wizard__field"><span>Region</span>
+            <select name="region" data-mkt-sandbox-region>
+              <option value="US">United States</option><option value="NG">Nigeria</option><option value="GB">United Kingdom</option><option value="KE">Kenya</option>
+            </select>
+          </label>
+          <label class="mkt-ve-wizard__field"><span>School size</span>
+            <select name="school_size"><option value="small">Under 500</option><option value="medium" selected>500–2,000</option><option value="large">2,000+</option></select>
+          </label>
+          <fieldset class="mkt-ve-wizard__modules"><legend>Modules</legend>
+            <label><input type="checkbox" name="modules" value="finance" checked> Fees & finance</label>
+            <label><input type="checkbox" name="modules" value="offline" checked> Offline-first</label>
+            <label><input type="checkbox" name="modules" value="communications" checked> Communications</label>
+          </fieldset>
+          <button type="submit" class="mkt-edt-cta mkt-edt-cta--primary" data-mkt-sandbox-submit>Initialize deployment matrix ($ USD)</button>
+          <div class="mkt-sov-result" data-mkt-sov-result hidden></div>
+        </form>
+        <p class="mkt-edt-illustrative-pill">Simulated · runs in your browser</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="mkt-clinical-ledger" class="mkt-ve-section mkt-ve-section--clinical mkt-cl" data-mkt-personality="clinical">
+  <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
+    <header class="mkt-cl-head">
+      <p class="mkt-cl-eyebrow">Clinical ledger</p>
+      <h2 class="mkt-cl-headline">Split-Gateway Ledger Flow</h2>
+      <p class="mkt-cl-lead">Real-time payment distributions and automated electronic invoicing.</p>
+    </header>
+    <div class="mkt-cl-layout" data-mkt-split-ledger data-mkt-default-region="US">
+      <form class="mkt-cl-panel" data-mkt-cl-form>
+        <label class="mkt-cl-field"><span class="mkt-cl-field__label">Region <strong class="mkt-cl-amount" data-mkt-cl-amount>—</strong></span>
+          <select class="mkt-cl-select" data-mkt-cl-region>
+            <option value="US">United States</option><option value="NG">Nigeria</option><option value="KE">Kenya</option><option value="GB">United Kingdom</option>
+          </select>
+        </label>
+        <label class="mkt-cl-field"><span class="mkt-cl-field__label">Invoice amount</span>
+          <input type="range" class="mkt-cl-slider" min="500" max="50000" step="500" value="12000" data-mkt-cl-slider>
+        </label>
+        <ul class="mkt-cl-rails" data-mkt-cl-rails></ul>
+        <button type="button" class="mkt-cl-process" data-mkt-cl-process>Process payment</button>
+      </form>
+      <div class="mkt-cl-ledger" aria-live="polite">
+        <div class="mkt-cl-ledger__bar" data-mkt-cl-bar><span class="mkt-cl-seg mkt-cl-seg--tuition" data-seg="tuition"></span><span class="mkt-cl-seg mkt-cl-seg--transport" data-seg="transport"></span><span class="mkt-cl-seg mkt-cl-seg--uniform" data-seg="uniform"></span></div>
+        <table class="mkt-cl-table"><tbody data-mkt-cl-rows></tbody></table>
+        <div class="mkt-cl-stamp" data-mkt-cl-stamp><span class="mkt-cl-stamp__auth" data-mkt-cl-stamp-auth>E-INVOICE</span><span class="mkt-cl-stamp__id" data-mkt-cl-stamp-id>UUID —</span><span class="mkt-cl-stamp__seal">STAMPED</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="mkt-rugged-engine" class="mkt-ve-section mkt-ve-section--rugged mkt-rt" data-mkt-personality="rugged">
+  <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
+    <header class="mkt-rt-head">
+      <p class="mkt-rt-eyebrow">Rugged engine</p>
+      <h2 class="mkt-rt-headline">Network drop simulator — phone-ban immune attendance.</h2>
+      <p class="mkt-rt-lead">Toggle from fiber to total blackout; attendance still logs via QR and RFID.</p>
+    </header>
+    <div class="mkt-rt-console" data-mkt-network-state data-mkt-drop-simulator>
+      <div class="mkt-rt-bar">
+        <span class="mkt-rt-bar__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="mkt-rt-bar__title">campus-edge@runmycampus:~$</span>
+        <span class="mkt-rt-bar__net" data-mkt-network-status>● FIBER / 5G — live sync</span>
+      </div>
+      <div class="mkt-rt-grid">
+        <div class="mkt-rt-left">
+          <div class="mkt-rt-toggle" role="group">
+            <button type="button" class="mkt-rt-btn is-active" data-mkt-network="fiber">Fiber / 5G</button>
+            <button type="button" class="mkt-rt-btn" data-mkt-network="degraded">Degraded</button>
+            <button type="button" class="mkt-rt-btn" data-mkt-network="offline">Offline</button>
+            <button type="button" class="mkt-rt-btn" data-mkt-network="blackout">Blackout</button>
+          </div>
+          <div class="mkt-rt-device" data-mkt-device>
+            <div class="mkt-rt-device__rich" data-mkt-device-rich><span class="mkt-rt-device__tag">Live dashboard</span></div>
+            <div class="mkt-rt-device__ussd" data-mkt-device-ussd hidden><pre class="mkt-rt-ussd">*384*7263# USSD fallback</pre></div>
+          </div>
+        </div>
+        <div class="mkt-rt-right">
+          <div class="mkt-rt-queue"><span class="mkt-rt-queue__label">Local sync queue</span><strong class="mkt-rt-queue__n" data-mkt-queue>0</strong></div>
+          <pre class="mkt-rt-log" data-mkt-terminal-log aria-live="polite"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="mkt-fluid-classroom" class="mkt-ve-section mkt-ve-section--fluid mkt-fc" data-mkt-personality="fluid">
+  <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
+    <div class="mkt-fc-layout" data-mkt-gradebook-morph>
+      <div class="mkt-fc-copy">
+        <p class="mkt-fc-eyebrow">Fluid classroom</p>
+        <h2 class="mkt-fc-headline">Gradebooks that morph to your framework.</h2>
+        <p class="mkt-fc-lead">Switch illustrative frameworks without re-entering history.</p>
+        <div class="mkt-fc-tabs" role="tablist">
+          <button type="button" role="tab" class="is-active" data-mkt-framework="us">US letters · GPA</button>
+          <button type="button" role="tab" data-mkt-framework="ib">IB 1–7</button>
+          <button type="button" role="tab" data-mkt-framework="caie">Cambridge A*–G</button>
+          <button type="button" role="tab" data-mkt-framework="competency">Competency</button>
+        </div>
+        <p class="mkt-fc-summary"><span class="mkt-fc-summary__label">Class average</span> <strong class="mkt-fc-summary__val" data-mkt-gradebook-summary>—</strong></p>
+      </div>
+      <div class="mkt-fc-board"><div class="mkt-fc-grade" data-mkt-gradebook-table aria-live="polite"></div></div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<section class="mkt-asc-finale" id="asc-finale">
+  <div>
+    <p class="mkt-asc-gate__kicker mkt-asc-finale__kicker">The threshold is open</p>
+    <h2>You've seen the day.<br>Now walk your campus through it.</h2>
+    <div class="mkt-asc-cta-row">
+      <a href="#" class="mkt-asc-cta mkt-asc-cta--primary">Book a demo</a>
+    </div>
+  </div>
+</section>
+</div>
+
+<footer class="mkt-rev-lab-footer" role="contentinfo" data-mkt-footer>
+  <p class="mkt-rev-lab-footer__eyebrow">RunMyCampus corporate gateway</p>
+  <p class="mkt-rev-lab-footer__note">Live site keeps the full <code>marketing_footer.html</code> — status, find-school, trust center, developer links. This lab preview ends here; footer parity is unchanged on Django routes.</p>
+  <nav class="mkt-rev-lab-footer__links" aria-label="Footer preview links">
+    <a href="https://runmycampus.com/status/">Status</a>
+    <a href="https://runmycampus.com/find-school/">Find your campus</a>
+    <a href="https://runmycampus.com/trust/">Trust center</a>
+  </nav>
+</footer>
+
 <script src="../../static/marketing/js/mkt-ascension.js"></script>
+<script src="../../static/marketing/js/mkt-ascension-viz.js"></script>
+<script src="../../static/marketing/js/mkt-revolution-lab.js"></script>
+<script src="../../static/marketing/js/mkt-speed-duel.js"></script>
+<script src="../../static/marketing/js/mkt-sandbox-wizard.js"></script>
+<script src="../../static/marketing/js/mkt-split-ledger.js"></script>
+<script src="../../static/marketing/js/mkt-network-state.js"></script>
+<script src="../../static/marketing/js/mkt-gradebook-morph.js"></script>
 </body>
 </html>

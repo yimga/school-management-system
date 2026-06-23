@@ -1,0 +1,13 @@
+{% load i18n static %}
+<div class="mkt-asc-film{% if compact %} mkt-asc-film--compact{% endif %}" data-mkt-parallax>
+  {% if loop_mp4 %}
+  <video class="mkt-asc-film__media" poster="{{ media.poster_url }}" preload="metadata" playsinline muted loop aria-hidden="true">
+    {% if loop_webm %}<source src="{{ loop_webm }}" type="video/webm">{% endif %}
+    <source src="{{ loop_mp4 }}" type="video/mp4">
+  </video>
+  {% elif media.photo_url %}
+  <img class="mkt-asc-film__media" src="{{ media.photo_url }}" alt="{{ media.alt }}" loading="lazy" decoding="async">
+  {% endif %}
+  <div class="mkt-asc-film__scrim" aria-hidden="true"></div>
+  {% if media.credit %}<p class="mkt-asc-film__caption">{{ media.credit }}</p>{% endif %}
+</div>

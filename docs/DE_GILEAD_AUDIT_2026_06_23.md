@@ -83,3 +83,33 @@ Phase-0 item; see `project_rbac_school_owner_2026_06_23` memory.
 > `/20` badge. Add the two CI gates above at their current baselines. Verify-first, write DB
 > tests, run on a PRIVATE test DB (`DJANGO_TEST_DB_FILE=…`), browser-check grade entry before
 > shipping. Do NOT edit applied seed migrations — parametrize the seed command instead.
+
+## Consolidation closeout (2026-06-23)
+
+**Merge posture:** Local merge `b8c0ea798` (consolidate local main into origin/main) is fully
+superseded on **`origin/main`** by `c9172369a` (fleet globe + threshold-era marketing + tenant
+dashboard waves) and `939f2fe20` (student 100X role home + `student_results_visibility` policy).
+HEAD matches remote; no rebase in flight.
+
+**Branch assessment (June 2026 + legacy):** All ten `origin/*2026-06-*` branches and eight
+legacy feature branches (`agentic-phase3-clean`, `asgi-streaming`, `backend_vs_frontend`,
+`feat/dashboard-packs-revival`, `feature/dashboard-templates`, `feature/multi-tenant-schools`,
+`faq_kb`, `Testing`) report **0 commits ahead of `main`** — fully absorbed or abandoned.
+**Deliberately not resurrecting:** pre-2026 safety branches (`safety/pre-main-*`), codex
+planning forks, and stale CI fix branches — historical only.
+
+**Gap analysis (this pass):**
+
+| Item | Status |
+|---|---|
+| P0 grade-scale (marks_entry + backend dashboard) | **CLOSED** (`4792b5e9b`, `561f277fc`, `8f618c080`) |
+| Lexicon adoption tests | **GREEN** (`033139d7a`, `test_lexicon_local_first`) |
+| Student results visibility | **SHIPPED** (`939f2fe20`) |
+| Marketing ascension media + revolution lab | **SHIPPED** (this commit) |
+| Marketing enhanced CSS budget | Reconciled **350000 → 425000** B (418174 B actual) |
+| P1 founding-tenant seed migrations | **DEFERRED** (parametrize seed command — do not edit applied migrations) |
+| P2 terminology-adoption linter + exam-board gate | **NOT STARTED** (recommended CI gates above) |
+
+**Proof:** `manage.py check` 0 issues; `makemigrations --check` clean; consolidation suites
+45+25 tests OK; `lint_gilead_residue` 0; `scan_role_strings --compare` OK;
+`INTERACTION_INTEGRITY_PASS`; `verify:marketing` OK; dead hrefs **0**.

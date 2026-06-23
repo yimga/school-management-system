@@ -1,0 +1,11 @@
+{% load i18n marketing_public_urls %}
+{% if marketing_threshold_era_enabled|default:False %}
+<nav class="mkt-th-verb-strip" aria-label="{% trans 'Platform verbs' %}">
+  {% for verb in marketing_verb_nav %}
+  <a href="{% marketing_public_href verb.url_name %}" data-verb="{{ verb.key }}"{% if marketing_page_slug and verb.key in marketing_page_slug %} class="is-active"{% endif %}>
+    <i class="bi {{ verb.icon }}" aria-hidden="true"></i>
+    {{ verb.label }}
+  </a>
+  {% endfor %}
+</nav>
+{% endif %}

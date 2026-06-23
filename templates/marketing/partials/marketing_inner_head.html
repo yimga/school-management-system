@@ -20,7 +20,11 @@
     </nav>
     {% endif %}
 
-    {% if marketing_personality and not page_extras.suppress_personality_viz %}
+    {% if marketing_threshold_era_enabled|default:False %}
+    {% if not page_extras.suppress_threshold_hero|default:False %}
+    {% include "marketing/partials/mkt_inner_threshold_hero.html" %}
+    {% endif %}
+    {% elif marketing_personality and not page_extras.suppress_personality_viz %}
     {% include "marketing/components/_personality_hero.html" with eyebrow=page.label headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
     {% include "marketing/components/_personality_viz_panel.html" %}
     {% else %}

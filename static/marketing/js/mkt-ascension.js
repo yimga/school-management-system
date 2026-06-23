@@ -57,7 +57,7 @@
 
   /* ── Monolith doors → scroll to chapter ── */
   var targetIds = {
-    run: ["ch-run", "mkt-sovereign-kernel"],
+    run: ["mkt-hero-speed-duel", "ch-run", "mkt-sovereign-kernel"],
     teach: ["ch-teach", "mkt-fluid-classroom"],
     pay: ["ch-pay", "mkt-clinical-ledger"],
     talk: ["ch-talk", "mkt-sovereign-kernel"],
