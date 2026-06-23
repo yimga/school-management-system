@@ -89,6 +89,34 @@ def _currency_code(country_code: str) -> str:
     return _DEFAULT_CURRENCY_BY_COUNTRY.get(country_code, "USD")
 
 
+def _resolve_currency_for_request(request, country_code: str) -> str:
+    """Local-first currency for the emitted pack.
+
+    When a tenant is resolved, the SCHOOL's own currency wins (``resolve_currency``:
+    explicit override → region → country pack → platform default), so templates and
+    invoices reflect the tenant's actual currency — including a deliberate override —
+    instead of the static country map. Public/marketing hosts (no school) fall back to
+    the country-derived default.
+    """
+    school = getattr(request, "school", None)
+    if school is not None:
+        try:
+            resolved = (school.resolve_currency() or "").strip()
+            if resolved:
+                return resolved
+        except Exception:  # noqa: BLE001 — fall back to the country map, never raise
+            pass
+    return _currency_code(country_code)
+
+
+def _resolve_timezone_for_request(request) -> str:
+    """The tenant's timezone when resolved (the Wave-2 middleware activates it); else ""."""
+    school = getattr(request, "school", None)
+    if school is not None:
+        return (getattr(school, "timezone", "") or "").strip()
+    return ""
+
+
 def _date_format(country_code: str) -> str:
     return _DEFAULT_DATE_FORMAT_BY_COUNTRY.get(country_code, "%d/%m/%Y")
 
@@ -145,7 +173,8 @@ def localization_context(request) -> dict:
             "terminology":      dict(pack.get("terminology") or {}),
             "week_start":       int(cal.get("week_start") or 1),
             "date_format":      _date_format(cc),
-            "currency_code":    _currency_code(cc),
+            "currency_code":    _resolve_currency_for_request(request, cc),
+            "timezone":         _resolve_timezone_for_request(request),
             "is_rtl":           cc in _RTL_COUNTRIES
             or is_rtl_locale(translation.get_language() or lang_code),
             # Wave 4: format helpers — emit alongside calendar/terminology so
@@ -165,6 +194,7 @@ def localization_context(request) -> dict:
             "calendar_systems": [], "default_calendar": {},
             "school_types": [], "education_levels": [], "terminology": {},
             "week_start": 1, "date_format": "%d/%m/%Y", "currency_code": "USD",
+            "timezone": "",
             "is_rtl": False,
             "name_order": "given-family",
             "address_order": ["street", "city", "region", "postal_code", "country"],
