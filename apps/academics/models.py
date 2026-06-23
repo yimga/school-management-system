@@ -122,17 +122,21 @@ class Term(models.Model):
                 condition=~Q(custom_label=""),
             ),
             models.CheckConstraint(
+                # Local-first: allow 1–12 terms/periods, not a hardcoded max of 4. Aligns
+                # with RegionConfig.term_count_per_year (1–12) so 2-semester, trimester,
+                # quarter, and 5+-period/modular calendars are all valid. Terms beyond the
+                # named choices use custom_label for their display name.
                 check=(
-                    Q(position__isnull=True) | (Q(position__gte=1) & Q(position__lte=4))
+                    Q(position__isnull=True) | (Q(position__gte=1) & Q(position__lte=12))
                 ),
-                name="term_position_range_1_4_or_null",
+                name="term_position_range_1_12_or_null",
             ),
         ]
 
     def clean(self):
         super().clean()
-        if self.position is not None and not (1 <= int(self.position) <= 4):
-            raise ValidationError({"position": "Position must be between 1 and 4."})
+        if self.position is not None and not (1 <= int(self.position) <= 12):
+            raise ValidationError({"position": "Position must be between 1 and 12."})
 
     def __str__(self):
         return f"{self.academic_year} - {self.label}"
