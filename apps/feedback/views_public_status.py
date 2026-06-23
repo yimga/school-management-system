@@ -54,6 +54,14 @@ def public_status_page(request):
     except Exception:
         pass
 
+    slo_commitments = []
+    try:
+        from apps.observability.slo import slo_commitments_for_display
+
+        slo_commitments = slo_commitments_for_display()
+    except Exception:
+        slo_commitments = []
+
     return render(
         request,
         "feedback/public_status.html",
@@ -61,6 +69,7 @@ def public_status_page(request):
             "shipped": shipped,
             "top_requests": top_requests,
             "incidents": incidents,
+            "slo_commitments": slo_commitments,
         },
     )
 
@@ -113,4 +122,10 @@ def public_status_json(request):
             )
     except Exception:
         pass
+    try:
+        from apps.observability.slo import slo_commitments_for_display
+
+        payload["slo_commitments"] = slo_commitments_for_display()
+    except Exception:
+        payload["slo_commitments"] = []
     return JsonResponse(payload)

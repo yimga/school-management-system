@@ -12,6 +12,31 @@
 <div class="container py-4" data-page="public-status">
   <h1 class="h3 mb-3">{% trans "Platform status & roadmap" %}</h1>
 
+  {% if slo_commitments %}
+  <section class="mb-4" aria-labelledby="slo-hdr">
+    <h2 id="slo-hdr" class="h5">{% trans "Service objectives" %}</h2>
+    <p class="text-muted small mb-2">{% trans "What the platform commits to. These are our published targets, not a live measurement." %}</p>
+    <table class="table table-sm table-family rmc-data-table" data-rmc-table-5col="1">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">{% trans "Service" %}</th>
+          <th scope="col">{% trans "Objective" %}</th>
+          <th scope="col">{% trans "Target" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for slo in slo_commitments %}
+        <tr>
+          <td>{{ slo.label }}</td>
+          <td class="small text-muted">{{ slo.objective }}</td>
+          <td><span class="rmc-badge rmc-badge--brand">{{ slo.target_pct }}%</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% endif %}
+
   <section class="mb-4" aria-labelledby="incidents-hdr">
     <h2 id="incidents-hdr" class="h5">{% trans "Recent incidents (7d)" %}</h2>
     {% if incidents %}

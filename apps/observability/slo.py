@@ -234,3 +234,43 @@ def burn_rate_severity(*, burn: float, window_minutes: int) -> str:
 
 def list_owners() -> set[str]:
     return {s.owner for s in SLOS}
+
+
+def slo_commitments_for_display() -> list[dict]:
+    """Public-facing SLO commitments for the status page (T1).
+
+    Returns the platform's PROMISED objectives — targets only, derived from the
+    registry, never live measurements. The status page shows what we commit to
+    (AWS-/SLA-style trust), so it can never imply a current number it cannot
+    honestly back. Each entry carries a human ``objective`` one-liner.
+    """
+    rows: list[dict] = []
+    for s in SLOS:
+        if s.kind in ("latency_p95", "latency_p99"):
+            quant = "p99" if s.kind == "latency_p99" else "p95"
+            objective = (
+                f"{quant} under {s.threshold_ms} ms for {s.target}% of requests "
+                f"({s.window_days}-day window)"
+            )
+        elif s.kind == "availability":
+            objective = f"{s.target}% success over a {s.window_days}-day window"
+        elif s.kind == "freshness":
+            objective = f"Fresh within objective {s.target}% of the time ({s.window_days}d)"
+        else:  # error_rate
+            objective = (
+                f"Under {round(100.0 - s.target, 2)}% affected over "
+                f"a {s.window_days}-day window"
+            )
+        rows.append(
+            {
+                "key": s.key,
+                "label": s.label,
+                "kind": s.kind,
+                "target_pct": s.target,
+                "window_days": s.window_days,
+                "threshold_ms": s.threshold_ms,
+                "owner": s.owner,
+                "objective": objective,
+            }
+        )
+    return rows
