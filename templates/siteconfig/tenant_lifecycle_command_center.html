@@ -110,32 +110,34 @@
     </ol>
   </section>
 
+  {% comment %} Offboarding/closure relocated OFF the daily lifecycle view (owner 2026-06-23):
+     account closure is a deliberate, gated, owner-only action — the industry-standard
+     posture (deactivate-not-delete, export-first, never one accidental click away). The
+     full workspace (export · request closure · grace · purge · cancel) lives on the
+     dedicated Close-account page; here we keep ONLY a quiet, deliberate link to it, not
+     the red destructive UI + step list that sat in the everyday surface. The
+     `section-offboarding` anchor is preserved for the section nav. {% endcomment %}
   <section class="mb-4" id="section-offboarding" data-rmc-section-anchor>
-    <h2 class="h5 text-danger">{% trans "Offboarding & closure" %}</h2>
+    <h2 class="h5 text-muted">{% trans "Account lifecycle" %}</h2>
     {% if offboarding_url %}
-    <a class="btn btn-sm btn-outline-danger mb-2" href="{{ offboarding_url }}">{% trans "Close account workspace" %}</a>
+    <p class="small text-muted mb-2">
+      {% trans "Closing the school? Account closure and a full one-click data export are handled on a dedicated, owner-only page, so a destructive action is never triggered from the everyday workspace." %}
+    </p>
+    <a class="small text-secondary text-decoration-none" href="{{ offboarding_url }}">
+      <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i>{% trans "Account closure & data export" %}
+    </a>
+    {% else %}
+    <p class="small text-muted mb-0">{% trans "Account closure is managed by the school owner." %}</p>
     {% endif %}
-    <ol class="list-group list-group-numbered">
-      {% for step in tenant_offboarding.steps %}
-      <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2 {% if step.done %}list-group-item-success{% endif %}">
-        <div>
-          <span class="fw-medium">{{ step.label }}</span>
-          <div class="small text-muted">{{ step.description }}</div>
-        </div>
-        {% if step.done %}<span class="rmc-badge rmc-badge--success">{% trans "Done" %}</span>
-        {% elif step.url %}<a class="btn btn-sm btn-outline-danger" href="{{ step.url }}">{% trans "Open" %}</a>{% endif %}
-      </li>
-      {% endfor %}
-    </ol>
   </section>
 
   {% if onboarding_playbook_api_url %}
   <section class="mb-4" id="section-lifecycle-playbook" data-rmc-section-anchor data-rmc-lifecycle-command-center-playbook>
     <h2 class="h5">{% trans "Lifecycle playbook" %}</h2>
     {% include "partials/workflow_playbook_assistant.html" with playbook_mode="onboarding" playbook_api_url=onboarding_playbook_api_url playbook_title="Onboarding playbook" playbook_hint="Ask about registration, launch rail, and go-live order." %}
-    {% if offboarding_playbook_api_url %}
-    {% include "partials/workflow_playbook_assistant.html" with playbook_mode="offboarding" playbook_api_url=offboarding_playbook_api_url playbook_title="Offboarding playbook" playbook_hint="Ask about export order, grace period, and cancellation." %}
-    {% endif %}
+    {% comment %} Offboarding playbook intentionally NOT shown in the everyday lifecycle view
+       (owner 2026-06-23) — it lives on the dedicated owner-only Close-account page alongside
+       the closure workflow it explains. {% endcomment %}
   </section>
   {% endif %}
 </div>
