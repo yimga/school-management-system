@@ -61,6 +61,31 @@ class CallRecognitionTests(unittest.TestCase):
         self.assertIsNone(v._literal_target(c2))
 
 
+class ContentTypeTargetTests(unittest.TestCase):
+    def _call(self, src: str):
+        tree = ast.parse(textwrap.dedent(src))
+        return next(n for n in ast.walk(tree) if isinstance(n, ast.Call))
+
+    def test_literal_contenttype_lookup(self):
+        c = self._call('ContentType.objects.get(app_label="siteconfig", model="sitesettings")')
+        self.assertEqual(v._contenttype_target(c), ("siteconfig", "sitesettings"))
+
+    def test_filter_shape_also_matched(self):
+        c = self._call('ContentType.objects.filter(app_label="evals", model="evaluation").first()')
+        # .first() is the outer call; walk finds the .filter() call too — assert filter resolves
+        tree = ast.parse('ContentType.objects.filter(app_label="evals", model="evaluation")')
+        inner = next(n for n in ast.walk(tree) if isinstance(n, ast.Call))
+        self.assertEqual(v._contenttype_target(inner), ("evals", "evaluation"))
+
+    def test_non_contenttype_call_ignored(self):
+        c = self._call('SomeModel.objects.get(app_label="x", model="y")')
+        self.assertIsNone(v._contenttype_target(c))
+
+    def test_non_literal_kwargs_ignored(self):
+        c = self._call('ContentType.objects.get(app_label=app_var, model="y")')
+        self.assertIsNone(v._contenttype_target(c))
+
+
 class GuardMarkerTests(unittest.TestCase):
     def test_marker_excuses_same_and_above(self):
         marked = v._marked_linenos(

@@ -18,11 +18,14 @@ This verifier closes that gap with ground truth. It AST-scans ``apps/`` +
 the **live registry** (``django.apps.apps.get_model``) whether each resolves.
 A ``LookupError`` is a finding.
 
-Two call shapes are recognized:
+Call shapes recognized:
 
 * ``get_model("app_label", "ModelName")`` / ``apps.get_model(...)`` /
   ``django_apps.get_model(...)`` — two literal args.
 * ``get_model("app_label.ModelName")`` — single dotted literal.
+* ``ContentType.objects.get(app_label="x", model="y")`` (and ``.filter`` /
+  ``.get_or_create`` etc.) — literal ``app_label=`` + ``model=`` kwargs. Same
+  registry question, same silent-``DoesNotExist`` failure mode.
 
 Excused (zero false positives):
 
@@ -147,6 +150,28 @@ def _literal_target(call: ast.Call) -> tuple[str, str] | None:
     return None
 
 
+def _contenttype_target(call: ast.Call) -> tuple[str, str] | None:
+    """Return (app_label, model) for a ContentType lookup with literal
+    ``app_label=`` + ``model=`` kwargs, else None."""
+    try:
+        func_src = ast.unparse(call.func)
+    except Exception:  # pragma: no cover - ast.unparse is stable on py3.9+
+        return None
+    if "ContentType" not in func_src:
+        return None
+    app = model = None
+    for kw in call.keywords:
+        if not isinstance(kw.value, ast.Constant) or not isinstance(kw.value.value, str):
+            continue
+        if kw.arg == "app_label":
+            app = kw.value.value
+        elif kw.arg == "model":
+            model = kw.value.value
+    if app and model:
+        return (app, model)
+    return None
+
+
 def _collect_targets() -> list[dict]:
     """All resolvable, non-excused get_model literal targets in the tree."""
     targets: list[dict] = []
@@ -160,15 +185,18 @@ def _collect_targets() -> list[dict]:
         guarded = _guarded_linenos(tree)
         marked = _marked_linenos(source.splitlines())
         for node in ast.walk(tree):
-            if not isinstance(node, ast.Call) or not _is_get_model_call(node):
+            if not isinstance(node, ast.Call):
                 continue
-            target = _literal_target(node)
+            if _is_get_model_call(node):
+                target, via = _literal_target(node), "get_model"
+            else:
+                target, via = _contenttype_target(node), "contenttype"
             if target is None:
                 continue
             if _is_excused(node.lineno, guarded, marked):
                 continue
             targets.append(
-                {"path": rel, "line": node.lineno, "app": target[0], "model": target[1]}
+                {"path": rel, "line": node.lineno, "app": target[0], "model": target[1], "via": via}
             )
     return targets
 
@@ -189,11 +217,15 @@ def _resolve(targets: list[dict]) -> list[dict]:
         try:
             dj_apps.get_model(t["app"], t["model"])
         except Exception as exc:  # LookupError + any registry edge
+            if t.get("via") == "contenttype":
+                statement = f'ContentType.objects.get(app_label="{t["app"]}", model="{t["model"]}")'
+            else:
+                statement = f'get_model("{t["app"]}", "{t["model"]}")'
             findings.append(
                 {
                     "path": t["path"],
                     "line": t["line"],
-                    "statement": f'get_model("{t["app"]}", "{t["model"]}")',
+                    "statement": statement,
                     "error": type(exc).__name__,
                 }
             )
