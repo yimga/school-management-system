@@ -118,11 +118,18 @@ def execute_core_loop(school_slug: str, *, seed_if_missing: bool = True) -> dict
     marks_count = Evaluation.objects.filter(student=student).count()
     marks_ok = marks_count > 0
 
+    # Local-first: derive country + currency from the tenant, never a Cameroon default.
+    _country = (getattr(school, "country_code", "") or "").strip().upper()
+    _currency = (
+        school.resolve_currency()
+        if hasattr(school, "resolve_currency")
+        else (getattr(school, "currency", "") or "").strip().upper()
+    )
     profile, _ = ComplianceProfile.objects.get_or_create(
         name=f"{school.slug} GEOS profile",
         defaults={
-            "country_code": getattr(school, "country_code", None) or "CM",
-            "currency_code": "XAF",
+            "country_code": _country,
+            "currency_code": _currency,
             "is_active": True,
         },
     )

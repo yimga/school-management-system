@@ -55,6 +55,7 @@ LEXICON_REGISTRY: dict[str, tuple[str, str, str, str]] = {
     "quiz": ("Quiz", "Quizzes", "academic", "Short assessment."),
     "project": ("Project", "Projects", "academic", "Extended student work."),
     "homework": ("Homework", "Homework", "academic", "At-home assignment."),
+    "sequence": ("Sequence", "Sequences", "academic", "Continuous-assessment unit (Cameroon system says 'sequence'; elsewhere 'test', 'CA', or 'assessment')."),
     # Organisation ------------------------------------------------------
     "school": ("School", "Schools", "organisation", "Top-level tenant unit."),
     "campus": ("Campus", "Campuses", "organisation", "Physical site."),

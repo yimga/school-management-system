@@ -151,7 +151,7 @@ class AssessmentWeights(models.Model):
         ],
         default="numeric_0_20",
     )
-    # De-Gilead/Cameroon (2026-06-23): default region is GLOBAL, not Cameroon. This
+    # Local-first (2026-06-23): default region is GLOBAL, not a single country. This
     # field is descriptive metadata only (not consumed by grade computation — the
     # thresholds + grading_scale drive the math), so flipping the default is grade-safe
     # and stops new tenants worldwide being labelled "Cameroon Anglophone" by default.

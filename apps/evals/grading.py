@@ -388,12 +388,19 @@ from apps.siteconfig.currency import CURRENCY_SYMBOLS, get_currency_symbol
 __all__ = ["CURRENCY_SYMBOLS", "format_currency", "get_currency_symbol"]
 
 
-def format_currency(amount, currency_code="XAF", include_symbol=True):
+def format_currency(amount, currency_code=None, include_symbol=True):
     """
     Format amount as currency (simple, no region separators).
     For region-aware display use template filter |format_currency or
     LocalizationService.format_currency(amount, region=region).
+
+    Currency is local-first: an explicit ``currency_code`` wins, otherwise the
+    platform default (never a hardcoded Cameroon XAF).
     """
+    if not currency_code:
+        from django.conf import settings
+
+        currency_code = getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD")
     symbol = get_currency_symbol(currency_code)
     if include_symbol:
         return f"{symbol} {float(amount):,.2f}"

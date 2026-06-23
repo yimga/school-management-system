@@ -61,8 +61,8 @@
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="cameroon-head">
     <h1>{{ SITE.site_name|default:"School System" }}</h1>
-    {% comment %} De-Gilead (2026-06-23): removed the hardcoded "Small Soppo Buea" default —
-       that is the founding school's specific neighbourhood, wrong for every other tenant
+    {% comment %} Local-first (2026-06-23): removed a hardcoded neighbourhood default —
+       that was the founding school's specific locality, wrong for every other tenant
        (even other Cameroonian ones). Region now shows only when the tenant has set it. {% endcomment %}
     <p class="small text-muted">{% if SITE.region %}{{ SITE.region }} | {% endif %}{{ SITE.ministry|default:"Ministry of Secondary Education" }}</p>
     {% if report_style and report_style.header_tagline %}

@@ -19,7 +19,11 @@ from functools import lru_cache
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PATTERN = re.compile(r"gilead", re.IGNORECASE)
+# Founding-school-SPECIFIC residue with no legitimate generic use. Deliberately does
+# NOT include bare "Cameroon"/"Buea" — Cameroon is a fully-supported country across the
+# region-pack/exam-board infra, so banning it would flag legitimate localization code.
+# "Small Soppo" is the founding school's specific neighbourhood (only ever a leaked default).
+PATTERN = re.compile(r"gilead|small\s+soppo", re.IGNORECASE)
 SCAN_ROOT_NAMES = ("apps", "services", "fixtures", "templates", "config")
 SCAN_FILE_NAMES = ("render.yaml", "QUICK_START.md")
 SKIP_PARTS = {"migrations", "tests", "__pycache__", "docs", "tmp", "artifacts"}
