@@ -279,17 +279,27 @@ class GradeConverter:
         else:
             return ""
 
+    def _scale(self) -> float:
+        """The configured maximum score (``score_scale``) — local-first instead of a
+        hardcoded 20. A percentage school (score_scale=100) or GPA school (4) converts
+        correctly; the legacy 0–20 default is preserved."""
+        try:
+            scale = float(getattr(self.weights, "score_scale", 20) or 20)
+            return scale if scale > 0 else 20.0
+        except (TypeError, ValueError):
+            return 20.0
+
     def numeric_to_gpa(self, numeric_score: Decimal) -> float:
-        """Converts 0–20 to 4.0 GPA scale."""
+        """Convert a raw score on the configured scale to a 4.0 GPA."""
         if numeric_score is None:
             return 0.0
-        return (float(numeric_score) / 20.0) * 4.0
+        return (float(numeric_score) / self._scale()) * 4.0
 
     def numeric_to_percentage(self, numeric_score: Decimal) -> float:
-        """Converts 0–20 to 0–100%."""
+        """Convert a raw score on the configured scale to 0–100%."""
         if numeric_score is None:
             return 0.0
-        return (float(numeric_score) / 20.0) * 100.0
+        return (float(numeric_score) / self._scale()) * 100.0
 
     def convert(self, numeric_score: Decimal) -> Dict:
         """Returns all conversion formats."""

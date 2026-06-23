@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from typing import Optional
 
 from django.conf import settings
@@ -13,6 +14,65 @@ from apps.academics.models import AcademicYear, Term, SubjectAssignment
 from apps.people.models import TeacherProfile, StudentProfile
 from apps.accounts.models import User
 from apps.accounts.validators import validate_evidence_file, validate_file_size_20mb
+
+
+# Canonical letter-grade bands + score scale per grading_scale choice. The bands are
+# the SCALE's bands, not one country's — picking "percentage" yields 80/70/60/50, "gpa_4_0"
+# yields GPA bands, etc. This is the SoT the pre_save realignment + any seeding reads.
+GRADING_SCALE_BANDS: dict[str, dict[str, float]] = {
+    "numeric_0_20": {"a": 18, "b": 16, "c": 14, "d": 10, "e": 0, "score_scale": 20},
+    "letter_a_e": {"a": 18, "b": 16, "c": 14, "d": 10, "e": 0, "score_scale": 20},
+    "gpa_4_0": {"a": 3.5, "b": 3.0, "c": 2.0, "d": 1.0, "e": 0, "score_scale": 4},
+    "percentage": {"a": 80, "b": 70, "c": 60, "d": 50, "e": 0, "score_scale": 100},
+}
+
+# Field defaults for the numeric_0_20 scale — used to detect "thresholds untouched".
+_NUMERIC_0_20_DEFAULT_BANDS = (18.0, 16.0, 14.0, 10.0, 0.0)
+
+
+def default_bands_for_scale(scale: str) -> dict[str, float]:
+    """Letter-grade bands (+ score_scale) for a grading_scale choice; numeric_0_20 default."""
+    return GRADING_SCALE_BANDS.get(scale) or GRADING_SCALE_BANDS["numeric_0_20"]
+
+
+def _apply_scale_consistent_bands(instance) -> None:
+    """On create, align grade thresholds + score_scale to the chosen grading_scale.
+
+    Only acts when (a) it's an insert, (b) a NON-default scale is chosen, and (c) the
+    thresholds are still the numeric_0_20 field defaults — so a school picking "percentage"
+    is scored on 80/70/60/50 instead of Cameroon's 0–20 bands. Never clobbers thresholds a
+    caller set explicitly, and leaves the numeric_0_20 default untouched (backward-compatible).
+    """
+    state = getattr(instance, "_state", None)
+    if state is None or not getattr(state, "adding", False):
+        return
+    scale = getattr(instance, "grading_scale", "") or ""
+    if scale == "numeric_0_20" or scale not in GRADING_SCALE_BANDS:
+        return
+
+    def _close(a, b):
+        try:
+            return abs(float(a) - float(b)) < 0.001
+        except (TypeError, ValueError):
+            return False
+
+    current = (
+        instance.grade_a_min,
+        instance.grade_b_min,
+        instance.grade_c_min,
+        instance.grade_d_min,
+        instance.grade_e_min,
+    )
+    if not all(_close(c, d) for c, d in zip(current, _NUMERIC_0_20_DEFAULT_BANDS)):
+        return  # thresholds were set explicitly — respect them
+    bands = default_bands_for_scale(scale)
+    instance.grade_a_min = Decimal(str(bands["a"]))
+    instance.grade_b_min = Decimal(str(bands["b"]))
+    instance.grade_c_min = Decimal(str(bands["c"]))
+    instance.grade_d_min = Decimal(str(bands["d"]))
+    instance.grade_e_min = Decimal(str(bands["e"]))
+    if int(getattr(instance, "score_scale", 20) or 20) == 20:
+        instance.score_scale = int(bands["score_scale"])
 
 
 class AssessmentWeights(models.Model):
@@ -64,7 +124,11 @@ class AssessmentWeights(models.Model):
 
     score_scale = models.PositiveSmallIntegerField(default=20)
 
-    # Grade thresholds for letter conversion (Cameroon Anglophone defaults)
+    # Grade thresholds for letter conversion. These field defaults are the bands for
+    # the numeric_0_20 scale (the model's default grading_scale). When a row is created
+    # with a DIFFERENT grading_scale and the thresholds are left at these defaults, a
+    # pre_save receiver realigns them to that scale's bands (see GRADING_SCALE_BANDS) so
+    # a percentage / GPA school is NOT scored on 0–20 bands. Never clobbers explicit bands.
     grade_a_min = models.DecimalField(
         max_digits=5,
         decimal_places=2,
@@ -143,6 +207,17 @@ class AssessmentWeights(models.Model):
             classroom=classroom if classroom is not None else None,
             term=term if term is not None else None,
         )
+
+
+def _assessment_weights_scale_bands_pre_save(sender, instance, **kwargs):  # noqa: ARG001
+    _apply_scale_consistent_bands(instance)
+
+
+models.signals.pre_save.connect(
+    _assessment_weights_scale_bands_pre_save,
+    sender=AssessmentWeights,
+    dispatch_uid="assessment_weights_scale_consistent_bands",
+)
 
 
 class GradingScale(models.Model):
