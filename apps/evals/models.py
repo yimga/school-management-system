@@ -151,6 +151,10 @@ class AssessmentWeights(models.Model):
         ],
         default="numeric_0_20",
     )
+    # De-Gilead/Cameroon (2026-06-23): default region is GLOBAL, not Cameroon. This
+    # field is descriptive metadata only (not consumed by grade computation — the
+    # thresholds + grading_scale drive the math), so flipping the default is grade-safe
+    # and stops new tenants worldwide being labelled "Cameroon Anglophone" by default.
     region = models.CharField(
         max_length=50,
         choices=[
@@ -158,7 +162,7 @@ class AssessmentWeights(models.Model):
             ("cameroon_francophone", "Cameroon Francophone"),
             ("global", "Global/Other"),
         ],
-        default="cameroon_anglophone",
+        default="global",
     )
 
     @classmethod
