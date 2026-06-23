@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tenant Elevation — Gap Analysis &amp; Options to Choose</title>
+<style>
+  :root{
+    --bg:#060912; --canvas:#0e1426; --elevated:#141c33; --panel:#0b1124;
+    --text:#eef2ff; --text-2:#aab3d4; --text-3:#7b86ad;
+    --hairline:rgba(255,255,255,.08); --hairline-2:rgba(255,255,255,.14);
+    --brand:#6366f1; --violet:#8b5cf6; --accent:#10b981; --warn:#f59e0b; --bad:#ef4444;
+    --radius:14px; --font:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+    --mono:"SF Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+      radial-gradient(1200px 600px at 80% -10%,rgba(99,102,241,.10),transparent 60%),
+      radial-gradient(900px 500px at 0% 10%,rgba(16,185,129,.06),transparent 55%),
+      var(--bg);
+    color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 22px 90px}
+  h1{font-size:clamp(24px,3vw,32px);font-weight:800;letter-spacing:-.02em;margin:0 0 8px}
+  .lede{color:var(--text-2);max-width:78ch;margin:0 0 6px;font-size:15px}
+  .meta{color:var(--text-3);font-family:var(--mono);font-size:12.5px;margin:8px 0 30px}
+  h2{font-size:20px;font-weight:750;margin:44px 0 6px;display:flex;align-items:center;gap:10px}
+  h2 .num{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;
+    background:rgba(99,102,241,.16);color:#a5b4fc;border:1px solid rgba(99,102,241,.35);font-size:13px;font-weight:700}
+  .sub{color:var(--text-3);font-size:13px;margin:0 0 18px;max-width:80ch}
+  .hr{height:1px;background:var(--hairline);border:0;margin:8px 0 0}
+
+  /* gap table */
+  table{width:100%;border-collapse:collapse;margin:6px 0 8px;font-size:13px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--hairline);vertical-align:top}
+  th{background:var(--elevated);color:var(--text-2);font-weight:650;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+  td code{font-family:var(--mono);font-size:11.5px;color:#c4b5fd}
+  .sev{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .sev.crit{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.35)}
+  .sev.high{background:rgba(245,158,11,.14);color:#fcd34d;border:1px solid rgba(245,158,11,.35)}
+  .sev.med{background:rgba(99,102,241,.15);color:#a5b4fc;border:1px solid rgba(99,102,241,.35)}
+  .sev.bug{background:rgba(139,92,246,.16);color:#c4b5fd;border:1px solid rgba(139,92,246,.35)}
+  .sev.ok{background:rgba(16,185,129,.14);color:#6ee7b7;border:1px solid rgba(16,185,129,.35)}
+
+  /* option grid */
+  .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:10px}
+  .opt{border:1px solid var(--hairline);border-radius:var(--radius);background:var(--canvas);overflow:hidden;
+    display:flex;flex-direction:column}
+  .opt__head{padding:13px 15px;border-bottom:1px solid var(--hairline);display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .opt__name{font-weight:700;font-size:14px}
+  .pick{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6ee7b7;
+    border:1px solid rgba(16,185,129,.35);background:rgba(16,185,129,.12);border-radius:999px;padding:2px 9px}
+  .opt__body{padding:14px 15px;flex:1}
+  .opt__why{color:var(--text-2);font-size:12.5px;margin:10px 0 0}
+  .opt__why b{color:var(--text)}
+  .reco{color:var(--text-3);font-size:11.5px;margin-top:10px;font-style:italic}
+
+  /* schematic renderers */
+  .demo{background:var(--panel);border:1px solid var(--hairline);border-radius:10px;padding:10px;height:148px;overflow:hidden;position:relative}
+  .bar{height:10px;border-radius:4px;background:rgba(255,255,255,.08)}
+  .row{display:flex;align-items:center;gap:6px}
+  .chip{height:18px;border-radius:6px;background:rgba(99,102,241,.22);border:1px solid rgba(99,102,241,.3)}
+  .ticker{height:14px;border-radius:4px;background:repeating-linear-gradient(90deg,rgba(245,158,11,.25) 0 22px,rgba(245,158,11,.08) 22px 44px)}
+  .void{flex:0 0 120px;border-radius:18px;border:1px dashed rgba(239,68,68,.5);
+    background:repeating-linear-gradient(135deg,transparent 0 7px,rgba(239,68,68,.10) 7px 14px);
+    display:grid;place-items:center;color:#fca5a5;font-size:10px;text-align:center}
+  .fill{border-radius:10px;background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(16,185,129,.10));border:1px solid var(--hairline)}
+  .card-mini{border-radius:8px;background:var(--elevated);border:1px solid var(--hairline);padding:7px}
+  .grid2{display:grid;grid-template-columns:1.6fr .9fr;gap:8px;height:118px}
+  .grid1{display:grid;grid-template-columns:1fr;gap:7px}
+  .gridfill{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .gridbento{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;grid-auto-rows:34px}
+  .tiny{font-size:9px;color:var(--text-3)}
+  .lbl{position:absolute;top:7px;left:9px;font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3)}
+
+  .callout{border:1px solid rgba(99,102,241,.35);background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(16,185,129,.07));
+    border-radius:var(--radius);padding:16px 18px;margin:14px 0;font-size:13.5px;color:var(--text-2)}
+  .callout b{color:var(--text)}
+  .note{color:var(--text-3);font-size:12px;margin-top:6px}
+  ul{margin:8px 0 0;padding-left:18px;color:var(--text-2);font-size:13px}
+  li{margin:4px 0}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--text-3);margin:2px 0 22px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:9px;height:9px;border-radius:3px;display:inline-block}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Tenant Elevation — Gap Analysis &amp; Options to Choose</h1>
+  <p class="lede">A tenant-wide audit of the live admin surface against your three design HTMLs. Each design decision below shows <b>2–3 options</b> — pick a letter per decision and I'll execute them platform-wide, then continuously re-audit until nothing's left to fix.</p>
+  <p class="meta">read-only audit · 4 parallel investigators · tokens extracted from tenant-role-dashboards-hub.html · 2026-06-22</p>
+
+  <div class="legend">
+    <span><i class="dot" style="background:#fca5a5"></i> Critical</span>
+    <span><i class="dot" style="background:#fcd34d"></i> High</span>
+    <span><i class="dot" style="background:#a5b4fc"></i> Medium</span>
+    <span><i class="dot" style="background:#c4b5fd"></i> Bug (needs verify-first dig)</span>
+    <span><i class="dot" style="background:#6ee7b7"></i> Already correct</span>
+  </div>
+
+  <!-- ============ VERIFIED GAP ANALYSIS ============ -->
+  <h2><span class="num">A</span> Verified gap analysis — where we are vs the HTMLs</h2>
+  <p class="sub">Findings I confirmed by reading the live code (not just sub-agent claims). The design/space gaps are solid; the two "bug" rows had wrong sub-agent specifics and are flagged for a verify-first dig.</p>
+  <table>
+    <thead><tr><th style="width:24%">Issue</th><th style="width:30%">Live state (file:line)</th><th style="width:30%">HTML target</th><th>Severity</th></tr></thead>
+    <tbody>
+      <tr><td>Header is multi-row &amp; heavy</td><td>LIVE-ticker band + 70.4px header + below-lg nav band — <code>rmc-tenant-header-100x.css:51</code> <code>min-height:calc(64px*1.1)</code></td><td>Single row ~56px, thin hairline, recessive subtitle</td><td><span class="sev high">High</span></td></tr>
+      <tr><td>Welcome card "void"</td><td>2-col grid <code>1.6fr / 0.9fr</code> + <code>align-items:start</code> leaves a big rounded empty column — <code>backend-dashboard-v2.css:928</code></td><td>No dead columns; content fills intelligently</td><td><span class="sev high">High</span></td></tr>
+      <tr><td>Forced min-heights / empty cards</td><td><code>progress-ring-wrap min-height:92px</code>, bento hero 140px, triple-spaced datetime block — ~250–400px wasted/view</td><td>Content-aware height; empty-states collapse</td><td><span class="sev high">High</span></td></tr>
+      <tr><td>Spacing rhythm off target</td><td>Card pad ~24px, gaps 16–24px, mixed radii</td><td>14px card gap · 32px section · 14px radius · 8% hairline</td><td><span class="sev med">Med</span></td></tr>
+      <tr><td>Micro-interactions absent</td><td>Cards lack the hover lift / gradient-segmented states</td><td><code>translateY(-2px)</code> hover, gradient+shadow active</td><td><span class="sev med">Med</span></td></tr>
+      <tr><td>Sidebar duplicate items</td><td>Real &amp; visible (Report Card Builder ×2, Import &amp; bulk ×2, etc.). <code>_dedupe</code> IS called (<code>portal_sidebar_items.py:1525</code>) → dupes survive it (same label / different url)</td><td>One row per destination</td><td><span class="sev bug">Bug</span></td></tr>
+      <tr><td>Sidebar click reloads same page</td><td>Hypothesis: empty <code>href</code> when a route reverse fails → needs confirmation per item</td><td>Click navigates to target</td><td><span class="sev bug">Bug</span></td></tr>
+      <tr><td>AI copilot "not working"</td><td>JS+CSS ARE loaded (<code>portal_base.html:692-693</code>) — sub-agent was wrong. Real cause = RBAC/entitlement gate or the invoke; needs focused dig</td><td>Copilot answers, RBAC-scoped</td><td><span class="sev bug">Bug</span></td></tr>
+      <tr><td>Tools rail styling</td><td>Right rail = copilot collapsed strip; renders, but icon polish/active-state needs the rail CSS exercised</td><td>Labeled, styled, active-tab highlight</td><td><span class="sev med">Med</span></td></tr>
+      <tr><td>Token foundation exists</td><td>design-tokens cascade + <code>.rmc-*</code> grammar already in place</td><td>—</td><td><span class="sev ok">Good</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============ DECISION 1: HEADER ============ -->
+  <h2><span class="num">1</span> Header redesign — pick one</h2>
+  <p class="sub">Today the top is three stacked bands (LIVE ticker + 70px header + mobile nav band). The mockups are one calm ~56px line.</p>
+  <div class="opts">
+
+    <div class="opt">
+      <div class="opt__head"><span class="opt__name">A · Single calm bar</span><span class="pick">Recommended</span></div>
+      <div class="opt__body">
+        <div class="demo">
+          <span class="lbl">56px · ticker inline</span>
+          <div class="row" style="margin-top:18px">
+            <div class="chip" style="width:26px"></div>
+            <div class="bar" style="flex:1;max-width:150px"></div>
+            <div class="bar" style="width:30px;background:rgba(245,158,11,.3)"></div>
+            <div style="flex:1"></div>
+            <div class="chip" style="width:22px;border-radius:50%"></div>
+          </div>
+          <div class="bar" style="height:1px;margin:14px 0;background:var(--hairline)"></div>
+          <div class="tiny">page content starts immediately — ~85px reclaimed</div>
+        </div>
+        <p class="opt__why"><b>One 56px row.</b> Logo · ⌘K search · a single rotating LIVE pill (not a band) · role avatar. Mobile nav folds into a menu button. Thin single hairline.</p>
+        <p class="reco">Closest to the HTMLs; biggest vertical reclaim; least clutter.</p>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="opt__head"><span class="opt__name">B · Slim + command-first</span></div>
+      <div class="opt__body">
+        <div class="demo">
+          <span class="lbl">52px · search-led</span>
+          <div class="row" style="margin-top:18px">
+            <div class="chip" style="width:22px"></div>
+            <div class="bar" style="flex:1;background:rgba(99,102,241,.18);border:1px solid rgba(99,102,241,.3)"></div>
+            <div class="chip" style="width:22px;border-radius:50%"></div>
+          </div>
+          <div class="tiny" style="margin-top:12px">ticker = dismissible 1-line marquee under bar (optional)</div>
+        </div>
+        <p class="opt__why"><b>52px, search is the hero.</b> Big ⌘K bar centered; everything else collapses to icons. Ticker becomes a dismissible thin marquee you can turn off per-tenant.</p>
+        <p class="reco">Most modern / Linear-like; hides nav behind the palette.</p>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="opt__head"><span class="opt__name">C · Tight two-tier</span></div>
+      <div class="opt__body">
+        <div class="demo">
+          <span class="lbl">24px ticker + 48px bar</span>
+          <div class="ticker" style="margin-top:18px"></div>
+          <div class="row" style="margin-top:8px">
+            <div class="chip" style="width:24px"></div>
+            <div class="bar" style="flex:1;max-width:140px"></div>
+            <div style="flex:1"></div>
+            <div class="chip" style="width:20px;border-radius:50%"></div>
+          </div>
+        </div>
+        <p class="opt__why"><b>Keep the ticker, shrink everything.</b> A 24px thin events strip over a 48px header. Compromise if you love the live ticker as a band.</p>
+        <p class="reco">Keeps the ticker prominent; still ~40px lighter than today.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DECISION 2: WELCOME / VOID ============ -->
+  <h2><span class="num">2</span> The "Welcome" card &amp; empty void — pick one</h2>
+  <p class="sub">The grey oval/void is the empty right column of a <code>1.6fr / 0.9fr</code> grid that doesn't stretch. Three ways to kill it.</p>
+  <div class="opts">
+
+    <div class="opt">
+      <div class="opt__head"><span class="opt__name">A · Fill it with readiness</span><span class="pick">Recommended</span></div>
+      <div class="opt__body">
+        <div class="demo">
+          <span class="lbl">void → live metrics</span>
+          <div class="grid2" style="margin-top:18px">
+            <div class="fill"></div>
+            <div class="gridfill" style="grid-template-columns:1fr 1fr;grid-auto-rows:24px">
+              <div class="card-mini"></div><div class="card-mini"></div>
+              <div class="card-mini"></div><div class="card-mini"></div>
+            </div>
+          </div>
+        </div>
+        <p class="opt__why"><b>Put your 88% readiness, School setup, Profile, Region tiles INTO the hero's right side.</b> The void becomes the most useful glance on the page.</p>
+        <p class="reco">Turns dead space into value — the "blow minds" move.</p>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="opt__head"><span class="opt__name">B · Single-column hero</span></div>
+      <div class="opt__body">
+        <div class="demo">
+          <span class="lbl">full-width, no dead column</span>
+          <div class="grid1" style="margin-top:18px">
+            <div class="fill" style="height:50px"></div>
+            <div class="row"><div class="chip" style="flex:1;height:22px"></div><div class="chip" style="flex:1;height:22px;background:rgba(16,185,129,.18)"></div></div>
+          </div>
+        </div>
+        <p class="opt__why"><b>Stack copy then full-width action buttons.</b> No empty right column at all; actions stretch edge-to-edge.</p>
+        <p class="reco">Simplest, safest; pure reclaim with no new content.</p>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="opt__head"><span class="opt__name">C · Auto-collapse when ready</span></div>
+      <div class="opt__body">
+        <div class="demo">
+          <span class="lbl">setup &gt;50% → thin strip</span>
+          <div class="row" style="margin-top:30px"><div class="fill" style="flex:1;height:28px"></div></div>
+          <div class="tiny" style="margin-top:10px">whole welcome shrinks to a 1-line "resume setup" banner — ~250px reclaimed</div>
+        </div>
+        <p class="opt__why"><b>Once a tenant passes 50% setup, the welcome hero auto-collapses</b> to a dismissible one-liner. New tenants still get the full guide.</p>
+        <p class="reco">Smartest long-term; the page "grows up" with the tenant.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DECISION 3: DENSITY ============ -->
+  <h2><span class="num">3</span> Dashboard density &amp; space intelligence — pick one</h2>
+  <p class="sub">Today: tall-left / short-right grid, forced min-heights, 24px paddings → ~250–400px wasted per view. The HTMLs pack a dense auto-fill bento.</p>
+  <div class="opts">
+
+    <div class="opt">
+      <div class="opt__head"><span class="opt__name">A · Auto-fill bento</span><span class="pick">Recommended</span></div>
+      <div class="opt__body">
+        <div class="demo">
+          <span class="lbl">repeat(auto-fill,minmax(280px,1fr)) · 14px</span>
+          <div class="gridbento" style="margin-top:18px">
+            <div class="card-mini"></div><div class="card-mini"></div><div class="card-mini"></div>
+            <div class="card-mini"></div><div class="card-mini"></div><div class="card-mini"></div>
+          </div>
+        </div>
+        <p class="opt__why"><b>Cards reflow to fill the width</b> with <code>grid-auto-flow:dense</code> and 14px gaps. Empty cards shrink instead of reserving min-height.</p>
+        <p class="reco">Exactly the mockup grid; no voids on any screen size.</p>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="opt__head"><span class="opt__name">B · Tighten tokens only</span></div>
+      <div class="opt__body">
+        <div class="demo">
+          <span class="lbl">keep layout, cut padding/min-height</span>
+          <div class="grid2" style="margin-top:18px;grid-template-columns:2fr 1fr">
+            <div class="card-mini" style="height:100%"></div>
+            <div class="grid1"><div class="card-mini" style="height:30px"></div><div class="card-mini" style="height:30px"></div></div>
+          </div>
+        </div>
+        <p class="opt__why"><b>Keep today's structure but cut padding 24→14px, drop forced min-heights, collapse empty states.</b> Lower-risk reclaim.</p>
+        <p class="reco">Least disruptive; ships fast; ~150px reclaim.</p>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="opt__head"><span class="opt__name">C · Both (bento + tokens)</span></div>
+      <div class="opt__body">
+        <div class="demo">
+          <span class="lbl">full elevation</span>
+          <div class="gridbento" style="margin-top:18px;grid-auto-rows:30px">
+            <div class="card-mini"></div><div class="card-mini"></div><div class="card-mini"></div>
+            <div class="card-mini"></div><div class="card-mini"></div><div class="card-mini"></div>
+            <div class="card-mini"></div><div class="card-mini"></div><div class="card-mini"></div>
+          </div>
+        </div>
+        <p class="opt__why"><b>Auto-fill bento PLUS the tightened spacing tokens and hover micro-interactions.</b> The full "immaculate" treatment.</p>
+        <p class="reco">Highest ceiling; the closest to "blow customers away".</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ BUGS ============ -->
+  <h2><span class="num">4</span> The three bugs — verify-first, then fix</h2>
+  <p class="sub">My sub-agents gave confident but WRONG specifics on these (the copilot JS IS loaded; the dedup IS called). So these get a careful dig before any change — no guessing.</p>
+  <div class="callout">
+    <b>Sidebar duplicates</b> — dedup runs but same-label/different-url items slip through. Fix = strengthen the dedup key (label+destination) and/or stop emitting the same destination in two sections. <span class="note">Confirmed real &amp; visible; safe quick win once the exact pairs are identified.</span>
+  </div>
+  <div class="callout">
+    <b>Sidebar click → reload</b> — confirm which items carry an empty/oct <code>href</code>, fix the failing route reverses, and make the template drop URL-less items rather than render a dead link.
+  </div>
+  <div class="callout">
+    <b>AI copilot not answering</b> — wiring is present; the real gate is RBAC/entitlement (<code>services/ai_copilot_rbac.py</code> + <code>cockpit.ai_copilot_rail.enabled</code> + help-governance). Dig: trace one tenant-admin send end-to-end, find where it fails closed, and surface an honest reason instead of silence.
+  </div>
+
+  <!-- ============ HOW THIS RUNS ============ -->
+  <h2><span class="num">5</span> How the aggressive program runs</h2>
+  <p class="sub">Once you pick options, the continuous-fix prompt (handed to you alongside this page) executes them tenant-wide with this discipline:</p>
+  <ul>
+    <li><b>Verify-first.</b> Every audit finding is re-confirmed by reading the live code before any edit (because sub-agents were wrong twice here).</li>
+    <li><b>Token-only CSS</b>, no hardcoding, every CI gate green, SW version bumped per wave.</li>
+    <li><b>Tenant-wide</b> — the shells/CSS are shared, so fixes land for every tenant, not just your test one.</li>
+    <li><b>Browsable HTML per decision</b> — anything with a judgment call gets a before/after preview like this page for you to approve.</li>
+    <li><b>Loop until dry</b> — re-audit after each wave; stop only when a fresh audit finds nothing.</li>
+  </ul>
+
+  <div class="callout" style="margin-top:24px">
+    <b>Your move:</b> reply with one letter per decision — e.g. <code>1A · 2A · 3C</code> — and I'll start. Default if you just say "go": <b>1A · 2A · 3C</b> (closest to the HTMLs), with the three bugs dug-and-fixed verify-first.
+  </div>
+
+</div>
+</body>
+</html>

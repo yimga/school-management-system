@@ -107,24 +107,68 @@ GLOBAL_FLOW: tuple[str, ...] = (
     "siteconfig:console_domains_hub",
 )
 
-# Per-namespace one-liner used to build a page-specific body when a manager
-# route is not explicitly mapped (still far better than one flat blurb).
+# Per-namespace one-liner used to build a page-specific body when a route is
+# not explicitly mapped (still far better than one flat blurb). Used by BOTH
+# the manager "About this page" fallback AND the tenant fallback in
+# ``apps.siteconfig.ui_route_help.resolve_route_help`` — so an unmapped page on
+# either host describes its own section instead of the generic "School
+# workspace" / "Operator workspace" default. Keep this broad: every namespace a
+# user can land on should have a descriptor here.
 SECTION_DESCRIPTOR: dict[str, str] = {
+    # --- operator / platform control plane ---
     "super": "operator control plane",
     "siteconfig": "platform configuration",
     "schools": "tenant operations",
     "studio_os": "studio workspace",
+    "setup_studio": "guided setup studio",
+    "brand_experience": "brand & experience studio",
     "billing": "billing & revenue",
     "plans_entitlements": "plans & entitlements",
     "migration_cloud": "migration cloud",
     "compliance": "compliance & audit",
+    "governance": "governance & policy",
+    "policies": "access policy",
     "observability": "platform observability",
     "marketplace": "marketplace",
     "integrations_marketplace": "integrations",
+    "apicenter": "developer & API center",
     "platform_runtime": "platform runtime",
-    "analytics": "analytics & insight",
-    "finance": "finance",
+    "orchestration": "workflow orchestration",
+    "sync_engine": "data sync engine",
+    "tenancy": "tenancy administration",
+    "metadata": "metadata & catalog",
+    "registries": "platform registries",
+    "global_registries": "global registries",
+    "runtime_blueprints": "runtime blueprints",
+    "packages": "packages & bundles",
+    "customersuccess": "customer success",
+    "sales": "sales & growth",
+    "automation": "automation",
+    # --- tenant-facing school operations ---
+    "portal": "your school portal",
+    "accounts": "your account & access",
+    "authentication": "sign-in & security",
     "people": "people & admissions",
+    "admissions": "admissions pipeline",
+    "academics": "academics & curriculum",
+    "evals": "assessment & grading",
+    "student360": "student 360",
+    "emis": "school information system",
+    "finance": "finance",
+    "payroll": "payroll",
+    "analytics": "analytics & insight",
+    "reports": "reports & insight",
+    "communication": "communication",
+    "social_media": "social & outreach",
+    "events": "events",
+    "school_events": "school events",
+    "feedback": "help & feedback",
+    "requests": "requests & approvals",
+    "safeguarding": "safeguarding",
+    "schoolops": "school operations",
+    "lifecycle": "student lifecycle",
+    "assist_dock": "assist dock",
+    "sync": "data sync",
 }
 
 _DEFAULT_STEP_PRIORITY = 40
@@ -138,9 +182,11 @@ def resolve_manager_page(view_name: str) -> Optional[dict[str, Any]]:
 
 
 def humanised_page_help(view_name: str, namespace: str) -> Optional[tuple[str, str]]:
-    """``(title, body)`` for a manager route not explicitly mapped: humanise the
-    ``url_name`` and append the section descriptor. ``None`` when there is no
-    ``url_name`` to humanise."""
+    """``(title, body)`` for ANY route (manager or tenant) not explicitly mapped:
+    humanise the ``url_name`` and append the section descriptor for its namespace.
+    Returns ``None`` when there is no ``url_name`` to humanise (caller then uses
+    the host-level default). Namespace-agnostic so the tenant "About this page"
+    fallback gets a page-specific title + section context too."""
     url_name = view_name.split(":", 1)[-1] if view_name else ""
     if not url_name:
         return None

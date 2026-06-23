@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tenant Login + Header Rework — Options to Choose</title>
+<style>
+  :root{
+    --bg:#060912;--canvas:#0e1426;--elevated:#141c33;--panel:#0b1124;
+    --text:#eef2ff;--text-2:#aab3d4;--text-3:#7b86ad;
+    --hairline:rgba(255,255,255,.08);--brand:#6366f1;--violet:#8b5cf6;--accent:#10b981;--warn:#f59e0b;--bad:#ef4444;
+    --radius:14px;--font:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"SF Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1100px 560px at 82% -8%,rgba(99,102,241,.10),transparent 60%),radial-gradient(820px 460px at 0% 8%,rgba(16,185,129,.06),transparent 55%),var(--bg);
+    color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 22px 90px}
+  h1{font-size:clamp(24px,3vw,32px);font-weight:800;letter-spacing:-.02em;margin:0 0 8px}
+  .lede{color:var(--text-2);max-width:80ch;margin:0 0 6px;font-size:15px}
+  .meta{color:var(--text-3);font-family:var(--mono);font-size:12.5px;margin:8px 0 30px}
+  h2{font-size:20px;font-weight:750;margin:46px 0 6px;display:flex;align-items:center;gap:10px}
+  h2 .num{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;background:rgba(99,102,241,.16);color:#a5b4fc;border:1px solid rgba(99,102,241,.35);font-size:13px;font-weight:700}
+  .sub{color:var(--text-3);font-size:13px;margin:0 0 18px;max-width:84ch}
+  .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:10px}
+  .opt{border:1px solid var(--hairline);border-radius:var(--radius);background:var(--canvas);overflow:hidden;display:flex;flex-direction:column}
+  .opt__head{padding:12px 15px;border-bottom:1px solid var(--hairline);display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .opt__name{font-weight:700;font-size:14px}
+  .pick{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6ee7b7;border:1px solid rgba(16,185,129,.35);background:rgba(16,185,129,.12);border-radius:999px;padding:2px 9px}
+  .opt__body{padding:14px 15px;flex:1}
+  .opt__why{color:var(--text-2);font-size:12.5px;margin:12px 0 0}
+  .opt__why b{color:var(--text)}
+  .reco{color:var(--text-3);font-size:11.5px;margin-top:8px;font-style:italic}
+  .demo{background:var(--panel);border:1px solid var(--hairline);border-radius:10px;overflow:hidden;position:relative}
+  .lbl{position:absolute;top:7px;left:10px;font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3);z-index:2}
+  /* header schematics */
+  .hbar{display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid var(--hairline)}
+  .brandmark{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--brand),var(--violet))}
+  .pill{height:16px;border-radius:8px;background:rgba(255,255,255,.08)}
+  .tickerband{height:22px;background:repeating-linear-gradient(90deg,rgba(245,158,11,.22) 0 20px,rgba(245,158,11,.07) 20px 40px);display:flex;align-items:center;padding-left:10px;font-size:8px;color:#fcd34d;letter-spacing:.04em}
+  .navband{height:26px;display:flex;gap:6px;align-items:center;padding:0 12px;border-top:1px solid var(--hairline)}
+  .navpill{height:14px;width:46px;border-radius:7px;background:rgba(99,102,241,.18);border:1px solid rgba(99,102,241,.25)}
+  .searchpill{flex:1;height:16px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid var(--hairline);max-width:220px}
+  .livepill{height:15px;border-radius:8px;background:rgba(245,158,11,.16);border:1px solid rgba(245,158,11,.3);width:120px}
+  .avatar{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--accent))}
+  .pagezone{height:60px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent);display:grid;place-items:center;color:var(--text-3);font-size:9px}
+  /* login schematics */
+  .login{height:230px;position:relative;overflow:hidden}
+  .l-split{display:grid;grid-template-columns:1.1fr 1fr;height:100%}
+  .l-canvas{background:linear-gradient(135deg,rgba(99,102,241,.30),rgba(16,185,129,.16));padding:14px;display:flex;flex-direction:column;justify-content:space-between}
+  .l-form{padding:14px;display:flex;flex-direction:column;gap:8px;justify-content:center}
+  .field{height:24px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--hairline)}
+  .seg{display:flex;gap:4px}
+  .seg .s{flex:1;height:18px;border-radius:7px;background:rgba(255,255,255,.05);border:1px solid var(--hairline)}
+  .seg .s.on{background:linear-gradient(135deg,var(--brand),var(--violet));border-color:transparent}
+  .cta{height:26px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--violet))}
+  .logo{width:30px;height:30px;border-radius:9px;background:#fff;opacity:.92}
+  .tag{font-size:9px;color:#eef2ff;opacity:.85}
+  .stat{font-size:8px;color:#eef2ff;opacity:.8}
+  .centered{display:grid;place-items:center;height:100%;background:var(--panel)}
+  .card{width:62%;background:var(--canvas);border:1px solid var(--hairline);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+  .callout{border:1px solid rgba(99,102,241,.35);background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(16,185,129,.07));border-radius:var(--radius);padding:16px 18px;margin:22px 0 0;font-size:13.5px;color:var(--text-2)}
+  .callout b{color:var(--text)}
+  code{font-family:var(--mono);font-size:11.5px;color:#c4b5fd}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Tenant Login + Header Rework — Options to Choose</h1>
+  <p class="lede">Two decisions. The header collapses to one calm band the same size as your operator (<code>/super/</code>, <code>/admin/</code>) chrome. The login gets a creative-yet-simple rework. Pick one option per decision and I'll build it — tenant-wide, tested, with a final browsable to verify.</p>
+  <p class="meta">operator band = --statement-header-height calc(72px*1.1) ≈ 79px · tenant today = 3 stacked rows ≈ 140px+ · 2026-06-22</p>
+
+  <!-- ============ HEADER ============ -->
+  <h2><span class="num">1</span> Header — collapse to one band (operator-matched)</h2>
+  <p class="sub">Today the tenant top is THREE stacked rows: a LIVE-ticker band, the 70px header, and a below-lg nav band. Operator <code>/super/</code> &amp; <code>/admin/</code> use ONE consolidated band. Match it.</p>
+
+  <div class="demo" style="margin-bottom:18px">
+    <span class="lbl" style="color:#fca5a5">Today — tenant (3 rows, ~140px+)</span>
+    <div style="height:18px"></div>
+    <div class="tickerband">● LIVE · Fee payment received · Class 5B perfect attendance · Sports day reminders…</div>
+    <div class="hbar" style="height:46px">
+      <div class="brandmark"></div><div class="pill" style="width:90px"></div>
+      <div class="searchpill"></div><div style="flex:1"></div>
+      <div class="livepill"></div><div class="pill" style="width:50px"></div><div class="avatar"></div>
+    </div>
+    <div class="navband"><div class="navpill"></div><div class="navpill"></div><div class="navpill"></div><div class="navpill"></div></div>
+    <div class="pagezone">↑ three bands eat ~140px before any content</div>
+  </div>
+
+  <div class="opts">
+    <div class="opt">
+      <div class="opt__head"><span class="opt__name">A · Operator-matched single band (Recommended)</span><span class="pick">Recommended</span></div>
+      <div class="opt__body">
+        <div class="demo">
+          <span class="lbl">~56–64px · one row</span>
+          <div style="height:16px"></div>
+          <div class="hbar" style="height:54px">
+            <div class="brandmark"></div><div class="pill" style="width:80px"></div>
+            <div class="searchpill"></div>
+            <div class="livepill" style="width:90px;height:14px"></div>
+            <div style="flex:1"></div>
+            <div class="navpill" style="width:34px;height:13px"></div>
+            <div class="navpill" style="width:34px;height:13px"></div>
+            <div class="avatar"></div>
+          </div>
+          <div class="pagezone" style="height:90px">↑ content starts ~80px higher</div>
+        </div>
+        <p class="opt__why"><b>One band, exactly like <code>/super/</code>.</b> Brand · ⌘K search · LIVE as a single rotating pill · nav inline · avatar. Ticker band and nav band gone. Same `cp-header--consolidated` rhythm.</p>
+        <p class="reco">Your explicit ask — identical size to operator chrome.</p>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="opt__head"><span class="opt__name">B · Two-tier tight (keep ticker)</span></div>
+      <div class="opt__body">
+        <div class="demo">
+          <span class="lbl">~20px ticker + 48px band</span>
+          <div style="height:16px"></div>
+          <div class="tickerband" style="height:18px"></div>
+          <div class="hbar" style="height:48px">
+            <div class="brandmark"></div><div class="pill" style="width:70px"></div>
+            <div class="searchpill"></div><div style="flex:1"></div>
+            <div class="navpill" style="width:32px;height:13px"></div><div class="avatar"></div>
+          </div>
+          <div class="pagezone" style="height:78px"></div>
+        </div>
+        <p class="opt__why"><b>Keep the live ticker</b> as a slim 20px strip over a 48px band. Still ~half today's height, but the campus-life ticker stays prominent.</p>
+        <p class="reco">If you love the live ticker as a band.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LOGIN ============ -->
+  <h2><span class="num">2</span> Tenant login — creative yet simple</h2>
+  <p class="sub">Today: a flat dark split — "Secure sign in" (role dropdown + email + password) beside a "Link your children" panel. Functional but generic. Three reworks, each simple to build:</p>
+
+  <div class="opts">
+    <div class="opt">
+      <div class="opt__head"><span class="opt__name">A · Branded canvas split (Recommended)</span><span class="pick">Recommended</span></div>
+      <div class="opt__body">
+        <div class="demo login">
+          <div class="l-split">
+            <div class="l-canvas">
+              <div class="logo"></div>
+              <div><div class="tag" style="font-weight:700;font-size:11px">New Test High School</div><div class="tag">Knowledge · Technology · Excellence</div></div>
+              <div class="stat">● 1,240 learners · 86 staff · today: 3 events</div>
+            </div>
+            <div class="l-form">
+              <div class="seg"><div class="s on"></div><div class="s"></div><div class="s"></div></div>
+              <div class="field"></div><div class="field"></div><div class="cta"></div>
+            </div>
+          </div>
+        </div>
+        <p class="opt__why"><b>Left = the school's own branded canvas</b> (logo, motto, a live campus stat that rotates), <b>right = a clean sign-in</b> with role as segmented pills (Staff/Teacher/Parent/Student) instead of a dropdown. The tenant's brand sells; the form recedes. Stripe/Linear-tier.</p>
+        <p class="reco">Most premium; makes every tenant feel bespoke. Brand colors come from SiteSettings (already cascaded).</p>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="opt__head"><span class="opt__name">B · Single focused card</span></div>
+      <div class="opt__body">
+        <div class="demo login">
+          <div class="centered">
+            <div class="card">
+              <div class="logo" style="margin:0 auto"></div>
+              <div class="seg"><div class="s on"></div><div class="s"></div><div class="s"></div><div class="s"></div></div>
+              <div class="field"></div><div class="field"></div><div class="cta"></div>
+            </div>
+          </div>
+        </div>
+        <p class="opt__why"><b>One centered card, nothing else.</b> Logo, role pills, email, password, sign-in. Parent "claim invite" becomes a quiet link under the button. Calmest, fastest, most mobile-friendly.</p>
+        <p class="reco">Simplest. Great on phones (most parents).</p>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="opt__head"><span class="opt__name">C · Role-adaptive form</span></div>
+      <div class="opt__body">
+        <div class="demo login">
+          <div class="centered">
+            <div class="card" style="width:70%">
+              <div class="seg"><div class="s"></div><div class="s on"></div><div class="s"></div></div>
+              <div style="font-size:9px;color:var(--accent)">Parent → "Claim your child's invite" leads</div>
+              <div class="field"></div><div class="cta" style="background:linear-gradient(135deg,var(--accent),var(--brand))"></div>
+              <div class="field" style="opacity:.4"></div>
+            </div>
+          </div>
+        </div>
+        <p class="opt__why"><b>The form adapts to the chosen role.</b> Parent sees "Claim invite" first; Staff/Teacher see password; Student sees a simplified path. Smart, reduces wrong-door logins, on-brand per audience.</p>
+        <p class="reco">Most innovative; a little more logic. Pairs well with A's canvas.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>Your move:</b> one letter per decision — e.g. <code>Header A · Login A</code> (or "go" for the recommended <code>1A · 2A</code>). I'll build it tenant-wide, test + validate, and post a final before/after browsable so you verify — never guess. The login canvas + header both read tenant brand from SiteSettings, so every school gets its own look automatically.
+  </div>
+
+</div>
+</body>
+</html>
