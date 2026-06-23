@@ -48,6 +48,9 @@ class LocalizedPrice:
     tax_rate: Decimal
     tax_code: str
     country_code: str
+    # B2: True when a per-country Plan SKU override supplied the subtotal
+    # directly (so the PPP multiplier was NOT applied).
+    sku_override_applied: bool = False
 
 
 def _q(value: Decimal) -> Decimal:
@@ -93,6 +96,7 @@ def compute_localized_price(
     *,
     currency_override: str | None = None,
     subdivision_code: str | None = None,
+    sku_override: Decimal | float | int | str | None = None,
 ) -> LocalizedPrice:
     """Return a localized-price record for a base USD amount and country.
 
@@ -103,12 +107,28 @@ def compute_localized_price(
     ``apps.billing.tax_engine.resolve_tax_rate`` so a live tax engine
     (Avalara / TaxJar / Stripe Tax) can override the static value when
     a tenant configures one.
+
+    B2: ``sku_override`` (a per-country Plan price override) — when supplied
+    and ``> 0`` it becomes the subtotal directly, bypassing the PPP multiplier
+    so a single market can be repriced explicitly. Tax still applies on top and
+    ``sku_override_applied`` is set on the result.
     """
     base = _safe_decimal(base_usd)
     row = _resolve_country_row(country_code)
     multiplier = _safe_decimal(getattr(row, "multiplier", 1), "1") if row else Decimal("1")
     tax_code = (getattr(row, "tax_code", "") or "") if row else ""
-    subtotal = _q(base * multiplier)
+
+    override = _safe_decimal(sku_override, "0") if sku_override is not None else None
+    if override is not None and override > 0:
+        subtotal = _q(override)
+        # The explicit SKU price replaces the formula, so the multiplier did not
+        # apply — report 1 to avoid implying base*multiplier produced this.
+        multiplier = Decimal("1")
+        sku_override_applied = True
+    else:
+        subtotal = _q(base * multiplier)
+        sku_override_applied = False
+
     tax_rate = _resolve_tax_rate(country_code, subdivision_code, row)
     tax = _q(subtotal * tax_rate)
     total = _q(subtotal + tax)
@@ -122,6 +142,7 @@ def compute_localized_price(
         tax_rate=tax_rate,
         tax_code=tax_code,
         country_code=(country_code or "").upper(),
+        sku_override_applied=sku_override_applied,
     )
 
 

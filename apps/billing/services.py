@@ -1834,6 +1834,7 @@ def compute_subscription_price_for_school(
             "subtotal": Decimal("0.00"), "tax": Decimal("0.00"), "total": Decimal("0.00"),
             "currency_code": "USD", "multiplier": Decimal("1"), "tax_rate": Decimal("0"),
             "tax_code": "", "country_code": "", "billing_model": "FLAT",
+            "sku_override_applied": False,
         }
 
     billing_model = (getattr(plan, "billing_model", "") or "FLAT").upper()
@@ -1861,7 +1862,17 @@ def compute_subscription_price_for_school(
         from apps.billing.regional_pricing import compute_localized_price
 
         country_code = (getattr(school, "country_code", "") or "").upper()
-        localized = compute_localized_price(base_price, country_code)
+        # B2: a per-country Plan SKU override reprices this market explicitly.
+        sku_override = None
+        try:
+            resolver = getattr(plan, "regional_sku_override_for", None)
+            if callable(resolver):
+                sku_override = resolver(country_code)
+        except (AttributeError, TypeError, ValueError):
+            sku_override = None
+        localized = compute_localized_price(
+            base_price, country_code, sku_override=sku_override
+        )
     except (ImportError, RuntimeError):
         localized = None
     if localized is None:
@@ -1875,6 +1886,7 @@ def compute_subscription_price_for_school(
             "tax_code": "",
             "country_code": "",
             "billing_model": billing_model,
+            "sku_override_applied": False,
         }
     return {
         "subtotal": localized.subtotal,
@@ -1886,4 +1898,5 @@ def compute_subscription_price_for_school(
         "tax_code": localized.tax_code,
         "country_code": localized.country_code,
         "billing_model": billing_model,
+        "sku_override_applied": localized.sku_override_applied,
     }

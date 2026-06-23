@@ -521,6 +521,17 @@ class Plan(models.Model):
         blank=True,
         help_text='Tier bands for TIERED model, e.g. [{"max": 500, "price": 200}, {"max": 2000, "price": 600}]',
     )
+    regional_sku_overrides = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Per-country price overrides keyed by ISO country code (B2), e.g. "
+            '{"NG": "15000", "IN": "999"}. When a tenant\'s country has an '
+            "override, that explicit amount is used as the localized subtotal "
+            "instead of base_price x PPP multiplier — letting one market be "
+            "repriced without changing the global pricing formula."
+        ),
+    )
     is_active = models.BooleanField(default=True)
     is_default = models.BooleanField(
         default=False,
@@ -575,6 +586,31 @@ class Plan(models.Model):
         seeds the Free tier as the initial default.
         """
         return cls.objects.filter(is_default=True, is_active=True).first()
+
+    def regional_sku_override_for(self, country_code):
+        """Return the explicit per-country price override (Decimal), or None (B2).
+
+        Looks up ``regional_sku_overrides`` by upper-cased ISO country code
+        (then by the code as-given, defensively). Returns ``None`` when there is
+        no override or the value can't be parsed / is negative, so callers fall
+        back to the standard ``base_price x multiplier`` path. Pure read — never
+        raises.
+        """
+        if not country_code:
+            return None
+        overrides = self.regional_sku_overrides
+        if not isinstance(overrides, dict):
+            return None
+        raw = overrides.get(country_code.upper(), overrides.get(country_code))
+        if raw is None or raw == "":
+            return None
+        from decimal import Decimal, InvalidOperation
+
+        try:
+            value = Decimal(str(raw).strip().replace(",", ""))
+        except (InvalidOperation, ValueError, TypeError):
+            return None
+        return value if value >= 0 else None
 
 
 class SyncConflict(models.Model):
@@ -761,6 +797,51 @@ class SubdivisionTaxRate(models.Model):
 
     def __str__(self):
         return f"{self.country_code}-{self.subdivision_code}: {self.tax_rate}"
+
+
+class HoldingCurrencyRollup(models.Model):
+    """Materialized multi-currency rollup for a holding company (B4).
+
+    A holding company — a parent ``School`` with sub-schools, possibly across
+    countries and currencies — cannot see a consolidated bill because each
+    tenant is single-currency. This table materializes, per (holding, currency),
+    the sum of its active sub-schools' billing totals in that currency WITHOUT
+    any FX conversion, so the figures are honest per-currency buckets rather than
+    a faked single-currency number. Refresh via
+    ``apps.billing.holding_rollup.materialize_holding_currency_rollups``.
+
+    SHARED platform data (it spans tenants), like ``CountryMultiplier`` / ``Plan``.
+    """
+
+    parent_school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="currency_rollups",
+        help_text="The holding company (parent school) this rollup belongs to.",
+    )
+    currency_code = models.CharField(max_length=8)
+    total_amount = models.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Sum of sub-school billing totals in this currency (no FX conversion).",
+    )
+    source_school_count = models.PositiveIntegerField(
+        default=0,
+        help_text="How many sub-schools contributed to this currency bucket.",
+    )
+    as_of = models.DateTimeField(help_text="When this rollup was materialized.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["parent_school", "currency_code"]
+        unique_together = [("parent_school", "currency_code")]
+        verbose_name = "Holding currency rollup"
+        verbose_name_plural = "Holding currency rollups"
+
+    def __str__(self):
+        return f"{self.parent_school_id} {self.currency_code}: {self.total_amount}"
 
 
 class RevenueSnapshot(models.Model):
