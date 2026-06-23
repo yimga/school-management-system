@@ -1,4 +1,4 @@
-{% load i18n static marketing_media %}
+{% load i18n static %}
 <div class="mkt-asc-root">
   <div class="asc-progress-track" aria-hidden="true"><div id="asc-progress"></div></div>
 
@@ -9,9 +9,6 @@
       </video>
     </div>
     <div class="mkt-rev-gate__veil" aria-hidden="true"></div>
-    <div class="mkt-asc-gate__film" aria-hidden="true">
-      {% marketing_cinematic_film "ascension-gate" %}
-    </div>
     <div class="mkt-asc-canvas-wrap" id="asc-canvas-wrap" aria-hidden="true"></div>
     <div class="mkt-asc-gate__inner mkt-rev-gate__inner mkt-asc-reveal">
       <p class="mkt-asc-gate__kicker">{% trans "Cross the threshold · education OS" %}</p>

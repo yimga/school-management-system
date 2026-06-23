@@ -88,6 +88,7 @@ from apps.siteconfig.views_operator_fleet_api import (
     operator_fleet_context_api,
     operator_fleet_globe_presence_api,
     operator_fleet_snapshot_api,
+    operator_fleet_tour_narrator_api,
 )
 from apps.siteconfig.views_cockpit_live import cockpit_live_json
 from apps.schools.views_fleet_live import FleetStreamView, fleet_live_json
@@ -1394,6 +1395,11 @@ urlpatterns = [
         require_super_access_with_host(operator_fleet_globe_presence_api),
         name="api_operator_fleet_globe_presence",
     ),  # rbac-allow: super-staff-operator-fleet-globe-presence
+    path(
+        "api/operator/fleet/tour-narrator/",
+        require_super_access_with_host(operator_fleet_tour_narrator_api),
+        name="api_operator_fleet_tour_narrator",
+    ),  # rbac-allow: super-staff-operator-fleet-tour-narrator
     path(
         "email/health/stream/",
         EmailHealthStreamView.as_view(),

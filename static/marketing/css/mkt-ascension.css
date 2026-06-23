@@ -134,7 +134,7 @@
 
 .mkt-asc-day {
   position: relative;
-  background: var(--asc-void);
+  background: var(--asc-void, #030308);
   color: #f5f3ef;
   padding: clamp(3rem, 8vw, 6rem) 0;
 }

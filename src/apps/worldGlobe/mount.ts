@@ -103,12 +103,14 @@ type GlobePayload = {
   hq?: { lat: number; lng: number; label?: string };
   arcs?: GlobeArc[];
   tour_waypoints?: TourWaypoint[];
+  expansion_targets?: GlobeMarker[];
   api?: { markers?: string; stream?: string; live?: string };
   live_refresh?: {
     sse_interval_seconds?: number;
     poll_interval_ms?: number;
     sse_reconnect_ms?: number;
   };
+  features?: Record<string, boolean | number>;
 };
 
 type GlobeLiveBundle = {
@@ -143,6 +145,8 @@ type RMCWorldGlobeApi = {
   resetView: () => void;
   isReady: () => boolean;
   getAltitude: () => number;
+  getPointOfView: () => { lat: number; lng: number; altitude: number };
+  setWowMode: (enabled: boolean) => void;
 };
 
 declare global {
@@ -169,6 +173,12 @@ let controlsChangeHandler: (() => void) | null = null;
 let liveRevision: string | null = null;
 let liveRefreshInFlight = false;
 let zoomRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+let wowModeEnabled = false;
+let expansionTargets: GlobeMarker[] = [];
+let baseArcs: GlobeArc[] = [];
+let firstVisitHandled = false;
+
+const FIRST_VISIT_KEY = "rmc-globe-first-visit-done";
 
 function readPayload(): GlobePayload | null {
   const el = document.getElementById("rmc-world-globe-data");
@@ -253,20 +263,9 @@ function polygonCapColor(d: object): string {
 
 function syncGlobePoints(): void {
   if (!globeInstance) return;
-  const points = applyMarkerFilters();
-  globeInstance
-    .pointsData(points)
-    .pointColor((d: object) => {
-      const m = d as GlobeMarker;
-      if (regionHighlight && m.region !== regionHighlight) {
-        return "rgba(148,163,184,0.38)";
-      }
-      return m.color;
-    })
-    .pointRadius((d: object) => (d as GlobeMarker).point_radius ?? 0.42);
-  syncPulseRings();
+  syncWowMarkers();
   document.dispatchEvent(
-    new CustomEvent("rmc:globe-markers-updated", { detail: { count: points.length } })
+    new CustomEvent("rmc:globe-markers-updated", { detail: { count: visibleMarkers.length } })
   );
 }
 
@@ -286,17 +285,32 @@ function syncPulseRings(): void {
     globeInstance.ringsData([]);
     return;
   }
-  const points = visibleMarkers.filter(
-    (m) => !m.is_cluster && m.status === "active" && (!regionHighlight || m.region === regionHighlight)
-  );
+  const points = visibleMarkers.filter((m) => !m.is_cluster && (!regionHighlight || m.region === regionHighlight));
   globeInstance
     .ringsData(points)
     .ringLat("lat")
     .ringLng("lng")
-    .ringColor((d: object) => (d as GlobeMarker).ring_color || (d as GlobeMarker).color)
-    .ringMaxRadius(2.6)
-    .ringPropagationSpeed(2.2)
-    .ringRepeatPeriod(1600);
+    .ringColor((d: object) => {
+      const m = d as GlobeMarker;
+      if (m.status === "suspended") return "rgba(252,211,77,0.85)";
+      if (m.status === "frozen") return "rgba(147,197,253,0.85)";
+      return m.ring_color || m.color;
+    })
+    .ringMaxRadius((d: object) => {
+      const m = d as GlobeMarker;
+      if (m.status === "suspended" || m.status === "frozen") return 3.4;
+      return 2.6;
+    })
+    .ringPropagationSpeed((d: object) => {
+      const m = d as GlobeMarker;
+      if (m.status === "suspended" || m.status === "frozen") return 1.4;
+      return 2.2;
+    })
+    .ringRepeatPeriod((d: object) => {
+      const m = d as GlobeMarker;
+      if (m.status === "suspended" || m.status === "frozen") return 2200;
+      return 1600;
+    });
 }
 
 function markerPlaceLabel(m: GlobeMarker): string {
@@ -373,13 +387,15 @@ function applyLiveBundle(data: GlobeLiveBundle, opts?: { force?: boolean }): boo
   syncGlobePoints();
   syncMapLabels();
   if (globeInstance && Array.isArray(data.arcs)) {
-    bindArcs(globeInstance, data.arcs);
+    baseArcs = data.arcs;
+    bindArcs(globeInstance, wowModeEnabled ? baseArcs : []);
   }
   document.dispatchEvent(
     new CustomEvent("rmc:globe-live-updated", {
       detail: { bundle: data },
     })
   );
+  maybeFirstVisitFlyIn();
   return true;
 }
 
@@ -437,6 +453,7 @@ function bindMapLabels(globe: GlobeInstance, payload: GlobePayload): void {
   }
   controlsChangeHandler = () => {
     syncMapLabels();
+    syncWowMarkers();
     if (zoomRefreshTimer) clearTimeout(zoomRefreshTimer);
     zoomRefreshTimer = window.setTimeout(() => {
       void api.refreshLive({});
@@ -458,16 +475,134 @@ function enrichPolygonFeatures(features: object[], isoMap: Record<string, string
   });
 }
 
-function bindArcs(globe: GlobeInstance, arcs: GlobeArc[]): void {
-  if (!arcs.length) return;
+function bindArcs(globe: GlobeInstance, arcs: GlobeArc[], golden = false): void {
+  if (!arcs.length) {
+    globe.arcsData([]);
+    return;
+  }
   globe
     .arcsData(arcs)
-    .arcColor((d: object) => (d as GlobeArc).color || "rgba(99,102,241,0.42)")
+    .arcColor((d: object) => {
+      if (golden) return "rgba(251,191,36,0.62)";
+      return (d as GlobeArc).color || "rgba(99,102,241,0.42)";
+    })
     .arcAltitude(0.12)
     .arcStroke(0.4)
     .arcDashLength(0.4)
     .arcDashGap(0.2)
-    .arcDashAnimateTime(prefersReducedMotion() ? 0 : 2800);
+    .arcDashAnimateTime(prefersReducedMotion() ? 0 : golden ? 3200 : 2800);
+}
+
+function buildGoldenTourArcs(waypoints: TourWaypoint[]): GlobeArc[] {
+  if (waypoints.length < 2) return [];
+  const arcs: GlobeArc[] = [];
+  for (let i = 0; i < waypoints.length - 1; i += 1) {
+    const a = waypoints[i];
+    const b = waypoints[i + 1];
+    arcs.push({
+      start_lat: a.lat,
+      start_lng: a.lng,
+      end_lat: b.lat,
+      end_lng: b.lng,
+      color: "rgba(251,191,36,0.62)",
+    });
+  }
+  return arcs;
+}
+
+function clusterBloomRadius(m: GlobeMarker, altitude: number): number {
+  if (m.status === "ghost") return 0.28;
+  let radius = m.point_radius ?? 0.42;
+  if (m.is_cluster && altitude >= 1.2) {
+    const boost = Math.min(1.5, 0.12 + (m.cluster_count || 0) * 0.035);
+    radius = Math.min(1.55, radius + boost * (altitude >= 1.35 ? 1.15 : 0.85));
+  }
+  return radius;
+}
+
+function featureEnabled(key: string): boolean {
+  const payload = payloadRef as GlobePayload & { features?: Record<string, boolean> };
+  const features = payload?.features;
+  if (features && Object.prototype.hasOwnProperty.call(features, key)) {
+    return Boolean(features[key]);
+  }
+  return true;
+}
+
+function largestClusterTarget(): GlobeMarker | null {
+  const clusters = allMarkers.filter((m) => m.is_cluster && (m.cluster_count || 0) > 0);
+  if (clusters.length) {
+    return clusters.reduce((best, m) =>
+      (m.cluster_count || 0) > (best.cluster_count || 0) ? m : best
+    );
+  }
+  if (!allMarkers.length) return null;
+  let latSum = 0;
+  let lngSum = 0;
+  allMarkers.forEach((m) => {
+    latSum += m.lat;
+    lngSum += m.lng;
+  });
+  return {
+    lat: latSum / allMarkers.length,
+    lng: lngSum / allMarkers.length,
+    status: "active",
+    color: "#818cf8",
+    ring_color: "#6366f1",
+    label: "Fleet",
+    region: "",
+  };
+}
+
+function maybeFirstVisitFlyIn(): void {
+  if (firstVisitHandled || prefersReducedMotion() || !featureEnabled("first_visit_fly_in")) return;
+  try {
+    if (sessionStorage.getItem(FIRST_VISIT_KEY)) {
+      firstVisitHandled = true;
+      return;
+    }
+  } catch {
+    return;
+  }
+  const target = largestClusterTarget();
+  if (!target || !globeInstance) return;
+  firstVisitHandled = true;
+  try {
+    sessionStorage.setItem(FIRST_VISIT_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+  window.setTimeout(() => {
+    api.flyTo({
+      lat: target.lat,
+      lng: target.lng,
+      altitude: 1.18,
+      ms: prefersReducedMotion() ? 0 : 2200,
+    });
+  }, prefersReducedMotion() ? 0 : 900);
+}
+
+function syncWowMarkers(): void {
+  if (!globeInstance) return;
+  const base = applyMarkerFilters();
+  const alt = api.getAltitude();
+  const showGhosts = wowModeEnabled && alt >= 1.35 && expansionTargets.length;
+  const merged = showGhosts ? base.concat(expansionTargets) : base;
+  globeInstance
+    .pointsData(merged)
+    .pointColor((d: object) => {
+      const m = d as GlobeMarker;
+      if (m.status === "ghost") return m.color || "rgba(148,163,184,0.5)";
+      if (regionHighlight && m.region !== regionHighlight) {
+        return "rgba(148,163,184,0.38)";
+      }
+      if (m.is_cluster && alt >= 1.25 && featureEnabled("cluster_bloom")) {
+        return m.color || "rgba(129,140,248,0.92)";
+      }
+      return m.color;
+    })
+    .pointRadius((d: object) => clusterBloomRadius(d as GlobeMarker, alt));
+  syncPulseRings();
 }
 
 function dispatchMarkerOpen(container: HTMLElement, marker: GlobeMarker): void {
@@ -488,6 +623,8 @@ function initGlobe(container: HTMLElement, payload: GlobePayload): GlobeInstance
   payloadRef = payload;
   allMarkers = payload.markers || [];
   tourWaypoints = payload.tour_waypoints || [];
+  expansionTargets = payload.expansion_targets || [];
+  baseArcs = payload.arcs || [];
   const theme = payload.theme || ({} as GlobeTheme);
 
   const globe = Globe()(container)
@@ -571,7 +708,7 @@ function initGlobe(container: HTMLElement, payload: GlobePayload): GlobeInstance
   controls.autoRotate = Boolean(payload.auto_rotate) && !prefersReducedMotion();
   controls.autoRotateSpeed = payload.auto_rotate_speed ?? 0.35;
 
-  bindArcs(globe, payload.arcs || []);
+  bindArcs(globe, baseArcs);
   bindMapLabels(globe, payload);
   syncPulseRings();
 
@@ -631,7 +768,7 @@ const api: RMCWorldGlobeApi = {
     const centroids = payloadRef?.region_centroids || {};
     const c = centroids[region];
     if (!c) return;
-    api.flyTo({ lat: c.lat ?? 0, lng: c.lng ?? 0, altitude: c.altitude ?? 1.45, ms });
+    api.flyTo({ lat: c.lat ?? 0, lng: c.lng ?? 0, altitude: 1.02, ms });
     api.highlightRegion(region);
   },
   highlightRegion(region) {
@@ -682,17 +819,36 @@ const api: RMCWorldGlobeApi = {
   startTour() {
     api.stopTour();
     if (!tourWaypoints.length || prefersReducedMotion()) return;
+    if (globeInstance) {
+      bindArcs(globeInstance, buildGoldenTourArcs(tourWaypoints), true);
+    }
     const step = () => {
       const wp = tourWaypoints[tourIndex % tourWaypoints.length];
+      const stepIndex = tourIndex % tourWaypoints.length;
       tourIndex += 1;
       api.flyTo({
         lat: wp.lat,
         lng: wp.lng,
-        altitude: wp.altitude ?? 1.45,
+        altitude: wp.altitude ?? 1.05,
         ms: 1400,
       });
       const caption = document.getElementById("rmc-world-globe-tour-caption");
-      if (caption && wp.caption) caption.textContent = wp.caption;
+      const voidCaption = document.getElementById("rmc-world-globe-void-caption-text");
+      const text = wp.caption || (wp.label ? `Tour · ${wp.label}` : "");
+      if (caption && text) caption.textContent = text;
+      if (voidCaption && text) voidCaption.textContent = text;
+      document.dispatchEvent(
+        new CustomEvent("rmc:globe-tour-step", {
+          detail: {
+            waypoint: wp,
+            step_index: stepIndex,
+            label: wp.label || "",
+            region: wp.label || "",
+            lat: wp.lat,
+            lng: wp.lng,
+          },
+        })
+      );
       tourTimer = window.setTimeout(step, wp.dwell_ms ?? 3200);
     };
     step();
@@ -700,6 +856,9 @@ const api: RMCWorldGlobeApi = {
   stopTour() {
     if (tourTimer) window.clearTimeout(tourTimer);
     tourTimer = null;
+    if (globeInstance) {
+      bindArcs(globeInstance, wowModeEnabled ? baseArcs : []);
+    }
   },
   resetView() {
     api.stopTour();
@@ -736,6 +895,30 @@ const api: RMCWorldGlobeApi = {
     if (!globeInstance) return 1.02;
     const pov = globeInstance.pointOfView();
     return typeof pov.altitude === "number" ? pov.altitude : 1.02;
+  },
+  getPointOfView() {
+    if (!globeInstance) {
+      const cam = payloadRef?.camera || {};
+      return { lat: cam.lat ?? 18, lng: cam.lng ?? 0, altitude: cam.altitude ?? 1.02 };
+    }
+    const pov = globeInstance.pointOfView();
+    return {
+      lat: typeof pov.lat === "number" ? pov.lat : 18,
+      lng: typeof pov.lng === "number" ? pov.lng : 0,
+      altitude: typeof pov.altitude === "number" ? pov.altitude : 1.02,
+    };
+  },
+  setWowMode(enabled) {
+    wowModeEnabled = Boolean(enabled);
+    if (!globeInstance) return;
+    const controls = globeInstance.controls();
+    controls.autoRotate = wowModeEnabled && Boolean(payloadRef?.auto_rotate) && !prefersReducedMotion();
+    if (wowModeEnabled && baseArcs.length) {
+      bindArcs(globeInstance, baseArcs);
+    } else if (!wowModeEnabled) {
+      bindArcs(globeInstance, []);
+    }
+    syncWowMarkers();
   },
 };
 

@@ -155,6 +155,13 @@
       .then(function (data) {
         lastPresenceOthers = typeof data.others_viewing === "number" ? data.others_viewing : 0;
         updateViewportChip(null);
+        try {
+          document.dispatchEvent(
+            new CustomEvent("rmc:globe-presence-updated", { detail: { others_viewing: lastPresenceOthers } })
+          );
+        } catch (_e) {
+          /* ignore */
+        }
       })
       .catch(function () {
         /* quiet */
@@ -210,9 +217,6 @@
     var alt = api() && api().isReady() ? api().getAltitude() : null;
     var zoomLabel = alt != null ? (alt < 0.85 ? "close" : alt > 1.4 ? "wide" : "regional") : "explore";
     var base = visible != null ? visible + " in view · " + zoomLabel : "Pan & zoom to explore";
-    if (lastPresenceOthers > 0) {
-      base += " · " + lastPresenceOthers + " viewing";
-    }
     chip.textContent = base;
     saveViewportState();
   }
@@ -285,6 +289,95 @@
     }
     if (voidEl) voidEl.hidden = false;
     text.textContent = count + " region" + (count === 1 ? "" : "s") + " in school hours";
+  }
+
+  function subsolarLongitudeUtc(date) {
+    var d = date || new Date();
+    var utcHours = d.getUTCHours() + d.getUTCMinutes() / 60 + d.getUTCSeconds() / 3600;
+    return ((12 - utcHours) * 15 + 360) % 360 - 180;
+  }
+
+  function wireDayNightTerminator() {
+    if (!featureEnabled("day_night_terminator")) return;
+    var el = document.getElementById("rmc-world-globe-terminator");
+    if (!el || el.__rmcTerminatorWired) return;
+    el.__rmcTerminatorWired = true;
+    el.hidden = false;
+    var tick = function () {
+      var lon = subsolarLongitudeUtc(new Date());
+      var pct = ((lon + 180) / 360) * 100;
+      el.style.setProperty("--rmc-terminator-x", pct.toFixed(2) + "%");
+    };
+    tick();
+    window.setInterval(tick, 60000);
+  }
+
+  function tourNarratorOptIn() {
+    try {
+      if (sessionStorage.getItem("rmc-globe-tour-narrator-optin") === "1") return true;
+    } catch (_e) {
+      /* ignore */
+    }
+    var cb = document.getElementById("rmc-world-globe-tour-narrator-optin");
+    return !!(cb && cb.checked);
+  }
+
+  function fetchTourNarratorLine(detail) {
+    if (!featureEnabled("tour_narrator") || !tourNarratorOptIn()) return;
+    var endpoints = parsePayloadApi() || {};
+    var url = endpoints.operator_fleet_tour_narrator || "/super/api/operator/fleet/tour-narrator/";
+    var params = new URLSearchParams();
+    if (detail.label) params.set("label", detail.label);
+    if (detail.region) params.set("region", detail.region);
+    if (detail.step_index != null) params.set("step", String(detail.step_index));
+    if (detail.lat != null) params.set("lat", String(detail.lat));
+    if (detail.lng != null) params.set("lng", String(detail.lng));
+    params.set("narrator", "1");
+    fetch(url + "?" + params.toString(), {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error("narrator_failed");
+        return r.json();
+      })
+      .then(function (data) {
+        if (!data || !data.line) return;
+        var caption = document.getElementById("rmc-world-globe-tour-caption");
+        var voidCaption = document.getElementById("rmc-world-globe-void-caption-text");
+        if (caption) caption.textContent = data.line;
+        if (voidCaption) voidCaption.textContent = data.line;
+        announce(data.line);
+      })
+      .catch(function () {
+        /* rules caption already set by mount */
+      });
+  }
+
+  function wireTourNarrator() {
+    if (!featureEnabled("tour_narrator")) return;
+    var wrap = document.getElementById("rmc-world-globe-tour-narrator-wrap");
+    var cb = document.getElementById("rmc-world-globe-tour-narrator-optin");
+    if (wrap) wrap.hidden = false;
+    if (cb && !cb.__rmcNarratorWired) {
+      cb.__rmcNarratorWired = true;
+      try {
+        cb.checked = sessionStorage.getItem("rmc-globe-tour-narrator-optin") === "1";
+      } catch (_e) {
+        /* ignore */
+      }
+      cb.hidden = false;
+      cb.addEventListener("change", function () {
+        try {
+          sessionStorage.setItem("rmc-globe-tour-narrator-optin", cb.checked ? "1" : "0");
+        } catch (_e) {
+          /* ignore */
+        }
+      });
+    }
+    document.addEventListener("rmc:globe-tour-step", function (ev) {
+      fetchTourNarratorLine((ev.detail || {}));
+    });
   }
 
   function buildFleetAskContext() {
@@ -368,6 +461,8 @@
     btn.__rmcShareWired = true;
     if (!featureEnabled("wow_enabled")) return;
     btn.hidden = false;
+    var shareVoid = document.getElementById("rmc-world-globe-void-share");
+    if (shareVoid) shareVoid.hidden = false;
     btn.addEventListener("click", function () {
       saveViewportState();
       try {
@@ -415,6 +510,16 @@
     startGlobePresence();
     wireAskFleet();
     wireShareViewport();
+    if (featureEnabled("void_zones")) {
+      var captionVoid = document.getElementById("rmc-world-globe-void-caption");
+      if (captionVoid) captionVoid.hidden = false;
+    }
+    if (bundle.pulse_events && bundle.pulse_events.length) {
+      var cap = document.getElementById("rmc-world-globe-void-caption-text");
+      if (cap && bundle.pulse_events[0].text) {
+        cap.textContent = bundle.pulse_events[0].text;
+      }
+    }
   }
 
   // Live-refresh circuit breaker (batch: control-plane 502-storm mitigation).
@@ -814,10 +919,17 @@
       row.addEventListener("mouseenter", function () {
         if (api() && api().isReady()) {
           api().highlightRegion(region);
-          if (featureEnabled("wow_enabled")) {
+          var flyLat = parseFloat(row.getAttribute("data-rmc-fly-lat"));
+          var flyLng = parseFloat(row.getAttribute("data-rmc-fly-lng"));
+          var magnetic = featureEnabled("magnetic_fly_to") || featureEnabled("wow_enabled");
+          if (magnetic) {
             if (hoverFlyTimer) window.clearTimeout(hoverFlyTimer);
             hoverFlyTimer = window.setTimeout(function () {
-              if (api().flyToRegion) api().flyToRegion(region, 900);
+              if (!isNaN(flyLat) && !isNaN(flyLng) && api().flyTo) {
+                api().flyTo({ lat: flyLat, lng: flyLng, altitude: 1.02, ms: 900 });
+              } else if (api().flyToRegion) {
+                api().flyToRegion(region, 900);
+              }
             }, 420);
           }
         } else highlightSvgRegion(region);
@@ -904,6 +1016,16 @@
       if (caption && wp && wp.caption) {
         caption.textContent = wp.caption;
       }
+      document.dispatchEvent(
+        new CustomEvent("rmc:globe-tour-step", {
+          detail: {
+            waypoint: wp,
+            step_index: (svgTourIndex - 1) % waypoints.length,
+            label: (wp && wp.label) || "",
+            region: (wp && wp.label) || "",
+          },
+        })
+      );
       svgTourTimer = window.setTimeout(step, wp && wp.dwell_ms ? wp.dwell_ms : 3200);
     };
     step();
@@ -1035,6 +1157,8 @@
     wireAskFleet();
     wireShareViewport();
     wireGuideCompact();
+    wireDayNightTerminator();
+    wireTourNarrator();
     var snap = window.__rmcOperatorFleetSnapshot;
     if (snap) applyOperatorFleetChrome(snap);
   }

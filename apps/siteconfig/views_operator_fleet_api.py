@@ -12,7 +12,12 @@ from django.http import HttpRequest, JsonResponse, StreamingHttpResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 
-from apps.siteconfig.fleet_context_service import build_fleet_context, should_use_llm_brief
+from apps.siteconfig.fleet_context_service import (
+    build_fleet_context,
+    build_tour_narrator_line,
+    should_use_llm_brief,
+    should_use_tour_narrator_llm,
+)
 from apps.siteconfig.globe_viewport_presence import (
     GLOBE_PRESENCE_HEARTBEAT,
     compute_region_hash,
@@ -65,6 +70,36 @@ def operator_fleet_context_api(request: HttpRequest) -> JsonResponse:
             viewport=viewport or None,
             selection=selection or None,
             use_llm_brief=use_llm,
+        )
+    )
+
+
+@staff_member_required
+def operator_fleet_tour_narrator_api(request: HttpRequest) -> JsonResponse:
+    """GET /super/api/operator/fleet/tour-narrator/ — W12 opt-in tour waypoint one-liner."""
+    label = (request.GET.get("label") or "").strip()[:64]
+    region = (request.GET.get("region") or label).strip()[:64]
+    try:
+        step_index = int(request.GET.get("step") or request.GET.get("step_index") or 0)
+    except (TypeError, ValueError):
+        step_index = 0
+    lat = lng = None
+    if request.GET.get("lat") and request.GET.get("lng"):
+        try:
+            lat = float(request.GET["lat"])
+            lng = float(request.GET["lng"])
+        except (TypeError, ValueError):
+            lat = lng = None
+    use_llm = should_use_tour_narrator_llm(request)
+    return JsonResponse(
+        build_tour_narrator_line(
+            request,
+            label=label,
+            region=region,
+            lat=lat,
+            lng=lng,
+            step_index=step_index,
+            use_llm=use_llm,
         )
     )
 

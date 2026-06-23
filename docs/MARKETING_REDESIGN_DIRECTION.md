@@ -124,3 +124,63 @@ The owner pasted an **expanded** version of the dominance research: PART 1 (regi
 6. **Inline-`<script>` "layout sentinel"** mutating `element.style.*` at runtime — bypasses the token system (trips `scan_inline_style_off_token` baseline 0 + CSP nonce gate) and "fixes" overflow by clipping (the very bug it claims to detect).
 
 **The thesis is right and already largely built** — the platform already ships a mature offline-first stack (service worker, IndexedDB, `sync_engine`, `OfflineSyncQueue`, LAN-hub sync, offline encryption + auth vault). The lifecycle gaps are sequenced as bounded waves in `docs/GLOCAL_SOVEREIGNTY_PLAN.md` §5; per-feature promises tracked in `apps/schools/feature_gap_register.py` (lifecycle rows added 2026-06-07, all `planned`/`in_progress`).
+
+---
+
+## 9. Generational platform front — research synthesis (2026-06-20)
+
+**Owner verdict:** Threshold-era / ascension gate / photo strips / portal wipes / competitor card lanes are **not** the direction. They add decorative layers on top of an already-valid sim stack instead of changing the *form* of the page.
+
+### 9.1 What “generational” actually means (external research)
+
+Platforms that broke through in the last decade share a pattern — **not** more marketing assets:
+
+| Pattern | Stripe | Linear | Vercel | EdTech (PowerSchool, Toddle) |
+|--------|--------|--------|--------|------------------------------|
+| Signature moment | One WebGL mesh gradient | One autonomous product clip in hero | Grid + crosshair engineering rigor | Demo Day / product tour video |
+| Proof model | Live code tabs + dashboard chrome | Real issue board animates | Deploy preview + CLI narrative | Screenshots + AI feature counters |
+| Visual discipline | Monochrome + one accent | Purple on black, zero clutter | Dark, type-first | Warm photography **once**, then product |
+| What they avoid | Stock grids, brochure sections | Testimonial walls on homepage | Decorative motion | — |
+
+**Takeaway for RunMyCampus:** generational ≠ more images or cinematic gates. It = **one unmistakable interaction** + **product proof that only you can show** + **typographic discipline**.
+
+### 9.2 What RunMyCampus already owns (do not throw away)
+
+The `/storefront/` personality sims (Speed Duel, Sovereign wizard, Clinical Ledger, Rugged Terminal, Fluid Classroom) are the **moat**. No competitor homepage lets a buyer *run* region manifests, gradebook morphs, split ledgers, and offline queues in-browser. Toddle and PowerSchool show tours; we can show **operating system behavior**.
+
+The mistake was wrapping those sims in new skins (gate, film strip, arena cards) instead of **re-architecting scroll** around them.
+
+### 9.3 The generational thesis: **One Record Scroll**
+
+Aligns with `docs/RUNMYCAMPUS_SCROLL_STORYTELLING_MARKETING_DIRECTIVE.md` and validated sim inventory in §5.
+
+**One sentence:** *As you scroll one student thread, one pinned product stage morphs through the six verbs — each chapter swaps the live sim, not a new layout.*
+
+| Layer | Role |
+|-------|------|
+| Hero | One manifesto line + scroll cue. Cream editorial surface. No full-screen gate. |
+| Scroll body (desktop) | **Left:** six verb chapters (Run → Grow), minimal copy. **Right:** sticky sim stage — cross-fade between existing sim engines. |
+| Thread line | SVG/canvas spine showing one record connecting verbs (inspired by tenant Flow Thread, not decorative). |
+| Mobile | Stacked: chapter copy → inline sim → next chapter. No sticky trap. |
+| Footer | Corporate gateway; void palette bridge only. |
+
+**Explicitly rejected for vNext homepage:**
+
+- Full-viewport video gates and portal wipe transitions
+- Stock photo rails / per-chapter photography
+- Competitor card grids (arena drag is fine *inside* a proof section, not as a photo wall)
+- Another parallel “edition” flag (`threshold-era`) — replace `/storefront/` layout when validated, don’t fork a third homepage
+
+### 9.4 Prototype to judge
+
+**Lab:** `var/design-previews/runmycampus-one-record-scroll-lab-browsable.html`
+
+Open locally → scroll slowly → the right-hand stage should swap sims as chapters activate. If that single interaction feels like “this is an OS, not a brochure,” wire it into `templates/marketing/homepage.html` and retire threshold-era experiments.
+
+### 9.5 Implementation order (when owner approves lab)
+
+1. Replace `homepage.html` stack with One Record Scroll partial + `mkt-one-record-scroll.js` (Intersection Observer chapter → sim panel).
+2. Reuse existing sim partials unchanged inside the sticky stage (no new sim logic).
+3. Add scroll progress + thread spine (progressive enhancement; `prefers-reduced-motion` = instant swap).
+4. Playwright sweep on `/storefront/` only after layout swap.
+5. Deprecate `threshold_era_home.html` and related ascension/revolution CSS from default routes (keep files for reference until deletion pass).

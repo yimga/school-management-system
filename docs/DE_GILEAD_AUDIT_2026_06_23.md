@@ -53,11 +53,7 @@ Phase-0 item; see `project_rbac_school_owner_2026_06_23` memory.
   founding tenant. **DO NOT edit applied migrations.** Instead parametrize the seed *command*
   via env (`DEFAULT_TENANT_SLUG` / `DEFAULT_TENANT_NAME`) and/or DEBUG-gate it; leave history
   intact.
-- `schools/models.py` — `country_code` is `blank=True` and `default_region` is not
-  auto-derived, so a tenant can exist with no region binding (falls back to a *generic* pack,
-  not Cameroon — so not a leak, but a missed-localization). **Fix:** on `School.save()`,
-  auto-derive `default_region` from `country_code` when unset; backfill migration; consider
-  requiring country at signup. Touches signup → supervised.
+- `schools/models.py` — **SHIPPED (on main):** `School.save()` auto-links `default_region` via `find_region_for_country(country_code)` when unset (read-only, never raises). **Remaining:** backfill migration for legacy rows + require country at signup (supervised).
 
 ### P2 — adoption breadth + gates
 - Add `bursar` / `proprietor` lexicon keys when the templates that need them are localized.

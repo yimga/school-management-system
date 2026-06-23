@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en" data-surface="marketing" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RunMyCampus · One Record Scroll — generational lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../static/css/design-tokens.css">
+<link rel="stylesheet" href="../../static/marketing/css/marketing-intent-home.css">
+<link rel="stylesheet" href="../../static/marketing/css/mkt-hero-velocity.css">
+<link rel="stylesheet" href="../../static/marketing/css/mkt-hero-sovereign.css">
+<link rel="stylesheet" href="../../static/marketing/css/mkt-clinical-ledger.css">
+<link rel="stylesheet" href="../../static/marketing/css/mkt-rugged-terminal.css">
+<link rel="stylesheet" href="../../static/marketing/css/mkt-fluid-classroom.css">
+<style>
+  :root {
+    --or-cream: #f8f6f2;
+    --or-ink: #121018;
+    --or-muted: #5c5768;
+    --or-line: rgba(18, 16, 24, 0.08);
+    --or-accent: #4f46e5;
+    --or-warm: #c2410c;
+    --or-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: Inter, system-ui, sans-serif;
+    background: var(--or-cream);
+    color: var(--or-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  .or-chrome {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 10px 20px;
+    background: color-mix(in oklab, var(--or-cream) 88%, transparent);
+    backdrop-filter: blur(14px) saturate(1.2);
+    border-bottom: 1px solid var(--or-line);
+    font-size: 11px; font-weight: 600; color: var(--or-muted);
+  }
+  .or-chrome__brand {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 14px; font-weight: 700; color: var(--or-ink);
+  }
+  .or-chrome__tag {
+    padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--or-line); background: #fff;
+  }
+  .or-chrome__spacer { flex: 1; }
+
+  .or-progress {
+    position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 101;
+    background: transparent; pointer-events: none;
+  }
+  .or-progress span {
+    display: block; height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--or-accent), var(--or-warm));
+    transition: width 0.08s linear;
+  }
+
+  .or-hero {
+    max-width: 720px; margin: 0 auto;
+    padding: clamp(3rem, 10vh, 5rem) 24px 2rem;
+    text-align: center;
+  }
+  .or-hero__kicker {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--or-muted); margin: 0 0 1rem;
+  }
+  .or-hero__title {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700; line-height: 1.08; letter-spacing: -0.03em;
+    margin: 0 0 1rem;
+  }
+  .or-hero__title em { font-style: italic; color: var(--or-warm); }
+  .or-hero__lead {
+    font-size: 1.0625rem; line-height: 1.55; color: var(--or-muted);
+    margin: 0 auto 1.5rem; max-width: 36rem;
+  }
+  .or-hero__cue {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-size: 12px; font-weight: 600; color: var(--or-accent);
+    animation: orBob 2.4s var(--or-ease) infinite;
+  }
+  @keyframes orBob {
+    0%, 100% { transform: translateY(0); opacity: 0.7; }
+    50% { transform: translateY(4px); opacity: 1; }
+  }
+
+  .or-scroll {
+    max-width: 1280px; margin: 0 auto;
+    padding: 0 24px 6rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) min(440px, 40vw);
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: start;
+  }
+  @media (max-width: 960px) {
+    .or-scroll { grid-template-columns: 1fr; }
+    .or-scroll__stage-wrap { order: -1; position: relative !important; top: auto !important; }
+    .or-stage { min-height: 420px; position: relative !important; top: auto !important; }
+  }
+
+  .or-narrative { position: relative; padding-left: 28px; }
+  .or-thread {
+    position: absolute; left: 8px; top: 0; bottom: 0; width: 2px;
+    background: linear-gradient(180deg, var(--or-accent), var(--or-warm), color-mix(in oklab, var(--or-accent) 30%, transparent));
+    border-radius: 2px;
+  }
+  .or-thread__dot {
+    position: absolute; left: -5px; width: 12px; height: 12px;
+    border-radius: 50%; background: var(--or-cream);
+    border: 2px solid var(--or-line);
+    transition: border-color 0.4s var(--or-ease), box-shadow 0.4s var(--or-ease), background 0.4s;
+  }
+  .or-thread__dot.is-active {
+    border-color: var(--or-accent);
+    background: var(--or-accent);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--or-accent) 22%, transparent);
+  }
+
+  .or-chapter {
+    min-height: min(72vh, 560px);
+    padding: clamp(2rem, 8vh, 4rem) 0;
+    scroll-margin-top: 72px;
+  }
+  .or-chapter__time {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--or-muted); margin: 0 0 0.5rem;
+  }
+  .or-chapter__title {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+    font-weight: 600; line-height: 1.15; margin: 0 0 0.75rem;
+  }
+  .or-chapter__body {
+    font-size: 0.9375rem; line-height: 1.6; color: var(--or-muted);
+    margin: 0; max-width: 38ch;
+  }
+  .or-chapter.is-active .or-chapter__title { color: var(--or-ink); }
+
+  .or-scroll__stage-wrap {
+    position: sticky; top: 56px;
+    height: calc(100svh - 72px);
+    padding-bottom: 24px;
+  }
+  .or-stage {
+    position: relative;
+    height: 100%;
+    border-radius: 20px;
+    border: 1px solid var(--or-line);
+    background: #fff;
+    box-shadow: 0 24px 64px rgba(18, 16, 24, 0.06);
+    overflow: hidden;
+  }
+  .or-stage__chrome {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-bottom: 1px solid var(--or-line);
+    background: color-mix(in oklab, var(--or-cream) 60%, #fff);
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--or-muted);
+  }
+  .or-stage__live {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--or-warm);
+  }
+  .or-stage__live::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--or-warm);
+    animation: orPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes orPulse {
+    0%, 100% { opacity: 0.4; transform: scale(0.9); }
+    50% { opacity: 1; transform: scale(1); }
+  }
+  .or-panel {
+    position: absolute; inset: 40px 0 0;
+    padding: 16px;
+    opacity: 0; pointer-events: none;
+    transform: translateY(8px);
+    transition: opacity 0.55s var(--or-ease), transform 0.55s var(--or-ease);
+    overflow: auto;
+  }
+  .or-panel.is-active {
+    opacity: 1; pointer-events: auto; transform: none;
+  }
+  .or-panel .mkt-ve-section__header { display: none; }
+  .or-panel .mkt-edt-illustrative-pill { font-size: 10px; margin-top: 8px; }
+
+  .or-finale {
+    text-align: center; padding: 4rem 24px 5rem;
+    border-top: 1px solid var(--or-line);
+  }
+  .or-finale h2 {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: clamp(1.5rem, 3vw, 2rem); margin: 0 0 1rem;
+  }
+  .or-finale p { color: var(--or-muted); margin: 0 0 1.5rem; }
+  .or-finale a {
+    display: inline-flex; padding: 0.85rem 1.6rem; border-radius: 999px;
+    background: var(--or-ink); color: #fff; text-decoration: none;
+    font-weight: 650; font-size: 0.9375rem;
+  }
+  .or-research {
+    max-width: 680px; margin: 0 auto 3rem; padding: 0 24px;
+    font-size: 13px; line-height: 1.6; color: var(--or-muted);
+  }
+  .or-research strong { color: var(--or-ink); }
+</style>
+</head>
+<body>
+
+<div class="or-progress" aria-hidden="true"><span id="or-progress"></span></div>
+
+<header class="or-chrome">
+  <span class="or-chrome__brand">One Record Scroll</span>
+  <span class="or-chrome__tag">Generational lab · not production</span>
+  <span class="or-chrome__spacer"></span>
+  <span>Research → §9 in MARKETING_REDESIGN_DIRECTION.md</span>
+</header>
+
+<section class="or-hero">
+  <p class="or-hero__kicker">Education operating system</p>
+  <h1 class="or-hero__title">One student.<br><em>Six verbs.</em> Zero re-entry.</h1>
+  <p class="or-hero__lead">
+    Scroll the thread — the product stage on the right runs the real sim for each beat.
+    No gate. No photo wall. One pinned proof surface, the way Stripe and Linear ship homepage craft.
+  </p>
+  <p class="or-hero__cue" aria-hidden="true">↓ Scroll to run the OS</p>
+</section>
+
+<p class="or-research">
+  <strong>Why this lab exists:</strong> Threshold-era added gates, portals, and stock photos — decoration on top of sims you already validated on <code>/storefront/</code>.
+  Generational platforms win with <strong>one interaction</strong> (pinned product + scroll narrative) and proof competitors cannot copy.
+  Judge this file only: does scrolling feel like watching one record move through an OS?
+</p>
+
+<div class="or-scroll" data-or-scroll>
+  <div class="or-narrative">
+    <div class="or-thread" aria-hidden="true" id="or-thread"></div>
+
+    <article class="or-chapter is-active" id="or-ch-run" data-or-panel="panel-run" data-or-dot="0">
+      <p class="or-chapter__time">Run · 6:45</p>
+      <h2 class="or-chapter__title">Fifteen clicks vs one command</h2>
+      <p class="or-chapter__body">Legacy SIS stacks hunt nested menus. RunMyCampus compiles intent into governed tool calls — tap both sides in the stage.</p>
+    </article>
+
+    <article class="or-chapter" id="or-ch-sov" data-or-panel="panel-sov" data-or-dot="1">
+      <p class="or-chapter__time">Run · sovereign</p>
+      <h2 class="or-chapter__title">Region manifest in seconds</h2>
+      <p class="or-chapter__body">Currency, terms, RTL, and compliance follow the campus — not a six-month integration project.</p>
+    </article>
+
+    <article class="or-chapter" id="or-ch-teach" data-or-panel="panel-teach" data-or-dot="2">
+      <p class="or-chapter__time">Teach · 10:00</p>
+      <h2 class="or-chapter__title">One gradebook, every framework</h2>
+      <p class="or-chapter__body">Morph US, IB, Cambridge, and competency scales on the same underlying record — Toddle stops at the classroom wall.</p>
+    </article>
+
+    <article class="or-chapter" id="or-ch-pay" data-or-panel="panel-pay" data-or-dot="3">
+      <p class="or-chapter__time">Pay · 14:30</p>
+      <h2 class="or-chapter__title">Split ledger, real rails</h2>
+      <p class="or-chapter__body">Tuition, transport, lunch — Pix, M-Pesa, SPEI, and card in one clinical ledger auditors can read.</p>
+    </article>
+
+    <article class="or-chapter" id="or-ch-govern" data-or-panel="panel-govern" data-or-dot="4">
+      <p class="or-chapter__time">Govern · 16:00</p>
+      <h2 class="or-chapter__title">When fiber drops, school doesn't</h2>
+      <p class="or-chapter__body">Queue attendance locally, reconcile with honest conflict flags when connectivity returns.</p>
+    </article>
+
+    <article class="or-chapter" id="or-ch-grow" data-or-panel="panel-grow" data-or-dot="5">
+      <p class="or-chapter__time">Grow · 17:30</p>
+      <h2 class="or-chapter__title">Board-ready roll-ups</h2>
+      <p class="or-chapter__body">Multi-campus groups get analytics that defend themselves — without crushing local autonomy.</p>
+    </article>
+  </div>
+
+  <div class="or-scroll__stage-wrap">
+    <div class="or-stage" aria-live="polite" aria-label="Live product stage">
+      <div class="or-stage__chrome">
+        <span>Live sim · illustrative</span>
+        <span class="or-stage__live" id="or-stage-label">Speed Duel</span>
+      </div>
+
+      <div class="or-panel is-active" id="panel-run" data-or-label="Speed Duel">
+        <div class="mkt-ve-speed-duel" data-mkt-speed-duel style="transform:scale(0.92);transform-origin:top center">
+          <div class="mkt-ve-speed-duel__panel mkt-ve-speed-duel__panel--legacy">
+            <p class="mkt-ve-speed-duel__label">Legacy stack</p>
+            <ol class="mkt-ve-speed-duel__trail" data-mkt-legacy-trail>
+              <li>Reports</li><li>Academic</li><li>Report cards</li><li>Filter</li><li>Export</li>
+            </ol>
+            <p class="mkt-ve-speed-duel__metric"><span data-mkt-legacy-clicks>0</span> clicks · <span data-mkt-legacy-ms>—</span></p>
+            <button type="button" class="mkt-edt-cta mkt-edt-cta--ghost mkt-ve-speed-duel__run" data-mkt-legacy-run>Simulate legacy</button>
+          </div>
+          <div class="mkt-ve-speed-duel__panel mkt-ve-speed-duel__panel--rmc">
+            <p class="mkt-ve-speed-duel__label">RunMyCampus OS</p>
+            <label class="mkt-ve-speed-duel__command">
+              <input type="text" readonly value="Publish Q2 report cards for Grade 10-A" data-mkt-rmc-command>
+            </label>
+            <div class="mkt-ve-speed-duel__stream" data-mkt-rmc-stream hidden></div>
+            <div class="mkt-ve-speed-duel__cards" data-mkt-rmc-cards hidden>
+              <div class="mkt-ve-speed-duel__card" data-mkt-stream-slot="card-roster">Roster verified</div>
+              <div class="mkt-ve-speed-duel__card" data-mkt-stream-slot="card-grade">Grades locked</div>
+              <div class="mkt-ve-speed-duel__card mkt-ve-speed-duel__card--action" data-mkt-stream-slot="action-publish">Publish</div>
+            </div>
+            <p class="mkt-ve-speed-duel__metric">TTFT <span data-mkt-rmc-ttft>—</span> · <span data-mkt-rmc-total>—</span></p>
+            <button type="button" class="mkt-edt-cta mkt-edt-cta--primary mkt-ve-speed-duel__run" data-mkt-rmc-run>Run command</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="or-panel" id="panel-sov" data-or-label="Sovereign wizard">
+        <div class="mkt-sov-layout" data-mkt-sandbox-wizard style="transform:scale(0.88);transform-origin:top center">
+          <div class="mkt-sov-copy">
+            <p class="mkt-sov-eyebrow">Pick region</p>
+            <div class="mkt-sov-region-pills" role="group">
+              <button type="button" class="is-active" data-mkt-region="US">US</button>
+              <button type="button" data-mkt-region="NG">NG</button>
+              <button type="button" data-mkt-region="GB">GB</button>
+              <button type="button" data-mkt-region="AE">AE</button>
+            </div>
+            <p class="mkt-sov-summary" data-mkt-sov-summary>USD · Fall/Spring · LTR</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="or-panel" id="panel-teach" data-or-label="Fluid gradebook">
+        <div data-mkt-gradebook-morph style="transform:scale(0.88);transform-origin:top center">
+          <div class="mkt-fc-tabs" role="tablist">
+            <button type="button" role="tab" class="is-active" data-mkt-framework="us">US letters</button>
+            <button type="button" role="tab" data-mkt-framework="ib">IB 1–7</button>
+            <button type="button" role="tab" data-mkt-framework="competency">Competency</button>
+          </div>
+          <div class="mkt-fc-grade" data-mkt-gradebook-table style="margin-top:12px;min-height:180px"></div>
+        </div>
+      </div>
+
+      <div class="or-panel" id="panel-pay" data-or-label="Clinical ledger">
+        <div data-mkt-split-ledger style="transform:scale(0.88);transform-origin:top center">
+          <p class="mkt-edt-eyebrow">Split payment</p>
+          <div class="mkt-cl-split-bars" data-mkt-split-bars aria-hidden="true">
+            <span style="width:80%"></span><span style="width:10%"></span><span style="width:10%"></span>
+          </div>
+          <button type="button" class="mkt-edt-cta mkt-edt-cta--primary" data-mkt-split-animate style="margin-top:12px">Animate split</button>
+        </div>
+      </div>
+
+      <div class="or-panel" id="panel-govern" data-or-label="Rugged terminal">
+        <div data-mkt-network-state style="transform:scale(0.88);transform-origin:top center;font-family:ui-monospace,monospace">
+          <p class="mkt-edt-eyebrow">Network state</p>
+          <button type="button" class="mkt-edt-cta mkt-edt-cta--ghost" data-mkt-net-toggle>Simulate drop</button>
+          <pre data-mkt-net-log style="margin-top:12px;font-size:11px;opacity:0.85">fiber: up · queue: 0</pre>
+        </div>
+      </div>
+
+      <div class="or-panel" id="panel-grow" data-or-label="Simulations hub">
+        <p class="mkt-edt-eyebrow">Every claim is runnable</p>
+        <ul style="margin:12px 0 0;padding:0;list-style:none;font-size:13px;line-height:2">
+          <li>→ Sovereign deployment matrix</li>
+          <li>→ Clinical split ledger</li>
+          <li>→ Rugged offline queue</li>
+          <li>→ Fluid gradebook morph</li>
+        </ul>
+        <p style="font-size:11px;color:var(--or-muted);margin-top:16px">Illustrative · full sims on /storefront/</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="or-finale">
+  <h2>If this scroll felt like an OS — wire it to /storefront/</h2>
+  <p>Reject threshold-era decoration. Ship One Record Scroll with your existing sim partials.</p>
+  <a href="#or-ch-run">Scroll again</a>
+</section>
+
+<script src="../../static/marketing/js/mkt-speed-duel.js"></script>
+<script src="../../static/marketing/js/mkt-sandbox-wizard.js"></script>
+<script src="../../static/marketing/js/mkt-gradebook-morph.js"></script>
+<script src="../../static/marketing/js/mkt-split-ledger.js"></script>
+<script src="../../static/marketing/js/mkt-network-state.js"></script>
+<script>
+(function () {
+  "use strict";
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var chapters = Array.prototype.slice.call(document.querySelectorAll(".or-chapter"));
+  var panels = {};
+  Array.prototype.slice.call(document.querySelectorAll(".or-panel")).forEach(function (p) {
+    panels[p.id] = p;
+  });
+  var stageLabel = document.getElementById("or-stage-label");
+  var progress = document.getElementById("or-progress");
+  var thread = document.getElementById("or-thread");
+  var dots = [];
+
+  chapters.forEach(function (ch, i) {
+    var dot = document.createElement("div");
+    dot.className = "or-thread__dot" + (i === 0 ? " is-active" : "");
+    dot.style.top = (i * (100 / Math.max(chapters.length - 1, 1))) + "%";
+    thread.appendChild(dot);
+    dots.push(dot);
+  });
+
+  function setActive(index) {
+    chapters.forEach(function (ch, i) {
+      ch.classList.toggle("is-active", i === index);
+    });
+    dots.forEach(function (d, i) {
+      d.classList.toggle("is-active", i === index);
+    });
+    var ch = chapters[index];
+    if (!ch) return;
+    var panelId = ch.getAttribute("data-or-panel");
+    Object.keys(panels).forEach(function (id) {
+      panels[id].classList.toggle("is-active", id === panelId);
+    });
+    if (stageLabel && panels[panelId]) {
+      stageLabel.textContent = panels[panelId].getAttribute("data-or-label") || "";
+    }
+  }
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.45) {
+          var idx = chapters.indexOf(entry.target);
+          if (idx >= 0) setActive(idx);
+        }
+      });
+    }, { root: null, rootMargin: "-20% 0px -35% 0px", threshold: [0.45, 0.6] });
+    chapters.forEach(function (ch) { io.observe(ch); });
+  }
+
+  window.addEventListener("scroll", function () {
+    var doc = document.documentElement;
+    var pct = doc.scrollHeight <= doc.clientHeight ? 0 : (window.scrollY / (doc.scrollHeight - doc.clientHeight)) * 100;
+    if (progress) progress.style.width = pct + "%";
+  }, { passive: true });
+
+  setActive(0);
+})();
+</script>
+</body>
+</html>

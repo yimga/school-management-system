@@ -201,7 +201,7 @@
 // v4.03.63: operator provisioning queue (/super/provision-queue/ — all not-yet-live
 //   schools in one actionable list w/ requeue) + i18n: completion summary now server-
 //   translated/pluralized (completion_summary_text) and rendered by the progress JS.
-const CACHE_VERSION = "sms-v4.04.80-threshold-era-region-parity-2026-06-23";
+const CACHE_VERSION = "sms-v4.04.81-globe-void-ai-lab-complete-2026-06-23";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

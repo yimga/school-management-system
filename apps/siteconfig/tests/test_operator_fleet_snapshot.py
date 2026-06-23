@@ -7,7 +7,13 @@ from django.contrib.auth import get_user_model
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
-from apps.siteconfig.fleet_context_service import build_fleet_context, should_use_llm_brief
+from apps.siteconfig.fleet_context_service import (
+    build_fleet_context,
+    build_tour_narrator_line,
+    rules_tour_narrator_line,
+    should_use_llm_brief,
+    should_use_tour_narrator_llm,
+)
 from apps.siteconfig.operator_fleet_snapshot import (
     bump_operator_fleet_revision,
     rules_fleet_brief,
@@ -102,3 +108,58 @@ class OperatorFleetApiTests(TestCase):
         self.assertEqual(data["lens"], "operator-dashboard-fleet")
         self.assertIn("whisper_line", data)
         self.assertIn("brief_source", data)
+
+
+class OperatorFleetTourNarratorTests(TestCase):
+    def test_rules_tour_narrator_line(self):
+        line = rules_tour_narrator_line(
+            label="West Africa",
+            region="West Africa",
+            step_index=1,
+            schools_live=12,
+        )
+        self.assertIn("West Africa", line)
+        self.assertIn("12", line)
+
+    def test_should_use_tour_narrator_llm_opt_in_only(self):
+        factory = RequestFactory()
+        self.assertFalse(should_use_tour_narrator_llm(factory.get("/super/api/operator/fleet/tour-narrator/")))
+        self.assertFalse(
+            should_use_tour_narrator_llm(factory.get("/super/api/operator/fleet/tour-narrator/", {"narrator": "0"}))
+        )
+
+    @patch("apps.siteconfig.fleet_context_service.build_operator_fleet_snapshot")
+    def test_build_tour_narrator_rules_fallback(self, mock_snap):
+        mock_snap.return_value = {"schools_live": 4}
+        factory = RequestFactory()
+        req = factory.get("/super/api/operator/fleet/tour-narrator/")
+        payload = build_tour_narrator_line(
+            req,
+            label="Europe",
+            region="Europe",
+            step_index=0,
+            use_llm=False,
+        )
+        self.assertEqual(payload["source"], "rules")
+        self.assertIn("Europe", payload["line"])
+
+
+class OperatorFleetTourNarratorApiTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_superuser(
+            username="narrator_admin",
+            email="narrator@example.com",
+            password="Test1234!",
+        )
+        self.client = Client()
+        self.client.force_login(self.user)
+
+    @patch("apps.siteconfig.views_operator_fleet_api.build_tour_narrator_line")
+    def test_tour_narrator_api(self, mock_build):
+        mock_build.return_value = {"line": "Stop 1 — Europe: 4 live schools.", "source": "rules"}
+        url = reverse("super:api_operator_fleet_tour_narrator")
+        resp = self.client.get(url, {"label": "Europe", "step": "0"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("line", resp.json())
+        mock_build.assert_called_once()

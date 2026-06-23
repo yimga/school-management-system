@@ -8,11 +8,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../../static/css/design-tokens.css">
+<link rel="stylesheet" href="../../static/vendor/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="../../static/marketing/css/marketing-critical.min.css">
+<link rel="stylesheet" href="../../static/marketing/css/marketing-enhanced.min.css">
 <link rel="stylesheet" href="../../static/marketing/css/tokens-threshold-era.css">
 <link rel="stylesheet" href="../../static/marketing/css/mkt-threshold-era.css">
 <link rel="stylesheet" href="../../static/marketing/css/mkt-ascension.css">
 <link rel="stylesheet" href="../../static/marketing/css/mkt-ascension-media.css">
 <link rel="stylesheet" href="../../static/marketing/css/mkt-revolution-lab.css">
+<link rel="stylesheet" href="../../static/marketing/css/mkt-revolution-media.css">
 <link rel="stylesheet" href="../../static/marketing/css/marketing-visual-engine.css">
 <link rel="stylesheet" href="../../static/marketing/css/marketing-intent-home.css">
 <link rel="stylesheet" href="../../static/marketing/css/marketing-acquisition-engine.css">
@@ -51,42 +56,10 @@
   .mkt-asc-cta--ghost { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #faf7f2; }
   .mkt-asc-pill { display: inline-block; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; background: rgba(245,158,11,0.15); color: #fcd34d; margin-top: 0.75rem; }
   .mkt-asc-reveal.is-visible { opacity: 1; transform: none; }
-  .mkt-rev-lab-footer {
-    padding: 1.5rem 1.25rem 2rem;
-    background: #121018;
-    color: rgba(250, 247, 242, 0.85);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    text-align: center;
-  }
-  .mkt-rev-lab-footer__eyebrow {
-    font-size: 0.65rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    opacity: 0.6;
-    margin: 0 0 0.5rem;
-  }
-  .mkt-rev-lab-footer__note {
-    font-size: 0.75rem;
-    line-height: 1.5;
-    max-width: 36rem;
-    margin: 0 auto 0.75rem;
-    opacity: 0.75;
-  }
-  .mkt-rev-lab-footer__links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    justify-content: center;
-  }
-  .mkt-rev-lab-footer__links a {
-    color: #fb923c;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    text-decoration: none;
-  }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
 </style>
 </head>
-<body>
+<body class="marketing-surface">
 
 <header class="asc-chrome" aria-label="Lab controls">
   <span class="asc-chrome__brand">RunMyCampus · Revolution lab</span>
@@ -128,6 +101,8 @@
     <p class="mkt-asc-pill">Illustrative · competitor contrast is positioning, not legal claim</p>
   </div>
 </section>
+
+<div class="mkt-rev-portal" data-mkt-rev-portal aria-hidden="true"></div>
 
 <section class="mkt-rev-proof-strip" aria-label="Proof before prose">
   <p><strong>Proof before prose</strong> — Fifteen clicks vs one command. Tap both sides.</p>
@@ -171,15 +146,18 @@
 </section>
 </div>
 
+<div class="mkt-asc-root">
 <!-- ONE SCHOOL DAY -->
 <section class="mkt-asc-day" id="asc-day">
   <div class="mkt-asc-day__thread" aria-hidden="true"><div class="mkt-asc-day__thread-fill" id="asc-day-thread"></div></div>
   <p class="mkt-asc-day__clock" id="asc-day-clock">6:45</p>
   <nav class="mkt-asc-day__sticky" aria-label="Day chapters">
     <button type="button" class="mkt-asc-day__chip is-active" data-ch="ch-run">6:45 Run</button>
+    <button type="button" class="mkt-asc-day__chip" data-ch="ch-talk">8:14 Talk</button>
     <button type="button" class="mkt-asc-day__chip" data-ch="ch-teach">10:00 Teach</button>
     <button type="button" class="mkt-asc-day__chip" data-ch="ch-pay">14:30 Pay</button>
     <button type="button" class="mkt-asc-day__chip" data-ch="ch-govern">16:00 Govern</button>
+    <button type="button" class="mkt-asc-day__chip" data-ch="ch-grow">17:30 Grow</button>
   </nav>
   <article class="mkt-asc-chapter" id="ch-run" data-asc-time="6:45">
     <div>
@@ -194,15 +172,28 @@
       <p class="mkt-asc-chapter__viz-headline">One record. Six verbs. Zero swivel chair.</p>
     </div>
   </article>
+  <article class="mkt-asc-chapter" id="ch-talk" data-asc-time="8:14">
+    <div>
+      <p class="mkt-asc-chapter__time">8:14 · Parent window</p>
+      <h3 class="mkt-asc-chapter__title">The message a parent opens before coffee cools</h3>
+      <a href="#asc-finale" class="mkt-asc-chapter__link">See parent storefront →</a>
+    </div>
+    <div class="mkt-asc-chapter__viz">
+      <div class="mkt-asc-parent-cards">
+        <div class="mkt-asc-parent-card mkt-asc-parent-card--calm"><strong>Amina</strong><span>All clear · 94% attendance</span></div>
+        <div class="mkt-asc-parent-card mkt-asc-parent-card--due"><strong>Kwame</strong><span>Balance due · tap to pay</span></div>
+      </div>
+    </div>
+  </article>
   <article class="mkt-asc-chapter" id="ch-teach" data-asc-time="10:00">
     <div>
       <p class="mkt-asc-chapter__time">10:00 · Classroom stage</p>
       <h3 class="mkt-asc-chapter__title">One gradebook, every framework</h3>
-      <p class="mkt-asc-chapter__body">Toddle owns IB but stops at the wall. RunMyCampus morphs the same record — open the fluid classroom sim.</p>
       <a href="#mkt-fluid-classroom" class="mkt-asc-chapter__link">Open fluid classroom sim →</a>
     </div>
     <div class="mkt-asc-chapter__viz">
-      <img src="../../static/marketing/img/ascension/classroom-cinematic.png" alt="Collaborative classroom — illustrative" loading="lazy" style="width:100%;border-radius:1rem">
+      <div class="mkt-asc-grade-btns" role="group"><button type="button" data-grade-scale="US" class="is-active">US %</button><button type="button" data-grade-scale="IB">IB 1–7</button><button type="button" data-grade-scale="CM">Competency</button></div>
+      <div id="asc-grade-out" class="mkt-asc-grade-out">A- · 92% · Honor roll</div>
     </div>
   </article>
   <article class="mkt-asc-chapter" id="ch-pay" data-asc-time="14:30">
@@ -211,12 +202,38 @@
       <h3 class="mkt-asc-chapter__title">Fees split the way your region actually pays</h3>
       <a href="#mkt-clinical-ledger" class="mkt-asc-chapter__link">Run split-ledger sim →</a>
     </div>
+    <div class="mkt-asc-chapter__viz">
+      <button type="button" id="asc-split-run" class="mkt-asc-cta mkt-asc-cta--primary mkt-asc-cta--compact">Animate split</button>
+      <div class="mkt-asc-sim-bar" aria-hidden="true"><span class="mkt-asc-split-bar" data-w="80" style="width:80%"></span><span class="mkt-asc-split-bar" data-w="10" style="width:10%"></span><span class="mkt-asc-split-bar" data-w="10" style="width:10%"></span></div>
+      <p class="mkt-asc-split-caption">80 / 10 / 10 · tuition · transport · lunch</p>
+    </div>
   </article>
   <article class="mkt-asc-chapter" id="ch-govern" data-asc-time="16:00">
     <div>
       <p class="mkt-asc-chapter__time">16:00 · Rugged terminal</p>
       <h3 class="mkt-asc-chapter__title">When the cloud dies, school doesn't</h3>
       <a href="#mkt-rugged-engine" class="mkt-asc-chapter__link">Simulate network drop →</a>
+    </div>
+    <div class="mkt-asc-chapter__viz mkt-asc-chapter__viz--mono">
+      <button type="button" id="asc-net-toggle" class="mkt-asc-cta mkt-asc-cta--ghost mkt-asc-cta--compact">Simulate drop</button>
+      <p id="asc-net-label" class="mkt-asc-net-label">Fiber · sync queue idle</p>
+      <pre class="mkt-asc-net-pre">queue: 0 pending
+ussd: standby
+rfid: armed</pre>
+    </div>
+  </article>
+  <article class="mkt-asc-chapter" id="ch-grow" data-asc-time="17:30">
+    <div>
+      <p class="mkt-asc-chapter__time">17:30 · Leadership grow</p>
+      <h3 class="mkt-asc-chapter__title">Analytics that defend themselves in board review</h3>
+      <a href="#mkt-simulations-hub" class="mkt-asc-chapter__link">Browse all simulations →</a>
+    </div>
+    <div class="mkt-asc-chapter__viz">
+      <div class="mkt-asc-grow-grid">
+        <div class="mkt-asc-grow-stat"><strong>98%</strong><span>collection</span></div>
+        <div class="mkt-asc-grow-stat"><strong>12</strong><span>campuses</span></div>
+        <div class="mkt-asc-grow-stat"><strong>0</strong><span>unscoped queries</span></div>
+      </div>
     </div>
   </article>
 </section>
@@ -226,6 +243,7 @@
   <div class="mkt-rev-arena__head">
     <p class="mkt-asc-gate__kicker">Why switch</p>
     <h2 id="rev-arena-title">They optimized a module.<br>Drag the line. We built the OS.</h2>
+    <p class="mkt-rev-arena__sub">Honest positioning — verify against your procurement checklist.</p>
   </div>
   <div class="mkt-rev-arena__pickers">
     <button type="button" class="mkt-rev-arena__pick is-active" data-rev-vs="ps">PowerSchool</button>
@@ -234,13 +252,15 @@
     <button type="button" class="mkt-rev-arena__pick" data-rev-vs="bright">Brightwheel</button>
   </div>
   <div class="mkt-rev-arena__stage">
-    <div class="mkt-rev-arena__half mkt-rev-arena__half--them"><span class="mkt-rev-arena__tag">Legacy stack</span><p data-rev-them-text></p></div>
+    <div class="mkt-rev-arena__half mkt-rev-arena__half--them"><span class="mkt-rev-arena__tag">Their pitch</span><p data-rev-them-text></p></div>
     <div class="mkt-rev-arena__half mkt-rev-arena__half--us"><span class="mkt-rev-arena__tag">RunMyCampus</span><p data-rev-us-text></p></div>
     <div class="mkt-rev-arena__handle" role="separator" aria-label="Compare"></div>
   </div>
   <input type="range" class="mkt-rev-arena__slider" min="12" max="88" value="50" aria-label="Comparison split">
-  <p class="mkt-rev-arena__honest">Positioning only · verify against your procurement checklist</p>
+  <div class="mkt-rev-arena__wins" data-rev-wins aria-live="polite"></div>
+  <p class="mkt-rev-arena__honest">Illustrative · not a legal claim · run the sims below for proof</p>
 </section>
+</div>
 
 <section class="mkt-asc-cathedral-bridge mkt-rev-sims-bridge" aria-labelledby="asc-sims-title">
   <div class="mkt-asc-cathedral-bridge__inner">
@@ -387,14 +407,77 @@
 </section>
 </div>
 
-<footer class="mkt-rev-lab-footer" role="contentinfo" data-mkt-footer>
-  <p class="mkt-rev-lab-footer__eyebrow">RunMyCampus corporate gateway</p>
-  <p class="mkt-rev-lab-footer__note">Live site keeps the full <code>marketing_footer.html</code> — status, find-school, trust center, developer links. This lab preview ends here; footer parity is unchanged on Django routes.</p>
-  <nav class="mkt-rev-lab-footer__links" aria-label="Footer preview links">
-    <a href="https://runmycampus.com/status/">Status</a>
-    <a href="https://runmycampus.com/find-school/">Find your campus</a>
-    <a href="https://runmycampus.com/trust/">Trust center</a>
-  </nav>
+<div class="mkt-rev-footer-bridge" aria-hidden="true"></div>
+
+<footer class="mkt-footer mkt-corporate-footer" role="contentinfo" data-mkt-footer>
+  <div class="container">
+    <section class="mkt-footer-command" aria-labelledby="mkt-footer-command-title">
+      <div class="mkt-footer-command__intro">
+        <p class="mkt-footer-eyebrow">RunMyCampus corporate gateway</p>
+        <h2 id="mkt-footer-command-title">One public hub for buyers, operators, families, developers, and tenant routing.</h2>
+        <p>Use the footer to verify platform health, review procurement evidence, find the right school portal, or extend the campus operating system safely.</p>
+      </div>
+      <div class="mkt-footer-command__actions" aria-label="Primary footer actions">
+        <a class="mkt-footer-action mkt-footer-action--status" href="https://runmycampus.com/status/">
+          <span class="mkt-footer-action__dot" aria-hidden="true"></span>
+          <span>
+            <span class="mkt-footer-action__label">All systems operational</span>
+            <span class="mkt-footer-action__meta">Live uptime, incidents, and maintenance windows</span>
+          </span>
+        </a>
+        <a class="mkt-footer-action" href="https://runmycampus.com/find-school/">
+          <span class="mkt-footer-action__icon" aria-hidden="true">ID</span>
+          <span>
+            <span class="mkt-footer-action__label">Find your campus portal</span>
+            <span class="mkt-footer-action__meta">Route parents, students, and staff to their tenant space</span>
+          </span>
+        </a>
+      </div>
+    </section>
+    <section class="mkt-footer-intelligence" aria-labelledby="mkt-footer-intelligence-title">
+      <div class="mkt-footer-intelligence__copy">
+        <p class="mkt-footer-eyebrow">Operational proof, not decorative links</p>
+        <h2 id="mkt-footer-intelligence-title">Every path is tuned for the person who landed in the wrong place.</h2>
+        <p>District buyers can audit compliance, operators can check uptime, families can find their tenant portal, and builders can reach the ecosystem without touching the wrong school domain.</p>
+      </div>
+      <div class="mkt-footer-proof-grid" aria-label="Footer operating proof points">
+        <a class="mkt-footer-proof-card" href="https://runmycampus.com/status/"><span class="mkt-footer-proof-card__metric">Live</span><span class="mkt-footer-proof-card__label">Status and incident history</span><span class="mkt-footer-proof-card__meta">Public health, maintenance windows, and platform reliability signals.</span></a>
+        <a class="mkt-footer-proof-card" href="https://runmycampus.com/procurement/"><span class="mkt-footer-proof-card__metric">Ready</span><span class="mkt-footer-proof-card__label">Procurement packet</span><span class="mkt-footer-proof-card__meta">Security, privacy, accessibility, and payment-processing evidence in one route.</span></a>
+        <a class="mkt-footer-proof-card" href="https://runmycampus.com/marketplace/"><span class="mkt-footer-proof-card__metric">Open</span><span class="mkt-footer-proof-card__label">Commerce ecosystem</span><span class="mkt-footer-proof-card__meta">Marketplace, hardware, and integration entry points for campus operations.</span></a>
+        <a class="mkt-footer-proof-card" href="https://runmycampus.com/trust/"><span class="mkt-footer-proof-card__metric">AA</span><span class="mkt-footer-proof-card__label">Accessibility and privacy stance</span><span class="mkt-footer-proof-card__meta">FERPA, COPPA, GDPR, and WCAG evidence surfaced for school review.</span></a>
+      </div>
+    </section>
+    <section class="mkt-footer-route-stack" aria-label="Audience routing shortcuts">
+      <a href="https://runmycampus.com/demo/"><span>School leader</span><strong>Book a platform walkthrough</strong></a>
+      <a href="https://runmycampus.com/login/"><span>Existing user</span><strong>Go to portal login</strong></a>
+      <a href="https://runmycampus.com/find-school/"><span>Parent or student</span><strong>Find my campus</strong></a>
+      <a href="https://runmycampus.com/developers/"><span>Developer</span><strong>Read API documentation</strong></a>
+    </section>
+    <nav class="mkt-footer-grid" aria-label="Footer navigation">
+      <section class="mkt-footer-section" aria-labelledby="mkt-footer-platform"><h3 id="mkt-footer-platform">Platform Hub</h3><ul class="mkt-footer-links"><li><a href="https://runmycampus.com/about/">About RunMyCampus</a></li><li><a href="https://runmycampus.com/careers/">Careers</a></li><li><a href="https://runmycampus.com/brand/">Brand assets</a></li><li><a href="https://runmycampus.com/marketplace/">App Marketplace</a></li><li><a href="https://runmycampus.com/hardware/">Hardware Store</a></li><li><a href="https://runmycampus.com/developers/">Developer APIs</a></li></ul></section>
+      <section class="mkt-footer-section" aria-labelledby="mkt-footer-solutions"><h3 id="mkt-footer-solutions">Solutions</h3><ul class="mkt-footer-links"><li><a href="https://runmycampus.com/solutions/private-schools/">Private Schools</a></li><li><a href="https://runmycampus.com/solutions/international-schools/">International Schools</a></li><li><a href="https://runmycampus.com/solutions/k12/">K-12 Schools</a></li><li><a href="https://runmycampus.com/solutions/multi-campus/">Multi-Campus Groups</a></li><li><a href="https://runmycampus.com/solutions/faith-based/">Faith-Based Schools</a></li><li><a href="https://runmycampus.com/solutions/growing-networks/">Growing School Networks</a></li><li><a href="https://runmycampus.com/solutions/">Solutions overview</a></li></ul></section>
+      <section class="mkt-footer-section" aria-labelledby="mkt-footer-trust"><h3 id="mkt-footer-trust">Trust &amp; Operations</h3><ul class="mkt-footer-links"><li><a href="https://runmycampus.com/status/">System Status (Live)</a></li><li><a href="https://runmycampus.com/infrastructure/">Infrastructure map</a></li><li><a href="https://runmycampus.com/trust/">Trust &amp; Security Center</a></li><li><a href="https://runmycampus.com/security-matrix/">Security matrix</a></li><li><a href="https://runmycampus.com/help/">Support knowledge base</a></li><li><a href="https://runmycampus.com/procurement/">Procurement docs</a></li></ul></section>
+      <section class="mkt-footer-section" aria-labelledby="mkt-footer-legal"><h3 id="mkt-footer-legal">Legal &amp; Compliance</h3><ul class="mkt-footer-links"><li><a href="https://runmycampus.com/legal/ferpa/">FERPA privacy pledge</a></li><li><a href="https://runmycampus.com/legal/coppa/">COPPA verification</a></li><li><a href="https://runmycampus.com/legal/privacy/">GDPR / Privacy Policy</a></li><li><a href="https://runmycampus.com/legal/wcag/">WCAG accessibility statement</a></li><li><a href="https://runmycampus.com/legal/terms/">Terms of Service</a></li><li><a href="https://runmycampus.com/legal/cookies/">Cookie policy</a></li></ul></section>
+    </nav>
+    <section class="mkt-footer-newsletter" aria-labelledby="mkt-footer-newsletter-title">
+      <div><h3 id="mkt-footer-newsletter-title">Subscribe to product and trust updates</h3><p class="mkt-footer-newsletter__copy">Occasional product notes and migration checklists. Unsubscribe anytime.</p></div>
+      <form class="mkt-footer-newsletter__form" action="#" method="post" onsubmit="return false;"><label class="visually-hidden" for="mkt-footer-newsletter-email">Email for newsletter</label><input id="mkt-footer-newsletter-email" type="email" class="form-control form-control-sm mkt-footer-newsletter__input" placeholder="Your email" autocomplete="email"><button type="submit" class="btn btn-sm btn-primary">Subscribe</button></form>
+    </section>
+    <ul class="mkt-footer-trust-badges" aria-label="Trust and compliance badges"><li>FERPA aligned</li><li>COPPA aware</li><li>GDPR / POPIA ready</li><li>WCAG 2.2 AA target</li><li>PCI-DSS via processors</li><li>SOC 2 control mapping</li></ul>
+    <div class="mkt-footer-seal">
+      <div class="mkt-footer-seal__mark">
+        <img src="../../static/images/brand/runmycampus-logo-mark.svg" alt="" width="40" height="40" decoding="async" loading="lazy" class="mkt-footer-seal__logo">
+        <span class="mkt-footer-seal__wordmark mkt-footer-seal__wordmark--platform" aria-hidden="true"><span class="rmc-brand-word--navy">RUN</span><span class="rmc-brand-word--gold">MY</span><span class="rmc-brand-word--navy">CAMPUS</span></span>
+      </div>
+      <p class="mkt-footer-seal__tagline">One quiet system, behind everything your school does.</p>
+    </div>
+    <div class="mkt-footer-legal">
+      <div class="mkt-footer-copy">© <span data-mkt-year>2026</span> RunMyCampus. All rights reserved. · Press <kbd>?</kbd> for keyboard shortcuts</div>
+      <div class="mkt-footer-theme" aria-label="Theme preference"><span class="mkt-footer-theme__label">Theme</span><div class="mkt-footer-theme__control" role="group" aria-label="Choose theme"><button type="button" data-mkt-theme-choice="light" aria-pressed="true">Light</button><button type="button" data-mkt-theme-choice="dark" aria-pressed="false">Dark</button><button type="button" data-mkt-theme-choice="system" aria-pressed="false">System</button></div></div>
+      <ul class="mkt-footer-legal-links list-unstyled"><li><a href="https://runmycampus.com/trust/">Security</a></li><li><a href="https://runmycampus.com/trust/">Trust Center</a></li><li><a href="https://runmycampus.com/why-switch/">Why switch</a></li><li><a href="https://runmycampus.com/legal/privacy/">Privacy</a></li><li><a href="https://runmycampus.com/legal/terms/">Terms</a></li><li><a href="https://runmycampus.com/legal/cookies/">Cookies</a></li></ul>
+    </div>
+    <div class="mkt-footer-tagline small mt-2">Run admissions, academics, finance, and portals on one tenant-ready platform.</div>
+  </div>
 </footer>
 
 <script src="../../static/marketing/js/mkt-ascension.js"></script>

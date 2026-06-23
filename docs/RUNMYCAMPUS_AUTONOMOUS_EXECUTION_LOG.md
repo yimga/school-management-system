@@ -1,14 +1,24 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Globe void/AI lab + threshold-era marketing polish (2026-06-23)
+
+**A. Scope:** Ship in-flight operator fleet globe W1–W20 + void/AI tier parity, revolution-lab marketing media, fleet context bus API.
+
+**B. Shipped:** `worldGlobe/mount.ts` wow-plus markers; `rmc-world-globe-bridge.js` + `rmc-world-globe-wow-plus.js`; `fleet_context_service.py` + fleet snapshot/API extensions; `mkt-revolution-media.css` + threshold portal partial; `verify_globe_void_ai_lab_parity.py`; browsable preview refresh; SW **v4.04.81**.
+
+**C. Proof:** `WORLD_GLOBE_10X_PASS`; `GLOBE_VOID_AI_LAB_PARITY_PASS`; fleet snapshot **12/12** OK; `verify:marketing` OK; SW monotonic OK.
+
+**D. Honest:** Enhanced CSS bundle **424831 B** (under 425000 cap); terminology burndown 785 unchanged.
+
 ## Slice — De-Gilead P1/P2 gap closeout (2026-06-23)
 
 **A. Scope:** Close audit P1 (founding-tenant seed parametrization) and P2 (terminology + exam-board CI gates).
 
-**B. Shipped:** `apps/schools/founding_tenant_defaults.py` + `ensure_founding_tenant` command (env `DEFAULT_TENANT_*`, neutral `demo-school` default); wired into `seed_render_users`; `export_pilot_defect_backlog` uses env slug; `lint_terminology_adoption.py` (baseline **785** drift); `scan_exam_board_filtering.py` (baseline **0**); CI jobs `terminology-adoption` + `exam-board-filtering`.
+**B. Shipped:** `founding_tenant_defaults.py` + `ensure_founding_tenant`; `lint_terminology_adoption.py` (baseline **785**); `scan_exam_board_filtering.py` (baseline **0**); CI jobs in `architectural-boundaries.yml`.
 
-**C. Proof:** `apps.schools.tests.test_founding_tenant_defaults` **4/4** OK; both scanners `--compare` exit **0**; `lint_gilead_residue` **0**.
+**C. Proof:** `test_founding_tenant_defaults` **4/4**; both scanners `--compare` exit **0**; `lint_gilead_residue` **0**.
 
-**D. Honest:** `School.save()` auto-derive `default_region` from `country_code` still deferred (signup touch); terminology burndown 785→0 is a long-tail template wave.
+**D. Honest:** `School.save()` auto-region already on main; signup country-required still optional.
 
 ## Slice — De-Gilead consolidation + marketing ascension closeout (2026-06-23)
 
@@ -18,7 +28,7 @@
 
 **C. Proof:** `manage.py check` 0; `makemigrations --check` clean; marks-entry + lexicon + student visibility + rmc_dh **70 tests OK**; `lint_gilead_residue` 0; `scan_role_strings --compare` OK; `INTERACTION_INTEGRITY_PASS`; `verify:marketing` OK; dead hrefs **0**. All June 2026 + eight legacy remote branches **0 ahead of main**.
 
-**D. Honest:** P1 seed-migration parametrization and P2 terminology/exam-board CI gates remain deferred per audit; marketing enhanced bundle at **418174 B** (under 425000 cap).
+**D. Honest:** P1 seed command + P2 CI gates shipped in **`c101a7176`**; `School.save()` auto-region link already on main; marketing enhanced bundle at **424831 B** (under 425000 cap).
 
 ## Slice — Residual closure proof wave (2026-06-10)
 

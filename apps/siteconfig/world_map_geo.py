@@ -483,14 +483,40 @@ def enrich_regional_breakdown(rows: list[dict[str, Any]]) -> list[dict[str, Any]
         label = row.get("label") or row.get("region") or ""
         anchor = SVG_REGION_LABELS.get(label, SVG_REGION_LABELS["Other"])
         palette = REGION_PALETTE.get(label, REGION_PALETTE["Other"])
+        centroid = REGION_CENTROIDS.get(label, REGION_CENTROIDS["Other"])
         enriched.append({
             **row,
             "svg_x": anchor["svg_x"],
             "svg_y": anchor["svg_y"],
             "label_color": palette["label"],
             "land_color": palette["cap"],
+            "fly_lat": centroid["lat"],
+            "fly_lng": centroid["lng"],
         })
     return enriched
+
+
+def _build_expansion_targets(markers: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """GLOCAL ghost pins for regions with zero live schools (Wow+ radar)."""
+    populated: set[str] = set()
+    for m in markers:
+        region = m.get("region") or ""
+        if region and not m.get("is_cluster"):
+            populated.add(region)
+    targets: list[dict[str, Any]] = []
+    for region, centroid in REGION_CENTROIDS.items():
+        if region in populated or region == "Other":
+            continue
+        targets.append({
+            "lat": centroid["lat"],
+            "lng": centroid["lng"],
+            "name": str(_("%(region)s target") % {"region": region}),
+            "region": region,
+            "status": "ghost",
+            "color": "rgba(148,163,184,0.5)",
+            "ring_color": "rgba(148,163,184,0.35)",
+        })
+    return targets
 
 
 def build_globe_payload(
@@ -533,6 +559,7 @@ def build_globe_payload(
         "hq": DEFAULT_HQ,
         "arcs": _build_arcs(markers),
         "tour_waypoints": _build_tour_waypoints(markers) if tour_enabled else [],
+        "expansion_targets": _build_expansion_targets(markers),
         "api": {
             "markers": "/super/api/globe/markers/",
             "stream": "/super/api/globe/stream/",
@@ -541,6 +568,7 @@ def build_globe_payload(
             "operator_fleet_snapshot": "/super/api/operator/fleet/snapshot/",
             "operator_fleet_context": "/super/api/operator/fleet/context/",
             "operator_fleet_globe_presence": "/super/api/operator/fleet/globe-presence/",
+            "operator_fleet_tour_narrator": "/super/api/operator/fleet/tour-narrator/",
         },
         "features": {
             "void_zones": True,
@@ -549,6 +577,14 @@ def build_globe_payload(
             "ai_brief": True,
             "wow_enabled": True,
             "globe_presence": True,
+            "magnetic_fly_to": True,
+            "void_parallax": True,
+            "celebration_bloom": True,
+            "executive_snapshot": True,
+            "day_night_terminator": True,
+            "tour_narrator": True,
+            "first_visit_fly_in": True,
+            "cluster_bloom": True,
             "compact_guide_max_schools": 5,
         },
         "live_refresh": {

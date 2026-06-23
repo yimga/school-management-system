@@ -268,5 +268,41 @@ def build_operator_fleet_snapshot(*, pulse_limit: int = 3) -> dict[str, Any]:
             "ai_whisper": True,
             "ai_brief": True,
             "wow_enabled": True,
+            "globe_presence": True,
+            "magnetic_fly_to": True,
+            "void_parallax": True,
+            "celebration_bloom": True,
+            "executive_snapshot": True,
         },
+        "regional_deltas": _regional_count_deltas(globe_data),
     }
+
+
+def _regional_count_deltas(globe_data: dict[str, Any]) -> dict[str, int]:
+    """Per-region +/− since last cached snapshot (Wow+ W16, PII-safe counts only)."""
+    breakdown = globe_data.get("regional_breakdown") or []
+    if not isinstance(breakdown, list):
+        return {}
+    current: dict[str, int] = {}
+    for row in breakdown:
+        if not isinstance(row, dict):
+            continue
+        label = str(row.get("label") or row.get("region") or "").strip()
+        if not label:
+            continue
+        try:
+            current[label] = int(row.get("count") or 0)
+        except (TypeError, ValueError):
+            current[label] = 0
+    cache_key = "rmc:operator:fleet:regional_counts:v1"
+    prior = cache.get(cache_key) or {}
+    deltas: dict[str, int] = {}
+    for label, count in current.items():
+        prev = prior.get(label)
+        if prev is not None and int(prev) != count:
+            deltas[label] = count - int(prev)
+    try:
+        cache.set(cache_key, current, timeout=604800)
+    except Exception:
+        pass
+    return deltas

@@ -35,6 +35,9 @@ def main() -> int:
         "rmc-world-globe-bridge.js",
         "rmc-world-globe-school-sheet",
         "rmc-world-globe-freshness",
+        "rmc-world-globe-wow-plus.js",
+        "rmc-world-globe-celebrate",
+        "lx-world__void-zone--share",
     ):
         if marker not in tpl:
             _fail(f"template missing 10x marker {marker!r}")
@@ -49,7 +52,7 @@ def main() -> int:
         _fail("rmc-world-globe-bridge.js missing or too small")
 
     mount = (ROOT / "src/apps/worldGlobe/mount.ts").read_text(encoding="utf-8")
-    for token in ("RMCWorldGlobe", "flyToRegion", "startTour", "arcsData", "refreshLive", "refreshMarkers", "labelsData", "region_labels"):
+    for token in ("RMCWorldGlobe", "flyToRegion", "startTour", "arcsData", "refreshLive", "refreshMarkers", "labelsData", "region_labels", "setWowMode", "expansion_targets"):
         if token not in mount:
             _fail(f"mount.ts missing 10x token {token!r}")
 

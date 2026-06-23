@@ -1,0 +1,160 @@
+/**
+ * Threshold era — portal crossing (one wow moment) + footer palette bridge.
+ */
+.mkt-rev-portal {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  pointer-events: none;
+  background: #f8f6f2;
+  clip-path: circle(0% at 50% 55%);
+  opacity: 0;
+  visibility: hidden;
+}
+
+.mkt-rev-portal.is-crossing {
+  visibility: visible;
+  opacity: 1;
+  animation: mkt-rev-portal-open 1.35s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) forwards;
+}
+
+.mkt-rev-portal.is-done {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-out, ease-out);
+}
+
+@keyframes mkt-rev-portal-open {
+  0% {
+    clip-path: circle(0% at 50% 55%);
+  }
+  100% {
+    clip-path: circle(150% at 50% 55%);
+  }
+}
+
+[data-mkt-threshold-crossed] .mkt-rev-gate {
+  animation: mkt-rev-gate-recede 1.1s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) forwards;
+}
+
+@keyframes mkt-rev-gate-recede {
+  0% {
+    transform: scale(1);
+    filter: blur(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.06);
+    filter: blur(10px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-rev-portal.is-crossing {
+    animation: none;
+    clip-path: circle(150% at 50% 55%);
+  }
+
+  [data-mkt-threshold-crossed] .mkt-rev-gate {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* Footer bridge — cream sims → void footer (no harsh cut) */
+.mkt-rev-footer-bridge {
+  height: clamp(80px, 12vh, 140px);
+  background: linear-gradient(
+    180deg,
+    #f8f6f2 0%,
+    #e8e4dc 18%,
+    #1a1a24 55%,
+    var(--mkt-th-void, #050508) 100%
+  );
+  pointer-events: none;
+}
+
+/* Threshold-era footer — full token cascade (beats marketing-enhanced defaults) */
+[data-mkt-edition="threshold-era"] .mkt-footer,
+[data-mkt-edition="threshold-era"] .mkt-corporate-footer {
+  background: var(--mkt-th-void, #050508);
+  color: var(--mkt-th-cream, #faf7f2);
+  border-top: none;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer .container {
+  color: inherit;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer-eyebrow,
+[data-mkt-edition="threshold-era"] .mkt-footer-theme__label,
+[data-mkt-edition="threshold-era"] .mkt-footer-copy,
+[data-mkt-edition="threshold-era"] .mkt-footer-tagline {
+  color: var(--mkt-th-ink-whisper, #8a8498);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer h2,
+[data-mkt-edition="threshold-era"] .mkt-footer h3,
+[data-mkt-edition="threshold-era"] .mkt-footer-command__intro h2,
+[data-mkt-edition="threshold-era"] .mkt-footer-intelligence__copy h2,
+[data-mkt-edition="threshold-era"] .mkt-footer-seal__tagline {
+  color: var(--mkt-th-cream, #faf7f2);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer p,
+[data-mkt-edition="threshold-era"] .mkt-footer-newsletter__copy {
+  color: color-mix(in oklab, var(--mkt-th-cream) 78%, transparent);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer a {
+  color: color-mix(in oklab, var(--mkt-th-cream) 88%, var(--mkt-th-accent-glow) 12%);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer a:hover {
+  color: var(--mkt-th-accent-glow, #fb923c);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer-proof-card,
+[data-mkt-edition="threshold-era"] .mkt-footer-action,
+[data-mkt-edition="threshold-era"] .mkt-footer-route-stack a {
+  background: var(--mkt-th-void-soft, #0c0c14);
+  border: 1px solid var(--mkt-th-line-light, rgba(255, 255, 255, 0.08));
+  color: var(--mkt-th-cream, #faf7f2);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer-proof-card__meta,
+[data-mkt-edition="threshold-era"] .mkt-footer-action__meta {
+  color: var(--mkt-th-ink-whisper, #8a8498);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer-proof-card__metric {
+  color: var(--mkt-th-accent-glow, #fb923c);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer-trust-badges li {
+  background: color-mix(in oklab, var(--mkt-th-void-soft) 80%, var(--mkt-th-aurora) 20%);
+  border: 1px solid var(--mkt-th-line-light);
+  color: var(--mkt-th-cream);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer-newsletter__input {
+  background: var(--mkt-th-void-soft);
+  border-color: var(--mkt-th-line-light);
+  color: var(--mkt-th-cream);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer-theme__control button {
+  background: var(--mkt-th-void-soft);
+  border-color: var(--mkt-th-line-light);
+  color: var(--mkt-th-cream);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer-theme__control button[aria-pressed="true"] {
+  background: color-mix(in oklab, var(--mkt-th-accent) 25%, var(--mkt-th-void-soft));
+  border-color: color-mix(in oklab, var(--mkt-th-accent-glow) 40%, transparent);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer-legal-links a {
+  color: var(--mkt-th-ink-whisper);
+}
