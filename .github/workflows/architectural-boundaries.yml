@@ -34,6 +34,8 @@ on:
       - "scripts/scan_exam_board_filtering.py"
       - "var/security-audit-baseline-terminology-adoption.json"
       - "var/security-audit-baseline-exam-board-filtering.json"
+      - "scripts/scan_currency_tenant_fallback.py"
+      - "var/security-audit-baseline-currency-tenant-fallback.json"
       - "scripts/scan_assert_in_production.py"
       - "scripts/scan_magic_numbers.py"
       - "scripts/scan_subprocess_shell_true.py"
@@ -352,6 +354,20 @@ jobs:
       - name: Run scanner --compare
         run: |
           python scripts/scan_exam_board_filtering.py --compare
+
+  currency-tenant-fallback:
+    name: Currency tenant-fallback (no XAF lock)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_currency_tenant_fallback.py --compare
 
   assert-in-production:
     name: assert statements in production code

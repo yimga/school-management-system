@@ -37,6 +37,20 @@ class EducationProfileEngineTests(TestCase):
         self.assertEqual(profile.region_id, "JPN")
         self.assertTrue((profile.config or {}).get("generated"))
 
+    def test_ensure_country_profile_seeds_cameroon_francophone_pack(self):
+        region = ensure_region_for_country("CM")
+        self.assertIsNotNone(region)
+        profile = ensure_country_profile(
+            region=region, sub_system=EducationSystemProfile.SubSystem.FR
+        )
+        self.assertIsNotNone(profile)
+        self.assertEqual(profile.default_language, "fr")
+        self.assertIn("Trimestre", (profile.term_labels or [""])[0])
+        self.assertEqual(
+            (profile.config or {}).get("grading_logic"),
+            "numeric_0_20",
+        )
+
     def test_resolve_profile_for_school_prefers_requested_profile(self):
         uganda = self._uganda_region()
         self.assertIsNotNone(uganda)

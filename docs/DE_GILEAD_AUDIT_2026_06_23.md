@@ -105,6 +105,7 @@ planning forks, and stale CI fix branches — historical only.
 | Marketing enhanced CSS budget | Reconciled **350000 → 425000** B (418174 B actual) |
 | P1 founding-tenant seed migrations | **PARTIAL → command shipped** — `ensure_founding_tenant` + `founding_tenant_defaults.py` (`DEFAULT_TENANT_*` env, default `demo-school`); migrations 0012/0013 frozen. `School.save()` auto-region still deferred. |
 | P2 terminology-adoption linter + exam-board gate | **SHIPPED** — `lint_terminology_adoption.py` baseline **785** (drift); `scan_exam_board_filtering.py` baseline **0** (zero-tolerance); CI jobs in `architectural-boundaries.yml`. |
+| Currency/locale local-first audit (2026-06-23 closeout) | **CLOSED** — `School.resolve_currency()` cascade verified; removed residual `or "XAF"` fallbacks in `geos_lane2_core_loop.py` + `finance/webhooks/normalizer.py`; new zero-tolerance gate `scan_currency_tenant_fallback.py` baseline **0**; francophone `EducationSystemProfile` FR pack seeded via `ensure_country_profile(CM, FR)` (test-covered). Country/regional catalog maps (`CM→XAF`, `AFR_FR` pack) remain intentional, not tenant locks. |
 
 **Proof:** `manage.py check` 0 issues; `makemigrations --check` clean; consolidation suites
 45+25 tests OK; `lint_gilead_residue` 0; `scan_role_strings --compare` OK;

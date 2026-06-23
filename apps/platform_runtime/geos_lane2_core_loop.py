@@ -21,6 +21,24 @@ from apps.platform_runtime.pilot_evidence import load_raw_scorecard, scorecard_p
 from apps.schools.school_cli_resolution import resolve_school_arg
 
 
+def _platform_default_currency() -> str:
+    return (getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD") or "USD").strip().upper()
+
+
+def _resolve_tenant_currency(school) -> str:
+    if hasattr(school, "resolve_currency"):
+        try:
+            resolved = (school.resolve_currency() or "").strip().upper()
+            if resolved:
+                return resolved
+        except Exception:
+            pass
+    explicit = (getattr(school, "currency", "") or "").strip().upper()
+    if explicit:
+        return explicit
+    return _platform_default_currency()
+
+
 def _evidence_dir(school_slug: str) -> Path:
     path = EVIDENCE_ROOT / "pilot" / school_slug
     path.mkdir(parents=True, exist_ok=True)
@@ -120,11 +138,7 @@ def execute_core_loop(school_slug: str, *, seed_if_missing: bool = True) -> dict
 
     # Local-first: derive country + currency from the tenant, never a Cameroon default.
     _country = (getattr(school, "country_code", "") or "").strip().upper()
-    _currency = (
-        school.resolve_currency()
-        if hasattr(school, "resolve_currency")
-        else (getattr(school, "currency", "") or "").strip().upper()
-    )
+    _currency = _resolve_tenant_currency(school)
     profile, _ = ComplianceProfile.objects.get_or_create(
         name=f"{school.slug} GEOS profile",
         defaults={
@@ -171,7 +185,7 @@ def execute_core_loop(school_slug: str, *, seed_if_missing: bool = True) -> dict
             "invoice": invoice,
             "student": student,
             "amount": Decimal("100.00"),
-            "currency_code": profile.currency_code or "XAF",
+            "currency_code": (profile.currency_code or _currency or _platform_default_currency()),
             "purpose": "tuition",
             "method": "CASH",
             "status": "completed",
@@ -220,7 +234,7 @@ def execute_core_loop(school_slug: str, *, seed_if_missing: bool = True) -> dict
         "payment_id": str(payment.pk),
         "payment_reference": payment_ref,
         "amount_minor": int(invoice.total_amount * 100),
-        "currency": "XAF",
+        "currency": _currency or _platform_default_currency(),
         "operator": "geos_internal_pilot",
         "notes": "Manual cash settlement for demo-school core loop; not a Stripe live charge.",
     }

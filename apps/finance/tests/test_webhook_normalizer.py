@@ -67,3 +67,20 @@ class WebhookNormalizerTests(unittest.TestCase):
         assert event is not None
         self.assertEqual(event.provider, "flutterwave")
         self.assertTrue(event.is_success())
+
+    def test_flutterwave_missing_currency_uses_platform_default(self):
+        from django.test import override_settings
+
+        payload = {
+            "event": "charge.completed",
+            "data": {
+                "tx_ref": "FLW-NO-CCY",
+                "status": "successful",
+                "amount": 15000,
+            },
+        }
+        with override_settings(PLATFORM_DEFAULT_CURRENCY="USD"):
+            event = normalize_provider_payload("flutterwave", payload)
+        self.assertIsNotNone(event)
+        assert event is not None
+        self.assertEqual(event.currency, "USD")

@@ -8,6 +8,12 @@ from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from typing import Any, Optional
 
+from django.conf import settings
+
+
+def _platform_default_currency() -> str:
+    return (getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD") or "USD").upper()[:3]
+
 
 @dataclass(frozen=True)
 class CanonicalPaymentWebhookEvent:
@@ -55,18 +61,18 @@ def normalize_provider_payload(
         event_id = str(data.get("tx_ref") or data.get("id") or "").strip()
         status = str(data.get("status") or payload.get("event") or "").strip().lower()
         amount = _decimal_amount(data.get("amount") or data.get("charged_amount"))
-        currency = str(data.get("currency") or "XAF").upper()[:3]
+        currency = str(data.get("currency") or _platform_default_currency()).upper()[:3]
         meta = data.get("meta") if isinstance(data.get("meta"), dict) else meta
     elif provider_slug in {"mtn_momo", "mtn-momo", "mtn"}:
         event_id = str(payload.get("externalId") or payload.get("referenceId") or "").strip()
         status = str(payload.get("status") or "").strip().lower()
         amount = _decimal_amount(payload.get("amount"))
-        currency = str(payload.get("currency") or "XAF").upper()[:3]
+        currency = str(payload.get("currency") or _platform_default_currency()).upper()[:3]
     elif provider_slug in {"orange_money", "orange-money", "orange"}:
         event_id = str(payload.get("transaction_id") or payload.get("order_id") or "").strip()
         status = str(payload.get("status") or "").strip().lower()
         amount = _decimal_amount(payload.get("amount"))
-        currency = str(payload.get("currency") or "XAF").upper()[:3]
+        currency = str(payload.get("currency") or _platform_default_currency()).upper()[:3]
     elif provider_slug == "stripe":
         obj = payload.get("data", {}).get("object", {}) if payload.get("object") is None else {}
         if not isinstance(obj, dict):
