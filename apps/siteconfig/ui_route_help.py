@@ -190,6 +190,35 @@ def resolve_route_help(request: Any) -> dict[str, Any]:
     match = getattr(request, "resolver_match", None)
     namespace = getattr(match, "namespace", None) if match else None
     surface = _host_surface(request)
+
+    # Page-aware fallback — so "About this page" describes THIS page rather than
+    # one flat namespace blurb on every unregistered route. Curated manager
+    # pages get hand-written help; everything else gets a page-specific title
+    # humanised from its url_name + a section descriptor.
+    from apps.platform_runtime.control_plane_page_intel import (
+        humanised_page_help,
+        resolve_manager_page,
+    )
+
+    intel = resolve_manager_page(view_name)
+    if intel:
+        return {
+            "title": intel["title"],
+            "body": intel["body"],
+            "surface": surface,
+            "namespace": namespace or "",
+            "fields": (),
+        }
+    humanised = humanised_page_help(view_name, namespace or "")
+    if humanised:
+        return {
+            "title": humanised[0],
+            "body": humanised[1],
+            "surface": surface,
+            "namespace": namespace or "",
+            "fields": (),
+        }
+
     default = _NAMESPACE_DEFAULTS.get(surface, _NAMESPACE_DEFAULTS["tenant"])
     return {
         "title": default["title"],

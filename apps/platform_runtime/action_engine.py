@@ -25,6 +25,8 @@ from typing import Any, Iterable, Optional, Sequence
 from django.conf import settings
 from django.urls import NoReverseMatch, reverse
 
+from apps.platform_runtime.control_plane_page_intel import manager_flow_steps
+
 _REVERSE_ERRORS = (NoReverseMatch, ValueError, TypeError)
 
 
@@ -615,6 +617,17 @@ def _audience_matches(action: SystemAction, bucket: str) -> bool:
     return action.audience == bucket
 
 
+def _request_view(request: Any | None) -> tuple[str, str]:
+    """``(view_name, namespace)`` for the current route — drives page-aware flow."""
+    match = getattr(request, "resolver_match", None) if request is not None else None
+    if match is None:
+        return "", ""
+    namespace = getattr(match, "namespace", None) or ""
+    url_name = getattr(match, "url_name", None) or ""
+    view_name = f"{namespace}:{url_name}" if namespace and url_name else (url_name or "")
+    return view_name, namespace
+
+
 def get_control_plane_actions(
     user,
     *,
@@ -623,7 +636,14 @@ def get_control_plane_actions(
 ) -> list[SystemAction]:
     """
     When no tenant ``school`` is on the request (e.g. control plane / super routes),
-    surface operational next steps — not generic "open the page you are already on".
+    surface the logical next steps FROM the current page — page-aware, not a fixed
+    global list and not "open the page you are already on".
+
+    The flow is curated per manager route in
+    ``apps.platform_runtime.control_plane_page_intel`` (with section + global
+    fallbacks), so a mapped page keeps its hand-written onward sequence while
+    unmapped pages still get a sensible, section-aware flow. Every URL is
+    resolved here and the current page is excluded.
     """
     if not user or not getattr(user, "is_authenticated", False):
         return []
@@ -635,70 +655,30 @@ def get_control_plane_actions(
     if request is not None:
         current_path = (getattr(request, "path", "") or "").split("?", 1)[0].rstrip("/")
 
+    view_name, namespace = _request_view(request)
+
     out: list[SystemAction] = []
-    pairs: list[tuple[str, str, str, int]] = [
-        (
-            "super:schools_list",
-            "School directory",
-            "Query tenants, open Tenant 360, and run lifecycle actions.",
-            90,
-        ),
-        (
-            "super:tenant_health",
-            "Tenant health grid",
-            "Review health, onboarding stage, and schools needing attention.",
-            85,
-        ),
-        (
-            "super:command_center",
-            "Operational queues",
-            "Support backlog, provisioning SLA breaches, and approvals.",
-            80,
-        ),
-        (
-            "super:offboarding_queue",
-            "Offboarding queue",
-            "Wind-down, export, and scheduled purge workflows.",
-            75,
-        ),
-        (
-            "super:dashboard",
-            "Control plane home",
-            "Portfolio pulse, globe footprint, and tenant heatmap.",
-            60,
-        ),
-        (
-            "super:founder_dashboard",
-            "Founder metrics",
-            "Platform closure metrics and audit posture.",
-            55,
-        ),
-        (
-            "siteconfig:console_domains_hub",
-            "Configuration center",
-            "Domains, DNS, and platform wiring.",
-            50,
-        ),
-    ]
-    for viewname, title, desc, priority in pairs:
-        url = _safe_reverse(viewname)
+    for step in manager_flow_steps(view_name, namespace):
+        url = _safe_reverse(step["viewname"])
         if not url:
             continue
-        normalized = url.rstrip("/")
-        if current_path and normalized == current_path:
+        if current_path and url.rstrip("/") == current_path:
             continue
         out.append(
             SystemAction(
                 type="system_health",
-                title=title,
-                description=desc,
+                title=step["title"],
+                description=step["body"],
                 action_url=url,
-                priority=priority,
+                priority=int(step.get("priority", 40)),
                 audience="founder",
                 source="control_plane",
             )
         )
-    out.sort(key=lambda a: (-a.priority, a.title.lower()))
+
+    # The flow is already deliberately ordered (curated for mapped pages,
+    # sensible for the section/global fallbacks), so preserve it — only de-dupe.
+    out = _dedupe(out)
     return out[:limit]
 
 
