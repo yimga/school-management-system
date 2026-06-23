@@ -37,6 +37,18 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-header__live-banner .
   body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .tp-header__live-banner {
     display: none;
   }
+  /* Live banner restored (owner 2026-06-23: "do not forget the live banner"). On the
+     v3 100x role-home dashboards bring back the slim full-width LIVE strip and hide the
+     cramped 220px inline ticker, so the feed reads as one elegant marquee instead of a
+     stub. tp_v3_role_home ⊆ tenant_role_home_landing, so legacy (?simple=1) + every
+     non-landing page keep the consolidated inline ticker (banner not rendered there). */
+  body.tp-v3-role-home.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .tp-header__live-banner {
+    display: block;
+    padding: 2px 0;
+  }
+  body.tp-v3-role-home.portal-body-with-layout:not(.control-plane-shell) .tp-header__row .rmc-cp-ticker-inline {
+    display: none;
+  }
 }
 
 body.portal-body-with-layout:not(.control-plane-shell) .tp-header .rmc-cp-ticker-inline,
@@ -178,6 +190,30 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav-inline .t
    Bootstrap's d-lg-none hides it (the inline copy takes over). */
 body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav-bandrow {
   display: contents;
+}
+
+/* ---------------------------------------------------------------------------
+   Even header distribution (owner 2026-06-23: "too left aligned... can we make
+   it evenly distributed"). At lg+ the primary nav becomes the centered middle
+   zone and the actions cluster stops greedily growing — so the row reads as
+   three balanced zones: brand (left) · nav (center) · search + controls (right),
+   instead of brand + nav clumped left with a dead gap before the right cluster.
+   #portalHeader-scoped so it outranks the base .tp-primary-nav-inline flex; the
+   .topbar-actions rule shares the base selector and wins by source order in-query.
+   --------------------------------------------------------------------------- */
+@media (min-width: 992px) {
+  body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .tp-primary-nav-inline {
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: center;
+  }
+  body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .tp-primary-nav-inline .tp-primary-nav {
+    justify-content: center;
+    width: 100%;
+  }
+  body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-actions {
+    flex: 0 1 auto;
+  }
 }
 
 body.portal-body-with-layout:not(.control-plane-shell) .rmc-sidebar-page-help {
