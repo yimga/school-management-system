@@ -4,7 +4,7 @@
  */
 .mkt-rev-gate {
   position: relative;
-  min-height: min(62vh, 560px);
+  min-height: 100svh;
   display: grid;
   place-items: center;
   overflow: clip;
@@ -143,9 +143,16 @@
 
 .mkt-rev-arena__head h2 {
   font-family: "Source Serif 4", Georgia, serif;
-  font-size: clamp(1.35rem, 3vw, 1.85rem);
-  margin: 0 0 0.35rem;
-  line-height: 1.15;
+  font-size: clamp(1.45rem, 3.2vw, 2rem);
+  margin: 0 0 0.45rem;
+  line-height: 1.18;
+}
+
+.mkt-rev-arena__sub {
+  margin: 0;
+  font-size: 0.875rem;
+  opacity: 0.72;
+  line-height: 1.45;
 }
 
 .mkt-rev-arena__pickers {
@@ -277,9 +284,109 @@
 }
 
 /* ── Intimate compact flow (threshold era) ── */
+[data-mkt-edition="threshold-era"] {
+  --asc-void: #030308;
+  --asc-cream: #faf7f2;
+  --asc-ink: #121018;
+  --asc-muted: #5c5768;
+  --asc-accent: #c2410c;
+  --asc-aurora: #6366f1;
+  --asc-emerald: #10b981;
+  --mkt-rev-section-y: clamp(2.25rem, 4.5vh, 3.5rem);
+  --mkt-rev-gap: clamp(1.25rem, 2.5vw, 2rem);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-asc-day {
+  background: var(--asc-void);
+  color: #f5f3ef;
+  padding: var(--mkt-rev-section-y) 0;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-asc-day__clock {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-asc-chapter__title {
+  color: #faf7f2;
+  font-size: clamp(1.35rem, 2.8vw, 1.85rem);
+  margin: 0 0 0.65rem;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-asc-chapter__viz-headline,
+[data-mkt-edition="threshold-era"] .mkt-asc-chapter__viz-kicker {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-asc-chapter__link {
+  color: #fb923c;
+  font-weight: 650;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-asc-chapter__link:hover {
+  text-decoration: underline;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-asc-region-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.65rem 0 0.35rem;
+  max-width: 16rem;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-asc-region-pick__label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-asc-region-pick__select {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.92);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-asc-region-out {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.875rem;
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.65rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-edt-illustrative-pill {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #78350f;
+  background: rgba(245, 158, 11, 0.18);
+  border-radius: 999px;
+}
+
 [data-mkt-edition="threshold-era"] .mkt-asc-gate.mkt-rev-gate {
-  min-height: min(62vh, 560px);
-  padding: clamp(3.5rem, 8vh, 4.5rem) 1rem clamp(1.25rem, 3vh, 1.75rem);
+  min-height: min(72vh, 680px);
+  padding: clamp(4rem, 9vh, 5.5rem) 1.25rem clamp(1.75rem, 4vh, 2.5rem);
 }
 
 [data-mkt-edition="threshold-era"] .mkt-asc-gate__kicker {
@@ -289,23 +396,23 @@
 }
 
 [data-mkt-edition="threshold-era"] .mkt-asc-gate__title {
-  font-size: clamp(1.85rem, 4.5vw, 2.75rem);
-  margin: 0 0 0.65rem;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  margin: 0 0 0.85rem;
 }
 
 [data-mkt-edition="threshold-era"] .mkt-asc-gate__lead {
-  font-size: clamp(0.875rem, 1.6vw, 1rem);
-  margin: 0 auto 1rem;
-  max-width: 34rem;
+  font-size: clamp(0.9375rem, 1.7vw, 1.0625rem);
+  margin: 0 auto 1.35rem;
+  max-width: 36rem;
 }
 
 [data-mkt-edition="threshold-era"] .mkt-asc-monoliths {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.35rem;
-  max-width: 40rem;
-  margin: 0 auto 1rem;
+  gap: 0.45rem;
+  max-width: 42rem;
+  margin: 0 auto 1.35rem;
   perspective: none;
 }
 
@@ -315,8 +422,8 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  padding: 0.45rem 0.75rem;
-  gap: 0.3rem;
+  padding: 0.5rem 0.85rem;
+  gap: 0.35rem;
   border-radius: 999px;
   min-height: 0;
   box-shadow: 0 6px 20px color-mix(in oklab, var(--asc-void, #030308) 22%, transparent);
@@ -347,44 +454,36 @@
   font-size: 0.6rem;
 }
 
-[data-mkt-edition="threshold-era"] .mkt-asc-day {
-  padding: clamp(1.25rem, 3vw, 2rem) 0;
-}
-
 [data-mkt-edition="threshold-era"] .mkt-asc-day__sticky {
-  top: 3.5rem;
-  margin-bottom: 0.75rem;
-  padding: 0.5rem 1rem;
+  top: 3.75rem;
+  margin-bottom: 1.25rem;
+  padding: 0.6rem 1rem;
 }
 
 [data-mkt-edition="threshold-era"] .mkt-asc-chapter {
   min-height: auto;
-  margin: 0 auto 1.25rem;
-  padding: 1rem 1.25rem;
-  gap: 1rem;
-  scroll-margin-top: 4.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-[data-mkt-edition="threshold-era"] .mkt-asc-chapter__title {
-  font-size: clamp(1.25rem, 2.5vw, 1.65rem);
-  margin: 0 0 0.5rem;
+  margin: 0 auto var(--mkt-rev-gap);
+  padding: 1.25rem 1.25rem 1.5rem;
+  gap: 1.5rem;
+  scroll-margin-top: 5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 [data-mkt-edition="threshold-era"] .mkt-asc-chapter__body {
-  font-size: 0.9rem;
-  line-height: 1.55;
-  margin: 0 0 0.65rem;
+  font-size: 0.9375rem;
+  line-height: 1.58;
+  margin: 0 0 0.85rem;
+  color: rgba(255, 255, 255, 0.78);
 }
 
 [data-mkt-edition="threshold-era"] .mkt-asc-chapter__viz {
-  min-height: 140px;
-  padding: 0.85rem;
-  border-radius: 0.85rem;
+  min-height: 160px;
+  padding: 1rem;
+  border-radius: 1rem;
 }
 
 [data-mkt-edition="threshold-era"] .mkt-asc-cathedral-bridge {
-  padding: 1rem 1.25rem;
+  padding: var(--mkt-rev-section-y) 1.25rem;
   text-align: center;
   background: #f8f6f2;
   border-block: 1px solid rgba(18, 16, 24, 0.08);
@@ -392,37 +491,72 @@
 
 [data-mkt-edition="threshold-era"] .mkt-asc-cathedral-bridge__title {
   font-family: "Source Serif 4", Georgia, serif;
-  font-size: clamp(1.15rem, 2.5vw, 1.5rem);
-  margin: 0.25rem 0 0.35rem;
-  line-height: 1.2;
+  font-size: clamp(1.25rem, 2.8vw, 1.65rem);
+  margin: 0.35rem 0 0.5rem;
+  line-height: 1.22;
+  color: var(--asc-ink);
 }
 
 [data-mkt-edition="threshold-era"] .mkt-asc-cathedral-bridge__lead {
   margin: 0;
-  font-size: 0.875rem;
-  color: #5c5768;
-  max-width: 36rem;
+  font-size: 0.9375rem;
+  color: var(--asc-muted);
+  max-width: 38rem;
   margin-inline: auto;
 }
 
 [data-mkt-edition="threshold-era"] .mkt-asc-finale {
   min-height: auto;
-  padding: clamp(2rem, 5vw, 3rem) 1.25rem;
+  padding: var(--mkt-rev-section-y) 1.25rem;
 }
 
 [data-mkt-edition="threshold-era"] .mkt-asc-finale h2 {
-  font-size: clamp(1.65rem, 3.5vw, 2.35rem);
-  margin: 0 0 1rem;
+  font-size: clamp(1.75rem, 4vw, 2.65rem);
+  margin: 0 0 1.15rem;
 }
 
 [data-mkt-edition="threshold-era"] .mkt-intent-home__stack .mkt-ve-section {
   min-height: auto;
-  padding: clamp(1.75rem, 3.5vh, 2.75rem) 0;
+  padding: var(--mkt-rev-section-y) 0;
   align-items: stretch;
 }
 
 [data-mkt-edition="threshold-era"] .mkt-ve-section--hero-duel {
-  padding-top: 0.75rem;
+  padding-top: 1.25rem;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-rev-proof-strip {
+  padding: 0.85rem 1.25rem;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-rev-arena {
+  padding: var(--mkt-rev-section-y) clamp(1rem, 3vw, 1.5rem);
+}
+
+.mkt-rev-arena__wins {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 0.75rem;
+  max-width: 56rem;
+  margin: 1.25rem auto 0;
+}
+
+.mkt-rev-arena__win {
+  padding: 0.85rem 1rem;
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.mkt-rev-arena__win strong {
+  display: block;
+  color: #fb923c;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
 }
 
 [data-mkt-edition="threshold-era"] .mkt-ve-section__title {

@@ -140,7 +140,15 @@
   }
   if (regionSel) {
     regionSel.addEventListener("change", function () { applyRegion(regionSel.value); });
-    applyRegion(regionSel.value);
+    var boot =
+      (regionSel.value || "").trim().toUpperCase() ||
+      (document.body.getAttribute("data-rmc-country") || "US").trim().toUpperCase();
+    if (!regions[boot]) boot = "US";
+    regionSel.value = boot;
+    applyRegion(boot);
+  } else if (regionOut) {
+    var code = (document.body.getAttribute("data-rmc-country") || "US").trim().toUpperCase();
+    applyRegion(regions[code] ? code : "US");
   }
 
   /* ── Split ledger mini sim ── */

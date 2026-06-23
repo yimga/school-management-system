@@ -17,6 +17,16 @@
       <p class="mkt-asc-chapter__time">6:45 · {% trans "Admissions pulse" %}</p>
       <h3 class="mkt-asc-chapter__title">{% trans "Inquiry becomes enrollment — no re-entry" %}</h3>
       <p class="mkt-asc-chapter__body">{% trans "While legacy SIS tools treat admissions as a separate product bolted on, RunMyCampus carries the same student thread from campaign form to roster. Region-aware terms, currency, and compliance follow automatically." %}</p>
+      <label class="mkt-asc-region-pick" for="asc-region">
+        <span class="mkt-asc-region-pick__label">{% trans "Region" %}</span>
+        <select id="asc-region" class="mkt-asc-region-pick__select" aria-describedby="asc-region-out">
+          <option value="US">{% trans "United States" %}</option>
+          <option value="NG">{% trans "Nigeria" %}</option>
+          <option value="GB">{% trans "United Kingdom" %}</option>
+          <option value="KE">{% trans "Kenya" %}</option>
+          <option value="AE">{% trans "United Arab Emirates" %}</option>
+        </select>
+      </label>
       <div id="asc-region-out" class="mkt-asc-region-out"></div>
       <a href="#mkt-sovereign-kernel" class="mkt-asc-chapter__link">{% trans "Run the sovereign sim" %} →</a>
     </div>
@@ -35,9 +45,6 @@
       <a href="{% url 'marketing_intent_homepage' %}" class="mkt-asc-chapter__link">{% trans "See parent storefront" %} →</a>
     </div>
     <div class="mkt-asc-chapter__viz">
-      <div class="mkt-asc-chapter__film">
-        <img src="{% static 'marketing/img/ascension/parent-window-cinematic.png' %}" alt="{% trans 'Parent receiving calm school update — illustrative AI editorial' %}" loading="lazy" decoding="async">
-      </div>
       <div class="mkt-asc-parent-cards">
         <div class="mkt-asc-parent-card mkt-asc-parent-card--calm">
           <strong>Amina</strong>
@@ -59,9 +66,6 @@
       <a href="#mkt-fluid-classroom" class="mkt-asc-chapter__link">{% trans "Open fluid classroom sim" %} →</a>
     </div>
     <div class="mkt-asc-chapter__viz">
-      <div class="mkt-asc-chapter__film mb-3">
-        <img src="{% static 'marketing/img/ascension/classroom-cinematic.png' %}" alt="{% trans 'Collaborative classroom — illustrative AI editorial' %}" loading="lazy" decoding="async">
-      </div>
       <div class="mkt-asc-grade-btns" role="group" aria-label="{% trans 'Grade scale preview' %}">
         <button type="button" data-grade-scale="US" class="is-active">US %</button>
         <button type="button" data-grade-scale="IB">IB 1–7</button>
