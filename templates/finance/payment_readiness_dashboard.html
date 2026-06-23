@@ -9,7 +9,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<div class="container py-4" data-page-archetype="finance-payment-readiness-dashboard" data-rmc-os-center="payment_readiness" data-rmc-scroll-policy="paginate">
+<div class="container-fluid px-3 px-lg-4 py-4" data-page-archetype="finance-payment-readiness-dashboard" data-rmc-os-center="payment_readiness" data-rmc-scroll-policy="paginate">
   {% trans "Finance" as fin_eyebrow %}
   {% trans "Honest corridor status: metadata-only health checks — no live charges; CARD/BANK stay external until PSP onboarding." as pay_purpose %}
   {% include "components/rmc_os_page_header.html" with os_center_key="payment_readiness" center_eyebrow=fin_eyebrow center_title=_("Payment Readiness Center") center_purpose=pay_purpose status_badge_text=readiness_display_label status_badge_variant=status_badge_class %}
