@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Default dark theme — neutral grey → design-HTML navy</title>
+<style>
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,sans-serif;background:#06070a;color:#e7e9f0;padding:24px}
+  h1{font-size:19px;margin:0 0 4px}
+  .sub{color:#9b9ba8;margin:0 0 22px;font-size:13.5px;max-width:96ch}
+  .lanes{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:1180px}
+  .tag{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:4px 10px;border-radius:999px;margin-bottom:12px}
+  .tag.b{background:#3a3a3c;color:#cfcfd4}
+  .tag.a{background:#16223f;color:#9db4ff}
+
+  /* OLD neutral apple-grey defaults */
+  .lane.b{--bg:#000000;--canvas:#1c1c1e;--elevated:#2c2c2e;--hair:rgba(255,255,255,.10)}
+  /* NEW design-HTML navy defaults */
+  .lane.a{--bg:#0b1020;--canvas:#0e1426;--elevated:#141c33;--hair:rgba(255,255,255,.10)}
+  --brand:#4f46e5;--accent:#10b981;
+
+  .frame{background:var(--bg);border:1px solid var(--hair);border-radius:14px;padding:14px}
+  .hero{background:linear-gradient(135deg,#4f46e5,#10b981);border-radius:12px;padding:14px 16px;color:#fff;margin-bottom:12px}
+  .hero h3{margin:0;font-size:15px}
+  .hero p{margin:3px 0 0;font-size:12px;opacity:.9}
+  .stage{background:var(--canvas);border:1px solid var(--hair);border-radius:12px;padding:12px;margin-bottom:10px}
+  .stage h4{margin:0 0 9px;font-size:12.5px;color:#e7e9f0}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .card{background:var(--elevated);border:1px solid var(--hair);border-radius:10px;padding:11px;transition:.15s}
+  .card:hover{border-color:#6366f1;transform:translateY(-2px)}
+  .card .t{font-size:12px;font-weight:650;color:#e7e9f0}
+  .card .m{font-size:10.5px;color:#9b9ba8;margin-top:3px}
+  .card .cta{font-size:11px;font-weight:700;color:#818cf8;margin-top:8px;display:block}
+</style>
+</head>
+<body>
+  <h1>Default dark theme → the design-HTML navy palette</h1>
+  <p class="sub">The platform's brand colours were already indigo (<code>#4f46e5</code>) + emerald (<code>#10b981</code>) — matching the previews. The gap was the dark <b>surfaces</b>: neutral apple-grey instead of the previews' navy. This makes the navy the default (tenants can still pick another aesthetic or set their own brand colours in the studio). Same components, only the surface tokens change.</p>
+
+  <div class="lanes">
+    <div class="lane b">
+      <span class="tag b">Before · neutral grey (#000 / #1c1c1e / #2c2c2e)</span>
+      <div class="frame">
+        <div class="hero"><h3>New Test High School</h3><p>School command surface</p></div>
+        <div class="stage"><h4>Get started</h4><div class="grid">
+          <div class="card"><span class="t">Account Migration</span><span class="m">10 min · 5 steps</span><span class="cta">Start</span></div>
+          <div class="card"><span class="t">Custom Domain</span><span class="m">5 min · 3 steps</span><span class="cta">Start</span></div>
+          <div class="card"><span class="t">Two-factor auth</span><span class="m">4 min · 5 steps</span><span class="cta">Start</span></div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="lane a">
+      <span class="tag a">After · design-HTML navy (#0b1020 / #0e1426 / #141c33)</span>
+      <div class="frame">
+        <div class="hero"><h3>New Test High School</h3><p>School command surface</p></div>
+        <div class="stage"><h4>Get started</h4><div class="grid">
+          <div class="card"><span class="t">Account Migration</span><span class="m">10 min · 5 steps</span><span class="cta">Start</span></div>
+          <div class="card"><span class="t">Custom Domain</span><span class="m">5 min · 3 steps</span><span class="cta">Start</span></div>
+          <div class="card"><span class="t">Two-factor auth</span><span class="m">4 min · 5 steps</span><span class="cta">Start</span></div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

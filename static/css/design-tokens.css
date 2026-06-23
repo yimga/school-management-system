@@ -713,13 +713,19 @@ html[data-theme="dark"],
 html[data-resolved-theme="dark"],
 html[data-bs-theme="dark"],
 body.portal-backend-dark {
-  /* Apple semantic surfaces — dark */
-  --surface-bg: #000000;
-  --surface-canvas: #1c1c1e;
-  --surface-elevated: #2c2c2e;
-  --surface-popover: color-mix(in oklab, #2c2c2e 88%, transparent);
+  /* Default dark surfaces — the signed-off design-HTML palette (navy/indigo),
+     so the platform follows the previews by default (owner: "all our platform
+     must follow the HTMLs theme by default"). Was neutral apple-grey
+     (#000/#1c1c1e/#2c2c2e). Tenants stay configurable: the brand colours come
+     from --school-primary/--accent (already indigo/emerald), and a tenant that
+     picks a different aesthetic (e.g. stone) overrides these below.
+     Hierarchy preserved: bg < canvas < elevated so elevated cards tone-lift. */
+  --surface-bg: #0b1020;
+  --surface-canvas: #0e1426;
+  --surface-elevated: #141c33;
+  --surface-popover: color-mix(in oklab, #1a2542 88%, transparent);
   --surface-overlay: rgba(255, 255, 255, 0.06);
-  --surface-sunken: #0a0a0c;
+  --surface-sunken: #070a14;
   --hairline: rgba(255, 255, 255, 0.10);
   --hairline-strong: rgba(255, 255, 255, 0.16);
   --text-primary: #f5f5f7;
