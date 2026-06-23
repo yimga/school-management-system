@@ -1,0 +1,12 @@
+{
+  "allow_marker": "exam-board-filter-allow:",
+  "exempt_paths": [
+    "apps/academics/exam_boards.py",
+    "apps/academics/models.py",
+    "apps/academics/tests/test_exam_boards.py"
+  ],
+  "finding_count": 0,
+  "findings": [],
+  "generated_at": "2026-06-23T21:54:25+00:00",
+  "rule": "Board selection UI must filter via allowed_board_choices(country_code); never iterate Board.choices directly outside schema/SOT."
+}

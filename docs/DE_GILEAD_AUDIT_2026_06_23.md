@@ -107,8 +107,8 @@ planning forks, and stale CI fix branches — historical only.
 | Student results visibility | **SHIPPED** (`939f2fe20`) |
 | Marketing ascension media + revolution lab | **SHIPPED** (this commit) |
 | Marketing enhanced CSS budget | Reconciled **350000 → 425000** B (418174 B actual) |
-| P1 founding-tenant seed migrations | **DEFERRED** (parametrize seed command — do not edit applied migrations) |
-| P2 terminology-adoption linter + exam-board gate | **NOT STARTED** (recommended CI gates above) |
+| P1 founding-tenant seed migrations | **PARTIAL → command shipped** — `ensure_founding_tenant` + `founding_tenant_defaults.py` (`DEFAULT_TENANT_*` env, default `demo-school`); migrations 0012/0013 frozen. `School.save()` auto-region still deferred. |
+| P2 terminology-adoption linter + exam-board gate | **SHIPPED** — `lint_terminology_adoption.py` baseline **785** (drift); `scan_exam_board_filtering.py` baseline **0** (zero-tolerance); CI jobs in `architectural-boundaries.yml`. |
 
 **Proof:** `manage.py check` 0 issues; `makemigrations --check` clean; consolidation suites
 45+25 tests OK; `lint_gilead_residue` 0; `scan_role_strings --compare` OK;

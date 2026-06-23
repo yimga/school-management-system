@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice — De-Gilead P1/P2 gap closeout (2026-06-23)
+
+**A. Scope:** Close audit P1 (founding-tenant seed parametrization) and P2 (terminology + exam-board CI gates).
+
+**B. Shipped:** `apps/schools/founding_tenant_defaults.py` + `ensure_founding_tenant` command (env `DEFAULT_TENANT_*`, neutral `demo-school` default); wired into `seed_render_users`; `export_pilot_defect_backlog` uses env slug; `lint_terminology_adoption.py` (baseline **785** drift); `scan_exam_board_filtering.py` (baseline **0**); CI jobs `terminology-adoption` + `exam-board-filtering`.
+
+**C. Proof:** `apps.schools.tests.test_founding_tenant_defaults` **4/4** OK; both scanners `--compare` exit **0**; `lint_gilead_residue` **0**.
+
+**D. Honest:** `School.save()` auto-derive `default_region` from `country_code` still deferred (signup touch); terminology burndown 785→0 is a long-tail template wave.
+
 ## Slice — De-Gilead consolidation + marketing ascension closeout (2026-06-23)
 
 **A. Scope:** Close the in-flight merge/consolidation pass (post-`b8c0ea798`), branch inventory, gap analysis, and ship remaining marketing ascension media + tenant dashboard polish.

@@ -30,6 +30,10 @@ on:
       - "var/security-audit-baseline-import-reference-integrity.json"
       - "scripts/scan_drf_schema_coverage.py"
       - "scripts/scan_role_strings.py"
+      - "scripts/lint_terminology_adoption.py"
+      - "scripts/scan_exam_board_filtering.py"
+      - "var/security-audit-baseline-terminology-adoption.json"
+      - "var/security-audit-baseline-exam-board-filtering.json"
       - "scripts/scan_assert_in_production.py"
       - "scripts/scan_magic_numbers.py"
       - "scripts/scan_subprocess_shell_true.py"
@@ -320,6 +324,34 @@ jobs:
       - name: Run scanner --compare
         run: |
           python scripts/scan_role_strings.py --compare
+
+  terminology-adoption:
+    name: Terminology-adoption drift (templates)
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run linter --compare
+        run: |
+          python scripts/lint_terminology_adoption.py --compare
+
+  exam-board-filtering:
+    name: Exam-board local-first filtering
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_exam_board_filtering.py --compare
 
   assert-in-production:
     name: assert statements in production code

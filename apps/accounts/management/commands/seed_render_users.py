@@ -253,6 +253,11 @@ class Command(BaseCommand):
         # 2. Tenant admin: configurable bootstrap account for one tenant login
         # surface. Skipped in production when no password is configured, so a
         # known-credential tenant admin is never created on a real deployment.
+        call_command(
+            "ensure_founding_tenant",
+            *(["--slug", tenant_slug] if tenant_slug else []),
+            verbosity=options.get("verbosity", 1),
+        )
         if tenant_admin_password:
             ensure_tenant_admin_args = [
                 "ensure_default_tenant_admin",

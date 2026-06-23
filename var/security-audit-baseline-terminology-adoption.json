@@ -1,0 +1,4726 @@
+{
+  "allow_marker": "terminology-adopt-allow:",
+  "excluded_prefixes": [
+    "templates/marketing/",
+    "templates/admin/",
+    "templates/emails/",
+    "templates/siteconfig/partials/lexicon_",
+    "templates/siteconfig/feature_control"
+  ],
+  "finding_count": 785,
+  "findings": [
+    {
+      "key": "subject",
+      "line": 31,
+      "literal": "Subject",
+      "path": "templates/academics/syllabus_approval_queue.html"
+    },
+    {
+      "key": "class",
+      "line": 32,
+      "literal": "Class",
+      "path": "templates/academics/syllabus_approval_queue.html"
+    },
+    {
+      "key": "term",
+      "line": 33,
+      "literal": "Term",
+      "path": "templates/academics/syllabus_approval_queue.html"
+    },
+    {
+      "key": "term",
+      "line": 17,
+      "literal": "Term",
+      "path": "templates/academics/teacher_syllabus_hub.html"
+    },
+    {
+      "key": "assignment",
+      "line": 68,
+      "literal": "Assignments",
+      "path": "templates/academics/teacher_syllabus_hub.html"
+    },
+    {
+      "key": "message",
+      "line": 69,
+      "literal": "Message",
+      "path": "templates/academics/teacher_syllabus_hub.html"
+    },
+    {
+      "key": "school",
+      "line": 2,
+      "literal": "School",
+      "path": "templates/accounts/_rmc_dh_admin_overview.html"
+    },
+    {
+      "key": "module",
+      "line": 3,
+      "literal": "Module",
+      "path": "templates/accounts/_rmc_dh_admin_overview.html"
+    },
+    {
+      "key": "grade",
+      "line": 40,
+      "literal": "Grades",
+      "path": "templates/accounts/academic_rules.html"
+    },
+    {
+      "key": "invoice",
+      "line": 75,
+      "literal": "Invoice",
+      "path": "templates/accounts/automation_hub.html"
+    },
+    {
+      "key": "school",
+      "line": 40,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "assignment",
+      "line": 47,
+      "literal": "Assignments",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 53,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 54,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 55,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 56,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 57,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 58,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 59,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 62,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 63,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 64,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 65,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 89,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "module",
+      "line": 91,
+      "literal": "Module",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 95,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "teacher",
+      "line": 100,
+      "literal": "Teacher",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 103,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "class",
+      "line": 163,
+      "literal": "Class",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "module",
+      "line": 641,
+      "literal": "Modules",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "module",
+      "line": 643,
+      "literal": "Modules",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "session",
+      "line": 15,
+      "literal": "Session",
+      "path": "templates/accounts/certification_bulk_add_candidates.html"
+    },
+    {
+      "key": "classroom",
+      "line": 19,
+      "literal": "Classroom",
+      "path": "templates/accounts/certification_bulk_add_candidates.html"
+    },
+    {
+      "key": "session",
+      "line": 25,
+      "literal": "Sessions",
+      "path": "templates/accounts/certification_bulk_add_candidates.html"
+    },
+    {
+      "key": "student",
+      "line": 57,
+      "literal": "Students",
+      "path": "templates/accounts/certification_bulk_add_candidates.html"
+    },
+    {
+      "key": "student",
+      "line": 63,
+      "literal": "Students",
+      "path": "templates/accounts/certification_bulk_add_candidates.html"
+    },
+    {
+      "key": "student",
+      "line": 89,
+      "literal": "Student",
+      "path": "templates/accounts/certification_bulk_add_candidates.html"
+    },
+    {
+      "key": "classroom",
+      "line": 90,
+      "literal": "Classroom",
+      "path": "templates/accounts/certification_bulk_add_candidates.html"
+    },
+    {
+      "key": "exam",
+      "line": 4,
+      "literal": "Exams",
+      "path": "templates/accounts/certification_home.html"
+    },
+    {
+      "key": "term",
+      "line": 17,
+      "literal": "Term",
+      "path": "templates/accounts/certification_home.html"
+    },
+    {
+      "key": "module",
+      "line": 20,
+      "literal": "Module",
+      "path": "templates/accounts/certification_home.html"
+    },
+    {
+      "key": "session",
+      "line": 52,
+      "literal": "Session",
+      "path": "templates/accounts/certification_home.html"
+    },
+    {
+      "key": "session",
+      "line": 2,
+      "literal": "Session",
+      "path": "templates/accounts/certification_session_detail.html"
+    },
+    {
+      "key": "session",
+      "line": 6,
+      "literal": "Session",
+      "path": "templates/accounts/certification_session_detail.html"
+    },
+    {
+      "key": "academic_year",
+      "line": 23,
+      "literal": "Academic year",
+      "path": "templates/accounts/clone_year_setup.html"
+    },
+    {
+      "key": "academic_year",
+      "line": 24,
+      "literal": "Academic years",
+      "path": "templates/accounts/clone_year_setup.html"
+    },
+    {
+      "key": "message",
+      "line": 3,
+      "literal": "Message",
+      "path": "templates/accounts/direct_compose.html"
+    },
+    {
+      "key": "message",
+      "line": 23,
+      "literal": "Message",
+      "path": "templates/accounts/direct_compose.html"
+    },
+    {
+      "key": "message",
+      "line": 74,
+      "literal": "Messages",
+      "path": "templates/accounts/direct_thread.html"
+    },
+    {
+      "key": "message",
+      "line": 87,
+      "literal": "Messages",
+      "path": "templates/accounts/direct_thread.html"
+    },
+    {
+      "key": "message",
+      "line": 125,
+      "literal": "Message",
+      "path": "templates/accounts/direct_thread.html"
+    },
+    {
+      "key": "subject",
+      "line": 130,
+      "literal": "Subject",
+      "path": "templates/accounts/direct_thread.html"
+    },
+    {
+      "key": "message",
+      "line": 161,
+      "literal": "Messages",
+      "path": "templates/accounts/direct_thread.html"
+    },
+    {
+      "key": "message",
+      "line": 163,
+      "literal": "Messages",
+      "path": "templates/accounts/direct_thread.html"
+    },
+    {
+      "key": "teacher",
+      "line": 27,
+      "literal": "Teacher",
+      "path": "templates/accounts/documentation.html"
+    },
+    {
+      "key": "alumnus",
+      "line": 85,
+      "literal": "Alumni",
+      "path": "templates/accounts/entity_console.html"
+    },
+    {
+      "key": "classroom",
+      "line": 116,
+      "literal": "Classroom",
+      "path": "templates/accounts/entity_console.html"
+    },
+    {
+      "key": "parent",
+      "line": 21,
+      "literal": "Parent",
+      "path": "templates/accounts/guardian_setup.html"
+    },
+    {
+      "key": "student",
+      "line": 19,
+      "literal": "Students",
+      "path": "templates/accounts/legacy_data_cleaner.html"
+    },
+    {
+      "key": "message",
+      "line": 130,
+      "literal": "Message",
+      "path": "templates/accounts/partials/notifications_body.html"
+    },
+    {
+      "key": "school",
+      "line": 14,
+      "literal": "School",
+      "path": "templates/accounts/password_change_form.html"
+    },
+    {
+      "key": "guardian",
+      "line": 13,
+      "literal": "Guardians",
+      "path": "templates/accounts/profile_edit.html"
+    },
+    {
+      "key": "student",
+      "line": 43,
+      "literal": "Student",
+      "path": "templates/accounts/rollover_proposal_detail.html"
+    },
+    {
+      "key": "class",
+      "line": 44,
+      "literal": "Class",
+      "path": "templates/accounts/rollover_proposal_detail.html"
+    },
+    {
+      "key": "class",
+      "line": 48,
+      "literal": "Class",
+      "path": "templates/accounts/rollover_proposal_detail.html"
+    },
+    {
+      "key": "class",
+      "line": 26,
+      "literal": "Classes",
+      "path": "templates/accounts/rollover_queue.html"
+    },
+    {
+      "key": "classroom",
+      "line": 28,
+      "literal": "Classroom",
+      "path": "templates/accounts/rollover_year.html"
+    },
+    {
+      "key": "student",
+      "line": 29,
+      "literal": "Student",
+      "path": "templates/accounts/rollover_year.html"
+    },
+    {
+      "key": "grade",
+      "line": 30,
+      "literal": "Grade",
+      "path": "templates/accounts/rollover_year.html"
+    },
+    {
+      "key": "student",
+      "line": 99,
+      "literal": "Students",
+      "path": "templates/accounts/rollover_year.html"
+    },
+    {
+      "key": "alumnus",
+      "line": 148,
+      "literal": "Alumni",
+      "path": "templates/accounts/rollover_year.html"
+    },
+    {
+      "key": "teacher",
+      "line": 2,
+      "literal": "Teacher",
+      "path": "templates/analytics/dashboard.html"
+    },
+    {
+      "key": "term",
+      "line": 53,
+      "literal": "Term",
+      "path": "templates/analytics/deadlines.html"
+    },
+    {
+      "key": "school",
+      "line": 57,
+      "literal": "School",
+      "path": "templates/analytics/deadlines.html"
+    },
+    {
+      "key": "student",
+      "line": 97,
+      "literal": "Student",
+      "path": "templates/analytics/master_sheet.html"
+    },
+    {
+      "key": "class",
+      "line": 98,
+      "literal": "Class",
+      "path": "templates/analytics/master_sheet.html"
+    },
+    {
+      "key": "subject",
+      "line": 100,
+      "literal": "Subject",
+      "path": "templates/analytics/master_sheet.html"
+    },
+    {
+      "key": "teacher",
+      "line": 101,
+      "literal": "Teacher",
+      "path": "templates/analytics/master_sheet.html"
+    },
+    {
+      "key": "term",
+      "line": 102,
+      "literal": "Term",
+      "path": "templates/analytics/master_sheet.html"
+    },
+    {
+      "key": "school",
+      "line": 16,
+      "literal": "School",
+      "path": "templates/auth/login.html"
+    },
+    {
+      "key": "staff",
+      "line": 95,
+      "literal": "Staff",
+      "path": "templates/auth/login.html"
+    },
+    {
+      "key": "student",
+      "line": 96,
+      "literal": "Student",
+      "path": "templates/auth/login.html"
+    },
+    {
+      "key": "parent",
+      "line": 97,
+      "literal": "Parent",
+      "path": "templates/auth/login.html"
+    },
+    {
+      "key": "school",
+      "line": 14,
+      "literal": "School",
+      "path": "templates/auth/school_picker.html"
+    },
+    {
+      "key": "staff",
+      "line": 27,
+      "literal": "Staff",
+      "path": "templates/backend_base_tenant.html"
+    },
+    {
+      "key": "school",
+      "line": 34,
+      "literal": "School",
+      "path": "templates/backend_base_tenant.html"
+    },
+    {
+      "key": "school",
+      "line": 35,
+      "literal": "School",
+      "path": "templates/backend_base_tenant.html"
+    },
+    {
+      "key": "school",
+      "line": 38,
+      "literal": "School",
+      "path": "templates/backend_base_tenant.html"
+    },
+    {
+      "key": "school",
+      "line": 47,
+      "literal": "School",
+      "path": "templates/backend_base_tenant.html"
+    },
+    {
+      "key": "school",
+      "line": 48,
+      "literal": "School",
+      "path": "templates/backend_base_tenant.html"
+    },
+    {
+      "key": "school",
+      "line": 62,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 147,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 148,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 150,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 151,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 156,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 157,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 158,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 159,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 160,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 166,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 167,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 168,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 169,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 170,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 171,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 172,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 181,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "class",
+      "line": 214,
+      "literal": "Class",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "school",
+      "line": 234,
+      "literal": "School",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "module",
+      "line": 377,
+      "literal": "Module",
+      "path": "templates/base.html"
+    },
+    {
+      "key": "announcement",
+      "line": 33,
+      "literal": "Announcement",
+      "path": "templates/communication/announcement_create.html"
+    },
+    {
+      "key": "announcement",
+      "line": 5,
+      "literal": "Announcements",
+      "path": "templates/communication/announcement_list_pending.html"
+    },
+    {
+      "key": "announcement",
+      "line": 15,
+      "literal": "Announcements",
+      "path": "templates/communication/class_announcement_create.html"
+    },
+    {
+      "key": "message",
+      "line": 48,
+      "literal": "Messages",
+      "path": "templates/communication/group_detail.html"
+    },
+    {
+      "key": "message",
+      "line": 50,
+      "literal": "Messages",
+      "path": "templates/communication/group_detail.html"
+    },
+    {
+      "key": "department",
+      "line": 160,
+      "literal": "Department",
+      "path": "templates/communication/group_detail.html"
+    },
+    {
+      "key": "classroom",
+      "line": 163,
+      "literal": "Classroom",
+      "path": "templates/communication/group_detail.html"
+    },
+    {
+      "key": "message",
+      "line": 212,
+      "literal": "Message",
+      "path": "templates/communication/group_detail.html"
+    },
+    {
+      "key": "message",
+      "line": 213,
+      "literal": "Messages",
+      "path": "templates/communication/group_detail.html"
+    },
+    {
+      "key": "message",
+      "line": 4,
+      "literal": "Message",
+      "path": "templates/communication/group_list.html"
+    },
+    {
+      "key": "invoice",
+      "line": 105,
+      "literal": "Invoices",
+      "path": "templates/communication/group_list.html"
+    },
+    {
+      "key": "student",
+      "line": 17,
+      "literal": "Student",
+      "path": "templates/communication/narrative_approve.html"
+    },
+    {
+      "key": "message",
+      "line": 19,
+      "literal": "Message",
+      "path": "templates/communication/narrative_approve.html"
+    },
+    {
+      "key": "class",
+      "line": 109,
+      "literal": "Classes",
+      "path": "templates/compliance/audit_trail_report.html"
+    },
+    {
+      "key": "message",
+      "line": 90,
+      "literal": "Message",
+      "path": "templates/compliance/data_quality_center.html"
+    },
+    {
+      "key": "student",
+      "line": 3,
+      "literal": "Student",
+      "path": "templates/compliance/erasure_request.html"
+    },
+    {
+      "key": "teacher",
+      "line": 33,
+      "literal": "Teacher",
+      "path": "templates/components/ai_copilot.html"
+    },
+    {
+      "key": "parent",
+      "line": 35,
+      "literal": "Parent",
+      "path": "templates/components/ai_copilot.html"
+    },
+    {
+      "key": "class",
+      "line": 44,
+      "literal": "Classes",
+      "path": "templates/components/ai_copilot.html"
+    },
+    {
+      "key": "message",
+      "line": 62,
+      "literal": "Message",
+      "path": "templates/components/ai_copilot.html"
+    },
+    {
+      "key": "grade",
+      "line": 77,
+      "literal": "Grade",
+      "path": "templates/components/ai_copilot.html"
+    },
+    {
+      "key": "class",
+      "line": 78,
+      "literal": "Class",
+      "path": "templates/components/ai_copilot.html"
+    },
+    {
+      "key": "attendance",
+      "line": 79,
+      "literal": "Attendance",
+      "path": "templates/components/ai_copilot.html"
+    },
+    {
+      "key": "student",
+      "line": 80,
+      "literal": "Student",
+      "path": "templates/components/ai_copilot.html"
+    },
+    {
+      "key": "student",
+      "line": 82,
+      "literal": "Student",
+      "path": "templates/components/ai_copilot.html"
+    },
+    {
+      "key": "teacher",
+      "line": 84,
+      "literal": "Teachers",
+      "path": "templates/components/ai_copilot.html"
+    },
+    {
+      "key": "announcement",
+      "line": 1,
+      "literal": "Announcement",
+      "path": "templates/components/announcement_banner.html"
+    },
+    {
+      "key": "announcement",
+      "line": 4,
+      "literal": "Announcements",
+      "path": "templates/components/announcement_banner.html"
+    },
+    {
+      "key": "class",
+      "line": 35,
+      "literal": "Class",
+      "path": "templates/components/confirm_modal.html"
+    },
+    {
+      "key": "module",
+      "line": 25,
+      "literal": "Module",
+      "path": "templates/components/contextual_feedback_widget.html"
+    },
+    {
+      "key": "assignment",
+      "line": 2,
+      "literal": "Assignment",
+      "path": "templates/components/dashboard/rmc_dh_due_item.html"
+    },
+    {
+      "key": "attendance",
+      "line": 2,
+      "literal": "Attendance",
+      "path": "templates/components/dashboard/rmc_dh_heat.html"
+    },
+    {
+      "key": "class",
+      "line": 4,
+      "literal": "Class",
+      "path": "templates/components/dashboard/rmc_dh_panel_head.html"
+    },
+    {
+      "key": "subject",
+      "line": 2,
+      "literal": "Subject",
+      "path": "templates/components/dashboard/rmc_dh_subj_grid.html"
+    },
+    {
+      "key": "class",
+      "line": 3,
+      "literal": "Class",
+      "path": "templates/components/dashboard/rmc_dh_tile.html"
+    },
+    {
+      "key": "class",
+      "line": 28,
+      "literal": "Class",
+      "path": "templates/components/form_actions.html"
+    },
+    {
+      "key": "class",
+      "line": 14,
+      "literal": "Classes",
+      "path": "templates/components/form_field.html"
+    },
+    {
+      "key": "class",
+      "line": 15,
+      "literal": "Classes",
+      "path": "templates/components/form_field.html"
+    },
+    {
+      "key": "class",
+      "line": 26,
+      "literal": "Class",
+      "path": "templates/components/form_field.html"
+    },
+    {
+      "key": "class",
+      "line": 41,
+      "literal": "Class",
+      "path": "templates/components/form_field.html"
+    },
+    {
+      "key": "parent",
+      "line": 42,
+      "literal": "Parent",
+      "path": "templates/components/form_field.html"
+    },
+    {
+      "key": "parent",
+      "line": 2,
+      "literal": "Parents",
+      "path": "templates/components/guardian_student_links.html"
+    },
+    {
+      "key": "class",
+      "line": 16,
+      "literal": "Class",
+      "path": "templates/components/marketing_hero_image.html"
+    },
+    {
+      "key": "class",
+      "line": 23,
+      "literal": "Class",
+      "path": "templates/components/page_header.html"
+    },
+    {
+      "key": "class",
+      "line": 11,
+      "literal": "Classes",
+      "path": "templates/components/pagination.html"
+    },
+    {
+      "key": "class",
+      "line": 7,
+      "literal": "Class",
+      "path": "templates/components/platform_readiness_strip.html"
+    },
+    {
+      "key": "class",
+      "line": 8,
+      "literal": "Class",
+      "path": "templates/components/platform_readiness_strip.html"
+    },
+    {
+      "key": "class",
+      "line": 9,
+      "literal": "Class",
+      "path": "templates/components/platform_readiness_strip.html"
+    },
+    {
+      "key": "school",
+      "line": 12,
+      "literal": "School",
+      "path": "templates/components/platform_readiness_strip.html"
+    },
+    {
+      "key": "class",
+      "line": 14,
+      "literal": "Class",
+      "path": "templates/components/platform_readiness_strip.html"
+    },
+    {
+      "key": "parent",
+      "line": 3,
+      "literal": "Parent",
+      "path": "templates/components/rmc_avatar.html"
+    },
+    {
+      "key": "student",
+      "line": 10,
+      "literal": "Student",
+      "path": "templates/components/rmc_avatar.html"
+    },
+    {
+      "key": "class",
+      "line": 25,
+      "literal": "Classes",
+      "path": "templates/components/rmc_avatar.html"
+    },
+    {
+      "key": "class",
+      "line": 11,
+      "literal": "Classes",
+      "path": "templates/components/rmc_bottom_sheet.html"
+    },
+    {
+      "key": "class",
+      "line": 15,
+      "literal": "Class",
+      "path": "templates/components/rmc_bottom_sheet.html"
+    },
+    {
+      "key": "school",
+      "line": 52,
+      "literal": "School",
+      "path": "templates/components/rmc_brand_mark.html"
+    },
+    {
+      "key": "school",
+      "line": 3,
+      "literal": "School",
+      "path": "templates/components/rmc_campus_switcher.html"
+    },
+    {
+      "key": "school",
+      "line": 4,
+      "literal": "Schools",
+      "path": "templates/components/rmc_campus_switcher.html"
+    },
+    {
+      "key": "campus",
+      "line": 5,
+      "literal": "Campuses",
+      "path": "templates/components/rmc_campus_switcher.html"
+    },
+    {
+      "key": "student",
+      "line": 4,
+      "literal": "Student",
+      "path": "templates/components/rmc_command_palette.html"
+    },
+    {
+      "key": "message",
+      "line": 4,
+      "literal": "Message",
+      "path": "templates/components/rmc_empty_state.html"
+    },
+    {
+      "key": "school",
+      "line": 9,
+      "literal": "Schools",
+      "path": "templates/components/rmc_empty_state_card.html"
+    },
+    {
+      "key": "campus",
+      "line": 10,
+      "literal": "Campus",
+      "path": "templates/components/rmc_empty_state_card.html"
+    },
+    {
+      "key": "school",
+      "line": 11,
+      "literal": "School",
+      "path": "templates/components/rmc_empty_state_card.html"
+    },
+    {
+      "key": "class",
+      "line": 18,
+      "literal": "Class",
+      "path": "templates/components/rmc_empty_state_card.html"
+    },
+    {
+      "key": "student",
+      "line": 13,
+      "literal": "Students",
+      "path": "templates/components/rmc_metric_ticker.html"
+    },
+    {
+      "key": "guardian",
+      "line": 14,
+      "literal": "Guardians",
+      "path": "templates/components/rmc_metric_ticker.html"
+    },
+    {
+      "key": "fee",
+      "line": 15,
+      "literal": "Fees",
+      "path": "templates/components/rmc_metric_ticker.html"
+    },
+    {
+      "key": "project",
+      "line": 51,
+      "literal": "Projects",
+      "path": "templates/components/rmc_metric_ticker.html"
+    },
+    {
+      "key": "message",
+      "line": 7,
+      "literal": "Messages",
+      "path": "templates/components/rmc_skeleton.html"
+    },
+    {
+      "key": "school",
+      "line": 3,
+      "literal": "School",
+      "path": "templates/components/rmc_workflow_tenant_trust_strip.html"
+    },
+    {
+      "key": "invoice",
+      "line": 3,
+      "literal": "Invoices",
+      "path": "templates/components/was_this_helpful.html"
+    },
+    {
+      "key": "message",
+      "line": 2,
+      "literal": "Message",
+      "path": "templates/components/weather_widget.html"
+    },
+    {
+      "key": "class",
+      "line": 2,
+      "literal": "Classes",
+      "path": "templates/components/world_class_page_hero.html"
+    },
+    {
+      "key": "class",
+      "line": 2,
+      "literal": "Class",
+      "path": "templates/components/world_class_summary_strip.html"
+    },
+    {
+      "key": "school",
+      "line": 58,
+      "literal": "Schools",
+      "path": "templates/control_plane_base.html"
+    },
+    {
+      "key": "school",
+      "line": 59,
+      "literal": "Schools",
+      "path": "templates/control_plane_base.html"
+    },
+    {
+      "key": "class",
+      "line": 197,
+      "literal": "Class",
+      "path": "templates/control_plane_skeleton.html"
+    },
+    {
+      "key": "school",
+      "line": 222,
+      "literal": "Schools",
+      "path": "templates/control_plane_skeleton.html"
+    },
+    {
+      "key": "school",
+      "line": 223,
+      "literal": "Schools",
+      "path": "templates/control_plane_skeleton.html"
+    },
+    {
+      "key": "academic_year",
+      "line": 63,
+      "literal": "Academic year",
+      "path": "templates/emis/dashboard.html"
+    },
+    {
+      "key": "term",
+      "line": 75,
+      "literal": "Term",
+      "path": "templates/emis/dashboard.html"
+    },
+    {
+      "key": "term",
+      "line": 79,
+      "literal": "Terms",
+      "path": "templates/emis/dashboard.html"
+    },
+    {
+      "key": "term",
+      "line": 80,
+      "literal": "Terms",
+      "path": "templates/emis/dashboard.html"
+    },
+    {
+      "key": "session",
+      "line": 23,
+      "literal": "Session",
+      "path": "templates/errors/500_minimal.html"
+    },
+    {
+      "key": "administrator",
+      "line": 24,
+      "literal": "Administrator",
+      "path": "templates/errors/500_minimal.html"
+    },
+    {
+      "key": "grade",
+      "line": 4,
+      "literal": "Grade",
+      "path": "templates/evals/audit_trail.html"
+    },
+    {
+      "key": "class",
+      "line": 4,
+      "literal": "Class",
+      "path": "templates/evals/class_ranking.html"
+    },
+    {
+      "key": "student",
+      "line": 59,
+      "literal": "Students",
+      "path": "templates/evals/class_ranking.html"
+    },
+    {
+      "key": "student",
+      "line": 61,
+      "literal": "Students",
+      "path": "templates/evals/class_ranking.html"
+    },
+    {
+      "key": "student",
+      "line": 95,
+      "literal": "Student",
+      "path": "templates/evals/class_ranking.html"
+    },
+    {
+      "key": "classroom",
+      "line": 92,
+      "literal": "Classroom",
+      "path": "templates/evals/compliance_dashboard.html"
+    },
+    {
+      "key": "student",
+      "line": 59,
+      "literal": "Student",
+      "path": "templates/evals/evidence_upload.html"
+    },
+    {
+      "key": "subject",
+      "line": 60,
+      "literal": "Subject",
+      "path": "templates/evals/evidence_upload.html"
+    },
+    {
+      "key": "grade",
+      "line": 3,
+      "literal": "Grade",
+      "path": "templates/evals/grade_approval_detail.html"
+    },
+    {
+      "key": "grade",
+      "line": 3,
+      "literal": "Grade",
+      "path": "templates/evals/grade_approval_list.html"
+    },
+    {
+      "key": "subject",
+      "line": 37,
+      "literal": "Subject",
+      "path": "templates/evals/grade_approval_list.html"
+    },
+    {
+      "key": "grade",
+      "line": 4,
+      "literal": "Grade",
+      "path": "templates/evals/grade_import_upload_v2.html"
+    },
+    {
+      "key": "exam",
+      "line": 53,
+      "literal": "Exam",
+      "path": "templates/evals/grade_import_upload_v2.html"
+    },
+    {
+      "key": "student",
+      "line": 133,
+      "literal": "Student",
+      "path": "templates/evals/grade_import_upload_v2.html"
+    },
+    {
+      "key": "grade",
+      "line": 167,
+      "literal": "Grades",
+      "path": "templates/evals/grade_import_upload_v2.html"
+    },
+    {
+      "key": "student",
+      "line": 169,
+      "literal": "Students",
+      "path": "templates/evals/grade_import_upload_v2.html"
+    },
+    {
+      "key": "grade",
+      "line": 171,
+      "literal": "Grades",
+      "path": "templates/evals/grade_import_upload_v2.html"
+    },
+    {
+      "key": "guardian",
+      "line": 173,
+      "literal": "Guardians",
+      "path": "templates/evals/grade_import_upload_v2.html"
+    },
+    {
+      "key": "grade",
+      "line": 212,
+      "literal": "Grades",
+      "path": "templates/evals/grade_import_upload_v2.html"
+    },
+    {
+      "key": "exam",
+      "line": 47,
+      "literal": "Exam",
+      "path": "templates/evals/resolve_offline_conflict.html"
+    },
+    {
+      "key": "exam",
+      "line": 105,
+      "literal": "Exam",
+      "path": "templates/evals/resolve_offline_conflict.html"
+    },
+    {
+      "key": "school",
+      "line": 4,
+      "literal": "School",
+      "path": "templates/evals/school_ranking.html"
+    },
+    {
+      "key": "student",
+      "line": 51,
+      "literal": "Student",
+      "path": "templates/evals/school_ranking.html"
+    },
+    {
+      "key": "class",
+      "line": 52,
+      "literal": "Class",
+      "path": "templates/evals/school_ranking.html"
+    },
+    {
+      "key": "school",
+      "line": 2,
+      "literal": "School",
+      "path": "templates/feedback/partials/help_center_support_lane.html"
+    },
+    {
+      "key": "module",
+      "line": 69,
+      "literal": "Module",
+      "path": "templates/feedback/voice_of_customer.html"
+    },
+    {
+      "key": "parent",
+      "line": 49,
+      "literal": "Parent",
+      "path": "templates/finance/access_bulk.html"
+    },
+    {
+      "key": "student",
+      "line": 36,
+      "literal": "Student",
+      "path": "templates/finance/bursar_entries_report.html"
+    },
+    {
+      "key": "invoice",
+      "line": 148,
+      "literal": "Invoice",
+      "path": "templates/finance/dashboard.html"
+    },
+    {
+      "key": "academic_year",
+      "line": 24,
+      "literal": "Academic year",
+      "path": "templates/finance/expense_vs_budget.html"
+    },
+    {
+      "key": "invoice",
+      "line": 4,
+      "literal": "Invoices",
+      "path": "templates/finance/generate_fees.html"
+    },
+    {
+      "key": "invoice",
+      "line": 12,
+      "literal": "Invoice",
+      "path": "templates/finance/invoice_detail.html"
+    },
+    {
+      "key": "invoice",
+      "line": 15,
+      "literal": "Invoice",
+      "path": "templates/finance/invoice_detail.html"
+    },
+    {
+      "key": "invoice",
+      "line": 115,
+      "literal": "Invoice",
+      "path": "templates/finance/invoices.html"
+    },
+    {
+      "key": "parent",
+      "line": 211,
+      "literal": "Parent",
+      "path": "templates/finance/invoices.html"
+    },
+    {
+      "key": "guardian",
+      "line": 225,
+      "literal": "Guardian",
+      "path": "templates/finance/invoices.html"
+    },
+    {
+      "key": "parent",
+      "line": 226,
+      "literal": "Parent",
+      "path": "templates/finance/invoices.html"
+    },
+    {
+      "key": "message",
+      "line": 83,
+      "literal": "Message",
+      "path": "templates/finance/payment_readiness_dashboard.html"
+    },
+    {
+      "key": "guardian",
+      "line": 25,
+      "literal": "Guardians",
+      "path": "templates/finance/payment_readiness_setup.html"
+    },
+    {
+      "key": "staff",
+      "line": 26,
+      "literal": "Staff",
+      "path": "templates/finance/payment_readiness_setup.html"
+    },
+    {
+      "key": "message",
+      "line": 27,
+      "literal": "Message",
+      "path": "templates/finance/payment_readiness_setup.html"
+    },
+    {
+      "key": "guardian",
+      "line": 91,
+      "literal": "Guardian",
+      "path": "templates/finance/payment_readiness_setup.html"
+    },
+    {
+      "key": "invoice",
+      "line": 66,
+      "literal": "Invoice",
+      "path": "templates/finance/payments.html"
+    },
+    {
+      "key": "invoice",
+      "line": 30,
+      "literal": "Invoice",
+      "path": "templates/finance/receipt.html"
+    },
+    {
+      "key": "invoice",
+      "line": 38,
+      "literal": "Invoice",
+      "path": "templates/finance/receipt.html"
+    },
+    {
+      "key": "guardian",
+      "line": 56,
+      "literal": "Guardians",
+      "path": "templates/finance/split_allocation.html"
+    },
+    {
+      "key": "guardian",
+      "line": 62,
+      "literal": "Guardian",
+      "path": "templates/finance/split_allocation.html"
+    },
+    {
+      "key": "invoice",
+      "line": 36,
+      "literal": "Invoice",
+      "path": "templates/finance/suspense_queue.html"
+    },
+    {
+      "key": "staff",
+      "line": 6,
+      "literal": "Staff",
+      "path": "templates/lifecycle/concierge_modal.html"
+    },
+    {
+      "key": "school",
+      "line": 7,
+      "literal": "School",
+      "path": "templates/lifecycle/concierge_modal.html"
+    },
+    {
+      "key": "session",
+      "line": 16,
+      "literal": "Session",
+      "path": "templates/lifecycle/concierge_modal.html"
+    },
+    {
+      "key": "school",
+      "line": 43,
+      "literal": "School",
+      "path": "templates/lifecycle/rapid_create.html"
+    },
+    {
+      "key": "school",
+      "line": 37,
+      "literal": "School",
+      "path": "templates/lti_admin/tool_registration.html"
+    },
+    {
+      "key": "student",
+      "line": 12,
+      "literal": "Students",
+      "path": "templates/lux_workspace/demo.html"
+    },
+    {
+      "key": "school",
+      "line": 5,
+      "literal": "School",
+      "path": "templates/marketplace/app_catalog.html"
+    },
+    {
+      "key": "school",
+      "line": 1,
+      "literal": "School",
+      "path": "templates/migration_cloud/bind_school.html"
+    },
+    {
+      "key": "student",
+      "line": 124,
+      "literal": "Student",
+      "path": "templates/migration_cloud/bundle_detail.html"
+    },
+    {
+      "key": "class",
+      "line": 2,
+      "literal": "Class",
+      "path": "templates/migration_cloud/customer/_progress_bar.html"
+    },
+    {
+      "key": "message",
+      "line": 6,
+      "literal": "Message",
+      "path": "templates/migration_cloud/emails/guardian/consent_confirmed.html"
+    },
+    {
+      "key": "school",
+      "line": 10,
+      "literal": "School",
+      "path": "templates/migration_cloud/emails/guardian/consent_confirmed.html"
+    },
+    {
+      "key": "message",
+      "line": 19,
+      "literal": "Message",
+      "path": "templates/migration_cloud/emails/guardian/consent_reminder.html"
+    },
+    {
+      "key": "school",
+      "line": 21,
+      "literal": "School",
+      "path": "templates/migration_cloud/emails/guardian/consent_reminder.html"
+    },
+    {
+      "key": "student",
+      "line": 6,
+      "literal": "Student",
+      "path": "templates/migration_cloud/emails/guardian/consent_request.html"
+    },
+    {
+      "key": "school",
+      "line": 7,
+      "literal": "School",
+      "path": "templates/migration_cloud/emails/guardian/consent_request.html"
+    },
+    {
+      "key": "school",
+      "line": 21,
+      "literal": "School",
+      "path": "templates/migration_cloud/emails/guardian/consent_request.html"
+    },
+    {
+      "key": "school",
+      "line": 31,
+      "literal": "School",
+      "path": "templates/migration_cloud/emails/guardian/consent_request.html"
+    },
+    {
+      "key": "school",
+      "line": 2,
+      "literal": "School",
+      "path": "templates/migration_cloud/guardian_consent/_consent_text_v1.html"
+    },
+    {
+      "key": "attendance",
+      "line": 9,
+      "literal": "Attendance",
+      "path": "templates/migration_cloud/guardian_consent/_consent_text_v1.html"
+    },
+    {
+      "key": "school",
+      "line": 10,
+      "literal": "School",
+      "path": "templates/migration_cloud/guardian_consent/_consent_text_v1.html"
+    },
+    {
+      "key": "guardian",
+      "line": 16,
+      "literal": "Guardian",
+      "path": "templates/migration_cloud/guardian_consent/_consent_text_v1.html"
+    },
+    {
+      "key": "school",
+      "line": 33,
+      "literal": "School",
+      "path": "templates/migration_cloud/guardian_consent/_consent_text_v1.html"
+    },
+    {
+      "key": "school",
+      "line": 41,
+      "literal": "School",
+      "path": "templates/migration_cloud/guardian_consent/_consent_text_v1.html"
+    },
+    {
+      "key": "school",
+      "line": 42,
+      "literal": "School",
+      "path": "templates/migration_cloud/guardian_consent/_consent_text_v1.html"
+    },
+    {
+      "key": "subject",
+      "line": 48,
+      "literal": "Subject",
+      "path": "templates/migration_cloud/guardian_consent/_consent_text_v1.html"
+    },
+    {
+      "key": "subject",
+      "line": 51,
+      "literal": "Subject",
+      "path": "templates/migration_cloud/guardian_consent/_consent_text_v1.html"
+    },
+    {
+      "key": "subject",
+      "line": 5,
+      "literal": "Subject",
+      "path": "templates/migration_cloud/operator/audit_dashboard.html"
+    },
+    {
+      "key": "project",
+      "line": 4,
+      "literal": "Project",
+      "path": "templates/migration_cloud/operator/command_center.html"
+    },
+    {
+      "key": "staff",
+      "line": 4,
+      "literal": "Staff",
+      "path": "templates/migration_cloud/operator/dsar_runbook.html"
+    },
+    {
+      "key": "project",
+      "line": 4,
+      "literal": "Project",
+      "path": "templates/migration_cloud/operator/maa_counsel_activate.html"
+    },
+    {
+      "key": "class",
+      "line": 4,
+      "literal": "Classes",
+      "path": "templates/migration_cloud/operator/smoke_trigger.html"
+    },
+    {
+      "key": "message",
+      "line": 97,
+      "literal": "Message",
+      "path": "templates/migration_cloud/progress.html"
+    },
+    {
+      "key": "message",
+      "line": 107,
+      "literal": "Message",
+      "path": "templates/migration_cloud/progress.html"
+    },
+    {
+      "key": "attendance",
+      "line": 37,
+      "literal": "Attendance",
+      "path": "templates/parent/_rmc_dh_family_home.html"
+    },
+    {
+      "key": "attendance",
+      "line": 41,
+      "literal": "Attendance",
+      "path": "templates/parent/_rmc_dh_family_home.html"
+    },
+    {
+      "key": "attendance",
+      "line": 42,
+      "literal": "Attendance",
+      "path": "templates/parent/_rmc_dh_family_home.html"
+    },
+    {
+      "key": "attendance",
+      "line": 89,
+      "literal": "Attendance",
+      "path": "templates/parent/_rmc_dh_family_home.html"
+    },
+    {
+      "key": "library",
+      "line": 96,
+      "literal": "Library",
+      "path": "templates/parent/attendance_discipline.html"
+    },
+    {
+      "key": "library",
+      "line": 55,
+      "literal": "Library",
+      "path": "templates/parent/claim_invite.html"
+    },
+    {
+      "key": "library",
+      "line": 66,
+      "literal": "Library",
+      "path": "templates/parent/contact_school.html"
+    },
+    {
+      "key": "parent",
+      "line": 5,
+      "literal": "Parent",
+      "path": "templates/parent/dashboard.html"
+    },
+    {
+      "key": "parent",
+      "line": 58,
+      "literal": "Parent",
+      "path": "templates/parent/dashboard.html"
+    },
+    {
+      "key": "campus",
+      "line": 59,
+      "literal": "Campus",
+      "path": "templates/parent/dashboard.html"
+    },
+    {
+      "key": "fee",
+      "line": 64,
+      "literal": "Fees",
+      "path": "templates/parent/dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 66,
+      "literal": "Schools",
+      "path": "templates/parent/dashboard.html"
+    },
+    {
+      "key": "library",
+      "line": 210,
+      "literal": "Library",
+      "path": "templates/parent/link_child.html"
+    },
+    {
+      "key": "student",
+      "line": 58,
+      "literal": "Student",
+      "path": "templates/parent/link_child_wizard.html"
+    },
+    {
+      "key": "school",
+      "line": 63,
+      "literal": "School",
+      "path": "templates/parent/link_child_wizard.html"
+    },
+    {
+      "key": "class",
+      "line": 64,
+      "literal": "Class",
+      "path": "templates/parent/link_child_wizard.html"
+    },
+    {
+      "key": "class",
+      "line": 98,
+      "literal": "Class",
+      "path": "templates/parent/link_child_wizard.html"
+    },
+    {
+      "key": "parent",
+      "line": 235,
+      "literal": "Parent",
+      "path": "templates/parent/link_child_wizard.html"
+    },
+    {
+      "key": "school",
+      "line": 347,
+      "literal": "School",
+      "path": "templates/parent/link_child_wizard.html"
+    },
+    {
+      "key": "library",
+      "line": 373,
+      "literal": "Library",
+      "path": "templates/parent/link_child_wizard.html"
+    },
+    {
+      "key": "parent",
+      "line": 2,
+      "literal": "Parent",
+      "path": "templates/parent/partials/threshold_window_hero.html"
+    },
+    {
+      "key": "campus",
+      "line": 3,
+      "literal": "Campus",
+      "path": "templates/parent/partials/threshold_window_hero.html"
+    },
+    {
+      "key": "student",
+      "line": 67,
+      "literal": "Student",
+      "path": "templates/parent/results.html"
+    },
+    {
+      "key": "class",
+      "line": 7,
+      "literal": "Classes",
+      "path": "templates/partials/_remote_support_banner.html"
+    },
+    {
+      "key": "class",
+      "line": 8,
+      "literal": "Classes",
+      "path": "templates/partials/_remote_support_banner.html"
+    },
+    {
+      "key": "school",
+      "line": 5,
+      "literal": "School",
+      "path": "templates/partials/cockpit/_achievements_card.html"
+    },
+    {
+      "key": "school",
+      "line": 14,
+      "literal": "Schools",
+      "path": "templates/partials/cockpit/_activity_ticker.html"
+    },
+    {
+      "key": "attendance",
+      "line": 18,
+      "literal": "Attendance",
+      "path": "templates/partials/cockpit/_activity_ticker.html"
+    },
+    {
+      "key": "class",
+      "line": 123,
+      "literal": "Class",
+      "path": "templates/partials/cockpit/_activity_ticker.html"
+    },
+    {
+      "key": "message",
+      "line": 26,
+      "literal": "Messages",
+      "path": "templates/partials/cockpit/_ai_copilot_rail.html"
+    },
+    {
+      "key": "staff",
+      "line": 182,
+      "literal": "Staff",
+      "path": "templates/partials/cockpit/_ai_copilot_rail.html"
+    },
+    {
+      "key": "staff",
+      "line": 186,
+      "literal": "Staff",
+      "path": "templates/partials/cockpit/_ai_copilot_rail.html"
+    },
+    {
+      "key": "class",
+      "line": 187,
+      "literal": "Class",
+      "path": "templates/partials/cockpit/_ai_copilot_rail.html"
+    },
+    {
+      "key": "notice",
+      "line": 205,
+      "literal": "Notice",
+      "path": "templates/partials/cockpit/_ai_copilot_rail.html"
+    },
+    {
+      "key": "class",
+      "line": 363,
+      "literal": "Class",
+      "path": "templates/partials/cockpit/_ai_copilot_rail.html"
+    },
+    {
+      "key": "school",
+      "line": 417,
+      "literal": "School",
+      "path": "templates/partials/cockpit/_ai_copilot_rail.html"
+    },
+    {
+      "key": "student",
+      "line": 5,
+      "literal": "Student",
+      "path": "templates/partials/cockpit/_ai_study_buddy.html"
+    },
+    {
+      "key": "student",
+      "line": 17,
+      "literal": "Student",
+      "path": "templates/partials/cockpit/_ai_study_buddy.html"
+    },
+    {
+      "key": "attendance",
+      "line": 3,
+      "literal": "Attendance",
+      "path": "templates/partials/cockpit/_attendance_heatmap.html"
+    },
+    {
+      "key": "school",
+      "line": 6,
+      "literal": "School",
+      "path": "templates/partials/cockpit/_attendance_heatmap.html"
+    },
+    {
+      "key": "term",
+      "line": 8,
+      "literal": "Terms",
+      "path": "templates/partials/cockpit/_audit_wordcloud.html"
+    },
+    {
+      "key": "school",
+      "line": 3,
+      "literal": "School",
+      "path": "templates/partials/cockpit/_calendar_weather.html"
+    },
+    {
+      "key": "school",
+      "line": 5,
+      "literal": "School",
+      "path": "templates/partials/cockpit/_calendar_weather.html"
+    },
+    {
+      "key": "school",
+      "line": 30,
+      "literal": "School",
+      "path": "templates/partials/cockpit/_collapsable_section.html"
+    },
+    {
+      "key": "student",
+      "line": 9,
+      "literal": "Student",
+      "path": "templates/partials/cockpit/_community_band.html"
+    },
+    {
+      "key": "student",
+      "line": 15,
+      "literal": "Student",
+      "path": "templates/partials/cockpit/_community_band.html"
+    },
+    {
+      "key": "grade",
+      "line": 19,
+      "literal": "Grade",
+      "path": "templates/partials/cockpit/_community_band.html"
+    },
+    {
+      "key": "student",
+      "line": 42,
+      "literal": "Student",
+      "path": "templates/partials/cockpit/_community_band.html"
+    },
+    {
+      "key": "term",
+      "line": 6,
+      "literal": "Term",
+      "path": "templates/partials/cockpit/_enrollment_forecast.html"
+    },
+    {
+      "key": "fee",
+      "line": 5,
+      "literal": "Fees",
+      "path": "templates/partials/cockpit/_financial_timeline.html"
+    },
+    {
+      "key": "school",
+      "line": 4,
+      "literal": "Schools",
+      "path": "templates/partials/cockpit/_forecast_lane.html"
+    },
+    {
+      "key": "subject",
+      "line": 5,
+      "literal": "Subject",
+      "path": "templates/partials/cockpit/_gradebook_trend.html"
+    },
+    {
+      "key": "subject",
+      "line": 6,
+      "literal": "Subject",
+      "path": "templates/partials/cockpit/_gradebook_trend.html"
+    },
+    {
+      "key": "subject",
+      "line": 37,
+      "literal": "Subject",
+      "path": "templates/partials/cockpit/_gradebook_trend.html"
+    },
+    {
+      "key": "lesson",
+      "line": 3,
+      "literal": "Lesson",
+      "path": "templates/partials/cockpit/_lesson_of_day.html"
+    },
+    {
+      "key": "lesson",
+      "line": 5,
+      "literal": "Lesson",
+      "path": "templates/partials/cockpit/_lesson_of_day.html"
+    },
+    {
+      "key": "student",
+      "line": 6,
+      "literal": "Student",
+      "path": "templates/partials/cockpit/_lesson_of_day.html"
+    },
+    {
+      "key": "notice",
+      "line": 5,
+      "literal": "Notice",
+      "path": "templates/partials/cockpit/_newsletter_band.html"
+    },
+    {
+      "key": "term",
+      "line": 10,
+      "literal": "Term",
+      "path": "templates/partials/cockpit/_newsletter_band.html"
+    },
+    {
+      "key": "notice",
+      "line": 14,
+      "literal": "Notice",
+      "path": "templates/partials/cockpit/_newsletter_band.html"
+    },
+    {
+      "key": "teacher",
+      "line": 5,
+      "literal": "Teacher",
+      "path": "templates/partials/cockpit/_parent_teacher_thread.html"
+    },
+    {
+      "key": "message",
+      "line": 7,
+      "literal": "Messages",
+      "path": "templates/partials/cockpit/_parent_teacher_thread.html"
+    },
+    {
+      "key": "message",
+      "line": 8,
+      "literal": "Message",
+      "path": "templates/partials/cockpit/_parent_teacher_thread.html"
+    },
+    {
+      "key": "message",
+      "line": 13,
+      "literal": "Messages",
+      "path": "templates/partials/cockpit/_parent_teacher_thread.html"
+    },
+    {
+      "key": "school",
+      "line": 16,
+      "literal": "Schools",
+      "path": "templates/partials/cockpit/_platform_pulse.html"
+    },
+    {
+      "key": "parent",
+      "line": 7,
+      "literal": "Parent",
+      "path": "templates/partials/cockpit/_promoted_dashboard_widgets.html"
+    },
+    {
+      "key": "message",
+      "line": 10,
+      "literal": "Message",
+      "path": "templates/partials/cockpit/_sibling_compare.html"
+    },
+    {
+      "key": "parent",
+      "line": 11,
+      "literal": "Parent",
+      "path": "templates/partials/cockpit/_sibling_compare.html"
+    },
+    {
+      "key": "parent",
+      "line": 14,
+      "literal": "Parent",
+      "path": "templates/partials/cockpit/_sibling_compare.html"
+    },
+    {
+      "key": "parent",
+      "line": 25,
+      "literal": "Parent",
+      "path": "templates/partials/cockpit/_sibling_compare.html"
+    },
+    {
+      "key": "parent",
+      "line": 27,
+      "literal": "Parent",
+      "path": "templates/partials/cockpit/_sibling_compare.html"
+    },
+    {
+      "key": "parent",
+      "line": 70,
+      "literal": "Parent",
+      "path": "templates/partials/cockpit/_sibling_compare.html"
+    },
+    {
+      "key": "teacher",
+      "line": 5,
+      "literal": "Teacher",
+      "path": "templates/partials/cockpit/_teacher_spotlight_card.html"
+    },
+    {
+      "key": "teacher",
+      "line": 11,
+      "literal": "Teacher",
+      "path": "templates/partials/cockpit/_teacher_spotlight_card.html"
+    },
+    {
+      "key": "staff",
+      "line": 12,
+      "literal": "Staff member",
+      "path": "templates/partials/cockpit/_teacher_spotlight_card.html"
+    },
+    {
+      "key": "grade",
+      "line": 15,
+      "literal": "Grade",
+      "path": "templates/partials/cockpit/_teacher_spotlight_card.html"
+    },
+    {
+      "key": "teacher",
+      "line": 25,
+      "literal": "Teacher",
+      "path": "templates/partials/cockpit/_teacher_spotlight_card.html"
+    },
+    {
+      "key": "teacher",
+      "line": 26,
+      "literal": "Teacher",
+      "path": "templates/partials/cockpit/_teacher_spotlight_card.html"
+    },
+    {
+      "key": "class",
+      "line": 34,
+      "literal": "Class",
+      "path": "templates/partials/cockpit/_tenant_heatmap.html"
+    },
+    {
+      "key": "school",
+      "line": 25,
+      "literal": "School",
+      "path": "templates/partials/cockpit/_upcoming_events_strip.html"
+    },
+    {
+      "key": "grade",
+      "line": 8,
+      "literal": "Grade",
+      "path": "templates/partials/cockpit/_workspace_context_tenant.html"
+    },
+    {
+      "key": "grade",
+      "line": 18,
+      "literal": "Grade",
+      "path": "templates/partials/cockpit/_workspace_context_tenant.html"
+    },
+    {
+      "key": "module",
+      "line": 34,
+      "literal": "Module",
+      "path": "templates/partials/cockpit/_workspace_context_tenant.html"
+    },
+    {
+      "key": "student",
+      "line": 7,
+      "literal": "Student",
+      "path": "templates/partials/cockpit/_year_progress.html"
+    },
+    {
+      "key": "academic_year",
+      "line": 12,
+      "literal": "Academic year",
+      "path": "templates/partials/cockpit/_year_progress.html"
+    },
+    {
+      "key": "term",
+      "line": 13,
+      "literal": "Term",
+      "path": "templates/partials/cockpit/_year_progress.html"
+    },
+    {
+      "key": "student",
+      "line": 24,
+      "literal": "Student",
+      "path": "templates/partials/cockpit/_year_progress.html"
+    },
+    {
+      "key": "school",
+      "line": 25,
+      "literal": "School",
+      "path": "templates/partials/cockpit/_year_progress.html"
+    },
+    {
+      "key": "session",
+      "line": 127,
+      "literal": "Session",
+      "path": "templates/partials/control_plane_primary_nav.html"
+    },
+    {
+      "key": "message",
+      "line": 131,
+      "literal": "Message",
+      "path": "templates/partials/control_plane_primary_nav.html"
+    },
+    {
+      "key": "session",
+      "line": 145,
+      "literal": "Session",
+      "path": "templates/partials/control_plane_primary_nav.html"
+    },
+    {
+      "key": "message",
+      "line": 149,
+      "literal": "Message",
+      "path": "templates/partials/control_plane_primary_nav.html"
+    },
+    {
+      "key": "class",
+      "line": 3,
+      "literal": "Classes",
+      "path": "templates/partials/luxury_major_audit_contract.html"
+    },
+    {
+      "key": "school",
+      "line": 134,
+      "literal": "School",
+      "path": "templates/partials/manager_operator_topbar.html"
+    },
+    {
+      "key": "staff",
+      "line": 193,
+      "literal": "Staff",
+      "path": "templates/partials/portal_sidebar.html"
+    },
+    {
+      "key": "staff",
+      "line": 264,
+      "literal": "Staff",
+      "path": "templates/partials/portal_sidebar.html"
+    },
+    {
+      "key": "teacher",
+      "line": 322,
+      "literal": "Teachers",
+      "path": "templates/partials/portal_sidebar.html"
+    },
+    {
+      "key": "school",
+      "line": 4,
+      "literal": "School",
+      "path": "templates/partials/rmc_dashboard_engine.html"
+    },
+    {
+      "key": "school",
+      "line": 6,
+      "literal": "School",
+      "path": "templates/partials/rmc_detail_engine.html"
+    },
+    {
+      "key": "school",
+      "line": 4,
+      "literal": "School",
+      "path": "templates/partials/rmc_empty_engine.html"
+    },
+    {
+      "key": "school",
+      "line": 4,
+      "literal": "School",
+      "path": "templates/partials/rmc_forms_engine.html"
+    },
+    {
+      "key": "student",
+      "line": 6,
+      "literal": "Student",
+      "path": "templates/partials/rmc_lexicon_meta.html"
+    },
+    {
+      "key": "school",
+      "line": 6,
+      "literal": "School",
+      "path": "templates/partials/rmc_loading_engine.html"
+    },
+    {
+      "key": "school",
+      "line": 6,
+      "literal": "School",
+      "path": "templates/partials/rmc_modal_engine.html"
+    },
+    {
+      "key": "school",
+      "line": 6,
+      "literal": "School",
+      "path": "templates/partials/rmc_notification_engine.html"
+    },
+    {
+      "key": "message",
+      "line": 16,
+      "literal": "Messages",
+      "path": "templates/partials/rmc_operator_tools_page_data.html"
+    },
+    {
+      "key": "fee",
+      "line": 16,
+      "literal": "Fees",
+      "path": "templates/partials/rmc_page_personality.html"
+    },
+    {
+      "key": "grade",
+      "line": 13,
+      "literal": "Grade",
+      "path": "templates/partials/rmc_platform_chrome_styles.html"
+    },
+    {
+      "key": "school",
+      "line": 8,
+      "literal": "School",
+      "path": "templates/partials/rmc_print_v2_brand_block.html"
+    },
+    {
+      "key": "school",
+      "line": 9,
+      "literal": "School",
+      "path": "templates/partials/rmc_print_v2_brand_block.html"
+    },
+    {
+      "key": "school",
+      "line": 33,
+      "literal": "Schools",
+      "path": "templates/partials/rmc_social_meta.html"
+    },
+    {
+      "key": "school",
+      "line": 4,
+      "literal": "School",
+      "path": "templates/partials/rmc_tables_engine.html"
+    },
+    {
+      "key": "message",
+      "line": 17,
+      "literal": "Messages",
+      "path": "templates/partials/rmc_tenant_tools_page_data.html"
+    },
+    {
+      "key": "module",
+      "line": 8,
+      "literal": "Modules",
+      "path": "templates/partials/rmc_viewport_engine.html"
+    },
+    {
+      "key": "class",
+      "line": 3,
+      "literal": "Class",
+      "path": "templates/partials/shell_chrome_backend_ops_strip.html"
+    },
+    {
+      "key": "class",
+      "line": 3,
+      "literal": "Class",
+      "path": "templates/partials/shell_chrome_backend_stats_core_strip.html"
+    },
+    {
+      "key": "parent",
+      "line": 1,
+      "literal": "Parent",
+      "path": "templates/partials/shell_chrome_breadcrumb_row_between_primary_and_actions.html"
+    },
+    {
+      "key": "parent",
+      "line": 1,
+      "literal": "Parent",
+      "path": "templates/partials/shell_chrome_breadcrumb_row_open.html"
+    },
+    {
+      "key": "announcement",
+      "line": 2,
+      "literal": "Announcement",
+      "path": "templates/partials/shell_chrome_django_messages.html"
+    },
+    {
+      "key": "message",
+      "line": 17,
+      "literal": "Messages",
+      "path": "templates/partials/shell_chrome_django_messages.html"
+    },
+    {
+      "key": "message",
+      "line": 1,
+      "literal": "Messages",
+      "path": "templates/partials/shell_chrome_django_messages_base_bootstrap.html"
+    },
+    {
+      "key": "message",
+      "line": 1,
+      "literal": "Messages",
+      "path": "templates/partials/shell_chrome_django_messages_control_plane.html"
+    },
+    {
+      "key": "announcement",
+      "line": 1,
+      "literal": "Announcement",
+      "path": "templates/partials/shell_chrome_django_messages_tenant_portal.html"
+    },
+    {
+      "key": "session",
+      "line": 2,
+      "literal": "Session",
+      "path": "templates/partials/shell_chrome_impersonation_session_strip.html"
+    },
+    {
+      "key": "staff",
+      "line": 2,
+      "literal": "Staff",
+      "path": "templates/partials/shell_chrome_site_preview_banner_top.html"
+    },
+    {
+      "key": "parent",
+      "line": 4,
+      "literal": "Parent",
+      "path": "templates/partials/tenant/operational_health_strip.html"
+    },
+    {
+      "key": "school",
+      "line": 4,
+      "literal": "School",
+      "path": "templates/partials/tenant/rmc_logo_maker.html"
+    },
+    {
+      "key": "school",
+      "line": 8,
+      "literal": "School",
+      "path": "templates/partials/tenant/rmc_logo_maker.html"
+    },
+    {
+      "key": "school",
+      "line": 5,
+      "literal": "School",
+      "path": "templates/partials/tenant/setup_command_surface.html"
+    },
+    {
+      "key": "school",
+      "line": 3,
+      "literal": "School",
+      "path": "templates/partials/tenant/tenant_initial_favicon.html"
+    },
+    {
+      "key": "session",
+      "line": 4,
+      "literal": "Session",
+      "path": "templates/partials/tenant_primary_nav.html"
+    },
+    {
+      "key": "period",
+      "line": 76,
+      "literal": "Period",
+      "path": "templates/payroll/dashboard.html"
+    },
+    {
+      "key": "period",
+      "line": 27,
+      "literal": "Period",
+      "path": "templates/payroll/employee_payslips.html"
+    },
+    {
+      "key": "student",
+      "line": 4,
+      "literal": "Student",
+      "path": "templates/people/backend_applicant_list.html"
+    },
+    {
+      "key": "class",
+      "line": 100,
+      "literal": "Classes",
+      "path": "templates/people/backend_applicant_list.html"
+    },
+    {
+      "key": "term",
+      "line": 5,
+      "literal": "Term",
+      "path": "templates/people/backend_classroom_list.html"
+    },
+    {
+      "key": "class",
+      "line": 97,
+      "literal": "Classes",
+      "path": "templates/people/backend_classroom_list.html"
+    },
+    {
+      "key": "guardian",
+      "line": 3,
+      "literal": "Guardians",
+      "path": "templates/people/backend_guardian_list.html"
+    },
+    {
+      "key": "term",
+      "line": 4,
+      "literal": "Terms",
+      "path": "templates/people/backend_guardian_list.html"
+    },
+    {
+      "key": "guardian",
+      "line": 63,
+      "literal": "Guardian",
+      "path": "templates/people/backend_guardian_list.html"
+    },
+    {
+      "key": "classroom",
+      "line": 66,
+      "literal": "Classroom",
+      "path": "templates/people/backend_guardian_list.html"
+    },
+    {
+      "key": "guardian",
+      "line": 154,
+      "literal": "Guardian",
+      "path": "templates/people/backend_student_create.html"
+    },
+    {
+      "key": "student",
+      "line": 4,
+      "literal": "Students",
+      "path": "templates/people/backend_student_list.html"
+    },
+    {
+      "key": "student",
+      "line": 5,
+      "literal": "Student",
+      "path": "templates/people/backend_student_list.html"
+    },
+    {
+      "key": "teacher",
+      "line": 5,
+      "literal": "Teacher",
+      "path": "templates/people/backend_teacher_create.html"
+    },
+    {
+      "key": "staff",
+      "line": 33,
+      "literal": "Staff",
+      "path": "templates/people/backend_teacher_detail.html"
+    },
+    {
+      "key": "teacher",
+      "line": 5,
+      "literal": "Teachers",
+      "path": "templates/people/backend_teacher_list.html"
+    },
+    {
+      "key": "staff",
+      "line": 53,
+      "literal": "Staff",
+      "path": "templates/people/backend_teacher_list.html"
+    },
+    {
+      "key": "department",
+      "line": 56,
+      "literal": "Department",
+      "path": "templates/people/backend_teacher_list.html"
+    },
+    {
+      "key": "student",
+      "line": 15,
+      "literal": "Student",
+      "path": "templates/people/employer_confirm_hours.html"
+    },
+    {
+      "key": "school",
+      "line": 16,
+      "literal": "School",
+      "path": "templates/people/employer_confirm_hours.html"
+    },
+    {
+      "key": "transcript",
+      "line": 13,
+      "literal": "Transcript",
+      "path": "templates/people/employer_transcript.html"
+    },
+    {
+      "key": "school",
+      "line": 32,
+      "literal": "School",
+      "path": "templates/platform_runtime/blueprint_apply.html"
+    },
+    {
+      "key": "module",
+      "line": 2,
+      "literal": "Module",
+      "path": "templates/platform_runtime/configuration_module_detail.html"
+    },
+    {
+      "key": "school",
+      "line": 24,
+      "literal": "School",
+      "path": "templates/platform_runtime/pack_apply.html"
+    },
+    {
+      "key": "school",
+      "line": 22,
+      "literal": "School",
+      "path": "templates/platform_runtime/school_configuration_center.html"
+    },
+    {
+      "key": "school",
+      "line": 5,
+      "literal": "School",
+      "path": "templates/platform_runtime/tenant_pack_setup.html"
+    },
+    {
+      "key": "message",
+      "line": 68,
+      "literal": "Message",
+      "path": "templates/portal/ai_line_intents.html"
+    },
+    {
+      "key": "academic_year",
+      "line": 2,
+      "literal": "Academic year",
+      "path": "templates/portal/at_risk_labeling/no_academic_year.html"
+    },
+    {
+      "key": "academic_year",
+      "line": 13,
+      "literal": "Academic year",
+      "path": "templates/portal/at_risk_labeling/no_academic_year.html"
+    },
+    {
+      "key": "student",
+      "line": 58,
+      "literal": "Student",
+      "path": "templates/portal/at_risk_labeling/queue.html"
+    },
+    {
+      "key": "academic_year",
+      "line": 104,
+      "literal": "Academic year",
+      "path": "templates/portal/at_risk_labeling/queue.html"
+    },
+    {
+      "key": "school",
+      "line": 19,
+      "literal": "School",
+      "path": "templates/portal/badge_verify.html"
+    },
+    {
+      "key": "school",
+      "line": 20,
+      "literal": "School",
+      "path": "templates/portal/badge_verify.html"
+    },
+    {
+      "key": "subject",
+      "line": 55,
+      "literal": "Subject",
+      "path": "templates/portal/cahier_list.html"
+    },
+    {
+      "key": "term",
+      "line": 83,
+      "literal": "Term",
+      "path": "templates/portal/configure/lexicon_settings.html"
+    },
+    {
+      "key": "term",
+      "line": 94,
+      "literal": "Term",
+      "path": "templates/portal/configure/lexicon_settings.html"
+    },
+    {
+      "key": "parent",
+      "line": 127,
+      "literal": "Parent",
+      "path": "templates/portal/configure/lexicon_settings.html"
+    },
+    {
+      "key": "school",
+      "line": 128,
+      "literal": "School",
+      "path": "templates/portal/configure/lexicon_settings.html"
+    },
+    {
+      "key": "message",
+      "line": 72,
+      "literal": "Message",
+      "path": "templates/portal/configure_hub.html"
+    },
+    {
+      "key": "library",
+      "line": 4,
+      "literal": "Library",
+      "path": "templates/portal/document_library_manage.html"
+    },
+    {
+      "key": "guardian",
+      "line": 3,
+      "literal": "Guardian",
+      "path": "templates/portal/education_pack_parent.html"
+    },
+    {
+      "key": "student",
+      "line": 4,
+      "literal": "Student",
+      "path": "templates/portal/education_pack_parent.html"
+    },
+    {
+      "key": "lesson",
+      "line": 3,
+      "literal": "Lesson",
+      "path": "templates/portal/education_pack_teacher.html"
+    },
+    {
+      "key": "student",
+      "line": 4,
+      "literal": "Student",
+      "path": "templates/portal/education_pack_teacher.html"
+    },
+    {
+      "key": "term",
+      "line": 5,
+      "literal": "Term",
+      "path": "templates/portal/education_pack_teacher.html"
+    },
+    {
+      "key": "school",
+      "line": 35,
+      "literal": "School",
+      "path": "templates/portal/feature_page.html"
+    },
+    {
+      "key": "administrator",
+      "line": 39,
+      "literal": "Administrator",
+      "path": "templates/portal/feature_page.html"
+    },
+    {
+      "key": "library",
+      "line": 91,
+      "literal": "Library",
+      "path": "templates/portal/feature_page.html"
+    },
+    {
+      "key": "class",
+      "line": 388,
+      "literal": "Class",
+      "path": "templates/portal/kb_article.html"
+    },
+    {
+      "key": "class",
+      "line": 241,
+      "literal": "Classes",
+      "path": "templates/portal/kb_search.html"
+    },
+    {
+      "key": "teacher",
+      "line": 2,
+      "literal": "Teacher",
+      "path": "templates/portal/partials/ai_draft_inline.html"
+    },
+    {
+      "key": "teacher",
+      "line": 7,
+      "literal": "Teacher",
+      "path": "templates/portal/partials/ai_draft_inline.html"
+    },
+    {
+      "key": "library",
+      "line": 132,
+      "literal": "Library",
+      "path": "templates/portal/partials/document_library_manage_inner.html"
+    },
+    {
+      "key": "student",
+      "line": 4,
+      "literal": "Student",
+      "path": "templates/portal/preview/student_syllabus_preview.html"
+    },
+    {
+      "key": "student",
+      "line": 18,
+      "literal": "Student",
+      "path": "templates/portal/preview/student_syllabus_preview.html"
+    },
+    {
+      "key": "classroom",
+      "line": 57,
+      "literal": "Classroom",
+      "path": "templates/portal/roll_call_student.html"
+    },
+    {
+      "key": "classroom",
+      "line": 82,
+      "literal": "Classroom",
+      "path": "templates/portal/roll_call_student.html"
+    },
+    {
+      "key": "library",
+      "line": 135,
+      "literal": "Library",
+      "path": "templates/portal/roll_call_student.html"
+    },
+    {
+      "key": "library",
+      "line": 88,
+      "literal": "Library",
+      "path": "templates/portal/roll_call_teacher.html"
+    },
+    {
+      "key": "attendance",
+      "line": 90,
+      "literal": "Attendance",
+      "path": "templates/portal/roll_call_teacher.html"
+    },
+    {
+      "key": "invoice",
+      "line": 85,
+      "literal": "Invoices",
+      "path": "templates/portal/signature_requests_manage.html"
+    },
+    {
+      "key": "invoice",
+      "line": 119,
+      "literal": "Invoices",
+      "path": "templates/portal/signature_requests_manage.html"
+    },
+    {
+      "key": "student",
+      "line": 38,
+      "literal": "Student",
+      "path": "templates/portal/signature_sign.html"
+    },
+    {
+      "key": "term",
+      "line": 102,
+      "literal": "Terms",
+      "path": "templates/portal/signature_sign.html"
+    },
+    {
+      "key": "school",
+      "line": 3,
+      "literal": "School",
+      "path": "templates/portal/stats.html"
+    },
+    {
+      "key": "invoice",
+      "line": 44,
+      "literal": "Invoices",
+      "path": "templates/portal/stats.html"
+    },
+    {
+      "key": "student",
+      "line": 158,
+      "literal": "Student",
+      "path": "templates/portal/stats.html"
+    },
+    {
+      "key": "student",
+      "line": 3,
+      "literal": "Student",
+      "path": "templates/portal/student_transcript_vault.html"
+    },
+    {
+      "key": "transcript",
+      "line": 4,
+      "literal": "Transcript",
+      "path": "templates/portal/student_transcript_vault.html"
+    },
+    {
+      "key": "transcript",
+      "line": 17,
+      "literal": "Transcript",
+      "path": "templates/portal/student_transcript_vault.html"
+    },
+    {
+      "key": "library",
+      "line": 59,
+      "literal": "Library",
+      "path": "templates/portal/support_request.html"
+    },
+    {
+      "key": "lesson",
+      "line": 22,
+      "literal": "Lessons",
+      "path": "templates/portal/timetable_build.html"
+    },
+    {
+      "key": "subject",
+      "line": 23,
+      "literal": "Subject",
+      "path": "templates/portal/timetable_build.html"
+    },
+    {
+      "key": "teacher",
+      "line": 25,
+      "literal": "Teachers",
+      "path": "templates/portal/timetable_build.html"
+    },
+    {
+      "key": "teacher",
+      "line": 26,
+      "literal": "Teacher",
+      "path": "templates/portal/timetable_build.html"
+    },
+    {
+      "key": "lesson",
+      "line": 73,
+      "literal": "Lessons",
+      "path": "templates/portal/timetable_build.html"
+    },
+    {
+      "key": "library",
+      "line": 51,
+      "literal": "Library",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "school",
+      "line": 105,
+      "literal": "School",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "school",
+      "line": 106,
+      "literal": "School",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "school",
+      "line": 107,
+      "literal": "School",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "school",
+      "line": 108,
+      "literal": "School",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "school",
+      "line": 109,
+      "literal": "School",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "campus",
+      "line": 277,
+      "literal": "Campus",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "student",
+      "line": 288,
+      "literal": "Students",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "message",
+      "line": 327,
+      "literal": "Messages",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "class",
+      "line": 340,
+      "literal": "Class",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "staff",
+      "line": 353,
+      "literal": "Staff",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "student",
+      "line": 524,
+      "literal": "Student",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "teacher",
+      "line": 580,
+      "literal": "Teachers",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "attendance",
+      "line": 581,
+      "literal": "Attendance",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "attendance",
+      "line": 582,
+      "literal": "Attendance",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "message",
+      "line": 620,
+      "literal": "Messages",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "teacher",
+      "line": 628,
+      "literal": "Teacher",
+      "path": "templates/portal_base.html"
+    },
+    {
+      "key": "school",
+      "line": 15,
+      "literal": "School",
+      "path": "templates/registration/password_reset_confirm.html"
+    },
+    {
+      "key": "school",
+      "line": 14,
+      "literal": "School",
+      "path": "templates/registration/password_reset_form.html"
+    },
+    {
+      "key": "parent",
+      "line": 127,
+      "literal": "Parents",
+      "path": "templates/reports/_report_styles.html"
+    },
+    {
+      "key": "class",
+      "line": 46,
+      "literal": "Class",
+      "path": "templates/reports/annual_report.html"
+    },
+    {
+      "key": "school",
+      "line": 48,
+      "literal": "School",
+      "path": "templates/reports/annual_report.html"
+    },
+    {
+      "key": "student",
+      "line": 55,
+      "literal": "Student",
+      "path": "templates/reports/annual_report.html"
+    },
+    {
+      "key": "class",
+      "line": 57,
+      "literal": "Class",
+      "path": "templates/reports/annual_report.html"
+    },
+    {
+      "key": "class",
+      "line": 70,
+      "literal": "Class",
+      "path": "templates/reports/annual_report.html"
+    },
+    {
+      "key": "teacher",
+      "line": 100,
+      "literal": "Teacher",
+      "path": "templates/reports/annual_report.html"
+    },
+    {
+      "key": "school",
+      "line": 65,
+      "literal": "School",
+      "path": "templates/reports/annual_report_cameroon_modern.html"
+    },
+    {
+      "key": "report_card",
+      "line": 150,
+      "literal": "Report card",
+      "path": "templates/reports/annual_report_cameroon_modern.html"
+    },
+    {
+      "key": "teacher",
+      "line": 12,
+      "literal": "Teacher",
+      "path": "templates/reports/evaluation_grid.html"
+    },
+    {
+      "key": "period",
+      "line": 15,
+      "literal": "Period",
+      "path": "templates/reports/evaluation_grid.html"
+    },
+    {
+      "key": "student",
+      "line": 64,
+      "literal": "Student",
+      "path": "templates/reports/evaluation_grid.html"
+    },
+    {
+      "key": "student",
+      "line": 68,
+      "literal": "Student",
+      "path": "templates/reports/evaluation_grid.html"
+    },
+    {
+      "key": "class",
+      "line": 69,
+      "literal": "Class",
+      "path": "templates/reports/evaluation_grid.html"
+    },
+    {
+      "key": "subject",
+      "line": 70,
+      "literal": "Subject",
+      "path": "templates/reports/evaluation_grid.html"
+    },
+    {
+      "key": "academic_year",
+      "line": 26,
+      "literal": "Academic year",
+      "path": "templates/reports/promotion_preview.html"
+    },
+    {
+      "key": "classroom",
+      "line": 43,
+      "literal": "Classrooms",
+      "path": "templates/reports/promotion_preview.html"
+    },
+    {
+      "key": "classroom",
+      "line": 73,
+      "literal": "Classroom",
+      "path": "templates/reports/promotion_preview.html"
+    },
+    {
+      "key": "student",
+      "line": 74,
+      "literal": "Student",
+      "path": "templates/reports/promotion_preview.html"
+    },
+    {
+      "key": "subject",
+      "line": 52,
+      "literal": "Subjects",
+      "path": "templates/reports/publish_term.html"
+    },
+    {
+      "key": "subject",
+      "line": 57,
+      "literal": "Subjects",
+      "path": "templates/reports/publish_term.html"
+    },
+    {
+      "key": "term",
+      "line": 67,
+      "literal": "Term",
+      "path": "templates/reports/publish_term.html"
+    },
+    {
+      "key": "school",
+      "line": 72,
+      "literal": "School",
+      "path": "templates/reports/publish_term.html"
+    },
+    {
+      "key": "module",
+      "line": 36,
+      "literal": "Module",
+      "path": "templates/reports/regulatory_export.html"
+    },
+    {
+      "key": "student",
+      "line": 21,
+      "literal": "Student",
+      "path": "templates/reports/share_link.html"
+    },
+    {
+      "key": "class",
+      "line": 22,
+      "literal": "Class",
+      "path": "templates/reports/share_link.html"
+    },
+    {
+      "key": "term",
+      "line": 25,
+      "literal": "Term",
+      "path": "templates/reports/share_link.html"
+    },
+    {
+      "key": "student",
+      "line": 25,
+      "literal": "Students",
+      "path": "templates/reports/statistical_return.html"
+    },
+    {
+      "key": "classroom",
+      "line": 53,
+      "literal": "Classroom",
+      "path": "templates/reports/statistical_return.html"
+    },
+    {
+      "key": "student",
+      "line": 54,
+      "literal": "Students",
+      "path": "templates/reports/statistical_return.html"
+    },
+    {
+      "key": "teacher",
+      "line": 86,
+      "literal": "Teachers",
+      "path": "templates/reports/statistical_return.html"
+    },
+    {
+      "key": "student",
+      "line": 90,
+      "literal": "Student",
+      "path": "templates/reports/statistical_return.html"
+    },
+    {
+      "key": "term",
+      "line": 13,
+      "literal": "Term",
+      "path": "templates/reports/term_report.html"
+    },
+    {
+      "key": "student",
+      "line": 56,
+      "literal": "Student",
+      "path": "templates/reports/term_report.html"
+    },
+    {
+      "key": "school",
+      "line": 65,
+      "literal": "School",
+      "path": "templates/reports/term_report.html"
+    },
+    {
+      "key": "subject",
+      "line": 81,
+      "literal": "Subject",
+      "path": "templates/reports/term_report.html"
+    },
+    {
+      "key": "subject",
+      "line": 84,
+      "literal": "Subject",
+      "path": "templates/reports/term_report.html"
+    },
+    {
+      "key": "academic_year",
+      "line": 99,
+      "literal": "Academic year",
+      "path": "templates/reports/term_report_cameroon_modern.html"
+    },
+    {
+      "key": "school",
+      "line": 102,
+      "literal": "School",
+      "path": "templates/reports/term_report_cameroon_modern.html"
+    },
+    {
+      "key": "term",
+      "line": 148,
+      "literal": "Term",
+      "path": "templates/reports/term_report_cameroon_modern.html"
+    },
+    {
+      "key": "sequence",
+      "line": 168,
+      "literal": "Sequence",
+      "path": "templates/reports/term_report_cameroon_modern.html"
+    },
+    {
+      "key": "report_card",
+      "line": 178,
+      "literal": "Report card",
+      "path": "templates/reports/term_report_cameroon_modern.html"
+    },
+    {
+      "key": "module",
+      "line": 20,
+      "literal": "Module",
+      "path": "templates/requests/access_denied.html"
+    },
+    {
+      "key": "module",
+      "line": 24,
+      "literal": "Module",
+      "path": "templates/requests/access_denied.html"
+    },
+    {
+      "key": "library",
+      "line": 37,
+      "literal": "Library",
+      "path": "templates/requests/access_denied.html"
+    },
+    {
+      "key": "library",
+      "line": 111,
+      "literal": "Library",
+      "path": "templates/requests/detail.html"
+    },
+    {
+      "key": "school",
+      "line": 4,
+      "literal": "School",
+      "path": "templates/school_events/event_hub.html"
+    },
+    {
+      "key": "school",
+      "line": 5,
+      "literal": "School",
+      "path": "templates/school_events/event_hub.html"
+    },
+    {
+      "key": "parent",
+      "line": 24,
+      "literal": "Parents",
+      "path": "templates/schoolops/email/locale/fr/low_meal_balance.html"
+    },
+    {
+      "key": "notice",
+      "line": 58,
+      "literal": "Notice",
+      "path": "templates/schoolops/email/low_meal_balance.html"
+    },
+    {
+      "key": "notice",
+      "line": 68,
+      "literal": "Notice",
+      "path": "templates/schoolops/email/low_meal_balance.html"
+    },
+    {
+      "key": "guardian",
+      "line": 91,
+      "literal": "Guardian",
+      "path": "templates/schoolops/email/low_meal_balance.html"
+    },
+    {
+      "key": "parent",
+      "line": 92,
+      "literal": "Parent",
+      "path": "templates/schoolops/email/low_meal_balance.html"
+    },
+    {
+      "key": "message",
+      "line": 245,
+      "literal": "Message",
+      "path": "templates/schoolops/super/email_health.html"
+    },
+    {
+      "key": "school",
+      "line": 16,
+      "literal": "School",
+      "path": "templates/schoolops/super/invite_school.html"
+    },
+    {
+      "key": "school",
+      "line": 18,
+      "literal": "School",
+      "path": "templates/schoolops/super/signup_verifications.html"
+    },
+    {
+      "key": "school",
+      "line": 20,
+      "literal": "School",
+      "path": "templates/schoolops/super/signup_verifications.html"
+    },
+    {
+      "key": "fee",
+      "line": 2,
+      "literal": "Fees",
+      "path": "templates/schools/_v2/_artifact_finance_dashboard.svg.html"
+    },
+    {
+      "key": "fee",
+      "line": 36,
+      "literal": "Fees",
+      "path": "templates/schools/_v2/_artifact_finance_dashboard.svg.html"
+    },
+    {
+      "key": "school",
+      "line": 2,
+      "literal": "School",
+      "path": "templates/schools/_v2/_artifact_leader_overview.svg.html"
+    },
+    {
+      "key": "attendance",
+      "line": 57,
+      "literal": "Attendance",
+      "path": "templates/schools/_v2/_artifact_leader_overview.svg.html"
+    },
+    {
+      "key": "attendance",
+      "line": 60,
+      "literal": "Attendance",
+      "path": "templates/schools/_v2/_artifact_leader_overview.svg.html"
+    },
+    {
+      "key": "fee",
+      "line": 78,
+      "literal": "Fees",
+      "path": "templates/schools/_v2/_artifact_leader_overview.svg.html"
+    },
+    {
+      "key": "staff",
+      "line": 105,
+      "literal": "Staff",
+      "path": "templates/schools/_v2/_artifact_leader_overview.svg.html"
+    },
+    {
+      "key": "staff",
+      "line": 108,
+      "literal": "Staff",
+      "path": "templates/schools/_v2/_artifact_leader_overview.svg.html"
+    },
+    {
+      "key": "parent",
+      "line": 2,
+      "literal": "Parent",
+      "path": "templates/schools/_v2/_artifact_parent_phone.svg.html"
+    },
+    {
+      "key": "parent",
+      "line": 3,
+      "literal": "Parent",
+      "path": "templates/schools/_v2/_artifact_parent_phone.svg.html"
+    },
+    {
+      "key": "attendance",
+      "line": 98,
+      "literal": "Attendance",
+      "path": "templates/schools/_v2/_artifact_parent_phone.svg.html"
+    },
+    {
+      "key": "term",
+      "line": 116,
+      "literal": "Term",
+      "path": "templates/schools/_v2/_artifact_parent_phone.svg.html"
+    },
+    {
+      "key": "school",
+      "line": 136,
+      "literal": "School",
+      "path": "templates/schools/_v2/_artifact_parent_phone.svg.html"
+    },
+    {
+      "key": "message",
+      "line": 150,
+      "literal": "Messages",
+      "path": "templates/schools/_v2/_artifact_parent_phone.svg.html"
+    },
+    {
+      "key": "parent",
+      "line": 2,
+      "literal": "Parents",
+      "path": "templates/schools/_v2/_artifact_parent_phone_compact.svg.html"
+    },
+    {
+      "key": "parent",
+      "line": 3,
+      "literal": "Parent",
+      "path": "templates/schools/_v2/_artifact_parent_phone_compact.svg.html"
+    },
+    {
+      "key": "attendance",
+      "line": 80,
+      "literal": "Attendance",
+      "path": "templates/schools/_v2/_artifact_parent_phone_compact.svg.html"
+    },
+    {
+      "key": "term",
+      "line": 97,
+      "literal": "Term",
+      "path": "templates/schools/_v2/_artifact_parent_phone_compact.svg.html"
+    },
+    {
+      "key": "attendance",
+      "line": 2,
+      "literal": "Attendance",
+      "path": "templates/schools/_v2/_artifact_teacher_attendance.svg.html"
+    },
+    {
+      "key": "attendance",
+      "line": 3,
+      "literal": "Attendance",
+      "path": "templates/schools/_v2/_artifact_teacher_attendance.svg.html"
+    },
+    {
+      "key": "student",
+      "line": 50,
+      "literal": "Student",
+      "path": "templates/schools/_v2/_artifact_teacher_attendance.svg.html"
+    },
+    {
+      "key": "school",
+      "line": 3,
+      "literal": "School",
+      "path": "templates/schools/_v2/_artifact_today_briefing.svg.html"
+    },
+    {
+      "key": "school",
+      "line": 4,
+      "literal": "School",
+      "path": "templates/schools/_v2/_artifact_today_briefing.svg.html"
+    },
+    {
+      "key": "parent",
+      "line": 5,
+      "literal": "Parent",
+      "path": "templates/schools/_v2/_artifact_today_briefing.svg.html"
+    },
+    {
+      "key": "school",
+      "line": 50,
+      "literal": "School",
+      "path": "templates/schools/_v2/_artifact_today_briefing.svg.html"
+    },
+    {
+      "key": "school",
+      "line": 54,
+      "literal": "School",
+      "path": "templates/schools/_v2/_artifact_today_briefing.svg.html"
+    },
+    {
+      "key": "attendance",
+      "line": 144,
+      "literal": "Attendance",
+      "path": "templates/schools/_v2/_artifact_today_briefing.svg.html"
+    },
+    {
+      "key": "attendance",
+      "line": 147,
+      "literal": "Attendance",
+      "path": "templates/schools/_v2/_artifact_today_briefing.svg.html"
+    },
+    {
+      "key": "fee",
+      "line": 153,
+      "literal": "Fees",
+      "path": "templates/schools/_v2/_artifact_today_briefing.svg.html"
+    },
+    {
+      "key": "fee",
+      "line": 156,
+      "literal": "Fees",
+      "path": "templates/schools/_v2/_artifact_today_briefing.svg.html"
+    },
+    {
+      "key": "message",
+      "line": 159,
+      "literal": "Messages",
+      "path": "templates/schools/_v2/_artifact_today_briefing.svg.html"
+    },
+    {
+      "key": "message",
+      "line": 162,
+      "literal": "Messages",
+      "path": "templates/schools/_v2/_artifact_today_briefing.svg.html"
+    },
+    {
+      "key": "school",
+      "line": 3,
+      "literal": "School",
+      "path": "templates/schools/_v2/_decoration_school_crests.svg.html"
+    },
+    {
+      "key": "school",
+      "line": 29,
+      "literal": "School",
+      "path": "templates/schools/_v2/_decoration_school_crests.svg.html"
+    },
+    {
+      "key": "school",
+      "line": 66,
+      "literal": "School",
+      "path": "templates/schools/_v2/_decoration_school_crests.svg.html"
+    },
+    {
+      "key": "school",
+      "line": 69,
+      "literal": "School",
+      "path": "templates/schools/_v2/_decoration_school_crests.svg.html"
+    },
+    {
+      "key": "school",
+      "line": 78,
+      "literal": "School",
+      "path": "templates/schools/_v2/_decoration_school_crests.svg.html"
+    },
+    {
+      "key": "school",
+      "line": 185,
+      "literal": "School",
+      "path": "templates/schools/_v2/_decoration_school_frieze.svg.html"
+    },
+    {
+      "key": "parent",
+      "line": 5,
+      "literal": "Parent",
+      "path": "templates/schools/_v2/_decoration_walkthrough_reel.svg.html"
+    },
+    {
+      "key": "attendance",
+      "line": 25,
+      "literal": "Attendance",
+      "path": "templates/schools/_v2/_decoration_walkthrough_reel.svg.html"
+    },
+    {
+      "key": "parent",
+      "line": 54,
+      "literal": "Parent",
+      "path": "templates/schools/_v2/_decoration_walkthrough_reel.svg.html"
+    },
+    {
+      "key": "parent",
+      "line": 110,
+      "literal": "Parent",
+      "path": "templates/schools/_v2/_decoration_walkthrough_reel.svg.html"
+    },
+    {
+      "key": "parent",
+      "line": 113,
+      "literal": "Parents",
+      "path": "templates/schools/_v2/_decoration_walkthrough_reel.svg.html"
+    },
+    {
+      "key": "attendance",
+      "line": 143,
+      "literal": "Attendance",
+      "path": "templates/schools/_v2/_decoration_walkthrough_reel.svg.html"
+    },
+    {
+      "key": "fee",
+      "line": 144,
+      "literal": "Fees",
+      "path": "templates/schools/_v2/_decoration_walkthrough_reel.svg.html"
+    },
+    {
+      "key": "parent",
+      "line": 146,
+      "literal": "Parents",
+      "path": "templates/schools/_v2/_decoration_walkthrough_reel.svg.html"
+    },
+    {
+      "key": "school",
+      "line": 3,
+      "literal": "School",
+      "path": "templates/schools/_v2/_decoration_world_map.svg.html"
+    },
+    {
+      "key": "class",
+      "line": 40,
+      "literal": "Classes",
+      "path": "templates/schools/advancement_donor_list.html"
+    },
+    {
+      "key": "school",
+      "line": 46,
+      "literal": "School",
+      "path": "templates/schools/developer_portal.html"
+    },
+    {
+      "key": "school",
+      "line": 47,
+      "literal": "School",
+      "path": "templates/schools/developer_portal.html"
+    },
+    {
+      "key": "message",
+      "line": 39,
+      "literal": "Message",
+      "path": "templates/schools/developer_public_api_docs.html"
+    },
+    {
+      "key": "school",
+      "line": 3,
+      "literal": "School",
+      "path": "templates/schools/global_login_discovery.html"
+    },
+    {
+      "key": "library",
+      "line": 64,
+      "literal": "Library",
+      "path": "templates/schools/marketing_landing.html"
+    },
+    {
+      "key": "module",
+      "line": 420,
+      "literal": "Modules",
+      "path": "templates/schools/marketing_landing.html"
+    },
+    {
+      "key": "school",
+      "line": 491,
+      "literal": "School",
+      "path": "templates/schools/marketing_landing.html"
+    },
+    {
+      "key": "school",
+      "line": 580,
+      "literal": "Schools",
+      "path": "templates/schools/marketing_landing.html"
+    },
+    {
+      "key": "school",
+      "line": 5,
+      "literal": "Schools",
+      "path": "templates/schools/marketing_landing_v2.html"
+    },
+    {
+      "key": "fee",
+      "line": 13,
+      "literal": "Fees",
+      "path": "templates/schools/marketing_page_layout.html"
+    },
+    {
+      "key": "school",
+      "line": 10,
+      "literal": "School",
+      "path": "templates/schools/mat_group_hub/dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 37,
+      "literal": "Schools",
+      "path": "templates/schools/mat_group_hub/dashboard.html"
+    },
+    {
+      "key": "student",
+      "line": 38,
+      "literal": "Students",
+      "path": "templates/schools/mat_group_hub/dashboard.html"
+    },
+    {
+      "key": "staff",
+      "line": 39,
+      "literal": "Staff",
+      "path": "templates/schools/mat_group_hub/dashboard.html"
+    },
+    {
+      "key": "attendance",
+      "line": 41,
+      "literal": "Attendance",
+      "path": "templates/schools/mat_group_hub/dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 24,
+      "literal": "Schools",
+      "path": "templates/schools/mat_group_hub/detail.html"
+    },
+    {
+      "key": "student",
+      "line": 25,
+      "literal": "Students",
+      "path": "templates/schools/mat_group_hub/detail.html"
+    },
+    {
+      "key": "staff",
+      "line": 26,
+      "literal": "Staff",
+      "path": "templates/schools/mat_group_hub/detail.html"
+    },
+    {
+      "key": "attendance",
+      "line": 28,
+      "literal": "Attendance",
+      "path": "templates/schools/mat_group_hub/detail.html"
+    },
+    {
+      "key": "school",
+      "line": 38,
+      "literal": "School",
+      "path": "templates/schools/mat_group_hub/detail.html"
+    },
+    {
+      "key": "student",
+      "line": 40,
+      "literal": "Students",
+      "path": "templates/schools/mat_group_hub/detail.html"
+    },
+    {
+      "key": "staff",
+      "line": 41,
+      "literal": "Staff",
+      "path": "templates/schools/mat_group_hub/detail.html"
+    },
+    {
+      "key": "attendance",
+      "line": 42,
+      "literal": "Attendance",
+      "path": "templates/schools/mat_group_hub/detail.html"
+    },
+    {
+      "key": "school",
+      "line": 15,
+      "literal": "School",
+      "path": "templates/schools/mat_group_hub/edit.html"
+    },
+    {
+      "key": "school",
+      "line": 13,
+      "literal": "School",
+      "path": "templates/schools/onboard_migration_handoff.html"
+    },
+    {
+      "key": "session",
+      "line": 160,
+      "literal": "Session",
+      "path": "templates/schools/onboard_wizard.html"
+    },
+    {
+      "key": "school",
+      "line": 161,
+      "literal": "School",
+      "path": "templates/schools/onboard_wizard.html"
+    },
+    {
+      "key": "school",
+      "line": 6,
+      "literal": "School",
+      "path": "templates/schools/signup_school.html"
+    },
+    {
+      "key": "school",
+      "line": 27,
+      "literal": "School",
+      "path": "templates/schools/signup_school.html"
+    },
+    {
+      "key": "school",
+      "line": 71,
+      "literal": "School",
+      "path": "templates/schools/signup_school.html"
+    },
+    {
+      "key": "school",
+      "line": 119,
+      "literal": "School",
+      "path": "templates/schools/signup_school.html"
+    },
+    {
+      "key": "term",
+      "line": 171,
+      "literal": "Terms",
+      "path": "templates/schools/signup_school.html"
+    },
+    {
+      "key": "school",
+      "line": 222,
+      "literal": "School",
+      "path": "templates/schools/signup_school.html"
+    },
+    {
+      "key": "school",
+      "line": 233,
+      "literal": "School",
+      "path": "templates/schools/signup_school.html"
+    },
+    {
+      "key": "school",
+      "line": 276,
+      "literal": "School",
+      "path": "templates/schools/signup_school.html"
+    },
+    {
+      "key": "school",
+      "line": 277,
+      "literal": "School",
+      "path": "templates/schools/signup_school.html"
+    },
+    {
+      "key": "school",
+      "line": 288,
+      "literal": "School",
+      "path": "templates/schools/signup_school.html"
+    },
+    {
+      "key": "school",
+      "line": 294,
+      "literal": "School",
+      "path": "templates/schools/signup_school.html"
+    },
+    {
+      "key": "school",
+      "line": 299,
+      "literal": "School",
+      "path": "templates/schools/signup_school.html"
+    },
+    {
+      "key": "school",
+      "line": 329,
+      "literal": "School",
+      "path": "templates/schools/signup_school.html"
+    },
+    {
+      "key": "campus",
+      "line": 344,
+      "literal": "Campus",
+      "path": "templates/schools/signup_school.html"
+    },
+    {
+      "key": "library",
+      "line": 52,
+      "literal": "Library",
+      "path": "templates/schools/super_audit_export.html"
+    },
+    {
+      "key": "school",
+      "line": 29,
+      "literal": "Schools",
+      "path": "templates/schools/super_dashboard.html"
+    },
+    {
+      "key": "class",
+      "line": 49,
+      "literal": "Class",
+      "path": "templates/schools/super_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 595,
+      "literal": "Schools",
+      "path": "templates/schools/super_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 247,
+      "literal": "School",
+      "path": "templates/schools/super_migration_cloud.html"
+    },
+    {
+      "key": "school",
+      "line": 2,
+      "literal": "Schools",
+      "path": "templates/schools/super_provision_queue.html"
+    },
+    {
+      "key": "student",
+      "line": 50,
+      "literal": "Students",
+      "path": "templates/schools/super_pulse.html"
+    },
+    {
+      "key": "student",
+      "line": 84,
+      "literal": "Students",
+      "path": "templates/schools/super_pulse.html"
+    },
+    {
+      "key": "school",
+      "line": 95,
+      "literal": "Schools",
+      "path": "templates/schools/super_schools_list.html"
+    },
+    {
+      "key": "class",
+      "line": 141,
+      "literal": "Classes",
+      "path": "templates/schools/super_schools_list.html"
+    },
+    {
+      "key": "school",
+      "line": 6,
+      "literal": "School",
+      "path": "templates/schools/super_tenant_health.html"
+    },
+    {
+      "key": "school",
+      "line": 47,
+      "literal": "School",
+      "path": "templates/schools/super_tenant_health.html"
+    },
+    {
+      "key": "student",
+      "line": 53,
+      "literal": "Students",
+      "path": "templates/schools/super_tenant_health.html"
+    },
+    {
+      "key": "school",
+      "line": 29,
+      "literal": "School",
+      "path": "templates/schools/super_usage.html"
+    },
+    {
+      "key": "student",
+      "line": 30,
+      "literal": "Students",
+      "path": "templates/schools/super_usage.html"
+    },
+    {
+      "key": "teacher",
+      "line": 48,
+      "literal": "Teacher",
+      "path": "templates/schools/super_workflow_simulator.html"
+    },
+    {
+      "key": "parent",
+      "line": 49,
+      "literal": "Parent",
+      "path": "templates/schools/super_workflow_simulator.html"
+    },
+    {
+      "key": "staff",
+      "line": 50,
+      "literal": "Staff",
+      "path": "templates/schools/super_workflow_simulator.html"
+    },
+    {
+      "key": "school",
+      "line": 5,
+      "literal": "School",
+      "path": "templates/schools/tenant_minimal_shell.html"
+    },
+    {
+      "key": "school",
+      "line": 10,
+      "literal": "School",
+      "path": "templates/setup_studio/inputs/domain_input.html"
+    },
+    {
+      "key": "class",
+      "line": 18,
+      "literal": "Class",
+      "path": "templates/setup_studio/partials/wizard_review_banner.html"
+    },
+    {
+      "key": "class",
+      "line": 16,
+      "literal": "Classes",
+      "path": "templates/setup_studio/tenant_wizard.html"
+    },
+    {
+      "key": "student",
+      "line": 69,
+      "literal": "Student",
+      "path": "templates/siteconfig/bulk_letters.html"
+    },
+    {
+      "key": "student",
+      "line": 86,
+      "literal": "Student",
+      "path": "templates/siteconfig/bulk_letters.html"
+    },
+    {
+      "key": "staff",
+      "line": 17,
+      "literal": "Staff",
+      "path": "templates/siteconfig/customizer.html"
+    },
+    {
+      "key": "parent",
+      "line": 107,
+      "literal": "Parent",
+      "path": "templates/siteconfig/customizer.html"
+    },
+    {
+      "key": "teacher",
+      "line": 108,
+      "literal": "Teacher",
+      "path": "templates/siteconfig/customizer.html"
+    },
+    {
+      "key": "student",
+      "line": 109,
+      "literal": "Student",
+      "path": "templates/siteconfig/customizer.html"
+    },
+    {
+      "key": "school",
+      "line": 2,
+      "literal": "School",
+      "path": "templates/siteconfig/partials/ccc_guided_activation_strip.html"
+    },
+    {
+      "key": "assignment",
+      "line": 4,
+      "literal": "Assignment",
+      "path": "templates/siteconfig/partials/reportcard_builder_body.html"
+    },
+    {
+      "key": "assignment",
+      "line": 6,
+      "literal": "Assignments",
+      "path": "templates/siteconfig/partials/reportcard_builder_body.html"
+    },
+    {
+      "key": "assignment",
+      "line": 216,
+      "literal": "Assignment",
+      "path": "templates/siteconfig/partials/reportcard_builder_inner.html"
+    },
+    {
+      "key": "term",
+      "line": 11,
+      "literal": "Term",
+      "path": "templates/siteconfig/partials/reportcard_style_preview_body.html"
+    },
+    {
+      "key": "sequence",
+      "line": 106,
+      "literal": "Sequence",
+      "path": "templates/siteconfig/partials/reportcard_style_preview_body.html"
+    },
+    {
+      "key": "sequence",
+      "line": 111,
+      "literal": "Sequence",
+      "path": "templates/siteconfig/partials/reportcard_style_preview_body.html"
+    },
+    {
+      "key": "school",
+      "line": 9,
+      "literal": "School",
+      "path": "templates/siteconfig/partials/scheduled_reports_delivery_hub_body.html"
+    },
+    {
+      "key": "library",
+      "line": 4,
+      "literal": "Library",
+      "path": "templates/siteconfig/report_library.html"
+    },
+    {
+      "key": "message",
+      "line": 158,
+      "literal": "Message",
+      "path": "templates/siteconfig/report_library.html"
+    },
+    {
+      "key": "lesson",
+      "line": 193,
+      "literal": "Lesson",
+      "path": "templates/siteconfig/super/cockpit_configure.html"
+    },
+    {
+      "key": "teacher",
+      "line": 244,
+      "literal": "Teacher",
+      "path": "templates/siteconfig/super/cockpit_configure.html"
+    },
+    {
+      "key": "teacher",
+      "line": 522,
+      "literal": "Teacher",
+      "path": "templates/siteconfig/super/cockpit_configure.html"
+    },
+    {
+      "key": "attendance",
+      "line": 816,
+      "literal": "Attendance",
+      "path": "templates/siteconfig/super/cockpit_configure.html"
+    },
+    {
+      "key": "message",
+      "line": 867,
+      "literal": "Messages",
+      "path": "templates/siteconfig/super/cockpit_configure.html"
+    },
+    {
+      "key": "message",
+      "line": 903,
+      "literal": "Message",
+      "path": "templates/siteconfig/super/cockpit_configure.html"
+    },
+    {
+      "key": "parent",
+      "line": 906,
+      "literal": "Parent",
+      "path": "templates/siteconfig/super/cockpit_configure.html"
+    },
+    {
+      "key": "parent",
+      "line": 907,
+      "literal": "Parent",
+      "path": "templates/siteconfig/super/cockpit_configure.html"
+    },
+    {
+      "key": "school",
+      "line": 989,
+      "literal": "School",
+      "path": "templates/siteconfig/super/cockpit_configure.html"
+    },
+    {
+      "key": "school",
+      "line": 998,
+      "literal": "School",
+      "path": "templates/siteconfig/super/cockpit_configure.html"
+    },
+    {
+      "key": "module",
+      "line": 99,
+      "literal": "Module",
+      "path": "templates/siteconfig/super/cockpit_health.html"
+    },
+    {
+      "key": "class",
+      "line": 9,
+      "literal": "Classes",
+      "path": "templates/siteconfig/super/cockpit_shell_configure.html"
+    },
+    {
+      "key": "subject",
+      "line": 53,
+      "literal": "Subject",
+      "path": "templates/staff/contact_requests_list.html"
+    },
+    {
+      "key": "student",
+      "line": 28,
+      "literal": "Student",
+      "path": "templates/staff/discipline_incidents.html"
+    },
+    {
+      "key": "parent",
+      "line": 31,
+      "literal": "Parent",
+      "path": "templates/staff/discipline_incidents.html"
+    },
+    {
+      "key": "student",
+      "line": 2,
+      "literal": "Student",
+      "path": "templates/student/_rmc_dh_student_home.html"
+    },
+    {
+      "key": "grade",
+      "line": 3,
+      "literal": "Grades",
+      "path": "templates/student/_rmc_dh_student_home.html"
+    },
+    {
+      "key": "attendance",
+      "line": 21,
+      "literal": "Attendance",
+      "path": "templates/student/_rmc_dh_student_home.html"
+    },
+    {
+      "key": "student",
+      "line": 3,
+      "literal": "Student",
+      "path": "templates/student/learning_home.html"
+    },
+    {
+      "key": "student",
+      "line": 7,
+      "literal": "Student",
+      "path": "templates/student/learning_home.html"
+    },
+    {
+      "key": "student",
+      "line": 27,
+      "literal": "Student",
+      "path": "templates/student/learning_home.html"
+    },
+    {
+      "key": "class",
+      "line": 30,
+      "literal": "Class",
+      "path": "templates/student/learning_home.html"
+    },
+    {
+      "key": "student",
+      "line": 3,
+      "literal": "Student",
+      "path": "templates/student/onboarding_wizard.html"
+    },
+    {
+      "key": "student",
+      "line": 72,
+      "literal": "Student",
+      "path": "templates/student/onboarding_wizard.html"
+    },
+    {
+      "key": "academic_year",
+      "line": 122,
+      "literal": "Academic year",
+      "path": "templates/student/onboarding_wizard.html"
+    },
+    {
+      "key": "class",
+      "line": 135,
+      "literal": "Class",
+      "path": "templates/student/onboarding_wizard.html"
+    },
+    {
+      "key": "guardian",
+      "line": 178,
+      "literal": "Guardian",
+      "path": "templates/student/onboarding_wizard.html"
+    },
+    {
+      "key": "guardian",
+      "line": 182,
+      "literal": "Guardian",
+      "path": "templates/student/onboarding_wizard.html"
+    },
+    {
+      "key": "student",
+      "line": 266,
+      "literal": "Student",
+      "path": "templates/student/onboarding_wizard.html"
+    },
+    {
+      "key": "school",
+      "line": 277,
+      "literal": "School",
+      "path": "templates/student/onboarding_wizard.html"
+    },
+    {
+      "key": "attendance",
+      "line": 3,
+      "literal": "Attendance",
+      "path": "templates/student360/student_360_page.html"
+    },
+    {
+      "key": "student",
+      "line": 4,
+      "literal": "Student",
+      "path": "templates/student360/student_360_page.html"
+    },
+    {
+      "key": "academic_year",
+      "line": 5,
+      "literal": "Academic year",
+      "path": "templates/student360/transcript_archive.html"
+    },
+    {
+      "key": "transcript",
+      "line": 6,
+      "literal": "Transcript",
+      "path": "templates/student360/transcript_archive.html"
+    },
+    {
+      "key": "transcript",
+      "line": 13,
+      "literal": "Transcript",
+      "path": "templates/student360/transcript_archive.html"
+    },
+    {
+      "key": "academic_year",
+      "line": 32,
+      "literal": "Academic year",
+      "path": "templates/student360/transcript_archive.html"
+    },
+    {
+      "key": "academic_year",
+      "line": 56,
+      "literal": "Academic year",
+      "path": "templates/student360/transcript_archive.html"
+    },
+    {
+      "key": "academic_year",
+      "line": 5,
+      "literal": "Academic year",
+      "path": "templates/student360/transcript_archive_year.html"
+    },
+    {
+      "key": "transcript",
+      "line": 6,
+      "literal": "Transcript",
+      "path": "templates/student360/transcript_archive_year.html"
+    },
+    {
+      "key": "message",
+      "line": 3,
+      "literal": "Message",
+      "path": "templates/studio_os/components/loading_empty_states.html"
+    },
+    {
+      "key": "class",
+      "line": 7,
+      "literal": "Class",
+      "path": "templates/studio_os/components/loading_empty_states.html"
+    },
+    {
+      "key": "class",
+      "line": 15,
+      "literal": "Classes",
+      "path": "templates/studio_os/components/page_header.html"
+    },
+    {
+      "key": "class",
+      "line": 6,
+      "literal": "Classes",
+      "path": "templates/studio_os/modes/control.html"
+    },
+    {
+      "key": "staff",
+      "line": 112,
+      "literal": "Staff",
+      "path": "templates/studio_os/partials/cockpit_copilot_rail.html"
+    },
+    {
+      "key": "class",
+      "line": 113,
+      "literal": "Classes",
+      "path": "templates/studio_os/partials/cockpit_copilot_rail.html"
+    },
+    {
+      "key": "grade",
+      "line": 5,
+      "literal": "Grade",
+      "path": "templates/studio_os/partials/cockpit_signal_strip.html"
+    },
+    {
+      "key": "class",
+      "line": 10,
+      "literal": "Classes",
+      "path": "templates/studio_os/partials/experience_live_preview_pane.html"
+    },
+    {
+      "key": "school",
+      "line": 4,
+      "literal": "School",
+      "path": "templates/studio_os/partials/launch_school_infrastructure_body.html"
+    },
+    {
+      "key": "school",
+      "line": 18,
+      "literal": "School",
+      "path": "templates/studio_os/partials/output_branding_inheritance_body.html"
+    },
+    {
+      "key": "school",
+      "line": 27,
+      "literal": "School",
+      "path": "templates/studio_os/partials/output_branding_inheritance_body.html"
+    },
+    {
+      "key": "library",
+      "line": 2,
+      "literal": "Library",
+      "path": "templates/studio_os/partials/output_documents_native_wrapper.html"
+    },
+    {
+      "key": "report_card",
+      "line": 141,
+      "literal": "Report cards",
+      "path": "templates/studio_os/partials/output_readiness_preview_pane.html"
+    },
+    {
+      "key": "classroom",
+      "line": 2,
+      "literal": "Classroom",
+      "path": "templates/studio_os/partials/output_reports_library_body.html"
+    },
+    {
+      "key": "class",
+      "line": 4,
+      "literal": "Class",
+      "path": "templates/studio_os/partials/workspace/experience_iframe_canvas.html"
+    },
+    {
+      "key": "message",
+      "line": 247,
+      "literal": "Message",
+      "path": "templates/studio_os/shell.html"
+    },
+    {
+      "key": "class",
+      "line": 40,
+      "literal": "Class",
+      "path": "templates/super/integrations/idempotency_audit.html"
+    },
+    {
+      "key": "school",
+      "line": 56,
+      "literal": "School",
+      "path": "templates/super/integrations/lms_audit_index.html"
+    },
+    {
+      "key": "school",
+      "line": 27,
+      "literal": "School",
+      "path": "templates/super/integrations/lms_provider.html"
+    },
+    {
+      "key": "school",
+      "line": 53,
+      "literal": "School",
+      "path": "templates/super/integrations/lms_provider.html"
+    },
+    {
+      "key": "school",
+      "line": 36,
+      "literal": "School",
+      "path": "templates/super/sso/bindings_index.html"
+    },
+    {
+      "key": "school",
+      "line": 49,
+      "literal": "School",
+      "path": "templates/super/sso/bindings_index.html"
+    },
+    {
+      "key": "teacher",
+      "line": 2,
+      "literal": "Teacher",
+      "path": "templates/teacher/_rmc_dh_teacher_home.html"
+    },
+    {
+      "key": "assignment",
+      "line": 3,
+      "literal": "Assignments",
+      "path": "templates/teacher/_rmc_dh_teacher_home.html"
+    },
+    {
+      "key": "attendance",
+      "line": 27,
+      "literal": "Attendance",
+      "path": "templates/teacher/_rmc_dh_teacher_home.html"
+    },
+    {
+      "key": "attendance",
+      "line": 28,
+      "literal": "Attendance",
+      "path": "templates/teacher/_rmc_dh_teacher_home.html"
+    },
+    {
+      "key": "attendance",
+      "line": 5,
+      "literal": "Attendance",
+      "path": "templates/teacher/attendance.html"
+    },
+    {
+      "key": "teacher",
+      "line": 5,
+      "literal": "Teacher",
+      "path": "templates/teacher/dashboard.html"
+    },
+    {
+      "key": "teacher",
+      "line": 35,
+      "literal": "Teacher",
+      "path": "templates/teacher/dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 39,
+      "literal": "Schools",
+      "path": "templates/teacher/dashboard.html"
+    },
+    {
+      "key": "class",
+      "line": 11,
+      "literal": "Class",
+      "path": "templates/teacher/marks_entry.html"
+    },
+    {
+      "key": "term",
+      "line": 31,
+      "literal": "Term",
+      "path": "templates/teacher/marks_entry.html"
+    },
+    {
+      "key": "term",
+      "line": 37,
+      "literal": "Term",
+      "path": "templates/teacher/marks_entry.html"
+    },
+    {
+      "key": "student",
+      "line": 64,
+      "literal": "Students",
+      "path": "templates/teacher/marks_entry.html"
+    },
+    {
+      "key": "grade",
+      "line": 127,
+      "literal": "Grade",
+      "path": "templates/teacher/marks_entry.html"
+    },
+    {
+      "key": "student",
+      "line": 231,
+      "literal": "Student",
+      "path": "templates/teacher/marks_entry.html"
+    },
+    {
+      "key": "grade",
+      "line": 260,
+      "literal": "Grade",
+      "path": "templates/teacher/marks_entry.html"
+    },
+    {
+      "key": "library",
+      "line": 355,
+      "literal": "Library",
+      "path": "templates/teacher/marks_entry.html"
+    },
+    {
+      "key": "subject",
+      "line": 94,
+      "literal": "Subject",
+      "path": "templates/teacher/marks_list.html"
+    },
+    {
+      "key": "class",
+      "line": 95,
+      "literal": "Class",
+      "path": "templates/teacher/marks_list.html"
+    },
+    {
+      "key": "exam",
+      "line": 97,
+      "literal": "Exam",
+      "path": "templates/teacher/marks_list.html"
+    },
+    {
+      "key": "teacher",
+      "line": 3,
+      "literal": "Teacher",
+      "path": "templates/teacher/onboarding_wizard.html"
+    },
+    {
+      "key": "department",
+      "line": 110,
+      "literal": "Department",
+      "path": "templates/teacher/onboarding_wizard.html"
+    },
+    {
+      "key": "school",
+      "line": 197,
+      "literal": "School",
+      "path": "templates/teacher/onboarding_wizard.html"
+    },
+    {
+      "key": "session",
+      "line": 18,
+      "literal": "Sessions",
+      "path": "templates/teacher/timetable.html"
+    },
+    {
+      "key": "message",
+      "line": 19,
+      "literal": "Message",
+      "path": "templates/teacher/timetable.html"
+    },
+    {
+      "key": "session",
+      "line": 22,
+      "literal": "Sessions",
+      "path": "templates/teacher/timetable.html"
+    },
+    {
+      "key": "message",
+      "line": 23,
+      "literal": "Message",
+      "path": "templates/teacher/timetable.html"
+    },
+    {
+      "key": "subject",
+      "line": 39,
+      "literal": "Subject",
+      "path": "templates/teacher/timetable.html"
+    },
+    {
+      "key": "class",
+      "line": 40,
+      "literal": "Class",
+      "path": "templates/teacher/timetable.html"
+    },
+    {
+      "key": "project",
+      "line": 2,
+      "literal": "Project",
+      "path": "templates/unfold/helpers/app_list.html"
+    },
+    {
+      "key": "invoice",
+      "line": 70,
+      "literal": "Invoices",
+      "path": "templates/widgets/parent_dashboard_widgets.html"
+    },
+    {
+      "key": "fee",
+      "line": 77,
+      "literal": "Fees",
+      "path": "templates/widgets/parent_dashboard_widgets.html"
+    },
+    {
+      "key": "term",
+      "line": 119,
+      "literal": "Terms",
+      "path": "templates/widgets/parent_dashboard_widgets.html"
+    },
+    {
+      "key": "invoice",
+      "line": 120,
+      "literal": "Invoices",
+      "path": "templates/widgets/parent_dashboard_widgets.html"
+    },
+    {
+      "key": "invoice",
+      "line": 121,
+      "literal": "Invoices",
+      "path": "templates/widgets/parent_dashboard_widgets.html"
+    },
+    {
+      "key": "parent",
+      "line": 123,
+      "literal": "Parent",
+      "path": "templates/widgets/parent_dashboard_widgets.html"
+    }
+  ],
+  "generated_at": "2026-06-23T21:54:12+00:00",
+  "rule": "Tenant-facing templates must not hardcode canonical lexicon defaults; use {% term %} / {% trans_term %} / legacy *_label tags.",
+  "scan_root": "templates"
+}
