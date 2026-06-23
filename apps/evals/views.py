@@ -459,6 +459,19 @@ def _validate_ocr_entries(entries, max_score=Decimal("20")):
     return errors
 
 
+def _normalized_scale_max(scale):
+    """Render the operational score-scale max as a clean HTML ``max=`` value:
+    a whole scale stays an int (20, 100, 4), a fractional scale keeps one
+    decimal (7.5). Mirrors the dashboard's ``grading_scale_max`` normalization so
+    the marks grid and the at-risk badge agree. Falls back to 20 on junk input so
+    a render never breaks (back-compat with the historical /20 default)."""
+    try:
+        value = float(scale)
+    except (TypeError, ValueError):
+        return 20
+    return int(value) if value == int(value) else round(value, 1)
+
+
 def _pending_ocr_for(session, teacher_id, subject_assignment_id):
     pending = session.get(MARKSHEET_OCR_PENDING_SESSION_KEY)
     if not pending:
@@ -2054,6 +2067,16 @@ def teacher_marks_entry(request: HttpRequest):
         }
         upload_manual_review_pending = True
 
+    # Local-first: bind the manual mark inputs to THIS school's grading-scale max
+    # (the operational scale grades are scored on — 20 francophone, 100 percentage,
+    # 4 GPA), so a non-/20 tenant can enter valid marks. Cameroon /20 → max="20"
+    # (unchanged), mirroring _validate_ocr_entries which uses the same resolver.
+    from apps.evals.grading_provisioning import resolve_school_score_scale
+
+    max_score = _normalized_scale_max(
+        resolve_school_score_scale(getattr(teacher, "school", None))
+    )
+
     # GET: render selection + (optional) student table
     return render(
         request,
@@ -2061,6 +2084,7 @@ def teacher_marks_entry(request: HttpRequest):
         {
             "year": year,
             "term": active_term,
+            "max_score": max_score,
             "teacher_assignments": teacher_assignments,
             "selected_sa_id": str(selected_sa_id) if selected_sa_id else "",
             "sa": sa,

@@ -188,7 +188,7 @@
                             name="ocr_correct_{{ forloop.parentloop.counter0 }}_{{ field }}"
                             value="{{ value }}"
                             min="0"
-                            max="20"
+                            max="{{ max_score|default:20 }}"
                             placeholder="—"
                           >
                           {% if field in row.existing_scores %}
@@ -323,15 +323,15 @@
                     <span>{{ s.last_name }} {{ s.first_name }} <span class="text-muted">({{ s.student_code }})</span></span>
                   </span>
                 </td>
-                <td class="num"><input class="mark-cell" name="seq1_{{ s.id }}" data-rmc-ocr-field="seq1_score" value="{% if e %}{{ e.seq1_score }}{% endif %}" inputmode="decimal" min="0" max="20" {% if locked %}disabled{% endif %}></td>
-                <td class="num"><input class="mark-cell" name="seq2_{{ s.id }}" data-rmc-ocr-field="seq2_score" value="{% if e %}{{ e.seq2_score }}{% endif %}" inputmode="decimal" min="0" max="20" {% if locked %}disabled{% endif %}></td>
-                <td class="num"><input class="mark-cell" name="exam_{{ s.id }}" data-rmc-ocr-field="exam_score" value="{% if e %}{{ e.exam_score }}{% endif %}" inputmode="decimal" min="0" max="20" {% if locked %}disabled{% endif %}></td>
+                <td class="num"><input class="mark-cell" name="seq1_{{ s.id }}" data-rmc-ocr-field="seq1_score" value="{% if e %}{{ e.seq1_score }}{% endif %}" inputmode="decimal" min="0" max="{{ max_score|default:20 }}" {% if locked %}disabled{% endif %}></td>
+                <td class="num"><input class="mark-cell" name="seq2_{{ s.id }}" data-rmc-ocr-field="seq2_score" value="{% if e %}{{ e.seq2_score }}{% endif %}" inputmode="decimal" min="0" max="{{ max_score|default:20 }}" {% if locked %}disabled{% endif %}></td>
+                <td class="num"><input class="mark-cell" name="exam_{{ s.id }}" data-rmc-ocr-field="exam_score" value="{% if e %}{{ e.exam_score }}{% endif %}" inputmode="decimal" min="0" max="{{ max_score|default:20 }}" {% if locked %}disabled{% endif %}></td>
                 <td>
                   <div class="d-flex flex-wrap gap-1 align-items-center">
                     <label class="visually-hidden" for="mock_{{ s.id }}">Mock</label>
-                    <input id="mock_{{ s.id }}" class="mark-cell" name="mock_{{ s.id }}" data-rmc-ocr-field="mock_score" value="{% if e %}{{ e.mock_score }}{% endif %}" inputmode="decimal" min="0" max="20" placeholder="Mock" {% if locked %}disabled{% endif %}>
+                    <input id="mock_{{ s.id }}" class="mark-cell" name="mock_{{ s.id }}" data-rmc-ocr-field="mock_score" value="{% if e %}{{ e.mock_score }}{% endif %}" inputmode="decimal" min="0" max="{{ max_score|default:20 }}" placeholder="Mock" {% if locked %}disabled{% endif %}>
                     <label class="visually-hidden" for="practical_{{ s.id }}">Practical</label>
-                    <input id="practical_{{ s.id }}" class="mark-cell" name="practical_{{ s.id }}" data-rmc-ocr-field="practical_score" value="{% if e %}{{ e.practical_score }}{% endif %}" inputmode="decimal" min="0" max="20" placeholder="Prac." {% if locked %}disabled{% endif %}>
+                    <input id="practical_{{ s.id }}" class="mark-cell" name="practical_{{ s.id }}" data-rmc-ocr-field="practical_score" value="{% if e %}{{ e.practical_score }}{% endif %}" inputmode="decimal" min="0" max="{{ max_score|default:20 }}" placeholder="Prac." {% if locked %}disabled{% endif %}>
                     <input class="form-control form-control-sm flex-grow-1" name="remarks_{{ s.id }}" value="{% if e %}{{ e.remarks }}{% endif %}" placeholder="{% trans 'Remarks' %}" {% if locked %}disabled{% endif %}>
                   </div>
                 </td>
