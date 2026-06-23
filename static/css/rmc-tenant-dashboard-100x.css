@@ -485,8 +485,82 @@
 }
 .rmc-dh-section-label::after { content: ""; flex: 1; height: 1px; background: var(--hairline); }
 
+/* ============================ 10X premium polish (2026-06-23) ============================ */
+/* The luxe layer validated in the mockup: a soft brand glow + depth on the hero,
+   a branded top-accent that reveals on tile hover, a hover affordance on panels,
+   and a halo on the ring. Token-only + contrast-safe — deliberately NO gradient
+   text, so the WCAG-AA contrast gate stays green. */
+.rmc-dh-hero { position: relative; overflow: hidden; box-shadow: var(--elev-2, 0 8px 24px -12px rgba(0, 0, 0, 0.18)); }
+.rmc-dh-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(130% 150% at 100% -10%, color-mix(in oklab, var(--rmc-dh-brand) 22%, transparent), transparent 55%);
+}
+.rmc-dh-hero--accent::before { background: radial-gradient(130% 150% at 100% -10%, color-mix(in oklab, var(--rmc-dh-accent) 22%, transparent), transparent 55%); }
+.rmc-dh-hero > * { position: relative; }
+.rmc-dh-ring { box-shadow: 0 10px 28px -12px color-mix(in oklab, var(--rmc-dh-accent) 50%, transparent); }
+
+.rmc-dh-tile { transition: transform var(--dur-fast, 0.15s) var(--ease-out, ease), border-color var(--dur-fast, 0.15s) var(--ease-out, ease); }
+.rmc-dh-tile::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  opacity: 0;
+  transition: opacity var(--dur-fast, 0.15s) var(--ease-out, ease);
+  background: linear-gradient(90deg, var(--rmc-dh-brand), var(--rmc-dh-accent)); /* off-token-allow: decorative-gradient */
+}
+.rmc-dh-tile:hover { transform: translateY(-2px); border-color: var(--hairline-strong, var(--hairline)); }
+.rmc-dh-tile:hover::before { opacity: 0.9; }
+.rmc-dh-panel { transition: border-color var(--dur-fast, 0.15s) var(--ease-out, ease); }
+.rmc-dh-panel:hover { border-color: var(--hairline-strong, var(--hairline)); }
+
+/* ============================ Area chart (SVG trend) ============================ */
+.rmc-dh-areachart { height: 100px; }
+.rmc-dh-areachart svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.rmc-dh-areachart__fill { fill: var(--rmc-dh-area-fill, color-mix(in oklab, var(--rmc-dh-brand) 30%, transparent)); }
+.rmc-dh-areachart__line { fill: none; stroke: var(--rmc-dh-area-stroke, var(--rmc-dh-brand)); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.rmc-dh-areachart--accent { --rmc-dh-area-fill: color-mix(in oklab, var(--rmc-dh-accent) 30%, transparent); --rmc-dh-area-stroke: var(--rmc-dh-accent); }
+
+/* ============================ Subject progress grid ============================ */
+.rmc-dh-subj { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 0.625rem; }
+.rmc-dh-subj__s { padding: 0.6875rem 0.75rem; border: 1px solid var(--hairline); border-radius: var(--radius-md, 12px); background: var(--surface-elevated); }
+.rmc-dh-subj__nm { font-size: var(--text-sm, 0.78125rem); font-weight: 600; color: var(--text-primary); }
+.rmc-dh-subj__pc { float: right; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--rmc-dh-accent); }
+.rmc-dh-subj__bar { margin-top: 0.5625rem; height: 6px; border-radius: var(--radius-pill, 999px); background: var(--surface-canvas); overflow: hidden; }
+.rmc-dh-subj__bar i { display: block; height: 100%; border-radius: var(--radius-pill, 999px); background: linear-gradient(90deg, var(--rmc-dh-brand), var(--rmc-dh-accent)); } /* off-token-allow: decorative-gradient */
+
+/* ============================ Spotlight / celebrate ============================ */
+.rmc-dh-spotlight {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin-bottom: var(--rmc-dh-gap);
+  padding: 0.875rem 1rem;
+  border: 1px solid color-mix(in oklab, var(--rmc-dh-warn) 32%, transparent);
+  border-radius: var(--radius-lg, 16px);
+  background: linear-gradient(120deg, color-mix(in oklab, var(--rmc-dh-warn) 16%, transparent), color-mix(in oklab, var(--rmc-dh-brand) 12%, transparent));
+}
+.rmc-dh-spotlight__ic {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 1.25rem;
+  color: #241a00; /* off-token-allow: podium-contrast-ink-on-gold */
+  background: linear-gradient(135deg, var(--rmc-dh-warn), #fbbf24); /* off-token-allow: decorative-gradient */
+}
+.rmc-dh-spotlight__body h4 { margin: 0 0 0.125rem; font-size: var(--text-sm, 0.875rem); color: var(--text-primary); }
+.rmc-dh-spotlight__body p { margin: 0; font-size: var(--text-sm, 0.78125rem); color: var(--text-secondary); }
+
 /* ============================ Reduced motion ============================ */
 @media (prefers-reduced-motion: reduce) {
-  .rmc-dh-card { transition: none; }
-  .rmc-dh-card:hover { transform: none; }
+  .rmc-dh-card, .rmc-dh-tile, .rmc-dh-panel { transition: none; }
+  .rmc-dh-card:hover, .rmc-dh-tile:hover { transform: none; }
 }
