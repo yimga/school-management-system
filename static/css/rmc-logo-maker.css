@@ -1,0 +1,129 @@
+/* ============================================================================
+   rmc-logo-maker.css — on-the-fly monogram logo maker (branding studio).
+   Token-only; lives below the logo-upload form. Mirrors the Day-1 studio rhythm.
+   ============================================================================ */
+.rmc-logo-maker {
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  background: var(--surface-elevated, var(--surface-bg));
+}
+
+.rmc-logo-maker__heading {
+  margin: 0;
+  font-size: var(--type-size-1, 1.05rem);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rmc-logo-maker__lede {
+  margin: 0.25rem 0 1rem;
+  font-size: var(--type-size-sm, 0.9rem);
+  color: var(--text-secondary);
+}
+
+.rmc-logo-maker__body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.rmc-logo-maker__preview {
+  display: grid;
+  place-items: center;
+}
+
+.rmc-logo-maker__canvas {
+  width: 128px;
+  height: 128px;
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-canvas, var(--surface-bg));
+  border: 1px solid var(--hairline);
+}
+
+.rmc-logo-maker__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.rmc-logo-maker__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.rmc-logo-maker__field-label {
+  font-size: var(--type-size-xs, 0.72rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.rmc-logo-maker__input {
+  width: 7rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 10px);
+  background: var(--surface-bg);
+  color: var(--text-primary);
+  font-size: var(--type-size-1, 1rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rmc-logo-maker__color {
+  width: 3rem;
+  height: 2.2rem;
+  padding: 0;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 10px);
+  background: var(--surface-bg);
+  cursor: pointer;
+}
+
+.rmc-logo-maker__shapes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.rmc-logo-maker__shape {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: var(--type-size-sm, 0.9rem);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.rmc-logo-maker__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.rmc-logo-maker__status {
+  margin: 0;
+  min-height: 1.1rem;
+  font-size: var(--type-size-sm, 0.9rem);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 560px) {
+  .rmc-logo-maker__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rmc-logo-maker__preview {
+    justify-content: flex-start;
+  }
+}

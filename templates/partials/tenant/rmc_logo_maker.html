@@ -1,0 +1,44 @@
+{% load i18n static %}
+{% comment %}
+rmc_logo_maker.html — on-the-fly monogram logo maker for the Day-1 branding studio.
+Renders below the logo-upload form (only when the school has no logo yet). The user
+designs a monogram from their initials + brand colour + shape; "Use this logo" exports
+the canvas to a PNG and feeds the studio's existing upload form, so persistence + colour
+seeding are reused. Brand colour defaults to the resolved seed_hex (already indigo/
+emerald by default); initials default to the school name.
+{% endcomment %}
+<section class="rmc-logo-maker" data-rmc-logo-maker
+         data-rmc-logo-maker-initial="{{ school.name|slice:':2'|default:'S'|upper }}"
+         data-rmc-logo-maker-color="{{ seed_hex|default:'#4f46e5' }}"
+         aria-labelledby="rmc-logo-maker-heading">
+  <h2 id="rmc-logo-maker-heading" class="rmc-logo-maker__heading">{% trans "…or design one now" %}</h2>
+  <p class="rmc-logo-maker__lede">{% trans "Make a clean monogram from your school's initials and brand colour — no design tool needed." %}</p>
+  <div class="rmc-logo-maker__body">
+    <div class="rmc-logo-maker__preview">
+      <canvas class="rmc-logo-maker__canvas" data-rmc-logo-maker-canvas width="320" height="320" role="img" aria-label="{% trans 'Logo preview' %}"></canvas>
+    </div>
+    <div class="rmc-logo-maker__controls">
+      <label class="rmc-logo-maker__field">
+        <span class="rmc-logo-maker__field-label">{% trans "Initials" %}</span>
+        <input type="text" maxlength="3" class="rmc-logo-maker__input" data-rmc-logo-maker-initials value="{{ school.name|slice:':2'|default:'S'|upper }}" autocomplete="off" spellcheck="false">
+      </label>
+      <label class="rmc-logo-maker__field">
+        <span class="rmc-logo-maker__field-label">{% trans "Colour" %}</span>
+        <input type="color" class="rmc-logo-maker__color" data-rmc-logo-maker-colorpick value="{{ seed_hex|default:'#4f46e5' }}" aria-label="{% trans 'Logo colour' %}">
+      </label>
+      <fieldset class="rmc-logo-maker__shapes">
+        <legend class="rmc-logo-maker__field-label">{% trans "Shape" %}</legend>
+        <label class="rmc-logo-maker__shape"><input type="radio" name="rmc-logo-maker-shape" value="squircle" data-rmc-logo-maker-shape checked> {% trans "Rounded" %}</label>
+        <label class="rmc-logo-maker__shape"><input type="radio" name="rmc-logo-maker-shape" value="circle" data-rmc-logo-maker-shape> {% trans "Circle" %}</label>
+        <label class="rmc-logo-maker__shape"><input type="radio" name="rmc-logo-maker-shape" value="square" data-rmc-logo-maker-shape> {% trans "Square" %}</label>
+      </fieldset>
+      <div class="rmc-logo-maker__actions">
+        <button type="button" class="rmc-day1-cta-primary" data-rmc-logo-maker-use>{% trans "Use this logo" %}</button>
+        <button type="button" class="rmc-day1-cta-secondary" data-rmc-logo-maker-download>{% trans "Download PNG" %}</button>
+      </div>
+      <p class="rmc-logo-maker__status" data-rmc-logo-maker-status role="status" aria-live="polite"></p>
+    </div>
+  </div>
+</section>
+<link rel="stylesheet" href="{% static 'css/rmc-logo-maker.css' %}">
+<script src="{% static 'js/rmc-logo-maker.js' %}" defer></script>

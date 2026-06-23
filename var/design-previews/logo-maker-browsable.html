@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logo maker — design a school logo on the fly (interactive)</title>
+<style>
+  :root{--surface-bg:#0b1020;--surface-canvas:#0e1426;--surface-elevated:#141c33;
+    --text-primary:#eef1fb;--text-secondary:#9aa3bd;--hairline:rgba(255,255,255,.12);--brand:#4f46e5}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,sans-serif;background:var(--surface-bg);color:var(--text-primary);padding:26px}
+  h1{font-size:19px;margin:0 0 4px}.sub{color:var(--text-secondary);margin:0 0 22px;font-size:13.5px;max-width:92ch}
+  .maker{max-width:720px;padding:1.25rem;border:1px solid var(--hairline);border-radius:16px;background:var(--surface-elevated)}
+  .maker h2{margin:0;font-size:16px}.maker .lede{margin:.25rem 0 1rem;color:var(--text-secondary);font-size:13px}
+  .body{display:grid;grid-template-columns:auto 1fr;gap:1.25rem;align-items:start}
+  canvas{width:128px;height:128px;border-radius:12px;background:var(--surface-canvas);border:1px solid var(--hairline)}
+  .controls{display:flex;flex-direction:column;gap:.75rem}
+  .field{display:flex;flex-direction:column;gap:.3rem}
+  .lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary)}
+  input[type=text]{width:7rem;padding:.5rem .65rem;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-bg);color:var(--text-primary);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  input[type=color]{width:3rem;height:2.2rem;padding:0;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-bg);cursor:pointer}
+  fieldset{display:flex;gap:.75rem;margin:0;padding:0;border:0}
+  fieldset label{display:inline-flex;align-items:center;gap:.35rem;font-size:13px;cursor:pointer}
+  .actions{display:flex;gap:.6rem;margin-top:.25rem}
+  button{font-size:13px;font-weight:600;border-radius:10px;padding:.55rem 1rem;cursor:pointer;border:1px solid var(--hairline)}
+  .primary{background:var(--brand);border-color:var(--brand);color:#fff}
+  .secondary{background:transparent;color:var(--text-primary)}
+  .status{margin:0;min-height:1.1rem;font-size:13px;color:#7ee2b0}
+</style>
+</head>
+<body>
+  <h1>Logo maker — design a school logo on the fly</h1>
+  <p class="sub">This is the exact component that drops into the branding studio when a school has no logo yet. Type initials, pick a colour and shape — it draws live. "Download PNG" hands you a file; in the live studio "Use this logo" exports the canvas to PNG and feeds the existing upload form (which also seeds the brand colour). Try it:</p>
+
+  <section class="maker" data-rmc-logo-maker data-rmc-logo-maker-initial="NT" data-rmc-logo-maker-color="#4f46e5">
+    <h2>…or design one now</h2>
+    <p class="lede">Make a clean monogram from your school's initials and brand colour — no design tool needed.</p>
+    <div class="body">
+      <canvas data-rmc-logo-maker-canvas width="320" height="320" role="img" aria-label="Logo preview"></canvas>
+      <div class="controls">
+        <label class="field"><span class="lbl">Initials</span><input type="text" maxlength="3" data-rmc-logo-maker-initials value="NT"></label>
+        <label class="field"><span class="lbl">Colour</span><input type="color" data-rmc-logo-maker-colorpick value="#4f46e5"></label>
+        <fieldset><span class="lbl">Shape</span>
+          <label><input type="radio" name="s" value="squircle" data-rmc-logo-maker-shape checked> Rounded</label>
+          <label><input type="radio" name="s" value="circle" data-rmc-logo-maker-shape> Circle</label>
+          <label><input type="radio" name="s" value="square" data-rmc-logo-maker-shape> Square</label>
+        </fieldset>
+        <div class="actions">
+          <button type="button" class="primary" data-rmc-logo-maker-use>Use this logo</button>
+          <button type="button" class="secondary" data-rmc-logo-maker-download>Download PNG</button>
+        </div>
+        <p class="status" data-rmc-logo-maker-status></p>
+      </div>
+    </div>
+  </section>
+
+  <script>
+  // Inlined copy of static/js/rmc-logo-maker.js draw logic (preview is self-contained).
+  (function(){
+    function $(s,r){return (r||document).querySelector(s);}
+    function rr(c,x,y,w,h,r){c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+    function draw(cv,o){var c=cv.getContext('2d'),S=cv.width;c.clearRect(0,0,S,S);var p=Math.round(S*.06),x=p,y=p,w=S-p*2,h=S-p*2;c.fillStyle=o.color;c.beginPath();if(o.shape==='circle'){c.arc(S/2,S/2,w/2,0,Math.PI*2);}else if(o.shape==='square'){c.rect(x,y,w,h);}else{rr(c,x,y,w,h,Math.round(w*.24));}c.fill();var t=((o.initials||'S').trim()||'S').slice(0,3).toUpperCase();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';var fs=t.length>=3?S*.32:(t.length===2?S*.42:S*.5);c.font='800 '+Math.round(fs)+"px Inter,system-ui,sans-serif";c.fillText(t,S/2,S/2+S*.02);}
+    var root=$('[data-rmc-logo-maker]'),cv=$('[data-rmc-logo-maker-canvas]',root),ii=$('[data-rmc-logo-maker-initials]',root),ci=$('[data-rmc-logo-maker-colorpick]',root),st=$('[data-rmc-logo-maker-status]',root);
+    function opts(){var sh=root.querySelector('[data-rmc-logo-maker-shape]:checked');return{initials:ii.value||'S',color:ci.value||'#4f46e5',shape:sh?sh.value:'squircle'};}
+    function redraw(){draw(cv,opts());}redraw();
+    ii.addEventListener('input',redraw);ci.addEventListener('input',redraw);
+    root.querySelectorAll('[data-rmc-logo-maker-shape]').forEach(function(e){e.addEventListener('change',redraw);});
+    $('[data-rmc-logo-maker-download]',root).addEventListener('click',function(){var a=document.createElement('a');a.href=cv.toDataURL('image/png');a.download='school-logo.png';a.click();st.textContent='Downloaded school-logo.png';});
+    $('[data-rmc-logo-maker-use]',root).addEventListener('click',function(){st.textContent='In the live studio this applies the logo + seeds the brand colour.';});
+  })();
+  </script>
+</body>
+</html>
