@@ -37,16 +37,16 @@ Phase-0 item; see `project_rbac_school_owner_2026_06_23` memory.
 
 ## Deferred — needs a supervised pass (exact targets + fix)
 
-### P0 (non-/20 tenants are actively wrong) — grade-scale plumbed into context
+### P0 (non-/20 tenants are actively wrong) — grade-scale plumbed into context — ✅ CLOSED
 - `templates/accounts/backend_dashboard.html` — **SHIPPED `561f277fc`** (see above).
-- `templates/teacher/marks_entry.html:326-334` — six mark inputs hardcode `max="20"`. A
-  /100 (US) or /10 (EU) or /7 (IB) tenant cannot enter valid marks. **Fix is ready** (view
-  computes `max_score` via `resolve_school_score_scale()`, template binds `max="{{ max_score }}"`)
-  but **NOT shipped by this pass**: `apps/evals/views.py` has in-flight peer grade-scale work
-  (the OCR path + `_validate_ocr_entries(max_score=…)` already call the same resolver), so
-  committing the marks-entry view change would absorb the peer's uncommitted work. Hand to
-  whoever owns that file's grade-scale wave — the view block + the 6 `max="20"` bindings are
-  the only remaining edit, and it's backward-compatible (Cameroon `score_scale=20` → `max="20"`).
+- `templates/teacher/marks_entry.html` — **SHIPPED `8f618c080`** (supervised pass, after the
+  peer's OCR-path grade-scale work landed as `a94321b54`). All six mark inputs (seq1/seq2/exam/
+  mock/practical + the OCR-correction field) now bind `max="{{ max_score|default:20 }}"`; the
+  view resolves `resolve_school_score_scale(school)` and normalizes it via the new
+  `_normalized_scale_max` helper (20→"20", 4.0→"4", 7.5→"7.5"), so a /100, /4 or /10 tenant can
+  enter valid marks. Cameroon `score_scale=20` → `max="20"` (back-compat, unchanged). No
+  migration. No-DB tests in `apps/evals/tests/test_marks_entry_scale.py`; the resolver itself is
+  DB-tested in `test_grading_provisioning.py`.
 
 ### P1 — founding-tenant seed history + structural binding
 - `schools/migrations/0012`, `0013`, `customers/migrations/0003` — seed a Gilead-specific
