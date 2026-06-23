@@ -170,8 +170,10 @@
         }
       }
     }
+    // Canonical detail value cells only: the .rmc-kv definition-list <dd>. We do
+    // NOT key off [data-rmc-field] — that attribute marks a FORM-field wrapper
+    // (a <div> holding a label + input), a different domain entirely.
     collect(".rmc-kv > dd");
-    collect("[data-rmc-field]");
     for (var i = 0; i < seen.length; i++) {
       try {
         enhanceValueCell(seen[i], false);

@@ -32,6 +32,14 @@ EXACT_FIELD_OWNERS: Final[dict[str, str]] = {
     "preview_note": "preview_platform",
     "custom_css": "brand_experience",
     "meta_description": "brand_experience",
+    # Notification-intelligence engine (Surface 6) UX-chrome switches. EXACT (not
+    # a "notify_" prefix) because the bare "notify_" prefix is owned by
+    # policies_rules; exact match wins so these stay brand_experience while a
+    # future policy notify_* key still resolves to policies_rules.
+    "notify_intelligence": "brand_experience",
+    "notify_bell_preview": "brand_experience",
+    "notify_inline_actions": "brand_experience",
+    "notify_toast_sync": "brand_experience",
     "site_name": "brand_experience",
     "tagline": "brand_experience",
     "company_name": "brand_experience",
@@ -187,9 +195,10 @@ PREFIX_FIELD_OWNERS: Final[tuple[tuple[str, str], ...]] = (
     # Loading-intelligence engine: action pending-state + skeleton switches.
     # Payload-backed (no migration); UX chrome.
     ("loading_", "brand_experience"),
-    # Notification-intelligence engine: live bell preview + inline triage +
-    # instant badge sync switches. Payload-backed (no migration); UX chrome.
-    ("notify_", "brand_experience"),
+    # Notification-intelligence engine keys are EXACT_FIELD_OWNERS (above), NOT a
+    # "notify_" prefix — the bare "notify_" prefix is already owned by
+    # policies_rules (policy notification settings), so a second prefix entry
+    # here would shadow it. UX chrome; payload-backed (no migration).
     # Modal-intelligence engine: declarative + programmatic confirm switches.
     # Payload-backed (no migration); UX chrome.
     ("modal_", "brand_experience"),

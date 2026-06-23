@@ -42,7 +42,6 @@ class DetailEngineContractTests(SimpleTestCase):
     def test_engine_declares_hooks_and_composes(self):
         js = _read("static/js/rmc-detail-intelligence.js")
         self.assertIn("rmc-kv", js)                  # composes the kv grammar
-        self.assertIn("data-rmc-field", js)          # field hook
         self.assertIn("data-rmc-copy", js)           # explicit copy hook
         self.assertIn("data-rmc-section-anchor", js) # composes section anchors
         self.assertIn("data-rmc-section-nav-auto", js)  # author-placed mount

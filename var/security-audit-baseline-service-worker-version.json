@@ -1,12 +1,12 @@
 {
   "date": "2026-06-22",
-  "generated_at": "2026-06-23T04:30:00+00:00",
+  "generated_at": "2026-06-23T05:30:00+00:00",
   "major": 4,
   "minor": 4,
-  "patch": 67,
-  "raw": "sms-v4.04.67-detail-intelligence-engine-2026-06-22",
+  "patch": 68,
+  "raw": "sms-v4.04.68-engine-audit-followups-2026-06-22",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "detail-intelligence-engine",
+  "slug": "engine-audit-followups",
   "valid": true
 }
