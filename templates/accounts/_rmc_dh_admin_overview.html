@@ -11,7 +11,12 @@
 {% url 'accounts:backend_dashboard' as ov_home_url %}
 
 <div class="rmc-dh mt-3" data-rmc-ux-section="school-overview">
+  {% if rmc_school_onboarding.percent != None %}
+  {% blocktrans asvar ov_title %}School command surface{% endblocktrans %}
+  {% include "components/dashboard/rmc_dh_hero.html" with dh_eyebrow=_("Admin workspace") dh_title=ov_title dh_sub=_("Live KPIs, follow-ups, and fee health at a glance.") dh_ring_pct=rmc_school_onboarding.percent dh_ring_label=rmc_school_onboarding.percent|stringformat:"d"|add:"%" dh_ring_aria=_("Onboarding progress") %}
+  {% else %}
   <div class="rmc-dh-section-label"><i class="bi bi-speedometer2" aria-hidden="true"></i> {% trans "School overview" %}</div>
+  {% endif %}
 
   {# ---------- KPI tiles ---------- #}
   <div class="rmc-dh-tiles">
@@ -94,6 +99,11 @@
           <span class="rmc-dh-progress__bar"><i style="width:{{ finance_summary.paid|dh_ratio:finance_summary.receivables }}%"></i></span>
           <span class="rmc-dh-progress__pct">{{ finance_summary.paid|dh_ratio:finance_summary.receivables }}%</span>
         </div>
+        {% with ov_coll_pct=finance_summary.paid|dh_ratio:finance_summary.receivables %}
+        {% dh_fee_donut_segments ov_coll_pct as ov_fee_segments %}
+        {% dh_donut_gradient ov_fee_segments as ov_fee_gradient %}
+        {% include "components/dashboard/rmc_dh_donut.html" with dh_gradient=ov_fee_gradient dh_center=ov_coll_pct|stringformat:"d"|add:"%" dh_sub=_("collected") %}
+        {% endwith %}
         <div class="rmc-dh-segbar-key">
           <span><span class="rmc-dh-legend__sw rmc-dh-fill--paid"></span> {% trans "Paid" %} {{ finance_summary.paid|format_currency }}</span>
           <span><span class="rmc-dh-legend__sw rmc-dh-fill--overdue"></span> {% trans "Receivable" %} {{ finance_summary.receivables|format_currency }}</span>

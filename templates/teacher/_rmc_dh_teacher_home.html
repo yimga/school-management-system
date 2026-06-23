@@ -21,9 +21,9 @@
 
   {# ---------- KPI tiles ---------- #}
   <div class="rmc-dh-tiles">
-    {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-mortarboard" dh_k=_("Classes") dh_v=assignments|length|default:0 dh_d=_("active subjects") dh_dir="flat" dh_href=th_marks_list_url %}
-    {% if widget_data.completion_pct >= 80 %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-clipboard-check" dh_k=_("Marks completion") dh_v=widget_data.completion_pct|default:0|stringformat:"d"|add:"%" dh_d=_("on track") dh_dir="up" dh_href=th_marks_url %}
-    {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-clipboard-check" dh_k=_("Marks completion") dh_v=widget_data.completion_pct|default:0|stringformat:"d"|add:"%" dh_d=_("in progress") dh_dir="down" dh_href=th_marks_url %}{% endif %}
+    {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-mortarboard" dh_k=_("Classes") dh_v=assignments|length|default:0 dh_d=_("active subjects") dh_dir="flat" dh_href=th_marks_list_url dh_spark=widget_data.grade_trend|dh_spark_heights %}
+    {% if widget_data.completion_pct >= 80 %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-clipboard-check" dh_k=_("Marks completion") dh_v=widget_data.completion_pct|default:0|stringformat:"d"|add:"%" dh_d=_("on track") dh_dir="up" dh_href=th_marks_url dh_spark=widget_data.attendance_trend|dh_spark_heights %}
+    {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-clipboard-check" dh_k=_("Marks completion") dh_v=widget_data.completion_pct|default:0|stringformat:"d"|add:"%" dh_d=_("in progress") dh_dir="down" dh_href=th_marks_url dh_spark=widget_data.attendance_trend|dh_spark_heights %}{% endif %}
     {% if widget_data.attendance.overall >= 90 %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-people" dh_k=_("Attendance") dh_v=widget_data.attendance.overall|default:0|stringformat:"d"|add:"%" dh_d=_("strong") dh_dir="up" dh_href=th_attendance_url %}
     {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-people" dh_k=_("Attendance") dh_v=widget_data.attendance.overall|default:0|stringformat:"d"|add:"%" dh_d=_("watch") dh_dir="down" dh_href=th_attendance_url %}{% endif %}
     {% if widget_data.tasks.pending_evaluations %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-journal-x" dh_k=_("Pending marks") dh_v=widget_data.tasks.pending_evaluations dh_d=_("to enter") dh_dir="down" dh_href=th_marks_url %}
@@ -129,6 +129,10 @@
       {% if syllabus_status_summary %}
       <section class="rmc-dh-panel">
         {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-journal-text" dh_title=_("Syllabus status") dh_more_label=_("Hub")|add:" →" dh_more_href=th_syllabus_url %}
+        {% dh_syllabus_segbar syllabus_status_summary as syllabus_segbar_segments %}
+        {% if syllabus_segbar_segments %}
+        {% include "components/dashboard/rmc_dh_segbar.html" with dh_segments=syllabus_segbar_segments %}
+        {% endif %}
         <div class="rmc-dh-segbar-key">
           <span><span class="rmc-dh-legend__sw rmc-dh-fill--success"></span> {% trans "Approved" %} {{ syllabus_status_summary.approved|default:0 }}</span>
           <span><span class="rmc-dh-legend__sw rmc-dh-fill--warn"></span> {% trans "Pending" %} {{ syllabus_status_summary.pending|default:0 }}</span>
@@ -138,12 +142,19 @@
       </section>
       {% endif %}
 
+      {% if widget_data.attendance_trend %}
+      <section class="rmc-dh-panel">
+        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-grid-3x3-gap" dh_title=_("Attendance rhythm") %}
+        {% include "components/dashboard/rmc_dh_heat.html" with dh_cells=widget_data.attendance_trend|dh_heat_levels dh_aria=_("Recent attendance rhythm") %}
+      </section>
+      {% endif %}
+
       {# This week's deadlines #}
       {% if teacher_deadline_items %}
       <section class="rmc-dh-panel">
         {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-calendar-week" dh_title=_("This week's deadlines") %}
         {% for ev in teacher_deadline_items|slice:":4" %}
-        <div class="rmc-dh-due"><i class="bi bi-flag" aria-hidden="true"></i> <span>{{ ev.title|truncatechars:38 }}</span>{% if ev.when %}<span class="rmc-dh-due__cd">{{ ev.when|date:"M j" }}</span>{% endif %}</div>
+        {% include "components/dashboard/rmc_dh_due_item.html" with dh_icon="bi-flag" dh_text=ev.title dh_cd=ev.when|date:"M j" %}
         {% endfor %}
       </section>
       {% endif %}

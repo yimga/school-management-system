@@ -11,7 +11,7 @@
     {% if dh_text %}<p>{{ dh_text }}</p>{% endif %}
     {% if dh_acts %}
     <div class="rmc-dh-aicard__acts">
-      {% for act in dh_acts %}<a class="rmc-dh-chip" href="{{ act.href|default:'#' }}">{{ act.label }}</a>{% endfor %}
+      {% for act in dh_acts %}<a class="rmc-dh-chip{% if forloop.first and dh_primary_first %} rmc-dh-chip--primary{% endif %}" href="{{ act.href|default:'#' }}">{{ act.label }}</a>{% endfor %}
     </div>
     {% endif %}
   </div>

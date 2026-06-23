@@ -40,23 +40,11 @@
 {% include "teacher/_rmc_dh_teacher_home.html" %}
 
 {% with widgets=display_widgets %}
-{% if cockpit.year_progress.enabled or cockpit.today_snapshot.enabled or cockpit.quick_actions.enabled or cockpit.upcoming_events.enabled or cockpit.activity_timeline.enabled or cockpit.achievements.enabled or cockpit.teacher_spotlight.enabled or cockpit.realtime_presence.enabled or cockpit.attendance_heatmap.enabled or cockpit.lesson_of_day.enabled or cockpit.gradebook_trend.enabled %}
+{% comment %} v4.04.x 100X: cockpit keeps operator-only extras — sections already in .rmc-dh are omitted. {% endcomment %}
+{% if cockpit.year_progress.enabled or cockpit.realtime_presence.enabled or cockpit.lesson_of_day.enabled or cockpit.gradebook_trend.enabled %}
 <div class="tp-dashboard-cockpit container-fluid px-3 px-lg-4" data-rmc-tp-dashboard-cockpit="teacher">
   {% if cockpit.year_progress.enabled %}{% include "partials/cockpit/_year_progress.html" %}{% endif %}
-  {% if cockpit.today_snapshot.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Today snapshot") key="teacher__today_snapshot" include_partial="partials/cockpit/_today_snapshot.html" chrome="section" %}{% endif %}
-  {% if cockpit.quick_actions.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Quick actions") key="teacher__quick_actions_grid" include_partial="partials/cockpit/_quick_actions_grid.html" chrome="section" %}{% endif %}
-  {% if cockpit.upcoming_events.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Upcoming events") key="teacher__upcoming_events_strip" include_partial="partials/cockpit/_upcoming_events_strip.html" chrome="section" %}{% endif %}
-  {% if cockpit.activity_timeline.enabled or cockpit.achievements.enabled or cockpit.teacher_spotlight.enabled %}
-  <div class="tp-grid-2">
-    {% if cockpit.activity_timeline.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Activity timeline") key="teacher__activity_timeline" include_partial="partials/cockpit/_activity_timeline.html" chrome="section" %}{% endif %}
-    <div class="tp-grid-stack">
-      {% if cockpit.achievements.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Achievements") key="teacher__achievements_card" include_partial="partials/cockpit/_achievements_card.html" chrome="section" %}{% endif %}
-      {% if cockpit.teacher_spotlight.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Teacher spotlight") key="teacher__teacher_spotlight_card" include_partial="partials/cockpit/_teacher_spotlight_card.html" chrome="section" %}{% endif %}
-    </div>
-  </div>
-  {% endif %}
   {% if cockpit.realtime_presence.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Realtime presence") key="teacher__realtime_presence" include_partial="partials/cockpit/_realtime_presence.html" chrome="section" %}{% endif %}
-  {% if cockpit.attendance_heatmap.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Attendance heatmap") key="teacher__attendance_heatmap" include_partial="partials/cockpit/_attendance_heatmap.html" chrome="section" %}{% endif %}
   {% if cockpit.lesson_of_day.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Lesson of the day") key="teacher__lesson_of_day" include_partial="partials/cockpit/_lesson_of_day.html" chrome="section" %}{% endif %}
   {% if cockpit.gradebook_trend.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Gradebook trend") key="teacher__gradebook_trend" include_partial="partials/cockpit/_gradebook_trend.html" chrome="section" %}{% endif %}
 </div>

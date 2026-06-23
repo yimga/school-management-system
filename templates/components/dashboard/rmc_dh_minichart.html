@@ -4,7 +4,7 @@
   dh_aria (opt) describes the trend for screen readers.
 {% endcomment %}
 <div class="rmc-dh-minichart" role="img" aria-label="{{ dh_aria|default:'trend' }}">
-  {% for col in dh_cols %}<div class="rmc-dh-minichart__col{% if col.accent %} rmc-dh-minichart__col--accent{% endif %}" style="--rmc-dh-col-h:{{ col.pct|default:0 }}%"></div>{% endfor %}
+  {% for col in dh_cols %}<div class="rmc-dh-minichart__col{% if col.accent %} rmc-dh-minichart__col--accent{% endif %}" style="--rmc-dh-col-h:{% if col.pct != None %}{{ col.pct }}{% else %}{{ col.value|dh_ratio:100 }}{% endif %}%"></div>{% endfor %}
 </div>
 <div class="rmc-dh-minichart-x" aria-hidden="true">
   {% for col in dh_cols %}<span>{{ col.label }}</span>{% endfor %}

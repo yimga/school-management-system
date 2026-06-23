@@ -1,12 +1,12 @@
 {
-  "date": "2026-06-22",
-  "generated_at": "2026-06-23T05:30:00+00:00",
+  "date": "2026-06-23",
+  "generated_at": "2026-06-23T21:32:35+00:00",
   "major": 4,
   "minor": 4,
-  "patch": 68,
-  "raw": "sms-v4.04.68-engine-audit-followups-2026-06-22",
+  "patch": 77,
+  "raw": "sms-v4.04.77-tenant-100x-role-home-complete-2026-06-23",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "engine-audit-followups",
+  "slug": "tenant-100x-role-home-complete",
   "valid": true
 }

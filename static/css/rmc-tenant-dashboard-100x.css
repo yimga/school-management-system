@@ -108,7 +108,8 @@
   background: var(--surface-canvas);
 }
 .rmc-dh-tile--link { text-decoration: none; color: inherit; display: block; transition: border-color var(--dur-fast, 0.15s) var(--ease-out, ease), transform var(--dur-fast, 0.15s) var(--ease-out, ease); }
-.rmc-dh-tile--link:hover { border-color: var(--rmc-dh-brand); transform: translateY(-2px); }
+.rmc-dh-tile--link:hover,
+.rmc-dh-tile--link:focus-visible { border-color: var(--rmc-dh-brand); transform: translateY(-2px); outline: none; }
 .rmc-dh-tile__k {
   display: flex;
   align-items: center;
@@ -286,7 +287,8 @@
   color: inherit;
   transition: transform var(--dur-fast, 0.15s) var(--ease-out, ease), border-color var(--dur-fast, 0.15s) var(--ease-out, ease);
 }
-.rmc-dh-card:hover { border-color: var(--rmc-dh-brand); transform: translateY(-2px); }
+.rmc-dh-card:hover,
+.rmc-dh-card:focus-visible { border-color: var(--rmc-dh-brand); transform: translateY(-2px); outline: none; }
 .rmc-dh-card__title { display: block; font-size: var(--text-sm, 0.84375rem); font-weight: 600; margin-bottom: 0.25rem; color: var(--text-primary); }
 .rmc-dh-card__meta { font-size: var(--text-xs, 0.71875rem); color: var(--text-tertiary); }
 .rmc-dh-card__foot { display: flex; justify-content: space-between; align-items: center; margin-top: 0.625rem; font-size: var(--text-xs, 0.75rem); }
@@ -465,6 +467,28 @@
 .rmc-dh-timeline__t--done { background: var(--rmc-dh-accent); }
 .rmc-dh-timeline__when { margin-left: auto; font-size: var(--text-xs, 0.6875rem); color: var(--text-tertiary); white-space: nowrap; }
 
+/* ============================ Timetable rows ============================ */
+.rmc-dh-tt {
+  display: flex;
+  align-items: center;
+  gap: 0.6875rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--hairline);
+  font-size: var(--text-sm, 0.8125rem);
+  color: var(--text-secondary);
+}
+.rmc-dh-tt:first-of-type { border-top: none; }
+.rmc-dh-tt__when {
+  flex: none;
+  width: 3.25rem;
+  font-size: var(--text-xs, 0.6875rem);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+.rmc-dh-tt__when--now { color: var(--rmc-dh-accent); font-weight: 700; }
+.rmc-dh-tt__subject { min-width: 0; flex: 1; color: var(--text-primary); font-weight: 600; }
+.rmc-dh-tt__room { margin-left: auto; font-size: var(--text-xs, 0.6875rem); color: var(--text-tertiary); white-space: nowrap; }
+
 /* ============================ Labeled progress rows ============================ */
 .rmc-dh-progress { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5625rem; }
 .rmc-dh-progress__lbl { width: 130px; font-size: var(--text-xs, 0.78125rem); color: var(--text-secondary); }
@@ -515,7 +539,8 @@
   transition: opacity var(--dur-fast, 0.15s) var(--ease-out, ease);
   background: linear-gradient(90deg, var(--rmc-dh-brand), var(--rmc-dh-accent)); /* off-token-allow: decorative-gradient */
 }
-.rmc-dh-tile:hover { transform: translateY(-2px); border-color: var(--hairline-strong, var(--hairline)); }
+.rmc-dh-tile:hover,
+.rmc-dh-tile:focus-visible { transform: translateY(-2px); border-color: var(--hairline-strong, var(--hairline)); outline: none; }
 .rmc-dh-tile:hover::before { opacity: 0.9; }
 .rmc-dh-panel { transition: border-color var(--dur-fast, 0.15s) var(--ease-out, ease); }
 .rmc-dh-panel:hover { border-color: var(--hairline-strong, var(--hairline)); }
@@ -563,5 +588,10 @@
 /* ============================ Reduced motion ============================ */
 @media (prefers-reduced-motion: reduce) {
   .rmc-dh-card, .rmc-dh-tile, .rmc-dh-panel { transition: none; }
-  .rmc-dh-card:hover, .rmc-dh-tile:hover { transform: none; }
+  .rmc-dh-card:hover,
+  .rmc-dh-card:focus-visible,
+  .rmc-dh-tile:hover,
+  .rmc-dh-tile:focus-visible,
+  .rmc-dh-tile--link:hover,
+  .rmc-dh-tile--link:focus-visible { transform: none; }
 }

@@ -70,7 +70,8 @@ class StudentLearningHomeMagicUxHttpTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn('data-rmc-student-learning-home="1"', body)
-        self.assertIn('data-task="student_home"', body)
+        self.assertIn('data-page-archetype="student-dashboard"', body)
+        self.assertIn('class="rmc-dh', body)
 
 
 class ParentFinanceMagicUxHttpTests(TestCase):

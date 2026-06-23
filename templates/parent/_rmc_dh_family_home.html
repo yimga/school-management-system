@@ -38,13 +38,13 @@
 
   {# ---------- KPI tiles ---------- #}
   <div class="rmc-dh-tiles">
-    {% if attendance_pct >= 90 %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-check2-circle" dh_k=_("Attendance") dh_v=attendance_pct|stringformat:"d"|add:"%" dh_d=_("on track") dh_dir="up" dh_href=ph_stats_url %}
-    {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-check2-circle" dh_k=_("Attendance") dh_v=attendance_pct|stringformat:"d"|add:"%" dh_d=_("watch") dh_dir="down" dh_href=ph_stats_url %}{% endif %}
+    {% if attendance_pct >= 90 %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-check2-circle" dh_k=_("Attendance") dh_v=attendance_pct|stringformat:"d"|add:"%" dh_d=_("on track") dh_dir="up" dh_href=ph_stats_url dh_spark=widget_data.attendance_trend|dh_spark_heights %}
+    {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-check2-circle" dh_k=_("Attendance") dh_v=attendance_pct|stringformat:"d"|add:"%" dh_d=_("watch") dh_dir="down" dh_href=ph_stats_url dh_spark=widget_data.attendance_trend|dh_spark_heights %}{% endif %}
     {% if can_view_finance %}
       {% if finance_balance and finance_balance > 0 %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-wallet2" dh_k=_("Balance due") dh_v=finance_balance|format_currency dh_d=_("due") dh_dir="down" dh_href=ph_finance_url %}
       {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-wallet2" dh_k=_("Balance due") dh_v=finance_balance|format_currency dh_d=_("cleared") dh_dir="up" dh_href=ph_finance_url %}{% endif %}
     {% endif %}
-    {% if widget_data.performance.average %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-mortarboard" dh_k=_("Average") dh_v=widget_data.performance.average|floatformat:0 dh_d=widget_data.performance.trend|default:"" dh_dir="flat" %}{% endif %}
+    {% if widget_data.performance.average %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-mortarboard" dh_k=_("Average") dh_v=widget_data.performance.average|floatformat:0 dh_d=widget_data.performance.trend|default:"" dh_dir="flat" dh_spark=widget_data.grade_trend|dh_spark_heights %}{% endif %}
     {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-bell" dh_k=_("Messages") dh_v=unread_messages_aggregate|default:0 dh_d=_("unread") dh_dir="flat" dh_href=ph_contact_url %}
   </div>
 
@@ -71,26 +71,22 @@
   </div>
   {% endif %}
 
+  {% if attendance_pct >= 90 and child_cards %}
+  {% with star=child_cards.0 %}
+  {% blocktrans with name=star.link.student.get_full_name asvar spot_title %}{{ name }} is on track this term{% endblocktrans %}
+  {% include "components/dashboard/rmc_dh_spotlight.html" with dh_glyph="🏆" dh_title=spot_title dh_text=_("Strong attendance and steady progress — keep it up.") %}
+  {% endwith %}
+  {% endif %}
+
   {# ---------- My children ---------- #}
   {% term "student" plural=True capitalize=True as student_pl %}
   <div class="rmc-dh-section-label"><i class="bi bi-people" aria-hidden="true"></i> {% blocktrans with t=student_pl %}My {{ t }}{% endblocktrans %}</div>
   <div class="rmc-dh-cards rmc-dh-cards--wide">
     {% for card in child_cards %}
-    <a class="rmc-dh-child" href="{% url 'portal:parent_child_results' card.link.student.id %}">
-      <div class="rmc-dh-child__ring" style="--rmc-dh-ring-pct:{{ card.attendance|default:0 }}" aria-hidden="true"><span>{{ card.attendance|default:0 }}%</span></div>
-      <div class="rmc-dh-child__body">
-        <h4>{{ card.link.student.get_full_name }}</h4>
-        <div class="rmc-dh-child__meta">
-          {% if can_view_results %}{% if card.rank %}{% blocktrans with r=card.rank %}Rank {{ r }}{% endblocktrans %} · {% endif %}{% if card.average %}{% trans "Avg" %} {{ card.average|floatformat:0 }}{% endif %}{% else %}{% trans "Linked" %}{% endif %}
-        </div>
-        <div class="rmc-dh-child__tags">
-          {% if card.attendance >= 80 %}<span class="rmc-dh-tag rmc-dh-tag--good">{% trans "On track" %}</span>{% else %}<span class="rmc-dh-tag rmc-dh-tag--warn">{% trans "Attendance" %}</span>{% endif %}
-          {% if can_view_finance %}{% if card.finance_balance and card.finance_balance > 0 %}<span class="rmc-dh-tag rmc-dh-tag--warn">{% trans "Fees due" %}</span>{% else %}<span class="rmc-dh-tag rmc-dh-tag--good">{% trans "Cleared" %}</span>{% endif %}{% endif %}
-          {% if card.missing_work %}<span class="rmc-dh-tag rmc-dh-tag--warn">{% blocktrans count n=card.missing_work %}{{ n }} task{% plural %}{{ n }} tasks{% endblocktrans %}</span>{% endif %}
-          {% for b in card.badges|slice:":2" %}<span class="rmc-dh-tag">{{ b.badge_type.label }}</span>{% endfor %}
-        </div>
-      </div>
-    </a>
+    {% url 'portal:parent_child_results' card.link.student.id as child_href %}
+    {% dh_child_meta card can_view_results=can_view_results as child_meta %}
+    {% dh_child_tags card can_view_results=can_view_results can_view_finance=can_view_finance as child_tags %}
+    {% include "components/dashboard/rmc_dh_child_card.html" with dh_href=child_href dh_ring_pct=card.attendance|default:0 dh_ring_label=card.attendance|default:0|stringformat:"d"|add:"%" dh_name=card.link.student.get_full_name dh_meta=child_meta dh_tags=child_tags %}
     {% empty %}
     <div class="rmc-dh-panel">{% include "components/tp_empty.html" with tp_empty_title=_("No children linked yet") tp_empty_hint=_("Add one using your invite code from the school.") %}</div>
     {% endfor %}
@@ -102,10 +98,7 @@
       {% if widget_data.grade_trend %}
       <section class="rmc-dh-panel">
         {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-graph-up-arrow" dh_title=_("Grade trend") dh_more_label=_("Reports")|add:" →" dh_more_href=ph_stats_url %}
-        <div class="rmc-dh-minichart" role="img" aria-label="{% trans 'Recent grade trend' %}">
-          {% for g in widget_data.grade_trend %}<div class="rmc-dh-minichart__col rmc-dh-minichart__col--accent" style="--rmc-dh-col-h:{{ g.value|dh_ratio:100 }}%"></div>{% endfor %}
-        </div>
-        <div class="rmc-dh-minichart-x" aria-hidden="true">{% for g in widget_data.grade_trend %}<span>{{ g.label }}</span>{% endfor %}</div>
+        {% include "components/dashboard/rmc_dh_minichart.html" with dh_cols=widget_data.grade_trend dh_aria=_("Recent grade trend") %}
       </section>
       {% endif %}
 
@@ -144,6 +137,9 @@
           <span class="rmc-dh-progress__bar"><i style="width:{{ finance_paid_pct|default:0 }}%"></i></span>
           <span class="rmc-dh-progress__pct">{{ finance_paid_pct|default:0 }}%</span>
         </div>
+        {% dh_fee_donut_segments finance_paid_pct as fee_segments %}
+        {% dh_donut_gradient fee_segments as fee_gradient %}
+        {% include "components/dashboard/rmc_dh_donut.html" with dh_gradient=fee_gradient dh_center=finance_paid_pct|default:0|stringformat:"d"|add:"%" dh_sub=_("paid") %}
         <div class="rmc-dh-segbar-key">
           <span><span class="rmc-dh-legend__sw rmc-dh-fill--paid"></span> {% trans "Paid" %} {{ finance_paid|format_currency }}</span>
           <span><span class="rmc-dh-legend__sw rmc-dh-fill--overdue"></span> {% trans "Balance" %} {{ finance_balance|format_currency }}</span>
