@@ -33,6 +33,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from django.views.decorators.cache import never_cache
 
 from apps.platform_runtime.helpers import get_platform_defaults
+from apps.schools.compliance_region import derive_compliance_region
 from apps.schools.marketing_settings_helpers import derive_marketing_demo_tenant_url
 
 
@@ -694,6 +695,10 @@ def signup_school(request: HttpRequest):
         default_language=str(
             language_code or country_defaults.get("default_language") or ""
         )[:16],
+        # Local-first: auto-assign the data-protection regime from the country (EU→GDPR,
+        # US→FERPA, NG→NDPR) so masking/retention/consent apply by default instead of
+        # every new tenant landing on NONE. Unmapped countries stay unset for the operator.
+        compliance_region=derive_compliance_region(country_code),
         settings=school_settings,
     )
     # Wave 6/10 (v3.62.10) — first-class primary_language. Still also lives in
