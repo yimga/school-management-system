@@ -16,15 +16,16 @@ logger = logging.getLogger(__name__)
 def _try_remote_cancel(external_ref: str) -> bool:
     """Attempt a provider-side subscription cancel. Returns True when cancelled.
 
-    No live Stripe cancel client is wired yet (the provider API is an external
-    dependency). This is the seam where ``stripe.Subscription.delete(ref)`` plugs
-    in. Until then it returns False so the ref is recorded as ``remote_pending``
-    for operator/cron reconciliation rather than silently assumed cancelled.
+    Delegates to the pluggable adapter in :mod:`apps.billing.remote_cancel`,
+    which resolves a configured provider-cancel callable (Django setting
+    ``BILLING_REMOTE_CANCEL_ADAPTER`` / env ``RMC_BILLING_REMOTE_CANCEL_ADAPTER``)
+    so an operator can wire a live Stripe client WITHOUT a code change. With no
+    adapter configured it is a safe no-op returning False, so the ref is recorded
+    as ``remote_pending`` for reconciliation rather than assumed cancelled.
     """
-    if not external_ref:
-        return False
-    # EXTERNAL: wire the provider cancel here once billing credentials exist.
-    return False
+    from apps.billing.remote_cancel import try_remote_cancel
+
+    return try_remote_cancel(external_ref)
 
 
 def cancel_subscriptions_for_offboarding(school) -> dict:
