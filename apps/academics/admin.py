@@ -142,7 +142,24 @@ class ClassBooklistAdmin(ModelAdmin):
     search_fields = ("classroom__name",)
 
 
-class CertificationExamSessionAdmin(ModelAdmin):
+class _CountryBoardChoicesAdminMixin:
+    """Filter the ``board`` choice field to the active tenant's country (local-first).
+
+    The board enum is global; a US school must not see "GCE Board (Cameroon)".
+    ``apps.academics.exam_boards.allowed_board_choices`` fails open (full list) for
+    an unknown/empty country, so this only ever narrows — never blocks a valid board.
+    """
+
+    def formfield_for_choice_field(self, db_field, request, **kwargs):
+        if db_field.name == "board":
+            from apps.academics.exam_boards import allowed_board_choices
+
+            school = getattr(request, "school", None) or getattr(request, "tenant", None)
+            kwargs["choices"] = allowed_board_choices(getattr(school, "country_code", ""))
+        return super().formfield_for_choice_field(db_field, request, **kwargs)
+
+
+class CertificationExamSessionAdmin(_CountryBoardChoicesAdminMixin, ModelAdmin):
     list_display = (
         "name",
         "academic_year",
@@ -186,7 +203,7 @@ class CertificationAuditLogAdmin(ModelAdmin):
     search_fields = ("session__name", "action", "detail", "actor__username")
 
 
-class CertificationExamPresetAdmin(ModelAdmin):
+class CertificationExamPresetAdmin(_CountryBoardChoicesAdminMixin, ModelAdmin):
     list_display = ("name", "code", "board", "level", "is_active", "updated_at")
     list_filter = ("board", "level", "is_active")
     search_fields = ("name", "code")
