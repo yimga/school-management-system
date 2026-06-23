@@ -6012,3 +6012,16 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 .rmc-noti-item__rd { flex: 0 0 auto; border: 0; background: none; padding: 0.125rem 0.25rem; font: inherit; font-size: 0.6875rem; font-weight: 600; color: var(--brand-primary, currentColor); cursor: pointer; }
 .rmc-noti-item__rd[disabled] { opacity: 0.5; cursor: default; }
 .rmc-noti-empty, .rmc-noti-loading { padding: 0.875rem 1rem; text-align: center; font-size: 0.8125rem; color: var(--text-secondary); }
+
+/* ----------------------------------------------------------------------------
+   Modal-intelligence engine (v4.04.66) — the pooled confirm dialog injected by
+   rmc-modal-intelligence.js. It IS an .rmc-sheet (all sheet styling inherited
+   from design-tokens.css); these rules only add the confirm-specific bits:
+   the severity-tinted icon chip + a comfortable max-width. Token-only; the icon
+   tint flips with the theme via currentColor. Footer actions reuse .btn.
+---------------------------------------------------------------------------- */
+.rmc-confirm__icon { color: var(--brand-primary, currentColor); background: color-mix(in srgb, currentColor 12%, transparent); border-radius: var(--radius-md, 0.5rem); }
+.rmc-confirm[data-rmc-confirm-tone="danger"] .rmc-confirm__icon { color: var(--color-danger, currentColor); }
+.rmc-confirm .rmc-sheet__footer { gap: 0.5rem; }
+.rmc-confirm__body { color: var(--text-primary); }
+.rmc-confirm__subtitle[hidden] { display: none; }

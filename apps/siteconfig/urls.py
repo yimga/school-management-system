@@ -82,6 +82,7 @@ from .views_forms import form_settings_view
 from .views_empty import empty_settings_view
 from .views_loading import loading_settings_view
 from .views_notifications_engine import notification_settings_view
+from .views_modals_engine import modal_settings_view
 from .views_custom_requirement import request_custom_requirement
 from .views_sync_center import sync_center, sync_center_resolve
 from .views_school_theme import school_theme_settings
@@ -430,6 +431,7 @@ urlpatterns = [
     path("empty-states/settings/", empty_settings_view, name="empty_settings"),
     path("loading/settings/", loading_settings_view, name="loading_settings"),
     path("notifications/settings/", notification_settings_view, name="notification_settings"),
+    path("modals/settings/", modal_settings_view, name="modal_settings"),
     path("reports/download/<slug:slug>/", download_report, name="report_download"),
     path("reports/bulk-letters/", bulk_letters, name="bulk_letters"),
     path(

@@ -360,6 +360,12 @@ _WIZARD_RUNTIME_DEFAULT_KEYS: frozenset[str] = frozenset({
     "notify_bell_preview",
     "notify_inline_actions",
     "notify_toast_sync",
+    # Modal-intelligence engine defaults (read via SITE façade → emitted in the
+    # #rmc-modal-config island). Payload-backed (no migration); owned by
+    # brand_experience via the "modal_" prefix.
+    "modal_intelligence",
+    "modal_confirm",
+    "modal_danger_guard",
 })
 
 

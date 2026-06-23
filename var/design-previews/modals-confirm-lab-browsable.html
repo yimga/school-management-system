@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modals &amp; Confirm Lab — audit &amp; elevate (Surface 7)</title>
+<style>
+  :root{--bg:#f4f6fb;--card:#fff;--ink:#1c2433;--muted:#5b6677;--line:#e3e8f0;--brand:#3b5bfd;--ok:#1f9d55;--err:#d23b3b;--shadow:0 1px 2px rgba(20,30,60,.06),0 12px 36px rgba(20,30,60,.14);--radius:14px;}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  header.top{padding:28px 24px 12px;max-width:1040px;margin:0 auto}
+  header.top h1{margin:0 0 4px;font-size:24px}
+  header.top p{margin:0;color:var(--muted)}
+  .wrap{max-width:1040px;margin:0 auto;padding:12px 24px 120px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:22px}
+  .card h2{margin:0;padding:14px 18px;font-size:13px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
+  .card .body{padding:18px}
+  .note{background:#fffbef;border:1px solid #f0e3b8;border-radius:10px;padding:8px 12px;font-size:13px;color:#6a5a1e;margin-top:12px}
+  .btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
+  .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .btn.danger{background:var(--err);color:#fff;border-color:var(--err)}
+  /* fake native confirm visual */
+  .nativebox{border:1px solid #b9c0cc;border-radius:6px;background:#fbfbfc;max-width:340px;box-shadow:var(--shadow);overflow:hidden;font-size:13px}
+  .nativebox__t{padding:10px 12px;font-weight:600;border-bottom:1px solid #e6e8ec}
+  .nativebox__b{padding:12px}
+  .nativebox__f{display:flex;justify-content:flex-end;gap:8px;padding:8px 12px;background:#f0f1f4}
+  .nativebox__f button{font:inherit;font-size:12px;padding:3px 10px;border:1px solid #b9c0cc;border-radius:4px;background:#fff}
+  /* the styled rmc-sheet confirm (desktop centered) */
+  .sheet{max-width:420px;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--shadow);overflow:hidden}
+  .sheet__hd{display:flex;gap:12px;align-items:flex-start;padding:16px 18px 6px}
+  .sheet__ic{flex:0 0 auto;width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:18px;background:color-mix(in srgb,currentColor 12%,transparent)}
+  .ic-danger{color:var(--err)}.ic-brand{color:var(--brand)}
+  .sheet__tg{flex:1;min-width:0}
+  .sheet__t{font-size:16px;font-weight:700;margin:0}
+  .sheet__s{margin:2px 0 0;color:var(--muted);font-size:13px}
+  .sheet__b{padding:4px 18px 8px;color:var(--ink)}
+  .sheet__f{display:flex;justify-content:flex-end;gap:10px;padding:12px 18px 16px}
+  .gtab{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-top:8px}
+  .gtab td,.gtab th{text-align:left;padding:10px 13px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:top}
+  .gtab th{background:#f0f3fa;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+  .chk{color:var(--ok);font-weight:700}.x{color:var(--err);font-weight:700}
+  .gapwrap{max-width:1040px;margin:24px auto 0;padding:0 24px}
+  code{background:#eef1f7;border-radius:5px;padding:1px 5px;font-size:12.5px}
+  dialog#live{max-width:420px;border:1px solid var(--line);border-radius:18px;padding:0;box-shadow:var(--shadow)}
+  dialog#live::backdrop{background:rgba(18,26,48,.42)}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Modals &amp; Confirm Lab <span style="font-weight:400;color:var(--muted)">— Surface 7</span></h1>
+  <p>The platform already has a premium native-<code>&lt;dialog&gt;</code> sheet system (<code>rmc-sheet</code> + <code>window.RMCSheet</code>: focus-trap, ESC, backdrop, responsive bottom-sheet). But destructive actions across ~35 JS files still call the raw browser <code>confirm()</code> — unstyleable, un-branded, inaccessible, blocking. The modal engine adds a declarative <code>[data-rmc-confirm]</code> + a promise-returning <code>window.RMCConfirm()</code> that renders on the existing sheet — so one line replaces every native <code>confirm()</code>.</p>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <section class="card">
+      <h2>Before — native browser confirm()</h2>
+      <div class="body">
+        <div class="nativebox">
+          <div class="nativebox__t">runmycampus.com says</div>
+          <div class="nativebox__b">Delete this invoice?</div>
+          <div class="nativebox__f"><button>Cancel</button><button>OK</button></div>
+        </div>
+        <div class="note">No brand, no icon, no severity, no theming, blocks the whole tab, and screen-reader/keyboard support is whatever the OS gives. <code>window.confirm("Delete this invoice?")</code> in <code>rmc-list-bulk-select.js</code>, <code>manager-control-plane.js</code>, and ~33 other files.</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>After — styled, accessible, on the existing sheet</h2>
+      <div class="body">
+        <div class="sheet">
+          <div class="sheet__hd">
+            <span class="sheet__ic ic-danger">⚠</span>
+            <div class="sheet__tg">
+              <h3 class="sheet__t">Delete invoice?</h3>
+              <p class="sheet__s">This can't be undone.</p>
+            </div>
+          </div>
+          <div class="sheet__b">Invoice INV-2048 for Ada Lovelace will be permanently removed.</div>
+          <div class="sheet__f"><button class="btn">Cancel</button><button class="btn danger">Delete</button></div>
+        </div>
+        <div class="note">Inherits the <code>rmc-sheet</code> look (centered dialog on desktop, bottom-sheet on mobile), native focus-trap + ESC + backdrop. Danger actions get a red confirm and focus defaults to <b>Cancel</b>.</div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Try it — declarative + programmatic</h2>
+    <div class="body" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button class="btn danger" onclick="openLive('danger')">Delete (danger guard)</button>
+      <button class="btn primary" onclick="openLive('brand')">Publish (default)</button>
+      <span id="outcome" style="color:var(--muted);font-size:13px"></span>
+      <div class="note" style="flex-basis:100%"><b>Declarative:</b> <code>&lt;button data-rmc-confirm="Delete this invoice?" data-rmc-confirm-tone="danger" data-rmc-confirm-ok="Delete"&gt;</code> — the engine intercepts the click, confirms, then re-runs the original action (submit / navigate / onclick). <b>Programmatic:</b> <code>if (await RMCConfirm({title, message, tone:"danger"})) { … }</code> replaces <code>window.confirm()</code> in a single line. <code>RMCAlert()</code> replaces <code>window.alert()</code>.</div>
+    </div>
+  </section>
+</div>
+
+<div class="gapwrap">
+  <h2 style="font-size:16px">What's there today vs. what the engine adds</h2>
+  <table class="gtab">
+    <tr><th>Capability</th><th>Today</th><th>Modal engine</th></tr>
+    <tr><td><b>Sheets / dialogs (rmc-sheet)</b></td><td><span class="chk">✓</span> native &lt;dialog&gt;, focus-trap, ESC, backdrop, responsive</td><td>unchanged — composes <code>window.RMCSheet</code></td></tr>
+    <tr><td><b>Bootstrap modals (47 uses)</b></td><td><span class="chk">✓</span> work as-is</td><td>untouched</td></tr>
+    <tr><td><b>Destructive-action confirm</b></td><td><span class="x">✗</span> native <code>confirm()</code> in ~35 files</td><td><span class="chk">✓</span> styled sheet via <code>[data-rmc-confirm]</code> + <code>RMCConfirm()</code></td></tr>
+    <tr><td><b>Danger guard</b></td><td><span class="x">✗</span> OK is default-focused</td><td><span class="chk">✓</span> red confirm, focus defaults to Cancel</td></tr>
+    <tr><td><b>alert() replacement</b></td><td><span class="x">✗</span> raw browser alert</td><td><span class="chk">✓</span> <code>RMCAlert()</code> on the sheet</td></tr>
+    <tr><td><b>Config</b></td><td>n/a</td><td><span class="chk">✓</span> SITE cascade + admin page (no migration)</td></tr>
+  </table>
+</div>
+
+<dialog id="live">
+  <div class="sheet" style="border:0;box-shadow:none;border-radius:0">
+    <div class="sheet__hd">
+      <span class="sheet__ic" id="liveIc">⚠</span>
+      <div class="sheet__tg"><h3 class="sheet__t" id="liveT">Confirm</h3><p class="sheet__s" id="liveS"></p></div>
+    </div>
+    <div class="sheet__b" id="liveB"></div>
+    <div class="sheet__f"><button class="btn" id="liveCancel">Cancel</button><button class="btn" id="liveOk">Confirm</button></div>
+  </div>
+</dialog>
+
+<script>
+  var dlg=document.getElementById("live");
+  function openLive(tone){
+    var ic=document.getElementById("liveIc"),ok=document.getElementById("liveOk");
+    if(tone==="danger"){ic.className="sheet__ic ic-danger";ic.textContent="⚠";document.getElementById("liveT").textContent="Delete invoice?";document.getElementById("liveS").textContent="This can't be undone.";document.getElementById("liveB").textContent="Invoice INV-2048 will be permanently removed.";ok.className="btn danger";ok.textContent="Delete";}
+    else{ic.className="sheet__ic ic-brand";ic.textContent="✓";document.getElementById("liveT").textContent="Publish report cards?";document.getElementById("liveS").textContent="";document.getElementById("liveB").textContent="184 students' guardians will be notified.";ok.className="btn primary";ok.textContent="Publish";}
+    document.getElementById("outcome").textContent="";
+    dlg.showModal();
+    if(tone==="danger"){document.getElementById("liveCancel").focus();}else{ok.focus();}
+  }
+  document.getElementById("liveCancel").onclick=function(){dlg.close();document.getElementById("outcome").textContent="→ cancelled (false)";};
+  document.getElementById("liveOk").onclick=function(){dlg.close();document.getElementById("outcome").textContent="→ confirmed (true)";};
+</script>
+</body>
+</html>

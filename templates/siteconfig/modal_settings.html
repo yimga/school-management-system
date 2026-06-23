@@ -1,0 +1,52 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Dialog defaults" %}{% endblock %}
+
+{% block content %}
+<div class="content-max-640 py-3">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-window-stack" aria-hidden="true"></i>
+    <h1 class="h5 mb-0">{% trans "Dialogs & confirms — school defaults" %}</h1>
+  </div>
+  <p class="text-muted">
+    {% trans "Control how confirmation dialogs behave for everyone at this school. The shared modal engine renders styled, accessible confirms on the existing sheet system in place of the raw browser confirm() box — there's nothing to add per page." %}
+  </p>
+
+  {% if not can_manage %}
+  <div class="alert alert-info">{% trans "You can view these defaults, but only an administrator can change them." %}</div>
+  {% endif %}
+
+  <form method="post" class="card shadow-sm" data-rmc-form-enhance="0">
+    {% csrf_token %}
+    <div class="card-body d-flex flex-column gap-3">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="modal-intelligence" name="modal_intelligence" {% if modal_intelligence %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="modal-intelligence">
+          <strong>{% trans "Smart dialogs" %}</strong>
+          <span class="d-block text-muted small">{% trans "Master switch. Off = pages fall back to whatever native dialog they used before." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="modal-confirm" name="modal_confirm" {% if modal_confirm %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="modal-confirm">
+          <strong>{% trans "Styled confirmations" %}</strong>
+          <span class="d-block text-muted small">{% trans "Replace the plain browser confirm() box with a branded, accessible dialog — for any action marked to confirm, and via the RMCConfirm()/RMCAlert() API." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="modal-danger-guard" name="modal_danger_guard" {% if modal_danger_guard %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="modal-danger-guard">
+          <strong>{% trans "Destructive-action guard" %}</strong>
+          <span class="d-block text-muted small">{% trans "For destructive actions, colour the confirm button red and default focus to Cancel, so a stray Enter key can't trigger the deletion." %}</span>
+        </label>
+      </div>
+    </div>
+    {% if can_manage %}
+    <div class="card-footer text-end">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1" aria-hidden="true"></i>{% trans "Save defaults" %}</button>
+    </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}
