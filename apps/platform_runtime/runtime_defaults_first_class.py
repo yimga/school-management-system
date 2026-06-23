@@ -366,6 +366,14 @@ _WIZARD_RUNTIME_DEFAULT_KEYS: frozenset[str] = frozenset({
     "modal_intelligence",
     "modal_confirm",
     "modal_danger_guard",
+    # Detail-intelligence engine defaults (read via SITE façade → emitted in the
+    # #rmc-detail-config island). Payload-backed (no migration); owned by
+    # brand_experience via the "detail_" prefix.
+    "detail_intelligence",
+    "detail_copy",
+    "detail_actionable",
+    "detail_empty_fields",
+    "detail_section_nav",
 })
 
 

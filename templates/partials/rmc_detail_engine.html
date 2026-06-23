@@ -1,0 +1,21 @@
+{% load static %}
+{% comment %}
+  Detail-intelligence engine (Surface 8) — loaded on authenticated shells.
+  Composes the existing key-value grammar (.rmc-kv) + section-nav observer
+  (rmc-section-nav.js). The JSON island carries the SITE-cascade config
+  (default-on, school/operator overridable, zero migration). The engine enhances
+  detail/profile field values in place — copy-to-clipboard on identifier fields
+  (generalising the MFA-only copy), mailto:/tel: linkification, em-dash for empty
+  values — and auto-fills an author-placed [data-rmc-section-nav-auto] aside from
+  the page's [data-rmc-section-anchor] sections. No-op where neither hook is
+  present; curated markup is never clobbered. nonce satisfies
+  verify_csp_nonce_emission.
+{% endcomment %}
+<script nonce="{{ csp_nonce }}" type="application/json" id="rmc-detail-config">{
+  "intelligence": {% if SITE.detail_intelligence == False %}false{% else %}true{% endif %},
+  "copy": {% if SITE.detail_copy == False %}false{% else %}true{% endif %},
+  "actionable": {% if SITE.detail_actionable == False %}false{% else %}true{% endif %},
+  "emptyFields": {% if SITE.detail_empty_fields == False %}false{% else %}true{% endif %},
+  "sectionNav": {% if SITE.detail_section_nav == False %}false{% else %}true{% endif %}
+}</script>
+<script src="{% static 'js/rmc-detail-intelligence.js' %}" defer></script>

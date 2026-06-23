@@ -1,0 +1,66 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Detail-view defaults" %}{% endblock %}
+
+{% block content %}
+<div class="content-max-640 py-3">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-card-list" aria-hidden="true"></i>
+    <h1 class="h5 mb-0">{% trans "Detail & profile views — school defaults" %}</h1>
+  </div>
+  <p class="text-muted">
+    {% trans "Control how record detail and profile pages behave for everyone at this school. The shared detail engine enhances field values in place — there's nothing to add per page." %}
+  </p>
+
+  {% if not can_manage %}
+  <div class="rmc-banner rmc-banner--info">{% trans "You can view these defaults, but only an administrator can change them." %}</div>
+  {% endif %}
+
+  <form method="post" class="card shadow-sm" data-rmc-form-enhance="0">
+    {% csrf_token %}
+    <div class="card-body d-flex flex-column gap-3">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="detail-intelligence" name="detail_intelligence" {% if detail_intelligence %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="detail-intelligence">
+          <strong>{% trans "Smart detail views" %}</strong>
+          <span class="d-block text-muted small">{% trans "Master switch. Off = field values render exactly as the page wrote them." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="detail-copy" name="detail_copy" {% if detail_copy %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="detail-copy">
+          <strong>{% trans "Copy-to-clipboard" %}</strong>
+          <span class="d-block text-muted small">{% trans "Add a copy button to identifier fields (admission numbers, emails, phones, codes) so they can be copied in one click." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="detail-actionable" name="detail_actionable" {% if detail_actionable %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="detail-actionable">
+          <strong>{% trans "Actionable contacts" %}</strong>
+          <span class="d-block text-muted small">{% trans "Turn email and phone field values into mailto: / tel: links so they're one tap to contact." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="detail-empty-fields" name="detail_empty_fields" {% if detail_empty_fields %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="detail-empty-fields">
+          <strong>{% trans "Em-dash for empty fields" %}</strong>
+          <span class="d-block text-muted small">{% trans "Show a muted em-dash for a field with no value, instead of a blank gap that reads as broken." %}</span>
+        </label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="detail-section-nav" name="detail_section_nav" {% if detail_section_nav %}checked{% endif %} {% if not can_manage %}disabled{% endif %}>
+        <label class="form-check-label" for="detail-section-nav">
+          <strong>{% trans "Auto section navigation" %}</strong>
+          <span class="d-block text-muted small">{% trans "Fill an author-placed \"on this page\" nav from the page's sections, with active-state on scroll." %}</span>
+        </label>
+      </div>
+    </div>
+    {% if can_manage %}
+    <div class="card-footer text-end">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1" aria-hidden="true"></i>{% trans "Save defaults" %}</button>
+    </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

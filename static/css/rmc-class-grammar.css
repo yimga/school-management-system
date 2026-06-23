@@ -6025,3 +6025,22 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 .rmc-confirm .rmc-sheet__footer { gap: 0.5rem; }
 .rmc-confirm__body { color: var(--text-primary); }
 .rmc-confirm__subtitle[hidden] { display: none; }
+
+/* ----------------------------------------------------------------------------
+   Detail-intelligence engine (v4.04.67) — classes injected by
+   rmc-detail-intelligence.js into .rmc-kv <dd> / [data-rmc-field] values:
+   a hover-revealed copy button, mailto:/tel: action links, and a muted em-dash
+   for empty values. Token-only; the copy button is keyboard-reachable (it stays
+   visible on :focus-within / :focus-visible, not hover-only).
+---------------------------------------------------------------------------- */
+.rmc-detail-copy { display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--hairline); background: var(--surface-elevated, transparent); color: var(--text-secondary); border-radius: var(--radius-sm, 0.375rem); padding: 0 0.3rem; margin-inline-start: 0.35rem; font-size: 0.75rem; line-height: 1.4; cursor: pointer; opacity: 0; transition: opacity 0.12s ease, color 0.12s ease; }
+.rmc-detail-has-copy:hover .rmc-detail-copy,
+.rmc-detail-has-copy:focus-within .rmc-detail-copy,
+.rmc-detail-copy:focus-visible { opacity: 1; }
+.rmc-detail-copy.is-copied { color: var(--color-success, var(--brand-primary, currentColor)); border-color: currentColor; opacity: 1; }
+.rmc-detail-action { color: var(--brand-primary, currentColor); text-decoration: none; }
+.rmc-detail-action:hover { text-decoration: underline; }
+.rmc-detail-empty { color: var(--text-tertiary, var(--text-secondary)); }
+@media (hover: none) {
+  .rmc-detail-copy { opacity: 1; }
+}

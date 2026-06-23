@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Detail &amp; Profile Views Lab — audit &amp; elevate (Surface 8)</title>
+<style>
+  :root{--bg:#f4f6fb;--card:#fff;--ink:#1c2433;--muted:#5b6677;--line:#e3e8f0;--brand:#3b5bfd;--ok:#1f9d55;--shadow:0 1px 2px rgba(20,30,60,.06),0 8px 24px rgba(20,30,60,.08);--radius:14px;}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  header.top{padding:28px 24px 12px;max-width:1040px;margin:0 auto}
+  header.top h1{margin:0 0 4px;font-size:24px}
+  header.top p{margin:0;color:var(--muted)}
+  .wrap{max-width:1040px;margin:0 auto;padding:12px 24px 120px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:22px}
+  .card h2{margin:0;padding:14px 18px;font-size:13px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
+  .card .body{padding:18px}
+  .note{background:#fffbef;border:1px solid #f0e3b8;border-radius:10px;padding:8px 12px;font-size:13px;color:#6a5a1e;margin-top:12px}
+  dl.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;margin:0}
+  dl.kv dt{color:#7a8499;font-weight:500}
+  dl.kv dd{margin:0;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .empty{color:#aeb6c4;font-style:normal}
+  a.act{color:var(--brand);text-decoration:none}
+  a.act:hover{text-decoration:underline}
+  .copy{border:1px solid var(--line);background:#fff;border-radius:6px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;padding:1px 7px;opacity:0;transition:opacity .12s}
+  dd:hover .copy{opacity:1}
+  .copy.done{color:var(--ok);border-color:var(--ok)}
+  .gtab{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-top:8px}
+  .gtab td,.gtab th{text-align:left;padding:10px 13px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:top}
+  .gtab th{background:#f0f3fa;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+  .chk{color:var(--ok);font-weight:700}.x{color:#d23b3b;font-weight:700}
+  .gapwrap{max-width:1040px;margin:24px auto 0;padding:0 24px}
+  code{background:#eef1f7;border-radius:5px;padding:1px 5px;font-size:12.5px}
+  aside.snav{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fbfcfe;font-size:13px;max-width:220px}
+  aside.snav .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:6px}
+  aside.snav a{display:block;color:var(--ink);text-decoration:none;padding:3px 6px;border-radius:6px}
+  aside.snav a.is-active{background:#eef1fb;color:var(--brand);font-weight:600}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Detail &amp; Profile Views Lab <span style="font-weight:400;color:var(--muted)">— Surface 8</span></h1>
+  <p>The journey is nav → list → <b>detail</b>. Detail pages already have a key-value grammar (<code>.rmc-kv</code>) and a section-nav observer (<code>rmc-section-nav.js</code>) — but copy-to-clipboard is wired for the MFA secret <i>only</i>, section navs must be hand-authored link by link, and empty fields render as a blank gap. The detail engine enhances field values in place: copy, mailto/tel, em-dash — and auto-fills an author-placed section nav.</p>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <section class="card">
+      <h2>Before — inert field values</h2>
+      <div class="body">
+        <dl class="kv">
+          <dt>Admission no.</dt><dd>RMC/2024/00481</dd>
+          <dt>Email</dt><dd>ada.lovelace@school.edu</dd>
+          <dt>Phone</dt><dd>+44 7700 900812</dd>
+          <dt>Guardian</dt><dd>&nbsp;</dd>
+        </dl>
+        <div class="note">The admission number can't be copied without selecting it by hand; the email isn't a mailto link; the phone isn't tappable; the missing guardian is just empty space that reads as "broken".</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>After — copyable, actionable, never blank</h2>
+      <div class="body">
+        <dl class="kv">
+          <dt>Admission no.</dt><dd>RMC/2024/00481 <button class="copy" onclick="cp(this,'RMC/2024/00481')">Copy</button></dd>
+          <dt>Email</dt><dd><a class="act" href="mailto:ada.lovelace@school.edu">ada.lovelace@school.edu</a> <button class="copy" onclick="cp(this,'ada.lovelace@school.edu')">Copy</button></dd>
+          <dt>Phone</dt><dd><a class="act" href="tel:+447700900812">+44 7700 900812</a> <button class="copy" onclick="cp(this,'+44 7700 900812')">Copy</button></dd>
+          <dt>Guardian</dt><dd><span class="empty">—</span></dd>
+        </dl>
+        <div class="note">Hover any identifier → a copy button. Emails become <code>mailto:</code>, phones become <code>tel:</code>. Empty fields show an em-dash instead of a void. Auto-applied to every <code>.rmc-kv</code> / <code>[data-rmc-field]</code> — no per-page edits.</div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Auto-filled section nav (author places one empty aside)</h2>
+    <div class="body" style="display:flex;gap:18px;flex-wrap:wrap">
+      <aside class="snav">
+        <div class="lbl">On this page</div>
+        <a href="#" class="is-active">Overview</a>
+        <a href="#">Academics</a>
+        <a href="#">Finance</a>
+        <a href="#">Activity</a>
+      </aside>
+      <div class="note" style="flex:1;min-width:240px">Today an author hand-writes the whole <code>&lt;aside class="rmc-section-nav"&gt;</code> with a <code>&lt;li&gt;&lt;a href="#id"&gt;</code> per section. The engine fills an author-placed empty <code>[data-rmc-section-nav-auto]</code> aside from the page's existing <code>[data-rmc-section-anchor]</code> sections — labels from the section heading, active-state on scroll — closing the manual link-building gap with zero layout risk.</div>
+    </div>
+  </section>
+</div>
+
+<div class="gapwrap">
+  <h2 style="font-size:16px">What's there today vs. what the engine adds</h2>
+  <table class="gtab">
+    <tr><th>Capability</th><th>Today</th><th>Detail engine</th></tr>
+    <tr><td><b>Key-value grammar (.rmc-kv)</b></td><td><span class="chk">✓</span> dt/dd styling</td><td>unchanged — enhances values in place</td></tr>
+    <tr><td><b>Section-nav observer</b></td><td><span class="chk">✓</span> rmc-section-nav.js (hand-authored)</td><td>composes it — auto-fills the links</td></tr>
+    <tr><td><b>Copy a field value</b></td><td><span class="x">✗</span> MFA secret only</td><td><span class="chk">✓</span> copy button on emails / phones / IDs</td></tr>
+    <tr><td><b>Email / phone actions</b></td><td><span class="x">✗</span> plain text</td><td><span class="chk">✓</span> auto mailto: / tel: links</td></tr>
+    <tr><td><b>Empty field value</b></td><td><span class="x">✗</span> blank gap</td><td><span class="chk">✓</span> muted em-dash</td></tr>
+    <tr><td><b>Config</b></td><td>n/a</td><td><span class="chk">✓</span> SITE cascade + admin page (no migration)</td></tr>
+  </table>
+</div>
+
+<script>
+  function cp(btn,val){ if(navigator.clipboard){navigator.clipboard.writeText(val);} btn.textContent="Copied"; btn.className="copy done"; setTimeout(function(){btn.textContent="Copy";btn.className="copy";},1200); }
+</script>
+</body>
+</html>

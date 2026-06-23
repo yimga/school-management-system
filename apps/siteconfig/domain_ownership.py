@@ -193,6 +193,9 @@ PREFIX_FIELD_OWNERS: Final[tuple[tuple[str, str], ...]] = (
     # Modal-intelligence engine: declarative + programmatic confirm switches.
     # Payload-backed (no migration); UX chrome.
     ("modal_", "brand_experience"),
+    # Detail-intelligence engine: field copy / actionable / empty / section-nav
+    # switches. Payload-backed (no migration); UX chrome.
+    ("detail_", "brand_experience"),
     ("show_header_", "brand_experience"),
     ("secondary_font", "brand_experience"),
     ("base_font", "brand_experience"),
