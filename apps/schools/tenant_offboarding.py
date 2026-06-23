@@ -311,6 +311,22 @@ def request_self_service_closure(school, *, actor, acknowledge: bool = False) ->
         apply_wind_down_mode(school, actor=actor, note="self_service_closure")
     except ImportError:
         run_wind_down_deactivate(school, actor=actor)
+
+    # O3: generate the portability export NOW so the tenant's data is ready to
+    # download the instant they request closure — no separate "Generate" click,
+    # and the archive exists before the grace window starts. Best-effort: a
+    # failure here must never block closure (the manual export button remains).
+    export_ready = False
+    try:
+        export_result = run_wind_down_export(school, full=True, actor=actor)
+        export_ready = bool(export_result and export_result.export_zip_path)
+    except Exception:  # noqa: BLE001 - export must never break the closure request
+        logger.warning(
+            "tenant_offboarding auto-export on closure failed slug=%s",
+            school.slug,
+            exc_info=True,
+        )
+
     SchoolProvisioningEvent.log_event(
         school=school,
         event_type=SchoolProvisioningEvent.EventType.OFFBOARDING_SELF_SERVICE_REQUESTED,
@@ -345,6 +361,7 @@ def request_self_service_closure(school, *, actor, acknowledge: bool = False) ->
     return {
         "ok": True,
         "scheduled_purge_at": purge_date.isoformat(),
+        "export_ready": export_ready,
         "self_service": get_self_service_snapshot(school),
     }
 

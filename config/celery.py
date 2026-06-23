@@ -38,6 +38,17 @@ try:
 except Exception as exc:
     logger.warning("LMS beat schedule not installed: %s", exc)
 
+# Platform billing lifecycle beat — advances every tenant subscription's billing
+# state daily (trial conversion, renewal charge, past-due aging, suspend/restore)
+# so invoicing is autonomous, not operator-command-driven. Idempotent + env-
+# disablable (RMC_PLATFORM_BILLING_BEAT_DISABLED=1).
+try:
+    from apps.billing.beat_schedule import install_billing_beat_schedule
+
+    install_billing_beat_schedule(app)
+except Exception as exc:
+    logger.warning("Platform billing beat schedule not installed: %s", exc)
+
 
 @app.task(bind=True)
 def debug_task(self):
