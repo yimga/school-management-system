@@ -345,6 +345,9 @@ html[data-cockpit-skin] body.admin-manager-shell.change-list #result_list td {
 }
 .cp-primary-nav__more > summary::-webkit-details-marker { display: none; }
 .cp-primary-nav__more > summary::marker { content: ""; }
+.cp-primary-nav__more-trigger.dropdown-toggle::after {
+  display: none;
+}
 .cp-primary-nav__more-menu {
   position: absolute;
   top: calc(100% + 6px);
@@ -376,6 +379,9 @@ html[data-cockpit-skin] body.admin-manager-shell.change-list #result_list td {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.cp-primary-nav__more-menu .dropdown-item.cp-primary-nav__more-item {
+  display: flex;
 }
 .cp-primary-nav__more-item:hover {
   background: var(--rmc-cockpit-chrome-glass-strong, rgba(255, 255, 255, 0.09));
@@ -796,7 +802,8 @@ body.admin-manager-shell .cp-header .rmc-platform-header__nav-rail .cp-primary-n
 .cp-primary-nav__more-menu {
   z-index: 1200; /* above the header band's own stacking context + canvas */
 }
-.cp-primary-nav__more > summary {
+.cp-primary-nav__more > summary,
+.cp-primary-nav__more-trigger {
   pointer-events: auto;
   cursor: pointer;
 }

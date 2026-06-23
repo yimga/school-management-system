@@ -1538,6 +1538,9 @@ def marketing_local_context(request) -> dict:
     processor (so we don't re-resolve country), then layers in the voice dict
     plus a few cross-cut convenience values.
     """
+    from django.conf import settings
+
+    threshold_era = getattr(settings, "MARKETING_THRESHOLD_ERA_ENABLED", False)
     try:
         from apps.siteconfig.country_localization_service import resolve_country_for_request
         cc = resolve_country_for_request(request)
@@ -1661,4 +1664,4 @@ def marketing_local_context(request) -> dict:
             "testimonial": {}, "case_study_chips": [],
             "is_resolved": False,
         }
-    return {"marketing_local": out}
+    return {"marketing_local": out, "marketing_threshold_era_enabled": threshold_era}

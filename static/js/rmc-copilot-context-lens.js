@@ -8,6 +8,7 @@
 
   var MAX_PINS = 2;
   var PIN_KEY = "rmc-copilot-lens-pins";
+  var SELECTION_KEY = "rmc-copilot-selection";
 
   var PLAYBOOKS = {
     "operator-schools-roster": {
@@ -501,6 +502,39 @@
     document.addEventListener("rmc:row-detail-open", onRowOpen);
     document.addEventListener("rmc:row-detail-close", onRowDetailClose);
     document.addEventListener("rmc:bulk-selection-changed", onBulkChange);
+    document.addEventListener("rmc:fleet-snapshot", function (ev) {
+      var detail = ev.detail || {};
+      if (pageLensKey() !== "operator-dashboard-fleet") return;
+      var emptyEl = document.querySelector("[data-rmc-copilot-lens-empty]");
+      if (!emptyEl || emptyEl.hidden === false) return;
+      var pulse = (detail.pulse_events || [])[0];
+      if (pulse && pulse.text) {
+        emptyEl.textContent = pulse.text;
+      } else if (detail.whisper_line) {
+        emptyEl.textContent = detail.whisper_line;
+      }
+    });
+    document.addEventListener("rmc:fleet-ask", function (ev) {
+      var detail = ev.detail || {};
+      if (detail.user_query) {
+        fillInput(detail.user_query);
+      }
+    });
+    try {
+      var savedSel = sessionStorage.getItem(SELECTION_KEY);
+      if (savedSel && pageLensKey() === "operator-dashboard-fleet") {
+        var parsed = JSON.parse(savedSel);
+        if (parsed && parsed.name) {
+          renderSelection({
+            title: parsed.name,
+            subtitle: parsed.region || parsed.status || "",
+            meta: { Region: parsed.region || "—", Status: parsed.status || "—" },
+          });
+        }
+      }
+    } catch (_e) {
+      /* ignore */
+    }
   }
 
   if (document.readyState === "loading") {

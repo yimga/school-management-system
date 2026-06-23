@@ -44,6 +44,12 @@ class GlobeGeo10xTests(TestCase):
 
         self.assertIn("live", payload["api"])
 
+        self.assertIn("operator_fleet_stream", payload["api"])
+
+        self.assertIn("features", payload)
+
+        self.assertTrue(payload["features"].get("fleet_pulse"))
+
         self.assertIn("arcs", payload)
 
 

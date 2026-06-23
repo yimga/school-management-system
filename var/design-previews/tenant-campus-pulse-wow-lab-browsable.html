@@ -1,0 +1,1222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Threshold · expanded lab — five doors + board room · RunMyCampus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --void: #030308; --ink: #fafafa; --whisper: rgba(250,250,250,0.55);
+    --ghost: rgba(250,250,250,0.28); --line: rgba(255,255,255,0.07);
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --admin-glow: #f0abfc; --teacher-glow: #c4b5fd; --parent-glow: #5eead4;
+    --student-glow: #7dd3fc; --staff-glow: #fdba74; --board-glow: #fde047;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--void); color: var(--ink); font: 15px/1.6 "Outfit", system-ui, sans-serif; overflow-x: hidden; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
+  }
+
+  .heartbeat-line {
+    position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 300;
+    background: linear-gradient(90deg, transparent, var(--hb-color, #fff), transparent);
+    opacity: 0.6; transform-origin: left; animation: hbPulse 2.8s ease-in-out infinite;
+  }
+  @keyframes hbPulse {
+    0%,100% { transform: scaleX(0.3); opacity: 0.3; }
+    14% { transform: scaleX(1); opacity: 0.9; }
+    28% { transform: scaleX(0.4); opacity: 0.4; }
+  }
+
+  /* ── Enhanced chrome ── */
+  .chrome {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 250;
+    background: rgba(3,3,8,0.85); backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--line);
+  }
+  .chrome-row {
+    display: flex; align-items: center; justify-content: center;
+    padding: 8px 16px; gap: 8px; position: relative;
+  }
+  .chrome-brand {
+    position: absolute; left: 16px;
+    font-family: "Cormorant Garamond", serif; font-size: 14px; font-style: italic; color: var(--ghost);
+  }
+  .chrome-right { position: absolute; right: 16px; display: flex; gap: 6px; align-items: center; }
+  .chrome-btn {
+    font: inherit; font-size: 10px; font-weight: 600; padding: 5px 10px;
+    border-radius: 999px; border: 1px solid var(--line); background: transparent;
+    color: var(--ghost); cursor: pointer;
+  }
+  .chrome-btn:hover { color: var(--ink); border-color: rgba(255,255,255,0.15); }
+  .chrome a.back { font-size: 11px; color: var(--ghost); text-decoration: none; }
+  .school-clock {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: var(--whisper);
+    padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+  }
+  .role-orbs { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+  .orb {
+    width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line);
+    background: rgba(255,255,255,0.03); cursor: pointer;
+    font-size: 8px; font-weight: 700; color: var(--ghost);
+    display: grid; place-items: center; transition: all 0.4s var(--ease);
+  }
+  .orb:hover { transform: scale(1.08); color: var(--ink); }
+  .orb.on { border-color: transparent; color: #030308; font-weight: 800; box-shadow: 0 0 28px var(--orb-glow); }
+  .orb[data-r="admin"].on { background: var(--admin-glow); --orb-glow: rgba(240,171,252,0.5); }
+  .orb[data-r="teacher"].on { background: var(--teacher-glow); --orb-glow: rgba(196,181,253,0.5); }
+  .orb[data-r="parent"].on { background: var(--parent-glow); --orb-glow: rgba(94,234,212,0.5); }
+  .orb[data-r="student"].on { background: var(--student-glow); --orb-glow: rgba(125,211,252,0.5); }
+  .orb[data-r="staff"].on { background: var(--staff-glow); --orb-glow: rgba(253,186,116,0.5); }
+  .orb[data-r="board"].on { background: var(--board-glow); --orb-glow: rgba(253,224,71,0.45); color: #1a1508; }
+
+  .pulse-ticker {
+    overflow: hidden; height: 26px; border-top: 1px solid var(--line);
+    background: rgba(255,255,255,0.02);
+  }
+  .pulse-track {
+    display: flex; gap: 32px; white-space: nowrap;
+    animation: ticker 40s linear infinite; padding: 4px 0; font-size: 10px; color: var(--ghost);
+  }
+  @keyframes ticker { to { transform: translateX(-50%); } }
+  .pulse-track span::before { content: "● "; color: var(--parent-glow); font-size: 8px; }
+
+  .whisper-bar {
+    position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%);
+    max-width: min(90vw, 520px); z-index: 240; padding: 10px 18px;
+    border-radius: 999px; border: 1px solid var(--line);
+    background: rgba(8,8,14,0.88); backdrop-filter: blur(12px);
+    font-size: 12px; color: var(--whisper); text-align: center;
+    transition: border-color 0.4s, box-shadow 0.4s;
+  }
+  .whisper-bar em { font-style: normal; color: var(--ink); font-weight: 500; }
+
+  /* ── Threshold + transition ── */
+  .role-flash {
+    position: fixed; inset: 0; z-index: 450; pointer-events: none; opacity: 0;
+    transition: opacity 0.6s var(--ease);
+  }
+  .role-flash.show { opacity: 1; }
+  .role-flash .flash-text {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    font-family: "Cormorant Garamond", serif; font-size: clamp(24px, 4vw, 40px); font-style: italic;
+  }
+
+  .threshold {
+    min-height: 100vh; min-height: 100dvh; display: none; position: relative; overflow: hidden;
+  }
+  .threshold.active { display: flex; flex-direction: column; animation: thresholdIn 1s var(--ease); }
+  @keyframes thresholdIn { from { opacity: 0; filter: blur(6px); } to { opacity: 1; filter: none; } }
+
+  .threshold-verse {
+    flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center; padding: 100px 24px 32px; position: relative; z-index: 2;
+  }
+  .verse-kicker { font-size: 10px; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ghost); margin-bottom: 16px; }
+  .verse-title {
+    font-family: "Cormorant Garamond", serif;
+    font-size: clamp(38px, 7vw, 80px); font-weight: 400; line-height: 0.95;
+    margin: 0 0 14px; letter-spacing: -0.02em;
+  }
+  .verse-title em { font-style: italic; font-weight: 600; }
+  .verse-sub { font-size: clamp(15px, 2.2vw, 19px); font-weight: 300; color: var(--whisper); max-width: 30ch; margin: 0 auto 28px; }
+  .verse-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .verse-action {
+    font: inherit; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 14px 28px; border: none; border-radius: 999px; cursor: pointer; color: #030308;
+    transition: transform 0.25s var(--ease), box-shadow 0.25s;
+  }
+  .verse-action:hover { transform: scale(1.04) translateY(-2px); }
+  .verse-action.secondary {
+    background: transparent; color: var(--whisper); border: 1px solid var(--line);
+    letter-spacing: 0.06em;
+  }
+  .verse-meta { margin-top: 22px; font-size: 11px; color: var(--ghost); }
+  .verse-meta span { color: var(--whisper); }
+
+  .side-panel {
+    position: absolute; z-index: 3; padding: 14px; border-radius: 12px;
+    border: 1px solid var(--line); background: rgba(6,6,12,0.82); backdrop-filter: blur(12px);
+    font-size: 11px; max-width: 180px;
+  }
+  .side-panel h4 { margin: 0 0 8px; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ghost); }
+  .side-panel ul { margin: 0; padding: 0; list-style: none; }
+  .side-panel li { padding: 6px 0; border-bottom: 1px solid var(--line); color: var(--whisper); }
+  .side-panel li:last-child { border: 0; }
+
+  .depth-scroll { position: relative; z-index: 2; padding: 0 24px 60px; max-width: 800px; margin: 0 auto; width: 100%; }
+  .depth-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 20px; }
+  .depth-card {
+    padding: 16px; border-radius: 12px; border: 1px solid var(--line);
+    background: rgba(255,255,255,0.02);
+  }
+  .depth-card h4 { margin: 0 0 6px; font-size: 13px; font-weight: 600; }
+  .depth-card p { margin: 0; font-size: 12px; color: var(--whisper); line-height: 1.5; }
+
+  /* ADMIN */
+  .threshold-admin { --hb-color: var(--admin-glow); background: #030508; }
+  .lighthouse-sea { position: absolute; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse 120% 80% at 50% 120%, rgba(15,23,42,0.9), transparent 50%),
+      linear-gradient(180deg, #030508, #0a0f18); }
+  #admin-canvas, #admin-stars { position: absolute; inset: 0; z-index: 1; }
+  #admin-canvas { cursor: crosshair; z-index: 2; }
+  .lighthouse-tower {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); z-index: 1;
+    width: 8px; height: 32vh; background: linear-gradient(180deg, var(--admin-glow), rgba(240,171,252,0.2));
+    box-shadow: 0 0 60px rgba(240,171,252,0.4);
+  }
+  .lighthouse-tower::after {
+    content: ""; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    width: 22px; height: 22px; border-radius: 50%;
+    background: radial-gradient(circle, #fff, var(--admin-glow)); box-shadow: 0 0 40px rgba(255,255,255,0.8);
+  }
+  .sector-hud {
+    position: absolute; top: 88px; left: 16px; z-index: 4;
+    padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(240,171,252,0.25);
+    background: rgba(8,6,14,0.85); font-size: 11px; min-width: 140px;
+    opacity: 0; transform: translateY(8px); transition: all 0.35s var(--ease);
+  }
+  .sector-hud.visible { opacity: 1; transform: none; }
+  .sector-hud b { display: block; color: var(--admin-glow); font-size: 10px; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .threshold-admin .verse-title em { color: var(--admin-glow); text-shadow: 0 0 60px rgba(240,171,252,0.35); }
+  .threshold-admin .verse-action.primary { background: var(--admin-glow); box-shadow: 0 12px 48px rgba(240,171,252,0.25); }
+
+  /* TEACHER */
+  .threshold-teacher { --hb-color: var(--teacher-glow); background: #050508; }
+  .stage-wrap { position: absolute; inset: 0; z-index: 0; perspective: 900px; }
+  .stage-floor {
+    position: absolute; bottom: 0; left: -10%; right: -10%; height: 42%;
+    background: linear-gradient(180deg, transparent, rgba(196,181,253,0.04));
+    transform: rotateX(68deg); transform-origin: bottom; border-top: 1px solid rgba(196,181,253,0.15);
+  }
+  .curtain { position: absolute; top: 0; width: 50%; height: 52%;
+    background: linear-gradient(180deg, #1a1028, #2d1f45 40%, rgba(45,31,69,0.95));
+    transition: transform 1.4s var(--ease); }
+  .curtain.left { left: 0; transform-origin: left; }
+  .curtain.right { right: 0; transform-origin: right; }
+  .threshold-teacher.revealed .curtain.left { transform: translateX(-85%) skewY(2deg); }
+  .threshold-teacher.revealed .curtain.right { transform: translateX(85%) skewY(-2deg); }
+  .spotlight {
+    position: absolute; width: 260px; height: 260px; border-radius: 50%; top: 26%; left: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(255,255,255,0.12), transparent 65%);
+    animation: spotBreath 4s ease-in-out infinite;
+  }
+  @keyframes spotBreath { 0%,100% { opacity: 0.7; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.06); } }
+  .silhouettes { position: absolute; bottom: 24%; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; align-items: flex-end; opacity: 0.35; }
+  .silhouettes span { width: 12px; background: var(--teacher-glow); border-radius: 6px 6px 0 0; }
+  .prop-table { position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%); display: flex; gap: 16px; z-index: 1; }
+  .prop {
+    width: 52px; height: 52px; border-radius: 50%; border: 1px solid rgba(196,181,253,0.3);
+    background: rgba(196,181,253,0.08); display: grid; place-items: center; font-size: 16px;
+    cursor: pointer; opacity: 0.4; transition: all 0.3s var(--ease);
+  }
+  .prop.on { opacity: 1; border-color: var(--teacher-glow); box-shadow: 0 0 28px rgba(196,181,253,0.35); transform: translateY(-8px); }
+  .wing-left { top: 100px; left: 16px; }
+  .wing-right { top: 100px; right: 16px; }
+  .script-float {
+    position: absolute; bottom: 12%; right: 8%; z-index: 2; max-width: 200px;
+    padding: 12px; border-radius: 8px; border: 1px solid var(--line);
+    background: rgba(20,14,32,0.9); font-size: 11px; font-style: italic; color: var(--whisper);
+    transform: rotate(2deg);
+  }
+  .live-countdown {
+    position: absolute; top: 88px; right: 16px; z-index: 4;
+    font-family: "Cormorant Garamond", serif; font-size: 42px; font-weight: 600;
+    color: var(--teacher-glow); opacity: 0.9;
+  }
+  .threshold-teacher .verse-title em { color: var(--teacher-glow); }
+  .threshold-teacher .verse-action.primary { background: var(--teacher-glow); }
+
+  /* PARENT */
+  .threshold-parent { --hb-color: var(--parent-glow); background: #040806; }
+  .windows-row { position: absolute; inset: 0; z-index: 0; display: flex; justify-content: center; align-items: center; gap: 3vw; padding: 12vh 4vw; }
+  .train-window {
+    width: min(36vw, 260px); aspect-ratio: 3/4; border: 12px solid #1a1a1a; border-bottom-width: 26px;
+    border-radius: 4px; overflow: hidden; cursor: pointer; position: relative;
+    transition: transform 0.5s var(--ease), box-shadow 0.5s;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  }
+  .train-window:hover { transform: scale(1.03) translateY(-4px); }
+  .train-window.focused { box-shadow: 0 0 0 2px var(--parent-glow), 0 32px 100px rgba(94,234,212,0.2); }
+  .scenery { position: absolute; inset: 0; background-size: 100% 200%; animation: sceneryScroll 18s linear infinite; }
+  .train-window:nth-child(1) .scenery { background: linear-gradient(180deg, #1e3a5f, #2d5a4a 35%, #4ade80 35%, #166534); }
+  .train-window:nth-child(2) .scenery { background: linear-gradient(180deg, #1e293b, #422006 40%, #fbbf24 40%, #92400e); animation-duration: 22s; }
+  @keyframes sceneryScroll { to { background-position: 0 100%; } }
+  #parent-rain { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+  .window-glass {
+    position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column;
+    justify-content: flex-end; padding: 14px;
+    background: linear-gradient(180deg, transparent 35%, rgba(0,0,0,0.8));
+  }
+  .window-glass .name { font-family: "Cormorant Garamond", serif; font-size: 22px; font-weight: 600; }
+  .window-glass .state { font-size: 11px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+  .family-rail {
+    position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%); z-index: 4;
+    display: flex; gap: 20px; font-size: 10px; color: var(--ghost); letter-spacing: 0.06em;
+  }
+  .family-rail span.on { color: var(--parent-glow); }
+  .threshold-parent .verse-title em { color: var(--parent-glow); }
+  .threshold-parent .verse-action.primary { background: var(--parent-glow); color: #041510; }
+
+  /* STUDENT */
+  .threshold-student { --hb-color: var(--student-glow); background: #03060a; }
+  .compass-scene { position: absolute; inset: 0; display: grid; place-items: center; z-index: 0; }
+  .compass-ring {
+    width: min(68vw, 320px); height: min(68vw, 320px); border-radius: 50%;
+    border: 1px solid rgba(125,211,252,0.15); position: relative; cursor: pointer;
+    box-shadow: 0 0 80px rgba(125,211,252,0.08);
+  }
+  .compass-needle {
+    position: absolute; top: 50%; left: 50%; width: 4px; height: 40%;
+    transform-origin: bottom center; transform: translate(-50%, -100%) rotate(var(--needle-deg, -25deg));
+    background: linear-gradient(180deg, #fff, var(--student-glow));
+    border-radius: 4px; box-shadow: 0 0 20px rgba(125,211,252,0.6);
+    transition: transform 0.8s var(--ease);
+  }
+  .compass-trail {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: conic-gradient(from 200deg, transparent, rgba(125,211,252,0.12), transparent);
+    animation: trailSpin 24s linear infinite;
+  }
+  @keyframes trailSpin { to { transform: rotate(360deg); } }
+  .star-orbit { position: absolute; font-size: 10px; color: var(--ghost); font-weight: 600; }
+  .star-orbit.s1 { top: 12%; left: 50%; transform: translateX(-50%); }
+  .peer-dots {
+    position: absolute; bottom: 18%; display: flex; gap: 6px; font-size: 9px; color: var(--ghost);
+  }
+  .peer-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--student-glow); display: inline-block; animation: hbPulse 2s infinite; }
+  .threshold-student .verse-title em { color: var(--student-glow); }
+  .threshold-student .verse-action.primary { background: var(--student-glow); color: #041018; }
+
+  /* STAFF */
+  .threshold-staff { --hb-color: var(--staff-glow); background: #080604; }
+  .switchboard { position: absolute; inset: 0; display: grid; place-items: center; z-index: 0; }
+  .board-tabs { display: flex; gap: 6px; margin-bottom: 16px; justify-content: center; }
+  .board-tab {
+    font: inherit; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+    background: transparent; color: var(--ghost); cursor: pointer;
+  }
+  .board-tab.on { border-color: var(--staff-glow); color: var(--staff-glow); background: rgba(253,186,116,0.08); }
+  .board-panel {
+    width: min(92vw, 440px); padding: 24px; border-radius: 8px;
+    background: linear-gradient(165deg, #1c1410, #0f0c0a);
+    border: 1px solid rgba(253,186,116,0.2);
+    box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+  }
+  .jack-row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 10px;
+    border-radius: 6px; border: 1px solid var(--line); cursor: pointer; transition: all 0.25s;
+  }
+  .jack-row.live { border-color: rgba(253,186,116,0.6); background: rgba(253,186,116,0.08); box-shadow: 0 0 24px rgba(253,186,116,0.1); }
+  .jack-light { width: 10px; height: 10px; border-radius: 50%; background: #333; flex-shrink: 0; }
+  .jack-row.live .jack-light { background: var(--staff-glow); box-shadow: 0 0 12px var(--staff-glow); animation: jackBlink 1.2s infinite; }
+  @keyframes jackBlink { 50% { opacity: 0.45; } }
+  .jack-label { flex: 1; font-size: 12px; }
+  .jack-time { font-size: 10px; color: var(--ghost); font-variant-numeric: tabular-nums; min-width: 36px; text-align: right; }
+  .threshold-staff .verse-title em { color: var(--staff-glow); }
+  .threshold-staff .verse-action.primary { background: var(--staff-glow); color: #1a0f06; }
+
+  /* BOARD — sixth door */
+  .threshold-board { --hb-color: var(--board-glow); background: #080806; }
+  .archive-room {
+    position: absolute; inset: 0; display: grid; place-items: center; z-index: 0;
+    background: radial-gradient(ellipse 70% 50% at 50% 40%, rgba(253,224,71,0.06), transparent);
+  }
+  .memory-wall {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    width: min(90vw, 480px); perspective: 600px;
+  }
+  .memory-frame {
+    aspect-ratio: 1; border-radius: 4px; border: 2px solid rgba(253,224,71,0.2);
+    background: rgba(255,255,255,0.03); cursor: pointer;
+    display: grid; place-items: center; font-size: 9px; color: var(--ghost);
+    transition: transform 0.4s var(--ease), border-color 0.3s;
+    transform: rotateY(var(--tilt, 0deg));
+  }
+  .memory-frame:hover { border-color: var(--board-glow); transform: rotateY(0deg) scale(1.05); z-index: 2; }
+  .memory-frame.lit { border-color: var(--board-glow); box-shadow: 0 0 24px rgba(253,224,71,0.2); color: var(--ink); }
+  .threshold-board .verse-title em { color: var(--board-glow); }
+  .threshold-board .verse-action.primary { background: var(--board-glow); color: #1a1508; }
+
+  /* Action sheet */
+  .sheet-backdrop {
+    position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.65);
+    opacity: 0; visibility: hidden; transition: all 0.4s var(--ease);
+  }
+  .sheet-backdrop.open { opacity: 1; visibility: visible; }
+  .action-sheet {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 501;
+    max-height: 72vh; padding: 24px 24px 40px; border-radius: 20px 20px 0 0;
+    border: 1px solid var(--line); border-bottom: none;
+    background: #0c0c14; transform: translateY(100%); transition: transform 0.5s var(--ease);
+  }
+  .action-sheet.open { transform: translateY(0); }
+  .sheet-handle { width: 36px; height: 4px; border-radius: 4px; background: var(--line); margin: 0 auto 20px; }
+  .action-sheet h3 { font-family: "Cormorant Garamond", serif; font-size: 28px; margin: 0 0 8px; font-weight: 400; }
+  .action-sheet .sheet-sub { color: var(--whisper); font-size: 14px; margin-bottom: 20px; }
+  .sheet-preview {
+    padding: 16px; border-radius: 12px; border: 1px solid var(--line);
+    background: rgba(255,255,255,0.02); margin-bottom: 16px; font-size: 13px; color: var(--whisper);
+  }
+  .sheet-preview strong { color: var(--ink); display: block; margin-bottom: 6px; }
+  .sheet-confirm {
+    width: 100%; font: inherit; font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 16px; border: none; border-radius: 12px;
+    cursor: pointer; color: #030308;
+  }
+  .sheet-cancel {
+    width: 100%; margin-top: 10px; font: inherit; font-size: 12px; padding: 12px;
+    border: none; background: transparent; color: var(--ghost); cursor: pointer;
+  }
+
+  /* Shortcuts modal */
+  .modal-backdrop {
+    position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.8);
+    display: grid; place-items: center; opacity: 0; visibility: hidden; transition: all 0.3s;
+  }
+  .modal-backdrop.open { opacity: 1; visibility: visible; }
+  .modal {
+    width: min(90vw, 420px); padding: 24px; border-radius: 16px;
+    border: 1px solid var(--line); background: #0a0a10;
+  }
+  .modal h3 { margin: 0 0 16px; font-size: 16px; }
+  .modal kbd {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    border: 1px solid var(--line); font-size: 11px; font-family: inherit;
+  }
+  .modal dl { margin: 0; font-size: 12px; color: var(--whisper); }
+  .modal dt { float: left; clear: left; margin-bottom: 8px; }
+  .modal dd { margin: 0 0 8px 48px; }
+
+  .manifesto, .expansion {
+    position: relative; z-index: 10; padding: 80px 24px 100px;
+    max-width: 720px; margin: 0 auto; border-top: 1px solid var(--line);
+  }
+  .manifesto h2, .expansion h2 {
+    font-family: "Cormorant Garamond", serif; font-size: 34px; font-weight: 400; margin: 0 0 16px;
+  }
+  .manifesto p, .expansion p { color: var(--whisper); line-height: 1.7; margin: 0 0 12px; }
+  .wow-catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 24px; }
+  .wow-item {
+    padding: 14px; border-radius: 10px; border: 1px solid var(--line);
+    font-size: 12px; color: var(--whisper);
+  }
+  .wow-item b { display: block; color: var(--ink); font-size: 13px; margin-bottom: 4px; }
+  .roadmap-row {
+    display: flex; gap: 12px; align-items: baseline; padding: 12px 0;
+    border-bottom: 1px solid var(--line); font-size: 13px;
+  }
+  .roadmap-row .phase { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: var(--parent-glow); min-width: 48px; }
+  .roadmap-row .desc { flex: 1; color: var(--whisper); }
+
+  .sigil-toast {
+    position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(80px);
+    padding: 12px 24px; border-radius: 999px; font-size: 12px; font-weight: 500;
+    background: rgba(255,255,255,0.95); color: #030308; opacity: 0;
+    transition: all 0.45s var(--ease); z-index: 400; pointer-events: none;
+  }
+  .sigil-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  .intro-overlay {
+    position: fixed; inset: 0; z-index: 700; background: var(--void);
+    display: grid; place-items: center; transition: opacity 1.2s, visibility 1.2s;
+  }
+  .intro-overlay.gone { opacity: 0; visibility: hidden; pointer-events: none; }
+  .intro-seq { text-align: center; padding: 24px; }
+  .intro-seq p {
+    font-family: "Cormorant Garamond", serif; font-size: clamp(26px, 4vw, 44px); font-style: italic;
+    color: var(--whisper); margin: 0; opacity: 0; animation: introLine 2.8s ease forwards;
+  }
+  .intro-seq p:nth-child(2) { animation-delay: 1.2s; font-size: clamp(18px, 3vw, 28px); color: var(--ghost); }
+  @keyframes introLine {
+    0% { opacity: 0; transform: translateY(16px); }
+    20% { opacity: 1; transform: none; }
+    75% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .celebrate-burst {
+    position: fixed; inset: 0; z-index: 550; pointer-events: none; overflow: hidden;
+  }
+  .celebrate-burst span {
+    position: absolute; width: 8px; height: 8px; border-radius: 50%;
+    animation: burst 1.4s ease forwards;
+  }
+  @keyframes burst {
+    0% { opacity: 1; transform: translate(0,0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); }
+  }
+
+  /* ── Mobile full-bleed + safe areas ── */
+  @media (max-width: 768px) {
+    .chrome-brand, .school-clock { display: none; }
+    .chrome-row { padding: 6px 10px; }
+    .role-orbs { gap: 4px; }
+    .orb { width: 30px; height: 30px; font-size: 7px; }
+    .pulse-ticker { height: 22px; }
+    .threshold-verse { padding: 88px 16px 24px; }
+    .verse-title { font-size: clamp(32px, 10vw, 52px); }
+    .verse-sub { max-width: none; padding: 0 8px; }
+    .verse-action { padding: 12px 20px; font-size: 11px; }
+    .windows-row { flex-direction: column; padding: 8vh 16px; gap: 16px; }
+    .train-window { width: 100%; max-width: 280px; }
+    .side-panel, .script-float, .live-countdown { display: none; }
+    .memory-wall { grid-template-columns: repeat(2, 1fr); width: 100%; }
+    .board-panel { width: 100%; margin: 0 12px; }
+    .whisper-bar {
+      bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      left: 12px; right: 12px; transform: none; max-width: none;
+      font-size: 11px; border-radius: 12px;
+    }
+    .sigil-toast { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+    .manifesto, .expansion { padding: 48px 16px 80px; }
+    .depth-scroll { padding: 0 16px 48px; }
+  }
+
+  /* ── Fullscreen immersion ── */
+  html.threshold-fullscreen .manifesto,
+  html.threshold-fullscreen .expansion { display: none; }
+  html.threshold-fullscreen .threshold.active { min-height: 100dvh; }
+  html.threshold-fullscreen .chrome { transition: transform 0.4s var(--ease); }
+  html.threshold-fullscreen.chrome-hidden .chrome { transform: translateY(-110%); }
+  html.threshold-fullscreen .whisper-bar { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+
+  .chrome-btn.on { color: var(--parent-glow); border-color: rgba(94,234,212,0.35); }
+  .live-badge {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--staff-glow); padding: 2px 8px; border-radius: 999px;
+    border: 1px solid rgba(253,186,116,0.35);
+  }
+  .django-bridge {
+    margin-top: 20px; padding: 16px; border-radius: 12px;
+    border: 1px solid rgba(94,234,212,0.25); background: rgba(94,234,212,0.06);
+    font-size: 13px; color: var(--whisper);
+  }
+  .django-bridge code { font-size: 11px; color: var(--ink); }
+  .django-bridge a { color: var(--parent-glow); }
+</style>
+</head>
+<body>
+
+<div class="intro-overlay" id="intro">
+  <div class="intro-seq">
+    <p>You don't open a dashboard.</p>
+    <p>You step through.</p>
+  </div>
+</div>
+
+<div class="heartbeat-line" id="heartbeat"></div>
+
+<div class="chrome">
+  <div class="chrome-row">
+    <span class="chrome-brand">Threshold · expanded lab</span>
+    <span class="school-clock" id="school-clock">Period 3 · 9:42 AM · 842 on campus</span>
+    <div class="role-orbs">
+      <button type="button" class="orb on" data-r="admin" title="Lighthouse">AD</button>
+      <button type="button" class="orb" data-r="teacher" title="Stage">TE</button>
+      <button type="button" class="orb" data-r="parent" title="Window">PA</button>
+      <button type="button" class="orb" data-r="student" title="Compass">ST</button>
+      <button type="button" class="orb" data-r="staff" title="Switchboard">SF</button>
+      <button type="button" class="orb" data-r="board" title="Board room">BR</button>
+    </div>
+    <div class="chrome-right">
+      <span class="live-badge">P1 wired</span>
+      <button type="button" class="chrome-btn" id="btn-sound" title="Ambient sound per door">Sound</button>
+      <button type="button" class="chrome-btn" id="btn-fullscreen" title="Fullscreen immersion">Full</button>
+      <button type="button" class="chrome-btn" id="btn-replay">Replay</button>
+      <button type="button" class="chrome-btn" id="btn-keys">?</button>
+      <a class="back" href="tenant-role-dashboards-hub.html">Hub</a>
+    </div>
+  </div>
+  <div class="pulse-ticker" aria-live="polite">
+    <div class="pulse-track" id="pulse-track">
+      <span>Form 4 fee cluster flagged · 12 families</span>
+      <span>Ada marked present 9:02 AM</span>
+      <span>4A roll not taken by 9:15 yesterday</span>
+      <span>Route 7 GPS lag · SMS draft ready</span>
+      <span>Science lab due 4pm · 23 students</span>
+      <span>Visitor desk · 3 waiting</span>
+      <span>Form 4 fee cluster flagged · 12 families</span>
+      <span>Ada marked present 9:02 AM</span>
+    </div>
+  </div>
+</div>
+
+<div class="whisper-bar" id="whisper-bar"><em id="whisper-text">Twelve overdue fees share one pattern — bulk reminder drafted.</em></div>
+
+<div class="role-flash" id="role-flash"><div class="flash-text" id="flash-text"></div></div>
+
+<!-- ADMIN -->
+<section class="threshold threshold-admin active" data-role="admin">
+  <div class="lighthouse-sea"></div>
+  <canvas id="admin-stars" aria-hidden="true"></canvas>
+  <canvas id="admin-canvas" aria-hidden="true"></canvas>
+  <div class="lighthouse-tower"></div>
+  <div class="sector-hud" id="sector-hud"><b>IN BEAM</b><span id="hud-text">Sweep the sea…</span></div>
+
+  <div class="threshold-verse">
+    <p class="verse-kicker">Admin · The Lighthouse</p>
+    <h1 class="verse-title">Twelve families<br>wait in the <em>dark</em></h1>
+    <p class="verse-sub">Move your light. The sea answers. One conduct — the night quiets.</p>
+    <div class="verse-actions">
+      <button type="button" class="verse-action primary" data-sheet="admin">Illuminate → Conduct</button>
+      <button type="button" class="verse-action secondary" data-act="Snapshot PNG for board deck">Export snapshot</button>
+    </div>
+    <p class="verse-meta"><span>−5 clicks</span> · fog · stars · live HUD</p>
+  </div>
+  <div class="depth-scroll">
+    <div class="depth-grid">
+      <div class="depth-card"><h4>Beam physics</h4><p>Canvas cone follows pointer. Hot sector expands when lit. Click to lock conduct sheet.</p></div>
+      <div class="depth-card"><h4>Night layers</h4><p>Star field + fog drift. School feels alive before data loads.</p></div>
+      <div class="depth-card"><h4>Board export</h4><p>One PNG for PTA — same emotional frame, tenant-scoped RBAC.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- TEACHER -->
+<section class="threshold threshold-teacher" id="t-teacher" data-role="teacher">
+  <div class="stage-wrap">
+    <div class="curtain left"></div><div class="curtain right"></div>
+    <div class="stage-floor"></div><div class="spotlight"></div>
+    <div class="silhouettes"><span style="height:26px"></span><span style="height:32px"></span><span style="height:28px"></span><span style="height:34px"></span><span style="height:30px"></span><span style="height:26px"></span><span style="height:32px"></span><span style="height:28px"></span></div>
+    <div class="prop-table">
+      <div class="prop on" data-prop="Roll">✓</div>
+      <div class="prop" data-prop="Grade">★</div>
+      <div class="prop" data-prop="Message">◉</div>
+    </div>
+  </div>
+  <div class="side-panel wing-left"><h4>Wings · next</h4><ul><li>11:20 · 3B Physics</li><li>14:00 · Staff meet</li></ul></div>
+  <div class="live-countdown" id="teacher-countdown">25:00</div>
+  <div class="script-float">"Today: quadratic intro — leave 10min for practice sheet."</div>
+
+  <div class="threshold-verse">
+    <p class="verse-kicker">Teacher · The Stage</p>
+    <h1 class="verse-title">The curtain<br>rises on <em>now</em></h1>
+    <p class="verse-sub">Form 4A · Mathematics · <span id="period-mins">25</span> min left. Press C to curtain toggle.</p>
+    <div class="verse-actions">
+      <button type="button" class="verse-action primary" data-sheet="teacher">Enter stage → Roll</button>
+      <button type="button" class="verse-action secondary" data-act="Gradebook shortcut">Enter grades</button>
+    </div>
+    <p class="verse-meta"><span>−4 clicks</span> · wings · script · live countdown</p>
+  </div>
+</section>
+
+<!-- PARENT -->
+<section class="threshold threshold-parent" data-role="parent">
+  <div class="windows-row">
+    <div class="train-window" data-child="ada"><div class="scenery"></div><div class="window-glass"><span class="name">Ada</span><span class="state">Sunlit · Maths · all clear</span></div></div>
+    <div class="train-window alert" data-child="kofi"><div class="scenery"></div><canvas id="parent-rain"></canvas><div class="window-glass"><span class="name">Kofi</span><span class="state">Rain on glass · 45,000 XAF</span></div></div>
+  </div>
+  <div class="family-rail"><span class="on">Both present</span><span>·</span><span>PTA Tue 5pm</span><span>·</span><span>Bursar till 2pm</span></div>
+
+  <div class="threshold-verse">
+    <p class="verse-kicker">Parent · The Window</p>
+    <h1 class="verse-title">Watch their day<br><em>pass by</em></h1>
+    <p class="verse-sub">Scenery scrolls. Rain means action. Reach through the glass.</p>
+    <div class="verse-actions">
+      <button type="button" class="verse-action primary" data-sheet="parent">Reach through → Pay</button>
+      <button type="button" class="verse-action secondary" data-act="Message Mr. Etoa">Reply to teacher</button>
+    </div>
+    <p class="verse-meta"><span>−6 clicks</span> · live rain · family rail</p>
+  </div>
+</section>
+
+<!-- STUDENT -->
+<section class="threshold threshold-student" data-role="student">
+  <div class="compass-scene">
+    <div class="compass-ring" id="compass-ring">
+      <div class="compass-trail"></div>
+      <div class="compass-needle" id="compass-needle"></div>
+      <span class="star-orbit s1" id="star-trail">✦ Maths ✦ English</span>
+    </div>
+    <div class="peer-dots" style="left:50%;transform:translateX(-50%)"><i></i><i></i><i></i> 12 classmates online</div>
+  </div>
+
+  <div class="threshold-verse">
+    <p class="verse-kicker">Student · The Compass</p>
+    <h1 class="verse-title">Walk where the<br>needle <em>trembles</em></h1>
+    <p class="verse-sub" id="student-target">Science lab · due 4pm · 6h left</p>
+    <div class="verse-actions">
+      <button type="button" class="verse-action primary" data-sheet="student">Walk → Submit</button>
+      <button type="button" class="verse-action secondary" id="spin-compass">Spin compass</button>
+    </div>
+    <p class="verse-meta"><span id="streak-num">14</span>-day streak · tap ring to feel direction</p>
+  </div>
+</section>
+
+<!-- STAFF -->
+<section class="threshold threshold-staff" data-role="staff">
+  <div class="switchboard">
+    <div class="board-panel">
+      <div class="board-tabs">
+        <button type="button" class="board-tab on" data-tab="desk">Desk</button>
+        <button type="button" class="board-tab" data-tab="fees">Fees</button>
+        <button type="button" class="board-tab" data-tab="bus">Transport</button>
+      </div>
+      <div id="jack-list">
+        <div class="jack-row live" data-jack="Visitor · no ID"><div class="jack-light"></div><span class="jack-label">Visitor · no ID</span><span class="jack-time" data-t="42">0:42</span></div>
+        <div class="jack-row" data-jack="Pickup · 2 waiting"><div class="jack-light"></div><span class="jack-label">Pickup · 2 waiting</span><span class="jack-time" data-t="190">3:10</span></div>
+        <div class="jack-row" data-jack="Route 7 · SMS"><div class="jack-light"></div><span class="jack-label">Route 7 · SMS draft</span><span class="jack-time" data-t="322">5:22</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="threshold-verse">
+    <p class="verse-kicker">Staff · The Switchboard</p>
+    <h1 class="verse-title">Pull the line<br>that <em>glows</em></h1>
+    <p class="verse-sub">Timers tick. Tabs switch desks. Connect — next jack lights.</p>
+    <div class="verse-actions">
+      <button type="button" class="verse-action primary" data-sheet="staff">Connect → Check in</button>
+    </div>
+    <p class="verse-meta"><span>−4 clicks</span> · live timers · 3 desks</p>
+  </div>
+</section>
+
+<!-- BOARD · sixth door -->
+<section class="threshold threshold-board" data-role="board">
+  <div class="archive-room">
+    <div class="memory-wall">
+      <div class="memory-frame lit" data-m="94%">94%<br>today</div>
+      <div class="memory-frame" data-m="Term 2">Term 2<br>revenue</div>
+      <div class="memory-frame" data-m="842">842<br>students</div>
+      <div class="memory-frame" data-m="PTA">PTA<br>Jun 24</div>
+      <div class="memory-frame" data-m="Accred">Accred<br>2027</div>
+      <div class="memory-frame lit" data-m="+12">+12<br>enrollment</div>
+      <div class="memory-frame" data-m="Staff">48/52<br>staff</div>
+      <div class="memory-frame" data-m="Story">Your<br>story</div>
+    </div>
+  </div>
+  <div class="threshold-verse">
+    <p class="verse-kicker">Board · The Archive</p>
+    <h1 class="verse-title">Memory on the<br><em>wall</em></h1>
+    <p class="verse-sub">Proprietors don't need grids. They touch moments — enrollment, presence, the story you're telling donors.</p>
+    <div class="verse-actions">
+      <button type="button" class="verse-action primary" data-sheet="board">Compose → Board deck</button>
+    </div>
+    <p class="verse-meta">Sixth door · same heartbeat · different gravity</p>
+  </div>
+</section>
+
+<!-- Action sheet -->
+<div class="sheet-backdrop" id="sheet-backdrop"></div>
+<div class="action-sheet" id="action-sheet">
+  <div class="sheet-handle"></div>
+  <h3 id="sheet-title">Conduct</h3>
+  <p class="sheet-sub" id="sheet-sub"></p>
+  <div class="sheet-preview" id="sheet-preview"></div>
+  <button type="button" class="sheet-confirm" id="sheet-confirm">Confirm</button>
+  <button type="button" class="sheet-cancel" id="sheet-cancel">Not now</button>
+</div>
+
+<div class="modal-backdrop" id="modal-keys">
+  <div class="modal">
+    <h3>Threshold shortcuts</h3>
+    <dl>
+      <dt><kbd>1</kbd>–<kbd>6</kbd></dt><dd>Switch role door</dd>
+      <dt><kbd>C</kbd></dt><dd>Teacher · toggle curtain</dd>
+      <dt><kbd>?</kbd></dt><dd>This panel</dd>
+      <dt><kbd>Esc</kbd></dt><dd>Close sheet</dd>
+      <dt><kbd>F</kbd></dt><dd>Toggle fullscreen</dd>
+      <dt><kbd>M</kbd></dt><dd>Toggle ambient sound</dd>
+    </dl>
+  </div>
+</div>
+
+<div class="celebrate-burst" id="celebrate"></div>
+<div class="sigil-toast" id="toast"></div>
+
+<article class="manifesto">
+  <h2>More than a skin — a new category</h2>
+  <p>Threshold is not dashboard reskinning. It is <strong>role-native operating systems</strong> inside RunMyCampus: six doors, one heartbeat, one verb each visit.</p>
+</article>
+
+<article class="expansion" id="expansion">
+  <h2>Wow catalog · expanded</h2>
+  <div class="wow-catalog">
+    <div class="wow-item"><b>Lighthouse HUD</b>Live sector readout when beam hits</div>
+    <div class="wow-item"><b>Star + fog layers</b>Admin sea breathes before data</div>
+    <div class="wow-item"><b>Curtain + countdown</b>Teacher stage ticks in real time</div>
+    <div class="wow-item"><b>Wings + script</b>Next acts without leaving stage</div>
+    <div class="wow-item"><b>Canvas rain</b>Parent anxiety made visible, fixable</div>
+    <div class="wow-item"><b>Family rail</b>Shared context one glance</div>
+    <div class="wow-item"><b>Compass spin</b>Student feels direction physically</div>
+    <div class="wow-item"><b>Peer dots</b>Social proof without feed</div>
+    <div class="wow-item"><b>Live jack timers</b>Staff SLA without alarm fatigue</div>
+    <div class="wow-item"><b>Desk tabs</b>Three queues one board</div>
+    <div class="wow-item"><b>Memory wall</b>Board touches story not spreadsheets</div>
+    <div class="wow-item"><b>Action sheets</b>Confirm in context — never lose the metaphor</div>
+    <div class="wow-item"><b>Pulse ticker</b>Whole school whisper across roles</div>
+    <div class="wow-item"><b>Role flash</b>Door transition — you crossed a threshold</div>
+    <div class="wow-item"><b>Celebration burst</b>Payment / submit / connect payoff</div>
+    <div class="wow-item"><b>Ambient sound</b>Per-door atmosphere · user toggle · reduced-motion safe</div>
+    <div class="wow-item"><b>Mobile full-bleed</b>Stacked windows · safe-area · chrome compacts</div>
+    <div class="wow-item"><b>Fullscreen</b>Immersion mode · chrome auto-hide</div>
+    <div class="wow-item"><b>Django parent partial</b>Live on Family Home when cockpit enabled</div>
+  </div>
+
+  <div class="django-bridge">
+    <strong style="color:var(--ink)">Live in Django (parent first)</strong><br>
+    Enable <code>cockpit.threshold_parent_window.enabled</code> in SiteSettings cockpit payload, then open
+    <a href="/portal/parent/" target="_blank" rel="noopener">/portal/parent/</a> on your tenant host.
+    Partial: <code>templates/parent/partials/threshold_window_hero.html</code> ·
+    CSS/JS: <code>static/css/rmc-threshold-parent-window.css</code>,
+    <code>static/js/rmc-threshold-parent-window.js</code>.
+  </div>
+
+  <h2 style="margin-top:48px">Ship phases</h2>
+  <div class="roadmap-row"><span class="phase">P1</span><span class="desc">✓ Parent Window partial + lab sound/mobile/fullscreen (this file)</span></div>
+  <div class="roadmap-row"><span class="phase">P2</span><span class="desc">Admin lighthouse · teacher stage · student compass · staff switchboard partials</span></div>
+  <div class="roadmap-row"><span class="phase">P3</span><span class="desc">Board archive + pulse ticker SSE + celebration signals from finance/academics</span></div>
+</article>
+
+<script>
+/* Inline ambient fallback when opened via file:// (static path may not resolve) */
+(function (g) {
+  if (g.RmcThresholdAmbient) return;
+  function A() { this.ctx = null; this.master = null; this.roleGain = null; this.role = "admin"; this.enabled = false; this._nodes = []; }
+  A.prototype._ensureContext = function () {
+    if (this.ctx) return true;
+    var C = g.AudioContext || g.webkitAudioContext;
+    if (!C || g.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+    this.ctx = new C(); this.master = this.ctx.createGain(); this.master.gain.value = 0.18; this.master.connect(this.ctx.destination);
+    this.roleGain = this.ctx.createGain(); this.roleGain.connect(this.master); return true;
+  };
+  A.prototype._stopNodes = function () { this._nodes.forEach(function (n) { try { n.stop && n.stop(0); n.disconnect(); } catch (e) {} }); this._nodes = []; };
+  A.prototype._osc = function (f, t, vol) {
+    var o = this.ctx.createOscillator(), gn = this.ctx.createGain();
+    o.type = t || "sine"; o.frequency.value = f; gn.gain.value = vol;
+    o.connect(gn); gn.connect(this.roleGain); o.start(); this._nodes.push(o, gn);
+  };
+  A.prototype._buildRole = function (role) {
+    this._stopNodes(); if (!this.ctx || !this.enabled) return;
+    var tones = { admin: [55, 110], teacher: [196], parent: [73], student: [329], staff: [90], board: [65] };
+    (tones[role] || tones.admin).forEach(function (f) { this._osc(f, "sine", 0.05); }.bind(this));
+  };
+  A.prototype.setRole = function (r) { this.role = r; if (this.enabled) this._buildRole(r); };
+  A.prototype.toggle = function () {
+    if (!this._ensureContext()) return false;
+    if (this.ctx.state === "suspended") this.ctx.resume();
+    this.enabled = !this.enabled;
+    if (this.enabled) this._buildRole(this.role); else this._stopNodes();
+    return this.enabled;
+  };
+  A.prototype.initFromStorage = function () {};
+  A.prototype.unlock = function () { if (this._ensureContext() && this.enabled) this._buildRole(this.role); };
+  g.RmcThresholdAmbient = A;
+})(window);
+</script>
+<script src="../../static/js/rmc-threshold-ambient.js"></script>
+<script>
+(function () {
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var role = "admin";
+  var toast = document.getElementById("toast");
+  var toastT;
+  var teacherSecs = 25 * 60;
+  var streak = 14;
+
+  var WHISPERS = {
+    admin: ["Twelve overdue fees share one pattern — bulk reminder drafted.", "Six unexplained absences in Form 4 — office loop ready.", "Exam week day 2 — grade sync in 90 minutes."],
+    teacher: ["Four stale grades in 4A — enter after roll.", "Parent message re: lab safety — quick reply template.", "3 teachers on roll in Block B right now."],
+    parent: ["Kofi invoice due Monday — pay today saves late fee.", "Ada's teacher sent science fair note — one tap reply.", "Both children marked present this morning."],
+    student: ["Lab report is the only blocker — streak stays alive.", "Maths bonus quiz unlocks after submit.", "12 classmates online — you're not alone."],
+    staff: ["Visitor at 42s — ID escalation one tap.", "Route 7 delay — 34-family SMS awaiting approve.", "Fee window quiet — prep float before lunch."],
+    board: ["Enrollment +12 YoY — frame lit on memory wall.", "94% presence — donor story writes itself.", "PTA in 4 days — deck draft from live metrics."]
+  };
+
+  var FLASH = {
+    admin: { color: "rgba(240,171,252,0.15)", text: "You are the lighthouse." },
+    teacher: { color: "rgba(196,181,253,0.15)", text: "The stage is yours." },
+    parent: { color: "rgba(94,234,212,0.12)", text: "Look through the glass." },
+    student: { color: "rgba(125,211,252,0.12)", text: "Follow the needle." },
+    staff: { color: "rgba(253,186,116,0.12)", text: "Connect the line." },
+    board: { color: "rgba(253,224,71,0.12)", text: "Touch the memory wall." }
+  };
+
+  var SHEETS = {
+    admin: { title: "Conduct · Form 4 fees", sub: "12 families · 540,000 XAF · WhatsApp + SMS", preview: "<strong>Bulk reminder</strong>Template localized FR/EN. Sends in 8 seconds. RBAC: ADMIN, BURSAR.", confirm: "Send reminders", color: "#f0abfc" },
+    teacher: { title: "Roll call · Form 4A", sub: "32 students · Room 12 · Period 3", preview: "<strong>Quick roll</strong>Absent notes route to front office automatically. Offline-ready.", confirm: "Open roll", color: "#c4b5fd" },
+    parent: { title: "Reach through · Kofi", sub: "Term invoice · 45,000 XAF", preview: "<strong>Mobile Money</strong>MTN / Orange ready. Receipt syncs to family orbit instantly.", confirm: "Pay now", color: "#5eead4" },
+    student: { title: "Walk · Science lab", sub: "Due today 4:00 PM · PDF or photo", preview: "<strong>Lab report #3</strong>Upload opens inline. Streak extends to 15 days on submit.", confirm: "Submit", color: "#7dd3fc" },
+    staff: { title: "Connect · Visitor", sub: "No ID · escalate available", preview: "<strong>Check-in</strong>Badge prints. Host notified. Pickup linked if guardian.", confirm: "Check in", color: "#fdba74" },
+    board: { title: "Board deck · June", sub: "From live memory wall", preview: "<strong>6 frames</strong>94% presence · +12 enrollment · Term 2 revenue · PTA date · Export PDF.", confirm: "Generate deck", color: "#fde047" }
+  };
+
+  var JACK_SETS = {
+    desk: [
+      { label: "Visitor · no ID", live: true, t: 42 },
+      { label: "Pickup · 2 waiting", t: 190 },
+      { label: "Route 7 · SMS draft", t: 322 }
+    ],
+    fees: [
+      { label: "Cash payment · queue", live: true, t: 28 },
+      { label: "Receipt reprint", t: 95 },
+      { label: "Float count reminder", t: 400 }
+    ],
+    bus: [
+      { label: "Route 7 · delay", live: true, t: 15 },
+      { label: "Driver check-in", t: 120 },
+      { label: "Parent SMS batch", t: 200 }
+    ]
+  };
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(toastT);
+    toastT = setTimeout(function () { toast.classList.remove("show"); }, 2600);
+  }
+
+  function celebrate() {
+    if (reduced) return;
+    var el = document.getElementById("celebrate");
+    el.innerHTML = "";
+    var colors = ["#f0abfc", "#5eead4", "#7dd3fc", "#fde047", "#c4b5fd"];
+    for (var i = 0; i < 48; i++) {
+      var s = document.createElement("span");
+      var a = (Math.PI * 2 * i) / 48;
+      s.style.left = "50%"; s.style.top = "45%";
+      s.style.background = colors[i % colors.length];
+      s.style.setProperty("--dx", Math.cos(a) * (60 + Math.random() * 100) + "px");
+      s.style.setProperty("--dy", Math.sin(a) * (60 + Math.random() * 100) + "px");
+      el.appendChild(s);
+    }
+    setTimeout(function () { el.innerHTML = ""; }, 1500);
+  }
+
+  function setWhisper(r) {
+    var lines = WHISPERS[r] || WHISPERS.admin;
+    document.getElementById("whisper-text").textContent = lines[Math.floor(Math.random() * lines.length)];
+  }
+
+  function roleFlash(r) {
+    var f = FLASH[r];
+    var el = document.getElementById("role-flash");
+    el.style.background = f.color;
+    document.getElementById("flash-text").textContent = f.text;
+    el.classList.add("show");
+    setTimeout(function () { el.classList.remove("show"); }, 900);
+  }
+
+  function setRole(r) {
+    role = r;
+    document.querySelectorAll(".threshold").forEach(function (t) {
+      t.classList.toggle("active", t.getAttribute("data-role") === r);
+    });
+    document.querySelectorAll(".orb").forEach(function (o) {
+      o.classList.toggle("on", o.getAttribute("data-r") === r);
+    });
+    document.getElementById("heartbeat").style.setProperty("--hb-color", "var(--" + (r === "board" ? "board" : r) + "-glow)");
+    if (r === "teacher") document.getElementById("t-teacher").classList.add("revealed");
+    setWhisper(r);
+    roleFlash(r);
+    if (window.__rmcThresholdAmbient) window.__rmcThresholdAmbient.setRole(r);
+    window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+  }
+
+  document.querySelectorAll(".orb").forEach(function (o) {
+    o.addEventListener("click", function () { setRole(o.getAttribute("data-r")); });
+  });
+
+  /* Action sheet */
+  var backdrop = document.getElementById("sheet-backdrop");
+  var sheet = document.getElementById("action-sheet");
+  function openSheet(key) {
+    var s = SHEETS[key];
+    document.getElementById("sheet-title").textContent = s.title;
+    document.getElementById("sheet-sub").textContent = s.sub;
+    document.getElementById("sheet-preview").innerHTML = s.preview;
+    document.getElementById("sheet-confirm").textContent = s.confirm;
+    document.getElementById("sheet-confirm").style.background = s.color;
+    backdrop.classList.add("open");
+    sheet.classList.add("open");
+  }
+  function closeSheet() { backdrop.classList.remove("open"); sheet.classList.remove("open"); }
+  document.body.addEventListener("click", function (e) {
+    var sh = e.target.closest("[data-sheet]");
+    if (sh) openSheet(sh.getAttribute("data-sheet"));
+    if (e.target.closest("[data-act]")) showToast(e.target.closest("[data-act]").getAttribute("data-act") + " ✓");
+  });
+  document.getElementById("sheet-cancel").onclick = closeSheet;
+  backdrop.onclick = closeSheet;
+  document.getElementById("sheet-confirm").onclick = function () {
+    closeSheet(); celebrate(); showToast("Done ✓ — school pulse updated");
+  };
+
+  /* Teacher */
+  document.querySelectorAll(".prop").forEach(function (p) {
+    p.onclick = function (e) {
+      e.stopPropagation();
+      document.querySelectorAll(".prop").forEach(function (x) { x.classList.remove("on"); });
+      p.classList.add("on");
+      showToast(p.getAttribute("data-prop") + " prop");
+    };
+  });
+  setInterval(function () {
+    if (role !== "teacher" || reduced) return;
+    teacherSecs = Math.max(0, teacherSecs - 1);
+    var m = Math.floor(teacherSecs / 60), s = teacherSecs % 60;
+    var el = document.getElementById("teacher-countdown");
+    if (el) el.textContent = m + ":" + (s < 10 ? "0" : "") + s;
+    var pm = document.getElementById("period-mins");
+    if (pm) pm.textContent = m;
+  }, 1000);
+
+  /* Parent windows + rain canvas */
+  document.querySelectorAll(".train-window").forEach(function (w) {
+    w.onclick = function () {
+      document.querySelectorAll(".train-window").forEach(function (x) { x.classList.remove("focused"); });
+      w.classList.add("focused");
+      showToast("Window · " + w.getAttribute("data-child"));
+    };
+  });
+  (function rainCanvas() {
+    var c = document.getElementById("parent-rain");
+    if (!c) return;
+    var cx = c.getContext("2d");
+    var drops = [];
+    function resize() {
+      var w = c.parentElement.offsetWidth, h = c.parentElement.offsetHeight;
+      c.width = w; c.height = h;
+    }
+    for (var i = 0; i < 40; i++) drops.push({ x: Math.random(), y: Math.random(), v: 0.01 + Math.random() * 0.02 });
+    function draw() {
+      if (reduced) return;
+      cx.clearRect(0, 0, c.width, c.height);
+      cx.strokeStyle = "rgba(255,255,255,0.15)"; cx.lineWidth = 1;
+      drops.forEach(function (d) {
+        d.y += d.v;
+        if (d.y > 1) { d.y = 0; d.x = Math.random(); }
+        cx.beginPath();
+        cx.moveTo(d.x * c.width, d.y * c.height);
+        cx.lineTo(d.x * c.width - 2, d.y * c.height + 8);
+        cx.stroke();
+      });
+      requestAnimationFrame(draw);
+    }
+    resize(); window.addEventListener("resize", resize);
+    if (!reduced) draw();
+  })();
+
+  /* Student compass */
+  var needleDeg = -25;
+  document.getElementById("compass-ring").onclick = function () { showToast("Needle trembles toward Science lab"); };
+  document.getElementById("spin-compass").onclick = function () {
+    needleDeg = -25 + Math.random() * 10 - 5;
+    document.getElementById("compass-needle").style.setProperty("--needle-deg", needleDeg + "deg");
+  };
+
+  /* Staff jacks + tabs */
+  function renderJacks(tab) {
+    var list = document.getElementById("jack-list");
+    list.innerHTML = JACK_SETS[tab].map(function (j) {
+      return '<div class="jack-row' + (j.live ? " live" : "") + '" data-jack="' + j.label + '"><div class="jack-light"></div><span class="jack-label">' + j.label + '</span><span class="jack-time" data-t="' + j.t + '">' + fmtTime(j.t) + '</span></div>';
+    }).join("");
+    bindJacks();
+  }
+  function fmtTime(sec) {
+    return Math.floor(sec / 60) + ":" + (sec % 60 < 10 ? "0" : "") + (sec % 60);
+  }
+  function bindJacks() {
+    document.querySelectorAll(".jack-row").forEach(function (row) {
+      row.onclick = function () {
+        if (row.classList.contains("connected")) return;
+        document.querySelectorAll(".jack-row").forEach(function (r) { r.classList.remove("live"); });
+        row.classList.add("connected");
+        showToast("Connected · " + row.getAttribute("data-jack"));
+        setTimeout(function () {
+          row.classList.remove("live", "connected");
+          var n = document.querySelector(".jack-row:not(.connected)");
+          if (n) n.classList.add("live");
+        }, 1600);
+      };
+    });
+  }
+  bindJacks();
+  document.querySelectorAll(".board-tab").forEach(function (tab) {
+    tab.onclick = function () {
+      document.querySelectorAll(".board-tab").forEach(function (t) { t.classList.remove("on"); });
+      tab.classList.add("on");
+      renderJacks(tab.getAttribute("data-tab"));
+    };
+  });
+  setInterval(function () {
+    document.querySelectorAll(".jack-time[data-t]").forEach(function (el) {
+      var t = parseInt(el.getAttribute("data-t"), 10) + 1;
+      el.setAttribute("data-t", t);
+      el.textContent = fmtTime(t);
+    });
+  }, 1000);
+
+  /* Board memory frames */
+  document.querySelectorAll(".memory-frame").forEach(function (f) {
+    f.onclick = function () {
+      document.querySelectorAll(".memory-frame").forEach(function (x) { x.classList.remove("lit"); });
+      f.classList.add("lit");
+      showToast("Memory · " + f.getAttribute("data-m"));
+    };
+  });
+
+  /* Admin lighthouse */
+  var canvas = document.getElementById("admin-canvas");
+  var ctx = canvas.getContext("2d");
+  var starsC = document.getElementById("admin-stars");
+  var starsX = starsC.getContext("2d");
+  var mx = 0.5, my = 0.35;
+  var sectors = [
+    { x: 0.28, y: 0.32, label: "Form 4 fees", hot: true, detail: "12 families · bulk SMS ready" },
+    { x: 0.68, y: 0.38, label: "Attendance", hot: false, detail: "94% · 6 unexplained" },
+    { x: 0.52, y: 0.62, label: "Incidents", hot: false, detail: "2 open · 1 escalated" },
+    { x: 0.38, y: 0.55, label: "Staff", hot: false, detail: "48/52 checked in" }
+  ];
+  var starField = [];
+  for (var i = 0; i < 120; i++) starField.push({ x: Math.random(), y: Math.random(), s: Math.random() * 1.5, tw: Math.random() * Math.PI * 2 });
+
+  function resizeAdmin() {
+    var s = document.querySelector(".threshold-admin.active") || document.getElementById("t-admin") || document.querySelector(".threshold-admin");
+    if (!s) return;
+    canvas.width = starsC.width = s.offsetWidth;
+    canvas.height = starsC.height = s.offsetHeight;
+  }
+
+  function drawStars() {
+    var w = starsC.width, h = starsC.height;
+    starsX.clearRect(0, 0, w, h);
+    starField.forEach(function (st) {
+      var tw = 0.4 + 0.6 * Math.abs(Math.sin(st.tw += 0.02));
+      starsX.fillStyle = "rgba(255,255,255," + (0.15 + tw * 0.35) + ")";
+      starsX.beginPath();
+      starsX.arc(st.x * w, st.y * h * 0.7, st.s, 0, Math.PI * 2);
+      starsX.fill();
+    });
+  }
+
+  function drawLighthouse() {
+    if (role !== "admin") { requestAnimationFrame(drawLighthouse); return; }
+    var w = canvas.width, h = canvas.height;
+    drawStars();
+    ctx.clearRect(0, 0, w, h);
+    var bx = w * 0.5, by = h * 0.94;
+    var angle = Math.atan2(my * h - by, mx * w - bx);
+    var g = ctx.createRadialGradient(bx, by, 0, mx * w, my * h, w * 0.5);
+    g.addColorStop(0, "rgba(240,171,252,0.4)");
+    g.addColorStop(0.5, "rgba(240,171,252,0.06)");
+    g.addColorStop(1, "transparent");
+    ctx.save();
+    ctx.beginPath(); ctx.moveTo(bx, by);
+    ctx.arc(bx, by, w * 0.75, angle - 0.38, angle + 0.38);
+    ctx.closePath(); ctx.fillStyle = g; ctx.fill();
+    ctx.restore();
+
+    var hud = document.getElementById("sector-hud");
+    var hudText = document.getElementById("hud-text");
+    var anyLit = false;
+    sectors.forEach(function (s) {
+      var sx = s.x * w, sy = s.y * h;
+      var dist = Math.hypot(mx * w - sx, my * h - sy);
+      var lit = dist < w * 0.16;
+      if (lit) { anyLit = true; hudText.textContent = s.label + " — " + s.detail; }
+      ctx.beginPath();
+      ctx.arc(sx, sy, lit ? 16 : 9, 0, Math.PI * 2);
+      ctx.fillStyle = lit ? (s.hot ? "rgba(240,171,252,0.95)" : "rgba(255,255,255,0.75)") : (s.hot ? "rgba(240,171,252,0.2)" : "rgba(255,255,255,0.1)");
+      ctx.fill();
+    });
+    hud.classList.toggle("visible", anyLit);
+    requestAnimationFrame(drawLighthouse);
+  }
+
+  canvas.addEventListener("pointermove", function (e) {
+    var r = canvas.getBoundingClientRect();
+    mx = (e.clientX - r.left) / r.width;
+    my = (e.clientY - r.top) / r.height;
+  });
+  canvas.addEventListener("click", function () {
+    sectors.forEach(function (s) {
+      if (Math.hypot(mx - s.x, my - s.y) < 0.12 && s.hot) openSheet("admin");
+    });
+  });
+
+  /* Intro */
+  setTimeout(function () {
+    document.getElementById("intro").classList.add("gone");
+    document.getElementById("t-teacher").classList.add("revealed");
+  }, reduced ? 0 : 3200);
+
+  document.getElementById("btn-replay").onclick = function () {
+    var intro = document.getElementById("intro");
+    intro.classList.remove("gone");
+    setTimeout(function () { intro.classList.add("gone"); }, 2800);
+  };
+
+  document.getElementById("btn-keys").onclick = function () {
+    document.getElementById("modal-keys").classList.add("open");
+  };
+  document.getElementById("modal-keys").onclick = function (e) {
+    if (e.target.id === "modal-keys") document.getElementById("modal-keys").classList.remove("open");
+  };
+
+  document.addEventListener("keydown", function (e) {
+    var map = { "1": "admin", "2": "teacher", "3": "parent", "4": "student", "5": "staff", "6": "board" };
+    if (map[e.key]) setRole(map[e.key]);
+    if (e.key === "c" || e.key === "C") {
+      var t = document.getElementById("t-teacher");
+      t.classList.toggle("revealed");
+      showToast(t.classList.contains("revealed") ? "Curtain up" : "Curtain down");
+    }
+    if (e.key === "?") document.getElementById("modal-keys").classList.add("open");
+    if (e.key === "f" || e.key === "F") document.getElementById("btn-fullscreen").click();
+    if (e.key === "m" || e.key === "M") document.getElementById("btn-sound").click();
+    if (e.key === "Escape") {
+      closeSheet();
+      document.getElementById("modal-keys").classList.remove("open");
+    }
+  });
+
+  window.addEventListener("resize", resizeAdmin);
+  resizeAdmin();
+  if (!reduced) drawLighthouse();
+
+  /* Ambient sound */
+  var ambient = window.RmcThresholdAmbient ? new window.RmcThresholdAmbient() : null;
+  if (ambient) {
+    window.__rmcThresholdAmbient = ambient;
+    ambient.initFromStorage();
+    var btnSound = document.getElementById("btn-sound");
+    if (ambient.enabled) btnSound.classList.add("on");
+    btnSound.onclick = function () {
+      var on = ambient.toggle();
+      btnSound.classList.toggle("on", on);
+      showToast(on ? "Ambient on · " + role : "Ambient off");
+    };
+  }
+
+  /* Fullscreen + chrome auto-hide */
+  var btnFs = document.getElementById("btn-fullscreen");
+  var chromeHideTimer;
+  btnFs.onclick = function () {
+    var on = !document.documentElement.classList.contains("threshold-fullscreen");
+    document.documentElement.classList.toggle("threshold-fullscreen", on);
+    btnFs.classList.toggle("on", on);
+    showToast(on ? "Fullscreen · chrome hides on idle" : "Fullscreen off");
+  };
+  document.addEventListener("mousemove", function () {
+    if (!document.documentElement.classList.contains("threshold-fullscreen")) return;
+    document.documentElement.classList.remove("chrome-hidden");
+    clearTimeout(chromeHideTimer);
+    chromeHideTimer = setTimeout(function () {
+      document.documentElement.classList.add("chrome-hidden");
+    }, 3200);
+  });
+
+  setInterval(function () { if (Math.random() > 0.7) setWhisper(role); }, 12000);
+})();
+</script>
+</body>
+</html>

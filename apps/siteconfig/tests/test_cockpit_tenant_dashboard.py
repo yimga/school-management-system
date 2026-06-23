@@ -26,6 +26,7 @@ from apps.siteconfig.cockpit_tenant_dashboard import (
     _tenant_today_snapshot_defaults,
     _tenant_upcoming_events_defaults,
     _tenant_workspace_context_dashboard_defaults,
+    _threshold_parent_window_defaults,
     build_tenant_dashboard_cockpit,
 )
 
@@ -92,6 +93,11 @@ class TenantDashboardDefaultsShapeTests(SimpleTestCase):
         self.assertEqual(d["teacher_name"], "")
         self.assertEqual(d["actions"], [])
 
+    def test_threshold_parent_window_defaults_disabled(self):
+        d = _threshold_parent_window_defaults()
+        self.assertIs(d["enabled"], False)
+        self.assertIs(d["replace_dh_hero"], False)
+
     def test_tenant_dashboard_defaults_registry_covers_all_sections(self):
         self.assertEqual(
             set(TENANT_DASHBOARD_DEFAULTS.keys()),
@@ -106,6 +112,7 @@ class TenantDashboardDefaultsShapeTests(SimpleTestCase):
                 "tenant_activity_ticker",
                 "year_progress",
                 "calendar_subscribe",
+                "threshold_parent_window",
             },
         )
 
@@ -175,6 +182,14 @@ class TenantDashboardPartialBleedPreventionTests(SimpleTestCase):
         self._assert_renders_empty(
             "partials/cockpit/_workspace_context_tenant.html", ctx
         )
+
+    def test_threshold_parent_window_renders_empty_when_disabled(self):
+        ctx = {
+            "cockpit": {"threshold_parent_window": _threshold_parent_window_defaults()},
+            "links": [object()],
+            "child_cards": [],
+        }
+        self._assert_renders_empty("parent/partials/threshold_window_hero.html", ctx)
 
 
 # ============================================================

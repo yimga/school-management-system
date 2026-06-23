@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMyCampus · All-in-one validation — Threshold + globes + tenant roles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../../static/css/rmc-threshold-parent-window.css">
+<style>
+  :root {
+    --bg: #060912;
+    --canvas: #0e1426;
+    --elevated: #141c33;
+    --hairline: rgba(255, 255, 255, 0.08);
+    --text: #eef2ff;
+    --text-2: #aab3d4;
+    --text-3: #7b86ad;
+    --brand: #6366f1;
+    --accent: #10b981;
+    --warn: #f59e0b;
+    --bad: #f87171;
+    --radius: 12px;
+    --rail-w: 280px;
+    --top-h: 52px;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --font: Inter, system-ui, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: var(--font);
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text);
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .suite {
+    display: grid;
+    grid-template-columns: var(--rail-w) 1fr;
+    grid-template-rows: var(--top-h) 1fr;
+    height: 100dvh;
+  }
+  .suite-rail {
+    grid-row: 1 / -1;
+    background: var(--canvas);
+    border-right: 1px solid var(--hairline);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .suite-rail__head {
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .suite-rail__head h1 {
+    margin: 0 0 4px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .suite-rail__head p {
+    margin: 0;
+    font-size: 11px;
+    color: var(--text-3);
+  }
+  .suite-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 8px 16px;
+  }
+  .suite-nav__group {
+    margin-bottom: 14px;
+  }
+  .suite-nav__label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    padding: 4px 8px 6px;
+  }
+  .suite-nav__btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-2);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    cursor: pointer;
+    font: inherit;
+    transition: background 0.15s var(--ease), border-color 0.15s;
+  }
+  .suite-nav__btn:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+  }
+  .suite-nav__btn.is-active {
+    background: rgba(99, 102, 241, 0.14);
+    border-color: rgba(99, 102, 241, 0.35);
+    color: var(--text);
+  }
+  .suite-nav__btn kbd {
+    font-size: 10px;
+    opacity: 0.55;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .suite-nav__btn small {
+    display: block;
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 2px;
+    font-weight: 400;
+  }
+  .suite-top {
+    grid-column: 2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--hairline);
+    background: var(--elevated);
+  }
+  .suite-top__title {
+    flex: 1;
+    min-width: 0;
+    font-weight: 650;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .suite-top__meta {
+    font-size: 11px;
+    color: var(--text-3);
+  }
+  .suite-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--hairline);
+    background: var(--canvas);
+    color: var(--text-2);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .suite-chip:hover { color: var(--text); border-color: var(--text-3); }
+  .suite-chip.is-on {
+    border-color: rgba(99, 102, 241, 0.5);
+    color: #c7d2fe;
+    background: rgba(99, 102, 241, 0.12);
+  }
+  .suite-main {
+    grid-column: 2;
+    position: relative;
+    overflow: hidden;
+    background: #030308;
+  }
+  .suite-panel { display: none; height: 100%; overflow: hidden; flex-direction: column; }
+  .suite-panel.is-active { display: flex; }
+  .suite-panel .suite-inline--checks {
+    flex: 0 0 auto;
+    max-height: 38vh;
+    overflow-y: auto;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .suite-iframe-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0 auto;
+    width: 100%;
+    transition: max-width 0.35s var(--ease);
+    background: #000;
+  }
+  .suite-iframe-wrap[data-device="desktop"] { max-width: none; }
+  .suite-iframe-wrap[data-device="tablet"] { max-width: 820px; box-shadow: 0 0 0 1px var(--hairline); }
+  .suite-iframe-wrap[data-device="mobile"] { max-width: 390px; box-shadow: 0 0 0 1px var(--hairline); }
+  .suite-iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    background: #030308;
+  }
+  .suite-inline {
+    padding: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .suite-inline h2 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .suite-inline .lead {
+    color: var(--text-2);
+    margin: 0 0 20px;
+    max-width: 62ch;
+  }
+  .suite-checklist {
+    background: var(--canvas);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+  }
+  .suite-checklist h3 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 650;
+  }
+  .suite-checklist label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+    color: var(--text-2);
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+  .suite-checklist label:last-child { border-bottom: 0; }
+  .suite-checklist input { margin-top: 3px; accent-color: var(--brand); }
+  .suite-checklist .done { color: var(--accent); }
+  .suite-note {
+    font-size: 12px;
+    color: var(--text-3);
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    margin-bottom: 16px;
+  }
+  .suite-note code {
+    background: rgba(255, 255, 255, 0.06);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 11px;
+  }
+  .suite-index-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .suite-index-card {
+    background: var(--canvas);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 14px;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .suite-index-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(99, 102, 241, 0.4);
+  }
+  .suite-index-card h4 { margin: 0 0 6px; font-size: 14px; }
+  .suite-index-card p { margin: 0; font-size: 12px; color: var(--text-3); }
+  .suite-progress {
+    padding: 10px 14px;
+    border-top: 1px solid var(--hairline);
+    font-size: 11px;
+    color: var(--text-3);
+  }
+  .suite-progress b { color: var(--accent); }
+  @media (max-width: 900px) {
+    .suite { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; }
+    .suite-rail {
+      grid-row: auto;
+      max-height: 38vh;
+      border-right: 0;
+      border-bottom: 1px solid var(--hairline);
+    }
+    .suite-top, .suite-main { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="suite">
+  <aside class="suite-rail">
+    <div class="suite-rail__head">
+      <h1>Validation suite</h1>
+      <p>Threshold · globes · tenant roles · one file</p>
+    </div>
+    <nav class="suite-nav" id="nav" aria-label="Preview navigation"></nav>
+    <div class="suite-progress" id="progress">Checklist: <b>0</b> / 0</div>
+  </aside>
+
+  <header class="suite-top">
+    <div class="suite-top__title" id="top-title">Overview</div>
+    <span class="suite-top__meta" id="top-meta"></span>
+    <button type="button" class="suite-chip" id="btn-checklist" title="Toggle checklist panel">Checklist</button>
+    <button type="button" class="suite-chip is-on" data-device="desktop" id="dev-desktop">Desktop</button>
+    <button type="button" class="suite-chip" data-device="tablet" id="dev-tablet">Tablet</button>
+    <button type="button" class="suite-chip" data-device="mobile" id="dev-mobile">Mobile</button>
+    <button type="button" class="suite-chip" id="btn-newtab" title="Open current preview in new tab"><i class="bi bi-box-arrow-up-right"></i></button>
+  </header>
+
+  <main class="suite-main" id="main"></main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var PREVIEWS = [
+    {
+      id: "overview",
+      group: "Start here",
+      title: "Overview & index",
+      desc: "All previews in one place",
+      type: "inline-overview",
+      shortcut: "0"
+    },
+    {
+      id: "threshold",
+      group: "Threshold · tenant WOW",
+      title: "Threshold expanded lab",
+      desc: "6 doors · sound · fullscreen · mobile",
+      src: "tenant-campus-pulse-wow-lab-browsable.html",
+      shortcut: "1",
+      checks: [
+        "Switch all 6 doors (keys 1–6) — no layout break",
+        "Parent rain canvas animates on alert window",
+        "Sound toggle (M) unlocks after click — reduced-motion skips",
+        "Fullscreen (F) hides chrome; idle auto-hide works",
+        "Mobile width: windows stack, whisper bar respects safe-area",
+        "Action sheets open/close without losing door context",
+        "Pulse ticker + celebration burst on simulate actions"
+      ]
+    },
+    {
+      id: "parent-django",
+      group: "Threshold · tenant WOW",
+      title: "Parent Window · Django partial mock",
+      desc: "Live CSS/JS from static/ — same as /portal/parent/",
+      type: "inline-parent",
+      shortcut: "2",
+      checks: [
+        "Calm vs alert window styling distinct",
+        "Rain canvas on fee-due child only",
+        "Primary CTA links to finance path",
+        "Mobile: full-bleed section, stacked windows",
+        "Matches cockpit.threshold_parent_window partial markup"
+      ]
+    },
+    {
+      id: "student-100x",
+      group: "Threshold · tenant WOW",
+      title: "Student dashboard enrichment 100x",
+      desc: "Compass / momentum direction",
+      src: "tenant-student-dashboard-enrichment-100x.html",
+      shortcut: "3",
+      checks: ["Hero loads without void", "Primary CTA visible above fold"]
+    },
+    {
+      id: "globe-void",
+      group: "Operator globes",
+      title: "Globe void · AI · wow",
+      desc: "Operator master lab — void zones",
+      src: "globe-void-ai-lab-browsable.html",
+      shortcut: "4",
+      checks: ["Globe renders", "Void zones A–D labeled", "Wow+ section browsable"]
+    },
+    {
+      id: "globe-elevation",
+      group: "Operator globes",
+      title: "Globe surface elevation",
+      desc: "Terrain / elevation experiment",
+      src: "globe-surface-elevation-lab-browsable.html",
+      shortcut: "5",
+      checks: ["Surface elevation visible", "Controls respond"]
+    },
+    {
+      id: "globe-10x",
+      group: "Operator globes",
+      title: "Globe 10x same layout",
+      src: "globe-surface-10x-same-layout-browsable.html",
+      checks: ["Layout parity with void lab frame"]
+    },
+    {
+      id: "globe-four",
+      group: "Operator globes",
+      title: "Globe four points",
+      src: "globe-four-points-browsable.html",
+      checks: ["Four anchor points visible"]
+    },
+    {
+      id: "admin",
+      group: "Tenant role shells",
+      title: "Admin workspace preview",
+      src: "tenant-admin-workspace-preview.html",
+      shortcut: "6",
+      checks: ["Onboarding hero visible", "No duplicate sidebar labels", "Copilot rail present"]
+    },
+    {
+      id: "parent",
+      group: "Tenant role shells",
+      title: "Parent Family Home preview",
+      src: "tenant-parent-dashboard-preview.html",
+      shortcut: "7",
+      checks: ["Child names in hero", "Fee/message CTAs", "Cockpit sections collapsible"]
+    },
+    {
+      id: "teacher",
+      group: "Tenant role shells",
+      title: "Teacher My Teaching Day",
+      src: "tenant-teacher-dashboard-preview.html",
+      shortcut: "8",
+      checks: ["Teaching hero", "Attention queue", "Today's classes grid"]
+    },
+    {
+      id: "mfa",
+      group: "Setup & wizards",
+      title: "MFA wizard void fix",
+      src: "mfa-wizard-review-void-fix-preview.html",
+      checks: ["Completed state: no black void below content", "Review banner visible"]
+    },
+    {
+      id: "wizard-assist",
+      group: "Setup & wizards",
+      title: "Wizard step assist",
+      src: "wizard-step-assist-preview.html",
+      checks: ["Stepper full height", "Assist panel usable"]
+    },
+    {
+      id: "mkt-threshold",
+      group: "Marketing · runmycampus.com",
+      title: "Threshold Era marketing",
+      desc: "Once-in-a-lifetime public site — doors, monument, global CSS",
+      src: "runmycampus-marketing-threshold-era-browsable.html",
+      shortcut: "9",
+      checks: [
+        "Six doors (Run/Teach/Pay/Communicate/Govern/Grow) hover lift",
+        "Heartbeat line animates (reduced-motion safe)",
+        "Monument strip dark band readable",
+        "Platform + pricing inner page typography",
+        "Footer monument styling on dark void"
+      ]
+    },
+  ];
+
+  var STORAGE_CHECKS = "rmc_validation_suite_checks_v1";
+  var state = {
+    active: "overview",
+    device: "desktop",
+    checklistOpen: true,
+    checks: {}
+  };
+
+  try {
+    state.checks = JSON.parse(localStorage.getItem(STORAGE_CHECKS) || "{}");
+  } catch (e) { state.checks = {}; }
+
+  var nav = document.getElementById("nav");
+  var main = document.getElementById("main");
+  var topTitle = document.getElementById("top-title");
+  var topMeta = document.getElementById("top-meta");
+  var progress = document.getElementById("progress");
+
+  function saveChecks() {
+    try { localStorage.setItem(STORAGE_CHECKS, JSON.stringify(state.checks)); } catch (e) {}
+    updateProgress();
+  }
+
+  function updateProgress() {
+    var total = 0;
+    var done = 0;
+    PREVIEWS.forEach(function (p) {
+      if (!p.checks) return;
+      p.checks.forEach(function (_, i) {
+        total++;
+        if (state.checks[p.id + ":" + i]) done++;
+      });
+    });
+    progress.innerHTML = "Checklist: <b>" + done + "</b> / " + total;
+  }
+
+  function buildNav() {
+    var groups = {};
+    PREVIEWS.forEach(function (p) {
+      if (!groups[p.group]) groups[p.group] = [];
+      groups[p.group].push(p);
+    });
+    nav.innerHTML = "";
+    Object.keys(groups).forEach(function (g) {
+      var wrap = document.createElement("div");
+      wrap.className = "suite-nav__group";
+      wrap.innerHTML = '<div class="suite-nav__label">' + g + "</div>";
+      groups[g].forEach(function (p) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "suite-nav__btn" + (state.active === p.id ? " is-active" : "");
+        btn.dataset.id = p.id;
+        btn.innerHTML =
+          "<span><strong>" + p.title + "</strong>" +
+          (p.desc ? "<small>" + p.desc + "</small>" : "") +
+          "</span>" +
+          (p.shortcut ? "<kbd>" + p.shortcut + "</kbd>" : "");
+        btn.onclick = function () { activate(p.id); };
+        wrap.appendChild(btn);
+      });
+      nav.appendChild(wrap);
+    });
+  }
+
+  function checklistHtml(p) {
+    if (!p.checks || !p.checks.length) return "";
+    var html = '<div class="suite-checklist" data-checklist="' + p.id + '"><h3>Validate · ' + p.title + "</h3>";
+    p.checks.forEach(function (text, i) {
+      var key = p.id + ":" + i;
+      var on = state.checks[key] ? " checked" : "";
+      html += '<label><input type="checkbox" data-key="' + key + '"' + on + "><span>" + text + "</span></label>";
+    });
+    return html + "</div>";
+  }
+
+  function parentInlineHtml() {
+    return (
+      '<div class="suite-inline">' +
+      checklistHtml(PREVIEWS.find(function (x) { return x.id === "parent-django"; })) +
+      '<div class="suite-note">Static mock using production assets <code>static/css/rmc-threshold-parent-window.css</code> + partial markup. Enable live: <code>cockpit.threshold_parent_window.enabled</code> on <code>/portal/parent/</code>.</div>' +
+      '<section class="rmc-threshold-parent" data-rmc-threshold-parent data-rmc-scroll-policy="paginate" style="--surface-canvas:#0e1426;--surface-elevated:#141c33;--text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-tertiary:#64748b;--hairline:rgba(255,255,255,0.08);--brand-secondary:#10b981">' +
+      '<header class="rmc-threshold-parent__header">' +
+      '<p class="rmc-threshold-parent__kicker">The Window</p>' +
+      '<h2 class="rmc-threshold-parent__title">Watch their day pass by</h2>' +
+      '<p class="rmc-threshold-parent__sub">Calm scenery = all clear. Clouded pane = fees due — tap to pay.</p>' +
+      "</header>" +
+      '<div class="rmc-threshold-parent__windows">' +
+      '<a class="rmc-threshold-parent__window rmc-threshold-parent__window--calm is-focused" href="#" data-rmc-tw-window="1">' +
+      '<div class="rmc-threshold-parent__scenery"></div>' +
+      '<div class="rmc-threshold-parent__glass"><span class="rmc-threshold-parent__name">Amina N.</span><span class="rmc-threshold-parent__state">In school · 94% attendance</span></div></a>' +
+      '<a class="rmc-threshold-parent__window rmc-threshold-parent__window--alert" href="#" data-rmc-tw-window="2">' +
+      '<div class="rmc-threshold-parent__scenery"></div>' +
+      '<canvas class="rmc-threshold-parent__rain" data-rmc-tw-rain width="220" height="280"></canvas>' +
+      '<div class="rmc-threshold-parent__glass"><span class="rmc-threshold-parent__name">Kwame N.</span><span class="rmc-threshold-parent__state">Balance due · 45,000 XAF</span></div></a>' +
+      "</div>" +
+      '<div class="rmc-threshold-parent__rail"><span class="is-on">All linked children accounted for today</span><span>·</span><span>PTA meeting · Jun 24</span></div>' +
+      '<div class="rmc-threshold-parent__actions">' +
+      '<a class="rmc-threshold-parent__btn rmc-threshold-parent__btn--primary" href="#" data-rmc-tw-primary-due="2"><i class="bi bi-credit-card"></i> Reach through · pay Kwame</a>' +
+      '<a class="rmc-threshold-parent__btn rmc-threshold-parent__btn--secondary" href="#"><i class="bi bi-chat-dots"></i> Message school</a>' +
+      "</div></section></div>"
+    );
+  }
+
+  function overviewHtml() {
+    var cards = PREVIEWS.filter(function (p) { return p.id !== "overview"; })
+      .map(function (p) {
+        return '<article class="suite-index-card" data-jump="' + p.id + '"><h4>' + p.title + "</h4><p>" + (p.desc || p.group) + "</p></article>";
+      }).join("");
+    return (
+      '<div class="suite-inline">' +
+      "<h2>All-in-one validation</h2>" +
+      '<p class="lead">Pick any preview from the rail or grid. Use <strong>Mobile / Tablet / Desktop</strong> to resize the iframe. Checklists persist in <code>localStorage</code>. Threshold lab shortcuts inside iframe: <kbd>1</kbd>–<kbd>6</kbd> doors, <kbd>M</kbd> sound, <kbd>F</kbd> fullscreen.</p>' +
+      '<div class="suite-note"><strong>P1 live in Django:</strong> Parent Window partial ships at <code>templates/parent/partials/threshold_window_hero.html</code>. Mock it inline via nav item #2 without enabling cockpit.</div>' +
+      '<div class="suite-index-grid">' + cards + "</div></div>"
+    );
+  }
+
+  function renderPanel(p) {
+    var panel = document.createElement("div");
+    panel.className = "suite-panel is-active";
+    panel.id = "panel-" + p.id;
+
+    if (p.type === "inline-overview") {
+      panel.innerHTML = overviewHtml();
+      panel.querySelectorAll("[data-jump]").forEach(function (el) {
+        el.onclick = function () { activate(el.getAttribute("data-jump")); };
+      });
+      return panel;
+    }
+
+    if (p.type === "inline-parent") {
+      panel.innerHTML = parentInlineHtml();
+      bindChecklist(panel, p);
+      var s = document.createElement("script");
+      s.src = "../../static/js/rmc-threshold-parent-window.js";
+      panel.appendChild(s);
+      return panel;
+    }
+
+    var wrap = document.createElement("div");
+    wrap.className = "suite-iframe-wrap";
+    wrap.dataset.device = state.device;
+
+    if (state.checklistOpen && p.checks && p.checks.length) {
+      var cl = document.createElement("div");
+      cl.className = "suite-inline suite-inline--checks";
+      cl.innerHTML = checklistHtml(p);
+      bindChecklist(cl, p);
+      panel.appendChild(cl);
+    }
+
+    var iframe = document.createElement("iframe");
+    iframe.className = "suite-iframe";
+    iframe.title = p.title;
+    iframe.src = p.src;
+    iframe.loading = "lazy";
+    wrap.appendChild(iframe);
+    panel.appendChild(wrap);
+    return panel;
+  }
+
+  function bindChecklist(root, p) {
+    root.querySelectorAll(".suite-checklist input").forEach(function (inp) {
+      inp.onchange = function () {
+        state.checks[inp.dataset.key] = inp.checked;
+        saveChecks();
+        inp.closest("label").classList.toggle("done", inp.checked);
+      };
+      if (inp.checked) inp.closest("label").classList.add("done");
+    });
+  }
+
+  function activate(id) {
+    state.active = id;
+    var p = PREVIEWS.find(function (x) { return x.id === id; }) || PREVIEWS[0];
+    topTitle.textContent = p.title;
+    topMeta.textContent = p.src ? p.src : (p.type || "inline");
+    buildNav();
+    main.innerHTML = "";
+    main.appendChild(renderPanel(p));
+  }
+
+  function setDevice(d) {
+    state.device = d;
+    document.querySelectorAll("[data-device]").forEach(function (btn) {
+      if (btn.dataset.device) btn.classList.toggle("is-on", btn.dataset.device === d);
+    });
+    var wrap = main.querySelector(".suite-iframe-wrap");
+    if (wrap) wrap.dataset.device = d;
+  }
+
+  document.getElementById("btn-checklist").onclick = function () {
+    state.checklistOpen = !state.checklistOpen;
+    document.getElementById("btn-checklist").classList.toggle("is-on", state.checklistOpen);
+    activate(state.active);
+  };
+  document.getElementById("btn-checklist").classList.add("is-on");
+
+  document.getElementById("dev-desktop").onclick = function () { setDevice("desktop"); };
+  document.getElementById("dev-tablet").onclick = function () { setDevice("tablet"); };
+  document.getElementById("dev-mobile").onclick = function () { setDevice("mobile"); };
+  setDevice("desktop");
+
+  document.getElementById("btn-newtab").onclick = function () {
+    var p = PREVIEWS.find(function (x) { return x.id === state.active; });
+    if (p && p.src) window.open(p.src, "_blank", "noopener");
+  };
+
+  document.addEventListener("keydown", function (e) {
+    if (e.target.matches("input, textarea, select")) return;
+    var key = e.key;
+    if (key >= "0" && key <= "9") {
+      var hit = PREVIEWS.find(function (p) { return p.shortcut === key; });
+      if (hit) { e.preventDefault(); activate(hit.id); }
+    }
+  });
+
+  buildNav();
+  activate("overview");
+  updateProgress();
+})();
+</script>
+</body>
+</html>

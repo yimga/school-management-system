@@ -318,6 +318,19 @@ def _tenant_activity_ticker_defaults() -> dict[str, Any]:
 # ============================================================
 
 
+def _threshold_parent_window_defaults() -> dict[str, Any]:
+    """Threshold · Parent Window hero — train-window metaphor (v4.04+ lab).
+
+    Opt-in replacement/add-on for the Family Home hero. Renders
+    ``parent/partials/threshold_window_hero.html`` when ``enabled=True``.
+    Uses live ``child_cards`` context — no extra PII in defaults.
+    """
+    return {
+        "enabled": False,
+        "replace_dh_hero": False,
+    }
+
+
 def _calendar_subscribe_defaults() -> dict[str, Any]:
     """Sidebar `.ics` calendar subscribe link — v3 100x preview parity.
 
@@ -366,6 +379,7 @@ TENANT_DASHBOARD_DEFAULTS: dict[str, Any] = {
     "tenant_activity_ticker": _tenant_activity_ticker_defaults,
     "year_progress": _year_progress_defaults,
     "calendar_subscribe": _calendar_subscribe_defaults,
+    "threshold_parent_window": _threshold_parent_window_defaults,
 }
 
 
@@ -392,4 +406,5 @@ __all__ = [
     "_tenant_activity_ticker_defaults",
     "_year_progress_defaults",
     "_calendar_subscribe_defaults",
+    "_threshold_parent_window_defaults",
 ]

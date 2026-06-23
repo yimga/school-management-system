@@ -352,8 +352,16 @@ function labelsForAltitude(altitude: number): Array<RegionLabel & { _fade?: numb
 
 function applyLiveBundle(data: GlobeLiveBundle, opts?: { force?: boolean }): boolean {
   if (!data.markers) return false;
+  const priorRevision = liveRevision;
   if (!opts?.force && data.revision && liveRevision === data.revision) {
     return false;
+  }
+  if (data.revision && data.revision !== priorRevision) {
+    const mount = document.getElementById("rmc-world-globe");
+    if (mount && !prefersReducedMotion()) {
+      mount.classList.add("lx-world__globe--pulse");
+      window.setTimeout(() => mount.classList.remove("lx-world__globe--pulse"), 700);
+    }
   }
   if (data.revision) liveRevision = data.revision;
   allMarkers = data.markers;
@@ -555,7 +563,7 @@ function initGlobe(container: HTMLElement, payload: GlobePayload): GlobeInstance
   globe.pointOfView({
     lat: camera.lat ?? 18,
     lng: camera.lng ?? 0,
-    altitude: camera.altitude ?? 1.35,
+    altitude: camera.altitude ?? 1.02,
   });
 
   const controls = globe.controls();
@@ -613,7 +621,7 @@ const api: RMCWorldGlobeApi = {
     const controls = globeInstance.controls();
     controls.autoRotate = false;
     globeInstance.pointOfView(
-      { lat: opts.lat, lng: opts.lng, altitude: opts.altitude ?? 1.35 },
+      { lat: opts.lat, lng: opts.lng, altitude: opts.altitude ?? 1.02 },
       prefersReducedMotion() ? 0 : opts.ms ?? 1200
     );
     window.setTimeout(() => syncMapLabels(), prefersReducedMotion() ? 0 : (opts.ms ?? 1200) + 50);
@@ -716,7 +724,7 @@ const api: RMCWorldGlobeApi = {
     api.flyTo({
       lat: cam.lat ?? 18,
       lng: cam.lng ?? 0,
-      altitude: cam.altitude ?? 1.35,
+      altitude: cam.altitude ?? 1.02,
       ms: prefersReducedMotion() ? 0 : 1200,
     });
     window.setTimeout(() => syncMapLabels(), prefersReducedMotion() ? 0 : 1250);
@@ -725,9 +733,9 @@ const api: RMCWorldGlobeApi = {
     return globeInstance !== null;
   },
   getAltitude() {
-    if (!globeInstance) return 1.35;
+    if (!globeInstance) return 1.02;
     const pov = globeInstance.pointOfView();
-    return typeof pov.altitude === "number" ? pov.altitude : 1.35;
+    return typeof pov.altitude === "number" ? pov.altitude : 1.02;
   },
 };
 

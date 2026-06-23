@@ -65,6 +65,7 @@ def _parse_bbox(request: HttpRequest) -> tuple[float | None, float | None, float
 
 def _globe_query_bundle(request: HttpRequest) -> dict[str, Any]:
     from apps.siteconfig.cockpit_panels_realdata_service import _world_map_footprint_stats
+    from apps.siteconfig.operator_fleet_snapshot import build_operator_fleet_snapshot
     from apps.siteconfig.world_map_geo import build_globe_live_bundle, build_globe_markers
     from apps.schools.models import School
 
@@ -72,9 +73,9 @@ def _globe_query_bundle(request: HttpRequest) -> dict[str, Any]:
     status = (request.GET.get("status") or "").strip().lower() or None
     zoom_raw = request.GET.get("zoom")
     try:
-        zoom = float(zoom_raw) if zoom_raw else 1.35
+        zoom = float(zoom_raw) if zoom_raw else 1.02
     except (TypeError, ValueError):
-        zoom = 1.35
+        zoom = 1.02
 
     lat_min, lat_max, lng_min, lng_max = _parse_bbox(request)
     bbox = None
@@ -93,6 +94,7 @@ def _globe_query_bundle(request: HttpRequest) -> dict[str, Any]:
     active, suspended, frozen = _platform_status_counts()
     # tenant-isolation-allow: platform-cockpit-cross-tenant-world-map
     stats = _world_map_footprint_stats(School.objects.filter(is_active=True))
+    operator = build_operator_fleet_snapshot(pulse_limit=3)
     return {
         **bundle,
         **stats,
@@ -100,6 +102,12 @@ def _globe_query_bundle(request: HttpRequest) -> dict[str, Any]:
         "suspended": suspended,
         "frozen": frozen,
         "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "pulse_events": operator.get("pulse_events") or [],
+        "whisper_line": operator.get("whisper_line") or "",
+        "fleet_brief": operator.get("fleet_brief") or {},
+        "aurora": operator.get("aurora") or "good",
+        "school_hours_regions": operator.get("school_hours_regions") or 0,
+        "operator_fleet_revision": operator.get("operator_fleet_revision"),
     }
 
 
@@ -130,13 +138,15 @@ def globe_live_api(request: HttpRequest) -> JsonResponse:
 def _globe_live_snapshot() -> dict[str, Any]:
     from django.utils import timezone
 
+    from apps.siteconfig.operator_fleet_snapshot import build_operator_fleet_snapshot
     from apps.siteconfig.world_map_geo import build_globe_live_bundle, build_globe_markers, compute_globe_revision
 
     active, suspended, frozen = _platform_status_counts()
     rows = _school_rows_for_globe()
     markers = build_globe_markers(rows)
     revision = compute_globe_revision(markers)
-    bundle = build_globe_live_bundle(markers, zoom=1.35)
+    bundle = build_globe_live_bundle(markers, zoom=1.02)
+    operator = build_operator_fleet_snapshot(pulse_limit=3)
     return {
         "ts": timezone.now().isoformat(),
         "schools_live": active,
@@ -145,6 +155,12 @@ def _globe_live_snapshot() -> dict[str, Any]:
         "marker_count": bundle["marker_count"],
         "display_count": bundle["display_count"],
         "revision": revision,
+        "operator_fleet_revision": operator.get("operator_fleet_revision"),
+        "pulse_events": operator.get("pulse_events") or [],
+        "whisper_line": operator.get("whisper_line") or "",
+        "fleet_brief": operator.get("fleet_brief") or {},
+        "aurora": operator.get("aurora") or "good",
+        "school_hours_regions": operator.get("school_hours_regions") or 0,
     }
 
 

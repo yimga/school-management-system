@@ -444,6 +444,134 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   background: color-mix(in srgb, var(--surface-elevated) 88%, transparent);
   border: 1px solid var(--hairline);
 }
+/* Void zones A–D + fleet aurora (globe elevation wave) */
+.lx-world__void-zone {
+  position: absolute;
+  z-index: 4;
+  max-width: min(220px, 42%);
+  padding: 7px 10px;
+  border-radius: var(--radius-sm, 8px);
+  font-size: 10px;
+  line-height: 1.4;
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid var(--hairline);
+  background: color-mix(in srgb, var(--surface-elevated) 86%, transparent);
+  pointer-events: none;
+}
+.lx-world__void-zone b {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+.lx-world__void-zone--ui b { color: var(--brand, #818cf8); }
+.lx-world__void-zone--data b { color: var(--good, #6ee7b7); }
+.lx-world__void-zone--ai b { color: #c4b5fd; }
+.lx-world__void-zone--tr { top: 14px; right: 14px; }
+.lx-world__void-zone--mr { top: 42%; right: 10px; max-width: 160px; }
+.lx-world__void-zone--bl { bottom: 14px; left: 14px; }
+.lx-world__void-zone--br { bottom: 14px; right: 14px; max-width: 190px; }
+.lx-world__map-chrome { z-index: 5; }
+.lx-world__map.lx-world__map--aurora-warn {
+  background: radial-gradient(120% 110% at 42% 38%, rgba(251,191,36,0.14), transparent 68%),
+    radial-gradient(80% 60% at 30% 70%, rgba(252,211,77,0.06), transparent 55%); /* off-token-allow: dark-chrome-world-aurora-warn */
+}
+.lx-world__map.lx-world__map--aurora-good {
+  background: radial-gradient(120% 110% at 42% 38%, rgba(16,185,129,0.1), transparent 68%); /* off-token-allow: dark-chrome-world-aurora-good */
+}
+.lx-world__map.lx-world__map--aurora-danger {
+  background: radial-gradient(120% 110% at 42% 38%, rgba(244,114,182,0.12), transparent 68%); /* off-token-allow: dark-chrome-world-aurora-danger */
+}
+.lx-world__count.lx-world__count--bump {
+  color: var(--good, #6ee7b7);
+  animation: lx-world-count-bump 0.55s var(--ease-out, ease-out);
+}
+@keyframes lx-world-count-bump {
+  0%, 100% { transform: scale(1); }
+  40% { transform: scale(1.06); }
+}
+.lx-world__fleet-pulse {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+}
+.lx-world__fleet-pulse-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+}
+.lx-world__fleet-pulse-item {
+  font-size: 11px;
+  color: var(--text-secondary);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--hairline);
+  display: flex;
+  gap: 8px;
+}
+.lx-world__fleet-pulse-item:last-child { border-bottom: 0; }
+.lx-world__fleet-pulse-item time {
+  color: var(--text-tertiary);
+  font-size: 10px;
+  min-width: 28px;
+}
+.lx-world__ai-brief {
+  margin-top: 14px;
+  padding: 11px 12px;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid rgba(196,181,253,0.22);
+  background: color-mix(in srgb, rgba(196,181,253,0.08) 60%, transparent);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.lx-world__ai-brief strong { color: var(--text-primary); }
+.lx-world__ask-fleet {
+  margin-top: 8px;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 11px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-canvas, #0c101c);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.lx-world__ask-fleet:hover {
+  border-color: rgba(196,181,253,0.35);
+}
+.lx-world__operator-guide--compact .lx-world__operator-guide-list { display: none; }
+.lx-world__operator-guide--compact.is-expanded .lx-world__operator-guide-list { display: grid; }
+.lx-world__guide-toggle {
+  font-size: 11px;
+  color: var(--brand, #818cf8);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.lx-world__globe-stage.lx-world__globe--revealed {
+  animation: lx-world-globe-reveal 0.85s var(--ease-out, ease-out);
+}
+@keyframes lx-world-globe-reveal {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lx-world__globe-stage.lx-world__globe--revealed { animation: none; }
+  .lx-world__count.lx-world__count--bump { animation: none; }
+  .lx-world__globe.lx-world__globe--pulse { animation: none; }
+}
+.lx-world__globe.lx-world__globe--pulse {
+  animation: lx-world-globe-reveal 0.55s var(--ease-out, ease-out);
+}
 .lx-world__operator-guide {
   margin-top: 12px;
   padding-top: 12px;

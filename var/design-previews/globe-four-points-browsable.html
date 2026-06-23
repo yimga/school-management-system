@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Globe — 4 real improvements (before / after)</title>
+<style>
+  /* Mirrors production tokens from rmc-cp-200x + control plane dark shell */
+  :root {
+    --surface-elevated: #121829;
+    --surface-canvas: #0e1422;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-tertiary: #64748b;
+    --hairline: rgba(148, 163, 184, 0.14);
+    --radius-lg: 16px;
+    --radius-sm: 8px;
+    --motion-fast: 180ms;
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --good: #6ee7b7;
+    --warn: #fcd34d;
+    --indigo: #6366f1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 14px/1.45 Inter, "Segoe UI", system-ui, sans-serif;
+    background: #080c14;
+    color: var(--text-primary);
+  }
+  .page { max-width: 1280px; margin: 0 auto; padding: 28px 20px 56px; }
+  h1 { font-size: 20px; margin: 0 0 6px; letter-spacing: -0.02em; }
+  .lead { color: var(--text-secondary); margin: 0 0 20px; max-width: 720px; font-size: 14px; }
+  nav.jump {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;
+  }
+  nav.jump a {
+    color: var(--text-secondary); text-decoration: none; font-size: 13px;
+    padding: 6px 12px; border: 1px solid var(--hairline); border-radius: 999px;
+  }
+  nav.jump a:hover { color: var(--text-primary); border-color: rgba(99,102,241,0.45); }
+
+  .point { margin-bottom: 48px; scroll-margin-top: 16px; }
+  .point h2 { font-size: 16px; margin: 0 0 4px; }
+  .point .desc { color: var(--text-secondary); font-size: 13px; margin: 0 0 14px; max-width: 680px; }
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 900px) { .compare { grid-template-columns: 1fr; } }
+  .panel-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-tertiary); font-weight: 700; margin-bottom: 8px;
+  }
+  .panel-label.after { color: #a5b4fc; }
+
+  /* ── Production lx-world--hero card ── */
+  .lx-world {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) min(260px, 32%);
+    min-height: 340px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--surface-elevated);
+  }
+  .lx-world__map {
+    position: relative;
+    min-height: 340px;
+    background: radial-gradient(120% 110% at 42% 38%, rgba(99,102,241,0.14), transparent 68%);
+    box-shadow: inset 0 0 0 1px var(--hairline), inset 0 -56px 96px -48px rgba(0,0,0,0.45);
+  }
+  .lx-world__legend-panel {
+    padding: 16px 18px;
+    border-left: 1px solid var(--hairline);
+    background: color-mix(in srgb, var(--surface-elevated) 96%, transparent);
+    font-size: 12.5px;
+  }
+  .eyebrow { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); font-weight: 700; }
+  .count { font-size: 42px; font-weight: 700; letter-spacing: -0.035em; line-height: 0.95; }
+  .count small { font-size: 14px; font-weight: 500; color: var(--text-tertiary); margin-left: 4px; }
+  .sub { font-style: italic; font-size: 12px; color: var(--text-tertiary); margin: 4px 0 10px; }
+  .legend-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px; margin-top: 6px; border-radius: var(--radius-sm);
+    background: var(--surface-canvas); border: 1px solid var(--hairline);
+    color: var(--text-secondary); cursor: default;
+    transition: background var(--motion-fast) var(--ease-out);
+  }
+  .legend-row strong { color: var(--text-primary); }
+  .legend-row--active {
+    background: color-mix(in srgb, var(--surface-elevated) 92%, rgba(99,102,241,0.18));
+    border-color: rgba(99,102,241,0.35);
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 7px; vertical-align: middle; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+  .chip { font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--hairline); color: var(--text-secondary); }
+  .guide { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--hairline); font-size: 11px; color: var(--text-secondary); }
+  .guide-title { font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-tertiary); margin-bottom: 4px; }
+  .guide ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 3px; }
+  .guide-compact { margin-top: 12px; font-size: 11px; color: var(--text-tertiary); line-height: 1.5; }
+  .guide-compact a { color: #a5b4fc; }
+
+  .chrome {
+    position: absolute; top: 10px; left: 10px; z-index: 4;
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .fresh, .tbtn {
+    font-size: 10px; padding: 4px 9px; border-radius: var(--radius-sm);
+    border: 1px solid var(--hairline); background: color-mix(in srgb, var(--surface-elevated) 90%, transparent);
+    color: var(--text-secondary);
+  }
+
+  /* Globe viewport — scaled to simulate camera altitude */
+  .globe-viewport {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .globe-stack {
+    position: relative;
+    transition: transform 0.6s var(--ease-out);
+  }
+  /* altitude 1.22 ≈ 58% · altitude 1.02 ≈ 78% */
+  .globe-stack--far { transform: scale(0.56); }
+  .globe-stack--near { transform: scale(0.78); }
+
+  .atmosphere {
+    position: absolute;
+    inset: -8%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(129,140,248,0.35) 0%, rgba(129,140,248,0.08) 55%, transparent 72%);
+    pointer-events: none;
+  }
+  .atmosphere--soft { opacity: 0.65; filter: blur(2px); }
+  .atmosphere--crisp { opacity: 0.85; filter: none; }
+
+  .sphere {
+    width: 220px; height: 220px; border-radius: 50%;
+    position: relative;
+    background-color: #0c1228;
+    background-size: cover;
+    background-position: center;
+    box-shadow: inset -16px -12px 36px rgba(0,0,0,0.5);
+  }
+  .sphere--soft {
+    background-image: url("../../static/img/globe/earth-night-1k.jpg");
+    filter: blur(1.2px) saturate(0.85) contrast(0.92);
+    opacity: 0.88;
+  }
+  .sphere--sharp {
+    background-image: url("../../static/img/globe/earth-night-1k.jpg");
+    filter: saturate(1.05) contrast(1.08);
+    box-shadow:
+      inset -16px -12px 36px rgba(0,0,0,0.45),
+      inset 8px 6px 20px rgba(129,140,248,0.08),
+      0 0 40px rgba(99,102,241,0.12);
+  }
+  /* Fallback if texture missing locally */
+  .sphere-fallback {
+    background:
+      radial-gradient(circle at 35% 30%, #3a4270, #151a32 50%, #080c18 100%);
+  }
+
+  .land-overlay {
+    position: absolute; inset: 0; border-radius: 50%; overflow: hidden; pointer-events: none;
+  }
+  .land-overlay svg { width: 100%; height: 100%; }
+  .land { fill: rgba(148,163,184,0.11); stroke: rgba(99,102,241,0.22); stroke-width: 0.5; transition: fill 0.25s, opacity 0.25s; }
+  .land.dim { opacity: 0.35; }
+  .land.hot { fill: rgba(129,140,248,0.28); stroke: rgba(129,140,248,0.5); }
+
+  .pin {
+    position: absolute; width: 9px; height: 9px; border-radius: 50%;
+    border: 2px solid #fff; transform: translate(-50%, -50%); z-index: 2;
+  }
+  .pin.g { left: 58%; top: 54%; background: var(--good); box-shadow: 0 0 10px var(--good); }
+  .pin.y { left: 52%; top: 48%; background: var(--warn); box-shadow: 0 0 10px var(--warn); }
+
+  .hint {
+    position: absolute; bottom: 10px; left: 10px; right: 10px; z-index: 4;
+    font-size: 10px; color: var(--text-tertiary); text-align: center;
+  }
+  .hint em { color: #a5b4fc; font-style: normal; }
+
+  /* Point 4 interactive panel */
+  .interactive-note {
+    margin-top: 8px; font-size: 12px; color: #a5b4fc;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Four improvements — same layout you have today</h1>
+  <p class="lead">Each row is <strong>Before (production today)</strong> vs <strong>After (proposed)</strong>. Uses your real earth texture when the file exists at <code>static/img/globe/earth-night-1k.jpg</code>. Layout matches <code>lx-world--hero</code>.</p>
+
+  <nav class="jump">
+    <a href="#p1">1 · Fill frame</a>
+    <a href="#p2">2 · Sharper earth</a>
+    <a href="#p3">3 · Tighter legend</a>
+    <a href="#p4">4 · Legend sync</a>
+  </nav>
+
+  <!-- POINT 1 -->
+  <section class="point" id="p1">
+    <h2>1 · Fill the frame (camera altitude)</h2>
+    <p class="desc">Today the default camera sits at altitude ~1.22 — the sphere looks small with dead space. Proposed: ~1.02 so the globe dominates the map cell. Same grid, same legend — only POV default in <code>world_map_geo.py</code> / reset view.</p>
+    <div class="compare">
+      <div>
+        <div class="panel-label">Before · altitude ~1.22</div>
+        <div class="lx-world">
+          <div class="lx-world__map">
+            <div class="chrome"><span class="fresh">Updated 3:11 PM</span><span class="tbtn">Tour</span><span class="tbtn">Stop</span><span class="tbtn">Reset</span></div>
+            <div class="globe-viewport">
+              <div class="globe-stack globe-stack--far">
+                <div class="atmosphere atmosphere--soft"></div>
+                <div class="sphere sphere--sharp sphere-fallback"></div>
+                <span class="pin g"></span><span class="pin y"></span>
+              </div>
+            </div>
+          </div>
+          <aside class="lx-world__legend-panel">
+            <div class="eyebrow">Global footprint</div>
+            <div class="count">2<small>schools live</small></div>
+            <p class="sub">Across 2 regions · 1 country</p>
+            <div class="legend-row"><span><span class="dot" style="background:#a5b4fc"></span>West Africa</span><strong>1</strong></div>
+            <div class="legend-row"><span><span class="dot" style="background:#6ee7b7"></span>Other</span><strong>1</strong></div>
+          </aside>
+        </div>
+      </div>
+      <div>
+        <div class="panel-label after">After · altitude ~1.02</div>
+        <div class="lx-world">
+          <div class="lx-world__map">
+            <div class="chrome"><span class="fresh">Updated 3:11 PM</span><span class="tbtn">Tour</span><span class="tbtn">Stop</span><span class="tbtn">Reset</span></div>
+            <div class="globe-viewport">
+              <div class="globe-stack globe-stack--near">
+                <div class="atmosphere atmosphere--crisp"></div>
+                <div class="sphere sphere--sharp sphere-fallback"></div>
+                <span class="pin g"></span><span class="pin y"></span>
+              </div>
+            </div>
+          </div>
+          <aside class="lx-world__legend-panel">
+            <div class="eyebrow">Global footprint</div>
+            <div class="count">2<small>schools live</small></div>
+            <p class="sub">Across 2 regions · 1 country</p>
+            <div class="legend-row"><span><span class="dot" style="background:#a5b4fc"></span>West Africa</span><strong>1</strong></div>
+            <div class="legend-row"><span><span class="dot" style="background:#6ee7b7"></span>Other</span><strong>1</strong></div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POINT 2 -->
+  <section class="point" id="p2">
+    <h2>2 · Sharper earth (texture + material)</h2>
+    <p class="desc">Same 1k texture — tune emissive, contrast, and atmosphere in <code>mount.ts</code>. Optional later: ship 2k asset. No layout change.</p>
+    <div class="compare">
+      <div>
+        <div class="panel-label">Before · soft / flat</div>
+        <div class="lx-world">
+          <div class="lx-world__map">
+            <div class="globe-viewport">
+              <div class="globe-stack globe-stack--near">
+                <div class="atmosphere atmosphere--soft"></div>
+                <div class="sphere sphere--soft sphere-fallback"></div>
+                <span class="pin g"></span><span class="pin y"></span>
+              </div>
+            </div>
+          </div>
+          <aside class="lx-world__legend-panel"><div class="eyebrow">Global footprint</div><div class="count">2<small>live</small></div></aside>
+        </div>
+      </div>
+      <div>
+        <div class="panel-label after">After · crisp + subtle glow</div>
+        <div class="lx-world">
+          <div class="lx-world__map">
+            <div class="globe-viewport">
+              <div class="globe-stack globe-stack--near">
+                <div class="atmosphere atmosphere--crisp"></div>
+                <div class="sphere sphere--sharp sphere-fallback"></div>
+                <span class="pin g"></span><span class="pin y"></span>
+              </div>
+            </div>
+          </div>
+          <aside class="lx-world__legend-panel"><div class="eyebrow">Global footprint</div><div class="count">2<small>live</small></div></aside>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POINT 3 -->
+  <section class="point" id="p3">
+    <h2>3 · Tighter legend (small fleet)</h2>
+    <p class="desc">When schools ≤5, collapse the four-line Interact block to two lines + optional “Show tips”. Full guide returns as fleet grows.</p>
+    <div class="compare">
+      <div>
+        <div class="panel-label">Before · full guide always</div>
+        <div class="lx-world" style="min-height:280px">
+          <div class="lx-world__map" style="min-height:280px"><div class="globe-viewport"><div class="globe-stack globe-stack--near"><div class="sphere sphere--sharp sphere-fallback" style="width:180px;height:180px"></div></div></div></div>
+          <aside class="lx-world__legend-panel">
+            <div class="eyebrow">Global footprint</div>
+            <div class="count">2<small>schools live</small></div>
+            <div class="legend-row"><span><span class="dot" style="background:#a5b4fc"></span>West Africa</span><strong>1</strong></div>
+            <div class="legend-row"><span><span class="dot" style="background:#6ee7b7"></span>Other</span><strong>1</strong></div>
+            <div class="chips"><span class="chip">● Active</span><span class="chip">● Suspended</span><span class="chip">● Frozen</span></div>
+            <div class="guide">
+              <div class="guide-title">Interact</div>
+              <ul>
+                <li>Drag to rotate · scroll to zoom</li>
+                <li>Hover a region to highlight · click to fly there</li>
+                <li>Click a pin for school details · filter by status chips</li>
+                <li>Shortcuts: T tour · R reset · Esc clear filters</li>
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </div>
+      <div>
+        <div class="panel-label after">After · compact when fleet is small</div>
+        <div class="lx-world" style="min-height:280px">
+          <div class="lx-world__map" style="min-height:280px"><div class="globe-viewport"><div class="globe-stack globe-stack--near"><div class="sphere sphere--sharp sphere-fallback" style="width:180px;height:180px"></div></div></div></div>
+          <aside class="lx-world__legend-panel">
+            <div class="eyebrow">Global footprint</div>
+            <div class="count">2<small>schools live</small></div>
+            <div class="legend-row"><span><span class="dot" style="background:#a5b4fc"></span>West Africa</span><strong>1</strong></div>
+            <div class="legend-row"><span><span class="dot" style="background:#6ee7b7"></span>Other</span><strong>1</strong></div>
+            <div class="chips"><span class="chip">● Active</span><span class="chip">● Suspended</span><span class="chip">● Frozen</span></div>
+            <p class="guide-compact">Drag · zoom · click pin for details.<br><a href="#">Show all shortcuts</a></p>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POINT 4 -->
+  <section class="point" id="p4">
+    <h2>4 · Legend ↔ globe sync</h2>
+    <p class="desc">Hover or click a region row → that region highlights on the globe; others dim. Already partially wired in bridge — polish the active state. <strong>Try hovering “West Africa” on the After panel.</strong></p>
+    <div class="compare">
+      <div>
+        <div class="panel-label">Before · rows don’t feel connected</div>
+        <div class="lx-world">
+          <div class="lx-world__map">
+            <div class="globe-viewport">
+              <div class="globe-stack globe-stack--near">
+                <div class="atmosphere atmosphere--crisp"></div>
+                <div class="sphere sphere--sharp sphere-fallback"></div>
+                <div class="land-overlay">
+                  <svg viewBox="0 0 100 100"><ellipse class="land" cx="55" cy="52" rx="18" ry="14"/><ellipse class="land" cx="30" cy="38" rx="14" ry="10"/></svg>
+                </div>
+                <span class="pin g"></span><span class="pin y"></span>
+              </div>
+            </div>
+          </div>
+          <aside class="lx-world__legend-panel">
+            <div class="legend-row"><span><span class="dot" style="background:#a5b4fc"></span>West Africa</span><strong>1</strong></div>
+            <div class="legend-row"><span><span class="dot" style="background:#6ee7b7"></span>Other</span><strong>1</strong></div>
+            <p class="guide-compact" style="margin-top:14px">Legend hover does not change the map.</p>
+          </aside>
+        </div>
+      </div>
+      <div>
+        <div class="panel-label after">After · hover sync (interactive)</div>
+        <div class="lx-world" id="sync-demo">
+          <div class="lx-world__map">
+            <div class="globe-viewport">
+              <div class="globe-stack globe-stack--near">
+                <div class="atmosphere atmosphere--crisp"></div>
+                <div class="sphere sphere--sharp sphere-fallback"></div>
+                <div class="land-overlay">
+                  <svg viewBox="0 0 100 100">
+                    <ellipse id="land-wa" class="land hot" cx="55" cy="52" rx="18" ry="14"/>
+                    <ellipse id="land-other" class="land" cx="30" cy="38" rx="14" ry="10"/>
+                  </svg>
+                </div>
+                <span class="pin g"></span><span class="pin y"></span>
+              </div>
+            </div>
+            <p class="hint"><em>Hover</em> a region row →</p>
+          </div>
+          <aside class="lx-world__legend-panel">
+            <div class="legend-row" data-region="wa" tabindex="0"><span><span class="dot" style="background:#a5b4fc"></span>West Africa</span><strong>1</strong></div>
+            <div class="legend-row" data-region="other" tabindex="0"><span><span class="dot" style="background:#6ee7b7"></span>Other</span><strong>1</strong></div>
+            <p class="interactive-note">↑ Hover me — globe region highlights + row glows (like production <code>.lx-world__legend-row--active</code>).</p>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var demo = document.getElementById("sync-demo");
+  if (!demo) return;
+  var landWa = document.getElementById("land-wa");
+  var landOther = document.getElementById("land-other");
+  var rows = demo.querySelectorAll(".legend-row[data-region]");
+
+  function clear() {
+    rows.forEach(function (r) { r.classList.remove("legend-row--active"); });
+    if (landWa) { landWa.classList.add("hot"); landWa.classList.remove("dim"); }
+    if (landOther) { landOther.classList.remove("hot", "dim"); }
+  }
+
+  rows.forEach(function (row) {
+    function enter() {
+      clear();
+      row.classList.add("legend-row--active");
+      var reg = row.getAttribute("data-region");
+      if (reg === "wa") {
+        if (landWa) { landWa.classList.add("hot"); landWa.classList.remove("dim"); }
+        if (landOther) { landOther.classList.add("dim"); landOther.classList.remove("hot"); }
+      } else {
+        if (landOther) { landOther.classList.add("hot"); landOther.classList.remove("dim"); }
+        if (landWa) { landWa.classList.add("dim"); landWa.classList.remove("hot"); }
+      }
+    }
+    row.addEventListener("mouseenter", enter);
+    row.addEventListener("focus", enter);
+  });
+  demo.addEventListener("mouseleave", clear);
+})();
+</script>
+</body>
+</html>

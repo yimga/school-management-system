@@ -1,13 +1,12 @@
 /**
  * Live fleet status refresh for operator monitoring tables.
- * Paginated registry/tenant-health: SSE row snapshots (no JSON poll).
- * Cockpit summary surfaces: SSE summary + JSON poll fallback.
+ * Summary surfaces subscribe to rmc-operator-fleet-bus (no duplicate fleet SSE).
+ * Paginated registry/tenant-health: bus revision triggers JSON row poll.
  */
 (function () {
   "use strict";
 
   var DEFAULT_POLL_MS = 15000;
-  var SSE_ENDPOINT = "/super/api/fleet/stream/";
   var JSON_ENDPOINT = "/super/api/fleet/live.json";
 
   function tierChipClass(tier) {
@@ -26,6 +25,20 @@
 
   function usesPaginatedSse(root) {
     return !!root.getAttribute("data-rmc-fleet-page");
+  }
+
+  function busAvailable() {
+    return typeof window.RMCOperatorFleetBus !== "undefined";
+  }
+
+  function snapshotToSummaryPayload(detail) {
+    if (!detail) return null;
+    return {
+      summary: detail.fleet_summary || null,
+      summary_label: detail.summary_label || "",
+      revision: detail.operator_fleet_revision || detail.revision || "",
+      unchanged: false,
+    };
   }
 
   function patchSummaryBar(root, summary, summaryLabel) {
@@ -165,10 +178,6 @@
   }
 
   function pollOnce(root, intervalRef) {
-    // Error backoff: when the endpoint is failing (e.g. 502 while the web service
-    // restarts / is under load), skip an increasing number of ticks rather than
-    // hammering every interval — a no-backoff retry loop adds load and prolongs a
-    // flapping server. Resets on the first success. (Mirrors rmc-cp-cockpit-live.)
     if (intervalRef && intervalRef._skip > 0) {
       intervalRef._skip -= 1;
       return;
@@ -192,7 +201,6 @@
         applyPayload(root, payload);
       })
       .catch(function () {
-        // Keep SSR rows; back off up to ~8 ticks while the endpoint recovers.
         if (intervalRef) {
           intervalRef._fails = (intervalRef._fails || 0) + 1;
           intervalRef._skip = Math.min(intervalRef._fails, 8);
@@ -200,82 +208,51 @@
       });
   }
 
-  function buildStreamEndpoint(root) {
-    var base = root.getAttribute("data-rmc-fleet-sse-endpoint") || SSE_ENDPOINT;
-    var page = root.getAttribute("data-rmc-fleet-page");
-    if (!page) return base;
-    var pageSize = root.getAttribute("data-rmc-fleet-page-size") || "50";
-    var q = root.getAttribute("data-rmc-fleet-q") || "";
-    var sep = base.indexOf("?") >= 0 ? "&" : "?";
-    var url =
-      base +
-      sep +
-      "page=" +
-      encodeURIComponent(page) +
-      "&page_size=" +
-      encodeURIComponent(pageSize) +
-      "&include_rows=1";
-    if (q) url += "&q=" + encodeURIComponent(q);
-    return url;
-  }
-
   function startPollFallback(root, intervalRef) {
     pollOnce(root, intervalRef);
+    if (intervalRef.handle) return;
     intervalRef.handle = window.setInterval(function () {
       pollOnce(root, intervalRef);
     }, intervalRef.ms);
   }
 
   function bootRoot(root) {
-    var paginatedSse = usesPaginatedSse(root);
+    var paginated = usesPaginatedSse(root);
     var intervalRef = { ms: DEFAULT_POLL_MS, handle: null };
+    var lastBusRevision = root.getAttribute("data-rmc-fleet-revision") || "";
 
-    if (!paginatedSse) {
-      startPollFallback(root, intervalRef);
+    function onFleetSnapshot(ev) {
+      var detail = (ev && ev.detail) || window.__rmcOperatorFleetSnapshot || null;
+      if (!detail) return;
+      if (!paginated) {
+        applyPayload(root, snapshotToSummaryPayload(detail));
+        return;
+      }
+      var rev = detail.operator_fleet_revision || "";
+      if (rev && rev !== lastBusRevision) {
+        lastBusRevision = rev;
+        pollOnce(root, intervalRef);
+      }
+      if (detail.fleet_summary || detail.summary_label) {
+        patchSummaryBar(root, detail.fleet_summary, detail.summary_label);
+      }
     }
 
-    if (typeof EventSource === "undefined") {
-      if (paginatedSse) startPollFallback(root, intervalRef);
+    document.addEventListener("rmc:fleet-snapshot", onFleetSnapshot);
+    onFleetSnapshot({ detail: window.__rmcOperatorFleetSnapshot });
+
+    if (paginated) {
+      pollOnce(root, intervalRef);
+      intervalRef.handle = window.setInterval(function () {
+        pollOnce(root, intervalRef);
+      }, intervalRef.ms);
       return;
     }
 
-    var sseUrl = buildStreamEndpoint(root);
-    var source = new EventSource(sseUrl, { withCredentials: true });
-
-    source.onmessage = function (event) {
-      intervalRef._sseFails = 0;
-      try {
-        var payload = JSON.parse(event.data || "{}");
-        if (payload.unchanged) return;
-        var hasRows = rowsFromPayload(payload);
-        applyPayload(root, payload);
-        if (!paginatedSse && !hasRows) {
-          pollOnce(root, intervalRef);
-        }
-      } catch (_) {
-        /* noop */
-      }
-    };
-
-    source.onerror = function () {
-      // The browser auto-reconnects EventSource with no backoff. When the web
-      // service is 502ing, that's a thundering-herd that keeps workers from
-      // recovering. After a short burst of consecutive errors, close the stream
-      // and lean on the JSON poller (which backs off on failure).
-      intervalRef._sseFails = (intervalRef._sseFails || 0) + 1;
-      if (intervalRef._sseFails >= 5) {
-        try {
-          source.close();
-        } catch (_) {
-          /* noop */
-        }
-        if (!intervalRef.handle) startPollFallback(root, intervalRef);
-        return;
-      }
-      if (paginatedSse && !intervalRef.handle) {
-        startPollFallback(root, intervalRef);
-      }
-    };
+    if (busAvailable()) {
+      return;
+    }
+    startPollFallback(root, intervalRef);
   }
 
   function boot() {

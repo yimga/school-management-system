@@ -302,9 +302,9 @@ def apply_school_lifecycle_action(
     # cache so the heatmap reflects it on the next poll instead of waiting out
     # the TTL. Lazy import: fleet_status imports from this module (avoid cycle).
     try:
-        from apps.schools.fleet_status import invalidate_fleet_status_cache
+        from apps.siteconfig.operator_fleet_snapshot import bump_operator_fleet_revision
 
-        invalidate_fleet_status_cache()
+        bump_operator_fleet_revision()
     except Exception:
         pass
 

@@ -55,13 +55,21 @@
 </div>
 {% endif %}
 
+{% comment %} v4.04+ Threshold · Parent Window (opt-in cockpit.threshold_parent_window).
+   Design lab: var/design-previews/tenant-campus-pulse-wow-lab-browsable.html {% endcomment %}
+{% include "parent/partials/threshold_window_hero.html" %}
+
 {% comment %} v4.04 (2026-06-23) tenant 100X: the premium .rmc-dh family home is now the
    single primary role-home surface — it supersedes the legacy "lots of widgets"
    block and is wired to the same parent_dashboard context (charts, fees, children,
    workflow). Operator-configured cockpit sections render below, each gated on its
    own cockpit.<section>.enabled so unconfigured schools no longer see empty
    accordion shells. {% endcomment %}
+{% if not cockpit.threshold_parent_window.replace_dh_hero %}
 {% include "parent/_rmc_dh_family_home.html" %}
+{% elif not links %}
+{% include "parent/_rmc_dh_family_home.html" %}
+{% endif %}
 
 {% with widgets=display_widgets %}
 {% if cockpit.year_progress.enabled or cockpit.today_snapshot.enabled or cockpit.quick_actions.enabled or cockpit.upcoming_events.enabled or cockpit.activity_timeline.enabled or cockpit.achievements.enabled or cockpit.teacher_spotlight.enabled or cockpit.parent_teacher_thread.enabled or cockpit.financial_timeline.enabled or cockpit.life_event_timeline.enabled or cockpit.sibling_compare.enabled %}

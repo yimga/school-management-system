@@ -837,6 +837,28 @@ class School(models.Model):
                 self.hierarchy_path = str(self.parent_school_id)
         else:
             self.hierarchy_path = ""
+        # Local-first: a school created with a country but no region (admin / import
+        # / API paths that skip the signup + provisioning flow) would otherwise fall
+        # back to a generic pack. Link the matching RegionConfig when one already
+        # exists — read-only (region creation stays in signup/provisioning), never
+        # raises, only when default_region is unset (an explicit choice always wins),
+        # and only when the field will actually persist (respects update_fields).
+        if self.default_region_id is None and (self.country_code or "").strip():
+            _update_fields = kwargs.get("update_fields")
+            if _update_fields is None or "default_region" in _update_fields:
+                try:
+                    from apps.siteconfig.education_profile_engine import (
+                        find_region_for_country,
+                    )
+
+                    _region = find_region_for_country(self.country_code)
+                    if _region is not None:
+                        self.default_region = _region
+                except Exception:  # noqa: BLE001 — region linking must never break a save
+                    logger.debug(
+                        "schools.School.save default_region auto-link skipped",
+                        exc_info=True,
+                    )
         super().save(*args, **kwargs)
 
     def has_feature(self, code: str) -> bool:

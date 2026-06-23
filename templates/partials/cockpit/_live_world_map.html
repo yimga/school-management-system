@@ -6,7 +6,7 @@
 {% with lwm_layout=cockpit.live_world_map.layout|default:"hero" %}
 <section class="lx-card lx-world lx-world--{{ lwm_layout }}" aria-label="{% trans 'Live world map of tenant locations' %}" data-rmc-page-fold-nav="required">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="lx-world__map">
+<div class="lx-world__map" id="rmc-world-globe-map-shell">
     <div class="lx-world__globe-skeleton rmc-skeleton" aria-hidden="true" aria-busy="true"></div>
     <div
       class="lx-world__globe-stage"
@@ -58,6 +58,7 @@
     {% endif %}
     <div class="lx-world__map-chrome">
       <span id="rmc-world-globe-freshness" class="lx-world__freshness">{% trans "Loading…" %}</span>
+      <button type="button" class="lx-world__tour-btn" id="rmc-world-globe-share-viewport" hidden>{% trans "Share view" %}</button>
       {% if cockpit.live_world_map.tour_enabled|default:True %}
       <div class="lx-world__tour-controls" role="group" aria-label="{% trans 'Globe tour' %}">
         <button type="button" class="lx-world__tour-btn" id="rmc-world-globe-tour-start">{% trans "Tour" %}</button>
@@ -65,6 +66,18 @@
         <button type="button" class="lx-world__tour-btn" id="rmc-world-globe-reset-view">{% trans "Reset view" %}</button>
       </div>
       {% endif %}
+    </div>
+    <div class="lx-world__void-zone lx-world__void-zone--ui lx-world__void-zone--tr" id="rmc-world-globe-void-viewport" hidden>
+      <b>{% trans "Viewport" %}</b>
+      <span id="rmc-world-globe-viewport-chip">{% trans "Pan & zoom to explore" %}</span>
+    </div>
+    <div class="lx-world__void-zone lx-world__void-zone--data lx-world__void-zone--mr" id="rmc-world-globe-void-school-hours" hidden>
+      <b>{% trans "School hours" %}</b>
+      <span id="rmc-world-globe-school-hours-text">—</span>
+    </div>
+    <div class="lx-world__void-zone lx-world__void-zone--ai lx-world__void-zone--br" id="rmc-world-globe-void-whisper" hidden>
+      <b>{% trans "Fleet whisper" %}</b>
+      <span id="rmc-world-globe-whisper-line">{% trans "Loading fleet signal…" %}</span>
     </div>
     <p id="rmc-world-globe-tour-caption" class="lx-world__tour-caption" aria-live="polite"></p>
   </div>
@@ -89,8 +102,18 @@
     </div>
     <p id="rmc-world-globe-offline-note" class="lx-world__offline-note small text-muted mb-0" hidden>{% trans "Interactive globe unavailable — showing regional map. Visit online once to cache the 3D globe for offline use, or connect to retry." %}</p>
     <p id="rmc-world-globe-live-region" class="visually-hidden-focusable" aria-live="polite"></p>
-    <div class="lx-world__operator-guide" aria-label="{% trans 'How to use the globe' %}">
+    <div class="lx-world__fleet-pulse" id="rmc-world-globe-fleet-pulse" hidden>
+      <div class="lx-world__fleet-pulse-title">{% trans "Fleet pulse" %}</div>
+      <div id="rmc-world-globe-pulse-list"></div>
+    </div>
+    <div class="lx-world__ai-brief" id="rmc-world-globe-ai-brief" hidden>
+      <strong id="rmc-world-globe-brief-headline"></strong>
+      <p id="rmc-world-globe-brief-body" class="mb-0 mt-1"></p>
+      <button type="button" class="lx-world__ask-fleet" id="rmc-world-globe-ask-fleet">{% trans "Ask about this fleet view →" %}</button>
+    </div>
+    <div class="lx-world__operator-guide" id="rmc-world-globe-operator-guide" aria-label="{% trans 'How to use the globe' %}">
       <p class="lx-world__operator-guide-title">{% trans "Interact" %}</p>
+      <button type="button" class="lx-world__guide-toggle" id="rmc-world-globe-guide-toggle" hidden>{% trans "Show shortcuts" %}</button>
       <ul class="lx-world__operator-guide-list">
         <li>{% trans "Drag to rotate · scroll to zoom" %}</li>
         <li>{% trans "Hover a region to highlight · click to fly there" %}</li>

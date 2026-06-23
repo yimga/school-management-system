@@ -1,0 +1,65 @@
+/**
+ * Threshold Era — runmycampus.com once-in-a-lifetime marketing edition.
+ * Activation: [data-mkt-edition="threshold-era"] on html or body ancestor.
+ * Editorial cream + void depth + aurora accent; inherits Source Serif 4 display.
+ */
+[data-mkt-edition="threshold-era"] {
+  --mkt-th-void: #050508;
+  --mkt-th-void-soft: #0c0c14;
+  --mkt-th-cream: #faf7f2;
+  --mkt-th-cream-soft: #f2ede4;
+  --mkt-th-ink: #14121a;
+  --mkt-th-ink-muted: #4a4654;
+  --mkt-th-ink-whisper: #7a7585;
+  --mkt-th-accent: #c2410c;
+  --mkt-th-accent-glow: #fb923c;
+  --mkt-th-aurora: #6366f1;
+  --mkt-th-emerald: #059669;
+  --mkt-th-gold: #d97706;
+  --mkt-th-line: color-mix(in oklab, var(--mkt-th-ink) 12%, transparent);
+  --mkt-th-line-light: rgba(255, 255, 255, 0.08);
+
+  --mkt-primary: var(--mkt-th-ink);
+  --mkt-accent: var(--mkt-th-accent);
+  --mkt-accent-hover: #9a3412;
+  --mkt-hero-bg: var(--mkt-th-cream);
+  --mkt-hero-bg-mid: var(--mkt-th-cream);
+  --mkt-hero-bg-end: var(--mkt-th-cream-soft);
+  --mkt-text: var(--mkt-th-ink);
+  --mkt-text-muted: var(--mkt-th-ink-muted);
+  --mkt-surface: var(--mkt-th-cream);
+  --mkt-border: var(--mkt-th-line);
+  --mkt-on-accent: var(--mkt-th-cream);
+
+  --mkt-edt-bg: var(--mkt-th-cream);
+  --mkt-edt-bg-soft: var(--mkt-th-cream-soft);
+  --mkt-edt-ink: var(--mkt-th-ink);
+  --mkt-edt-ink-muted: var(--mkt-th-ink-muted);
+  --mkt-edt-accent: var(--mkt-th-accent);
+  --mkt-edt-font-display: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --mkt-edt-font-body: "Inter", system-ui, sans-serif;
+  --mkt-edt-type-hero: clamp(2.85rem, 6vw + 0.5rem, 5.75rem);
+  --mkt-edt-type-display: clamp(2.1rem, 3.5vw + 0.5rem, 3.75rem);
+  --mkt-edt-type-section: clamp(1.75rem, 2vw + 0.75rem, 2.5rem);
+  --mkt-edt-leading-display: 1.04;
+  --mkt-edt-tracking-display: -0.03em;
+
+  --mkt-th-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --mkt-th-motion: 0.45s;
+  --mkt-th-radius-xl: 1.25rem;
+  --mkt-th-radius-2xl: 1.75rem;
+  --mkt-th-shadow: 0 24px 80px color-mix(in oklab, var(--mkt-th-void) 18%, transparent);
+}
+
+html[data-mkt-edition="threshold-era"][data-theme="dark"],
+html[data-mkt-edition="threshold-era"] [data-theme="dark"] {
+  --mkt-th-cream: #0e0e16;
+  --mkt-th-cream-soft: #14141f;
+  --mkt-th-ink: #f5f3ef;
+  --mkt-th-ink-muted: #b8b4c4;
+  --mkt-th-ink-whisper: #8a8498;
+  --mkt-th-line: rgba(255, 255, 255, 0.1);
+  --mkt-hero-bg: var(--mkt-th-void-soft);
+  --mkt-surface: var(--mkt-th-void-soft);
+  --mkt-edt-bg: var(--mkt-th-void-soft);
+}

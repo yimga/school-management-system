@@ -82,6 +82,7 @@ from apps.schools.marketing_views import (
     submit_security_packet_request,
     marketing_intent_homepage,
     marketing_personality_page,
+    marketing_threshold_era_preview,
 )
 from apps.schools.views_e2e_signup_helpers import e2e_signup_verification_token
 from apps.schools.signup_views import (
@@ -314,6 +315,11 @@ urlpatterns = [
     # v4.00.49 — monthly history aggregations (cached 5min).
     path("status/history/", _public_status_history, name="public_status_history"),
     path("v2/", marketing_landing_v2, name="marketing_landing_v2"),
+    path(
+        "experience/threshold-era/",
+        marketing_threshold_era_preview,
+        name="marketing_threshold_era_preview",
+    ),
     path("storefront/", marketing_intent_homepage, name="marketing_intent_homepage"),
     path(
         "experience/<slug:personality_slug>/",

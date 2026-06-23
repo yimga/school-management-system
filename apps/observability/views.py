@@ -39,6 +39,7 @@ from apps.observability.public_status import (  # noqa: E402
 # Reduced external API traffic: longer TTL; enable weather per-tenant where needed.
 WEATHER_CACHE_TTL_SECONDS = 900
 WEATHER_STALE_CACHE_TTL_SECONDS = 3600
+WEATHER_PROVIDER_BACKOFF_SECONDS = 600
 OPEN_METEO_BASE_URL = "https://api.open-meteo.com/v1/forecast"
 WEATHER_CODE_DESCRIPTIONS = {
     0: "Clear sky",
@@ -136,6 +137,17 @@ def _weather_cache_key(config: dict, *, scope: str) -> str:
     return f"weather:{scope}:v1:{lat}:{lon}:{unit}:{timezone_name}"
 
 
+def _weather_coords_configured(config: dict) -> bool:
+    """True when operator configured a real campus location (not null-island defaults)."""
+    lat = _safe_float(config.get("latitude"), 0.0)
+    lon = _safe_float(config.get("longitude"), 0.0)
+    return abs(lat) > 0.01 or abs(lon) > 0.01
+
+
+def _weather_provider_backoff_key(cache_key: str) -> str:
+    return f"{cache_key}:provider_backoff"
+
+
 def _fetch_weather_snapshot(config: dict) -> dict:
     params = {
         "latitude": config["latitude"],
@@ -218,6 +230,9 @@ def _resolve_weather_payload(config: dict, *, scope: str, request=None) -> dict:
     if not config["enabled"]:
         return _build_weather_disabled_response(config)
 
+    if not _weather_coords_configured(config):
+        return _build_weather_degraded_response(config)
+
     try:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 
@@ -228,6 +243,7 @@ def _resolve_weather_payload(config: dict, *, scope: str, request=None) -> dict:
     base_key = _weather_cache_key(config, scope=scope)
     cache_key = f"{prefix}:{base_key}"
     stale_cache_key = f"{cache_key}:stale"
+    backoff_key = _weather_provider_backoff_key(cache_key)
 
     cached_payload = cache.get(cache_key)
     if isinstance(cached_payload, dict):
@@ -235,6 +251,16 @@ def _resolve_weather_payload(config: dict, *, scope: str, request=None) -> dict:
         response_payload["cached"] = True
         response_payload.setdefault("stale", False)
         return response_payload
+
+    if cache.get(backoff_key):
+        stale_payload = cache.get(stale_cache_key)
+        if isinstance(stale_payload, dict):
+            response_payload = dict(stale_payload)
+            response_payload["status"] = "degraded"
+            response_payload["cached"] = True
+            response_payload["stale"] = True
+            return response_payload
+        return _build_weather_degraded_response(config)
 
     try:
         weather = _fetch_weather_snapshot(config)
@@ -248,6 +274,22 @@ def _resolve_weather_payload(config: dict, *, scope: str, request=None) -> dict:
         cache.set(cache_key, payload, WEATHER_CACHE_TTL_SECONDS)
         cache.set(stale_cache_key, payload, WEATHER_STALE_CACHE_TTL_SECONDS)
         return payload
+    except requests.HTTPError as exc:
+        status_code = exc.response.status_code if exc.response is not None else None
+        if status_code == 429:
+            cache.set(backoff_key, 1, WEATHER_PROVIDER_BACKOFF_SECONDS)
+            logger.warning(
+                "Weather provider rate limited (scope=%s); backing off %ss",
+                scope,
+                WEATHER_PROVIDER_BACKOFF_SECONDS,
+            )
+        else:
+            logger.warning(
+                "Weather provider request failed (scope=%s): %s",
+                scope,
+                exc,
+                exc_info=True,
+            )
     except (OSError, requests.RequestException, ValueError, KeyError) as exc:
         logger.warning(
             "Weather provider request failed (scope=%s): %s",

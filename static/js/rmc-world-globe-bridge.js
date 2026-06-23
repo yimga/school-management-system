@@ -29,6 +29,393 @@
   var sseReconnectMs = 4000;
   var svgTourTimer = null;
   var svgTourIndex = 0;
+  var lastAppliedRevision = null;
+  var lastOperatorFleetRevision = null;
+  var hoverFlyTimer = null;
+  var VIEWPORT_KEY = "rmc-globe-viewport";
+  var SELECTION_KEY = "rmc-copilot-selection";
+  var MAP_SHELL_ID = "rmc-world-globe-map-shell";
+  var presenceTimer = null;
+  var lastPresenceOthers = 0;
+  var llmBriefInflight = false;
+  var lastLlmBriefRevision = null;
+
+  function parsePayloadFeatures() {
+    var payload = parsePayload();
+    return (payload && payload.features) || {};
+  }
+
+  function featureEnabled(key) {
+    var features = parsePayloadFeatures();
+    if (Object.prototype.hasOwnProperty.call(features, key)) {
+      return !!features[key];
+    }
+    return true;
+  }
+
+  function mapShell() {
+    return document.getElementById(MAP_SHELL_ID) || (globeEl && globeEl.closest(".lx-world__map"));
+  }
+
+  function saveViewportState() {
+    if (!api() || !api().isReady()) return;
+    try {
+      var markers = api().getVisibleMarkers();
+      var alt = api().getAltitude();
+      sessionStorage.setItem(
+        VIEWPORT_KEY,
+        JSON.stringify({
+          altitude: alt,
+          pins_in_view: markers.length,
+          ts: Date.now(),
+        })
+      );
+    } catch (_e) {
+      /* private mode */
+    }
+  }
+
+  function restoreViewportState() {
+    try {
+      var raw = sessionStorage.getItem(VIEWPORT_KEY);
+      if (!raw) return;
+      var saved = JSON.parse(raw);
+      if (saved && saved.altitude && api() && api().isReady() && api().flyTo) {
+        api().flyTo({ lat: 18, lng: 0, altitude: saved.altitude, ms: 0 });
+      }
+    } catch (_e) {
+      /* ignore */
+    }
+  }
+
+  function saveSelectionFromMarker(marker) {
+    if (!marker) return;
+    try {
+      sessionStorage.setItem(
+        SELECTION_KEY,
+        JSON.stringify({
+          region: marker.region || "",
+          school_id: marker.school_id || "",
+          slug: marker.slug || "",
+          status: marker.status || "",
+          name: marker.name || marker.label || "",
+        })
+      );
+    } catch (_e) {
+      /* ignore */
+    }
+  }
+
+  function csrfToken() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content && meta.content !== "NOTPROVIDED") return meta.content;
+    var m = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+    if (m) return decodeURIComponent(m[1]);
+    m = document.cookie.match(/(?:^|; )rmc_manager_csrftoken=([^;]+)/);
+    if (m) return decodeURIComponent(m[1]);
+    return "";
+  }
+
+  function viewportPresenceParams() {
+    var region = "";
+    try {
+      var sel = sessionStorage.getItem(SELECTION_KEY);
+      if (sel) region = (JSON.parse(sel).region || "").trim();
+    } catch (_e) {
+      /* ignore */
+    }
+    var params = new URLSearchParams();
+    if (region) params.set("region", region);
+    if (api() && api().isReady()) {
+      params.set("pins_in_view", String(api().getVisibleMarkers().length));
+      params.set("altitude", String(api().getAltitude()));
+    }
+    return params;
+  }
+
+  function sendGlobePresenceHeartbeat() {
+    if (!featureEnabled("globe_presence")) return;
+    var endpoints = parsePayloadApi() || {};
+    var url = endpoints.operator_fleet_globe_presence || "/super/api/operator/fleet/globe-presence/";
+    var params = viewportPresenceParams();
+    fetch(url + "?" + params.toString(), {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRFToken": csrfToken(),
+      },
+      body: params.toString(),
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error("presence_failed");
+        return r.json();
+      })
+      .then(function (data) {
+        lastPresenceOthers = typeof data.others_viewing === "number" ? data.others_viewing : 0;
+        updateViewportChip(null);
+      })
+      .catch(function () {
+        /* quiet */
+      });
+  }
+
+  function startGlobePresence() {
+    if (presenceTimer || !featureEnabled("globe_presence")) return;
+    sendGlobePresenceHeartbeat();
+    presenceTimer = window.setInterval(sendGlobePresenceHeartbeat, 30000);
+  }
+
+  function fetchLlmBriefIfNeeded(bundle) {
+    if (!featureEnabled("ai_brief") || llmBriefInflight) return;
+    if (bundle && bundle.brief_source === "llm") return;
+    var rev = (bundle && bundle.operator_fleet_revision) || "";
+    if (rev && rev === lastLlmBriefRevision) return;
+    var endpoints = parsePayloadApi() || {};
+    var ctxUrl = endpoints.operator_fleet_context || "/super/api/operator/fleet/context/";
+    var params = viewportPresenceParams();
+    llmBriefInflight = true;
+    fetch(ctxUrl + "?" + params.toString(), {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error("context_failed");
+        return r.json();
+      })
+      .then(function (ctx) {
+        if (ctx.fleet_brief) renderFleetBrief(ctx.fleet_brief);
+        if (ctx.brief_source === "llm" && rev) lastLlmBriefRevision = rev;
+      })
+      .catch(function () {
+        /* rules brief already rendered */
+      })
+      .finally(function () {
+        llmBriefInflight = false;
+      });
+  }
+
+  function updateViewportChip(bundle) {
+    var chip = document.getElementById("rmc-world-globe-viewport-chip");
+    var voidEl = document.getElementById("rmc-world-globe-void-viewport");
+    if (!chip || !featureEnabled("void_zones")) return;
+    if (voidEl) voidEl.hidden = false;
+    var visible = null;
+    if (api() && api().isReady()) {
+      visible = api().getVisibleMarkers().length;
+    } else if (bundle && typeof bundle.marker_count === "number") {
+      visible = bundle.marker_count;
+    }
+    var alt = api() && api().isReady() ? api().getAltitude() : null;
+    var zoomLabel = alt != null ? (alt < 0.85 ? "close" : alt > 1.4 ? "wide" : "regional") : "explore";
+    var base = visible != null ? visible + " in view · " + zoomLabel : "Pan & zoom to explore";
+    if (lastPresenceOthers > 0) {
+      base += " · " + lastPresenceOthers + " viewing";
+    }
+    chip.textContent = base;
+    saveViewportState();
+  }
+
+  function applyAurora(aurora) {
+    var shell = mapShell();
+    if (!shell || !featureEnabled("wow_enabled")) return;
+    shell.classList.remove(
+      "lx-world__map--aurora-warn",
+      "lx-world__map--aurora-good",
+      "lx-world__map--aurora-danger"
+    );
+    if (aurora === "warn") shell.classList.add("lx-world__map--aurora-warn");
+    else if (aurora === "danger") shell.classList.add("lx-world__map--aurora-danger");
+    else if (aurora === "good") shell.classList.add("lx-world__map--aurora-good");
+  }
+
+  function renderPulseEvents(events) {
+    var wrap = document.getElementById("rmc-world-globe-fleet-pulse");
+    var list = document.getElementById("rmc-world-globe-pulse-list");
+    if (!wrap || !list || !featureEnabled("fleet_pulse")) return;
+    if (!Array.isArray(events) || !events.length) {
+      wrap.hidden = true;
+      return;
+    }
+    wrap.hidden = false;
+    list.innerHTML = "";
+    events.slice(0, 3).forEach(function (ev) {
+      var row = document.createElement("div");
+      row.className = "lx-world__fleet-pulse-item";
+      var time = document.createElement("time");
+      time.textContent = ev.time_label || "";
+      var text = document.createElement("span");
+      text.textContent = ev.text || "";
+      row.appendChild(time);
+      row.appendChild(text);
+      list.appendChild(row);
+    });
+  }
+
+  function renderFleetBrief(brief) {
+    var wrap = document.getElementById("rmc-world-globe-ai-brief");
+    var headline = document.getElementById("rmc-world-globe-brief-headline");
+    var body = document.getElementById("rmc-world-globe-brief-body");
+    if (!wrap || !headline || !body || !featureEnabled("ai_brief")) return;
+    if (!brief || (!brief.headline && !brief.body)) {
+      wrap.hidden = true;
+      return;
+    }
+    wrap.hidden = false;
+    headline.textContent = brief.headline || "";
+    body.textContent = brief.body || "";
+  }
+
+  function renderWhisperLine(line) {
+    var voidEl = document.getElementById("rmc-world-globe-void-whisper");
+    var el = document.getElementById("rmc-world-globe-whisper-line");
+    if (!el || !featureEnabled("ai_whisper")) return;
+    if (voidEl) voidEl.hidden = false;
+    if (line) el.textContent = line;
+  }
+
+  function renderSchoolHours(count) {
+    var voidEl = document.getElementById("rmc-world-globe-void-school-hours");
+    var text = document.getElementById("rmc-world-globe-school-hours-text");
+    if (!text || !featureEnabled("void_zones")) return;
+    if (typeof count !== "number" || count <= 0) {
+      if (voidEl) voidEl.hidden = true;
+      return;
+    }
+    if (voidEl) voidEl.hidden = false;
+    text.textContent = count + " region" + (count === 1 ? "" : "s") + " in school hours";
+  }
+
+  function buildFleetAskContext() {
+    var payload = parsePayload();
+    var endpoints = parsePayloadApi() || {};
+    var ctx = {
+      page_path: window.location.pathname || "",
+      page_excerpt: "",
+      user_query: "",
+      fleet_context: true,
+    };
+    if (api() && api().isReady()) {
+      var markers = api().getVisibleMarkers();
+      ctx.pins_in_view = markers.length;
+      ctx.altitude = api().getAltitude();
+    }
+    try {
+      var sel = sessionStorage.getItem(SELECTION_KEY);
+      if (sel) ctx.selection = JSON.parse(sel);
+    } catch (_e) {
+      /* ignore */
+    }
+    var snap = window.__rmcOperatorFleetSnapshot || {};
+    ctx.whisper_line = snap.whisper_line || "";
+    ctx.operator_fleet_revision = snap.operator_fleet_revision || "";
+    ctx.context_url = endpoints.operator_fleet_context || "/super/api/operator/fleet/context/";
+    var region = (ctx.selection && ctx.selection.region) || "";
+    var schools = snap.schools_live || (payload && payload.markers && payload.markers.length) || "";
+    ctx.user_query =
+      "Explain the operator fleet globe view. Live schools: " +
+      schools +
+      ". Suspended: " +
+      (snap.suspended || 0) +
+      ". Frozen: " +
+      (snap.frozen || 0) +
+      (region ? ". Focus region: " + region : "") +
+      (ctx.pins_in_view != null ? ". Pins in view: " + ctx.pins_in_view : "") +
+      ". Suggest next operator actions.";
+    ctx.page_excerpt = ctx.user_query;
+    return ctx;
+  }
+
+  function openFleetAsk(ctx) {
+    document.dispatchEvent(new CustomEvent("rmc:fleet-ask", { detail: ctx || buildFleetAskContext() }));
+    var input =
+      document.querySelector("[data-rmc-copilot-input]") || document.getElementById("aiCopilotInput");
+    if (input) {
+      input.value = (ctx && ctx.user_query) || buildFleetAskContext().user_query;
+      input.focus();
+    }
+    var rail = document.querySelector("[data-rmc-copilot-rail]");
+    if (rail) {
+      rail.setAttribute("data-rmc-copilot-active-tab", "chat");
+      var shell = document.querySelector(".rmc-app-shell[data-copilot], body[data-copilot]");
+      if (shell) shell.setAttribute("data-copilot", "expanded");
+    } else {
+      var trigger = document.getElementById("aiCopilotTrigger");
+      var panel = document.getElementById("aiCopilotPanel");
+      if (trigger) trigger.click();
+      if (panel) panel.classList.add("active");
+    }
+    if (window.RMCAssistDock && window.RMCAssistDock.runAIAction) {
+      window.RMCAssistDock.runAIAction("fleet_globe_ask", ctx || buildFleetAskContext()).catch(function () {
+        /* rules fallback — input already staged */
+      });
+    }
+  }
+
+  function wireAskFleet() {
+    var btn = document.getElementById("rmc-world-globe-ask-fleet");
+    if (!btn || btn.__rmcAskWired) return;
+    btn.__rmcAskWired = true;
+    btn.addEventListener("click", function () {
+      openFleetAsk(buildFleetAskContext());
+    });
+  }
+
+  function wireShareViewport() {
+    var btn = document.getElementById("rmc-world-globe-share-viewport");
+    if (!btn || btn.__rmcShareWired) return;
+    btn.__rmcShareWired = true;
+    if (!featureEnabled("wow_enabled")) return;
+    btn.hidden = false;
+    btn.addEventListener("click", function () {
+      saveViewportState();
+      try {
+        var raw = sessionStorage.getItem(VIEWPORT_KEY);
+        if (navigator.clipboard && raw) {
+          navigator.clipboard.writeText("rmc-globe-view:" + raw).catch(function () {
+            /* ignore */
+          });
+        }
+      } catch (_e) {
+        /* ignore */
+      }
+      announce("Viewport saved for this session.");
+    });
+  }
+
+  function wireGuideCompact() {
+    var guide = document.getElementById("rmc-world-globe-operator-guide");
+    var toggle = document.getElementById("rmc-world-globe-guide-toggle");
+    if (!guide) return;
+    var maxSchools = parsePayloadFeatures().compact_guide_max_schools;
+    if (maxSchools == null) maxSchools = 5;
+    var live = parsePayload();
+    var count = live && live.markers ? live.markers.length : 0;
+    if (count > maxSchools) return;
+    guide.classList.add("lx-world__operator-guide--compact");
+    if (toggle) {
+      toggle.hidden = false;
+      toggle.addEventListener("click", function () {
+        guide.classList.toggle("is-expanded");
+        toggle.textContent = guide.classList.contains("is-expanded") ? "Hide shortcuts" : "Show shortcuts";
+      });
+    }
+  }
+
+  function applyOperatorFleetChrome(bundle) {
+    if (!bundle) return;
+    if (Array.isArray(bundle.pulse_events)) renderPulseEvents(bundle.pulse_events);
+    if (bundle.whisper_line) renderWhisperLine(bundle.whisper_line);
+    if (bundle.fleet_brief) renderFleetBrief(bundle.fleet_brief);
+    if (bundle.aurora) applyAurora(bundle.aurora);
+    if (typeof bundle.school_hours_regions === "number") renderSchoolHours(bundle.school_hours_regions);
+    updateViewportChip(bundle);
+    fetchLlmBriefIfNeeded(bundle);
+    startGlobePresence();
+    wireAskFleet();
+    wireShareViewport();
+  }
 
   // Live-refresh circuit breaker (batch: control-plane 502-storm mitigation).
   // The globe is a cosmetic surface; when its live endpoints (/super/api/globe/
@@ -171,8 +558,15 @@
         var suffix = countEl.querySelector(".lx-world__count-suffix");
         countEl.childNodes[0].textContent = String(bundle.schools_live) + " ";
         if (suffix) countEl.appendChild(suffix);
+        if (bundle.revision && bundle.revision !== lastAppliedRevision) {
+          countEl.classList.add("lx-world__count--bump");
+          window.setTimeout(function () {
+            countEl.classList.remove("lx-world__count--bump");
+          }, 600);
+        }
       }
     }
+    if (bundle.revision) lastAppliedRevision = bundle.revision;
     if (bundle.subline) {
       var subEl = section.querySelector(".lx-world__count-sub");
       if (subEl) subEl.textContent = bundle.subline;
@@ -188,6 +582,7 @@
         }
       });
     }
+    applyOperatorFleetChrome(bundle);
     if (typeof bundle.marker_count === "number" && api() && api().isReady()) {
       announce(bundle.marker_count + " schools mapped on globe.");
     }
@@ -246,6 +641,7 @@
   }
 
   function renderSheet(marker) {
+    saveSelectionFromMarker(marker);
     var body = document.getElementById(sheetBodyId);
     if (!body) return;
 
@@ -416,10 +812,21 @@
       row.setAttribute("tabindex", "0");
       row.setAttribute("role", "button");
       row.addEventListener("mouseenter", function () {
-        if (api() && api().isReady()) api().highlightRegion(region);
-        else highlightSvgRegion(region);
+        if (api() && api().isReady()) {
+          api().highlightRegion(region);
+          if (featureEnabled("wow_enabled")) {
+            if (hoverFlyTimer) window.clearTimeout(hoverFlyTimer);
+            hoverFlyTimer = window.setTimeout(function () {
+              if (api().flyToRegion) api().flyToRegion(region, 900);
+            }, 420);
+          }
+        } else highlightSvgRegion(region);
       });
       row.addEventListener("mouseleave", function () {
+        if (hoverFlyTimer) {
+          window.clearTimeout(hoverFlyTimer);
+          hoverFlyTimer = null;
+        }
         if (api() && api().isReady()) api().highlightRegion(null);
         else highlightSvgRegion(null);
       });
@@ -574,6 +981,8 @@
           if (revisionChanged) {
             lastStreamRevision = data.revision;
             triggerLiveRefresh(false);
+          } else if (data.pulse_events || data.whisper_line || data.fleet_brief) {
+            applyOperatorFleetChrome(data);
           } else if (typeof data.schools_live === "number") {
             applyLiveChrome(data);
           }
@@ -600,6 +1009,19 @@
   document.addEventListener("rmc:globe-live-updated", function (ev) {
     var detail = ev.detail || {};
     if (detail.bundle) applyLiveChrome(detail.bundle);
+    updateViewportChip(detail.bundle || null);
+  });
+
+  document.addEventListener("rmc:fleet-snapshot", function (ev) {
+    var detail = ev.detail || {};
+    if (!detail.operator_fleet_revision) return;
+    if (detail.operator_fleet_revision === lastOperatorFleetRevision && !detail.pulse_events) return;
+    lastOperatorFleetRevision = detail.operator_fleet_revision;
+    applyOperatorFleetChrome(detail);
+    if (detail.globe_revision && detail.globe_revision !== lastStreamRevision) {
+      lastStreamRevision = detail.globe_revision;
+      triggerLiveRefresh(false);
+    }
   });
 
   function wireBridgeOnce() {
@@ -610,6 +1032,11 @@
     wireTourControls();
     wireSvgDots();
     applySvgPalette();
+    wireAskFleet();
+    wireShareViewport();
+    wireGuideCompact();
+    var snap = window.__rmcOperatorFleetSnapshot;
+    if (snap) applyOperatorFleetChrome(snap);
   }
 
   function syncGlobeModeChrome() {
@@ -648,8 +1075,10 @@
       connectStream();
       setFreshness("Live");
       triggerLiveRefresh(true);
+      restoreViewportState();
       if (api() && api().isReady()) {
         announce(api().getVisibleMarkers().length + " schools visible on globe.");
+        window.setInterval(saveViewportState, 4000);
       }
     }
   }

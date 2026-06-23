@@ -468,7 +468,11 @@ body.admin-manager-shell .cp-header {
    (closed) state, and the absolutely-positioned menu doesn't widen the header,
    so opening it can't introduce horizontal scroll. */
 body.control-plane-shell .cp-header:has(.cp-primary-nav__more[open]),
-body.admin-manager-shell .cp-header:has(.cp-primary-nav__more[open]) {
+body.admin-manager-shell .cp-header:has(.cp-primary-nav__more[open]),
+body.control-plane-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show),
+body.admin-manager-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show),
+body.control-plane-shell .cp-header--consolidated .cp-header__unified-band:has(.cp-primary-nav__more .dropdown-menu.show),
+body.admin-manager-shell .cp-header--consolidated .cp-header__unified-band:has(.cp-primary-nav__more .dropdown-menu.show) {
   overflow: visible;
 }
 

@@ -1445,6 +1445,9 @@ MARKETING_INTENT_HOMEPAGE = os.getenv("MARKETING_INTENT_HOMEPAGE", "0").strip().
     "true",
     "yes",
 )
+MARKETING_THRESHOLD_ERA_ENABLED = os.getenv(
+    "MARKETING_THRESHOLD_ERA_ENABLED", "0"
+).strip().lower() in ("1", "true", "yes")
 
 MARKETING_HERO_IMAGE_URL = (os.getenv("MARKETING_HERO_IMAGE_URL") or "").strip() or None
 MARKETING_HERO_VIDEO_URL = (os.getenv("MARKETING_HERO_VIDEO_URL") or "").strip() or None

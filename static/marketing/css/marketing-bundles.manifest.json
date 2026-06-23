@@ -1,14 +1,14 @@
 {
   "version": "2026-05-19",
-  "generated_utc": "2026-06-06T17:05:29Z",
+  "generated_utc": "2026-06-23T20:55:19Z",
   "critical": {
     "path": "static/marketing/css/marketing-critical.min.css",
-    "bytes": 21386,
+    "bytes": 21619,
     "sources": [
       {
         "path": "static/marketing/css/tokens-marketing.css",
-        "sha256": "4d625fb56810ef16700aca961c82000300418cd47a887b5831e787a385d58200",
-        "bytes": 7574
+        "sha256": "4ba4f2e2a434680c5a6bf8d41c2971b8ba232ac03f11222d09374dfc9fbdc1c4",
+        "bytes": 7422
       },
       {
         "path": "static/marketing/css/marketing-v3-shell.css",
@@ -22,8 +22,8 @@
       },
       {
         "path": "static/marketing/css/marketing-accessibility-hardening.css",
-        "sha256": "da5b360163877776a4e4add973b0b6d854f534d7ea31db2619bbca151f3dcc36",
-        "bytes": 12751
+        "sha256": "36d67e8e41952ceca54e66b60ca402b666f4f76c414f99ea91963f4c97a77e53",
+        "bytes": 13433
       },
       {
         "path": "static/marketing/css/marketing-fonts.css",
@@ -34,12 +34,12 @@
   },
   "enhanced": {
     "path": "static/marketing/css/marketing-enhanced.min.css",
-    "bytes": 348692,
+    "bytes": 403299,
     "sources": [
       {
         "path": "static/css/rmc-class-grammar.css",
-        "sha256": "8cc5c7e13d0ce54056943d36c284467be95a64dca2205e9d9775205b25423cf2",
-        "bytes": 144963
+        "sha256": "303a0698c925aaed183b0e8f78477ddfcdd5ed9fec43d7f4f2622ad577a6a75c",
+        "bytes": 193575
       },
       {
         "path": "static/css/rmc-platform-header.css",
@@ -63,18 +63,18 @@
       },
       {
         "path": "static/marketing/css/marketing-impact.css",
-        "sha256": "5e6f45b5a80b60e6a14708538e33f053599eeb3e81d20a0de7f26e3fc2688c3f",
-        "bytes": 10833
+        "sha256": "4c6f31d59c5550cbcb7fd9df9294adc0798aa1cec376ccdd9edb9259defa92e9",
+        "bytes": 10820
       },
       {
         "path": "static/marketing/css/marketing-page-personality.css",
-        "sha256": "961f5d62b83a19041dd03f733983c5f1547e42484652639440cb75f965587f4b",
-        "bytes": 10564
+        "sha256": "dc814c6456a1d0dd58e77ecec27f8341c5c8de2dd2f8388980d42c36f53fa0a6",
+        "bytes": 16463
       },
       {
         "path": "static/marketing/css/marketing-media-viz.css",
-        "sha256": "61950bcaa999df42fcc25cd780a140fabd71ad35ffbfad836b25796630fdcabe",
-        "bytes": 6549
+        "sha256": "d61ec57e97e4b334d8d16d472aceaa6ac93c0c00b9724cf1c56971583847ce0a",
+        "bytes": 6542
       },
       {
         "path": "static/marketing/css/marketing-visual-engine.css",
@@ -108,8 +108,23 @@
       },
       {
         "path": "static/marketing/css/tokens-editorial.css",
-        "sha256": "47c7133f0aafe62623d301509083e6a5cf02c6cd6794c6b8541711ad57575eae",
-        "bytes": 50242
+        "sha256": "f5ed0813e104527a1572acf9a4a47b10008e8984572959d209b0220eab789403",
+        "bytes": 50241
+      },
+      {
+        "path": "static/marketing/css/tokens-threshold-era.css",
+        "sha256": "bfae18cc5092985ef7af04a148455ea34b160785df992c8495f7dcfeae4c3bd3",
+        "bytes": 2521
+      },
+      {
+        "path": "static/marketing/css/mkt-threshold-era.css",
+        "sha256": "0ea2ba717db4dfd520cf1554ddc2ec8b8bf891d81247865fea3284cecf78e504",
+        "bytes": 11517
+      },
+      {
+        "path": "static/marketing/css/mkt-ascension.css",
+        "sha256": "edd3ae42e18210b43b6b66d55518ab7f4540160418b8d14959f4b9aa924c307b",
+        "bytes": 8697
       },
       {
         "path": "static/css/rmc-warm-bright-school.css",
@@ -118,8 +133,8 @@
       },
       {
         "path": "static/css/rmc-cool-apple-polish.css",
-        "sha256": "869d8904b9bac5dfc7996f44fb719525bbc205e0f94e6a85bea1b36d2b87aafa",
-        "bytes": 22184
+        "sha256": "4cafcd8133c0759fc0783e2b7d81c7ccd6f51c270aa9106e5187b81670765a49",
+        "bytes": 21978
       },
       {
         "path": "static/css/design-tokens-luxury.css",
@@ -143,8 +158,8 @@
       },
       {
         "path": "static/marketing/css/proof-pages.css",
-        "sha256": "a818de118e0b19fd1216bbae7a20fd4e6012aabf472ad9b2abeef94e81ad38e9",
-        "bytes": 9294
+        "sha256": "bd5ad577ec32dc2a75e81bd051cb4f8cc6db12e2251cccdcf0fe62390ae070e9",
+        "bytes": 8897
       },
       {
         "path": "static/css/platform-high-end.css",

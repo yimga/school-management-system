@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Globe Master Lab — 4 fixes · void · AI · wow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface-elevated: #121829;
+    --surface-canvas: #0c101c;
+    --surface-glass: rgba(14, 18, 32, 0.72);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-tertiary: #64748b;
+    --hairline: rgba(148,163,184,0.12);
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --brand: #818cf8;
+    --brand-glow: rgba(99,102,241,0.35);
+    --good: #6ee7b7;
+    --warn: #fcd34d;
+    --bad: #fda4af;
+    --ai: #c4b5fd;
+    --wow: #fbbf24;
+    --wow-plus: #f472b6;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --motion-fast: 180ms;
+    --motion-normal: 280ms;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font: 14px/1.5 Inter, system-ui, sans-serif;
+    background: #060910;
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+
+  #starfield {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99,102,241,0.12), transparent 55%),
+      radial-gradient(ellipse 60% 40% at 100% 80%, rgba(16,185,129,0.06), transparent 50%),
+      #060910;
+  }
+
+  .top-nav {
+    position: sticky; top: 0; z-index: 200;
+    background: rgba(6,9,16,0.88); backdrop-filter: blur(20px) saturate(140%);
+    border-bottom: 1px solid var(--hairline);
+    padding: 0 20px; height: 52px;
+    display: flex; align-items: center; gap: 4px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .top-nav::-webkit-scrollbar { display: none; }
+  .top-nav .brand {
+    font-size: 13px; font-weight: 600; margin-right: 12px; white-space: nowrap;
+    background: linear-gradient(135deg, #e2e8f0, #818cf8);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .top-nav a {
+    font-size: 11px; font-weight: 500; color: var(--text-tertiary); text-decoration: none;
+    padding: 6px 12px; border-radius: 999px; border: 1px solid transparent;
+    white-space: nowrap; transition: color var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast);
+  }
+  .top-nav a:hover { color: var(--text-primary); border-color: var(--hairline); }
+  .top-nav a.active { color: var(--text-primary); background: rgba(129,140,248,0.12); border-color: rgba(129,140,248,0.25); }
+  .top-nav a.nav-wow { color: #fcd34d; border-color: rgba(251,191,36,0.2); }
+  .top-nav a.nav-wow-plus { color: #f9a8d4; border-color: rgba(244,114,182,0.25); }
+
+  .scroll-progress {
+    position: fixed; top: 52px; left: 0; right: 0; height: 2px; z-index: 199;
+    background: transparent;
+  }
+  .scroll-progress span {
+    display: block; height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--brand), var(--wow));
+    transition: width 0.1s linear;
+  }
+
+  .page { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; padding: 32px 24px 100px; }
+
+  .hero {
+    margin-bottom: 36px; padding: 28px 32px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--hairline);
+    background:
+      radial-gradient(600px 280px at 0% 0%, rgba(99,102,241,0.14), transparent 60%),
+      radial-gradient(400px 200px at 100% 100%, rgba(110,231,183,0.06), transparent 55%),
+      var(--surface-elevated);
+  }
+  .hero h1 { font-size: 28px; font-weight: 700; margin: 0 0 10px; letter-spacing: -0.03em; line-height: 1.15; }
+  .hero .lead { color: var(--text-secondary); max-width: 720px; margin: 0 0 18px; font-size: 15px; }
+  .tier-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tier-pill {
+    font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 999px;
+    border: 1px solid var(--hairline); color: var(--text-secondary); text-decoration: none;
+    transition: transform var(--motion-fast), border-color var(--motion-fast);
+  }
+  .tier-pill:hover { transform: translateY(-1px); color: var(--text-primary); }
+  .tier-pill.t1 { border-color: rgba(129,140,248,0.35); color: var(--brand); }
+  .tier-pill.t2 { border-color: rgba(110,231,183,0.35); color: var(--good); }
+  .tier-pill.t3 { border-color: rgba(196,181,253,0.35); color: var(--ai); }
+  .tier-pill.t4 { border-color: rgba(251,191,36,0.35); color: var(--wow); }
+  .tier-pill.t5 { border-color: rgba(244,114,182,0.35); color: var(--wow-plus); }
+
+  section { scroll-margin-top: 64px; margin-bottom: 56px; }
+  h2 {
+    font-size: 18px; font-weight: 600; margin: 0 0 8px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap; letter-spacing: -0.02em;
+  }
+  .tag {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 4px 10px; border-radius: 999px;
+  }
+  .tag-core { background: rgba(129,140,248,0.15); color: var(--brand); }
+  .tag-void { background: rgba(110,231,183,0.12); color: var(--good); }
+  .tag-ai { background: rgba(196,181,253,0.15); color: var(--ai); }
+  .tag-wow { background: rgba(251,191,36,0.15); color: var(--wow); }
+  .tag-wow-plus { background: rgba(244,114,182,0.15); color: var(--wow-plus); }
+  .note { font-size: 13px; color: var(--text-secondary); margin: 0 0 20px; max-width: 840px; line-height: 1.6; }
+
+  /* ── Master card (production lx-world--hero parity) ── */
+  .lab-controls {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    margin-bottom: 14px; padding: 14px 16px;
+    border-radius: var(--radius-md); border: 1px solid var(--hairline);
+    background: var(--surface-glass); backdrop-filter: blur(16px);
+  }
+  .lab-controls label {
+    font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;
+    padding: 5px 10px; border-radius: 999px; border: 1px solid var(--hairline); cursor: pointer;
+    transition: border-color var(--motion-fast), background var(--motion-fast);
+  }
+  .lab-controls label:has(input:checked) { border-color: rgba(129,140,248,0.4); background: rgba(129,140,248,0.08); color: var(--text-primary); }
+  .lab-controls input { accent-color: var(--brand); }
+  .lab-controls .sep { width: 1px; height: 24px; background: var(--hairline); margin: 0 4px; }
+  .lab-controls button {
+    font: inherit; font-size: 12px; font-weight: 500; padding: 8px 16px; border-radius: 999px;
+    border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary);
+    cursor: pointer; transition: border-color var(--motion-fast), box-shadow var(--motion-fast), transform var(--motion-fast);
+  }
+  .lab-controls button:hover { border-color: rgba(129,140,248,0.4); transform: translateY(-1px); }
+  .lab-controls button.primary { background: rgba(129,140,248,0.18); border-color: rgba(129,140,248,0.45); }
+  .lab-controls button.wow-btn.on { background: rgba(251,191,36,0.12); border-color: rgba(251,191,36,0.5); color: #fde68a; box-shadow: 0 0 24px rgba(251,191,36,0.15); }
+
+  .lx-world {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) min(320px, 34%);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--surface-elevated);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.03) inset;
+    min-height: 520px;
+  }
+  .map {
+    position: relative;
+    min-height: 520px;
+    max-height: min(72vh, 640px);
+    overflow: hidden;
+    transition: background 1.4s var(--ease);
+    background: radial-gradient(120% 110% at 42% 38%, rgba(99,102,241,0.16), transparent 68%);
+    box-shadow: inset 0 0 0 1px var(--hairline), inset 0 -80px 120px -60px rgba(0,0,0,0.55);
+  }
+  .map.aurora-warn {
+    background: radial-gradient(120% 110% at 42% 38%, rgba(251,191,36,0.14), transparent 68%),
+                radial-gradient(80% 60% at 30% 70%, rgba(252,211,77,0.07), transparent 55%);
+  }
+  .map.aurora-good {
+    background: radial-gradient(120% 110% at 42% 38%, rgba(16,185,129,0.12), transparent 68%);
+  }
+  #globe-container {
+    position: absolute; inset: 0; z-index: 1;
+  }
+  #globe-container canvas { outline: none; }
+
+  .zone {
+    position: absolute; z-index: 10; font-size: 11px; line-height: 1.4;
+    border-radius: var(--radius-sm); padding: 8px 11px;
+    backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid; box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    transition: opacity var(--motion-normal), transform var(--motion-fast);
+  }
+  .zone.hidden { opacity: 0; pointer-events: none; transform: scale(0.96); }
+  .zone b { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; font-weight: 700; }
+  .zone span, .zone .zone-body { color: var(--text-secondary); font-size: 10px; }
+  .zone--ui { border-color: rgba(129,140,248,0.35); background: rgba(10,14,26,0.82); }
+  .zone--ui b { color: var(--brand); }
+  .zone--data { border-color: rgba(110,231,183,0.35); background: rgba(6,18,14,0.82); }
+  .zone--data b { color: var(--good); }
+  .zone--ai { border-color: rgba(196,181,253,0.35); background: rgba(18,12,32,0.85); }
+  .zone--ai b { color: var(--ai); }
+  .zone--wow { border-color: rgba(251,191,36,0.4); background: rgba(24,18,6,0.88); }
+  .zone--wow b { color: var(--wow); }
+  .z-chrome { top: 14px; left: 14px; border-style: solid; }
+  .z-tr { top: 14px; right: 14px; max-width: 168px; }
+  .z-mr { top: 42%; right: 10px; max-width: 140px; }
+  .z-bl { bottom: 14px; left: 14px; max-width: 240px; }
+  .z-br { bottom: 14px; right: 14px; max-width: 175px; }
+  .z-share { top: 14px; right: 14px; opacity: 0; pointer-events: none; transition: opacity var(--motion-normal); }
+  .wow-on .z-share { opacity: 1; pointer-events: auto; }
+  .wow-on .z-tr:not(.z-share) { top: 58px; }
+
+  .fresh { font-size: 10px; color: var(--text-tertiary); display: block; margin-bottom: 6px; }
+  .fresh.live { color: var(--good); }
+  .fresh.live::before { content: "● "; animation: blink 1.2s ease infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .tour { display: flex; gap: 5px; flex-wrap: wrap; }
+  .tbtn {
+    font-size: 10px; font-weight: 500; padding: 4px 10px; border: 1px solid var(--hairline);
+    border-radius: 6px; background: rgba(8,12,20,0.6); color: var(--text-secondary); cursor: pointer;
+    transition: border-color var(--motion-fast), color var(--motion-fast);
+  }
+  .tbtn:hover { border-color: var(--brand); color: var(--text-primary); }
+
+  .presence { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 9px; color: var(--good); }
+  .wow-only { display: none; }
+  .wow-on .wow-only { display: inline-flex; }
+  .presence-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); box-shadow: 0 0 8px var(--good); animation: blink 2s ease infinite; }
+
+  .legend {
+    padding: 20px 22px; border-left: 1px solid var(--hairline);
+    background: color-mix(in srgb, var(--surface-elevated) 96%, transparent);
+    overflow-y: auto; max-height: min(72vh, 640px);
+  }
+  .eyebrow { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-tertiary); font-weight: 700; }
+  .count-wrap { display: flex; align-items: baseline; gap: 6px; margin: 6px 0 4px; }
+  .count {
+    font-size: 52px; font-weight: 700; letter-spacing: -0.04em; line-height: 0.92;
+    font-variant-numeric: tabular-nums; transition: color 0.35s, transform 0.35s var(--ease);
+  }
+  .count small { font-size: 14px; font-weight: 500; color: var(--text-tertiary); }
+  .count.bump { color: var(--good); animation: countBump 0.55s var(--ease); }
+  @keyframes countBump { 0% { transform: scale(1); } 35% { transform: scale(1.08); } 100% { transform: scale(1); } }
+  .sub { font-size: 12px; color: var(--text-tertiary); margin-bottom: 12px; }
+  .row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 12px; margin-top: 6px; border-radius: var(--radius-sm);
+    background: var(--surface-canvas); border: 1px solid var(--hairline);
+    font-size: 12px; color: var(--text-secondary); cursor: pointer;
+    transition: background var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast);
+  }
+  .row:hover { border-color: rgba(99,102,241,0.3); }
+  .row.active {
+    background: color-mix(in srgb, var(--surface-elevated) 85%, rgba(99,102,241,0.25));
+    border-color: rgba(99,102,241,0.45);
+    box-shadow: 0 0 0 1px rgba(99,102,241,0.15), inset 0 1px 0 rgba(255,255,255,0.04);
+    color: var(--text-primary);
+  }
+  .row strong { font-size: 15px; font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .chip { font-size: 10px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--hairline); color: var(--text-tertiary); }
+  .guide-link { font-size: 11px; color: var(--text-tertiary); margin-top: 10px; }
+  .guide-link a { color: var(--brand); text-decoration: none; }
+  .guide-link a:hover { text-decoration: underline; }
+
+  .block { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--hairline); transition: opacity var(--motion-normal); }
+  .block.hidden { opacity: 0; height: 0; margin: 0; padding: 0; overflow: hidden; border: 0; }
+  .block-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); font-weight: 700; margin-bottom: 8px; display: flex; gap: 8px; align-items: center; }
+  .badge { font-size: 9px; padding: 3px 7px; border-radius: 999px; font-weight: 600; }
+  .badge-data { background: rgba(110,231,183,0.12); color: var(--good); }
+  .badge-ai { background: rgba(196,181,253,0.15); color: var(--ai); }
+  .badge-wow { background: rgba(251,191,36,0.15); color: var(--wow); }
+  .badge-wow-plus { background: rgba(244,114,182,0.15); color: var(--wow-plus); }
+  .pulse-item { font-size: 11px; color: var(--text-secondary); padding: 7px 0; border-bottom: 1px solid var(--hairline); display: flex; gap: 8px; }
+  .pulse-item:last-child { border-bottom: 0; }
+  .pulse-item time { color: var(--text-tertiary); font-size: 10px; min-width: 28px; }
+  .pulse-item.flash { animation: pulseFlash 0.6s var(--ease); }
+  @keyframes pulseFlash { from { background: rgba(110,231,183,0.12); } to { background: transparent; } }
+  .ai-brief {
+    font-size: 12px; color: var(--text-secondary); line-height: 1.55; padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, rgba(196,181,253,0.08), rgba(99,102,241,0.04));
+    border: 1px solid rgba(196,181,253,0.22);
+  }
+  .ai-brief strong { color: var(--text-primary); }
+  .ask-btn {
+    margin-top: 8px; width: 100%; text-align: left; font: inherit; font-size: 11px; font-weight: 500;
+    padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--hairline);
+    background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;
+    transition: border-color var(--motion-fast), background var(--motion-fast);
+  }
+  .ask-btn:hover { border-color: rgba(196,181,253,0.4); background: rgba(196,181,253,0.06); }
+
+  .celebrate {
+    position: absolute; pointer-events: none; z-index: 20; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--good); opacity: 0;
+  }
+  .celebrate.pop { animation: celebrate 0.7s var(--ease) forwards; }
+  @keyframes celebrate {
+    0% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(110,231,183,0.6); }
+    100% { opacity: 0; transform: scale(4); box-shadow: 0 0 40px 20px rgba(110,231,183,0); }
+  }
+
+  /* Catalog */
+  .catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
+  .cat-card {
+    background: var(--surface-canvas); border: 1px solid var(--hairline); border-radius: var(--radius-md);
+    padding: 16px 18px; font-size: 12px;
+    transition: border-color var(--motion-fast), transform var(--motion-fast), box-shadow var(--motion-fast);
+  }
+  .cat-card:hover {
+    border-color: rgba(129,140,248,0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  }
+  .cat-card h3 { margin: 0 0 6px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .cat-card p { margin: 0; color: var(--text-secondary); line-height: 1.55; }
+  .cat-card .impl { margin-top: 10px; font-size: 10px; color: var(--text-tertiary); font-family: ui-monospace, monospace; }
+
+  /* Compare + slider */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .compare { grid-template-columns: 1fr; } .lx-world { grid-template-columns: 1fr; } .legend { border-left: 0; border-top: 1px solid var(--hairline); } }
+  .panel-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); margin-bottom: 8px; font-weight: 700; }
+  .panel-label.after { color: #a5b4fc; }
+  .mini-stage {
+    position: relative; height: 220px; border-radius: var(--radius-md); overflow: hidden;
+    border: 1px solid var(--hairline);
+    background: radial-gradient(120% 100% at 42% 38%, rgba(99,102,241,0.14), transparent 68%);
+  }
+  .mini-globe-wrap {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+    transition: transform 0.35s var(--ease);
+  }
+  .mini-globe {
+    border-radius: 50%;
+    background: radial-gradient(circle at 32% 28%, #4a5588, #12182a 50%, #060910 100%);
+    box-shadow: inset -12px -10px 28px rgba(0,0,0,0.5), 0 0 40px rgba(99,102,241,0.2);
+  }
+  .slider-row { margin: 12px 0 24px; max-width: 400px; }
+  .slider-row input[type=range] { width: 100%; accent-color: var(--brand); }
+  .slider-row output { font-size: 11px; color: var(--text-tertiary); }
+
+  .roadmap { border: 1px solid var(--hairline); border-radius: var(--radius-md); overflow: hidden; }
+  .road-row {
+    display: grid; grid-template-columns: 90px 1fr 100px; gap: 16px; padding: 14px 18px;
+    border-bottom: 1px solid var(--hairline); font-size: 12px; align-items: center;
+  }
+  .road-row:last-child { border-bottom: 0; }
+  .road-row:nth-child(even) { background: rgba(255,255,255,0.015); }
+  .tier { font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .tier-1 { color: var(--brand); }
+  .tier-2 { color: var(--good); }
+  .tier-3 { color: var(--ai); }
+  .tier-4 { color: var(--wow); }
+  .tier-5 { color: var(--wow-plus); }
+  kbd {
+    font: 10px ui-monospace, monospace; padding: 2px 6px; border-radius: 4px;
+    border: 1px solid var(--hairline); background: rgba(0,0,0,0.3); color: var(--text-secondary);
+  }
+</style>
+</head>
+<body>
+
+<div id="starfield" aria-hidden="true"></div>
+<div class="scroll-progress" aria-hidden="true"><span id="scroll-bar"></span></div>
+
+<nav class="top-nav" aria-label="Sections">
+  <span class="brand">Globe Master Lab</span>
+  <a href="#master" data-nav="master">Live preview</a>
+  <a href="#core4" data-nav="core4">4 fixes</a>
+  <a href="#void-ai" data-nav="void-ai">Void + AI</a>
+  <a href="#wow" class="nav-wow" data-nav="wow">Wow W1–12</a>
+  <a href="#wow-plus" class="nav-wow-plus" data-nav="wow-plus">Wow+ W13–20</a>
+  <a href="#roadmap" data-nav="roadmap">Roadmap</a>
+</nav>
+
+<div class="page">
+  <header class="hero">
+    <h1>Global Footprint elevation catalog</h1>
+    <p class="lead">Same layout you love — <strong>globe left · legend right</strong>. This lab uses real WebGL (globe.gl, same engine as production) so you can feel camera, arcs, and fly-to before we ship. Scroll for every tier or jump via the pills.</p>
+    <div class="tier-pills">
+      <a class="tier-pill t1" href="#core4">Tier 1 · 4 fixes</a>
+      <a class="tier-pill t2" href="#void-ai">Tier 2 · Void + AI</a>
+      <a class="tier-pill t3" href="#wow">Tier 3 · Wow</a>
+      <a class="tier-pill t4" href="#wow-plus">Tier 4 · Wow+</a>
+      <a class="tier-pill t5" href="#roadmap">Roadmap</a>
+    </div>
+  </header>
+
+  <section id="master">
+    <h2><span class="tag tag-core">Live</span> Master preview — all layers</h2>
+    <p class="note">Drag the globe · hover legend rows (magnetic fly-to) · toggle layers · turn on Wow demo for aurora + arcs + auto-rotate.</p>
+
+    <div class="lab-controls">
+      <label><input type="checkbox" id="layer-void" checked> Void zones A–D</label>
+      <label><input type="checkbox" id="layer-ai" checked> AI + pulse blocks</label>
+      <label><input type="checkbox" id="layer-wow"> Wow effects</label>
+      <span class="sep"></span>
+      <button type="button" class="wow-btn" id="toggle-wow">✦ Wow demo</button>
+      <button type="button" class="primary" id="simulate-sse">↻ Simulate SSE</button>
+      <button type="button" id="fly-wa">Fly West Africa</button>
+      <button type="button" id="reset-view">Reset view</button>
+    </div>
+
+    <div class="lx-world" id="master-card">
+      <div class="map aurora-warn" id="master-map">
+        <div id="globe-container" aria-label="Interactive globe preview"></div>
+
+        <div class="zone z-chrome zone--ui" data-zone="void">
+          <span class="fresh" id="fresh-el">Updated 3:11 PM</span>
+          <div class="tour">
+            <button type="button" class="tbtn" id="btn-tour">Tour</button>
+            <button type="button" class="tbtn" id="btn-reset-t">Reset</button>
+            <span style="font-size:9px;color:var(--text-tertiary);margin-left:4px"><kbd>T</kbd> <kbd>R</kbd></span>
+          </div>
+        </div>
+        <div class="zone z-share zone--wow" id="share-chip"><b>Share view</b><span class="zone-body">#globe=5.3,-4.0,1.02</span></div>
+        <div class="zone z-tr zone--ui" data-zone="void"><b>A · Viewport</b><span class="zone-body" id="vp-text">West Africa · 2 in view</span><span class="presence wow-only"><span class="presence-dot"></span>2 operators viewing</span></div>
+        <div class="zone z-mr zone--data" data-zone="void"><b>B · School hours</b><span class="zone-body">1 region in session now</span></div>
+        <div class="zone z-bl zone--data" data-zone="void"><b>C · Caption</b><span class="zone-body" id="caption-el">Drag · zoom · click pin</span></div>
+        <div class="zone z-br zone--ai" data-zone="void"><b>D · AI whisper</b><span class="zone-body" id="whisper-el">Fleet healthy · 1 suspended in view</span></div>
+        <div class="celebrate" id="celebrate" aria-hidden="true"></div>
+      </div>
+
+      <aside class="legend">
+        <div class="eyebrow">Global footprint</div>
+        <div class="count-wrap"><div class="count" id="count-el">2</div><small>schools live</small></div>
+        <p class="sub">Across 2 regions · 1 country today</p>
+        <div class="row active" data-r="wa" data-lat="8" data-lng="-5" id="row-wa"><span>West Africa</span><strong>1</strong></div>
+        <div class="row" data-r="other" data-lat="9.08" data-lng="8.68" id="row-other"><span>Other</span><strong>1</strong></div>
+        <div class="chips"><span class="chip">● Active</span><span class="chip">● Suspended</span><span class="chip">● Frozen</span></div>
+        <p class="guide-link">Fix #3 · <a href="#">Show shortcuts</a></p>
+
+        <div class="block" data-block="ai">
+          <div class="block-title"><span class="badge badge-data">Live</span> Fleet pulse</div>
+          <div class="pulse-item" id="pulse-1"><time>2m</time><span>New School → active</span></div>
+          <div class="pulse-item"><time>1h</time><span>Tour completed · West Africa</span></div>
+        </div>
+        <div class="block" data-block="ai">
+          <div class="block-title"><span class="badge badge-ai">AI</span> Fleet brief</div>
+          <div class="ai-brief"><strong>2 schools, 1 needs eyes.</strong> Demo School suspended in Nigeria; New School healthy in Côte d'Ivoire.</div>
+          <button type="button" class="ask-btn">Ask about West Africa → assist dock</button>
+        </div>
+        <div class="block" data-block="ai">
+          <div class="block-title"><span class="badge badge-data">Radar</span> Expansion targets</div>
+          <p style="font-size:11px;color:var(--text-secondary);margin:0;line-height:1.5">Ghost pins at zoom ≤1.4: East Africa, Europe (0 schools · GLOCAL targets)</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="core4">
+    <h2><span class="tag tag-core">Tier 1</span> The 4 core fixes</h2>
+    <p class="note">Foundation polish — no new regions. These ship first on the real globe.</p>
+
+    <h3 style="font-size:15px;font-weight:600;margin:24px 0 10px">1 · Fill the frame</h3>
+    <p class="note" style="margin-bottom:12px">Camera altitude ~1.35 → ~1.02. Drag the slider — same idea as production reset view.</p>
+    <div class="slider-row">
+      <input type="range" id="alt-slider" min="0.85" max="1.45" step="0.01" value="1.02">
+      <output id="alt-out">altitude 1.02</output>
+    </div>
+    <div class="compare">
+      <div><div class="panel-label">Far (before)</div><div class="mini-stage"><div class="mini-globe-wrap" style="transform:translate(-50%,-50%) scale(0.65)"><div class="mini-globe" style="width:100px;height:100px"></div></div></div></div>
+      <div><div class="panel-label after">Near (after)</div><div class="mini-stage"><div class="mini-globe-wrap"><div class="mini-globe" style="width:160px;height:160px"></div></div></div></div>
+    </div>
+
+    <h3 style="font-size:15px;font-weight:600;margin:28px 0 10px">2 · Sharper earth</h3>
+    <div class="compare">
+      <div><div class="panel-label">Soft emissive</div><div class="mini-stage"><div class="mini-globe-wrap"><div class="mini-globe" style="width:140px;height:140px;filter:blur(1px) saturate(0.8)"></div></div></div></div>
+      <div><div class="panel-label after">Texture + tuned material</div><div class="mini-stage"><div class="mini-globe-wrap"><div class="mini-globe" style="width:140px;height:140px;filter:saturate(1.08) contrast(1.05);box-shadow:0 0 36px rgba(99,102,241,0.25),inset -12px -10px 28px rgba(0,0,0,0.5)"></div></div></div></div>
+    </div>
+
+    <h3 style="font-size:15px;font-weight:600;margin:28px 0 10px">3 · Tighter legend · 4 · Legend sync</h3>
+    <div class="compare">
+      <div class="cat-card"><h3>Before</h3><p>4-line interact guide always visible. Legend rows feel disconnected from globe.</p></div>
+      <div class="cat-card"><h3>After</h3><p>One line + “Show shortcuts”. Hover row → fly-to + highlight (try master preview).</p></div>
+    </div>
+  </section>
+
+  <section id="void-ai">
+    <h2><span class="tag tag-void">Tier 2</span> Void zones + right column</h2>
+    <p class="note">Uses margins around the sphere and space below the legend — no layout change.</p>
+    <div class="catalog">
+      <div class="cat-card"><h3><span class="badge badge-data">A</span> Viewport chip</h3><p>Region, pins in bbox, altitude. Updates on rotate/zoom.</p><div class="impl">mount.ts + bridge</div></div>
+      <div class="cat-card"><h3><span class="badge badge-data">B</span> School-hours tick</h3><p>Regions where local time is 08:00–15:00.</p><div class="impl">world_map_geo + tz</div></div>
+      <div class="cat-card"><h3><span class="badge badge-data">C</span> Caption strip</h3><p>Tour waypoint or last SSE event.</p><div class="impl">tour + stream merge</div></div>
+      <div class="cat-card"><h3><span class="badge badge-ai">D</span> AI whisper</h3><p>One line about visible fleet. RBAC-gated.</p><div class="impl">structured + optional LLM</div></div>
+      <div class="cat-card"><h3><span class="badge badge-data">Pulse</span> Fleet pulse</h3><p>3 recent SSE / audit events under legend.</p><div class="impl">views_globe_api stream</div></div>
+      <div class="cat-card"><h3><span class="badge badge-ai">Brief</span> AI fleet brief</h3><p>2 sentences since last visit. operator-dashboard-fleet lens.</p><div class="impl">invoke_with_request + RBAC</div></div>
+      <div class="cat-card"><h3><span class="badge badge-ai">Ask</span> Context button</h3><p>Prefills assist dock with region/school.</p><div class="impl">rmc-world-globe-bridge</div></div>
+      <div class="cat-card"><h3><span class="badge badge-data">Radar</span> Expansion</h3><p>Ghost pins for GLOCAL targets at 0 schools.</p><div class="impl">cockpit config</div></div>
+    </div>
+  </section>
+
+  <section id="wow">
+    <h2><span class="tag tag-wow">Tier 3</span> Wow W1–W12</h2>
+    <p class="note">Quiet luxury. Toggle <strong>Wow demo</strong> on the live preview.</p>
+    <div class="catalog">
+      <div class="cat-card"><h3><span class="badge badge-wow">W1</span> Cinematic reveal</h3><p>Skeleton → WebGL fade + scale. Atmosphere breathes once.</p><div class="impl">mount.ts init</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow">W2</span> Live arc pulse</h3><p>HQ→school arcs dash-flow on SSE refresh.</p><div class="impl">bindArcs + stream</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow">W3</span> Fleet health aurora</h3><p>Map tint: green → amber → rose by fleet status.</p><div class="impl">live.json → CSS var</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow">W4</span> Pin heartbeat</h3><p>Changed pins flash on SSE tick.</p><div class="impl">revision diff</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow">W5</span> Count morph</h3><p>schools_live bumps + green flash.</p><div class="impl">legend DOM</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow">W6</span> Day/night terminator</h3><p>Soft terminator + school-hours tick.</p><div class="impl">material band / overlay</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow">W7</span> Rich tooltips</h3><p>City, students, plan tier, last sync.</p><div class="impl">pointLabel + live bundle</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow">W8</span> Share viewport</h3><p>URL hash lat/lng/alt for handoff.</p><div class="impl">hash + resetView</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow">W9</span> Conductor keys</h3><p><kbd>1</kbd>–<kbd>4</kbd> regions · <kbd>T</kbd> tour · <kbd>R</kbd> reset.</p><div class="impl">bridge keydown</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow">W10</span> First-visit fly-in</h3><p>Once per session → largest cluster.</p><div class="impl">sessionStorage</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow">W11</span> Cluster bloom</h3><p>Indigo bloom under dense regions at low zoom.</p><div class="impl">cluster_markers</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow">W12</span> AI tour narrator</h3><p>AI one-liner per waypoint. Opt-in.</p><div class="impl">tour + invoke_with_request</div></div>
+    </div>
+  </section>
+
+  <section id="wow-plus">
+    <h2><span class="tag tag-wow-plus">Tier 4</span> Wow+ W13–W20</h2>
+    <p class="note">Conductor moments — magnetic pull, presence, celebration, executive snapshot.</p>
+    <div class="catalog">
+      <div class="cat-card"><h3><span class="badge badge-wow-plus">W13</span> Magnetic region pull</h3><p>Legend hover eases globe toward region (live preview).</p><div class="impl">bridge + pointOfView lerp</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow-plus">W14</span> Golden tour path</h3><p>Amber great-circle path between waypoints.</p><div class="impl">tour_waypoints arcs</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow-plus">W15</span> Risk pin aura</h3><p>Amber ring = suspended; frost = frozen.</p><div class="impl">pin layer + status</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow-plus">W16</span> Delta since yesterday</h3><p>+1 / −1 badge for 8s after change.</p><div class="impl">snapshot compare</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow-plus">W17</span> Live presence</h3><p>Operators viewing this region (no PII).</p><div class="impl">Redis presence</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow-plus">W18</span> Void parallax</h3><p>Zones shift opposite drag direction.</p><div class="impl">pointermove → transform</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow-plus">W19</span> Onboard celebration</h3><p>One particle bloom per school (Simulate SSE).</p><div class="impl">SSE + sessionStorage</div></div>
+      <div class="cat-card"><h3><span class="badge badge-wow-plus">W20</span> Executive snapshot</h3><p>PNG export for Slack / board deck.</p><div class="impl">WebGL + legend composite</div></div>
+    </div>
+    <p class="note" style="margin-top:16px"><strong>Backlog W21+:</strong> 24h replay scrubber · weather shimmer · depth-of-field pins · AI month-in-review flythrough · Shift compare yesterday/today.</p>
+  </section>
+
+  <section id="roadmap">
+    <h2>Implementation roadmap</h2>
+    <p class="note">Gated by <code>cockpit.live_world_map.*</code> flags. Each tier builds on the last.</p>
+    <div class="roadmap">
+      <div class="road-row"><span class="tier tier-1">Tier 1</span><span>4 fixes: camera 1.02, texture, compact guide, legend sync</span><span>~2–3 d</span></div>
+      <div class="road-row"><span class="tier tier-2">Tier 2</span><span>Void A–D + fleet pulse + expansion radar</span><span>~3–4 d</span></div>
+      <div class="road-row"><span class="tier tier-3">Tier 3</span><span>AI brief, whisper, Ask dock</span><span>~2–3 d</span></div>
+      <div class="road-row"><span class="tier tier-4">Tier 4</span><span>Wow W1–W12</span><span>~5–7 d</span></div>
+      <div class="road-row"><span class="tier tier-5">Tier 5</span><span>Wow+ W13–W20</span><span>~4–6 d</span></div>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/globe.gl@2.33.1/dist/globe.gl.min.js"></script>
+<script>
+(function () {
+  var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var wowOn = false;
+  var globe = null;
+  var markers = [
+    { lat: 5.36, lng: -4.01, name: "New School", region: "West Africa", status: "active", color: "#6ee7b7", ring_color: "#6ee7b7" },
+    { lat: 9.08, lng: 8.68, name: "Demo School", region: "Other", status: "suspended", color: "#fcd34d", ring_color: "#fcd34d" }
+  ];
+  var arcs = [
+    { startLat: 40.71, startLng: -74.01, endLat: 5.36, endLng: -4.01, color: "rgba(129,140,248,0.55)" },
+    { startLat: 40.71, startLng: -74.01, endLat: 9.08, endLng: 8.68, color: "rgba(252,211,77,0.45)" }
+  ];
+  var ghostTargets = [
+    { lat: -1.29, lng: 36.82, name: "East Africa target", color: "rgba(148,163,184,0.5)" },
+    { lat: 50.11, lng: 8.68, name: "Europe target", color: "rgba(148,163,184,0.5)" }
+  ];
+
+  var master = document.getElementById("master-card");
+  var map = document.getElementById("master-map");
+  var container = document.getElementById("globe-container");
+  var countEl = document.getElementById("count-el");
+  var freshEl = document.getElementById("fresh-el");
+  var captionEl = document.getElementById("caption-el");
+  var pulse1 = document.getElementById("pulse-1");
+  var celebrate = document.getElementById("celebrate");
+  var toggleWow = document.getElementById("toggle-wow");
+  var altSlider = document.getElementById("alt-slider");
+  var altOut = document.getElementById("alt-out");
+
+  function initGlobe() {
+    if (typeof Globe !== "function" || !container) return;
+    globe = Globe()(container)
+      .globeImageUrl("https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg")
+      .backgroundColor("rgba(0,0,0,0)")
+      .showAtmosphere(true)
+      .atmosphereColor("rgba(129,140,248,0.42)")
+      .atmosphereAltitude(0.18)
+      .pointsData(markers)
+      .pointLat("lat")
+      .pointLng("lng")
+      .pointColor("color")
+      .pointAltitude(0.02)
+      .pointRadius(0.38)
+      .pointLabel(function (d) {
+        return "<div style=\"background:rgba(8,12,20,0.92);padding:6px 10px;border-radius:8px;border:1px solid rgba(148,163,184,0.2);font:11px Inter,sans-serif;color:#f1f5f9\"><strong>" + d.name + "</strong><br><span style=\"color:#94a3b8\">" + d.region + " · " + d.status + "</span></div>";
+      })
+      .arcsData([])
+      .arcColor("color")
+      .arcStroke(0.4)
+      .arcDashLength(0.4)
+      .arcDashGap(0.35)
+      .arcDashAnimateTime(reducedMotion ? 0 : 4000)
+      .width(container.clientWidth)
+      .height(container.clientHeight);
+
+    var mat = globe.globeMaterial();
+    mat.color.set("#ffffff");
+    mat.emissive.set("#0a0e22");
+    mat.emissiveIntensity = 0.14;
+    mat.shininess = 0.2;
+
+    globe.pointOfView({ lat: 8, lng: -5, altitude: 1.02 }, 0);
+    var ctrl = globe.controls();
+    ctrl.enableZoom = true;
+    ctrl.autoRotate = false;
+    ctrl.autoRotateSpeed = 0.4;
+
+    window.addEventListener("resize", function () {
+      if (!globe || !container) return;
+      globe.width(container.clientWidth);
+      globe.height(container.clientHeight);
+    });
+  }
+
+  function setWow(on) {
+    wowOn = on;
+    master.classList.toggle("wow-on", on);
+    toggleWow.classList.toggle("on", on);
+    toggleWow.textContent = on ? "✦ Wow demo ON" : "✦ Wow demo";
+    document.getElementById("layer-wow").checked = on;
+    map.classList.remove("aurora-good", "aurora-warn");
+    map.classList.add(on ? "aurora-warn" : "aurora-good");
+    if (globe) {
+      globe.arcsData(on ? arcs : []);
+      globe.pointsData(on ? markers.concat(ghostTargets.map(function (g) {
+        return { lat: g.lat, lng: g.lng, name: g.name, region: "Target", status: "ghost", color: g.color, ring_color: g.color };
+      })) : markers);
+      var ctrl = globe.controls();
+      ctrl.autoRotate = on && !reducedMotion;
+    }
+    document.querySelectorAll(".wow-only").forEach(function (el) {
+      el.style.display = "";
+    });
+  }
+
+  toggleWow.addEventListener("click", function () { setWow(!wowOn); });
+
+  document.getElementById("layer-void").addEventListener("change", function (e) {
+    document.querySelectorAll("[data-zone=void]").forEach(function (z) {
+      z.classList.toggle("hidden", !e.target.checked);
+    });
+  });
+  document.getElementById("layer-ai").addEventListener("change", function (e) {
+    document.querySelectorAll("[data-block=ai]").forEach(function (b) {
+      b.classList.toggle("hidden", !e.target.checked);
+    });
+  });
+  document.getElementById("layer-wow").addEventListener("change", function (e) {
+    setWow(e.target.checked);
+  });
+
+  document.getElementById("simulate-sse").addEventListener("click", function () {
+    countEl.textContent = "3";
+    countEl.classList.add("bump");
+    setTimeout(function () { countEl.classList.remove("bump"); }, 550);
+    freshEl.textContent = "Live · just now";
+    freshEl.classList.add("live");
+    captionEl.textContent = "SSE · New School onboarded · West Africa";
+    document.getElementById("whisper-el").textContent = "+1 school live · fleet still 1 suspended";
+    pulse1.innerHTML = "<time>now</time><span>+1 school live · West Africa</span>";
+    pulse1.classList.add("flash");
+    setTimeout(function () { pulse1.classList.remove("flash"); }, 600);
+    celebrate.style.left = "58%";
+    celebrate.style.top = "52%";
+    celebrate.classList.remove("pop");
+    void celebrate.offsetWidth;
+    celebrate.classList.add("pop");
+    if (!wowOn) setWow(true);
+  });
+
+  function flyToRow(row) {
+    if (!globe || !row) return;
+    var lat = parseFloat(row.getAttribute("data-lat"));
+    var lng = parseFloat(row.getAttribute("data-lng"));
+    globe.controls().autoRotate = false;
+    globe.pointOfView({ lat: lat, lng: lng, altitude: 1.02 }, reducedMotion ? 0 : 900);
+    document.getElementById("vp-text").textContent =
+      row.getAttribute("data-r") === "wa" ? "West Africa · 2 in view" : "Other · 1 in view";
+  }
+
+  document.querySelectorAll(".row[data-r]").forEach(function (row) {
+    row.addEventListener("mouseenter", function () {
+      document.querySelectorAll(".row[data-r]").forEach(function (r) { r.classList.remove("active"); });
+      row.classList.add("active");
+      flyToRow(row);
+    });
+  });
+
+  document.getElementById("fly-wa").addEventListener("click", function () {
+    document.getElementById("row-wa").dispatchEvent(new Event("mouseenter"));
+  });
+
+  document.getElementById("reset-view").addEventListener("click", resetView);
+  document.getElementById("btn-reset-t").addEventListener("click", resetView);
+
+  function resetView() {
+    if (!globe) return;
+    globe.controls().autoRotate = wowOn && !reducedMotion;
+    globe.pointOfView({ lat: 8, lng: -5, altitude: parseFloat(altSlider.value) || 1.02 }, reducedMotion ? 0 : 800);
+  }
+
+  document.getElementById("btn-tour").addEventListener("click", function () {
+    if (!globe) return;
+    var waypoints = [{ lat: 8, lng: -5 }, { lat: 5.36, lng: -4.01 }, { lat: 9.08, lng: 8.68 }];
+    var i = 0;
+    captionEl.textContent = "Tour · West Africa";
+    function next() {
+      if (i >= waypoints.length) { captionEl.textContent = "Tour complete"; return; }
+      var w = waypoints[i++];
+      globe.pointOfView({ lat: w.lat, lng: w.lng, altitude: 1.05 }, reducedMotion ? 0 : 1200);
+      setTimeout(next, reducedMotion ? 100 : 2200);
+    }
+    next();
+  });
+
+  altSlider.addEventListener("input", function () {
+    altOut.textContent = "altitude " + altSlider.value;
+    if (globe) globe.pointOfView({ altitude: parseFloat(altSlider.value) }, reducedMotion ? 0 : 400);
+  });
+
+  /* Scroll progress + nav spy */
+  var sections = document.querySelectorAll("section[id]");
+  var navLinks = document.querySelectorAll(".top-nav a[data-nav]");
+  window.addEventListener("scroll", function () {
+    var h = document.documentElement;
+    var pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+    document.getElementById("scroll-bar").style.width = pct + "%";
+    var current = "";
+    sections.forEach(function (s) {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    navLinks.forEach(function (a) {
+      a.classList.toggle("active", a.getAttribute("data-nav") === current);
+    });
+  }, { passive: true });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.target.tagName === "INPUT") return;
+    if (e.key === "t" || e.key === "T") document.getElementById("btn-tour").click();
+    if (e.key === "r" || e.key === "R") resetView();
+  });
+
+  initGlobe();
+  setTimeout(function () {
+    if (globe && wowOn === false) {
+      map.classList.add("aurora-warn");
+    }
+  }, 100);
+})();
+</script>
+</body>
+</html>

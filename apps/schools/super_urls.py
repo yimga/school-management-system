@@ -83,6 +83,12 @@ from apps.schoolops.views_email_health import (
     SmtpProbeJsonView,
 )
 from apps.siteconfig.views_globe_api import GlobeStreamView, globe_live_api, globe_markers_api
+from apps.siteconfig.views_operator_fleet_api import (
+    OperatorFleetStreamView,
+    operator_fleet_context_api,
+    operator_fleet_globe_presence_api,
+    operator_fleet_snapshot_api,
+)
 from apps.siteconfig.views_cockpit_live import cockpit_live_json
 from apps.schools.views_fleet_live import FleetStreamView, fleet_live_json
 from apps.schoolops.views_email_webhook import EmailProviderWebhookView
@@ -1368,6 +1374,26 @@ urlpatterns = [
         GlobeStreamView.as_view(),
         name="api_globe_stream",
     ),  # rbac-allow: super-staff-globe-live-stream
+    path(
+        "api/operator/fleet/snapshot/",
+        require_super_access_with_host(operator_fleet_snapshot_api),
+        name="api_operator_fleet_snapshot",
+    ),  # rbac-allow: super-staff-operator-fleet-snapshot
+    path(
+        "api/operator/fleet/context/",
+        require_super_access_with_host(operator_fleet_context_api),
+        name="api_operator_fleet_context",
+    ),  # rbac-allow: super-staff-operator-fleet-context
+    path(
+        "api/operator/fleet/stream/",
+        require_super_access_with_host(OperatorFleetStreamView.as_view()),
+        name="api_operator_fleet_stream",
+    ),  # rbac-allow: super-staff-operator-fleet-stream
+    path(
+        "api/operator/fleet/globe-presence/",
+        require_super_access_with_host(operator_fleet_globe_presence_api),
+        name="api_operator_fleet_globe_presence",
+    ),  # rbac-allow: super-staff-operator-fleet-globe-presence
     path(
         "email/health/stream/",
         EmailHealthStreamView.as_view(),

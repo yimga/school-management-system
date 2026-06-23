@@ -220,15 +220,30 @@ def _default_grading_scale(region: RegionConfig, sub_system: str) -> str:
     return "0-100"
 
 
-def ensure_region_for_country(
-    country_code: str, timezone_hint: str = "UTC"
-) -> RegionConfig | None:
+def find_region_for_country(country_code: str) -> RegionConfig | None:
+    """Read-only sibling of :func:`ensure_region_for_country`: return the existing
+    ``RegionConfig`` for a country, or ``None`` — NEVER creates a row.
+
+    For hot paths (``School.save``) and backfills where implicit region creation is
+    undesirable. The lookup (normalize → unique ``code``) is identical to
+    ``ensure_region_for_country`` so both resolve the same row; only the
+    create-on-miss behaviour differs.
+    """
     normalized = GlobalGeoCatalog.normalize_country_code(country_code)
     if not normalized:
         return None
-    region = RegionConfig.objects.filter(code=normalized).first()
+    return RegionConfig.objects.filter(code=normalized).first()
+
+
+def ensure_region_for_country(
+    country_code: str, timezone_hint: str = "UTC"
+) -> RegionConfig | None:
+    region = find_region_for_country(country_code)
     if region:
         return region
+    normalized = GlobalGeoCatalog.normalize_country_code(country_code)
+    if not normalized:
+        return None
 
     defaults = GlobalGeoCatalog.country_defaults(normalized)
     # Academic year start month: prefer the catalog if it has one for this country;

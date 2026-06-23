@@ -1,0 +1,63 @@
+{% extends "marketing/base_marketing.html" %}
+{% load static i18n %}
+
+{% block title %}RunMyCampus · {% trans "Ascension" %}{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="{% trans 'The education operating system for modern schools — one school day, live simulations, honest competitor contrast.' %}">
+{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-intent-home.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-hero-sovereign.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-clinical-ledger.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-rugged-terminal.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-fluid-classroom.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-simulations-hub.css' %}">
+{% endblock %}
+
+{% block extrajs %}
+  {{ block.super }}
+  <script src="{% static 'marketing/js/mkt-sandbox-wizard.js' %}" defer nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'marketing/js/mkt-split-ledger.js' %}" defer nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'marketing/js/mkt-network-state.js' %}" defer nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'marketing/js/mkt-gradebook-morph.js' %}" defer nonce="{{ csp_nonce }}"></script>
+{% endblock %}
+
+{% block body_extra_attrs %} data-mkt-edition="threshold-era" data-mkt-section="ascension-home" data-mkt-personality="home"{% endblock %}
+{% block marketing_main_extra_classes %}mkt-th-root mkt-asc-root px-0 py-0{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "marketing/partials/mkt_ascension_core.html" %}
+
+<section class="mkt-asc-cathedral-bridge" aria-labelledby="asc-sims-title">
+  <div class="mkt-asc-cathedral-bridge__inner">
+    <p class="mkt-asc-gate__kicker">{% trans "Four cathedrals · live now" %}</p>
+    <h2 id="asc-sims-title" class="mkt-asc-cathedral-bridge__title">{% trans "Every claim is a simulation you can run." %}</h2>
+    <p class="mkt-asc-cathedral-bridge__lead">{% trans "Sovereign deployment. Clinical ledger. Rugged offline. Fluid classroom. Tap through — nothing is a screenshot." %}</p>
+  </div>
+</section>
+
+<div class="mkt-intent-home__stack" data-mkt-intent-home>
+  {% include "marketing/partials/sections/_sovereign_kernel.html" %}
+  {% include "marketing/partials/sections/_clinical_ledger.html" %}
+  {% include "marketing/partials/sections/_rugged_engine.html" %}
+  {% include "marketing/partials/sections/_fluid_classroom.html" %}
+  {% include "marketing/partials/sections/_simulations_hub.html" %}
+</div>
+
+<section class="mkt-asc-finale" id="asc-finale">
+  <div>
+    <p class="mkt-asc-gate__kicker mkt-asc-finale__kicker">{% trans "The threshold is open" %}</p>
+    <h2>{% trans "You've seen the day." %}<br>{% trans "Now walk your campus through it." %}</h2>
+    <div class="mkt-asc-cta-row">
+      <a href="{% url 'marketing_demo' %}" class="mkt-asc-cta mkt-asc-cta--primary" data-cta="demo">{% trans "Book a demo" %}</a>
+      <a href="{% url 'signup_school' %}" class="mkt-asc-cta mkt-asc-cta--ghost mkt-asc-cta--finale">{% trans "Start your campus" %}</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

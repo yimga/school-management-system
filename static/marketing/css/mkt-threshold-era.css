@@ -1,0 +1,385 @@
+/**
+ * Threshold Era — global marketing surface transformation.
+ * Applies to every page extending base_marketing.html when edition is active.
+ */
+[data-mkt-edition="threshold-era"] {
+  background: var(--mkt-th-cream);
+  color: var(--mkt-th-ink);
+  font-family: var(--mkt-edt-font-body);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-th-heartbeat {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  height: 2px;
+  z-index: 1200;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--mkt-th-accent-glow),
+    var(--mkt-th-aurora),
+    transparent
+  );
+  transform-origin: left;
+  animation: mkt-th-heartbeat 3.2s var(--mkt-th-ease) infinite;
+  opacity: 0.75;
+}
+
+@keyframes mkt-th-heartbeat {
+  0%, 100% { transform: scaleX(0.35); opacity: 0.45; }
+  45% { transform: scaleX(1); opacity: 0.9; }
+}
+
+/* ── Header: floating glass threshold gate ── */
+[data-mkt-edition="threshold-era"] .mkt-platform-header,
+[data-mkt-edition="threshold-era"] .rmc-platform-header {
+  position: sticky;
+  top: 0;
+  z-index: 1100;
+  background: color-mix(in oklab, var(--mkt-th-cream) 82%, transparent);
+  backdrop-filter: blur(18px) saturate(1.2);
+  border-bottom: 1px solid var(--mkt-th-line);
+  transition: box-shadow var(--mkt-th-motion) var(--mkt-th-ease),
+    background var(--mkt-th-motion) var(--mkt-th-ease);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-platform-header.is-scrolled,
+[data-mkt-edition="threshold-era"] .rmc-platform-header.is-scrolled {
+  box-shadow: var(--mkt-th-shadow);
+  background: color-mix(in oklab, var(--mkt-th-cream) 94%, transparent);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-navbar-unified {
+  padding-block: 0.65rem;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-nav-primary .nav-link {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-radius: 999px;
+  transition: background var(--mkt-th-motion) var(--mkt-th-ease),
+    color var(--mkt-th-motion) var(--mkt-th-ease);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-nav-primary .nav-link:hover,
+[data-mkt-edition="threshold-era"] .mkt-nav-primary .nav-link:focus-visible {
+  background: color-mix(in oklab, var(--mkt-th-aurora) 12%, transparent);
+  color: var(--mkt-th-ink);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-mega-menu {
+  border-radius: var(--mkt-th-radius-xl);
+  border: 1px solid var(--mkt-th-line-light);
+  background: color-mix(in oklab, var(--mkt-th-void) 92%, var(--mkt-th-aurora));
+  box-shadow: var(--mkt-th-shadow);
+  padding: 0.5rem;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-mega-col-title {
+  font-family: var(--mkt-edt-font-display);
+  font-size: 0.8125rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mkt-th-accent-glow);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-mega-link {
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  transition: background var(--mkt-th-motion) var(--mkt-th-ease);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-mega-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-mkt-edition="threshold-era"] .btn-primary,
+[data-mkt-edition="threshold-era"] .mkt-edt-cta:not(.mkt-edt-cta--ghost) {
+  background: linear-gradient(135deg, var(--mkt-th-accent), var(--mkt-th-accent-glow));
+  border: none;
+  color: var(--mkt-th-cream);
+  font-weight: 650;
+  border-radius: 999px;
+  box-shadow: 0 8px 28px color-mix(in oklab, var(--mkt-th-accent) 35%, transparent);
+  transition: transform 0.2s var(--mkt-th-ease), box-shadow 0.2s;
+}
+
+[data-mkt-edition="threshold-era"] .btn-primary:hover,
+[data-mkt-edition="threshold-era"] .mkt-edt-cta:not(.mkt-edt-cta--ghost):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px color-mix(in oklab, var(--mkt-th-accent) 45%, transparent);
+}
+
+/* ── Main: full-bleed storytelling ── */
+[data-mkt-edition="threshold-era"] .mkt-main.container,
+[data-mkt-edition="threshold-era"] .mkt-main.container-fluid {
+  max-width: none;
+  padding-inline: 0;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-th-root {
+  overflow-x: clip;
+}
+
+/* ── Threshold home: portal hero ── */
+.mkt-th-portal {
+  position: relative;
+  min-height: min(92svh, 920px);
+  display: grid;
+  place-items: center;
+  padding: clamp(3rem, 8vw, 6rem) clamp(1.25rem, 4vw, 2.5rem);
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in oklab, var(--mkt-th-aurora) 18%, transparent), transparent 70%),
+    radial-gradient(circle at 80% 80%, color-mix(in oklab, var(--mkt-th-accent) 12%, transparent), transparent 45%),
+    var(--mkt-th-cream);
+  text-align: center;
+}
+
+.mkt-th-portal__frame {
+  position: relative;
+  max-width: 58rem;
+  margin-inline: auto;
+}
+
+.mkt-th-portal__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mkt-th-ink-whisper);
+  margin: 0 0 1rem;
+}
+
+.mkt-th-portal__headline {
+  font-family: var(--mkt-edt-font-display);
+  font-size: var(--mkt-edt-type-hero);
+  line-height: var(--mkt-edt-leading-display);
+  letter-spacing: var(--mkt-edt-tracking-display);
+  font-weight: 600;
+  margin: 0 0 1.25rem;
+  color: var(--mkt-th-ink);
+}
+
+.mkt-th-portal__headline em {
+  font-style: italic;
+  color: var(--mkt-th-accent);
+}
+
+.mkt-th-portal__lead {
+  font-size: clamp(1.05rem, 1.5vw + 0.5rem, 1.35rem);
+  line-height: 1.55;
+  color: var(--mkt-th-ink-muted);
+  max-width: 42ch;
+  margin: 0 auto 2rem;
+}
+
+.mkt-th-portal__doors {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+  margin-bottom: 2rem;
+}
+
+.mkt-th-door {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 5.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--mkt-th-radius-xl);
+  border: 1px solid var(--mkt-th-line);
+  background: color-mix(in oklab, var(--mkt-th-cream) 88%, var(--mkt-th-aurora));
+  text-decoration: none;
+  color: var(--mkt-th-ink);
+  transition: transform var(--mkt-th-motion) var(--mkt-th-ease),
+    border-color var(--mkt-th-motion),
+    box-shadow var(--mkt-th-motion);
+}
+
+.mkt-th-door:hover,
+.mkt-th-door:focus-visible {
+  transform: translateY(-4px) scale(1.03);
+  border-color: color-mix(in oklab, var(--mkt-th-aurora) 40%, transparent);
+  box-shadow: var(--mkt-th-shadow);
+  outline: none;
+}
+
+.mkt-th-door__sigil {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  background: color-mix(in oklab, var(--door-color, var(--mkt-th-aurora)) 22%, transparent);
+  color: var(--door-color, var(--mkt-th-aurora));
+}
+
+.mkt-th-door__label {
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.mkt-th-door[data-door="run"] { --door-color: #6366f1; }
+.mkt-th-door[data-door="teach"] { --door-color: #8b5cf6; }
+.mkt-th-door[data-door="pay"] { --door-color: #059669; }
+.mkt-th-door[data-door="communicate"] { --door-color: #0ea5e9; }
+.mkt-th-door[data-door="govern"] { --door-color: #d97706; }
+.mkt-th-door[data-door="grow"] { --door-color: #db2777; }
+
+.mkt-th-portal__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+/* ── Proof monument strip ── */
+.mkt-th-monument {
+  padding: clamp(3rem, 6vw, 5rem) clamp(1.25rem, 4vw, 2.5rem);
+  background: var(--mkt-th-void);
+  color: var(--mkt-th-cream);
+}
+
+.mkt-th-monument__inner {
+  max-width: 72rem;
+  margin-inline: auto;
+}
+
+.mkt-th-monument__title {
+  font-family: var(--mkt-edt-font-display);
+  font-size: var(--mkt-edt-type-display);
+  line-height: 1.08;
+  margin: 0 0 2rem;
+  text-align: center;
+}
+
+.mkt-th-monument__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.mkt-th-monument__cell {
+  padding: 1.25rem;
+  border-radius: var(--mkt-th-radius-xl);
+  border: 1px solid var(--mkt-th-line-light);
+  background: color-mix(in oklab, var(--mkt-th-void-soft) 80%, var(--mkt-th-aurora));
+}
+
+.mkt-th-monument__value {
+  display: block;
+  font-family: var(--mkt-edt-font-display);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--mkt-th-accent-glow);
+}
+
+.mkt-th-monument__label {
+  font-size: 0.875rem;
+  color: color-mix(in oklab, var(--mkt-th-cream) 72%, transparent);
+}
+
+/* ── Living sim band (reuse storefront sections) ── */
+[data-mkt-edition="threshold-era"] .mkt-edt-section {
+  padding-block: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-edt-hero-headline,
+[data-mkt-edition="threshold-era"] .mkt-v3-hero-headline {
+  font-family: var(--mkt-edt-font-display);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-edt-hero--edge {
+  background: var(--mkt-th-cream);
+}
+
+/* ── Inner pages: typographic monument ── */
+[data-mkt-edition="threshold-era"] .marketing-page-hero h1,
+[data-mkt-edition="threshold-era"] .mkt-page-hero h1,
+[data-mkt-edition="threshold-era"] .mkt-inner-hero h1 {
+  font-family: var(--mkt-edt-font-display);
+  font-size: var(--mkt-edt-type-display);
+  letter-spacing: var(--mkt-edt-tracking-display);
+  line-height: 1.08;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-card,
+[data-mkt-edition="threshold-era"] .rmc-card,
+[data-mkt-edition="threshold-era"] .card {
+  border-radius: var(--mkt-th-radius-xl);
+  border-color: var(--mkt-th-line);
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--mkt-th-ink) 4%, transparent);
+}
+
+/* ── Footer: editorial monument ── */
+[data-mkt-edition="threshold-era"] .mkt-footer,
+[data-mkt-edition="threshold-era"] .mkt-corporate-footer {
+  background: var(--mkt-th-void);
+  color: var(--mkt-th-cream);
+  border-top: 1px solid var(--mkt-th-line-light);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer h2,
+[data-mkt-edition="threshold-era"] .mkt-footer-command__intro h2 {
+  font-family: var(--mkt-edt-font-display);
+  font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+  line-height: 1.12;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer-proof-card,
+[data-mkt-edition="threshold-era"] .mkt-footer-action {
+  border-radius: var(--mkt-th-radius-xl);
+  border-color: var(--mkt-th-line-light);
+  transition: transform 0.25s var(--mkt-th-ease), border-color 0.25s;
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer-proof-card:hover,
+[data-mkt-edition="threshold-era"] .mkt-footer-action:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in oklab, var(--mkt-th-accent-glow) 40%, transparent);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-footer-route-stack a {
+  border-radius: var(--mkt-th-radius-xl);
+  background: color-mix(in oklab, var(--mkt-th-void-soft) 70%, var(--mkt-th-aurora));
+}
+
+/* ── Scroll reveal ── */
+[data-mkt-edition="threshold-era"] .mkt-th-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s var(--mkt-th-ease), transform 0.7s var(--mkt-th-ease);
+}
+
+[data-mkt-edition="threshold-era"] .mkt-th-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-mkt-edition="threshold-era"] .mkt-th-heartbeat {
+    animation: none;
+    opacity: 0.35;
+  }
+  [data-mkt-edition="threshold-era"] .mkt-th-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .mkt-th-portal__doors {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .mkt-th-door {
+    min-width: 0;
+    padding: 0.65rem 0.5rem;
+  }
+}

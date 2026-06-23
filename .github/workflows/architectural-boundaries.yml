@@ -47,6 +47,9 @@ on:
       - "scripts/scan_pwa_manifest_coverage.py"
       - "scripts/verify_sentry_alert_rule_drift.py"
       - "scripts/audit_template_render_safety.py"
+      - "scripts/verify_template_tag_loads.py"
+      - "var/security-audit-baseline-template-tag-loads.json"
+      - "templates/**/*.html"
       - "scripts/scan_inline_style_off_token.py"
       - "scripts/scan_undefined_css_classes.py"
       - "scripts/scan_off_token_colors.py"
@@ -969,6 +972,20 @@ jobs:
         #   - {% static %} pointing to a missing file under static/
         run: |
           python scripts/audit_template_render_safety.py --compare
+
+  template-tag-loads:
+    name: "Template custom tag {% load %} integrity"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run verifier --compare
+        run: |
+          python scripts/verify_template_tag_loads.py --compare
 
   inline-style-off-token:
     name: "Apple HIG: inline styles off the token system"

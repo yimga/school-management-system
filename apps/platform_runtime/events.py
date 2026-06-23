@@ -580,7 +580,7 @@ def emit_platform_event(
     """
     Log-only emit (no pub/sub). For full fan-out use :func:`apps.platform_runtime.event_bus.publish_event`.
     """
-    return persist_platform_event(
+    result = persist_platform_event(
         event_type,
         payload,
         tenant_id=tenant_id,
@@ -588,6 +588,18 @@ def emit_platform_event(
         idempotency_key=idempotency_key,
         require_catalog=True,
     )
+    if result is not None:
+        try:
+            from apps.siteconfig.operator_fleet_snapshot import (
+                FLEET_PULSE_EVENT_TYPES,
+                bump_operator_fleet_revision,
+            )
+
+            if event_type in FLEET_PULSE_EVENT_TYPES:
+                bump_operator_fleet_revision()
+        except Exception:
+            logger.debug("operator_fleet: revision hook skipped", exc_info=True)
+    return result
 
 
 def get_event_catalog() -> Dict[str, Dict[str, Any]]:

@@ -1,0 +1,92 @@
+{% comment %}
+  Threshold · Parent Window — opt-in via cockpit.threshold_parent_window.enabled.
+  Design lab: var/design-previews/tenant-campus-pulse-wow-lab-browsable.html
+  Wired to child_cards, finance URLs, parent_upcoming_events.
+{% endcomment %}
+{% load i18n static region_format %}
+
+{% if cockpit.threshold_parent_window.enabled and links %}
+<link rel="stylesheet" href="{% static 'css/rmc-threshold-parent-window.css' %}">
+<section class="rmc-threshold-parent container-fluid px-3 px-lg-4" data-rmc-threshold-parent data-rmc-scroll-policy="paginate" aria-label="{% trans 'Family window view' %}">
+
+  <header class="rmc-threshold-parent__header">
+    <p class="rmc-threshold-parent__kicker">{% trans "The Window" %}</p>
+    <h2 class="rmc-threshold-parent__title">{% trans "Watch their day pass by" %}</h2>
+    <p class="rmc-threshold-parent__sub">{% trans "Calm scenery means all clear. Tap a clouded pane to pay or follow up." %}</p>
+  </header>
+
+  <div class="rmc-threshold-parent__windows">
+    {% for card in child_cards %}
+    {% with student=card.link.student %}
+    {% url 'portal:parent_child_results' student.id as child_results_url %}
+    {% if can_view_finance and card.finance_balance and card.finance_balance > 0 %}
+    <a class="rmc-threshold-parent__window rmc-threshold-parent__window--alert is-focused"
+       href="{% url 'portal:parent_finance' %}"
+       data-rmc-tw-window="{{ student.id }}"
+       aria-label="{% blocktrans with name=student.get_full_name %}Reach through for {{ name }} — fees due{% endblocktrans %}">
+      <div class="rmc-threshold-parent__scenery" aria-hidden="true"></div>
+      <canvas class="rmc-threshold-parent__rain" data-rmc-tw-rain width="220" height="280" aria-hidden="true"></canvas>
+      <div class="rmc-threshold-parent__glass">
+        <span class="rmc-threshold-parent__name">{{ student.get_full_name }}</span>
+        <span class="rmc-threshold-parent__state">
+          {% blocktrans with amt=card.finance_balance|format_currency %}Balance due · {{ amt }}{% endblocktrans %}
+        </span>
+      </div>
+    </a>
+    {% else %}
+    <a class="rmc-threshold-parent__window rmc-threshold-parent__window--calm"
+       href="{{ child_results_url }}"
+       data-rmc-tw-window="{{ student.id }}"
+       aria-label="{% blocktrans with name=student.get_full_name %}View {{ name }} — all clear{% endblocktrans %}">
+      <div class="rmc-threshold-parent__scenery" aria-hidden="true"></div>
+      <div class="rmc-threshold-parent__glass">
+        <span class="rmc-threshold-parent__name">{{ student.get_full_name }}</span>
+        <span class="rmc-threshold-parent__state">
+          {% if card.attendance >= 80 %}
+            {% blocktrans with pct=card.attendance %}In school · {{ pct }}% attendance{% endblocktrans %}
+          {% else %}
+            {% blocktrans with pct=card.attendance %}Attendance watch · {{ pct }}%{% endblocktrans %}
+          {% endif %}
+          {% if card.missing_work %}
+            · {% blocktrans count n=card.missing_work %}{{ n }} task due{% plural %}{{ n }} tasks due{% endblocktrans %}
+          {% endif %}
+        </span>
+      </div>
+    </a>
+    {% endif %}
+    {% endwith %}
+    {% endfor %}
+  </div>
+
+  <div class="rmc-threshold-parent__rail" role="status">
+    <span class="is-on">{% trans "All linked children accounted for today" %}</span>
+    {% if parent_upcoming_events %}
+    <span>·</span>
+    <span>{{ parent_upcoming_events.0.title|truncatechars:28 }}{% if parent_upcoming_events.0.when %} · {{ parent_upcoming_events.0.when|date:"M j" }}{% endif %}</span>
+    {% endif %}
+    {% if unread_messages_aggregate %}
+    <span>·</span>
+    <span>{% blocktrans count n=unread_messages_aggregate %}{{ n }} unread message{% plural %}{{ n }} unread messages{% endblocktrans %}</span>
+    {% endif %}
+  </div>
+
+  <div class="rmc-threshold-parent__actions">
+    {% if can_view_finance and has_fees_due %}
+    {% for card in child_cards %}
+    {% if card.finance_balance and card.finance_balance > 0 %}
+    <a class="rmc-threshold-parent__btn rmc-threshold-parent__btn--primary"
+       href="{% url 'portal:parent_finance' %}"
+       data-rmc-tw-primary-due="{{ card.link.student.id }}">
+      <i class="bi bi-credit-card" aria-hidden="true"></i>
+      {% blocktrans with name=card.link.student.first_name %}Reach through · pay {{ name }}{% endblocktrans %}
+    </a>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+    <a class="rmc-threshold-parent__btn rmc-threshold-parent__btn--secondary" href="{% url 'portal:parent_contact_school' %}">
+      <i class="bi bi-chat-dots" aria-hidden="true"></i> {% trans "Message school" %}
+    </a>
+  </div>
+</section>
+<script src="{% static 'js/rmc-threshold-parent-window.js' %}" defer nonce="{{ csp_nonce }}"></script>
+{% endif %}

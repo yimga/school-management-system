@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -385,6 +386,50 @@ class AdminDashboardWeatherApiTests(TestCase):
         self.assertFalse(payload.get("enabled"))
         self.assertIsNone(payload.get("weather"))
         mocked_get.assert_not_called()
+
+    def test_weather_context_api_skips_provider_when_coords_unset(self):
+        self._set_weather_flags(
+            show_header_context_weather=True,
+            header_weather_latitude=0.0,
+            header_weather_longitude=0.0,
+        )
+
+        with patch("apps.observability.views.requests.get") as mocked_get:
+            response = self.client.get(reverse("api_weather_context"))
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload.get("status"), "degraded")
+        self.assertTrue(payload.get("enabled"))
+        self.assertIsNone(payload.get("weather"))
+        mocked_get.assert_not_called()
+
+    def test_weather_context_api_backs_off_after_rate_limit(self):
+        self._set_weather_flags(
+            show_header_context_weather=True,
+            header_weather_latitude=4.1527,
+            header_weather_longitude=9.241,
+            header_weather_temperature_unit="celsius",
+            header_weather_timezone="Africa/Douala",
+            header_weather_label="Buea, Cameroon",
+        )
+
+        rate_limited = Mock()
+        rate_limited.status_code = 429
+        http_error = requests.HTTPError("429 Too Many Requests", response=rate_limited)
+        rate_limited.raise_for_status.side_effect = http_error
+
+        with patch(
+            "apps.observability.views.requests.get", return_value=rate_limited
+        ) as mocked_get:
+            first = self.client.get(reverse("api_weather_context"))
+            second = self.client.get(reverse("api_weather_context"))
+
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(first.json().get("status"), "degraded")
+        self.assertEqual(second.json().get("status"), "degraded")
+        self.assertEqual(mocked_get.call_count, 1)
 
 
 class AdminDashboardAccessibilityContractTests(TestCase):

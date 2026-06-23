@@ -1,0 +1,118 @@
+{% load i18n %}
+<section class="mkt-asc-day" id="asc-day" aria-labelledby="asc-day-title">
+  <div class="mkt-asc-day__thread" aria-hidden="true"><div class="mkt-asc-day__thread-fill" id="asc-day-thread"></div></div>
+  <p class="mkt-asc-day__clock" id="asc-day-clock" aria-live="polite">6:45</p>
+  <h2 id="asc-day-title" class="visually-hidden">{% trans "One school day on RunMyCampus" %}</h2>
+  <nav class="mkt-asc-day__sticky" aria-label="{% trans 'Day chapters' %}">
+    <button type="button" class="mkt-asc-day__chip is-active" data-ch="ch-run">6:45 {% trans "Run" %}</button>
+    <button type="button" class="mkt-asc-day__chip" data-ch="ch-talk">8:14 {% trans "Talk" %}</button>
+    <button type="button" class="mkt-asc-day__chip" data-ch="ch-teach">10:00 {% trans "Teach" %}</button>
+    <button type="button" class="mkt-asc-day__chip" data-ch="ch-pay">14:30 {% trans "Pay" %}</button>
+    <button type="button" class="mkt-asc-day__chip" data-ch="ch-govern">16:00 {% trans "Govern" %}</button>
+    <button type="button" class="mkt-asc-day__chip" data-ch="ch-grow">17:30 {% trans "Grow" %}</button>
+  </nav>
+
+  <article class="mkt-asc-chapter" id="ch-run" data-asc-time="6:45">
+    <div>
+      <p class="mkt-asc-chapter__time">6:45 · {% trans "Admissions pulse" %}</p>
+      <h3 class="mkt-asc-chapter__title">{% trans "Inquiry becomes enrollment — no re-entry" %}</h3>
+      <p class="mkt-asc-chapter__body">{% trans "While legacy SIS tools treat admissions as a separate product bolted on, RunMyCampus carries the same student thread from campaign form to roster. Region-aware terms, currency, and compliance follow automatically." %}</p>
+      <div id="asc-region-out" class="mkt-asc-region-out"></div>
+      <a href="#mkt-sovereign-kernel" class="mkt-asc-chapter__link">{% trans "Run the sovereign sim" %} →</a>
+    </div>
+    <div class="mkt-asc-chapter__viz mkt-asc-chapter__viz--sov">
+      <div class="mkt-asc-sov-grid" aria-hidden="true"></div>
+      <p class="mkt-asc-chapter__viz-kicker">{% trans "Deployment matrix · pick region in header" %}</p>
+      <p class="mkt-asc-chapter__viz-headline">{% trans "One record. Six verbs. Zero swivel chair." %}</p>
+    </div>
+  </article>
+
+  <article class="mkt-asc-chapter" id="ch-talk" data-asc-time="8:14">
+    <div>
+      <p class="mkt-asc-chapter__time">8:14 · {% trans "Parent window" %}</p>
+      <h3 class="mkt-asc-chapter__title">{% trans "The message a parent opens before coffee cools" %}</h3>
+      <p class="mkt-asc-chapter__body">{% trans "Not a portal buried under tabs — fee posture, attendance, and teacher thread in one calm surface. Competitors send parents to three apps; RunMyCampus sends one push with context." %}</p>
+      <a href="{% url 'marketing_intent_homepage' %}" class="mkt-asc-chapter__link">{% trans "See parent storefront" %} →</a>
+    </div>
+    <div class="mkt-asc-chapter__viz">
+      <div class="mkt-asc-parent-cards">
+        <div class="mkt-asc-parent-card mkt-asc-parent-card--calm">
+          <strong>Amina</strong>
+          <span>{% trans "All clear · 94% attendance" %}</span>
+        </div>
+        <div class="mkt-asc-parent-card mkt-asc-parent-card--due">
+          <strong>Kwame</strong>
+          <span>{% trans "Balance due · tap to pay" %}</span>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <article class="mkt-asc-chapter" id="ch-teach" data-asc-time="10:00">
+    <div>
+      <p class="mkt-asc-chapter__time">10:00 · {% trans "Classroom stage" %}</p>
+      <h3 class="mkt-asc-chapter__title">{% trans "One gradebook, every framework" %}</h3>
+      <p class="mkt-asc-chapter__body">{% trans "Toddle owns IB workflows but stops at the wall. Arbor excels at UK registers. RunMyCampus morphs the same underlying record across US, IB, and competency scales — zero layout break." %}</p>
+      <a href="#mkt-fluid-classroom" class="mkt-asc-chapter__link">{% trans "Open fluid classroom sim" %} →</a>
+    </div>
+    <div class="mkt-asc-chapter__viz">
+      <div class="mkt-asc-grade-btns" role="group" aria-label="{% trans 'Grade scale preview' %}">
+        <button type="button" data-grade-scale="US" class="is-active">US %</button>
+        <button type="button" data-grade-scale="IB">IB 1–7</button>
+        <button type="button" data-grade-scale="CM">{% trans "Competency" %}</button>
+      </div>
+      <div id="asc-grade-out" class="mkt-asc-grade-out">A- · 92% · {% trans "Honor roll" %}</div>
+    </div>
+  </article>
+
+  <article class="mkt-asc-chapter" id="ch-pay" data-asc-time="14:30">
+    <div>
+      <p class="mkt-asc-chapter__time">14:30 · {% trans "Clinical ledger" %}</p>
+      <h3 class="mkt-asc-chapter__title">{% trans "Fees split the way your region actually pays" %}</h3>
+      <p class="mkt-asc-chapter__body">{% trans "Card-only gateways fail unbanked families. Bolt-on invoicing fails auditors. RunMyCampus routes tuition, transport, and lunch with region-aware rails — Pix, M-Pesa, SPEI, and more in one ledger." %}</p>
+      <a href="#mkt-clinical-ledger" class="mkt-asc-chapter__link">{% trans "Run split-ledger sim" %} →</a>
+    </div>
+    <div class="mkt-asc-chapter__viz">
+      <button type="button" id="asc-split-run" class="mkt-asc-cta mkt-asc-cta--primary mkt-asc-cta--compact">{% trans "Animate split" %}</button>
+      <div class="mkt-asc-sim-bar" aria-hidden="true">
+        <span class="mkt-asc-split-bar" data-w="80" style="width:80%"></span>
+        <span class="mkt-asc-split-bar" data-w="10" style="width:10%"></span>
+        <span class="mkt-asc-split-bar" data-w="10" style="width:10%"></span>
+      </div>
+      <p class="mkt-asc-split-caption">80 / 10 / 10 · {% trans "tuition · transport · lunch" %}</p>
+    </div>
+  </article>
+
+  <article class="mkt-asc-chapter" id="ch-govern" data-asc-time="16:00">
+    <div>
+      <p class="mkt-asc-chapter__time">16:00 · {% trans "Rugged terminal" %}</p>
+      <h3 class="mkt-asc-chapter__title">{% trans "When the cloud dies, school doesn't" %}</h3>
+      <p class="mkt-asc-chapter__body">{% trans "Load-shedding, fiber cuts, rural latency — competitors go dark. RunMyCampus queues attendance and marks locally, then reconciles with honest conflict flags when connectivity returns." %}</p>
+      <a href="#mkt-rugged-engine" class="mkt-asc-chapter__link">{% trans "Simulate network drop" %} →</a>
+    </div>
+    <div class="mkt-asc-chapter__viz mkt-asc-chapter__viz--mono">
+      <button type="button" id="asc-net-toggle" class="mkt-asc-cta mkt-asc-cta--ghost mkt-asc-cta--compact">{% trans "Simulate drop" %}</button>
+      <p id="asc-net-label" class="mkt-asc-net-label">{% trans "Fiber · sync queue idle" %}</p>
+      <pre class="mkt-asc-net-pre">queue: 0 pending
+ussd: standby
+rfid: armed</pre>
+    </div>
+  </article>
+
+  <article class="mkt-asc-chapter" id="ch-grow" data-asc-time="17:30">
+    <div>
+      <p class="mkt-asc-chapter__time">17:30 · {% trans "Leadership grow" %}</p>
+      <h3 class="mkt-asc-chapter__title">{% trans "Analytics that defend themselves in board review" %}</h3>
+      <p class="mkt-asc-chapter__body">{% trans "Multi-campus groups need roll-ups without crushing local autonomy. One governance layer, campus calendars intact, audit trails operators can actually export." %}</p>
+      <a href="#mkt-simulations-hub" class="mkt-asc-chapter__link">{% trans "Browse all simulations" %} →</a>
+    </div>
+    <div class="mkt-asc-chapter__viz">
+      <div class="mkt-asc-grow-grid">
+        <div class="mkt-asc-grow-stat"><strong>98%</strong><span>{% trans "collection" %}</span></div>
+        <div class="mkt-asc-grow-stat"><strong>12</strong><span>{% trans "campuses" %}</span></div>
+        <div class="mkt-asc-grow-stat"><strong>0</strong><span>{% trans "unscoped queries" %}</span></div>
+      </div>
+      <p class="mkt-asc-honest">{% trans "Illustrative ranges · your metrics after go-live" %}</p>
+    </div>
+  </article>
+</section>

@@ -1,0 +1,59 @@
+{% comment %}
+  Threshold Era portal hero — six marketing doors (Run · Teach · Pay · Communicate · Govern · Grow).
+{% endcomment %}
+{% load i18n %}
+<section class="mkt-th-portal mkt-th-reveal" aria-labelledby="mkt-th-portal-headline">
+  <div class="mkt-th-portal__frame">
+    <p class="mkt-th-portal__eyebrow">{% trans "Cross the threshold" %}</p>
+    <h1 id="mkt-th-portal-headline" class="mkt-th-portal__headline">
+      {% if marketing_local.headline_lead %}
+        {{ marketing_local.headline_lead }}
+      {% else %}
+        {% trans "The education OS you" %} <em>{% trans "feel" %}</em> {% trans "before you deploy" %}
+      {% endif %}
+    </h1>
+    <p class="mkt-th-portal__lead">
+      {% if marketing_local.hero_subline %}
+        {{ marketing_local.hero_subline }}
+      {% else %}
+        {% trans "Admissions, classrooms, fees, and parent messages — one quiet system behind every door. Pick your path." %}
+      {% endif %}
+    </p>
+
+    <nav class="mkt-th-portal__doors" aria-label="{% trans 'Platform paths' %}">
+      <a class="mkt-th-door" href="{% url 'marketing_platform' %}" data-door="run">
+        <span class="mkt-th-door__sigil" aria-hidden="true"><i class="bi bi-lightning-charge"></i></span>
+        <span class="mkt-th-door__label">{% trans "Run" %}</span>
+      </a>
+      <a class="mkt-th-door" href="{% url 'marketing_platform_teacher_portal' %}" data-door="teach">
+        <span class="mkt-th-door__sigil" aria-hidden="true"><i class="bi bi-mortarboard"></i></span>
+        <span class="mkt-th-door__label">{% trans "Teach" %}</span>
+      </a>
+      <a class="mkt-th-door" href="{% url 'marketing_platform_fees_payments' %}" data-door="pay">
+        <span class="mkt-th-door__sigil" aria-hidden="true"><i class="bi bi-wallet2"></i></span>
+        <span class="mkt-th-door__label">{% trans "Pay" %}</span>
+      </a>
+      <a class="mkt-th-door" href="{% url 'marketing_platform_communications' %}" data-door="communicate">
+        <span class="mkt-th-door__sigil" aria-hidden="true"><i class="bi bi-chat-heart"></i></span>
+        <span class="mkt-th-door__label">{% trans "Communicate" %}</span>
+      </a>
+      <a class="mkt-th-door" href="{% url 'marketing_trust_center' %}" data-door="govern">
+        <span class="mkt-th-door__sigil" aria-hidden="true"><i class="bi bi-shield-check"></i></span>
+        <span class="mkt-th-door__label">{% trans "Govern" %}</span>
+      </a>
+      <a class="mkt-th-door" href="{% url 'marketing_grow_hub' %}" data-door="grow">
+        <span class="mkt-th-door__sigil" aria-hidden="true"><i class="bi bi-graph-up-arrow"></i></span>
+        <span class="mkt-th-door__label">{% trans "Grow" %}</span>
+      </a>
+    </nav>
+
+    <div class="mkt-th-portal__ctas">
+      <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta mkt-edt-cta--primary rmc-tactile-48" data-cta="demo" data-page="threshold-home">
+        {% trans "Book a demo" %}
+      </a>
+      <a href="{% url 'marketing_intent_homepage' %}" class="mkt-edt-cta mkt-edt-cta--ghost rmc-tactile-48">
+        {% trans "Try live simulations" %}
+      </a>
+    </div>
+  </div>
+</section>

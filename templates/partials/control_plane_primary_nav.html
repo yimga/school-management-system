@@ -14,7 +14,7 @@
                    header actions cluster, so we don't want it twice on one row). {% endcomment %}
 <nav class="cp-primary-nav rmc-horizontal-nav-rail{% if MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--admin-backoffice{% endif %}{% if not MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--control-plane{% endif %}{% if rail %} cp-primary-nav--rail{% endif %} px-3 py-2 border-bottom"{% if rail %} data-rmc-proximity-reveal="1"{% endif %} aria-label="{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans 'Platform backoffice navigation' %}{% else %}{% trans 'Primary product navigation' %}{% endif %}">
   {% comment %} v4.02.x: vertical-space management — show the first 5 primary pills inline and
-     fold the remainder into a native "More ▾" dropdown (details/summary, no JS, CSP-safe).
+     fold the remainder into a Bootstrap "More ▾" dropdown (Workspace parity).
      Keeps the nav to a single compact row that never wraps. {% endcomment %}
   {% for item in PRIMARY_CONTROL_PLANE_NAV %}
   {% if forloop.counter <= 5 %}
@@ -33,30 +33,46 @@
   {% endif %}
   {% endfor %}
   {% if PRIMARY_CONTROL_PLANE_NAV|length > 5 %}
-  <details class="cp-primary-nav__more" data-rmc-cp-nav-more="1">
-    <summary class="cp-primary-nav__pill cp-nav-pill cp-primary-nav__more-trigger" aria-label="{% trans 'More navigation' %}">
+  {% comment %} Bootstrap dropdown (same contract as Workspace) — native <details> toggled
+     open but ancestor overflow clipped the menu on /super/ and /admin/. {% endcomment %}
+  <div class="dropdown cp-primary-nav__more" data-rmc-cp-nav-more="1">
+    <button type="button"
+            class="cp-primary-nav__pill cp-nav-pill cp-primary-nav__more-trigger dropdown-toggle"
+            id="{% if rail %}cpPrimaryNavMoreRail{% else %}cpPrimaryNavMoreRow{% endif %}"
+            data-bs-toggle="dropdown"
+            data-bs-auto-close="true"
+            data-bs-boundary="viewport"
+            data-bs-display="static"
+            data-bs-offset="0,6"
+            aria-expanded="false"
+            aria-haspopup="true"
+            aria-label="{% trans 'More navigation' %}">
       <span class="cp-nav-pill__glyph" aria-hidden="true">⋯</span>
       <span class="rmc-text-container">{% trans "More" %}</span>
-    </summary>
-    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="cp-primary-nav__more-menu" role="menu" aria-label="{% trans 'More navigation items' %}">
+    </button>
+    <ul class="dropdown-menu dropdown-menu-dark cp-primary-nav__more-menu shadow"
+        role="menu"
+        aria-labelledby="{% if rail %}cpPrimaryNavMoreRail{% else %}cpPrimaryNavMoreRow{% endif %}"
+        aria-label="{% trans 'More navigation items' %}">
       {% for item in PRIMARY_CONTROL_PLANE_NAV %}
       {% if forloop.counter > 5 %}
-      <a href="{{ item.url }}"
-         class="cp-primary-nav__more-item{% if item.is_current %} cp-primary-nav__more-item--active{% endif %}"
-         {% if item.is_current %}aria-current="page"{% endif %}
-         role="menuitem" data-cp-primary-id="{{ item.id }}">
-        {% if item.glyph %}
-          <span class="cp-nav-pill__glyph" aria-hidden="true">{{ item.glyph }}</span>
-        {% elif item.icon %}
-          <i class="bi {{ item.icon }}" aria-hidden="true"></i>
-        {% endif %}
-        <span class="rmc-text-container">{% trans item.label %}</span>
-      </a>
+      <li role="none">
+        <a href="{{ item.url }}"
+           class="dropdown-item cp-primary-nav__more-item{% if item.is_current %} cp-primary-nav__more-item--active active{% endif %}"
+           {% if item.is_current %}aria-current="page"{% endif %}
+           role="menuitem" data-cp-primary-id="{{ item.id }}">
+          {% if item.glyph %}
+            <span class="cp-nav-pill__glyph" aria-hidden="true">{{ item.glyph }}</span>
+          {% elif item.icon %}
+            <i class="bi {{ item.icon }}" aria-hidden="true"></i>
+          {% endif %}
+          <span class="rmc-text-container">{% trans item.label %}</span>
+        </a>
+      </li>
       {% endif %}
       {% endfor %}
-    </div>
-  </details>
+    </ul>
+  </div>
   {% endif %}
   {% if not hide_security %}{% include "partials/rmc_security_posture_nav_button.html" %}{% endif %}
 </nav>
@@ -98,4 +114,54 @@
 })();
 </script>
 {% endif %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  document.querySelectorAll('[data-rmc-cp-nav-more]').forEach(function (wrap, idx) {
+    var btn = wrap.querySelector('[data-bs-toggle="dropdown"]');
+    var menu = wrap.querySelector('.dropdown-menu');
+    if (!btn || !menu) return;
+    // #region agent log
+    btn.addEventListener('click', function () {
+      fetch('http://127.0.0.1:7426/ingest/383483ef-728e-4a6f-8288-6731caa89dc7', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'f895ad' },
+        body: JSON.stringify({
+          sessionId: 'f895ad',
+          location: 'control_plane_primary_nav.html:more-click',
+          message: 'More dropdown click',
+          data: { idx: idx, ariaExpanded: btn.getAttribute('aria-expanded') },
+          timestamp: Date.now(),
+          hypothesisId: 'H1',
+          runId: 'pre-fix'
+        })
+      }).catch(function () {});
+    });
+    wrap.addEventListener('shown.bs.dropdown', function () {
+      var header = document.querySelector('.cp-header');
+      var unified = document.querySelector('.cp-header__unified-band');
+      var rect = menu.getBoundingClientRect();
+      fetch('http://127.0.0.1:7426/ingest/383483ef-728e-4a6f-8288-6731caa89dc7', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'f895ad' },
+        body: JSON.stringify({
+          sessionId: 'f895ad',
+          location: 'control_plane_primary_nav.html:more-shown',
+          message: 'More dropdown shown',
+          data: {
+            idx: idx,
+            menuHeight: rect.height,
+            menuTop: rect.top,
+            headerOverflow: header ? getComputedStyle(header).overflow : null,
+            unifiedOverflow: unified ? getComputedStyle(unified).overflow : null
+          },
+          timestamp: Date.now(),
+          hypothesisId: 'H2',
+          runId: 'pre-fix'
+        })
+      }).catch(function () {});
+    });
+    // #endregion
+  });
+})();
+</script>
 {% endif %}

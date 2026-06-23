@@ -2453,12 +2453,33 @@ def marketing_landing(request):
     ctx["marketing_proof_quote"] = dict(MARKETING_PROOF_QUOTE)
     from django.conf import settings
 
-    template = (
-        "marketing/homepage.html"
-        if getattr(settings, "MARKETING_INTENT_HOMEPAGE", False)
-        else "schools/marketing_landing_v2.html"
-    )
+    if getattr(settings, "MARKETING_THRESHOLD_ERA_ENABLED", False):
+        template = "marketing/threshold_era_home.html"
+    elif getattr(settings, "MARKETING_INTENT_HOMEPAGE", False):
+        template = "marketing/homepage.html"
+    else:
+        template = "schools/marketing_landing_v2.html"
     return render(request, template, ctx)
+
+
+@require_GET
+def marketing_threshold_era_preview(request):
+    """Stakeholder preview of Threshold Era home — always on, noindex."""
+    from apps.schools.funnel_events import record_marketing_funnel_event
+
+    record_marketing_funnel_event("visit", request)
+    geo_country = _get_country_from_request(request)
+    ctx = _marketing_context(
+        request,
+        country_code=geo_country,
+        language_code=(getattr(request, "LANGUAGE_CODE", "") or "en"),
+        regional=False,
+    )
+    ctx["marketing_threshold_era_preview"] = True
+    ctx["marketing_threshold_era_enabled"] = True
+    response = render(request, "marketing/threshold_era_home.html", ctx)
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    return response
 
 
 @require_GET

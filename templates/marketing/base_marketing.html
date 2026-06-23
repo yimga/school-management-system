@@ -12,6 +12,7 @@
       data-theme="light"
       data-rmc-density="standard"
       data-mkt-schoolhouse="true"
+      data-mkt-edition="{% if marketing_threshold_era_enabled|default:False %}threshold-era{% else %}editorial{% endif %}"
       style="{% if marketing_personality_accent_ink %}--mkt-personality-accent-ink: {{ marketing_personality_accent_ink }};{% endif %}{% if PUBLIC_BRAND_MODE %}--mkt-primary: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:platform_palette.hero_bg }}; --mkt-hero-bg: {{ PUBLIC_BRAND_PRIMARY_COLOR|default:platform_palette.hero_bg }}; --mkt-accent: {{ PUBLIC_BRAND_ACCENT_COLOR|default:platform_palette.warning }};{% endif %}">
 <head>
   <meta charset="utf-8">
@@ -64,10 +65,15 @@
   {% comment %} v3.62.10 Wave 9 local-first: marketing band (deferred — keeps blocking stylesheet count ≤5). {% endcomment %}
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/rmc-mkt-local-first-band.css" %}
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/marketing-consent.css" %}
+  {% if marketing_threshold_era_enabled|default:False %}
+  {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/tokens-threshold-era.css" %}
+  {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/mkt-threshold-era.css" %}
+  {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/mkt-ascension.css" %}
+  {% endif %}
   {% block extrastyle %}{% endblock %}
 </head>
 {% comment %} data-cta (primary|demo|secondary) and data-page (page slug or home|footer) on CTAs are for GTM/analytics conversion tracking. {% endcomment %}
-<body class="{% block body_class %}marketing-surface{% endblock %}{% if LANGUAGE_BIDI or is_rtl %} bidi-rtl{% else %} bidi-ltr{% endif %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="marketing" data-rmc-page-purpose="public-story" data-rmc-page-personality="{{ rmc_page_personality|default:'marketing' }}"{% block body_extra_attrs %} data-mkt-edition="editorial" data-mkt-section="{% with s=marketing_page_slug|default:'platform' %}{% if 'platform' in s or 'sis' in s or 'admissions' in s or 'attendance' in s or 'fees' in s or 'grading' in s or 'parent-portal' in s or 'teacher-portal' in s or 'student-portal' in s or 'communications' in s or 'analytics' in s or 'workflows' in s or 'offline' in s or 'security' in s %}platform{% elif 'solutions' in s or 'for-private' in s or 'for-school' in s or 'k12' in s or 'international' in s or 'multi-campus' in s or 'faith' in s or 'payments-readiness' in s %}solutions{% elif 'pricing' in s %}pricing{% elif 'resources' in s or 'developer' in s or 'blog' in s or 'guides' in s or 'case-studies' in s or 'help-center' in s or 'product-tour' in s %}resources{% elif 'trust' in s or 'compliance' in s %}trust{% elif 'migrate' in s or 'migration' in s %}migrate{% elif 'compare' in s %}compare{% elif 'company' in s or 'about' in s or 'contact' in s or 'demo' in s %}company{% else %}platform{% endif %}{% endwith %}"{% endblock %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+<body class="{% block body_class %}marketing-surface{% endblock %}{% if LANGUAGE_BIDI or is_rtl %} bidi-rtl{% else %} bidi-ltr{% endif %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="marketing" data-rmc-page-purpose="public-story" data-rmc-page-personality="{{ rmc_page_personality|default:'marketing' }}"{% block body_extra_attrs %} data-mkt-edition="{% if marketing_threshold_era_enabled|default:False %}threshold-era{% else %}editorial{% endif %}" data-mkt-section="{% with s=marketing_page_slug|default:'platform' %}{% if 'platform' in s or 'sis' in s or 'admissions' in s or 'attendance' in s or 'fees' in s or 'grading' in s or 'parent-portal' in s or 'teacher-portal' in s or 'student-portal' in s or 'communications' in s or 'analytics' in s or 'workflows' in s or 'offline' in s or 'security' in s %}platform{% elif 'solutions' in s or 'for-private' in s or 'for-school' in s or 'k12' in s or 'international' in s or 'multi-campus' in s or 'faith' in s or 'payments-readiness' in s %}solutions{% elif 'pricing' in s %}pricing{% elif 'resources' in s or 'developer' in s or 'blog' in s or 'guides' in s or 'case-studies' in s or 'help-center' in s or 'product-tour' in s %}resources{% elif 'trust' in s or 'compliance' in s %}trust{% elif 'migrate' in s or 'migration' in s %}migrate{% elif 'compare' in s %}compare{% elif 'company' in s or 'about' in s or 'contact' in s or 'demo' in s %}company{% else %}platform{% endif %}{% endwith %}"{% endblock %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
   {% comment %} Public marketing: no tenant launch splash (avoids CLS + wasted paint on cold acquisition traffic). {% endcomment %}
   <a href="#main-content" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
   {% comment %} Wave 9 (v3.62.10) local-first marketing band above header; hidden without country signal. {% endcomment %}
@@ -126,6 +132,10 @@
   <script src="{% static 'marketing/js/mkt-marketing-analytics.js' %}" defer></script>
   {% include 'marketing/partials/marketing_analytics.html' %}
   {% include "partials/rmc_tour_bootstrap_marketing.html" %}
+  {% if marketing_threshold_era_enabled|default:False %}
+  <script src="{% static 'marketing/js/mkt-threshold-era.js' %}" defer nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'marketing/js/mkt-ascension.js' %}" defer nonce="{{ csp_nonce }}"></script>
+  {% endif %}
   {% block extrajs %}{% endblock %}
 </body>
 </html>

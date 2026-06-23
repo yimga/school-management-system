@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMyCampus · Student Dashboard 100X — enrichment proposal (before / after)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  /* Navy dark theme — matches design-tokens.css [data-theme=dark] surfaces (W2 navy palette). */
+  :root{
+    --bg:#0b1020;--canvas:#0e1426;--elevated:#141c33;--overlay:#1a2342;
+    --hairline:rgba(255,255,255,.09);--text:#eef2ff;--text-2:#aab3d4;--text-3:#7b86ad;
+    --brand:#6366f1;--brand-2:#818cf8;--accent:#10b981;--warn:#f59e0b;--down:#fb7185;
+    --font:Inter,system-ui,-apple-system,sans-serif;--gap:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5}
+  .flag{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,var(--brand),#8b5cf6);color:#fff;font-weight:700;font-size:12px;text-align:center;padding:6px;letter-spacing:.02em}
+  .wrap{max-width:1180px;margin:42px auto 60px;padding:0 20px}
+  .lede{border:1px solid var(--hairline);border-radius:16px;padding:18px 20px;margin-bottom:22px;background:linear-gradient(135deg,color-mix(in oklab,var(--elevated) 86%,var(--brand)),var(--elevated))}
+  .lede h1{margin:0 0 6px;font-size:20px;font-weight:760}
+  .lede p{margin:0;color:var(--text-2);max-width:78ch}
+  .lede .why{margin-top:10px;font-size:13px;color:var(--text-3)}
+  .lede code{background:rgba(255,255,255,.07);padding:1px 6px;border-radius:5px;font-size:12px;color:var(--brand-2)}
+  .split{display:grid;grid-template-columns:1fr;gap:18px}
+  .col-flag{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:6px 0 10px}
+  .col-flag.before{color:var(--text-3)}
+  .col-flag.after{color:var(--accent)}
+  .col-flag .dot{width:9px;height:9px;border-radius:50%}
+  .col-flag.before .dot{background:var(--text-3)}
+  .col-flag.after .dot{background:var(--accent)}
+  .frame{border:1px solid var(--hairline);border-radius:18px;background:var(--bg);padding:16px;box-shadow:0 18px 44px rgba(0,0,0,.34)}
+  .frame.after{border-color:rgba(16,185,129,.3)}
+
+  /* ---- rmc-dh grammar reproduction ---- */
+  .dh-hero{display:flex;align-items:center;gap:16px;border:1px solid var(--hairline);border-radius:16px;padding:18px;margin-bottom:var(--gap);background:linear-gradient(135deg,color-mix(in oklab,var(--elevated) 88%,var(--brand)),var(--elevated))}
+  .dh-hero__body{flex:1}
+  .dh-hero .eyebrow{font-size:11px;color:var(--text-3);margin:0 0 4px;text-transform:uppercase;letter-spacing:.05em}
+  .dh-hero h2{margin:0 0 5px;font-size:20px;font-weight:750}
+  .dh-hero .sub{margin:0;color:var(--text-2);font-size:13px}
+  .ring{width:74px;height:74px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;
+    background:conic-gradient(var(--accent) calc(var(--p,0)*1%),rgba(255,255,255,.08) 0)}
+  .ring__in{width:56px;height:56px;border-radius:50%;background:var(--elevated);display:grid;place-items:center;font-weight:750;font-size:15px}
+  .ring__cap{font-size:9px;color:var(--text-3);display:block;text-align:center;margin-top:-2px;font-weight:600}
+  .tag{font-size:10px;font-weight:700;text-transform:uppercase;padding:4px 9px;border-radius:999px;align-self:flex-start}
+  .tag--good{background:rgba(16,185,129,.16);color:#6ee7b7;border:1px solid rgba(16,185,129,.34)}
+
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:var(--gap)}
+  @media(max-width:560px){.tiles{grid-template-columns:repeat(2,1fr)}}
+  .tile{border:1px solid var(--hairline);border-radius:13px;padding:12px;background:var(--canvas)}
+  .tile .ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:rgba(99,102,241,.16);color:var(--brand-2);margin-bottom:8px}
+  .tile .k{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em}
+  .tile .v{font-size:21px;font-weight:760;margin:1px 0}
+  .tile .d{font-size:11px;color:var(--text-2)}
+  .tile .d.up{color:#6ee7b7}.tile .d.down{color:var(--down)}
+
+  .aicard{display:flex;gap:12px;border:1px solid rgba(99,102,241,.3);border-radius:14px;padding:14px;margin-bottom:var(--gap);background:rgba(99,102,241,.08)}
+  .aicard .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--brand);color:#fff;flex:0 0 auto}
+  .aicard h4{margin:0 0 3px;font-size:14px}
+  .aicard p{margin:0 0 8px;font-size:13px;color:var(--text-2)}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{font-size:12px;font-weight:600;padding:6px 11px;border-radius:9px;border:1px solid var(--hairline);color:var(--brand-2);text-decoration:none;background:var(--canvas)}
+  .chip--primary{background:var(--brand);color:#fff;border-color:transparent}
+
+  .attn{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.32);border-radius:14px;padding:13px 14px;margin-bottom:var(--gap)}
+  .attn h3{margin:0 0 9px;font-size:14px;color:var(--warn);display:flex;align-items:center;gap:7px}
+  .attn__row{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--hairline);font-size:13px}
+  .attn__row:first-of-type{border-top:0}
+  .attn__row .go{margin-left:auto;font-size:12px;font-weight:600;color:var(--brand-2);text-decoration:none}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+  @media(max-width:680px){.grid2{grid-template-columns:1fr}}
+  .panel{border:1px solid var(--hairline);border-radius:14px;background:var(--canvas);padding:13px 14px;margin-bottom:var(--gap)}
+  .panel__head{display:flex;align-items:center;gap:8px;margin:0 0 11px;font-size:14px;font-weight:650}
+  .panel__head .more{margin-left:auto;font-size:12px;font-weight:600;color:var(--brand-2);text-decoration:none}
+  .panel__head i{color:var(--brand-2)}
+
+  .tt{display:flex;align-items:center;gap:11px;padding:8px 0;border-top:1px solid var(--hairline);font-size:13px}
+  .tt:first-of-type{border-top:0}
+  .tt .when{font-size:11px;color:var(--text-3);width:52px;flex:0 0 auto;font-variant-numeric:tabular-nums}
+  .tt .now{color:#6ee7b7;font-weight:700}
+  .tt .room{margin-left:auto;font-size:11px;color:var(--text-3)}
+
+  .due{display:flex;align-items:center;gap:9px;padding:7px 0;font-size:13px;border-top:1px solid var(--hairline)}
+  .due:first-of-type{border-top:0}
+  .due i{color:var(--warn)}
+  .due .cd{margin-left:auto;font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums}
+
+  .res{margin:9px 0}
+  .res__row{display:flex;align-items:center;gap:9px;font-size:12px;margin-bottom:7px}
+  .res__row .lbl{width:84px;flex:0 0 auto;color:var(--text-2)}
+  .res__bar{flex:1;height:7px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden}
+  .res__bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--brand),var(--brand-2))}
+  .res__pct{width:46px;flex:0 0 auto;text-align:right;font-weight:650;font-variant-numeric:tabular-nums}
+
+  .tl{list-style:none;margin:0;padding:0}
+  .tl li{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:13px;color:var(--text-2)}
+  .tl .t{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.18);flex:0 0 auto}
+  .tl .t--done{background:var(--accent)}
+  .tl .w{margin-left:auto;font-size:11px;color:var(--text-3)}
+
+  .empty{border:1px dashed var(--hairline);border-radius:10px;padding:14px;text-align:center;color:var(--text-3);font-size:13px}
+
+  .gov{margin-top:22px;border:1px dashed rgba(99,102,241,.4);border-radius:14px;padding:16px 18px;background:rgba(99,102,241,.06)}
+  .gov h3{margin:0 0 10px;font-size:15px}
+  .gov ul{margin:0;padding-left:20px;color:var(--text-2);font-size:13px}
+  .gov li{margin:5px 0}
+  .gov b{color:var(--text)}
+  .gov .pill{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:rgba(16,185,129,.16);color:#6ee7b7;margin-right:6px}
+  .gov .pill--gate{background:rgba(245,158,11,.16);color:var(--warn)}
+</style>
+</head>
+<body>
+<div class="flag">STUDENT DASHBOARD 100X · enrichment proposal · before vs after · approve a style before any code ships</div>
+
+<div class="wrap">
+
+  <div class="lede">
+    <h1>Closing the last gap: the student dashboard is data-thin</h1>
+    <p>
+      Parent, teacher and admin role-homes are data-rich. The student role-home is honest but hollow —
+      its view (<code>student_learning_home</code>) only fetches the homeroom name and the unread-message
+      count, so the premium grammar renders two tiles and a static "next actions" list. To be
+      best-in-class for the student, the <b>view must surface the data the student is already entitled
+      to see</b>: today's timetable, their own attendance, upcoming work, and (when published) results.
+    </p>
+    <p class="why">
+      Same <code>.rmc-dh</code> grammar already shipped — no new component CSS. The change is a
+      data-aware view + a richer include. Nothing below renders fabricated data; every panel is
+      conditional and degrades to an empty state when its data isn't present.
+    </p>
+  </div>
+
+  <div class="split">
+
+    <!-- ============ BEFORE ============ -->
+    <div>
+      <div class="col-flag before"><span class="dot"></span> Before — what ships today</div>
+      <div class="frame">
+
+        <div class="dh-hero">
+          <div class="dh-hero__body">
+            <p class="eyebrow">Student home</p>
+            <h2>Hi Amara — you're on track</h2>
+            <p class="sub">Your priorities for today.</p>
+          </div>
+          <span class="tag tag--good">On track</span>
+        </div>
+
+        <div class="tiles" style="grid-template-columns:repeat(2,1fr)">
+          <div class="tile"><div class="ic"><i class="bi bi-check2-circle"></i></div><div class="k">Class</div><div class="v" style="font-size:16px">Form 4 · Sci</div><div class="d">Current homeroom</div></div>
+          <div class="tile"><div class="ic"><i class="bi bi-info-circle"></i></div><div class="k">Unread messages</div><div class="v">2</div><div class="d down">From school</div></div>
+        </div>
+
+        <div class="attn">
+          <h3><i class="bi bi-exclamation-octagon"></i> Don't forget</h3>
+          <div class="attn__row"><i class="bi bi-arrow-right-circle"></i> 2 unread message(s) <a class="go" href="#">Open</a></div>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <div class="panel">
+              <div class="panel__head"><i class="bi bi-lightning"></i> Next actions</div>
+              <div class="chips">
+                <a class="chip" href="#">Messages</a>
+                <a class="chip" href="#">Syllabus &amp; resources</a>
+                <a class="chip" href="#">Account &amp; profile</a>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="panel">
+              <div class="panel__head"><i class="bi bi-activity"></i> Recent activity</div>
+              <ul class="tl"><li><span class="t t--done"></span> Student portal <span class="w">Signed in…</span></li></ul>
+            </div>
+          </div>
+        </div>
+
+        <p style="text-align:center;color:var(--text-3);font-size:12px;margin:6px 0 0">
+          Honest, but a learner opens this and sees almost nothing about <em>their</em> day.
+        </p>
+      </div>
+    </div>
+
+    <!-- ============ AFTER ============ -->
+    <div>
+      <div class="col-flag after"><span class="dot"></span> After — proposed (same grammar, data-aware view)</div>
+      <div class="frame after">
+
+        <div class="dh-hero">
+          <div class="dh-hero__body">
+            <p class="eyebrow">Student home · Term 2 · Week 6</p>
+            <h2>Hi Amara — you're on track</h2>
+            <p class="sub">3 classes today · 2 tasks due this week · attendance strong.</p>
+          </div>
+          <div class="ring" style="--p:94"><div class="ring__in">94%<span class="ring__cap">ATTEND</span></div></div>
+        </div>
+
+        <div class="tiles">
+          <div class="tile"><div class="ic"><i class="bi bi-calendar-check"></i></div><div class="k">Attendance</div><div class="v">94%</div><div class="d up">▲ this term</div></div>
+          <div class="tile"><div class="ic"><i class="bi bi-mortarboard"></i></div><div class="k">Average</div><div class="v">15.2<span style="font-size:12px;color:var(--text-3)">/20</span></div><div class="d up">▲ published</div></div>
+          <div class="tile"><div class="ic" style="background:rgba(245,158,11,.16);color:var(--warn)"><i class="bi bi-journal-text"></i></div><div class="k">Due this week</div><div class="v">2</div><div class="d down">tasks</div></div>
+          <div class="tile"><div class="ic"><i class="bi bi-envelope"></i></div><div class="k">Unread</div><div class="v">2</div><div class="d">from school</div></div>
+        </div>
+
+        <div class="aicard">
+          <div class="ic"><i class="bi bi-stars"></i></div>
+          <div>
+            <h4>Maths is trending up — keep the streak</h4>
+            <p>Your last two Maths scores rose from 12 to 16. Your next assessment is in 4 days.</p>
+            <div class="chips">
+              <a class="chip chip--primary" href="#">Open syllabus</a>
+              <a class="chip" href="#">See results</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="attn">
+          <h3><i class="bi bi-exclamation-octagon"></i> Don't forget</h3>
+          <div class="attn__row"><i class="bi bi-journal-arrow-up"></i> English essay due Thursday <a class="go" href="#">View</a></div>
+          <div class="attn__row"><i class="bi bi-journal-arrow-up"></i> Biology worksheet due Friday <a class="go" href="#">View</a></div>
+          <div class="attn__row"><i class="bi bi-envelope-open"></i> 2 unread messages from your teacher <a class="go" href="#">Open</a></div>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <div class="panel">
+              <div class="panel__head"><i class="bi bi-calendar3"></i> Today's timetable <a class="more" href="#">Full week →</a></div>
+              <div class="tt"><span class="when now">08:00</span> Mathematics <span class="room">Rm 12 · now</span></div>
+              <div class="tt"><span class="when">09:30</span> English Language <span class="room">Rm 4</span></div>
+              <div class="tt"><span class="when">11:00</span> Biology <span class="room">Lab 2</span></div>
+              <div class="tt"><span class="when">13:30</span> Physical Education <span class="room">Field</span></div>
+            </div>
+            <div class="panel">
+              <div class="panel__head"><i class="bi bi-calendar-week"></i> This week's work</div>
+              <div class="due"><i class="bi bi-flag"></i> <span>English — persuasive essay</span><span class="cd">Thu, Jun 25</span></div>
+              <div class="due"><i class="bi bi-flag"></i> <span>Biology — cell-structure worksheet</span><span class="cd">Fri, Jun 26</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="panel">
+              <div class="panel__head"><i class="bi bi-bar-chart"></i> Recent results <a class="more" href="#">All results →</a></div>
+              <div class="res">
+                <div class="res__row"><span class="lbl">Mathematics</span><span class="res__bar"><i style="width:80%"></i></span><span class="res__pct">16/20</span></div>
+                <div class="res__row"><span class="lbl">English</span><span class="res__bar"><i style="width:74%"></i></span><span class="res__pct">14.8</span></div>
+                <div class="res__row"><span class="lbl">Biology</span><span class="res__bar"><i style="width:77%"></i></span><span class="res__pct">15.4</span></div>
+              </div>
+              <p style="margin:4px 0 0;font-size:11px;color:var(--text-3)"><i class="bi bi-shield-check"></i> Shown only after your school publishes term results.</p>
+            </div>
+            <div class="panel">
+              <div class="panel__head"><i class="bi bi-megaphone"></i> Announcements</div>
+              <ul class="tl">
+                <li><span class="t t--done"></span> Sports day moved to Friday <span class="w">2d</span></li>
+                <li><span class="t"></span> Library open late this week <span class="w">4d</span></li>
+              </ul>
+            </div>
+            <div class="panel">
+              <div class="panel__head"><i class="bi bi-robot"></i> Study tools</div>
+              <div class="chips">
+                <a class="chip chip--primary" href="#">Syllabus &amp; resources</a>
+                <a class="chip" href="#">Messages</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p style="text-align:center;color:#6ee7b7;font-size:12px;margin:6px 0 0">
+          The learner opens this and sees <em>their</em> day — class, attendance, work, results.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="gov">
+    <h3><i class="bi bi-shield-lock"></i> What's safe to show — and the one decision for you</h3>
+    <ul>
+      <li><span class="pill">SAFE — own record</span> <b>Timetable, attendance, upcoming assignments, announcements, messages.</b> These are the student's own data; surfacing them on their dashboard exposes nothing new — the data already lives behind links they can open. Pure win, no governance question.</li>
+      <li><span class="pill pill--gate">YOUR CALL</span> <b>Results / grades.</b> Schools differ on when a student may see marks. Proposed safe default: <b>only show results once the term/assessment is <em>published</em></b> (the platform already tracks a published-terms flag, and parents are gated by <code>can_view_results</code>). Three options below.</li>
+      <li><span class="pill">HONEST</span> Every panel stays conditional — if a school hasn't entered timetable/marks, that panel shows an empty state, never fabricated numbers. Matches the student role-home's existing "honest" contract.</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

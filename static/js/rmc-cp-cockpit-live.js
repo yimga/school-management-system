@@ -206,24 +206,24 @@
     var root = document.querySelector("[data-rmc-cp-cockpit-live]");
     if (!root) return;
     var intervalRef = { ms: DEFAULT_POLL_MS, handle: null };
-    var lastSseRevision = "";
+    var lastBusRevision = "";
 
     pollOnce(intervalRef);
     intervalRef.handle = window.setInterval(function () {
       pollOnce(intervalRef);
     }, intervalRef.ms);
 
-    if (typeof EventSource === "undefined") return;
+    document.addEventListener("rmc:fleet-snapshot", function (ev) {
+      var detail = ev.detail || {};
+      var rev = detail.operator_fleet_revision || "";
+      if (!rev || rev === lastBusRevision) return;
+      lastBusRevision = rev;
+      pollOnce(intervalRef);
+    });
 
-    var source = new EventSource("/super/api/fleet/stream/", { withCredentials: true });
-    source.onmessage = function (event) {
-      try {
-        var snap = JSON.parse(event.data || "{}");
-        if (snap.revision && snap.revision === lastSseRevision) return;
-        lastSseRevision = snap.revision || "";
-        pollOnce(intervalRef);
-      } catch (_) { /* noop */ }
-    };
+    if (window.__rmcOperatorFleetSnapshot && window.__rmcOperatorFleetSnapshot.operator_fleet_revision) {
+      lastBusRevision = window.__rmcOperatorFleetSnapshot.operator_fleet_revision;
+    }
   }
 
   if (document.readyState === "loading") {
