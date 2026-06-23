@@ -1,0 +1,19 @@
+{% comment %}
+  rmc-dh donut + legend. Build the gradient in the template with:
+    {% load rmc_dh %}{% dh_donut_gradient segments as dh_gradient %}
+  where each segment carries a semantic `fill` key + numeric `pct`.
+  Params: dh_gradient (safe conic-gradient string), dh_center, dh_sub,
+  dh_legend = list of {label, fill, val}.
+{% endcomment %}
+<div class="rmc-dh-donut-wrap">
+  <div class="rmc-dh-donut" style="--rmc-dh-donut-gradient:{{ dh_gradient }}" role="img" aria-label="{{ dh_center }} {{ dh_sub }}">
+    <div class="rmc-dh-donut__center"><b>{{ dh_center }}</b>{% if dh_sub %}<small>{{ dh_sub }}</small>{% endif %}</div>
+  </div>
+  {% if dh_legend %}
+  <ul class="rmc-dh-legend">
+    {% for seg in dh_legend %}
+    <li><span class="rmc-dh-legend__sw rmc-dh-fill--{{ seg.fill }}"></span> {{ seg.label }} <span class="rmc-dh-legend__val">{{ seg.val }}</span></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>

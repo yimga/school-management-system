@@ -1,0 +1,18 @@
+{% comment %}
+  rmc-dh AI insight card. Honest "noticed / suggested" framing — the chips are
+  links/actions the host page wires; nothing here fabricates a model answer.
+  Params: dh_title, dh_text (plain), dh_icon (bi-*, default bi-stars),
+  dh_acts (opt list of {label, href}).
+{% endcomment %}
+<div class="rmc-dh-aicard">
+  <div class="rmc-dh-aicard__ic"><i class="bi {{ dh_icon|default:'bi-stars' }}" aria-hidden="true"></i></div>
+  <div class="rmc-dh-aicard__body">
+    <h4>{{ dh_title }}</h4>
+    {% if dh_text %}<p>{{ dh_text }}</p>{% endif %}
+    {% if dh_acts %}
+    <div class="rmc-dh-aicard__acts">
+      {% for act in dh_acts %}<a class="rmc-dh-chip" href="{{ act.href|default:'#' }}">{{ act.label }}</a>{% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>

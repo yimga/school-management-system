@@ -1,0 +1,14 @@
+{% comment %}
+  rmc-dh leaderboard / ranking row. Wrap items in <ul class="rmc-dh-lead">…</ul>.
+  Params: dh_rank (int), dh_avatar (initials), dh_name, dh_sub, dh_rt (rating text),
+  dh_rt_dir (up|down|"", opt), dh_href (opt → make name a link).
+{% endcomment %}
+<li>
+  <span class="rmc-dh-lead__rk{% if dh_rank == 1 %} rmc-dh-lead__rk--top{% endif %}">{{ dh_rank }}</span>
+  <span class="rmc-dh-lead__av" aria-hidden="true">{{ dh_avatar }}</span>
+  <span class="rmc-dh-lead__main">
+    <span class="rmc-dh-lead__nm">{% if dh_href %}<a href="{{ dh_href }}" class="rmc-dh-lead__nm">{{ dh_name }}</a>{% else %}{{ dh_name }}{% endif %}</span><br>
+    <span class="rmc-dh-lead__sub">{{ dh_sub }}</span>
+  </span>
+  {% if dh_rt %}<span class="rmc-dh-lead__rt{% if dh_rt_dir %} rmc-dh-lead__rt--{{ dh_rt_dir }}{% endif %}">{{ dh_rt }}</span>{% endif %}
+</li>

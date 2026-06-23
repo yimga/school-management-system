@@ -1,0 +1,10 @@
+{% comment %}
+  rmc-dh segmented status bar + key.
+  Params: dh_segments = list of {label, pct (0-100), fill (semantic key), val (opt)}.
+{% endcomment %}
+<div class="rmc-dh-segbar" role="img" aria-label="{% for seg in dh_segments %}{{ seg.label }} {{ seg.pct }}% {% endfor %}">
+  {% for seg in dh_segments %}<i class="rmc-dh-fill--{{ seg.fill }}" style="width:{{ seg.pct|default:0 }}%"></i>{% endfor %}
+</div>
+<div class="rmc-dh-segbar-key">
+  {% for seg in dh_segments %}<span><span class="rmc-dh-legend__sw rmc-dh-fill--{{ seg.fill }}"></span> {{ seg.label }} {% if seg.val %}{{ seg.val }}{% else %}{{ seg.pct }}%{% endif %}</span>{% endfor %}
+</div>

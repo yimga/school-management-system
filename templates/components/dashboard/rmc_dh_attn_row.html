@@ -1,0 +1,9 @@
+{% comment %}
+  rmc-dh "what needs you" row. Wrap rows in
+  <div class="rmc-dh-attention"><h2 class="rmc-dh-attention__title">…</h2> {rows} </div>.
+  Params: dh_icon (bi-*), dh_text, dh_go_label (opt), dh_go_href (opt).
+{% endcomment %}
+<div class="rmc-dh-attn-row">
+  {% if dh_icon %}<i class="bi {{ dh_icon }}" aria-hidden="true"></i>{% endif %} <span>{{ dh_text }}</span>
+  {% if dh_go_label %}<a class="rmc-dh-attn-row__go" href="{{ dh_go_href|default:'#' }}">{{ dh_go_label }}</a>{% endif %}
+</div>

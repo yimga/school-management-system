@@ -1,0 +1,8 @@
+{% comment %}
+  rmc-dh achievement badge. Wrap in <div class="rmc-dh-badges">…</div>.
+  Params: dh_glyph (emoji/short text), dh_label, dh_on (bool → earned/lit).
+{% endcomment %}
+<div class="rmc-dh-badge">
+  <div class="rmc-dh-badge__ic{% if dh_on %} rmc-dh-badge__ic--on{% endif %}" aria-hidden="true">{{ dh_glyph }}</div>
+  <small>{{ dh_label }}</small>
+</div>

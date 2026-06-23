@@ -1,0 +1,11 @@
+{% comment %}
+  rmc-dh mini column chart. Params: dh_cols = list of {label, pct (0-100), accent (bool)}.
+  Heights are precomputed percentages (use the {{ value|dh_ratio:max }} filter in the view/template).
+  dh_aria (opt) describes the trend for screen readers.
+{% endcomment %}
+<div class="rmc-dh-minichart" role="img" aria-label="{{ dh_aria|default:'trend' }}">
+  {% for col in dh_cols %}<div class="rmc-dh-minichart__col{% if col.accent %} rmc-dh-minichart__col--accent{% endif %}" style="--rmc-dh-col-h:{{ col.pct|default:0 }}%"></div>{% endfor %}
+</div>
+<div class="rmc-dh-minichart-x" aria-hidden="true">
+  {% for col in dh_cols %}<span>{{ col.label }}</span>{% endfor %}
+</div>

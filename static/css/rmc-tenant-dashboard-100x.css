@@ -1,0 +1,490 @@
+/**
+ * rmc-tenant-dashboard-100x.css — Tenant role-home "deeper rebuild" grammar.
+ *
+ * The premium per-role dashboard component language validated in
+ * var/design-previews/tenant-shell-100x-before-after.html, translated from the
+ * mockup's hardcoded dark palette into theme-aware semantic tokens so it renders
+ * correctly in light AND dark and lets the tenant brand (--school-primary /
+ * --school-accent) win. Namespaced `.rmc-dh-*` (dashboard-home) to avoid any
+ * collision with the existing `.rmc-dash-*` customize-UI grammar.
+ *
+ * Building blocks: hero+ring · KPI tiles w/ sparkline · "what needs you" ·
+ * AI insight card · panel · 2-col grid · minichart · donut · segmented bar ·
+ * leaderboard · attendance heatmap · child card · due list · badges · timeline.
+ *
+ * No raw color/font-size literals outside the decorative-allow markers; every
+ * surface/text/border routes through the design-tokens.css semantic layer.
+ */
+
+.rmc-dh {
+  /* Local derivations off the brand so the whole grammar follows the tenant. */
+  --rmc-dh-brand: var(--brand-primary, var(--school-primary, #4f46e5)); /* off-token-allow: brand-token-fallback */
+  --rmc-dh-brand-2: color-mix(in oklab, var(--rmc-dh-brand) 64%, #ffffff); /* off-token-allow: brand-tint-lighten */
+  --rmc-dh-accent: var(--school-accent, var(--color-emerald-500, #10b981)); /* off-token-allow: brand-token-fallback */
+  --rmc-dh-warn: var(--warning, #f59e0b); /* off-token-allow: status-amber-fallback */
+  --rmc-dh-danger: var(--danger, #ef4444); /* off-token-allow: status-red-fallback */
+  --rmc-dh-gap: clamp(0.75rem, 1.4vw, 1rem);
+  display: block;
+}
+
+/* ============================ Hero ============================ */
+.rmc-dh-hero {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.875rem, 2vw, 1.25rem);
+  padding: clamp(1rem, 2.2vw, 1.375rem) clamp(1.125rem, 2.4vw, 1.5rem);
+  margin-bottom: var(--rmc-dh-gap);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl, 18px);
+  background:
+    linear-gradient(135deg,
+      color-mix(in oklab, var(--surface-elevated) 88%, var(--rmc-dh-brand)),
+      var(--surface-elevated));
+  box-shadow: var(--elev-1, 0 1px 2px rgba(0, 0, 0, 0.06));
+}
+.rmc-dh-hero--accent {
+  background:
+    linear-gradient(135deg,
+      color-mix(in oklab, var(--surface-elevated) 86%, var(--rmc-dh-accent)),
+      var(--surface-elevated));
+}
+.rmc-dh-hero__body { min-width: 0; flex: 1; }
+.rmc-dh-hero__eyebrow {
+  margin: 0 0 0.25rem;
+  font-size: var(--text-xs, 0.6875rem);
+  letter-spacing: 0.03em;
+  color: var(--text-tertiary);
+}
+.rmc-dh-hero__title {
+  margin: 0 0 0.25rem;
+  font-size: clamp(1.125rem, 2.4vw, 1.35rem);
+  font-weight: 760;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+.rmc-dh-hero__sub { margin: 0; color: var(--text-secondary); font-size: var(--text-sm, 0.875rem); }
+
+/* ============================ Progress ring ============================ */
+.rmc-dh-ring {
+  --rmc-dh-ring-pct: 0;
+  --rmc-dh-ring-color: var(--rmc-dh-accent);
+  flex: none;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  position: relative;
+  font-weight: 700;
+  font-size: var(--text-sm, 0.8125rem);
+  color: var(--text-primary);
+  background:
+    conic-gradient(
+      var(--rmc-dh-ring-color) calc(var(--rmc-dh-ring-pct) * 1%),
+      var(--hairline) 0);
+}
+.rmc-dh-ring::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: var(--surface-elevated);
+}
+.rmc-dh-ring > span { position: relative; z-index: 1; }
+
+/* ============================ KPI tiles ============================ */
+.rmc-dh-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--rmc-dh-gap);
+  margin-bottom: var(--rmc-dh-gap);
+}
+.rmc-dh-tile {
+  position: relative;
+  overflow: hidden;
+  padding: 0.875rem 0.9375rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 14px);
+  background: var(--surface-canvas);
+}
+.rmc-dh-tile--link { text-decoration: none; color: inherit; display: block; transition: border-color var(--dur-fast, 0.15s) var(--ease-out, ease), transform var(--dur-fast, 0.15s) var(--ease-out, ease); }
+.rmc-dh-tile--link:hover { border-color: var(--rmc-dh-brand); transform: translateY(-2px); }
+.rmc-dh-tile__k {
+  display: flex;
+  align-items: center;
+  gap: 0.4375rem;
+  font-size: var(--text-xs, 0.71875rem);
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+.rmc-dh-tile__v {
+  margin-top: 0.375rem;
+  font-size: var(--type-metric, clamp(1.25rem, 2.6vw, 1.5rem));
+  font-weight: 760;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.rmc-dh-tile__d { margin-top: 0.1875rem; font-size: var(--text-xs, 0.71875rem); font-weight: 600; color: var(--text-tertiary); }
+.rmc-dh-tile__d--up { color: var(--rmc-dh-accent); }
+.rmc-dh-tile__d--down { color: var(--rmc-dh-danger); }
+.rmc-dh-tile__d--flat { color: var(--text-tertiary); }
+.rmc-dh-tile__spark {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.625rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 26px;
+  opacity: 0.5;
+}
+.rmc-dh-tile__spark i { width: 4px; border-radius: 2px; background: var(--rmc-dh-brand-2); }
+
+/* ============================ "What needs you" ============================ */
+.rmc-dh-attention {
+  margin-bottom: var(--rmc-dh-gap);
+  padding: 0.875rem 1rem;
+  border: 1px solid color-mix(in oklab, var(--rmc-dh-warn) 38%, transparent);
+  border-radius: var(--radius-lg, 15px);
+  background: color-mix(in oklab, var(--rmc-dh-warn) 10%, transparent);
+}
+.rmc-dh-attention--good {
+  border-color: color-mix(in oklab, var(--rmc-dh-accent) 34%, transparent);
+  background: color-mix(in oklab, var(--rmc-dh-accent) 9%, transparent);
+}
+.rmc-dh-attention__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: 700;
+  color: var(--rmc-dh-warn);
+}
+.rmc-dh-attention--good .rmc-dh-attention__title { color: var(--rmc-dh-accent); }
+.rmc-dh-attn-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0;
+  border-top: 1px dashed color-mix(in oklab, var(--rmc-dh-warn) 24%, transparent);
+  font-size: var(--text-sm, 0.8125rem);
+  color: var(--text-secondary);
+}
+.rmc-dh-attention--good .rmc-dh-attn-row { border-top-color: color-mix(in oklab, var(--rmc-dh-accent) 22%, transparent); }
+.rmc-dh-attn-row:first-of-type { border-top: none; }
+.rmc-dh-attn-row__go {
+  margin-left: auto;
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 700;
+  color: var(--rmc-dh-warn);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.rmc-dh-attention--good .rmc-dh-attn-row__go { color: var(--rmc-dh-accent); }
+.rmc-dh-attn-row__go:hover { text-decoration: underline; }
+
+/* ============================ AI insight card ============================ */
+.rmc-dh-aicard {
+  display: flex;
+  gap: 0.8125rem;
+  margin-bottom: var(--rmc-dh-gap);
+  padding: 0.875rem 1rem;
+  border: 1px solid color-mix(in oklab, var(--rmc-dh-brand) 30%, transparent);
+  border-radius: var(--radius-lg, 16px);
+  background:
+    linear-gradient(135deg,
+      color-mix(in oklab, var(--rmc-dh-brand) 16%, transparent),
+      color-mix(in oklab, var(--rmc-dh-accent) 6%, transparent));
+}
+.rmc-dh-aicard__ic {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md, 11px);
+  display: grid;
+  place-items: center;
+  font-size: 1.125rem;
+  color: var(--rmc-dh-brand);
+  background: color-mix(in oklab, var(--rmc-dh-brand) 22%, transparent);
+}
+.rmc-dh-aicard__body { min-width: 0; }
+.rmc-dh-aicard__body h4 { margin: 0 0 0.1875rem; font-size: var(--text-sm, 0.84375rem); color: var(--text-primary); }
+.rmc-dh-aicard__body p { margin: 0; font-size: var(--text-sm, 0.78125rem); color: var(--text-secondary); }
+.rmc-dh-aicard__acts { margin-top: 0.5625rem; display: flex; gap: 0.4375rem; flex-wrap: wrap; }
+
+/* shared chip */
+.rmc-dh-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: var(--text-xs, 0.6875rem);
+  color: var(--text-secondary);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+  padding: 0.25rem 0.625rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+.rmc-dh-chip:hover { border-color: var(--rmc-dh-brand); color: var(--text-primary); }
+.rmc-dh-chip--primary { border-color: var(--rmc-dh-brand); color: var(--text-primary); background: color-mix(in oklab, var(--rmc-dh-brand) 14%, transparent); }
+
+/* ============================ Layout: 2-col grid ============================ */
+.rmc-dh-grid2 {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: var(--rmc-dh-gap);
+  align-items: start;
+}
+@media (max-width: 1100px) { .rmc-dh-grid2 { grid-template-columns: 1fr; } }
+
+/* ============================ Panel ============================ */
+.rmc-dh-panel {
+  margin-bottom: var(--rmc-dh-gap);
+  padding: 1rem 1.125rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  background: var(--surface-canvas);
+}
+.rmc-dh-panel__head { display: flex; align-items: center; gap: 0.625rem; margin-bottom: 0.75rem; }
+.rmc-dh-panel__head h3 { margin: 0; font-size: var(--text-base, 0.9375rem); font-weight: 700; color: var(--text-primary); }
+.rmc-dh-panel__icon {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm, 9px);
+  display: grid;
+  place-items: center;
+  font-size: 0.875rem;
+  color: var(--rmc-dh-brand);
+  background: var(--surface-elevated);
+}
+.rmc-dh-panel__more {
+  margin-left: auto;
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 700;
+  color: var(--rmc-dh-brand);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.rmc-dh-panel__more:hover { text-decoration: underline; }
+
+/* ============================ Card grid (actions / classes) ============================ */
+.rmc-dh-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0.6875rem; }
+.rmc-dh-cards--wide { grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
+.rmc-dh-card {
+  display: block;
+  padding: 0.8125rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 13px);
+  background: var(--surface-elevated);
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--dur-fast, 0.15s) var(--ease-out, ease), border-color var(--dur-fast, 0.15s) var(--ease-out, ease);
+}
+.rmc-dh-card:hover { border-color: var(--rmc-dh-brand); transform: translateY(-2px); }
+.rmc-dh-card__title { display: block; font-size: var(--text-sm, 0.84375rem); font-weight: 600; margin-bottom: 0.25rem; color: var(--text-primary); }
+.rmc-dh-card__meta { font-size: var(--text-xs, 0.71875rem); color: var(--text-tertiary); }
+.rmc-dh-card__foot { display: flex; justify-content: space-between; align-items: center; margin-top: 0.625rem; font-size: var(--text-xs, 0.75rem); }
+.rmc-dh-card__st { color: var(--text-tertiary); }
+.rmc-dh-card__st--done { color: var(--rmc-dh-accent); }
+.rmc-dh-card__cta { color: var(--rmc-dh-brand); font-weight: 700; }
+
+/* ============================ Minichart (columns) ============================ */
+.rmc-dh-minichart { display: flex; align-items: flex-end; gap: 5px; height: 74px; }
+.rmc-dh-minichart__col {
+  --rmc-dh-col-h: 8%;
+  flex: 1;
+  min-width: 5px;
+  height: var(--rmc-dh-col-h);
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, var(--rmc-dh-brand-2), var(--rmc-dh-brand));
+}
+.rmc-dh-minichart__col--accent { background: linear-gradient(180deg, color-mix(in oklab, var(--rmc-dh-accent) 70%, #ffffff), var(--rmc-dh-accent)); } /* off-token-allow: decorative-gradient */
+.rmc-dh-minichart-x { display: flex; gap: 5px; margin-top: 5px; }
+.rmc-dh-minichart-x span { flex: 1; text-align: center; font-size: 0.625rem; color: var(--text-tertiary); }
+
+/* ============================ Donut + legend ============================ */
+.rmc-dh-donut-wrap { display: flex; align-items: center; gap: 1rem; }
+.rmc-dh-donut {
+  --rmc-dh-donut-gradient: conic-gradient(var(--hairline) 0 100%);
+  flex: none;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  position: relative;
+  background: var(--rmc-dh-donut-gradient);
+}
+.rmc-dh-donut::after { content: ""; position: absolute; inset: 13px; border-radius: 50%; background: var(--surface-canvas); }
+.rmc-dh-donut__center { position: relative; z-index: 1; text-align: center; color: var(--text-primary); }
+.rmc-dh-donut__center b { font-size: var(--text-lg, 1.125rem); }
+.rmc-dh-donut__center small { display: block; font-size: 0.625rem; color: var(--text-tertiary); }
+.rmc-dh-legend { list-style: none; margin: 0; padding: 0; flex: 1; font-size: var(--text-xs, 0.78125rem); }
+.rmc-dh-legend li { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0; color: var(--text-secondary); }
+.rmc-dh-legend__sw { flex: none; width: 10px; height: 10px; border-radius: 3px; }
+.rmc-dh-legend__val { margin-left: auto; color: var(--text-primary); font-weight: 700; }
+
+/* ============================ Segmented status bar ============================ */
+.rmc-dh-segbar { display: flex; height: 12px; border-radius: var(--radius-pill, 999px); overflow: hidden; margin: 0.25rem 0 0.5rem; background: var(--surface-elevated); }
+.rmc-dh-segbar i { display: block; height: 100%; }
+.rmc-dh-segbar-key { display: flex; gap: 0.8125rem; flex-wrap: wrap; font-size: var(--text-xs, 0.71875rem); color: var(--text-tertiary); }
+.rmc-dh-segbar-key span { display: inline-flex; align-items: center; gap: 0.375rem; }
+.rmc-dh-segbar-key .rmc-dh-legend__sw { width: 9px; height: 9px; border-radius: 2px; }
+
+/* status fills shared by donut/segbar/legend swatches */
+.rmc-dh-fill--paid, .rmc-dh-fill--success { background: var(--rmc-dh-accent); }
+.rmc-dh-fill--partial, .rmc-dh-fill--warn { background: var(--rmc-dh-warn); }
+.rmc-dh-fill--overdue, .rmc-dh-fill--danger { background: var(--rmc-dh-danger); }
+.rmc-dh-fill--brand { background: var(--rmc-dh-brand); }
+.rmc-dh-fill--brand-2 { background: var(--rmc-dh-brand-2); }
+
+/* ============================ Leaderboard / ranking ============================ */
+.rmc-dh-lead { list-style: none; margin: 0; padding: 0; }
+.rmc-dh-lead li { display: flex; align-items: center; gap: 0.6875rem; padding: 0.5625rem 0; border-top: 1px solid var(--hairline); font-size: var(--text-sm, 0.8125rem); }
+.rmc-dh-lead li:first-child { border-top: none; }
+.rmc-dh-lead__rk { flex: none; width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-size: var(--text-xs, 0.6875rem); font-weight: 700; color: var(--text-secondary); background: var(--surface-elevated); }
+.rmc-dh-lead__rk--top { color: #241a00; /* off-token-allow: podium-contrast-ink-on-gold */ background: linear-gradient(135deg, var(--rmc-dh-warn), #fbbf24); }
+.rmc-dh-lead__av { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: var(--text-xs, 0.6875rem); font-weight: 700; color: var(--text-on-brand, #fff); background: var(--rmc-dh-brand); }
+.rmc-dh-lead__main { min-width: 0; }
+.rmc-dh-lead__nm { font-weight: 600; color: var(--text-primary); }
+.rmc-dh-lead__sub { color: var(--text-tertiary); font-size: var(--text-xs, 0.71875rem); }
+.rmc-dh-lead__rt { margin-left: auto; font-weight: 700; white-space: nowrap; color: var(--text-secondary); }
+.rmc-dh-lead__rt--up { color: var(--rmc-dh-accent); }
+.rmc-dh-lead__rt--down { color: var(--rmc-dh-danger); }
+
+/* ============================ Attendance heatmap ============================ */
+.rmc-dh-heat { display: flex; gap: 5px; }
+.rmc-dh-heat__col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.rmc-dh-heat__cell { width: 100%; aspect-ratio: 1; border-radius: 5px; background: var(--surface-elevated); }
+.rmc-dh-heat__cell--l1 { background: color-mix(in oklab, var(--rmc-dh-accent) 28%, transparent); }
+.rmc-dh-heat__cell--l2 { background: color-mix(in oklab, var(--rmc-dh-accent) 55%, transparent); }
+.rmc-dh-heat__cell--l3 { background: color-mix(in oklab, var(--rmc-dh-accent) 85%, transparent); }
+.rmc-dh-heat__cell--miss { background: color-mix(in oklab, var(--rmc-dh-danger) 55%, transparent); }
+.rmc-dh-heat__lbl { font-size: 0.625rem; color: var(--text-tertiary); }
+
+/* ============================ Parent child card ============================ */
+.rmc-dh-child {
+  display: flex;
+  gap: 0.8125rem;
+  padding: 0.875rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 15px);
+  background: var(--surface-elevated);
+  text-decoration: none;
+  color: inherit;
+}
+.rmc-dh-child:hover { border-color: var(--rmc-dh-brand); }
+.rmc-dh-child__ring {
+  --rmc-dh-ring-pct: 0;
+  --rmc-dh-ring-color: var(--rmc-dh-accent);
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  position: relative;
+  font-size: var(--text-xs, 0.71875rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  background: conic-gradient(var(--rmc-dh-ring-color) calc(var(--rmc-dh-ring-pct) * 1%), var(--hairline) 0);
+}
+.rmc-dh-child__ring::after { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: var(--surface-elevated); }
+.rmc-dh-child__ring > span { position: relative; z-index: 1; }
+.rmc-dh-child__body { min-width: 0; }
+.rmc-dh-child__body h4 { margin: 0 0 0.125rem; font-size: var(--text-sm, 0.9375rem); color: var(--text-primary); }
+.rmc-dh-child__meta { margin-bottom: 0.4375rem; font-size: var(--text-xs, 0.71875rem); color: var(--text-tertiary); }
+.rmc-dh-child__tags { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+
+/* tag */
+.rmc-dh-tag {
+  font-size: 0.65625rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  color: var(--text-secondary);
+}
+.rmc-dh-tag--good { color: var(--success-fg, var(--rmc-dh-accent)); border-color: color-mix(in oklab, var(--rmc-dh-accent) 35%, transparent); }
+.rmc-dh-tag--warn { color: var(--rmc-dh-warn); border-color: color-mix(in oklab, var(--rmc-dh-warn) 35%, transparent); }
+
+/* ============================ Due list ============================ */
+.rmc-dh-due {
+  display: flex;
+  align-items: center;
+  gap: 0.6875rem;
+  padding: 0.5625rem 0;
+  border-top: 1px solid var(--hairline);
+  font-size: var(--text-sm, 0.8125rem);
+  color: var(--text-secondary);
+}
+.rmc-dh-due:first-of-type { border-top: none; }
+.rmc-dh-due > i { color: var(--text-tertiary); }
+.rmc-dh-due__cd {
+  margin-left: auto;
+  font-size: var(--text-xs, 0.6875rem);
+  font-weight: 700;
+  padding: 0.125rem 0.5625rem;
+  border-radius: var(--radius-pill, 999px);
+  color: var(--rmc-dh-warn);
+  background: color-mix(in oklab, var(--rmc-dh-warn) 16%, transparent);
+}
+.rmc-dh-due__cd--soon { color: var(--rmc-dh-danger); background: color-mix(in oklab, var(--rmc-dh-danger) 16%, transparent); }
+
+/* ============================ Achievement badges ============================ */
+.rmc-dh-badges { display: flex; gap: 0.625rem; flex-wrap: wrap; }
+.rmc-dh-badge { display: flex; flex-direction: column; align-items: center; gap: 0.3125rem; width: 66px; text-align: center; }
+.rmc-dh-badge__ic {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md, 13px);
+  display: grid;
+  place-items: center;
+  font-size: 1.25rem;
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+  opacity: 0.45;
+}
+.rmc-dh-badge__ic--on {
+  opacity: 1;
+  border-color: color-mix(in oklab, var(--rmc-dh-warn) 40%, transparent);
+  background: linear-gradient(135deg, color-mix(in oklab, var(--rmc-dh-warn) 30%, transparent), color-mix(in oklab, var(--rmc-dh-brand) 20%, transparent));
+}
+.rmc-dh-badge small { font-size: 0.625rem; line-height: 1.2; color: var(--text-tertiary); }
+
+/* ============================ Timeline ============================ */
+.rmc-dh-timeline { list-style: none; margin: 0; padding: 0; }
+.rmc-dh-timeline li { display: flex; gap: 0.6875rem; padding: 0.5rem 0; font-size: var(--text-sm, 0.8125rem); color: var(--text-secondary); }
+.rmc-dh-timeline__t { flex: none; width: 7px; height: 7px; margin-top: 0.375rem; border-radius: 50%; background: var(--rmc-dh-brand-2); }
+.rmc-dh-timeline__t--done { background: var(--rmc-dh-accent); }
+.rmc-dh-timeline__when { margin-left: auto; font-size: var(--text-xs, 0.6875rem); color: var(--text-tertiary); white-space: nowrap; }
+
+/* ============================ Labeled progress rows ============================ */
+.rmc-dh-progress { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5625rem; }
+.rmc-dh-progress__lbl { width: 130px; font-size: var(--text-xs, 0.78125rem); color: var(--text-secondary); }
+.rmc-dh-progress__bar { flex: 1; height: 7px; border-radius: var(--radius-pill, 999px); background: var(--surface-elevated); overflow: hidden; }
+.rmc-dh-progress__bar i { display: block; height: 100%; border-radius: var(--radius-pill, 999px); background: linear-gradient(90deg, var(--rmc-dh-brand), var(--rmc-dh-accent)); } /* off-token-allow: decorative-gradient */
+.rmc-dh-progress__pct { width: 38px; text-align: right; font-size: var(--text-xs, 0.75rem); color: var(--text-tertiary); }
+
+/* ============================ Section label divider ============================ */
+.rmc-dh-section-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.125rem 0.125rem 0.625rem;
+  font-size: var(--text-xs, 0.6875rem);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: var(--text-tertiary);
+}
+.rmc-dh-section-label::after { content: ""; flex: 1; height: 1px; background: var(--hairline); }
+
+/* ============================ Reduced motion ============================ */
+@media (prefers-reduced-motion: reduce) {
+  .rmc-dh-card { transition: none; }
+  .rmc-dh-card:hover { transform: none; }
+}

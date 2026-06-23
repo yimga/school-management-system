@@ -1,0 +1,9 @@
+{% comment %}
+  rmc-dh due/assignment row with countdown pill. Wrap in a panel.
+  Params: dh_icon (bi-*), dh_text, dh_cd (countdown label), dh_soon (bool → red),
+  dh_href (opt → make the row a link).
+{% endcomment %}
+{% if dh_href %}<a class="rmc-dh-due" href="{{ dh_href }}" style="text-decoration:none">{% else %}<div class="rmc-dh-due">{% endif %}
+  {% if dh_icon %}<i class="bi {{ dh_icon }}" aria-hidden="true"></i>{% endif %} <span>{{ dh_text }}</span>
+  {% if dh_cd %}<span class="rmc-dh-due__cd{% if dh_soon %} rmc-dh-due__cd--soon{% endif %}">{{ dh_cd }}</span>{% endif %}
+{% if dh_href %}</a>{% else %}</div>{% endif %}

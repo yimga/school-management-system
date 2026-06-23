@@ -1,0 +1,18 @@
+{% comment %}
+  rmc-dh hero — role-home greeting band with optional progress ring.
+  Params: dh_eyebrow, dh_title, dh_sub (plain text); dh_ring_pct (0-100, opt),
+  dh_ring_label (opt), dh_ring_aria (opt), dh_accent (bool → emerald variant).
+{% endcomment %}
+<div class="rmc-dh-hero{% if dh_accent %} rmc-dh-hero--accent{% endif %}">
+  <div class="rmc-dh-hero__body">
+    {% if dh_eyebrow %}<p class="rmc-dh-hero__eyebrow">{{ dh_eyebrow }}</p>{% endif %}
+    <h1 class="rmc-dh-hero__title">{{ dh_title }}</h1>
+    {% if dh_sub %}<p class="rmc-dh-hero__sub">{{ dh_sub }}</p>{% endif %}
+  </div>
+  {% if dh_ring_label %}
+  <div class="rmc-dh-ring" style="--rmc-dh-ring-pct:{{ dh_ring_pct|default:0 }}"
+       role="img" aria-label="{{ dh_ring_aria|default:dh_ring_label }}">
+    <span>{{ dh_ring_label }}</span>
+  </div>
+  {% endif %}
+</div>

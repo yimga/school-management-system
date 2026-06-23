@@ -1,0 +1,11 @@
+{% comment %}
+  rmc-dh KPI tile. Wrap several in <div class="rmc-dh-tiles">…</div>.
+  Params: dh_icon (bi-* class), dh_k (label), dh_v (value), dh_d (delta, opt),
+  dh_dir (up|down|flat, opt), dh_href (opt → link), dh_spark (opt list of px ints).
+{% endcomment %}
+{% if dh_href %}<a class="rmc-dh-tile rmc-dh-tile--link" href="{{ dh_href }}">{% else %}<div class="rmc-dh-tile">{% endif %}
+  <div class="rmc-dh-tile__k">{% if dh_icon %}<i class="bi {{ dh_icon }}" aria-hidden="true"></i>{% endif %} {{ dh_k }}</div>
+  <div class="rmc-dh-tile__v">{{ dh_v }}</div>
+  {% if dh_d %}<div class="rmc-dh-tile__d rmc-dh-tile__d--{{ dh_dir|default:'flat' }}">{{ dh_d }}</div>{% endif %}
+  {% if dh_spark %}<span class="rmc-dh-tile__spark" aria-hidden="true">{% for h in dh_spark %}<i style="height:{{ h }}px"></i>{% endfor %}</span>{% endif %}
+{% if dh_href %}</a>{% else %}</div>{% endif %}

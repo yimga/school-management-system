@@ -1,0 +1,17 @@
+{% comment %}
+  rmc-dh parent child card. Wrap cards in <div class="rmc-dh-cards rmc-dh-cards--wide">…</div>.
+  Params: dh_ring_pct (0-100), dh_ring_label, dh_name, dh_meta, dh_href (opt),
+  dh_tags (opt list of {label, kind} where kind ∈ good|warn|"").
+{% endcomment %}
+{% if dh_href %}<a class="rmc-dh-child" href="{{ dh_href }}">{% else %}<div class="rmc-dh-child">{% endif %}
+  <div class="rmc-dh-child__ring" style="--rmc-dh-ring-pct:{{ dh_ring_pct|default:0 }}" aria-hidden="true"><span>{{ dh_ring_label }}</span></div>
+  <div class="rmc-dh-child__body">
+    <h4>{{ dh_name }}</h4>
+    {% if dh_meta %}<div class="rmc-dh-child__meta">{{ dh_meta }}</div>{% endif %}
+    {% if dh_tags %}
+    <div class="rmc-dh-child__tags">
+      {% for tag in dh_tags %}<span class="rmc-dh-tag{% if tag.kind %} rmc-dh-tag--{{ tag.kind }}{% endif %}">{{ tag.label }}</span>{% endfor %}
+    </div>
+    {% endif %}
+  </div>
+{% if dh_href %}</a>{% else %}</div>{% endif %}

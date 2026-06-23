@@ -1,0 +1,10 @@
+{% comment %}
+  rmc-dh panel header (icon + title + optional "more" link). Use inside
+  <section class="rmc-dh-panel"> … </section>.
+  Params: dh_icon (bi-*), dh_title, dh_more_label (opt), dh_more_href (opt), dh_h (heading level, default h3 via class only).
+{% endcomment %}
+<div class="rmc-dh-panel__head">
+  {% if dh_icon %}<span class="rmc-dh-panel__icon"><i class="bi {{ dh_icon }}" aria-hidden="true"></i></span>{% endif %}
+  <h3>{{ dh_title }}</h3>
+  {% if dh_more_label %}<a class="rmc-dh-panel__more" href="{{ dh_more_href|default:'#' }}">{{ dh_more_label }}</a>{% endif %}
+</div>

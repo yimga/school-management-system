@@ -1,0 +1,12 @@
+{% comment %}
+  rmc-dh attendance heatmap. Params: dh_cells = list of {label, level}
+  where level ∈ l1|l2|l3|miss|"" (blank = neutral/no data). dh_aria (opt).
+{% endcomment %}
+<div class="rmc-dh-heat" role="img" aria-label="{{ dh_aria|default:'attendance' }}">
+  {% for cell in dh_cells %}
+  <div class="rmc-dh-heat__col">
+    <div class="rmc-dh-heat__cell{% if cell.level %} rmc-dh-heat__cell--{{ cell.level }}{% endif %}"></div>
+    <div class="rmc-dh-heat__lbl">{{ cell.label }}</div>
+  </div>
+  {% endfor %}
+</div>
