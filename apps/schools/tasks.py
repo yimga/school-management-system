@@ -573,12 +573,19 @@ def ensure_admin_user_for_school(school, contact_email: str):
     membership, membership_created = SchoolMembership.objects.get_or_create(
         user=admin_user,
         school=school,
-        defaults={"role": User.Role.ADMIN, "is_primary": True},
+        # The user who creates the school is its OWNER ("super admin") by default.
+        # Ownership is a per-school flag (transferable, multi-owner), NOT User.role.
+        defaults={
+            "role": User.Role.ADMIN,
+            "is_primary": True,
+            "is_school_owner": True,
+        },
     )
     if not membership_created:
         SchoolMembership.objects.filter(pk=membership.pk, school=school).update(
             role=User.Role.ADMIN,
             is_primary=True,
+            is_school_owner=True,
         )
     # Repeat signups with the same email must not keep an older demo school
     # as primary — onboarding resolves is_primary=True first.
@@ -1436,6 +1443,25 @@ def _do_provision_tracked(
             message="Default subjects prepared.",
             payload={"subjects_created": int(subject_created)},
         )
+
+        # 10X local-first: seed the per-school grading scale (+ a matching school-wide
+        # default AssessmentWeights) from the school's COUNTRY, so a new school lands with
+        # a configured scale instead of "none configured" until an admin runs the wizard.
+        # Idempotent + never overrides an existing admin/wizard default. Non-blocking.
+        try:
+            from apps.evals.grading_provisioning import ensure_local_grading_scale
+
+            grading_result = ensure_local_grading_scale(school, academic_year=ay)
+            _record_school_event(
+                school,
+                event_type="GRADING_SCALE_READY",
+                status="SUCCESS",
+                message="Local grading scale provisioned.",
+                payload=grading_result,
+            )
+        except (DatabaseError, IntegrityError, ValueError, TypeError, ImportError):
+            logger.exception("Grading scale provisioning failed for school %s", school_id)
+            phase_b_failed_steps.append("grading_scale")
 
         # W1-5: Seed 1–3 default classrooms from profile (or generic names).
         # Wrapped so a classroom/department seeding error cannot abort the whole
