@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Globe Master Lab — 4 fixes · void · AI · wow</title>
+<meta name="description" content="RunMyCampus Global Footprint design lab — core fixes, void zones, AI brief, Wow W1–12, Wow+ W13–20 with live WebGL preview.">
+<title>Globe Master Lab — 4 fixes · void · AI · wow · wow+</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -243,12 +244,19 @@
   @keyframes countBump { 0% { transform: scale(1); } 35% { transform: scale(1.08); } 100% { transform: scale(1); } }
   .sub { font-size: 12px; color: var(--text-tertiary); margin-bottom: 12px; }
   .row {
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
     padding: 10px 12px; margin-top: 6px; border-radius: var(--radius-sm);
     background: var(--surface-canvas); border: 1px solid var(--hairline);
     font-size: 12px; color: var(--text-secondary); cursor: pointer;
     transition: background var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast);
   }
+  .row .row-label { flex: 1; min-width: 0; }
+  .delta-badge {
+    font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+    background: rgba(110,231,183,0.14); color: var(--good); font-variant-numeric: tabular-nums;
+  }
+  .delta-badge[hidden] { display: none; }
+  .delta-badge.down { background: rgba(253,164,175,0.14); color: var(--bad); }
   .row:hover { border-color: rgba(99,102,241,0.3); }
   .row.active {
     background: color-mix(in srgb, var(--surface-elevated) 85%, rgba(99,102,241,0.25));
@@ -357,6 +365,28 @@
     font: 10px ui-monospace, monospace; padding: 2px 6px; border-radius: 4px;
     border: 1px solid var(--hairline); background: rgba(0,0,0,0.3); color: var(--text-secondary);
   }
+
+  .wow-plus-demo {
+    margin-top: 20px; padding: 16px 18px;
+    border-radius: var(--radius-md); border: 1px solid rgba(244,114,182,0.22);
+    background: linear-gradient(135deg, rgba(244,114,182,0.06), rgba(129,140,248,0.04));
+  }
+  .wow-plus-demo h3 { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+  .wow-plus-demo p { margin: 0 0 12px; font-size: 12px; color: var(--text-secondary); }
+  .wow-plus-demo .lab-controls { margin-bottom: 0; background: transparent; border: 0; padding: 0; }
+  .wow-plus-demo button.wow-plus-btn { border-color: rgba(244,114,182,0.35); }
+  .wow-plus-demo button.wow-plus-btn:hover { border-color: rgba(244,114,182,0.55); box-shadow: 0 0 20px rgba(244,114,182,0.12); }
+
+  .back-to-top {
+    position: fixed; right: 20px; bottom: 20px; z-index: 210;
+    font: inherit; font-size: 11px; font-weight: 600; padding: 10px 14px;
+    border-radius: 999px; border: 1px solid var(--hairline);
+    background: rgba(6,9,16,0.92); color: var(--text-primary); cursor: pointer;
+    backdrop-filter: blur(12px); opacity: 0; pointer-events: none;
+    transition: opacity var(--motion-normal), transform var(--motion-fast);
+  }
+  .back-to-top.visible { opacity: 1; pointer-events: auto; }
+  .back-to-top:hover { transform: translateY(-2px); border-color: rgba(129,140,248,0.4); }
 </style>
 </head>
 <body>
@@ -381,8 +411,8 @@
     <div class="tier-pills">
       <a class="tier-pill t1" href="#core4">Tier 1 · 4 fixes</a>
       <a class="tier-pill t2" href="#void-ai">Tier 2 · Void + AI</a>
-      <a class="tier-pill t3" href="#wow">Tier 3 · Wow</a>
-      <a class="tier-pill t4" href="#wow-plus">Tier 4 · Wow+</a>
+      <a class="tier-pill t4" href="#wow">Tier 3 · Wow</a>
+      <a class="tier-pill t5" href="#wow-plus">Tier 4 · Wow+</a>
       <a class="tier-pill t5" href="#roadmap">Roadmap</a>
     </div>
   </header>
@@ -400,6 +430,7 @@
       <button type="button" class="primary" id="simulate-sse">↻ Simulate SSE</button>
       <button type="button" id="fly-wa">Fly West Africa</button>
       <button type="button" id="reset-view">Reset view</button>
+      <button type="button" id="export-snapshot" title="Wow+ W20">⬇ Export PNG</button>
     </div>
 
     <div class="lx-world" id="master-card">
@@ -415,7 +446,7 @@
           </div>
         </div>
         <div class="zone z-share zone--wow" id="share-chip"><b>Share view</b><span class="zone-body">#globe=5.3,-4.0,1.02</span></div>
-        <div class="zone z-tr zone--ui" data-zone="void"><b>A · Viewport</b><span class="zone-body" id="vp-text">West Africa · 2 in view</span><span class="presence wow-only"><span class="presence-dot"></span>2 operators viewing</span></div>
+        <div class="zone z-tr zone--ui" data-zone="void"><b>A · Viewport</b><span class="zone-body" id="vp-text">West Africa · 2 in view</span><span class="presence wow-only"><span class="presence-dot"></span><span class="presence-label">2 operators viewing</span></span></div>
         <div class="zone z-mr zone--data" data-zone="void"><b>B · School hours</b><span class="zone-body">1 region in session now</span></div>
         <div class="zone z-bl zone--data" data-zone="void"><b>C · Caption</b><span class="zone-body" id="caption-el">Drag · zoom · click pin</span></div>
         <div class="zone z-br zone--ai" data-zone="void"><b>D · AI whisper</b><span class="zone-body" id="whisper-el">Fleet healthy · 1 suspended in view</span></div>
@@ -426,8 +457,8 @@
         <div class="eyebrow">Global footprint</div>
         <div class="count-wrap"><div class="count" id="count-el">2</div><small>schools live</small></div>
         <p class="sub">Across 2 regions · 1 country today</p>
-        <div class="row active" data-r="wa" data-lat="8" data-lng="-5" id="row-wa"><span>West Africa</span><strong>1</strong></div>
-        <div class="row" data-r="other" data-lat="9.08" data-lng="8.68" id="row-other"><span>Other</span><strong>1</strong></div>
+        <div class="row active" data-r="wa" data-lat="8" data-lng="-5" id="row-wa"><span class="row-label">West Africa</span><span class="delta-badge" id="delta-wa" hidden aria-live="polite"></span><strong>1</strong></div>
+        <div class="row" data-r="other" data-lat="9.08" data-lng="8.68" id="row-other"><span class="row-label">Other</span><span class="delta-badge" id="delta-other" hidden aria-live="polite"></span><strong>1</strong></div>
         <div class="chips"><span class="chip">● Active</span><span class="chip">● Suspended</span><span class="chip">● Frozen</span></div>
         <p class="guide-link">Fix #3 · <a href="#">Show shortcuts</a></p>
 
@@ -525,6 +556,21 @@
       <div class="cat-card"><h3><span class="badge badge-wow-plus">W20</span> Executive snapshot</h3><p>PNG export for Slack / board deck.</p><div class="impl">WebGL + legend composite</div></div>
     </div>
     <p class="note" style="margin-top:16px"><strong>Backlog W21+:</strong> 24h replay scrubber · weather shimmer · depth-of-field pins · AI month-in-review flythrough · Shift compare yesterday/today.</p>
+
+    <div class="wow-plus-demo" id="wow-plus-demo">
+      <h3>Live Wow+ triggers (master preview above)</h3>
+      <p>Each button scrolls to the live globe and runs the W13–W20 behavior — same contracts as <code>rmc-world-globe-wow-plus.js</code> in production.</p>
+      <div class="lab-controls">
+        <button type="button" class="wow-plus-btn" data-wow-action="w13">W13 Magnetic pull</button>
+        <button type="button" class="wow-plus-btn" data-wow-action="w14">W14 Golden tour</button>
+        <button type="button" class="wow-plus-btn" data-wow-action="w15">W15 Risk aura</button>
+        <button type="button" class="wow-plus-btn" data-wow-action="w16">W16 Delta badge</button>
+        <button type="button" class="wow-plus-btn" data-wow-action="w17">W17 Presence</button>
+        <button type="button" class="wow-plus-btn" data-wow-action="w18">W18 Parallax</button>
+        <button type="button" class="wow-plus-btn" data-wow-action="w19">W19 Celebrate</button>
+        <button type="button" class="wow-plus-btn" data-wow-action="w20">W20 Snapshot</button>
+      </div>
+    </div>
   </section>
 
   <section id="roadmap">
@@ -532,13 +578,14 @@
     <p class="note">Gated by <code>cockpit.live_world_map.*</code> flags. Each tier builds on the last.</p>
     <div class="roadmap">
       <div class="road-row"><span class="tier tier-1">Tier 1</span><span>4 fixes: camera 1.02, texture, compact guide, legend sync</span><span>~2–3 d</span></div>
-      <div class="road-row"><span class="tier tier-2">Tier 2</span><span>Void A–D + fleet pulse + expansion radar</span><span>~3–4 d</span></div>
-      <div class="road-row"><span class="tier tier-3">Tier 3</span><span>AI brief, whisper, Ask dock</span><span>~2–3 d</span></div>
-      <div class="road-row"><span class="tier tier-4">Tier 4</span><span>Wow W1–W12</span><span>~5–7 d</span></div>
-      <div class="road-row"><span class="tier tier-5">Tier 5</span><span>Wow+ W13–W20</span><span>~4–6 d</span></div>
+      <div class="road-row"><span class="tier tier-2">Tier 2</span><span>Void A–D + fleet pulse + AI brief + expansion radar</span><span>~3–4 d</span></div>
+      <div class="road-row"><span class="tier tier-4">Tier 3</span><span>Wow W1–W12 (aurora, arcs, tour, share hash)</span><span>~5–7 d</span></div>
+      <div class="road-row"><span class="tier tier-5">Tier 4</span><span>Wow+ W13–W20 (parallax, deltas, presence, snapshot)</span><span>~4–6 d</span></div>
     </div>
   </section>
 </div>
+
+<button type="button" class="back-to-top" id="back-to-top" aria-label="Back to top">↑ Top</button>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/globe.gl@2.33.1/dist/globe.gl.min.js"></script>
@@ -555,6 +602,12 @@
     { startLat: 40.71, startLng: -74.01, endLat: 5.36, endLng: -4.01, color: "rgba(129,140,248,0.55)" },
     { startLat: 40.71, startLng: -74.01, endLat: 9.08, endLng: 8.68, color: "rgba(252,211,77,0.45)" }
   ];
+  var goldenTourArcs = [
+    { startLat: 8, startLng: -5, endLat: 5.36, endLng: -4.01, color: "rgba(251,191,36,0.75)" },
+    { startLat: 5.36, startLng: -4.01, endLat: 9.08, endLng: 8.68, color: "rgba(251,191,36,0.55)" }
+  ];
+  var parallaxOn = true;
+  var presenceCount = 2;
   var ghostTargets = [
     { lat: -1.29, lng: 36.82, name: "East Africa target", color: "rgba(148,163,184,0.5)" },
     { lat: 50.11, lng: 8.68, name: "Europe target", color: "rgba(148,163,184,0.5)" }
@@ -571,6 +624,157 @@
   var toggleWow = document.getElementById("toggle-wow");
   var altSlider = document.getElementById("alt-slider");
   var altOut = document.getElementById("alt-out");
+  var shareChip = document.getElementById("share-chip");
+  var deltaWa = document.getElementById("delta-wa");
+  var deltaOther = document.getElementById("delta-other");
+  var backToTop = document.getElementById("back-to-top");
+
+  function riskRings() {
+    return markers
+      .filter(function (m) { return m.status === "suspended" || m.status === "frozen"; })
+      .map(function (m) {
+        return {
+          lat: m.lat,
+          lng: m.lng,
+          maxR: m.status === "frozen" ? 2.5 : 3.5,
+          propagationSpeed: m.status === "frozen" ? 0.4 : 1.8,
+          repeatPeriod: 900,
+          color: m.status === "frozen" ? "rgba(147,197,253,0.35)" : "rgba(252,211,77,0.42)"
+        };
+      });
+  }
+
+  function syncShareHash() {
+    if (!globe || !shareChip) return;
+    try {
+      var pov = globe.pointOfView();
+      if (!pov) return;
+      var hash = "#globe=" + pov.lat.toFixed(1) + "," + pov.lng.toFixed(1) + "," + (pov.altitude || 1.02).toFixed(2);
+      shareChip.querySelector(".zone-body").textContent = hash;
+    } catch (_e) { /* ignore */ }
+  }
+
+  function showDelta(el, value) {
+    if (!el) return;
+    el.hidden = false;
+    el.textContent = (value > 0 ? "+" : "") + value;
+    el.classList.toggle("down", value < 0);
+    window.setTimeout(function () {
+      el.hidden = true;
+      el.textContent = "";
+      el.classList.remove("down");
+    }, 8000);
+  }
+
+  function exportSnapshot() {
+    if (!container) return;
+    var canvas = container.querySelector("canvas");
+    if (!canvas || !canvas.toBlob) return;
+    canvas.toBlob(function (blob) {
+      if (!blob) return;
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "runmycampus-globe-lab-" + new Date().toISOString().slice(0, 10) + ".png";
+      a.click();
+      URL.revokeObjectURL(url);
+    }, "image/png");
+  }
+
+  function wireVoidParallax() {
+    if (!map || reducedMotion) return;
+    var zones = map.querySelectorAll(".zone");
+    map.addEventListener("pointermove", function (ev) {
+      if (!parallaxOn || !wowOn) return;
+      var rect = map.getBoundingClientRect();
+      var nx = (ev.clientX - rect.left) / rect.width - 0.5;
+      var ny = (ev.clientY - rect.top) / rect.height - 0.5;
+      zones.forEach(function (z, i) {
+        var factor = 4 + (i % 3) * 2;
+        z.style.transform = "translate(" + (-nx * factor).toFixed(1) + "px," + (-ny * factor).toFixed(1) + "px)";
+      });
+    }, { passive: true });
+  }
+
+  function updatePresence(count) {
+    presenceCount = count;
+    var label = document.querySelector(".presence-label");
+    if (label) label.textContent = count + " operators viewing";
+  }
+
+  function scrollToMaster() {
+    var el = document.getElementById("master");
+    if (el) el.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+  }
+
+  function runGoldenTour() {
+    if (!globe) return;
+    if (!wowOn) setWow(true);
+    globe.arcsData(goldenTourArcs);
+    var waypoints = [{ lat: 8, lng: -5 }, { lat: 5.36, lng: -4.01 }, { lat: 9.08, lng: 8.68 }];
+    var i = 0;
+    captionEl.textContent = "Golden tour · West Africa";
+    function next() {
+      if (i >= waypoints.length) {
+        captionEl.textContent = "Golden tour complete";
+        return;
+      }
+      var w = waypoints[i++];
+      globe.pointOfView({ lat: w.lat, lng: w.lng, altitude: 1.05 }, reducedMotion ? 0 : 1200);
+      setTimeout(next, reducedMotion ? 100 : 2200);
+    }
+    next();
+  }
+
+  function triggerCelebration(xPct, yPct) {
+    if (!celebrate || reducedMotion) return;
+    celebrate.style.left = (xPct != null ? xPct : 58) + "%";
+    celebrate.style.top = (yPct != null ? yPct : 52) + "%";
+    celebrate.classList.remove("pop");
+    void celebrate.offsetWidth;
+    celebrate.classList.add("pop");
+  }
+
+  function runWowPlusAction(action) {
+    scrollToMaster();
+    if (!wowOn) setWow(true);
+    switch (action) {
+      case "w13":
+        document.getElementById("row-wa").dispatchEvent(new Event("mouseenter"));
+        break;
+      case "w14":
+        runGoldenTour();
+        break;
+      case "w15":
+        if (globe) {
+          globe.ringsData([
+            { lat: 9.08, lng: 8.68, maxR: 3.5, propagationSpeed: 1.8, repeatPeriod: 900, color: "rgba(252,211,77,0.42)" },
+            { lat: -1.29, lng: 36.82, maxR: 2.5, propagationSpeed: 0.4, repeatPeriod: 900, color: "rgba(147,197,253,0.35)" }
+          ]);
+        }
+        captionEl.textContent = "Risk aura · amber suspended · frost frozen";
+        break;
+      case "w16":
+        showDelta(deltaWa, 1);
+        showDelta(deltaOther, -1);
+        break;
+      case "w17":
+        updatePresence(5);
+        break;
+      case "w18":
+        parallaxOn = true;
+        captionEl.textContent = "Void parallax · move pointer over map";
+        break;
+      case "w19":
+        triggerCelebration();
+        break;
+      case "w20":
+        exportSnapshot();
+        break;
+      default:
+        break;
+    }
+  }
 
   function initGlobe() {
     if (typeof Globe !== "function" || !container) return;
@@ -595,6 +799,13 @@
       .arcDashLength(0.4)
       .arcDashGap(0.35)
       .arcDashAnimateTime(reducedMotion ? 0 : 4000)
+      .ringsData([])
+      .ringLat("lat")
+      .ringLng("lng")
+      .ringColor("color")
+      .ringMaxRadius("maxR")
+      .ringPropagationSpeed("propagationSpeed")
+      .ringRepeatPeriod("repeatPeriod")
       .width(container.clientWidth)
       .height(container.clientHeight);
 
@@ -609,6 +820,8 @@
     ctrl.enableZoom = true;
     ctrl.autoRotate = false;
     ctrl.autoRotateSpeed = 0.4;
+    ctrl.addEventListener("change", syncShareHash);
+    syncShareHash();
 
     window.addEventListener("resize", function () {
       if (!globe || !container) return;
@@ -627,15 +840,14 @@
     map.classList.add(on ? "aurora-warn" : "aurora-good");
     if (globe) {
       globe.arcsData(on ? arcs : []);
+      globe.ringsData(on ? riskRings() : []);
       globe.pointsData(on ? markers.concat(ghostTargets.map(function (g) {
         return { lat: g.lat, lng: g.lng, name: g.name, region: "Target", status: "ghost", color: g.color, ring_color: g.color };
       })) : markers);
       var ctrl = globe.controls();
       ctrl.autoRotate = on && !reducedMotion;
+      syncShareHash();
     }
-    document.querySelectorAll(".wow-only").forEach(function (el) {
-      el.style.display = "";
-    });
   }
 
   toggleWow.addEventListener("click", function () { setWow(!wowOn); });
@@ -665,12 +877,17 @@
     pulse1.innerHTML = "<time>now</time><span>+1 school live · West Africa</span>";
     pulse1.classList.add("flash");
     setTimeout(function () { pulse1.classList.remove("flash"); }, 600);
-    celebrate.style.left = "58%";
-    celebrate.style.top = "52%";
-    celebrate.classList.remove("pop");
-    void celebrate.offsetWidth;
-    celebrate.classList.add("pop");
+    showDelta(deltaWa, 1);
+    triggerCelebration(58, 52);
     if (!wowOn) setWow(true);
+  });
+
+  document.getElementById("export-snapshot").addEventListener("click", exportSnapshot);
+
+  document.querySelectorAll(".wow-plus-btn[data-wow-action]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      runWowPlusAction(btn.getAttribute("data-wow-action"));
+    });
   });
 
   function flyToRow(row) {
@@ -681,6 +898,7 @@
     globe.pointOfView({ lat: lat, lng: lng, altitude: 1.02 }, reducedMotion ? 0 : 900);
     document.getElementById("vp-text").textContent =
       row.getAttribute("data-r") === "wa" ? "West Africa · 2 in view" : "Other · 1 in view";
+    syncShareHash();
   }
 
   document.querySelectorAll(".row[data-r]").forEach(function (row) {
@@ -706,6 +924,10 @@
 
   document.getElementById("btn-tour").addEventListener("click", function () {
     if (!globe) return;
+    if (wowOn) {
+      runGoldenTour();
+      return;
+    }
     var waypoints = [{ lat: 8, lng: -5 }, { lat: 5.36, lng: -4.01 }, { lat: 9.08, lng: 8.68 }];
     var i = 0;
     captionEl.textContent = "Tour · West Africa";
@@ -720,8 +942,17 @@
 
   altSlider.addEventListener("input", function () {
     altOut.textContent = "altitude " + altSlider.value;
-    if (globe) globe.pointOfView({ altitude: parseFloat(altSlider.value) }, reducedMotion ? 0 : 400);
+    if (globe) {
+      globe.pointOfView({ altitude: parseFloat(altSlider.value) }, reducedMotion ? 0 : 400);
+      syncShareHash();
+    }
   });
+
+  if (backToTop) {
+    backToTop.addEventListener("click", function () {
+      window.scrollTo({ top: 0, behavior: reducedMotion ? "auto" : "smooth" });
+    });
+  }
 
   /* Scroll progress + nav spy */
   var sections = document.querySelectorAll("section[id]");
@@ -737,6 +968,7 @@
     navLinks.forEach(function (a) {
       a.classList.toggle("active", a.getAttribute("data-nav") === current);
     });
+    if (backToTop) backToTop.classList.toggle("visible", h.scrollTop > 400);
   }, { passive: true });
 
   document.addEventListener("keydown", function (e) {
@@ -746,6 +978,8 @@
   });
 
   initGlobe();
+  wireVoidParallax();
+  updatePresence(0);
   setTimeout(function () {
     if (globe && wowOn === false) {
       map.classList.add("aurora-warn");
