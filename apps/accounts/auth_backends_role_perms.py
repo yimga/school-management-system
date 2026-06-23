@@ -31,9 +31,9 @@ from django.contrib.auth.backends import BaseBackend
 # copilot RBAC and the role == ADMIN checks in apps/accounts/views.py).
 ADMIN_LIKE_ROLES = frozenset(
     {
-        "ADMIN",
+        "ADMIN",  # role-string-allow: admin-like role-permission set; bridges built-in Django perms (mirrors role_registry / role==ADMIN checks)
         "SUPERADMIN",
-        "PROPRIETOR",
+        "PROPRIETOR",  # role-string-allow: admin-like role-permission set; extended role not in User.Role TextChoices (mirrors role_registry)
         "PRINCIPAL",
         "VICE_PRINCIPAL",
         "LEADERSHIP",

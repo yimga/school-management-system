@@ -898,7 +898,7 @@ backend-shell dashboard-page-backend
                     <div class="backend-v2-rank-ribbon" aria-hidden="true"><span style="width: {{ student.ribbon_pct|default:0 }}%;"></span></div>
                     {% endif %}
                   </div>
-                  <span class="rmc-badge rmc-badge--success">{{ student.score }}/20</span>
+                  <span class="rmc-badge rmc-badge--success">{{ student.score }}/{{ grading_scale_max }}</span>
                 </div>
                 {% empty %}
                 <div class="rmc-empty rmc-empty--inline" role="status">

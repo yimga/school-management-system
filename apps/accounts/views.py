@@ -2771,6 +2771,7 @@ def backend_dashboard(request):
     recent_admissions = []
     top_performing_students = []
     at_risk_students = []
+    grading_scale_max = 20  # local-first: overwritten from the tenant's score scale below
     if compliance_profile and finance_status_counts:
         status_labels = dict(Invoice.Status.choices)
         chart_finance_status_json = json.dumps(
@@ -3004,9 +3005,20 @@ def backend_dashboard(request):
                 8, min(100, int(round((score_value / top_score) * 100)))
             )
 
+    # Local-first grading scale for this tenant: the pass mark is half the scale and
+    # the display denominator is the scale max. A /20 (Cameroon) school keeps pass-at-10
+    # and "/20" exactly; a /100 or GPA school gets correct thresholds + labels.
+    from apps.evals.grading_provisioning import resolve_school_score_scale
+
+    _dash_scale = float(resolve_school_score_scale(school))
+    grading_scale_max = (
+        int(_dash_scale) if _dash_scale == int(_dash_scale) else round(_dash_scale, 1)
+    )
+    _dash_pass_mark = _dash_scale / 2.0
+
     at_risk_map = {}
     for row in score_rows:
-        if row.get("score", 0) >= 10:
+        if row.get("score", 0) >= _dash_pass_mark:
             continue
         sid = row.get("student_id")
         if sid in at_risk_map:
@@ -3016,7 +3028,7 @@ def backend_dashboard(request):
             "name": row.get("name") or "Student",
             "classroom": row.get("classroom") or "Unassigned",
             "tag": "Low performance",
-            "value": f"{row.get('score', 0):.1f}/20",
+            "value": f"{row.get('score', 0):.1f}/{grading_scale_max}",
         }
         if len(at_risk_map) >= backend_layout_max_items_per_list:
             break
@@ -3213,6 +3225,7 @@ def backend_dashboard(request):
         "recent_admissions": recent_admissions,
         "top_performing_students": top_performing_students,
         "at_risk_students": at_risk_students,
+        "grading_scale_max": grading_scale_max,
         "quick_student_create_url": _safe_reverse("accounts:backend_student_create")
         if _safe_reverse("accounts:backend_student_create") != "#"
         else _safe_reverse("admin:people_studentprofile_add"),
