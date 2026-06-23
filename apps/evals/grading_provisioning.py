@@ -37,36 +37,73 @@ _LOCAL_DEFAULT_CODE = "local-default"
 _VALID_SCALE_TYPES = {"numeric_0_20", "letter_a_e", "gpa_4_0", "percentage"}
 
 
-def _scale_type_from_cascade(school) -> str:
-    """Honor an explicit ``default_grading_scale`` cascade value when it maps to a
-    known scale type (operator override wins over country derivation). Else ""."""
-    try:
-        from apps.platform_runtime.helpers import get_effective_site_settings
-
-        raw = (getattr(get_effective_site_settings(school=school), "default_grading_scale", "") or "")
-    except Exception:  # noqa: BLE001 — cascade is best-effort
-        return ""
-    val = str(raw).strip().lower().replace("-", "_")
+def _normalize_scale_type(raw: Any) -> str:
+    """Coerce a raw ``default_grading_scale`` value (a ScaleType or a wizard option
+    key like ``gpa_4`` / ``letter``) to a known ScaleType, else ""."""
+    val = str(raw or "").strip().lower().replace("-", "_")
     if val in _VALID_SCALE_TYPES:
         return val
-    # Map the wizard's option keys (gpa_4 / letter / points_100 / …) too.
     try:
         from apps.evals.grading_wizard_kernel import _SCALE_TYPE_MAP
 
         return _SCALE_TYPE_MAP.get(val, "")
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001 — wizard map is best-effort
         return ""
 
 
-def resolve_local_scale_type(school) -> str:
-    """The grading scale a school SHOULD use, local-first.
+def _school_explicit_scale_type(school) -> str:
+    """A grading scale EXPLICITLY chosen for THIS school, read straight from
+    ``school.settings`` — NOT the platform-wide default.
 
-    Order: explicit ``default_grading_scale`` cascade → country Education-DNA preset →
-    "percentage" (the most internationally neutral fallback). Always a valid ScaleType.
+    Local-first hinges on this distinction: ``get_effective_site_settings`` merges
+    the platform singleton's ``default_grading_scale`` UNDER every school, so a
+    global default is indistinguishable from a per-tenant choice once resolved.
+    Reading the per-tenant layer directly lets a real admin choice win while a
+    platform default stays a below-country hint (see ``resolve_local_scale_type``).
+    Honors the nested wizard bucket (``settings['runtime_defaults']``) first — that
+    is where ``set_runtime_default`` persists and it wins in the effective merge —
+    then a top-level key.
     """
-    cascade = _scale_type_from_cascade(school)
-    if cascade in _VALID_SCALE_TYPES:
-        return cascade
+    settings = getattr(school, "settings", None)
+    if not isinstance(settings, dict):
+        return ""
+    rd = settings.get("runtime_defaults")
+    if isinstance(rd, dict):
+        nested = _normalize_scale_type(rd.get("default_grading_scale"))
+        if nested in _VALID_SCALE_TYPES:
+            return nested
+    return _normalize_scale_type(settings.get("default_grading_scale"))
+
+
+def _scale_type_from_cascade(school) -> str:
+    """The EFFECTIVE ``default_grading_scale`` for ``school`` (per-tenant layer
+    merged over the platform singleton). When the per-tenant layer is blank this
+    is the platform-wide default — used by ``resolve_local_scale_type`` only as a
+    seed-time hint BELOW country derivation, never as a hard override. Else ""."""
+    try:
+        from apps.platform_runtime.helpers import get_effective_site_settings
+
+        raw = getattr(get_effective_site_settings(school=school), "default_grading_scale", "")
+    except Exception:  # noqa: BLE001 — cascade is best-effort
+        return ""
+    return _normalize_scale_type(raw)
+
+
+def resolve_local_scale_type(school) -> str:
+    """The grading scale a school SHOULD use, local-first. Always a valid ScaleType.
+
+    Precedence:
+      1. An explicit per-school choice (``school.settings``) — a real admin pick wins.
+      2. The school's COUNTRY Education-DNA preset — the local-first default. A
+         platform-wide ``default_grading_scale`` must NOT override this, or every
+         tenant silently inherits one country's scale (the lock this fix removes).
+      3. The platform-wide default, as a seed-time hint, only when there is no
+         country signal to derive from.
+      4. "percentage" — the most internationally neutral fallback.
+    """
+    explicit = _school_explicit_scale_type(school)
+    if explicit in _VALID_SCALE_TYPES:
+        return explicit
     country_code = (getattr(school, "country_code", "") or "").strip()
     if country_code:
         try:
@@ -76,8 +113,11 @@ def resolve_local_scale_type(school) -> str:
             mapped = _PRESET_TO_SCALE_TYPE.get(preset)
             if mapped in _VALID_SCALE_TYPES:
                 return mapped
-        except Exception as exc:  # noqa: BLE001 — fall through to neutral default
+        except Exception as exc:  # noqa: BLE001 — fall through to platform hint / neutral default
             logger.debug("resolve_local_scale_type preset failed cc=%s err=%s", country_code, exc)
+    platform_hint = _scale_type_from_cascade(school)
+    if platform_hint in _VALID_SCALE_TYPES:
+        return platform_hint
     return "percentage"
 
 

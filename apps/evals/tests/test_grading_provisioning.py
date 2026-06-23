@@ -7,6 +7,8 @@ gap: country preset → scale type → per-school default GradingScale + matchin
 AssessmentWeights, idempotent, never overriding an admin/wizard choice.
 """
 
+from types import SimpleNamespace
+
 from django.test import SimpleTestCase, TestCase
 
 
@@ -42,6 +44,71 @@ class ScaleConfigTests(SimpleTestCase):
         cfg = _scale_config("numeric_0_20")
         self.assertEqual(cfg["score_scale"], 20)
         self.assertEqual(cfg["pass_threshold"], 10.0)
+
+
+class ResolveLocalScaleTypeTests(SimpleTestCase):
+    """Precedence: explicit per-school choice > country derivation > platform
+    default hint > neutral. The key local-first guarantee is that a platform-wide
+    ``default_grading_scale`` no longer overrides per-tenant country derivation.
+
+    Uses ``country_code='FR'`` (in the curated francophone override) so
+    ``resolve_grading_preset_key`` short-circuits without any DB access.
+    """
+
+    def _school(self, settings=None, country_code="FR"):
+        return SimpleNamespace(settings=settings, country_code=country_code)
+
+    def test_normalize_scale_type_maps_wizard_keys_and_dashes(self):
+        from apps.evals.grading_provisioning import _normalize_scale_type
+
+        self.assertEqual(_normalize_scale_type("gpa_4"), "gpa_4_0")
+        self.assertEqual(_normalize_scale_type("letter"), "letter_a_e")
+        self.assertEqual(_normalize_scale_type("numeric-0-20"), "numeric_0_20")
+        self.assertEqual(_normalize_scale_type(""), "")
+        self.assertEqual(_normalize_scale_type(None), "")
+
+    def test_school_explicit_reads_nested_then_top_level(self):
+        from apps.evals.grading_provisioning import _school_explicit_scale_type
+
+        self.assertEqual(
+            _school_explicit_scale_type(
+                self._school({"runtime_defaults": {"default_grading_scale": "gpa_4"}})
+            ),
+            "gpa_4_0",
+        )
+        self.assertEqual(
+            _school_explicit_scale_type(self._school({"default_grading_scale": "letter"})),
+            "letter_a_e",
+        )
+        # Nested wins over top-level (mirrors the effective-settings merge order).
+        self.assertEqual(
+            _school_explicit_scale_type(
+                self._school(
+                    {
+                        "default_grading_scale": "letter",
+                        "runtime_defaults": {"default_grading_scale": "gpa_4"},
+                    }
+                )
+            ),
+            "gpa_4_0",
+        )
+        self.assertEqual(_school_explicit_scale_type(self._school({})), "")
+        self.assertEqual(_school_explicit_scale_type(self._school(None)), "")
+
+    def test_explicit_per_school_choice_wins_over_country(self):
+        from apps.evals.grading_provisioning import resolve_local_scale_type
+
+        # Admin picked GPA for this FR school; the pick wins over FR -> numeric_0_20.
+        school = self._school({"runtime_defaults": {"default_grading_scale": "gpa_4"}})
+        self.assertEqual(resolve_local_scale_type(school), "gpa_4_0")
+
+    def test_country_derivation_when_no_explicit_choice(self):
+        from apps.evals.grading_provisioning import resolve_local_scale_type
+
+        # Blank settings -> country wins. Because step 2 returns here, a
+        # platform-wide default (step 3) can never override the country.
+        self.assertEqual(resolve_local_scale_type(self._school({})), "numeric_0_20")
+        self.assertEqual(resolve_local_scale_type(self._school(None)), "numeric_0_20")
 
 
 class GradingProvisioningDBTests(TestCase):
