@@ -613,12 +613,32 @@ def parent_child_results(request: HttpRequest, student_id: int):
 
     student = link.student
 
-    published = is_term_published(year.id, term.id, student.classroom_id)
+    site = get_effective_site_settings(request=request)
+    from apps.portal.student_results_visibility import (
+        get_student_results_visibility_from_site,
+        resolve_student_grade_dashboard_access,
+    )
+
+    officially_published = is_term_published(
+        year.id, term.id, student.classroom_id
+    )
+    has_grade_data = Evaluation.objects.filter(
+        student=student, academic_year=year, term=term
+    ).exists()
+    access = resolve_student_grade_dashboard_access(
+        visibility_mode=get_student_results_visibility_from_site(site),
+        term_published=officially_published,
+        has_grade_data=has_grade_data,
+    )
+    can_view_results = bool(access["can_view_results"])
+    parent_results_locked = bool(access["results_locked"])
+    parent_results_visibility_mode = str(access["visibility_mode"])
+
     terms = terms_for_student(year, student.classroom)
     annual_published = are_terms_published(
         year.id, [t.id for t in terms], student.classroom_id
     )
-    if not published:
+    if not can_view_results:
         return render(
             request,
             "parent/results.html",
@@ -628,6 +648,9 @@ def parent_child_results(request: HttpRequest, student_id: int):
                 "term": term,
                 "published": False,
                 "annual_published": annual_published,
+                "can_view_results": False,
+                "parent_results_locked": parent_results_locked,
+                "parent_results_visibility_mode": parent_results_visibility_mode,
                 "rows": [],
                 "totals": None,
             },
@@ -651,8 +674,11 @@ def parent_child_results(request: HttpRequest, student_id: int):
         "student": student,
         "year": year,
         "term": term,
-        "published": True,
+        "published": officially_published,
         "annual_published": annual_published,
+        "can_view_results": True,
+        "parent_results_locked": False,
+        "parent_results_visibility_mode": parent_results_visibility_mode,
         "rows": report_ctx["rows"],
         "summary": report_ctx["summary"],
         "weights": report_ctx["weights"],
@@ -685,7 +711,7 @@ def parent_dashboard(request: HttpRequest):
     portal_features = _portal_features_status(request)
     students = [link.student for link in links]
     finance_students = [link.student for link in finance_links]
-    can_view_results = bool(students)
+    has_guardian_results_links = bool(students)
     can_view_finance = bool(finance_students)
     widget_data = parent_dashboard_widget_data(
         students, school=getattr(request, "school", None)
@@ -749,6 +775,22 @@ def parent_dashboard(request: HttpRequest):
     student_ids = [s.id for s in students] if students else []
     school = getattr(request, "school", None)
     year, _term = get_active_year_and_term(school=school)
+    site = get_effective_site_settings(request=request)
+    from apps.portal.student_results_visibility import (
+        resolve_parent_grade_dashboard_access,
+    )
+
+    grade_access = resolve_parent_grade_dashboard_access(
+        site=site,
+        students=students,
+        year=year,
+        term=_term,
+        widget_data=widget_data,
+        has_guardian_results_links=has_guardian_results_links,
+    )
+    can_view_results = bool(grade_access["can_view_results"])
+    parent_results_locked = bool(grade_access["results_locked"])
+    parent_results_visibility_mode = str(grade_access["visibility_mode"])
     resource_pending_map = {}
     if year and student_ids:
         from apps.people.models import StudentResourceReturn
@@ -1196,6 +1238,8 @@ def parent_dashboard(request: HttpRequest):
             "show_parent_dashboard_hint": show_parent_dashboard_hint,
             "can_view_results": can_view_results,
             "can_view_finance": can_view_finance,
+            "parent_results_locked": parent_results_locked,
+            "parent_results_visibility_mode": parent_results_visibility_mode,
             "chart_attendance_donut_json": chart_attendance_donut_json,
             "chart_finance_donut_json": chart_finance_donut_json,
             "chart_attendance_trend_json": chart_attendance_trend_json,

@@ -42,7 +42,7 @@ def seed_demo_users_for_school(
     stdout: Any,
     style: Any,
 ) -> None:
-    """Create demo admin, teacher, parent with StudentGuardian link."""
+    """Create demo admin, teacher, parent, student with StudentGuardian link."""
     year = (
         AcademicYear.objects.filter(school=school, is_active=True).first()
         or AcademicYear.objects.filter(school=school).order_by("-id").first()
@@ -64,6 +64,7 @@ def seed_demo_users_for_school(
         (f"{pfx}.admin", User.Role.ADMIN, True),
         (f"{pfx}.teacher", User.Role.TEACHER, True),
         (f"{pfx}.parent", User.Role.PARENT, False),
+        (f"{pfx}.student", User.Role.STUDENT, False),
     ]
 
     with transaction.atomic():
@@ -113,6 +114,10 @@ def seed_demo_users_for_school(
         if student.academic_year_id != year.id:
             student.academic_year = year
             student.save(update_fields=["academic_year"])
+        student_user = User.objects.get(username=f"{pfx}.student")
+        if student.user_id != student_user.id:
+            student.user = student_user
+            student.save(update_fields=["user"])
         StudentGuardian.objects.get_or_create(
             guardian_user=parent,
             student=student,
@@ -122,6 +127,6 @@ def seed_demo_users_for_school(
     stdout.write(
         style.SUCCESS(
             f"OK — school={school.slug!r} users {pfx}.admin, {pfx}.teacher, "
-            f"{pfx}.parent password={password!r}"
+            f"{pfx}.parent, {pfx}.student password={password!r}"
         )
     )

@@ -44,7 +44,7 @@
       {% if finance_balance and finance_balance > 0 %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-wallet2" dh_k=_("Balance due") dh_v=finance_balance|format_currency dh_d=_("due") dh_dir="down" dh_href=ph_finance_url %}
       {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-wallet2" dh_k=_("Balance due") dh_v=finance_balance|format_currency dh_d=_("cleared") dh_dir="up" dh_href=ph_finance_url %}{% endif %}
     {% endif %}
-    {% if widget_data.performance.average %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-mortarboard" dh_k=_("Average") dh_v=widget_data.performance.average|floatformat:0 dh_d=widget_data.performance.trend|default:"" dh_dir="flat" dh_spark=widget_data.grade_trend|dh_spark_heights %}{% endif %}
+    {% if can_view_results and widget_data.performance.average %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-mortarboard" dh_k=_("Average") dh_v=widget_data.performance.average|floatformat:0 dh_d=widget_data.performance.trend|default:"" dh_dir="flat" dh_spark=widget_data.grade_trend|dh_spark_heights %}{% endif %}
     {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-bell" dh_k=_("Messages") dh_v=unread_messages_aggregate|default:0 dh_d=_("unread") dh_dir="flat" dh_href=ph_contact_url %}
   </div>
 
@@ -68,6 +68,13 @@
       <form method="post" action="{{ finance_access_banner.request_url }}" class="ms-auto mb-0">{% csrf_token %}<button type="submit" class="rmc-dh-attn-row__go rmc-dh-attn-row__go--btn">{{ finance_access_banner.cta|default:_("Request access") }}</button></form>
       {% endif %}
     </div>
+  </div>
+  {% endif %}
+
+  {% if parent_results_locked %}
+  <div class="rmc-dh-attention" role="note">
+    <h2 class="rmc-dh-attention__title"><i class="bi bi-shield-lock" aria-hidden="true"></i> {% trans "Results" %}</h2>
+    <p class="mb-0">{% trans "Your school has not published this term's results yet. Grades are recorded but hidden until publish." %}</p>
   </div>
   {% endif %}
 
@@ -95,7 +102,7 @@
   {# ---------- Two-column body ---------- #}
   <div class="rmc-dh-grid2">
     <div>
-      {% if widget_data.grade_trend %}
+      {% if can_view_results and widget_data.grade_trend %}
       <section class="rmc-dh-panel">
         {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-graph-up-arrow" dh_title=_("Grade trend") dh_more_label=_("Reports")|add:" →" dh_more_href=ph_stats_url %}
         {% include "components/dashboard/rmc_dh_minichart.html" with dh_cols=widget_data.grade_trend dh_aria=_("Recent grade trend") %}

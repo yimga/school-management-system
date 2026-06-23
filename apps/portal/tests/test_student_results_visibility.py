@@ -11,6 +11,7 @@ from apps.portal.student_results_visibility import (
     STUDENT_RESULTS_VISIBILITY_PUBLISHED,
     get_student_results_visibility_from_site,
     normalize_student_results_visibility,
+    resolve_parent_grade_dashboard_access,
     resolve_student_grade_dashboard_access,
 )
 
@@ -99,3 +100,45 @@ class GetStudentResultsVisibilityFromSiteTests(SimpleTestCase):
             get_student_results_visibility_from_site(None),
             DEFAULT_STUDENT_RESULTS_VISIBILITY,
         )
+
+
+class ResolveParentGradeDashboardAccessTests(SimpleTestCase):
+    def test_no_guardian_links_hides_grades(self):
+        site = type("S", (), {"student_results_visibility": "entered"})()
+        out = resolve_parent_grade_dashboard_access(
+            site=site,
+            students=[],
+            year=None,
+            term=None,
+            widget_data={"performance": {"average": 14.0}},
+            has_guardian_results_links=False,
+        )
+        self.assertFalse(out["can_view_results"])
+
+    def test_off_mode_hides_despite_widget_data(self):
+        site = type("S", (), {"student_results_visibility": "off"})()
+        student = type("S", (), {"id": 1, "classroom_id": 1})()
+        out = resolve_parent_grade_dashboard_access(
+            site=site,
+            students=[student],
+            year=type("Y", (), {"id": 1})(),
+            term=type("T", (), {"id": 1})(),
+            widget_data={"performance": {"average": 14.0}},
+            has_guardian_results_links=True,
+        )
+        self.assertFalse(out["can_view_results"])
+        self.assertEqual(out["visibility_mode"], STUDENT_RESULTS_VISIBILITY_OFF)
+
+    def test_entered_mode_uses_widget_average(self):
+        site = type("S", (), {"student_results_visibility": "entered"})()
+        student = type("S", (), {"id": 1, "classroom_id": 1})()
+        out = resolve_parent_grade_dashboard_access(
+            site=site,
+            students=[student],
+            year=None,
+            term=None,
+            widget_data={"performance": {"average": 12.5}},
+            has_guardian_results_links=True,
+        )
+        self.assertTrue(out["can_view_results"])
+        self.assertFalse(out["results_locked"])

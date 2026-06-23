@@ -153,6 +153,12 @@ MANDATORY_SCHOOL_STUDIO_INNER = (
     "/siteconfig/onboarding/",
 )
 
+# Role home routes that must survive TENANT_SWEEP_MAX caps.
+MANDATORY_ROLE_HOME_INNER = (
+    "/portal/student-portal/grades/",
+    "/portal/parent/",
+)
+
 
 def _priority(inner: str) -> int:
     stripped = inner.lstrip("/")
@@ -206,8 +212,11 @@ def main() -> int:
 
     rows.sort(key=lambda r: (_priority(r["inner"]), r["path"]))
     if args.max > 0 and len(rows) > args.max:
-        mandatory = [r for r in rows if r["inner"] in MANDATORY_SCHOOL_STUDIO_INNER]
-        rest = [r for r in rows if r["inner"] not in MANDATORY_SCHOOL_STUDIO_INNER]
+        mandatory_inner = set(MANDATORY_SCHOOL_STUDIO_INNER) | set(
+            MANDATORY_ROLE_HOME_INNER
+        )
+        mandatory = [r for r in rows if r["inner"] in mandatory_inner]
+        rest = [r for r in rows if r["inner"] not in mandatory_inner]
         cap = max(args.max - len(mandatory), 0)
         rows = mandatory + rest[:cap]
 

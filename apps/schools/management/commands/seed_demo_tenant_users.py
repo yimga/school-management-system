@@ -4,7 +4,7 @@ Seed demo admin / teacher / parent users for any active tenant (RunMyCampus-neut
   python manage.py seed_demo_tenant_users
   python manage.py seed_demo_tenant_users --school-slug=my-school
 
-Default: first active school by created_at. Usernames: demo.admin, demo.teacher, demo.parent.
+Default: first active school by created_at. Usernames: demo.admin, demo.teacher, demo.parent, demo.student.
 """
 
 from django.core.management.base import BaseCommand
@@ -14,7 +14,8 @@ from apps.schools.demo_user_seeding import resolve_demo_school, seed_demo_users_
 
 class Command(BaseCommand):
     help = (
-        "Seed demo.admin, demo.teacher, demo.parent for a tenant (password Test1234 by default)."
+        "Seed demo.admin, demo.teacher, demo.parent, demo.student for a tenant "
+        "(password Test1234 by default)."
     )
 
     def add_arguments(self, parser):
@@ -26,7 +27,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--password",
             default="Test1234",
-            help="Password for all three users",
+            help="Password for all four users",
         )
         parser.add_argument(
             "--username-prefix",
