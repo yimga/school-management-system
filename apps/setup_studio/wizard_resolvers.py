@@ -424,9 +424,49 @@ def list_curriculum_tracks(*, request: Any, school: Any) -> list[dict[str, Any]]
     return [{"value": t, "label_token": f"track.{t}", "metadata": {}} for t in tracks]
 
 
+# GradingScale.ScaleType → this wizard's option value, so the country-recommended scale
+# (apps.evals.grading_provisioning.resolve_local_scale_type) can be pre-selected. Adds
+# numeric_0_20 to the option set so 0–20 (Francophone) systems are representable at all.
+_SCALE_TYPE_TO_WIZARD_VALUE = {
+    "numeric_0_20": "numeric_0_20",
+    "percentage": "percentage",
+    "gpa_4_0": "gpa_4",
+    "letter_a_e": "letter",
+}
+
+
+def _recommended_grading_scale_value(school: Any) -> str:
+    """The wizard option value matching the school's COUNTRY-recommended scale, or ""."""
+    if school is None:
+        return ""
+    try:
+        from apps.evals.grading_provisioning import resolve_local_scale_type
+
+        return _SCALE_TYPE_TO_WIZARD_VALUE.get(resolve_local_scale_type(school), "")
+    except Exception:  # noqa: BLE001 — recommendation is best-effort, never blocks the wizard
+        return ""
+
+
 def list_grading_scales(*, request: Any, school: Any) -> list[dict[str, Any]]:
-    scales = ["gpa_4", "gpa_5", "percentage", "letter", "competency", "points_100", "points_1000"]
-    return [{"value": s, "label_token": f"grading.scale.{s}", "metadata": {}} for s in scales]
+    # numeric_0_20 added so Francophone/0–20 systems can be picked (was unrepresentable).
+    scales = [
+        "numeric_0_20", "percentage", "letter", "gpa_4", "gpa_5",
+        "competency", "points_100", "points_1000",
+    ]
+    recommended = _recommended_grading_scale_value(school)
+    options = [
+        {
+            "value": s,
+            "label_token": f"grading.scale.{s}",
+            "metadata": {"recommended": s == recommended} if recommended else {},
+        }
+        for s in scales
+    ]
+    # Local-first: surface the country-recommended scale FIRST so it is the natural pick
+    # instead of a blind choice from a flat list.
+    if recommended:
+        options.sort(key=lambda o: 0 if o["value"] == recommended else 1)
+    return options
 
 
 def list_canonical_csv_fields(*, request: Any, school: Any) -> list[dict[str, Any]]:
