@@ -62,15 +62,58 @@ def active_resolver_name() -> str:
     return _ACTIVE_NAME
 
 
+def _subdivision_tax_rate(country_code: str, subdivision_code: str) -> Decimal | None:
+    """Read ``SubdivisionTaxRate.tax_rate`` for a (country, subdivision) pair.
+
+    Returns ``None`` when no active row matches, so the caller falls back to the
+    coarser country rate — adding subdivision rows only ever ADDS specificity.
+    """
+    if not (country_code and subdivision_code):
+        return None
+    try:
+        from apps.siteconfig.models_platform_catalog import SubdivisionTaxRate
+    except (ImportError, RuntimeError):
+        return None
+    try:
+        # tenant-isolation-allow: subdivision-tax-rate-platform-catalog-tax-resolver
+        row = (
+            SubdivisionTaxRate.objects.filter(
+                country_code__iexact=country_code,
+                subdivision_code__iexact=subdivision_code,
+                is_active=True,
+            )
+            .only("tax_rate")
+            .first()
+        )
+    except (AttributeError, RuntimeError, ValueError):
+        return None
+    if row is None:
+        return None
+    try:
+        return Decimal(str(row.tax_rate or 0))
+    except (TypeError, ValueError):
+        return None
+
+
 def static_tax_resolver(
     country_code: str,
     *,
-    subdivision_code: str | None = None,  # noqa: ARG001 — interface symmetry
-    line_amount: Decimal | None = None,  # noqa: ARG001
+    subdivision_code: str | None = None,
+    line_amount: Decimal | None = None,  # noqa: ARG001 — interface symmetry
 ) -> Decimal | None:
-    """Read ``CountryMultiplier.tax_rate`` for the country."""
+    """Resolve the tax rate from the platform catalog (B3 subdivision-aware).
+
+    A subdivision-specific rate (US state, CA province, …) overrides the coarse
+    ``CountryMultiplier.tax_rate`` when a ``subdivision_code`` is supplied and an
+    active ``SubdivisionTaxRate`` row matches; otherwise the country rate is
+    used. Behaviour is unchanged until subdivision rows are configured.
+    """
     if not country_code:
         return None
+    if subdivision_code:
+        sub_rate = _subdivision_tax_rate(country_code, subdivision_code)
+        if sub_rate is not None:
+            return sub_rate
     try:
         from apps.siteconfig.models_platform_catalog import CountryMultiplier
     except (ImportError, RuntimeError):
@@ -120,7 +163,9 @@ def resolve_tax_rate(
         rate = None
     if rate is None and _ACTIVE_NAME != "static":
         try:
-            rate = static_tax_resolver(country_code)
+            rate = static_tax_resolver(
+                country_code, subdivision_code=subdivision_code
+            )
         except (AttributeError, RuntimeError, TypeError, ValueError):
             rate = None
     return rate or Decimal("0")

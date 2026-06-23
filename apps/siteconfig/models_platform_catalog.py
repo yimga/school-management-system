@@ -712,6 +712,57 @@ class CountryMultiplier(models.Model):
         return f"{self.country_code}: {self.multiplier}"
 
 
+class SubdivisionTaxRate(models.Model):
+    """Per-subdivision (state / province) tax-rate override (B3).
+
+    ``CountryMultiplier.tax_rate`` is a single coarse rate per country, but
+    sales/consumption tax frequently varies BELOW the country — US state sales
+    tax, Canadian provincial PST/HST, etc. This table holds those finer rates so
+    a school billed in such a country gets the right tax for its subdivision,
+    keeping the platform local-first without hardcoding any one country's rules.
+
+    Platform-catalog (SHARED) data, like ``CountryMultiplier`` — no school FK.
+    The resolver (``apps.billing.tax_engine.static_tax_resolver``) consults this
+    table when a ``subdivision_code`` is supplied and falls back to the country
+    rate when no active subdivision row matches, so adding rows only ever ADDS
+    specificity — it never changes the country-level default.
+    """
+
+    country_code = models.CharField(
+        max_length=3, help_text="ISO 3166-1 alpha-2/3 (matches CountryMultiplier)"
+    )
+    subdivision_code = models.CharField(
+        max_length=10,
+        help_text="Subdivision code within the country (e.g. 'CA', 'NY', 'ON').",
+    )
+    tax_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=4,
+        default=Decimal("0.0000"),
+        help_text="Sales/consumption tax rate for this subdivision (e.g. 0.0725 for 7.25%).",
+    )
+    tax_code = models.CharField(
+        max_length=32,
+        blank=True,
+        help_text="Local tax code identifier (e.g. PST, HST, state sales tax); informational only.",
+    )
+    name = models.CharField(
+        max_length=120, blank=True, help_text="Subdivision name (e.g. 'California')."
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["country_code", "subdivision_code"]
+        unique_together = [("country_code", "subdivision_code")]
+        verbose_name = "Subdivision tax rate"
+        verbose_name_plural = "Subdivision tax rates"
+
+    def __str__(self):
+        return f"{self.country_code}-{self.subdivision_code}: {self.tax_rate}"
+
+
 class RevenueSnapshot(models.Model):
     school = models.ForeignKey(
         "schools.School",
