@@ -174,7 +174,28 @@ class UserPermissionForm(forms.Form):
 
 
 class UserProfileEditForm(forms.ModelForm):
-    """My profile: edit name, email, profile photo (user can only edit self)."""
+    """My profile: edit name, email, profile photo (user can only edit self).
+
+    Teachers can additionally self-edit their contact phone
+    (``TeacherProfile.phone``) — a safe role-profile field. Sensitive role data
+    (pay scale, salary, permissions, staff_id) stays admin-managed and is never
+    exposed here. The field is added only when the user actually has a teacher
+    profile, so non-teacher roles see exactly the base form.
+    """
+
+    contact_phone = forms.CharField(
+        required=False,
+        max_length=50,  # matches TeacherProfile.phone
+        label="Contact phone",
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Contact phone",
+                "autocomplete": "tel",
+                "inputmode": "tel",
+            }
+        ),
+    )
 
     class Meta:
         model = User
@@ -198,6 +219,31 @@ class UserProfileEditForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["email"].required = False
         self.fields["profile_photo"].required = False
+
+        from django.core.exceptions import ObjectDoesNotExist
+
+        self._teacher_profile = None
+        instance = getattr(self, "instance", None)
+        if instance is not None and getattr(instance, "pk", None):
+            try:
+                self._teacher_profile = instance.teacher_profile
+            except ObjectDoesNotExist:
+                self._teacher_profile = None
+        if self._teacher_profile is not None:
+            self.fields["contact_phone"].initial = self._teacher_profile.phone or ""
+        else:
+            # Only teachers have a self-editable role-profile contact field today.
+            self.fields.pop("contact_phone", None)
+
+    def save(self, commit: bool = True):
+        user = super().save(commit=commit)
+        profile = getattr(self, "_teacher_profile", None)
+        if commit and profile is not None and "contact_phone" in self.cleaned_data:
+            new_phone = (self.cleaned_data.get("contact_phone") or "").strip()
+            if profile.phone != new_phone:
+                profile.phone = new_phone
+                profile.save(update_fields=["phone"])
+        return user
 
 
 class ClaimInviteAccountForm(forms.Form):
