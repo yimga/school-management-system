@@ -1,0 +1,8 @@
+{% comment %}
+  rmc-dh timetable row. Params: dh_time, dh_subject, dh_room, dh_now (bool).
+{% endcomment %}
+<div class="rmc-dh-tt">
+  <span class="rmc-dh-tt__when{% if dh_now %} rmc-dh-tt__when--now{% endif %}">{{ dh_time }}</span>
+  <span class="rmc-dh-tt__subject">{{ dh_subject }}</span>
+  {% if dh_room %}<span class="rmc-dh-tt__room">{{ dh_room }}</span>{% endif %}
+</div>

@@ -437,6 +437,7 @@ def virtual_site_setting_default(name: str) -> object:
         # (countdown) or "strict" (hard wall) per-tenant or platform-wide via
         # the runtime-defaults cascade. Resolved in apps.accounts.mfa_defaults.
         "mfa_enforcement_mode": "optional",
+        "student_results_visibility": "published",
         "report_preview_contact_email": PLATFORM_DEFAULT_REPORT_PREVIEW_EMAIL,
         "report_preview_contact_phone": "",
         "sms_provider": "",

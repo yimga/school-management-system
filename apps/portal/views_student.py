@@ -26,6 +26,7 @@ from .models import PortalFeatureItem
 from .views_common import PORTAL_FEATURES_META
 from .tenant_role_home import build_tp_hero_context
 from .tenant_workflow_portal import build_tenant_workflow_portal
+from .student_dashboard_data import build_student_home_extras
 
 
 @login_required
@@ -66,33 +67,31 @@ def student_learning_home(request: HttpRequest):
     except (AttributeError, DatabaseError, TypeError, ValueError):
         pass
 
-    class_label = (
-        profile.classroom.name
-        if profile and getattr(profile, "classroom", None)
-        else "—"
-    )
     headline = (
         f"{profile.first_name} {profile.last_name}".strip()
         if profile
         else request.user.get_full_name() or request.user.username
     )
 
-    metrics = [
-        {
-            "label": "Class",
-            "value": class_label,
-            "meta": "Current homeroom",
-            "status": "ok",
-        },
-        {
-            "label": "Unread messages",
-            "value": unread,
-            "meta": "From school",
-            "status": "warn" if unread else "ok",
-        },
-    ]
+    year = term = None
+    try:
+        year, term = get_active_year_and_term(school=getattr(request, "school", None))
+    except (AttributeError, DatabaseError, TypeError, ValueError):
+        year = term = None
+
+    home_extras = build_student_home_extras(
+        request, profile, unread=unread, year=year, term=term
+    )
 
     urgent_queue = []
+    for due in home_extras.get("student_due_items") or []:
+        urgent_queue.append(
+            {
+                "title": due["title"],
+                "url": due.get("url") or "",
+                "hint": due.get("cd") or "",
+            }
+        )
     if unread:
         urgent_queue.append(
             {
@@ -120,98 +119,18 @@ def student_learning_home(request: HttpRequest):
         {"title": "Student portal", "meta": "Signed in and ready for school updates."}
     ]
 
-    # --- Student data enrichment (degrade-safe; reuses the parent-dashboard
-    #     per-student helpers in apps.portal.services so the learning home shows
-    #     real attendance / grades / timetable instead of a status-only stub).
-    _soft_failures = (AttributeError, DatabaseError, TypeError, ValueError, KeyError, IndexError)
-    student_attendance_pct = None
-    student_grade_avg = None
-    student_grade_trend = []
-    student_timetable = []
-    student_subjects = []
-    student_badges = []
-    student_next_class = None
-    student_attendance_cells = []
-    if profile is not None and getattr(profile, "classroom", None):
-        try:
-            year, term = get_active_year_and_term(school=getattr(request, "school", None))
-        except _soft_failures:
-            year = term = None
-        if year and term:
-            from apps.portal.services import (
-                _attendance_snapshot,
-                _grade_trend,
-                _performance_overview,
-                _subject_performance,
-                _timetable_overview,
-            )
-
-            one_student = [profile]
-            try:
-                _att = _attendance_snapshot(one_student, year, term) or {}
-                student_attendance_pct = int(_att.get("overall") or 0)
-            except _soft_failures:
-                student_attendance_pct = None
-            try:
-                _perf = _performance_overview(
-                    one_student, year, term, school=getattr(request, "school", None)
-                ) or {}
-                if _perf.get("average") is not None:
-                    student_grade_avg = round(_perf["average"], 1)
-            except _soft_failures:
-                student_grade_avg = None
-            try:
-                student_grade_trend = list(_grade_trend(one_student, year, term) or [])
-            except _soft_failures:
-                student_grade_trend = []
-            try:
-                student_timetable = list(_timetable_overview(one_student, year, term) or [])
-            except _soft_failures:
-                student_timetable = []
-            try:
-                student_subjects = list(_subject_performance(one_student, year, term) or [])
-            except _soft_failures:
-                student_subjects = []
-            try:
-                from django.db.models import Q
-
-                from apps.people.models import Badge
-
-                # tenant-isolation-allow: student-own-badges-via-self-profile-fk-no-cross-tenant
-                _badges_qs = (
-                    Badge.objects.filter(student=profile)
-                    .filter(Q(expiry_at__isnull=True) | Q(expiry_at__gt=timezone.now()))
-                    .select_related("badge_type")
-                    .order_by("-issued_at")
-                )
-                student_badges = list(_badges_qs[:6])
-            except _soft_failures:
-                student_badges = []
-            # Next class = the first timetable row that carries a resolved time slot.
-            for _row in student_timetable:
-                if isinstance(_row, dict) and _row.get("time_slot"):
-                    student_next_class = _row
-                    break
-
     phase7_de = {
-        "eyebrow": "Student home",
+        "eyebrow": home_extras.get("student_hero_eyebrow") or "Student home",
         "headline_label": "Learning status",
         "headline_value": "On track" if profile else "Setup needed",
         "headline_meta": headline,
-        "metrics": metrics,
-        "urgent_queue": urgent_queue
-        or [
-            {
-                "title": "No urgent items",
-                "url": "",
-                "hint": "Check messages and syllabus for updates.",
-            }
-        ],
+        "hero_sub": home_extras.get("student_hero_sub"),
+        "metrics": home_extras.get("student_metrics") or [],
+        "urgent_queue": urgent_queue,
         "next_actions": next_actions,
         "activity": activity,
     }
 
-    from apps.portal.tenant_role_home import build_tp_hero_context
     from apps.schools.tenant_operational_health import resolve_tenant_operational_health
 
     tenant_health = resolve_tenant_operational_health(
@@ -224,14 +143,7 @@ def student_learning_home(request: HttpRequest):
         {
             "phase7_de": phase7_de,
             "tenant_health": tenant_health,
-            "student_attendance_pct": student_attendance_pct,
-            "student_grade_avg": student_grade_avg,
-            "student_grade_trend": student_grade_trend,
-            "student_timetable": student_timetable,
-            "student_subjects": student_subjects,
-            "student_badges": student_badges,
-            "student_next_class": student_next_class,
-            "student_unread": unread,
+            **home_extras,
             **build_tp_hero_context(
                 request,
                 role=User.Role.STUDENT,

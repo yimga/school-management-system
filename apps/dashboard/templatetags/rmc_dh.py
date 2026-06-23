@@ -104,3 +104,134 @@ def dh_donut_gradient(segments) -> str:
     if cursor < PCT_FULL:
         stops.append(f"var(--hairline) {cursor:.4g}% 100%")
     return mark_safe("conic-gradient(" + ", ".join(stops) + ")")  # noqa: S308 - tokens only, no user HTML
+
+
+@register.simple_tag(name="dh_child_meta")
+def dh_child_meta(card, *, can_view_results: bool = False) -> str:
+    """One-line meta for parent child cards."""
+    from django.utils.translation import gettext as _
+
+    if not can_view_results:
+        return str(_("Linked"))
+    parts = []
+    rank = getattr(card, "rank", None)
+    if rank:
+        parts.append(_("Rank %(r)s") % {"r": rank})
+    average = getattr(card, "average", None)
+    if average is not None:
+        parts.append(_("Avg %(a)s") % {"a": int(round(float(average)))})
+    return " · ".join(parts) if parts else str(_("Linked"))
+
+
+@register.simple_tag(name="dh_child_tags")
+def dh_child_tags(card, *, can_view_results: bool = False, can_view_finance: bool = False) -> list[dict]:
+    """Tag chips for parent child cards."""
+    from django.utils.translation import gettext as _
+    from django.utils.translation import ngettext
+
+    tags: list[dict] = []
+    attendance = int(getattr(card, "attendance", None) or 0)
+    if attendance >= 80:
+        tags.append({"label": str(_("On track")), "kind": "good"})
+    else:
+        tags.append({"label": str(_("Attendance")), "kind": "warn"})
+    if can_view_finance:
+        balance = getattr(card, "finance_balance", None) or 0
+        if balance and float(balance) > 0:
+            tags.append({"label": str(_("Fees due")), "kind": "warn"})
+        else:
+            tags.append({"label": str(_("Cleared")), "kind": "good"})
+    missing = int(getattr(card, "missing_work", None) or 0)
+    if missing:
+        tags.append(
+            {
+                "label": ngettext("%(n)s task", "%(n)s tasks", missing) % {"n": missing},
+                "kind": "warn",
+            }
+        )
+    badges = getattr(card, "badges", None) or []
+    for badge in list(badges)[:2]:
+        label = getattr(getattr(badge, "badge_type", None), "label", None) or ""
+        if label:
+            tags.append({"label": str(label), "kind": ""})
+    return tags
+
+
+@register.simple_tag(name="dh_syllabus_segbar")
+def dh_syllabus_segbar(summary) -> list[dict]:
+    if not summary:
+        return []
+    approved = int(summary.get("approved") or 0)
+    pending = int(summary.get("pending") or 0)
+    draft = int(summary.get("draft") or 0)
+    needs = int(summary.get("needs_revision") or 0)
+    total = approved + pending + draft + needs
+    if total <= 0:
+        return []
+
+    def pct(n: int) -> int:
+        return int(round((n / total) * 100))
+
+    return [
+        {"fill": "success", "label": "approved", "pct": pct(approved), "val": approved},
+        {"fill": "warn", "label": "pending", "pct": pct(pending), "val": pending},
+        {"fill": "brand", "label": "draft", "pct": pct(draft), "val": draft},
+        {"fill": "overdue", "label": "needs_revision", "pct": pct(needs), "val": needs},
+    ]
+
+
+@register.filter(name="dh_heat_levels")
+def dh_heat_levels(trend) -> list[dict]:
+    cells = []
+    for row in trend or []:
+        v = int(row.get("value") or 0)
+        if v >= 85:
+            level = "l3"
+        elif v >= 60:
+            level = "l2"
+        elif v > 0:
+            level = "l1"
+        else:
+            level = ""
+        cells.append({"label": row.get("label") or "", "level": level})
+    return cells
+
+
+@register.simple_tag(name="dh_fee_donut_segments")
+def dh_fee_donut_segments(paid_pct) -> list[dict]:
+    paid = dh_ratio(paid_pct, 100)
+    return [{"fill": "paid", "pct": paid}, {"fill": "overdue", "pct": max(0, 100 - paid)}]
+
+
+@register.filter(name="dh_spark_heights")
+def dh_spark_heights(trend, max_px: int = 22) -> list[int]:
+    """Convert trend rows to pixel heights for KPI tile sparklines."""
+    values = [int(row.get("value") or 0) for row in (trend or [])]
+    if not values:
+        return []
+    peak = max(values) or 1
+    floor = 4
+    cap = max(int(max_px), floor)
+    return [max(floor, int(round(v / peak * cap))) for v in values]
+
+
+@register.simple_tag(name="dh_areachart_points")
+def dh_areachart_points(trend) -> dict:
+    """Build SVG polyline + area polygon point strings from a trend list."""
+    rows = list(trend or [])
+    if not rows:
+        return {"line": "0,40 100,40", "area": "0,40 100,40 100,40 0,40"}
+    n = len(rows)
+    values = [float(r.get("value") or 0) for r in rows]
+    peak = max(values) or 1.0
+    coords = []
+    for idx, value in enumerate(values):
+        x = 0 if n == 1 else round((idx / (n - 1)) * 100, 2)
+        y = round(40 - (value / peak) * 34, 2)
+        coords.append((x, y))
+    line = " ".join(f"{x},{y}" for x, y in coords)
+    if coords:
+        area = f"0,40 {line} {coords[-1][0]},40"
+    else:
+        area = "0,40 100,40 100,40 0,40"
+    return {"line": line, "area": area}

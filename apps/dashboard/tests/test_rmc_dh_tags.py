@@ -1,10 +1,21 @@
 """Unit tests for the rmc_dh dashboard-home template helpers (pure, no DB)."""
 from decimal import Decimal
 
+from types import SimpleNamespace
+
 from django.template import Context, Template
 from django.test import SimpleTestCase
 
-from apps.dashboard.templatetags.rmc_dh import dh_donut_gradient, dh_fill, dh_ratio
+from apps.dashboard.templatetags.rmc_dh import (
+    dh_areachart_points,
+    dh_donut_gradient,
+    dh_fee_donut_segments,
+    dh_fill,
+    dh_heat_levels,
+    dh_ratio,
+    dh_spark_heights,
+    dh_syllabus_segbar,
+)
 
 
 class DhRatioTests(SimpleTestCase):
@@ -95,3 +106,51 @@ class DhTemplateIntegrationTests(SimpleTestCase):
         self.assertIn("50|", rendered)
         self.assertIn("conic-gradient(", rendered)
         self.assertIn("var(--rmc-dh-accent)", rendered)
+
+
+class DhExtendedHelpersTests(SimpleTestCase):
+    def test_spark_heights_scales_to_peak(self):
+        trend = [{"value": 10}, {"value": 50}, {"value": 25}]
+        heights = dh_spark_heights(trend)
+        self.assertEqual(heights, [4, 22, 11])
+
+    def test_heat_levels_buckets(self):
+        cells = dh_heat_levels([{"label": "M", "value": 90}, {"label": "T", "value": 0}])
+        self.assertEqual(cells[0]["level"], "l3")
+        self.assertEqual(cells[1]["level"], "")
+
+    def test_syllabus_segbar_splits_counts(self):
+        segs = dh_syllabus_segbar({"approved": 5, "pending": 3, "draft": 2, "needs_revision": 0})
+        self.assertEqual(sum(s["pct"] for s in segs), 100)
+        self.assertEqual(segs[0]["fill"], "success")
+
+    def test_fee_donut_segments_complements(self):
+        segs = dh_fee_donut_segments(68)
+        self.assertEqual(segs[0]["pct"], 68)
+        self.assertEqual(segs[1]["pct"], 32)
+
+    def test_areachart_points_nonempty(self):
+        pts = dh_areachart_points([{"value": 1}, {"value": 3}])
+        self.assertIn("line", pts)
+        self.assertIn("area", pts)
+        self.assertIn("0,", pts["line"])
+
+
+class DhChildCardTagsTests(SimpleTestCase):
+    def test_child_tags_attendance_good(self):
+        card = SimpleNamespace(
+            attendance=92,
+            finance_balance=0,
+            missing_work=0,
+            badges=[],
+        )
+        from apps.dashboard.templatetags.rmc_dh import dh_child_tags
+
+        tags = dh_child_tags(card, can_view_finance=True)
+        self.assertTrue(any(t.get("kind") == "good" for t in tags))
+
+    def test_child_meta_linked_when_no_results(self):
+        from apps.dashboard.templatetags.rmc_dh import dh_child_meta
+
+        card = SimpleNamespace(rank=3, average=78)
+        self.assertEqual(dh_child_meta(card, can_view_results=False), "Linked")

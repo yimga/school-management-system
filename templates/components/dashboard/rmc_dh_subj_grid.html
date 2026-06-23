@@ -1,0 +1,12 @@
+{% comment %}
+  rmc-dh subject progress grid. Params: dh_subjects = list of {name, pct, label}.
+{% endcomment %}
+<div class="rmc-dh-subj">
+  {% for subj in dh_subjects %}
+  <div class="rmc-dh-subj__s">
+    <span class="rmc-dh-subj__nm">{{ subj.name }}</span>
+    <span class="rmc-dh-subj__pc">{{ subj.label }}</span>
+    <div class="rmc-dh-subj__bar"><i style="width:{{ subj.pct|default:0 }}%"></i></div>
+  </div>
+  {% endfor %}
+</div>

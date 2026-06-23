@@ -1,0 +1,10 @@
+{% comment %}
+  rmc-dh SVG area chart. Params: dh_points = "x,y x,y ..." polyline points string,
+  dh_area_points (opt closed polygon), dh_accent (bool).
+{% endcomment %}
+<div class="rmc-dh-areachart{% if dh_accent %} rmc-dh-areachart--accent{% endif %}" role="img" aria-label="{{ dh_aria|default:'trend' }}">
+  <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+    {% if dh_area_points %}<polygon class="rmc-dh-areachart__fill" points="{{ dh_area_points }}"></polygon>{% endif %}
+    <polyline class="rmc-dh-areachart__line" points="{{ dh_points }}"></polyline>
+  </svg>
+</div>

@@ -168,6 +168,24 @@
                 <option value="12" {% if backend_layout_max_items_per_list == 12 %}selected{% endif %}>12 items per list</option>
               </select>
             </div>
+        </div>
+
+        <div class="border rounded-3 p-3 mb-4" style="background: var(--bs-tertiary-bg, #f8f9fa);">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+              <h2 class="h6 mb-1">{% trans "Student results on dashboard" %}</h2>
+              <p class="text-muted small mb-0">{% trans "Control whether learners see grades on their home screen — hidden, published-only, or live entered marks." %}</p>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label for="studentResultsVisibility" class="form-label small text-muted">{% trans "Visibility mode" %}</label>
+              <select class="form-select form-select-sm" id="studentResultsVisibility" name="student_results_visibility">
+                {% for value, label in student_results_visibility_choices %}
+                <option value="{{ value }}" {% if student_results_visibility == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
           </div>
         </div>
 

@@ -1217,6 +1217,14 @@ def _apply_form_to_site(
             field_updates["reports_require_approved_grades_before_publish"] = bool(val)
         elif key == "reports_use_approved_grades_only":
             field_updates["reports_use_approved_grades_only"] = bool(val)
+        elif key == "student_results_visibility":
+            from apps.portal.student_results_visibility import (
+                normalize_student_results_visibility,
+            )
+
+            field_updates["student_results_visibility"] = (
+                normalize_student_results_visibility(val)
+            )
     if weather_payload:
         flags.update(weather_payload)
     site.apply_feature_control_state(
@@ -1411,6 +1419,9 @@ def feature_control_panel(request):
                 minimum=3,
                 maximum=12,
             )
+            form_data["student_results_visibility"] = request.POST.get(
+                "student_results_visibility", ""
+            )
 
         weather_changed = any(
             [
@@ -1573,6 +1584,11 @@ def get_feature_control_panel_context(request):
         minimum=3,
         maximum=12,
     )
+    from apps.portal.student_results_visibility import (
+        STUDENT_RESULTS_VISIBILITY_CHOICES,
+        get_student_results_visibility_from_site,
+    )
+
     return {
         "categories": categories,
         "active_count": active_count,
@@ -1587,6 +1603,8 @@ def get_feature_control_panel_context(request):
         "weather_countries": weather_state.get("countries", []),
         "weather_cities": weather_state.get("cities", []),
         "backend_layout_max_items_per_list": backend_layout_max_items_per_list,
+        "student_results_visibility": get_student_results_visibility_from_site(site),
+        "student_results_visibility_choices": STUDENT_RESULTS_VISIBILITY_CHOICES,
     }
 
 

@@ -693,6 +693,7 @@ class SiteSettings(models.Model):
             "enable_parent_portal",
             "enable_teacher_portal",
             "enable_student_portal",
+            "student_results_visibility",
             "grade_approval_enabled",
             "grade_approval_auto_validate",
             "enable_practical_assessment",
@@ -739,6 +740,10 @@ class SiteSettings(models.Model):
                 )
         preview_settings = self.get_preview_platform_config()
 
+        from apps.portal.student_results_visibility import (
+            normalize_student_results_visibility,
+        )
+
         raw_portal_features = _payload_json_object(
             policies_payload,
             self,
@@ -778,6 +783,15 @@ class SiteSettings(models.Model):
                 self,
                 "enable_student_portal",
                 False,
+            ),
+            "student_results_visibility": normalize_student_results_visibility(
+                _payload_string(
+                    policies_payload,
+                    self,
+                    "student_results_visibility",
+                    "",
+                )
+                or getattr(self, "student_results_visibility", None)
             ),
             "enable_reports_pdf": _payload_bool(
                 reports_payload,

@@ -322,6 +322,21 @@ class RuntimeDefaults(models.Model):
         blank=True,
         help_text="Default student portal enabled toggle.",
     )
+    student_results_visibility = models.CharField(
+        max_length=16,
+        blank=True,
+        null=True,
+        choices=(
+            ("off", "Hidden from student dashboard"),
+            ("published", "Published term results only (default)"),
+            ("entered", "Show entered marks as teachers save them"),
+        ),
+        help_text=(
+            "Governance for grade/result panels on the student role home. "
+            "Blank/None = published-only (legacy-safe default). Resolved by "
+            "apps.portal.student_results_visibility."
+        ),
+    )
     backend_console_theme = models.CharField(
         max_length=64,
         blank=True,

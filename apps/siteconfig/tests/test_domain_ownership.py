@@ -88,6 +88,7 @@ _VIRTUAL_SITE_SETTING_DEFAULT_EXPLICIT_KEYS: frozenset[str] = frozenset(
         "enable_parent_portal",
         "enable_teacher_portal",
         "enable_student_portal",
+        "student_results_visibility",
         "enable_concurrent_mark_uploads",
         "enable_reports_pdf",
         "notify_parent_welcome_email",

@@ -85,6 +85,7 @@ class RuntimeDefaultsBrandForm(forms.ModelForm):
             "enable_parent_portal",
             "enable_teacher_portal",
             "enable_student_portal",
+            "student_results_visibility",
             "backend_console_theme",
             "header_bg_color",
             "footer_bg_color",

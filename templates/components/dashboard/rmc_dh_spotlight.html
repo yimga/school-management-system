@@ -1,0 +1,11 @@
+{% comment %}
+  rmc-dh spotlight / celebrate band.
+  Params: dh_title, dh_text, dh_glyph (emoji/icon text, default trophy).
+{% endcomment %}
+<div class="rmc-dh-spotlight">
+  <div class="rmc-dh-spotlight__ic" aria-hidden="true">{{ dh_glyph|default:"🏆" }}</div>
+  <div class="rmc-dh-spotlight__body">
+    <h4>{{ dh_title }}</h4>
+    {% if dh_text %}<p>{{ dh_text }}</p>{% endif %}
+  </div>
+</div>
