@@ -35,6 +35,35 @@ _GRADING_PRESET_BY_BUCKET: dict[str, str] = {
     "oceania": "british_igcse",
 }
 
+# Curated per-country grading-preset overrides (local-first, Tier-1 precision).
+#
+# The 770-country localization seed gives every country a Tier-1 `country:XX`
+# pack, so the fine-grained `_GRADING_PRESET_BY_REGIONAL` map above never fires
+# from a `regional:` source — without an explicit override a country falls
+# through to the coarse 5-continent `_GRADING_PRESET_BY_BUCKET`, which
+# mis-assigns the entire francophone world (`africa` -> percentage, `europe` ->
+# letters) instead of the 0-20 Baccalauréat scale they actually use. This map
+# restores per-country accuracy the same way `apps/academics/exam_boards.py`
+# (`COUNTRY_BOARDS`) and `apps/locale/phone_formats.py` curate per-country data.
+# Extend it as more national systems are individually curated.
+
+# Francophone Baccalauréat 0-20 ("sur vingt") systems — the dominant secondary
+# grading scale across France, francophone Africa, the Maghreb and Lebanon.
+# Bilingual / divergent-scale countries (Belgium, Switzerland 1-6, Luxembourg
+# /60) are intentionally NOT listed: they keep the continent fallback until a
+# country-specific scale is curated.
+_FRANCOPHONE_BAC_COUNTRIES: frozenset[str] = frozenset({
+    "FR", "MC",                                      # Western Europe
+    "CM", "SN", "CI", "CD", "CG", "GA", "BJ", "TG",  # Central / West Africa
+    "BF", "ML", "NE", "GN", "TD", "MG",              # Sahel / Indian Ocean
+    "MA", "DZ", "TN",                                # Maghreb
+    "LB",                                            # Levant (French-derived)
+})
+
+_COUNTRY_GRADING_PRESET: dict[str, str] = {
+    cc: "francophone_bac" for cc in _FRANCOPHONE_BAC_COUNTRIES
+}
+
 
 def _normalize_iso(country_code: str | None) -> str:
     cc = (country_code or "").strip().upper()
@@ -55,6 +84,10 @@ def pack_source_tier(source: str) -> str:
 def resolve_grading_preset_key(country_code: str | None) -> str:
     """Return Education DNA / profile grading preset key for any ISO alpha-2."""
     iso = _normalize_iso(country_code)
+    # 1. Curated per-country override wins (local-first, highest precision).
+    if iso and iso in _COUNTRY_GRADING_PRESET:
+        return _COUNTRY_GRADING_PRESET[iso]
+    # 2. Fine-grained regional pack key (only fires for `regional:` sources).
     pack = resolve_country_pack(iso) if iso else {}
     source = str(pack.get("_source") or "")
     if source.startswith("regional:"):
@@ -62,6 +95,7 @@ def resolve_grading_preset_key(country_code: str | None) -> str:
         preset = _GRADING_PRESET_BY_REGIONAL.get(region_key)
         if preset:
             return preset
+    # 3. Coarse continent bucket from the governance matrix.
     row = get_matrix_row(iso) if iso else None
     if row:
         bucket = str(row.get("region_bucket") or "")
