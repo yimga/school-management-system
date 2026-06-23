@@ -1,0 +1,49 @@
+# RunMyCampus observability collector (T3) — open-source, $0 vendor lock-in.
+# Prometheus scrapes the platform's /metrics/ endpoint and evaluates the
+# SLO-derived alert rules; Grafana renders them. Pairs with the vendor-neutral
+# metrics bridge (apps/observability/metrics.py) and the SLO registry.
+#
+# Run from the repo root (beta/school-management-system/):
+#   docker compose -f deploy/observability/docker-compose.yml up -d
+#   open http://localhost:9090   (Prometheus)   http://localhost:3000  (Grafana, admin/admin)
+#
+# Prereqs for live data: the app must run with
+#   OBSERVABILITY_METRICS_BACKEND=prometheus-client
+# so /metrics/ is served (otherwise the target shows "down" — see README.md).
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=15d"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./slo_alerts.yml:/etc/prometheus/slo_alerts.yml:ro
+      - promdata:/prometheus
+    # host.docker.internal resolves to the host on Docker Desktop; on Linux the
+    # extra_hosts mapping makes it resolve to the docker bridge gateway.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana-oss:11.2.0
+    environment:
+      GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER:-admin}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:-admin}"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafanadata:/var/lib/grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  promdata:
+  grafanadata:

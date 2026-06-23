@@ -1,0 +1,36 @@
+# Prometheus scrape + rules config for the RunMyCampus metrics collector (T3).
+#
+# Scrapes the platform's /metrics/ endpoint (apps/observability PrometheusMetricsView).
+# That endpoint exists ONLY when OBSERVABILITY_METRICS_BACKEND=prometheus-client
+# (see docs/OBSERVABILITY_METRICS.md). Until then it returns 404 and the target
+# shows "down" in Prometheus — expected, not a collector fault.
+#
+# The target defaults to host.docker.internal:10000 (the self-host web port on
+# Docker Desktop). On Linux, either run this compose on the app's network or set
+# RMC_METRICS_TARGET and add the host gateway (see README.md).
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+  external_labels:
+    platform: runmycampus
+
+# SLO-derived alerting rules — generated from apps/observability/slo.py via
+#   python manage.py emit_prometheus_alert_rules > deploy/observability/slo_alerts.yml
+rule_files:
+  - /etc/prometheus/slo_alerts.yml
+
+scrape_configs:
+  - job_name: runmycampus-web
+    metrics_path: /metrics/
+    static_configs:
+      - targets:
+          - host.docker.internal:10000
+        labels:
+          service: web
+
+  # Prometheus scraping itself — confirms the collector is alive even when the
+  # app target is down.
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090
