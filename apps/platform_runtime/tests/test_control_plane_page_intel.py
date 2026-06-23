@@ -12,6 +12,7 @@ from django.test import SimpleTestCase
 
 from apps.platform_runtime.control_plane_page_intel import (
     MANAGER_PAGES,
+    SECTION_DESCRIPTOR,
     humanised_page_help,
     manager_flow_steps,
     resolve_manager_page,
@@ -40,6 +41,33 @@ class ManagerPageIntelTests(SimpleTestCase):
         title, body = humanised_page_help("widgets:nightly_recon", "widgets")
         self.assertEqual(title, "Nightly Recon")
         self.assertEqual(body, "Nightly Recon.")
+
+    def test_tenant_namespaces_have_section_descriptors(self):
+        # Tenant "About this page" leans on these so an unmapped tenant route
+        # gets a section-aware body, not a bare "Title." — every common
+        # tenant-facing namespace must be covered.
+        for ns in (
+            "portal",
+            "people",
+            "academics",
+            "evals",
+            "finance",
+            "communication",
+            "reports",
+            "requests",
+            "safeguarding",
+            "student360",
+        ):
+            self.assertIn(ns, SECTION_DESCRIPTOR, ns)
+            self.assertTrue(SECTION_DESCRIPTOR[ns])
+
+    def test_tenant_route_help_is_page_specific_with_context(self):
+        # A real tenant route shape (portal:*) humanises to a page-specific title
+        # plus its section descriptor — never the flat "School workspace".
+        title, body = humanised_page_help("portal:fee_statements", "portal")
+        self.assertEqual(title, "Fee Statements")
+        self.assertIn("your school portal", body)
+        self.assertNotIn("School workspace", body)
 
 
 class ManagerFlowAwarenessTests(SimpleTestCase):

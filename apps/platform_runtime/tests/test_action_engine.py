@@ -209,6 +209,66 @@ class ActionEngineTests(TestCase):
         for a in actions:
             self.assertTrue((a.action_url or "").strip())
 
+    def test_your_flow_excludes_the_page_you_are_on(self):
+        # Page-aware "Your flow": the action that points at the current page must
+        # not be re-offered (you are already here). Proves request.path flows
+        # through get_actions_for_user -> apply_page_awareness end to end.
+        from django.test import RequestFactory
+
+        from apps.platform_runtime.action_engine import _safe_reverse
+
+        school = School.objects.create(
+            name="AE PA", slug="ae-pa", subdomain="ae-pa", is_active=True
+        )
+        user = User.objects.create_user(
+            username="ae_pa_teacher", password="x", role=User.Role.TEACHER
+        )
+        att = _safe_reverse("portal:teacher_attendance")
+        if not att:
+            self.skipTest("portal:teacher_attendance does not resolve in this build")
+        rf = RequestFactory()
+        req = rf.get(att)
+        req.user = user
+        req.school = school
+        actions = get_actions_for_user(user, school, request=req, limit=12)
+        urls = {a.action_url for a in actions}
+        self.assertNotIn(att, urls, "must not re-offer the page the user is on")
+        self.assertTrue(all(a.action_url for a in actions))
+
+    def test_your_flow_exclusion_is_page_specific_both_directions(self):
+        # The SAME teacher, SAME school: an action is offered when the user is
+        # NOT on its page and dropped when they ARE — proving the flow is
+        # page-specific, not a fixed list.
+        from django.test import RequestFactory
+
+        from apps.platform_runtime.action_engine import _safe_reverse
+
+        school = School.objects.create(
+            name="AE PA2", slug="ae-pa2", subdomain="ae-pa2", is_active=True
+        )
+        teacher = User.objects.create_user(
+            username="ae_pa_teacher2", password="x", role=User.Role.TEACHER
+        )
+        att = _safe_reverse("portal:teacher_attendance")
+        marks = _safe_reverse("evals:teacher_marks_entry")
+        if not (att and marks) or att == marks:
+            self.skipTest("teacher attendance/marks routes do not resolve distinctly")
+        rf = RequestFactory()
+
+        def urls_on(path):
+            req = rf.get(path)
+            req.user = teacher
+            req.school = school
+            return {a.action_url for a in get_actions_for_user(teacher, school, request=req, limit=12)}
+
+        on_marks = urls_on(marks)
+        self.assertIn(att, on_marks, "attendance offered when not on its page")
+        self.assertNotIn(marks, on_marks, "marks dropped when on the marks page")
+
+        on_att = urls_on(att)
+        self.assertIn(marks, on_att, "marks offered when not on its page")
+        self.assertNotIn(att, on_att, "attendance dropped when on the attendance page")
+
     @override_settings(CONVERSION_SINGLE_ACTION_ENFORCED=True)
     def test_single_action_enforcement_returns_at_most_one(self):
         school = School.objects.create(

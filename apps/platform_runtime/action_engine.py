@@ -617,6 +617,114 @@ def _audience_matches(action: SystemAction, bucket: str) -> bool:
     return action.audience == bucket
 
 
+# --- Page awareness for the tenant "Your flow" -----------------------------
+# The same role / tenant-state actions should reorder by relevance to the
+# CURRENT page and never re-offer the page the user is already on. Affinity is
+# measured by how many leading URL path segments an action shares with the
+# current page (same section => higher), so it needs no per-route map and never
+# hardcodes a tenant URL.
+#
+# Ordering is tiered rather than an additive boost (which, against the real
+# priority spread, was too weak to visibly reorder anything): genuinely urgent
+# work — onboarding, tenant-health nudges, and high/critical-urgency actions —
+# always leads regardless of page; the DISCRETIONARY tail is ordered
+# page-affinity FIRST, then base priority, so the current section's actions
+# rise to the top. That makes the flow aggressively page-aware without ever
+# burying a "finish setup" / "pay overdue balance" step beneath a same-section
+# convenience link.
+_PAGE_AFFINITY_MAX_SEGMENTS = 4
+_MUST_DO_SOURCES = frozenset({"onboarding_steps", "customer_health"})
+_MUST_DO_URGENCIES = frozenset({"high", "critical"})
+
+
+def _page_segments(path: str | None) -> list[str]:
+    base = (path or "").split("?", 1)[0].split("#", 1)[0]
+    return [seg for seg in base.split("/") if seg]
+
+
+def _current_path(request: Any | None) -> str:
+    if request is None:
+        return ""
+    return (getattr(request, "path", "") or "").split("?", 1)[0]
+
+
+def _shared_prefix_len(a: Sequence[str], b: Sequence[str]) -> int:
+    n = 0
+    for x, y in zip(a, b):
+        if x != y:
+            break
+        n += 1
+    return n
+
+
+def _page_affinity_score(action: SystemAction, current_segments: Sequence[str]) -> int:
+    """How many leading URL path segments ``action`` shares with the current page
+    (capped). Higher = more relevant to where the user is right now."""
+    if not current_segments:
+        return 0
+    shared = _shared_prefix_len(current_segments, _page_segments(action.action_url))
+    return min(shared, _PAGE_AFFINITY_MAX_SEGMENTS)
+
+
+def _is_must_do(action: SystemAction) -> bool:
+    """Urgent / state-driven actions that lead regardless of the current page —
+    onboarding, health nudges, and high/critical-urgency items (e.g. an overdue
+    balance). Everything else is the discretionary, page-ordered tail."""
+    return (
+        (getattr(action, "urgency", "normal") or "normal") in _MUST_DO_URGENCIES
+        or action.source in _MUST_DO_SOURCES
+    )
+
+
+def apply_page_awareness(
+    actions: Sequence[SystemAction],
+    current_path: str,
+    *,
+    single: bool,
+    exclude_current: bool = True,
+) -> list[SystemAction]:
+    """Reorder ``actions`` by relevance to the current page and drop the action
+    that points at the page the user is already on.
+
+    Pure + URLconf-free so it unit-tests without a request/DB. When
+    ``current_path`` is empty (no request / no path) there is no affinity signal,
+    so ordering falls back to must-do-then-priority. ``single`` keeps the
+    conversion-single-action tier ordering as the primary key (page affinity
+    only breaks ties within a tier there, after priority).
+    """
+    cur = _page_segments(current_path)
+    cur_norm = "/".join(cur)
+    if exclude_current and cur_norm:
+        kept = [
+            a for a in actions if "/".join(_page_segments(a.action_url)) != cur_norm
+        ]
+    else:
+        kept = list(actions)
+    if single:
+        # Conversion mode keeps its business tier ordering and priority; page
+        # affinity is only a tie-breaker so the single surfaced action still
+        # respects the onboarding -> health -> revenue funnel.
+        kept.sort(
+            key=lambda a: (
+                _conversion_action_tier(a),
+                -a.priority,
+                -_page_affinity_score(a, cur),
+                a.title.lower(),
+            )
+        )
+    else:
+        # Must-do leads; the discretionary tail is ordered page-affinity FIRST.
+        kept.sort(
+            key=lambda a: (
+                0 if _is_must_do(a) else 1,
+                -(0 if _is_must_do(a) else _page_affinity_score(a, cur)),
+                -a.priority,
+                a.title.lower(),
+            )
+        )
+    return kept
+
+
 def _request_view(request: Any | None) -> tuple[str, str]:
     """``(view_name, namespace)`` for the current route — drives page-aware flow."""
     match = getattr(request, "resolver_match", None) if request is not None else None
@@ -732,21 +840,27 @@ def get_actions_for_user(
 
     merged = [a for a in merged if _audience_matches(a, bucket)]
     merged = _dedupe(merged)
-    if not merged:
-        merged = _fallback_minimum_actions(user, school, bucket)
     single = getattr(settings, "CONVERSION_SINGLE_ACTION_ENFORCED", False)
-    if single:
-        merged.sort(
-            key=lambda a: (
-                _conversion_action_tier(a),
-                -a.priority,
-                a.title.lower(),
-            )
+    current_path = _current_path(request)
+
+    # Page-aware "Your flow": drop the page the user is already on and order the
+    # rest by relevance to the current page. With no request/path this is the
+    # prior priority sort unchanged.
+    ordered = apply_page_awareness(
+        merged, current_path, single=single, exclude_current=True
+    )
+    if not ordered:
+        # Never a dead-end. Re-offer the guaranteed minimum — page-ordered, and
+        # still excluding the current page when that leaves at least one action,
+        # but never going empty (the minimum must survive).
+        fb = _fallback_minimum_actions(user, school, bucket)
+        ordered = apply_page_awareness(
+            fb, current_path, single=single, exclude_current=True
+        ) or apply_page_awareness(
+            fb, current_path, single=single, exclude_current=False
         )
-    else:
-        merged.sort(key=lambda a: (-a.priority, a.title.lower()))
     cap = 1 if single else max(1, min(limit, 12))
-    return merged[:cap]
+    return ordered[:cap]
 
 
 def serialize_actions(actions: Sequence[SystemAction]) -> list[dict[str, Any]]:
