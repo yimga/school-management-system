@@ -245,12 +245,43 @@ def ensure_local_grading_scale(school, *, academic_year=None) -> dict[str, Any]:
                 classroom=None,
                 defaults={"grading_scale": scale_type},
             )
+
+        # Converge the locale/display grading scale (the `grading_scale` settings key
+        # get_tenant_locale reads) with the operational scale, so reports + grade
+        # display match how grades are COMPUTED. Provisioning writes the resolved
+        # profile's grading_scale into settings, but that profile is not always
+        # country-accurate (only a few countries have a curated 0-20 profile; the
+        # rest of the francophone world falls to a generic 0-100), leaving display
+        # on /100 while computation is on /20. We only reach here when NO admin
+        # default scale existed, so this corrects the provision default without
+        # overriding a deliberate choice.
+        locale_scale_aligned = False
+        try:
+            from apps.evals.grading import ASSESSMENT_WEIGHTS_SCALE_MAP
+
+            locale_scale_id = ASSESSMENT_WEIGHTS_SCALE_MAP.get(scale_type)
+            if locale_scale_id:
+                school_settings = getattr(school, "settings", None)
+                if not isinstance(school_settings, dict):
+                    school_settings = {}
+                if school_settings.get("grading_scale") != locale_scale_id:
+                    school_settings["grading_scale"] = locale_scale_id
+                    school.settings = school_settings
+                    school.save(update_fields=["settings", "updated_at"])
+                    locale_scale_aligned = True
+        except Exception as exc:  # noqa: BLE001 — display alignment is best-effort
+            logger.debug(
+                "locale grading_scale align failed school_id=%s err=%s",
+                getattr(school, "pk", None),
+                exc,
+            )
         return {
             "ok": True,
             "grading_scale_id": scale.pk,
             "scale_type": scale_type,
             "created": created,
             "assessment_weights_created": weights_created,
+            "locale_scale_aligned": locale_scale_aligned,
         }
     except Exception as exc:  # noqa: BLE001 — provisioning step must never break the flow
         logger.warning(

@@ -212,3 +212,35 @@ class GradingProvisioningDBTests(TestCase):
         self.assertEqual(
             GradingScale.objects.get(school=school, is_default=True).scale_type, "percentage"
         )
+
+    def test_aligns_locale_grading_scale_with_operational(self):
+        # The locale/display grading_scale converges with the operational scale so
+        # reports match computation. FR's generic 0-100 profile default is corrected
+        # to 0-20 (the scale grades are actually computed on).
+        from apps.evals.grading_provisioning import ensure_local_grading_scale
+        from apps.siteconfig.tenant_config import get_tenant_locale
+
+        school = self._school(country_code="FR")
+        school.settings = {"grading_scale": "0-100"}  # simulate generic profile default
+        school.save(update_fields=["settings"])
+        res = ensure_local_grading_scale(school)
+        self.assertTrue(res.get("locale_scale_aligned"))
+        school.refresh_from_db()
+        self.assertEqual((school.settings or {}).get("grading_scale"), "0-20")
+        self.assertEqual(get_tenant_locale(school=school).get("grading_scale"), "0-20")
+
+    def test_admin_default_leaves_locale_settings_untouched(self):
+        from apps.evals.grading_provisioning import ensure_local_grading_scale
+        from apps.evals.models import GradingScale
+
+        school = self._school(country_code="FR")
+        school.settings = {"grading_scale": "0-100"}
+        school.save(update_fields=["settings"])
+        GradingScale.objects.create(
+            school=school, code="wizard-default", name="Admin pick",
+            scale_type="percentage", is_default=True, is_active=True,
+        )
+        ensure_local_grading_scale(school)
+        school.refresh_from_db()
+        # Skip path returns before locale alignment — admin's settings untouched.
+        self.assertEqual((school.settings or {}).get("grading_scale"), "0-100")
