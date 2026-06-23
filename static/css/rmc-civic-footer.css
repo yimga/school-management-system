@@ -46,8 +46,28 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  /* v4.01.41: tighter inter-tier gap (7→5, ~30% vertical reduction). */
-  gap: 5px;
+  /* v4.04.x: only 3 stacked rows now (brand · midrow · legal) → tighter gap (5→3). */
+  gap: 3px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Mid-row — temporal dock + trust strip + contacts on ONE wrapped row */
+/* (v4.04.x footer −50% vertical). The three former tiers become inline */
+/* flex groups that wrap gracefully; centered aesthetic preserved.      */
+/* ------------------------------------------------------------------ */
+.rmc-civic-footer__midrow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 3px 12px;
+  width: 100%;
+}
+/* The folded tiers size to content (not full-width) inside the mid-row. */
+.rmc-civic-footer__midrow > .rmc-civic-footer__strip,
+.rmc-civic-footer__midrow > .rmc-civic-footer__contacts,
+.rmc-civic-footer__midrow > .rmc-footer-temporal {
+  width: auto;
 }
 
 /* ------------------------------------------------------------------ */
@@ -220,8 +240,8 @@
   justify-content: center;
   align-items: center;
   gap: 3px 10px;
-  padding-top: 7px;
-  margin-top: 1px;
+  padding-top: 3px;
+  margin-top: 0;
   border-top: 1px solid var(--rmc-civic-hairline);
   font-size: 12px;
   color: var(--rmc-civic-fg-faint);

@@ -37,7 +37,12 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
         </span>
       </div>
 
-      {% comment %} v4.02.x (2026-06-06): clock / weather centered tier (moved out of the header). {% endcomment %}
+      {% comment %} v4.04.x (2026-06-22): mid-row — temporal dock + trust strip + contacts
+         folded onto ONE wrapped, centered row (footer −50% vertical, identical content).
+         flex-wrap keeps it responsive: a single line on desktop, graceful wrap on mobile. {% endcomment %}
+      <div class="rmc-civic-footer__midrow">
+
+      {% comment %} clock / weather (moved out of the header). {% endcomment %}
       {% include "partials/cockpit/_footer_temporal_dock.html" %}
 
       {% comment %} Tier 2 — trust pillars + language switcher + app badges + social {% endcomment %}
@@ -108,6 +113,8 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
           {% endif %}
         {% endwith %}
       </div>
+
+      </div>{% comment %} /.rmc-civic-footer__midrow {% endcomment %}
 
       {% comment %} Tier 4 — single-line legal {% endcomment %}
       <div class="rmc-civic-footer__legal">
