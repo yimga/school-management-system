@@ -8,7 +8,9 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('schools', '0074_schoolmembership_is_school_owner'),
+        # 0073 is sufficient: this migration only FKs Plan/HoldingCurrencyRollup to
+        # schools.School — it does not touch SchoolMembership.is_school_owner (0074).
+        ('schools', '0073_school_currency_alter_advancementgift_currency_and_more'),
         ('siteconfig', '0201_subdivision_tax_rate'),
     ]
 
