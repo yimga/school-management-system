@@ -388,6 +388,11 @@ MIDDLEWARE = [
     "apps.assist_dock.middleware.AssistDockLocaleMiddleware",
     # v4.00.97 Wave G2 — exposes impersonation banner state on the request.
     "apps.assist_dock.middleware.AssistDockImpersonationBannerMiddleware",
+    # Local-first: activate the tenant's timezone (+ default language for visitors with
+    # no explicit preference). Runs AFTER LocaleMiddleware + the assist-dock locale
+    # override so any stronger language signal (cookie / Accept-Language / user pref)
+    # wins; only the bare-default case is filled. Resets tz on response.
+    "apps.schools.middleware.TenantLocaleMiddleware",
     "apps.accounts.middleware_session_pinning.SessionPinningMiddleware",  # Pillar 1: bind session to (IP, UA-hash); flush on mismatch
     "apps.schools.middleware_conversion_lock.ConversionLockMiddleware",
     "apps.schools.growth_funnel_middleware.GrowthFunnelMiddleware",
@@ -3773,6 +3778,8 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.assist_dock.middleware.AssistDockLocaleMiddleware",
         # v4.00.97 Wave G2 — impersonation banner state (django-tenants path).
         "apps.assist_dock.middleware.AssistDockImpersonationBannerMiddleware",
+        # Local-first tenant timezone + default-language activation (django-tenants path).
+        "apps.schools.middleware.TenantLocaleMiddleware",
         "apps.accounts.middleware_session_pinning.SessionPinningMiddleware",
         "apps.schools.middleware_conversion_lock.ConversionLockMiddleware",
         "apps.schools.growth_funnel_middleware.GrowthFunnelMiddleware",

@@ -1717,3 +1717,87 @@ class UsageLimitMiddleware(MiddlewareMixin):
                     "<h1>403</h1><p>Staff limit reached for your plan. Please upgrade.</p>"
                 )
         return None
+
+
+class TenantLocaleMiddleware(MiddlewareMixin):
+    """Local-first: activate the resolved tenant's timezone (and its default language for
+    visitors with no explicit preference) so dates/times and anonymous copy render in the
+    SCHOOL's locale instead of the global platform default.
+
+    Before this, ``School.timezone`` / ``School.default_language`` were stored but never
+    applied — every page rendered in the platform ``TIME_ZONE`` / ``LANGUAGE_CODE``.
+
+    Stronger language signals always win: a language cookie, a matched ``Accept-Language``,
+    or an authenticated user's saved preference (``AssistDockLocaleMiddleware`` runs
+    earlier in the chain). This only fills the gap where the resolved language is still the
+    bare platform default. Timezone is reset on response/exception so a pooled worker
+    thread never leaks one tenant's tz into the next request. Fully degrade-safe.
+    """
+
+    def process_request(self, request):
+        self._activate_timezone(request)
+        self._maybe_activate_language(request)
+        return None
+
+    def process_response(self, request, response):
+        self._deactivate_timezone()
+        return response
+
+    def process_exception(self, request, exception):
+        self._deactivate_timezone()
+        return None
+
+    @staticmethod
+    def _deactivate_timezone():
+        try:
+            from django.utils import timezone
+
+            timezone.deactivate()
+        except Exception:  # noqa: BLE001 - tz reset must never break the response
+            pass
+
+    def _activate_timezone(self, request):
+        school = getattr(request, "school", None)
+        tzname = (getattr(school, "timezone", "") or "").strip() if school else ""
+        if not tzname:
+            return
+        try:
+            import zoneinfo
+
+            from django.utils import timezone
+
+            timezone.activate(zoneinfo.ZoneInfo(tzname))
+        except Exception as exc:  # noqa: BLE001 - bad tz string must not break the request
+            logger.debug(
+                "TenantLocaleMiddleware tz activate skipped tz=%s err=%s", tzname, exc
+            )
+
+    def _maybe_activate_language(self, request):
+        school = getattr(request, "school", None)
+        lang = (getattr(school, "default_language", "") or "").strip() if school else ""
+        if not lang:
+            return
+        try:
+            from django.conf import settings
+            from django.utils import translation
+
+            # Respect an explicit language cookie — the strongest no-auth signal.
+            cookie_name = getattr(settings, "LANGUAGE_COOKIE_NAME", "django_language")
+            if request.COOKIES.get(cookie_name):
+                return
+            # Only fill when the currently-resolved language is still the bare platform
+            # default (i.e. no cookie / matched Accept-Language / user preference won).
+            current = (translation.get_language() or "").split("-")[0]
+            default = (getattr(settings, "LANGUAGE_CODE", "en") or "en").split("-")[0]
+            if current and current != default:
+                return
+            supported = {code for code, _ in getattr(settings, "LANGUAGES", [])}
+            norm = lang.replace("_", "-")
+            candidate = norm if norm in supported else norm.split("-")[0]
+            if candidate in supported:
+                translation.activate(candidate)
+                request.LANGUAGE_CODE = translation.get_language()
+        except Exception as exc:  # noqa: BLE001 - locale activation must not break the request
+            logger.debug(
+                "TenantLocaleMiddleware language activate skipped lang=%s err=%s", lang, exc
+            )
