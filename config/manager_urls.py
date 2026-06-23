@@ -651,8 +651,11 @@ urlpatterns = [
     path("manifest/icon-<int:size>-maskable.png", _manifest_icon_maskable, name="pwa_manifest_icon_maskable"),
     path("api/ai/health/", _ai_health, name="ai_health"),
     path("api/ai-copilot/validate/", _ai_copilot_query, name="ai_copilot_query"),
+    # rbac-allow: public-version-string-no-sensitive-data
     path("-/version/", obs_views.public_version, name="public_version"),
+    # rbac-allow: public-version-string-no-sensitive-data
     path("api/system/version/", obs_views.public_version, name="api_system_version"),
+    # rbac-allow: public-version-string-no-sensitive-data
     path("version.json", obs_views.public_version, name="public_version_json"),
     path("help/", manager_help, name="manager_help"),
     path(
@@ -760,7 +763,9 @@ urlpatterns = [
         ).manager_bulk_prestage,
         name="manager_integrations_bulk_prestage",
     ),
+    # rbac-allow: redirect-only-target-admin-enforces-auth
     path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
+    # rbac-allow: redirect-only-target-admin-enforces-auth
     path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
     path(
         "admin/siteconfig/customizer/",
@@ -834,13 +839,16 @@ urlpatterns = [
         obs_views.platform_incidents_console,
         name="platform_incidents_console",
     ),
+    # rbac-allow: public-health-probe-for-load-balancer
     path("healthz/", obs_views.healthz, name="healthz"),
     path("health/", obs_views.public_health, name="health"),
     path("ws/wal/", wal_websocket_http_stub, name="wal_websocket_http_stub"),
     path("ready/", obs_views.public_health, name="ready"),
     path("status/", obs_views.public_status, name="status"),
     path("status/", obs_views.public_status, name="public_status"),
+    # rbac-allow: public-tenant-discovery-pre-login
     path("find/", find_school, name="find_school"),
+    # rbac-allow: public-tenant-discovery-pre-login
     path("discover/", global_login_discovery, name="global_login_discovery"),
     path("api/health/", obs_views.api_health, name="api_health"),
     path(
@@ -861,6 +869,7 @@ urlpatterns = [
         internal_cron_run,
         name="internal_cron_run",
     ),
+    # rbac-allow: payment-processor-webhook-hmac-signature-verified-in-view
     path(
         "api/billing/processors/<str:processor_code>/webhook/",
         billing_api_views.platform_billing_processor_webhook,
@@ -881,6 +890,7 @@ urlpatterns = [
         obs_views.api_operational_slo_dashboard,
         name="api_operational_slo_dashboard",
     ),
+    # rbac-allow: public-safe-weather-widget-snapshot
     path(
         "api/weather/context/",
         obs_views.api_weather_context,
@@ -995,6 +1005,7 @@ urlpatterns = [
         manager_legacy_surface_redirect,
         {"surface": "payroll"},
     ),
+    # rbac-allow: public-tour-steps-for-marketing-shell
     path(
         "api/tour-steps/public/",
         tour_steps_public_api,

@@ -674,6 +674,7 @@ urlpatterns = [
         owner_onboarding_account_provision_progress,
         name="owner_onboarding_account_provision_progress",
     ),
+    # rbac-allow: token-gated-onboarding-uidb64-token-in-url
     path(
         "onboarding/account/<uidb64>/<token>/",
         OwnerOnboardingAccountView.as_view(),

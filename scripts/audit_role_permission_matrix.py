@@ -105,6 +105,10 @@ KNOWN_AUTH_DECORATORS = {
     "evaluation_access_required",
     "mfa_required",
     "require_platform_scope",
+    # apps/marketplace/publisher_access.py — verified-publisher / operator gate
+    "require_verified_publisher_with_host",
+    # Django built-in predicate gate (used e.g. for staff/superuser-only views)
+    "user_passes_test",
     # other custom gates
     "observability_auth_required",
     "webhook_security_required",
@@ -133,6 +137,12 @@ _AUTH_GATING_NAMES = {
     "object_permission_required",
     "mfa_required",
     "require_platform_scope",
+    # Verified-publisher / operator gate (apps/marketplace/publisher_access.py):
+    # asserts super-surface + authenticated + control-plane-or-verified-publisher.
+    "require_verified_publisher_with_host",
+    # Django predicate gate: @user_passes_test(<test>) redirects users who fail the
+    # test to login; conventionally used for staff/superuser/role gating.
+    "user_passes_test",
     "observability_auth_required",
     "webhook_security_required",
 }
@@ -147,6 +157,35 @@ _ROLE_GATING_NAMES = {
     "finance_access_required",
     "evaluation_access_required",
 }
+
+
+# Purpose-named PUBLIC-SURFACE view files: every route in these is anonymous by
+# design (the public marketing site, the pre-auth signup funnel, PWA/service-worker
+# assets, the public status page). Treating them as out-of-candidate-scope — the
+# same way tests/ and migrations/ are excluded — is more honest than ~185 inline
+# `# rbac-allow:` suppressions, and it still forces a *conscious* file placement:
+# a genuinely-sensitive view dropped into one of these files is an obvious
+# code-review smell. Routes here are reported with `public_surface=True` (audit
+# visible) and excluded from the candidate_anonymous count. Mixed files (e.g.
+# section8_views.py, observability/views.py) are NOT here — their public routes
+# still carry per-route `# rbac-allow:` markers.
+_PUBLIC_SURFACE_VIEW_BASENAMES = {
+    "marketing_views.py",
+    "competitive_marketing_views.py",
+    "marketing_competitor_views.py",
+    "marketing_kb_views.py",
+    "signup_views.py",
+    "views_manifest.py",
+    "views_manifest_icon.py",
+    "views_service_worker.py",
+    "views_public_status.py",
+}
+
+
+def _is_public_surface(view_file: str | None) -> bool:
+    if not view_file:
+        return False
+    return view_file.replace("\\", "/").split("/")[-1] in _PUBLIC_SURFACE_VIEW_BASENAMES
 
 
 def _decorator_summary(dec: ast.expr) -> dict:
@@ -497,6 +536,7 @@ def _classify(
         view_payload = {
             "decorators": [], "drf_permission_classes": [],
             "has_inline_auth_check": False, "bases": [], "kind": None,
+            "file": None,
         }
 
     decs = [d["name"] for d in view_payload["decorators"]]
@@ -525,12 +565,18 @@ def _classify(
     # Candidate-anonymous: no decorator, no DRF perms, no inline check,
     # no auth mixin, no marker.
     anonymous_ok = not login_gated and not drf
+    # Public-surface view files (marketing/signup/PWA/status) are anonymous by
+    # design and out of candidate scope (see _PUBLIC_SURFACE_VIEW_BASENAMES).
+    public_surface = _is_public_surface(view_payload.get("file"))
+    if public_surface:
+        anonymous_ok = False
     return {
         "login_gated": login_gated,
         "role_gated": role_gated,
         "permission_gated": permission_gated,
         "has_inline_auth_check": inline_auth,
         "auth_mixin_gated": mixin_login_gated,
+        "public_surface": public_surface,
         "candidate_anonymous": anonymous_ok,
     }
 
@@ -650,7 +696,7 @@ def main() -> int:
             "kind", "decorators", "drf_permission_classes", "bases", "roles_required",
             "login_gated", "role_gated", "permission_gated",
             "has_inline_auth_check", "auth_mixin_gated", "rbac_allow_reason",
-            "candidate_anonymous", "unresolved",
+            "candidate_anonymous", "unresolved", "public_surface",
         ])
         for r in rows:
             w.writerow([
@@ -665,6 +711,7 @@ def main() -> int:
                 int(r["auth_mixin_gated"]),
                 r["rbac_allow_reason"] or "",
                 int(r["candidate_anonymous"]), int(r["unresolved"]),
+                int(r.get("public_surface", False)),
             ])
 
     print(f"audit_role_permission_matrix: {len(rows)} url->view rows")
@@ -676,6 +723,7 @@ def main() -> int:
     print(f"  auth-mixin-gated:     {summary['auth_mixin_gated']}")
     print(f"  rbac-allow markers:   {summary['rbac_allow_reason']}")
     print(f"  candidate-anonymous:  {summary['candidate_anonymous']} (review for public routes)")
+    print(f"  public-surface:       {summary['public_surface']} (excluded: marketing/signup/PWA/status files)")
     print(f"  unresolved-view:      {summary['unresolved']} (view_symbol not found in views*.py)")
     print(f"  json:                 {OUT_JSON.relative_to(ROOT).as_posix()}")
     print(f"  csv:                  {OUT_CSV.relative_to(ROOT).as_posix()}")
@@ -713,6 +761,7 @@ def _summarize(rows: list[dict]) -> dict:
         "auth_mixin_gated": sum(1 for r in rows if r.get("auth_mixin_gated")),
         "rbac_allow_reason": sum(1 for r in rows if r["rbac_allow_reason"]),
         "candidate_anonymous": sum(1 for r in rows if r["candidate_anonymous"]),
+        "public_surface": sum(1 for r in rows if r.get("public_surface")),
         "unresolved": sum(1 for r in rows if r["view_file"] is None),
     }
 

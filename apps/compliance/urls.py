@@ -32,6 +32,7 @@ urlpatterns = [
     path("dashboard/", ComplianceDashboardView.as_view(), name="dashboard"),
     # Wave E: auditor magic-link. Public inspector landing is token-gated (the
     # signed, time-bounded, revocable grant IS the auth) and PII-masked + logged.
+    # rbac-allow: signed-auditor-grant-token-plus-ip-allowlist-in-view
     path("auditor/inspect/", auditor_inspect, name="auditor_inspect"),
     # rbac-allow: auditor-magic-link-token-gated-anonymous-pii-masked-readonly
     path(

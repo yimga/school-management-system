@@ -366,13 +366,16 @@ urlpatterns = [
     # tests that don't go through UrlConfSwitcherMiddleware).
     # rbac-allow: anonymous onboarding tour steps for marketing/login shells
     path("api/tour-steps/public/", tour_steps_public_api, name="tour_steps_public_api"),
+    # rbac-allow: public-version-string-no-sensitive-data
     path("-/version/", obs_views.public_version, name="public_version"),
     # CSP violation report sink (browsers POST here per Content-Security-Policy-Report-Only).
     path("security/csp-report/", csp_violation_report, name="csp_violation_report"),
     # SOT batch 1204: redundant version endpoints so Render parity certifiers can
     # verify the deployed SHA even if a CDN or static layer captures the
     # leading-dash path. All three return identical JSON.
+    # rbac-allow: public-version-string-no-sensitive-data
     path("api/system/version/", obs_views.public_version, name="api_system_version"),
+    # rbac-allow: public-version-string-no-sensitive-data
     path("version.json", obs_views.public_version, name="public_version_json"),
     # Language switcher (Django i18n; POST language then redirect)
     path("i18n/setlang/", set_language, name="set_language"),
@@ -381,7 +384,9 @@ urlpatterns = [
         __import__("apps.accounts.views_i18n", fromlist=["set_language_persist"]).set_language_persist,
         name="set_language_persist",
     ),
+    # rbac-allow: redirect-only-target-admin-enforces-auth
     path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
+    # rbac-allow: redirect-only-target-admin-enforces-auth
     path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
     path(
         "admin/siteconfig/customizer/",
@@ -466,11 +471,13 @@ urlpatterns = [
         ).ACTIVATION_FIRST_ACTION_URL_NAME,
     ),
     # Health and metrics
+    # rbac-allow: public-health-probe-for-load-balancer
     path("healthz/", obs_views.healthz, name="healthz"),
     # Offline foundational: fresh CSRF token endpoint for SW replay (cookie may
     # have rotated while POSTs were queued in IndexedDB). Auth-required so we
     # never leak rotation timing to anonymous probes, but NOT gated by
     # observability_auth_required — the SW serves parents/students.
+    # rbac-allow: public-csrf-token-issue-pre-auth
     path("api/csrf-token/", obs_views.csrf_token_refresh, name="api_csrf_token"),
     # Public health endpoint for load balancers
     path("health/", obs_views.public_health, name="health"),
@@ -515,6 +522,7 @@ urlpatterns = [
     # API endpoints for admin dashboard
     path("api/health/", obs_views.api_health, name="api_health"),
     path("api/admin/weather/", obs_views.api_admin_weather, name="api_admin_weather"),
+    # rbac-allow: public-safe-weather-widget-snapshot
     path(
         "api/weather/context/",
         obs_views.api_weather_context,
@@ -791,6 +799,7 @@ urlpatterns = [
         "api/internal/metadata/",
         include(("apps.metadata.urls", "metadata"), namespace="metadata"),
     ),
+    # rbac-allow: rum-ingest-authed-by-body-token-or-x-rum-key-header
     path("api/internal/rum/", rum_ingest, name="rum_ingest"),
     path(  # rbac-allow: machine endpoint authed by INTERNAL_CRON_TOKEN shared secret (constant-time)
         "api/internal/cron/run/",
@@ -815,11 +824,17 @@ urlpatterns = [
         ),
     ),
     # Section 8: Caddy on-demand TLS ask (no auth; restrict by IP in production)
+    # rbac-allow: machine-endpoint-caddy-on-demand-tls-domain-check
     path("api/caddy-check/", verify_caddy_domain),
+    # rbac-allow: machine-endpoint-caddy-on-demand-tls-domain-check
     path("api/v1/auth/check-domain/", verify_caddy_domain),
+    # rbac-allow: public-tenant-discovery-pre-login
     path("discover/", global_login_discovery, name="global_login_discovery"),
+    # rbac-allow: public-tenant-discovery-pre-login
     path("find/", find_school, name="find_school"),
+    # rbac-allow: public-self-service-verify-hub
     path("verify/", public_verify_hub, name="public_verify_hub"),
+    # rbac-allow: public-self-service-support-hub
     path("support/", public_support_hub, name="public_support_hub"),
     path("robots.txt", marketing_robots_txt, name="marketing_robots_txt"),
     path("sitemap.xml", marketing_sitemap_xml, name="marketing_sitemap_xml"),
@@ -1724,43 +1739,53 @@ urlpatterns = [
     ),
     path("accept-invite/", accept_school_invite, name="accept_school_invite"),
     path("api/trial/", api_trial_school, name="api_trial_school"),
+    # rbac-allow: lti-1p3-signed-jwt-launch-verified-in-view
     path("lti/launch/<str:tool_id>/", lti_launch, name="lti_launch"),
+    # rbac-allow: lti-1p3-signed-jwt-launch-verified-in-view
     path(
         "lti/launch/<str:tool_id>/callback/",
         lti_launch_callback,
         name="lti_launch_callback",
     ),
+    # rbac-allow: lti-1p3-oauth2-bearer-and-scope-verified-in-view
     path(
         "lti/service/<str:tool_id>/lineitems",
         lti_ags_lineitems,
         name="lti_ags_lineitems",
     ),
+    # rbac-allow: lti-1p3-oauth2-bearer-and-scope-verified-in-view
     path(
         "lti/service/<str:tool_id>/lineitems/<str:lineitem_id>",
         lti_ags_lineitem_detail,
         name="lti_ags_lineitem_detail",
     ),
+    # rbac-allow: lti-1p3-oauth2-bearer-and-scope-verified-in-view
     path(
         "lti/service/<str:tool_id>/lineitems/<str:lineitem_id>/scores",
         lti_ags_scores,
         name="lti_ags_scores",
     ),
+    # rbac-allow: lti-1p3-oauth2-bearer-and-scope-verified-in-view
     path(
         "lti/service/<str:tool_id>/lineitems/<str:lineitem_id>/results",
         lti_ags_results,
         name="lti_ags_results",
     ),
+    # rbac-allow: lti-1p3-oauth2-bearer-and-scope-verified-in-view
     path(
         "lti/service/<str:tool_id>/memberships",
         lti_nrps_memberships,
         name="lti_nrps_memberships",
     ),
+    # rbac-allow: lti-1p3-oauth2-bearer-and-scope-verified-in-view
     path(
         "lti/service/<str:tool_id>/deep-linking",
         lti_deep_linking,
         name="lti_deep_linking",
     ),
+    # rbac-allow: public-lti-1p3-jwks-keyset-by-design
     path("lti/jwks.json", jwks_json, name="lti_jwks"),
+    # rbac-allow: public-frozen-account-landing-page
     path("account-frozen/", frozen_account, name="account_frozen"),
     # Resolve name for templates that link to operator help (manager host uses config.manager_urls; root needs name for tests/shared templates)
     path("help/", lambda request: redirect("public_support_hub"), name="manager_help"),
@@ -1824,6 +1849,7 @@ from apps.integrations_marketplace.views_oauth_metrics import (  # noqa: E402
 )
 
 urlpatterns += [
+    # rbac-allow: prometheus-oauth-metrics-scrape-firewall-protected
     path(
         "lms-oauth-metrics/",
         lms_oauth_metrics_text,
@@ -1836,6 +1862,7 @@ if _OBSERVABILITY_PROM_BACKEND:
     from apps.observability.views_metrics import PrometheusMetricsView  # noqa: E402
 
     urlpatterns += [
+        # rbac-allow: prometheus-scrape-anonymous-firewall-protected
         path("metrics/", PrometheusMetricsView.as_view(), name="prometheus_metrics"),
     ]
 
