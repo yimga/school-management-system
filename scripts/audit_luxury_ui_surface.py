@@ -83,6 +83,7 @@ INLINE_STYLE_TAG = re.compile(r"<style\b", re.IGNORECASE)
 SCRIPT_BLOCK = re.compile(r"<script\b[^>]*>.*?</script>", re.IGNORECASE | re.DOTALL)
 ALLOWED_STYLE_TAG_MARKERS = (
     "id=\"root-base-theme-vars\"",
+    "id=\"rmc-cp-copilot-grid-critical\"",
     "data-site-custom-css",
     "block theme_root_variables",
 )
@@ -272,6 +273,8 @@ def _screen_header_action_bar_status() -> dict[str, object]:
             marker in text
             for marker in (
                 "components/page_header.html",
+                "studio_os/components/page_header.html",
+                "components/dashboard/rmc_dh_hero.html",
                 "data-page-header",
                 "class=\"page-header",
                 "<h1",
@@ -284,6 +287,9 @@ def _screen_header_action_bar_status() -> dict[str, object]:
                 "action-bar",
                 "page_families/action_bar.html",
                 "components/pagination.html",
+                "_rmc_dh_teacher_home.html",
+                "_rmc_dh_family_home.html",
+                "rmc-dh-tiles",
             )
         )
         if not has_header:

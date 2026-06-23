@@ -1,6 +1,6 @@
 {
   "version": "2026-05-19",
-  "generated_utc": "2026-06-23T22:43:18Z",
+  "generated_utc": "2026-06-23T23:43:31Z",
   "critical": {
     "path": "static/marketing/css/marketing-critical.min.css",
     "bytes": 21619,
@@ -34,7 +34,7 @@
   },
   "enhanced": {
     "path": "static/marketing/css/marketing-enhanced.min.css",
-    "bytes": 424831,
+    "bytes": 427709,
     "sources": [
       {
         "path": "static/css/rmc-class-grammar.css",
@@ -123,13 +123,13 @@
       },
       {
         "path": "static/marketing/css/mkt-ascension.css",
-        "sha256": "84692f09684515d372fe8a77166830c957d4e8d40966abac6d05ae9e437b7569",
-        "bytes": 11276
+        "sha256": "3ccfd531105ff94e40f224147e575a73d43ae952e84d528c9a67f15fbb3a5795",
+        "bytes": 14708
       },
       {
         "path": "static/marketing/css/mkt-ascension-media.css",
-        "sha256": "73fcd9daaa7200bf30cd5b09ded3405a9a335a8ae5d416b991a54cc04fa6b1d6",
-        "bytes": 5164
+        "sha256": "1e891afc08054290441a493126464c3242a93547610c3a9da15311d28b69a266",
+        "bytes": 5401
       },
       {
         "path": "static/marketing/css/mkt-revolution-lab.css",
@@ -235,7 +235,7 @@
   },
   "budgets": {
     "critical_max": 45000,
-    "enhanced_max": 425000,
-    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (418KB as of 2026-06-23 after mkt-ascension-media + mkt-revolution-lab). Deferred load via media=print onload."
+    "enhanced_max": 430000,
+    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (~428KB as of 2026-06-23 after ascension day partial class completion). Deferred load via media=print onload."
   }
 }

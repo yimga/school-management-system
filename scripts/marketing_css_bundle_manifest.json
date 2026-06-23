@@ -51,7 +51,7 @@
   ],
   "size_budget_bytes": {
     "critical_max": 45000,
-    "enhanced_max": 425000,
-    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (418KB as of 2026-06-23 after mkt-ascension-media + mkt-revolution-lab). Deferred load via media=print onload."
+    "enhanced_max": 430000,
+    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (~428KB as of 2026-06-23 after ascension day partial class completion). Deferred load via media=print onload."
   }
 }
