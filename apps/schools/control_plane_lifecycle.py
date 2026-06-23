@@ -7,7 +7,6 @@ from django.db import transaction
 
 from apps.billing.models import BillingAccount, TenantSubscription
 from apps.billing.services import (
-    ensure_billing_account_for_school,
     ensure_subscription_for_school,
     reconcile_subscription_entitlements,
     sync_billing_incident_state,
@@ -138,6 +137,11 @@ def _normalized_action(action: str) -> str:
 
 
 def _target_subscription_status_for_school(school) -> str:
+    # A deactivated tenant must not keep an ACTIVE (billable) subscription —
+    # freeze billable nodes the moment the school is switched off; reactivation
+    # recomputes below and resumes.
+    if not getattr(school, "is_active", True):
+        return TenantSubscription.Status.SUSPENDED
     if getattr(school, "billing_type", "") == getattr(
         school.BillingType, "FREE_TRIAL", "FREE_TRIAL"
     ):
@@ -244,7 +248,27 @@ def apply_school_lifecycle_action(
     if changed_fields:
         school.save(update_fields=changed_fields + ["updated_at"])
 
-    if action in {"freeze", "unfreeze", "set_trial_end", "clear_trial"}:
+    # Deactivation must actually switch the tenant OFF: suspend custom-domain
+    # routing so a deactivated school stops resolving to live content
+    # (reversible — reactivation re-verifies; permanent purge drops the rows via
+    # the School CASCADE).
+    domain_unbind = None
+    if action == "deactivate":
+        from apps.schools.domain_unbind import unbind_custom_domains
+
+        domain_unbind = unbind_custom_domains(school, actor=None, reason=reason)
+
+    # (De)activation and freeze/trial transitions re-sync the billing
+    # subscription so a switched-off tenant is not left billable and a
+    # reactivated one resumes (see _target_subscription_status_for_school).
+    if action in {
+        "freeze",
+        "unfreeze",
+        "set_trial_end",
+        "clear_trial",
+        "activate",
+        "deactivate",
+    }:
         account, subscription, _ = ensure_subscription_for_school(school)
         desired_subscription_status = _target_subscription_status_for_school(school)
         subscription_changed: list[str] = []
@@ -271,8 +295,6 @@ def apply_school_lifecycle_action(
             subscription.save(update_fields=subscription_changed + ["updated_at"])
         reconcile_subscription_entitlements(subscription)
         sync_billing_incident_state(subscription)
-    elif action in {"activate", "deactivate"}:
-        ensure_billing_account_for_school(school)
 
     school.refresh_from_db()
 
@@ -291,4 +313,5 @@ def apply_school_lifecycle_action(
         "changed_fields": changed_fields,
         "old_values": old_values,
         "new_values": get_lifecycle_snapshot(school),
+        "domain_unbind": domain_unbind,
     }
