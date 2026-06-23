@@ -110,6 +110,52 @@ class ResolveLocalScaleTypeTests(SimpleTestCase):
         self.assertEqual(resolve_local_scale_type(self._school({})), "numeric_0_20")
         self.assertEqual(resolve_local_scale_type(self._school(None)), "numeric_0_20")
 
+    def test_school_explicit_ignores_non_dict_settings(self):
+        from apps.evals.grading_provisioning import _school_explicit_scale_type
+
+        self.assertEqual(_school_explicit_scale_type(self._school("oops")), "")
+        self.assertEqual(_school_explicit_scale_type(self._school(123)), "")
+        self.assertEqual(
+            _school_explicit_scale_type(self._school({"runtime_defaults": "notadict"})), ""
+        )
+
+    def test_platform_hint_used_only_when_no_country(self):
+        import apps.evals.grading_provisioning as gp
+
+        original = gp._scale_type_from_cascade
+        try:
+            # Country-less school + a platform default -> the platform hint applies.
+            gp._scale_type_from_cascade = lambda school: "gpa_4_0"
+            self.assertEqual(gp.resolve_local_scale_type(self._school({}, country_code="")), "gpa_4_0")
+            # No country AND no platform default -> neutral percentage.
+            gp._scale_type_from_cascade = lambda school: ""
+            self.assertEqual(gp.resolve_local_scale_type(self._school({}, country_code="")), "percentage")
+            # A known country still beats the platform hint.
+            gp._scale_type_from_cascade = lambda school: "gpa_4_0"
+            self.assertEqual(gp.resolve_local_scale_type(self._school({}, country_code="FR")), "numeric_0_20")
+        finally:
+            gp._scale_type_from_cascade = original
+
+    def test_resolve_school_score_scale_fallback_path(self):
+        # A pk-less stub skips the AssessmentWeights read and falls back to the
+        # country-derived band score_scale — francophone -> 20, never the locale 100.
+        from decimal import Decimal
+
+        from apps.evals.grading_provisioning import resolve_school_score_scale
+
+        self.assertEqual(resolve_school_score_scale(self._school({}, country_code="FR")), Decimal("20"))
+        self.assertEqual(resolve_school_score_scale(None), Decimal("100"))
+
+    def test_scale_config_gpa_and_letter(self):
+        from apps.evals.grading_provisioning import _scale_config
+
+        gpa = _scale_config("gpa_4_0")
+        self.assertEqual(gpa["score_scale"], 4)
+        self.assertGreater(gpa["pass_threshold"], 0)
+        letter = _scale_config("letter_a_e")
+        self.assertIn("grade_thresholds", letter)
+        self.assertEqual(set(letter["grade_thresholds"]), {"A", "B", "C", "D", "E"})
+
 
 class GradingProvisioningDBTests(TestCase):
     def _school(self, **kw):

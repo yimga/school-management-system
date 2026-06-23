@@ -17,6 +17,7 @@ admin already chose (a wizard-default or any existing default scale wins).
 from __future__ import annotations
 
 import logging
+from decimal import Decimal
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -25,7 +26,6 @@ logger = logging.getLogger(__name__)
 # → GradingScale.ScaleType. Keeps the country→scale decision in one auditable place.
 _PRESET_TO_SCALE_TYPE: dict[str, str] = {
     "francophone_bac": "numeric_0_20",       # France / Francophone Africa — 0–20
-    "cameroon_0_20": "numeric_0_20",
     "west_african_waec": "percentage",       # WAEC raw scores are percentages
     "east_asia_competitive": "percentage",   # CN/KR/JP — 0–100
     "american": "gpa_4_0",                   # US — 4.0 GPA
@@ -146,6 +146,48 @@ def _scale_config(scale_type: str) -> dict[str, Any]:
     except Exception:  # noqa: BLE001 — formula is optional decoration
         pass
     return config
+
+
+def resolve_school_score_scale(school) -> Decimal:
+    """The numeric score-scale MAX a school computes grades on (operational SoT).
+
+    Reads the school's default ``AssessmentWeights.score_scale`` — the exact scale
+    grade computation and ``GradeConverter`` use — so any scale-bounded check (OCR
+    score validation, the early-warning drop yardstick) stays consistent with how
+    grades are actually scored: 20 for a francophone /20 school, 100 percentage,
+    4 GPA. Falls back to the country-derived scale's band ``score_scale``, then a
+    neutral 100. Never raises.
+
+    Deliberately NOT ``apps.evals.grading.max_score_for_school`` (locale-derived):
+    that lags the per-school seeded scale — it reports 100 for a /20 francophone
+    school whose AssessmentWeights.score_scale is 20 — so using it for an upper-bound
+    check would be too lenient and inconsistent with grade computation.
+    """
+    if school is None:
+        return Decimal("100")
+    if getattr(school, "pk", None) is not None:
+        try:
+            from apps.evals.models import AssessmentWeights
+
+            weights = (
+                AssessmentWeights.objects.filter(school=school, term=None, classroom=None)
+                .order_by("-academic_year")
+                .first()
+                or AssessmentWeights.objects.filter(school=school)
+                .order_by("-academic_year")
+                .first()
+            )
+            if weights is not None and getattr(weights, "score_scale", None):
+                return Decimal(str(weights.score_scale))
+        except Exception:  # noqa: BLE001 — operational read is best-effort
+            pass
+    try:
+        score_scale = _scale_config(resolve_local_scale_type(school)).get("score_scale")
+        if score_scale:
+            return Decimal(str(score_scale))
+    except Exception:  # noqa: BLE001 — fall through to neutral default
+        pass
+    return Decimal("100")
 
 
 def ensure_local_grading_scale(school, *, academic_year=None) -> dict[str, Any]:

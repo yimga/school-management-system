@@ -179,17 +179,29 @@ def ews_students_needing_attention(
     year,
     term,
     assignments,
-    scale: float = 20.0,
+    scale: float | None = None,
     drop_threshold_pct: float = 10.0,
 ):
     """
     # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
     Early warning: students with grade drop > threshold (e.g. 10% of scale) vs previous term.
     Returns list of dicts: {student_name, subject, classroom, drop_points}.
+
+    ``scale`` is the grade yardstick (the school's score-scale max). When None it is
+    derived local-first from the school's active grading scale, so the "10% drop"
+    threshold means 10 points on a /100 school and 2 on a /20 school — never a
+    hardcoded 0-20 assumption.
     """
     # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
     if not teacher_profile or not year or not term or not assignments:
         return []
+    if scale is None:
+        try:
+            from apps.evals.grading_provisioning import resolve_school_score_scale
+
+            scale = float(resolve_school_score_scale(getattr(teacher_profile, "school", None)))
+        except Exception:  # noqa: BLE001 — degrade to a neutral 100-point scale
+            scale = 100.0
     # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
     prev_term = (
         Term.objects.filter(academic_year=year, position=term.position - 1)

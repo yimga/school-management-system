@@ -433,7 +433,18 @@ def _extract_corrected_ocr_entries(post_data, original_entries):
     )
 
 
-def _validate_ocr_entries(entries):
+def _validate_ocr_entries(entries, max_score=Decimal("20")):
+    """Validate OCR-extracted marksheet scores against the school's grading scale
+    upper bound (local-first). ``max_score`` is the school's active scale max
+    (e.g. 20 francophone, 100 percentage, 4 GPA) — never a hardcoded 0-20."""
+    try:
+        max_score = Decimal(str(max_score))
+    except (InvalidOperation, TypeError, ValueError):
+        max_score = Decimal("20")
+    if max_score == max_score.to_integral_value():
+        max_label = str(int(max_score))
+    else:
+        max_label = format(max_score, "f").rstrip("0").rstrip(".")
     errors = []
     for entry in entries:
         student_code = str(entry.get("student_code") or "").strip() or "unknown"
@@ -443,8 +454,8 @@ def _validate_ocr_entries(entries):
             except (InvalidOperation, TypeError, ValueError):
                 errors.append(f"{student_code} {field}: invalid number")
                 continue
-            if score < 0 or score > 20:
-                errors.append(f"{student_code} {field}: score must be 0 to 20")
+            if score < 0 or score > max_score:
+                errors.append(f"{student_code} {field}: score must be 0 to {max_label}")
     return errors
 
 
@@ -951,7 +962,6 @@ def teacher_dashboard(request: HttpRequest):
         year,
         term,
         list(assignments),
-        scale=20.0,
         drop_threshold_pct=10.0,
     )
     if ews_list:
@@ -1748,7 +1758,14 @@ def teacher_marks_entry(request: HttpRequest):
             # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             corrected_entries = _extract_corrected_ocr_entries(request.POST, entries)
             entries_to_apply = corrected_entries if corrected_entries else entries
-            validation_errors = _validate_ocr_entries(entries_to_apply)
+            # Local-first: validate against THIS school's operational grading-scale
+            # max (the scale grades are computed on), not a hardcoded 0-20 (which
+            # rejected valid scores on percentage / GPA scales).
+            from apps.evals.grading_provisioning import resolve_school_score_scale
+
+            validation_errors = _validate_ocr_entries(
+                entries_to_apply, resolve_school_score_scale(getattr(teacher, "school", None))
+            )
 
             # Build existing evaluations for delta preview
             # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
