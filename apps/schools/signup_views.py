@@ -686,6 +686,14 @@ def signup_school(request: HttpRequest):
             country_defaults.get("timezone")
             or getattr(settings, "DEFAULT_SCHOOL_TIMEZONE", "UTC")
         ),
+        # Local-first: persist the tenant's own currency + default language from
+        # the country pack at creation, so money + anonymous-visitor copy are the
+        # school's locale by default instead of a global fallback. Both are blank-
+        # tolerant overrides (resolve_currency / default_language doc the cascade).
+        currency=str(country_defaults.get("currency") or "")[:3],
+        default_language=str(
+            language_code or country_defaults.get("default_language") or ""
+        )[:16],
         settings=school_settings,
     )
     # Wave 6/10 (v3.62.10) — first-class primary_language. Still also lives in

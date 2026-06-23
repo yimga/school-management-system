@@ -33,6 +33,21 @@ def _default_currency():
     return getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD")
 
 
+def _default_currency_symbol():
+    """Display symbol for the platform default currency (e.g. "$", "₦", "FCFA").
+
+    Bug fix: ``currency_symbol`` previously defaulted to ``_default_currency`` — i.e. the
+    3-letter CODE ("USD") rendered where a symbol ("$") belongs. Resolve the real symbol
+    from the currency registry, degrading to the code only if the registry is unavailable.
+    """
+    try:
+        from apps.registries.currency import get_currency_symbol
+
+        return get_currency_symbol(_default_currency())
+    except (ImportError, AttributeError, ValueError, TypeError):
+        return _default_currency()
+
+
 def _invoice_attachment_upload_to(instance, filename):
     """Tenant-scoped path for Invoice attachments (Section 25.3, media_tenant_scope.md)."""
     return _tenant_upload_to("finance/invoices")(instance, filename)
@@ -57,7 +72,7 @@ class ComplianceProfile(models.Model):
     name = models.CharField(max_length=120)
     country_code = models.CharField(max_length=2)
     currency_code = models.CharField(max_length=3, default=_default_currency)
-    currency_symbol = models.CharField(max_length=8, default=_default_currency)
+    currency_symbol = models.CharField(max_length=8, default=_default_currency_symbol)
     timezone = models.CharField(max_length=64, default=settings.TIME_ZONE)
     chart_template = models.CharField(
         max_length=20, choices=ChartTemplate.choices, default=ChartTemplate.GENERIC

@@ -25,6 +25,50 @@ def _default_timezone():
     return getattr(settings, "PLATFORM_DEFAULT_TIMEZONE", "UTC")
 
 
+def _default_currency():
+    """Platform default currency (last-resort fallback only). See config.PLATFORM_DEFAULT_CURRENCY.
+
+    Tenant-facing money should resolve through ``School.resolve_currency`` (local-first:
+    explicit override → region → country pack → this platform default), never a hardcoded
+    literal. This callable exists so model field defaults route through the platform
+    setting instead of an inline "USD" literal.
+    """
+    return getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD")
+
+
+def _resolve_owner_school(instance):
+    """Best-effort owning ``School`` for a school-scoped row (direct FK, else via donor)."""
+    school = getattr(instance, "school", None)
+    if school is not None:
+        return school
+    donor = getattr(instance, "donor", None)
+    if donor is not None:
+        return getattr(donor, "school", None)
+    return None
+
+
+def _apply_local_currency_default(instance):
+    """On create, fill a blank currency with the owning school's resolved (local-first) currency.
+
+    Keeps the field tenant-local instead of a global literal: a school in Nigeria gets NGN,
+    Cameroon gets XAF, etc. Falls back to the platform default when no school resolves so a
+    row is never persisted with a blank currency.
+    """
+    state = getattr(instance, "_state", None)
+    if state is None or not getattr(state, "adding", False):
+        return
+    if (getattr(instance, "currency", "") or "").strip():
+        return
+    school = _resolve_owner_school(instance)
+    resolved = ""
+    if school is not None:
+        try:
+            resolved = school.resolve_currency()
+        except (AttributeError, DatabaseError, OperationalError, ValueError, TypeError):
+            resolved = ""
+    instance.currency = resolved or _default_currency()
+
+
 def can(school, capability: str) -> bool:
     """
     Section 25.1: Entitlement check — return True if tenant has the capability/module enabled.
@@ -333,6 +377,17 @@ class School(models.Model):
             "Tenant default language code (mirrors settings.LANGUAGES). When set, "
             "anonymous visitors to this tenant's marketing surface get this language "
             "before Accept-Language is consulted. Empty = platform default 'en'."
+        ),
+    )
+    currency = models.CharField(
+        max_length=3,
+        blank=True,
+        default="",
+        help_text=(
+            "Tenant default currency (ISO 4217, e.g. NGN / XAF / GBP / USD). Empty = "
+            "derive local-first via resolve_currency(): default_region → country pack → "
+            "platform default. Set explicitly to override (e.g. an international school "
+            "billing in a currency other than its country's default)."
         ),
     )
     settings = models.JSONField(
@@ -732,6 +787,34 @@ class School(models.Model):
         except (ImportError, AttributeError, TypeError, ValueError, KeyError) as e:
             logger.debug("schools.Region.resolved_country_alpha3 failed: %s", e)
             return ""
+
+    def resolve_currency(self) -> str:
+        """Tenant currency, local-first: explicit override → region → country pack → platform default.
+
+        This is the canonical read path for "what currency does this school use" so no caller
+        hardcodes a literal. Returns an upper-cased ISO 4217 code; never blank.
+        """
+        explicit = (getattr(self, "currency", "") or "").strip()
+        if explicit:
+            return explicit.upper()
+        region = getattr(self, "default_region", None)
+        if region is not None:
+            region_currency = (getattr(region, "default_currency", "") or "").strip()
+            if region_currency:
+                return region_currency.upper()
+        country_code = (getattr(self, "country_code", "") or "").strip()
+        if country_code:
+            try:
+                from apps.siteconfig.global_catalog import GlobalGeoCatalog
+
+                pack_currency = (
+                    GlobalGeoCatalog.country_defaults(country_code).get("currency") or ""
+                ).strip()
+                if pack_currency:
+                    return pack_currency.upper()
+            except (ImportError, AttributeError, TypeError, ValueError, KeyError) as e:
+                logger.debug("schools.School.resolve_currency country pack failed: %s", e)
+        return _default_currency().upper()
 
     def save(self, *args, **kwargs):
         rp = (getattr(self, "report_platform_bundle_slug", None) or "").strip()
@@ -1253,7 +1336,7 @@ class FundraisingCampaign(models.Model):
     goal_amount = models.DecimalField(
         max_digits=14, decimal_places=2, default=Decimal("0.00")
     )
-    currency = models.CharField(max_length=3, default="USD")
+    currency = models.CharField(max_length=3, blank=True, default="")
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
     status = models.CharField(
@@ -1317,7 +1400,7 @@ class DonationPledge(models.Model):
         related_name="pledges",
     )
     amount = models.DecimalField(max_digits=14, decimal_places=2)
-    currency = models.CharField(max_length=3, default="USD")
+    currency = models.CharField(max_length=3, blank=True, default="")
     due_date = models.DateField(null=True, blank=True)
     status = models.CharField(
         max_length=12, choices=Status.choices, default=Status.PLEDGED
@@ -1390,7 +1473,7 @@ class AdvancementGift(models.Model):
         related_name="gifts",
     )
     amount = models.DecimalField(max_digits=14, decimal_places=2)
-    currency = models.CharField(max_length=3, default="USD")
+    currency = models.CharField(max_length=3, blank=True, default="")
     received_at = models.DateField()
     receipt_sent = models.BooleanField(default=False)
     notes = models.TextField(blank=True)
@@ -1499,7 +1582,7 @@ class InKindDonation(models.Model):
     estimated_value = models.DecimalField(
         max_digits=14, decimal_places=2, null=True, blank=True
     )
-    currency = models.CharField(max_length=3, default="USD")
+    currency = models.CharField(max_length=3, blank=True, default="")
     condition = models.CharField(
         max_length=40, blank=True, help_text="e.g. new, good, fair, poor"
     )
@@ -1610,7 +1693,7 @@ class GrantApplication(models.Model):
     awarded_amount = models.DecimalField(
         max_digits=14, decimal_places=2, null=True, blank=True
     )
-    currency = models.CharField(max_length=3, default="USD")
+    currency = models.CharField(max_length=3, blank=True, default="")
     status = models.CharField(
         max_length=16, choices=Status.choices, default=Status.DRAFT
     )
@@ -1774,7 +1857,7 @@ class RecurringDonationSchedule(models.Model):
         related_name="recurring_schedules",
     )
     amount = models.DecimalField(max_digits=14, decimal_places=2)
-    currency = models.CharField(max_length=3, default="USD")
+    currency = models.CharField(max_length=3, blank=True, default="")
     frequency = models.CharField(
         max_length=12, choices=Frequency.choices, default=Frequency.MONTHLY
     )
@@ -1868,3 +1951,31 @@ class MarketingFunnelEvent(models.Model):
 
     def __str__(self):
         return f"{self.event_type} at {self.created_at}"
+
+
+# ---------------------------------------------------------------------------
+# Local-first currency default for school-scoped money rows
+# ---------------------------------------------------------------------------
+# These advancement/fundraising models used to hardcode ``default="USD"``. They
+# now default blank and a single pre_save receiver fills the currency from the
+# owning school's resolved (local-first) currency on create, so a school in
+# Nigeria gets NGN, Cameroon XAF, etc. — never a hardcoded literal. Migration-
+# invisible (signals are not part of model state). Guards on ``_state.adding``
+# so it only acts on inserts and never overrides an explicitly-set currency.
+def _fill_local_currency_pre_save(sender, instance, **kwargs):  # noqa: ARG001
+    _apply_local_currency_default(instance)
+
+
+for _local_currency_model in (
+    FundraisingCampaign,
+    DonationPledge,
+    AdvancementGift,
+    InKindDonation,
+    GrantApplication,
+    RecurringDonationSchedule,
+):
+    models.signals.pre_save.connect(
+        _fill_local_currency_pre_save,
+        sender=_local_currency_model,
+        dispatch_uid=f"fill_local_currency_{_local_currency_model.__name__}",
+    )
