@@ -29,6 +29,9 @@ backend-shell dashboard-page-backend
    landing extends backend_base so we link explicitly. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-tenant-canvas-100x.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-v2.css' %}">
+{% comment %} v4.04.x tenant 100X: premium .rmc-dh role-home grammar — backend landing
+   extends backend_base so it is linked explicitly (portal_base loads it elsewhere). {% endcomment %}
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-100x.css' %}">
 {% comment %} v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
 {% comment %} v4.00.12: shared resumable-wizards banner styles (also used by tenant_wizard_index). {% endcomment %}
@@ -82,6 +85,11 @@ backend-shell dashboard-page-backend
   {% url 'accounts:backend_operational_health_stream' as tenant_health_stream_url %}
   {% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="admin" %}
   {% include "partials/operator_queue_smart_links_banner.html" %}
+
+  {% comment %} v4.04.x tenant 100X: premium .rmc-dh "school overview" band — an additive
+     summary (KPIs · what-needs-you · top performers · at-risk · fee collection · recent
+     admissions) above the configurable module grid, wired to the existing context. {% endcomment %}
+  {% include "accounts/_rmc_dh_admin_overview.html" %}
 
   {% comment %} v4.04.x: onboarding command surface — front-and-centre on the default v3
      canvas while a school is still onboarding, so a fresh tenant lands on a guided

@@ -1,0 +1,117 @@
+{% comment %}
+  Premium .rmc-dh "school overview" band for the admin backend dashboard (100X).
+  An ADDITIVE premium summary above the configurable module grid — wired to the
+  existing backend_dashboard context (stats, attended_today, finance_summary,
+  at_risk_students, top_performing_students, recent_admissions, pending counts).
+  Money stays Decimal via |format_currency. Degrade-safe throughout.
+{% endcomment %}
+{% load i18n static region_format terminology_tags rmc_dh %}
+
+{% url 'finance:dashboard' as ov_finance_url %}
+{% url 'accounts:backend_dashboard' as ov_home_url %}
+
+<div class="rmc-dh mt-3" data-rmc-ux-section="school-overview">
+  <div class="rmc-dh-section-label"><i class="bi bi-speedometer2" aria-hidden="true"></i> {% trans "School overview" %}</div>
+
+  {# ---------- KPI tiles ---------- #}
+  <div class="rmc-dh-tiles">
+    {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-people" dh_k=_("Active students") dh_v=stats.students|default:0 dh_d=_("enrolled") dh_dir="flat" %}
+    {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-clipboard-check" dh_k=_("Present today") dh_v=attended_today|default:0 dh_d=_("checked in") dh_dir="up" %}
+    {% if finance_summary %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-cash-stack" dh_k=_("Collected") dh_v=finance_summary.paid|default:0|format_currency dh_d=_("to date") dh_dir="up" dh_href=ov_finance_url %}{% endif %}
+    {% if finance_summary.overdue %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-cash-coin" dh_k=_("Overdue invoices") dh_v=finance_summary.overdue dh_d=_("need chasing") dh_dir="down" dh_href=ov_finance_url %}
+    {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-cash-coin" dh_k=_("Overdue invoices") dh_v=0 dh_d=_("all current") dh_dir="up" dh_href=ov_finance_url %}{% endif %}
+  </div>
+
+  {# ---------- AI insight (honest, data-driven) ---------- #}
+  {% if finance_summary.overdue or at_risk_students %}
+  <div class="rmc-dh-aicard">
+    <div class="rmc-dh-aicard__ic"><i class="bi bi-stars" aria-hidden="true"></i></div>
+    <div class="rmc-dh-aicard__body">
+      <h4>{% trans "RunMyCampus noticed" %}</h4>
+      <p>
+        {% if finance_summary.overdue %}{% blocktrans count n=finance_summary.overdue %}{{ n }} invoice is overdue.{% plural %}{{ n }} invoices are overdue.{% endblocktrans %} {% trans "A reminder broadcast usually recovers most within a week." %}{% endif %}
+        {% if at_risk_students %}{% blocktrans count n=at_risk_students|length %}{{ n }} student is flagged for follow-up.{% plural %}{{ n }} students are flagged for follow-up.{% endblocktrans %}{% endif %}
+      </p>
+      <div class="rmc-dh-aicard__acts">
+        {% if finance_summary.overdue %}<a class="rmc-dh-chip rmc-dh-chip--primary" href="{{ ov_finance_url }}">{% trans "View overdue" %}</a>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ---------- What needs you ---------- #}
+  {% if finance_summary.overdue or pending_approvals_count or at_risk_students %}
+  <div class="rmc-dh-attention">
+    <h2 class="rmc-dh-attention__title"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "What needs you" %}</h2>
+    {% if finance_summary.overdue %}{% blocktrans count n=finance_summary.overdue asvar ov_od %}{{ n }} invoice overdue{% plural %}{{ n }} invoices overdue{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-cash-coin" dh_text=ov_od dh_go_label=_("Chase") dh_go_href=ov_finance_url %}{% endif %}
+    {% if pending_approvals_count %}{% blocktrans count n=pending_approvals_count asvar ov_ap %}{{ n }} access request awaiting approval{% plural %}{{ n }} access requests awaiting approval{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-person-check" dh_text=ov_ap %}{% endif %}
+    {% if at_risk_students %}{% blocktrans count n=at_risk_students|length asvar ov_ar %}{{ n }} student needs attention{% plural %}{{ n }} students need attention{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-people" dh_text=ov_ar %}{% endif %}
+  </div>
+  {% endif %}
+
+  {# ---------- Two-column body ---------- #}
+  <div class="rmc-dh-grid2">
+    <div>
+      {% if top_performing_students %}
+      <section class="rmc-dh-panel">
+        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-trophy" dh_title=_("Top performers") %}
+        <ul class="rmc-dh-lead">
+          {% for s in top_performing_students|slice:":5" %}
+          <li>
+            <span class="rmc-dh-lead__rk{% if forloop.first %} rmc-dh-lead__rk--top{% endif %}">{{ forloop.counter }}</span>
+            <span class="rmc-dh-lead__av" aria-hidden="true">{{ s.name|slice:":1" }}</span>
+            <span class="rmc-dh-lead__main"><span class="rmc-dh-lead__nm">{{ s.name|truncatechars:24 }}</span><br><span class="rmc-dh-lead__sub">{{ s.classroom }}</span></span>
+            <span class="rmc-dh-lead__rt rmc-dh-lead__rt--up">{{ s.score|floatformat:1 }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+
+      {% if at_risk_students %}
+      <section class="rmc-dh-panel">
+        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-people" dh_title=_("Students who need attention") %}
+        <ul class="rmc-dh-lead">
+          {% for s in at_risk_students|slice:":5" %}
+          <li>
+            <span class="rmc-dh-lead__rk">{{ forloop.counter }}</span>
+            <span class="rmc-dh-lead__av" aria-hidden="true">{{ s.name|slice:":1" }}</span>
+            <span class="rmc-dh-lead__main"><span class="rmc-dh-lead__nm">{{ s.name|truncatechars:24 }}</span><br><span class="rmc-dh-lead__sub">{{ s.classroom }} · {{ s.tag }}</span></span>
+            <span class="rmc-dh-lead__rt rmc-dh-lead__rt--down">{{ s.value }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+    </div>
+
+    <div>
+      {% if finance_summary %}
+      <section class="rmc-dh-panel">
+        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-wallet2" dh_title=_("Fee collection") dh_more_label=_("Finance")|add:" →" dh_more_href=ov_finance_url %}
+        <div class="rmc-dh-progress">
+          <span class="rmc-dh-progress__lbl">{% trans "Collected" %}</span>
+          <span class="rmc-dh-progress__bar"><i style="width:{{ finance_summary.paid|dh_ratio:finance_summary.receivables }}%"></i></span>
+          <span class="rmc-dh-progress__pct">{{ finance_summary.paid|dh_ratio:finance_summary.receivables }}%</span>
+        </div>
+        <div class="rmc-dh-segbar-key">
+          <span><span class="rmc-dh-legend__sw rmc-dh-fill--paid"></span> {% trans "Paid" %} {{ finance_summary.paid|format_currency }}</span>
+          <span><span class="rmc-dh-legend__sw rmc-dh-fill--overdue"></span> {% trans "Receivable" %} {{ finance_summary.receivables|format_currency }}</span>
+          {% if finance_summary.overdue %}<span><span class="rmc-dh-legend__sw rmc-dh-fill--warn"></span> {% blocktrans count n=finance_summary.overdue %}{{ n }} overdue{% plural %}{{ n }} overdue{% endblocktrans %}</span>{% endif %}
+        </div>
+      </section>
+      {% endif %}
+
+      {% if recent_admissions %}
+      <section class="rmc-dh-panel">
+        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-person-plus" dh_title=_("Recent admissions") %}
+        <ul class="rmc-dh-timeline">
+          {% for adm in recent_admissions|slice:":5" %}
+          <li><span class="rmc-dh-timeline__t rmc-dh-timeline__t--done" aria-hidden="true"></span> {{ adm.name|truncatechars:28 }}<span class="rmc-dh-timeline__when">{{ adm.classroom|default:"—" }}</span></li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+    </div>
+  </div>
+</div>
