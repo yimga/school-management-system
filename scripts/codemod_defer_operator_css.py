@@ -12,7 +12,7 @@ blocking render on them.
 DELIBERATELY NOT deferred (would risk FOUC): design-tokens*, fonts, bootstrap,
 structural shells, base grammar, design-system, ALL theme files, header, sidebar/
 nav, tables/forms/cards, density, footers, responsive, cockpit skins, and
-rmc-signature-motion.css (it DEFINES :root easing tokens consumed by blocking CSS).
+rmc-signature-motion.css (it DEFINES :root easing tokens consumed by blocking CSS). Also rmc-cp-copilot-grid-lock.css (sets the 3-column shell grid), rmc-cp-activity-tiers.css (above-fold landing ticker), rmc-collapsable.css (above-fold section heads) — all first-paint, kept blocking after an audit.
 
 Filename-keyed (not line-keyed) so it is robust to concurrent edits elsewhere in
 the shell. Idempotent: a link already carrying media=/onload= is skipped.
@@ -51,9 +51,6 @@ DEFER = {
     "rmc-trust-pillars.css",           # specific marketing-style section
     "rmc-account-security-chip.css",   # specific chip widget
     "rmc-ai-guided-assistant-card.css",  # specific assistant card
-    "rmc-cp-activity-tiers.css",       # activity-tiers feature
-    "rmc-cp-copilot-grid-lock.css",    # copilot grid feature
-    "rmc-collapsable.css",             # collapsibles (content hidden until expanded)
     "rmc-pagination-grammar.css",      # pager (below the fold, end of lists)
     "rmc-admin-changelist-live.css",   # admin changelist live-update chrome (layers on the table)
 }
