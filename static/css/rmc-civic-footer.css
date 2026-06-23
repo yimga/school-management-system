@@ -46,8 +46,8 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  /* v4.04.x: only 3 stacked rows now (brand · midrow · legal) → tighter gap (5→3). */
-  gap: 3px;
+  /* v4.04.x: only 3 stacked rows now (brand · midrow · legal). 2026-06-23 +50% → gap 3→5. */
+  gap: 5px;
 }
 
 /* ------------------------------------------------------------------ */
