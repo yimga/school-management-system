@@ -21,6 +21,8 @@ jobs:
           pip install -r requirements.txt 2>/dev/null || pip install django djangorestframework
       - name: Run Django checks
         run: python manage.py check
+      - name: Verify get_model registry integrity
+        run: python scripts/verify_get_model_integrity.py --compare
       - name: Run Django tests
         run: python manage.py test --noinput -v 0 2>/dev/null || true
 
