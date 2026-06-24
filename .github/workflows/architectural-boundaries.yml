@@ -1325,6 +1325,15 @@ jobs:
           python scripts/verify_marketing_public_shell.py
           python scripts/verify_marketing_hero_media.py
 
+  playwright-ci-harness:
+    name: Playwright + 50-app CI harness wiring
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify CI harness bundle
+        run: python scripts/verify_ci_harness_bundle.py
+
   platform-pillar-gates:
     name: "Platform pillars: middleware order, tenant cache, list search"
     runs-on: ubuntu-latest

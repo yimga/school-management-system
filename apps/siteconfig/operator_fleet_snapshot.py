@@ -209,7 +209,14 @@ def build_operator_fleet_snapshot(*, pulse_limit: int = 3) -> dict[str, Any]:
     from apps.schools.fleet_live_payload import build_fleet_live_payload
     from django.http import HttpRequest
 
-    fleet_payload = build_fleet_live_payload(include_rows=False)
+    try:
+        fleet_payload = build_fleet_live_payload(include_rows=False)
+    except Exception:
+        logger.warning("operator_fleet: fleet payload fallback", exc_info=True)
+        fleet_payload = {
+            "summary": {"live": 0, "suspended": 0, "frozen": 0},
+            "summary_label": "",
+        }
 
     try:
         req = HttpRequest()

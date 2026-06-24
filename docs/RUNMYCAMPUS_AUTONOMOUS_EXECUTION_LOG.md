@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice — CI harness bundle + operator fleet resilience (batch 1716 — 2026-06-24)
+
+**A. Scope:** Lock Playwright + 50-app matrix harness wiring in architectural-boundaries CI; harden operator fleet snapshot against fleet DB blips; regenerate footprint preview from live template.
+
+**B. Shipped:** `verify_ci_harness_bundle.py` + `playwright-ci-harness` job; `operator_fleet_snapshot` fleet-payload fallback + test; `generate_global_footprint_preview.py` template render path.
+
+**C. Proof:** **CI_HARNESS_BUNDLE_PASS**; `npm run verify:ci-harness` green.
+
+**D. Honest:** footprint preview HTML not auto-committed on every template edit — operator runs generator when auditing globe section.
+
 ## Slice — Marketing One Record Scroll gate alignment (batch 1715 — 2026-06-24)
 
 **A. Scope:** Close batch 1704 honest residual — marketing CI gates still asserted viewport-lock hero stack after `/storefront/` One Record Scroll became default acquisition surface.

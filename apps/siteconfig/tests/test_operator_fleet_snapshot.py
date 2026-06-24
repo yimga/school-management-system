@@ -39,6 +39,16 @@ class OperatorFleetSnapshotTests(TestCase):
 
     @patch("apps.siteconfig.operator_fleet_snapshot.fetch_fleet_pulse_events", return_value=[])
     @patch("apps.schools.fleet_live_payload.build_fleet_live_payload")
+    def test_build_snapshot_fleet_payload_fallback(self, mock_fleet, _mock_pulse):
+        from apps.siteconfig.operator_fleet_snapshot import build_operator_fleet_snapshot
+
+        mock_fleet.side_effect = RuntimeError("db unavailable")
+        snap = build_operator_fleet_snapshot()
+        self.assertIn("operator_fleet_revision", snap)
+        self.assertEqual(snap["schools_live"], 0)
+
+    @patch("apps.siteconfig.operator_fleet_snapshot.fetch_fleet_pulse_events", return_value=[])
+    @patch("apps.schools.fleet_live_payload.build_fleet_live_payload")
     def test_build_snapshot_keys(self, mock_fleet, _mock_pulse):
         from apps.siteconfig.operator_fleet_snapshot import build_operator_fleet_snapshot
 
