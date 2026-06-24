@@ -139,4 +139,4 @@ trust, and zero-cost transparency** — features that make switching *to* us saf
 and switching *away* painless, which is exactly what wins a global market where
 every district fears being trapped. We carve the blue ocean by being the only
 vendor whose **simplicity is a moat**: each loop above closes one real gap, fully
-tested, no rebuilds. **§2 competitive backlog is fully CLOSED** (O1–O4, B1–B4, R1–R3, T1–T3 as of 2026-06-24). **Playwright CI proof shipped** (batches **1711**–**1713** role-home + **1712** globe layout). **50-app matrix CI shipped** (batch **1714**). Next product loops: production Prometheus scrape stack, Zero-Friction phase 6 template burndown waves, counsel/RLS external gates.
+tested, no rebuilds. **§2 competitive backlog is fully CLOSED** (O1–O4, B1–B4, R1–R3, T1–T3 as of 2026-06-24). **Playwright CI proof shipped** (batches **1711**–**1713** role-home + **1712** globe layout). **50-app matrix CI shipped** (batch **1714**). **Marketing gate alignment** (batch **1715**) + **CI harness bundle** (batch **1716**). Next product loops: production Prometheus scrape stack, Zero-Friction phase 6 template burndown waves, counsel/RLS external gates.
