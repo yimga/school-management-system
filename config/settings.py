@@ -1626,6 +1626,12 @@ WEBHOOK_CONFIG = {
 # --- Observability ---
 OBSERVABILITY_API_KEY = os.getenv("OBSERVABILITY_API_KEY", "")
 
+# --- Platform billing / offboarding (O4) ---
+_default_billing_cancel = "apps.billing.stripe_remote_cancel.cancel_stripe_subscription"
+BILLING_REMOTE_CANCEL_ADAPTER = (
+    os.getenv("RMC_BILLING_REMOTE_CANCEL_ADAPTER", _default_billing_cancel) or ""
+).strip() or None
+
 # --- Policy / Marketplace (Phase 7, 24.12) — non-negotiable, always on ---
 # When True, get_effective_policy merges from TenantBlueprint.active_bundle.policy_snapshot when set. Required; default on.
 POLICY_USE_BUNDLES = os.getenv("POLICY_USE_BUNDLES", "1") in ("1", "true", "yes")
@@ -2167,7 +2173,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "auto-generate-fee-invoices": {
         "task": "finance.auto_generate_fee_invoices",
-        "schedule": 86400.0,  # Daily; task self-checks SiteSettings schedule mode
+        "schedule": 3600.0,  # Hourly; monthly_day_of_month uses tenant-local hour window
         "options": {"expires": 3600},
     },
     "auto-copy-fee-plans": {

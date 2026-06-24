@@ -44,12 +44,12 @@ not exist; `PARTIAL` means it exists but stops short.
 | O1 | Custom domain not unbound on deactivate | ~~ABSENT~~ **CLOSED 2026-06-22** | A switched-off tenant kept a live white-label hostname → confusion + routing liability. **Fixed** below. |
 | O2 | Billing not suspended on deactivate (only explicit `freeze`) | ~~PARTIAL~~ **CLOSED 2026-06-22** | A deactivated tenant stayed billable. **Fixed** below. |
 | O3 | Data export not automatic on closure request | ~~PARTIAL~~ **CLOSED 2026-06-22** | `request_self_service_closure` triggers `run_wind_down_export` automatically; tests in `test_offboarding_auto_export.py`. |
-| O4 | Remote provider (Stripe) cancel stubbed | PARTIAL | `cancel_subscriptions_for_offboarding()` marks the local row CANCELED but does not call the provider → remote keeps billing. |
+| O4 | Remote provider (Stripe) cancel stubbed | ~~PARTIAL~~ **CLOSED 2026-06-24** | `stripe_remote_cancel.cancel_stripe_subscription` + default `BILLING_REMOTE_CANCEL_ADAPTER`; pluggable via env override. |
 
 ### Local-first billing
 | # | Gap | State | Move |
 |---|---|---|---|
-| B1 | No scheduled invoicing beat (operator runs a command) | PARTIAL | Timezone-aware Celery beat: invoice each tenant on their local day-of-month. |
+| B1 | No scheduled invoicing beat (operator runs a command) | ~~PARTIAL~~ **CLOSED 2026-06-24** | `scheduled_invoicing.py` + hourly Celery beat; tenant-local day-of-month + hour window via `is_invoice_generation_due_for_school`; wired into `auto_generate_fee_invoices` task. |
 | B2 | No per-country plan SKU variants (one base × multiplier) | ABSENT | `Plan.regional_sku_overrides` so a market can be repriced without a global formula change. |
 | B3 | Tax at country level only | PARTIAL | Subdivision/state tax table (already a `subdivision_code` param, unused). |
 | B4 | Single currency per tenant | PARTIAL | Materialized multi-currency sub-ledger for holding-company rollups. |
@@ -57,7 +57,7 @@ not exist; `PARTIAL` means it exists but stops short.
 ### Proactive AI resilience
 | # | Gap | State | Move |
 |---|---|---|---|
-| R1 | No keystroke-level server persistence of in-progress wizards | ABSENT | Debounced delta-sync of the active step to `SetupProgress` (server-backed draft, survives device loss). |
+| R1 | No keystroke-level server persistence of in-progress wizards | ~~ABSENT~~ **CLOSED 2026-06-24** | `persist_step_draft` + `WizardStepDraftSyncView` + `rmc-wizard-delta-sync.js` debounced POST to `SetupProgress.draft_answers`; merged into form on reload. |
 | R2 | No auto UI rehydration on reconnect | ~~ABSENT~~ **CLOSED 2026-06-24** | `rmc-reconnect-rehydrate.js` — after SW `sync-complete` / `sms-sync-end`, hydrates offline mirror then triggers HTMX `rmc-reconnect` + `rmc:reconnect-rehydrate` for health widgets. |
 | R3 | No background-sync periodic retry | PARTIAL | SW Background Sync API so a closed tab still drains the outbox. |
 

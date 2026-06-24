@@ -969,9 +969,16 @@ def apply_split_late_fees_task(
     return totals
 
 
-def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
+def _auto_generate_fee_invoices_body(dry_run: bool, *, school_id=None) -> dict:
     """Inner body: run inside tenant context."""
     from apps.automation.helpers import get_current_academic_year, get_current_term
+    from apps.finance.scheduled_invoicing import (
+        billing_period_key,
+        is_invoice_generation_due_for_school,
+        monthly_invoice_already_run,
+        school_local_now,
+    )
+    from apps.schools.models import School
 
     execution_log = AutomationExecutionLog.objects.create(
         task_name="finance.auto_generate_fee_invoices",
@@ -996,7 +1003,6 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
             return {"status": "disabled"}
 
         schedule = finance_settings["auto_generate_schedule"]
-        mode = schedule.get("mode", "academic_year_start")
         due_date_offset = finance_settings["auto_generate_due_date_offset_days"]
 
         current_year = get_current_academic_year()
@@ -1007,29 +1013,21 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
             )
             return {"status": "error", "message": "No active academic year"}
 
-        # Check if generation is due based on schedule
-        now = timezone.now().date()
-        should_generate = False
+        school = None
+        if school_id is not None:
+            school = School.objects.filter(pk=school_id).first()
+        if school is None:
+            school = School.objects.filter(is_active=True).first()
 
-        if mode == "academic_year_start":
-            offset_days = schedule.get("academic_year_start_offset_days", 0)
-            target_date = current_year.start_date + timedelta(days=offset_days)
-            should_generate = now >= target_date
-
-        elif mode == "term_start":
-            current_term = get_current_term(current_year)
-            if current_term:
-                offset_days = schedule.get("term_start_offset_days", 0)
-                target_date = current_term.start_date + timedelta(days=offset_days)
-                should_generate = now >= target_date
-
-        elif mode == "custom_date":
-            custom_date_str = schedule.get("custom_date")
-            if custom_date_str:
-                from datetime import datetime
-
-                target_date = datetime.fromisoformat(custom_date_str).date()
-                should_generate = now >= target_date
+        current_term = get_current_term(current_year)
+        term_start = current_term.start_date if current_term else None
+        should_generate = is_invoice_generation_due_for_school(
+            school,
+            schedule,
+            academic_year_start=current_year.start_date,
+            term_start=term_start,
+            dry_run=dry_run,
+        )
 
         if not should_generate and not dry_run:
             execution_log.mark_completed(
@@ -1037,6 +1035,30 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
                 summary={"message": "Generation not due yet"},
             )
             return {"status": "not_due"}
+
+        period_key = billing_period_key(
+            school,
+            schedule,
+            academic_year_start=current_year.start_date,
+            term_start=term_start,
+        )
+        if (
+            not dry_run
+            and period_key
+            and monthly_invoice_already_run(school=school, billing_period=period_key)
+        ):
+            execution_log.mark_completed(
+                AutomationExecutionLog.Status.SUCCESS,
+                summary={
+                    "message": "Generation already completed for billing period",
+                    "billing_period": period_key,
+                },
+            )
+            return {"status": "already_run", "billing_period": period_key}
+
+        if school is not None and execution_log.school_id is None:
+            execution_log.school = school
+            execution_log.save(update_fields=["school"])
 
         # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
         # Get active fee plans
@@ -1059,13 +1081,16 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
             )
             return {"status": "error", "message": "No compliance profile"}
 
-        issued_date = now
-        due_date = now + timedelta(days=due_date_offset)
+        issued_date = (
+            school_local_now(school).date() if school is not None else timezone.now().date()
+        )
+        due_date = issued_date + timedelta(days=due_date_offset)
 
         execution_summary = {
             "plans": [],
             "total_invoices": 0,
             "total_students": 0,
+            "billing_period": period_key,
         }
 
         if dry_run:
@@ -1184,7 +1209,7 @@ def auto_generate_fee_invoices_task(
     if school_id:
         return _run_with_tenant_context(
             school_id=school_id,
-            runnable=lambda: _auto_generate_fee_invoices_body(dry_run),
+            runnable=lambda: _auto_generate_fee_invoices_body(dry_run, school_id=school_id),
         )
     totals = {
         "status": "success",
@@ -1195,7 +1220,9 @@ def auto_generate_fee_invoices_task(
     for sid in get_active_school_ids():
         result = _run_with_tenant_context(
             school_id=sid,
-            runnable=lambda d=dry_run: _auto_generate_fee_invoices_body(d),
+            runnable=lambda d=dry_run, sid=sid: _auto_generate_fee_invoices_body(
+                d, school_id=sid
+            ),
         )
         totals["invoices_created"] += result.get("invoices_created", 0) or 0
         totals["plans_processed"] += result.get("plans_processed", 0) or 0

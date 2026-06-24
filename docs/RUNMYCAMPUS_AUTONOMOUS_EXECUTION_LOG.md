@@ -1,12 +1,22 @@
 # RunMyCampus autonomous execution log
 
+## Slice — B1 timezone-aware scheduled invoicing (batch 1705 — 2026-06-24)
+
+**A. Scope:** Close competitive-audit B1 — Celery-driven fee invoice generation on each tenant's local billing calendar (day-of-month + hour).
+
+**B. Shipped:** `scheduled_invoicing.py`; wired into `auto_generate_fee_invoices` task; hourly beat; unit tests + `verify_scheduled_invoicing_b1.py`; SW **v4.04.94**.
+
+**C. Proof:** **SCHEDULED_INVOICING_B1_PASS**; **COMPETITIVE_GAP_CLOSURE_PASS**.
+
+**D. Honest:** Invoice duplicate guard depends on existing create_fee_invoices idempotency; O4 Stripe remote cancel still PARTIAL.
+
 ## Slice — Category-leadership gap closure wave (batch 1704 — 2026-06-24)
 
 **A. Scope:** Land all in-flight repo work from batches 1702–1703 plus P1/P2 competitive-audit optionals (signup country, R2 rehydrate, marketing one-record scroll, role-home sweep harness).
 
 **B. Shipped:** Tenant performance T1 dashboard + procurement trust nav; globe void/AI lab complete + `build:world-globe`; parent hybrid grade visibility wiring; `rmc-reconnect-rehydrate.js`; signup country validation; marketing one-record scroll; region backfill tests; `sweep:role-home`; SW **v4.04.93**.
 
-**C. Proof:** **TENANT_PERFORMANCE_T1_PASS**; **GLOBE_VOID_AI_LAB_PARITY_PASS**; **WORLD_GLOBE_10X_PASS**; **MARKETING_PROCUREMENT_TRUST_NAV_PASS**; SW monotonic OK.
+**C. Proof:** **TENANT_PERFORMANCE_T1_PASS**; **GLOBE_VOID_AI_LAB_PARITY_PASS**; **WORLD_GLOBE_10X_PASS**; **MARKETING_PROCUREMENT_TRUST_NAV_PASS**; **MARKETING_ONE_RECORD_SCROLL_PASS**; **ROLE_HOME_VISUAL_SWEEP_HARNESS_PASS**; undefined CSS classes **0**; dead hrefs **0**; interaction integrity **PASS**; luxury **ULTRA-LUXURY**; SW monotonic OK.
 
 **D. Honest:** Full role-home Playwright sweep needs live server; T2 SLO alert rules + T3 self-host Prometheus remain next; 50-app matrix on Windows still flaky.
 

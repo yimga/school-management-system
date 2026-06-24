@@ -1,12 +1,12 @@
 {
   "date": "2026-06-24",
-  "generated_at": "2026-06-24T01:00:00+00:00",
+  "generated_at": "2026-06-24T01:35:00+00:00",
   "major": 4,
   "minor": 4,
-  "patch": 93,
-  "raw": "sms-v4.04.93-reconnect-rehydrate-r2-gap-closure-2026-06-24",
+  "patch": 94,
+  "raw": "sms-v4.04.94-scheduled-invoicing-b1-2026-06-24",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "reconnect-rehydrate-r2-gap-closure",
+  "slug": "scheduled-invoicing-b1",
   "valid": true
 }
