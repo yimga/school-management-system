@@ -325,6 +325,75 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   font-size: 13px;
   line-height: 1.55;
 }
+.lx-world-lab__ai-guide {
+  display: grid;
+  grid-template-columns: auto minmax(9rem, auto) minmax(12rem, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid rgba(196, 181, 253, 0.22); /* off-token-allow: globe-ai-guide */
+  border-radius: var(--radius-md, 12px);
+  background:
+    linear-gradient(135deg, rgba(196, 181, 253, 0.1), rgba(16, 185, 129, 0.055)), /* off-token-allow: globe-ai-guide */
+    rgba(12, 16, 28, 0.78); /* off-token-allow: globe-ai-guide */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025); /* off-token-allow: globe-ai-guide */
+  backdrop-filter: blur(16px) saturate(140%);
+}
+.lx-world-lab__ai-guide strong {
+  min-width: 0;
+  color: var(--text-primary);
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lx-world-lab__ai-guide span:not(.lx-world-lab__tag) {
+  min-width: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lx-world-lab__ai-guide-btn {
+  min-height: 28px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(196, 181, 253, 0.28); /* off-token-allow: globe-ai-guide */
+  background: rgba(12, 16, 28, 0.86); /* off-token-allow: globe-ai-guide */
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.lx-world-lab__ai-guide-btn:hover {
+  border-color: rgba(196, 181, 253, 0.48); /* off-token-allow: globe-ai-guide */
+  box-shadow: 0 0 18px rgba(196, 181, 253, 0.12); /* off-token-allow: globe-ai-guide */
+}
+@media (max-width: 980px) {
+  .lx-world-lab__ai-guide {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+  .lx-world-lab__ai-guide span:not(.lx-world-lab__tag) {
+    grid-column: 1 / -1;
+    white-space: normal;
+  }
+}
+@media (max-width: 560px) {
+  .lx-world-lab__ai-guide {
+    grid-template-columns: 1fr 1fr;
+  }
+  .lx-world-lab__ai-guide .lx-world-lab__tag,
+  .lx-world-lab__ai-guide strong,
+  .lx-world-lab__ai-guide span:not(.lx-world-lab__tag) {
+    grid-column: 1 / -1;
+  }
+}
 .lx-world-lab__controls {
   display: flex;
   flex-wrap: wrap;

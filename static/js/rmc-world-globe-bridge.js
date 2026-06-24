@@ -301,6 +301,24 @@
     body.textContent = brief.body || "";
   }
 
+  function renderAiGlobeGuide(bundle) {
+    var headline = document.getElementById("rmc-world-globe-ai-guide-headline");
+    var copy = document.getElementById("rmc-world-globe-ai-guide-copy");
+    if (!headline || !copy || !featureEnabled("ai_brief")) return;
+    var snap = bundle || window.__rmcOperatorFleetSnapshot || readFleetBootstrap() || {};
+    var brief = snap.fleet_brief || {};
+    var focus =
+      brief.headline ||
+      (typeof snap.schools_live === "number" ? snap.schools_live + " schools live" : "") ||
+      "Fleet focus ready";
+    var guidance =
+      snap.whisper_line ||
+      brief.body ||
+      "Ask AI where to look first, then run a guided tour from the live globe.";
+    headline.textContent = focus;
+    copy.textContent = guidance;
+  }
+
   function renderWhisperLine(line) {
     var voidEl = document.getElementById("rmc-world-globe-void-whisper");
     var el = document.getElementById("rmc-world-globe-whisper-line");
@@ -514,6 +532,29 @@
     });
   }
 
+  function wireAiGlobeGuide() {
+    var askBtn = document.getElementById("rmc-world-globe-ai-guide-ask");
+    var tourBtn = document.getElementById("rmc-world-globe-ai-guide-tour");
+    if (askBtn && !askBtn.__rmcAiGuideAskWired) {
+      askBtn.__rmcAiGuideAskWired = true;
+      askBtn.addEventListener("click", function () {
+        var ctx = buildFleetAskContext();
+        ctx.user_query =
+          "Guide me through this globe view. Tell me where to look first, what risks matter, and what action to take next.";
+        openFleetAsk(ctx);
+      });
+    }
+    if (tourBtn && !tourBtn.__rmcAiGuideTourWired) {
+      tourBtn.__rmcAiGuideTourWired = true;
+      tourBtn.addEventListener("click", function () {
+        if (api() && api().isReady()) api().startTour();
+        else startSvgRegionTour();
+        announce("AI smart tour started.");
+      });
+    }
+    renderAiGlobeGuide();
+  }
+
   function wireShareViewport() {
     var btn = document.getElementById("rmc-world-globe-share-viewport");
     if (!btn || btn.__rmcShareWired) return;
@@ -563,6 +604,7 @@
     if (Array.isArray(bundle.pulse_events)) renderPulseEvents(bundle.pulse_events);
     renderWhisperLine(bundle.whisper_line || "");
     if (bundle.fleet_brief) renderFleetBrief(bundle.fleet_brief);
+    renderAiGlobeGuide(bundle);
     if (bundle.aurora) applyAurora(bundle.aurora);
     renderSchoolHours(
       typeof bundle.school_hours_regions === "number" ? bundle.school_hours_regions : 0,
@@ -1352,6 +1394,7 @@
     wireSvgDots();
     applySvgPalette();
     wireAskFleet();
+    wireAiGlobeGuide();
     wireShareViewport();
     wireGuideCompact();
     wireDayNightTerminator();

@@ -42,6 +42,9 @@ VOID_TIER = (
     "fly-wa",
     "reset-view",
     "export-snapshot",
+    "rmc-world-globe-ai-guide",
+    "rmc-world-globe-ai-guide-ask",
+    "rmc-world-globe-ai-guide-tour",
     "rmc-world-globe-void-viewport",
     "rmc-world-globe-void-whisper",
     "rmc-world-globe-void-caption",
@@ -75,6 +78,11 @@ def main() -> int:
     urls = _read("apps/schools/super_urls.py")
     skeleton = _read("templates/control_plane_skeleton.html")
 
+    tpl_lower = tpl.lower()
+    for removed in ("master preview", "drag the globe"):
+        if removed in tpl_lower:
+            _fail(f"_live_world_map.html still contains removed static preview copy {removed!r}")
+
     for marker in VOID_TIER:
         if marker == "rmc-operator-fleet-bus":
             if marker not in skeleton:
@@ -87,6 +95,9 @@ def main() -> int:
         "lx-world-lab--void-hidden",
         "lx-world-lab--ai-hidden",
         "lx-world-lab--wow-hidden",
+        "lx-world-lab__ai-guide",
+        "wireAiGlobeGuide",
+        "renderAiGlobeGuide",
     ):
         if marker not in (bridge + css):
             _fail(f"production globe lab missing marker {marker!r}")
