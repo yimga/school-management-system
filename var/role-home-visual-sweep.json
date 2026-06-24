@@ -1,0 +1,82 @@
+{
+  "generatedAt": "2026-06-24T10:58:39.525Z",
+  "tenantBase": "http://demo-school.runmycampus.com:8012",
+  "marketingBase": "http://runmycampus.com:8012",
+  "marketingHost": "runmycampus.com",
+  "tenantOnly": true,
+  "passed": 3,
+  "failed": 2,
+  "results": [
+    {
+      "label": "parent-home",
+      "requested": "/portal/parent/",
+      "base": "http://demo-school.runmycampus.com:8012",
+      "host": null,
+      "loginPath": "/portal/parent/",
+      "httpStatus": 200,
+      "path": "/portal/parent/",
+      "title": "Family Home",
+      "armed": "1",
+      "revealTotal": 3,
+      "strandedAfter": 0,
+      "failures": [],
+      "ok": true,
+      "canScroll": false
+    },
+    {
+      "label": "teacher-home",
+      "requested": "/portal/teacher/",
+      "base": "http://demo-school.runmycampus.com:8012",
+      "host": null,
+      "loginPath": "/authentication/profile/security/review/",
+      "httpStatus": 200,
+      "path": "/portal/teacher/",
+      "title": "My Teaching Day",
+      "armed": "1",
+      "revealTotal": 3,
+      "strandedAfter": 0,
+      "failures": [],
+      "ok": true,
+      "canScroll": false
+    },
+    {
+      "label": "student-grades",
+      "requested": "/portal/student-portal/grades/",
+      "base": "http://demo-school.runmycampus.com:8012",
+      "host": null,
+      "loginPath": "/portal/student-portal/grades/",
+      "httpStatus": 200,
+      "path": "/portal/student-portal/grades/",
+      "title": "home",
+      "armed": "1",
+      "revealTotal": 3,
+      "strandedAfter": 0,
+      "failures": [],
+      "ok": true,
+      "canScroll": false
+    },
+    {
+      "label": "admin-backend",
+      "requested": "/authentication/backend/",
+      "base": "http://demo-school.runmycampus.com:8012",
+      "host": null,
+      "loginPath": "/authentication/backend/",
+      "httpStatus": 400,
+      "failures": [
+        "http_400"
+      ],
+      "ok": false
+    },
+    {
+      "label": "admin-performance",
+      "requested": "/authentication/backend/performance/",
+      "base": "http://demo-school.runmycampus.com:8012",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8012/authentication/login/\", waiting until \"domcontentloaded\"\n"
+    }
+  ]
+}

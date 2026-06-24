@@ -1,0 +1,28 @@
+=== python manage.py check exit=0
+System check identified no issues (0 silenced).
+webhooksubscription"."url" ASC, "events_webhooksubscription"."secret" ASC; args=(); alias=default
+INFO 2026-06-23 21:12:58,028 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- wizard registry: loaded 36 wizards
+
+
+=== python scripts/verify_world_globe_10x.py exit=0
+WORLD_GLOBE_10X_PASS
+
+
+=== python scripts/verify_marketing_procurement_trust_nav.py exit=0
+MARKETING_PROCUREMENT_TRUST_NAV_PASS
+
+
+=== python scripts/verify_service_worker_version.py --check-monotonic exit=0
+service-worker: sms-v4.04.93-reconnect-rehydrate-r2-gap-closure-2026-06-24  v4.4.93 slug=reconnect-rehydrate-r2-gap-closure date=2026-06-24
+  monotonic OK (baseline v4.4.93)
+
+
+=== python scripts/verify_platform_fleet_monitoring.py exit=0
+PLATFORM_FLEET_MONITORING_PASS
+
+
+=== python manage.py makemigrations --dry-run --check exit=0
+No changes detected
+tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.103) SELECT "django_migrations"."id", "django_migrations"."app", "django_migrations"."name", "django_migrations"."applied" FROM "django_migrations"; args=(); alias=default
+
+

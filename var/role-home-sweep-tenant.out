@@ -1,0 +1,4 @@
+
+> sms-portal@0.0.1 sweep:role-home
+> node scripts/run_role_home_visual_sweep.mjs
+
