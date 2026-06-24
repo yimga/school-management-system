@@ -788,11 +788,27 @@ for _alias, _db_config in DATABASES.items():
     )
     _test_name_default = _sqlite_test_db_dir / f"{_alias}.sqlite3"
     _test_name_raw = (os.getenv(_test_name_env) or "").strip()
-    _test_name = Path(_test_name_raw) if _test_name_raw else _test_name_default
-    if not _test_name.is_absolute():
-        _test_name = BASE_DIR / _test_name
-    _test_name.parent.mkdir(parents=True, exist_ok=True)
     _db_config.setdefault("TEST", {})
+    if _test_name_raw == ":memory:":
+        _db_config["TEST"]["NAME"] = ":memory:"
+        _db_config.setdefault("OPTIONS", {})
+        _db_config["OPTIONS"].setdefault("timeout", 30.0)
+        continue
+    if _test_name_raw.lower().startswith(":memory:"):
+        # Legacy agent invocations used suffixed names like :memory:tperf — not openable on
+        # Windows SQLite. Map to an isolated file under .django_test_dbs/ instead.
+        _mem_suffix = _test_name_raw.split(":", 2)[-1].strip() or _alias
+        _safe_suffix = "".join(
+            ch if ch.isalnum() or ch in "-_" else "_" for ch in _mem_suffix
+        )
+        _test_name = _sqlite_test_db_dir / f"{_alias}_{_safe_suffix}.sqlite3"
+    elif _test_name_raw:
+        _test_name = Path(_test_name_raw)
+        if not _test_name.is_absolute():
+            _test_name = BASE_DIR / _test_name
+    else:
+        _test_name = _test_name_default
+    _test_name.parent.mkdir(parents=True, exist_ok=True)
     _db_config["TEST"]["NAME"] = str(_test_name)
     # Busy timeout (seconds) for sqlite3.connect — reduces flaky "database is locked"
     # on Windows when many tests hit the same file-backed test DB (--keepdb).

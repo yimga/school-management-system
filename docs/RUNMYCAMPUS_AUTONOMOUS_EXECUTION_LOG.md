@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Finance notification retention schema (batch 1719 — 2026-06-24)
+
+**A. Scope:** Validate finance ``0071``/``0072`` notification column drift heal + inbox dismiss/expiry/school contract.
+
+**B. Shipped:** `test_finance_notification_schema_repair`, `test_notification_inbox_retention`, `verify_finance_notification_schema.py`.
+
+**C. Proof:** **FINANCE_NOTIFICATION_SCHEMA_PASS**; **5/5** tests green; **CI_HARNESS_BUNDLE_PASS** (1712–1714 harness wiring confirmed locally).
+
+**D. Honest:** Retention purge beat deferred; marketing video loops not in current dirty tree; MAA v2.0 flip counsel-gated.
+
 ## Slice — Prometheus observability stack drift gate (batch 1718 — 2026-06-24)
 
 **A. Scope:** Close T2/T3 honest residual — generated `slo_alerts.yml` must stay locked to `slo.py` registry in CI.

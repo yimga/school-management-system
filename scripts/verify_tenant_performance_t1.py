@@ -55,6 +55,10 @@ def main() -> int:
         return 1
 
     print("TENANT_PERFORMANCE_T1_PASS")
+    print(
+        "django_tests_hint: python scripts/run_sqlite_memory_tests.py "
+        "apps.observability.tests.test_tenant_performance --verbosity=2 --keepdb"
+    )
     return 0
 
 

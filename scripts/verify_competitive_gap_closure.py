@@ -29,6 +29,7 @@ CHECKS: list[tuple[str, Path]] = [
     ("B4 holding rollup operator dashboard", ROOT / "apps/billing/views_holding_rollup.py"),
     ("B4 holding rollup tests", ROOT / "apps/billing/tests/test_holding_currency_rollup.py"),
     ("B4 holding rollup operator tests", ROOT / "apps/billing/tests/test_holding_rollup_operator.py"),
+    ("Finance notification schema verifier", ROOT / "scripts/verify_finance_notification_schema.py"),
 ]
 
 
