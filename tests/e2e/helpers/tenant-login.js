@@ -97,6 +97,37 @@ function fetchTenantTotpToken(username) {
   }).trim();
 }
 
+async function completeTenantSecurityPostureIfPresent(page) {
+  let pathname = '';
+  try {
+    pathname = new URL(page.url()).pathname;
+  } catch (_e) {
+    return;
+  }
+  if (!/\/authentication\/profile\/security\/review\/?$/i.test(pathname)) {
+    return;
+  }
+  const reviewForm = page.locator('form[method="post"]').first();
+  if (!(await reviewForm.count())) {
+    return;
+  }
+  const leftReview = page
+    .waitForURL((url) => !/\/authentication\/profile\/security\/review\/?$/i.test(url.pathname), {
+      timeout: 90000,
+      waitUntil: 'commit',
+    })
+    .catch(() => null);
+  await reviewForm.evaluate((form) => {
+    if (typeof form.requestSubmit === 'function') {
+      form.requestSubmit();
+    } else {
+      form.submit();
+    }
+  });
+  await leftReview;
+  await ensurePathTenantHost(page);
+}
+
 /**
  * @param {import('@playwright/test').Page} page
  * @param {string} username
@@ -200,6 +231,7 @@ async function loginTenant(page, opts = {}) {
   await leftLogin;
   await ensurePathTenantHost(page);
   await completeTenantMfaIfPresent(page, username);
+  await completeTenantSecurityPostureIfPresent(page);
   await page.waitForLoadState('domcontentloaded');
 }
 
@@ -234,6 +266,7 @@ module.exports = {
   openAdminUserMenu,
   ensurePathTenantHost,
   completeTenantMfaIfPresent,
+  completeTenantSecurityPostureIfPresent,
   fetchTenantTotpToken,
   TENANT_BASE_URL,
   TENANT_SLUG,

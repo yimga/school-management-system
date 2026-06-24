@@ -70,6 +70,37 @@ def _ensure_demo_portal_toggles_enabled() -> None:
         pass
 
 
+def _ensure_demo_user_login_ready(user: User) -> None:
+    """E2E/sandbox: skip quarterly review nag and minimum-strength traps."""
+    from django.utils import timezone
+
+    update_fields: list[str] = []
+    if getattr(user, "requires_password_change", False):
+        user.requires_password_change = False
+        update_fields.append("requires_password_change")
+    score = getattr(user, "password_strength_score", None)
+    if score is None or int(score) < 80:
+        user.password_strength_score = 100
+        update_fields.append("password_strength_score")
+    user.last_security_posture_review_at = timezone.now()
+    update_fields.append("last_security_posture_review_at")
+    if update_fields:
+        user.save(update_fields=update_fields)
+
+    try:
+        from allauth.account.models import EmailAddress
+
+        email = (getattr(user, "email", None) or "").strip()
+        if email:
+            EmailAddress.objects.update_or_create(
+                user=user,
+                email=email,
+                defaults={"verified": True, "primary": True},
+            )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+
+
 def _ensure_school_demo_portal_toggles_enabled(school: School) -> None:
     """Per-tenant overrides in school.settings must not block demo portal E2E."""
     try:
@@ -152,6 +183,7 @@ def seed_demo_users_for_school(
                 u.save(update_fields=["role", "is_staff", "is_active", "email"])
             u.set_password(password)
             u.save(update_fields=["password"])
+            _ensure_demo_user_login_ready(u)
 
             SchoolMembership.objects.update_or_create(
                 user=u,

@@ -39,6 +39,7 @@ def main() -> int:
             "ROLE_SWEEP_TENANT_ONLY",
             "host-resolver-rules",
             "VISUAL_QA_PYTHON",
+            ".venv",
         ):
             if needle not in text:
                 errors.append(f"sweep script missing {needle}")
@@ -52,6 +53,8 @@ def main() -> int:
         errors.append("missing tenant-login.js")
     elif "requestSubmit" not in login.read_text(encoding="utf-8"):
         errors.append("tenant-login.js missing overlay-safe requestSubmit login")
+    elif "completeTenantSecurityPostureIfPresent" not in login.read_text(encoding="utf-8"):
+        errors.append("tenant-login.js missing security posture review bypass")
     if orchestrator.is_file() and "stableOk" not in orchestrator.read_text(encoding="utf-8"):
         errors.append("run_role_home_e2e.mjs missing stable HTTP 200 server wait")
     if orchestrator.is_file() and "unlinkSync" not in orchestrator.read_text(encoding="utf-8"):
