@@ -70,6 +70,12 @@ def main() -> int:
         if "materialize_holding_currency_rollups" not in pv:
             errors.append("parent_tenant_views missing holding rollup materialize")
 
+    super_view = ROOT / "apps/billing/views_holding_rollup.py"
+    if not super_view.is_file():
+        errors.append("missing apps/billing/views_holding_rollup.py")
+    elif "holding_currency_rollup_dashboard" not in super_view.read_text(encoding="utf-8"):
+        errors.append("views_holding_rollup missing dashboard view")
+
     if errors:
         for err in errors:
             print(f"HOLDING_CURRENCY_ROLLUP_B4_FAIL: {err}")
