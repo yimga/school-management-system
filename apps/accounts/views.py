@@ -549,6 +549,8 @@ def _notification_inbox_queryset(request):
     from django.db.models import Q
     from django.utils import timezone
 
+    from apps.accounts.context_processors import _reset_db_state
+
     # tenant-isolation-allow: scoped-to-recipient-or-creator-current-user
     qs = Notification.objects.filter(
         Q(recipient=request.user) | Q(created_by=request.user)
@@ -560,10 +562,22 @@ def _notification_inbox_queryset(request):
         qs = qs.filter(Q(school=school) | Q(school__isnull=True))
 
     now = timezone.now()
-    qs = qs.filter(dismissed_at__isnull=True).filter(
-        Q(expires_at__isnull=True) | Q(expires_at__gte=now)
-    )
-    return qs.order_by("-created_at")
+    try:
+        qs = qs.filter(dismissed_at__isnull=True).filter(
+            Q(expires_at__isnull=True) | Q(expires_at__gte=now)
+        )
+        return qs.order_by("-created_at")
+    except DatabaseError:
+        # finance_notification schema drift (0071 recorded but columns not landed;
+        # healed by migration 0072 / heal_tenant_schema_drift): empty inbox beats 500.
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "notification_inbox_queryset: finance_notification schema drift",
+            exc_info=True,
+        )
+        _reset_db_state()
+        return Notification.objects.none()
 
 
 @login_required
