@@ -247,6 +247,17 @@ class TenantRoleHomeTemplateTests(SimpleTestCase):
         self.assertIn("tp_mission_strip.html", text)
         self.assertIn("namespace != 'studio_os'", text)
 
+    def test_tp_v3_suppresses_legacy_page_explain_strip(self):
+        text = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8")
+        self.assertIn("not tp_v3_tenant_shell", text)
+        self.assertIn("rmc_page_explain_strip.html", text)
+
+    def test_tp_v3_suppresses_global_next_action_strip(self):
+        text = (ROOT / "templates/components/next_action_strip.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("not tp_v3_tenant_shell", text)
+
     def test_hero_wires_tenant_experience_command_strip(self):
         text = (ROOT / "templates/partials/tenant/hero_greeting.html").read_text(
             encoding="utf-8"

@@ -1,5 +1,6 @@
 {% load i18n %}
 {% comment %} Global next-action strip — data from apps.platform_runtime.action_engine via system_actions_context.
+   Suppressed on tp_v3_tenant_shell (mission strip + hero command strip own guidance).
    Suppressed whenever the page-explain bar (components/rmc_page_explain_strip.html) is PRESENT on this page.
    The bar is shell chrome rendered above this strip; as it renders it sets request.rmc_page_explain_bar_present,
    and it hosts the primary action as its Flow Thread destination — so the action renders once (in the bar),
@@ -8,6 +9,7 @@
    rows the bar still owns the band, so the standalone never doubles up beneath it. Still renders standalone —
    with its own fallback — on the pages whose shell does NOT mount the bar (studio embeds, developer console,
    marketing / login shells), so a next-action is never erased there. {% endcomment %}
+{% if not tp_v3_tenant_shell %}
 {% with strict=rmc_conversion_single_action_enforced|default:False %}
 {% if not rmc_page_explain_enabled or not request.rmc_page_explain_bar_present %}
 {% if rmc_system_actions_available and rmc_system_actions %}
@@ -87,3 +89,4 @@
 {% endif %}
 {% endif %}
 {% endwith %}
+{% endif %}

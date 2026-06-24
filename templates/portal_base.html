@@ -458,7 +458,9 @@
             {% include "components/demo_guided_hints.html" %}
             {% endif %}
             {% include "partials/shell_chrome_django_messages_tenant_portal.html" %}
+            {% if not tp_v3_tenant_shell %}
             {% include "components/rmc_page_explain_strip.html" %}
+            {% endif %}
             {% comment %} v4.02.10: incident banner in Tools tray context stack. {% endcomment %}
             {% include "partials/shell_chrome_security_posture_banner.html" %}
             {% comment %} MFA enrollment nudge — shown under grace/optional enforcement. {% endcomment %}
@@ -507,7 +509,7 @@
             {% if wind_down_mode %}
             {% include "partials/rmc_wind_down_banner.html" %}
             {% endif %}
-            {% if first_run_zero_state %}
+            {% if first_run_zero_state and not tp_v3_tenant_shell %}
             <section class="mb-4" data-rmc-first-run-zero-state aria-label="{% trans 'Getting started' %}">
               {% if first_run_zero_state.progress_percent != None %}
               <p class="text-muted small mb-2 text-center" data-rmc-first-run-progress>
@@ -567,6 +569,7 @@
     Externalised from portal_base.html so the shell is CSP-friendly.
     {% endcomment %}
     <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
+    <script type="application/json" id="page-data-rmc-nav-sidebar" nonce="{{ csp_nonce }}">{"enabled": true, "default_width": 280, "min_width": 200, "max_width": 420}</script>
     <script src="{% static 'js/rmc-nav-sidebar.js' %}" defer></script>
     <script src="{% static 'js/rmc-sidebar-intelligence.js' %}" defer></script>
     <script src="{% static 'js/portal-shell-bootstrap.js' %}" defer></script>

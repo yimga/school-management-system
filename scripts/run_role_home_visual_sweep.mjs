@@ -322,13 +322,39 @@ for (const s of activeSurfaces) {
         row.ok = false;
       }
       if (s.label === 'admin-backend') {
-        row.chrome.adminBento = await page.evaluate(() => ({
-          bento: !!document.querySelector('[data-rmc-admin-bento]'),
-          overviewPanel: !!document.getElementById('rmc-admin-bento-overview'),
-          cockpitPanel: !!document.getElementById('rmc-admin-bento-cockpit'),
-          setupZoneIntro: !!document.querySelector('[data-rmc-admin-zone="setup"], [data-rmc-admin-zone="cockpit"]'),
-          previewLiveAdmin: !!document.querySelector('[data-rmc-preview-live-admin="1"]'),
-        }));
+        row.chrome.adminBento = await page.evaluate(() => {
+          const pageWrap = document.querySelector('.portal-main-col > .page-wrap');
+          const wrapStyle = pageWrap ? getComputedStyle(pageWrap) : null;
+          return {
+            bento: !!document.querySelector('[data-rmc-admin-bento]'),
+            overviewPanel: !!document.getElementById('rmc-admin-bento-overview'),
+            cockpitPanel: !!document.getElementById('rmc-admin-bento-cockpit'),
+            setupZoneIntro: !!document.querySelector(
+              '[data-rmc-admin-zone="setup"], [data-rmc-admin-zone="cockpit"]',
+            ),
+            previewLiveAdmin: !!document.querySelector('[data-rmc-preview-live-admin="1"]'),
+            tpV3Shell: document.documentElement.getAttribute('data-rmc-tp-v3-shell') === '1',
+            pageExplainCount: document.querySelectorAll('[data-rmc-page-explain="1"]').length,
+            nextActionStripCount: document.querySelectorAll('[data-rmc-next-action-strip="1"]').length,
+            missionStrip: !!document.querySelector('[data-rmc-tp-mission="1"]'),
+            pageWrapMinHeight: wrapStyle ? wrapStyle.minHeight : null,
+          };
+        });
+        if (row.chrome.tpV3Shell) {
+          if (row.chrome.pageExplainCount > 0) {
+            row.failures = [...(row.failures || []), 'legacy_page_explain_on_v3'];
+            row.ok = false;
+          }
+          if (row.chrome.nextActionStripCount > 0) {
+            row.failures = [...(row.failures || []), 'duplicate_next_action_on_v3'];
+            row.ok = false;
+          }
+          const minH = row.chrome.pageWrapMinHeight || '';
+          if (minH.includes('calc') && minH.includes('dvh')) {
+            row.failures = [...(row.failures || []), 'page_wrap_void_slab'];
+            row.ok = false;
+          }
+        }
       }
     }
     const scrollRoot = s.scrollRoot || '#main-content';

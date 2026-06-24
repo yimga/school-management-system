@@ -38,6 +38,27 @@ html[data-rmc-tp-v3-shell="1"] body.backend-shell .tp-dashboard-cockpit {
   color: var(--text-primary, #0f172a);
 }
 
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col .rmc-nav-sidebar__toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  flex-shrink: 0;
+  background: var(--surface-canvas, var(--surface-bg));
+}
+
+/* v3 canvas sizes to content — no forced viewport slab (mockup zero-friction v3). */
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-main-col > .page-wrap {
+  min-height: auto;
+}
+
+html[data-rmc-tp-v3-shell="1"] body.rmc-admin-setup-landing-active .tp-breadcrumb {
+  display: none;
+}
+
+html[data-rmc-tp-v3-shell="1"] body.rmc-admin-setup-landing-active .rmc-admin-bento__tabs {
+  margin-top: 0;
+}
+
 html[data-rmc-tp-v3-shell="1"] body.backend-shell .portal-sidebar-col,
 html[data-rmc-tp-v3-shell="1"] body.tp-v3-role-home .tp-sidebar-inner--v3,
 html[data-rmc-tp-v3-shell="1"] body.tp-v3-inner .tp-sidebar-inner--v3 {
@@ -52,6 +73,14 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-s
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   border-right: 1px solid var(--hairline);
+}
+
+html[data-theme="dark"][data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col.rmc-glass-sidebar-shell,
+html[data-bs-theme="dark"][data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col.rmc-glass-sidebar-shell,
+html[data-rmc-tp-v3-shell="1"][data-cockpit-skin="dark"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col.rmc-glass-sidebar-shell {
+  background: var(--surface-canvas, var(--surface-bg));
+  --rmc-glass-bg: var(--surface-canvas, var(--surface-bg));
+  --rmc-glass-bg-strong: var(--surface-elevated, var(--surface-canvas));
 }
 
 html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col .sidebar,
