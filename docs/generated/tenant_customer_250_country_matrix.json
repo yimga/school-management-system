@@ -92,7 +92,7 @@
     },
     {
       "iso": "BF",
-      "readiness_status": "education_model_ready"
+      "readiness_status": "repo_ready"
     },
     {
       "iso": "BG",
@@ -108,7 +108,7 @@
     },
     {
       "iso": "BJ",
-      "readiness_status": "education_model_ready"
+      "readiness_status": "repo_ready"
     },
     {
       "iso": "BL",
@@ -348,7 +348,7 @@
     },
     {
       "iso": "GM",
-      "readiness_status": "education_model_ready"
+      "readiness_status": "repo_ready"
     },
     {
       "iso": "GN",
@@ -532,7 +532,7 @@
     },
     {
       "iso": "LR",
-      "readiness_status": "education_model_ready"
+      "readiness_status": "repo_ready"
     },
     {
       "iso": "LS",
@@ -588,7 +588,7 @@
     },
     {
       "iso": "ML",
-      "readiness_status": "education_model_ready"
+      "readiness_status": "repo_ready"
     },
     {
       "iso": "MM",
@@ -656,7 +656,7 @@
     },
     {
       "iso": "NE",
-      "readiness_status": "education_model_ready"
+      "readiness_status": "repo_ready"
     },
     {
       "iso": "NF",
@@ -820,7 +820,7 @@
     },
     {
       "iso": "SL",
-      "readiness_status": "education_model_ready"
+      "readiness_status": "repo_ready"
     },
     {
       "iso": "SM",
@@ -876,7 +876,7 @@
     },
     {
       "iso": "TG",
-      "readiness_status": "education_model_ready"
+      "readiness_status": "repo_ready"
     },
     {
       "iso": "TH",

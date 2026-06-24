@@ -23,6 +23,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="rmc-preview-live-teacher-workspace" data-rmc-preview-live-teacher="1" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
@@ -32,24 +33,20 @@
 {% url 'accounts:backend_operational_health_stream' as tenant_health_stream_url %}
 {% include "partials/tenant/operational_health_strip.html" with health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="teacher" %}
 
-{% comment %} v4.04 (2026-06-23) tenant 100X: the premium .rmc-dh teacher home is the single
-   primary role-home surface — it supersedes the legacy tdm "double dashboard" + the
-   phase-7 decision surface, wired to the same teacher_dashboard context. Operator
-   cockpit sections render below, each gated on cockpit.<section>.enabled so
-   unconfigured schools no longer see empty accordion shells. {% endcomment %}
+{% comment %} v4.05 W2: preview-live teacher canvas — hero → workflows → section nav → attention → classes. {% endcomment %}
 {% include "teacher/_rmc_dh_teacher_home.html" %}
 
 {% with widgets=display_widgets %}
-{% comment %} v4.04.x 100X: cockpit keeps operator-only extras — sections already in .rmc-dh are omitted. {% endcomment %}
 {% if cockpit.year_progress.enabled or cockpit.realtime_presence.enabled or cockpit.lesson_of_day.enabled or cockpit.gradebook_trend.enabled %}
-<div class="tp-dashboard-cockpit container-fluid px-3 px-lg-4" data-rmc-tp-dashboard-cockpit="teacher">
-  {% if cockpit.year_progress.enabled %}{% include "partials/cockpit/_year_progress.html" %}{% endif %}
-  {% if cockpit.realtime_presence.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Realtime presence") key="teacher__realtime_presence" include_partial="partials/cockpit/_realtime_presence.html" chrome="section" %}{% endif %}
-  {% if cockpit.lesson_of_day.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Lesson of the day") key="teacher__lesson_of_day" include_partial="partials/cockpit/_lesson_of_day.html" chrome="section" %}{% endif %}
-  {% if cockpit.gradebook_trend.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Gradebook trend") key="teacher__gradebook_trend" include_partial="partials/cockpit/_gradebook_trend.html" chrome="section" %}{% endif %}
+<div id="rmc-teacher-cockpit" class="tp-dashboard-cockpit container-fluid px-3 px-lg-4" data-rmc-tp-dashboard-cockpit="teacher" data-rmc-section-anchor>
+  {% if cockpit.year_progress.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Year progress") key="teacher__year_progress" default_state="collapsed" include_partial="partials/cockpit/_year_progress.html" chrome="section" %}{% endif %}
+  {% if cockpit.realtime_presence.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Realtime presence") key="teacher__realtime_presence" default_state="collapsed" include_partial="partials/cockpit/_realtime_presence.html" chrome="section" %}{% endif %}
+  {% if cockpit.lesson_of_day.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Lesson of the day") key="teacher__lesson_of_day" default_state="collapsed" include_partial="partials/cockpit/_lesson_of_day.html" chrome="section" %}{% endif %}
+  {% if cockpit.gradebook_trend.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Gradebook trend") key="teacher__gradebook_trend" default_state="collapsed" include_partial="partials/cockpit/_gradebook_trend.html" chrome="section" %}{% endif %}
 </div>
 {% endif %}
 {% endwith %}
+</div>
 {% endblock %}
 
 {% block extrajs %}

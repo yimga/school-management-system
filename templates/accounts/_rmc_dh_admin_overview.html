@@ -11,7 +11,7 @@
 {% url 'accounts:backend_dashboard' as ov_home_url %}
 
 <div class="rmc-dh mt-3" data-rmc-ux-section="school-overview">
-  {% if rmc_school_onboarding.percent != None %}
+  {% if rmc_school_onboarding.percent != None and not show_setup_landing %}
   {% blocktrans asvar ov_title %}School command surface{% endblocktrans %}
   {% include "components/dashboard/rmc_dh_hero.html" with dh_eyebrow=_("Admin workspace") dh_title=ov_title dh_sub=_("Live KPIs, follow-ups, and fee health at a glance.") dh_ring_pct=rmc_school_onboarding.percent dh_ring_label=rmc_school_onboarding.percent|stringformat:"d"|add:"%" dh_ring_aria=_("Onboarding progress") %}
   {% else %}

@@ -15,6 +15,7 @@
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 {% endblock %}
 {% block content %}
+<div class="rmc-preview-live-student-workspace" data-rmc-preview-live-student="1" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
@@ -33,12 +34,12 @@
 {% include "student/_rmc_dh_student_home.html" %}
 
 {% if cockpit.ai_study_buddy.enabled or cockpit.realtime_presence.enabled %}
-<div class="tp-dashboard-cockpit container-fluid px-3 px-lg-4" data-rmc-tp-dashboard-cockpit="student">
-  {% comment %} v4.04.x 100X: sections now rendered in .rmc-dh above — cockpit keeps only operator extras. {% endcomment %}
-  {% if cockpit.ai_study_buddy.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("AI study buddy") key="student__ai_study_buddy" include_partial="partials/cockpit/_ai_study_buddy.html" chrome="section" %}{% endif %}
+<div id="rmc-student-cockpit" class="tp-dashboard-cockpit container-fluid px-3 px-lg-4" data-rmc-tp-dashboard-cockpit="student" data-rmc-section-anchor>
+  {% if cockpit.ai_study_buddy.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("AI study buddy") key="student__ai_study_buddy" default_state="collapsed" include_partial="partials/cockpit/_ai_study_buddy.html" chrome="section" %}{% endif %}
   {% if cockpit.realtime_presence.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Realtime presence") key="student__realtime_presence" default_state="collapsed" include_partial="partials/cockpit/_realtime_presence.html" chrome="section" %}{% endif %}
 </div>
 {% endif %}
+</div>
 {% endblock %}
 
 {% block extrajs %}

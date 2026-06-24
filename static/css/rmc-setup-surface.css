@@ -110,7 +110,7 @@
   place-items: center;
   position: relative;
   background: conic-gradient(
-    var(--brand-primary) var(--rmc-setup-ring-pct, 0%),
+    var(--brand-accent, var(--brand-primary)) var(--rmc-setup-ring-pct, 0%),
     color-mix(in oklab, var(--text-secondary) 18%, transparent) 0
   );
 }
@@ -148,14 +148,15 @@
 
 .rmc-setup-surface__stage-num {
   flex: none;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: var(--type-size-md, 1rem);
-  background: color-mix(in oklab, var(--brand-primary) 16%, transparent);
-  color: var(--brand-primary);
+  font-size: var(--type-size-sm, 0.85rem);
+  font-weight: 800;
+  background: color-mix(in oklab, var(--brand-warning, var(--text-warning)) 92%, transparent);
+  color: color-mix(in oklab, var(--surface-bg) 15%, var(--text-primary));
 }
 
 .rmc-setup-surface__stage-meta {

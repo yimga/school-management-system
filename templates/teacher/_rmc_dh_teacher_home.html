@@ -1,8 +1,6 @@
 {% comment %}
-  Premium .rmc-dh teacher home — the per-role dashboard rebuild (100X). Wired to
-  the existing teacher_dashboard context (assignments, progress, widget_data,
-  ews_list, teacher_deadline_items, teacher_fast_workflows, syllabus_status_summary,
-  workflow_summary, teacher_metrics). No new view code. Degrade-safe throughout.
+  Premium .rmc-dh teacher home — preview-live W2 (tenant-teacher-dashboard-preview.html).
+  Layout: hero → fast workflows → section nav → attention → today's classes → metrics → insights.
 {% endcomment %}
 {% load i18n static region_format terminology_tags evals_extras rmc_dh %}
 
@@ -12,25 +10,65 @@
 {% url 'academics:teacher_syllabus_hub' as th_syllabus_url %}
 {% url 'portal:teacher_attendance' as th_attendance_url %}
 
-<div class="rmc-dh container-fluid px-3 px-lg-4 py-3" data-page-archetype="teacher-dashboard" data-rmc-ux-role-dashboard="teacher-workspace">
+<div class="rmc-dh rmc-preview-live-teacher container-fluid px-3 px-lg-4 py-3"
+     data-page-archetype="teacher-dashboard"
+     data-rmc-ux-role-dashboard="teacher-workspace"
+     data-rmc-preview-live-teacher="1"
+     data-rmc-page-fold-nav="required"
+     data-rmc-scroll-policy="paginate">
 
-  {# ---------- Hero + marks-completion ring ---------- #}
   {% blocktrans with name=request.user.get_full_name|default:request.user.username asvar th_title %}Good day, {{ name }}{% endblocktrans %}
-  {% if year and term %}{% blocktrans with y=year.name t=term.label n=assignments|length asvar th_sub %}{{ y }} · {{ t }} · {{ n }} classes · marks, attendance and follow-up at a glance.{% endblocktrans %}{% else %}{% trans "Marks, attendance and follow-up at a glance." as th_sub %}{% endif %}
-  {% include "components/dashboard/rmc_dh_hero.html" with dh_eyebrow=_("Teaching workspace") dh_title=th_title dh_sub=th_sub dh_ring_pct=widget_data.completion_pct dh_ring_label=widget_data.completion_pct|default:0|stringformat:"d"|add:"%" dh_ring_aria=_("Marks completion") %}
+  {% if year and term %}
+    {% blocktrans with y=year.name t=term.label n=assignments|length asvar th_sub %}{{ y }} · {{ t }} · {{ n }} classes · marks, attendance and follow-up at a glance.{% endblocktrans %}
+  {% else %}
+    {% trans "Here's your teaching workspace for today." as th_sub %}
+  {% endif %}
+  {% now "l, F j" as th_date_eyebrow %}
+  {% include "components/dashboard/rmc_dh_hero.html" with dh_eyebrow=th_date_eyebrow dh_title=th_title dh_sub=th_sub dh_ring_pct=widget_data.completion_pct dh_ring_label=widget_data.completion_pct|default:0|stringformat:"d"|add:"%" dh_ring_aria=_("Marks completion") %}
 
-  {# ---------- KPI tiles ---------- #}
-  <div class="rmc-dh-tiles">
-    {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-mortarboard" dh_k=_("Classes") dh_v=assignments|length|default:0 dh_d=_("active subjects") dh_dir="flat" dh_href=th_marks_list_url dh_spark=widget_data.grade_trend|dh_spark_heights %}
-    {% if widget_data.completion_pct >= 80 %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-clipboard-check" dh_k=_("Marks completion") dh_v=widget_data.completion_pct|default:0|stringformat:"d"|add:"%" dh_d=_("on track") dh_dir="up" dh_href=th_marks_url dh_spark=widget_data.attendance_trend|dh_spark_heights %}
-    {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-clipboard-check" dh_k=_("Marks completion") dh_v=widget_data.completion_pct|default:0|stringformat:"d"|add:"%" dh_d=_("in progress") dh_dir="down" dh_href=th_marks_url dh_spark=widget_data.attendance_trend|dh_spark_heights %}{% endif %}
-    {% if widget_data.attendance.overall >= 90 %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-people" dh_k=_("Attendance") dh_v=widget_data.attendance.overall|default:0|stringformat:"d"|add:"%" dh_d=_("strong") dh_dir="up" dh_href=th_attendance_url %}
-    {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-people" dh_k=_("Attendance") dh_v=widget_data.attendance.overall|default:0|stringformat:"d"|add:"%" dh_d=_("watch") dh_dir="down" dh_href=th_attendance_url %}{% endif %}
-    {% if widget_data.tasks.pending_evaluations %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-journal-x" dh_k=_("Pending marks") dh_v=widget_data.tasks.pending_evaluations dh_d=_("to enter") dh_dir="down" dh_href=th_marks_url %}
-    {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-journal-check" dh_k=_("Pending marks") dh_v=0 dh_d=_("all in") dh_dir="up" %}{% endif %}
-  </div>
+  {% if teacher_fast_workflows %}
+  <nav class="rmc-preview-live-fw" aria-label="{% trans 'Quick actions' %}">
+    {% for w in teacher_fast_workflows %}
+    <a class="rmc-preview-live-fw__link" href="{{ w.url }}"><i class="bi {{ w.icon }}" aria-hidden="true"></i> {{ w.label }}</a>
+    {% endfor %}
+  </nav>
+  {% endif %}
 
-  {# ---------- AI insight (honest, EWS-driven) ---------- #}
+  <nav class="rmc-section-nav rmc-preview-live-teacher__nav" aria-label="{% trans 'Jump to' %}">
+    <div class="rmc-surface-subnav" role="list">
+      <a href="#rmc-teacher-attention" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>
+        <i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "Attention" %}
+      </a>
+      <a href="#rmc-teacher-today" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>
+        <i class="bi bi-calendar3" aria-hidden="true"></i> {% trans "Today" %}
+      </a>
+      <a href="#rmc-teacher-metrics" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>
+        <i class="bi bi-bar-chart" aria-hidden="true"></i> {% trans "Metrics" %}
+      </a>
+      <a href="#rmc-teacher-insights" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>
+        <i class="bi bi-grid" aria-hidden="true"></i> {% trans "Insights" %}
+      </a>
+      <a href="#rmc-teacher-cockpit" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>
+        <i class="bi bi-sliders" aria-hidden="true"></i> {% trans "Cockpit" %}
+      </a>
+    </div>
+  </nav>
+
+  <section id="rmc-teacher-attention" class="rmc-dh-attention{% if not widget_data.tasks.pending_evaluations and not ews_list and not syllabus_pending_count and not pending_leaves %} rmc-dh-attention--good{% endif %}" data-rmc-section-anchor aria-label="{% trans 'What needs attention' %}">
+    <h2 class="rmc-dh-attention__title"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "What needs attention" %}</h2>
+    {% if widget_data.tasks.pending_evaluations or ews_list or syllabus_pending_count or pending_leaves %}
+      {% if widget_data.tasks.pending_evaluations %}{% blocktrans count n=widget_data.tasks.pending_evaluations asvar th_pm %}{{ n }} mark entry pending{% plural %}{{ n }} mark entries pending{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-journal-x" dh_text=th_pm dh_go_label=_("Enter") dh_go_href=th_marks_url %}{% endif %}
+      {% if ews_list %}{% blocktrans count n=ews_list|length asvar th_ews %}{{ n }} at-risk learner needs follow-up{% plural %}{{ n }} at-risk learners need follow-up{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-person-dash" dh_text=th_ews dh_go_label=_("View") dh_go_href=th_workflow_url %}{% endif %}
+      {% if syllabus_pending_count %}{% blocktrans count n=syllabus_pending_count asvar th_syl %}{{ n }} syllabus item awaiting action{% plural %}{{ n }} syllabus items awaiting action{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-list-check" dh_text=th_syl dh_go_label=_("Review") dh_go_href=th_syllabus_url %}{% endif %}
+      {% if pending_leaves %}{% blocktrans count n=pending_leaves asvar th_lv %}{{ n }} leave action pending{% plural %}{{ n }} leave actions pending{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-calendar-x" dh_text=th_lv dh_go_label=_("Check") dh_go_href=th_attendance_url %}{% endif %}
+      {% if ews_list|length > 6 %}
+      <p class="rmc-preview-live-teacher__more"><a class="rmc-dh-chip" href="{{ th_workflow_url }}">{% trans "View all follow-ups" %} →</a></p>
+      {% endif %}
+    {% else %}
+      <p class="rmc-dh-hero__sub" style="margin:0">{% trans "You're caught up — nothing urgent right now." %}</p>
+    {% endif %}
+  </section>
+
   {% if ews_list %}
   <div class="rmc-dh-aicard">
     <div class="rmc-dh-aicard__ic"><i class="bi bi-stars" aria-hidden="true"></i></div>
@@ -45,46 +83,56 @@
   </div>
   {% endif %}
 
-  {# ---------- Fast workflows ---------- #}
-  {% if teacher_fast_workflows %}
-  <div class="rmc-dh-cards" style="margin-bottom:var(--rmc-dh-gap)">
-    {% for w in teacher_fast_workflows %}
-    <a class="rmc-dh-card" href="{{ w.url }}"><span class="rmc-dh-card__title"><i class="bi {{ w.icon }}" aria-hidden="true"></i> {{ w.label }}</span></a>
-    {% endfor %}
-  </div>
-  {% endif %}
-
-  {# ---------- Two-column body ---------- #}
-  <div class="rmc-dh-grid2">
-    <div>
-      <section class="rmc-dh-panel">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-calendar3" dh_title=_("Today's classes") dh_more_label=_("All classes")|add:" →" dh_more_href=th_marks_list_url %}
-        {% if assignments %}
-        <div class="rmc-dh-cards">
-          {% for a in assignments|slice:":4" %}
-          {% with p=progress|get_item:a.id %}
-          <div class="rmc-dh-card">
-            <span class="rmc-dh-card__title">{{ a.subject_assignment.subject.name }}</span>
-            <span class="rmc-dh-card__meta">{{ a.subject_assignment.classroom.name }} · {{ p.total|default:0 }} {% trans "students" %}</span>
-            <div class="rmc-dh-progress" style="margin:0.5rem 0 0">
-              <span class="rmc-dh-progress__bar"><i style="width:{{ p.width|default:0 }}%"></i></span>
-              <span class="rmc-dh-progress__pct">{{ p.width|default:0 }}%</span>
-            </div>
-            <span class="rmc-dh-card__foot"><span class="rmc-dh-card__st">{% trans "entered" %}</span><a class="rmc-dh-card__cta" href="{{ th_marks_url }}?assignment={{ a.id }}">{% trans "Enter" %}</a></span>
+  <details id="rmc-teacher-today" class="rmc-preview-live-section" open data-rmc-section-anchor>
+    <summary><i class="bi bi-calendar3" aria-hidden="true"></i> {% trans "Today's classes" %}</summary>
+    <div class="rmc-preview-live-section__body">
+      {% if assignments %}
+      <div class="rmc-preview-live-class-grid">
+        {% for a in assignments|slice:":6" %}
+        {% with p=progress|get_item:a.id %}
+        <div class="rmc-preview-live-class-card">
+          <strong>{{ a.subject_assignment.subject.name }}</strong>
+          <span class="rmc-preview-live-class-card__meta">{{ a.subject_assignment.classroom.name }} · {{ p.total|default:0 }} {% trans "students" %}</span>
+          <div class="rmc-dh-progress" style="margin:0.5rem 0 0">
+            <span class="rmc-dh-progress__bar"><i style="width:{{ p.width|default:0 }}%"></i></span>
+            <span class="rmc-dh-progress__pct">{{ p.width|default:0 }}%</span>
           </div>
-          {% endwith %}
-          {% endfor %}
+          <a class="rmc-preview-live-class-card__cta" href="{{ th_marks_url }}?assignment={{ a.id }}">{% trans "Enter marks" %}</a>
         </div>
-        {% else %}
-        {% include "components/tp_empty.html" with tp_empty_title=_("No classes assigned yet") tp_empty_hint=_("They'll appear here with grading shortcuts once your school assigns them.") %}
-        {% endif %}
-      </section>
+        {% endwith %}
+        {% endfor %}
+      </div>
+      {% if assignments|length > 6 %}
+      <p class="rmc-preview-live-teacher__more"><a class="rmc-dh-chip" href="{{ th_marks_list_url }}">{% trans "All classes" %} →</a></p>
+      {% endif %}
+      {% else %}
+      {% include "components/rmc_empty_state.html" with title=_("No classes assigned yet") message=_("They'll appear here with grading shortcuts once your school assigns them.") primary_label=_("Open gradebook") primary_url=th_marks_list_url icon="bi-mortarboard" %}
+      {% endif %}
+    </div>
+  </details>
 
-      {% if ews_list %}
-      <section class="rmc-dh-panel">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-people" dh_title=_("Students to watch") dh_more_label=_("Follow-up")|add:" →" dh_more_href=th_workflow_url %}
+  <details id="rmc-teacher-metrics" class="rmc-preview-live-section" data-rmc-section-anchor>
+    <summary><i class="bi bi-bar-chart" aria-hidden="true"></i> {% trans "Teaching metrics" %}</summary>
+    <div class="rmc-preview-live-section__body">
+      <div class="rmc-dh-tiles">
+        {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-mortarboard" dh_k=_("Classes") dh_v=assignments|length|default:0 dh_d=_("active subjects") dh_dir="flat" dh_href=th_marks_list_url dh_spark=widget_data.grade_trend|dh_spark_heights %}
+        {% if widget_data.completion_pct >= 80 %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-clipboard-check" dh_k=_("Marks completion") dh_v=widget_data.completion_pct|default:0|stringformat:"d"|add:"%" dh_d=_("on track") dh_dir="up" dh_href=th_marks_url dh_spark=widget_data.attendance_trend|dh_spark_heights %}
+        {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-clipboard-check" dh_k=_("Marks completion") dh_v=widget_data.completion_pct|default:0|stringformat:"d"|add:"%" dh_d=_("in progress") dh_dir="down" dh_href=th_marks_url dh_spark=widget_data.attendance_trend|dh_spark_heights %}{% endif %}
+        {% if widget_data.attendance.overall >= 90 %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-people" dh_k=_("Attendance") dh_v=widget_data.attendance.overall|default:0|stringformat:"d"|add:"%" dh_d=_("strong") dh_dir="up" dh_href=th_attendance_url %}
+        {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-people" dh_k=_("Attendance") dh_v=widget_data.attendance.overall|default:0|stringformat:"d"|add:"%" dh_d=_("watch") dh_dir="down" dh_href=th_attendance_url %}{% endif %}
+        {% if widget_data.tasks.pending_evaluations %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-journal-x" dh_k=_("Pending marks") dh_v=widget_data.tasks.pending_evaluations dh_d=_("to enter") dh_dir="down" dh_href=th_marks_url %}
+        {% else %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-journal-check" dh_k=_("Pending marks") dh_v=0 dh_d=_("all in") dh_dir="up" %}{% endif %}
+      </div>
+    </div>
+  </details>
+
+  <div id="rmc-teacher-insights" data-rmc-section-anchor>
+    {% if ews_list %}
+    <details class="rmc-preview-live-section">
+      <summary><i class="bi bi-people" aria-hidden="true"></i> {% trans "Students to watch" %}</summary>
+      <div class="rmc-preview-live-section__body">
         <ul class="rmc-dh-lead">
-          {% for item in ews_list|slice:":5" %}
+          {% for item in ews_list|slice:":6" %}
           <li>
             <span class="rmc-dh-lead__rk">{{ forloop.counter }}</span>
             <span class="rmc-dh-lead__av" aria-hidden="true">{{ item.student_name|slice:":1" }}</span>
@@ -93,26 +141,14 @@
           </li>
           {% endfor %}
         </ul>
-      </section>
-      {% endif %}
-    </div>
-
-    <div>
-      {# What needs attention #}
-      {% if widget_data.tasks.pending_evaluations or ews_list or syllabus_pending_count or pending_leaves %}
-      <div class="rmc-dh-attention">
-        <h2 class="rmc-dh-attention__title"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "What needs attention" %}</h2>
-        {% if widget_data.tasks.pending_evaluations %}{% blocktrans count n=widget_data.tasks.pending_evaluations asvar th_pm %}{{ n }} mark entry pending{% plural %}{{ n }} mark entries pending{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-journal-x" dh_text=th_pm dh_go_label=_("Enter") dh_go_href=th_marks_url %}{% endif %}
-        {% if ews_list %}{% blocktrans count n=ews_list|length asvar th_ews %}{{ n }} at-risk learner needs follow-up{% plural %}{{ n }} at-risk learners need follow-up{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-person-dash" dh_text=th_ews dh_go_label=_("View") dh_go_href=th_workflow_url %}{% endif %}
-        {% if syllabus_pending_count %}{% blocktrans count n=syllabus_pending_count asvar th_syl %}{{ n }} syllabus item awaiting action{% plural %}{{ n }} syllabus items awaiting action{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-list-check" dh_text=th_syl dh_go_label=_("Review") dh_go_href=th_syllabus_url %}{% endif %}
-        {% if pending_leaves %}{% blocktrans count n=pending_leaves asvar th_lv %}{{ n }} leave action pending{% plural %}{{ n }} leave actions pending{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-calendar-x" dh_text=th_lv dh_go_label=_("Check") dh_go_href=th_attendance_url %}{% endif %}
       </div>
-      {% endif %}
+    </details>
+    {% endif %}
 
-      {# Class performance #}
-      {% if assignments %}
-      <section class="rmc-dh-panel">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-bar-chart" dh_title=_("Class completion") %}
+    {% if assignments %}
+    <details class="rmc-preview-live-section">
+      <summary><i class="bi bi-bar-chart-line" aria-hidden="true"></i> {% trans "Class completion" %}</summary>
+      <div class="rmc-preview-live-section__body">
         {% for a in assignments|slice:":5" %}
         {% with p=progress|get_item:a.id %}
         <div class="rmc-dh-progress">
@@ -122,13 +158,14 @@
         </div>
         {% endwith %}
         {% endfor %}
-      </section>
-      {% endif %}
+      </div>
+    </details>
+    {% endif %}
 
-      {# Syllabus status #}
-      {% if syllabus_status_summary %}
-      <section class="rmc-dh-panel">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-journal-text" dh_title=_("Syllabus status") dh_more_label=_("Hub")|add:" →" dh_more_href=th_syllabus_url %}
+    {% if syllabus_status_summary %}
+    <details class="rmc-preview-live-section">
+      <summary><i class="bi bi-journal-text" aria-hidden="true"></i> {% trans "Syllabus status" %}</summary>
+      <div class="rmc-preview-live-section__body">
         {% dh_syllabus_segbar syllabus_status_summary as syllabus_segbar_segments %}
         {% if syllabus_segbar_segments %}
         {% include "components/dashboard/rmc_dh_segbar.html" with dh_segments=syllabus_segbar_segments %}
@@ -139,29 +176,34 @@
           <span><span class="rmc-dh-legend__sw rmc-dh-fill--brand"></span> {% trans "Draft" %} {{ syllabus_status_summary.draft|default:0 }}</span>
           <span><span class="rmc-dh-legend__sw rmc-dh-fill--overdue"></span> {% trans "Needs revision" %} {{ syllabus_status_summary.needs_revision|default:0 }}</span>
         </div>
-      </section>
-      {% endif %}
+        <p class="rmc-preview-live-teacher__more"><a class="rmc-dh-chip" href="{{ th_syllabus_url }}">{% trans "Syllabus hub" %} →</a></p>
+      </div>
+    </details>
+    {% endif %}
 
-      {% if widget_data.attendance_trend %}
-      <section class="rmc-dh-panel">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-grid-3x3-gap" dh_title=_("Attendance rhythm") %}
+    {% if widget_data.attendance_trend %}
+    <details class="rmc-preview-live-section">
+      <summary><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> {% trans "Attendance rhythm" %}</summary>
+      <div class="rmc-preview-live-section__body">
         {% include "components/dashboard/rmc_dh_heat.html" with dh_cells=widget_data.attendance_trend|dh_heat_levels dh_aria=_("Recent attendance rhythm") %}
-      </section>
-      {% endif %}
+      </div>
+    </details>
+    {% endif %}
 
-      {# This week's deadlines #}
-      {% if teacher_deadline_items %}
-      <section class="rmc-dh-panel">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-calendar-week" dh_title=_("This week's deadlines") %}
+    {% if teacher_deadline_items %}
+    <details class="rmc-preview-live-section">
+      <summary><i class="bi bi-calendar-week" aria-hidden="true"></i> {% trans "This week's deadlines" %}</summary>
+      <div class="rmc-preview-live-section__body">
         {% for ev in teacher_deadline_items|slice:":4" %}
         {% include "components/dashboard/rmc_dh_due_item.html" with dh_icon="bi-flag" dh_text=ev.title dh_cd=ev.when|date:"M j" %}
         {% endfor %}
-      </section>
-      {% endif %}
+      </div>
+    </details>
+    {% endif %}
 
-      {# Workflow guide #}
-      <section class="rmc-dh-panel">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-diagram-3" dh_title=_("What to do next") dh_more_label=_("Workflow")|add:" →" dh_more_href=th_workflow_url %}
+    <details class="rmc-preview-live-section">
+      <summary><i class="bi bi-diagram-3" aria-hidden="true"></i> {% trans "What to do next" %}</summary>
+      <div class="rmc-preview-live-section__body">
         <div class="rmc-dh-progress">
           <span class="rmc-dh-progress__lbl">{{ workflow_summary.done_steps|default:0 }}/{{ workflow_summary.total_steps|default:0 }}</span>
           <span class="rmc-dh-progress__bar"><i style="width:{{ workflow_summary.completion_pct|default:0 }}%"></i></span>
@@ -173,7 +215,7 @@
           {% for action in workflow_summary.next_actions %}<a class="rmc-dh-chip{% if forloop.first %} rmc-dh-chip--primary{% endif %}" href="{{ action.url }}">{{ action.label }}</a>{% endfor %}
         </div>
         {% endif %}
-      </section>
-    </div>
+      </div>
+    </details>
   </div>
 </div>

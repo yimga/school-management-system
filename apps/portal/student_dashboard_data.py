@@ -52,7 +52,7 @@ def _heat_levels(trend: list[dict]) -> list[dict]:
 
 
 def _student_due_items(profile, *, school, year, term) -> list[dict]:
-    if profile is None or not getattr(profile, "classroom_id", None):
+    if profile is None or not getattr(profile, "classroom_id", None) or school is None:
         return []
     try:
         from apps.academics.models_lms import LMSAssignment, LMSSubmission
@@ -62,14 +62,13 @@ def _student_due_items(profile, *, school, year, term) -> list[dict]:
     now = timezone.now()
     week_end = now + timedelta(days=7)
     qs = LMSAssignment.objects.filter(
+        school=school,
         classroom_id=profile.classroom_id,
         status=LMSAssignment.Status.PUBLISHED,
         due_at__isnull=False,
         due_at__gte=now - timedelta(days=1),
         due_at__lte=week_end,
     )
-    if school is not None:
-        qs = qs.filter(school=school)
     if term is not None:
         qs = qs.filter(term=term)
     assignments = list(qs.order_by("due_at")[:6])
@@ -78,6 +77,7 @@ def _student_due_items(profile, *, school, year, term) -> list[dict]:
 
     submitted = set(
         LMSSubmission.objects.filter(
+            school=school,
             student=profile,
             assignment_id__in=[a.id for a in assignments],
             status__in=(

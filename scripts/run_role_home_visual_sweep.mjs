@@ -243,6 +243,9 @@ for (const s of SURFACES) {
         tenantHeader100x: !!document.querySelector('[data-rmc-tenant-header-100x="1"]'),
         tpPrimaryNavInline: !!document.querySelector('[data-rmc-tenant-primary-nav-inline="1"]'),
         actionsEmptyState: !!document.querySelector('[data-rmc-copilot-rail-actions-empty]'),
+        previewLive: !!document.querySelector(
+          '[data-rmc-preview-live-admin="1"], [data-rmc-preview-live-teacher="1"], [data-rmc-preview-live-parent="1"], [data-rmc-preview-live-student="1"]',
+        ),
       }));
       if (!row.chrome.tenantToolsIsland) {
         row.failures = [...(row.failures || []), 'tenant_tools_island_missing'];
@@ -254,6 +257,10 @@ for (const s of SURFACES) {
       }
       if (!row.chrome.tenantHeader100x) {
         row.failures = [...(row.failures || []), 'tenant_header_100x_missing'];
+        row.ok = false;
+      }
+      if (!row.chrome.previewLive) {
+        row.failures = [...(row.failures || []), 'tenant_preview_live_surface_missing'];
         row.ok = false;
       }
       const edgeTab = page.locator('.rmc-operator-tools__edge-tab');
@@ -284,6 +291,8 @@ for (const s of SURFACES) {
           bento: !!document.querySelector('[data-rmc-admin-bento]'),
           overviewPanel: !!document.getElementById('rmc-admin-bento-overview'),
           cockpitPanel: !!document.getElementById('rmc-admin-bento-cockpit'),
+          setupZoneIntro: !!document.querySelector('[data-rmc-admin-zone="setup"], [data-rmc-admin-zone="cockpit"]'),
+          previewLiveAdmin: !!document.querySelector('[data-rmc-preview-live-admin="1"]'),
         }));
       }
     }

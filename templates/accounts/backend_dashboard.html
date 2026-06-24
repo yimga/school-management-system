@@ -82,24 +82,47 @@ backend-shell dashboard-page-backend
   {% admin_health as health %}
   {% phase8_dashboard_declaration "accounts/backend_dashboard.html" %}
 
+  {% if not show_setup_landing %}
   {% include "partials/tenant/hero_greeting.html" %}
+  {% endif %}
   {% url 'accounts:backend_operational_health_json' as tenant_health_api_url %}
   {% url 'accounts:backend_operational_health_stream' as tenant_health_stream_url %}
   {% if show_setup_landing %}
-  {% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="admin" %}
-  {% include "partials/operator_queue_smart_links_banner.html" %}
-  {% include "accounts/_rmc_dh_admin_overview.html" %}
-  {% include "partials/tenant/setup_command_surface.html" %}
-  <div data-rmc-scroll-policy="paginate" class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="backend-admin">
-    {% if cockpit.year_progress.enabled %}{% include "partials/cockpit/_year_progress.html" %}{% endif %}
-    {% if cockpit.teacher_spotlight.enabled and cockpit.teacher_spotlight.teacher_name %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Teacher spotlight") key="backend__teacher_spotlight_card" include_partial="partials/cockpit/_teacher_spotlight_card.html" chrome="section" %}{% endif %}
-    {% if cockpit.attendance_heatmap.enabled and cockpit.attendance_heatmap.cells %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Attendance heatmap") key="backend__attendance_heatmap" include_partial="partials/cockpit/_attendance_heatmap.html" chrome="section" %}{% endif %}
-    {% if cockpit.lesson_of_day.enabled and cockpit.lesson_of_day.lesson_title %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Lesson of the day") key="backend__lesson_of_day" include_partial="partials/cockpit/_lesson_of_day.html" chrome="section" %}{% endif %}
-    {% if cockpit.realtime_presence.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Realtime presence") key="backend__realtime_presence" default_state="collapsed" include_partial="partials/cockpit/_realtime_presence.html" chrome="section" %}{% endif %}
-  </div>
+  {% comment %} v4.05.x W1 preview parity: setup hero + wizard cards own the canvas; KPIs/cockpit
+     live on a secondary "At a glance" tab (tenant-admin-workspace-preview.html). {% endcomment %}
+  <section class="rmc-admin-bento rmc-admin-onboarding" data-rmc-admin-bento="1" data-rmc-preview-live-admin="1" data-rmc-page-fold-nav="required" aria-label="{% trans 'Onboarding workspace' %}">
+    <nav class="rmc-section-nav rmc-admin-bento__tabs" aria-label="{% trans 'Onboarding sections' %}">
+      <div class="rmc-surface-subnav" role="list">
+        <a href="#rmc-admin-onboarding-setup" class="rmc-section-nav__link is-active" role="listitem" data-rmc-admin-bento-tab="setup" data-rmc-section-anchor>
+          <i class="bi bi-magic" aria-hidden="true"></i> {% trans "Setup Studio" %}
+        </a>
+        <a href="#rmc-admin-onboarding-snapshot" class="rmc-section-nav__link" role="listitem" data-rmc-admin-bento-tab="snapshot" data-rmc-section-anchor>
+          <i class="bi bi-speedometer2" aria-hidden="true"></i> {% trans "At a glance" %}
+        </a>
+      </div>
+    </nav>
+    <div class="rmc-admin-bento__panel rmc-admin-setup-zone" id="rmc-admin-onboarding-setup" data-rmc-admin-bento-panel="setup" data-rmc-section-anchor>
+      {% include "partials/tenant/admin_workspace_zone_intro.html" with zone="setup" %}
+      {% include "partials/tenant/setup_command_surface.html" %}
+    </div>
+    <div class="rmc-admin-bento__panel rmc-admin-cockpit-zone" id="rmc-admin-onboarding-snapshot" data-rmc-admin-bento-panel="snapshot" hidden aria-hidden="true">
+      {% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="admin" %}
+      {% include "partials/operator_queue_smart_links_banner.html" %}
+      {% include "accounts/_rmc_dh_admin_overview.html" %}
+      {% include "partials/tenant/admin_workspace_zone_intro.html" with zone="cockpit" show_setup_link=True %}
+      <div data-rmc-scroll-policy="paginate" class="tp-dashboard-cockpit tp-dashboard-cockpit--onboarding-snapshot" data-rmc-tp-dashboard-cockpit="backend-admin" id="rmc-admin-cockpit">
+        {% if cockpit.year_progress.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Year progress") key="backend__year_progress" default_state="collapsed" include_partial="partials/cockpit/_year_progress.html" chrome="section" %}{% endif %}
+        {% if cockpit.teacher_spotlight.enabled and cockpit.teacher_spotlight.teacher_name %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Teacher spotlight") key="backend__teacher_spotlight_card" default_state="collapsed" include_partial="partials/cockpit/_teacher_spotlight_card.html" chrome="section" %}{% endif %}
+        {% if cockpit.attendance_heatmap.enabled and cockpit.attendance_heatmap.cells %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Attendance heatmap") key="backend__attendance_heatmap" default_state="collapsed" include_partial="partials/cockpit/_attendance_heatmap.html" chrome="section" %}{% endif %}
+        {% if cockpit.lesson_of_day.enabled and cockpit.lesson_of_day.lesson_title %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Lesson of the day") key="backend__lesson_of_day" default_state="collapsed" include_partial="partials/cockpit/_lesson_of_day.html" chrome="section" %}{% endif %}
+        {% if cockpit.realtime_presence.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Realtime presence") key="backend__realtime_presence" default_state="collapsed" include_partial="partials/cockpit/_realtime_presence.html" chrome="section" %}{% endif %}
+      </div>
+    </div>
+  </section>
+  <script src="{% static 'js/rmc-backend-admin-bento-tabs.js' %}" defer></script>
   {% else %}
-  {% comment %} v4.05.x batch 1725: post-onboarding tabbed bento — Overview vs Cockpit panels. {% endcomment %}
-  <section class="rmc-admin-bento" data-rmc-admin-bento="1" aria-label="{% trans 'Admin workspace' %}">
+  {% comment %} v4.05.x batch 1725+: post-onboarding — Overview (operations) vs Cockpit (configured widgets). {% endcomment %}
+  <section class="rmc-admin-bento" data-rmc-admin-bento="1" data-rmc-preview-live-admin="1" data-rmc-admin-workspace="command-center" aria-label="{% trans 'Admin workspace' %}">
     <nav class="rmc-section-nav rmc-admin-bento__tabs" aria-label="{% trans 'Workspace sections' %}">
       <div class="rmc-surface-subnav" role="list">
         <a href="#rmc-admin-bento-overview" class="rmc-section-nav__link is-active" role="listitem" data-rmc-admin-bento-tab="overview" data-rmc-section-anchor>
@@ -110,18 +133,23 @@ backend-shell dashboard-page-backend
         </a>
       </div>
     </nav>
-    <div class="rmc-admin-bento__panel" id="rmc-admin-bento-overview" data-rmc-admin-bento-panel="overview" data-rmc-section-anchor>
+    <div class="rmc-admin-bento__panel rmc-admin-overview-zone" id="rmc-admin-bento-overview" data-rmc-admin-bento-panel="overview" data-rmc-section-anchor>
       {% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="admin" %}
       {% include "partials/operator_queue_smart_links_banner.html" %}
       {% include "accounts/_rmc_dh_admin_overview.html" %}
     </div>
-    <div class="rmc-admin-bento__panel" id="rmc-admin-bento-cockpit" data-rmc-admin-bento-panel="cockpit" hidden aria-hidden="true">
-      <div data-rmc-scroll-policy="paginate" class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="backend-admin">
-        {% if cockpit.year_progress.enabled %}{% include "partials/cockpit/_year_progress.html" %}{% endif %}
-        {% if cockpit.teacher_spotlight.enabled and cockpit.teacher_spotlight.teacher_name %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Teacher spotlight") key="backend__teacher_spotlight_card" include_partial="partials/cockpit/_teacher_spotlight_card.html" chrome="section" %}{% endif %}
-        {% if cockpit.attendance_heatmap.enabled and cockpit.attendance_heatmap.cells %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Attendance heatmap") key="backend__attendance_heatmap" include_partial="partials/cockpit/_attendance_heatmap.html" chrome="section" %}{% endif %}
-        {% if cockpit.lesson_of_day.enabled and cockpit.lesson_of_day.lesson_title %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Lesson of the day") key="backend__lesson_of_day" include_partial="partials/cockpit/_lesson_of_day.html" chrome="section" %}{% endif %}
+    <div class="rmc-admin-bento__panel rmc-admin-cockpit-zone" id="rmc-admin-bento-cockpit" data-rmc-admin-bento-panel="cockpit" hidden aria-hidden="true">
+      {% include "partials/tenant/admin_workspace_zone_intro.html" with zone="cockpit" show_setup_link=True %}
+      {% url 'siteconfig:cockpit_configure' as rmc_cockpit_configure_url %}
+      <div data-rmc-scroll-policy="paginate" class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="backend-admin" id="rmc-admin-cockpit">
+        {% if cockpit.year_progress.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Year progress") key="backend__year_progress" default_state="collapsed" include_partial="partials/cockpit/_year_progress.html" chrome="section" %}{% endif %}
+        {% if cockpit.teacher_spotlight.enabled and cockpit.teacher_spotlight.teacher_name %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Teacher spotlight") key="backend__teacher_spotlight_card" default_state="collapsed" include_partial="partials/cockpit/_teacher_spotlight_card.html" chrome="section" %}{% endif %}
+        {% if cockpit.attendance_heatmap.enabled and cockpit.attendance_heatmap.cells %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Attendance heatmap") key="backend__attendance_heatmap" default_state="collapsed" include_partial="partials/cockpit/_attendance_heatmap.html" chrome="section" %}{% endif %}
+        {% if cockpit.lesson_of_day.enabled and cockpit.lesson_of_day.lesson_title %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Lesson of the day") key="backend__lesson_of_day" default_state="collapsed" include_partial="partials/cockpit/_lesson_of_day.html" chrome="section" %}{% endif %}
         {% if cockpit.realtime_presence.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Realtime presence") key="backend__realtime_presence" default_state="collapsed" include_partial="partials/cockpit/_realtime_presence.html" chrome="section" %}{% endif %}
+        {% if not cockpit.year_progress.enabled and not cockpit.teacher_spotlight.enabled and not cockpit.attendance_heatmap.enabled and not cockpit.lesson_of_day.enabled and not cockpit.realtime_presence.enabled %}
+        {% include "components/rmc_empty_state.html" with icon="bi-grid-1x2" title=_("No cockpit sections enabled") message=_("Enable widgets in Configure → Cockpit to populate this panel. Setup Studio wizards live under Overview or Setup Studio — not here.") primary_label=_("Configure cockpit") primary_url=rmc_cockpit_configure_url|default:"" %}
+        {% endif %}
       </div>
     </div>
   </section>

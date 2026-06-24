@@ -122,11 +122,18 @@ def _parent_grade_signals(students, year, term, widget_data) -> tuple[bool, bool
             from apps.evals.models import Evaluation
 
             student_ids = [s.id for s in students]
-            has_grade_data = Evaluation.objects.filter(
-                student_id__in=student_ids,
-                academic_year=year,
-                term=term,
-            ).exists()
+            school_id = getattr(year, "school_id", None) or getattr(
+                students[0], "school_id", None
+            )
+            if not school_id:
+                has_grade_data = False
+            else:
+                has_grade_data = Evaluation.objects.filter(
+                    school_id=school_id,
+                    student_id__in=student_ids,
+                    academic_year=year,
+                    term=term,
+                ).exists()
         except Exception:
             pass
     return has_grade_data, term_published

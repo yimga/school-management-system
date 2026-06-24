@@ -64,8 +64,8 @@ def main() -> int:
         print(f"FAIL: {len(orphan_refs)} local-first templates reference unknown profiles: {orphan_refs[:3]}")
         return 1
 
-    if len(lep.PROFILES) != 50:
-        print(f"FAIL: expected 50 LocalExperienceProfile entries, found {len(lep.PROFILES)}")
+    if len(lep.PROFILES) != 58:
+        print(f"FAIL: expected 58 LocalExperienceProfile entries, found {len(lep.PROFILES)}")
         return 1
 
     print(

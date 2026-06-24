@@ -641,7 +641,10 @@ def parent_child_results(request: HttpRequest, student_id: int):
         year.id, term.id, student.classroom_id
     )
     has_grade_data = Evaluation.objects.filter(
-        student=student, academic_year=year, term=term
+        school=student.school,
+        student=student,
+        academic_year=year,
+        term=term,
     ).exists()
     access = resolve_student_grade_dashboard_access(
         visibility_mode=get_student_results_visibility_from_site(site),

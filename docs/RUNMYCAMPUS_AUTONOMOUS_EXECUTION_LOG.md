@@ -1,5 +1,25 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Tenant preview → live W3–W6 + admin cockpit elevation (batch 1727 - 2026-06-24)
+
+**A. Scope:** Complete all role profile preview adoption (parent/student/sweep/wizards) + elevate tenant admin console with explicit Setup Studio vs Operator Cockpit separation.
+
+**B. Shipped:** `admin_workspace_zone_intro.html` zone banners; post-onboarding + onboarding bento cockpit intros; parent/student preview-live canvases; sweep `previewLive` assertion; W3–W6 verifier needles; registry v1.1.0; SW v4.05.05.
+
+**C. Proof:** **TENANT_PREVIEW_TO_LIVE_PASS**; **PAGE_FOLD_STANDARDS 26/26**.
+
+**D. Honest:** Playwright live sweep not executed this slice; legacy `backend_show_legacy_dashboard` stack unchanged.
+
+## Slice — Tenant preview → live W2 teacher (batch 1727 — My Teaching Day canvas - 2026-06-24)
+
+**A. Scope:** Adopt `tenant-teacher-dashboard-preview.html` into live teacher role-home per TENANT_PREVIEW_TO_LIVE_ADOPTION.md W2.
+
+**B. Shipped:** `_rmc_dh_teacher_home.html` preview-live layout (hero → fw chips → section nav → attention → collapsible today/metrics/insights); `dashboard.html` wrapper + collapsed cockpit; bridge CSS teacher grammar; W2 verifier needles; registry W2 done; SW v4.05.04.
+
+**C. Proof:** **TENANT_PREVIEW_TO_LIVE_W2_PASS**; **PAGE_FOLD_STANDARDS 26/26**.
+
+**D. Honest:** W3–W6 not started; live Playwright role-home sweep not re-run this slice.
+
 ## Slice — Platform chrome residuals (batch 1725 — tools tray Playwright + admin bento - 2026-06-24)
 
 **A. Scope:** Close batch 1724 honest residuals — live Playwright tools-tray click proof + post-onboarding admin tabbed bento.

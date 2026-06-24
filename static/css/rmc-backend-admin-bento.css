@@ -28,3 +28,82 @@
   color: var(--text-primary);
   font-weight: 600;
 }
+
+/* W1 onboarding landing — preview canvas padding + setup-first focus */
+.rmc-admin-onboarding[data-rmc-preview-live-admin="1"] {
+  margin-bottom: 1.25rem;
+}
+
+body.tp-v3-role-home .rmc-admin-onboarding[data-rmc-preview-live-admin="1"] .rmc-setup-surface {
+  margin-bottom: 0;
+}
+
+body.tp-v3-role-home .rmc-admin-onboarding[data-rmc-preview-live-admin="1"] .rmc-setup-surface__title {
+  font-size: var(--type-size-2xl, 1.375rem);
+  font-weight: 750;
+}
+
+.tp-dashboard-cockpit--onboarding-snapshot {
+  margin-top: 0.75rem;
+}
+
+/* W1+ admin zone intros — cockpit ≠ Setup Studio */
+.rmc-admin-zone-intro {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl, 14px);
+  background: var(--surface-canvas);
+}
+
+.rmc-admin-zone-intro--setup {
+  border-color: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 28%, var(--hairline));
+  background: color-mix(in oklab, var(--surface-elevated) 92%, var(--school-primary, var(--brand-primary)));
+}
+
+.rmc-admin-zone-intro--cockpit {
+  border-color: color-mix(in oklab, var(--school-accent, var(--brand-accent)) 24%, var(--hairline));
+}
+
+.rmc-admin-zone-intro__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 16%, transparent);
+  color: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 75%, var(--text-primary));
+}
+
+.rmc-admin-zone-intro--cockpit .rmc-admin-zone-intro__icon {
+  background: color-mix(in oklab, var(--school-accent, var(--brand-accent)) 16%, transparent);
+  color: color-mix(in oklab, var(--school-accent, var(--brand-accent)) 75%, var(--text-primary));
+}
+
+.rmc-admin-zone-intro__title {
+  margin: 0 0 4px;
+  font-size: var(--type-size-md, 14px);
+  font-weight: 700;
+}
+
+.rmc-admin-zone-intro__text {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  max-width: 62ch;
+}
+
+.rmc-admin-zone-intro__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.rmc-admin-setup-zone .rmc-setup-surface {
+  margin-top: 0.25rem;
+}

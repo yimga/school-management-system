@@ -707,6 +707,29 @@ def _tenant_ai_copilot_rail_defaults() -> dict[str, Any]:
     }
 
 
+def _resolve_tenant_copilot_default_state(request) -> str:
+    """Preview parity (tenant-admin-workspace-preview): open panel during onboarding."""
+    try:
+        from apps.platform_runtime.onboarding import get_school_onboarding_progress
+
+        school = getattr(request, "school", None)
+        if school is None:
+            return "collapsed"
+        role = ""
+        user = getattr(request, "user", None)
+        if user is not None:
+            role = str(getattr(user, "role", "") or "").upper()
+        if role in {"PARENT", "STUDENT"}:
+            return "collapsed"
+        progress = get_school_onboarding_progress(school, user=user)
+        pct = int((progress or {}).get("percent") or 0)
+        if pct < 70:  # magic-number-allow: backend-setup-landing-threshold-parity
+            return "expanded"
+    except Exception:
+        pass
+    return "collapsed"
+
+
 def _tenant_ai_copilot_rail_master_enabled(request) -> bool:
     """Platform + tenant flags for the tenant-host copilot rail."""
     try:
@@ -1108,6 +1131,11 @@ def cockpit_context(request) -> dict[str, Any]:
         _tenant_ai_copilot_rail_defaults(),
         tenant_cockpit.get("ai_copilot_rail") or {},
     )
+    acr_merged = dict(tenant_cockpit.get("ai_copilot_rail") or {})
+    configured_state = str(acr_merged.get("default_state") or "").strip().lower()
+    if configured_state not in {"collapsed", "expanded"}:
+        acr_merged["default_state"] = _resolve_tenant_copilot_default_state(request)
+    tenant_cockpit["ai_copilot_rail"] = acr_merged
     if not _tenant_ai_copilot_rail_master_enabled(request):
         acr_off = dict(tenant_cockpit.get("ai_copilot_rail") or {})
         acr_off["enabled"] = False

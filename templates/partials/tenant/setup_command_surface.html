@@ -11,6 +11,9 @@
   rebuilt with the semantic token system + .rmc-* grammar (see
   static/css/rmc-setup-surface.css) so tenant brand and light/dark flip cleanly.
 
+  NOT the operator cockpit — live analytics widgets live on the Cockpit tab
+  (Configure → Cockpit in SiteSettings). Setup Studio wizards are a separate surface.
+
   All content is real onboarding data (rmc_school_onboarding) — no fabricated
   step counts or time estimates. Steps with no resolved deep-link fall back to
   the full activation checklist.
@@ -23,7 +26,7 @@
   <header class="rmc-setup-surface__hero">
     <div class="rmc-setup-surface__hero-copy">
       <p class="rmc-setup-surface__eyebrow">{% trans "Getting started" %}</p>
-      <h2 class="rmc-setup-surface__title">{% blocktrans with school_term=rmc_school_term %}Set up your {{ school_term }}{% endblocktrans %}</h2>
+      <h1 class="rmc-setup-surface__title">{% blocktrans with school_term=rmc_school_term %}Set up your {{ school_term }}{% endblocktrans %}</h1>
       <p class="rmc-setup-surface__lede">{% blocktrans with school_term=rmc_school_term %}A guided path from first login to a fully running {{ school_term }}.{% endblocktrans %}</p>
       {% if rmc_school_onboarding.next_action and rmc_school_onboarding.next_action.url %}
       <a class="rmc-setup-surface__cta btn btn-primary btn-sm" href="{{ rmc_school_onboarding.next_action.url }}" data-rmc-setup-next-action="1">

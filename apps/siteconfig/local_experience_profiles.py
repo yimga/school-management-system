@@ -157,6 +157,15 @@ EXPANSION_PROFILES: tuple[LocalExperienceProfile, ...] = (
     _p("cl-mineduc-bilingual", "CL", ("es", "en"), academic="mineduc-chile", grading="numeric-1-7", calendar="gregorian-mar-dec", palette="andes-clay", typography="stack-bilingual-mixed", currency="CLP", rails=("card-online", "bank-transfer"), style="warm-formal"),
     _p("co-icfes-bilingual", "CO", ("es", "en"), academic="icfes-colombia", grading="numeric-0-5", calendar="gregorian-jan-nov", palette="andes-clay", typography="stack-bilingual-mixed", currency="COP", rails=("card-online", "bank-transfer", "cash-collection"), style="warm-formal"),
     _p("pe-minedu-bilingual", "PE", ("es", "en"), academic="minedu-peru", grading="numeric-0-20", calendar="gregorian-mar-dec", palette="andes-clay", typography="stack-bilingual-mixed", currency="PEN", rails=("card-online", "bank-transfer", "cash-collection"), style="warm-formal"),
+    # West Africa wave (batch 1726 cycle 10) — francophone + anglophone tier-1 ISOs
+    _p("bf-bac-francophone", "BF", ("fr",), academic="bac-francophone", grading="numeric-0-20", calendar="gregorian-oct-jul", palette="warm-terracotta", typography="stack-system-sans", currency="XOF", rails=("bank-transfer", "mobile-money", "cash-collection"), style="formal", low_connect=True),
+    _p("bj-bac-francophone", "BJ", ("fr",), academic="bac-francophone", grading="numeric-0-20", calendar="gregorian-oct-jul", palette="warm-terracotta", typography="stack-system-sans", currency="XOF", rails=("bank-transfer", "mobile-money"), style="formal", low_connect=True),
+    _p("ml-bac-francophone", "ML", ("fr",), academic="bac-francophone", grading="numeric-0-20", calendar="gregorian-oct-jul", palette="warm-terracotta", typography="stack-bilingual-mixed", currency="XOF", rails=("bank-transfer", "mobile-money", "cash-collection"), style="formal", low_connect=True),
+    _p("ne-bac-francophone", "NE", ("fr",), academic="bac-francophone", grading="numeric-0-20", calendar="gregorian-oct-jul", palette="desert-amber", typography="stack-system-sans", currency="XOF", rails=("bank-transfer", "mobile-money", "cash-collection"), style="formal", low_connect=True),
+    _p("tg-bac-francophone", "TG", ("fr",), academic="bac-francophone", grading="numeric-0-20", calendar="gregorian-oct-jul", palette="warm-terracotta", typography="stack-system-sans", currency="XOF", rails=("bank-transfer", "mobile-money"), style="formal", low_connect=True),
+    _p("lr-waec-anglophone", "LR", ("en",), academic="waec-anglophone", grading="letter", calendar="gregorian-sep-jul", palette="warm-terracotta", typography="stack-system-sans", currency="LRD", rails=("bank-transfer", "mobile-money", "cash-collection"), low_connect=True),
+    _p("sl-waec-anglophone", "SL", ("en",), academic="waec-anglophone", grading="letter", calendar="gregorian-sep-jul", palette="warm-terracotta", typography="stack-system-sans", currency="SLE", rails=("bank-transfer", "mobile-money", "cash-collection"), parent_engage="mobile-sms-first", low_connect=True),
+    _p("gm-waec-anglophone", "GM", ("en",), academic="waec-anglophone", grading="letter", calendar="gregorian-sep-jul", palette="savanna-ochre", typography="stack-system-sans", currency="GMD", rails=("bank-transfer", "mobile-money", "cash-collection"), low_connect=True),
 )
 
 PROFILES = PROFILES + EXPANSION_PROFILES
@@ -187,8 +196,8 @@ def profile_keys() -> Iterable[str]:
 
 def assert_registry_invariants() -> None:
     """Raise AssertionError if registry shape regresses. Run from verifier."""
-    if len(PROFILES) != 50:
-        raise AssertionError(f"Expected exactly 50 LocalExperienceProfile entries, got {len(PROFILES)}")
+    if len(PROFILES) != 58:
+        raise AssertionError(f"Expected exactly 58 LocalExperienceProfile entries, got {len(PROFILES)}")
     keys = [p.key for p in PROFILES]
     if len(set(keys)) != len(keys):
         raise AssertionError("Duplicate LocalExperienceProfile keys detected.")

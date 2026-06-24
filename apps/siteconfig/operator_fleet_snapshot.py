@@ -97,7 +97,7 @@ def fetch_fleet_pulse_events(*, limit: int = 3) -> list[dict[str, Any]]:
         from apps.platform_runtime.models import PlatformEventLog
 
         qs = (
-            PlatformEventLog.objects.filter(event_type__in=FLEET_PULSE_EVENT_TYPES)
+            PlatformEventLog.objects.filter(event_type__in=FLEET_PULSE_EVENT_TYPES)  # tenant-isolation-allow: operator-fleet-pulse-cross-tenant-aggregate
             .order_by("-created_at")[: max(limit, 1)]
         )
         for row in qs:

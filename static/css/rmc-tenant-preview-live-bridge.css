@@ -1,0 +1,247 @@
+/* rmc-tenant-preview-live-bridge.css — batch 1727 W0
+   Maps var/design-previews/* tenant role shells onto live portal chrome.
+   Token-only; extends rmc-tenant-canvas-100x + rmc-setup-surface grammar. */
+
+[data-rmc-preview-live-shell="1"] .tp-header__row,
+body.tp-v3-role-home .tp-header__row {
+  background: color-mix(in oklab, var(--surface-popover, var(--surface-canvas)) 86%, var(--surface-bg, #000));
+  -webkit-backdrop-filter: var(--material-blur, saturate(180%) blur(14px));
+          backdrop-filter: var(--material-blur, saturate(180%) blur(14px));
+}
+
+/* Preview: elevated card surfaces on role-home canvas */
+body.tp-v3-role-home .rmc-preview-live-surface,
+body.tp-v3-role-home .rmc-setup-surface__stage,
+body.tp-v3-role-home .rmc-admin-bento__panel,
+body.tp-v3-role-home .rmc-dh__section {
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl, 16px);
+}
+
+body.tp-v3-role-home .rmc-setup-surface__hero {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--surface-elevated) 92%, var(--school-primary, var(--brand-primary))),
+    var(--surface-elevated)
+  );
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-2xl, 18px);
+}
+
+body.tp-v3-role-home .rmc-setup-surface__card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 13px);
+  transition: border-color var(--motion-fast, 160ms) var(--ease-out, ease-out),
+              transform var(--motion-fast, 160ms) var(--ease-out, ease-out);
+}
+
+body.tp-v3-role-home .rmc-setup-surface__card:hover {
+  border-color: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 45%, var(--hairline));
+  transform: translateY(-2px);
+}
+
+/* Preview: brand pill matches tenant-admin-workspace-preview */
+body.tp-v3-role-home .tp-brand__pill {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 18%, transparent);
+  color: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 70%, var(--text-primary));
+  border: 1px solid color-mix(in oklab, var(--school-primary, var(--brand-primary)) 35%, transparent);
+}
+
+/* Onboarding: expanded copilot panel visible (preview shows open panel) */
+body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .rmc-tenant-portal-copilot-mount {
+  z-index: 50;
+}
+
+body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .lx-copilot__expanded {
+  box-shadow: var(--elev-3, 0 24px 70px rgba(0, 0, 0, 0.35));
+  border-left: 1px solid var(--hairline);
+}
+
+/* W2 — tenant-teacher-dashboard-preview.html */
+body.tp-v3-role-home .rmc-preview-live-fw,
+[data-rmc-preview-live-teacher="1"] .rmc-preview-live-fw {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 var(--rmc-dh-gap, 14px);
+}
+
+body.tp-v3-role-home .rmc-preview-live-fw__link,
+[data-rmc-preview-live-teacher="1"] .rmc-preview-live-fw__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: var(--radius-md, 9px);
+  border: 1px solid var(--hairline);
+  color: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 70%, var(--text-primary));
+  text-decoration: none;
+  background: var(--surface-canvas);
+  transition: border-color var(--motion-fast, 160ms) var(--ease-out, ease-out),
+              transform var(--motion-fast, 160ms) var(--ease-out, ease-out);
+}
+
+body.tp-v3-role-home .rmc-preview-live-fw__link:hover,
+[data-rmc-preview-live-teacher="1"] .rmc-preview-live-fw__link:hover {
+  border-color: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 45%, var(--hairline));
+  transform: translateY(-1px);
+}
+
+body.tp-v3-role-home .rmc-preview-live-teacher__nav,
+[data-rmc-preview-live-teacher="1"] .rmc-preview-live-teacher__nav {
+  margin-bottom: var(--rmc-dh-gap, 14px);
+}
+
+body.tp-v3-role-home .rmc-preview-live-section,
+[data-rmc-preview-live-teacher="1"] .rmc-preview-live-section {
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl, 14px);
+  margin-bottom: 10px;
+}
+
+body.tp-v3-role-home .rmc-preview-live-section > summary,
+[data-rmc-preview-live-teacher="1"] .rmc-preview-live-section > summary {
+  padding: 12px 14px;
+  font-weight: 650;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+body.tp-v3-role-home .rmc-preview-live-section > summary::-webkit-details-marker,
+[data-rmc-preview-live-teacher="1"] .rmc-preview-live-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+body.tp-v3-role-home .rmc-preview-live-section__body,
+[data-rmc-preview-live-teacher="1"] .rmc-preview-live-section__body {
+  padding: 0 14px 14px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+body.tp-v3-role-home .rmc-preview-live-class-grid,
+[data-rmc-preview-live-teacher="1"] .rmc-preview-live-class-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+body.tp-v3-role-home .rmc-preview-live-class-card,
+[data-rmc-preview-live-teacher="1"] .rmc-preview-live-class-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 12px);
+  padding: 12px;
+}
+
+body.tp-v3-role-home .rmc-preview-live-class-card__meta,
+[data-rmc-preview-live-teacher="1"] .rmc-preview-live-class-card__meta {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+body.tp-v3-role-home .rmc-preview-live-class-card__cta,
+[data-rmc-preview-live-teacher="1"] .rmc-preview-live-class-card__cta {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 75%, var(--text-primary));
+  text-decoration: none;
+}
+
+body.tp-v3-role-home .rmc-preview-live-teacher__more,
+[data-rmc-preview-live-teacher="1"] .rmc-preview-live-teacher__more {
+  margin: 10px 0 0;
+}
+
+/* W3 — parent Family Home preview grammar */
+body.tp-v3-role-home .rmc-preview-live-hero-actions,
+[data-rmc-preview-live-parent="1"] .rmc-preview-live-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: var(--rmc-dh-gap, 14px);
+}
+
+body.tp-v3-role-home .rmc-preview-live-hero-actions__primary,
+[data-rmc-preview-live-parent="1"] .rmc-preview-live-hero-actions__primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md, 10px);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  background: var(--school-accent, var(--brand-accent));
+  border: 1px solid var(--school-accent, var(--brand-accent));
+  color: var(--text-on-accent, #04121a);
+}
+
+body.tp-v3-role-home .rmc-preview-live-hero-actions__secondary,
+[data-rmc-preview-live-parent="1"] .rmc-preview-live-hero-actions__secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md, 10px);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  background: transparent;
+  border: 1px solid var(--hairline);
+  color: var(--text-secondary);
+}
+
+body.tp-v3-role-home .rmc-preview-live-snapshot-grid,
+[data-rmc-preview-live-parent="1"] .rmc-preview-live-snapshot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+body.tp-v3-role-home .rmc-preview-live-snapshot-card,
+[data-rmc-preview-live-parent="1"] .rmc-preview-live-snapshot-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 12px);
+  padding: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+body.tp-v3-role-home .rmc-preview-live-snapshot-card strong,
+[data-rmc-preview-live-parent="1"] .rmc-preview-live-snapshot-card strong {
+  display: block;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+/* Shared preview-live parent/teacher/student section grammar */
+body.tp-v3-role-home [data-rmc-preview-live-parent="1"] .rmc-preview-live-section,
+body.tp-v3-role-home [data-rmc-preview-live-student="1"] .rmc-preview-live-section,
+[data-rmc-preview-live-parent="1"] .rmc-preview-live-section,
+[data-rmc-preview-live-student="1"] .rmc-preview-live-section {
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl, 14px);
+  margin-bottom: 10px;
+}

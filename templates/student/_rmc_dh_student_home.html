@@ -1,6 +1,5 @@
 {% comment %}
-  Premium .rmc-dh student home — 100X enrichment wired to student_learning_home.
-  Every panel is conditional; no fabricated grades when term is unpublished.
+  Premium .rmc-dh student home — preview-live W4 (tenant-student-dashboard-enrichment-100x.html).
 {% endcomment %}
 {% load i18n static terminology_tags rmc_dh %}
 
@@ -8,7 +7,13 @@
 {% url 'accounts:user_messages' as st_messages_url %}
 {% url 'accounts:user_profile' as st_profile_url %}
 
-<div class="rmc-dh container-fluid px-3 px-lg-4 py-3" data-page-archetype="student-dashboard" data-rmc-student-learning-home="1" data-rmc-page="student-portal" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
+<div class="rmc-dh rmc-preview-live-student container-fluid px-3 px-lg-4 py-3"
+     data-page-archetype="student-dashboard"
+     data-rmc-student-learning-home="1"
+     data-rmc-preview-live-student="1"
+     data-rmc-page="student-portal"
+     data-rmc-page-fold-nav="required"
+     data-rmc-scroll-policy="paginate">
 
   {% firstof request.user.first_name phase7_de.headline_meta as st_name %}
   {% if phase7_de.headline_value == "On track" %}
@@ -16,12 +21,23 @@
   {% else %}
   {% blocktrans with name=st_name asvar hero_title %}Hi {{ name }}{% endblocktrans %}
   {% endif %}
+  {% now "l, F j" as st_date_eyebrow %}
 
   {% if student_attendance_pct != None %}
-  {% include "components/dashboard/rmc_dh_hero.html" with dh_accent=True dh_eyebrow=phase7_de.eyebrow dh_title=hero_title dh_sub=phase7_de.hero_sub|default:_("Your priorities for today.") dh_ring_pct=student_attendance_pct dh_ring_label=student_attendance_pct|stringformat:"d"|add:"%" dh_ring_aria=_("Attendance") %}
+  {% include "components/dashboard/rmc_dh_hero.html" with dh_accent=True dh_eyebrow=st_date_eyebrow dh_title=hero_title dh_sub=phase7_de.hero_sub|default:_("Your priorities for today.") dh_ring_pct=student_attendance_pct dh_ring_label=student_attendance_pct|stringformat:"d"|add:"%" dh_ring_aria=_("Attendance") %}
   {% else %}
-  {% include "components/dashboard/rmc_dh_hero.html" with dh_accent=True dh_eyebrow=phase7_de.eyebrow dh_title=hero_title dh_sub=phase7_de.hero_sub|default:_("Your priorities for today.") %}
+  {% include "components/dashboard/rmc_dh_hero.html" with dh_accent=True dh_eyebrow=st_date_eyebrow dh_title=hero_title dh_sub=phase7_de.hero_sub|default:_("Your priorities for today.") %}
   {% endif %}
+
+  <nav class="rmc-section-nav rmc-preview-live-student__nav" aria-label="{% trans 'Jump to' %}">
+    <div class="rmc-surface-subnav" role="list">
+      <a href="#rmc-student-attention" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "Priorities" %}</a>
+      <a href="#rmc-student-today" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-calendar3" aria-hidden="true"></i> {% trans "Today" %}</a>
+      <a href="#rmc-student-work" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-journal-text" aria-hidden="true"></i> {% trans "Work" %}</a>
+      <a href="#rmc-student-insights" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-bar-chart" aria-hidden="true"></i> {% trans "Results" %}</a>
+      <a href="#rmc-student-cockpit" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-sliders" aria-hidden="true"></i> {% trans "Cockpit" %}</a>
+    </div>
+  </nav>
 
   {% if phase7_de.metrics %}
   <div class="rmc-dh-tiles">
@@ -31,19 +47,26 @@
   </div>
   {% endif %}
 
-{% if student_ai_insight %}
+  {% if student_ai_insight %}
   {% include "components/dashboard/rmc_dh_aicard.html" with dh_title=student_ai_insight.title dh_text=student_ai_insight.text dh_acts=student_ai_insight.acts dh_primary_first=True %}
   {% endif %}
 
-  {% if phase7_de.urgent_queue %}
-  <div class="rmc-dh-attention">
-    <h2 class="rmc-dh-attention__title"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "Don't forget" %}</h2>
-    {% for item in phase7_de.urgent_queue %}
-    {% if item.url %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-arrow-right-circle" dh_text=item.title dh_go_label=_("Open") dh_go_href=item.url %}
-    {% else %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-check-circle" dh_text=item.title %}{% endif %}
-    {% endfor %}
-  </div>
-  {% endif %}
+  <section id="rmc-student-attention" data-rmc-section-anchor>
+    {% if phase7_de.urgent_queue %}
+    <div class="rmc-dh-attention">
+      <h2 class="rmc-dh-attention__title"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "Don't forget" %}</h2>
+      {% for item in phase7_de.urgent_queue %}
+      {% if item.url %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-arrow-right-circle" dh_text=item.title dh_go_label=_("Open") dh_go_href=item.url %}
+      {% else %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-check-circle" dh_text=item.title %}{% endif %}
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="rmc-dh-attention rmc-dh-attention--good">
+      <h2 class="rmc-dh-attention__title"><i class="bi bi-check2-circle" aria-hidden="true"></i> {% trans "You're on track" %}</h2>
+      <p class="rmc-dh-hero__sub" style="margin:0">{% trans "No urgent items — check today's timetable and this week's work below." %}</p>
+    </div>
+    {% endif %}
+  </section>
 
   {% if student_badges %}
   <div class="rmc-dh-section-label"><i class="bi bi-award" aria-hidden="true"></i> {% trans "Achievements" %}</div>
@@ -57,39 +80,52 @@
   </div>
   {% endif %}
 
-  <div class="rmc-dh-grid2">
-    <div>
-      {% if student_timetable %}
-      <section class="rmc-dh-panel">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-calendar3" dh_title=_("Today's timetable") dh_more_label=_("Syllabus")|add:" →" dh_more_href=st_syllabus_url %}
+  <div id="rmc-student-today" data-rmc-section-anchor>
+    {% if student_timetable %}
+    <details class="rmc-preview-live-section" open>
+      <summary><i class="bi bi-calendar3" aria-hidden="true"></i> {% trans "Today's timetable" %}</summary>
+      <div class="rmc-preview-live-section__body">
         {% for row in student_timetable|slice:":6" %}
         {% include "components/dashboard/rmc_dh_timetable_row.html" with dh_time=row.time_slot|default:"—" dh_subject=row.subject dh_room=row.room dh_now=forloop.first %}
         {% endfor %}
-      </section>
-      {% endif %}
+        <p class="rmc-preview-live-teacher__more"><a class="rmc-dh-chip" href="{{ st_syllabus_url }}">{% trans "Syllabus" %} →</a></p>
+      </div>
+    </details>
+    {% else %}
+    {% include "components/rmc_empty_state.html" with icon="bi-calendar3" title=_("No timetable yet") message=_("Your class schedule will appear here when your school publishes it.") primary_label=_("Syllabus & resources") primary_url=st_syllabus_url %}
+    {% endif %}
+  </div>
 
-      {% if student_due_items %}
-      <section class="rmc-dh-panel">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-calendar-week" dh_title=_("This week's work") %}
-        {% for due in student_due_items %}
+  <div id="rmc-student-work" data-rmc-section-anchor>
+    {% if student_due_items %}
+    <details class="rmc-preview-live-section" open>
+      <summary><i class="bi bi-calendar-week" aria-hidden="true"></i> {% trans "This week's work" %}</summary>
+      <div class="rmc-preview-live-section__body">
+        {% for due in student_due_items|slice:":8" %}
         {% include "components/dashboard/rmc_dh_due_item.html" with dh_icon="bi-flag" dh_text=due.title dh_cd=due.cd dh_soon=due.soon dh_href=due.url %}
         {% endfor %}
-      </section>
-      {% endif %}
+      </div>
+    </details>
+    {% endif %}
 
-      {% if student_grade_trend %}
-      <section class="rmc-dh-panel">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-graph-up-arrow" dh_title=_("Grade trend") %}
-        {% dh_areachart_points student_grade_trend as st_chart %}
-        {% include "components/dashboard/rmc_dh_areachart.html" with dh_points=st_chart.line dh_area_points=st_chart.area dh_accent=True dh_aria=_("Recent grade trend") %}
-      </section>
-      {% endif %}
-    </div>
+    <details class="rmc-preview-live-section">
+      <summary><i class="bi bi-robot" aria-hidden="true"></i> {% trans "Study tools" %}</summary>
+      <div class="rmc-preview-live-section__body">
+        <p class="rmc-dh-hero__sub" style="margin:0 0 0.5rem">{% trans "Open your syllabus, resources and class materials for today." %}</p>
+        <div class="rmc-dh-aicard__acts">
+          <a class="rmc-dh-chip rmc-dh-chip--primary" href="{{ st_syllabus_url }}">{% trans "Syllabus & resources" %}</a>
+          <a class="rmc-dh-chip" href="{{ st_messages_url }}">{% trans "Messages" %}</a>
+          <a class="rmc-dh-chip" href="{{ st_profile_url }}">{% trans "Account" %}</a>
+        </div>
+      </div>
+    </details>
+  </div>
 
-    <div>
-      {% if student_can_view_results and student_subject_rows %}
-      <section class="rmc-dh-panel">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-bar-chart" dh_title=_("Recent results") dh_more_label=_("Syllabus")|add:" →" dh_more_href=st_syllabus_url %}
+  <div id="rmc-student-insights" data-rmc-section-anchor>
+    {% if student_can_view_results and student_subject_rows %}
+    <details class="rmc-preview-live-section">
+      <summary><i class="bi bi-bar-chart" aria-hidden="true"></i> {% trans "Recent results" %}</summary>
+      <div class="rmc-preview-live-section__body">
         {% include "components/dashboard/rmc_dh_subj_grid.html" with dh_subjects=student_subject_rows %}
         <p class="rmc-dh-hero__sub" style="margin:0.5rem 0 0"><i class="bi bi-shield-check" aria-hidden="true"></i>
           {% if student_results_visibility_mode == "entered" %}
@@ -98,44 +134,52 @@
           {% trans "Shown only after your school publishes term results." %}
           {% endif %}
         </p>
-      </section>
-      {% elif student_results_locked %}
-      <section class="rmc-dh-panel">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-shield-lock" dh_title=_("Results") %}
+      </div>
+    </details>
+    {% elif student_results_locked %}
+    <details class="rmc-preview-live-section">
+      <summary><i class="bi bi-shield-lock" aria-hidden="true"></i> {% trans "Results" %}</summary>
+      <div class="rmc-preview-live-section__body">
         <p class="rmc-dh-hero__sub" style="margin:0">{% trans "Your school has not published this term's results yet. Grades are recorded but hidden until publish." %}</p>
-      </section>
-      {% endif %}
+      </div>
+    </details>
+    {% endif %}
 
-      {% if student_attendance_cells %}
-      <section class="rmc-dh-panel">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-grid-3x3-gap" dh_title=_("Attendance rhythm") %}
+    {% if student_grade_trend %}
+    <details class="rmc-preview-live-section">
+      <summary><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> {% trans "Grade trend" %}</summary>
+      <div class="rmc-preview-live-section__body">
+        {% dh_areachart_points student_grade_trend as st_chart %}
+        {% include "components/dashboard/rmc_dh_areachart.html" with dh_points=st_chart.line dh_area_points=st_chart.area dh_accent=True dh_aria=_("Recent grade trend") %}
+      </div>
+    </details>
+    {% endif %}
+
+    {% if student_attendance_cells %}
+    <details class="rmc-preview-live-section">
+      <summary><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> {% trans "Attendance rhythm" %}</summary>
+      <div class="rmc-preview-live-section__body">
         {% include "components/dashboard/rmc_dh_heat.html" with dh_cells=student_attendance_cells dh_aria=_("Recent attendance rhythm") %}
-      </section>
-      {% endif %}
+      </div>
+    </details>
+    {% endif %}
 
-      {% if student_announcements %}
-      <section class="rmc-dh-panel">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-megaphone" dh_title=_("Announcements") %}
+    {% if student_announcements %}
+    <details class="rmc-preview-live-section">
+      <summary><i class="bi bi-megaphone" aria-hidden="true"></i> {% trans "Announcements" %}</summary>
+      <div class="rmc-preview-live-section__body">
         <ul class="rmc-dh-timeline">
           {% for ann in student_announcements %}
           <li><span class="rmc-dh-timeline__t" aria-hidden="true"></span> {{ ann.title|truncatechars:42 }}{% if ann.meta %}<span class="rmc-dh-timeline__when">{{ ann.meta|truncatechars:16 }}</span>{% endif %}</li>
           {% endfor %}
         </ul>
-      </section>
-      {% endif %}
+      </div>
+    </details>
+    {% endif %}
 
-      <section class="rmc-dh-panel rmc-dh-panel--brand-tint">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-robot" dh_title=_("Study tools") %}
-        <p class="rmc-dh-hero__sub" style="margin:0 0 0.5rem">{% trans "Open your syllabus, resources and class materials for today." %}</p>
-        <div class="rmc-dh-aicard__acts">
-          <a class="rmc-dh-chip rmc-dh-chip--primary" href="{{ st_syllabus_url }}">{% trans "Syllabus & resources" %}</a>
-          <a class="rmc-dh-chip" href="{{ st_messages_url }}">{% trans "Messages" %}</a>
-          <a class="rmc-dh-chip" href="{{ st_profile_url }}">{% trans "Account" %}</a>
-        </div>
-      </section>
-
-      <section class="rmc-dh-panel">
-        {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-activity" dh_title=_("Recent activity") %}
+    <details class="rmc-preview-live-section">
+      <summary><i class="bi bi-activity" aria-hidden="true"></i> {% trans "Recent activity" %}</summary>
+      <div class="rmc-preview-live-section__body">
         <ul class="rmc-dh-timeline">
           {% for item in phase7_de.activity %}
           <li><span class="rmc-dh-timeline__t rmc-dh-timeline__t--done" aria-hidden="true"></span> {{ item.title }}{% if item.meta %}<span class="rmc-dh-timeline__when">{{ item.meta|truncatechars:24 }}</span>{% endif %}</li>
@@ -143,7 +187,7 @@
           <li><span class="rmc-dh-timeline__t" aria-hidden="true"></span> {% trans "Signed in and ready for school updates." %}</li>
           {% endfor %}
         </ul>
-      </section>
-    </div>
+      </div>
+    </details>
   </div>
 </div>

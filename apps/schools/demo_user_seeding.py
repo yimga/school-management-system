@@ -70,6 +70,22 @@ def _ensure_demo_portal_toggles_enabled() -> None:
         pass
 
 
+def _ensure_demo_admin_backend_access(user: User) -> None:
+    """Backend dashboard requires settings.manage (batch 1726 role-home E2E)."""
+    if user.role != User.Role.ADMIN:
+        return
+    try:
+        from apps.accounts.models import Permission
+
+        perm, _ = Permission.objects.get_or_create(
+            code="settings.manage",
+            defaults={"name": "Manage settings"},
+        )
+        user.feature_permissions.add(perm)
+    except (AttributeError, ImportError, TypeError, ValueError):
+        pass
+
+
 def _ensure_demo_user_login_ready(user: User) -> None:
     """E2E/sandbox: skip quarterly review nag and minimum-strength traps."""
     from django.utils import timezone
@@ -184,6 +200,8 @@ def seed_demo_users_for_school(
             u.set_password(password)
             u.save(update_fields=["password"])
             _ensure_demo_user_login_ready(u)
+            if role == User.Role.ADMIN:
+                _ensure_demo_admin_backend_access(u)
 
             SchoolMembership.objects.update_or_create(
                 user=u,
@@ -227,7 +245,7 @@ def seed_demo_users_for_school(
 
     stdout.write(
         style.SUCCESS(
-            f"OK — school={school.slug!r} users {pfx}.admin, {pfx}.teacher, "
+            f"OK - school={school.slug!r} users {pfx}.admin, {pfx}.teacher, "
             f"{pfx}.parent, {pfx}.student password={password!r}"
         )
     )

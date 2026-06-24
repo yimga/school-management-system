@@ -40,17 +40,36 @@ function resolvePython() {
   return process.platform === 'win32' ? 'python' : 'python3';
 }
 
-function runSync(args, extraEnv = {}) {
+function runSync(args, extraEnv = {}, stdio = 'inherit') {
   const py = resolvePython();
   const result = spawnSync(py, args, {
     cwd: repo,
     env: { ...process.env, ...extraEnv },
-    stdio: 'inherit',
+    stdio,
     shell: false,
   });
   if (result.status !== 0) {
     process.exit(result.status ?? 1);
   }
+  return result;
+}
+
+function migrateDatabase(extraEnv) {
+  const check = spawnSync(
+    resolvePython(),
+    ['manage.py', 'migrate', '--check'],
+    {
+      cwd: repo,
+      env: { ...process.env, ...extraEnv },
+      stdio: 'pipe',
+      shell: false,
+    },
+  );
+  if (check.status === 0) {
+    console.log('=== role-home e2e: migrate skipped (schema current) ===');
+    return;
+  }
+  runSync(['manage.py', 'migrate', '--noinput'], extraEnv);
 }
 
 function probe(url) {
@@ -117,7 +136,7 @@ if (process.env.RMC_E2E_KEEP_DB !== '1' && fs.existsSync(dbFile)) {
     console.warn(`could not remove stale e2e db: ${err}`);
   }
 }
-runSync(['manage.py', 'migrate', '--noinput'], baseEnv);
+migrateDatabase(baseEnv);
 
 console.log(`=== role-home e2e: ensure developer sandbox (${slug}) ===`);
 runSync(
@@ -150,6 +169,12 @@ for username in users:
     user.is_active = True
     if username.endswith('.admin'):
         user.is_staff = True
+        from apps.accounts.models import Permission
+        perm, _ = Permission.objects.get_or_create(
+            code="settings.manage",
+            defaults={"name": "Manage settings"},
+        )
+        user.feature_permissions.add(perm)
     user.save()
     TOTPDevice.objects.filter(user=user).delete()
     device = TOTPDevice.objects.create(user=user, name='e2e-playwright', confirmed=True)

@@ -1,0 +1,131 @@
+{
+  "program": "tenant-preview-to-live",
+  "version": "1.1.0",
+  "hub_html": "var/design-previews/tenant-threshold-all-in-one-validation.html",
+  "role_hub_html": "var/design-previews/tenant-role-dashboards-hub.html",
+  "full_width_sweep_html": "var/design-previews/full-width-sweep-browsable.html",
+  "prompt_doc": "docs/phase_checklists/TENANT_PREVIEW_TO_LIVE_ADOPTION.md",
+  "bridge_css": "static/css/rmc-tenant-preview-live-bridge.css",
+  "waves": [
+    {
+      "id": "W0",
+      "title": "Shared tenant shell chrome",
+      "status": "done",
+      "previews": ["tenant-admin-workspace-preview.html"],
+      "live_templates": [
+        "templates/portal_base.html",
+        "templates/partials/tenant/tp_header_brand.html",
+        "templates/partials/cockpit/_ai_copilot_rail.html",
+        "static/css/rmc-tenant-preview-live-bridge.css"
+      ],
+      "verifiers": [
+        "verify_tenant_preview_to_live_adoption.py --wave W0",
+        "verify_preview_shell_100x_tenant_parity.py",
+        "verify_tenant_copilot_expand_contract.py"
+      ]
+    },
+    {
+      "id": "W1",
+      "title": "Admin workspace canvas + cockpit vs Setup Studio",
+      "status": "done",
+      "previews": ["tenant-admin-workspace-preview.html"],
+      "live_templates": [
+        "templates/accounts/backend_dashboard.html",
+        "templates/partials/tenant/setup_command_surface.html",
+        "templates/partials/tenant/admin_workspace_zone_intro.html",
+        "static/css/rmc-setup-surface.css",
+        "static/css/rmc-backend-admin-bento.css"
+      ],
+      "verifiers": [
+        "verify_tenant_preview_to_live_adoption.py --wave W1",
+        "verify_page_fold_standards.py"
+      ]
+    },
+    {
+      "id": "W2",
+      "title": "Teacher My Teaching Day",
+      "status": "done",
+      "previews": ["tenant-teacher-dashboard-preview.html"],
+      "live_templates": [
+        "templates/teacher/dashboard.html",
+        "templates/teacher/_rmc_dh_teacher_home.html",
+        "static/css/rmc-tenant-preview-live-bridge.css"
+      ],
+      "verifiers": ["verify_tenant_preview_to_live_adoption.py --wave W2"]
+    },
+    {
+      "id": "W3",
+      "title": "Parent Family Home + threshold",
+      "status": "done",
+      "previews": [
+        "tenant-parent-dashboard-preview.html",
+        "tenant-threshold-all-in-one-validation.html#parent-django"
+      ],
+      "live_templates": [
+        "templates/parent/dashboard.html",
+        "templates/parent/_rmc_dh_family_home.html",
+        "templates/parent/partials/threshold_window_hero.html"
+      ],
+      "verifiers": ["verify_tenant_preview_to_live_adoption.py --wave W3"]
+    },
+    {
+      "id": "W4",
+      "title": "Student dashboard enrichment",
+      "status": "done",
+      "previews": ["tenant-student-dashboard-enrichment-100x.html"],
+      "live_templates": [
+        "templates/student/learning_home.html",
+        "templates/student/_rmc_dh_student_home.html"
+      ],
+      "verifiers": ["verify_tenant_preview_to_live_adoption.py --wave W4"]
+    },
+    {
+      "id": "W5",
+      "title": "Full-width 4-role sweep acceptance",
+      "status": "done",
+      "previews": ["full-width-sweep-browsable.html"],
+      "live_templates": ["scripts/run_role_home_visual_sweep.mjs"],
+      "verifiers": [
+        "verify_tenant_preview_to_live_adoption.py --wave W5",
+        "run_role_home_visual_sweep.mjs"
+      ]
+    },
+    {
+      "id": "W6",
+      "title": "Setup wizards + MFA void fix",
+      "status": "done",
+      "previews": [
+        "mfa-wizard-review-void-fix-preview.html",
+        "wizard-step-assist-preview.html"
+      ],
+      "live_templates": ["templates/setup_studio/tenant_wizard.html"],
+      "verifiers": ["verify_tenant_preview_to_live_adoption.py --wave W6"]
+    }
+  ],
+  "roles": [
+    {
+      "role": "admin",
+      "preview": "var/design-previews/tenant-admin-workspace-preview.html",
+      "url_name": "backend_dashboard",
+      "wave": "W1"
+    },
+    {
+      "role": "teacher",
+      "preview": "var/design-previews/tenant-teacher-dashboard-preview.html",
+      "url_name": "teacher_dashboard",
+      "wave": "W2"
+    },
+    {
+      "role": "parent",
+      "preview": "var/design-previews/tenant-parent-dashboard-preview.html",
+      "url_name": "parent_dashboard",
+      "wave": "W3"
+    },
+    {
+      "role": "student",
+      "preview": "var/design-previews/tenant-student-dashboard-enrichment-100x.html",
+      "url_name": "student_portal_grades",
+      "wave": "W4"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{% load i18n %}
+{% comment %}
+  Admin command center zone banner — separates Setup Studio from Operator Cockpit.
+  Params: zone ("setup"|"cockpit"), show_setup_link (bool, optional), show_cockpit_configure (bool, optional)
+{% endcomment %}
+{% url 'siteconfig:guided_onboarding' as rmc_setup_studio_url %}
+{% url 'setup_studio:tenant_wizard_index' as rmc_wizard_index_url %}
+{% url 'siteconfig:cockpit_configure' as rmc_cockpit_configure_url %}
+
+<div class="rmc-admin-zone-intro rmc-admin-zone-intro--{{ zone|default:'cockpit' }}" data-rmc-admin-zone="{{ zone|default:'cockpit' }}" role="note">
+  {% if zone == "setup" %}
+  <div class="rmc-admin-zone-intro__icon" aria-hidden="true"><i class="bi bi-magic"></i></div>
+  <div class="rmc-admin-zone-intro__body">
+    <h2 class="rmc-admin-zone-intro__title">{% trans "Setup Studio" %}</h2>
+    <p class="rmc-admin-zone-intro__text">{% trans "Guided wizards to configure your school — branding, people, academics, and go-live checks. This is not the live analytics cockpit." %}</p>
+    <div class="rmc-admin-zone-intro__acts">
+      {% if rmc_wizard_index_url %}<a class="rmc-dh-chip" href="{{ rmc_wizard_index_url }}">{% trans "All wizards" %}</a>{% endif %}
+      {% if rmc_setup_studio_url %}<a class="rmc-dh-chip rmc-dh-chip--primary" href="{{ rmc_setup_studio_url }}">{% trans "Open Setup Studio" %}</a>{% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="rmc-admin-zone-intro__icon" aria-hidden="true"><i class="bi bi-grid-1x2"></i></div>
+  <div class="rmc-admin-zone-intro__body">
+    <h2 class="rmc-admin-zone-intro__title">{% trans "Operator cockpit" %}</h2>
+    <p class="rmc-admin-zone-intro__text">{% trans "Optional analytics and spotlight widgets enabled in Configure → Cockpit. They surface live school data — separate from Setup Studio wizards." %}</p>
+    <div class="rmc-admin-zone-intro__acts">
+      {% if show_setup_link and rmc_setup_studio_url %}
+      <a class="rmc-dh-chip" href="{{ rmc_setup_studio_url }}"><i class="bi bi-magic" aria-hidden="true"></i> {% trans "Setup Studio" %}</a>
+      {% endif %}
+      {% if show_cockpit_configure|default:True and rmc_cockpit_configure_url %}
+      <a class="rmc-dh-chip rmc-dh-chip--primary" href="{{ rmc_cockpit_configure_url }}"><i class="bi bi-sliders" aria-hidden="true"></i> {% trans "Configure cockpit" %}</a>
+      {% endif %}
+      {% url 'siteconfig:cockpit_health' as rmc_cockpit_health_url %}
+      {% if rmc_cockpit_health_url %}<a class="rmc-dh-chip" href="{{ rmc_cockpit_health_url }}">{% trans "Cockpit health" %}</a>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
