@@ -730,6 +730,16 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }
 }
+.lx-world--surface-elevated .lx-world__map {
+  box-shadow:
+    inset 0 0 calc(20px + (var(--rmc-globe-elevation-level, 1) * 4px)) rgba(99, 102, 241, 0.14),
+    0 18px 42px rgba(0, 0, 0, 0.34); /* off-token-allow: globe-surface-elevation */
+}
+.lx-world--surface-elevated[data-rmc-globe-elevation-state="warn"] .lx-world__map {
+  box-shadow:
+    inset 0 0 calc(22px + (var(--rmc-globe-elevation-level, 1) * 5px)) rgba(251, 191, 36, 0.14),
+    0 18px 42px rgba(0, 0, 0, 0.34); /* off-token-allow: globe-surface-elevation */
+}
 .lx-world__celebrate {
   position: absolute;
   pointer-events: none;

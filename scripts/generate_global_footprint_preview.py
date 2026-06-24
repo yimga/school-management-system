@@ -55,6 +55,11 @@ def main() -> int:
             f"/static/js/{name}.js",
             section_html,
         )
+    section_html = re.sub(
+        r"/static/js/dist/world-globe\.mount\.[a-f0-9]+\.js",
+        "/static/js/dist/world-globe.mount.js",
+        section_html,
+    )
 
     html = f"""<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark" data-theme="dark">

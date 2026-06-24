@@ -521,6 +521,10 @@ function bindArcs(globe: GlobeInstance, arcs: GlobeArc[], golden = false): void 
   }
   globe
     .arcsData(arcs)
+    .arcStartLat("start_lat")
+    .arcStartLng("start_lng")
+    .arcEndLat("end_lat")
+    .arcEndLng("end_lng")
     .arcColor((d: object) => {
       if (golden) return "rgba(251,191,36,0.62)";
       return (d as GlobeArc).color || "rgba(99,102,241,0.42)";
