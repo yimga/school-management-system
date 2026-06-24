@@ -1,0 +1,16 @@
+{% load i18n marketing_public_urls %}
+{% comment %}
+  Buyer-ready procurement strip — Salesforce/AWS-style trust navigation below the
+  Ascension threshold gate. Keeps creative sims above; evidence links one click away.
+{% endcomment %}
+<nav class="mkt-rev-trust-nav" aria-label="{% trans 'Platform evidence and procurement' %}">
+  <p class="mkt-rev-trust-nav__kicker">{% trans "Buyer-ready evidence" %}</p>
+  <ul class="mkt-rev-trust-nav__list">
+    <li><a href="{% marketing_public_href 'marketing_pricing' %}">{% trans "Pricing" %}</a></li>
+    <li><a href="{% marketing_public_href 'marketing_platform_security' %}">{% trans "Security" %}</a></li>
+    <li><a href="{% marketing_public_href 'marketing_developers' %}">{% trans "API & developers" %}</a></li>
+    <li><a href="{% marketing_public_href 'marketing_app_marketplace' %}">{% trans "Marketplace" %}</a></li>
+    <li><a href="{% marketing_public_href 'public_status' %}">{% trans "Status" %}</a></li>
+    <li><a href="{% marketing_public_href 'marketing_procurement_checklist' %}">{% trans "Migration & procurement" %}</a></li>
+  </ul>
+</nav>

@@ -4383,6 +4383,12 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   font-size: var(--type-size-caption, 0.75rem);
 }
 
+.rmc-signup-field__required {
+  font-weight: 600;
+  color: var(--status-danger-text, var(--status-danger, #dc2626));
+  font-size: var(--type-size-caption, 0.75rem);
+}
+
 .rmc-signup-field__validity {
   font-size: var(--type-size-caption, 0.75rem);
   min-block-size: 1em;

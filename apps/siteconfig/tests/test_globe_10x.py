@@ -8,7 +8,14 @@ from django.urls import reverse
 
 
 
-from apps.siteconfig.world_map_geo import build_globe_markers, build_globe_payload, cluster_markers, filter_markers
+from apps.siteconfig.world_map_geo import (
+    build_globe_markers,
+    build_globe_payload,
+    cluster_markers,
+    compute_default_camera,
+    filter_markers,
+    GLOBE_FILL_ALTITUDE,
+)
 
 
 
@@ -51,6 +58,21 @@ class GlobeGeo10xTests(TestCase):
         self.assertTrue(payload["features"].get("fleet_pulse"))
 
         self.assertIn("arcs", payload)
+
+    def test_compute_default_camera_centers_on_fleet(self):
+        cam_empty = compute_default_camera([])
+        self.assertEqual(cam_empty["altitude"], GLOBE_FILL_ALTITUDE)
+        self.assertEqual(cam_empty["lat"], 8.0)
+        markers = build_globe_markers([
+            {"country_code": "NG", "is_frozen": False},
+            {"country_code": "CI", "is_frozen": False},
+        ])
+        cam = compute_default_camera(markers)
+        self.assertEqual(cam["altitude"], GLOBE_FILL_ALTITUDE)
+        self.assertGreater(cam["lat"], -25.0)
+        self.assertLess(cam["lat"], 35.0)
+        payload = build_globe_payload(markers)
+        self.assertEqual(payload["camera"]["altitude"], GLOBE_FILL_ALTITUDE)
 
 
 

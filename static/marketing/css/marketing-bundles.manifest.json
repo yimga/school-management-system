@@ -1,6 +1,6 @@
 {
   "version": "2026-05-19",
-  "generated_utc": "2026-06-23T23:43:31Z",
+  "generated_utc": "2026-06-24T01:25:45Z",
   "critical": {
     "path": "static/marketing/css/marketing-critical.min.css",
     "bytes": 21619,
@@ -34,12 +34,12 @@
   },
   "enhanced": {
     "path": "static/marketing/css/marketing-enhanced.min.css",
-    "bytes": 427709,
+    "bytes": 434381,
     "sources": [
       {
         "path": "static/css/rmc-class-grammar.css",
-        "sha256": "b08f2c75ad32181feaf31ca9a19ae79954da2d0dd59bbb390da17992fc9c484a",
-        "bytes": 193738
+        "sha256": "08349532cf533e0d89a26749567b9108f141af90ed916888d7b8818b66e985cb",
+        "bytes": 193912
       },
       {
         "path": "static/css/rmc-platform-header.css",
@@ -133,13 +133,18 @@
       },
       {
         "path": "static/marketing/css/mkt-revolution-lab.css",
-        "sha256": "aa445b2f0703ee3aa73f7e3f58d298c8efa721c04218a19cc52149807a581ab1",
-        "bytes": 14356
+        "sha256": "96f7368ed0a99c03ddb91c091e877e4dba99e8d96c11f72bec9ecbaf66aef764",
+        "bytes": 15568
       },
       {
         "path": "static/marketing/css/mkt-revolution-media.css",
         "sha256": "843d417503d8065ce260613f9d24d61c093d5db8a6a3375c5aabd71ff01a5a7f",
         "bytes": 4736
+      },
+      {
+        "path": "static/marketing/css/mkt-one-record-scroll.css",
+        "sha256": "f253fe9a9de246be2df5aecc8acabbb4de2bea7ddbe00501daaee6e2cc2e67ae",
+        "bytes": 7466
       },
       {
         "path": "static/css/rmc-warm-bright-school.css",

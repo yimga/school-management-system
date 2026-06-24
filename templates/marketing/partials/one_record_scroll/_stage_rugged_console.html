@@ -1,0 +1,42 @@
+{% load i18n %}
+<div class="mkt-rt-console" data-mkt-network-state data-mkt-drop-simulator>
+  <div class="mkt-rt-bar">
+    <span class="mkt-rt-bar__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="mkt-rt-bar__title">campus-edge@runmycampus:~$</span>
+    <span
+      class="mkt-rt-bar__net"
+      data-mkt-network-status
+      data-fiber-label="● FIBER / 5G — live sync"
+      data-degraded-label="◐ DEGRADED — queued"
+      data-offline-label="○ OFFLINE — local capture"
+      data-blackout-label="✕ BLACKOUT — RFID only"
+    >● FIBER / 5G — live sync</span>
+  </div>
+  <div class="mkt-rt-grid">
+    <div class="mkt-rt-left">
+      <div class="mkt-rt-toggle" role="group" aria-label="{% trans 'Network state' %}">
+        <button type="button" class="mkt-rt-btn is-active" data-mkt-network="fiber" aria-pressed="true">{% trans "Fiber / 5G" %}</button>
+        <button type="button" class="mkt-rt-btn" data-mkt-network="degraded" aria-pressed="false">{% trans "Degraded" %}</button>
+        <button type="button" class="mkt-rt-btn" data-mkt-network="offline" aria-pressed="false">{% trans "Offline" %}</button>
+        <button type="button" class="mkt-rt-btn" data-mkt-network="blackout" aria-pressed="false">{% trans "Blackout" %}</button>
+      </div>
+      <div class="mkt-rt-device" data-mkt-device>
+        <div class="mkt-rt-device__rich" data-mkt-device-rich>
+          <span class="mkt-rt-device__tag">{% trans "Live dashboard" %}</span>
+        </div>
+        <div class="mkt-rt-device__ussd" data-mkt-device-ussd hidden>
+          <span class="mkt-rt-device__tag">{% trans "USSD fallback · no data plan" %}</span>
+        </div>
+      </div>
+    </div>
+    <div class="mkt-rt-right">
+      <div class="mkt-rt-queue">
+        <span class="mkt-rt-queue__label">{% trans "Local sync queue" %}</span>
+        <strong class="mkt-rt-queue__n" data-mkt-queue>0</strong>
+        <span class="mkt-rt-queue__note" data-mkt-queue-note>{% trans "synced live" %}</span>
+      </div>
+      <pre class="mkt-rt-log" data-mkt-terminal-log aria-live="polite" aria-label="{% trans 'Attendance capture log' %}"></pre>
+    </div>
+  </div>
+</div>
+<p class="mkt-edt-illustrative-pill">{% trans "Offline capture · illustrative terminal" %}</p>

@@ -248,6 +248,16 @@
 
 
 
+  document.addEventListener("rmc:reconnect-rehydrate", function () {
+
+    var roots = document.querySelectorAll("[data-rmc-tenant-health-live='1']");
+
+    for (var i = 0; i < roots.length; i++) pollOnce(roots[i], null);
+
+  });
+
+
+
   if (document.readyState === "loading") {
 
     document.addEventListener("DOMContentLoaded", boot);

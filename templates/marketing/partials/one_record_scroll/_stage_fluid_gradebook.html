@@ -1,0 +1,17 @@
+{% load i18n %}
+<div class="mkt-fc-layout" data-mkt-gradebook-morph>
+  <div class="mkt-fc-tabs" role="tablist" aria-label="{% trans 'Grading framework' %}">
+    <button type="button" role="tab" class="is-active" data-mkt-framework="us" aria-selected="true">{% trans "US letters · GPA" %}</button>
+    <button type="button" role="tab" data-mkt-framework="ib" aria-selected="false">{% trans "IB 1–7" %}</button>
+    <button type="button" role="tab" data-mkt-framework="caie" aria-selected="false">{% trans "Cambridge A*–G" %}</button>
+    <button type="button" role="tab" data-mkt-framework="competency" aria-selected="false">{% trans "Competency" %}</button>
+  </div>
+  <p class="mkt-fc-summary">
+    <span class="mkt-fc-summary__label">{% trans "Class average" %}</span>
+    <strong class="mkt-fc-summary__val" data-mkt-gradebook-summary>—</strong>
+  </p>
+  <div class="mkt-fc-board">
+    <div class="mkt-fc-grade" data-mkt-gradebook-table aria-live="polite"></div>
+  </div>
+</div>
+<p class="mkt-edt-illustrative-pill">{% trans "Same record · re-expressed · illustrative" %}</p>

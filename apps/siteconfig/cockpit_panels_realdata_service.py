@@ -281,7 +281,16 @@ def _world_map_school_rows(active_schools) -> list[dict[str, Any]]:
     """Cross-tenant school rows for the live world map (capped, status-aware)."""
     cap = GLOBE_SCHOOL_ROW_CAP
     rows: list[dict[str, Any]] = list(
-        active_schools.values("id", "slug", "name", "country_code", "is_frozen", "settings")[:cap]
+        active_schools.values(
+            "id",
+            "slug",
+            "name",
+            "country_code",
+            "is_frozen",
+            "settings",
+            "updated_at",
+            "plan__name",
+        )[:cap]
     )
     remaining = max(0, cap - len(rows))
     if remaining:
@@ -291,7 +300,16 @@ def _world_map_school_rows(active_schools) -> list[dict[str, Any]]:
             rows += [
                 {**r, "is_active": False}
                 for r in School.objects.filter(is_active=False, deleted_at__isnull=True)
-                .values("id", "slug", "name", "country_code", "is_frozen", "settings")[:remaining]
+                .values(
+                    "id",
+                    "slug",
+                    "name",
+                    "country_code",
+                    "is_frozen",
+                    "settings",
+                    "updated_at",
+                    "plan__name",
+                )[:remaining]
             ]
         except Exception:
             logger.debug("panels: world_map suspended-dots query skipped", exc_info=True)
@@ -421,6 +439,9 @@ def _resolve_world_map() -> dict[str, Any] | None:
         stats = _world_map_footprint_stats(active_schools)
         map_rows = _world_map_school_rows(active_schools)
         globe_payload = _world_map_globe_payload(map_rows)
+        from apps.siteconfig.operator_fleet_snapshot import build_operator_fleet_snapshot
+
+        fleet_snapshot = build_operator_fleet_snapshot(pulse_limit=3)
 
         return {
             "enabled": True,
@@ -435,6 +456,8 @@ def _resolve_world_map() -> dict[str, Any] | None:
             "globe_payload": globe_payload,
             "globe_payload_json": json.dumps(globe_payload),
             "svg_country_labels": globe_payload.get("country_labels") or [],
+            "fleet_snapshot": fleet_snapshot,
+            "fleet_snapshot_json": json.dumps(fleet_snapshot),
         }
     except Exception:
         logger.warning("panels: world_map resolver failed", exc_info=True)

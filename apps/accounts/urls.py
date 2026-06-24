@@ -64,6 +64,10 @@ from apps.schools.views_tenant_health_api import (
     TenantHealthStreamView,
     tenant_operational_health_json,
 )
+from apps.schools.views_tenant_performance import (
+    tenant_performance_dashboard,
+    tenant_performance_json,
+)
 from .views_dashboard import backend_dashboard, backend_dashboard_status_fragment
 from .views_onboarding import dismiss_first_login_checklist, mark_tour_complete
 from .views_delegation import (
@@ -554,6 +558,16 @@ urlpatterns = [
         "backend/api/operational-health/stream/",
         TenantHealthStreamView.as_view(),
         name="backend_operational_health_stream",
+    ),
+    path(
+        "backend/performance/",
+        tenant_performance_dashboard,
+        name="tenant_performance_dashboard",
+    ),
+    path(
+        "backend/api/performance.json",
+        tenant_performance_json,
+        name="tenant_performance_json",
     ),
     path(
         "backend/dismiss-first-login-checklist/",

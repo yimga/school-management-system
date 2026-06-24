@@ -231,6 +231,12 @@
 }
 .rmc-dh-chip:hover { border-color: var(--rmc-dh-brand); color: var(--text-primary); }
 .rmc-dh-chip--primary { border-color: var(--rmc-dh-brand); color: var(--text-primary); background: color-mix(in oklab, var(--rmc-dh-brand) 14%, transparent); }
+.rmc-dh-chip--muted {
+  color: var(--text-secondary);
+  background: color-mix(in oklab, var(--surface-elevated) 88%, transparent);
+  border-color: var(--hairline);
+  cursor: default;
+}
 
 /* ============================ Layout: 2-col grid ============================ */
 .rmc-dh-grid2 {

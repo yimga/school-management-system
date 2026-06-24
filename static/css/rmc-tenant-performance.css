@@ -1,0 +1,106 @@
+/* Tenant performance trust dashboard (T1) — extends .rmc-dh grammar */
+
+.rmc-tperf {
+  padding: var(--space-5, 1.25rem) var(--space-6, 1.5rem);
+  max-width: min(1120px, 100%);
+  margin-inline: auto;
+}
+
+.rmc-tperf__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4, 1rem);
+  margin-bottom: var(--space-5, 1.25rem);
+}
+
+.rmc-tperf__hint {
+  margin: 0 0 var(--space-4, 1rem);
+  font-size: var(--type-size-sm, 0.8125rem);
+  color: var(--text-secondary, var(--color-text-muted));
+  line-height: 1.45;
+}
+
+.rmc-tperf__timeline {
+  margin-top: var(--space-5, 1.25rem);
+}
+
+.rmc-tperf__bars {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-3, 0.75rem);
+  align-items: end;
+  min-height: 120px;
+}
+
+.rmc-tperf__bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  text-align: center;
+}
+
+.rmc-tperf__bar-fill {
+  width: 100%;
+  max-width: 48px;
+  border-radius: var(--radius-lg, 8px);
+  background: var(--status-success-bg, color-mix(in srgb, var(--status-success, #16a34a) 18%, transparent));
+  border: 1px solid var(--hairline, var(--border-subtle));
+  min-height: 72px;
+  transition: transform var(--motion-fast, 150ms) var(--ease-out, ease-out);
+}
+
+.rmc-tperf__bar--degraded .rmc-tperf__bar-fill {
+  min-height: 48px;
+  background: var(--status-warning-bg, color-mix(in srgb, var(--status-warning, #d97706) 20%, transparent));
+}
+
+.rmc-tperf__bar--down .rmc-tperf__bar-fill {
+  min-height: 28px;
+  background: var(--status-danger-bg, color-mix(in srgb, var(--status-danger, #dc2626) 18%, transparent));
+}
+
+.rmc-tperf__bar-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-secondary, var(--color-text-muted));
+  line-height: 1.2;
+}
+
+.rmc-tperf__slo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 1rem);
+}
+
+.rmc-tperf__slo-list li {
+  padding-bottom: var(--space-3, 0.75rem);
+  border-bottom: 1px solid var(--hairline, var(--border-subtle));
+}
+
+.rmc-tperf__slo-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.rmc-dh-tile--link {
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow var(--motion-fast, 150ms) var(--ease-out, ease-out);
+}
+
+.rmc-dh-tile--link:hover,
+.rmc-dh-tile--link:focus-visible {
+  box-shadow: var(--elev-2, 0 4px 12px rgba(0, 0, 0, 0.06));
+}
+
+@media (max-width: 640px) {
+  .rmc-tperf__bars {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

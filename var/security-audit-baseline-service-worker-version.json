@@ -1,12 +1,12 @@
 {
-  "date": "2026-06-23",
-  "generated_at": "2026-06-23T23:00:00+00:00",
+  "date": "2026-06-24",
+  "generated_at": "2026-06-24T01:00:00+00:00",
   "major": 4,
   "minor": 4,
-  "patch": 81,
-  "raw": "sms-v4.04.81-globe-void-ai-lab-complete-2026-06-23",
+  "patch": 93,
+  "raw": "sms-v4.04.93-reconnect-rehydrate-r2-gap-closure-2026-06-24",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "globe-void-ai-lab-complete",
+  "slug": "reconnect-rehydrate-r2-gap-closure",
   "valid": true
 }

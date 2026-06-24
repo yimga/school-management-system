@@ -34,12 +34,43 @@ _WORLD_BUCKET_FOR = {
 }
 
 REGION_CENTROIDS: dict[str, dict[str, float]] = {
-    "North America": {"lat": 42.0, "lng": -98.0, "altitude": 1.45},
-    "West Africa": {"lat": 8.0, "lng": 2.0, "altitude": 1.4},
-    "Europe": {"lat": 50.0, "lng": 10.0, "altitude": 1.45},
-    "Asia · Oceania": {"lat": 15.0, "lng": 105.0, "altitude": 1.55},
-    "Other": {"lat": 0.0, "lng": 0.0, "altitude": 1.75},
+    "North America": {"lat": 42.0, "lng": -98.0, "altitude": 1.02},
+    "West Africa": {"lat": 8.0, "lng": 2.0, "altitude": 1.02},
+    "Europe": {"lat": 50.0, "lng": 10.0, "altitude": 1.02},
+    "Asia · Oceania": {"lat": 15.0, "lng": 105.0, "altitude": 1.02},
+    "Other": {"lat": 0.0, "lng": 0.0, "altitude": 1.02},
 }
+
+# Lab parity (globe-void-ai-lab core fix #1): equatorial fill-frame default when fleet is empty.
+DEFAULT_GLOBE_CAMERA: dict[str, float] = {"lat": 8.0, "lng": -5.0, "altitude": 1.02}
+GLOBE_FILL_ALTITUDE = 1.02
+
+
+def compute_default_camera(markers: list[dict[str, Any]]) -> dict[str, float]:
+    """Center the globe on live fleet pins at fill-frame altitude (not polar-skewed)."""
+    points = [
+        m
+        for m in markers
+        if m.get("lat") is not None
+        and m.get("lng") is not None
+        and not m.get("is_cluster")
+        and m.get("status") not in ("ghost",)
+    ]
+    if not points:
+        return dict(DEFAULT_GLOBE_CAMERA)
+    lat_sum = 0.0
+    lng_sum = 0.0
+    for m in points:
+        lat_sum += float(m["lat"])
+        lng_sum += float(m["lng"])
+    n = len(points)
+    lat = max(-25.0, min(35.0, lat_sum / n))
+    lng = lng_sum / n
+    if lng > 180.0:
+        lng -= 360.0
+    if lng < -180.0:
+        lng += 360.0
+    return {"lat": round(lat, 2), "lng": round(lng, 2), "altitude": GLOBE_FILL_ALTITUDE}
 
 # Per-region watercolor tints for WebGL polygon caps, labels, and HQ arcs.
 REGION_PALETTE: dict[str, dict[str, str]] = {
@@ -252,6 +283,22 @@ def _status_for_row(row: dict[str, Any]) -> str:
     return "active"
 
 
+def _format_last_sync_label(updated_at: Any) -> str | None:
+    """Human-readable sync hint for globe pin tooltips (PII-safe, no raw timestamps in API)."""
+    if updated_at is None:
+        return None
+    try:
+        from django.utils import timezone
+        from django.utils.timesince import timesince
+
+        if timezone.is_naive(updated_at):
+            updated_at = timezone.make_aware(updated_at, timezone.get_current_timezone())
+        delta = timesince(updated_at, timezone.now())
+        return f"{delta} ago" if delta else None
+    except Exception:
+        return None
+
+
 def build_globe_markers(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Build lat/lng marker dicts for the interactive globe from school rows."""
     per_country: dict[str, int] = {}
@@ -293,6 +340,12 @@ def build_globe_markers(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         slug = (row.get("slug") or "").strip()
         if slug:
             marker["slug"] = slug
+        plan_tier = (row.get("plan__name") or row.get("plan_name") or "").strip()
+        if plan_tier:
+            marker["plan_tier"] = plan_tier
+        sync_label = _format_last_sync_label(row.get("updated_at"))
+        if sync_label:
+            marker["last_sync_label"] = sync_label
         markers.append(marker)
     return markers
 
@@ -393,7 +446,7 @@ def _build_tour_waypoints(markers: list[dict[str, Any]]) -> list[dict[str, Any]]
         waypoints.append({
             "lat": centroid["lat"],
             "lng": centroid["lng"],
-            "altitude": centroid.get("altitude", 1.45),
+            "altitude": GLOBE_FILL_ALTITUDE,
             "label": region,
             "caption": str(_("%(region)s — %(count)s schools") % {"region": region, "count": count}),
             "dwell_ms": 3200,
@@ -548,7 +601,7 @@ def build_globe_payload(
         },
         "auto_rotate": auto_rotate,
         "auto_rotate_speed": auto_rotate_speed,
-        "camera": {"lat": 18, "lng": 0, "altitude": 1.02},
+        "camera": compute_default_camera(markers),
         "layout": layout if layout in ("hero", "side") else "hero",
         "tour_enabled": bool(tour_enabled),
         "region_centroids": REGION_CENTROIDS,
@@ -586,6 +639,13 @@ def build_globe_payload(
             "first_visit_fly_in": True,
             "cluster_bloom": True,
             "compact_guide_max_schools": 5,
+            "day_arc": True,
+            "context_lens": True,
+            "pulse_timeline": True,
+            "hero_metric": True,
+            "glass_dock": True,
+            "constellation_mode": True,
+            "orbit_chips": True,
         },
         "live_refresh": {
             "sse_interval_seconds": 5,

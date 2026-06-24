@@ -15,9 +15,9 @@ WOW_MARKERS: dict[str, tuple[str, ...]] = {
     "W4": ("ringsData", "syncPulseRings"),
     "W5": ("lx-world__count--bump",),
     "W6": ("lx-world__terminator", "wireDayNightTerminator", "day_night_terminator"),
-    "W7": ("lx-world__globe-tip", "pointLabel"),
+    "W7": ("lx-world__globe-tip", "pointLabel", "plan_tier", "last_sync_label"),
     "W8": ("rmc-world-globe-share-viewport", "wireShareViewport"),
-    "W9": ("wireTourControls", 'ev.key === "t"'),
+    "W9": ("wireTourControls", 'ev.key === "t"', "wireWowDemoToggle", "revealAllVoidZones"),
     "W10": ("first_visit_fly_in", "maybeFirstVisitFlyIn", "rmc-globe-first-visit-done"),
     "W11": ("cluster_bloom", "clusterBloomRadius", "is_cluster"),
     "W12": ("tour_narrator", "wireTourNarrator", "operator_fleet_tour_narrator"),
@@ -28,7 +28,7 @@ WOW_MARKERS: dict[str, tuple[str, ...]] = {
     "W17": ("globe_presence", "sendGlobePresenceHeartbeat"),
     "W18": ("wireVoidParallax",),
     "W19": ("maybeCelebrateOnboard", "lx-world__celebrate"),
-    "W20": ("exportExecutiveSnapshot", "rmc-world-globe-snapshot-export"),
+    "W20": ("exportExecutiveSnapshot", "rmc-world-globe-snapshot-export", "GLOBAL FOOTPRINT"),
 }
 
 VOID_TIER = (
@@ -96,6 +96,22 @@ def main() -> int:
         _fail("fleet_context_service missing build_tour_narrator_line")
     if "operator_fleet_tour_narrator_api" not in fleet_api:
         _fail("views_operator_fleet_api missing tour narrator view")
+
+    if "rmc-operator-fleet-bootstrap" not in tpl:
+        _fail("_live_world_map.html missing rmc-operator-fleet-bootstrap embed")
+    if "hydrateFleetSnapshot" not in bridge:
+        _fail("rmc-world-globe-bridge.js missing hydrateFleetSnapshot")
+    if "fleet_snapshot_json" not in (ROOT / "apps/siteconfig/cockpit_panels_realdata_service.py").read_text(
+        encoding="utf-8"
+    ):
+        _fail("cockpit_panels_realdata_service missing fleet_snapshot_json")
+
+    if "compute_default_camera" not in geo or "GLOBE_FILL_ALTITUDE" not in geo:
+        _fail("world_map_geo missing fill-frame camera helpers")
+    if "parseGlobeHash" not in mount or "applyGlobeHashIfPresent" not in mount:
+        _fail("mount.ts missing globe hash viewport restore")
+    if "DEFAULT_CAMERA" not in mount or "FILL_ALTITUDE" not in mount:
+        _fail("mount.ts missing fill-frame camera constants")
 
     print("GLOBE_VOID_AI_LAB_PARITY_PASS")
     return 0

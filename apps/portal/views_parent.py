@@ -215,10 +215,12 @@ def parent_workflow_center(request: HttpRequest):
     finance_links = guardian_student_links(request.user, finance_only=True)
     students = [link.student for link in links]
     finance_students = [link.student for link in finance_links]
-    can_view_results = bool(students)
+    has_guardian_results_links = bool(students)
     can_view_finance = bool(finance_students)
 
-    widget_data = parent_dashboard_widget_data(students)
+    widget_data = parent_dashboard_widget_data(
+        students, school=getattr(request, "school", None)
+    )
     if can_view_finance:
         fw = parent_dashboard_widget_data(finance_students).get("finance", {})
         widget_data["finance"] = fw or widget_data.get("finance", {})
@@ -232,6 +234,22 @@ def parent_workflow_center(request: HttpRequest):
     attendance_pct = widget_data.get("attendance", {}).get("overall") or 0
     finance_balance = widget_data.get("finance", {}).get("balance") or Decimal("0.00")
     finance_overdue = widget_data.get("finance", {}).get("overdue", 0)
+
+    year, term = get_active_year_and_term(school=getattr(request, "school", None))
+    site = get_effective_site_settings(request=request)
+    from apps.portal.student_results_visibility import (
+        resolve_parent_grade_dashboard_access,
+    )
+
+    grade_access = resolve_parent_grade_dashboard_access(
+        site=site,
+        students=students,
+        year=year,
+        term=term,
+        widget_data=widget_data,
+        has_guardian_results_links=has_guardian_results_links,
+    )
+    can_view_results = bool(grade_access["can_view_results"])
 
     flags = get_effective_flags(request)
     require_finance_opt_in = bool(flags.get("require_guardian_finance_opt_in"))

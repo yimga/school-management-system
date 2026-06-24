@@ -101,6 +101,30 @@ def _signup_countries() -> list[dict[str, str]]:
         return out
     except (DatabaseError, ImportError, AttributeError, TypeError, ValueError):
         return []
+
+
+def _validate_signup_country_code(country_code: str) -> str | None:
+    """
+    Public signup requires an ISO 3166-1 alpha-2 country so default_region,
+    currency, calendar pack, and compliance_region resolve on first save.
+    """
+    cc = (country_code or "").strip().upper()
+    if not cc:
+        return "Country is required."
+    if len(cc) != 2 or not cc.isalpha():
+        return "Enter a valid two-letter country code."
+    catalog_rows = _signup_countries()
+    if catalog_rows:
+        known = {str(row.get("iso_alpha2") or "").upper() for row in catalog_rows}
+        if cc not in known:
+            return "Select a valid country from the list."
+        return None
+    alpha3 = GlobalGeoCatalog.normalize_country_code(cc)
+    if len(alpha3) != 3:
+        return "Select a valid country from the list."
+    return None
+
+
 from apps.schools.models import School, SignupVerification, TenantInvite
 from apps.schools.onboarding_vendors import (
     DOMAINS_BY_SLUG,
@@ -505,6 +529,9 @@ def signup_school(request: HttpRequest):
             validate_email(email)
         except ValidationError:
             errors.append("Enter a valid email address.")
+    country_error = _validate_signup_country_code(country_code)
+    if country_error:
+        errors.append(country_error)
 
     if errors:
         if request.headers.get("Accept", "").find("application/json") >= 0:

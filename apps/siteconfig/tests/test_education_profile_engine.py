@@ -6,6 +6,7 @@ from apps.schools.models import School
 from apps.siteconfig.education_profile_engine import (
     ensure_country_profile,
     ensure_region_for_country,
+    find_region_for_country,
     list_profile_options,
     resolve_profile_for_school,
 )
@@ -26,6 +27,32 @@ class EducationProfileEngineTests(TestCase):
         self.assertIsNotNone(region)
         self.assertEqual(region.code, "JPN")
         self.assertTrue(region.name)
+
+    def test_find_region_for_country_resolves_alpha2_without_creating(self):
+        ensure_region_for_country("US")
+        before = RegionConfig.objects.filter(code="USA").count()
+        found = find_region_for_country("US")
+        self.assertIsNotNone(found)
+        self.assertEqual(found.code, "USA")
+        self.assertEqual(RegionConfig.objects.filter(code="USA").count(), before)
+
+    def test_find_region_for_country_resolves_alpha3(self):
+        region, _ = RegionConfig.objects.get_or_create(
+            code="CMR", defaults={"name": "Cameroon"}
+        )
+        found = find_region_for_country("CMR")
+        self.assertIsNotNone(found)
+        self.assertEqual(found.code, region.code)
+
+    def test_find_region_for_country_returns_none_for_missing_or_blank(self):
+        self.assertIsNone(find_region_for_country(""))
+        self.assertIsNone(find_region_for_country("   "))
+        self.assertIsNone(find_region_for_country("ZZ"))
+
+    def test_find_region_for_country_never_creates_row(self):
+        count_before = RegionConfig.objects.count()
+        self.assertIsNone(find_region_for_country("JP"))
+        self.assertEqual(RegionConfig.objects.count(), count_before)
 
     def test_ensure_country_profile_creates_auto_pack(self):
         region = ensure_region_for_country("JPN")

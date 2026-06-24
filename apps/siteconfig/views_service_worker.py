@@ -36,6 +36,7 @@ _SW_PRECACHE_PATHS = (
     "js/rmc-plickers-card-sweep.js",
     "js/form-draft-save.js",
     "js/sync-manager.js",
+    "js/rmc-reconnect-rehydrate.js",
     "js/low-power.js",
     "js/offline-status-bar.js",
     "js/auto-pilot.js",

@@ -40,6 +40,28 @@
   var llmBriefInflight = false;
   var lastLlmBriefRevision = null;
 
+  function readFleetBootstrap() {
+    var el = document.getElementById("rmc-operator-fleet-bootstrap");
+    if (!el || !el.textContent) return null;
+    try {
+      return JSON.parse(el.textContent);
+    } catch (_e) {
+      return null;
+    }
+  }
+
+  function hydrateFleetSnapshot() {
+    var bootstrap = readFleetBootstrap();
+    if (!bootstrap) return window.__rmcOperatorFleetSnapshot || null;
+    window.__rmcOperatorFleetSnapshot = bootstrap;
+    try {
+      document.dispatchEvent(new CustomEvent("rmc:fleet-snapshot", { detail: bootstrap }));
+    } catch (_e) {
+      /* ignore */
+    }
+    return bootstrap;
+  }
+
   function parsePayloadFeatures() {
     var payload = parsePayload();
     return (payload && payload.features) || {};
@@ -60,12 +82,14 @@
   function saveViewportState() {
     if (!api() || !api().isReady()) return;
     try {
+      var pov = api().getPointOfView();
       var markers = api().getVisibleMarkers();
-      var alt = api().getAltitude();
       sessionStorage.setItem(
         VIEWPORT_KEY,
         JSON.stringify({
-          altitude: alt,
+          lat: pov.lat,
+          lng: pov.lng,
+          altitude: pov.altitude,
           pins_in_view: markers.length,
           ts: Date.now(),
         })
@@ -78,11 +102,16 @@
   function restoreViewportState() {
     try {
       var raw = sessionStorage.getItem(VIEWPORT_KEY);
-      if (!raw) return;
+      if (!raw || !api() || !api().isReady() || !api().flyTo) return;
       var saved = JSON.parse(raw);
-      if (saved && saved.altitude && api() && api().isReady() && api().flyTo) {
-        api().flyTo({ lat: 18, lng: 0, altitude: saved.altitude, ms: 0 });
-      }
+      if (!saved || typeof saved.altitude !== "number") return;
+      var payload = parsePayload() || {};
+      var cam = payload.camera || {};
+      var lat = typeof saved.lat === "number" ? saved.lat : cam.lat != null ? cam.lat : 8;
+      var lng = typeof saved.lng === "number" ? saved.lng : cam.lng != null ? cam.lng : -5;
+      var alt = saved.altitude;
+      if (alt < 0.85 || alt > 1.55) alt = cam.altitude != null ? cam.altitude : 1.02;
+      api().flyTo({ lat: lat, lng: lng, altitude: alt, ms: 0 });
     } catch (_e) {
       /* ignore */
     }
@@ -223,15 +252,16 @@
 
   function applyAurora(aurora) {
     var shell = mapShell();
-    if (!shell || !featureEnabled("wow_enabled")) return;
+    if (!shell || (!featureEnabled("wow_enabled") && !featureEnabled("void_zones"))) return;
     shell.classList.remove(
       "lx-world__map--aurora-warn",
       "lx-world__map--aurora-good",
       "lx-world__map--aurora-danger"
     );
-    if (aurora === "warn") shell.classList.add("lx-world__map--aurora-warn");
-    else if (aurora === "danger") shell.classList.add("lx-world__map--aurora-danger");
-    else if (aurora === "good") shell.classList.add("lx-world__map--aurora-good");
+    var tone = aurora || "good";
+    if (tone === "warn") shell.classList.add("lx-world__map--aurora-warn");
+    else if (tone === "danger") shell.classList.add("lx-world__map--aurora-danger");
+    else shell.classList.add("lx-world__map--aurora-good");
   }
 
   function renderPulseEvents(events) {
@@ -276,19 +306,48 @@
     var el = document.getElementById("rmc-world-globe-whisper-line");
     if (!el || !featureEnabled("ai_whisper")) return;
     if (voidEl) voidEl.hidden = false;
-    if (line) el.textContent = line;
+    el.textContent = line || "Fleet healthy · pan to explore pins";
   }
 
-  function renderSchoolHours(count) {
+  function renderSchoolHours(count, regionList) {
     var voidEl = document.getElementById("rmc-world-globe-void-school-hours");
     var text = document.getElementById("rmc-world-globe-school-hours-text");
     if (!text || !featureEnabled("void_zones")) return;
-    if (typeof count !== "number" || count <= 0) {
-      if (voidEl) voidEl.hidden = true;
-      return;
-    }
     if (voidEl) voidEl.hidden = false;
-    text.textContent = count + " region" + (count === 1 ? "" : "s") + " in school hours";
+    if (typeof regionList === "undefined" && window.__rmcOperatorFleetSnapshot) {
+      regionList = window.__rmcOperatorFleetSnapshot.school_hours_regions_list;
+    }
+    if (typeof count !== "number" || count <= 0) {
+      text.textContent = "No regions in school hours";
+    } else {
+      text.textContent = count + " region" + (count === 1 ? "" : "s") + " in school hours";
+    }
+    var dayArcText = document.getElementById("rmc-world-globe-day-arc-text");
+    if (dayArcText && featureEnabled("day_arc")) {
+      if (regionList && regionList.length) {
+        dayArcText.textContent = regionList.join(" · ") + " · 08:00–15:00 local";
+      } else if (count > 0) {
+        dayArcText.textContent = count + " region(s) · 08:00–15:00 local";
+      } else {
+        dayArcText.textContent = "No regions in school hours";
+      }
+    }
+  }
+
+  function revealAllVoidZones() {
+    if (!featureEnabled("void_zones")) return;
+    [
+      "rmc-world-globe-void-viewport",
+      "rmc-world-globe-void-caption",
+      "rmc-world-globe-void-whisper",
+      "rmc-world-globe-void-school-hours",
+    ].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.hidden = false;
+    });
+    if (featureEnabled("wow_enabled") && section && !section.classList.contains("lx-world--wow-on")) {
+      document.dispatchEvent(new CustomEvent("rmc:globe-wow-toggle", { detail: { on: true } }));
+    }
   }
 
   function subsolarLongitudeUtc(date) {
@@ -500,20 +559,20 @@
 
   function applyOperatorFleetChrome(bundle) {
     if (!bundle) return;
+    revealAllVoidZones();
     if (Array.isArray(bundle.pulse_events)) renderPulseEvents(bundle.pulse_events);
-    if (bundle.whisper_line) renderWhisperLine(bundle.whisper_line);
+    renderWhisperLine(bundle.whisper_line || "");
     if (bundle.fleet_brief) renderFleetBrief(bundle.fleet_brief);
     if (bundle.aurora) applyAurora(bundle.aurora);
-    if (typeof bundle.school_hours_regions === "number") renderSchoolHours(bundle.school_hours_regions);
+    renderSchoolHours(
+      typeof bundle.school_hours_regions === "number" ? bundle.school_hours_regions : 0,
+      bundle.school_hours_regions_list
+    );
     updateViewportChip(bundle);
     fetchLlmBriefIfNeeded(bundle);
     startGlobePresence();
     wireAskFleet();
     wireShareViewport();
-    if (featureEnabled("void_zones")) {
-      var captionVoid = document.getElementById("rmc-world-globe-void-caption");
-      if (captionVoid) captionVoid.hidden = false;
-    }
     if (bundle.pulse_events && bundle.pulse_events.length) {
       var cap = document.getElementById("rmc-world-globe-void-caption-text");
       if (cap && bundle.pulse_events[0].text) {
@@ -917,6 +976,7 @@
       row.setAttribute("tabindex", "0");
       row.setAttribute("role", "button");
       row.addEventListener("mouseenter", function () {
+        row.classList.add("lx-world__legend-row--active");
         if (api() && api().isReady()) {
           api().highlightRegion(region);
           var flyLat = parseFloat(row.getAttribute("data-rmc-fly-lat"));
@@ -935,6 +995,7 @@
         } else highlightSvgRegion(region);
       });
       row.addEventListener("mouseleave", function () {
+        row.classList.remove("lx-world__legend-row--active");
         if (hoverFlyTimer) {
           window.clearTimeout(hoverFlyTimer);
           hoverFlyTimer = null;
@@ -1036,6 +1097,9 @@
     offlineStatusFilter = null;
     highlightSvgRegion(null);
     applySvgStatusFilter(null);
+    if (window.RMCGlobeSurface && window.RMCGlobeSurface.hideContextLens) {
+      window.RMCGlobeSurface.hideContextLens();
+    }
     if (api() && api().isReady()) {
       api().resetView();
     }
@@ -1074,7 +1138,27 @@
         else startSvgRegionTour();
       } else if (ev.key === "Escape") {
         resetInteraction();
+      } else if (/^[1-4]$/.test(ev.key) && featureEnabled("void_zones")) {
+        var rows = section.querySelectorAll(".lx-world__legend-row[data-rmc-region]");
+        var idx = parseInt(ev.key, 10) - 1;
+        if (rows[idx]) {
+          ev.preventDefault();
+          rows[idx].click();
+        }
       }
+    });
+  }
+
+  function wireWowDemoToggle() {
+    var btn = document.getElementById("rmc-world-globe-wow-demo");
+    if (!btn || btn.__rmcWowDemoWired || !featureEnabled("wow_enabled")) return;
+    btn.__rmcWowDemoWired = true;
+    btn.hidden = false;
+    btn.classList.add("on");
+    btn.addEventListener("click", function () {
+      var on = !btn.classList.contains("on");
+      btn.classList.toggle("on", on);
+      document.dispatchEvent(new CustomEvent("rmc:globe-wow-toggle", { detail: { on: on } }));
     });
   }
 
@@ -1159,7 +1243,13 @@
     wireGuideCompact();
     wireDayNightTerminator();
     wireTourNarrator();
-    var snap = window.__rmcOperatorFleetSnapshot;
+    wireWowDemoToggle();
+    revealAllVoidZones();
+    applyAurora("good");
+    renderWhisperLine("");
+    renderSchoolHours(0);
+    updateViewportChip(null);
+    var snap = hydrateFleetSnapshot() || window.__rmcOperatorFleetSnapshot;
     if (snap) applyOperatorFleetChrome(snap);
   }
 
@@ -1199,7 +1289,6 @@
       connectStream();
       setFreshness("Live");
       triggerLiveRefresh(true);
-      restoreViewportState();
       if (api() && api().isReady()) {
         announce(api().getVisibleMarkers().length + " schools visible on globe.");
         window.setInterval(saveViewportState, 4000);
@@ -1214,7 +1303,12 @@
 
   document.addEventListener("rmc:globe-marker-open", function (ev) {
     var detail = ev.detail || {};
-    if (detail.marker) renderSheet(detail.marker);
+    if (!detail.marker) return;
+    if (featureEnabled("context_lens") && window.RMCGlobeSurface && window.RMCGlobeSurface.showContextLens) {
+      window.RMCGlobeSurface.showContextLens(detail.marker);
+      return;
+    }
+    renderSheet(detail.marker);
   });
 
   document.addEventListener("rmc:globe-ready", bootBridge);
@@ -1231,9 +1325,11 @@
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {
-      if (isOfflineGlobeMode()) bootBridge();
+      hydrateFleetSnapshot();
+      bootBridge();
     });
-  } else if (isOfflineGlobeMode()) {
+  } else {
+    hydrateFleetSnapshot();
     bootBridge();
   }
 })();

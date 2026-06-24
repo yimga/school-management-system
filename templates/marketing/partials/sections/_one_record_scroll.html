@@ -1,0 +1,105 @@
+{% load i18n static marketing_media %}
+{% comment %}
+  One Record Scroll — generational homepage layout (§9 MARKETING_REDESIGN_DIRECTION).
+  Left: six verb chapters. Right: sticky live sim stage (existing sim engines).
+{% endcomment %}
+
+<div class="mkt-or" data-mkt-one-record-scroll data-rmc-scroll-policy="discovery">
+  <div class="mkt-or__progress" aria-hidden="true"><span data-mkt-or-progress></span></div>
+
+  <section class="mkt-or__hero">
+    <p class="mkt-or__kicker">{% trans "Education operating system" %}</p>
+    <h1 class="mkt-or__title">
+      {% trans "One student." %}<br><em>{% trans "Six verbs." %}</em> {% trans "Zero re-entry." %}
+    </h1>
+    <p class="mkt-or__lead">
+      {% trans "Scroll the thread — the product stage runs the real sim for each beat. No gate. No photo wall. One pinned proof surface." %}
+    </p>
+    <p class="mkt-or__cue" aria-hidden="true">↓ {% trans "Scroll to run the OS" %}</p>
+  </section>
+
+  <div class="mkt-or__scroll">
+    <div class="mkt-or__narrative" role="tablist" aria-label="{% trans 'Product narrative chapters' %}">
+      <div class="mkt-or__thread" aria-hidden="true" data-mkt-or-thread></div>
+
+      <article class="mkt-or__chapter is-active" id="or-ch-run" data-mkt-or-panel="panel-run" role="tab" aria-current="true" tabindex="0">
+        <p class="mkt-or__chapter-time">{% trans "Run · 6:45" %}</p>
+        <h2 class="mkt-or__chapter-title">{% trans "Fifteen clicks vs one command" %}</h2>
+        <p class="mkt-or__chapter-body">{% trans "Legacy SIS stacks hunt nested menus. RunMyCampus compiles intent into governed tool calls — tap both sides in the stage." %}</p>
+      </article>
+
+      <article class="mkt-or__chapter" id="or-ch-sov" data-mkt-or-panel="panel-sov" role="tab" tabindex="0">
+        <p class="mkt-or__chapter-time">{% trans "Run · sovereign" %}</p>
+        <h2 class="mkt-or__chapter-title">{% trans "Region manifest in seconds" %}</h2>
+        <p class="mkt-or__chapter-body">{% trans "Currency, terms, RTL, and compliance follow the campus — not a six-month integration project." %}</p>
+      </article>
+
+      <article class="mkt-or__chapter" id="or-ch-teach" data-mkt-or-panel="panel-teach" role="tab" tabindex="0">
+        <p class="mkt-or__chapter-time">{% trans "Teach · 10:00" %}</p>
+        <h2 class="mkt-or__chapter-title">{% trans "One gradebook, every framework" %}</h2>
+        <p class="mkt-or__chapter-body">{% trans "Morph US, IB, Cambridge, and competency scales on the same underlying record." %}</p>
+      </article>
+
+      <article class="mkt-or__chapter" id="or-ch-pay" data-mkt-or-panel="panel-pay" role="tab" tabindex="0">
+        <p class="mkt-or__chapter-time">{% trans "Pay · 14:30" %}</p>
+        <h2 class="mkt-or__chapter-title">{% trans "Split ledger, real rails" %}</h2>
+        <p class="mkt-or__chapter-body">{% trans "Tuition, transport, lunch — Pix, M-Pesa, SPEI, and card in one clinical ledger auditors can read." %}</p>
+      </article>
+
+      <article class="mkt-or__chapter" id="or-ch-govern" data-mkt-or-panel="panel-govern" role="tab" tabindex="0">
+        <p class="mkt-or__chapter-time">{% trans "Govern · 16:00" %}</p>
+        <h2 class="mkt-or__chapter-title">{% trans "When fiber drops, school doesn't" %}</h2>
+        <p class="mkt-or__chapter-body">{% trans "Queue attendance locally, reconcile with honest conflict flags when connectivity returns." %}</p>
+      </article>
+
+      <article class="mkt-or__chapter" id="or-ch-grow" data-mkt-or-panel="panel-grow" role="tab" tabindex="0">
+        <p class="mkt-or__chapter-time">{% trans "Grow · 17:30" %}</p>
+        <h2 class="mkt-or__chapter-title">{% trans "Board-ready roll-ups" %}</h2>
+        <p class="mkt-or__chapter-body">{% trans "Multi-campus groups get analytics that defend themselves — without crushing local autonomy." %}</p>
+      </article>
+    </div>
+
+    <div class="mkt-or__stage-wrap">
+      <div class="mkt-or__stage" aria-live="polite" aria-label="{% trans 'Live product stage' %}">
+        <div class="mkt-or__stage-chrome">
+          <span>{% trans "Live sim · illustrative" %}</span>
+          <span class="mkt-or__stage-live" data-mkt-or-stage-label>{% trans "Speed Duel" %}</span>
+        </div>
+
+        <div class="mkt-or__panel is-active" id="panel-run" data-mkt-or-label="{% trans 'Speed Duel' %}">
+          {% include "marketing/partials/one_record_scroll/_stage_speed_duel.html" %}
+        </div>
+
+        <div class="mkt-or__panel" id="panel-sov" data-mkt-or-label="{% trans 'Sovereign wizard' %}" hidden>
+          {% include "marketing/partials/one_record_scroll/_stage_sovereign_wizard.html" %}
+        </div>
+
+        <div class="mkt-or__panel" id="panel-teach" data-mkt-or-label="{% trans 'Fluid gradebook' %}" hidden>
+          {% include "marketing/partials/one_record_scroll/_stage_fluid_gradebook.html" %}
+        </div>
+
+        <div class="mkt-or__panel" id="panel-pay" data-mkt-or-label="{% trans 'Clinical ledger' %}" hidden>
+          {% include "marketing/partials/one_record_scroll/_stage_clinical_ledger.html" %}
+        </div>
+
+        <div class="mkt-or__panel" id="panel-govern" data-mkt-or-label="{% trans 'Rugged terminal' %}" hidden>
+          {% include "marketing/partials/one_record_scroll/_stage_rugged_console.html" %}
+        </div>
+
+        <div class="mkt-or__panel" id="panel-grow" data-mkt-or-label="{% trans 'Simulations hub' %}" hidden>
+          {% include "marketing/partials/one_record_scroll/_stage_simulations_hub.html" %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="mkt-or__finale">
+    <h2>{% trans "Every claim is runnable in your browser." %}</h2>
+    <p>{% trans "Launch the sandbox or explore dedicated personality labs — no demo gatekeeping." %}</p>
+    <div class="mkt-or__finale-actions">
+      <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta mkt-edt-cta--primary" data-cta="demo">{% trans "Launch sandbox" %}</a>
+      <a href="{% url 'marketing_personality_page' 'zero-ui' %}" class="mkt-edt-cta mkt-edt-cta--ghost">{% trans "Zero-UI lab" %}</a>
+      <a href="{% url 'marketing_landing_v2' %}" class="mkt-edt-cta mkt-edt-cta--ghost">{% trans "Full platform story" %}</a>
+    </div>
+  </section>
+</div>

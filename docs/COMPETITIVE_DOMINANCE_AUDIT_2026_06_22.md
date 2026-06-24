@@ -43,7 +43,7 @@ not exist; `PARTIAL` means it exists but stops short.
 |---|---|---|---|
 | O1 | Custom domain not unbound on deactivate | ~~ABSENT~~ **CLOSED 2026-06-22** | A switched-off tenant kept a live white-label hostname → confusion + routing liability. **Fixed** below. |
 | O2 | Billing not suspended on deactivate (only explicit `freeze`) | ~~PARTIAL~~ **CLOSED 2026-06-22** | A deactivated tenant stayed billable. **Fixed** below. |
-| O3 | Data export not automatic on closure request | PARTIAL | Tenant must click "Generate"; if forgotten, the archive is lost after grace. Auto-export-on-request + emailed link. |
+| O3 | Data export not automatic on closure request | ~~PARTIAL~~ **CLOSED 2026-06-22** | `request_self_service_closure` triggers `run_wind_down_export` automatically; tests in `test_offboarding_auto_export.py`. |
 | O4 | Remote provider (Stripe) cancel stubbed | PARTIAL | `cancel_subscriptions_for_offboarding()` marks the local row CANCELED but does not call the provider → remote keeps billing. |
 
 ### Local-first billing
@@ -58,15 +58,15 @@ not exist; `PARTIAL` means it exists but stops short.
 | # | Gap | State | Move |
 |---|---|---|---|
 | R1 | No keystroke-level server persistence of in-progress wizards | ABSENT | Debounced delta-sync of the active step to `SetupProgress` (server-backed draft, survives device loss). |
-| R2 | No auto UI rehydration on reconnect | ABSENT | On `online`, after queue flush, refresh the viewport from server state (no manual refresh). |
+| R2 | No auto UI rehydration on reconnect | ~~ABSENT~~ **CLOSED 2026-06-24** | `rmc-reconnect-rehydrate.js` — after SW `sync-complete` / `sms-sync-end`, hydrates offline mirror then triggers HTMX `rmc-reconnect` + `rmc:reconnect-rehydrate` for health widgets. |
 | R3 | No background-sync periodic retry | PARTIAL | SW Background Sync API so a closed tab still drains the outbox. |
 
 ### Observability (tenant-facing)
 | # | Gap | State | Move |
 |---|---|---|---|
-| T1 | No tenant-visible latency/SLO dashboard (only health score) | ABSENT | `TenantPerformanceSnapshot` + a school-facing perf timeline — "see your own uptime", a trust lever incumbents can't match. |
-| T2 | SLOs defined but not operationalized as alert rules | ABSENT | Emit Prometheus recording/alert rules from `slo.py` via a management command. |
-| T3 | No free collector in the self-host stack | ABSENT | Add Prometheus + Grafana to `deploy/selfhost/docker-compose.yml` — free tenant dashboards. |
+| T1 | No tenant-visible latency/SLO dashboard (only health score) | ~~ABSENT~~ **CLOSED 2026-06-23** | `TenantPerformanceSnapshot` + `/authentication/backend/performance/` — 7-day timeline, friction proxy, platform commitments (honest targets), lifecycle events; linked from operational health strip. |
+| T2 | SLOs defined but not operationalized as alert rules | ~~ABSENT~~ **CLOSED** | `apps/observability/prometheus_alert_rules.py` + `manage.py emit_prometheus_alert_rules` → `deploy/observability/slo_alerts.yml`; tests in `test_prometheus_alert_rules.py`. |
+| T3 | No free collector in the self-host stack | ~~ABSENT~~ **CLOSED** | `deploy/observability/docker-compose.yml` — Prometheus + Grafana OSS; pairs with `/metrics/` when `OBSERVABILITY_METRICS_BACKEND=prometheus-client`. |
 
 ## 3. First increment shipped this pass (O1 + O2)
 
@@ -139,6 +139,6 @@ trust, and zero-cost transparency** — features that make switching *to* us saf
 and switching *away* painless, which is exactly what wins a global market where
 every district fears being trapped. We carve the blue ocean by being the only
 vendor whose **simplicity is a moat**: each loop above closes one real gap, fully
-tested, no rebuilds. Next loop targets O3 (auto-export-on-request) or T1
-(tenant-facing performance dashboard) — both pure value-adds on foundations that
-already exist.
+tested, no rebuilds. Next loop targets **B1** (timezone-aware scheduled invoicing beat),
+**R1** (keystroke-level wizard delta-sync), or **O4** (Stripe remote cancel hardening) —
+pure value-adds on foundations that already exist.

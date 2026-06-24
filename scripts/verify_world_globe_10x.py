@@ -57,9 +57,12 @@ def main() -> int:
             _fail(f"mount.ts missing 10x token {token!r}")
 
     geo = (ROOT / "apps/siteconfig/world_map_geo.py").read_text(encoding="utf-8")
-    for token in ("build_globe_live_bundle", "compute_globe_revision", "live_refresh"):
+    for token in ("build_globe_live_bundle", "compute_globe_revision", "live_refresh", "compute_default_camera", "GLOBE_FILL_ALTITUDE"):
         if token not in geo:
             _fail(f"world_map_geo.py missing {token!r}")
+
+    if "rmc-operator-fleet-bootstrap" not in tpl:
+        _fail("template missing SSR fleet bootstrap embed")
 
     urls = (ROOT / "apps/schools/super_urls.py").read_text(encoding="utf-8")
     if "api/globe/markers/" not in urls or "api/globe/stream/" not in urls or "api/globe/live/" not in urls:

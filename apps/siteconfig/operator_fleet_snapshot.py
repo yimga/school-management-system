@@ -129,7 +129,7 @@ def fetch_fleet_pulse_events(*, limit: int = 3) -> list[dict[str, Any]]:
     return out
 
 
-def _school_hours_regions_count() -> int:
+def _school_hours_regions_detail() -> tuple[int, list[str]]:
     """Regions where local hour is 08:00–15:00 (approximate from fleet markers)."""
     try:
         from apps.siteconfig.views_globe_api import _school_rows_for_globe
@@ -146,9 +146,15 @@ def _school_hours_regions_count() -> int:
             approx_local = (utc_hour + int(lng / 15)) % 24
             if 8 <= approx_local < 15 and region:
                 regions.add(region)
-        return len(regions)
+        ordered = sorted(regions)
+        return len(ordered), ordered
     except Exception:
-        return 0
+        return 0, []
+
+
+def _school_hours_regions_count() -> int:
+    count, _ = _school_hours_regions_detail()
+    return count
 
 
 def rules_whisper_line(
@@ -261,6 +267,7 @@ def build_operator_fleet_snapshot(*, pulse_limit: int = 3) -> dict[str, Any]:
         "whisper_line": whisper,
         "fleet_brief": brief,
         "school_hours_regions": _school_hours_regions_count(),
+        "school_hours_regions_list": _school_hours_regions_detail()[1],
         "aurora": aurora,
         "features": {
             "void_zones": True,
@@ -273,6 +280,13 @@ def build_operator_fleet_snapshot(*, pulse_limit: int = 3) -> dict[str, Any]:
             "void_parallax": True,
             "celebration_bloom": True,
             "executive_snapshot": True,
+            "day_arc": True,
+            "context_lens": True,
+            "pulse_timeline": True,
+            "hero_metric": True,
+            "glass_dock": True,
+            "constellation_mode": True,
+            "orbit_chips": True,
         },
         "regional_deltas": _regional_count_deltas(globe_data),
     }

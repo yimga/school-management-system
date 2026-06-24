@@ -25,6 +25,8 @@ type GlobeMarker = {
   cluster_count?: number;
   cluster_members?: Array<{ school_id?: string; name?: string; slug?: string; status?: string }>;
   point_radius?: number;
+  plan_tier?: string;
+  last_sync_label?: string;
 };
 
 type GlobeTheme = {
@@ -147,6 +149,7 @@ type RMCWorldGlobeApi = {
   getAltitude: () => number;
   getPointOfView: () => { lat: number; lng: number; altitude: number };
   setWowMode: (enabled: boolean) => void;
+  setConstellationMode: (enabled: boolean) => void;
 };
 
 declare global {
@@ -174,11 +177,15 @@ let liveRevision: string | null = null;
 let liveRefreshInFlight = false;
 let zoomRefreshTimer: ReturnType<typeof setTimeout> | null = null;
 let wowModeEnabled = false;
+let constellationModeEnabled = false;
 let expansionTargets: GlobeMarker[] = [];
 let baseArcs: GlobeArc[] = [];
+let hashViewApplied = false;
 let firstVisitHandled = false;
 
 const FIRST_VISIT_KEY = "rmc-globe-first-visit-done";
+const DEFAULT_CAMERA = { lat: 8, lng: -5, altitude: 1.02 };
+const FILL_ALTITUDE = 1.02;
 
 function readPayload(): GlobePayload | null {
   const el = document.getElementById("rmc-world-globe-data");
@@ -320,6 +327,38 @@ function markerPlaceLabel(m: GlobeMarker): string {
   if (country) parts.push(country);
   if (m.region) parts.push(m.region);
   return parts.join(" · ");
+}
+
+function markerTooltipMeta(m: GlobeMarker): string {
+  const parts: string[] = [];
+  if (m.plan_tier) parts.push(m.plan_tier);
+  if (m.last_sync_label) parts.push(`Sync ${m.last_sync_label}`);
+  return parts.join(" · ");
+}
+
+function parseGlobeHash(): GlobeCamera | null {
+  if (typeof window === "undefined") return null;
+  const match = window.location.hash.match(/#globe=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?),(\d+(?:\.\d+)?)/);
+  if (!match) return null;
+  return {
+    lat: parseFloat(match[1]),
+    lng: parseFloat(match[2]),
+    altitude: parseFloat(match[3]),
+  };
+}
+
+function applyGlobeHashIfPresent(globe: GlobeInstance): boolean {
+  const hashCam = parseGlobeHash();
+  if (!hashCam) return false;
+  globe.pointOfView(
+    {
+      lat: hashCam.lat ?? DEFAULT_CAMERA.lat,
+      lng: hashCam.lng ?? DEFAULT_CAMERA.lng,
+      altitude: hashCam.altitude ?? FILL_ALTITUDE,
+    },
+    0
+  );
+  return true;
 }
 
 function parseColorAlpha(color: string): { rgb: string; a: number } {
@@ -493,6 +532,15 @@ function bindArcs(globe: GlobeInstance, arcs: GlobeArc[], golden = false): void 
     .arcDashAnimateTime(prefersReducedMotion() ? 0 : golden ? 3200 : 2800);
 }
 
+function syncArcLayer(): void {
+  if (!globeInstance) return;
+  if ((wowModeEnabled || constellationModeEnabled) && baseArcs.length) {
+    bindArcs(globeInstance, baseArcs);
+  } else {
+    bindArcs(globeInstance, []);
+  }
+}
+
 function buildGoldenTourArcs(waypoints: TourWaypoint[]): GlobeArc[] {
   if (waypoints.length < 2) return [];
   const arcs: GlobeArc[] = [];
@@ -554,8 +602,17 @@ function largestClusterTarget(): GlobeMarker | null {
   };
 }
 
+function defaultCamera(): GlobeCamera {
+  const cam = payloadRef?.camera || {};
+  return {
+    lat: cam.lat ?? DEFAULT_CAMERA.lat,
+    lng: cam.lng ?? DEFAULT_CAMERA.lng,
+    altitude: cam.altitude ?? DEFAULT_CAMERA.altitude,
+  };
+}
+
 function maybeFirstVisitFlyIn(): void {
-  if (firstVisitHandled || prefersReducedMotion() || !featureEnabled("first_visit_fly_in")) return;
+  if (hashViewApplied || firstVisitHandled || prefersReducedMotion() || !featureEnabled("first_visit_fly_in")) return;
   try {
     if (sessionStorage.getItem(FIRST_VISIT_KEY)) {
       firstVisitHandled = true;
@@ -564,22 +621,26 @@ function maybeFirstVisitFlyIn(): void {
   } catch {
     return;
   }
-  const target = largestClusterTarget();
-  if (!target || !globeInstance) return;
+  if (!globeInstance) return;
   firstVisitHandled = true;
   try {
     sessionStorage.setItem(FIRST_VISIT_KEY, "1");
   } catch {
     /* ignore */
   }
+  const cam = defaultCamera();
+  globeInstance.pointOfView(
+    { lat: cam.lat ?? DEFAULT_CAMERA.lat, lng: cam.lng ?? DEFAULT_CAMERA.lng, altitude: 2.35 },
+    0
+  );
   window.setTimeout(() => {
     api.flyTo({
-      lat: target.lat,
-      lng: target.lng,
-      altitude: 1.18,
+      lat: cam.lat ?? DEFAULT_CAMERA.lat,
+      lng: cam.lng ?? DEFAULT_CAMERA.lng,
+      altitude: cam.altitude ?? FILL_ALTITUDE,
       ms: prefersReducedMotion() ? 0 : 2200,
     });
-  }, prefersReducedMotion() ? 0 : 900);
+  }, prefersReducedMotion() ? 0 : 700);
 }
 
 function syncWowMarkers(): void {
@@ -651,15 +712,17 @@ function initGlobe(container: HTMLElement, payload: GlobePayload): GlobeInstance
         return `<div class="lx-world__globe-tip"><strong>${m.cluster_count || 0} schools</strong><span>${m.region || ""}</span></div>`;
       }
       const place = markerPlaceLabel(m);
+      const meta = markerTooltipMeta(m);
       const title = m.name || m.label;
-      return `<div class="lx-world__globe-tip"><strong>${title}</strong><span>${place}</span></div>`;
+      const metaLine = meta ? `<span class="lx-world__globe-tip-meta">${meta}</span>` : "";
+      return `<div class="lx-world__globe-tip"><strong>${title}</strong><span>${place}</span>${metaLine}</div>`;
     })
     .onPointClick((d: object | null) => {
       if (!d) return;
       const m = d as GlobeMarker;
       if (m.is_cluster) {
         dispatchMarkerOpen(container, m);
-        api.flyTo({ lat: m.lat, lng: m.lng, altitude: 1.1, ms: 900 });
+        api.flyTo({ lat: m.lat, lng: m.lng, altitude: FILL_ALTITUDE, ms: 900 });
         return;
       }
       container.dispatchEvent(
@@ -697,11 +760,14 @@ function initGlobe(container: HTMLElement, payload: GlobePayload): GlobeInstance
   }
 
   const camera = payload.camera || {};
-  globe.pointOfView({
-    lat: camera.lat ?? 18,
-    lng: camera.lng ?? 0,
-    altitude: camera.altitude ?? 1.02,
-  });
+  hashViewApplied = applyGlobeHashIfPresent(globe);
+  if (!hashViewApplied) {
+    globe.pointOfView({
+      lat: camera.lat ?? DEFAULT_CAMERA.lat,
+      lng: camera.lng ?? DEFAULT_CAMERA.lng,
+      altitude: camera.altitude ?? FILL_ALTITUDE,
+    });
+  }
 
   const controls = globe.controls();
   controls.enableZoom = true;
@@ -758,7 +824,7 @@ const api: RMCWorldGlobeApi = {
     const controls = globeInstance.controls();
     controls.autoRotate = false;
     globeInstance.pointOfView(
-      { lat: opts.lat, lng: opts.lng, altitude: opts.altitude ?? 1.02 },
+      { lat: opts.lat, lng: opts.lng, altitude: opts.altitude ?? FILL_ALTITUDE },
       prefersReducedMotion() ? 0 : opts.ms ?? 1200
     );
     window.setTimeout(() => syncMapLabels(), prefersReducedMotion() ? 0 : (opts.ms ?? 1200) + 50);
@@ -768,7 +834,7 @@ const api: RMCWorldGlobeApi = {
     const centroids = payloadRef?.region_centroids || {};
     const c = centroids[region];
     if (!c) return;
-    api.flyTo({ lat: c.lat ?? 0, lng: c.lng ?? 0, altitude: 1.02, ms });
+    api.flyTo({ lat: c.lat ?? 0, lng: c.lng ?? 0, altitude: FILL_ALTITUDE, ms });
     api.highlightRegion(region);
   },
   highlightRegion(region) {
@@ -829,7 +895,7 @@ const api: RMCWorldGlobeApi = {
       api.flyTo({
         lat: wp.lat,
         lng: wp.lng,
-        altitude: wp.altitude ?? 1.05,
+        altitude: wp.altitude ?? FILL_ALTITUDE,
         ms: 1400,
       });
       const caption = document.getElementById("rmc-world-globe-tour-caption");
@@ -877,13 +943,13 @@ const api: RMCWorldGlobeApi = {
     const caption = document.getElementById("rmc-world-globe-tour-caption");
     if (caption) caption.textContent = "";
     if (!globeInstance || !payloadRef) return;
-    const cam = payloadRef.camera || {};
+    const cam = defaultCamera();
     const controls = globeInstance.controls();
     controls.autoRotate = Boolean(payloadRef.auto_rotate) && !prefersReducedMotion();
     api.flyTo({
-      lat: cam.lat ?? 18,
-      lng: cam.lng ?? 0,
-      altitude: cam.altitude ?? 1.02,
+      lat: cam.lat ?? DEFAULT_CAMERA.lat,
+      lng: cam.lng ?? DEFAULT_CAMERA.lng,
+      altitude: cam.altitude ?? FILL_ALTITUDE,
       ms: prefersReducedMotion() ? 0 : 1200,
     });
     window.setTimeout(() => syncMapLabels(), prefersReducedMotion() ? 0 : 1250);
@@ -892,20 +958,20 @@ const api: RMCWorldGlobeApi = {
     return globeInstance !== null;
   },
   getAltitude() {
-    if (!globeInstance) return 1.02;
+    if (!globeInstance) return FILL_ALTITUDE;
     const pov = globeInstance.pointOfView();
-    return typeof pov.altitude === "number" ? pov.altitude : 1.02;
+    return typeof pov.altitude === "number" ? pov.altitude : FILL_ALTITUDE;
   },
   getPointOfView() {
+    const cam = defaultCamera();
     if (!globeInstance) {
-      const cam = payloadRef?.camera || {};
-      return { lat: cam.lat ?? 18, lng: cam.lng ?? 0, altitude: cam.altitude ?? 1.02 };
+      return { lat: cam.lat ?? DEFAULT_CAMERA.lat, lng: cam.lng ?? DEFAULT_CAMERA.lng, altitude: cam.altitude ?? FILL_ALTITUDE };
     }
     const pov = globeInstance.pointOfView();
     return {
-      lat: typeof pov.lat === "number" ? pov.lat : 18,
-      lng: typeof pov.lng === "number" ? pov.lng : 0,
-      altitude: typeof pov.altitude === "number" ? pov.altitude : 1.02,
+      lat: typeof pov.lat === "number" ? pov.lat : DEFAULT_CAMERA.lat,
+      lng: typeof pov.lng === "number" ? pov.lng : DEFAULT_CAMERA.lng,
+      altitude: typeof pov.altitude === "number" ? pov.altitude : FILL_ALTITUDE,
     };
   },
   setWowMode(enabled) {
@@ -913,12 +979,12 @@ const api: RMCWorldGlobeApi = {
     if (!globeInstance) return;
     const controls = globeInstance.controls();
     controls.autoRotate = wowModeEnabled && Boolean(payloadRef?.auto_rotate) && !prefersReducedMotion();
-    if (wowModeEnabled && baseArcs.length) {
-      bindArcs(globeInstance, baseArcs);
-    } else if (!wowModeEnabled) {
-      bindArcs(globeInstance, []);
-    }
+    syncArcLayer();
     syncWowMarkers();
+  },
+  setConstellationMode(enabled) {
+    constellationModeEnabled = Boolean(enabled);
+    syncArcLayer();
   },
 };
 
@@ -953,9 +1019,6 @@ function boot(): void {
     }
     void api.refreshLive({ force: "1" });
     document.dispatchEvent(new CustomEvent("rmc:globe-ready"));
-    if (payload.tour_enabled && (payload.tour_waypoints || []).length > 1) {
-      window.setTimeout(() => api.startTour(), prefersReducedMotion() ? 0 : 1800);
-    }
   } catch {
     showFallback(container);
   }

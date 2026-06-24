@@ -7,23 +7,23 @@
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-intent-home.css' %}">
-  <link rel="stylesheet" href="{% static 'marketing/css/marketing-acquisition-engine.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/mkt-hero-sovereign.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/mkt-clinical-ledger.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/mkt-rugged-terminal.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/mkt-fluid-classroom.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/mkt-simulations-hub.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/mkt-hero-velocity.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-one-record-scroll.css' %}">
 {% endblock %}
 
 {% block extrajs %}
   {{ block.super }}
-  <script src="{% static 'marketing/js/mkt-speed-duel.js' %}" defer></script>
-  <script src="{% static 'marketing/js/mkt-edge-map.js' %}" defer></script>
-  <script src="{% static 'marketing/js/mkt-sandbox-wizard.js' %}" defer></script>
-  <script src="{% static 'marketing/js/mkt-split-ledger.js' %}" defer></script>
-  <script src="{% static 'marketing/js/mkt-network-state.js' %}" defer></script>
-  <script src="{% static 'marketing/js/mkt-gradebook-morph.js' %}" defer></script>
+  <script src="{% static 'marketing/js/mkt-one-record-scroll.js' %}" defer nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'marketing/js/mkt-speed-duel.js' %}" defer nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'marketing/js/mkt-sandbox-wizard.js' %}" defer nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'marketing/js/mkt-split-ledger.js' %}" defer nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'marketing/js/mkt-network-state.js' %}" defer nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'marketing/js/mkt-gradebook-morph.js' %}" defer nonce="{{ csp_nonce }}"></script>
 {% endblock %}
 
 {% block marketing_main_extra_classes %}mkt-intent-home px-0 py-0{% endblock %}
@@ -33,17 +33,7 @@
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
 <div class="mkt-intent-home__stack" data-mkt-intent-home>
-  {% include "marketing/partials/sections/_hero_speed_duel.html" %}
-  {% include "marketing/partials/sections/_sovereign_kernel.html" %}
-  {% include "marketing/partials/sections/_clinical_ledger.html" %}
-  {% include "marketing/partials/sections/_rugged_engine.html" %}
-  {% include "marketing/partials/sections/_fluid_classroom.html" %}
-  {% include "marketing/partials/sections/_simulations_hub.html" %}
+  {% include "marketing/partials/sections/_one_record_scroll.html" %}
 </div>
 {% include "marketing/partials/_personality_page_nav.html" with active="homepage" %}
-<nav class="mkt-intent-home__cta mkt-edt-container mkt-edt-container--wide" aria-label="{% trans 'Next steps' %}">
-  <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta mkt-edt-cta--primary" data-cta="demo">{% trans "Launch sandbox" %}</a>
-  <a href="{% url 'marketing_personality_page' 'zero-ui' %}" class="mkt-edt-cta mkt-edt-cta--ghost">{% trans "Zero-UI lab" %}</a>
-  <a href="{% url 'marketing_landing_v2' %}" class="mkt-edt-cta mkt-edt-cta--ghost">{% trans "Full platform story" %}</a>
-</nav>
 {% endblock %}

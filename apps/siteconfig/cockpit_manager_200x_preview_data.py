@@ -95,6 +95,9 @@ def _world_map_demo() -> dict[str, Any]:
     ]
     markers = build_globe_markers(demo_rows)
     globe_payload = build_globe_payload(markers, layout="hero", tour_enabled=True)
+    from apps.siteconfig.operator_fleet_snapshot import build_operator_fleet_snapshot
+
+    fleet_snapshot = build_operator_fleet_snapshot(pulse_limit=3)
     return {
         "enabled": True,
         "eyebrow": _("Global footprint"),
@@ -113,6 +116,8 @@ def _world_map_demo() -> dict[str, Any]:
         "globe_payload": globe_payload,
         "globe_payload_json": json.dumps(globe_payload),
         "svg_country_labels": globe_payload.get("country_labels") or [],
+        "fleet_snapshot": fleet_snapshot,
+        "fleet_snapshot_json": json.dumps(fleet_snapshot),
     }
 
 

@@ -1,5 +1,25 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Category-leadership gap closure wave (batch 1704 — 2026-06-24)
+
+**A. Scope:** Land all in-flight repo work from batches 1702–1703 plus P1/P2 competitive-audit optionals (signup country, R2 rehydrate, marketing one-record scroll, role-home sweep harness).
+
+**B. Shipped:** Tenant performance T1 dashboard + procurement trust nav; globe void/AI lab complete + `build:world-globe`; parent hybrid grade visibility wiring; `rmc-reconnect-rehydrate.js`; signup country validation; marketing one-record scroll; region backfill tests; `sweep:role-home`; SW **v4.04.93**.
+
+**C. Proof:** **TENANT_PERFORMANCE_T1_PASS**; **GLOBE_VOID_AI_LAB_PARITY_PASS**; **WORLD_GLOBE_10X_PASS**; **MARKETING_PROCUREMENT_TRUST_NAV_PASS**; SW monotonic OK.
+
+**D. Honest:** Full role-home Playwright sweep needs live server; T2 SLO alert rules + T3 self-host Prometheus remain next; 50-app matrix on Windows still flaky.
+
+## Slice — Globe void/AI lab complete + fill-frame camera (batch 1703 — 2026-06-24)
+
+**A. Scope:** Close all production gaps vs `globe-void-ai-lab-browsable.html` (#wow-plus): void zones, wow demo, fleet SSR bootstrap, centered fill-frame camera, W7–W20 optionals.
+
+**B. Shipped:** `compute_default_camera()` + fleet `plan_tier`/`last_sync_label` markers; SSR `fleet_snapshot_json`; void A–D + wow-on first paint; `#globe=` hash restore; removed auto-tour boot; `verify_globe_void_ai_lab_parity.py` extended; SW **v4.04.88**.
+
+**C. Proof:** **GLOBE_VOID_AI_LAB_PARITY_PASS**; **WORLD_GLOBE_10X_PASS**; **WORLD_GLOBE_ONLINE_OFFLINE_PARITY_PASS**; `test_globe_10x` + `test_operator_fleet_snapshot` green.
+
+**D. Honest:** Playwright globe layout sweep not run locally; presence badge needs second operator session; run `npm run build:world-globe` before deploy if mount.ts changed since last build.
+
 ## Slice — Globe void/AI lab + threshold-era marketing polish (2026-06-23)
 
 **A. Scope:** Ship in-flight operator fleet globe W1–W20 + void/AI tier parity, revolution-lab marketing media, fleet context bus API.

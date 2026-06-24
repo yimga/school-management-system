@@ -201,7 +201,7 @@
 // v4.03.63: operator provisioning queue (/super/provision-queue/ — all not-yet-live
 //   schools in one actionable list w/ requeue) + i18n: completion summary now server-
 //   translated/pluralized (completion_summary_text) and rendered by the progress JS.
-const CACHE_VERSION = "sms-v4.04.81-globe-void-ai-lab-complete-2026-06-23";
+const CACHE_VERSION = "sms-v4.04.93-reconnect-rehydrate-r2-gap-closure-2026-06-24";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -328,6 +328,7 @@ const STATIC_ASSETS = [
   "/static/css/rmc-wizard-assist.css",
   "/static/css/rmc-setup-surface.css",
   "/static/css/rmc-tenant-canvas-100x.css",
+  "/static/css/rmc-tenant-performance.css",
   "/static/css/rmc-operator-tools-tray.css",
   // v4.00.7–v4.00.10: adoption helpers (attendance, AI streaming, gradebook).
   "/static/js/_pages/rmc-attendance-wal-enhance.js",

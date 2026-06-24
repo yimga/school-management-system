@@ -127,7 +127,7 @@
         <div class="col-sm-6">
           <label for="country_code" class="form-label rmc-signup-field__label">
             <span class="rmc-signup-field__label-text">{% trans "Country" %}</span>
-            <span class="rmc-signup-field__optional">({% trans "optional" %})</span>
+            <span class="rmc-signup-field__required" aria-hidden="true">*</span>
           </label>
           {% if signup_countries %}
             {% comment %} v3.58.x Wave 9: GlobalGeoCatalog-backed dropdown. Each {% endcomment %}
@@ -136,6 +136,7 @@
             {% comment %} timezone and term_preset when the operator picks a country. {% endcomment %}
             <select name="country_code" id="country_code"
                     class="form-select rmc-signup-input"
+                    required
                     data-rmc-signup-country="1">
               <option value="">{% trans "-- Select country --" %}</option>
               {% for c in signup_countries %}
@@ -150,6 +151,8 @@
                    class="form-control rmc-signup-input rmc-signup-input--uppercase"
                    value="{{ country_code|default:'' }}"
                    maxlength="2"
+                   minlength="2"
+                   required
                    placeholder="KE"
                    autocomplete="country"
                    data-rmc-signup-country="1">

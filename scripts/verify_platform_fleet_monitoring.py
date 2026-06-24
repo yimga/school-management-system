@@ -21,12 +21,17 @@ REQUIRED_PATHS = (
     "apps/schools/views_fleet_live.py",
     "apps/schools/views_tenant_health_api.py",
     "apps/siteconfig/views_cockpit_live.py",
+    "static/js/rmc-operator-fleet-bus.js",
     "static/js/rmc-cp-cockpit-live.js",
     "static/js/rmc-fleet-live.js",
     "static/js/rmc-fleet-wall.js",
     "static/js/rmc-tenant-health-live.js",
     "templates/partials/cockpit/_tenant_heatmap.html",
     "templates/partials/tenant/operational_health_strip.html",
+    "templates/accounts/tenant_performance_dashboard.html",
+    "apps/observability/tenant_performance.py",
+    "apps/schools/views_tenant_performance.py",
+    "static/css/rmc-tenant-performance.css",
     "templates/schools/super_fleet_wall.html",
     "templates/schools/super_tenant_health.html",
 )
@@ -142,15 +147,23 @@ def _check_wiring() -> list[str]:
     pulse = _read("apps/siteconfig/cockpit_platform_pulse_service.py")
     if "resolve_fleet_summary" not in pulse:
         errors.append("cockpit_platform_pulse_service: schools card must use resolve_fleet_summary")
+    fleet_bus = _read("static/js/rmc-operator-fleet-bus.js")
+    if "EventSource" not in fleet_bus:
+        errors.append("rmc-operator-fleet-bus.js: must use SSE EventSource")
+    if "/super/api/operator/fleet/stream/" not in fleet_bus:
+        errors.append("rmc-operator-fleet-bus.js: must subscribe to operator fleet SSE")
+    if "rmc:fleet-snapshot" not in fleet_bus:
+        errors.append("rmc-operator-fleet-bus.js: must dispatch rmc:fleet-snapshot")
+    cp_shell = _read("templates/control_plane_skeleton.html")
+    if "rmc-operator-fleet-bus.js" not in cp_shell:
+        errors.append("control_plane_skeleton.html: must load rmc-operator-fleet-bus.js")
     fleet_js = _read("static/js/rmc-fleet-live.js")
-    if "EventSource" not in fleet_js:
-        errors.append("rmc-fleet-live.js: must use SSE EventSource")
-    if "buildStreamEndpoint" not in fleet_js:
-        errors.append("rmc-fleet-live.js: must build paginated SSE stream URL")
-    if "include_rows=1" not in fleet_js:
-        errors.append("rmc-fleet-live.js: must request include_rows on paginated SSE")
     if "usesPaginatedSse" not in fleet_js:
-        errors.append("rmc-fleet-live.js: must skip JSON poll when paginated SSE active")
+        errors.append("rmc-fleet-live.js: must detect paginated registry surfaces")
+    if "buildJsonEndpoint" not in fleet_js:
+        errors.append("rmc-fleet-live.js: must build paginated JSON endpoint for registry rows")
+    if "rmc:fleet-snapshot" not in fleet_js:
+        errors.append("rmc-fleet-live.js: must subscribe to operator fleet bus snapshot events")
     payload_py = _read("apps/schools/fleet_live_payload.py")
     if "since_revision" not in payload_py or "unchanged" not in payload_py:
         errors.append("fleet_live_payload.py: must support since_revision unchanged heartbeats")
@@ -168,8 +181,17 @@ def _check_wiring() -> list[str]:
     if "build_fleet_sse_payload" not in stream:
         errors.append("views_fleet_live.py: must use build_fleet_sse_payload")
     cockpit_js = _read("static/js/rmc-cp-cockpit-live.js")
-    if "/super/api/fleet/stream/" not in cockpit_js:
-        errors.append("rmc-cp-cockpit-live.js: must subscribe to fleet SSE")
+    if "rmc:fleet-snapshot" not in cockpit_js:
+        errors.append("rmc-cp-cockpit-live.js: must react to operator fleet bus snapshot")
+    operator_fleet_api = _read("apps/siteconfig/views_operator_fleet_api.py")
+    if "text/event-stream" not in operator_fleet_api:
+        errors.append("views_operator_fleet_api.py: operator fleet stream must emit text/event-stream")
+    super_urls = _read("apps/schools/super_urls.py")
+    if "api/operator/fleet/stream/" not in super_urls:
+        errors.append("super_urls.py: missing operator fleet SSE route")
+    accounts_urls = _read("apps/accounts/urls.py")
+    if "tenant_performance_dashboard" not in accounts_urls:
+        errors.append("accounts/urls.py: missing tenant performance dashboard route")
     tenant_js = _read("static/js/rmc-tenant-health-live.js")
     if "EventSource" not in tenant_js:
         errors.append("rmc-tenant-health-live.js: must use SSE EventSource")

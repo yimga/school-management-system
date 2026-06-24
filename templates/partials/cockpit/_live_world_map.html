@@ -4,7 +4,9 @@
 {% endcomment %}
 {% if cockpit.live_world_map.enabled %}
 {% with lwm_layout=cockpit.live_world_map.layout|default:"hero" %}
-<section class="lx-card lx-world lx-world--{{ lwm_layout }}" aria-label="{% trans 'Live world map of tenant locations' %}" data-rmc-page-fold-nav="required" data-rmc-globe-wow-plus="1">
+{% with lwm_fleet=cockpit.live_world_map.fleet_snapshot %}
+{% with lwm_features=cockpit.live_world_map.globe_payload.features %}
+<section class="lx-card lx-world lx-world--{{ lwm_layout }}{% if lwm_features.wow_enabled != False %} lx-world--wow-on{% endif %}{% if lwm_features.context_lens != False %} lx-world--quiet-lens{% endif %}{% if lwm_layout == 'full' and lwm_features.glass_dock != False %} lx-world--full-bleed{% endif %}" aria-label="{% trans 'Live world map of tenant locations' %}" data-rmc-page-fold-nav="required" data-rmc-globe-wow-plus="1" data-rmc-globe-surface-elevation="1">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="lx-world__map" id="rmc-world-globe-map-shell">
     <div class="lx-world__globe-skeleton rmc-skeleton" aria-hidden="true" aria-busy="true"></div>
@@ -57,10 +59,18 @@
     {% if cockpit.live_world_map.globe_payload_json %}
     <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-world-globe-data">{{ cockpit.live_world_map.globe_payload_json|safe }}</script>
     {% endif %}
-    <div class="lx-world__map-chrome">
+    {% if cockpit.live_world_map.fleet_snapshot_json %}
+    <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-operator-fleet-bootstrap">{{ cockpit.live_world_map.fleet_snapshot_json|safe }}</script>
+    {% endif %}
+    <div class="lx-world__map-chrome" id="rmc-world-globe-map-chrome">
       <span id="rmc-world-globe-freshness" class="lx-world__freshness">{% trans "Loading…" %}</span>
-      <button type="button" class="lx-world__tour-btn" id="rmc-world-globe-share-viewport" hidden>{% trans "Share view" %}</button>
-      <button type="button" class="lx-world__tour-btn" id="rmc-world-globe-snapshot-export" hidden>{% trans "Snapshot" %}</button>
+      {% if lwm_features.wow_enabled != False %}
+      <button type="button" class="lx-world__tour-btn lx-world__wow-demo-btn on" id="rmc-world-globe-wow-demo">{% trans "✦ Wow demo" %}</button>
+      {% endif %}
+      <button type="button" class="lx-world__tour-btn lx-world__map-chrome--wow-hide" id="rmc-world-globe-share-viewport" hidden>{% trans "Share view" %}</button>
+      {% if lwm_features.executive_snapshot != False %}
+      <button type="button" class="lx-world__tour-btn" id="rmc-world-globe-snapshot-export">{% trans "Snapshot" %}</button>
+      {% endif %}
       {% if cockpit.live_world_map.tour_enabled|default:True %}
       <div class="lx-world__tour-controls" role="group" aria-label="{% trans 'Globe tour' %}">
         <button type="button" class="lx-world__tour-btn" id="rmc-world-globe-tour-start">{% trans "Tour" %}</button>
@@ -73,8 +83,9 @@
       </div>
       {% endif %}
     </div>
-    <div class="lx-world__void-zone lx-world__void-zone--ui lx-world__void-zone--tr" id="rmc-world-globe-void-viewport" hidden>
-      <b>{% trans "Viewport" %}</b>
+    {% if lwm_features.void_zones != False %}
+    <div class="lx-world__void-zone lx-world__void-zone--ui lx-world__void-zone--tr" id="rmc-world-globe-void-viewport">
+      <b>{% trans "A · Viewport" %}</b>
       <span id="rmc-world-globe-viewport-chip">{% trans "Pan & zoom to explore" %}</span>
       <span class="lx-world__presence lx-world__presence--wow" id="rmc-world-globe-presence" hidden>
         <span class="lx-world__presence-dot" aria-hidden="true"></span>
@@ -85,18 +96,76 @@
       <b>{% trans "Share view" %}</b>
       <span id="rmc-world-globe-share-hash">—</span>
     </div>
-    <div class="lx-world__void-zone lx-world__void-zone--data lx-world__void-zone--mr" id="rmc-world-globe-void-school-hours" hidden>
-      <b>{% trans "School hours" %}</b>
-      <span id="rmc-world-globe-school-hours-text">—</span>
+    <div class="lx-world__void-zone lx-world__void-zone--data lx-world__void-zone--mr" id="rmc-world-globe-void-school-hours">
+      <b>{% trans "B · School hours" %}</b>
+      <span id="rmc-world-globe-school-hours-text">{% if lwm_fleet and lwm_fleet.school_hours_regions %}{{ lwm_fleet.school_hours_regions }} {% trans "region(s) in school hours" %}{% else %}{% trans "No regions in school hours" %}{% endif %}</span>
     </div>
-    <div class="lx-world__void-zone lx-world__void-zone--data lx-world__void-zone--bl" id="rmc-world-globe-void-caption" hidden>
-      <b>{% trans "Caption" %}</b>
+    <div class="lx-world__void-zone lx-world__void-zone--data lx-world__void-zone--bl" id="rmc-world-globe-void-caption">
+      <b>{% trans "C · Caption" %}</b>
       <span id="rmc-world-globe-void-caption-text">{% trans "Drag · zoom · click pin" %}</span>
     </div>
-    <div class="lx-world__void-zone lx-world__void-zone--ai lx-world__void-zone--br" id="rmc-world-globe-void-whisper" hidden>
-      <b>{% trans "Fleet whisper" %}</b>
-      <span id="rmc-world-globe-whisper-line">{% trans "Loading fleet signal…" %}</span>
+    <div class="lx-world__void-zone lx-world__void-zone--ai lx-world__void-zone--br" id="rmc-world-globe-void-whisper">
+      <b>{% trans "D · Fleet whisper" %}</b>
+      <span id="rmc-world-globe-whisper-line">{% if lwm_fleet and lwm_fleet.whisper_line %}{{ lwm_fleet.whisper_line }}{% else %}{% trans "Fleet healthy · pan to explore pins" %}{% endif %}</span>
     </div>
+    {% endif %}
+    {% if lwm_features.day_arc != False %}
+    <div class="lx-world__day-arc" id="rmc-world-globe-day-arc" aria-live="polite">
+      <strong>{% trans "School hours now" %}</strong>
+      <span id="rmc-world-globe-day-arc-text">{% if lwm_fleet and lwm_fleet.school_hours_regions_list %}{{ lwm_fleet.school_hours_regions_list|join:" · " }} · {% trans "08:00–15:00 local" %}{% elif lwm_fleet and lwm_fleet.school_hours_regions %}{% blocktrans count counter=lwm_fleet.school_hours_regions %}{{ counter }} region in school hours · 08:00–15:00 local{% plural %}{{ counter }} regions in school hours · 08:00–15:00 local{% endblocktrans %}{% else %}{% trans "No regions in school hours" %}{% endif %}</span>
+    </div>
+    {% endif %}
+    {% if lwm_features.hero_metric != False %}
+    <div class="lx-world__hero-metric" id="rmc-world-globe-hero-metric" aria-hidden="true">
+      <div class="lx-world__hero-metric-n" id="rmc-world-globe-hero-n">{{ cockpit.live_world_map.schools_live|default:"—" }}</div>
+      <div class="lx-world__hero-metric-lbl">{% trans "schools live" %}</div>
+    </div>
+    {% if cockpit.live_world_map.regional_breakdown %}
+    {% for row in cockpit.live_world_map.regional_breakdown %}
+    <button type="button" class="lx-world__orbit-chip lx-world__orbit-chip--{{ forloop.counter }}" data-rmc-region="{{ row.label }}" data-rmc-fly-lat="{{ row.fly_lat|default:'' }}" data-rmc-fly-lng="{{ row.fly_lng|default:'' }}" id="rmc-world-globe-orbit-{{ forloop.counter }}">{{ row.label }} · {{ row.count }}</button>
+    {% endfor %}
+    {% endif %}
+    {% endif %}
+    {% if lwm_features.context_lens != False %}
+    <div class="lx-world__context-lens" id="rmc-world-globe-context-lens" hidden>
+      <div class="lx-world__context-lens-body">
+        <div class="lx-world__context-lens-school" id="rmc-world-globe-context-school">{% trans "School" %}</div>
+        <div class="lx-world__context-lens-meta" id="rmc-world-globe-context-meta"></div>
+      </div>
+      <button type="button" class="lx-world__context-lens-go" id="rmc-world-globe-context-open">{% trans "Open school →" %}</button>
+    </div>
+    <div class="lx-world__kbd-bar" id="rmc-world-globe-kbd-bar" aria-label="{% trans 'Keyboard shortcuts' %}">
+      <span><kbd>T</kbd> {% trans "tour" %}</span>
+      <span><kbd>R</kbd> {% trans "reset" %}</span>
+      <span><kbd>1–4</kbd> {% trans "regions" %}</span>
+      <span><kbd>Esc</kbd> {% trans "clear" %}</span>
+    </div>
+    {% endif %}
+    {% if lwm_features.glass_dock != False %}
+    <div class="lx-world__glass-dock" id="rmc-world-globe-glass-dock">
+      <span class="lx-world__glass-dock-metric" id="rmc-world-globe-dock-metric">{{ cockpit.live_world_map.schools_live|default:"—" }} {% trans "schools live" %}</span>
+      <span class="lx-world__glass-dock-sep" aria-hidden="true"></span>
+      <div class="lx-world__glass-dock-chips" id="rmc-world-globe-dock-regions" data-rmc-scroll-policy="discovery">
+        {% for row in cockpit.live_world_map.regional_breakdown %}
+        <button type="button" class="lx-world__glass-dock-chip" data-rmc-region="{{ row.label }}" data-rmc-fly-lat="{{ row.fly_lat|default:'' }}" data-rmc-fly-lng="{{ row.fly_lng|default:'' }}">{{ row.label }} {{ row.count }}</button>
+        {% endfor %}
+      </div>
+      <span class="lx-world__glass-dock-sep" aria-hidden="true"></span>
+      <div class="lx-world__glass-dock-chips lx-world__glass-dock-chips--status">
+        <button type="button" class="lx-world__glass-dock-chip on" data-rmc-status-filter="active">{% trans "Active" %}</button>
+        <button type="button" class="lx-world__glass-dock-chip" data-rmc-status-filter="suspended">{% trans "Suspended" %}</button>
+        <button type="button" class="lx-world__glass-dock-chip" data-rmc-status-filter="frozen">{% trans "Frozen" %}</button>
+      </div>
+    </div>
+    {% endif %}
+    {% if lwm_features.constellation_mode != False %}
+    <div class="lx-world__hq-pin" id="rmc-world-globe-hq-pin" title="{% trans 'RunMyCampus HQ' %}" aria-hidden="true" hidden></div>
+    <div class="lx-world__icon-rail" id="rmc-world-globe-icon-rail" role="group" aria-label="{% trans 'Globe layers' %}">
+      <button type="button" class="lx-world__icon-rail-btn" id="rmc-world-globe-constellation-toggle" aria-pressed="false" title="{% trans 'Connections' %}">⌁</button>
+      <button type="button" class="lx-world__icon-rail-btn" id="rmc-world-globe-regions-rail" aria-pressed="false" title="{% trans 'Regions' %}">◉</button>
+      <button type="button" class="lx-world__icon-rail-btn" id="rmc-world-globe-tour-rail" aria-pressed="false" title="{% trans 'Tour' %}">▶</button>
+    </div>
+    {% endif %}
     <div class="lx-world__celebrate" id="rmc-world-globe-celebrate" aria-hidden="true"></div>
     <p id="rmc-world-globe-tour-caption" class="lx-world__tour-caption" aria-live="polite"></p>
   </div>
@@ -121,17 +190,24 @@
     </div>
     <p id="rmc-world-globe-offline-note" class="lx-world__offline-note small text-muted mb-0" hidden>{% trans "Interactive globe unavailable — showing regional map. Visit online once to cache the 3D globe for offline use, or connect to retry." %}</p>
     <p id="rmc-world-globe-live-region" class="visually-hidden-focusable" aria-live="polite"></p>
-    <div class="lx-world__fleet-pulse" id="rmc-world-globe-fleet-pulse" hidden>
-      <div class="lx-world__fleet-pulse-title">{% trans "Fleet pulse" %}</div>
-      <div id="rmc-world-globe-pulse-list"></div>
+    <div class="lx-world__fleet-pulse" id="rmc-world-globe-fleet-pulse"{% if not lwm_fleet or not lwm_fleet.pulse_events %} hidden{% endif %}>
+      <div class="lx-world__fleet-pulse-title"><span class="lx-world__block-badge lx-world__block-badge--data">{% trans "Live" %}</span>{% trans "Fleet pulse" %}</div>
+      <div id="rmc-world-globe-pulse-list">
+        {% if lwm_fleet and lwm_fleet.pulse_events %}
+        {% for ev in lwm_fleet.pulse_events %}
+        <div class="lx-world__fleet-pulse-item"><time>{{ ev.time_label }}</time><span>{{ ev.text }}</span></div>
+        {% endfor %}
+        {% endif %}
+      </div>
     </div>
-    <div class="lx-world__ai-brief" id="rmc-world-globe-ai-brief" hidden>
-      <strong id="rmc-world-globe-brief-headline"></strong>
-      <p id="rmc-world-globe-brief-body" class="mb-0 mt-1"></p>
+    <div class="lx-world__ai-brief" id="rmc-world-globe-ai-brief"{% if not lwm_fleet or not lwm_fleet.fleet_brief %} hidden{% endif %}>
+      <div class="lx-world__ai-brief-label"><span class="lx-world__block-badge lx-world__block-badge--ai">{% trans "AI" %}</span>{% trans "Fleet brief" %}</div>
+      <strong id="rmc-world-globe-brief-headline">{% if lwm_fleet and lwm_fleet.fleet_brief.headline %}{{ lwm_fleet.fleet_brief.headline }}{% endif %}</strong>
+      <p id="rmc-world-globe-brief-body" class="mb-0 mt-1">{% if lwm_fleet and lwm_fleet.fleet_brief.body %}{{ lwm_fleet.fleet_brief.body }}{% endif %}</p>
       <button type="button" class="lx-world__ask-fleet" id="rmc-world-globe-ask-fleet">{% trans "Ask about this fleet view →" %}</button>
     </div>
     <div class="lx-world__expansion-radar" id="rmc-world-globe-expansion-radar" hidden>
-      <div class="lx-world__expansion-radar-title">{% trans "Expansion targets" %}</div>
+      <div class="lx-world__expansion-radar-title"><span class="lx-world__block-badge lx-world__block-badge--data">{% trans "Radar" %}</span>{% trans "Expansion targets" %}</div>
       <p class="lx-world__expansion-radar-copy mb-0" id="rmc-world-globe-expansion-copy"></p>
     </div>
     <div class="lx-world__operator-guide" id="rmc-world-globe-operator-guide" aria-label="{% trans 'How to use the globe' %}">
@@ -141,18 +217,34 @@
         <li>{% trans "Drag to rotate · scroll to zoom" %}</li>
         <li>{% trans "Hover a region to highlight · click to fly there" %}</li>
         <li>{% trans "Click a pin for school details · filter by status chips" %}</li>
-        <li>{% trans "Shortcuts: T tour · R reset · Esc clear filters" %}</li>
+        <li>{% trans "Shortcuts: T tour · R reset · 1–4 fly regions · Esc clear" %}</li>
       </ul>
     </div>
   </div>
+  {% if lwm_features.pulse_timeline != False %}
+  <div class="lx-world__pulse-timeline" id="rmc-world-globe-pulse-timeline" data-rmc-scroll-policy="discovery" aria-label="{% trans 'Fleet pulse timeline' %}">
+    <div class="lx-world__pulse-timeline-track" id="rmc-world-globe-pulse-timeline-track">
+      {% if lwm_fleet and lwm_fleet.pulse_events %}
+      {% for ev in lwm_fleet.pulse_events %}
+      <div class="lx-world__pulse-timeline-evt"><time>{{ ev.time_label }}</time><strong>{{ ev.text }}</strong></div>
+      {% endfor %}
+      {% else %}
+      <div class="lx-world__pulse-timeline-evt lx-world__pulse-timeline-evt--empty"><time>{% trans "Live" %}</time><strong>{% trans "Fleet pulse will appear here as schools change" %}</strong></div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
 </section>
 
 {% include "components/rmc_bottom_sheet.html" with sheet_id="rmc-world-globe-school-sheet" sheet_title=_("Schools at this location") sheet_variant="rmc-sheet--md" sheet_body='<div id="rmc-world-globe-sheet-body"></div>' %}
 
 {% endwith %}
+{% endwith %}
+{% endwith %}
 {% if cockpit.live_world_map.globe_payload_json %}
 <script src="{% static 'js/rmc-world-globe-loader.js' %}" defer nonce="{{ csp_nonce }}" data-rmc-world-globe-loader="1" data-rmc-mount-src="{% static 'js/dist/world-globe.mount.js' %}"></script>
 <script src="{% static 'js/rmc-world-globe-bridge.js' %}" defer nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/rmc-world-globe-wow-plus.js' %}" defer nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/rmc-world-globe-surface-elevation.js' %}" defer nonce="{{ csp_nonce }}"></script>
 {% endif %}
 {% endif %}

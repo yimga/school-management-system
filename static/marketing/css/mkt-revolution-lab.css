@@ -124,6 +124,56 @@
   font-weight: 650;
 }
 
+/* Procurement trust nav — below threshold portal animation */
+.mkt-rev-trust-nav {
+  text-align: center;
+  padding: 0.75rem 1rem 0.65rem;
+  background: #fff;
+  border-bottom: 1px solid rgba(18, 16, 24, 0.08);
+}
+
+.mkt-rev-trust-nav__kicker {
+  margin: 0 0 0.45rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #5c5768;
+}
+
+.mkt-rev-trust-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem 0.65rem;
+}
+
+.mkt-rev-trust-nav__list a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: #121018;
+  border: 1px solid rgba(18, 16, 24, 0.12);
+  background: #f8f6f2;
+  transition: background var(--motion-fast, 150ms) var(--ease-out, ease-out),
+    border-color var(--motion-fast, 150ms) var(--ease-out, ease-out);
+}
+
+.mkt-rev-trust-nav__list a:hover,
+.mkt-rev-trust-nav__list a:focus-visible {
+  background: #fff;
+  border-color: rgba(99, 102, 241, 0.45);
+  color: #4338ca;
+}
+
 .mkt-rev-sims-bridge {
   scroll-margin-top: 4rem;
 }

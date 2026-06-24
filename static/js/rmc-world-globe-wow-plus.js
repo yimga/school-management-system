@@ -41,8 +41,35 @@
     if (api() && api().setWowMode) api().setWowMode(!!on);
     var shareVoid = document.getElementById("rmc-world-globe-void-share");
     var snapBtn = document.getElementById("rmc-world-globe-snapshot-export");
-    if (shareVoid && on) shareVoid.hidden = false;
-    if (snapBtn && on && featureEnabled("executive_snapshot")) snapBtn.hidden = false;
+    var wowBtn = document.getElementById("rmc-world-globe-wow-demo");
+    if (shareVoid) shareVoid.hidden = !on;
+    if (snapBtn && featureEnabled("executive_snapshot")) snapBtn.hidden = false;
+    if (wowBtn) wowBtn.classList.toggle("on", !!on);
+    if (on) applyAuroraFromSnapshot();
+  }
+
+  function applyAuroraFromSnapshot() {
+    var snap = window.__rmcOperatorFleetSnapshot || readFleetBootstrap();
+    var shell = document.getElementById("rmc-world-globe-map-shell");
+    if (!shell || !snap || !snap.aurora) return;
+    shell.classList.remove(
+      "lx-world__map--aurora-warn",
+      "lx-world__map--aurora-good",
+      "lx-world__map--aurora-danger"
+    );
+    if (snap.aurora === "warn") shell.classList.add("lx-world__map--aurora-warn");
+    else if (snap.aurora === "danger") shell.classList.add("lx-world__map--aurora-danger");
+    else shell.classList.add("lx-world__map--aurora-good");
+  }
+
+  function readFleetBootstrap() {
+    var el = document.getElementById("rmc-operator-fleet-bootstrap");
+    if (!el || !el.textContent) return null;
+    try {
+      return JSON.parse(el.textContent);
+    } catch (_e) {
+      return null;
+    }
   }
 
   function revealVoidZones() {
@@ -64,7 +91,7 @@
     if (!wrap || !text || !featureEnabled("globe_presence")) return;
     if (count > 0) {
       wrap.hidden = false;
-      text.textContent = count + " viewing";
+      text.textContent = count + " operator" + (count === 1 ? "" : "s") + " viewing";
     } else {
       wrap.hidden = true;
       text.textContent = "";
@@ -161,6 +188,13 @@
       if (!pov) return;
       hashEl.textContent =
         "#globe=" + pov.lat.toFixed(1) + "," + pov.lng.toFixed(1) + "," + (pov.altitude || 1.02).toFixed(2);
+      try {
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState(null, "", hashEl.textContent);
+        }
+      } catch (_e) {
+        /* ignore */
+      }
     } catch (_e) {
       /* ignore */
     }
@@ -171,7 +205,48 @@
     var stage = document.getElementById("rmc-world-globe-stage");
     var canvas = stage ? stage.querySelector("canvas") : null;
     if (!canvas || !canvas.toBlob) return;
-    canvas.toBlob(function (blob) {
+    var legend = section.querySelector(".lx-world__legend-panel");
+    var mapW = canvas.width;
+    var mapH = canvas.height;
+    var legW = legend ? Math.round(Math.min(360, mapW * 0.34)) : 0;
+    var out = document.createElement("canvas");
+    out.width = mapW + legW;
+    out.height = mapH;
+    var ctx = out.getContext("2d");
+    if (!ctx) return;
+    ctx.fillStyle = "#0c101c";
+    ctx.fillRect(0, 0, out.width, out.height);
+    ctx.drawImage(canvas, 0, 0);
+    if (legend && legW) {
+      ctx.fillStyle = "#121829";
+      ctx.fillRect(mapW, 0, legW, mapH);
+      ctx.fillStyle = "#64748b";
+      ctx.font = "600 10px Inter, system-ui, sans-serif";
+      ctx.fillText("GLOBAL FOOTPRINT", mapW + 16, 28);
+      var countEl = section.querySelector(".lx-world__count");
+      if (countEl) {
+        ctx.fillStyle = "#f1f5f9";
+        ctx.font = "700 44px Inter, system-ui, sans-serif";
+        var countText = (countEl.childNodes[0] && countEl.childNodes[0].textContent) || countEl.textContent;
+        ctx.fillText(String(countText).trim(), mapW + 16, 72);
+      }
+      var sub = section.querySelector(".lx-world__count-sub");
+      if (sub && sub.textContent) {
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "12px Inter, system-ui, sans-serif";
+        ctx.fillText(sub.textContent.trim().slice(0, 42), mapW + 16, 92);
+      }
+      var rows = section.querySelectorAll(".lx-world__legend-row[data-rmc-region]");
+      rows.forEach(function (row, i) {
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "12px Inter, system-ui, sans-serif";
+        var label = row.getAttribute("data-rmc-region") || "";
+        var strong = row.querySelector("strong");
+        var cnt = strong ? strong.textContent : "";
+        ctx.fillText(label + "  " + cnt, mapW + 16, 120 + i * 26);
+      });
+    }
+    out.toBlob(function (blob) {
       if (!blob) return;
       var url = URL.createObjectURL(blob);
       var a = document.createElement("a");
@@ -210,9 +285,14 @@
   }
 
   function wireFleetHandlers() {
+    document.addEventListener("rmc:globe-wow-toggle", function (ev) {
+      var on = ev.detail && typeof ev.detail.on === "boolean" ? ev.detail.on : true;
+      setWowOn(on);
+    });
+
     document.addEventListener("rmc:fleet-snapshot", function (ev) {
       var detail = ev.detail || {};
-      if (featureEnabled("wow_enabled")) setWowOn(true);
+      if (featureEnabled("wow_enabled") || featureEnabled("void_zones")) setWowOn(true);
       if (detail.regional_deltas) showRegionalDeltas(detail.regional_deltas);
       maybeCelebrateOnboard(detail);
       if (detail.aurora) {
@@ -223,7 +303,7 @@
     });
 
     document.addEventListener("rmc:globe-ready", function () {
-      setWowOn(featureEnabled("wow_enabled"));
+      setWowOn(featureEnabled("wow_enabled") || featureEnabled("void_zones"));
       revealVoidZones();
       renderExpansionRadar();
       syncShareHash();
@@ -241,13 +321,20 @@
     wireVoidParallax();
     wireSnapshotButton();
     wireFleetHandlers();
-    if (featureEnabled("wow_enabled")) setWowOn(true);
+    var bootstrap = readFleetBootstrap();
+    if (bootstrap) window.__rmcOperatorFleetSnapshot = bootstrap;
+    var wowDefault =
+      section.classList.contains("lx-world--wow-on") ||
+      featureEnabled("wow_enabled") ||
+      featureEnabled("void_zones");
+    setWowOn(wowDefault);
     revealVoidZones();
     renderExpansionRadar();
     var snap = window.__rmcOperatorFleetSnapshot;
     if (snap) {
       if (snap.regional_deltas) showRegionalDeltas(snap.regional_deltas);
       lastSchoolsLive = snap.schools_live;
+      applyAuroraFromSnapshot();
     }
   }
 

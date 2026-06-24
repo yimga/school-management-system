@@ -74,6 +74,13 @@
       "sweep": true
     },
     {
+      "path": "/t/demo-school/authentication/backend/",
+      "inner": "/authentication/backend/",
+      "name": "backend_dashboard",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
       "path": "/t/demo-school/portal/parent/",
       "inner": "/portal/parent/",
       "name": "parent_dashboard",
@@ -84,6 +91,13 @@
       "path": "/t/demo-school/portal/student-portal/grades/",
       "inner": "/portal/student-portal/grades/",
       "name": "student_portal_grades",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/teacher/",
+      "inner": "/portal/teacher/",
+      "name": "teacher_dashboard_alias",
       "slug": "demo-school",
       "sweep": true
     },
@@ -210,13 +224,6 @@
       "path": "/t/demo-school/authentication/backend-dashboard/",
       "inner": "/authentication/backend-dashboard/",
       "name": "backend_dashboard_alt",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/authentication/backend/",
-      "inner": "/authentication/backend/",
-      "name": "backend_dashboard",
       "slug": "demo-school",
       "sweep": true
     },
@@ -644,6 +651,13 @@
       "path": "/t/demo-school/authentication/backend/ops/visitors/",
       "inner": "/authentication/backend/ops/visitors/",
       "name": "ops_visitor_log",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/backend/performance/",
+      "inner": "/authentication/backend/performance/",
+      "name": "tenant_performance_dashboard",
       "slug": "demo-school",
       "sweep": true
     },
@@ -1386,20 +1400,6 @@
       "path": "/t/demo-school/portal/ai/draft/lesson-outline/",
       "inner": "/portal/ai/draft/lesson-outline/",
       "name": "ai_draft_lesson_outline",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/ai/draft/parent-message/",
-      "inner": "/portal/ai/draft/parent-message/",
-      "name": "ai_draft_parent_message",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/ai/draft/report-card-comment/",
-      "inner": "/portal/ai/draft/report-card-comment/",
-      "name": "ai_draft_report_card_comment",
       "slug": "demo-school",
       "sweep": true
     }

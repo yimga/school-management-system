@@ -14,6 +14,9 @@
     <span class="rmc-tenant-health__dot" aria-hidden="true"></span>
     <strong class="rmc-tenant-health__title">{% trans "School status" %}</strong>
     <span class="rmc-tenant-health__label ms-2" data-rmc-tenant-health-label>{{ tenant_health.label|default:_("All systems operational") }}</span>
+    {% if health_surface == "admin" %}
+    <a class="rmc-dh-chip rmc-dh-chip--muted ms-2 small" href="{% url 'accounts:tenant_performance_dashboard' %}">{% trans "Performance" %}</a>
+    {% endif %}
     <span class="text-muted small ms-auto">{% trans "Updated" %} <span data-rmc-tenant-health-refreshed></span></span>
   </div>
   <div class="rmc-tenant-health__signals d-flex flex-wrap gap-1 mt-2" data-rmc-tenant-health-signals>

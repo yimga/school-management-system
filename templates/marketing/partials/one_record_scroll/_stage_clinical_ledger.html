@@ -1,0 +1,46 @@
+{% load i18n %}
+<div
+  class="mkt-cl-layout"
+  data-mkt-split-ledger
+  data-mkt-default-region="{{ geo.country_code|default:'US' }}"
+>
+  <form class="mkt-cl-panel" data-mkt-cl-form aria-label="{% trans 'Payment split simulator' %}">
+    <label class="mkt-cl-field">
+      <span class="mkt-cl-field__label">{% trans "Region / tax authority" %}</span>
+      <select class="mkt-cl-select" data-mkt-cl-region>
+        <option value="US">{% trans "United States — Sales Tax (IRS)" %}</option>
+        <option value="GB">{% trans "United Kingdom — VAT (HMRC)" %}</option>
+        <option value="AE">{% trans "United Arab Emirates — VAT (FTA)" %}</option>
+        <option value="NG">{% trans "Nigeria — VAT (FIRS)" %}</option>
+        <option value="KE">{% trans "Kenya — VAT (KRA)" %}</option>
+        <option value="BR">{% trans "Brazil — NF-e (SEFAZ)" %}</option>
+        <option value="MX">{% trans "Mexico — CFDI (SAT)" %}</option>
+      </select>
+    </label>
+    <label class="mkt-cl-field">
+      <span class="mkt-cl-field__label">
+        {% trans "Invoice amount" %}
+        <strong class="mkt-cl-amount" data-mkt-cl-amount>—</strong>
+      </span>
+      <input type="range" class="mkt-cl-slider" min="500" max="50000" step="500" value="12000" data-mkt-cl-slider aria-label="{% trans 'Invoice amount' %}">
+    </label>
+    <ul class="mkt-cl-rails" data-mkt-cl-rails aria-label="{% trans 'Regional payment rails' %}"></ul>
+    <button type="button" class="mkt-cl-process" data-mkt-cl-process>{% trans "Process payment" %}</button>
+  </form>
+  <div class="mkt-cl-ledger" aria-live="polite">
+    <div class="mkt-cl-ledger__bar" data-mkt-cl-bar role="img" aria-label="{% trans 'Payment distribution bar' %}">
+      <span class="mkt-cl-seg mkt-cl-seg--tuition" data-seg="tuition"></span>
+      <span class="mkt-cl-seg mkt-cl-seg--transport" data-seg="transport"></span>
+      <span class="mkt-cl-seg mkt-cl-seg--uniform" data-seg="uniform"></span>
+    </div>
+    <table class="mkt-cl-table">
+      <tbody data-mkt-cl-rows></tbody>
+    </table>
+    <div class="mkt-cl-stamp" data-mkt-cl-stamp aria-hidden="true">
+      <span class="mkt-cl-stamp__auth" data-mkt-cl-stamp-auth>E-INVOICE</span>
+      <span class="mkt-cl-stamp__id" data-mkt-cl-stamp-id>UUID —</span>
+      <span class="mkt-cl-stamp__seal">{% trans "STAMPED" %}</span>
+    </div>
+  </div>
+</div>
+<p class="mkt-edt-illustrative-pill">{% trans "Illustrative split + e-invoice stamp. No real charge." %}</p>

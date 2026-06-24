@@ -1,0 +1,46 @@
+{% load i18n %}
+<div class="mkt-ve-wizard" data-mkt-sandbox-wizard>
+  <div class="mkt-ve-wizard__head">
+    <h2 class="mkt-ve-wizard__title">{% trans "Deployment matrix · sandbox" %}</h2>
+    <span class="mkt-ve-wizard__badge" data-mkt-sandbox-badge>{{ geo.country_code }} {% trans "Core Active" %}</span>
+  </div>
+  <form class="mkt-ve-wizard__form" data-mkt-sandbox-form novalidate>
+    {% csrf_token %}
+    <label class="mkt-ve-wizard__field">
+      <span>{% trans "Region" %}</span>
+      <select name="region" data-mkt-sandbox-region>
+        <option value="US">{% trans "United States" %}</option>
+        <option value="GB">{% trans "United Kingdom" %}</option>
+        <option value="NG">{% trans "Nigeria" %}</option>
+        <option value="KE">{% trans "Kenya" %}</option>
+        <option value="IN">{% trans "India" %}</option>
+        <option value="BR">{% trans "Brazil" %}</option>
+        <option value="SA">{% trans "Saudi Arabia" %}</option>
+        <option value="AE">{% trans "United Arab Emirates" %}</option>
+        <option value="ID">{% trans "Indonesia" %}</option>
+        <option value="CA">{% trans "Canada" %}</option>
+      </select>
+    </label>
+    <label class="mkt-ve-wizard__field">
+      <span>{% trans "School size" %}</span>
+      <select name="school_size">
+        <option value="small">{% trans "Under 500 students" %}</option>
+        <option value="medium" selected>{% trans "500–2,000" %}</option>
+        <option value="large">{% trans "2,000+" %}</option>
+      </select>
+    </label>
+    <fieldset class="mkt-ve-wizard__modules">
+      <legend>{% trans "Modules" %}</legend>
+      <label><input type="checkbox" name="modules" value="finance" checked> {% trans "Fees & finance" %}</label>
+      <label><input type="checkbox" name="modules" value="offline"> {% trans "Offline-first" %}</label>
+      <label><input type="checkbox" name="modules" value="communications" checked> {% trans "Communications" %}</label>
+      <label><input type="checkbox" name="modules" value="starter_stack" checked> {% trans "Starter stack" %}</label>
+    </fieldset>
+    <button type="submit" class="mkt-edt-cta mkt-edt-cta--primary" data-mkt-sandbox-submit>
+      {% blocktrans with sym=geo.currency_symbol cur=geo.currency %}Initialize deployment matrix ({{ sym }} {{ cur }}){% endblocktrans %}
+    </button>
+    <div class="mkt-sov-result" data-mkt-sov-result hidden></div>
+    <p class="mkt-ve-wizard__status" data-mkt-sandbox-status hidden></p>
+  </form>
+  <p class="mkt-edt-illustrative-pill">{% trans "Simulated · runs in your browser · not a live tenant" %}</p>
+</div>

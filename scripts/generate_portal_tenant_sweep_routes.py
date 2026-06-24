@@ -157,6 +157,8 @@ MANDATORY_SCHOOL_STUDIO_INNER = (
 MANDATORY_ROLE_HOME_INNER = (
     "/portal/student-portal/grades/",
     "/portal/parent/",
+    "/portal/teacher/",
+    "/authentication/backend/",
 )
 
 

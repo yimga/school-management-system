@@ -1,0 +1,99 @@
+{% extends "backend_base.html" %}
+{% load i18n static %}
+
+{% block backend_title %}{{ page_title }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-100x.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-performance.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+<div class="rmc-page-stack rmc-tperf" data-rmc-page-fold-nav="required">
+  <header class="rmc-tperf__head">
+    <div>
+      <p class="rmc-dh-section-label mb-1"><i class="bi bi-activity" aria-hidden="true"></i> {% trans "Trust center" %}</p>
+      <h1 class="h3 mb-1">{{ page_title }}</h1>
+      <p class="text-muted mb-0">{% trans "Your campus availability, experience signals, and platform commitments — honest metrics only." %}</p>
+    </div>
+    <a class="rmc-dh-chip" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> {% trans "Command center" %}</a>
+  </header>
+
+  <div class="rmc-dh-tiles">
+    {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-broadcast" dh_k=_("Availability") dh_v=performance.availability_label dh_d=performance.fleet_state|default:"—" dh_dir="up" %}
+    {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-emoji-smile" dh_k=_("Experience score") dh_v=performance.experience_score_pct|stringformat:"d"|add:"%" dh_d=_("Friction proxy · 7 days") dh_dir="up" %}
+    {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-lightning" dh_k=_("Friction events") dh_v=performance.friction_summary.total_7d|default:0 dh_d=_("User friction rollups") dh_dir="flat" %}
+    {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-globe2" dh_k=_("Platform status") dh_v=_("Live") dh_d=_("Public incident history") dh_dir="up" dh_href=performance.public_status_url %}
+  </div>
+
+  <section class="rmc-dh-panel rmc-tperf__timeline" aria-labelledby="tperf-timeline-title">
+    {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-calendar-week" dh_title=_("Seven-day timeline") %}
+    <p id="tperf-timeline-title" class="visually-hidden">{% trans "Seven-day timeline" %}</p>
+    <p class="rmc-tperf__hint">{% trans "Green = smooth day · amber = elevated friction · red = lifecycle incident recorded." %}</p>
+    <div class="rmc-tperf__bars" role="list">
+      {% for day in performance.timeline_days %}
+      <div class="rmc-tperf__bar rmc-tperf__bar--{{ day.tier }}" role="listitem" title="{{ day.label }} · {{ day.friction_events }} {% trans 'friction events' %}">
+        <span class="rmc-tperf__bar-fill" aria-hidden="true"></span>
+        <span class="rmc-tperf__bar-label">{{ day.label }}</span>
+        <span class="visually-hidden">{{ day.tier }} · {{ day.friction_events }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="rmc-dh-grid2">
+    <section class="rmc-dh-panel">
+      {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-shield-check" dh_title=_("Platform commitments") %}
+      <p class="rmc-tperf__hint">{% trans "Published targets — not live latency measurements." %}</p>
+      {% if performance.platform_commitments %}
+      <ul class="rmc-tperf__slo-list">
+        {% for slo in performance.platform_commitments %}
+        <li>
+          <strong>{{ slo.label }}</strong>
+          <span class="text-muted small d-block">{{ slo.objective }}</span>
+          <span class="rmc-dh-chip rmc-dh-chip--muted">{{ slo.target_pct }}%</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="rmc-tperf__hint mb-0">{% trans "Platform objectives will appear here when available." %}</p>
+      {% endif %}
+    </section>
+
+    <section class="rmc-dh-panel">
+      {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-signpost-split" dh_title=_("Campus lifecycle") %}
+      {% if performance.lifecycle_events %}
+      <ul class="rmc-dh-lead">
+        {% for ev in performance.lifecycle_events %}
+        <li>
+          <span class="rmc-dh-lead__main">
+            <span class="rmc-dh-lead__nm">{{ ev.label }}</span>
+            <span class="rmc-dh-lead__sub">{{ ev.created_at|slice:":10" }}</span>
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="rmc-tperf__hint mb-0">{% trans "Provisioning and domain milestones will show here when recorded." %}</p>
+      {% endif %}
+    </section>
+  </div>
+
+  {% if performance.friction_summary.top_views %}
+  <section class="rmc-dh-panel">
+    {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-hand-index" dh_title=_("Where users felt friction") %}
+    <ul class="rmc-dh-lead">
+      {% for row in performance.friction_summary.top_views %}
+      <li>
+        <span class="rmc-dh-lead__main"><span class="rmc-dh-lead__nm">{{ row.view_name }}</span></span>
+        <span class="rmc-dh-lead__rt">{{ row.events }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
