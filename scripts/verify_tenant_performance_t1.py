@@ -34,6 +34,15 @@ def main() -> int:
     if "tenant_performance_dashboard" not in strip:
         errors.append("operational_health_strip missing Performance link")
 
+    proc_nav = ROOT / "templates/marketing/partials/mkt_procurement_trust_nav.html"
+    threshold = ROOT / "templates/marketing/threshold_era_home.html"
+    if not proc_nav.is_file():
+        errors.append("missing marketing procurement trust nav partial")
+    elif threshold.is_file():
+        threshold_text = threshold.read_text(encoding="utf-8")
+        if "mkt_procurement_trust_nav.html" not in threshold_text:
+            errors.append("threshold_era_home missing procurement trust nav include")
+
     for py in (
         ROOT / "apps/observability/tenant_performance.py",
         ROOT / "apps/schools/views_tenant_performance.py",

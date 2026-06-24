@@ -1,12 +1,12 @@
 {
   "date": "2026-06-24",
-  "generated_at": "2026-06-24T01:35:00+00:00",
+  "generated_at": "2026-06-24T01:45:00+00:00",
   "major": 4,
   "minor": 4,
-  "patch": 94,
-  "raw": "sms-v4.04.94-scheduled-invoicing-b1-2026-06-24",
+  "patch": 96,
+  "raw": "sms-v4.04.96-offline-periodic-sync-r3-2026-06-24",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "scheduled-invoicing-b1",
+  "slug": "offline-periodic-sync-r3",
   "valid": true
 }

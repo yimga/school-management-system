@@ -17,42 +17,70 @@ For non-view code paths (background tasks, service-layer functions),
 use the lower-level :func:`start_named_transaction` /
 :func:`finish_transaction` helpers.
 
-When sentry_sdk isn't installed or SENTRY_DSN is unset, every helper here
-becomes a no-op so test envs don't pull in the SDK.
+When sentry_sdk isn't installed or SENTRY_DSN is unset, SLO metrics still
+record via :mod:`apps.observability.slo_metrics` — only Sentry spans are skipped.
 """
 
 from __future__ import annotations
 
 import functools
+from dataclasses import dataclass, field
+from time import perf_counter
 from typing import Any, Callable
 
 
-def start_named_transaction(name: str, *, op: str = "task.hot_path", **tags: Any):
-    """Start a named Sentry transaction. Returns the transaction object
-    (or ``None`` when sentry_sdk is unavailable). Always pair with
-    :func:`finish_transaction`.
+@dataclass
+class _TraceHandle:
+    """Pairs a trace name + timer with an optional Sentry transaction."""
 
-    For request-handling code, prefer :func:`trace_view`. This helper
-    exists for tasks, service-layer functions, and outbox processors —
-    anywhere there is no `request` to bind to.
+    name: str
+    started_at: float
+    sentry_txn: Any | None = None
+    success: bool = field(default=True)
+
+
+def _resolve_handle(txn_or_handle: Any | None) -> _TraceHandle | None:
+    if txn_or_handle is None:
+        return None
+    if isinstance(txn_or_handle, _TraceHandle):
+        return txn_or_handle
+    name = getattr(txn_or_handle, "_rmc_trace_name", None)
+    started = getattr(txn_or_handle, "_rmc_trace_started", None)
+    if name and started is not None:
+        return _TraceHandle(name=str(name), started_at=float(started), sentry_txn=txn_or_handle)
+    return None
+
+
+def start_named_transaction(name: str, *, op: str = "task.hot_path", **tags: Any):
+    """Start a named Sentry transaction. Returns a :class:`_TraceHandle`.
+
+    Always pair with :func:`finish_transaction`. The handle records SLO-aligned
+    Prometheus metrics on finish even when Sentry is unavailable.
     """
+    started = perf_counter()
+    sentry_txn = None
     try:
         import sentry_sdk
     except ImportError:
-        return None
-    try:
-        txn = sentry_sdk.start_transaction(op=op, name=name)
-        for key, value in tags.items():
-            try:
-                txn.set_tag(key, value)
-            except Exception:  # noqa: BLE001 - telemetry never blocks
-                pass
-        return txn
-    except Exception:  # noqa: BLE001
-        return None
+        sentry_sdk = None  # type: ignore[assignment]
+    if sentry_sdk is not None:
+        try:
+            sentry_txn = sentry_sdk.start_transaction(op=op, name=name)
+            for key, value in tags.items():
+                try:
+                    sentry_txn.set_tag(key, value)
+                except Exception:  # noqa: BLE001 - telemetry never blocks
+                    pass
+        except Exception:  # noqa: BLE001
+            sentry_txn = None
+    return _TraceHandle(name=name, started_at=started, sentry_txn=sentry_txn)
 
 
-def set_transaction_status(txn, status: str) -> None:
+def set_transaction_status(txn_or_handle, status: str) -> None:
+    handle = _resolve_handle(txn_or_handle)
+    txn = handle.sentry_txn if handle is not None else txn_or_handle
+    if handle is not None and status in ("internal_error", "unknown_error", "data_loss"):
+        handle.success = False
     if txn is None:
         return
     try:
@@ -61,7 +89,24 @@ def set_transaction_status(txn, status: str) -> None:
         pass
 
 
-def finish_transaction(txn) -> None:
+def finish_transaction(txn_or_handle, *, success: bool | None = None) -> None:
+    handle = _resolve_handle(txn_or_handle)
+    if handle is None:
+        return
+    if success is not None:
+        handle.success = success
+    duration = perf_counter() - handle.started_at
+    try:
+        from apps.observability.slo_metrics import record_traced_transaction
+
+        record_traced_transaction(
+            handle.name,
+            success=handle.success,
+            duration_seconds=duration,
+        )
+    except Exception:  # noqa: BLE001 - metrics never block
+        pass
+    txn = handle.sentry_txn
     if txn is None:
         return
     try:
@@ -98,24 +143,15 @@ def trace_view(name: str, op: str = "view.hot_path") -> Callable:
     def decorator(view_func: Callable) -> Callable:
         @functools.wraps(view_func)
         def wrapper(*args, **kwargs):
-            try:
-                import sentry_sdk
-            except ImportError:
-                return view_func(*args, **kwargs)
-            transaction = sentry_sdk.start_transaction(op=op, name=name)
+            handle = start_named_transaction(name, op=op)
             try:
                 return view_func(*args, **kwargs)
             except Exception:
-                try:
-                    transaction.set_status("internal_error")
-                except Exception:  # noqa: BLE001 - never block on telemetry
-                    pass
+                handle.success = False
+                set_transaction_status(handle, "internal_error")
                 raise
             finally:
-                try:
-                    transaction.finish()
-                except Exception:  # noqa: BLE001
-                    pass
+                finish_transaction(handle)
 
         return wrapper
 

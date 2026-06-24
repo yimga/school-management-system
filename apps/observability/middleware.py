@@ -133,11 +133,16 @@ class ObservabilityMiddleware(MiddlewareMixin):
             ).inc()
 
             started = getattr(request, "_obs_started_at", None)
+            elapsed = None
             if started is not None:
                 elapsed = perf_counter() - started
                 REQUEST_LATENCY.labels(
                     method=method, endpoint=endpoint, status=status
                 ).observe(elapsed)
+
+            from apps.observability.slo_metrics import record_web_availability
+
+            record_web_availability(status_code=status, duration_seconds=elapsed)
         except (AttributeError, TypeError, ValueError) as exc:
             logger.debug("Observability metrics record skipped: %s", exc)
         return response

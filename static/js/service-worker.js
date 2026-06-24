@@ -201,7 +201,7 @@
 // v4.03.63: operator provisioning queue (/super/provision-queue/ — all not-yet-live
 //   schools in one actionable list w/ requeue) + i18n: completion summary now server-
 //   translated/pluralized (completion_summary_text) and rendered by the progress JS.
-const CACHE_VERSION = "sms-v4.04.95-b1-r1-o4-gap-closure-2026-06-24";
+const CACHE_VERSION = "sms-v4.04.96-offline-periodic-sync-r3-2026-06-24";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -269,6 +269,9 @@ let OFFLINE_CONFIG = {
   entitySyncEnabled: true,
   requestsSyncEnabled: true,
   backgroundSyncEnabled: true,
+  /** R3: Periodic Background Sync drains the outbox when all tabs are closed. */
+  backgroundPeriodicSyncEnabled: true,
+  periodicSyncMinIntervalMs: 60 * 60 * 1000,
   hubBaseUrl: "",
   maxQueueItems: DEFAULT_MAX_QUEUE_PER_TYPE,
   meshEnabled: false,
@@ -395,6 +398,7 @@ self.addEventListener("activate", (event) => {
       await caches.open(STATIC_CACHE);
       await caches.open(DYNAMIC_CACHE);
       await self.clients.claim();
+      await registerOfflineSyncRetries();
     })(),
   );
 });
@@ -418,22 +422,8 @@ self.addEventListener("message", (event) => {
   if (data.type === "REPLAY_SYNC_NOW") {
     event.waitUntil(
       (async () => {
-        const counts = [];
-        counts.push(await replayQueue("attendance"));
-        counts.push(await replayQueue("grade"));
-        counts.push(await replayQueue("api"));
-        const totalFailed = (counts[0]?.failed ?? 0) + (counts[1]?.failed ?? 0) + (counts[2]?.failed ?? 0);
-        const failedItems = [].concat(
-          counts[0]?.failedItems ?? [],
-          counts[1]?.failedItems ?? [],
-          counts[2]?.failedItems ?? [],
-        );
-        const clients = await self.clients.matchAll();
-        clients.forEach((client) => {
-          try {
-            client.postMessage({ type: "sync-complete", failedCount: totalFailed, failedItems });
-          } catch (_err) {}
-        });
+        const counts = await replayAllEnabledQueues();
+        await notifyClientsSyncComplete(counts);
       })(),
     );
   }
@@ -649,6 +639,71 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(cacheFirstNavigationAndStatic(request));
 });
 
+const PERIODIC_SYNC_TAG = "rmc-offline-queue-drain";
+const DEFAULT_PERIODIC_SYNC_MIN_MS = 60 * 60 * 1000;
+
+async function replayAllEnabledQueues() {
+  const counts = [];
+  if (OFFLINE_CONFIG.attendanceSyncEnabled) {
+    counts.push(await replayQueue("attendance"));
+  }
+  if (OFFLINE_CONFIG.gradeSyncEnabled) {
+    counts.push(await replayQueue("grade"));
+  }
+  if (
+    OFFLINE_CONFIG.apiSyncEnabled ||
+    OFFLINE_CONFIG.entitySyncEnabled ||
+    OFFLINE_CONFIG.requestsSyncEnabled ||
+    OFFLINE_CONFIG.paymentSyncEnabled
+  ) {
+    counts.push(await replayQueue("api"));
+  }
+  return counts;
+}
+
+async function notifyClientsSyncComplete(counts, extra) {
+  const totalFailed = counts.reduce((sum, entry) => sum + (entry?.failed ?? 0), 0);
+  const failedItems = counts.flatMap((entry) => entry?.failedItems ?? []);
+  const clients = await self.clients.matchAll();
+  clients.forEach((client) => {
+    try {
+      client.postMessage({
+        type: "sync-complete",
+        failedCount: totalFailed,
+        failedItems,
+        ...(extra || {}),
+      });
+    } catch (_err) {}
+  });
+}
+
+async function registerOfflineSyncRetries() {
+  if (!OFFLINE_CONFIG.enabled || !OFFLINE_CONFIG.backgroundSyncEnabled) {
+    return;
+  }
+  const reg = self.registration;
+  if (!reg) {
+    return;
+  }
+  if (reg.sync) {
+    const tags = ["offline-sync-all", "attendance-sync", "grade-sync", "api-sync"];
+    for (const tag of tags) {
+      try {
+        await reg.sync.register(tag);
+      } catch (_err) {}
+    }
+  }
+  if (OFFLINE_CONFIG.backgroundPeriodicSyncEnabled && reg.periodicSync) {
+    const configured = parseInt(OFFLINE_CONFIG.periodicSyncMinIntervalMs, 10);
+    const minInterval = Number.isFinite(configured)
+      ? Math.max(configured, DEFAULT_PERIODIC_SYNC_MIN_MS)
+      : DEFAULT_PERIODIC_SYNC_MIN_MS;
+    try {
+      await reg.periodicSync.register(PERIODIC_SYNC_TAG, { minInterval });
+    } catch (_err) {}
+  }
+}
+
 self.addEventListener("sync", (event) => {
   if (!OFFLINE_CONFIG.enabled) {
     return;
@@ -663,12 +718,23 @@ self.addEventListener("sync", (event) => {
   } else if (event.tag === "offline-sync-all") {
     event.waitUntil(
       (async () => {
-        await replayQueue("attendance");
-        await replayQueue("grade");
-        await replayQueue("api");
+        const counts = await replayAllEnabledQueues();
+        await notifyClientsSyncComplete(counts, { background: true });
       })(),
     );
   }
+});
+
+self.addEventListener("periodicsync", (event) => {
+  if (!OFFLINE_CONFIG.enabled || event.tag !== PERIODIC_SYNC_TAG) {
+    return;
+  }
+  event.waitUntil(
+    (async () => {
+      const counts = await replayAllEnabledQueues();
+      await notifyClientsSyncComplete(counts, { periodic: true });
+    })(),
+  );
 });
 
 /** Add any REST write paths for offline queue here. Enables platform-wide offline for all API writes when expanded. */
@@ -937,18 +1003,8 @@ async function handleApiWrite(request, url) {
       createdAt: Date.now(),
     });
 
-    if (OFFLINE_CONFIG.backgroundSyncEnabled && self.registration && self.registration.sync) {
-      const tag =
-        syncType === "attendance"
-          ? "attendance-sync"
-          : syncType === "grade"
-            ? "grade-sync"
-            : syncType === "api"
-              ? "api-sync"
-              : "offline-sync-all";
-      try {
-        await self.registration.sync.register(tag);
-      } catch (_err) {}
+    if (OFFLINE_CONFIG.backgroundSyncEnabled) {
+      await registerOfflineSyncRetries();
     }
 
     return new Response(

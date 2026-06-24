@@ -32,6 +32,7 @@
     "test:e2e:tenant-studio": "bash scripts/run_tenant_studio_e2e.sh",
     "sweep:abrupt-end:node": "node scripts/verify_platform_abrupt_end_sweep.mjs",
     "sweep:role-home": "node scripts/run_role_home_visual_sweep.mjs",
+    "sweep:role-home:tenant": "ROLE_SWEEP_TENANT_ONLY=1 node scripts/run_role_home_visual_sweep.mjs",
     "ollama:ensure": "python scripts/ensure_ollama_always_on.py --invoke",
     "perf:playwright": "node scripts/verify_playwright_performance_budgets.mjs",
     "perf:forensic-dom": "node scripts/verify_zero_ticket_dom_budget.mjs",
