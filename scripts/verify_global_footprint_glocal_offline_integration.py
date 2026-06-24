@@ -95,6 +95,12 @@ def main() -> int:
     if not (ROOT / "static/js/rmc-kb-offline-cache.js").is_file():
         findings.append("missing static/js/rmc-kb-offline-cache.js")
 
+    preview_script = ROOT / "scripts/verify_global_footprint_preview.py"
+    if not preview_script.is_file():
+        findings.append("missing scripts/verify_global_footprint_preview.py")
+    elif not (ROOT / "artifacts/global-footprint-section-preview.html").is_file():
+        findings.append("missing artifacts/global-footprint-section-preview.html")
+
     if findings:
         print("verify_global_footprint_glocal_offline_integration: FAIL", file=sys.stderr)
         for item in findings:

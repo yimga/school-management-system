@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -43,6 +44,17 @@ def main() -> int:
             "csp_nonce": "",
         },
     )
+    for name in (
+        "rmc-world-globe-loader",
+        "rmc-world-globe-bridge",
+        "rmc-world-globe-wow-plus",
+        "rmc-world-globe-surface-elevation",
+    ):
+        section_html = re.sub(
+            rf"/static/js/{name}\.[a-f0-9]+\.js",
+            f"/static/js/{name}.js",
+            section_html,
+        )
 
     html = f"""<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark" data-theme="dark">

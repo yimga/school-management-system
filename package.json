@@ -37,6 +37,8 @@
     "verify:playwright-ci-harness": "python scripts/verify_role_home_visual_sweep_harness.py && python scripts/verify_globe_layout_playwright_ci_harness.py",
     "verify:50-app-matrix-ci-harness": "python scripts/verify_50_app_test_matrix_ci_harness.py",
     "verify:ci-harness": "python scripts/verify_ci_harness_bundle.py",
+    "verify:global-footprint-preview": "python scripts/verify_global_footprint_preview.py",
+    "verify:prometheus-stack": "python scripts/verify_prometheus_observability_stack.py",
     "ollama:ensure": "python scripts/ensure_ollama_always_on.py --invoke",
     "perf:playwright": "node scripts/verify_playwright_performance_budgets.mjs",
     "perf:forensic-dom": "node scripts/verify_zero_ticket_dom_budget.mjs",

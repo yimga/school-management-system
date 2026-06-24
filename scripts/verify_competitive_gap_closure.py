@@ -95,6 +95,14 @@ def main() -> int:
     if "_subdivision_tax_rate" not in tax_engine:
         errors.append("tax_engine.py missing subdivision resolver (B3)")
 
+    prom_stack = ROOT / "scripts/verify_prometheus_observability_stack.py"
+    if not prom_stack.is_file():
+        errors.append("missing verify_prometheus_observability_stack.py (T2/T3)")
+
+    preview_gate = ROOT / "scripts/verify_global_footprint_preview.py"
+    if not preview_gate.is_file():
+        errors.append("missing verify_global_footprint_preview.py")
+
     if errors:
         for err in errors:
             print(f"COMPETITIVE_GAP_CLOSURE_FAIL: {err}")

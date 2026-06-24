@@ -1,5 +1,25 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Prometheus observability stack drift gate (batch 1718 — 2026-06-24)
+
+**A. Scope:** Close T2/T3 honest residual — generated `slo_alerts.yml` must stay locked to `slo.py` registry in CI.
+
+**B. Shipped:** `verify_prometheus_observability_stack.py`; platform-pillar-gates + competitive gap closure wiring; `npm run verify:prometheus-stack`.
+
+**C. Proof:** **PROMETHEUS_OBSERVABILITY_STACK_PASS**; **COMPETITIVE_GAP_CLOSURE_PASS**.
+
+**D. Honest:** live alert firing still needs prometheus-client backend + compose stack on operator host.
+
+## Slice — Global Footprint browseable preview verifier (batch 1717 — 2026-06-24)
+
+**A. Scope:** Close batch 1716 honest residual — hashed globe JS paths broke file:// preview artifact.
+
+**B. Shipped:** hash-unbundle in generator; `verify_global_footprint_preview.py`; CI generate+verify in global-footprint job; artifact regen.
+
+**C. Proof:** **GLOBAL_FOOTPRINT_PREVIEW_PASS**; **GLOBAL_FOOTPRINT_GLOCAL_OFFLINE_INTEGRATION_PASS**.
+
+**D. Honest:** interactive WebGL preview still operator-local; CI proves structural parity only.
+
 ## Slice — CI harness bundle + operator fleet resilience (batch 1716 — 2026-06-24)
 
 **A. Scope:** Lock Playwright + 50-app matrix harness wiring in architectural-boundaries CI; harden operator fleet snapshot against fleet DB blips; regenerate footprint preview from live template.
