@@ -1,0 +1,15 @@
+{% load i18n %}
+{% comment %}
+  Shown on post-setup admin cockpit — explains widgets fill as data is added.
+  Params: variant ("post-setup"|"onboarding-snapshot", optional)
+{% endcomment %}
+<div class="rmc-intelligent-dashboard-note" data-rmc-intelligent-dashboard-note="1" role="note">
+  <i class="bi bi-lightbulb" aria-hidden="true"></i>
+  <p class="mb-0">
+    {% if variant == "onboarding-snapshot" %}
+    {% blocktrans %}At a glance preview: KPIs and cockpit widgets populate automatically as you add students, staff, fees, and attendance. Finish Setup Studio to unlock the full command surface.{% endblocktrans %}
+    {% else %}
+    {% blocktrans %}Intelligent dashboard: KPIs and cockpit widgets fill in automatically as you add students, staff, fees, and attendance. Empty slots show helpful next actions — not blank space.{% endblocktrans %}
+    {% endif %}
+  </p>
+</div>

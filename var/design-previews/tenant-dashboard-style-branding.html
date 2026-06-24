@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMyCampus · Theme &amp; Experience — dashboard style picker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  :root{--bg:#0b1020;--canvas:#0e1426;--elevated:#141c33;--hairline:rgba(255,255,255,.08);--text:#eef2ff;--text-2:#aab3d4;--text-3:#7b86ad;--brand:#6366f1;--accent:#10b981;--radius:14px;--font:Inter,system-ui,sans-serif}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5}
+  .flag{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#ec4899,#6366f1);color:#fff;font-weight:700;font-size:12px;text-align:center;padding:5px}
+  .flag a{color:#fff;margin-left:8px}
+  .page{max-width:960px;margin:42px auto 60px;padding:0 20px}
+  h1{margin:0 0 6px;font-size:22px;font-weight:750}
+  .sub{color:var(--text-3);font-size:13px;margin:0 0 24px;max-width:65ch}
+  .card{background:var(--canvas);border:1px solid var(--hairline);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+  .card h2{margin:0 0 4px;font-size:16px;display:flex;align-items:center;gap:8px}
+  .card .hint{margin:0 0 14px;font-size:12px;color:var(--text-3)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+  label{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px}
+  select,.inp{width:100%;background:var(--elevated);border:1px solid var(--hairline);border-radius:10px;padding:9px 12px;color:var(--text);font:inherit;font-size:13px}
+  .style-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+  @media(max-width:600px){.style-grid{grid-template-columns:1fr}}
+  .style-opt{border:2px solid var(--hairline);border-radius:12px;padding:12px;cursor:pointer;transition:.15s;background:var(--elevated)}
+  .style-opt:hover{border-color:rgba(99,102,241,.4)}
+  .style-opt.is-picked{border-color:var(--brand);box-shadow:0 0 0 1px rgba(99,102,241,.25)}
+  .style-opt h3{margin:0 0 4px;font-size:13px}
+  .style-opt p{margin:0;font-size:11px;color:var(--text-3)}
+  .mini-preview{height:72px;border-radius:8px;margin-bottom:8px;border:1px solid var(--hairline);overflow:hidden;position:relative}
+  .mini-preview--soft{background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(16,185,129,.08));backdrop-filter:blur(8px)}
+  .mini-preview--crisp{background:var(--canvas)}
+  .mini-preview--hc{background:#000;border-color:#fff}
+  .mini-preview .bar{height:8px;margin:8px;background:rgba(255,255,255,.15);border-radius:4px;width:60%}
+  .mini-preview .tile{position:absolute;bottom:8px;left:8px;right:8px;height:28px;background:rgba(255,255,255,.08);border-radius:6px}
+  .dash-type{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+  .dash-type label{display:flex;flex-direction:column;gap:8px;padding:14px;border:2px solid var(--hairline);border-radius:12px;cursor:pointer;background:var(--elevated);font-weight:600;font-size:13px;color:var(--text)}
+  .dash-type input{accent-color:var(--brand);width:16px;height:16px}
+  .dash-type label.is-picked{border-color:var(--accent)}
+  .dash-type span.desc{font-weight:400;font-size:11px;color:var(--text-3)}
+  .live-preview{margin-top:16px;border:1px solid var(--hairline);border-radius:14px;padding:16px;background:var(--bg)}
+  .live-preview h3{margin:0 0 10px;font-size:14px;color:var(--text-2)}
+  .lp-hero{display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;margin-bottom:10px;border:1px solid var(--hairline)}
+  .lp-hero.soft{background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(16,185,129,.06));backdrop-filter:blur(12px)}
+  .lp-hero.crisp{background:var(--canvas);border-color:var(--hairline)}
+  .lp-hero.hc{background:#000;border:2px solid #fff;color:#fff}
+  .lp-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .lp-tile{padding:10px;border-radius:10px;border:1px solid var(--hairline);font-size:11px}
+  .lp-tile .v{font-size:16px;font-weight:700;display:block;margin-top:2px}
+  .lp-tile.soft{background:rgba(255,255,255,.04)}
+  .lp-tile.crisp{background:var(--elevated)}
+  .lp-tile.hc{background:#111;border-color:#fff;color:#fff}
+  .actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;font-weight:600;font-size:13px;border:none;cursor:pointer;text-decoration:none}
+  .btn--primary{background:var(--brand);color:#fff}
+  .btn--ghost{background:transparent;border:1px solid var(--hairline);color:var(--text-2)}
+  .map{font-size:12px;color:var(--text-3);margin-top:20px;padding-top:16px;border-top:1px solid var(--hairline)}
+  .map code{background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;font-size:11px}
+</style>
+</head>
+<body>
+<div class="flag">BRANDING PREVIEW · Theme &amp; Experience · dashboard packs + visual presets · <a href="tenant-post-setup-cockpit-hub.html">← Hub</a></div>
+
+<div class="page">
+  <h1><i class="bi bi-palette"></i> Theme &amp; Experience</h1>
+  <p class="sub">School admins choose how dashboards look for each role. Maps to live fields: <code>dashboard_visual_preset</code>, <code>role_dashboard_packs</code>, <code>backend_console_theme</code>, and <code>default_dashboard_view</code> in SiteSettings / user preferences.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h2><i class="bi bi-grid-1x2"></i> Dashboard surface</h2>
+      <p class="hint">Which command surface loads after setup is complete.</p>
+      <div class="dash-type" id="dash-type">
+        <label class="is-picked"><input type="radio" name="surface" value="backend" checked> Backend cockpit <span class="desc">School Command Center · ops KPIs + Configure → Cockpit widgets · <code>/authentication/backend/</code></span></label>
+        <label><input type="radio" name="surface" value="frontend"> Frontend portal <span class="desc">Role homes for Parent / Teacher / Student · community-facing · <code>/portal/*/</code></span></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><i class="bi bi-person-badge"></i> Role</h2>
+      <p class="hint">Visual preset can differ per role.</p>
+      <label for="role-pick">Apply style to</label>
+      <select id="role-pick">
+        <option value="ADMIN">Admin / Leadership</option>
+        <option value="TEACHER">Teacher</option>
+        <option value="PARENT">Parent</option>
+        <option value="STUDENT">Student</option>
+      </select>
+      <label for="pack-pick" style="margin-top:12px">Dashboard pack</label>
+      <select id="pack-pick">
+        <option value="school-admin-operations">School admin operations (default)</option>
+        <option value="school-admin-finance-first">Finance-first admin</option>
+        <option value="teacher-planner">Teacher planner</option>
+        <option value="family-fees-first">Family · fees first</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><i class="bi bi-brush"></i> Dashboard visual style</h2>
+    <p class="hint">Per-role choice — stored in <code>DashboardUserPreference.role_visual_presets</code>.</p>
+    <div class="style-grid" id="style-grid">
+      <div class="style-opt is-picked" data-style="soft">
+        <div class="mini-preview mini-preview--soft"><div class="bar"></div><div class="tile"></div></div>
+        <h3>Soft Glass</h3>
+        <p>Default for Parent &amp; Teacher · frosted panels, gentle gradients.</p>
+      </div>
+      <div class="style-opt" data-style="crisp">
+        <div class="mini-preview mini-preview--crisp"><div class="bar"></div><div class="tile"></div></div>
+        <h3>Crisp Professional</h3>
+        <p>Default for Admin · flat surfaces, high information density.</p>
+      </div>
+      <div class="style-opt" data-style="hc">
+        <div class="mini-preview mini-preview--hc"><div class="bar"></div><div class="tile"></div></div>
+        <h3>High Contrast</h3>
+        <p>Accessibility · bold borders, maximum legibility.</p>
+      </div>
+    </div>
+
+    <div class="live-preview" id="live-preview">
+      <h3>Live mini-preview</h3>
+      <div class="lp-hero soft" id="lp-hero">
+        <div><strong id="lp-title">School command surface</strong><br><span style="font-size:12px;color:var(--text-3)" id="lp-sub">Backend cockpit · Admin</span></div>
+      </div>
+      <div class="lp-tiles">
+        <div class="lp-tile soft" id="t1"><span>Students</span><span class="v">248</span></div>
+        <div class="lp-tile soft" id="t2"><span>Present</span><span class="v">93%</span></div>
+        <div class="lp-tile soft" id="t3"><span>Collected</span><span class="v">₣4.2M</span></div>
+        <div class="lp-tile soft" id="t4"><span>Overdue</span><span class="v">12</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn btn--primary"><i class="bi bi-check2"></i> Save preferences</button>
+    <a class="btn btn--ghost" href="tenant-post-setup-backend-cockpit.html"><i class="bi bi-eye"></i> Preview backend cockpit</a>
+    <a class="btn btn--ghost" href="tenant-post-setup-frontend-dashboard.html"><i class="bi bi-eye"></i> Preview frontend dashboard</a>
+  </div>
+
+  <p class="map"><strong>Django wiring (already in repo):</strong> User prefs form <code>UserPreferenceForm.dashboard_visual_preset</code> · packs via <code>role_dashboard_packs</code> · tenant <code>backend_console_theme</code> in SiteSettings · post-setup route switches when <code>show_setup_landing</code> is false → Overview | Cockpit bento in <code>backend_dashboard.html</code>.</p>
+</div>
+
+<script>
+var style='soft', surface='backend';
+function applyPreview(){
+  var hero=document.getElementById('lp-hero');
+  var tiles=[document.getElementById('t1'),document.getElementById('t2'),document.getElementById('t3'),document.getElementById('t4')];
+  hero.className='lp-hero '+style;
+  tiles.forEach(function(t){t.className='lp-tile '+style;});
+  var role=document.getElementById('role-pick').value;
+  var titles={ADMIN:'School command surface',TEACHER:'My teaching day',PARENT:'Family home',STUDENT:'Learning home'};
+  document.getElementById('lp-title').textContent=titles[role]||'Dashboard';
+  document.getElementById('lp-sub').textContent=(surface==='backend'?'Backend cockpit · ':'Frontend portal · ')+role;
+}
+document.querySelectorAll('.style-opt').forEach(function(opt){
+  opt.addEventListener('click',function(){
+    document.querySelectorAll('.style-opt').forEach(function(o){o.classList.remove('is-picked');});
+    opt.classList.add('is-picked');
+    style=opt.dataset.style;
+    applyPreview();
+  });
+});
+document.querySelectorAll('#dash-type label').forEach(function(lab){
+  lab.addEventListener('click',function(){
+    document.querySelectorAll('#dash-type label').forEach(function(x){x.classList.remove('is-picked');});
+    lab.classList.add('is-picked');
+    surface=lab.querySelector('input').value;
+    applyPreview();
+  });
+});
+document.getElementById('role-pick').addEventListener('change',applyPreview);
+</script>
+</body>
+</html>

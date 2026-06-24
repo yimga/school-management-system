@@ -1,0 +1,59 @@
+/* Post-setup school command center + onboarding canvas density (batch 1730).
+   Mirrors var/design-previews/tenant-post-setup-backend-cockpit.html */
+
+.rmc-intelligent-dashboard-note {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  margin-bottom: 0.75rem;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border: 1px dashed color-mix(in oklab, var(--school-accent, var(--brand-accent)) 35%, var(--hairline));
+  border-radius: var(--radius-lg, 12px);
+  background: color-mix(in oklab, var(--school-accent, var(--brand-accent)) 6%, transparent);
+}
+
+.rmc-intelligent-dashboard-note > i {
+  color: var(--school-accent, var(--brand-accent));
+  margin-top: 2px;
+  flex: 0 0 auto;
+}
+
+/* Full-width command center — reduce wasted horizontal margins on role-home backend */
+html[data-rmc-tp-v3-shell="1"] body.backend-shell.dashboard-page-backend .portal-page-body.tp-canvas-body,
+html[data-rmc-tp-v3-shell="1"] body.backend-shell.dashboard-page-backend .backend-admin-role-home {
+  max-width: min(1440px, 100%);
+  width: 100%;
+  margin-inline: auto;
+  min-width: 0;
+}
+
+body.dashboard-page-backend .backend-admin-role-home .rmc-admin-bento,
+body.dashboard-page-backend .backend-admin-role-home .rmc-dh {
+  min-width: 0;
+}
+
+/* Setup landing owns the canvas — hide duplicate portal first-run welcome slab */
+body.rmc-admin-setup-landing-active [data-rmc-first-run-zero-state] {
+  display: none !important; /* style-allow: setup-surface-owns-first-run-ux */
+}
+
+/* Compact setup surface — less vertical void below wizard cards */
+body.rmc-admin-setup-landing-active .rmc-setup-surface__stages {
+  gap: 0.65rem;
+}
+
+body.rmc-admin-setup-landing-active .rmc-setup-surface__hero {
+  margin-bottom: 0.65rem;
+  padding: 1rem 1.15rem;
+}
+
+body.rmc-admin-setup-landing-active .rmc-admin-onboarding .rmc-admin-bento__tabs {
+  margin-bottom: 0.5rem;
+}
+
+/* Branding shortcut on zone intros */
+.rmc-admin-zone-intro__acts .rmc-dh-chip--brand {
+  border-color: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 35%, var(--hairline));
+}

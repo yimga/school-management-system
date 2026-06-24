@@ -5,6 +5,7 @@
 {% block backend_title %}{% trans "School Command Center" %}{% endblock %}
 {% block body_extra_class %}
 backend-shell dashboard-page-backend
+{% if show_setup_landing %} rmc-admin-setup-landing-active{% endif %}
 {% if backend_theme_settings.warm_palette %} backend-theme-warm{% endif %}
 {% if backend_theme_settings.reduce_card_flatness %} backend-theme-depth{% endif %}
 {% if backend_theme_settings.high_depth_surfaces %} backend-theme-high-depth{% endif %}
@@ -41,6 +42,7 @@ backend-shell dashboard-page-backend
    onboarding (gated on show_setup_landing). Token-only; tenant brand + theme flip clean. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-setup-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-backend-admin-bento.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-post-setup-cockpit.css' %}">
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 <!-- Include navigation bridge styles -->
 <script src="{% static 'js/_pages/accounts__backend_dashboard.js' %}"></script>
@@ -76,7 +78,7 @@ backend-shell dashboard-page-backend
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="backend-admin-role-home" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
 
-{% include "components/next_action_strip.html" %}
+{% comment %} next_action_strip: inherited from backend_base_tenant / portal shell {% endcomment %}
 
 {% comment %} table-pagination-allow: dashboard-widget-top-N each-table-is-bounded-summary-not-list {% endcomment %}
   {% admin_health as health %}
@@ -106,6 +108,7 @@ backend-shell dashboard-page-backend
       {% include "partials/tenant/setup_command_surface.html" %}
     </div>
     <div class="rmc-admin-bento__panel rmc-admin-cockpit-zone" id="rmc-admin-onboarding-snapshot" data-rmc-admin-bento-panel="snapshot" hidden aria-hidden="true">
+      {% include "partials/tenant/intelligent_dashboard_note.html" with variant="onboarding-snapshot" %}
       {% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="admin" %}
       {% include "partials/operator_queue_smart_links_banner.html" %}
       {% include "accounts/_rmc_dh_admin_overview.html" %}
@@ -134,6 +137,7 @@ backend-shell dashboard-page-backend
       </div>
     </nav>
     <div class="rmc-admin-bento__panel rmc-admin-overview-zone" id="rmc-admin-bento-overview" data-rmc-admin-bento-panel="overview" data-rmc-section-anchor>
+      {% include "partials/tenant/intelligent_dashboard_note.html" %}
       {% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="admin" %}
       {% include "partials/operator_queue_smart_links_banner.html" %}
       {% include "accounts/_rmc_dh_admin_overview.html" %}

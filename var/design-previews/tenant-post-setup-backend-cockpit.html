@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMyCampus · Backend cockpit — post-setup School Command Center</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../../static/css/design-tokens.css">
+<link rel="stylesheet" href="../../static/css/rmc-tenant-dashboard-100x.css">
+<link rel="stylesheet" href="../../static/css/rmc-backend-admin-bento.css">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--surface-bg,#0b1020);color:var(--text-primary,#eef2ff);font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.5}
+  .flag{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#6366f1,#10b981);color:#04121a;font-weight:700;font-size:12px;text-align:center;padding:5px}
+  .flag a{color:#04121a;text-decoration:underline;margin-left:8px}
+  /* Full-width shell — fixes narrow column + wasted margins */
+  .topbar{position:sticky;top:28px;z-index:50;background:color-mix(in oklab,var(--surface-canvas,#0e1426) 88%,#000);backdrop-filter:blur(14px);border-bottom:1px solid var(--hairline,rgba(255,255,255,.08))}
+  .topbar__row{display:flex;align-items:center;gap:14px;padding:10px 16px;max-width:none}
+  .brand{display:flex;align-items:center;gap:10px;flex:none}
+  .brand__logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#818cf8);display:grid;place-items:center;font-weight:800;color:#fff;font-size:14px}
+  .brand__name{font-weight:700;font-size:14px}
+  .brand__sub{font-size:10px;color:var(--text-tertiary,#7b86ad)}
+  .pill{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:999px;background:rgba(99,102,241,.18);color:#818cf8;border:1px solid rgba(99,102,241,.35)}
+  .topnav{display:flex;gap:2px}
+  .topnav a{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--text-secondary);padding:6px 10px;border-radius:8px;text-decoration:none}
+  .topnav a.is-active,.topnav a:hover{background:var(--surface-elevated);color:var(--text-primary)}
+  .cmdk{flex:1;min-width:120px;max-width:480px;display:flex;align-items:center;gap:8px;background:var(--surface-elevated);border:1px solid var(--hairline);border-radius:10px;padding:7px 12px;color:var(--text-tertiary);font-size:13px}
+  .cmdk kbd{margin-left:auto;font-size:10px;background:rgba(255,255,255,.06);border:1px solid var(--hairline);border-radius:5px;padding:1px 5px}
+  .top-actions{display:flex;align-items:center;gap:7px;margin-left:auto}
+  .btn{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:7px 12px;border-radius:9px;border:1px solid var(--hairline);background:transparent;color:var(--text-secondary);cursor:pointer;text-decoration:none}
+  .btn--primary{background:#6366f1;border-color:#6366f1;color:#fff}
+  .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#ec4899,#8b5cf6);display:grid;place-items:center;font-weight:700;color:#fff;font-size:12px}
+  .shell{display:grid;grid-template-columns:220px minmax(0,1fr) 48px;min-height:calc(100vh - 28px)}
+  @media(max-width:900px){.shell{grid-template-columns:1fr}.rail{display:none}.copilot-rail{display:none}}
+  .rail{border-right:1px solid var(--hairline);background:var(--surface-canvas);padding:10px 8px 40px;overflow-y:auto;position:sticky;top:calc(28px + 52px);max-height:calc(100vh - 80px);font-size:13px}
+  .rail__head{font-size:10px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.06em;padding:10px 8px 4px;font-weight:700}
+  .nav-item{display:flex;align-items:center;gap:9px;padding:6px 9px;border-radius:8px;color:var(--text-secondary);text-decoration:none;font-weight:500}
+  .nav-item i{width:16px;text-align:center;color:var(--text-tertiary)}
+  .nav-item.is-active{background:rgba(99,102,241,.14);color:#fff}
+  .nav-item.is-active i{color:#818cf8}
+  .main{padding:16px 18px 48px;min-width:0;max-width:none}
+  .zone-banner{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:12px;margin-bottom:14px;font-size:13px}
+  .zone-banner--cockpit{background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.25)}
+  .zone-banner__ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:rgba(99,102,241,.2);color:#818cf8;flex:none}
+  .zone-banner h4{margin:0 0 2px;font-size:14px}
+  .zone-banner p{margin:0;color:var(--text-secondary);font-size:12px}
+  .bento-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+  .bento-tabs a{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;color:var(--text-secondary);border:1px solid var(--hairline);background:var(--surface-canvas)}
+  .bento-tabs a.is-active{background:#6366f1;border-color:#6366f1;color:#fff}
+  .bento-panel{display:none}
+  .bento-panel.is-active{display:block}
+  .intel-note{font-size:12px;color:var(--text-tertiary);background:rgba(16,185,129,.06);border:1px dashed rgba(16,185,129,.3);border-radius:10px;padding:10px 12px;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
+  .intel-note i{color:#10b981;margin-top:2px}
+  .cockpit-acc{border:1px solid var(--hairline);border-radius:12px;margin-bottom:8px;background:var(--surface-canvas);overflow:hidden}
+  .cockpit-acc summary{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;font-weight:600;font-size:13px;list-style:none}
+  .cockpit-acc summary::-webkit-details-marker{display:none}
+  .cockpit-acc summary i.bi-chevron-down{margin-left:auto;transition:.2s;color:var(--text-tertiary)}
+  .cockpit-acc[open] summary i.bi-chevron-down{transform:rotate(180deg)}
+  .cockpit-acc__body{padding:0 14px 14px;font-size:13px;color:var(--text-secondary)}
+  .mini-chart{height:48px;border-radius:8px;background:linear-gradient(180deg,rgba(99,102,241,.15),transparent);margin-top:8px}
+  .copilot-rail{border-left:1px solid var(--hairline);background:var(--surface-canvas);display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;position:sticky;top:calc(28px + 52px)}
+  .cp-ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--text-secondary);cursor:pointer;font-size:15px}
+  .cp-ic.is-active{background:#6366f1;color:#fff}
+  .cp-ic.tools{margin-top:auto;writing-mode:vertical-rl;font-size:9px;letter-spacing:.1em;font-weight:700;height:auto;padding:8px 0}
+  .rmc-dh{margin:0}
+</style>
+</head>
+<body>
+<div class="flag">BACKEND COCKPIT · post-setup · <code>show_setup_landing=false</code> · <a href="tenant-post-setup-cockpit-hub.html">← Hub</a></div>
+
+<header class="topbar">
+  <div class="topbar__row">
+    <div class="brand">
+      <div class="brand__logo">NT</div>
+      <div><div class="brand__name">New Test High School</div><div class="brand__sub">School command surface</div></div>
+      <span class="pill">Admin workspace</span>
+    </div>
+    <nav class="topnav">
+      <a class="is-active" href="#"><i class="bi bi-house-door"></i> Home</a>
+      <a href="#"><i class="bi bi-cash-stack"></i> Finance</a>
+      <a href="#"><i class="bi bi-chat-dots"></i> Messages</a>
+      <a href="#"><i class="bi bi-graph-up"></i> Analytics</a>
+    </nav>
+    <div class="cmdk"><i class="bi bi-search"></i> Search students, teachers, invoices… <kbd>Ctrl K</kbd></div>
+    <div class="top-actions">
+      <a class="btn" href="tenant-dashboard-style-branding.html"><i class="bi bi-palette"></i> Branding</a>
+      <a class="btn" href="#"><i class="bi bi-grid-1x2"></i> Console</a>
+      <a class="btn btn--primary" href="#"><i class="bi bi-sliders2"></i> Configure</a>
+      <div class="avatar">TT</div>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="rail">
+    <div class="rail__head">Frequent</div>
+    <a class="nav-item is-active" href="#"><i class="bi bi-speedometer2"></i> Dashboard</a>
+    <a class="nav-item" href="#"><i class="bi bi-people"></i> Students</a>
+    <a class="nav-item" href="#"><i class="bi bi-cash-stack"></i> Finance</a>
+    <div class="rail__head">Academic</div>
+    <a class="nav-item" href="#"><i class="bi bi-clipboard-data"></i> Gradebook</a>
+    <a class="nav-item" href="#"><i class="bi bi-megaphone"></i> Publish results</a>
+    <div class="rail__head">Admin</div>
+    <a class="nav-item" href="#"><i class="bi bi-gear"></i> Backend console</a>
+    <a class="nav-item" href="#"><i class="bi bi-magic"></i> Setup wizards</a>
+    <a class="nav-item" href="#"><i class="bi bi-palette"></i> Theme &amp; experience</a>
+  </aside>
+
+  <main class="main">
+    <div class="intel-note">
+      <i class="bi bi-lightbulb"></i>
+      <span><strong>Intelligent dashboard:</strong> KPIs and cockpit widgets fill in automatically as you add students, staff, fees, and attendance. Empty slots show helpful next actions — not blank voids.</span>
+    </div>
+
+    <nav class="bento-tabs" aria-label="Workspace">
+      <a href="#" class="bento-tab is-active" data-panel="overview"><i class="bi bi-speedometer2"></i> Overview</a>
+      <a href="#" class="bento-tab" data-panel="cockpit"><i class="bi bi-grid-1x2"></i> Cockpit</a>
+    </nav>
+
+    <div id="panel-overview" class="bento-panel is-active">
+      <div class="zone-banner zone-banner--cockpit">
+        <div class="zone-banner__ic"><i class="bi bi-grid-1x2"></i></div>
+        <div>
+          <h4>Operator cockpit</h4>
+          <p>Live analytics widgets — configured under Configure → Cockpit. Setup wizards live under Configure → Setup Studio.</p>
+        </div>
+      </div>
+
+      <div class="rmc-dh">
+        <div class="rmc-dh-hero">
+          <div class="rmc-dh-hero__body">
+            <p class="rmc-dh-hero__eyebrow">Admin workspace</p>
+            <h2 class="rmc-dh-hero__title">School command surface</h2>
+            <p class="rmc-dh-hero__sub">Live KPIs, follow-ups, and fee health · 2025/26 Term 2</p>
+          </div>
+          <div class="rmc-dh-ring" style="--rmc-dh-ring-pct:100" aria-hidden="true"><span>100%</span></div>
+        </div>
+
+        <div class="rmc-dh-tiles">
+          <div class="rmc-dh-tile"><span class="rmc-dh-tile__ic"><i class="bi bi-people"></i></span><span class="rmc-dh-tile__k">Active students</span><span class="rmc-dh-tile__v">248</span><span class="rmc-dh-tile__d">enrolled</span></div>
+          <div class="rmc-dh-tile"><span class="rmc-dh-tile__ic"><i class="bi bi-clipboard-check"></i></span><span class="rmc-dh-tile__k">Present today</span><span class="rmc-dh-tile__v">231</span><span class="rmc-dh-tile__d rmc-dh-tile__d--up">93%</span></div>
+          <div class="rmc-dh-tile"><span class="rmc-dh-tile__ic"><i class="bi bi-cash-stack"></i></span><span class="rmc-dh-tile__k">Collected</span><span class="rmc-dh-tile__v">₣4.2M</span><span class="rmc-dh-tile__d rmc-dh-tile__d--up">to date</span></div>
+          <div class="rmc-dh-tile"><span class="rmc-dh-tile__ic"><i class="bi bi-cash-coin"></i></span><span class="rmc-dh-tile__k">Overdue</span><span class="rmc-dh-tile__v">12</span><span class="rmc-dh-tile__d rmc-dh-tile__d--down">invoices</span></div>
+        </div>
+
+        <div class="rmc-dh-aicard">
+          <div class="rmc-dh-aicard__ic"><i class="bi bi-stars"></i></div>
+          <div class="rmc-dh-aicard__body">
+            <h4>RunMyCampus noticed</h4>
+            <p>12 invoices are overdue. A reminder broadcast usually recovers most within a week. 3 students flagged for attendance follow-up.</p>
+            <div class="rmc-dh-aicard__acts"><a class="rmc-dh-chip rmc-dh-chip--primary" href="#">View overdue</a><a class="rmc-dh-chip" href="#">Attendance report</a></div>
+          </div>
+        </div>
+
+        <div class="rmc-dh-attention">
+          <h2 class="rmc-dh-attention__title"><i class="bi bi-exclamation-octagon"></i> What needs you</h2>
+          <div class="rmc-dh-attn-row"><i class="bi bi-cash-coin"></i><span>12 invoices overdue</span><a class="rmc-dh-attn-row__go" href="#">Chase</a></div>
+          <div class="rmc-dh-attn-row"><i class="bi bi-person-check"></i><span>2 access requests awaiting approval</span><a class="rmc-dh-attn-row__go" href="#">Review</a></div>
+          <div class="rmc-dh-attn-row"><i class="bi bi-people"></i><span>3 students need attention</span><a class="rmc-dh-attn-row__go" href="#">Open</a></div>
+        </div>
+
+        <div class="rmc-dh-grid2">
+          <section class="rmc-dh-panel">
+            <div class="rmc-dh-panel__head"><i class="bi bi-trophy"></i> Top performers <a class="more" href="#">All</a></div>
+            <ul class="rmc-dh-lead">
+              <li><span class="rmc-dh-lead__rk rmc-dh-lead__rk--top">1</span><span class="rmc-dh-lead__av">A</span><span class="rmc-dh-lead__main"><span class="rmc-dh-lead__nm">Amina N.</span><br><span class="rmc-dh-lead__sub">Form 5A</span></span><span class="rmc-dh-lead__rt rmc-dh-lead__rt--up">92.4</span></li>
+              <li><span class="rmc-dh-lead__rk">2</span><span class="rmc-dh-lead__av">K</span><span class="rmc-dh-lead__main"><span class="rmc-dh-lead__nm">Kwame B.</span><br><span class="rmc-dh-lead__sub">Form 5A</span></span><span class="rmc-dh-lead__rt rmc-dh-lead__rt--up">89.1</span></li>
+            </ul>
+          </section>
+          <section class="rmc-dh-panel">
+            <div class="rmc-dh-panel__head"><i class="bi bi-person-plus"></i> Recent admissions <a class="more" href="#">All</a></div>
+            <ul class="rmc-dh-lead">
+              <li><span class="rmc-dh-lead__av">M</span><span class="rmc-dh-lead__main"><span class="rmc-dh-lead__nm">Marie T.</span><br><span class="rmc-dh-lead__sub">Year 7 · 2 days ago</span></span></li>
+              <li><span class="rmc-dh-lead__av">J</span><span class="rmc-dh-lead__main"><span class="rmc-dh-lead__nm">Jean P.</span><br><span class="rmc-dh-lead__sub">Year 9 · 5 days ago</span></span></li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-cockpit" class="bento-panel">
+      <div class="zone-banner zone-banner--cockpit">
+        <div class="zone-banner__ic"><i class="bi bi-sliders2"></i></div>
+        <div>
+          <h4>Configured analytics</h4>
+          <p>Enable or reorder widgets in <strong>Configure → Cockpit</strong>. Sections start collapsed to respect the 4-fold rule.</p>
+        </div>
+      </div>
+
+      <details class="cockpit-acc">
+        <summary><i class="bi bi-calendar3"></i> Year progress <i class="bi bi-chevron-down"></i></summary>
+        <div class="cockpit-acc__body">Term 2 week 8 of 12 · 67% through academic year.<div class="mini-chart"></div></div>
+      </details>
+      <details class="cockpit-acc">
+        <summary><i class="bi bi-person-badge"></i> Teacher spotlight <i class="bi bi-chevron-down"></i></summary>
+        <div class="cockpit-acc__body">Mr. Ngwa · 4 classes · marks 94% complete this term.</div>
+      </details>
+      <details class="cockpit-acc">
+        <summary><i class="bi bi-grid-3x3"></i> Attendance heatmap <i class="bi bi-chevron-down"></i></summary>
+        <div class="cockpit-acc__body">Last 14 days · Form 4B shows Tuesday dip — review with HOD.</div>
+      </details>
+      <details class="cockpit-acc">
+        <summary><i class="bi bi-broadcast"></i> Realtime presence <i class="bi bi-chevron-down"></i></summary>
+        <div class="cockpit-acc__body">18 staff signed in · 231 students marked present today.</div>
+      </details>
+    </div>
+  </main>
+
+  <aside class="copilot-rail">
+    <div class="cp-ic is-active"><i class="bi bi-stars"></i></div>
+    <div class="cp-ic"><i class="bi bi-eye"></i></div>
+    <div class="cp-ic"><i class="bi bi-lightning-charge"></i></div>
+    <div class="cp-ic"><i class="bi bi-question-circle"></i></div>
+    <div class="cp-ic tools">Tools</div>
+  </aside>
+</div>
+
+<script>
+document.querySelectorAll('.bento-tab').forEach(function(tab){
+  tab.addEventListener('click',function(e){
+    e.preventDefault();
+    document.querySelectorAll('.bento-tab').forEach(function(t){t.classList.remove('is-active');});
+    document.querySelectorAll('.bento-panel').forEach(function(p){p.classList.remove('is-active');});
+    tab.classList.add('is-active');
+    var id='panel-'+tab.dataset.panel;
+    var panel=document.getElementById(id);
+    if(panel) panel.classList.add('is-active');
+  });
+});
+</script>
+</body>
+</html>

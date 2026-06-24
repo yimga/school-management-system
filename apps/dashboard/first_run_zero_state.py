@@ -173,6 +173,43 @@ def _tenant_is_first_run(request) -> bool:
     return first_run
 
 
+# Mirrors accounts.views.BACKEND_SETUP_LANDING_DEFAULT_THRESHOLD — keep in sync.
+_BACKEND_SETUP_LANDING_THRESHOLD = 70
+
+
+def _admin_setup_surface_active(request) -> bool:
+    """True when backend_dashboard already renders Setup Studio (adaptive landing)."""
+    match = getattr(request, "resolver_match", None)
+    if getattr(match, "view_name", None) != "accounts:backend_dashboard":
+        return False
+    role = (getattr(getattr(request, "user", None), "role", "") or "").upper()
+    if role not in {"ADMIN", "PRINCIPAL", "IT_ADMIN", "SUPERADMIN"}:
+        return False
+    school = _resolve_school(request)
+    if school is None:
+        return False
+    try:
+        from apps.platform_runtime.helpers import get_effective_site_settings
+
+        site = get_effective_site_settings(request=request)
+        flags = getattr(site, "backend_flags", None) or {}
+        if not bool(flags.get("backend_adaptive_setup_landing", True)):
+            return False
+        threshold = int(
+            flags.get("backend_setup_landing_threshold") or _BACKEND_SETUP_LANDING_THRESHOLD
+        )
+    except (TypeError, ValueError, AttributeError):
+        threshold = _BACKEND_SETUP_LANDING_THRESHOLD
+    try:
+        from apps.platform_runtime.onboarding import get_school_onboarding_progress
+
+        prog = get_school_onboarding_progress(school, user=getattr(request, "user", None)) or {}
+        pct = int(prog.get("percent") or 0)
+    except Exception:  # noqa: BLE001 — best-effort gate only
+        return False
+    return pct < threshold
+
+
 def build_first_run_zero_state(request) -> dict[str, Any] | None:
     """Request-aware entry: a render-ready first-run card, or ``None``.
 
@@ -191,6 +228,8 @@ def build_first_run_zero_state(request) -> dict[str, Any] | None:
         if payload is None:
             return None
         if not _tenant_is_first_run(request):
+            return None
+        if _admin_setup_surface_active(request):
             return None
         url = None
         try:

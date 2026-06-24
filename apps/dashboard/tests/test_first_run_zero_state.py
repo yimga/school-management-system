@@ -81,6 +81,11 @@ class BuildFirstRunZeroStateTests(SimpleTestCase):
         with mock.patch.object(frz, "_tenant_is_first_run", return_value=False):
             self.assertIsNone(frz.build_first_run_zero_state(_req(role="ADMIN")))
 
+    def test_admin_backend_setup_surface_suppresses_duplicate_welcome(self):
+        with mock.patch.object(frz, "_tenant_is_first_run", return_value=True), \
+                mock.patch.object(frz, "_admin_setup_surface_active", return_value=True):
+            self.assertIsNone(frz.build_first_run_zero_state(_req(role="ADMIN")))
+
     def test_unreversible_cta_drops_the_button_but_keeps_the_message(self):
         from django.urls import NoReverseMatch
 

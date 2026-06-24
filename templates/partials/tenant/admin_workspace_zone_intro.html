@@ -16,6 +16,8 @@
     <div class="rmc-admin-zone-intro__acts">
       {% if rmc_wizard_index_url %}<a class="rmc-dh-chip" href="{{ rmc_wizard_index_url }}">{% trans "All wizards" %}</a>{% endif %}
       {% if rmc_setup_studio_url %}<a class="rmc-dh-chip rmc-dh-chip--primary" href="{{ rmc_setup_studio_url }}">{% trans "Open Setup Studio" %}</a>{% endif %}
+      {% url 'siteconfig:user_preferences' as rmc_user_prefs_url %}
+      {% if rmc_user_prefs_url %}<a class="rmc-dh-chip rmc-dh-chip--brand" href="{{ rmc_user_prefs_url }}"><i class="bi bi-palette2" aria-hidden="true"></i> {% trans "Dashboard styles" %}</a>{% endif %}
     </div>
   </div>
   {% else %}
@@ -32,6 +34,8 @@
       {% endif %}
       {% url 'siteconfig:cockpit_health' as rmc_cockpit_health_url %}
       {% if rmc_cockpit_health_url %}<a class="rmc-dh-chip" href="{{ rmc_cockpit_health_url }}">{% trans "Cockpit health" %}</a>{% endif %}
+      {% url 'siteconfig:user_preferences' as rmc_user_prefs_url %}
+      {% if rmc_user_prefs_url %}<a class="rmc-dh-chip rmc-dh-chip--brand" href="{{ rmc_user_prefs_url }}"><i class="bi bi-palette2" aria-hidden="true"></i> {% trans "Dashboard styles" %}</a>{% endif %}
     </div>
   </div>
   {% endif %}
