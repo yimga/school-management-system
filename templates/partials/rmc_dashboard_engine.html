@@ -7,6 +7,7 @@
   elsewhere). nonce on the data block satisfies verify_csp_nonce_emission.
 {% endcomment %}
 {% url 'siteconfig:dashboard_prefs' as dashboard_prefs_url %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-dashboard-config">{
   "intelligence": {% if SITE.dashboard_intelligence == False %}false{% else %}true{% endif %},
   "reorder": {% if SITE.dashboard_reorder == False %}false{% else %}true{% endif %},

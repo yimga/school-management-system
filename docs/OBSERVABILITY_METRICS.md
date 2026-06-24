@@ -71,6 +71,8 @@ The view carries `# rbac-allow: prometheus-scrape-anonymous-firewall-protected` 
 
 ## Operator deploy snippets
 
+**Full runbook:** [`docs/PROMETHEUS_OPERATOR_DEPLOY_RUNBOOK.md`](PROMETHEUS_OPERATOR_DEPLOY_RUNBOOK.md) (compose, Grafana, live smoke).
+
 ### Prometheus scrape config
 
 ```yaml

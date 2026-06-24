@@ -100,6 +100,14 @@ def main() -> int:
     if not prom_stack.is_file():
         errors.append("missing verify_prometheus_observability_stack.py (T2/T3)")
 
+    prom_live = ROOT / "scripts/verify_prometheus_stack_live.py"
+    if not prom_live.is_file():
+        errors.append("missing verify_prometheus_stack_live.py (T3 operator smoke)")
+
+    prom_runbook = ROOT / "docs/PROMETHEUS_OPERATOR_DEPLOY_RUNBOOK.md"
+    if not prom_runbook.is_file():
+        errors.append("missing docs/PROMETHEUS_OPERATOR_DEPLOY_RUNBOOK.md")
+
     preview_gate = ROOT / "scripts/verify_global_footprint_preview.py"
     if not preview_gate.is_file():
         errors.append("missing verify_global_footprint_preview.py")

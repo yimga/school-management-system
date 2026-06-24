@@ -7,6 +7,7 @@ the canvas to a PNG and feeds the studio's existing upload form, so persistence 
 seeding are reused. Brand colour defaults to the resolved seed_hex (already indigo/
 emerald by default); initials default to the school name.
 {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <section class="rmc-logo-maker" data-rmc-logo-maker
          data-rmc-logo-maker-initial="{{ school.name|slice:':2'|default:'S'|upper }}"
          data-rmc-logo-maker-color="{{ seed_hex|default:'#4f46e5' }}"

@@ -11,6 +11,7 @@
   present; curated markup is never clobbered. nonce satisfies
   verify_csp_nonce_emission.
 {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-detail-config">{
   "intelligence": {% if SITE.detail_intelligence == False %}false{% else %}true{% endif %},
   "copy": {% if SITE.detail_copy == False %}false{% else %}true{% endif %},

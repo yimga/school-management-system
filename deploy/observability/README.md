@@ -58,6 +58,8 @@ docker compose -f deploy/observability/docker-compose.yml up -d
 # Grafana     http://localhost:3000   (admin/admin; Prometheus datasource pre-wired)
 ```
 
+**Operator runbook:** [`docs/PROMETHEUS_OPERATOR_DEPLOY_RUNBOOK.md`](../../docs/PROMETHEUS_OPERATOR_DEPLOY_RUNBOOK.md) — env vars, bearer auth, scrape target edits, live smoke (`verify_prometheus_stack_live.py`).
+
 On Linux, `host.docker.internal` is mapped to the docker bridge gateway via
 `extra_hosts`. If your app runs elsewhere, edit the `targets:` in
 `prometheus.yml`.

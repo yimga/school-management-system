@@ -9,6 +9,7 @@
   The first-run progress nudge is gated separately (SITE.empty_first_run) in the
   zero-state card template. nonce satisfies verify_csp_nonce_emission.
 {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-empty-config">{
   "intelligence": {% if SITE.empty_intelligence == False %}false{% else %}true{% endif %},
   "table_filter": {% if SITE.empty_table_filter == False %}false{% else %}true{% endif %},

@@ -6,6 +6,7 @@
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
 <div class="container py-5">
+  {% include "marketing/partials/mkt_procurement_trust_nav.html" %}
   {% if marketing_personality %}
   {% include "marketing/components/_personality_hero.html" with eyebrow=marketing_personality.label headline=marketing_personality.label subheadline=seo_title extra_class="mkt-v3-page__hero mb-4" %}
   {% include "marketing/components/_personality_viz_panel.html" %}

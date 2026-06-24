@@ -205,6 +205,10 @@ def main(argv: list[str] | None = None) -> int:
         ("templates/marketing/zero_ui_lab.html", 'aria-describedby="rmc_smart_action_hub"'),
         ("templates/components/world_class_summary_strip.html", 'aria-describedby="rmc_smart_action_hub"'),
         ("templates/teacher/timetable.html", 'aria-describedby="rmc_smart_action_hub"'),
+        ("templates/partials/control_plane_primary_nav.html", "rmc-empty-state-sentinel"),
+        ("templates/partials/rmc_tables_engine.html", "rmc-empty-state-sentinel"),
+        ("templates/marketing/partials/mkt_procurement_trust_nav.html", 'data-mkt-scroll-policy="paginate"'),
+        ("templates/marketing/procurement_checklist.html", "mkt_procurement_trust_nav"),
     ):
         if needle not in _read(rel):
             errors.append(f"{rel} missing {needle}")
@@ -212,6 +216,10 @@ def main(argv: list[str] | None = None) -> int:
     finale_script = ROOT / "scripts/codemod_zero_friction_finale_sweep.py"
     if not finale_script.is_file():
         errors.append("missing scripts/codemod_zero_friction_finale_sweep.py")
+
+    wave23_script = ROOT / "scripts/codemod_zero_friction_wave23_partials_marketing.py"
+    if not wave23_script.is_file():
+        errors.append("missing scripts/codemod_zero_friction_wave23_partials_marketing.py")
 
     ledger_path = ROOT / "docs/generated/zero_friction_audit_ledger.json"
     if ledger_path.is_file():

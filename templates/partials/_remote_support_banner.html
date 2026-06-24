@@ -7,6 +7,7 @@ hardcodes a tenant-mount path. Browser-unverified presentation — flagged for
 owner deploy verification. Uses Bootstrap utility classes + data-* hooks only
 (no new rmc- classes, no inline styles).
 {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="rmc-remote-support-config"
      data-heartbeat-url="{% url 'platform_runtime:remote_support_heartbeat' %}"
      data-pending-url="{% url 'platform_runtime:remote_support_pending_intents' %}"

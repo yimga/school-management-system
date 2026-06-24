@@ -15,8 +15,10 @@ REQUIRED_FILES = (
     "deploy/observability/README.md",
     "deploy/observability/grafana/provisioning/datasources/prometheus.yml",
     "docs/OBSERVABILITY_METRICS.md",
+    "docs/PROMETHEUS_OPERATOR_DEPLOY_RUNBOOK.md",
     "apps/observability/slo_metrics.py",
     "scripts/verify_slo_metrics_emit_sites.py",
+    "scripts/verify_prometheus_stack_live.py",
 )
 
 

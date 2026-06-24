@@ -455,6 +455,17 @@ def build_register() -> dict:
                     and 'aria-describedby="rmc_smart_action_hub"'
                     in _read("templates/components/world_class_summary_strip.html")
                 ),
+                "partials_marketing_wave23_burndown": (
+                    _exists("scripts/codemod_zero_friction_wave23_partials_marketing.py")
+                    and "rmc-empty-state-sentinel"
+                    in _read("templates/partials/control_plane_primary_nav.html")
+                    and "rmc-empty-state-sentinel"
+                    in _read("templates/partials/rmc_tables_engine.html")
+                    and 'data-mkt-scroll-policy="paginate"'
+                    in _read("templates/marketing/partials/mkt_procurement_trust_nav.html")
+                    and "mkt_procurement_trust_nav"
+                    in _read("templates/marketing/procurement_checklist.html")
+                ),
             },
             "residual": (
                 []

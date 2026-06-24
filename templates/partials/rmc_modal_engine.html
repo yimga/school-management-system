@@ -11,6 +11,7 @@
   Bootstrap modals + existing rmc-sheet callers are untouched. nonce satisfies
   verify_csp_nonce_emission.
 {% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-modal-config">{
   "intelligence": {% if SITE.modal_intelligence == False %}false{% else %}true{% endif %},
   "confirm": {% if SITE.modal_confirm == False %}false{% else %}true{% endif %},
