@@ -575,3 +575,32 @@
   font-size: 0.8125rem;
   color: var(--text-secondary);
 }
+
+/* Launch + setup health copy — secondary text on elevated/dark Studio cards. */
+.rmc-launch-health-summary {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.studio-os__launch-overview,
+.rmc-studio-workspace--launch .rmc-launch-canvas {
+  color: var(--text-primary);
+}
+
+.studio-os__launch-overview .studio-os__card :is(h2, h3, h6, strong, li, a:not(.btn)) {
+  color: var(--text-primary);
+}
+
+.studio-os__launch-overview .studio-os__card .text-muted,
+.studio-os__launch-overview .studio-os__card .rmc-launch-health-summary,
+.rmc-studio-workspace--launch .studio-os__card .text-muted,
+.rmc-studio-workspace--launch .studio-os__card .rmc-launch-health-summary {
+  color: var(--text-secondary);
+}
+
+.studio-os__launch-overview .studio-os__card a:not(.btn) {
+  color: var(--text-link, var(--brand-primary));
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}

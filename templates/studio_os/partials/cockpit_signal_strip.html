@@ -1,4 +1,4 @@
-{% load i18n static %}
+{% load i18n static wizard_extras %}
 {% comment %}
   Studio OS Cockpit · Signal Strip (v3.54.0, 2026-05-21)
   ------------------------------------------------------
@@ -80,14 +80,16 @@
     {% with output_readiness=overview_signals.output_readiness_pct %}
     <div class="rmc-overview-signal-tile" data-rmc-overview-tile="readiness"{% if output_readiness is None and not launch_ready %} data-state="unknown"{% endif %}{% if launch_ready %} data-tone="success"{% elif output_readiness and output_readiness < 60 %} data-tone="warning"{% endif %}>
       <span class="rmc-overview-signal-tile__label">{% trans "Launch readiness" %}</span>
-      <span class="rmc-overview-signal-tile__value" title="{% if launch_health_summary %}{{ launch_health_summary }}{% endif %}">
+      <span class="rmc-overview-signal-tile__value" title="{% with hs_text=launch_health_summary|health_summary_text %}{% if hs_text %}{{ hs_text }}{% endif %}{% endwith %}">
         {% if output_readiness is not None %}{{ output_readiness }}%{% elif launch_ready %}{% trans "Ready" %}{% else %}—{% endif %}
       </span>
-      {% if launch_health_summary %}
-      <span class="rmc-overview-signal-tile__hint">{{ launch_health_summary|truncatechars:64 }}</span>
+      {% with hs_text=launch_health_summary|health_summary_text %}
+      {% if hs_text %}
+      <span class="rmc-overview-signal-tile__hint">{{ hs_text|truncatechars:64 }}</span>
       {% else %}
       <span class="rmc-overview-signal-tile__hint">{% trans "Setup completion across modes." %}</span>
       {% endif %}
+      {% endwith %}
     </div>
     {% endwith %}
 

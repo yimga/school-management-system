@@ -27,7 +27,7 @@ User = get_user_model()
 
 def _render(template_path: str, ctx: dict) -> str:
     """Render a partial in isolation using {% include %}."""
-    tpl = Template("{% load i18n %}{% include '" + template_path + "' %}")
+    tpl = Template("{% load i18n wizard_extras %}{% include '" + template_path + "' %}")
     return tpl.render(Context(ctx))
 
 
@@ -45,6 +45,11 @@ class LaunchOverviewBodyPartialTests(SimpleTestCase):
                     "health_score": 42,
                     "launch_ready": False,
                     "launch_blockers": ["staff"],
+                    "health_summary": {
+                        "tone": "progress",
+                        "label": "In progress",
+                        "detail": "Focus on blueprint, branding, plan, and roster completion first.",
+                    },
                     "steps": [
                         {
                             "key": "institution_basics",
@@ -64,7 +69,9 @@ class LaunchOverviewBodyPartialTests(SimpleTestCase):
             },
         )
         self.assertIn("Create school profile", html)
+        self.assertIn("Focus on blueprint, branding, plan, and roster completion first.", html)
         self.assertNotIn("step.title", html)
+        self.assertNotIn("'tone':", html)
 
 
 class LaunchReadinessPreviewPanePartialTests(SimpleTestCase):

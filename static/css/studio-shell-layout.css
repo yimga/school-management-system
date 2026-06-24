@@ -420,6 +420,7 @@ html[data-bs-theme="dark"] .studio-cmd-pill {
 
 [data-theme="dark"] .studio-os__card {
   background: var(--color-base-800); /* theme-locked-allow: manual-review */
+  color: var(--text-primary);
 }
 
 /* Phase 5 — Experience Studio: explicit 3-pane workbench inside canvas (section rail | primary | related tools). */

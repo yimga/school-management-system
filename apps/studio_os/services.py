@@ -1539,7 +1539,11 @@ def get_launch_readiness_summary(request: Any) -> dict[str, Any]:
                     continue
                 timeline.append(
                     {
-                        "label": str(state.get("title") or key.replace("_", " ").title()),
+                        "label": str(
+                            state.get("label")
+                            or state.get("title")
+                            or key.replace("_", " ").title()
+                        ),
                         "status": "done" if state.get("done") else "pending",
                         "due_at": "",
                     }

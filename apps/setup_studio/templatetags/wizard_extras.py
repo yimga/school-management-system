@@ -42,3 +42,19 @@ def humanize_wizard_token_filter(value: Any) -> str:
     from apps.setup_studio.wizard_labels import humanize_wizard_token
 
     return humanize_wizard_token(value)
+
+
+@register.filter(name="health_summary_text")
+def health_summary_text(value: Any) -> str:
+    """Readable line from setup/launch ``health_summary`` dicts (detail, then label)."""
+    if isinstance(value, dict):
+        detail = value.get("detail")
+        if detail:
+            return str(detail)
+        label = value.get("label")
+        if label:
+            return str(label)
+        return ""
+    if value in (None, ""):
+        return ""
+    return str(value)

@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n wizard_extras %}
 {% comment %} v3.54.0 (2026-05-21): Overview next-realm cockpit — add primary action to top card. {% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 {% include "setup_studio/partials/zero_friction_cta_strip.html" %}
@@ -13,7 +13,9 @@
     {% elif launch_payload.launch_blockers %}
     <p class="small text-warning mb-2">{% blocktrans count counter=launch_payload.launch_blockers|length %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}</p>
     {% endif %}
-    {% if launch_payload.health_summary %}<p class="small text-muted mb-2">{{ launch_payload.health_summary }}</p>{% endif %}
+    {% with hs_text=launch_payload.health_summary|health_summary_text %}
+    {% if hs_text %}<p class="small rmc-launch-health-summary mb-2">{{ hs_text }}</p>{% endif %}
+    {% endwith %}
     {% if launch_payload.recommended_next %}
     <div class="d-flex flex-wrap align-items-center gap-2">
       <span class="small text-muted">{% trans "Next:" %}</span>

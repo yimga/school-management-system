@@ -156,6 +156,13 @@ class OverviewNextRealmStaticContractTests(SimpleTestCase):
                 f"{partial_name} must not contain dummy href=\"#\" links",
             )
 
+    def test_launch_overview_body_avoids_step_title_default_filter(self) -> None:
+        self.assertNotIn(
+            "default:step.title",
+            self.launch_overview_text,
+            "launch_studio_overview_body must not reference step.title in default filters",
+        )
+
     # ----- Co-pilot rail patches -----
 
     def test_copilot_rail_has_host_kind_badge(self) -> None:

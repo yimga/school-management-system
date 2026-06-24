@@ -1,4 +1,4 @@
-{% load i18n static %}
+{% load i18n static wizard_extras %}
 {% load terminology_tags %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2 px-0 px-md-2 rmc-shell-content-grid" data-page-archetype="{% if current_mode == 'control' %}decision-console{% else %}studio-workspace{% endif %}" data-shell-studio-region="main" data-rmc-studio-os-embed="true" data-shell-host="{% if request.public_host_kind == 'manager' %}control-plane{% else %}tenant{% endif %}" data-rmc-shell-content-grid="1">
@@ -179,10 +179,12 @@
             {% endfor %}
           </ul>
           {% endif %}
-          {% if launch_health_summary %}
+          {% with hs_text=launch_health_summary|health_summary_text %}
+          {% if hs_text %}
           <p class="small fw-semibold mb-1">{% trans "Launch confidence" %}</p>
-          <p class="small text-muted mb-2">{{ launch_health_summary }}</p>
+          <p class="small rmc-launch-health-summary mb-2">{{ hs_text }}</p>
           {% endif %}
+          {% endwith %}
           {% if launch_ready %}
           <p class="small mb-0"><span class="rmc-badge rmc-badge--success">{% trans "Ready to launch" %}</span></p>
           {% else %}

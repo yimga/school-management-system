@@ -2530,7 +2530,7 @@
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--text-tertiary, var(--text-secondary));
+  color: var(--text-secondary);
 }
 .rmc-page-explain-strip__next-name {
   font-size: var(--type-size-sm, 0.875rem);
@@ -2592,7 +2592,7 @@
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--ds-success, var(--text-tertiary));
+  color: var(--text-secondary);
 }
 .rmc-flow-launchpad__steps {
   list-style: none;
@@ -2662,7 +2662,7 @@
 }
 .rmc-flow-launchpad__step-desc {
   font-size: var(--type-size-caption, 0.75rem);
-  color: var(--text-tertiary, var(--text-secondary));
+  color: var(--text-secondary);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;

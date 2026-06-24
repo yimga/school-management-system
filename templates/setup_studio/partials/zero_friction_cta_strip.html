@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n wizard_extras %}
 {% comment %}Setup Studio 50X — unified zero-friction CTA strip (Launch Studio + guided onboarding).{% endcomment %}
 {% if zero_friction %}
 <section class="setup-studio-zero-friction rmc-section-nav mb-3" data-rmc-zero-friction="1" data-rmc-scroll-policy="paginate" aria-labelledby="rmc-zero-friction-heading">
@@ -15,11 +15,9 @@
         {% blocktrans count counter=zero_friction.launch_blockers|length %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}
       </p>
       {% endif %}
-      {% if zero_friction.health_summary.label %}
-      <p class="small text-muted mb-0">{{ zero_friction.health_summary.label }}</p>
-      {% elif zero_friction.health_summary %}
-      <p class="small text-muted mb-0">{{ zero_friction.health_summary }}</p>
-      {% endif %}
+      {% with hs_text=zero_friction.health_summary|health_summary_text %}
+      {% if hs_text %}<p class="small rmc-launch-health-summary mb-0">{{ hs_text }}</p>{% endif %}
+      {% endwith %}
     </div>
     <div class="setup-studio-actions d-flex flex-wrap gap-2">
       {% if zero_friction.actions.use_recommended_setup and zero_friction.actions.use_recommended_setup != "#" %}

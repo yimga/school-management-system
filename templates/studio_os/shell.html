@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static i18n %}
+{% load static i18n wizard_extras %}
 {% load terminology_tags %}
 {% load region_format %}
 {% comment %} primary-cta-allow: mode-gated-mutually-exclusive — 5 of the btn-primary buttons (L114-119) are guarded by `{% if current_mode == 'X' %}` with distinct X values, so only one renders at runtime. The verifier's mode-gated collapse handles 2+ but Studio Shell carries the canonical pattern. {% endcomment %}
@@ -198,10 +198,12 @@
             {% endfor %}
           </ul>
           {% endif %}
-          {% if launch_health_summary %}
+          {% with hs_text=launch_health_summary|health_summary_text %}
+          {% if hs_text %}
           <p class="small fw-semibold mb-1">{% trans "Launch confidence" %}</p>
-          <p class="small text-muted mb-2">{{ launch_health_summary }}</p>
+          <p class="small rmc-launch-health-summary mb-2">{{ hs_text }}</p>
           {% endif %}
+          {% endwith %}
           {% if launch_ready %}
           <p class="small mb-0"><span class="rmc-badge rmc-badge--success">{% trans "Ready to launch" %}</span></p>
           {% else %}
@@ -247,12 +249,14 @@
              Overview fell through to the generic else message and lost any signal
              value. Renders honest empty states when context vars absent. {% endcomment %}
           <p class="small fw-semibold mb-1">{% trans "Studio readiness" %}</p>
-          {% if launch_health_summary %}
-          <p class="small text-muted mb-2">{{ launch_health_summary }}</p>
+          {% with hs_text=launch_health_summary|health_summary_text %}
+          {% if hs_text %}
+          <p class="small rmc-launch-health-summary mb-2">{{ hs_text }}</p>
           {% endif %}
+          {% endwith %}
           {% if launch_ready %}
           <p class="small mb-2"><span class="rmc-badge rmc-badge--success">{% trans "Ready to launch" %}</span></p>
-          {% elif launch_health_summary %}
+          {% elif launch_health_summary|health_summary_text %}
           <p class="small text-muted mb-2">{% trans "Complete setup steps to improve launch confidence." %}</p>
           {% else %}
           <p class="small text-muted mb-2">{% trans "Readiness will populate as you stage Experience, Automation, and Output." %}</p>

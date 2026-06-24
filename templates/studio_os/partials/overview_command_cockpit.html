@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n wizard_extras %}
 {% comment %}
   Studio OS · Overview Command Cockpit (v3.54.0, 2026-05-21)
   ----------------------------------------------------------
@@ -109,13 +109,15 @@
     {% comment %} ---- Card A: Launch readiness ---- {% endcomment %}
     <article class="rmc-overview-card" data-rmc-overview-card="readiness">
       <h3 class="rmc-overview-card__title">{% trans "Launch readiness" %}</h3>
-      {% if launch_health_summary %}
-      <p class="rmc-overview-card__empty">{{ launch_health_summary|truncatechars:200 }}</p>
+      {% with hs_text=launch_health_summary|health_summary_text %}
+      {% if hs_text %}
+      <p class="rmc-overview-card__empty">{{ hs_text|truncatechars:200 }}</p>
       {% elif launch_ready %}
       <p class="rmc-overview-card__empty">{% trans "Ready to launch." %}</p>
       {% else %}
       <p class="rmc-overview-card__empty">{% trans "Select a tenant to see launch confidence here." %}</p>
       {% endif %}
+      {% endwith %}
       {% url 'studio_os:launch' as launch_url %}
       {% if launch_url %}
       <a href="{{ launch_url }}" class="btn btn-sm btn-outline-secondary mt-auto align-self-start">

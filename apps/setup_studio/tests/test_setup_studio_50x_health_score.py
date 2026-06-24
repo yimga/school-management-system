@@ -28,3 +28,19 @@ class SetupStudioHealthScoreTests(TestCase):
         compile_setup_studio(self.school)
         data = get_zero_friction_payload(self.school)
         self.assertIn("health_summary", data)
+
+
+class HealthSummaryTextFilterTests(TestCase):
+    def test_health_summary_text_prefers_detail(self):
+        from apps.setup_studio.templatetags.wizard_extras import health_summary_text
+
+        out = health_summary_text(
+            {"label": "In progress", "detail": "Complete roster import next."}
+        )
+        self.assertEqual(out, "Complete roster import next.")
+
+    def test_health_summary_text_falls_back_to_label(self):
+        from apps.setup_studio.templatetags.wizard_extras import health_summary_text
+
+        self.assertEqual(health_summary_text({"label": "Launch ready"}), "Launch ready")
+        self.assertEqual(health_summary_text(""), "")

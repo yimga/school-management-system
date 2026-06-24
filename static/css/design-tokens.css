@@ -2551,6 +2551,24 @@ body.error-page {
   justify-content: center;
 }
 
+/* In-shell error states (500/403 inside portal chrome) — card surface + readable copy. */
+:is(#main-content, #cp-main-content, [data-rmc-shell-main]) .error-page {
+  min-height: auto;
+  margin-block: var(--space-4, 1rem);
+  padding: clamp(1.25rem, 3vw, 2rem);
+  text-align: center;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  background: var(--surface-elevated);
+  box-shadow: var(--elev-1);
+}
+:is(#main-content, #cp-main-content, [data-rmc-shell-main]) .error-page .error-title {
+  color: var(--text-primary);
+}
+:is(#main-content, #cp-main-content, [data-rmc-shell-main]) .error-page .error-message {
+  color: var(--text-secondary);
+}
+
 /* Maintenance-mode operator preview: same shell as .error-page, scoped class
    so the staff-only maintenance preview body partial keeps a stable hook
    for scan_undefined_css_classes. The class itself adds no rules of its own
