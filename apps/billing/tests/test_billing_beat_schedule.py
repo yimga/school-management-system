@@ -35,6 +35,14 @@ class BillingBeatScheduleTests(SimpleTestCase):
             "apps.billing.run_platform_billing_lifecycle",
         )
 
+    def test_schedule_has_holding_rollup_entry(self):
+        sched = get_billing_beat_schedule()
+        self.assertIn("holding-currency-rollup-daily", sched)
+        self.assertEqual(
+            sched["holding-currency-rollup-daily"]["task"],
+            "apps.billing.materialize_holding_currency_rollups",
+        )
+
     def test_install_adds_entry(self):
         app = _FakeApp()
         installed = install_billing_beat_schedule(app)
@@ -61,3 +69,10 @@ class BillingBeatScheduleTests(SimpleTestCase):
         )
 
         self.assertIsNotNone(run_platform_billing_lifecycle_task)
+
+    def test_holding_rollup_task_is_importable(self):
+        from apps.billing.tasks_holding_rollup import (
+            materialize_holding_currency_rollups_task,
+        )
+
+        self.assertIsNotNone(materialize_holding_currency_rollups_task)

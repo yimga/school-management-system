@@ -124,3 +124,11 @@ class HoldingCurrencyRollupTests(TestCase):
     def test_none_parent_is_safe(self):
         self.assertEqual(holding_rollup.compute_holding_currency_totals(None), {})
         self.assertEqual(holding_rollup.materialize_holding_currency_rollups(None), {})
+
+    @mock.patch("apps.billing.services.compute_subscription_price_for_school", _fake_price)
+    def test_materialize_all_refreshes_holding_parents(self):
+        self._child("sub-a")
+        self._child("sub-c")
+        summary = holding_rollup.materialize_all_holding_currency_rollups()
+        self.assertGreaterEqual(summary["parents_refreshed"], 1)
+        self.assertGreaterEqual(summary["currency_buckets"], 2)

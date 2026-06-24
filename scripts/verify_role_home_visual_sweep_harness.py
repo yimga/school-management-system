@@ -25,9 +25,15 @@ def main() -> int:
             "127.0.0.1",
             "marketing-home",
             "marketing-threshold",
+            "admin-performance",
+            "ROLE_SWEEP_TENANT_ONLY",
+            "extraHTTPHeaders",
         ):
             if needle not in text:
                 errors.append(f"sweep script missing {needle}")
+
+    if pkg.is_file() and "sweep:role-home:tenant" not in pkg.read_text(encoding="utf-8"):
+        errors.append("package.json missing sweep:role-home:tenant script")
 
     if not login.is_file():
         errors.append("missing tenant-login.js")

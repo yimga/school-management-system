@@ -124,3 +124,32 @@ def materialize_holding_currency_rollups(parent_school) -> dict:
             exc,
         )
     return totals
+
+
+def iter_holding_parent_schools():
+    """Active parent schools with at least one active child (platform scope)."""
+    from django.db.models import Count, Q
+
+    from apps.schools.models import School
+
+    # tenant-isolation-allow: holding-rollup-parent-enumeration-platform-scope
+    return School.objects.filter(is_active=True).annotate(
+        active_child_count=Count(
+            "child_schools",
+            filter=Q(child_schools__is_active=True),
+        )
+    ).filter(active_child_count__gt=0)
+
+
+def materialize_all_holding_currency_rollups() -> dict:
+    """Refresh every holding company's per-currency buckets (beat entry)."""
+    parents_refreshed = 0
+    currency_buckets = 0
+    for parent in iter_holding_parent_schools().iterator():
+        totals = materialize_holding_currency_rollups(parent)
+        parents_refreshed += 1
+        currency_buckets += len(totals)
+    return {
+        "parents_refreshed": parents_refreshed,
+        "currency_buckets": currency_buckets,
+    }

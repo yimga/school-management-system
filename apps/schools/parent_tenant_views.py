@@ -56,6 +56,32 @@ def parent_tenant_dashboard(request):
     total_invoiced = sum(r["total_invoiced"] for r in rows)
     total_paid = sum(r["total_paid"] for r in rows)
 
+    currency_buckets = []
+    rollup_as_of = None
+    try:
+        from apps.billing.holding_rollup import materialize_holding_currency_rollups
+        from apps.siteconfig.models_platform_catalog import HoldingCurrencyRollup
+
+        materialize_holding_currency_rollups(school)
+        rollups = list(
+            HoldingCurrencyRollup.objects.filter(parent_school=school).order_by(
+                "currency_code"
+            )
+        )
+        for row in rollups:
+            currency_buckets.append(
+                {
+                    "currency_code": row.currency_code,
+                    "total_amount": row.total_amount,
+                    "source_school_count": row.source_school_count,
+                    "as_of": row.as_of,
+                }
+            )
+            if rollup_as_of is None or row.as_of > rollup_as_of:
+                rollup_as_of = row.as_of
+    except (ImportError, RuntimeError, AttributeError, ValueError):
+        currency_buckets = []
+
     return render(
         request,
         "schools/parent_tenant_dashboard.html",
@@ -66,5 +92,7 @@ def parent_tenant_dashboard(request):
             "total_teachers": total_teachers,
             "total_invoiced": total_invoiced,
             "total_paid": total_paid,
+            "currency_buckets": currency_buckets,
+            "rollup_as_of": rollup_as_of,
         },
     )

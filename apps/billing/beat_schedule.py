@@ -43,7 +43,13 @@ def get_billing_beat_schedule() -> dict[str, dict[str, Any]]:
             # so charges/invoices land before downstream sweeps read them.
             "schedule": crontab(hour=1, minute=15),
             "options": {"expires": 3600},  # magic-number-allow: celery-task-expiry-seconds
-        }
+        },
+        "holding-currency-rollup-daily": {
+            "task": "apps.billing.materialize_holding_currency_rollups",
+            # Daily 04:30 UTC — after billing lifecycle + fee-invoice sweeps.
+            "schedule": crontab(hour=4, minute=30),
+            "options": {"expires": 3600},  # magic-number-allow: celery-task-expiry-seconds
+        },
     }
 
 
