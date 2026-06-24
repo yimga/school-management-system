@@ -201,7 +201,9 @@
 // v4.03.63: operator provisioning queue (/super/provision-queue/ — all not-yet-live
 //   schools in one actionable list w/ requeue) + i18n: completion summary now server-
 //   translated/pluralized (completion_summary_text) and rendered by the progress JS.
-const CACHE_VERSION = "sms-v4.04.96-offline-periodic-sync-r3-2026-06-24";
+// v4.04.99: globe Blue Marble texture cache-bust + network-first globe texture
+// so deployed manager surfaces cannot keep replaying the retired purple earth.
+const CACHE_VERSION = "sms-v4.04.99-globe-blue-marble-parity-2026-06-24";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -343,7 +345,7 @@ const STATIC_ASSETS = [
   "/static/js/rmc-world-globe-bridge.js",
   "/static/js/dist/world-globe.mount.js",
   "/static/geo/world-countries-110m.json",
-  "/static/img/globe/earth-night-1k.jpg",
+  "/static/img/globe/earth-night-1k.jpg?v=20260624-earth-daylight-v2",
   "/static/css/rmc-help-center-engage.css",
   "/static/css/rmc-kb-operator.css",
   "/static/images/logo.png",
@@ -849,6 +851,9 @@ function isNetworkFirstStaticAsset(request, url) {
     return true;
   }
   const path = url.pathname.toLowerCase();
+  if (path === "/static/img/globe/earth-night-1k.jpg") {
+    return true;
+  }
   return path.includes("/css/") || path.endsWith(".css") || path.includes("/js/") || path.endsWith(".js");
 }
 

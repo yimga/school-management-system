@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Generate self-hosted earth equirectangular texture for the WebGL globe.
+"""Ensure the self-hosted Blue Marble earth texture for the WebGL globe.
 
-Reads static/geo/world-countries-110m.json and writes static/img/globe/earth-night-1k.jpg.
-Stdlib + Pillow only; safe to re-run (deterministic output dimensions).
+The design preview uses three-globe's earth-blue-marble.jpg. Production keeps an
+exact self-hosted copy at static/img/globe/earth-night-1k.jpg so the deployed
+globe matches the HTML preview without depending on unpkg at runtime.
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -14,12 +16,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 GEO_PATH = ROOT / "static/geo/world-countries-110m.json"
 OUT_PATH = ROOT / "static/img/globe/earth-night-1k.jpg"
+BLUE_MARBLE_SHA256 = "228deba2e4b600146bdcb6cfa359b8ead6aacc2b1c13550a29cd82824cfa1c01"
 
 WIDTH = 1024
 HEIGHT = 512
 OCEAN_DEEP = (9, 25, 54)
 OCEAN_SHELF = (25, 78, 126)
 COAST = (214, 198, 150)
+
+
+def _sha256(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def _clamp_channel(value: float) -> int:
@@ -154,9 +165,33 @@ def generate(out_path: Path = OUT_PATH, width: int = WIDTH, height: int = HEIGHT
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--write", action="store_true", help="Write texture (default when invoked directly)")
-    parser.add_argument("--check", action="store_true", help="Exit 1 if texture missing or stale vs geo")
+    parser.add_argument("--write", action="store_true", help="Deprecated alias for --check; kept for old scripts")
+    parser.add_argument("--check", action="store_true", help="Exit 1 if the canonical Blue Marble texture is missing")
+    parser.add_argument(
+        "--write-generated",
+        action="store_true",
+        help="Overwrite with the old procedural fallback texture for local experiments only",
+    )
     args = parser.parse_args()
+
+    if args.write_generated:
+        path = generate()
+        print(f"OK: wrote generated fallback {path} ({path.stat().st_size} bytes)")
+        return 0
+
+    if not OUT_PATH.is_file():
+        print(f"FAIL: missing canonical Blue Marble texture: {OUT_PATH}", file=sys.stderr)
+        return 1
+    digest = _sha256(OUT_PATH)
+    if digest != BLUE_MARBLE_SHA256:
+        print(
+            f"FAIL: {OUT_PATH.name} is not the canonical Blue Marble texture "
+            f"({digest} != {BLUE_MARBLE_SHA256})",
+            file=sys.stderr,
+        )
+        return 1
+    print(f"OK: canonical Blue Marble globe texture present ({OUT_PATH.stat().st_size} bytes)")
+    return 0
 
     if args.check:
         if not OUT_PATH.is_file():

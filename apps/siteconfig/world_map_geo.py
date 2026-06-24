@@ -141,7 +141,8 @@ SVG_LAND_REGIONS: tuple[str, ...] = (
 SVG_VIEWBOX_WIDTH = 600.0
 SVG_VIEWBOX_HEIGHT = 280.0
 
-GLOBE_EARTH_TEXTURE_URL = "/static/img/globe/earth-night-1k.jpg"
+GLOBE_EARTH_TEXTURE_VERSION = "20260624-earth-daylight-v2"
+GLOBE_EARTH_TEXTURE_URL = f"/static/img/globe/earth-night-1k.jpg?v={GLOBE_EARTH_TEXTURE_VERSION}"
 
 # Platform HQ anchor for arc visualization (configurable via env in future waves).
 DEFAULT_HQ = {"lat": 6.52, "lng": 3.38, "label": "Platform HQ"}
