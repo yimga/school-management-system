@@ -95,6 +95,7 @@ def main() -> int:
             failures.append(f"tenant_tools_slots.py missing {slot_id} registration")
 
     js = _read("static/js/rmc-operator-tools-tray.js")
+    css = _read("static/css/rmc-operator-tools-tray.css")
     if "data-rmc-assist-layout" not in js or "edge-tray" not in js:
         failures.append("rmc-operator-tools-tray.js missing edge-tray transform")
     if "page-data-rmc-tenant-tools" not in js:
@@ -103,8 +104,17 @@ def main() -> int:
         failures.append("rmc-operator-tools-tray.js missing admin-manager-shell surface gate")
     if "isAuthLanding" not in js:
         failures.append("rmc-operator-tools-tray.js missing auth landing guard")
+    if "syncTrayEmptyState" not in js:
+        failures.append("rmc-operator-tools-tray.js missing syncTrayEmptyState")
+    if "registrySlotHref" not in js:
+        failures.append("rmc-operator-tools-tray.js missing registrySlotHref tenant URL resolver")
+    if "data-rmc-tools-tray-empty" not in js:
+        failures.append("rmc-operator-tools-tray.js missing tray empty state marker")
+    if "data-rmc-tools-sections-empty" not in js:
+        failures.append("rmc-operator-tools-tray.js missing sections panel empty state")
+    if ".rmc-operator-tools__tray-empty" not in css:
+        failures.append("rmc-operator-tools-tray.css missing tray empty state styles")
 
-    css = _read("static/css/rmc-operator-tools-tray.css")
     if ".rmc-operator-tools__edge-tab" not in css:
         failures.append("rmc-operator-tools-tray.css missing edge tab styles")
     if 'body[data-rmc-workspace-tools="tenant"]' not in css:

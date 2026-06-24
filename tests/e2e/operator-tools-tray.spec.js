@@ -132,6 +132,45 @@ test.describe("Operator Tools edge-tray", () => {
     expect(body).not.toContain('data-rmc-back-to-top-policy="always"');
   });
 
+  test("browser opens Tools edge tab on tenant backend", async ({ page, request }) => {
+    const tenantSlug = process.env.TENANT_SLUG || "demo-school";
+    const port = process.env.VISUAL_QA_PORT || "8012";
+    const api = `http://127.0.0.1:${port}`;
+    const tenantHost = {
+      Host: process.env.VISUAL_QA_TENANT_HOST || `${tenantSlug}.runmycampus.com`,
+    };
+    let ready;
+    try {
+      ready = await request.get(`${api}/ready/`, { headers: tenantHost, timeout: 8000 });
+    } catch (_err) {
+      test.skip(true, `Django not reachable at ${api}`);
+      return;
+    }
+    if (!ready || !ready.ok()) {
+      test.skip(true, `/ready/ not OK on ${api}`);
+      return;
+    }
+
+    const { loginTenant, TENANT_BASE_URL } = require("./helpers/tenant-login.js");
+    const user = process.env.TENANT_SWEEP_USER || `${process.env.TENANT_DEMO_USERNAME_PREFIX || "demo"}.admin`;
+    const pass = process.env.TENANT_SWEEP_PASSWORD || "Test1234";
+    await loginTenant(page, { username: user, password: pass });
+    await page.goto(`${TENANT_BASE_URL}/authentication/backend/`, {
+      waitUntil: "domcontentloaded",
+      timeout: 120000,
+    });
+    await expect(page.locator("#page-data-rmc-tenant-tools")).toBeAttached({ timeout: 60000 });
+    const tab = page.locator(".rmc-operator-tools__edge-tab");
+    await expect(tab).toBeVisible({ timeout: 60000 });
+    await tab.click();
+    const tray = page.locator("#rmcOperatorToolsTray");
+    await expect(tray).toHaveAttribute("aria-hidden", "false");
+    const hasContent = page.locator(
+      ".rmc-operator-tools__group, [data-rmc-tools-tray-empty], [data-rmc-assist-slot-id]"
+    );
+    await expect(hasContent.first()).toBeVisible();
+  });
+
   test("browser opens Tools edge tab on /super/", async ({ page }) => {
     test.skip(
       process.env.RMC_OPERATOR_TOOLS_E2E_BROWSER !== "1",

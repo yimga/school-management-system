@@ -333,6 +333,42 @@ body[data-rmc-tenant-copilot-rail="1"][data-rmc-workspace-tools="tenant"] {
   color: var(--text-secondary, rgba(255, 255, 255, 0.6));
 }
 
+.rmc-operator-tools__tray-empty,
+.rmc-operator-tools__panel-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 1.25rem 1rem;
+  margin: 0.35rem 0 0.5rem;
+  border: 1px dashed var(--hairline, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-lg, 12px);
+  text-align: center;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.65));
+}
+
+.rmc-operator-tools__tray-empty-icon,
+.rmc-operator-tools__panel-empty-icon {
+  font-size: 1.35rem;
+  color: var(--text-muted, rgba(255, 255, 255, 0.45));
+}
+
+.rmc-operator-tools__tray-empty-title,
+.rmc-operator-tools__panel-empty-title {
+  margin: 0;
+  font-size: var(--type-size-body-sm, 0.9375rem);
+  font-weight: 600;
+  color: var(--text-primary, #f1f5f9);
+}
+
+.rmc-operator-tools__tray-empty-lede,
+.rmc-operator-tools__panel-empty-lede {
+  margin: 0;
+  font-size: var(--type-size-caption, 0.8125rem);
+  line-height: 1.45;
+  max-width: 22rem;
+}
+
 .rmc-operator-tools__filter .visually-hidden {
   position: absolute !important;
   width: 1px;

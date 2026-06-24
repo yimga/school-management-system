@@ -326,12 +326,28 @@
       shortcut: "0"
     },
     {
-      id: "threshold",
-      group: "Threshold · tenant WOW",
-      title: "Threshold expanded lab",
-      desc: "6 doors · sound · fullscreen · mobile",
-      src: "tenant-campus-pulse-wow-lab-browsable.html",
+      id: "role-sweep",
+      group: "Tenant role surfaces",
+      title: "Full-width role sweep",
+      desc: "Horizontal tabs · Admin/Teacher/Parent/Student · full shell",
+      src: "full-width-sweep-browsable.html",
       shortcut: "1",
+      checks: [
+        "Switch all 4 role tabs (keys 1–4) — full header + sidebar + canvas",
+        "Admin shows setup wizard stage cards",
+        "Teacher shows attention queue + class cards",
+        "Parent shows family hero + fee snapshot",
+        "Student shows timetable + due work tiles",
+        "Copilot rail visible on desktop width"
+      ]
+    },
+    {
+      id: "threshold-archived",
+      group: "Tenant role surfaces",
+      title: "Threshold expanded lab (archived)",
+      desc: "6 doors · sound · fullscreen · mobile",
+      src: "archive/tenant-campus-pulse-wow-lab-browsable.html",
+      shortcut: "",
       checks: [
         "Switch all 6 doors (keys 1–6) — no layout break",
         "Parent rain canvas animates on alert window",

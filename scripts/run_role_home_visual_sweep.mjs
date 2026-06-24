@@ -226,6 +226,67 @@ for (const s of SURFACES) {
       continue;
     }
     await page.waitForTimeout(1200);
+    const TENANT_CHROME_LABELS = new Set([
+      'parent-home',
+      'teacher-home',
+      'student-grades',
+      'admin-backend',
+      'admin-performance',
+    ]);
+    if (TENANT_CHROME_LABELS.has(s.label)) {
+      await page.waitForTimeout(600);
+      row.chrome = await page.evaluate(() => ({
+        tenantToolsIsland: !!document.getElementById('page-data-rmc-tenant-tools'),
+        toolsEdgeTab: !!document.querySelector('.rmc-operator-tools__edge-tab'),
+        copilotRail: !!document.querySelector('[data-rmc-copilot-rail]'),
+        copilotExpandedPanel: !!document.querySelector('.lx-copilot__expanded'),
+        tenantHeader100x: !!document.querySelector('[data-rmc-tenant-header-100x="1"]'),
+        tpPrimaryNavInline: !!document.querySelector('[data-rmc-tenant-primary-nav-inline="1"]'),
+        actionsEmptyState: !!document.querySelector('[data-rmc-copilot-rail-actions-empty]'),
+      }));
+      if (!row.chrome.tenantToolsIsland) {
+        row.failures = [...(row.failures || []), 'tenant_tools_island_missing'];
+        row.ok = false;
+      }
+      if (!row.chrome.copilotRail) {
+        row.failures = [...(row.failures || []), 'tenant_copilot_rail_missing'];
+        row.ok = false;
+      }
+      if (!row.chrome.tenantHeader100x) {
+        row.failures = [...(row.failures || []), 'tenant_header_100x_missing'];
+        row.ok = false;
+      }
+      const edgeTab = page.locator('.rmc-operator-tools__edge-tab');
+      const edgeCount = await edgeTab.count();
+      if (row.chrome.tenantToolsIsland && edgeCount > 0) {
+        await edgeTab.first().click({ timeout: 15000 });
+        await page.waitForTimeout(400);
+        row.chrome.toolsTrayOpen = await page.evaluate(() => {
+          const tray = document.getElementById('rmcOperatorToolsTray');
+          if (!tray || tray.getAttribute('aria-hidden') !== 'false') return false;
+          return !!(
+            tray.querySelector('.rmc-operator-tools__group') ||
+            tray.querySelector('[data-rmc-tools-tray-empty]') ||
+            tray.querySelector('[data-rmc-assist-slot-id]')
+          );
+        });
+        if (!row.chrome.toolsTrayOpen) {
+          row.failures = [...(row.failures || []), 'tenant_tools_tray_open_failed'];
+          row.ok = false;
+        }
+        await edgeTab.first().click({ timeout: 5000 }).catch(() => {});
+      } else if (row.chrome.tenantToolsIsland && edgeCount === 0) {
+        row.failures = [...(row.failures || []), 'tenant_tools_edge_tab_missing'];
+        row.ok = false;
+      }
+      if (s.label === 'admin-backend') {
+        row.chrome.adminBento = await page.evaluate(() => ({
+          bento: !!document.querySelector('[data-rmc-admin-bento]'),
+          overviewPanel: !!document.getElementById('rmc-admin-bento-overview'),
+          cockpitPanel: !!document.getElementById('rmc-admin-bento-cockpit'),
+        }));
+      }
+    }
     const scrollRoot = s.scrollRoot || '#main-content';
     let audit = await page.evaluate(sweepPageInBrowser, scrollRoot);
     await page.waitForTimeout(500);

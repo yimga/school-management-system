@@ -7,6 +7,14 @@ from __future__ import annotations
 from typing import Any
 
 
+def academic_year_close_in_progress(school) -> bool:
+    """True when tenant settings mark an in-flight academic year close."""
+    settings = getattr(school, "settings", None) or {}
+    if isinstance(settings, dict):
+        return bool(settings.get("academic_year_close_in_progress"))
+    return False
+
+
 def evaluate_year_close_blockers(
     school,
     source_year,

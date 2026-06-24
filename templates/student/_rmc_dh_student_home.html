@@ -8,7 +8,7 @@
 {% url 'accounts:user_messages' as st_messages_url %}
 {% url 'accounts:user_profile' as st_profile_url %}
 
-<div class="rmc-dh container-fluid px-3 px-lg-4 py-3" data-page-archetype="student-dashboard" data-rmc-student-learning-home="1" data-rmc-page="student-portal">
+<div class="rmc-dh container-fluid px-3 px-lg-4 py-3" data-page-archetype="student-dashboard" data-rmc-student-learning-home="1" data-rmc-page="student-portal" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
 
   {% firstof request.user.first_name phase7_de.headline_meta as st_name %}
   {% if phase7_de.headline_value == "On track" %}

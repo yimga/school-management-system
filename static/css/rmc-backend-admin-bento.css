@@ -1,0 +1,30 @@
+/* Post-onboarding tenant admin bento — tabbed overview vs cockpit (batch 1725). */
+
+.rmc-admin-bento {
+  margin-bottom: 1rem;
+  min-width: 0;
+}
+
+.rmc-admin-bento__tabs {
+  margin-bottom: 0.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 0.35rem 0;
+  background: color-mix(in oklab, var(--surface-bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.rmc-admin-bento__panel[hidden] {
+  display: none !important; /* style-allow: admin-bento-panel-toggle */
+}
+
+.rmc-admin-bento__panel {
+  min-width: 0;
+}
+
+.rmc-admin-bento__tabs .rmc-section-nav__link.is-active {
+  background: color-mix(in oklab, var(--brand-primary) 14%, var(--surface-elevated));
+  color: var(--text-primary);
+  font-weight: 600;
+}

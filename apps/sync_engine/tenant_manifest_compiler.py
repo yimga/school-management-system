@@ -18,7 +18,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 class TenantManifestError(RuntimeError):
@@ -66,6 +66,7 @@ class TenantManifest:
     pwa_cache_hints: dict[str, Any] = field(default_factory=dict)
     locale_default: str = "en"
     feature_flags: dict[str, bool] = field(default_factory=dict)
+    operational_context: dict[str, Any] = field(default_factory=dict)
     checksum: str = ""
     signature_posture: str = "unsigned"
 
@@ -78,6 +79,7 @@ class TenantManifest:
             "pwa_cache_hints": self.pwa_cache_hints,
             "locale_default": self.locale_default,
             "feature_flags": self.feature_flags,
+            "operational_context": self.operational_context,
             "checksum": self.checksum,
             "signature_posture": self.signature_posture,
         }
@@ -95,6 +97,7 @@ def compile_manifest(
     pwa_cache_hints: dict[str, Any] | None = None,
     locale_default: str = "en",
     feature_flags: dict[str, bool] | None = None,
+    operational_context: dict[str, Any] | None = None,
     signature_posture: str = "unsigned",
     strict_feature_flags: bool = False,
 ) -> TenantManifest:
@@ -107,6 +110,7 @@ def compile_manifest(
     policies = _scrub(dict(data_policies or {}))
     cache = _scrub(dict(pwa_cache_hints or {}))
     flags = {str(k): bool(v) for k, v in (feature_flags or {}).items()}
+    op_ctx = _scrub(dict(operational_context or {}))
     # Validate flags against the canonical registry so a typo is never silently
     # compiled in. Lenient by default (warn — non-breaking for ad-hoc callers);
     # strict mode raises (used by callers that control their flag set).
@@ -132,6 +136,7 @@ def compile_manifest(
         "pwa_cache_hints": cache,
         "locale_default": locale_default,
         "feature_flags": flags,
+        "operational_context": op_ctx,
     }
     checksum = hashlib.sha256(_canonical_json_bytes(body)).hexdigest()
     manifest = TenantManifest(
@@ -141,6 +146,7 @@ def compile_manifest(
         pwa_cache_hints=cache,
         locale_default=locale_default,
         feature_flags=flags,
+        operational_context=op_ctx,
         checksum=checksum,
         signature_posture=signature_posture,
     )

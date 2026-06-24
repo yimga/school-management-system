@@ -1,0 +1,647 @@
+{
+  "finding_count": 128,
+  "findings": [
+    {
+      "line": 48,
+      "path": "apps/accounts/views_certification.py",
+      "statement": "reverse(\"admin:academics_academicyear_changelist\")"
+    },
+    {
+      "line": 133,
+      "path": "apps/accounts/views_certification.py",
+      "statement": "reverse(\"admin:academics_academicyear_changelist\")"
+    },
+    {
+      "line": 134,
+      "path": "apps/accounts/views_certification.py",
+      "statement": "reverse(\"admin:academics_certificationexamsession_changelist\")"
+    },
+    {
+      "line": 334,
+      "path": "apps/accounts/views_workflow.py",
+      "statement": "reverse(\"admin:people_studentprofile_changelist\")"
+    },
+    {
+      "line": 335,
+      "path": "apps/accounts/views_workflow.py",
+      "statement": "reverse(\"admin:people_studentprofile_add\")"
+    },
+    {
+      "line": 336,
+      "path": "apps/accounts/views_workflow.py",
+      "statement": "reverse(\"admin:people_teacherprofile_changelist\")"
+    },
+    {
+      "line": 337,
+      "path": "apps/accounts/views_workflow.py",
+      "statement": "reverse(\"admin:people_teacherprofile_add\")"
+    },
+    {
+      "line": 371,
+      "path": "apps/finance/admin.py",
+      "statement": "reverse(\"admin:finance_paymentreminderlog_changelist\")"
+    },
+    {
+      "line": 1061,
+      "path": "apps/marketplace/views.py",
+      "statement": "reverse(\"tenant_app_catalog\")"
+    },
+    {
+      "line": 1137,
+      "path": "apps/marketplace/views.py",
+      "statement": "reverse(\"tenant_app_catalog\")"
+    },
+    {
+      "line": 1277,
+      "path": "apps/marketplace/views.py",
+      "statement": "reverse(\"tenant_install_impact_preview\")"
+    },
+    {
+      "line": 1638,
+      "path": "apps/marketplace/views.py",
+      "statement": "reverse(\"tenant_app_catalog\")"
+    },
+    {
+      "line": 106,
+      "path": "apps/marketplace/views_monetization_dashboard.py",
+      "statement": "reverse(\"tenant_app_catalog\")"
+    },
+    {
+      "line": 49,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_attendance\")"
+    },
+    {
+      "line": 62,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_attendance\")"
+    },
+    {
+      "line": 64,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_marks\")"
+    },
+    {
+      "line": 83,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_marks\")"
+    },
+    {
+      "line": 109,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_marks\")"
+    },
+    {
+      "line": 120,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_attendance\")"
+    },
+    {
+      "line": 123,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_attendance\")"
+    },
+    {
+      "line": 124,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_report\")"
+    },
+    {
+      "line": 137,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_attendance\")"
+    },
+    {
+      "line": 152,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_report\")"
+    },
+    {
+      "line": 164,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_attendance\")"
+    },
+    {
+      "line": 165,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_marks\")"
+    },
+    {
+      "line": 168,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_marks\")"
+    },
+    {
+      "line": 169,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_complete\")"
+    },
+    {
+      "line": 184,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_attendance\")"
+    },
+    {
+      "line": 185,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_marks\")"
+    },
+    {
+      "line": 207,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_complete\")"
+    },
+    {
+      "line": 219,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_attendance\")"
+    },
+    {
+      "line": 221,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_marks\")"
+    },
+    {
+      "line": 223,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_report\")"
+    },
+    {
+      "line": 224,
+      "path": "apps/schools/demo_conversion_views.py",
+      "statement": "reverse(\"demo_flow_attendance\")"
+    },
+    {
+      "line": 152,
+      "path": "templates/accounts/backend_dashboard.html",
+      "statement": "{% url \"school_configuration_center_canonical\" %}"
+    },
+    {
+      "line": 153,
+      "path": "templates/accounts/backend_dashboard.html",
+      "statement": "{% url \"school_configuration_center\" %}"
+    },
+    {
+      "line": 53,
+      "path": "templates/accounts/owner_onboarding/done.html",
+      "statement": "{% url \"school_studio\" %}"
+    },
+    {
+      "line": 12,
+      "path": "templates/accounts/partials/operator_documentation_body.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 105,
+      "path": "templates/admin/app_list.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 423,
+      "path": "templates/admin/index.html",
+      "statement": "{% url \"admin:accounts_accessrole_changelist\" %}"
+    },
+    {
+      "line": 424,
+      "path": "templates/admin/index.html",
+      "statement": "{% url \"admin:auth_group_changelist\" %}"
+    },
+    {
+      "line": 437,
+      "path": "templates/admin/index.html",
+      "statement": "{% url \"admin:people_studentprofile_changelist\" %}"
+    },
+    {
+      "line": 438,
+      "path": "templates/admin/index.html",
+      "statement": "{% url \"admin:people_studentguardian_changelist\" %}"
+    },
+    {
+      "line": 439,
+      "path": "templates/admin/index.html",
+      "statement": "{% url \"admin:people_teacherprofile_changelist\" %}"
+    },
+    {
+      "line": 210,
+      "path": "templates/auth/login.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 11,
+      "path": "templates/components/confirm_modal.html",
+      "statement": "{% url \"...\" %}"
+    },
+    {
+      "line": 20,
+      "path": "templates/components/confirm_modal.html",
+      "statement": "{% url \"...\" %}"
+    },
+    {
+      "line": 20,
+      "path": "templates/components/confirm_modal.html",
+      "statement": "{% url \"...\" %}"
+    },
+    {
+      "line": 43,
+      "path": "templates/components/rmc_command_palette.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 72,
+      "path": "templates/components/rmc_command_palette.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 78,
+      "path": "templates/components/rmc_command_palette.html",
+      "statement": "{% url \"manager_feature_center\" %}"
+    },
+    {
+      "line": 79,
+      "path": "templates/components/rmc_command_palette.html",
+      "statement": "{% url \"manager_contact_us\" %}"
+    },
+    {
+      "line": 80,
+      "path": "templates/components/rmc_command_palette.html",
+      "statement": "{% url \"manager_support_request\" %}"
+    },
+    {
+      "line": 97,
+      "path": "templates/components/rmc_command_palette.html",
+      "statement": "{% url \"manager_help_analytics\" %}"
+    },
+    {
+      "line": 99,
+      "path": "templates/components/rmc_command_palette.html",
+      "statement": "{% url \"manager_ai_review_queue\" %}"
+    },
+    {
+      "line": 101,
+      "path": "templates/components/rmc_command_palette.html",
+      "statement": "{% url \"manager_kb_locale_families\" %}"
+    },
+    {
+      "line": 238,
+      "path": "templates/components/user_dropdown.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 261,
+      "path": "templates/components/user_dropdown.html",
+      "statement": "{% url \"manager_feature_center\" %}"
+    },
+    {
+      "line": 267,
+      "path": "templates/components/user_dropdown.html",
+      "statement": "{% url \"manager_contact_us\" %}"
+    },
+    {
+      "line": 290,
+      "path": "templates/components/user_dropdown.html",
+      "statement": "{% url \"manager_support_request\" %}"
+    },
+    {
+      "line": 358,
+      "path": "templates/components/user_dropdown.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 25,
+      "path": "templates/errors/404.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 88,
+      "path": "templates/marketing/pages/type_platform_analytics.html",
+      "statement": "{% url \"marketing_pay_fees\" %}"
+    },
+    {
+      "line": 89,
+      "path": "templates/marketing/pages/type_platform_analytics.html",
+      "statement": "{% url \"marketing_run_attendance\" %}"
+    },
+    {
+      "line": 90,
+      "path": "templates/marketing/pages/type_platform_analytics.html",
+      "statement": "{% url \"marketing_run_admissions\" %}"
+    },
+    {
+      "line": 92,
+      "path": "templates/marketing/pages/type_platform_analytics.html",
+      "statement": "{% url \"marketing_run_workflows\" %}"
+    },
+    {
+      "line": 13,
+      "path": "templates/marketing/pages/type_platform_migration_cloud.html",
+      "statement": "{% url \"marketing_migrate_from\" %}"
+    },
+    {
+      "line": 91,
+      "path": "templates/marketing/pages/type_platform_security.html",
+      "statement": "{% url \"marketing_run_workflows\" %}"
+    },
+    {
+      "line": 92,
+      "path": "templates/marketing/pages/type_platform_security.html",
+      "statement": "{% url \"marketing_run_analytics\" %}"
+    },
+    {
+      "line": 69,
+      "path": "templates/marketplace/tenant_app_catalog.html",
+      "statement": "{% url \"tenant_installed_apps\" %}"
+    },
+    {
+      "line": 70,
+      "path": "templates/marketplace/tenant_app_catalog.html",
+      "statement": "{% url \"tenant_scope_consent\" %}"
+    },
+    {
+      "line": 74,
+      "path": "templates/marketplace/tenant_app_catalog.html",
+      "statement": "{% url \"tenant_installed_apps\" %}"
+    },
+    {
+      "line": 75,
+      "path": "templates/marketplace/tenant_app_catalog.html",
+      "statement": "{% url \"tenant_scope_consent\" %}"
+    },
+    {
+      "line": 123,
+      "path": "templates/marketplace/tenant_app_catalog.html",
+      "statement": "{% url \"tenant_installed_apps\" %}"
+    },
+    {
+      "line": 371,
+      "path": "templates/marketplace/tenant_app_catalog.html",
+      "statement": "{% url \"tenant_installed_apps\" %}"
+    },
+    {
+      "line": 372,
+      "path": "templates/marketplace/tenant_app_catalog.html",
+      "statement": "{% url \"tenant_installed_apps\" %}"
+    },
+    {
+      "line": 375,
+      "path": "templates/marketplace/tenant_app_catalog.html",
+      "statement": "{% url \"tenant_installed_apps\" %}"
+    },
+    {
+      "line": 385,
+      "path": "templates/marketplace/tenant_app_catalog.html",
+      "statement": "{% url \"tenant_scope_consent\" %}"
+    },
+    {
+      "line": 397,
+      "path": "templates/marketplace/tenant_app_catalog.html",
+      "statement": "{% url \"tenant_installed_apps\" %}"
+    },
+    {
+      "line": 506,
+      "path": "templates/marketplace/tenant_app_catalog.html",
+      "statement": "{% url \"tenant_install_app\" %}"
+    },
+    {
+      "line": 26,
+      "path": "templates/marketplace/tenant_installed_apps.html",
+      "statement": "{% url \"tenant_scope_consent\" %}"
+    },
+    {
+      "line": 57,
+      "path": "templates/marketplace/tenant_installed_apps.html",
+      "statement": "{% url \"tenant_activate_installation\" %}"
+    },
+    {
+      "line": 63,
+      "path": "templates/marketplace/tenant_installed_apps.html",
+      "statement": "{% url \"tenant_uninstall_app\" %}"
+    },
+    {
+      "line": 130,
+      "path": "templates/marketplace/tenant_installed_apps.html",
+      "statement": "{% url \"tenant_save_installation_config\" %}"
+    },
+    {
+      "line": 151,
+      "path": "templates/marketplace/tenant_installed_apps.html",
+      "statement": "{% url \"tenant_app_catalog\" %}"
+    },
+    {
+      "line": 163,
+      "path": "templates/marketplace/tenant_installed_apps.html",
+      "statement": "{% url \"tenant_app_catalog\" %}"
+    },
+    {
+      "line": 164,
+      "path": "templates/marketplace/tenant_installed_apps.html",
+      "statement": "{% url \"tenant_scope_consent\" %}"
+    },
+    {
+      "line": 168,
+      "path": "templates/marketplace/tenant_installed_apps.html",
+      "statement": "{% url \"tenant_app_catalog\" %}"
+    },
+    {
+      "line": 169,
+      "path": "templates/marketplace/tenant_installed_apps.html",
+      "statement": "{% url \"tenant_scope_consent\" %}"
+    },
+    {
+      "line": 24,
+      "path": "templates/marketplace/tenant_scope_consent.html",
+      "statement": "{% url \"tenant_installed_apps\" %}"
+    },
+    {
+      "line": 25,
+      "path": "templates/marketplace/tenant_scope_consent.html",
+      "statement": "{% url \"tenant_app_catalog\" %}"
+    },
+    {
+      "line": 71,
+      "path": "templates/marketplace/tenant_scope_consent.html",
+      "statement": "{% url \"tenant_approve_scope\" %}"
+    },
+    {
+      "line": 22,
+      "path": "templates/partials/backend_command_center_setup_strip.html",
+      "statement": "{% url \"tenant_app_catalog\" %}"
+    },
+    {
+      "line": 38,
+      "path": "templates/partials/cockpit/_ai_copilot_rail.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 195,
+      "path": "templates/partials/portal_sidebar.html",
+      "statement": "{% url \"school_configuration_center_canonical\" %}"
+    },
+    {
+      "line": 196,
+      "path": "templates/partials/portal_sidebar.html",
+      "statement": "{% url \"school_configuration_center\" %}"
+    },
+    {
+      "line": 333,
+      "path": "templates/partials/portal_sidebar.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 63,
+      "path": "templates/partials/shell_chrome_backend_ops_strip.html",
+      "statement": "{% url \"admin:portal_pendingguardianinvite_changelist\" %}"
+    },
+    {
+      "line": 4,
+      "path": "templates/partials/shell_chrome_django_messages_base_bootstrap.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 10,
+      "path": "templates/partials/shell_chrome_marketplace_tenant_ops_strip.html",
+      "statement": "{% url \"tenant_installed_apps\" %}"
+    },
+    {
+      "line": 11,
+      "path": "templates/partials/shell_chrome_marketplace_tenant_ops_strip.html",
+      "statement": "{% url \"tenant_scope_consent\" %}"
+    },
+    {
+      "line": 11,
+      "path": "templates/partials/tenant_studio_product_strip.html",
+      "statement": "{% url \"tenant_lifecycle_command_center\" %}"
+    },
+    {
+      "line": 12,
+      "path": "templates/partials/tenant_studio_product_strip.html",
+      "statement": "{% url \"tenant_offboarding\" %}"
+    },
+    {
+      "line": 13,
+      "path": "templates/partials/tenant_studio_product_strip.html",
+      "statement": "{% url \"tenant_provisioning_status\" %}"
+    },
+    {
+      "line": 32,
+      "path": "templates/people/backend_classroom_detail.html",
+      "statement": "{% url \"admin:academics_classroom_change\" %}"
+    },
+    {
+      "line": 28,
+      "path": "templates/people/backend_teacher_detail.html",
+      "statement": "{% url \"admin:people_teacherprofile_change\" %}"
+    },
+    {
+      "line": 21,
+      "path": "templates/platform_runtime/tenant_blueprint_setup.html",
+      "statement": "{% url \"school_configuration_center\" %}"
+    },
+    {
+      "line": 7,
+      "path": "templates/portal/operator/kb_article_body.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 7,
+      "path": "templates/portal/operator/kb_category_body.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 7,
+      "path": "templates/portal/operator/kb_home_body.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 7,
+      "path": "templates/portal/operator/kb_search_body.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 7,
+      "path": "templates/portal/partials/kb_ai_assistant_panel.html",
+      "statement": "{% url \"manager_support_request\" %}"
+    },
+    {
+      "line": 225,
+      "path": "templates/portal_base.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 91,
+      "path": "templates/schools/custom_domain_wizard.html",
+      "statement": "{% url \"api_domains_list_or_create\" %}"
+    },
+    {
+      "line": 14,
+      "path": "templates/schools/demo_flow_attendance.html",
+      "statement": "{% url \"demo_flow_attendance_complete\" %}"
+    },
+    {
+      "line": 14,
+      "path": "templates/schools/demo_flow_marks.html",
+      "statement": "{% url \"demo_flow_marks_complete\" %}"
+    },
+    {
+      "line": 14,
+      "path": "templates/schools/demo_flow_report.html",
+      "statement": "{% url \"demo_flow_report_complete\" %}"
+    },
+    {
+      "line": 36,
+      "path": "templates/schools/partials/manager_contact_us_body.html",
+      "statement": "{% url \"manager_feature_center\" %}"
+    },
+    {
+      "line": 23,
+      "path": "templates/schools/partials/manager_feature_center_body.html",
+      "statement": "{% url \"manager_feature_center\" %}"
+    },
+    {
+      "line": 78,
+      "path": "templates/schools/partials/manager_help_center_body.html",
+      "statement": "{% url \"manager_help_center\" %}"
+    },
+    {
+      "line": 2,
+      "path": "templates/siteconfig/partials/ai_center_body.html",
+      "statement": "{% url \"manager_support_request\" %}"
+    },
+    {
+      "line": 6,
+      "path": "templates/siteconfig/partials/onboarding_body.html",
+      "statement": "{% url \"school_studio\" %}"
+    },
+    {
+      "line": 17,
+      "path": "templates/siteconfig/partials/theme_experience_hub_body.html",
+      "statement": "{% url \"school_configuration_center\" %}"
+    },
+    {
+      "line": 29,
+      "path": "templates/siteconfig/tenant_self_offboarding.html",
+      "statement": "{% url \"tenant_offboarding_export_download\" %}"
+    },
+    {
+      "line": 51,
+      "path": "templates/siteconfig/tenant_self_offboarding.html",
+      "statement": "{% url \"tenant_offboarding_snapshot\" %}"
+    },
+    {
+      "line": 52,
+      "path": "templates/siteconfig/tenant_self_offboarding.html",
+      "statement": "{% url \"tenant_offboarding_export\" %}"
+    },
+    {
+      "line": 53,
+      "path": "templates/siteconfig/tenant_self_offboarding.html",
+      "statement": "{% url \"tenant_offboarding_request\" %}"
+    },
+    {
+      "line": 54,
+      "path": "templates/siteconfig/tenant_self_offboarding.html",
+      "statement": "{% url \"tenant_offboarding_cancel\" %}"
+    }
+  ],
+  "generated_at": "2026-06-24T10:45:30+00:00",
+  "rule": "every literal reverse()/reverse_lazy()/{% url %} name must resolve against the live URL resolver; guard with try/except NoReverseMatch or # url-name-allow: <reason>"
+}

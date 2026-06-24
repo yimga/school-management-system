@@ -25,6 +25,9 @@ REQUIRED_SCRIPTS = (
     "scripts/verify_preview_shell_100x_phase5.py",
     "scripts/verify_tenant_portal_list_pagination.py",
     "scripts/verify_copilot_rail_contract.py",
+    "scripts/verify_tenant_copilot_expand_contract.py",
+    "scripts/verify_operator_primary_nav_contract.py",
+    "scripts/verify_operator_tools_tray.py",
 )
 
 PHASE5_ARTIFACTS = (

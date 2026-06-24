@@ -7,6 +7,8 @@ Static HTML mocks for validating layout direction **before** or **alongside** li
 | File | Purpose |
 | --- | --- |
 | **[tenant-role-dashboards-hub.html](tenant-role-dashboards-hub.html)** | **Canonical index** — admin, parent, teacher, wizard routes, live URLs, post-deploy checklist |
+| **[full-width-sweep-browsable.html](full-width-sweep-browsable.html)** | **Role sweep** — horizontal tabs (Admin · Teacher · Parent · Student), inline full dark portal shell per role |
+| **[archive/](archive/)** | Superseded previews (e.g. Threshold expanded lab) kept for reference |
 
 ## Role dashboards
 

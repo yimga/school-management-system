@@ -37,17 +37,14 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-header__live-banner .
   body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .tp-header__live-banner {
     display: none;
   }
-  /* Live banner restored (owner 2026-06-23: "do not forget the live banner"). On the
-     v3 100x role-home dashboards bring back the slim full-width LIVE strip and hide the
-     cramped 220px inline ticker, so the feed reads as one elegant marquee instead of a
-     stub. tp_v3_role_home ⊆ tenant_role_home_landing, so legacy (?simple=1) + every
-     non-landing page keep the consolidated inline ticker (banner not rendered there). */
+  /* Single-band header (batch 1724): match tenant-admin-workspace-preview — one
+     frosted row at lg+ with inline ticker in the action cluster, not a second
+     full-width LIVE strip (reclaims ~40px and removes double-band chrome). */
   body.tp-v3-role-home.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .tp-header__live-banner {
-    display: block;
-    padding: 2px 0;
+    display: none;
   }
   body.tp-v3-role-home.portal-body-with-layout:not(.control-plane-shell) .tp-header__row .rmc-cp-ticker-inline {
-    display: none;
+    display: inline-flex;
   }
 }
 
@@ -178,6 +175,21 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav {
 body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav-inline {
   flex: 0 1 auto;
   min-width: 0;
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .tp-header__vrule {
+  display: none;
+  width: 1px;
+  align-self: stretch;
+  margin: 6px 4px;
+  background: var(--hairline);
+  flex: 0 0 auto;
+}
+
+@media (min-width: 992px) {
+  body.portal-body-with-layout:not(.control-plane-shell) .tp-header__vrule {
+    display: block;
+  }
 }
 
 body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav-inline .tp-primary-nav {

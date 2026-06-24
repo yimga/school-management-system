@@ -219,6 +219,12 @@
           <div class="lx-copilot__msg lx-copilot__msg--{{ msg.role|default:'ai' }}">
             {{ msg.text }}{% if msg.em_text %} <em>{{ msg.em_text }}</em>{% endif %}
           </div>
+        {% empty %}
+        <div class="lx-copilot__empty rmc-empty" role="status">
+          <span class="lx-copilot__empty-icon" aria-hidden="true">✦</span>
+          <p class="lx-copilot__empty-title">{% trans "Your copilot is ready" %}</p>
+          <p class="lx-copilot__empty-lede">{% trans "Ask about this page, pick a suggestion below, or open Lens to inspect the row you selected in a table." %}</p>
+        </div>
         {% endfor %}
 
         {% if cockpit.ai_copilot_rail.suggested_actions %}
@@ -239,9 +245,12 @@
       {% comment %} Actions pane — surfaces the quick-actions list that rmc-copilot-rail.js
          (services bridge) hydrates from /studio/copilot/rail/context/. {% endcomment %}
       <div class="lx-copilot__pane" data-rmc-copilot-pane="actions">
-        <ul class="lx-copilot__actions-list" data-rmc-copilot-rail-actions-list>
-          {% comment %} Populated server-side via the services bridge; falls back to suggestions above. {% endcomment %}
-        </ul>
+        <div class="lx-copilot__actions-empty rmc-empty" data-rmc-copilot-rail-actions-empty role="status">
+          <span class="lx-copilot__empty-icon" aria-hidden="true">⚡</span>
+          <p class="lx-copilot__empty-title">{% trans "No suggested actions yet" %}</p>
+          <p class="lx-copilot__empty-lede" data-rmc-copilot-rail-actions-empty-msg">{% trans "Actions for this page appear here when the copilot bridge connects. Use Chat or pick a shortcut below." %}</p>
+        </div>
+        <ul class="lx-copilot__actions-list" data-rmc-copilot-rail-actions-list hidden></ul>
       </div>
 
       {% comment %} Threads pane — recent threads (server-rendered or "no threads yet" empty state). {% endcomment %}

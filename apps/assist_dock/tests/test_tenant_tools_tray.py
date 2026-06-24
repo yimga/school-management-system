@@ -96,6 +96,17 @@ class TenantToolsRenderContractTests(SimpleTestCase):
         self.assertIn('id="page-data-rmc-tenant-tools"', rendered)
         self.assertIn('"surface": "tenant"', rendered)
         self.assertIn("tenant-kb", rendered)
+        self.assertIn('"tenant-command"', rendered)
+        self.assertIn('"ai-copilot"', rendered)
+
+    def test_tenant_tools_page_data_includes_primary_group(self) -> None:
+        ctx = self._tenant_request()
+        tpl = Template(
+            "{% load static %}{% include 'partials/rmc_tenant_tools_page_data.html' %}"
+        )
+        rendered = tpl.render(Context(ctx))
+        self.assertIn('"primary"', rendered)
+        self.assertIn("tenant-kb", rendered)
 
     def test_scripts_partial_renders_tray_js_on_tenant_host(self) -> None:
         ctx = self._tenant_request()

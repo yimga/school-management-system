@@ -74,6 +74,19 @@ def _text(rel: str) -> str:
 
 
 
+ROLE_HOME_HERO_MARKERS = (
+    "hero_greeting.html",
+    "_rmc_dh_",
+    "threshold_window_hero.html",
+    'class="rmc-dh"',
+    "data-rmc-dh",
+)
+
+
+def _has_role_home_hero(body: str) -> bool:
+    return any(marker in body for marker in ROLE_HOME_HERO_MARKERS)
+
+
 def _check_legacy_gate(rel: str, gate_token: str, legacy_token: str) -> str | None:
 
     body = _text(rel)
@@ -82,9 +95,9 @@ def _check_legacy_gate(rel: str, gate_token: str, legacy_token: str) -> str | No
 
         return f"missing {rel}"
 
-    if "hero_greeting.html" not in body:
+    if not _has_role_home_hero(body):
 
-        return f"{rel}: missing hero_greeting.html include"
+        return f"{rel}: missing role-home hero (hero_greeting or _rmc_dh_* / threshold_window)"
 
     if "tp-dashboard-cockpit" not in body:
 
@@ -134,6 +147,10 @@ def main() -> int:
 
         findings.append("portal_base.html: missing tp-header__row (tenant v3 preview)")
 
+    if "tp-header__vrule" not in portal:
+
+        findings.append("portal_base.html: missing tp-header__vrule single-band divider")
+
     if "tenant_primary_nav" not in portal and "tp-primary-nav" not in portal:
 
         findings.append("portal_base.html: missing tp-primary-nav / tenant_primary_nav include")
@@ -161,6 +178,16 @@ def main() -> int:
         )
 
 
+
+    setup_surface = _text("templates/partials/tenant/setup_command_surface.html")
+    if "rmc-setup-surface-tabs.js" not in setup_surface:
+        findings.append("setup_command_surface.html missing wizard stage tabs script")
+    if 'data-rmc-setup-wizards="1"' not in setup_surface:
+        findings.append("setup_command_surface.html missing wizard stages host")
+
+    header_css_text = _text("static/css/rmc-tenant-header-100x.css")
+    if "tp-header__vrule" not in header_css_text:
+        findings.append("rmc-tenant-header-100x.css: missing tp-header__vrule single-band styles")
 
     css_header = ROOT / "static/css/rmc-tenant-header-100x.css"
 
@@ -199,6 +226,13 @@ def main() -> int:
 
 
     backend_tpl = _text("templates/accounts/backend_dashboard.html")
+
+    if "data-rmc-admin-bento" not in backend_tpl:
+        findings.append("backend_dashboard.html: missing post-onboarding data-rmc-admin-bento")
+    if "rmc-backend-admin-bento-tabs.js" not in backend_tpl:
+        findings.append("backend_dashboard.html: missing rmc-backend-admin-bento-tabs.js")
+    if not (ROOT / "static/css/rmc-backend-admin-bento.css").is_file():
+        findings.append("missing static/css/rmc-backend-admin-bento.css")
 
     if "backend_show_legacy_dashboard" in backend_tpl and "backend-dashboard-v2.css" in backend_tpl:
 

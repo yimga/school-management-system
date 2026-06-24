@@ -1,4 +1,4 @@
-{% load i18n terminology_tags %}
+{% load static i18n terminology_tags %}
 {% comment %}
   Onboarding "command surface" for the tenant-admin v3 canvas.
 
@@ -19,7 +19,7 @@
 {% url 'siteconfig:onboarding' as rmc_setup_checklist_url %}
 {% term 'school' as rmc_school_term %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<section class="rmc-setup-surface" data-rmc-setup-surface="active" aria-label="{% blocktrans with school_term=rmc_school_term %}Set up your {{ school_term }}{% endblocktrans %}">
+<section class="rmc-setup-surface" data-rmc-setup-surface="active" data-rmc-page-fold-nav="required" aria-label="{% blocktrans with school_term=rmc_school_term %}Set up your {{ school_term }}{% endblocktrans %}">
   <header class="rmc-setup-surface__hero">
     <div class="rmc-setup-surface__hero-copy">
       <p class="rmc-setup-surface__eyebrow">{% trans "Getting started" %}</p>
@@ -41,9 +41,19 @@
   {% comment %}Full setup-studio wizard journey — real registry data grouped by lifecycle
      stage (apps/setup_studio/setup_surface.build_setup_wizard_stages). Each card
      deep-links to the tenant wizard runner.{% endcomment %}
+  <nav class="rmc-section-nav rmc-setup-surface__stage-nav" aria-label="{% trans 'Setup stages' %}">
+    <div class="rmc-surface-subnav" role="list">
+      {% for stage in rmc_setup_wizard_stages.stages %}
+      <a href="#rmc-setup-stage-{{ stage.step }}" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>
+        <span class="rmc-setup-surface__stage-nav-num" aria-hidden="true">{{ stage.step }}</span>
+        <span>{{ stage.label }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </nav>
   <div class="rmc-setup-surface__stages" data-rmc-setup-wizards="1">
     {% for stage in rmc_setup_wizard_stages.stages %}
-    <div class="rmc-setup-surface__stage">
+    <div class="rmc-setup-surface__stage" id="rmc-setup-stage-{{ stage.step }}" data-rmc-section-anchor>
       <div class="rmc-setup-surface__stage-head">
         <span class="rmc-setup-surface__stage-num" aria-hidden="true">{{ stage.step }}</span>
         <div class="rmc-setup-surface__stage-meta">
@@ -103,5 +113,6 @@
   {% if rmc_setup_checklist_url %}
   <a class="rmc-setup-surface__all" href="{{ rmc_setup_checklist_url }}">{% trans "Open full activation checklist" %}</a>
   {% endif %}
+  <script src="{% static 'js/rmc-setup-surface-tabs.js' %}" defer></script>
 </section>
 {% endif %}

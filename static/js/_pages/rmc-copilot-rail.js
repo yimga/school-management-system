@@ -34,6 +34,11 @@
 
   /* === Shell helpers ========================================== */
   function findShell(el) {
+    /* Tenant + manager-portal-bridge: copilot lives in a fixed mount outside
+       .rmc-app-shell — always drive state from <body> so width + panel CSS agree. */
+    if (document.querySelector("[data-rmc-copilot-mount]")) {
+      return document.body;
+    }
     while (el && el !== document.body) {
       if (el.classList && el.classList.contains("rmc-app-shell")) {
         return el;
@@ -58,8 +63,13 @@
     // operator Tools edge tab mounts in .rmc-assist-dock OUTSIDE the app-shell, so it
     // cannot select on .rmc-app-shell[data-copilot]; without this mirror the floating
     // tab sits on top of the open copilot composer / Send button when the rail expands.
+    // Tenant/manager-portal-bridge copilot mounts also live outside .rmc-app-shell —
+    // body[data-copilot] drives both width (vertical-compact CSS) and panel visibility.
     if (document.body) {
       document.body.setAttribute("data-rmc-copilot-shell", state);
+      if (document.querySelector("[data-rmc-copilot-rail]")) {
+        document.body.setAttribute("data-copilot", state);
+      }
     }
   }
 

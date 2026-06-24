@@ -144,11 +144,21 @@
 
   function renderQuickActions(actions) {
     var list = document.querySelector("[data-rmc-copilot-rail-actions-list]");
+    var emptyEl = document.querySelector("[data-rmc-copilot-rail-actions-empty]");
     if (!list) { return; }
     if (!actions || !actions.length) {
-      /* Keep the server-rendered fallback in place when registry returns 0 — do nothing. */
+      if (emptyEl) {
+        emptyEl.hidden = false;
+        emptyEl.setAttribute("data-state", "empty");
+      }
+      list.hidden = true;
       return;
     }
+    if (emptyEl) {
+      emptyEl.hidden = true;
+      emptyEl.removeAttribute("data-state");
+    }
+    list.hidden = false;
     list.innerHTML = "";
     for (var i = 0; i < actions.length; i++) {
       var a = actions[i];
@@ -168,6 +178,28 @@
       li.appendChild(anchor);
       list.appendChild(li);
     }
+  }
+
+  function setActionsBridgeError(message) {
+    var emptyEl = document.querySelector("[data-rmc-copilot-rail-actions-empty]");
+    var list = document.querySelector("[data-rmc-copilot-rail-actions-list]");
+    var msgEl = document.querySelector("[data-rmc-copilot-rail-actions-empty-msg]");
+    if (emptyEl) {
+      emptyEl.hidden = false;
+      emptyEl.setAttribute("data-state", "error");
+    }
+    if (msgEl && message) {
+      msgEl.textContent = message;
+    }
+    if (list) {
+      list.hidden = true;
+    }
+  }
+
+  function markLensBridgeUnavailable() {
+    document.querySelectorAll("[data-rmc-copilot-lens-bridge-error]").forEach(function (el) {
+      el.hidden = false;
+    });
   }
 
   /* Governance registries (Feature-Gap + Backlog) — operator-only, server-gated.
@@ -215,7 +247,8 @@
       var label = pill.querySelector("[data-rmc-copilot-rail-posture-label]");
       if (label) { label.textContent = "AI unavailable"; }
     }
-    /* Leave server-rendered fallback actions / skeleton in place. */
+    setActionsBridgeError("Could not load actions for this page. Try again or use Chat.");
+    markLensBridgeUnavailable();
   }
 
   function loadContext() {

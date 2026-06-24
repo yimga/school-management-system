@@ -171,6 +171,21 @@ def main() -> int:
     elif "NAV_SIDEBAR_SMOKE_PASS" not in smoke.read_text(encoding="utf-8"):
         failures.append("smoke_nav_sidebar.py missing NAV_SIDEBAR_SMOKE_PASS marker")
 
+    cp_sidebar = _read("templates/partials/control_plane_sidebar.html")
+    if "data-rmc-smart-sidebar=" not in cp_sidebar:
+        failures.append("control_plane_sidebar.html missing data-rmc-smart-sidebar")
+    if "data-rmc-badge-poll" not in cp_sidebar:
+        failures.append("control_plane_sidebar.html missing operator badge poll URL")
+    if "data-rmc-smart-sidebar=" not in portal_sidebar:
+        failures.append("portal_sidebar.html missing data-rmc-smart-sidebar")
+    if "rmc-sidebar-intelligence.js" not in portal:
+        failures.append("portal_base.html missing rmc-sidebar-intelligence.js")
+    intel_js = _read("static/js/rmc-sidebar-intelligence.js")
+    if "buildFrequent" not in intel_js or "liveBadges" not in intel_js:
+        failures.append("rmc-sidebar-intelligence.js missing Phase 1 capabilities")
+    if "rmc-sb-frequent" not in _read("static/css/rmc-class-grammar.css"):
+        failures.append("rmc-class-grammar.css missing intelligent sidebar grammar")
+
     if failures:
         for item in failures:
             print(f"FAIL: {item}")

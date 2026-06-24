@@ -26,7 +26,7 @@
   var USAGE_KEY = "rmcSidebarUsage:v1";
   var DENSITY_KEY = "rmcSidebarDensity:v1";
   var PREFS_KEY = "rmcSidebarPrefs:v1"; // per-user {density, adaptive, search}
-  var MIN_ITEMS_FOR_FILTER = 8; // tiny sidebars don't need a filter
+  var MIN_ITEMS_FOR_FILTER = 6; // tiny sidebars don't need a filter
   var FREQUENT_MAX = 4;
   var FREQUENT_MIN_HITS = 2;
   var DENSITIES = ["compact", "comfortable", "spacious"];
@@ -315,7 +315,7 @@
       var lbl = document.createElement("span");
       lbl.className = "rmc-sb-frequent__label"; lbl.textContent = s.it.label_raw;
       var tag = document.createElement("span");
-      tag.className = "rmc-sb-frequent__tag"; tag.textContent = "★"; tag.title = "Used often";
+      tag.className = "rmc-sb-frequent__tag"; tag.textContent = "often"; tag.title = "Used often";
       a.appendChild(i); a.appendChild(lbl); a.appendChild(tag);
       band.appendChild(a);
     });

@@ -52,7 +52,7 @@ Replaces the former triple stack: utility row + marquee ticker + canvas primary 
         </div>
         {% endif %}
         <div class="cp-header__nav-slot" data-rmc-cp-nav-slot="1">
-          {% include "partials/control_plane_primary_nav.html" with hide_security=True %}
+          {% include "partials/control_plane_primary_nav.html" with rail=True hide_security=True %}
         </div>
         {% if not MANAGER_PLATFORM_ADMIN_SHELL %}
         <div class="cp-header__nav-flank cp-header__nav-flank--end" data-rmc-cp-nav-flank="end">

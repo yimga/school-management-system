@@ -1,5 +1,35 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Platform chrome residuals (batch 1725 — tools tray Playwright + admin bento - 2026-06-24)
+
+**A. Scope:** Close batch 1724 honest residuals — live Playwright tools-tray click proof + post-onboarding admin tabbed bento.
+
+**B. Shipped:** `run_role_home_visual_sweep.mjs` edge-tab click + `toolsTrayOpen` assertion; `operator-tools-tray.spec.js` tenant backend browser test; `backend_dashboard.html` `data-rmc-admin-bento` Overview/Cockpit tabs + `rmc-backend-admin-bento-tabs.js`; preview parity verifier extended.
+
+**C. Proof:** **ROLE_HOME_VISUAL_SWEEP_HARNESS_PASS**; **PREVIEW_SHELL_TENANT_V3_PARITY_PASS**; SW **`sms-v4.05.01-platform-chrome-batch-1725-2026-06-24`**.
+
+**D. Honest:** bento tabs only when `show_setup_landing` is false; onboarding tenants keep flat stack.
+
+## Slice — Platform chrome batch 2 (batch 1724 — tools tray + header + wizard + copilot fallbacks - 2026-06-24)
+
+**A. Scope:** Six post-1723 gaps — tools tray empty panel, tenant header single-band, admin setup wizard tabs (4-fold), preview hero gate, copilot Actions/Lens fallbacks, CI wiring + role-home chrome assertions.
+
+**B. Shipped:** `rmc-operator-tools-tray.js` registrySlotHref + syncTrayEmptyState + panel empty states; `rmc-tenant-header-100x.css` single-band + vrule; `portal_base.html` vrule markup; `rmc-setup-surface-tabs.js` + setup partial; `_ai_copilot_rail.html` + `rmc-copilot-rail.js` Actions/Lens fallbacks; `verify_preview_shell_100x_tenant_parity.py` _rmc_dh hero acceptance; platform-pillar-gates + preview completion + role-home sweep chrome checks; Django test extension.
+
+**C. Proof:** **TENANT_COPILOT_EXPAND_PASS**; **OPERATOR_PRIMARY_NAV_CONTRACT_PASS**; operator tools tray OK; **PREVIEW_SHELL_TENANT_V3_PARITY_PASS**; **ROLE_HOME_VISUAL_SWEEP_HARNESS_PASS**; SW **`sms-v4.05.00-platform-chrome-batch-1724-2026-06-24`**.
+
+**D. Honest:** tools edge-tab open/close still needs live Playwright click in CI; admin post-onboarding bento density not fully tabbed.
+
+## Slice — Platform chrome parity wave (batch 1723 — copilot expand + nav More + tenant surfaces - 2026-06-24)
+
+**A. Scope:** Close production gaps vs design previews — empty tenant copilot expand, operator More/proximity nav, intelligent sidebar contract, tenant setup section nav + page-fold, student role-home polish.
+
+**B. Shipped:** `rmc-cp-200x.css` body/mount copilot expand selectors + empty state; `_pages/rmc-copilot-rail.js` findShell/setShellState body mirror; `control_plane_unified_header.html` rail=True fallback; More dropdown fixed popper; `setup_command_surface.html` stage section nav; `backend_dashboard.html` page-fold wrapper; `verify_tenant_copilot_expand_contract.py` + `verify_operator_primary_nav_contract.py`; extended `verify_nav_sidebar_contract.py`.
+
+**C. Proof:** **TENANT_COPILOT_EXPAND_PASS**; **OPERATOR_PRIMARY_NAV_CONTRACT_PASS**; copilot rail contract PASS; nav sidebar contract PASS; **PAGE_FOLD_STANDARDS 26/26**; operator tools tray contract OK; SW **`sms-v4.04.98-platform-chrome-parity-2026-06-24`**.
+
+**D. Honest:** live Playwright role-home visual sign-off still operator-gated (batch 1711–1713 CI); full tenant admin bento still converging toward preview mocks beyond setup-surface nav.
+
 ## Slice — Zero-Friction wave 23 partials + marketing (batch 1722 — 2026-06-24)
 
 **A. Scope:** Phase 6 burndown on `templates/partials/` + `templates/marketing/` zones skipped by finale sweep.

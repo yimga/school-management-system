@@ -40,6 +40,7 @@ backend-shell dashboard-page-backend
    + wizard-style step cards) shown on the default v3 canvas while a school is still
    onboarding (gated on show_setup_landing). Token-only; tenant brand + theme flip clean. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-setup-surface.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-backend-admin-bento.css' %}">
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 <!-- Include navigation bridge styles -->
 <script src="{% static 'js/_pages/accounts__backend_dashboard.js' %}"></script>
@@ -73,6 +74,7 @@ backend-shell dashboard-page-backend
 {% block backend_page %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="backend-admin-role-home" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
 
 {% include "components/next_action_strip.html" %}
 
@@ -83,26 +85,11 @@ backend-shell dashboard-page-backend
   {% include "partials/tenant/hero_greeting.html" %}
   {% url 'accounts:backend_operational_health_json' as tenant_health_api_url %}
   {% url 'accounts:backend_operational_health_stream' as tenant_health_stream_url %}
+  {% if show_setup_landing %}
   {% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="admin" %}
   {% include "partials/operator_queue_smart_links_banner.html" %}
-
-  {% comment %} v4.04.x tenant 100X: premium .rmc-dh "school overview" band — an additive
-     summary (KPIs · what-needs-you · top performers · at-risk · fee collection · recent
-     admissions) above the configurable module grid, wired to the existing context. {% endcomment %}
   {% include "accounts/_rmc_dh_admin_overview.html" %}
-
-  {% comment %} v4.04.x: onboarding command surface — front-and-centre on the default v3
-     canvas while a school is still onboarding, so a fresh tenant lands on a guided
-     setup path (hero + progress ring + Configure stage + wizard step cards) instead
-     of an empty cockpit. Self-gates on show_setup_landing + real onboarding data. {% endcomment %}
   {% include "partials/tenant/setup_command_surface.html" %}
-
-  {% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings.
-
-     v3.58.x Wave 10 Agent T (2026-05-22): each cockpit section wrapped in the collapsable
-     primitive so school admins can fold sections they don't need. State persists per-section
-     via localStorage. Inner partials keep their cockpit.<section>.enabled self-gate. {% endcomment %}
-  {% comment %} v4.04.x 100X: cockpit keeps operator-only extras below the .rmc-dh overview band. {% endcomment %}
   <div data-rmc-scroll-policy="paginate" class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="backend-admin">
     {% if cockpit.year_progress.enabled %}{% include "partials/cockpit/_year_progress.html" %}{% endif %}
     {% if cockpit.teacher_spotlight.enabled and cockpit.teacher_spotlight.teacher_name %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Teacher spotlight") key="backend__teacher_spotlight_card" include_partial="partials/cockpit/_teacher_spotlight_card.html" chrome="section" %}{% endif %}
@@ -110,6 +97,36 @@ backend-shell dashboard-page-backend
     {% if cockpit.lesson_of_day.enabled and cockpit.lesson_of_day.lesson_title %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Lesson of the day") key="backend__lesson_of_day" include_partial="partials/cockpit/_lesson_of_day.html" chrome="section" %}{% endif %}
     {% if cockpit.realtime_presence.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Realtime presence") key="backend__realtime_presence" default_state="collapsed" include_partial="partials/cockpit/_realtime_presence.html" chrome="section" %}{% endif %}
   </div>
+  {% else %}
+  {% comment %} v4.05.x batch 1725: post-onboarding tabbed bento — Overview vs Cockpit panels. {% endcomment %}
+  <section class="rmc-admin-bento" data-rmc-admin-bento="1" aria-label="{% trans 'Admin workspace' %}">
+    <nav class="rmc-section-nav rmc-admin-bento__tabs" aria-label="{% trans 'Workspace sections' %}">
+      <div class="rmc-surface-subnav" role="list">
+        <a href="#rmc-admin-bento-overview" class="rmc-section-nav__link is-active" role="listitem" data-rmc-admin-bento-tab="overview" data-rmc-section-anchor>
+          <i class="bi bi-speedometer2" aria-hidden="true"></i> {% trans "Overview" %}
+        </a>
+        <a href="#rmc-admin-bento-cockpit" class="rmc-section-nav__link" role="listitem" data-rmc-admin-bento-tab="cockpit" data-rmc-section-anchor>
+          <i class="bi bi-grid-1x2" aria-hidden="true"></i> {% trans "Cockpit" %}
+        </a>
+      </div>
+    </nav>
+    <div class="rmc-admin-bento__panel" id="rmc-admin-bento-overview" data-rmc-admin-bento-panel="overview" data-rmc-section-anchor>
+      {% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="admin" %}
+      {% include "partials/operator_queue_smart_links_banner.html" %}
+      {% include "accounts/_rmc_dh_admin_overview.html" %}
+    </div>
+    <div class="rmc-admin-bento__panel" id="rmc-admin-bento-cockpit" data-rmc-admin-bento-panel="cockpit" hidden aria-hidden="true">
+      <div data-rmc-scroll-policy="paginate" class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="backend-admin">
+        {% if cockpit.year_progress.enabled %}{% include "partials/cockpit/_year_progress.html" %}{% endif %}
+        {% if cockpit.teacher_spotlight.enabled and cockpit.teacher_spotlight.teacher_name %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Teacher spotlight") key="backend__teacher_spotlight_card" include_partial="partials/cockpit/_teacher_spotlight_card.html" chrome="section" %}{% endif %}
+        {% if cockpit.attendance_heatmap.enabled and cockpit.attendance_heatmap.cells %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Attendance heatmap") key="backend__attendance_heatmap" include_partial="partials/cockpit/_attendance_heatmap.html" chrome="section" %}{% endif %}
+        {% if cockpit.lesson_of_day.enabled and cockpit.lesson_of_day.lesson_title %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Lesson of the day") key="backend__lesson_of_day" include_partial="partials/cockpit/_lesson_of_day.html" chrome="section" %}{% endif %}
+        {% if cockpit.realtime_presence.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Realtime presence") key="backend__realtime_presence" default_state="collapsed" include_partial="partials/cockpit/_realtime_presence.html" chrome="section" %}{% endif %}
+      </div>
+    </div>
+  </section>
+  <script src="{% static 'js/rmc-backend-admin-bento-tabs.js' %}" defer></script>
+  {% endif %}
 
   {% if backend_show_legacy_dashboard %}
   {% comment %} 1012: Same breadcrumb chrome as portal_base; actions DRY via backend_portal_breadcrumb_actions (no nested blocks). {% endcomment %}
@@ -1065,6 +1082,7 @@ backend-shell dashboard-page-backend
   </div><!-- .backend-dashboard-content -->
   {% endif %}
 
+</div><!-- .backend-admin-role-home -->
 {% endblock %}
 
 {% block extra_js %}

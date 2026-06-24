@@ -1916,6 +1916,23 @@ body[data-rmc-shell-main="control-plane"] .lx-audit__row--danger,
 }
 .rmc-app-shell[data-copilot="expanded"] .lx-copilot__expanded { display: flex; }
 
+/* v4.04.98: tenant + manager-portal-bridge copilot mounts live OUTSIDE
+   .rmc-app-shell (fixed column on body). Toggle sets data-copilot on <body>
+   via findShell() — width rules already key off body[data-copilot=expanded]
+   in rmc-platform-vertical-compact.css; panel visibility must match. */
+body[data-copilot="expanded"] .rmc-tenant-portal-copilot-mount .lx-copilot__expanded,
+body[data-copilot="expanded"] .rmc-manager-portal-copilot-mount .lx-copilot__expanded,
+body[data-rmc-copilot-shell="expanded"] .rmc-tenant-portal-copilot-mount .lx-copilot__expanded,
+body[data-rmc-copilot-shell="expanded"] .rmc-manager-portal-copilot-mount .lx-copilot__expanded {
+  display: flex;
+}
+body[data-copilot="expanded"] .rmc-tenant-portal-copilot-mount .lx-copilot__collapsed,
+body[data-copilot="expanded"] .rmc-manager-portal-copilot-mount .lx-copilot__collapsed,
+body[data-rmc-copilot-shell="expanded"] .rmc-tenant-portal-copilot-mount .lx-copilot__collapsed,
+body[data-rmc-copilot-shell="expanded"] .rmc-manager-portal-copilot-mount .lx-copilot__collapsed {
+  display: none;
+}
+
 .lx-copilot__header {
   padding: 14px 16px;
   border-bottom: 1px solid var(--cp-chrome-hairline);
@@ -2022,6 +2039,37 @@ body[data-rmc-shell-main="control-plane"] .lx-audit__row--danger,
   border: 1px solid var(--cp-chrome-hairline);
   align-self: flex-start;
   color: var(--cp-chrome-text);
+}
+.lx-copilot__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 24px 12px;
+  color: var(--cp-chrome-text-muted);
+}
+.lx-copilot__empty-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6); /* off-token-allow: dark-chrome-copilot-mark */
+  color: white; /* off-token-allow: dark-chrome-copilot-mark */
+}
+.lx-copilot__empty-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cp-chrome-text);
+}
+.lx-copilot__empty-lede {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  max-width: 28ch;
 }
 .lx-copilot__msg em {
   font-family: var(--serif);

@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMyCampus · Full-width role sweep — browsable</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  :root {
+    --bg: #0b1020;
+    --canvas: #0e1426;
+    --elevated: #141c33;
+    --popover: #1a2542;
+    --hairline: rgba(255, 255, 255, 0.08);
+    --hairline-strong: rgba(255, 255, 255, 0.14);
+    --text: #eef2ff;
+    --text-2: #aab3d4;
+    --text-3: #7b86ad;
+    --brand: #6366f1;
+    --brand-2: #818cf8;
+    --accent: #10b981;
+    --warn: #f59e0b;
+    --font: Inter, system-ui, sans-serif;
+    --tab-h: 48px;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+    background: var(--bg);
+    overflow: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  .sweep {
+    display: grid;
+    grid-template-rows: var(--tab-h) 1fr;
+    height: 100dvh;
+  }
+  .sweep-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px;
+    background: var(--canvas);
+    border-bottom: 1px solid var(--hairline);
+    z-index: 200;
+  }
+  .sweep-tabs__label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-right: 6px;
+    white-space: nowrap;
+  }
+  .sweep-tabs nav {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+  }
+  .sweep-tabs button {
+    border: 1px solid var(--hairline);
+    background: transparent;
+    color: var(--text-2);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 650;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .sweep-tabs button:hover { color: var(--text); border-color: rgba(99, 102, 241, 0.45); }
+  .sweep-tabs button.is-on {
+    background: var(--brand);
+    color: #fff;
+    border-color: transparent;
+  }
+  .sweep-tabs__hub {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-3);
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    padding: 5px 10px;
+    white-space: nowrap;
+  }
+  .sweep-tabs__hub:hover { color: var(--text); }
+
+  .sweep-stage { position: relative; min-height: 0; background: var(--bg); }
+  .role-surface {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .role-surface.is-on { display: flex; }
+
+  /* Shared tenant shell chrome */
+  .topbar {
+    flex: none;
+    background: color-mix(in oklab, var(--canvas) 86%, #000);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--hairline);
+    z-index: 50;
+  }
+  .topbar__row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 18px;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .brand__logo {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    display: grid; place-items: center; font-weight: 800; color: #fff; flex: none;
+  }
+  .brand__sub { font-size: 11px; color: var(--text-3); }
+  .pill {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 999px;
+    background: rgba(99, 102, 241, 0.18); color: var(--brand-2);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+  }
+  .pill--parent { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.35); }
+  .pill--student { background: rgba(125, 211, 252, 0.12); color: #7dd3fc; border-color: rgba(125, 211, 252, 0.35); }
+  .topnav { display: flex; gap: 2px; margin-left: auto; flex-wrap: wrap; }
+  .topnav a {
+    font-size: 13px; font-weight: 600; color: var(--text-2);
+    padding: 7px 11px; border-radius: 9px;
+  }
+  .topnav a.is-active, .topnav a:hover { background: var(--elevated); color: var(--text); }
+  .cmdk {
+    flex: 1; max-width: 420px; display: flex; align-items: center; gap: 8px;
+    background: var(--elevated); border: 1px solid var(--hairline);
+    border-radius: 11px; padding: 8px 12px; color: var(--text-3); font-size: 13px;
+  }
+  .cmdk kbd {
+    margin-left: auto; font-size: 11px; background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--hairline); border-radius: 6px; padding: 1px 6px; color: var(--text-2);
+  }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+    display: grid; place-items: center; font-weight: 700; color: #fff; flex: none;
+  }
+
+  .shell {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 248px 1fr 52px;
+    min-height: 0;
+  }
+  @media (max-width: 960px) {
+    .shell { grid-template-columns: 1fr; }
+    .rail, .copilot { display: none; }
+  }
+  .rail {
+    border-right: 1px solid var(--hairline);
+    background: var(--canvas);
+    padding: 12px;
+    overflow-y: auto;
+  }
+  .rail__head {
+    font-size: 11px; color: var(--text-3); text-transform: uppercase;
+    letter-spacing: 0.07em; padding: 12px 8px 4px; font-weight: 700;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 10px;
+    color: var(--text-2); font-size: 13px;
+  }
+  .nav-item i { font-size: 16px; width: 18px; text-align: center; color: var(--text-3); }
+  .nav-item.is-active { background: rgba(99, 102, 241, 0.14); color: #fff; }
+  .nav-item.is-active i { color: var(--brand-2); }
+  .nav-item--parent.is-active { background: rgba(16, 185, 129, 0.12); }
+  .nav-item--student.is-active { background: rgba(125, 211, 252, 0.12); }
+
+  .work {
+    padding: 20px 22px 40px;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .hero {
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 14px;
+    background: linear-gradient(135deg, color-mix(in oklab, var(--elevated) 88%, var(--brand)), var(--elevated));
+    display: flex; align-items: center; gap: 18px;
+  }
+  .hero__body { flex: 1; min-width: 0; }
+  .hero .eyebrow { font-size: 11px; color: var(--text-3); margin: 0 0 4px; }
+  .hero h1 { margin: 0 0 6px; font-size: 21px; font-weight: 750; }
+  .hero p { margin: 0; color: var(--text-2); }
+  .ring {
+    width: 64px; height: 64px; border-radius: 50%; flex: none;
+    display: grid; place-items: center; font-weight: 700; font-size: 14px;
+    background: conic-gradient(var(--accent) 68%, rgba(255, 255, 255, 0.08) 0);
+    position: relative;
+  }
+  .ring::after {
+    content: ""; position: absolute; inset: 6px; border-radius: 50%; background: var(--elevated);
+  }
+  .ring span { position: relative; z-index: 1; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .card { background: var(--elevated); border: 1px solid var(--hairline); border-radius: 12px; padding: 12px; }
+  .card b { display: block; margin-bottom: 4px; font-size: 13px; }
+  .card span { font-size: 12px; color: var(--text-2); }
+
+  .section {
+    background: var(--canvas); border: 1px solid var(--hairline);
+    border-radius: 14px; margin-bottom: 10px; padding: 12px 14px;
+  }
+  .section h2 { margin: 0 0 8px; font-size: 14px; font-weight: 650; display: flex; align-items: center; gap: 8px; }
+  .section p, .section ul { margin: 0; color: var(--text-2); font-size: 13px; }
+  .section ul { padding-left: 18px; }
+
+  .fw { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+  .fw a {
+    font-size: 12px; font-weight: 600; padding: 7px 12px; border-radius: 9px;
+    border: 1px solid var(--hairline); color: var(--brand-2); background: var(--canvas);
+  }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+    border: 1px solid var(--hairline);
+  }
+  .btn--primary { background: var(--accent); border-color: var(--accent); color: #04121a; }
+  .btn--secondary { background: transparent; color: var(--text-2); }
+
+  .copilot {
+    border-left: 1px solid var(--hairline);
+    background: var(--canvas);
+    display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 0;
+  }
+  .cp-ic {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: grid; place-items: center; color: var(--text-2); font-size: 16px;
+  }
+  .cp-ic.is-active { background: var(--brand); color: #fff; }
+
+  .stages { list-style: none; margin: 0; padding: 0; }
+  .stage {
+    background: var(--canvas); border: 1px solid var(--hairline);
+    border-radius: 16px; padding: 16px 18px;
+  }
+  .stage__head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .stage__num {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--warn);
+    color: #241a00; font-weight: 800; display: grid; place-items: center; flex: none;
+  }
+  .stage__title { margin: 0; font-size: 16px; font-weight: 700; }
+  .stage__desc { margin: 2px 0 0; font-size: 12px; color: var(--text-3); }
+  .wzgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .wzcard {
+    background: var(--elevated); border: 1px solid var(--hairline);
+    border-radius: 12px; padding: 12px;
+  }
+  .wzcard h3 { margin: 0 0 4px; font-size: 13px; font-weight: 650; }
+  .wzcard .meta { font-size: 11px; color: var(--text-3); }
+
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+  @media (max-width: 720px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+  .tile {
+    border: 1px solid var(--hairline); border-radius: 12px;
+    padding: 11px; background: var(--canvas);
+  }
+  .tile .k { font-size: 10px; color: var(--text-3); text-transform: uppercase; }
+  .tile .v { font-size: 20px; font-weight: 750; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="sweep">
+  <header class="sweep-tabs">
+    <span class="sweep-tabs__label">Role sweep</span>
+    <nav aria-label="User type">
+      <button type="button" class="is-on" data-role="admin" data-k="1">Admin · School overview</button>
+      <button type="button" data-role="teacher" data-k="2">Teacher · Teaching day</button>
+      <button type="button" data-role="parent" data-k="3">Parent · Family home</button>
+      <button type="button" data-role="student" data-k="4">Student · Learning home</button>
+    </nav>
+    <a class="sweep-tabs__hub" href="tenant-role-dashboards-hub.html">Hub</a>
+  </header>
+
+  <div class="sweep-stage">
+
+    <!-- ADMIN -->
+    <section class="role-surface is-on" data-role="admin" aria-label="Admin workspace">
+      <header class="topbar">
+        <div class="topbar__row">
+          <div class="brand">
+            <div class="brand__logo">NT</div>
+            <div>
+              <strong>New Test High School</strong><br>
+              <span class="brand__sub">School command surface</span>
+            </div>
+            <span class="pill">Admin</span>
+          </div>
+          <nav class="topnav">
+            <a class="is-active"><i class="bi bi-house-door"></i> Home</a>
+            <a><i class="bi bi-cash-stack"></i> Finance</a>
+            <a><i class="bi bi-chat-dots"></i> Messages</a>
+            <a><i class="bi bi-graph-up"></i> Analytics</a>
+          </nav>
+          <div class="cmdk"><i class="bi bi-search"></i> Search students, teachers… <kbd>Ctrl K</kbd></div>
+          <div class="avatar">TT</div>
+        </div>
+      </header>
+      <div class="shell">
+        <aside class="rail">
+          <div class="rail__head">Home</div>
+          <a class="nav-item is-active"><i class="bi bi-speedometer2"></i> Dashboard</a>
+          <div class="rail__head">Academic management</div>
+          <a class="nav-item"><i class="bi bi-clipboard-data"></i> Evaluation Admin</a>
+          <a class="nav-item"><i class="bi bi-trophy"></i> Class Ranking</a>
+          <a class="nav-item"><i class="bi bi-megaphone"></i> Publish Results</a>
+          <div class="rail__head">Admin panel</div>
+          <a class="nav-item"><i class="bi bi-person-badge"></i> Staff &amp; access</a>
+          <a class="nav-item"><i class="bi bi-gear-fill"></i> Backend Console</a>
+          <a class="nav-item"><i class="bi bi-palette"></i> Theme &amp; Experience</a>
+        </aside>
+        <main class="work">
+          <div class="hero">
+            <div class="hero__body">
+              <p class="eyebrow">Admin workspace</p>
+              <h1>Set up your school</h1>
+              <p>Guided path from first login to a fully running school.</p>
+            </div>
+            <div class="ring"><span>6%</span></div>
+          </div>
+          <ol class="stages">
+            <li class="stage">
+              <div class="stage__head">
+                <span class="stage__num">2</span>
+                <div>
+                  <h2 class="stage__title">Configure</h2>
+                  <p class="stage__desc">Academics, finance, and communications.</p>
+                </div>
+              </div>
+              <div class="wzgrid">
+                <div class="wzcard"><h3>Academic year</h3><div class="meta">8 min · 4 steps</div></div>
+                <div class="wzcard"><h3>Fee plans</h3><div class="meta">10 min · 5 steps</div></div>
+                <div class="wzcard"><h3>Invite teachers</h3><div class="meta">6 min · 3 steps</div></div>
+                <div class="wzcard"><h3>Parent portal</h3><div class="meta">5 min · 2 steps</div></div>
+              </div>
+            </li>
+          </ol>
+        </main>
+        <aside class="copilot">
+          <div class="cp-ic is-active"><i class="bi bi-stars"></i></div>
+          <div class="cp-ic"><i class="bi bi-lightning-charge"></i></div>
+          <div class="cp-ic"><i class="bi bi-question-circle"></i></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- TEACHER -->
+    <section class="role-surface" data-role="teacher" aria-label="Teacher workspace">
+      <header class="topbar">
+        <div class="topbar__row">
+          <div class="brand">
+            <div class="brand__logo">NT</div>
+            <div><strong>New Test High School</strong></div>
+            <span class="pill">Teacher</span>
+          </div>
+          <nav class="topnav">
+            <a class="is-active">Home</a>
+            <a>Academics</a>
+            <a>Attendance</a>
+            <a>Messages</a>
+          </nav>
+        </div>
+      </header>
+      <div class="shell">
+        <aside class="rail">
+          <div class="rail__head">Teaching</div>
+          <a class="nav-item is-active"><i class="bi bi-grid"></i> Assigned classes</a>
+          <a class="nav-item"><i class="bi bi-journal-check"></i> Gradebook</a>
+          <a class="nav-item"><i class="bi bi-clipboard-check"></i> Roll call</a>
+          <a class="nav-item"><i class="bi bi-file-earmark-text"></i> Lesson notes</a>
+        </aside>
+        <main class="work">
+          <div class="hero">
+            <div class="hero__body">
+              <p class="eyebrow">Saturday · 9:15 AM</p>
+              <h1>Good day, Mr. Ngwa</h1>
+              <p>Your teaching workspace for today.</p>
+            </div>
+            <div class="ring" style="background:conic-gradient(var(--brand) 72%, rgba(255,255,255,.08) 0)"><span>72%</span></div>
+          </div>
+          <div class="fw">
+            <a><i class="bi bi-clipboard-check"></i> Take attendance</a>
+            <a><i class="bi bi-pencil-square"></i> Enter marks</a>
+            <a><i class="bi bi-chat-dots"></i> Parent messages</a>
+          </div>
+          <div class="section">
+            <h2><i class="bi bi-exclamation-octagon"></i> What needs attention</h2>
+            <ul>
+              <li>3 students missing homework in Year 10A</li>
+              <li>Gradebook draft not submitted for Term 2</li>
+            </ul>
+          </div>
+          <div class="section">
+            <h2><i class="bi bi-calendar3"></i> Today's classes</h2>
+            <div class="cards">
+              <div class="card"><b>Year 10A · Maths</b><span>08:00 – 09:30 · Room 4</span></div>
+              <div class="card"><b>Year 11B · Physics</b><span>10:00 – 11:30 · Lab 2</span></div>
+              <div class="card"><b>Year 9C · Maths</b><span>13:00 – 14:30 · Room 4</span></div>
+            </div>
+          </div>
+        </main>
+        <aside class="copilot">
+          <div class="cp-ic is-active"><i class="bi bi-stars"></i></div>
+          <div class="cp-ic"><i class="bi bi-gear"></i></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- PARENT -->
+    <section class="role-surface" data-role="parent" aria-label="Parent workspace">
+      <header class="topbar">
+        <div class="topbar__row">
+          <div class="brand">
+            <div class="brand__logo">NT</div>
+            <div><strong>New Test High School</strong><br><span class="brand__sub">Family portal</span></div>
+            <span class="pill pill--parent">Parent</span>
+          </div>
+          <nav class="topnav">
+            <a class="is-active">Home</a>
+            <a>Messages</a>
+            <a>Fees</a>
+            <a>Calendar</a>
+          </nav>
+        </div>
+      </header>
+      <div class="shell">
+        <aside class="rail">
+          <div class="rail__head">Family</div>
+          <a class="nav-item nav-item--parent is-active"><i class="bi bi-house"></i> Family Home</a>
+          <a class="nav-item nav-item--parent"><i class="bi bi-people"></i> My Children</a>
+          <a class="nav-item nav-item--parent"><i class="bi bi-wallet2"></i> Fees &amp; payments</a>
+          <a class="nav-item nav-item--parent"><i class="bi bi-chat-dots"></i> Messages</a>
+        </aside>
+        <main class="work">
+          <div class="hero" style="background:linear-gradient(135deg,color-mix(in oklab,var(--elevated) 90%,var(--accent)),var(--elevated))">
+            <div class="hero__body">
+              <p class="eyebrow">Saturday · 9:15 AM</p>
+              <h1>Good day, Amina</h1>
+              <p>Here's what's happening with <strong>Ada &amp; Kofi</strong> today.</p>
+              <div class="btn-row">
+                <a class="btn btn--primary"><i class="bi bi-credit-card"></i> Pay fees</a>
+                <a class="btn btn--secondary"><i class="bi bi-chat"></i> Message teacher</a>
+              </div>
+            </div>
+            <div class="ring"><span>94%</span></div>
+          </div>
+          <div class="section">
+            <h2><i class="bi bi-sun"></i> Today snapshot</h2>
+            <div class="cards">
+              <div class="card"><b>Attendance</b><span>Both present</span></div>
+              <div class="card"><b>Next class</b><span>Maths · 10:30</span></div>
+              <div class="card"><b>Balance due</b><span>45,000 XAF</span></div>
+            </div>
+          </div>
+          <div class="section">
+            <h2><i class="bi bi-calendar-week"></i> Upcoming events</h2>
+            <p>PTA evening · Sports day · Term ends Jul 18</p>
+          </div>
+        </main>
+        <aside class="copilot">
+          <div class="cp-ic is-active"><i class="bi bi-stars"></i></div>
+          <div class="cp-ic"><i class="bi bi-question-circle"></i></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- STUDENT -->
+    <section class="role-surface" data-role="student" aria-label="Student workspace">
+      <header class="topbar">
+        <div class="topbar__row">
+          <div class="brand">
+            <div class="brand__logo">NT</div>
+            <div><strong>New Test High School</strong><br><span class="brand__sub">Student portal</span></div>
+            <span class="pill pill--student">Student</span>
+          </div>
+          <nav class="topnav">
+            <a class="is-active">Home</a>
+            <a>Classes</a>
+            <a>Grades</a>
+            <a>Help</a>
+          </nav>
+        </div>
+      </header>
+      <div class="shell">
+        <aside class="rail">
+          <div class="rail__head">Learning</div>
+          <a class="nav-item nav-item--student is-active"><i class="bi bi-compass"></i> Learning Home</a>
+          <a class="nav-item nav-item--student"><i class="bi bi-calendar3"></i> Timetable</a>
+          <a class="nav-item nav-item--student"><i class="bi bi-journal-text"></i> Assignments</a>
+          <a class="nav-item nav-item--student"><i class="bi bi-bar-chart"></i> Results</a>
+        </aside>
+        <main class="work">
+          <div class="hero">
+            <div class="hero__body">
+              <p class="eyebrow">2025/26 · Term 2</p>
+              <h1>Hi Jordan — you're on track</h1>
+              <p>4 classes today · 2 tasks due this week</p>
+            </div>
+            <div class="ring" style="background:conic-gradient(var(--accent) 91%, rgba(255,255,255,.08) 0)"><span>91%</span></div>
+          </div>
+          <div class="tiles">
+            <div class="tile"><div class="k">Attendance</div><div class="v">91%</div></div>
+            <div class="tile"><div class="k">Due this week</div><div class="v">2</div></div>
+            <div class="tile"><div class="k">Average</div><div class="v">78</div></div>
+            <div class="tile"><div class="k">Messages</div><div class="v">1</div></div>
+          </div>
+          <div class="grid2">
+            <div class="section">
+              <h2><i class="bi bi-calendar3"></i> Today's timetable</h2>
+              <p>08:00 Mathematics · Rm 4B<br>09:30 English · Rm 2A<br>11:00 Physics · Lab 1</p>
+            </div>
+            <div class="section">
+              <h2><i class="bi bi-journal-text"></i> Due soon</h2>
+              <p>Essay draft · Friday<br>Lab report · Monday</p>
+            </div>
+          </div>
+        </main>
+        <aside class="copilot">
+          <div class="cp-ic is-active"><i class="bi bi-stars"></i></div>
+          <div class="cp-ic"><i class="bi bi-book"></i></div>
+        </aside>
+      </div>
+    </section>
+
+  </div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var active = "admin";
+  function setRole(role) {
+    if (!role) return;
+    active = role;
+    document.querySelectorAll(".sweep-tabs button").forEach(function (b) {
+      b.classList.toggle("is-on", b.getAttribute("data-role") === role);
+    });
+    document.querySelectorAll(".role-surface").forEach(function (s) {
+      s.classList.toggle("is-on", s.getAttribute("data-role") === role);
+    });
+  }
+  document.querySelectorAll(".sweep-tabs button").forEach(function (btn) {
+    btn.addEventListener("click", function () { setRole(btn.getAttribute("data-role")); });
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    var map = { "1": "admin", "2": "teacher", "3": "parent", "4": "student" };
+    if (map[e.key]) { e.preventDefault(); setRole(map[e.key]); }
+  });
+})();
+</script>
+</body>
+</html>

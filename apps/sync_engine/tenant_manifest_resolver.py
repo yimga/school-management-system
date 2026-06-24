@@ -182,6 +182,31 @@ def build_school_offline_manifest(school: Any) -> TenantManifest:
         "payment": _payment_posture(country_code),
     }
 
+    operational_context: dict[str, Any] = {
+        "country_code": country_code,
+        "schema_contract": "tenant_manifest_v2",
+    }
+    try:
+        from apps.platform_runtime.tenant_operational_lifecycle import (
+            resolve_operational_lifecycle_state,
+        )
+        from apps.schools.setup_health import setup_health_score
+
+        ops = resolve_operational_lifecycle_state(school)
+        health = setup_health_score(school)
+        operational_context.update(
+            {
+                "operational_state": ops.get("state"),
+                "operational_reasons": list(ops.get("reasons") or []),
+                "launch_readiness_score": int(
+                    ops.get("launch_readiness_score") or health.get("score") or 0
+                ),
+                "health_score": int(health.get("score") or 0),
+            }
+        )
+    except Exception:  # noqa: BLE001 - manifest must compile even if ops resolver fails
+        logger.debug("operational context resolve failed", exc_info=True)
+
     return compile_manifest(
         tenant_id=tenant_id,
         routes_allowlist=list(_OFFLINE_ROUTES_ALLOWLIST),
@@ -189,6 +214,7 @@ def build_school_offline_manifest(school: Any) -> TenantManifest:
         pwa_cache_hints={"offline_routes": list(_OFFLINE_ROUTES_ALLOWLIST)},
         locale_default=locale_default,
         feature_flags=_offline_feature_flags(),
+        operational_context=operational_context,
         # Production flags come from the bundle SOT, which is also what the
         # registry derives from — so strict validation is provably safe here and
         # catches any drift between the bundle and the manifest.

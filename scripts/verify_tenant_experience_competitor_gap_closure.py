@@ -178,9 +178,15 @@ def main() -> int:
         "student redirect must land on student home/workflow instead of admin fallback",
         failures,
     )
+    _student_sidebar_branch = (
+        "portal:student_workflow" in portal_sidebar
+        and (
+            "nav_role == 'STUDENT'" in portal_sidebar
+            or "request.user.role == 'STUDENT'" in portal_sidebar
+        )
+    )
     _require(
-        "request.user.role == 'STUDENT'" in portal_sidebar
-        and "portal:student_workflow" in portal_sidebar,
+        _student_sidebar_branch,
         "student sidebar must expose the student workflow portal",
         failures,
     )
@@ -205,8 +211,12 @@ def main() -> int:
         "student sidebar must not reference unrouted student_learning_home",
         failures,
     )
+    _student_staff_leak_guard = (
+        "nav_role != 'STUDENT'" in portal_sidebar
+        or "request.user.role != 'STUDENT'" in portal_sidebar
+    )
     _require(
-        "request.user.role != 'STUDENT'" in portal_sidebar,
+        _student_staff_leak_guard,
         "student sidebar must be excluded from staff recent-activity leakage",
         failures,
     )

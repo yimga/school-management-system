@@ -53,6 +53,7 @@
     </button>
     <ul class="dropdown-menu dropdown-menu-dark cp-primary-nav__more-menu shadow"
         role="menu"
+        data-rmc-cp-nav-more-menu="1"
         aria-labelledby="{% if rail %}cpPrimaryNavMoreRail{% else %}cpPrimaryNavMoreRow{% endif %}"
         aria-label="{% trans 'More navigation items' %}">
       {% for item in PRIMARY_CONTROL_PLANE_NAV %}
@@ -111,6 +112,12 @@
       var p = e.target.closest ? e.target.closest('.cp-primary-nav__pill') : null;
       if (p && !p.classList.contains('cp-primary-nav__pill--active')) p.style.removeProperty('--reveal');
     });
+  });
+  document.querySelectorAll('[data-rmc-cp-nav-more-menu]').forEach(function (menu) {
+    menu.setAttribute('data-bs-popper-config', JSON.stringify({
+      strategy: 'fixed',
+      modifiers: [{ name: 'preventOverflow', options: { boundary: 'viewport', padding: 8 } }]
+    }));
   });
 })();
 </script>

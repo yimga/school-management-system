@@ -191,6 +191,23 @@
     return "";
   }
 
+  // Tenant registry slots ship without slot.href — resolve from the page-data
+  // urls map so chips render as real links even when dom-adopt sources are absent.
+  function registrySlotHref(slotId, cfg) {
+    var urls = (cfg && cfg.urls) || {};
+    if (slotId === "tenant-kb" && urls.kb_home && urls.kb_home !== "#") {
+      return urls.kb_home;
+    }
+    if (
+      slotId === "security-posture" &&
+      urls.security_posture &&
+      urls.security_posture !== "#"
+    ) {
+      return urls.security_posture;
+    }
+    return "";
+  }
+
   // Dom-adopt slots whose bindTrayActions handler works WITHOUT the adopted
   // source node (ai-copilot toggles the copilot rail; help opens the rail/page
   // help). These must still render as buttons when their source is absent —
@@ -236,18 +253,26 @@
         return null;
       }
     } else {
-      btn = document.createElement("button");
-      btn.type = "button";
-      btn.className =
-        "rmc-assist-dock__btn rmc-assist-dock__btn--" + (slotId || "x");
-      btn.setAttribute("data-rmc-assist-slot-id", slotId);
-      if (meta.description) btn.setAttribute("title", meta.description);
-      btn.innerHTML =
-        '<i class="bi ' +
-        escapeHtml(meta.icon || "bi-circle") +
-        '" aria-hidden="true"></i><span class="rmc-assist-dock__label">' +
-        escapeHtml(meta.label || "") +
-        "</span>";
+      var regHref =
+        meta.source === "registry" || meta.source === "external"
+          ? meta.href || registrySlotHref(slotId, cfg)
+          : registrySlotHref(slotId, cfg);
+      if (regHref) {
+        btn = buildAnchorChip(meta, regHref);
+      } else {
+        btn = document.createElement("button");
+        btn.type = "button";
+        btn.className =
+          "rmc-assist-dock__btn rmc-assist-dock__btn--" + (slotId || "x");
+        btn.setAttribute("data-rmc-assist-slot-id", slotId);
+        if (meta.description) btn.setAttribute("title", meta.description);
+        btn.innerHTML =
+          '<i class="bi ' +
+          escapeHtml(meta.icon || "bi-circle") +
+          '" aria-hidden="true"></i><span class="rmc-assist-dock__label">' +
+          escapeHtml(meta.label || "") +
+          "</span>";
+      }
     }
     var wrap = document.createElement("div");
     wrap.className =
@@ -460,6 +485,42 @@
     }
   }
 
+  function syncTrayEmptyState(trayBody) {
+    if (!trayBody) return;
+    var groupsHost = trayBody.querySelector("[data-rmc-tools-tray-groups]");
+    if (!groupsHost) return;
+    var hasGroup = groupsHost.querySelector(
+      ".rmc-operator-tools__group:not([hidden])"
+    );
+    var quickHost = trayBody.querySelector("[data-rmc-tools-page-quick-actions]");
+    var hasQuick = quickHost && !quickHost.hidden && quickHost.children.length;
+    var stack = trayBody.querySelector("[data-rmc-tools-tray-context]");
+    var hasStack =
+      stack &&
+      (stack.querySelector(".rmc-cp-incident-banner") ||
+        stack.querySelector(".rmc-workflow-auto-chrome") ||
+        stack.querySelector("[data-rmc-wfp-tenant-trust]") ||
+        stack.querySelector(".rmc-operator-tools__page-head:not([hidden])"));
+    var empty = trayBody.querySelector("[data-rmc-tools-tray-empty]");
+    if (!hasGroup && !hasQuick && !hasStack) {
+      if (!empty) {
+        empty = document.createElement("div");
+        empty.className = "rmc-operator-tools__tray-empty rmc-empty";
+        empty.setAttribute("data-rmc-tools-tray-empty", "1");
+        empty.setAttribute("role", "status");
+        empty.innerHTML =
+          '<span class="rmc-operator-tools__tray-empty-icon" aria-hidden="true">' +
+          '<i class="bi bi-tools"></i></span>' +
+          '<p class="rmc-operator-tools__tray-empty-title">No tools on this page</p>' +
+          '<p class="rmc-operator-tools__tray-empty-lede">Open Copilot from the rail, use the command bar (Ctrl+K), or visit Help center from your profile menu.</p>';
+        groupsHost.appendChild(empty);
+      }
+      empty.hidden = false;
+    } else if (empty) {
+      empty.hidden = true;
+    }
+  }
+
   function applyPageContext(cfg, trayBody, tab, reg) {
     if (!cfg) return;
     var stack = document.querySelector("[data-rmc-tools-tray-context]");
@@ -476,6 +537,7 @@
       groupsHost.innerHTML = "";
       buildTrayGroups(groupsHost, cfg, reg);
     }
+    syncTrayEmptyState(trayBody);
     syncContextStackBadge(tab);
   }
 
@@ -987,9 +1049,15 @@
       count++;
     }
     if (!count) {
-      var empty = document.createElement("p");
-      empty.className = "small text-muted mb-0";
-      empty.textContent = "No sections on this page.";
+      var empty = document.createElement("div");
+      empty.className = "rmc-operator-tools__panel-empty rmc-empty";
+      empty.setAttribute("data-rmc-tools-sections-empty", "1");
+      empty.setAttribute("role", "status");
+      empty.innerHTML =
+        '<span class="rmc-operator-tools__panel-empty-icon" aria-hidden="true">' +
+        '<i class="bi bi-signpost-split"></i></span>' +
+        '<p class="rmc-operator-tools__panel-empty-title">No sections on this page</p>' +
+        '<p class="rmc-operator-tools__panel-empty-lede">Long pages with section anchors will list jump links here.</p>';
       list.appendChild(empty);
     }
   }

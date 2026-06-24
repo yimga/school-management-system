@@ -25,6 +25,32 @@
   gap: 0.85rem;
 }
 
+.rmc-setup-surface__stage[hidden] {
+  display: none !important; /* style-allow: setup-stage-tab-panel-toggle */
+}
+
+.rmc-setup-surface__stage-nav {
+  margin-bottom: 0.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 0.35rem 0;
+  background: color-mix(in oklab, var(--surface-bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.rmc-setup-surface__stage-nav-num {
+  display: inline-grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: color-mix(in oklab, var(--brand-primary) 18%, transparent);
+  color: var(--brand-primary);
+}
+
 /* ---------- Hero ---------- */
 .rmc-setup-surface__hero {
   display: flex;

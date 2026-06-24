@@ -1,0 +1,1010 @@
+{
+  "iso_count": 249,
+  "readiness_statuses": [
+    "configuration_ready",
+    "education_model_ready",
+    "external_validation_required",
+    "internal_pilot_ready",
+    "localization_ready",
+    "regional_fallback_only",
+    "repo_ready"
+  ],
+  "rows": [
+    {
+      "iso": "AD",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "AE",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "AF",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "AG",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "AI",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "AL",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "AM",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "AO",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "AQ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "AR",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "AS",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "AT",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "AU",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "AW",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "AX",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "AZ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BA",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BB",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BD",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "BE",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BF",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BG",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BH",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BI",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BJ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BL",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BM",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BN",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BO",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BQ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BR",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "BS",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BT",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BV",
+      "readiness_status": "localization_ready"
+    },
+    {
+      "iso": "BW",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BY",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "BZ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "CA",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "CC",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "CD",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "CF",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "CG",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "CH",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "CI",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "CK",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "CL",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "CM",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "CN",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "CO",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "CR",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "CU",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "CV",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "CW",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "CX",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "CY",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "CZ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "DE",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "DJ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "DK",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "DM",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "DO",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "DZ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "EC",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "EE",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "EG",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "EH",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "ER",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "ES",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "ET",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "FI",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "FJ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "FK",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "FM",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "FO",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "FR",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "GA",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GB",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "GD",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GE",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GF",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GG",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GH",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "GI",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GL",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GM",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GN",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GP",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GQ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GR",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GS",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GT",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GU",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GW",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "GY",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "HK",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "HM",
+      "readiness_status": "localization_ready"
+    },
+    {
+      "iso": "HN",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "HR",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "HT",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "HU",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "ID",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "IE",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "IL",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "IM",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "IN",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "IO",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "IQ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "IR",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "IS",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "IT",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "JE",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "JM",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "JO",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "JP",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "KE",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "KG",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "KH",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "KI",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "KM",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "KN",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "KP",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "KR",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "KW",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "KY",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "KZ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "LA",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "LB",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "LC",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "LI",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "LK",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "LR",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "LS",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "LT",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "LU",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "LV",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "LY",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MA",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "MC",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MD",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "ME",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MF",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MG",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MH",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MK",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "ML",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MM",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MN",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MO",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MP",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MQ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MR",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MS",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MT",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MU",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MV",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MW",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "MX",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "MY",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "MZ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "NA",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "NC",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "NE",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "NF",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "NG",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "NI",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "NL",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "NO",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "NP",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "NR",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "NU",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "NZ",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "OM",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "PA",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "PE",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "PF",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "PG",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "PH",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "PK",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "PL",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "PM",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "PN",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "PR",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "PS",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "PT",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "PW",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "PY",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "QA",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "RE",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "RO",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "RS",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "RU",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "RW",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "SA",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "SB",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SC",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SD",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SE",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SG",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "SH",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SI",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SJ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SK",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SL",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SM",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SN",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "SO",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SR",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SS",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "ST",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SV",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SX",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SY",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "SZ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "TC",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "TD",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "TF",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "TG",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "TH",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "TJ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "TK",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "TL",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "TM",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "TN",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "TO",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "TR",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "TT",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "TV",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "TW",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "TZ",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "UA",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "UG",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "UM",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "US",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "UY",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "UZ",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "VA",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "VC",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "VE",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "VG",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "VI",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "VN",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "VU",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "WF",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "WS",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "YE",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "YT",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "ZA",
+      "readiness_status": "repo_ready"
+    },
+    {
+      "iso": "ZM",
+      "readiness_status": "education_model_ready"
+    },
+    {
+      "iso": "ZW",
+      "readiness_status": "education_model_ready"
+    }
+  ]
+}
