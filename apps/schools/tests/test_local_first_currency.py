@@ -2,7 +2,7 @@
 
 Guards that tenant money is the SCHOOL's currency, never a hardcoded literal:
 
-  1. ``School.resolve_currency`` cascade (explicit override → region → country pack →
+  1. ``School.resolve_currency`` cascade (explicit override -> country pack -> region ->
      platform default), never blank, always upper-cased;
   2. the ``_apply_local_currency_default`` pre_save filler only acts on inserts with a
      blank currency and never overrides an explicit value;

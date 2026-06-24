@@ -221,7 +221,7 @@ def build_operator_fleet_snapshot(*, pulse_limit: int = 3) -> dict[str, Any]:
     try:
         req = HttpRequest()
         req.GET = {}
-        globe_data = _globe_query_bundle(req)
+        globe_data = _globe_query_bundle(req, include_operator=False)
     except Exception:
         logger.warning("operator_fleet: globe bundle fallback", exc_info=True)
         summary = fleet_payload.get("summary") or {}

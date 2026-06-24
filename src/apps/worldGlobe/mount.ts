@@ -753,9 +753,9 @@ function initGlobe(container: HTMLElement, payload: GlobePayload): GlobeInstance
     probe.src = textureUrl;
     globe.globeImageUrl(textureUrl);
     material.color.set("#ffffff");
-    material.emissive.set("#0a0e22");
-    material.emissiveIntensity = 0.12;
-    material.shininess = 0.18;
+    material.emissive.set("#020612");
+    material.emissiveIntensity = 0.045;
+    material.shininess = 0.08;
   } else {
     material.color.set(theme.globeColor || "#0f1530");
     material.emissive.set(theme.globeEmissive || "#1e1b4b");

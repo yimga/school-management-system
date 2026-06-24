@@ -385,7 +385,7 @@ class School(models.Model):
         default="",
         help_text=(
             "Tenant default currency (ISO 4217, e.g. NGN / XAF / GBP / USD). Empty = "
-            "derive local-first via resolve_currency(): default_region → country pack → "
+            "derive local-first via resolve_currency(): country pack -> default_region -> "
             "platform default. Set explicitly to override (e.g. an international school "
             "billing in a currency other than its country's default)."
         ),
@@ -789,7 +789,7 @@ class School(models.Model):
             return ""
 
     def resolve_currency(self) -> str:
-        """Tenant currency, local-first: explicit override → region → country pack → platform default.
+        """Tenant currency, local-first: explicit override -> country pack -> region -> platform default.
 
         This is the canonical read path for "what currency does this school use" so no caller
         hardcodes a literal. Returns an upper-cased ISO 4217 code; never blank.
@@ -797,11 +797,6 @@ class School(models.Model):
         explicit = (getattr(self, "currency", "") or "").strip()
         if explicit:
             return explicit.upper()
-        region = getattr(self, "default_region", None)
-        if region is not None:
-            region_currency = (getattr(region, "default_currency", "") or "").strip()
-            if region_currency:
-                return region_currency.upper()
         country_code = (getattr(self, "country_code", "") or "").strip()
         if country_code:
             try:
@@ -814,6 +809,11 @@ class School(models.Model):
                     return pack_currency.upper()
             except (ImportError, AttributeError, TypeError, ValueError, KeyError) as e:
                 logger.debug("schools.School.resolve_currency country pack failed: %s", e)
+        region = getattr(self, "default_region", None)
+        if region is not None:
+            region_currency = (getattr(region, "default_currency", "") or "").strip()
+            if region_currency:
+                return region_currency.upper()
         return _default_currency().upper()
 
     def save(self, *args, **kwargs):

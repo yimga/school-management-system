@@ -5,6 +5,7 @@
   "use strict";
 
   var ticking = false;
+  var boundPageScroller = null;
 
   function sidebarNodes() {
     return document.querySelectorAll(
@@ -103,10 +104,24 @@
     }
   }
 
+  function pageScrollSource() {
+    var body = document.body;
+    if (body && body.getAttribute("data-rmc-cp-scroll") === "canvas") {
+      var canvas = document.querySelector(
+        ".rmc-app-shell__canvas-body, [data-rmc-shell-main='control-plane'], [data-rmc-shell-main='portal']"
+      );
+      if (canvas && canvas.scrollHeight > canvas.clientHeight + 2) return canvas;
+    }
+    return document.scrollingElement || document.documentElement;
+  }
+
   function measure() {
     var doc = document.documentElement;
-    var y = window.scrollY || doc.scrollTop || 0;
-    var max = Math.max(1, (doc.scrollHeight || 0) - window.innerHeight);
+    var source = pageScrollSource();
+    var sourceIsDocument = source === document.scrollingElement || source === doc || source === document.body;
+    var y = sourceIsDocument ? window.scrollY || doc.scrollTop || 0 : source.scrollTop || 0;
+    var viewport = sourceIsDocument ? window.innerHeight : source.clientHeight || 1;
+    var max = Math.max(1, (source.scrollHeight || 0) - viewport);
     var progress = Math.min(1, Math.max(0, y / max));
 
     doc.style.setProperty("--rmc-doc-scroll-progress", String(progress));
@@ -139,17 +154,31 @@
     bindDisclosureToggles(document);
   }
 
+  function bindPageScroller() {
+    var source = pageScrollSource();
+    if (!source || source === boundPageScroller) return;
+    if (boundPageScroller && boundPageScroller.removeEventListener) {
+      boundPageScroller.removeEventListener("scroll", onScroll);
+    }
+    boundPageScroller = source;
+    if (source.addEventListener && source !== document.scrollingElement && source !== document.documentElement && source !== document.body) {
+      source.addEventListener("scroll", onScroll, { passive: true });
+    }
+  }
+
   function init() {
     if (window.RMC && typeof window.RMC.measureCpChromeOffset === "function") {
       window.RMC.measureCpChromeOffset();
     }
     bindSidebarScroll();
+    bindPageScroller();
     measure();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
     if (typeof ResizeObserver !== "undefined") {
       var ro = new ResizeObserver(function () {
         bindSidebarScroll();
+        bindPageScroller();
         measure();
       });
       sidebarNodes().forEach(function (node) {
@@ -159,6 +188,10 @@
         '[data-rmc-control-plane-chrome="1"], .rmc-control-plane-chrome, #portalHeader'
       );
       if (chrome) ro.observe(chrome);
+      var pageSource = pageScrollSource();
+      if (pageSource && pageSource !== document.scrollingElement && pageSource !== document.documentElement && pageSource !== document.body) {
+        ro.observe(pageSource);
+      }
     }
   }
 
@@ -171,6 +204,7 @@
   window.RMC = window.RMC || {};
   window.RMC.refreshCpChromeScrollPolish = function () {
     bindSidebarScroll();
+    bindPageScroller();
     measure();
   };
 })();

@@ -63,7 +63,7 @@ def _parse_bbox(request: HttpRequest) -> tuple[float | None, float | None, float
     return _f("lat_min"), _f("lat_max"), _f("lng_min"), _f("lng_max")
 
 
-def _globe_query_bundle(request: HttpRequest) -> dict[str, Any]:
+def _globe_query_bundle(request: HttpRequest, *, include_operator: bool = True) -> dict[str, Any]:
     from apps.siteconfig.cockpit_panels_realdata_service import _world_map_footprint_stats
     from apps.siteconfig.operator_fleet_snapshot import build_operator_fleet_snapshot
     from apps.siteconfig.world_map_geo import build_globe_live_bundle, build_globe_markers
@@ -94,7 +94,7 @@ def _globe_query_bundle(request: HttpRequest) -> dict[str, Any]:
     active, suspended, frozen = _platform_status_counts()
     # tenant-isolation-allow: platform-cockpit-cross-tenant-world-map
     stats = _world_map_footprint_stats(School.objects.filter(is_active=True))
-    operator = build_operator_fleet_snapshot(pulse_limit=3)
+    operator = build_operator_fleet_snapshot(pulse_limit=3) if include_operator else {}
     return {
         **bundle,
         **stats,

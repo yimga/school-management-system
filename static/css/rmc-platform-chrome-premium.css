@@ -17,12 +17,21 @@
   );
   --rmc-sidebar-scroll-fade: 2.75rem;
   --rmc-doc-scroll-progress: 0;
+  --rmc-scroll-progress-start: #a78bfa; /* off-token-allow: platform-scroll-progress-lab-lavender */
+  --rmc-scroll-progress-end: #facc15; /* off-token-allow: platform-scroll-progress-lab-yellow */
 }
 
 /* --- Sticky chrome: frosted material when the document has scrolled --- */
-body.control-plane-shell[data-rmc-cp-scroll="document"] .rmc-control-plane-chrome,
-body.admin-manager-shell[data-rmc-cp-scroll="document"] .rmc-control-plane-chrome {
+body.control-plane-shell .rmc-control-plane-chrome,
+body.control-plane-shell .cp-header,
+body.admin-manager-shell .rmc-control-plane-chrome,
+body.admin-manager-shell .cp-header,
+body.portal-body-with-layout .rmc-app-shell__header,
+body.portal-body-with-layout #portalHeader,
+body.base-document-shell .statement-header,
+body.base-document-shell .rmc-platform-header {
   isolation: isolate;
+  position: relative;
   transition:
     background-color var(--dur-base, 220ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)),
     box-shadow var(--dur-base, 220ms) var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1)),
@@ -32,7 +41,15 @@ body.admin-manager-shell[data-rmc-cp-scroll="document"] .rmc-control-plane-chrom
 body[data-rmc-cp-chrome-scrolled="1"].control-plane-shell[data-rmc-cp-scroll="document"]
   .rmc-control-plane-chrome,
 body[data-rmc-cp-chrome-scrolled="1"].admin-manager-shell[data-rmc-cp-scroll="document"]
-  .rmc-control-plane-chrome {
+  .rmc-control-plane-chrome,
+body[data-rmc-cp-chrome-scrolled="1"].portal-body-with-layout
+  .rmc-app-shell__header,
+body[data-rmc-cp-chrome-scrolled="1"].portal-body-with-layout
+  #portalHeader,
+body[data-rmc-cp-chrome-scrolled="1"].base-document-shell
+  .statement-header,
+body[data-rmc-cp-chrome-scrolled="1"].base-document-shell
+  .rmc-platform-header {
   background: var(--rmc-chrome-glass) !important;
   -webkit-backdrop-filter: blur(18px) saturate(1.15);
   backdrop-filter: blur(18px) saturate(1.15);
@@ -41,9 +58,15 @@ body[data-rmc-cp-chrome-scrolled="1"].admin-manager-shell[data-rmc-cp-scroll="do
     0 12px 40px color-mix(in oklab, var(--color-base-900, #000) 42%, transparent);
 }
 
-/* Scroll depth indicator under chrome */
-body.control-plane-shell[data-rmc-cp-scroll="document"] .rmc-control-plane-chrome::after,
-body.admin-manager-shell[data-rmc-cp-scroll="document"] .rmc-control-plane-chrome::after {
+/* Scroll depth indicator under chrome, shared by operator, tenant, profile, and base shells. */
+body.control-plane-shell .rmc-control-plane-chrome::after,
+body.control-plane-shell .cp-header::after,
+body.admin-manager-shell .rmc-control-plane-chrome::after,
+body.admin-manager-shell .cp-header::after,
+body.portal-body-with-layout .rmc-app-shell__header::after,
+body.portal-body-with-layout #portalHeader::after,
+body.base-document-shell .statement-header::after,
+body.base-document-shell .rmc-platform-header::after {
   content: "";
   position: absolute;
   left: 0;
@@ -56,8 +79,8 @@ body.admin-manager-shell[data-rmc-cp-scroll="document"] .rmc-control-plane-chrom
   transform-origin: left center;
   background: linear-gradient(
     90deg,
-    var(--school-primary, var(--color-primary-500, #6366f1)),
-    var(--school-accent, var(--color-emerald-500, #10b981))
+    var(--rmc-scroll-progress-start),
+    var(--rmc-scroll-progress-end)
   );
   opacity: 0.92;
   transition: transform 80ms linear;

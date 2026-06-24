@@ -14,6 +14,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from apps.observability.metrics import emit_counter, emit_histogram
 from apps.observability.slo import SLOS, SLOKind, get_slo
 
 logger = logging.getLogger(__name__)
@@ -70,8 +71,6 @@ def record_slo_outcome(
     if slo is None:
         return
     try:
-        from apps.observability.metrics import emit_counter, emit_histogram
-
         req_name, fail_name, dur_name = _metric_stems(slo_key)
         if slo.kind in _RATE_KINDS:
             emit_counter(req_name, 1, labels=labels)
