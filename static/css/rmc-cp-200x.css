@@ -403,6 +403,21 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
 .lx-world-lab--wow-hidden .lx-world__celebrate {
   display: none !important;
 }
+.lx-world-lab .lx-world__day-arc,
+.lx-world-lab .lx-world__hero-metric,
+.lx-world-lab .lx-world__orbit-chip,
+.lx-world-lab .lx-world__glass-dock,
+.lx-world-lab .lx-world__kbd-bar,
+.lx-world-lab .lx-world__icon-rail,
+.lx-world-lab .lx-world__pulse-timeline {
+  display: none !important;
+}
+.lx-world-lab #rmc-world-globe-wow-demo,
+.lx-world-lab #rmc-world-globe-snapshot-export,
+.lx-world-lab #rmc-world-globe-tour-stop,
+.lx-world-lab #rmc-world-globe-tour-narrator-wrap {
+  display: none !important;
+}
 .lx-world {
   display: grid;
   grid-template-columns: minmax(0, 2.2fr) minmax(0, 0.82fr);
