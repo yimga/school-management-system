@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exception targets — tenant surfaces (admin-inspired)</title>
+  <style>
+    :root {
+      --surface-bg: #f5f5f7;
+      --surface-canvas: #fbfbfd;
+      --surface-elevated: #fff;
+      --hairline: rgba(0,0,0,.08);
+      --text: #1d1d1f;
+      --muted: #6e6e73;
+      --brand: #4f46e5;
+      --accent: #10b981;
+      --cp-bg: #07091a;
+      --cp-surface: #0f1530;
+      --cp-text: #f1f5f9;
+      --cp-muted: #94a3b8;
+      --radius: 14px;
+      --shadow: 0 4px 14px rgba(15,23,42,.08);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #0b0f1a; color: var(--cp-text); }
+    .top {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;
+    }
+    .top a { color: #a5b4fc; text-decoration: none; font-size: .88rem; }
+    .top h1 { margin: 0; font-size: 1.1rem; flex: 1; }
+    .tabs { display: flex; gap: .35rem; flex-wrap: wrap; }
+    .tab {
+      border: 1px solid rgba(255,255,255,.12);
+      background: transparent;
+      color: var(--cp-muted);
+      padding: .4rem .85rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: .82rem;
+    }
+    .tab.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+    .waves {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: .75rem;
+      padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    @media (max-width: 900px) { .waves { grid-template-columns: 1fr; } }
+    .wave { background: var(--cp-surface); border-radius: 10px; padding: .75rem 1rem; font-size: .8rem; color: var(--cp-muted); }
+    .wave strong { color: var(--cp-text); display: block; margin-bottom: .25rem; }
+    .panel { display: none; padding: 1rem; }
+    .panel.active { display: block; }
+
+    /* Shared shell — mirrors /admin/ 200x + tenant portal */
+    .shell {
+      display: grid;
+      grid-template-columns: 260px 1fr 300px;
+      grid-template-rows: auto 1fr;
+      height: calc(100vh - 220px);
+      min-height: 520px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.1);
+      background: var(--surface-bg);
+      color: var(--text);
+    }
+    .shell-hdr {
+      grid-column: 1 / -1;
+      background: linear-gradient(180deg, #0a0d22, var(--cp-bg));
+      color: var(--cp-text);
+      padding: .65rem 1rem;
+      display: flex; align-items: center; gap: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .shell-hdr .logo { font-weight: 700; font-size: .9rem; }
+    .shell-hdr nav { display: flex; gap: .5rem; flex-wrap: wrap; margin-left: auto; }
+    .shell-hdr nav span { font-size: .75rem; color: var(--cp-muted); padding: .25rem .5rem; border-radius: 6px; }
+    .shell-hdr nav span.on { background: rgba(99,102,241,.25); color: #e0e7ff; }
+    .sidebar {
+      background: linear-gradient(180deg, var(--cp-bg), #04060f);
+      color: var(--cp-text);
+      padding: .75rem 0;
+      overflow-y: auto;
+      font-size: .78rem;
+    }
+    .nav-sec { padding: .5rem 1rem .15rem; color: var(--cp-muted); font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; }
+    .nav-item { padding: .4rem 1rem; display: flex; gap: .5rem; align-items: center; }
+    .nav-item.active { background: rgba(99,102,241,.2); border-right: 2px solid var(--brand); }
+    .nav-item.muted { opacity: .55; }
+    .canvas { padding: 1rem 1.25rem; overflow-y: auto; background: var(--surface-bg); }
+    .rail {
+      background: var(--surface-canvas);
+      border-left: 1px solid var(--hairline);
+      padding: .75rem;
+      font-size: .78rem;
+      overflow-y: auto;
+    }
+    .greeting { font-size: 1.35rem; font-weight: 600; margin: 0 0 .25rem; }
+    .sub { color: var(--muted); margin: 0 0 1rem; font-size: .88rem; }
+    .bento { display: grid; grid-template-columns: repeat(12, 1fr); gap: .75rem; }
+    .card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius);
+      padding: .85rem 1rem;
+      box-shadow: var(--shadow);
+    }
+    .card h3 { margin: 0 0 .5rem; font-size: .82rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .span-8 { grid-column: span 8; }
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-12 { grid-column: span 12; }
+    @media (max-width: 1100px) {
+      .shell { grid-template-columns: 220px 1fr; }
+      .rail { display: none; }
+      .span-8, .span-4, .span-6 { grid-column: span 12; }
+    }
+    .kpi-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .kpi { flex: 1; min-width: 100px; }
+    .kpi strong { font-size: 1.4rem; display: block; }
+    .kpi span { font-size: .75rem; color: var(--muted); }
+    .table-mini { width: 100%; font-size: .75rem; border-collapse: collapse; }
+    .table-mini td, .table-mini th { padding: .35rem .25rem; border-bottom: 1px solid var(--hairline); text-align: left; }
+    .chip { display: inline-block; padding: .15rem .45rem; border-radius: 999px; background: rgba(79,70,229,.1); color: var(--brand); font-size: .68rem; font-weight: 600; }
+    .filter-rail {
+      display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .75rem;
+      padding: .5rem; background: var(--surface-canvas); border-radius: 10px; border: 1px solid var(--hairline);
+    }
+    .filter-rail button {
+      border: 1px solid var(--hairline); background: #fff; border-radius: 8px;
+      padding: .3rem .55rem; font-size: .72rem; cursor: pointer;
+    }
+    .legend { font-size: .72rem; color: var(--cp-muted); padding: 0 1.25rem 1rem; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <a href="preview_tenant_elevation_hub.html">← Hub</a>
+    <h1>Exception targets — admin-inspired tenant surfaces</h1>
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-panel="parent">Parent</button>
+      <button class="tab" data-panel="teacher">Teacher</button>
+      <button class="tab" data-panel="student">Student</button>
+      <button class="tab" data-panel="admin">Admin backend</button>
+    </div>
+  </div>
+
+  <div class="waves">
+    <div class="wave" id="wave-a"><strong>Wave A — Menu integrity</strong>Every sidebar + submenu link resolves; ops sections before config; badges on unread.</div>
+    <div class="wave" id="wave-b"><strong>Wave B — Inner-page bento</strong>Task pages get admin-style filter rail + dense table + sticky actions (gradebook, finance, RBAC).</div>
+    <div class="wave" id="wave-c"><strong>Wave C — Playwright depth</strong>P0 menus per role (~20 routes) then full 200-route abrupt-end sweep.</div>
+  </div>
+
+  <!-- PARENT -->
+  <div class="panel active" id="panel-parent">
+    <div class="shell">
+      <header class="shell-hdr">
+        <span class="logo">Gilead Tech High</span>
+        <nav><span class="on">Family Home</span><span>Finance</span><span>Calendar</span><span>Messages</span></nav>
+      </header>
+      <aside class="sidebar">
+        <div class="nav-sec">Home</div>
+        <div class="nav-item active">⌂ Family Home</div>
+        <div class="nav-sec">My workflow</div>
+        <div class="nav-item">◎ Tasks &amp; forms</div>
+        <div class="nav-sec">Children &amp; learning</div>
+        <div class="nav-item">📚 Results</div>
+        <div class="nav-item">📋 Attendance</div>
+        <div class="nav-sec">Finance</div>
+        <div class="nav-item">💳 Fees &amp; invoices</div>
+        <div class="nav-sec">Portal tools</div>
+        <div class="nav-item muted">Community</div>
+        <div class="nav-item muted">Documents</div>
+      </aside>
+      <main class="canvas">
+        <h2 class="greeting">Good afternoon, Parent</h2>
+        <p class="sub">Exception layout: bento intelligence + calm hierarchy (inspired by /admin/ steering strip)</p>
+        <div class="bento">
+          <div class="card span-8">
+            <h3>Today for your children</h3>
+            <div class="kpi-row">
+              <div class="kpi"><strong>2</strong><span>Action items</span></div>
+              <div class="kpi"><strong>1</strong><span>Fee due</span></div>
+              <div class="kpi"><strong>0</strong><span>Unread messages</span></div>
+            </div>
+            <table class="table-mini" style="margin-top:.75rem">
+              <tr><th>Child</th><th>Signal</th><th>Action</th></tr>
+              <tr><td>Ada M.</td><td><span class="chip">Report ready</span></td><td>View results</td></tr>
+              <tr><td>Jon M.</td><td><span class="chip">Permission</span></td><td>Sign form</td></tr>
+            </table>
+          </div>
+          <div class="card span-4">
+            <h3>Quick actions</h3>
+            <p style="margin:0;font-size:.8rem;color:var(--muted)">Pay fees · Message teacher · Download report</p>
+          </div>
+          <div class="card span-12">
+            <h3>Balanced fold rule</h3>
+            <p style="margin:0;font-size:.8rem">Section nav + max 4 folds; paginated tables for fee history (no infinite scroll).</p>
+          </div>
+        </div>
+      </main>
+      <aside class="rail">
+        <strong>Copilot rail</strong>
+        <p style="color:var(--muted);margin:.5rem 0 0">Lens · Actions · empty states wired</p>
+        <hr style="border:none;border-top:1px solid var(--hairline);margin:.75rem 0">
+        <strong>Tools tray</strong>
+        <p style="color:var(--muted);margin:.35rem 0 0">Edge tab → assist slots</p>
+      </aside>
+    </div>
+  </div>
+
+  <!-- TEACHER -->
+  <div class="panel" id="panel-teacher">
+    <div class="shell">
+      <header class="shell-hdr">
+        <span class="logo">Gilead Tech High</span>
+        <nav><span class="on">My Teaching Day</span><span>Gradebook</span><span>Attendance</span></nav>
+      </header>
+      <aside class="sidebar">
+        <div class="nav-sec">Workspace</div>
+        <div class="nav-item active">▦ My Classes</div>
+        <div class="nav-item">◎ My Workflow</div>
+        <div class="nav-item">📊 Gradebook</div>
+        <div class="nav-item">✓ Attendance</div>
+        <div class="nav-item">📅 Timetable</div>
+        <div class="nav-sec">Learning management</div>
+        <div class="nav-item muted">Lesson plans</div>
+        <div class="nav-sec">HR</div>
+        <div class="nav-item muted">Leave</div>
+      </aside>
+      <main class="canvas">
+        <h2 class="greeting">My Teaching Day</h2>
+        <p class="sub">Inner gradebook page → admin changelist pattern (filter rail + bulk actions)</p>
+        <div class="filter-rail">
+          <button>Class 10A ▾</button>
+          <button>Term 2 ▾</button>
+          <button>Subject Math ▾</button>
+          <button style="margin-left:auto;background:var(--brand);color:#fff;border-color:var(--brand)">Save marks</button>
+        </div>
+        <div class="bento">
+          <div class="card span-12">
+            <h3>Gradebook — dense table (paginated)</h3>
+            <table class="table-mini">
+              <tr><th>Student</th><th>CA1</th><th>CA2</th><th>Exam</th><th>Status</th></tr>
+              <tr><td>Student A</td><td>14</td><td>16</td><td>—</td><td><span class="chip">Draft</span></td></tr>
+              <tr><td>Student B</td><td>12</td><td>15</td><td>—</td><td><span class="chip">Saved</span></td></tr>
+            </table>
+            <p style="font-size:.72rem;color:var(--muted);margin:.5rem 0 0">Page 1 of 4 · data-rmc-scroll-policy=paginate</p>
+          </div>
+        </div>
+      </main>
+      <aside class="rail">Copilot: class context · rubric assist</aside>
+    </div>
+  </div>
+
+  <!-- STUDENT -->
+  <div class="panel" id="panel-student">
+    <div class="shell">
+      <header class="shell-hdr">
+        <span class="logo">Gilead Tech High</span>
+        <nav><span class="on">Grades</span><span>Schedule</span><span>Workflow</span></nav>
+      </header>
+      <aside class="sidebar">
+        <div class="nav-sec">Home</div>
+        <div class="nav-item active">⌂ Grades</div>
+        <div class="nav-item">◎ My Workflow</div>
+        <div class="nav-sec">Learning</div>
+        <div class="nav-item muted">Assignments</div>
+      </aside>
+      <main class="canvas">
+        <h2 class="greeting">Your progress</h2>
+        <p class="sub">Student-safe density: cards not walls of numbers; section anchors for 2+ folds</p>
+        <div class="bento">
+          <div class="card span-6"><h3>Term average</h3><strong style="font-size:2rem">B+</strong></div>
+          <div class="card span-6"><h3>Next up</h3><p style="margin:0;font-size:.85rem">Math test · Thu</p></div>
+          <div class="card span-12"><h3>By subject</h3><table class="table-mini"><tr><th>Subject</th><th>Grade</th></tr><tr><td>Math</td><td>A-</td></tr></table></div>
+        </div>
+      </main>
+      <aside class="rail">Copilot: study tips (gated)</aside>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="panel" id="panel-admin">
+    <div class="shell">
+      <header class="shell-hdr">
+        <span class="logo">School Command Center</span>
+        <nav><span class="on">Overview</span><span>People</span><span>Finance</span><span>Studio</span></nav>
+      </header>
+      <aside class="sidebar">
+        <div class="nav-sec">Admin panel</div>
+        <div class="nav-item active">⚙ Command Center</div>
+        <div class="nav-item">✨ Setup wizards</div>
+        <div class="nav-sec">People &amp; access</div>
+        <div class="nav-item">👥 Students</div>
+        <div class="nav-item">🔐 RBAC</div>
+        <div class="nav-sec">Financial</div>
+        <div class="nav-item">💰 Money Center</div>
+        <div class="nav-sec">Configuration</div>
+        <div class="nav-item muted">Site settings</div>
+        <div class="nav-item muted">Feature control</div>
+      </aside>
+      <main class="canvas">
+        <h2 class="greeting">School Command Center</h2>
+        <p class="sub">Matches /admin/ operator craft: bento Overview | Cockpit, steering strip, performance tile</p>
+        <div class="bento">
+          <div class="card span-8">
+            <h3>Overview bento</h3>
+            <div class="kpi-row">
+              <div class="kpi"><strong>412</strong><span>Students</span></div>
+              <div class="kpi"><strong>28</strong><span>Teachers</span></div>
+              <div class="kpi"><strong>94%</strong><span>Setup</span></div>
+            </div>
+          </div>
+          <div class="card span-4">
+            <h3>Platform performance</h3>
+            <p style="margin:0;font-size:.8rem">Latency · cache · queue depth</p>
+          </div>
+          <div class="card span-12">
+            <h3>Changelist destination (e.g. Students)</h3>
+            <div class="filter-rail">
+              <button>Year ▾</button><button>Class ▾</button><button>Status ▾</button>
+              <button style="margin-left:auto">Export</button>
+            </div>
+            <table class="table-mini"><tr><th>Name</th><th>Class</th><th>Status</th></tr><tr><td>…</td><td>10A</td><td>Active</td></tr></table>
+          </div>
+        </div>
+      </main>
+      <aside class="rail">Copilot: ops · setup guidance · audit-aware</aside>
+    </div>
+  </div>
+
+  <p class="legend">Legend: <span class="chip">Planned</span> = exception wave ships to production templates under <code>portal_base</code> + <code>accounts/backend_dashboard.html</code> patterns.</p>
+
+  <script>
+    document.querySelectorAll('.tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

@@ -10,7 +10,7 @@
 {% include "components/next_action_strip.html" %}
 
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="container-fluid py-2" data-page-archetype="task-list" data-rmc-scroll-policy="paginate" data-rmc-copilot-page-lens="tenant-student-roster" data-page-critical-read="1">
+<div class="container-fluid py-2 rmc-tenant-exception-task" data-rmc-tenant-exception-task="1" data-page-archetype="task-list" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-copilot-page-lens="tenant-student-roster" data-page-critical-read="1">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_student_create' as create_url %}
@@ -38,7 +38,7 @@
       {% comment %} Pass 8 Wave 2: added list-filter-bar + form-system--dense so canonical filter-bar
          CSS (dense micro-labels, harmonized search affordance) styles this row identically
          to other lists. Existing custom facet structure preserved. {% endcomment %}
-      <form method="get" class="list-filter-bar form-system form-system--dense card card-body bg-light mb-3 page-family-filter-row" role="search" data-list-filter-bar data-rmc-autosubmit="1">
+      <form method="get" class="list-filter-bar form-system form-system--dense card card-body bg-light mb-3 page-family-filter-row rmc-filter-rail" role="search" data-list-filter-bar data-rmc-filter-rail="1" data-rmc-autosubmit="1">
         <div class="row g-2 align-items-end">
           <div class="col-md-4">
             <label for="student-q" class="form-label small">{% trans "Search" %}</label>

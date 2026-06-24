@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Tenant surface exception Waves A–D1 + B P0 task surfaces (batch 1728 - 2026-06-24)
+
+**A. Scope:** Menu integrity, P0 Playwright sweep harness, chrome parity verifiers, Wave B inner-page exception task grammar on four P0 routes; closes moderator-adjacent exception track after batch 1726/1727.
+
+**B. Shipped:** `_baseline_reverse()` + school-config fallback in `portal_sidebar_items.py`; `verify_tenant_sidebar_baseline_integrity.py`; `generate_tenant_p0_menu_sweep_surfaces.py` + 17-surface ledger; `ROLE_SWEEP_P0_MENUS` sweep mode + npm scripts; `verify_tenant_menu_p0_sweep_harness.py` + `verify_tenant_surface_exception_program.py`; `rmc-tenant-exception-task-surface.css` + `verify_tenant_exception_task_surfaces.py`; P0 templates (gradebook, student list, parent finance, RBAC dashboard); preview elevation hub/matrix HTML; SQLite timeout env for E2E resilience; SW v4.05.06.
+
+**C. Proof:** **TENANT_SURFACE_EXCEPTION_PROGRAM_PASS**; **TENANT_EXCEPTION_TASK_SURFACES_PASS**; **TENANT_SIDEBAR_BASELINE_INTEGRITY_PASS**; **TENANT_MENU_P0_SWEEP_HARNESS_PASS**; **PAGE_FOLD_STANDARDS 26/26**; **ROLE_HOME_VISUAL_SWEEP_HARNESS_PASS**.
+
+**D. Honest:** Live 17-surface Playwright (`sweep:role-home:p0-menus:e2e`) operator/CI-gated with gate-snapshot; Wave D2 abrupt-end 200-route phased **NOT DONE**; batch stays **PARTIAL**.
+
 ## Slice — Tenant preview → live W3–W6 + admin cockpit elevation (batch 1727 - 2026-06-24)
 
 **A. Scope:** Complete all role profile preview adoption (parent/student/sweep/wizards) + elevate tenant admin console with explicit Setup Studio vs Operator Cockpit separation.

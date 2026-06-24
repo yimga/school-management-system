@@ -363,6 +363,9 @@
       ]
     }
   ],
-  "sot_partial_forward_queue_batches": [],
+  "sot_partial_forward_queue_batches": [
+    "1728",
+    "1729"
+  ],
   "generator": "scripts/generate_system_closure_map.py"
 }

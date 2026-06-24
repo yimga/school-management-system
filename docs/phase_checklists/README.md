@@ -27,4 +27,6 @@ Each `phase_XX_*.md` file lists files, routes, templates, and validation steps f
 
 Execution log: [RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md](../RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md).
 
+**Tenant exception handoff (batch 1728):** [TENANT_SURFACE_EXCEPTION_HANDOFF.md](TENANT_SURFACE_EXCEPTION_HANDOFF.md) — Good → Exception menu + inner-page program after Cycle 8 / batch 1727. Previews: `docs/generated/preview_tenant_elevation_hub.html`.
+
 **2026-04-25 (batch 966, PATH III.39):** Teacher syllabus **builder** and **preview** HTTP contract coverage — **`apps/academics/tests/test_academics_critical_paths.py`**; primary gate is **`manage.py test`** for that module (academics has no separate phase file in this folder).

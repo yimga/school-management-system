@@ -15,8 +15,10 @@
 
 {% include "components/next_action_strip.html" %}
 
+<div class="rmc-tenant-exception-task container-fluid px-3 px-lg-4 py-3" data-rmc-tenant-exception-task="1" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
+
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Finances" %}</h1>
-  <div class="report-card-print-wrapper" data-page-archetype="record-detail" data-task="parent_payment" data-task-step="finance:page" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
+  <div class="report-card-print-wrapper" data-task="parent_payment" data-task-step="finance:page">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 no-print" data-rmc-parent-finance-toolbar="1">
     {% if rmc_conversion_single_action_enforced|default:False %}
     <a class="btn btn-sm btn-outline-primary" href="#parent-finance-invoices" data-action="jump-invoices" data-task-step="finance:jump-table">{% trans "Jump to invoices" %}</a>
@@ -316,4 +318,5 @@
 <script src="{% static 'js/_pages/parent__finance.js' %}"></script>
 {% endif %}
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
+</div>
 {% endblock %}

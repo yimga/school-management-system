@@ -105,8 +105,11 @@ async function waitForServer(maxSeconds = 360) {
 }
 
 const py = resolvePython();
+const gateSnapshot = (process.env.RMC_E2E_GATE_SNAPSHOT || '').trim();
+
 const baseEnv = {
   DB_FILE: dbFile,
+  DJANGO_SQLITE_TIMEOUT: process.env.DJANGO_SQLITE_TIMEOUT || '90',
   REDIS_URL: '',
   RMC_FORCE_DB_SESSIONS: '1',
   SECURE_SSL_REDIRECT: '0',
@@ -128,7 +131,10 @@ const baseEnv = {
 };
 
 console.log('=== role-home e2e: migrate ===');
-if (process.env.RMC_E2E_KEEP_DB !== '1' && fs.existsSync(dbFile)) {
+if (gateSnapshot && fs.existsSync(gateSnapshot)) {
+  fs.copyFileSync(gateSnapshot, dbFile);
+  console.log(`seeded e2e db from gate snapshot ${gateSnapshot}`);
+} else if (process.env.RMC_E2E_KEEP_DB !== '1' && fs.existsSync(dbFile)) {
   try {
     fs.unlinkSync(dbFile);
     console.log(`removed stale e2e db ${dbFile}`);
@@ -189,6 +195,7 @@ for username in users:
 const artifactDir = path.join(repo, 'artifacts', 'role-home-e2e');
 fs.mkdirSync(artifactDir, { recursive: true });
 const serverLog = path.join(artifactDir, 'runserver.log');
+fs.writeFileSync(serverLog, '');
 const serverLogFd = fs.openSync(serverLog, 'a');
 
 console.log(`=== role-home e2e: runserver 127.0.0.1:${port} ===`);
@@ -265,6 +272,7 @@ const sweep = spawnSync(
       ...process.env,
       ...baseEnv,
       ROLE_SWEEP_TENANT_ONLY: tenantOnly,
+      ROLE_SWEEP_P0_MENUS: process.env.ROLE_SWEEP_P0_MENUS || '',
     },
     stdio: 'inherit',
     shell: false,
@@ -274,6 +282,9 @@ const sweep = spawnSync(
 stopServer();
 
 if (sweep.status === 0) {
+  if (process.env.ROLE_SWEEP_P0_MENUS === '1') {
+    console.log('TENANT_MENU_P0_SWEEP_E2E_PASS');
+  }
   console.log('ROLE_HOME_VISUAL_SWEEP_E2E_PASS');
 }
 process.exit(sweep.status ?? 1);

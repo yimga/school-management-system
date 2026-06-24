@@ -20,8 +20,12 @@ def main() -> int:
         errors.append("missing run_role_home_e2e.mjs")
     if not workflow.is_file():
         errors.append("missing role-home-visual-sweep-e2e.yml workflow")
-    elif "role-home-marketing" not in workflow.read_text(encoding="utf-8"):
-        errors.append("role-home workflow missing marketing sweep job (batch 1713)")
+    else:
+        wf = workflow.read_text(encoding="utf-8")
+        if "role-home-marketing" not in wf:
+            errors.append("role-home workflow missing marketing sweep job (batch 1713)")
+        if "role-home-p0-menus" not in wf:
+            errors.append("role-home workflow missing P0 menu sweep job (batch 1728)")
 
     if not sweep.is_file():
         errors.append("missing run_role_home_visual_sweep.mjs")
@@ -37,6 +41,8 @@ def main() -> int:
             "marketing-threshold",
             "admin-performance",
             "ROLE_SWEEP_TENANT_ONLY",
+            "ROLE_SWEEP_P0_MENUS",
+            "tenant_p0_menu_sweep_surfaces.json",
             "TENANT_CHROME_LABELS",
             "tenantToolsIsland",
             "copilotRail",
@@ -56,6 +62,11 @@ def main() -> int:
         errors.append("package.json missing sweep:role-home:tenant script")
     if pkg.is_file() and "sweep:role-home:e2e" not in pkg.read_text(encoding="utf-8"):
         errors.append("package.json missing sweep:role-home:e2e script")
+    if pkg.is_file() and "sweep:role-home:p0-menus:e2e" not in pkg.read_text(encoding="utf-8"):
+        errors.append("package.json missing sweep:role-home:p0-menus:e2e script")
+    p0_e2e = ROOT / "scripts" / "run_role_home_p0_menus_e2e.mjs"
+    if not p0_e2e.is_file():
+        errors.append("missing run_role_home_p0_menus_e2e.mjs")
 
     if not login.is_file():
         errors.append("missing tenant-login.js")

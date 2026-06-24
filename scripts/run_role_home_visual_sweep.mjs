@@ -35,7 +35,15 @@ const MKT_HOST = process.env.MARKETING_SWEEP_HOST || 'runmycampus.com';
 const MKT_BASE =
   process.env.MARKETING_SWEEP_BASE || `http://${MKT_HOST}:${PORT}`;
 const TENANT_ONLY = process.env.ROLE_SWEEP_TENANT_ONLY === '1';
-const OUT = path.join(process.cwd(), 'var/role-home-visual-sweep.json');
+const P0_MENUS = process.env.ROLE_SWEEP_P0_MENUS === '1';
+const OUT = path.join(
+  process.cwd(),
+  P0_MENUS ? 'var/tenant-menu-p0-sweep.json' : 'var/role-home-visual-sweep.json',
+);
+const P0_SURFACES_PATH = path.join(
+  process.cwd(),
+  'docs/generated/tenant_p0_menu_sweep_surfaces.json',
+);
 
 const HOST_RESOLVER_RULES =
   process.env.PLAYWRIGHT_ROLE_SWEEP_HOST_RULES ||
@@ -154,8 +162,31 @@ const SURFACES = [
   },
 ];
 
+function loadP0MenuSurfaces() {
+  if (!fs.existsSync(P0_SURFACES_PATH)) {
+    console.error(`missing ${P0_SURFACES_PATH} — run python scripts/generate_tenant_p0_menu_sweep_surfaces.py --write`);
+    process.exit(1);
+  }
+  const payload = JSON.parse(fs.readFileSync(P0_SURFACES_PATH, 'utf8'));
+  const rows = payload.surfaces || [];
+  return rows.map((row) => ({
+    label: row.label,
+    url: row.url,
+    user: row.user,
+    pass: DEMO_PASS,
+    p0Menu: true,
+  }));
+}
+
+let activeSurfaces = SURFACES;
+if (P0_MENUS) {
+  const p0 = loadP0MenuSurfaces();
+  const includeHomes = process.env.ROLE_SWEEP_P0_INCLUDE_HOMES !== '0';
+  activeSurfaces = includeHomes ? [...SURFACES, ...p0] : p0;
+}
+
 if (!TENANT_ONLY) {
-  SURFACES.push(
+  activeSurfaces.push(
     {
       label: 'marketing-threshold',
       url: '/experience/threshold-era/',
@@ -181,7 +212,7 @@ const browser = await chromium.launch({
 });
 const results = [];
 
-for (const s of SURFACES) {
+for (const s of activeSurfaces) {
   const base = s.base || TENANT_BASE_URL;
   const ctxOpts = {
     baseURL: base,
@@ -233,7 +264,10 @@ for (const s of SURFACES) {
       'admin-backend',
       'admin-performance',
     ]);
-    if (TENANT_CHROME_LABELS.has(s.label)) {
+    const needsChrome =
+      TENANT_CHROME_LABELS.has(s.label) ||
+      (s.p0Menu && !s.anon);
+    if (needsChrome) {
       await page.waitForTimeout(600);
       row.chrome = await page.evaluate(() => ({
         tenantToolsIsland: !!document.getElementById('page-data-rmc-tenant-tools'),
@@ -259,7 +293,8 @@ for (const s of SURFACES) {
         row.failures = [...(row.failures || []), 'tenant_header_100x_missing'];
         row.ok = false;
       }
-      if (!row.chrome.previewLive) {
+      const isRoleHomeChrome = TENANT_CHROME_LABELS.has(s.label);
+      if (isRoleHomeChrome && !row.chrome.previewLive) {
         row.failures = [...(row.failures || []), 'tenant_preview_live_surface_missing'];
         row.ok = false;
       }
@@ -277,7 +312,7 @@ for (const s of SURFACES) {
             tray.querySelector('[data-rmc-assist-slot-id]')
           );
         });
-        if (!row.chrome.toolsTrayOpen) {
+        if (isRoleHomeChrome && !row.chrome.toolsTrayOpen) {
           row.failures = [...(row.failures || []), 'tenant_tools_tray_open_failed'];
           row.ok = false;
         }
@@ -340,6 +375,7 @@ const payload = {
   marketingBase: MKT_BASE,
   marketingHost: MKT_HOST,
   tenantOnly: TENANT_ONLY,
+  p0Menus: P0_MENUS,
   passed: results.filter((r) => r.ok !== false).length,
   failed: results.filter((r) => r.ok === false).length,
   results,

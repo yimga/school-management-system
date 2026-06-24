@@ -74,6 +74,25 @@ def _safe_reverse(url_name, kwargs=None, args=None, default=None):
         return default
 
 
+def _baseline_reverse(url_name):
+    """Reverse sidebar baseline targets (tenant urlconf for school configuration routes)."""
+    from django.conf import settings
+    from django.urls import set_urlconf
+
+    tenant_conf = getattr(settings, "TENANT_SCHEMA_URLCONF", None)
+    root_conf = settings.ROOT_URLCONF
+    if tenant_conf:
+        set_urlconf(tenant_conf)
+    try:
+        url = _safe_reverse(url_name)
+        if not url and url_name == "school_configuration_center_canonical":
+            url = _safe_reverse("school_configuration_center")
+        return url
+    finally:
+        if tenant_conf:
+            set_urlconf(root_conf)
+
+
 def _badge_or_none(value):
     try:
         count = int(value or 0)
@@ -1667,7 +1686,7 @@ def _safe_has_feature_permission(user, codename):
 
 
 def _baseline_item(item_id, label, url_name, icon, section):
-    url = _safe_reverse(url_name)
+    url = _baseline_reverse(url_name)
     if not url:
         return None
     return {

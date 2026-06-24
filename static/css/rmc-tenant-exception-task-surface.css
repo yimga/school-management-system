@@ -1,0 +1,55 @@
+/* Batch 1728 Wave B — tenant inner-page exception task grammar (/admin/ changelist parity). */
+
+.rmc-tenant-exception-task {
+  min-width: 0;
+}
+
+.rmc-tenant-exception-task[data-rmc-page-fold-nav="required"] {
+  scroll-margin-top: calc(var(--rmc-sticky-header-offset, 72px) + 8px);
+}
+
+.rmc-tenant-exception-task .rmc-filter-rail,
+.rmc-tenant-exception-task .list-filter-bar {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl, 14px);
+  background: var(--surface-canvas);
+  box-shadow: none;
+}
+
+.rmc-tenant-exception-task .rmc-filter-rail .card-body,
+.rmc-tenant-exception-task .list-filter-bar.card-body {
+  padding: 14px 16px;
+}
+
+.rmc-tenant-exception-task .rmc-data-table {
+  margin-bottom: 0;
+}
+
+.rmc-tenant-exception-task .page-family-content-card,
+.rmc-tenant-exception-task .card-grammar[data-rmc-page="teacher-gradebook"] {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl, 14px);
+  background: var(--surface-elevated);
+}
+
+.rmc-tenant-exception-task__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: var(--rmc-dh-gap, 14px);
+}
+
+.rmc-tenant-exception-task__head h1,
+.rmc-tenant-exception-task__head .h2 {
+  margin: 0;
+  font-size: var(--type-size-xl, 1.25rem);
+  font-weight: 750;
+}
+
+.rmc-tenant-exception-task__sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}

@@ -15,6 +15,8 @@
 
 {% include "components/next_action_strip.html" %}
 
+<div class="rmc-tenant-exception-task container-fluid px-3 px-lg-4 py-3" data-rmc-tenant-exception-task="1" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
+
 <div data-rmc-scroll-policy="paginate">
 {% comment %} table-pagination-allow: rbac-role-permission-matrix bounded-by-role-registry-not-pageable {% endcomment %}
 <div id="rbac-page" class="rbac-page professional-page" data-decision-engine="surface">
@@ -364,5 +366,6 @@
 }</script><script src="{% static 'js/_pages/accounts__rbac_dashboard-1.js' %}"></script>
 {% endif %}
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
+</div>
 </div>
 {% endblock %}

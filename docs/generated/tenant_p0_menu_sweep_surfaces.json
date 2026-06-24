@@ -1,0 +1,143 @@
+{
+  "generated_by": "scripts/generate_tenant_p0_menu_sweep_surfaces.py",
+  "schema_version": 1,
+  "surface_count": 17,
+  "surfaces": [
+    {
+      "item_id": "teacher_home",
+      "label": "teacher-teacher_home",
+      "role": "TEACHER",
+      "url": "/portal/teacher/",
+      "url_name": "portal:teacher_dashboard_alias",
+      "user": "demo.teacher"
+    },
+    {
+      "item_id": "teacher_workflow",
+      "label": "teacher-teacher_workflow",
+      "role": "TEACHER",
+      "url": "/portal/teacher/workflow/",
+      "url_name": "portal:teacher_workflow",
+      "user": "demo.teacher"
+    },
+    {
+      "item_id": "teacher_marks",
+      "label": "teacher-teacher_marks",
+      "role": "TEACHER",
+      "url": "/evals/teacher/marks/",
+      "url_name": "evals:teacher_marks_list",
+      "user": "demo.teacher"
+    },
+    {
+      "item_id": "teacher_attendance",
+      "label": "teacher-teacher_attendance",
+      "role": "TEACHER",
+      "url": "/portal/teacher/attendance/",
+      "url_name": "portal:teacher_attendance",
+      "user": "demo.teacher"
+    },
+    {
+      "item_id": "teacher_timetable",
+      "label": "teacher-teacher_timetable",
+      "role": "TEACHER",
+      "url": "/portal/teacher/timetable/",
+      "url_name": "portal:teacher_timetable",
+      "user": "demo.teacher"
+    },
+    {
+      "item_id": "parent_home",
+      "label": "parent-parent_home",
+      "role": "PARENT",
+      "url": "/portal/parent/",
+      "url_name": "portal:parent_dashboard",
+      "user": "demo.parent"
+    },
+    {
+      "item_id": "parent_workflow",
+      "label": "parent-parent_workflow",
+      "role": "PARENT",
+      "url": "/portal/parent/workflow/",
+      "url_name": "portal:parent_workflow",
+      "user": "demo.parent"
+    },
+    {
+      "item_id": "parent_finance",
+      "label": "parent-parent_finance",
+      "role": "PARENT",
+      "url": "/portal/parent/finance/",
+      "url_name": "portal:parent_finance",
+      "user": "demo.parent"
+    },
+    {
+      "item_id": "parent_calendar",
+      "label": "parent-parent_calendar",
+      "role": "PARENT",
+      "url": "/portal/calendar/",
+      "url_name": "portal:unified_calendar",
+      "user": "demo.parent"
+    },
+    {
+      "item_id": "student_home",
+      "label": "student-student_home",
+      "role": "STUDENT",
+      "url": "/portal/student-portal/grades/",
+      "url_name": "portal:student_portal_grades",
+      "user": "demo.student"
+    },
+    {
+      "item_id": "student_workflow",
+      "label": "student-student_workflow",
+      "role": "STUDENT",
+      "url": "/portal/student/workflow/",
+      "url_name": "portal:student_workflow",
+      "user": "demo.student"
+    },
+    {
+      "item_id": "backend_dashboard",
+      "label": "admin-backend_dashboard",
+      "role": "ADMIN",
+      "url": "/authentication/backend/",
+      "url_name": "accounts:backend_dashboard",
+      "user": "demo.admin"
+    },
+    {
+      "item_id": "setup_wizards",
+      "label": "admin-setup_wizards",
+      "role": "ADMIN",
+      "url": "/school/studio/wizards/",
+      "url_name": "setup_studio:tenant_wizard_index",
+      "user": "demo.admin"
+    },
+    {
+      "item_id": "people",
+      "label": "admin-people",
+      "role": "ADMIN",
+      "url": "/authentication/backend/students/",
+      "url_name": "accounts:backend_student_list",
+      "user": "demo.admin"
+    },
+    {
+      "item_id": "rbac",
+      "label": "admin-rbac",
+      "role": "ADMIN",
+      "url": "/authentication/rbac/",
+      "url_name": "accounts:rbac",
+      "user": "demo.admin"
+    },
+    {
+      "item_id": "finance",
+      "label": "admin-finance",
+      "role": "ADMIN",
+      "url": "/finance/",
+      "url_name": "finance:dashboard",
+      "user": "demo.admin"
+    },
+    {
+      "item_id": "config",
+      "label": "admin-config",
+      "role": "ADMIN",
+      "url": "/school/configuration/",
+      "url_name": "school_configuration_center_canonical",
+      "user": "demo.admin"
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tenant surface elevation — preview hub (Good → Best → Exception)</title>
+  <style>
+    :root {
+      --bg: #0b0f1a;
+      --card: #12182b;
+      --elevated: #1a2238;
+      --hairline: rgba(255,255,255,.08);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --brand: #6366f1;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --gap: #64748b;
+      --radius: 16px;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+      --sans: Inter, system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(99,102,241,.18), transparent 55%),
+                  radial-gradient(900px 500px at 90% 0%, rgba(16,185,129,.12), transparent 50%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+    h1 { font-size: clamp(1.6rem, 3vw, 2.2rem); margin: 0 0 .5rem; letter-spacing: -.02em; }
+    .lede { color: var(--muted); max-width: 68ch; margin-bottom: 2rem; }
+    .tier-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    @media (max-width: 800px) { .tier-row { grid-template-columns: 1fr; } }
+    .tier {
+      background: var(--card);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.35rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .tier::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--brand), #10b981);
+      opacity: .85;
+    }
+    .tier.good::before { background: var(--ok); }
+    .tier.best::before { background: var(--warn); }
+    .tier.exception::before { background: linear-gradient(90deg, #a78bfa, #6366f1, #38bdf8); }
+    .tier h2 { margin: 0 0 .35rem; font-size: 1.05rem; }
+    .tier p { margin: 0; color: var(--muted); font-size: .92rem; }
+    .tier ul { margin: .75rem 0 0; padding-left: 1.1rem; color: var(--muted); font-size: .88rem; }
+    .badge {
+      display: inline-block;
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: .2rem .55rem;
+      border-radius: 999px;
+      margin-bottom: .5rem;
+    }
+    .badge.done { background: rgba(34,197,94,.15); color: #86efac; }
+    .badge.partial { background: rgba(245,158,11,.15); color: #fcd34d; }
+    .badge.planned { background: rgba(99,102,241,.15); color: #c4b5fd; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    a.card {
+      display: block;
+      background: var(--card);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      color: inherit;
+      text-decoration: none;
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+    }
+    a.card:hover {
+      border-color: rgba(99,102,241,.45);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0,0,0,.35);
+    }
+    a.card h3 { margin: 0 0 .35rem; font-size: 1.05rem; }
+    a.card p { margin: 0; color: var(--muted); font-size: .9rem; }
+    .card-meta { margin-top: .75rem; font-family: var(--mono); font-size: .75rem; color: #64748b; }
+    section { margin-top: 2.5rem; }
+    section h2 { font-size: 1.15rem; margin-bottom: 1rem; }
+    .honest {
+      background: var(--elevated);
+      border: 1px dashed var(--hairline);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .honest strong { color: var(--text); }
+    code { font-family: var(--mono); font-size: .85em; color: #c4b5fd; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Tenant surfaces — Good → Best → Exception</h1>
+    <p class="lede">
+      Batch <strong>1726</strong> proved the five role-home entry points (Playwright 5/5).
+      This hub shows what “exception” looks like when every menu destination inherits
+      <code>/admin/</code>-grade density, balance, and intelligence — not just the landing pages.
+    </p>
+
+    <div class="tier-row">
+      <div class="tier good">
+        <span class="badge done">Good — shipped</span>
+        <h2>Cycle 8 proof</h2>
+        <p>Role-home E2E: login, MFA, chrome, copilot rail, tools tray, reveal armed.</p>
+        <ul>
+          <li>5/5 tenant surfaces green</li>
+          <li><code>ROLE_HOME_VISUAL_SWEEP_E2E_PASS</code></li>
+          <li>Admin <code>settings.manage</code> seed fixed</li>
+        </ul>
+      </div>
+      <div class="tier best">
+        <span class="badge partial">Best — partial</span>
+        <h2>Preview → live (1727)</h2>
+        <p>Role homes use preview-live bento, section nav, collapsible panels.</p>
+        <ul>
+          <li>Admin cockpit / setup zones</li>
+          <li>200 routes in sweep ledger</li>
+          <li>Inner pages uneven vs homes</li>
+        </ul>
+      </div>
+      <div class="tier exception">
+        <span class="badge planned">Exception — plan</span>
+        <h2>Full-surface parity</h2>
+        <p>Every sidebar + submenu page matches operator <code>/admin/</code> craft.</p>
+        <ul>
+          <li>Bento + filters rail on task pages</li>
+          <li>Menu/submenu balance audit green</li>
+          <li>Playwright 200-route phased sweep</li>
+        </ul>
+      </div>
+    </div>
+
+    <section>
+      <h2>Open in browser — implementation previews</h2>
+      <div class="cards">
+        <a class="card" href="preview_tenant_elevation_exception_targets.html">
+          <h3>Exception targets (all roles)</h3>
+          <p>Tabbed mockups: Parent, Teacher, Student, Admin backend — admin-inspired bento, sidebar taxonomy, copilot + tools tray.</p>
+          <div class="card-meta">preview_tenant_elevation_exception_targets.html</div>
+        </a>
+        <a class="card" href="preview_tenant_surface_coverage_matrix.html">
+          <h3>Surface &amp; menu coverage matrix</h3>
+          <p>200 tenant sweep routes × role menus — what’s proven, partial, or queued. Filter by section.</p>
+          <div class="card-meta">preview_tenant_surface_coverage_matrix.html</div>
+        </a>
+        <a class="card" href="preview_app_shell_admin_v1_200x.html">
+          <h3>Reference: /admin/ 200x (inspiration)</h3>
+          <p>Operator Unfold backoffice target — changelist density, filter rail, luxury chrome.</p>
+          <div class="card-meta">preview_app_shell_admin_v1_200x.html</div>
+        </a>
+        <a class="card" href="preview_app_shell_tenant_portal_v3_100x.html">
+          <h3>Reference: tenant portal 100x (current)</h3>
+          <p>Existing tenant shell preview — baseline before exception wave.</p>
+          <div class="card-meta">preview_app_shell_tenant_portal_v3_100x.html</div>
+        </a>
+      </div>
+    </section>
+
+    <section>
+      <h2>Implementation waves (proposed §11.4)</h2>
+      <div class="cards">
+        <a class="card" href="preview_tenant_elevation_exception_targets.html#wave-a">
+          <h3>Wave A — Menu integrity</h3>
+          <p>Every <code>portal_sidebar_items</code> link resolves; dead href scan 0; submenu order ops→config.</p>
+        </a>
+        <a class="card" href="preview_tenant_elevation_exception_targets.html#wave-b">
+          <h3>Wave B — Inner-page bento</h3>
+          <p>Gradebook, finance, workflow, backend lists adopt admin changelist + filter rail pattern.</p>
+        </a>
+        <a class="card" href="preview_tenant_elevation_exception_targets.html#wave-c">
+          <h3>Wave C — Playwright depth</h3>
+          <p>Extend role-home sweep: P0 menus (20 routes/role) then full 200-route abrupt-end tier.</p>
+        </a>
+      </div>
+    </section>
+
+    <section>
+      <div class="honest">
+        <strong>Honest scope:</strong> Cycle 8 did not visit every submenu — it certified five homes.
+        Exception tier requires phased sweeps of <code>docs/generated/portal_tenant_sweep_routes.json</code>
+        (200 paths) plus layout balance on high-traffic inner pages (gradebook, finance, RBAC, studio).
+        Operator <code>/admin/</code> remains the visual SOT for density and filter rails; tenant backend
+        at <code>/authentication/backend/</code> is the adoption surface for school admins.
+      </div>
+    </section>
+  </div>
+</body>
+</html>

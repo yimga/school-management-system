@@ -686,10 +686,12 @@ else:
             else (BASE_DIR / sqlite_name)
         )
     db_path.parent.mkdir(parents=True, exist_ok=True)
+    _sqlite_timeout = float(os.getenv("DJANGO_SQLITE_TIMEOUT", "20"))
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": str(db_path),
+            "OPTIONS": {"timeout": _sqlite_timeout},
         }
     }
 

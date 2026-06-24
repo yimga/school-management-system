@@ -1,7 +1,7 @@
 # Moderator Program — Global Multi-Tenant + Tenant Customer 250+ Seal
 
 **Batch:** SOT §11.4 **1726** (moderator orchestration)  
-**Status:** PARTIAL — Program 1+2 repo seal green; P0 live Playwright pending  
+**Status:** DONE — all 12 moderator cycles green (incl. live Playwright 5/5)  
 **Primary E2E tenant:** `demo-school` (display name: **New Test High School**)  
 **Isolation tenant:** `rmc-tenant-isolation-probe` (cross-tenant tests only)
 
@@ -68,7 +68,7 @@ P0-BLOCKER → P1-W1.1 → P1-W1.2 → P1-W1.3 → P2-W0 inventory → P2-W2 see
 | 5 | A4 | P2-W5 | G3 | **PASS** | nav_role sidebar verifier alignment |
 | 6 | A2 | P2-W3 matrix | G8 | **PASS** | 249 ISO honest matrix JSON generated |
 | 7 | M0 | Bundle | ALL | **PASS** | `GLOBAL_TENANT_SEAL_PROGRAM_PASS` |
-| 8 | A10 | P0-BLOCKER | G5 | **PENDING** | Harness + admin `settings.manage` fix; live 5/5 blocked on local migrate/DB |
+| 8 | A10 | P0-BLOCKER | G5 | **PASS** | `ROLE_HOME_VISUAL_SWEEP_E2E_PASS` — 5/5 tenant (`var/role-home-visual-sweep.json` failed=0); gate snapshot + `settings.manage` seed |
 | 9 | I1 | P1-W1.1 | G2 | **PASS** | `scan_tenant_queryset_safety --compare` 0 (5 queryset fixes) |
 | 10 | A2 | P2-W3 W-Africa | G8 | **PASS** | +8 profiles (BF,BJ,ML,NE,TG,LR,SL,GM); 58 total; 56 repo_ready |
 | 11 | A5+A6 | P2-W6/W7 | — | **PASS** | `verify_tenant_daily_ops_synthetic_chain` + `verify_offline_manifest_taxonomy` |

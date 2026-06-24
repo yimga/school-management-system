@@ -1,19 +1,30 @@
 {
-  "generatedAt": "2026-06-24T10:58:39.525Z",
-  "tenantBase": "http://demo-school.runmycampus.com:8012",
-  "marketingBase": "http://runmycampus.com:8012",
+  "generatedAt": "2026-06-24T17:02:28.113Z",
+  "tenantBase": "http://demo-school.runmycampus.com:8020",
+  "marketingBase": "http://runmycampus.com:8020",
   "marketingHost": "runmycampus.com",
   "tenantOnly": true,
-  "passed": 3,
-  "failed": 2,
+  "passed": 5,
+  "failed": 0,
   "results": [
     {
       "label": "parent-home",
       "requested": "/portal/parent/",
-      "base": "http://demo-school.runmycampus.com:8012",
+      "base": "http://demo-school.runmycampus.com:8020",
       "host": null,
       "loginPath": "/portal/parent/",
       "httpStatus": 200,
+      "chrome": {
+        "tenantToolsIsland": true,
+        "toolsEdgeTab": true,
+        "copilotRail": true,
+        "copilotExpandedPanel": true,
+        "tenantHeader100x": true,
+        "tpPrimaryNavInline": true,
+        "actionsEmptyState": true,
+        "previewLive": true,
+        "toolsTrayOpen": true
+      },
       "path": "/portal/parent/",
       "title": "Family Home",
       "armed": "1",
@@ -26,10 +37,21 @@
     {
       "label": "teacher-home",
       "requested": "/portal/teacher/",
-      "base": "http://demo-school.runmycampus.com:8012",
+      "base": "http://demo-school.runmycampus.com:8020",
       "host": null,
-      "loginPath": "/authentication/profile/security/review/",
+      "loginPath": "/evals/teacher/",
       "httpStatus": 200,
+      "chrome": {
+        "tenantToolsIsland": true,
+        "toolsEdgeTab": true,
+        "copilotRail": true,
+        "copilotExpandedPanel": true,
+        "tenantHeader100x": true,
+        "tpPrimaryNavInline": true,
+        "actionsEmptyState": true,
+        "previewLive": true,
+        "toolsTrayOpen": true
+      },
       "path": "/portal/teacher/",
       "title": "My Teaching Day",
       "armed": "1",
@@ -42,10 +64,21 @@
     {
       "label": "student-grades",
       "requested": "/portal/student-portal/grades/",
-      "base": "http://demo-school.runmycampus.com:8012",
+      "base": "http://demo-school.runmycampus.com:8020",
       "host": null,
       "loginPath": "/portal/student-portal/grades/",
       "httpStatus": 200,
+      "chrome": {
+        "tenantToolsIsland": true,
+        "toolsEdgeTab": true,
+        "copilotRail": true,
+        "copilotExpandedPanel": true,
+        "tenantHeader100x": true,
+        "tpPrimaryNavInline": true,
+        "actionsEmptyState": true,
+        "previewLive": true,
+        "toolsTrayOpen": true
+      },
       "path": "/portal/student-portal/grades/",
       "title": "home",
       "armed": "1",
@@ -58,25 +91,63 @@
     {
       "label": "admin-backend",
       "requested": "/authentication/backend/",
-      "base": "http://demo-school.runmycampus.com:8012",
+      "base": "http://demo-school.runmycampus.com:8020",
       "host": null,
       "loginPath": "/authentication/backend/",
-      "httpStatus": 400,
-      "failures": [
-        "http_400"
-      ],
-      "ok": false
+      "httpStatus": 200,
+      "chrome": {
+        "tenantToolsIsland": true,
+        "toolsEdgeTab": true,
+        "copilotRail": true,
+        "copilotExpandedPanel": true,
+        "tenantHeader100x": true,
+        "tpPrimaryNavInline": true,
+        "actionsEmptyState": true,
+        "previewLive": true,
+        "toolsTrayOpen": true,
+        "adminBento": {
+          "bento": true,
+          "overviewPanel": false,
+          "cockpitPanel": false,
+          "setupZoneIntro": true,
+          "previewLiveAdmin": true
+        }
+      },
+      "path": "/authentication/backend/",
+      "title": "School Command Center",
+      "armed": "1",
+      "revealTotal": 3,
+      "strandedAfter": 0,
+      "failures": [],
+      "ok": true,
+      "canScroll": false
     },
     {
       "label": "admin-performance",
       "requested": "/authentication/backend/performance/",
-      "base": "http://demo-school.runmycampus.com:8012",
+      "base": "http://demo-school.runmycampus.com:8020",
       "host": null,
-      "ok": false,
-      "failures": [
-        "exception"
-      ],
-      "error": "TimeoutError: page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8012/authentication/login/\", waiting until \"domcontentloaded\"\n"
+      "loginPath": "/authentication/backend/",
+      "httpStatus": 200,
+      "chrome": {
+        "tenantToolsIsland": true,
+        "toolsEdgeTab": true,
+        "copilotRail": true,
+        "copilotExpandedPanel": true,
+        "tenantHeader100x": true,
+        "tpPrimaryNavInline": true,
+        "actionsEmptyState": true,
+        "previewLive": false,
+        "toolsTrayOpen": true
+      },
+      "failures": [],
+      "ok": true,
+      "path": "/authentication/backend/performance/",
+      "title": "Platform performance",
+      "armed": "1",
+      "revealTotal": 3,
+      "strandedAfter": 0,
+      "canScroll": false
     }
   ]
 }
