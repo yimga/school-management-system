@@ -10,6 +10,10 @@ import { createRequire } from 'module';
 
 const PORT = process.env.VISUAL_QA_PORT || '8012';
 process.env.VISUAL_QA_PORT = PORT;
+// Path-tenant on 127.0.0.1 is the default sweep transport (avoids HSTS / host-map flakes).
+if (!process.env.TENANT_E2E_SUBDOMAIN) {
+  process.env.TENANT_E2E_SUBDOMAIN = '0';
+}
 
 const require = createRequire(import.meta.url);
 const { loginTenant, TENANT_BASE_URL } = require('../tests/e2e/helpers/tenant-login.js');

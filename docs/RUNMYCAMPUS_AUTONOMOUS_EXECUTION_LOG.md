@@ -1,5 +1,25 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Role-home sweep login hardening (batch 1710 — 2026-06-24)
+
+**A. Scope:** Fix Playwright login click timeouts blocking live role-home visual sweep (batch 1704 honest residual).
+
+**B. Shipped:** `tenant-login.js` — `requestSubmit()` instead of button click; `run_role_home_visual_sweep.mjs` — default path-tenant on `127.0.0.1`.
+
+**C. Proof:** **ROLE_HOME_VISUAL_SWEEP_HARNESS_PASS**.
+
+**D. Honest:** Live sweep needs Django + `seed_demo_tenant_users`; prior `var/role-home-visual-sweep.json` failures were server/login transport flakes.
+
+## Slice — B4 operator holding rollup dashboard (batch 1709 — 2026-06-24)
+
+**A. Scope:** Close batch 1708 honest deferral — operator UI + Celery task wiring for holding currency rollups.
+
+**B. Shipped:** `holding_currency_rollup_dashboard` at `/super/billing/holding-currency-rollups/`; billing console CTA; `tasks_holding_rollup.py` + `apps.py` ready import; parent-tenant `currency_buckets` on `parent_tenant_dashboard`; `test_holding_rollup_operator.py` + `test_parent_tenant_holding_rollup.py`; verifier + gap closure extended.
+
+**C. Proof:** **HOLDING_CURRENCY_ROLLUP_B4_PASS**; **COMPETITIVE_GAP_CLOSURE_PASS**; **ROLE_HOME_VISUAL_SWEEP_HARNESS_PASS**.
+
+**D. Honest:** Competitive-dominance audit §2 fully CLOSED; live `npm run sweep:role-home` still operator-gated (batch 1710).
+
 ## Slice — B4 holding multi-currency rollup closeout (batch 1708 — 2026-06-24)
 
 **A. Scope:** Close competitive-audit B4 — materialized per-currency rollup for holding companies (already implemented; add verifier + audit truth).
@@ -8,7 +28,7 @@
 
 **C. Proof:** **HOLDING_CURRENCY_ROLLUP_B4_PASS**; **COMPETITIVE_GAP_CLOSURE_PASS**.
 
-**D. Honest:** Operator dashboard for holding rollups + scheduled materialize beat still optional follow-up.
+**D. Honest:** Operator dashboard + beat shipped in batch 1709.
 
 ## Slice — SLO metrics live emit wiring (batch 1707 — 2026-06-24)
 

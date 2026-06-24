@@ -35,6 +35,7 @@ from .super_views_catalog import (
 )
 from apps.portal.views_multicampus_academics import multicampus_academics
 from apps.portal.views_multicampus_billing import multicampus_billing
+from apps.billing.views_holding_rollup import holding_currency_rollup_dashboard
 from apps.portal.views_multicampus_extension import multicampus_extension
 from .super_views_wedge import (
     super_advancement_hub,
@@ -601,6 +602,11 @@ urlpatterns = [
         "billing/",
         require_super_access_with_host(super_views.billing_dashboard),
         name="billing_dashboard",
+    ),
+    path(
+        "billing/holding-currency-rollups/",
+        require_super_access_with_host(holding_currency_rollup_dashboard),
+        name="holding_currency_rollup_dashboard",
     ),
     path(
         "billing/subscription/<str:school_id>/",

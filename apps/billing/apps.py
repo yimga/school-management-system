@@ -28,6 +28,7 @@ class BillingConfig(AppConfig):
         try:
             from . import tasks_ai_token_flush  # noqa: F401
             from . import realtime_meter  # noqa: F401
+            from . import tasks_holding_rollup  # noqa: F401
         except (ImportError, RuntimeError):
             pass
 

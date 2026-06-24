@@ -26,7 +26,9 @@ CHECKS: list[tuple[str, Path]] = [
     ("B2 regional sku tests", ROOT / "apps/billing/tests/test_regional_sku_override.py"),
     ("B3 subdivision tax engine", ROOT / "apps/billing/tax_engine.py"),
     ("B4 holding currency rollup", ROOT / "apps/billing/holding_rollup.py"),
+    ("B4 holding rollup operator dashboard", ROOT / "apps/billing/views_holding_rollup.py"),
     ("B4 holding rollup tests", ROOT / "apps/billing/tests/test_holding_currency_rollup.py"),
+    ("B4 holding rollup operator tests", ROOT / "apps/billing/tests/test_holding_rollup_operator.py"),
 ]
 
 

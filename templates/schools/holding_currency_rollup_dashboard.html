@@ -1,0 +1,100 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block cp_title %}{% trans "Holding currency rollups" %}{% endblock %}
+{% block cp_content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-3" data-rmc-scroll-policy="paginate">
+  <header class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+      <p class="text-muted small text-uppercase mb-1">{% trans "Platform billing" %}</p>
+      <h1 class="h3 mb-1">{% trans "Holding currency rollups" %}</h1>
+      <p class="text-muted mb-0" style="max-width: 60ch;">
+        {% trans "Per-currency subscription buckets for multi-campus holding companies — no FX conversion, honest totals per market." %}
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{{ billing_dashboard_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Billing console" %}</a>
+      <a href="{{ multicampus_billing_url }}?wedge=22" class="btn btn-outline-secondary btn-sm">{% trans "Invoice rollup" %}</a>
+      <form method="post" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "Refresh all" %}</button>
+      </form>
+    </div>
+  </header>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Holding groups" %}</div>
+          <div class="display-6 fw-semibold">{{ holding_count }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Currency buckets" %}</div>
+          <div class="display-6 fw-semibold">{{ total_buckets }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Beat" %}</div>
+          <div class="small text-muted">{% trans "Daily 04:30 UTC via Celery — holding-currency-rollup-daily" %}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if holdings %}
+    {% for holding in holdings %}
+      <section class="card shadow-sm mb-3">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <div>
+            <strong>{{ holding.name }}</strong>
+            <span class="text-muted small ms-2">{{ holding.child_count }} {% trans "campus(es)" %}</span>
+          </div>
+          <form method="post" class="mb-0">
+            {% csrf_token %}
+            <input type="hidden" name="parent_id" value="{{ holding.id }}">
+            <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "Refresh" %}</button>
+          </form>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0 rmc-data-table">
+            <thead>
+              <tr>
+                <th scope="col">{% trans "Currency" %}</th>
+                <th scope="col" class="text-end">{% trans "Total" %}</th>
+                <th scope="col" class="text-end">{% trans "Schools" %}</th>
+                <th scope="col">{% trans "As of" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for bucket in holding.currency_buckets %}
+                <tr>
+                  <td><span class="badge text-bg-light border">{{ bucket.currency_code }}</span></td>
+                  <td class="text-end font-monospace">{{ bucket.total_amount }}</td>
+                  <td class="text-end">{{ bucket.source_school_count }}</td>
+                  <td class="text-muted small">{{ bucket.as_of|default:"—" }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-4">
+                    {% trans "No currency buckets materialized yet — run Refresh." %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    {% endfor %}
+  {% else %}
+    {% include "components/rmc_empty_state.html" with icon="bi-layers" title=_("No holding companies yet") message=_("Link campuses with a parent school to see per-currency subscription rollups here.") primary_url=multicampus_billing_url primary_label=_("Open multi-campus billing") %}
+  {% endif %}
+</div>
+{% endblock %}

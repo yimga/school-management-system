@@ -19,6 +19,7 @@
   {% include "studio_os/components/page_header.html" with title=_("Platform billing") subtitle=_("Platform-side accounts, subscriptions, usage, and ledger activity across all schools.") action_url=dashboard_url action_text=_("Back to dashboard") %}
   <div class="d-flex flex-wrap gap-2 mb-3" style="margin-top: -0.5rem;">
     <a href="{{ usage_url }}" class="btn btn-outline-primary btn-sm">{% trans "Usage API" %}</a>
+    <a href="{% url 'super:holding_currency_rollup_dashboard' %}" class="btn btn-outline-secondary btn-sm">{% trans "Holding currency rollups" %}</a>
   </div>
 
   <div class="row g-3 mb-4">

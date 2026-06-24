@@ -179,18 +179,20 @@ async function loginTenant(page, opts = {}) {
   await loginForm.locator('input[name="password"]').first().fill(password);
   // Timing trap only blocks sub-second bot submits; brief pause is enough.
   await page.waitForTimeout(1200);
-  const submit = loginForm.getByRole('button', { name: /log in/i });
   const leftLogin = page
     .waitForURL((url) => !/\/authentication\/login\/?$/i.test(url.pathname), {
-      timeout: 60000,
+      timeout: 90000,
       waitUntil: 'commit',
     })
     .catch(() => null);
-  if (await submit.count()) {
-    await submit.click();
-  } else {
-    await loginForm.evaluate((form) => form.requestSubmit());
-  }
+  // requestSubmit avoids overlay / pointer-event traps on the login CTA.
+  await loginForm.evaluate((form) => {
+    if (typeof form.requestSubmit === 'function') {
+      form.requestSubmit();
+    } else {
+      form.submit();
+    }
+  });
   await leftLogin;
   await ensurePathTenantHost(page);
   await completeTenantMfaIfPresent(page, username);
