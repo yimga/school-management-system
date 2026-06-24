@@ -52,6 +52,10 @@ def main() -> int:
         errors.append("tenant-login.js missing overlay-safe requestSubmit login")
     if orchestrator.is_file() and "stableOk" not in orchestrator.read_text(encoding="utf-8"):
         errors.append("run_role_home_e2e.mjs missing stable HTTP 200 server wait")
+    if orchestrator.is_file() and "unlinkSync" not in orchestrator.read_text(encoding="utf-8"):
+        errors.append("run_role_home_e2e.mjs missing stale sqlite cleanup before migrate")
+    if orchestrator.is_file() and "process.pid" not in orchestrator.read_text(encoding="utf-8"):
+        errors.append("run_role_home_e2e.mjs missing pid-scoped playwright sqlite path")
     if pkg.is_file() and "sweep:role-home" not in pkg.read_text(encoding="utf-8"):
         errors.append("package.json missing sweep:role-home script")
 

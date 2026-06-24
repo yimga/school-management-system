@@ -15,7 +15,8 @@ const port = (process.env.VISUAL_QA_PORT || '8012').trim();
 const slug = (process.env.TENANT_SLUG || 'demo-school').trim();
 const loginUrl = `http://127.0.0.1:${port}/t/${slug}/authentication/login/`;
 const dbFile =
-  process.env.DB_FILE || path.join(repo, 'db_playwright_role_home.sqlite3');
+  process.env.DB_FILE ||
+  path.join(repo, `db_playwright_role_home_${process.pid}.sqlite3`);
 const demoUsers = [
   'demo.admin',
   'demo.teacher',
@@ -108,6 +109,14 @@ const baseEnv = {
 };
 
 console.log('=== role-home e2e: migrate ===');
+if (process.env.RMC_E2E_KEEP_DB !== '1' && fs.existsSync(dbFile)) {
+  try {
+    fs.unlinkSync(dbFile);
+    console.log(`removed stale e2e db ${dbFile}`);
+  } catch (err) {
+    console.warn(`could not remove stale e2e db: ${err}`);
+  }
+}
 runSync(['manage.py', 'migrate', '--noinput'], baseEnv);
 
 console.log(`=== role-home e2e: ensure developer sandbox (${slug}) ===`);
@@ -180,14 +189,37 @@ server.on('exit', (code) => {
 const stopServer = () => {
   if (!serverExited && server.pid) {
     try {
-      process.kill(server.pid);
+      if (process.platform === 'win32') {
+        spawnSync('taskkill', ['/pid', String(server.pid), '/t', '/f'], {
+          stdio: 'ignore',
+          shell: false,
+        });
+      } else {
+        process.kill(server.pid);
+      }
     } catch (_e) {
       /* ignore */
     }
   }
 };
 
-process.on('exit', stopServer);
+const cleanupDb = () => {
+  if (process.env.RMC_E2E_KEEP_DB === '1') {
+    return;
+  }
+  if (fs.existsSync(dbFile)) {
+    try {
+      fs.unlinkSync(dbFile);
+    } catch (_e) {
+      /* ignore — Windows may still hold the handle briefly */
+    }
+  }
+};
+
+process.on('exit', () => {
+  stopServer();
+  cleanupDb();
+});
 for (const sig of ['SIGINT', 'SIGTERM']) {
   process.on(sig, () => {
     stopServer();
