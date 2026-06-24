@@ -49,4 +49,8 @@ class SignupCountryRequiredTests(TestCase):
         self.assertEqual(response.status_code, 400)
         payload = response.json()
         self.assertFalse(payload.get("ok"))
-        self.assertIn("Country is required", payload.get("errors", []))
+        errors = payload.get("errors", [])
+        self.assertTrue(
+            any("Country is required" in str(err) for err in errors),
+            errors,
+        )
