@@ -90,7 +90,7 @@ async function waitForServer(maxSeconds = 360) {
   let stableOk = 0;
   for (let i = 0; i < maxSeconds; i += 1) {
     const code = await probe(loginUrl);
-    if (code === 200) {
+    if (code >= 200 && code < 500) {
       stableOk += 1;
       if (stableOk >= 3) {
         return;
