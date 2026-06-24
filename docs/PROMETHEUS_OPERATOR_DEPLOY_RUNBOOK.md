@@ -100,6 +100,8 @@ Environment overrides:
 
 npm: `npm run verify:prometheus-stack-live`
 
+Pass `--check-django` (or set `OBSERVABILITY_METRICS_BACKEND` in the environment) when you need Django settings loaded; default skips Django for a fast operator probe.
+
 ## Grafana
 
 Datasource provisioning ships at `deploy/observability/grafana/provisioning/datasources/prometheus.yml` (Prometheus at `http://prometheus:9090` inside the compose network). Build dashboards against `runmycampus_*` series; route `severity=page` / `severity=ticket` labels to your pager when you add Alertmanager.

@@ -1,5 +1,25 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Zero-Friction wave 23 partials + marketing (batch 1722 — 2026-06-24)
+
+**A. Scope:** Phase 6 burndown on `templates/partials/` + `templates/marketing/` zones skipped by finale sweep.
+
+**B. Shipped:** `codemod_zero_friction_wave23_partials_marketing.py`; friction sentinels on shared partials/engine bundles; procurement trust nav + checklist wiring; register + journey verifier flags.
+
+**C. Proof:** **ZERO_FRICTION_JOURNEYS_PASS**; phase register **9/9 DONE**.
+
+**D. Honest:** head-only favicon/deploy meta partials skip block sentinel (valid HTML in `<head>`).
+
+## Slice — Prometheus operator deploy runbook + live smoke (batch 1721 — 2026-06-24)
+
+**A. Scope:** Operator runbook + optional live compose/`/metrics/` smoke after batch 1718 static drift gate.
+
+**B. Shipped:** `docs/PROMETHEUS_OPERATOR_DEPLOY_RUNBOOK.md`; `verify_prometheus_stack_live.py`; `npm run verify:prometheus-stack-live`; competitive gap + observability stack verifier wiring.
+
+**C. Proof:** **PROMETHEUS_OBSERVABILITY_STACK_PASS**; **PROMETHEUS_STACK_LIVE_SOFT_PASS**; **COMPETITIVE_GAP_CLOSURE_PASS**.
+
+**D. Honest:** hard **PROMETHEUS_STACK_LIVE_PASS** requires operator compose + prometheus-client backend on app host.
+
 ## Slice — Finance notification retention schema (batch 1719 — 2026-06-24)
 
 **A. Scope:** Validate finance ``0071``/``0072`` notification column drift heal + inbox dismiss/expiry/school contract.

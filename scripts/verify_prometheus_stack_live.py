@@ -73,6 +73,11 @@ def _compose_config_ok() -> tuple[bool, str]:
 
 
 def _django_backend() -> str:
+    env_backend = os.environ.get("OBSERVABILITY_METRICS_BACKEND", "").strip()
+    if env_backend:
+        return env_backend
+    if os.environ.get("RMC_PROMETHEUS_SKIP_DJANGO", "").strip() in {"1", "true", "yes"}:
+        return "skipped"
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
@@ -99,7 +104,15 @@ def main() -> int:
         action="store_true",
         help="Skip docker compose config parse.",
     )
+    parser.add_argument(
+        "--check-django",
+        action="store_true",
+        help="Load Django settings to read OBSERVABILITY_METRICS_BACKEND (slow).",
+    )
     args = parser.parse_args()
+
+    if not args.check_django:
+        os.environ.setdefault("RMC_PROMETHEUS_SKIP_DJANGO", "1")
 
     findings: list[str] = []
     notes: list[str] = []
@@ -125,7 +138,7 @@ def main() -> int:
     backend = _django_backend()
     print(f"  OBSERVABILITY_METRICS_BACKEND={backend!r}")
 
-    if backend != "prometheus-client" and metrics_status == 404:
+    if backend not in ("prometheus-client",) and metrics_status == 404:
         notes.append(
             "/metrics/ returned 404 — set OBSERVABILITY_METRICS_BACKEND=prometheus-client "
             "and pip install prometheus_client before expecting scrape data."
