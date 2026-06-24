@@ -144,8 +144,12 @@ SVG_VIEWBOX_HEIGHT = 280.0
 GLOBE_EARTH_TEXTURE_VERSION = "20260624-earth-daylight-v2"
 GLOBE_EARTH_TEXTURE_URL = f"/static/img/globe/earth-night-1k.jpg?v={GLOBE_EARTH_TEXTURE_VERSION}"
 
-# Platform HQ anchor for arc visualization (configurable via env in future waves).
-DEFAULT_HQ = {"lat": 6.52, "lng": 3.38, "label": "Platform HQ"}
+# Preview-parity stream anchor for the lavender/yellow globe fly lines.
+DEFAULT_HQ = {"lat": 40.71, "lng": -74.01, "label": "Platform HQ"}
+PREVIEW_STREAM_COLORS = (
+    "rgba(129,140,248,0.66)",
+    "rgba(252,211,77,0.56)",
+)
 
 # Low-discrepancy unit offsets — same pattern as cockpit_panels_realdata_service.
 _SPREAD_UNIT = [
@@ -422,16 +426,17 @@ def _build_arcs(markers: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if region in regions_seen:
             continue
         regions_seen.add(region)
-        centroid = REGION_CENTROIDS.get(region, REGION_CENTROIDS["Other"])
-        palette = REGION_PALETTE.get(region, REGION_PALETTE["Other"])
+        color = PREVIEW_STREAM_COLORS[len(arcs) % len(PREVIEW_STREAM_COLORS)]
         arcs.append({
             "start_lat": hq["lat"],
             "start_lng": hq["lng"],
-            "end_lat": centroid["lat"],
-            "end_lng": centroid["lng"],
-            "color": palette["arc"],
+            "end_lat": float(m["lat"]),
+            "end_lng": float(m["lng"]),
+            "color": color,
             "region": region,
         })
+        if len(arcs) >= 6:
+            break
     return arcs
 
 

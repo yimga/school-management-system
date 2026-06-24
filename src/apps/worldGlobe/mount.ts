@@ -529,11 +529,11 @@ function bindArcs(globe: GlobeInstance, arcs: GlobeArc[], golden = false): void 
       if (golden) return "rgba(251,191,36,0.62)";
       return (d as GlobeArc).color || "rgba(99,102,241,0.42)";
     })
-    .arcAltitude(0.12)
-    .arcStroke(0.4)
+    .arcAltitude(golden ? 0.14 : 0.16)
+    .arcStroke(golden ? 0.5 : 0.58)
     .arcDashLength(0.4)
-    .arcDashGap(0.2)
-    .arcDashAnimateTime(prefersReducedMotion() ? 0 : golden ? 3200 : 2800);
+    .arcDashGap(golden ? 0.24 : 0.35)
+    .arcDashAnimateTime(prefersReducedMotion() ? 0 : golden ? 3200 : 4000);
 }
 
 function syncArcLayer(): void {
