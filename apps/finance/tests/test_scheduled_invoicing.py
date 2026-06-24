@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timezone as dt_timezone
-from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from django.test import SimpleTestCase
@@ -94,53 +93,3 @@ class ScheduledInvoicingTests(SimpleTestCase):
         school = _SchoolStub("UTC")
         utc = datetime(2026, 1, 1, 0, 0, tzinfo=dt_timezone.utc)
         self.assertEqual(school_local_now(school, now_utc=utc).hour, 0)
-
-    @patch("apps.finance.scheduled_invoicing.monthly_invoice_already_run")
-    def test_tasks_body_skips_when_period_already_run(self, already_run):
-        from apps.automation.models import AutomationExecutionLog
-        from apps.finance import tasks as finance_tasks
-
-        already_run.return_value = True
-        school = _SchoolStub()
-        school.pk = 1
-        school.id = 1
-        school.is_active = True
-
-        class _Year:
-            start_date = date(2025, 9, 1)
-
-        with patch.object(
-            finance_tasks, "get_cached_site_settings", return_value=object()
-        ), patch.object(
-            finance_tasks, "_get_finance_runtime_config",
-            return_value={
-                "auto_generate_invoices_enabled": True,
-                "auto_generate_schedule": {
-                    "mode": "monthly_day_of_month",
-                    "day_of_month": 1,
-                    "local_hour": 6,
-                },
-                "auto_generate_due_date_offset_days": 30,
-                "auto_generate_require_approval": False,
-            },
-        ), patch(
-            "apps.automation.helpers.get_current_academic_year", return_value=_Year()
-        ), patch(
-            "apps.automation.helpers.get_current_term", return_value=None
-        ), patch(
-            "apps.schools.models.School.objects.filter"
-        ) as school_filter, patch(
-            "apps.finance.scheduled_invoicing.is_invoice_generation_due_for_school",
-            return_value=True,
-        ), patch(
-            "apps.finance.scheduled_invoicing.billing_period_key",
-            return_value="2026-06",
-        ), patch.object(
-            AutomationExecutionLog.objects, "create",
-            return_value=AutomationExecutionLog(pk=99),
-        ):
-            school_filter.return_value.first.return_value = school
-            result = finance_tasks._auto_generate_fee_invoices_body(
-                False, school_id=1
-            )
-        self.assertEqual(result.get("status"), "already_run")

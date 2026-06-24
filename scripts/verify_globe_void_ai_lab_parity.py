@@ -32,6 +32,16 @@ WOW_MARKERS: dict[str, tuple[str, ...]] = {
 }
 
 VOID_TIER = (
+    "data-rmc-globe-master-lab",
+    "lx-world-lab__controls",
+    "layer-void",
+    "layer-ai",
+    "layer-wow",
+    "toggle-wow",
+    "simulate-sse",
+    "fly-wa",
+    "reset-view",
+    "export-snapshot",
     "rmc-world-globe-void-viewport",
     "rmc-world-globe-void-whisper",
     "rmc-world-globe-void-caption",
@@ -71,6 +81,15 @@ def main() -> int:
                 _fail(f"control_plane_skeleton missing {marker!r}")
         elif marker not in tpl:
             _fail(f"_live_world_map.html missing void/fleet marker {marker!r}")
+
+    for marker in (
+        "wireMasterLabControls",
+        "lx-world-lab--void-hidden",
+        "lx-world-lab--ai-hidden",
+        "lx-world-lab--wow-hidden",
+    ):
+        if marker not in (bridge + css):
+            _fail(f"production globe lab missing marker {marker!r}")
 
     for wow_id, tokens in WOW_MARKERS.items():
         haystacks = (tpl, bridge, wow_plus, mount, css, geo, fleet_svc, fleet_api, urls)

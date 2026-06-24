@@ -6,7 +6,23 @@
 {% with lwm_layout=cockpit.live_world_map.layout|default:"hero" %}
 {% with lwm_fleet=cockpit.live_world_map.fleet_snapshot %}
 {% with lwm_features=cockpit.live_world_map.globe_payload.features %}
-<section class="lx-card lx-world lx-world--{{ lwm_layout }}{% if lwm_features.wow_enabled != False %} lx-world--wow-on{% endif %}{% if lwm_features.context_lens != False %} lx-world--quiet-lens{% endif %}{% if lwm_layout == 'full' and lwm_features.glass_dock != False %} lx-world--full-bleed{% endif %}" aria-label="{% trans 'Live world map of tenant locations' %}" data-rmc-page-fold-nav="required" data-rmc-globe-wow-plus="1" data-rmc-globe-surface-elevation="1">
+<section class="lx-world-lab{% if lwm_features.wow_enabled != False %} lx-world--wow-on{% endif %}" id="rmc-globe-master-lab" aria-label="{% trans 'Live world map of tenant locations' %}" data-rmc-page-fold-nav="required" data-rmc-globe-wow-plus="1" data-rmc-globe-surface-elevation="1" data-rmc-globe-master-lab="1">
+  <header class="lx-world-lab__header">
+    <h2 class="lx-world-lab__title"><span class="lx-world-lab__tag">{% trans "Live" %}</span>{% trans "Master preview — all layers" %}</h2>
+    <p class="lx-world-lab__note">{% trans "Drag the globe · hover legend rows (magnetic fly-to) · toggle layers · turn on Wow demo for aurora + arcs + auto-rotate." %}</p>
+  </header>
+  <div class="lx-world-lab__controls" role="group" aria-label="{% trans 'Globe master preview controls' %}">
+    <label><input type="checkbox" id="layer-void" checked> {% trans "Void zones A-D" %}</label>
+    <label><input type="checkbox" id="layer-ai" checked> {% trans "AI + pulse blocks" %}</label>
+    <label><input type="checkbox" id="layer-wow" checked> {% trans "Wow effects" %}</label>
+    <span class="lx-world-lab__sep" aria-hidden="true"></span>
+    <button type="button" class="lx-world-lab__btn lx-world-lab__btn--wow on" id="toggle-wow">{% trans "✦ Wow demo ON" %}</button>
+    <button type="button" class="lx-world-lab__btn lx-world-lab__btn--primary" id="simulate-sse">{% trans "↻ Simulate SSE" %}</button>
+    <button type="button" class="lx-world-lab__btn" id="fly-wa">{% trans "Fly West Africa" %}</button>
+    <button type="button" class="lx-world-lab__btn" id="reset-view">{% trans "Reset view" %}</button>
+    <button type="button" class="lx-world-lab__btn" id="export-snapshot" title="{% trans 'Wow+ W20' %}">{% trans "Export PNG" %}</button>
+  </div>
+  <div class="lx-card lx-world lx-world--{{ lwm_layout }}{% if lwm_features.wow_enabled != False %} lx-world--wow-on{% endif %}{% if lwm_features.context_lens != False %} lx-world--quiet-lens{% endif %}{% if lwm_layout == 'full' and lwm_features.glass_dock != False %} lx-world--full-bleed{% endif %}" id="master-card">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="lx-world__map" id="rmc-world-globe-map-shell">
     <div class="lx-world__globe-skeleton rmc-skeleton" aria-hidden="true" aria-busy="true"></div>
@@ -190,7 +206,7 @@
     </div>
     <p id="rmc-world-globe-offline-note" class="lx-world__offline-note small text-muted mb-0" hidden>{% trans "Interactive globe unavailable — showing regional map. Visit online once to cache the 3D globe for offline use, or connect to retry." %}</p>
     <p id="rmc-world-globe-live-region" class="visually-hidden-focusable" aria-live="polite"></p>
-    <div class="lx-world__fleet-pulse" id="rmc-world-globe-fleet-pulse"{% if not lwm_fleet or not lwm_fleet.pulse_events %} hidden{% endif %}>
+    <div class="lx-world__fleet-pulse" id="rmc-world-globe-fleet-pulse" data-rmc-globe-ai-block{% if not lwm_fleet or not lwm_fleet.pulse_events %} hidden{% endif %}>
       <div class="lx-world__fleet-pulse-title"><span class="lx-world__block-badge lx-world__block-badge--data">{% trans "Live" %}</span>{% trans "Fleet pulse" %}</div>
       <div id="rmc-world-globe-pulse-list">
         {% if lwm_fleet and lwm_fleet.pulse_events %}
@@ -200,13 +216,13 @@
         {% endif %}
       </div>
     </div>
-    <div class="lx-world__ai-brief" id="rmc-world-globe-ai-brief"{% if not lwm_fleet or not lwm_fleet.fleet_brief %} hidden{% endif %}>
+    <div class="lx-world__ai-brief" id="rmc-world-globe-ai-brief" data-rmc-globe-ai-block{% if not lwm_fleet or not lwm_fleet.fleet_brief %} hidden{% endif %}>
       <div class="lx-world__ai-brief-label"><span class="lx-world__block-badge lx-world__block-badge--ai">{% trans "AI" %}</span>{% trans "Fleet brief" %}</div>
       <strong id="rmc-world-globe-brief-headline">{% if lwm_fleet and lwm_fleet.fleet_brief.headline %}{{ lwm_fleet.fleet_brief.headline }}{% endif %}</strong>
       <p id="rmc-world-globe-brief-body" class="mb-0 mt-1">{% if lwm_fleet and lwm_fleet.fleet_brief.body %}{{ lwm_fleet.fleet_brief.body }}{% endif %}</p>
       <button type="button" class="lx-world__ask-fleet" id="rmc-world-globe-ask-fleet">{% trans "Ask about this fleet view →" %}</button>
     </div>
-    <div class="lx-world__expansion-radar" id="rmc-world-globe-expansion-radar" hidden>
+    <div class="lx-world__expansion-radar" id="rmc-world-globe-expansion-radar" data-rmc-globe-ai-block hidden>
       <div class="lx-world__expansion-radar-title"><span class="lx-world__block-badge lx-world__block-badge--data">{% trans "Radar" %}</span>{% trans "Expansion targets" %}</div>
       <p class="lx-world__expansion-radar-copy mb-0" id="rmc-world-globe-expansion-copy"></p>
     </div>
@@ -234,6 +250,7 @@
     </div>
   </div>
   {% endif %}
+  </div>
 </section>
 
 {% include "components/rmc_bottom_sheet.html" with sheet_id="rmc-world-globe-school-sheet" sheet_title=_("Schools at this location") sheet_variant="rmc-sheet--md" sheet_body='<div id="rmc-world-globe-sheet-body"></div>' %}

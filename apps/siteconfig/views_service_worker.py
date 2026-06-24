@@ -33,6 +33,7 @@ _SW_PRECACHE_PATHS = (
     "js/offline-db.js",
     "js/offline-crypto-wrapper.js",
     "js/rmc-wizard-offline-intake.js",
+    "js/rmc-wizard-delta-sync.js",
     "js/rmc-plickers-card-sweep.js",
     "js/form-draft-save.js",
     "js/sync-manager.js",

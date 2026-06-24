@@ -23,6 +23,8 @@ CHECKS: list[tuple[str, Path]] = [
     ("O4 stripe remote cancel", ROOT / "apps/billing/stripe_remote_cancel.py"),
     ("B1 scheduled invoicing module", ROOT / "apps/finance/scheduled_invoicing.py"),
     ("B1 scheduled invoicing tests", ROOT / "apps/finance/tests/test_scheduled_invoicing.py"),
+    ("B2 regional sku tests", ROOT / "apps/billing/tests/test_regional_sku_override.py"),
+    ("B3 subdivision tax engine", ROOT / "apps/billing/tax_engine.py"),
 ]
 
 
@@ -74,6 +76,20 @@ def main() -> int:
     setup_urls = (ROOT / "apps/setup_studio/urls.py").read_text(encoding="utf-8")
     if "wizard_step_draft_sync" not in setup_urls:
         errors.append("setup_studio/urls.py missing wizard_step_draft_sync")
+
+    sw = (ROOT / "static/js/service-worker.js").read_text(encoding="utf-8")
+    if "periodicsync" not in sw or "backgroundPeriodicSyncEnabled" not in sw:
+        errors.append("service-worker.js missing R3 periodic background sync")
+
+    catalog = (ROOT / "apps/siteconfig/models_platform_catalog.py").read_text(encoding="utf-8")
+    if "regional_sku_overrides" not in catalog:
+        errors.append("Plan model missing regional_sku_overrides (B2)")
+    if "SubdivisionTaxRate" not in catalog:
+        errors.append("platform catalog missing SubdivisionTaxRate (B3)")
+
+    tax_engine = (ROOT / "apps/billing/tax_engine.py").read_text(encoding="utf-8")
+    if "_subdivision_tax_rate" not in tax_engine:
+        errors.append("tax_engine.py missing subdivision resolver (B3)")
 
     if errors:
         for err in errors:

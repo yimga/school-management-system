@@ -1,5 +1,25 @@
 # RunMyCampus autonomous execution log
 
+## Slice — SLO metrics live emit wiring (batch 1707 — 2026-06-24)
+
+**A. Scope:** Close T2/T3 honest gap — Prometheus alert rules existed but metric series were inert until backend + emit sites wired.
+
+**B. Shipped:** `slo_metrics.py`; `tracing.py` `_TraceHandle` + SLO emit on finish; `ObservabilityMiddleware` → `web.availability`; `@trace_view("grade.entry")`; `verify_slo_metrics_emit_sites.py`.
+
+**C. Proof:** **SLO_METRICS_EMIT_SITES_PASS**; **COMPETITIVE_GAP_CLOSURE_PASS**; **GLOBE_VOID_AI_LAB_PARITY_PASS** (regression).
+
+**D. Honest:** Series appear on `/metrics/` only with `OBSERVABILITY_METRICS_BACKEND=prometheus-client`; Django tests hang on Windows SQLite — run on Linux CI.
+
+## Slice — R3 offline periodic sync + B2/B3 audit closeout (batch 1706 — 2026-06-24)
+
+**A. Scope:** Close competitive-audit R3 (periodic background outbox drain) and wire B2/B3 into gap verifier.
+
+**B. Shipped:** `periodicsync` + `registerOfflineSyncRetries()` in `service-worker.js`; `verify_offline_periodic_sync_r3.py`; audit rows B2/B3/R3 CLOSED.
+
+**C. Proof:** **OFFLINE_PERIODIC_SYNC_R3_PASS**; **COMPETITIVE_GAP_CLOSURE_PASS**; SW **v4.04.96**.
+
+**D. Honest:** Periodic Sync Chromium + permission only.
+
 ## Slice — B1 timezone-aware scheduled invoicing (batch 1705 — 2026-06-24)
 
 **A. Scope:** Close competitive-audit B1 — Celery-driven fee invoice generation on each tenant's local billing calendar (day-of-month + hour).
@@ -18,7 +38,7 @@
 
 **C. Proof:** **TENANT_PERFORMANCE_T1_PASS**; **GLOBE_VOID_AI_LAB_PARITY_PASS**; **WORLD_GLOBE_10X_PASS**; **MARKETING_PROCUREMENT_TRUST_NAV_PASS**; **MARKETING_ONE_RECORD_SCROLL_PASS**; **ROLE_HOME_VISUAL_SWEEP_HARNESS_PASS**; undefined CSS classes **0**; dead hrefs **0**; interaction integrity **PASS**; luxury **ULTRA-LUXURY**; SW monotonic OK.
 
-**D. Honest:** Full role-home Playwright sweep needs live server; T2 SLO alert rules + T3 self-host Prometheus remain next; 50-app matrix on Windows still flaky.
+**D. Honest:** Full role-home Playwright sweep needs live server; T2/T3 emit sites now wired (batch **1707**); Prometheus scrape stack operator-gated; 50-app matrix on Windows still flaky.
 
 ## Slice — Globe void/AI lab complete + fill-frame camera (batch 1703 — 2026-06-24)
 

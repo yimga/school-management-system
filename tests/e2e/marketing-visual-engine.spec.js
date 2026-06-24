@@ -26,6 +26,26 @@ const PERSONALITY_IDS = [
 ];
 
 test.describe('marketing visual engine', () => {
+  test('/storefront/ One Record Scroll exposes pinned sim stage', async ({ page }) => {
+    const res = await page.goto('/storefront/', {
+      waitUntil: 'domcontentloaded',
+      timeout: 45000,
+    });
+    expect(res?.status() ?? 500).toBeLessThan(400);
+    await expect(page.locator('[data-mkt-one-record-scroll]')).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.locator('#panel-run.is-active, #panel-run:not([hidden])').first()).toBeVisible();
+    await expect(page.locator('[data-mkt-speed-duel]')).toBeVisible();
+    const chapterPay = page.locator('#or-ch-pay');
+    await chapterPay.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(400);
+    await expect(page.locator('#panel-pay.is-active, #panel-pay:not([hidden])').first()).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(page.locator('[data-mkt-split-ledger]')).toBeVisible();
+  });
+
   test('homepage exposes four personality sections', async ({ page }) => {
     const res = await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 45000 });
     expect(res?.status() ?? 500).toBeLessThan(400);

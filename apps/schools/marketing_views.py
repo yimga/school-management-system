@@ -2464,7 +2464,7 @@ def marketing_landing(request):
 
 @require_GET
 def marketing_threshold_era_preview(request):
-    """Stakeholder preview of Threshold Era home — always on, noindex."""
+    """Deprecated stakeholder preview — noindex only; use /storefront/ (One Record Scroll)."""
     from apps.schools.funnel_events import record_marketing_funnel_event
 
     record_marketing_funnel_event("visit", request)

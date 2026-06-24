@@ -1162,6 +1162,105 @@
     });
   }
 
+  function wireMasterLabControls() {
+    var lab = document.querySelector("[data-rmc-globe-master-lab]");
+    if (!lab || lab.__rmcMasterLabWired) return;
+    lab.__rmcMasterLabWired = true;
+
+    var voidToggle = document.getElementById("layer-void");
+    var aiToggle = document.getElementById("layer-ai");
+    var wowToggle = document.getElementById("layer-wow");
+    var wowButton = document.getElementById("toggle-wow");
+    var sseButton = document.getElementById("simulate-sse");
+    var flyButton = document.getElementById("fly-wa");
+    var resetButton = document.getElementById("reset-view");
+    var exportButton = document.getElementById("export-snapshot");
+
+    function syncWow(on) {
+      lab.classList.toggle("lx-world--wow-on", !!on);
+      lab.classList.toggle("lx-world-lab--wow-hidden", !on);
+      if (section) {
+        section.classList.toggle("lx-world--wow-on", !!on);
+      }
+      if (wowToggle) wowToggle.checked = !!on;
+      if (wowButton) {
+        wowButton.classList.toggle("on", !!on);
+        wowButton.textContent = on ? "✦ Wow demo ON" : "✦ Wow demo";
+      }
+      document.dispatchEvent(new CustomEvent("rmc:globe-wow-toggle", { detail: { on: !!on } }));
+    }
+
+    function syncLayers() {
+      lab.classList.toggle("lx-world-lab--void-hidden", voidToggle ? !voidToggle.checked : false);
+      lab.classList.toggle("lx-world-lab--ai-hidden", aiToggle ? !aiToggle.checked : false);
+      syncWow(wowToggle ? wowToggle.checked : !lab.classList.contains("lx-world-lab--wow-hidden"));
+    }
+
+    if (voidToggle) voidToggle.addEventListener("change", syncLayers);
+    if (aiToggle) aiToggle.addEventListener("change", syncLayers);
+    if (wowToggle) wowToggle.addEventListener("change", syncLayers);
+    if (wowButton) {
+      wowButton.addEventListener("click", function () {
+        syncWow(!(wowToggle ? wowToggle.checked : wowButton.classList.contains("on")));
+      });
+    }
+    if (sseButton) {
+      sseButton.addEventListener("click", function () {
+        var countEl = section ? section.querySelector(".lx-world__count") : null;
+        var current = countEl ? parseInt((countEl.textContent || "").replace(/\D+/g, ""), 10) : 2;
+        if (!current || isNaN(current)) current = 2;
+        var next = current + 1;
+        var bundle = {
+          revision: "lab-sse-" + Date.now(),
+          operator_fleet_revision: "lab-sse-" + Date.now(),
+          schools_live: next,
+          marker_count: next,
+          display_count: next,
+          subline: "Across 2 regions · 1 country today",
+          regional_breakdown: [
+            { label: "West Africa", count: "1" },
+            { label: "Other", count: String(Math.max(1, next - 2)) },
+          ],
+          pulse_events: [
+            { time_label: "now", text: "+1 school live · West Africa" },
+            { time_label: "1h", text: "Tour completed · West Africa" },
+          ],
+          whisper_line: "+1 school live · fleet still 1 suspended",
+          school_hours_regions: 1,
+          school_hours_regions_list: ["West Africa"],
+          aurora: "warn",
+          regional_deltas: { "West Africa": 1 },
+          fleet_brief: {
+            headline: next + " schools, 1 needs eyes.",
+            body: "Demo School suspended in Nigeria; New School healthy in Côte d'Ivoire.",
+          },
+        };
+        applyLiveChrome(bundle);
+        document.dispatchEvent(new CustomEvent("rmc:globe-live-updated", { detail: { bundle: bundle } }));
+        document.dispatchEvent(new CustomEvent("rmc:fleet-snapshot", { detail: bundle }));
+        syncWow(true);
+      });
+    }
+    if (flyButton) {
+      flyButton.addEventListener("click", function () {
+        if (api() && api().isReady()) {
+          if (api().flyToRegion) api().flyToRegion("West Africa", 900);
+          else if (api().flyTo) api().flyTo({ lat: 8, lng: -5, altitude: 1.02, ms: 900 });
+        } else {
+          highlightSvgRegion("West Africa");
+        }
+      });
+    }
+    if (resetButton) resetButton.addEventListener("click", resetInteraction);
+    if (exportButton) {
+      exportButton.addEventListener("click", function () {
+        var existing = document.getElementById("rmc-world-globe-snapshot-export");
+        if (existing) existing.click();
+      });
+    }
+    syncLayers();
+  }
+
   function connectStream() {
     if (isOfflineGlobeMode()) return;
     var endpoints = parsePayloadApi();
@@ -1244,6 +1343,7 @@
     wireDayNightTerminator();
     wireTourNarrator();
     wireWowDemoToggle();
+    wireMasterLabControls();
     revealAllVoidZones();
     applyAurora("good");
     renderWhisperLine("");

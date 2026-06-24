@@ -1,6 +1,6 @@
 {
   "version": "2026-05-19",
-  "generated_utc": "2026-06-24T01:25:45Z",
+  "generated_utc": "2026-06-24T01:44:56Z",
   "critical": {
     "path": "static/marketing/css/marketing-critical.min.css",
     "bytes": 21619,
@@ -240,7 +240,7 @@
   },
   "budgets": {
     "critical_max": 45000,
-    "enhanced_max": 430000,
-    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (~428KB as of 2026-06-23 after ascension day partial class completion). Deferred load via media=print onload."
+    "enhanced_max": 435000,
+    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (~434KB as of 2026-06-24 after one-record-scroll + procurement trust nav). Deferred load via media=print onload."
   }
 }

@@ -44,6 +44,7 @@ __all__ = [
     "get_wizard_state",
     "start_wizard",
     "apply_step_answer",
+    "persist_step_draft",
     "reset_wizard",
     "export_wizard_state",
     "restore_wizard_state",
@@ -215,6 +216,11 @@ def apply_step_answer(
     }
 
     sanitized_payload = _sanitize_for_storage(payload)
+    drafts = state.get("draft_answers")
+    if isinstance(drafts, dict) and step_key in drafts:
+        drafts = dict(drafts)
+        drafts.pop(step_key, None)
+        state["draft_answers"] = drafts
     # Double-submit guard: a step re-submitted with a BYTE-IDENTICAL answer
     # (double-click, retry, network replay) must not re-run its writer — that is
     # how create-style writers (student/teacher onboarding, field-trip consent,
@@ -291,6 +297,44 @@ def apply_step_answer(
     progress.save(update_fields=["step_state", "updated_at"])
 
     wizard_telemetry.emit_step_applied(wizard_key, step_key, _primary_audience(wizard))
+    return state
+
+
+@transaction.atomic
+def persist_step_draft(
+    school: Any,
+    wizard_key: str,
+    step_key: str,
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Persist in-progress step answers without validation, writers, or advance."""
+    wizard = wizard_engine.get_wizard(wizard_key)
+    wizard.step_by_key(step_key)
+
+    progress = (
+        SetupProgress.objects
+        .select_for_update()
+        .get_or_create(school=school)[0]
+    )
+    wizards = _read_wizards_slice(progress)
+    state = wizards.get(wizard_key) or {
+        "current_step_key": wizard.first_step().key,
+        "answers": {},
+        "completed": [],
+        "schema_version": WIZARD_STATE_SCHEMA_VERSION,
+        "ai_recommendations_cache": {},
+        "started_at": _now_iso(),
+        "last_modified": _now_iso(),
+        "ai_request_count": 0,
+        "ai_fallback_count": 0,
+    }
+    draft_answers = dict(state.get("draft_answers") or {})
+    draft_answers[step_key] = _sanitize_for_storage(payload)
+    state["draft_answers"] = draft_answers
+    state["last_modified"] = _now_iso()
+    wizards[wizard_key] = state
+    _write_wizards_slice(progress, wizards)
+    progress.save(update_fields=["step_state", "updated_at"])
     return state
 
 

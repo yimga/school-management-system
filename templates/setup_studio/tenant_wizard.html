@@ -59,6 +59,7 @@
             data-rmc-wizard-key="{{ wizard.wizard_key }}"
             data-rmc-wizard-step-key="{{ step.key }}"
             data-rmc-wizard-school-id="{{ school_id }}"
+            data-rmc-wizard-draft-sync-url="{{ wizard_draft_sync_url }}"
             data-rmc-offline-intake="{% if offline_intake_enabled %}1{% else %}0{% endif %}">
         {% csrf_token %}
         {% include "setup_studio/partials/wizard_step_body.html" %}
@@ -74,6 +75,7 @@
 {% block extra_scripts %}
   {{ block.super }}
   <script src="{% static 'js/rmc-wizard-state-cache.js' %}" nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'js/rmc-wizard-delta-sync.js' %}" nonce="{{ csp_nonce }}"></script>
   <script src="{% static 'js/_pages/rmc-wizard-step-assist.js' %}" defer nonce="{{ csp_nonce }}"></script>
   {% if offline_intake_enabled %}
   <script src="{% static 'js/vendor/dexie.min.js' %}" nonce="{{ csp_nonce }}"></script>

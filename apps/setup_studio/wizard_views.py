@@ -44,6 +44,7 @@ __all__ = [
     "TenantWizardIndexView",
     "TenantWizardView",
     "WizardAIRecommendView",
+    "WizardStepDraftSyncView",
     "WizardStateResetView",
 ]
 
@@ -228,6 +229,10 @@ def _build_context(
 ) -> dict[str, Any]:
     completed_keys = state.get("completed") or []
     prior_answer = (state.get("answers") or {}).get(step.key) or {}
+    if step.key not in completed_keys:
+        draft_answer = (state.get("draft_answers") or {}).get(step.key)
+        if draft_answer:
+            prior_answer = {**prior_answer, **draft_answer}
     resolved_options = wizard_engine.resolve_options(step, request=request, school=school)
 
     ai_rationale = None
@@ -326,6 +331,14 @@ def _build_context(
         "is_final_step": is_final_step,
         "estimated_seconds": step.estimated_seconds,
         "offline_intake_enabled": offline_intake_enabled,
+        "wizard_draft_sync_url": (
+            reverse(
+                "setup_studio:wizard_step_draft_sync",
+                kwargs={"wizard_key": wizard.wizard_key, "step_key": step.key},
+            )
+            if school is not None
+            else ""
+        ),
         "help_links": [],
     }
 
@@ -414,6 +427,33 @@ def _parse_post_payload(request: HttpRequest, step: wizard_engine.StepDefinition
     if step.input_type == "file_upload" or step.input_type == "image_upload":
         return {"value": request.FILES.get("value")}
     return {"value": request.POST.get("value")}
+
+
+def _payload_from_draft_fields(
+    step: wizard_engine.StepDefinition, fields: dict[str, Any]
+) -> dict[str, Any]:
+    """Map debounced client field snapshot to wizard payload shape."""
+    if step.input_type == "structured_form":
+        return dict(fields)
+    if step.input_type in ("multi_choice", "ranked_list"):
+        value = fields.get("value")
+        if isinstance(value, list):
+            return {"value": value}
+        if value in (None, ""):
+            return {"value": []}
+        return {"value": [value]}
+    if step.input_type == "key_value_pairs":
+        pairs = fields.get("pairs")
+        return {"pairs": pairs if isinstance(pairs, list) else []}
+    if step.input_type == "duration":
+        return {
+            "days": int(fields.get("days") or 0),
+            "hours": int(fields.get("hours") or 0),
+            "minutes": int(fields.get("minutes") or 0),
+        }
+    if step.input_type in ("file_upload", "image_upload"):
+        return {"value": fields.get("value")}
+    return {"value": fields.get("value")}
 
 
 def _maybe_handle_nl_intake(
@@ -774,6 +814,42 @@ class WizardAIRecommendView(LoginRequiredMixin, View):
             "rationale_text": result.rationale_text,
             "latency_ms": result.latency_ms,
         })
+
+
+class WizardStepDraftSyncView(LoginRequiredMixin, View):
+    """Debounced server draft sync (R1). # rbac-allow: authenticated-user-wizard-draft-sync"""
+
+    def post(
+        self, request: HttpRequest, wizard_key: str, step_key: str
+    ) -> HttpResponse:
+        school = _resolve_school(request)
+        if school is None:
+            return JsonResponse({"error": "school_not_resolved"}, status=403)
+        try:
+            wizard = wizard_engine.get_wizard(wizard_key)
+            step = wizard.step_by_key(step_key)
+        except (wizard_engine.WizardNotFound, wizard_engine.StepNotFound):
+            return JsonResponse({"error": "wizard_or_step_not_found"}, status=404)
+        if not (
+            getattr(request.user, "is_staff", False)
+            or _user_can_run_wizard(request, wizard)
+        ):
+            return JsonResponse({"error": "forbidden"}, status=403)
+        try:
+            body = json.loads(request.body or "{}")
+        except (json.JSONDecodeError, ValueError):
+            return JsonResponse({"error": "invalid_json"}, status=400)
+        fields = body.get("fields")
+        if not isinstance(fields, dict):
+            return JsonResponse({"error": "invalid_payload"}, status=400)
+        payload = _payload_from_draft_fields(step, fields)
+        state = wizard_state_resolver.get_wizard_state(school, wizard_key)
+        if state.get("completed_at") or step_key in (state.get("completed") or []):
+            return JsonResponse({"status": "step_completed", "saved": False})
+        wizard_state_resolver.persist_step_draft(
+            school, wizard_key, step_key, payload
+        )
+        return JsonResponse({"status": "saved", "step_key": step_key})
 
 
 class WizardStateResetView(LoginRequiredMixin, View):

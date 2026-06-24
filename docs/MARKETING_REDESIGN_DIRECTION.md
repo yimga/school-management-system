@@ -177,10 +177,14 @@ Aligns with `docs/RUNMYCAMPUS_SCROLL_STORYTELLING_MARKETING_DIRECTIVE.md` and va
 
 Open locally → scroll slowly → the right-hand stage should swap sims as chapters activate. If that single interaction feels like “this is an OS, not a brochure,” wire it into `templates/marketing/homepage.html` and retire threshold-era experiments.
 
-### 9.5 Implementation order (when owner approves lab)
+### 9.5 Implementation order
 
-1. Replace `homepage.html` stack with One Record Scroll partial + `mkt-one-record-scroll.js` (Intersection Observer chapter → sim panel).
-2. Reuse existing sim partials unchanged inside the sticky stage (no new sim logic).
-3. Add scroll progress + thread spine (progressive enhancement; `prefers-reduced-motion` = instant swap).
-4. Playwright sweep on `/storefront/` only after layout swap.
-5. Deprecate `threshold_era_home.html` and related ascension/revolution CSS from default routes (keep files for reference until deletion pass).
+| Step | Status | Notes |
+|------|--------|-------|
+| 1. One Record Scroll on `/storefront/` | **DONE** | `templates/marketing/partials/sections/_one_record_scroll.html` + `mkt-one-record-scroll.js` wired in `homepage.html`. |
+| 2. Reuse existing sim partials in sticky stage | **DONE** | `templates/marketing/partials/one_record_scroll/_stage_*.html` |
+| 3. Scroll progress + thread spine | **DONE** | Midpoint scroll spy + click rail; `prefers-reduced-motion` respected in CSS/JS. |
+| 4. Playwright sweep on `/storefront/` | **PARTIAL** | Run `npm run test:e2e:marketing:visual-engine` when Django is up. |
+| 5. Deprecate threshold-era default routes | **PARTIAL** | Threshold-era remains opt-in via flag/route; not default on `/storefront/`. |
+
+**Lab (parity check):** `var/design-previews/runmycampus-one-record-scroll-lab-browsable.html` — uses the same production CSS/JS as `/storefront/`.

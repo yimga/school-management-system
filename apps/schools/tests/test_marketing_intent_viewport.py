@@ -65,11 +65,12 @@ class MarketingIntentViewportTests(SimpleTestCase):
 
         self.assertTrue(hasattr(marketing_media, "text_token"))
 
-    def test_homepage_template_exists(self):
+    def test_homepage_template_one_record_scroll(self):
         path = REPO / "templates/marketing/homepage.html"
         self.assertTrue(path.is_file())
         text = path.read_text(encoding="utf-8")
-        self.assertIn("mkt-intent-home__stack", text)
+        self.assertIn("_one_record_scroll.html", text)
+        self.assertIn("mkt-one-record-scroll.js", text)
 
     def test_copy_registry_sa_arabic_headline(self):
         from apps.schools.marketing_media_matrix import (

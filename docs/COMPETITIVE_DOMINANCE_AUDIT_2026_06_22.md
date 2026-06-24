@@ -50,8 +50,8 @@ not exist; `PARTIAL` means it exists but stops short.
 | # | Gap | State | Move |
 |---|---|---|---|
 | B1 | No scheduled invoicing beat (operator runs a command) | ~~PARTIAL~~ **CLOSED 2026-06-24** | `scheduled_invoicing.py` + hourly Celery beat; tenant-local day-of-month + hour window via `is_invoice_generation_due_for_school`; wired into `auto_generate_fee_invoices` task. |
-| B2 | No per-country plan SKU variants (one base × multiplier) | ABSENT | `Plan.regional_sku_overrides` so a market can be repriced without a global formula change. |
-| B3 | Tax at country level only | PARTIAL | Subdivision/state tax table (already a `subdivision_code` param, unused). |
+| B2 | No per-country plan SKU variants (one base × multiplier) | ~~ABSENT~~ **CLOSED 2026-06-24** | `Plan.regional_sku_overrides` + `regional_sku_override_for()` + billing resolver; migration `0202_b2_sku_overrides_b4_holding_rollup`; tests `test_regional_sku_override.py`. |
+| B3 | Tax at country level only | ~~PARTIAL~~ **CLOSED 2026-06-24** | `SubdivisionTaxRate` platform catalog + `tax_engine._subdivision_tax_rate()` overrides country rate when `subdivision_code` supplied; wired through `compute_localized_price`. |
 | B4 | Single currency per tenant | PARTIAL | Materialized multi-currency sub-ledger for holding-company rollups. |
 
 ### Proactive AI resilience
@@ -59,7 +59,7 @@ not exist; `PARTIAL` means it exists but stops short.
 |---|---|---|---|
 | R1 | No keystroke-level server persistence of in-progress wizards | ~~ABSENT~~ **CLOSED 2026-06-24** | `persist_step_draft` + `WizardStepDraftSyncView` + `rmc-wizard-delta-sync.js` debounced POST to `SetupProgress.draft_answers`; merged into form on reload. |
 | R2 | No auto UI rehydration on reconnect | ~~ABSENT~~ **CLOSED 2026-06-24** | `rmc-reconnect-rehydrate.js` — after SW `sync-complete` / `sms-sync-end`, hydrates offline mirror then triggers HTMX `rmc-reconnect` + `rmc:reconnect-rehydrate` for health widgets. |
-| R3 | No background-sync periodic retry | PARTIAL | SW Background Sync API so a closed tab still drains the outbox. |
+| R3 | No background-sync periodic retry | ~~PARTIAL~~ **CLOSED 2026-06-24** | `service-worker.js` — `periodicsync` on `rmc-offline-queue-drain` + `registerOfflineSyncRetries()` on activate/enqueue; drains outbox when tabs are closed (Chromium Background Sync / Periodic Sync). |
 
 ### Observability (tenant-facing)
 | # | Gap | State | Move |

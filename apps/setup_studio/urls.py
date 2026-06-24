@@ -24,6 +24,7 @@ from apps.setup_studio.wizard_views import (
     TenantWizardIndexView,
     TenantWizardView,
     WizardAIRecommendView,
+    WizardStepDraftSyncView,
     WizardStateResetView,
 )
 from apps.setup_studio.views_activation_dashboard import (
@@ -60,6 +61,11 @@ urlpatterns = [
 
     # AJAX
     path("api/wizards/ai/recommend/", WizardAIRecommendView.as_view(), name="wizard_ai_recommend"),
+    path(
+        f"api/wizards/{_WIZARD_PATTERN}/{_STEP_PATTERN}/draft/",
+        WizardStepDraftSyncView.as_view(),
+        name="wizard_step_draft_sync",
+    ),
 
     # v4.00.8: 10x improvements
     # Activation dashboard (staff-only)

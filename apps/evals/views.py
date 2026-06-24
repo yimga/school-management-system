@@ -1594,6 +1594,7 @@ def teacher_workflow_center(request: HttpRequest):
     )
 
 
+@trace_view("grade.entry", op="view.hot_path")
 @teacher_portal_required
 @role_required(User.Role.TEACHER)
 def teacher_marks_entry(request: HttpRequest):
