@@ -1,0 +1,23 @@
+{% load i18n %}
+<aside class="rmc-wizard-zf-actions" aria-label="{% trans 'Quick actions' %}" data-rmc-wizard-zf-actions>
+  <h3 class="rmc-wizard-zf-actions__title">{% trans "Action stack" %}</h3>
+  <div class="rmc-wizard-zf-actions__stack">
+    <button type="button" class="rmc-wizard-zf-action rmc-wizard-zf-action--accent"
+            data-rmc-wizard-zf-apply-preset="roster_starter">
+      <span class="rmc-wizard-zf-action__badge">{% trans "1 tap" %}</span>
+      <strong>{% trans "Apply roster starter pack" %}</strong>
+      <span>{% trans "Sets scope and highlights unlocks" %}</span>
+    </button>
+    <button type="submit" form="rmc-wizard-main-form" name="action" value="save_draft"
+            class="rmc-wizard-zf-action">
+      <strong>{% trans "Save draft" %}</strong>
+      <span>{% trans "Resume on any device" %}</span>
+    </button>
+    <button type="submit" form="rmc-wizard-main-form" name="action" value="next"
+            class="rmc-wizard-zf-action rmc-wizard-zf-action--primary">
+      <span class="rmc-wizard-zf-action__badge">{% trans "1 click" %}</span>
+      <strong>{% trans "Save scope and go to upload" %}</strong>
+      <span>{% trans "Next wizard step" %}</span>
+    </button>
+  </div>
+</aside>

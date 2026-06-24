@@ -4,6 +4,12 @@
    Maps live portal_base #portalHeader DOM onto .tp-header contract.
    ============================================================ */
 
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) {
+  --rmc-manager-header-height: calc(64px * 1.1);
+  --rmc-header-control-height: 2.375rem;
+  --rmc-platform-header-pad-x: 1.25rem;
+}
+
 body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .tp-header {
   display: flex;
   flex-direction: column;
@@ -68,12 +74,10 @@ body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .container-
   flex-wrap: nowrap !important; /* style-allow: tenant-header-single-line-guarantee */
   align-items: center;
   gap: 10px;
-  /* Header compaction (2026-06-22): owner "header should be at least 50% less the
-     size it is now". Halved the vertical rhythm — min-height 70.4px -> 36px and
-     vertical padding 13.2px -> 5px (horizontal kept so the row still breathes).
-     Icon buttons + search field shrink to match below so nothing clips. */
-  padding: 5px calc(24px * 1.1);
-  min-height: 36px;
+  /* Operator-matched band height (2026-06-24): same vertical size as manager
+     /super/ header — one control row, no double-band chrome. */
+  padding: 0.5rem var(--rmc-platform-header-pad-x);
+  min-height: var(--rmc-manager-header-height);
   min-width: 0;
   width: 100%;
 }
@@ -108,7 +112,8 @@ body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-sea
   background: rgba(15, 23, 42, 0.04); /* off-token-allow: fixed-shell-accent */
   border: 1px solid var(--hairline);
   border-radius: var(--radius-pill, 999px);
-  padding: 5px 14px;
+  padding: 0 14px;
+  min-height: var(--rmc-header-control-height);
 }
 
 body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-controls {
@@ -125,8 +130,8 @@ body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-con
 }
 
 body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-icon-btn {
-  width: 30px;
-  height: 30px;
+  width: var(--rmc-header-control-height);
+  height: var(--rmc-header-control-height);
   display: inline-flex;
   align-items: center;
   justify-content: center;

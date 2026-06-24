@@ -308,6 +308,22 @@ def _build_context(
         except (AttributeError, ImportError, TypeError, ValueError):
             offline_intake_enabled = False
 
+    wizard_zero_friction_scope = (
+        wizard.wizard_key == "account_migration" and step.key == "select_scope"
+    )
+    wizard_scope_presets: list[dict[str, Any]] = []
+    wizard_step_index = 0
+    wizard_step_total = len(wizard.steps) if wizard.steps else 0
+    if wizard.steps:
+        for idx, s in enumerate(wizard.steps, start=1):
+            if s.key == step.key:
+                wizard_step_index = idx
+                break
+    if wizard_zero_friction_scope:
+        from apps.setup_studio.migration_scope import presets_for_template
+
+        wizard_scope_presets = presets_for_template()
+
     return {
         "wizard": wizard,
         "step": step,
@@ -340,6 +356,10 @@ def _build_context(
             else ""
         ),
         "help_links": [],
+        "wizard_zero_friction_scope": wizard_zero_friction_scope,
+        "wizard_scope_presets": wizard_scope_presets,
+        "wizard_step_index": wizard_step_index,
+        "wizard_step_total": wizard_step_total,
     }
 
 

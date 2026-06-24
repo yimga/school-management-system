@@ -227,6 +227,26 @@ class TenantRoleHomeTemplateTests(SimpleTestCase):
         self.assertTrue(is_tp_v3_tenant_shell_request(_Req()))
         self.assertFalse(is_tp_v3_role_home_request(_Req()))
 
+    def test_studio_os_inherits_tp_v3_tenant_shell(self):
+        class _Match:
+            url_name = "launch"
+            namespace = "studio_os"
+
+        class _Req:
+            GET = {}
+            public_host_kind = "tenant"
+            resolver_match = _Match()
+
+            class user:
+                is_authenticated = True
+
+        self.assertTrue(is_tp_v3_tenant_shell_request(_Req()))
+
+    def test_portal_base_wires_tp_mission_strip(self):
+        text = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8")
+        self.assertIn("tp_mission_strip.html", text)
+        self.assertIn("namespace != 'studio_os'", text)
+
     def test_hero_wires_tenant_experience_command_strip(self):
         text = (ROOT / "templates/partials/tenant/hero_greeting.html").read_text(
             encoding="utf-8"

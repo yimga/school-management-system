@@ -1,0 +1,49 @@
+{% load i18n wizard_extras %}
+{% comment %}Zero-friction scope step — presets + domain grid + live unlock preview.{% endcomment %}
+<div class="rmc-wizard-zf-scope" data-rmc-wizard-zf-scope="1" data-rmc-scroll-policy="paginate">
+  <p class="rmc-wizard-zf-scope__lead">
+    {% trans "Choose a preset for one-click scope, or tap domains below." %}
+  </p>
+
+  <div class="rmc-wizard-zf-presets" role="group" aria-label="{% trans 'Scope presets' %}">
+    {% for preset in wizard_scope_presets %}
+      <button type="button"
+              class="rmc-wizard-zf-preset{% if preset.recommended %} rmc-wizard-zf-preset--recommended{% endif %}"
+              data-rmc-wizard-zf-preset="{{ preset.key }}"
+              data-rmc-wizard-zf-domains="{{ preset.domains|join:',' }}"
+              aria-pressed="false">
+        {% if preset.recommended %}
+          <span class="rmc-wizard-zf-preset__tag">{% trans "Recommended" %}</span>
+        {% endif %}
+        <strong>{{ preset.label }}</strong>
+        <span class="rmc-wizard-zf-preset__desc">{{ preset.description }}</span>
+        <span class="rmc-wizard-zf-preset__clicks">{% blocktrans with n=preset.clicks %}{{ n }} click{% endblocktrans %}</span>
+      </button>
+    {% endfor %}
+  </div>
+
+  <fieldset class="rmc-wizard-field rmc-wizard-zf-domains">
+    <legend class="rmc-wizard-field__label">{% trans "Or pick domains individually" %}</legend>
+    <div class="rmc-wizard-zf-domain-grid" data-rmc-wizard-zf-domain-grid>
+      {% for option in resolved_options %}
+        <label class="rmc-wizard-option-card rmc-wizard-zf-domain-card{% if option.value in prior_answer.value %} rmc-wizard-option-card--selected{% endif %}"
+               data-rmc-wizard-zf-domain="{{ option.value }}">
+          <input type="checkbox" name="value" value="{{ option.value }}"
+                 {% if option.value in prior_answer.value %}checked{% endif %}
+                 data-rmc-wizard-zf-checkbox>
+          <span class="rmc-wizard-zf-domain-card__label">
+            {{ option.label_token|default:option.value|humanize_wizard_token }}
+          </span>
+          {% if option.metadata.unlocks %}
+            <span class="rmc-wizard-zf-domain-card__unlock">{{ option.metadata.unlocks }}</span>
+          {% endif %}
+        </label>
+      {% empty %}
+        <p class="rmc-wizard-empty">{% trans "No options available." %}</p>
+      {% endfor %}
+    </div>
+    {% if errors.value %}<p class="rmc-wizard-field__error">{{ errors.value }}</p>{% endif %}
+  </fieldset>
+
+  <p class="rmc-wizard-zf-scope__status" data-rmc-wizard-zf-status role="status" aria-live="polite" hidden></p>
+</div>

@@ -72,9 +72,6 @@ def is_tp_v3_tenant_shell_request(request: HttpRequest) -> bool:
     url_name = getattr(match, "url_name", None) or "" if match else ""
     if role_home_show_legacy(request) and url_name in TP_V3_ROLE_HOME_URL_NAMES:
         return False
-    namespace = getattr(match, "namespace", None) or "" if match else ""
-    if namespace == "studio_os":
-        return False
     return True
 
 

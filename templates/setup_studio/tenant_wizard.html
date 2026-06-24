@@ -28,16 +28,20 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-wizard-shell rmc-wizard-shell--tenant" data-rmc-wizard-shell="tenant"{% if not review_mode %} data-rmc-viewport-lock="opt-in"{% endif %}>
+<main class="rmc-wizard-shell rmc-wizard-shell--tenant{% if wizard_zero_friction_scope %} rmc-wizard-shell--zero-friction{% endif %}" data-rmc-wizard-shell="tenant"{% if not review_mode %} data-rmc-viewport-lock="opt-in"{% endif %}{% if wizard_zero_friction_scope %} data-rmc-wizard-zero-friction="scope"{% endif %}>
   {% include "setup_studio/partials/wizard_state_restore_banner.html" %}
 
   {% include "setup_studio/partials/wizard_stepper.html" %}
+
+  {% if not review_mode and tp_v3_tenant_shell %}
+    {% include "setup_studio/partials/wizard_mission_strip.html" %}
+  {% endif %}
 
   {% if review_mode %}
     {% include "setup_studio/partials/wizard_review_banner.html" %}
   {% endif %}
 
-  <div class="rmc-wizard-grid">
+  <div class="rmc-wizard-grid{% if wizard_zero_friction_scope %} rmc-wizard-grid--zero-friction{% endif %}">
     <article class="rmc-wizard-pane" aria-labelledby="rmc-wizard-pane-title">
       <header class="rmc-wizard-pane__head">
         <h2 class="rmc-wizard-pane__title" id="rmc-wizard-pane-title">{{ step_label }}</h2>
@@ -53,6 +57,7 @@
       {% include "setup_studio/partials/wizard_nl_intake.html" %}
 
       <form method="post" class="rmc-wizard-pane__body"
+            id="rmc-wizard-main-form"
             action="{{ form_action_url }}"
             enctype="multipart/form-data"
             data-rmc-wizard-form
@@ -67,7 +72,12 @@
       </form>
     </article>
 
-    {% include "setup_studio/partials/wizard_help_rail.html" %}
+    {% if wizard_zero_friction_scope %}
+      {% include "setup_studio/partials/wizard_migration_scope_preview.html" %}
+      {% include "setup_studio/partials/wizard_migration_scope_actions.html" %}
+    {% else %}
+      {% include "setup_studio/partials/wizard_help_rail.html" %}
+    {% endif %}
   </div>
 </main>
 {% endblock %}
@@ -77,6 +87,9 @@
   <script src="{% static 'js/rmc-wizard-state-cache.js' %}" nonce="{{ csp_nonce }}"></script>
   <script src="{% static 'js/rmc-wizard-delta-sync.js' %}" nonce="{{ csp_nonce }}"></script>
   <script src="{% static 'js/_pages/rmc-wizard-step-assist.js' %}" defer nonce="{{ csp_nonce }}"></script>
+  {% if wizard_zero_friction_scope %}
+  <script src="{% static 'js/rmc-wizard-zero-friction-scope.js' %}" nonce="{{ csp_nonce }}"></script>
+  {% endif %}
   {% if offline_intake_enabled %}
   <script src="{% static 'js/vendor/dexie.min.js' %}" nonce="{{ csp_nonce }}"></script>
   <script src="{% static 'js/offline-db.js' %}" nonce="{{ csp_nonce }}"></script>

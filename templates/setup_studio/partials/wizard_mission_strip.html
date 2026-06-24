@@ -1,0 +1,24 @@
+{% load i18n %}
+{% comment %}Wizard-specific mission strip — step-aware, replaces generic tp_mission_strip on wizards.{% endcomment %}
+<section class="rmc-wizard-mission tp-mission" data-rmc-wizard-mission="1" aria-label="{% trans 'Wizard progress' %}">
+  <div class="tp-mission__ring" aria-hidden="true">
+    <span>{% if wizard_step_total %}{% widthratio wizard_step_index wizard_step_total 100 %}{% else %}0{% endif %}%</span>
+  </div>
+  <div class="tp-mission__copy">
+    <h2 class="tp-mission__title">
+      {% trans "Next" %}: {{ step_label }}
+    </h2>
+    <p class="tp-mission__sub">
+      {% blocktrans with label=wizard_label idx=wizard_step_index total=wizard_step_total %}
+        {{ label }} · step {{ idx }} of {{ total }} · unlocks mapping and roster validation
+      {% endblocktrans %}
+    </p>
+  </div>
+  <div class="tp-mission__cta">
+    <button type="submit" form="rmc-wizard-main-form" name="action" value="next" class="tp-mission__go btn btn-sm">
+      <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i>
+      {% if is_final_step %}{% trans "Finish" %}{% else %}{% trans "Save & continue" %}{% endif %}
+    </button>
+    <span class="tp-mission__clicks">{% trans "1 click" %}</span>
+  </div>
+</section>

@@ -1,5 +1,9 @@
 {% comment %} Renders one of 18 input-type partials based on step.input_type. {% endcomment %}
+{% if wizard.wizard_key == "account_migration" and step.key == "select_scope" %}
+  {% include "setup_studio/partials/wizard_migration_scope_zero_friction.html" %}
+{% else %}
 {% with input_partial="setup_studio/inputs/"|add:step.input_type|add:".html" %}
 {% include input_partial %}
 {% endwith %}
+{% endif %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

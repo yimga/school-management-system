@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en" data-rmc-tp-v3-shell="1" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMyCampus · Implemented tenant shell (live Django contract)</title>
+<!--
+  OPEN THIS FILE in a browser — mirrors what shipped in Django:
+  · portal_base.html + tp_header_brand + tenant_primary_nav
+  · tp_mission_strip.html (zero-friction mission)
+  · rmc-tenant-header-100x.css (manager-matched header height)
+  · rmc-tenant-v3-100x-role-home.css (unified sidebar)
+  · cockpit _ai_copilot_rail.html (tenant endpoints + RBAC)
+  · studio_os now inherits tp_v3_tenant_shell
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../../static/css/design-tokens.css">
+<link rel="stylesheet" href="../../static/css/rmc-platform-header.css">
+<link rel="stylesheet" href="../../static/css/rmc-tenant-header-100x.css">
+<link rel="stylesheet" href="../../static/css/rmc-tenant-v3-100x-role-home.css">
+<link rel="stylesheet" href="../../static/css/rmc-tenant-preview-live-bridge.css">
+<link rel="stylesheet" href="../../static/css/portal-sidebar.css">
+<link rel="stylesheet" href="../../static/css/rmc-cp-200x.css">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,sans-serif;font-size:14px;background:var(--surface-bg,#f7f8fa);color:var(--text-primary)}
+  body.tp-v3-inner.portal-body-with-layout{min-height:100vh;display:flex;flex-direction:column}
+  .preview-flag{position:sticky;top:0;z-index:9999;background:#4f46e5;color:#fff;font-size:11px;font-weight:700;text-align:center;padding:7px}
+  .preview-flag a{color:#fff}
+  .shell-wrap{flex:1;display:grid;grid-template-columns:252px 1fr 52px;min-height:0}
+  .shell-wrap.copilot-open{grid-template-columns:252px 1fr 52px 340px}
+  .main-col{overflow-y:auto;padding:14px 18px 80px}
+  .card{border:1px solid var(--hairline);border-radius:16px;background:var(--surface-canvas);padding:18px}
+  .dock{position:sticky;bottom:0;margin-top:16px;padding:10px 14px;border:1px solid var(--hairline);border-radius:16px 16px 0 0;background:var(--surface-popover);display:flex;gap:10px;align-items:center}
+  .rail{border-left:1px solid var(--hairline);background:var(--surface-canvas);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px}
+  .rail button{width:38px;height:38px;border:0;border-radius:10px;background:transparent;color:var(--text-secondary);font-size:16px;cursor:pointer}
+  .rail button.on{background:var(--brand-primary);color:#fff}
+  .cp{border-left:1px solid var(--hairline);background:var(--surface-elevated);padding:12px;display:flex;flex-direction:column;gap:8px;font-size:12px}
+  .cp-act{display:flex;gap:8px;padding:10px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-canvas);text-align:left;width:100%;cursor:pointer;align-items:flex-start}
+  .cp-act .tap{margin-left:auto;font-size:9px;font-weight:800;padding:3px 7px;border-radius:999px;background:var(--brand-accent);color:#04120c}
+  .spec{margin:20px;padding:16px;border:1px dashed var(--hairline);border-radius:14px;font-size:12px;color:var(--text-secondary)}
+  .spec code{font-size:11px;background:var(--surface-elevated);padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body class="tp-v3-inner portal-body-with-layout backend-shell" data-rmc-tenant-copilot-rail="1" data-copilot="expanded">
+
+<div class="preview-flag">
+  IMPLEMENTED SHELL — open in browser · CSS from <code>static/css/</code> ·
+  <a href="tenant-surface-world-class-proposal.html">Zero-friction v3 lab</a> ·
+  <a href="tenant-admin-cockpit-before-after.html">Before/after lab</a>
+</div>
+
+<!-- ========== portal_base: .tp-header ========== -->
+<div class="tp-header" data-rmc-tenant-header-100x="1">
+  <div id="portalHeader" class="tp-header__row" role="banner">
+    <div class="container-fluid px-3 tp-header__row-inner" style="display:flex;align-items:center;gap:12px;width:100%">
+
+      <!-- partials/tenant/tp_header_brand.html -->
+      <a href="#" class="tp-brand" data-rmc-tp-header-brand="1">
+        <span class="tp-brand__mark" aria-hidden="true">N</span>
+        <span class="tp-brand__text">
+          <span class="tp-brand__name">
+            New Test High School
+            <span class="tp-brand__pill">Admin workspace</span>
+          </span>
+          <span class="tp-brand__tagline">
+            <span class="tp-brand__year-badge">Year 4</span>
+            <span>School command surface</span>
+          </span>
+        </span>
+      </a>
+
+      <!-- partials/tenant_primary_nav.html (inline at lg+) -->
+      <div class="tp-primary-nav-inline d-none d-lg-flex" data-rmc-tenant-primary-nav-inline="1">
+        <nav class="tp-primary-nav" aria-label="Primary portal navigation" data-rmc-tenant-primary-nav="1">
+          <a href="#" class="tp-primary-nav__item" aria-current="page">🏠 Home</a>
+          <a href="#" class="tp-primary-nav__item">💳 Finance</a>
+          <a href="#" class="tp-primary-nav__item">💬 Messages</a>
+          <a href="#" class="tp-primary-nav__item">📊 Analytics</a>
+        </nav>
+      </div>
+
+      <span class="tp-header__vrule d-none d-lg-block" aria-hidden="true"></span>
+
+      <!-- portal_base header search cluster -->
+      <div class="topbar-actions d-flex align-items-center gap-3 ms-auto">
+        <div class="topbar-search search-bar-wrapper" style="display:flex;align-items:center;gap:8px;flex:1;max-width:420px">
+          <input type="search" class="form-control form-control-sm topbar-search-input" placeholder="Search students, teachers, invoices…" id="headerSearchInput">
+          <span class="topbar-search-kbd">Ctrl+K</span>
+        </div>
+        <div class="topbar-controls d-flex align-items-center gap-2">
+          <span class="rmc-cp-ticker-inline" style="font-size:11px;font-weight:600;color:var(--brand-accent)">● LIVE · Enrollment</span>
+          <div class="user d-flex align-items-center gap-2 px-2 py-1 border rounded-pill" style="border-color:var(--hairline)!important;background:var(--surface-elevated)">
+            <div class="rounded-circle d-grid place-items-center" style="width:30px;height:30px;background:linear-gradient(135deg,#ec4899,#8b5cf6);color:#fff;font-weight:800;font-size:11px">TT</div>
+            <span style="font-size:11px;font-weight:650">Admin</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- partials/tenant/tp_mission_strip.html (portal_base — not on studio_os) -->
+  <section class="tp-mission" data-rmc-tp-mission="1" aria-label="Next best action" style="--tp-mission-pct: 42%;">
+    <div class="tp-mission__ring" aria-hidden="true"><span>42%</span></div>
+    <div class="tp-mission__copy">
+      <h2 class="tp-mission__title">Next: School Studio</h2>
+      <p class="tp-mission__sub">Configure the tenant · unlocks wizards + branding</p>
+    </div>
+    <div class="tp-mission__cta">
+      <a href="#" class="tp-mission__go btn btn-sm">
+        <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i>
+        Do it now
+      </a>
+      <span class="tp-mission__clicks">1 click</span>
+    </div>
+  </section>
+</div>
+
+<div class="shell-wrap copilot-open">
+  <!-- portal_base: .portal-sidebar-col (unified canvas — no glass fork) -->
+  <aside class="portal-sidebar-col rmc-nav-sidebar__mount" data-shell-sidebar="portal" style="display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--hairline)">
+    <div class="tp-sidebar-inner sidebar p-3 tp-sidebar-inner--v3" style="flex:1;overflow-y:auto">
+      <nav class="nav flex-column gap-0" data-sidebar-nav="true">
+        <div class="sidebar-section-title">Quick access</div>
+        <a class="nav-link nav-pill active" href="#"><i class="bi bi-magic me-2"></i>Resume migration</a>
+        <a class="nav-link nav-pill" href="#"><i class="bi bi-people me-2"></i>Students</a>
+        <div class="sidebar-section-title">Today</div>
+        <a class="nav-link nav-pill" href="#"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+        <a class="nav-link nav-pill" href="#"><i class="bi bi-magic me-2"></i>Setup wizards</a>
+        <div class="sidebar-section-title">People</div>
+        <a class="nav-link nav-pill" href="#"><i class="bi bi-people me-2"></i>Students</a>
+        <a class="nav-link nav-pill" href="#"><i class="bi bi-person-badge me-2"></i>Staff</a>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- portal_base: #main-content -->
+  <main class="main-col portal-main-col" id="main-content" role="main">
+  <div class="card">
+    <h2 style="margin:0 0 8px;font-size:18px;font-weight:800">Select scope</h2>
+    <p style="margin:0 0 12px;font-size:13px;color:var(--text-secondary)">Wizard step · task canvas fills width — no void below.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <button type="button" style="padding:12px;border-radius:10px;border:1px solid var(--brand-accent);background:color-mix(in oklab,var(--brand-accent) 8%,var(--surface-elevated));text-align:left;cursor:pointer">
+        <strong style="display:block;font-size:13px">Roster starter pack</strong>
+        <span style="font-size:11px;color:var(--text-secondary)">Students · Staff · Sections</span>
+        <span style="display:block;font-size:10px;font-weight:800;color:var(--brand-accent);margin-top:6px">1 click</span>
+      </button>
+      <button type="button" style="padding:12px;border-radius:10px;border:1px solid var(--hairline);background:var(--surface-elevated);text-align:left;cursor:pointer">
+        <strong style="display:block;font-size:13px">Full academic import</strong>
+        <span style="font-size:11px;color:var(--text-secondary)">+ Guardians · Grades</span>
+        <span style="display:block;font-size:10px;font-weight:800;color:var(--brand-accent);margin-top:6px">1 click</span>
+      </button>
+    </div>
+  </div>
+  <div class="dock">
+    <span style="font-size:11px;color:var(--text-secondary)">Path: <b style="color:var(--brand-accent)">Scope</b> → Upload → Done in <b>3 clicks</b></span>
+    <button type="button" style="margin-left:auto;padding:8px 14px;border-radius:10px;border:0;background:var(--brand-primary);color:#fff;font-weight:700;cursor:pointer">Next: Upload →</button>
+  </div>
+  </main>
+
+  <!-- partials/cockpit/_ai_copilot_rail.html — collapsed icons -->
+  <aside class="rail" aria-label="Copilot rail">
+    <button type="button" class="on" title="Copilot">✦</button>
+    <button type="button" title="Lens">◉</button>
+    <button type="button" title="Actions">⚡</button>
+    <button type="button" title="Today">◐</button>
+  </aside>
+
+  <!-- copilot expanded panel (data-copilot=expanded on body) -->
+  <aside class="cp lx-copilot__expanded" aria-label="AI copilot">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <strong style="flex:1">School Copilot</strong>
+      <span style="font-size:9px;font-weight:800;padding:3px 7px;border-radius:999px;background:rgba(16,185,129,.15);color:var(--brand-accent)">Actions</span>
+    </div>
+    <p style="margin:0 0 8px;color:var(--text-secondary)">Execute in 1 tap — RBAC via <code>portal:copilot_rail_send</code></p>
+    <button type="button" class="cp-act">
+      <i class="bi bi-magic"></i>
+      <div><strong>Apply roster starter pack</strong><br><span style="color:var(--text-secondary)">Sets scope + saves</span></div>
+      <span class="tap">1 tap</span>
+    </button>
+    <button type="button" class="cp-act">
+      <i class="bi bi-cloud-upload"></i>
+      <div><strong>Jump to upload</strong><br><span style="color:var(--text-secondary)">File picker opens</span></div>
+      <span class="tap">1 tap</span>
+    </button>
+    <form style="display:flex;gap:6px;margin-top:auto">
+      <input type="text" placeholder="Ask copilot…" data-rmc-copilot-input style="flex:1;padding:9px 11px;border:1px solid var(--hairline);border-radius:10px">
+      <button type="submit" style="padding:8px 12px;border:0;border-radius:10px;background:var(--brand-primary);color:#fff">↑</button>
+    </form>
+  </aside>
+</div>
+
+<div class="spec">
+  <h2 style="margin:0 0 10px;font-size:15px;color:var(--text-primary)">Django files this HTML maps to</h2>
+  <ul style="margin:0;padding-left:18px;line-height:1.7">
+    <li><code>templates/portal_base.html</code> — shell, header row, mission include, copilot mount</li>
+    <li><code>templates/partials/tenant/tp_header_brand.html</code> — brand lockup + workspace pill</li>
+    <li><code>templates/partials/tenant/tp_mission_strip.html</code> — mission strip (NEW)</li>
+    <li><code>templates/partials/tenant_primary_nav.html</code> — Home / Finance / Messages / Analytics</li>
+    <li><code>templates/partials/portal_sidebar.html</code> — nav inside unified sidebar</li>
+    <li><code>templates/partials/cockpit/_ai_copilot_rail.html</code> — rail + <code>portal:copilot_rail_*</code> endpoints</li>
+    <li><code>static/css/rmc-tenant-header-100x.css</code> — manager-matched header height (~70px)</li>
+    <li><code>static/css/rmc-tenant-v3-100x-role-home.css</code> — sidebar = canvas (no glass fork)</li>
+    <li><code>static/css/rmc-tenant-preview-live-bridge.css</code> — mission strip styles</li>
+    <li><code>apps/portal/tenant_role_home.py</code> — studio_os inherits <code>tp_v3_tenant_shell</code></li>
+  </ul>
+</div>
+
+</body>
+</html>

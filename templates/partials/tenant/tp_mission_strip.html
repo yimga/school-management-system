@@ -1,0 +1,22 @@
+{% load i18n %}
+{% comment %}
+Zero-friction mission strip — ≤3 clicks to the next milestone.
+Shown on tp_v3 tenant shell (all authenticated pages except where a page
+ships its own zero-friction strip, e.g. Studio launch overview).
+{% endcomment %}
+{% if tenant_experience_command.enabled and tenant_experience_command.primary_action.url %}
+<section class="tp-mission" data-rmc-tp-mission="1" aria-label="{% trans 'Next best action' %}" style="--tp-mission-pct: {{ tenant_experience_command.score|default:0 }}%;">
+  <div class="tp-mission__ring" aria-hidden="true"><span>{{ tenant_experience_command.score|default:0 }}%</span></div>
+  <div class="tp-mission__copy">
+    <h2 class="tp-mission__title">{% trans "Next" %}: {{ tenant_experience_command.primary_action.label }}</h2>
+    <p class="tp-mission__sub">{{ tenant_experience_command.school.detail|default:tenant_experience_command.primary_action.meta }}</p>
+  </div>
+  <div class="tp-mission__cta">
+    <a href="{{ tenant_experience_command.primary_action.url }}" class="tp-mission__go btn btn-sm">
+      <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i>
+      {% trans "Do it now" %}
+    </a>
+    <span class="tp-mission__clicks">{% trans "1 click" %}</span>
+  </div>
+</section>
+{% endif %}

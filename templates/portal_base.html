@@ -373,6 +373,11 @@
     {% comment %} Band-row primary nav: the full-width row fallback, shown only below lg
        (at lg+ the inline copy in the header line takes over — see tp-primary-nav-inline). {% endcomment %}
     <div class="tp-primary-nav-bandrow d-lg-none">{% include "partials/tenant_primary_nav.html" %}</div>
+    {% if tp_v3_tenant_shell and request.user.is_authenticated %}
+      {% if request.resolver_match.namespace != 'studio_os' and request.resolver_match.namespace != 'setup_studio' %}
+      {% include "partials/tenant/tp_mission_strip.html" %}
+      {% endif %}
+    {% endif %}
     </div>
     {% endif %}
 
@@ -711,8 +716,9 @@
       {% include "partials/cockpit/_operator_notebook.html" %}
       {% endif %}
     </div>
+    {% comment %} Synchronous parse arms data-rmc-copilot-rail-armed before paint (studio_os parity). {% endcomment %}
+    <script src="{% static 'js/rmc-copilot-rail.js' %}"></script>
     <script src="{% static 'js/_pages/rmc-copilot-rail.js' %}" defer></script>
-    <script src="{% static 'js/rmc-copilot-rail.js' %}" defer></script>
     <script src="{% static 'js/rmc-local-ai-accessibility.js' %}" defer></script>
     {% endif %}
     {% if proactive_help_nudge and not tp_v3_tenant_shell %}

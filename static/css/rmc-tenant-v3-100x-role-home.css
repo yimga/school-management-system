@@ -46,6 +46,35 @@ html[data-rmc-tp-v3-shell="1"] body.tp-v3-inner .tp-sidebar-inner--v3 {
   border-color: var(--hairline, rgba(15, 23, 42, 0.06));
 }
 
+/* Sidebar inherits canvas — no separate glass/brown fork (owner 2026-06-24). */
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col.rmc-glass-sidebar-shell {
+  background: var(--surface-canvas, var(--surface-bg));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-right: 1px solid var(--hairline);
+}
+
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col .sidebar,
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .tp-sidebar-inner {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col .nav-link.nav-pill {
+  color: var(--text-secondary);
+}
+
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col .nav-link.nav-pill:hover {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col .nav-link.nav-pill.active,
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col .nav-link.nav-pill[aria-current="page"] {
+  background: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 14%, transparent);
+  color: var(--text-primary);
+}
+
 html[data-rmc-tp-v3-shell="1"] body.portal-sidebar-tone-light .portal-sidebar-col.rmc-glass-sidebar-shell::before,
 html[data-rmc-tp-v3-shell="1"] body.portal-sidebar-tone-light .portal-sidebar-col.rmc-glass-sidebar-shell::after {
   display: none !important;

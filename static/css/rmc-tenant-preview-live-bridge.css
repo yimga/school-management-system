@@ -42,7 +42,6 @@ body.tp-v3-role-home .rmc-setup-surface__card:hover {
   transform: translateY(-2px);
 }
 
-/* Preview: brand pill matches tenant-admin-workspace-preview */
 body.tp-v3-role-home .tp-brand__pill {
   font-size: 10px;
   font-weight: 700;
@@ -53,6 +52,89 @@ body.tp-v3-role-home .tp-brand__pill {
   background: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 18%, transparent);
   color: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 70%, var(--text-primary));
   border: 1px solid color-mix(in oklab, var(--school-primary, var(--brand-primary)) 35%, transparent);
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-mission {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  margin: 0 14px 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-xl, 16px);
+  border: 1px solid color-mix(in oklab, var(--school-primary, var(--brand-primary)) 28%, var(--hairline));
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--school-primary, var(--brand-primary)) 10%, var(--surface-canvas)),
+    color-mix(in oklab, var(--school-accent, var(--brand-accent)) 6%, var(--surface-canvas))
+  );
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-mission__ring {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 11px;
+  background: conic-gradient(var(--school-accent, var(--brand-accent)) var(--tp-mission-pct, 42%), color-mix(in oklab, var(--hairline) 80%, transparent) 0);
+  position: relative;
+  flex-shrink: 0;
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-mission__ring::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: var(--surface-canvas);
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-mission__ring span {
+  position: relative;
+  z-index: 1;
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-mission__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-mission__sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-mission__cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-mission__go {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--school-accent, var(--brand-accent));
+  border-color: var(--school-accent, var(--brand-accent));
+  color: #04120c; /* off-token-allow: high-contrast-cta-on-accent */
+  font-weight: 700;
+  text-decoration: none;
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-mission__clicks {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--school-accent, var(--brand-accent));
 }
 
 /* Onboarding: expanded copilot panel visible (preview shows open panel) */

@@ -197,6 +197,13 @@ def write_mfa_setup_step(*, school: Any, wizard_key: str, step_key: str, payload
 # ============================================================================
 
 
+def list_migration_scope_choices(*, request: Any, school: Any) -> list[dict[str, Any]]:
+    """Canonical import domains for select_scope — platform-wide, not per-tenant."""
+    from apps.setup_studio.migration_scope import build_migration_scope_choices
+
+    return build_migration_scope_choices()
+
+
 def list_migration_source_choices(*, request: Any, school: Any) -> list[dict[str, Any]]:
     """Source-system choices for migration. Mirrors Migration Cloud canonical headers domains."""
     return [
@@ -221,6 +228,15 @@ def write_account_migration_step(*, school: Any, wizard_key: str, step_key: str,
         source = payload.get("value") or payload.get("source")
         if source:
             _write_to_site_settings(school, "migration_cloud.wizard_source", str(source))
+    elif step_key == "select_scope":
+        raw = payload.get("value") or payload.get("values") or []
+        if isinstance(raw, str):
+            raw = [raw]
+        domains = [str(v).strip() for v in raw if str(v).strip()]
+        if domains:
+            import json
+
+            _write_to_site_settings(school, "migration_cloud.wizard_scope_domains", json.dumps(domains))
     elif step_key == "review_mapping":
         # Persist the field-vector mapping into the Migration Cloud bucket + bundle.
         from apps.migration_cloud.wizard_pipeline_kernel import apply_field_mapping

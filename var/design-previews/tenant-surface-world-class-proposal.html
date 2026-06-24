@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-rmc-preview="zero-friction-v3">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMyCampus · Zero-friction tenant shell v3 — ≤3 clicks to done</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+:root{
+  --bg:#050810;--canvas:#0a1020;--elevated:#121a32;--popover:#1a2648;--glass:rgba(18,26,50,.72);
+  --hairline:rgba(255,255,255,.09);--hairline-strong:rgba(255,255,255,.15);
+  --text:#f4f6ff;--text-2:#c4cbe8;--text-3:#8f9bc4;
+  --brand:#6366f1;--brand-2:#a5b4fc;--glow:rgba(99,102,241,.4);
+  --accent:#10b981;--accent-2:#34d399;--warn:#fbbf24;--danger:#f87171;--violet:#a78bfa;
+  --r:16px;--rs:10px;--pill:999px;
+  --sidebar:252px;--rail:52px;--copilot:340px;--head:58px;
+  --font:Inter,system-ui,sans-serif;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 600px at 10% -10%,rgba(99,102,241,.12),transparent),var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5}
+button,a{font:inherit;cursor:pointer;color:inherit;text-decoration:none}
+.preview-bar{position:sticky;top:0;z-index:3000;background:linear-gradient(90deg,#4f46e5,#7c3aed,#059669);color:#fff;font-size:11px;font-weight:800;text-align:center;padding:7px;letter-spacing:.03em}
+.preview-bar a{color:#fff;text-decoration:underline}
+.deck{position:sticky;top:29px;z-index:2900;background:color-mix(in oklab,var(--canvas) 92%,#000);border-bottom:1px solid var(--hairline);backdrop-filter:blur(14px)}
+.deck-in{max-width:1720px;margin:0 auto;padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.deck h1{margin:0;font-size:14px;font-weight:800;flex:1 1 200px}
+.deck p{margin:0;font-size:11px;color:var(--text-3);flex:1 1 260px}
+.seg{display:inline-flex;border:1px solid var(--hairline);border-radius:var(--pill);overflow:hidden;background:var(--elevated)}
+.seg button{border:0;background:transparent;color:var(--text-2);font-weight:700;font-size:11px;padding:6px 12px}
+.seg button.on{background:var(--brand);color:#fff}
+.click-ledger{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;padding:6px 12px;border-radius:var(--pill);border:1px solid color-mix(in oklab,var(--accent) 40%,transparent);background:rgba(16,185,129,.08);color:var(--accent-2)}
+.click-ledger b{font-size:18px;font-variant-numeric:tabular-nums;color:#fff}
+
+.frame{max-width:1720px;margin:14px auto 48px;padding:0 12px}
+.device{border:1px solid var(--hairline);border-radius:22px;overflow:hidden;background:var(--bg);box-shadow:0 32px 90px rgba(0,0,0,.55);display:flex;flex-direction:column;min-height:min(860px,90vh)}
+.device[data-era=after]{border-color:color-mix(in oklab,var(--accent) 35%,transparent)}
+.device[data-era=before] .era-after{display:none!important}
+.device[data-era=after] .era-before{display:none!important}
+
+/* HEADER */
+.hdr{position:sticky;top:0;z-index:100;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--hairline)}
+.hdr-row{display:flex;align-items:center;gap:12px;padding:0 14px;height:var(--head)}
+.brand{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,var(--brand),var(--violet));display:grid;place-items:center;font-weight:800;font-size:12px;color:#fff;box-shadow:0 4px 18px var(--glow)}
+.school{font-weight:750;font-size:14px}
+.ws{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:3px 8px;border-radius:var(--pill);background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.35)}
+.pnav{display:flex;gap:2px}
+.pnav a{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:650;color:var(--text-3);padding:7px 10px;border-radius:var(--rs)}
+.pnav a:hover,.pnav a.on{background:var(--elevated);color:var(--text)}
+.cmdk{flex:1;max-width:420px;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:11px;border:1px solid var(--hairline);background:var(--elevated);color:var(--text-3);font-size:12.5px}
+.cmdk kbd{margin-left:auto;font-size:10px;padding:2px 6px;border-radius:5px;border:1px solid var(--hairline);color:var(--text-2)}
+.hdr-actions{display:flex;gap:6px;margin-left:auto;align-items:center}
+.hbtn{padding:7px 11px;border-radius:var(--rs);border:1px solid var(--hairline);background:transparent;color:var(--text-2);font-size:12px;font-weight:650;display:inline-flex;align-items:center;gap:6px}
+.hbtn-pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.user{display:flex;align-items:center;gap:7px;padding:3px 8px 3px 3px;border-radius:var(--pill);border:1px solid var(--hairline);background:var(--elevated)}
+.av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#ec4899,#8b5cf6);display:grid;place-items:center;font-weight:800;font-size:11px;color:#fff}
+.era-before .hdr-row{flex-wrap:wrap;height:auto;padding:8px}
+.era-before .pnav{display:none}
+.era-before .cmdk{flex:1 1 100%;max-width:none}
+
+/* ZERO-CLICK MISSION STRIP (replaces flow + launchpad) */
+.mission{margin:10px 14px 0;padding:10px 14px;border-radius:var(--r);border:1px solid color-mix(in oklab,var(--brand) 30%,transparent);background:linear-gradient(90deg,color-mix(in oklab,var(--brand) 12%,var(--canvas)),color-mix(in oklab,var(--accent) 8%,var(--canvas)));display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.mission-ring{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:11px;background:conic-gradient(var(--accent) var(--pct,42%),rgba(255,255,255,.07) 0);position:relative;flex-shrink:0}
+.mission-ring::after{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--canvas)}
+.mission-ring span{position:relative;z-index:1}
+.mission-copy h2{margin:0;font-size:14px;font-weight:800}
+.mission-copy p{margin:2px 0 0;font-size:12px;color:var(--text-2)}
+.mission-cta{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.zbtn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--pill);border:1px solid var(--hairline);background:var(--elevated);font-size:12px;font-weight:700;color:var(--text)}
+.zbtn--go{background:var(--accent);border-color:var(--accent);color:#04120c;box-shadow:0 4px 20px rgba(16,185,129,.35)}
+.zbtn--go:hover{transform:translateY(-1px)}
+.zbtn kbd{font-size:9px;opacity:.75;padding:1px 5px;border-radius:4px;background:rgba(0,0,0,.2)}
+.mission-clicks{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--accent-2);width:100%;text-align:right;margin-top:2px}
+
+/* SHELL */
+.shell{flex:1;display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr) var(--rail);min-height:0}
+.shell.cp-open{grid-template-columns:var(--sidebar) minmax(0,1fr) var(--rail) var(--copilot)}
+
+/* SIDEBAR — pins + smart nav */
+.side{background:var(--canvas);border-right:1px solid var(--hairline);display:flex;flex-direction:column;min-height:0}
+.pins{margin:10px 10px 6px;padding:8px;border-radius:var(--rs);border:1px solid var(--hairline);background:var(--elevated)}
+.pins-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:6px}
+.pin{display:flex;align-items:center;gap:8px;width:100%;padding:7px 8px;border:0;border-radius:8px;background:transparent;color:var(--text-2);font-size:12.5px;font-weight:600;text-align:left}
+.pin:hover{background:rgba(255,255,255,.04);color:var(--text)}
+.pin i{color:var(--brand-2);width:16px;text-align:center}
+.pin .clicks{margin-left:auto;font-size:9px;font-weight:800;padding:2px 6px;border-radius:var(--pill);background:rgba(16,185,129,.15);color:var(--accent-2)}
+.side-scroll{flex:1;overflow-y:auto;padding:4px 8px 12px}
+.grp{margin-top:8px}
+.grp-h{display:flex;justify-content:space-between;padding:5px 8px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);cursor:pointer;border-radius:7px}
+.grp-h:hover{background:rgba(255,255,255,.03)}
+.grp.collapsed .grp-items{display:none}
+.nav-link{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:var(--rs);font-size:13px;font-weight:550;color:var(--text-2)}
+.nav-link:hover{background:var(--elevated);color:var(--text)}
+.nav-link.on{background:color-mix(in oklab,var(--brand) 18%,transparent);color:#fff;font-weight:650}
+.nav-link i{width:17px;text-align:center;color:var(--text-3)}
+.nav-link.on i{color:var(--brand-2)}
+.nav-link.dup{opacity:.35;text-decoration:line-through}
+.era-after .dup{display:none}
+.side-foot{padding:8px 10px;border-top:1px solid var(--hairline);font-size:10px;color:var(--text-3)}
+
+/* MAIN — creative 3-pane task canvas */
+.main{overflow-y:auto;min-width:0;display:flex;flex-direction:column;padding-bottom:64px}
+.canvas{padding:0 14px 14px;flex:0 0 auto}
+.task-horizon{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(200px,.75fr) minmax(200px,.65fr);gap:12px;align-items:stretch}
+@media(max-width:1100px){.task-horizon{grid-template-columns:1fr}}
+.card{border:1px solid var(--hairline);border-radius:var(--r);background:var(--canvas);padding:16px 18px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+.card h2{margin:0 0 6px;font-size:18px;font-weight:800;letter-spacing:-.02em}
+.card-sub{font-size:12px;color:var(--text-3);margin-bottom:12px}
+
+/* One-click presets */
+.preset-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.preset{position:relative;padding:12px;border-radius:var(--rs);border:1px solid var(--hairline);background:var(--elevated);text-align:left;transition:transform .15s var(--ease),border-color .15s}
+.preset:hover{border-color:var(--brand);transform:translateY(-2px)}
+.preset.recommended{border-color:color-mix(in oklab,var(--accent) 45%,transparent);background:color-mix(in oklab,var(--accent) 6%,var(--elevated))}
+.preset .tag{position:absolute;top:8px;right:8px;font-size:8px;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:var(--pill);background:var(--accent);color:#04120c}
+.preset strong{display:block;font-size:13px;margin-bottom:4px}
+.preset span{font-size:11px;color:var(--text-2)}
+.preset .zero{font-size:10px;font-weight:800;color:var(--accent-2);margin-top:8px;display:block}
+
+/* Stepper — clickable jumps */
+.steps{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
+.step{font-size:10px;font-weight:700;padding:5px 9px;border-radius:var(--pill);border:1px solid var(--hairline);color:var(--text-3);background:transparent}
+.step.done{color:var(--accent-2);cursor:pointer}
+.step.on{background:color-mix(in oklab,var(--brand) 22%,transparent);border-color:var(--brand);color:#fff}
+.step.done:hover{border-color:var(--accent)}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:7px 11px;border-radius:var(--rs);border:1px solid var(--hairline);background:var(--elevated);font-size:12.5px;font-weight:600;color:var(--text-2)}
+.chip.on{border-color:var(--brand);background:color-mix(in oklab,var(--brand) 18%,transparent);color:#fff}
+
+/* Live impact pane */
+.impact{background:linear-gradient(160deg,color-mix(in oklab,var(--violet) 10%,var(--canvas)),var(--canvas))}
+.impact-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.impact-list li{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--text-2);padding:8px;border-radius:var(--rs);background:rgba(255,255,255,.02);border:1px solid var(--hairline)}
+.impact-list li.on{border-color:color-mix(in oklab,var(--accent) 40%,transparent);color:var(--text)}
+.impact-list i{color:var(--accent-2);margin-top:2px}
+
+/* Zero-click action stack */
+.zstack{display:flex;flex-direction:column;gap:8px}
+.zact{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--rs);border:1px solid var(--hairline);background:var(--elevated);font-size:12.5px;font-weight:650;color:var(--text-2);text-align:left;width:100%}
+.zact:hover{border-color:var(--brand);color:var(--text)}
+.zact i{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:color-mix(in oklab,var(--brand) 15%,transparent);color:var(--brand-2);flex-shrink:0}
+.zact .meta{margin-left:auto;font-size:9px;font-weight:800;padding:2px 7px;border-radius:var(--pill);background:rgba(16,185,129,.12);color:var(--accent-2)}
+
+/* Sticky action dock */
+.dock{position:sticky;bottom:0;z-index:50;margin:0 14px;padding:10px 14px;border-radius:var(--r) var(--r) 0 0;border:1px solid var(--hairline);border-bottom:0;background:var(--glass);backdrop-filter:blur(16px);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dock-path{font-size:11px;color:var(--text-3);flex:1;min-width:140px}
+.dock-path b{color:var(--accent-2)}
+.dock-btns{display:flex;gap:8px;margin-left:auto}
+
+/* DASHBOARD — attention as 1-tap tiles */
+.dash{padding:0 14px 14px}
+.hero{display:grid;grid-template-columns:1fr auto;gap:14px;padding:16px 18px;border-radius:var(--r);border:1px solid var(--hairline);background:linear-gradient(135deg,color-mix(in oklab,var(--brand) 14%,var(--canvas)),var(--canvas));margin-bottom:12px}
+.hero h2{margin:0;font-size:19px;font-weight:800}
+.hero-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.attn-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+@media(max-width:900px){.attn-grid{grid-template-columns:1fr}}
+.attn{position:relative;padding:14px;border-radius:var(--r);border:1px solid var(--hairline);background:var(--canvas);text-align:left;transition:transform .12s}
+.attn:hover{transform:translateY(-2px);border-color:var(--brand)}
+.attn .badge-clicks{position:absolute;top:10px;right:10px;font-size:9px;font-weight:800;padding:2px 7px;border-radius:var(--pill);background:var(--accent);color:#04120c}
+.attn strong{display:block;font-size:13px;margin-bottom:4px;padding-right:48px}
+.attn span{font-size:11.5px;color:var(--text-2)}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kpi{padding:12px;border-radius:var(--rs);border:1px solid var(--hairline);background:var(--canvas);cursor:pointer}
+.kpi:hover{border-color:var(--brand-2)}
+.kpi-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3)}
+.kpi-val{font-size:20px;font-weight:800;margin-top:2px}
+
+/* COPILOT — action-first */
+.rail{border-left:1px solid var(--hairline);background:var(--canvas);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px}
+.rail button{width:38px;height:38px;border:0;border-radius:10px;background:transparent;color:var(--text-3);font-size:16px}
+.rail button.on{background:var(--brand);color:#fff;box-shadow:0 4px 14px var(--glow)}
+.cp{border-left:1px solid var(--hairline);background:var(--popover);display:flex;flex-direction:column;min-height:0}
+.cp-head{padding:12px 14px;border-bottom:1px solid var(--hairline);display:flex;align-items:center;gap:8px}
+.cp-head strong{flex:1;font-size:13px}
+.cp-body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.cp-action{display:flex;gap:10px;padding:12px;border-radius:var(--rs);border:1px solid var(--hairline);background:var(--elevated);text-align:left;width:100%;align-items:flex-start}
+.cp-action:hover{border-color:var(--brand)}
+.cp-action i{font-size:18px;color:var(--brand-2);margin-top:2px}
+.cp-action strong{display:block;font-size:12.5px;margin-bottom:2px}
+.cp-action span{font-size:11px;color:var(--text-2)}
+.cp-action .tap{margin-left:auto;font-size:9px;font-weight:800;padding:3px 7px;border-radius:var(--pill);background:var(--accent);color:#04120c;align-self:center;flex-shrink:0}
+.cp-foot{padding:10px;border-top:1px solid var(--hairline);display:flex;gap:6px}
+.cp-foot input{flex:1;border:1px solid var(--hairline);border-radius:var(--rs);background:var(--elevated);padding:9px 11px;color:var(--text);font-size:12px;outline:none}
+
+/* BEFORE void */
+.void{min-height:200px;margin-top:12px;border:2px dashed color-mix(in oklab,var(--warn) 40%,transparent);border-radius:var(--r);display:grid;place-items:center;text-align:center;padding:16px;color:var(--warn);font-size:12px}
+
+/* CmdK */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:4000;display:none;place-items:start center;padding-top:10vh}
+.modal.open{display:grid}
+.modal-box{width:min(580px,94vw);background:var(--popover);border:1px solid var(--hairline-strong);border-radius:var(--r);overflow:hidden;box-shadow:0 28px 80px rgba(0,0,0,.6)}
+.modal-box input{width:100%;border:0;background:transparent;padding:16px;font-size:15px;color:var(--text);outline:none;border-bottom:1px solid var(--hairline)}
+.modal-hint{padding:8px 14px;font-size:11px;color:var(--text-3);border-bottom:1px solid var(--hairline)}
+.modal ul{list-style:none;margin:0;padding:8px;max-height:340px;overflow:auto}
+.modal li button{display:flex;width:100%;align-items:center;gap:10px;padding:10px 12px;border:0;border-radius:var(--rs);background:transparent;color:var(--text-2);font-size:13px;text-align:left}
+.modal li button:hover{background:var(--elevated);color:var(--text)}
+.modal li .clicks{margin-left:auto;font-size:10px;font-weight:800;color:var(--accent-2)}
+.toast{position:fixed;right:70px;bottom:72px;width:min(320px,90vw);z-index:200;padding:12px 14px;border-radius:var(--rs);border:1px solid color-mix(in oklab,var(--warn) 50%,transparent);border-left:4px solid var(--warn);background:var(--popover);box-shadow:var(--shadow-2)}
+.toast button{margin-top:8px;padding:6px 12px;border-radius:8px;border:0;background:var(--warn);color:#1a1200;font-weight:700;font-size:12px}
+
+/* Success flash */
+.flash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.9);opacity:0;pointer-events:none;z-index:5000;padding:16px 24px;border-radius:var(--r);background:var(--elevated);border:1px solid var(--accent);box-shadow:0 20px 60px rgba(0,0,0,.5);font-weight:700;font-size:14px;transition:opacity .2s,transform .2s var(--ease)}
+.flash.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+.spec{margin-top:16px;padding:16px;border:1px solid var(--hairline);border-radius:var(--r);background:var(--canvas);font-size:12px;color:var(--text-2)}
+.spec h2{margin:0 0 8px;font-size:14px;color:var(--text)}
+.spec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:10px}
+.spec-item{padding:10px;border-radius:var(--rs);border:1px solid var(--hairline);background:var(--elevated)}
+.spec-item strong{display:block;font-size:12px;margin-bottom:4px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<div class="preview-bar">ZERO-FRICTION v3 — every action shows its click budget · try presets · Cmd+K · copilot actions execute in 1 tap</div>
+
+<div class="deck">
+  <div class="deck-in">
+    <h1>Tenant shell — ≤3 clicks philosophy</h1>
+    <p>Mission strip · one-click presets · 3-pane canvas · sticky dock · action copilot. Toggle <b>After</b> (default ship target).</p>
+    <div class="seg">
+      <button type="button" class="on" data-page="wizard">Wizard</button>
+      <button type="button" data-page="dashboard">Home</button>
+    </div>
+    <div class="seg">
+      <button type="button" data-era="before">Before</button>
+      <button type="button" class="on" data-era="after">After</button>
+    </div>
+    <div class="seg" id="roles">
+      <button type="button" class="on" data-role="admin">Admin</button>
+      <button type="button" data-role="teacher">Teacher</button>
+      <button type="button" data-role="parent">Parent</button>
+      <button type="button" data-role="student">Student</button>
+    </div>
+    <div class="click-ledger" title="Clicks used this session in preview">
+      <span>Session clicks</span><b id="click-count">0</b>
+    </div>
+  </div>
+</div>
+
+<div class="frame">
+<div class="device" id="device" data-era="after">
+
+<header class="hdr">
+  <div class="hdr-row">
+    <div class="brand"><div class="logo">NT</div><span class="school">New Test High School</span><span class="ws" id="ws">Admin workspace</span></div>
+    <nav class="pnav era-after"><a href="#" class="on"><i class="bi bi-house-door"></i> Home</a><a href="#"><i class="bi bi-cash-stack"></i> Finance</a><a href="#"><i class="bi bi-chat-dots"></i> Messages</a></nav>
+    <button type="button" class="cmdk era-after" id="open-cmdk"><i class="bi bi-search"></i> Jump anywhere… <kbd>Ctrl K</kbd></button>
+    <div class="hdr-actions">
+      <button type="button" class="hbtn era-after"><i class="bi bi-sliders2"></i> Configure</button>
+      <div class="user era-after"><div class="av">TT</div><span style="font-size:11px;font-weight:650" id="role-lbl">Admin</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- MISSION STRIP — 1 click to next milestone -->
+<div class="mission era-after" id="mission" style="--pct:42%">
+  <div class="mission-ring" aria-hidden="true"><span>42%</span></div>
+  <div class="mission-copy">
+    <h2 id="mission-title">Next: finish import scope</h2>
+    <p id="mission-sub">Data migration wizard · step 2 of 5 · unlocks mapping + roster validation</p>
+  </div>
+  <div class="mission-cta">
+    <button type="button" class="zbtn zbtn--go" id="mission-go" data-clicks="1"><i class="bi bi-lightning-charge-fill"></i> Do it now <kbd>↵</kbd></button>
+    <span class="mission-clicks" id="mission-clicks">1 click to upload step</span>
+  </div>
+</div>
+
+<div class="shell cp-open" id="shell">
+  <aside class="side">
+    <div class="pins era-after">
+      <div class="pins-lbl">Pinned · 1 tap each</div>
+      <button type="button" class="pin" data-action="wizard" data-clicks="1"><i class="bi bi-magic"></i> Resume migration <span class="clicks">1</span></button>
+      <button type="button" class="pin" data-action="students" data-clicks="1"><i class="bi bi-people"></i> Add student <span class="clicks">1</span></button>
+      <button type="button" class="pin" data-action="invite" data-clicks="2"><i class="bi bi-envelope"></i> Invite teacher <span class="clicks">2</span></button>
+    </div>
+    <div class="side-scroll" id="nav"></div>
+    <div class="side-foot era-after">Profile: <b id="prof">admin</b> · new tenants inherit</div>
+  </aside>
+
+  <div class="main" id="main">
+    <!-- WIZARD -->
+    <div id="page-wizard" class="canvas">
+      <div class="era-after">
+        <div class="steps" id="steps">
+          <button type="button" class="step done" data-step="1">✓ Source</button>
+          <button type="button" class="step on" data-step="2">2 Scope</button>
+          <button type="button" class="step" data-step="3">3 Upload</button>
+          <button type="button" class="step" data-step="4">4 Map</button>
+          <button type="button" class="step" data-step="5">5 Run</button>
+        </div>
+        <div class="task-horizon">
+          <section class="card">
+            <h2>Select scope</h2>
+            <p class="card-sub">Choose a preset — <strong>zero extra clicks</strong> — or tap domains below.</p>
+            <div class="preset-row">
+              <button type="button" class="preset recommended" id="preset-rec" data-clicks="1">
+                <span class="tag">Recommended</span>
+                <strong>Roster starter pack</strong>
+                <span>Students · Staff · Sections</span>
+                <span class="zero">1 click · applies all 3</span>
+              </button>
+              <button type="button" class="preset" id="preset-full" data-clicks="1">
+                <strong>Full academic import</strong>
+                <span>+ Guardians · Grades · Attendance</span>
+                <span class="zero">1 click · 6 domains</span>
+              </button>
+            </div>
+            <label style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em">Or pick individually</label>
+            <div class="chips" id="chips" style="margin-top:8px">
+              <button type="button" class="chip on" data-d="students">Students</button>
+              <button type="button" class="chip on" data-d="staff">Staff</button>
+              <button type="button" class="chip on" data-d="sections">Sections</button>
+              <button type="button" class="chip" data-d="guardians">Guardians</button>
+              <button type="button" class="chip" data-d="grades">Grades</button>
+            </div>
+          </section>
+          <section class="card impact">
+            <h2 style="font-size:14px">Live unlock preview</h2>
+            <p class="card-sub">Space used intelligently — see what each choice enables.</p>
+            <ul class="impact-list" id="impact">
+              <li class="on" data-d="students"><i class="bi bi-check-circle-fill"></i> Student roster + admission IDs</li>
+              <li class="on" data-d="staff"><i class="bi bi-check-circle-fill"></i> Teacher accounts + RBAC invites</li>
+              <li class="on" data-d="sections"><i class="bi bi-check-circle-fill"></i> Timetable + attendance sheets</li>
+              <li data-d="guardians"><i class="bi bi-circle"></i> Parent portal claims</li>
+              <li data-d="grades"><i class="bi bi-circle"></i> Gradebook import mapping</li>
+            </ul>
+          </section>
+          <section class="card">
+            <h2 style="font-size:14px">Do it now</h2>
+            <p class="card-sub">Zero-click stack — common paths pre-built.</p>
+            <div class="zstack">
+              <button type="button" class="zact" data-clicks="1" id="act-next"><i class="bi bi-arrow-right-circle"></i> Save scope &amp; go to upload <span class="meta">1 click</span></button>
+              <button type="button" class="zact" data-clicks="1" id="act-draft"><i class="bi bi-cloud-arrow-up"></i> Save draft &amp; exit <span class="meta">1 click</span></button>
+              <button type="button" class="zact" data-clicks="2" id="act-copilot"><i class="bi bi-stars"></i> Let copilot choose for me <span class="meta">2 clicks</span></button>
+            </div>
+          </section>
+        </div>
+        <div class="dock era-after">
+          <div class="dock-path" id="dock-path">Path: <b>Scope</b> → Upload → Map → <b>Done in 3 clicks</b></div>
+          <div class="dock-btns">
+            <button type="button" class="hbtn" data-clicks="1">Back</button>
+            <button type="button" class="hbtn hbtn-pri" id="dock-next" data-clicks="1">Next: Upload <i class="bi bi-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="era-before">
+        <div class="card" style="max-width:100%"><h2>Select scope</h2><p style="color:var(--danger);font-size:12px">No options available · This field is required.</p></div>
+        <div class="void"><p><strong>55% void</strong><br>7+ clicks to recover · no presets · help orphaned</p></div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="dash" hidden>
+      <div class="era-after">
+        <div class="hero">
+          <div>
+            <h2 id="dash-title">School command center</h2>
+            <p style="margin:4px 0 0;font-size:13px;color:var(--text-2)">Everything urgent is one tap — no hunting.</p>
+            <div class="hero-actions">
+              <button type="button" class="zbtn zbtn--go" data-clicks="1"><i class="bi bi-person-plus"></i> Add student</button>
+              <button type="button" class="zbtn" data-clicks="1"><i class="bi bi-magic"></i> Resume setup</button>
+            </div>
+          </div>
+          <div class="mission-ring" style="--pct:42%"><span>42%</span></div>
+        </div>
+        <div class="attn-grid">
+          <button type="button" class="attn" data-clicks="1"><span class="badge-clicks">1 tap</span><strong>Finish migration scope</strong><span>Blocks gradebook + timetable unlock</span></button>
+          <button type="button" class="attn" data-clicks="1"><span class="badge-clicks">1 tap</span><strong>Invite 2 pending staff</strong><span>Send reminders now</span></button>
+          <button type="button" class="attn" data-clicks="1"><span class="badge-clicks">1 tap</span><strong>Security review due</strong><span>MFA + password check</span></button>
+        </div>
+        <div class="kpi-grid">
+          <button type="button" class="kpi" data-clicks="1"><div class="kpi-lbl">Students</div><div class="kpi-val">128</div></button>
+          <button type="button" class="kpi" data-clicks="1"><div class="kpi-lbl">Staff</div><div class="kpi-val">24</div></button>
+          <button type="button" class="kpi" data-clicks="2"><div class="kpi-lbl">Fees</div><div class="kpi-val">—</div></button>
+          <button type="button" class="kpi" data-clicks="2"><div class="kpi-lbl">Attendance</div><div class="kpi-val">—</div></button>
+        </div>
+      </div>
+      <div class="era-before void" style="margin-top:14px"><p>Widget void · attention buried in menus</p></div>
+    </div>
+  </div>
+
+  <aside class="rail era-after">
+    <button type="button" class="on" title="Copilot"><i class="bi bi-stars"></i></button>
+    <button type="button" title="Lens"><i class="bi bi-eye"></i></button>
+    <button type="button" title="Today"><i class="bi bi-calendar-event"></i></button>
+  </aside>
+
+  <aside class="cp era-after" id="copilot">
+    <div class="cp-head"><i class="bi bi-stars" style="color:var(--brand-2)"></i><strong>School Copilot</strong><span style="font-size:9px;font-weight:800;padding:3px 7px;border-radius:var(--pill);background:rgba(16,185,129,.12);color:var(--accent-2)">Actions</span></div>
+    <div class="cp-body">
+      <p style="margin:0 0 6px;font-size:11px;color:var(--text-3)">Execute without chat — each action shows click cost.</p>
+      <button type="button" class="cp-action" id="cp-apply" data-clicks="1">
+        <i class="bi bi-magic"></i>
+        <div><strong>Apply roster starter pack</strong><span>Sets scope + saves draft</span></div>
+        <span class="tap">1 tap</span>
+      </button>
+      <button type="button" class="cp-action" data-clicks="1" id="cp-upload">
+        <i class="bi bi-cloud-upload"></i>
+        <div><strong>Jump to upload step</strong><span>Skips explaining — file picker opens</span></div>
+        <span class="tap">1 tap</span>
+      </button>
+      <button type="button" class="cp-action" data-clicks="2">
+        <i class="bi bi-person-plus"></i>
+        <div><strong>Import demo students</strong><span>Seeds 10 rows for sandbox testing</span></div>
+        <span class="tap">2 taps</span>
+      </button>
+      <div id="cp-chat" style="margin-top:8px;font-size:12px;color:var(--text-2);padding:10px;border-radius:var(--rs);border:1px solid var(--hairline);background:var(--elevated)">Or ask: <em>“What should I import first?”</em></div>
+    </div>
+    <form class="cp-foot" id="cp-form">
+      <input type="text" placeholder="Ask copilot…" id="cp-in">
+      <button type="submit" class="hbtn hbtn-pri" style="padding:8px 12px"><i class="bi bi-arrow-up"></i></button>
+    </form>
+  </aside>
+</div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <input type="text" placeholder="Type to jump — student, wizard, invoice…" id="cmdk-in" aria-label="Command palette">
+    <div class="modal-hint">≤3 clicks anywhere on platform · <b>Enter</b> to go · <b>Esc</b> close</div>
+    <ul>
+      <li><button type="button" data-jump="wizard" data-clicks="1"><i class="bi bi-magic"></i> Data migration wizard <span class="clicks">1 click</span></button></li>
+      <li><button type="button" data-jump="students" data-clicks="1"><i class="bi bi-people"></i> Student list <span class="clicks">1 click</span></button></li>
+      <li><button type="button" data-jump="scope" data-clicks="2"><i class="bi bi-check2-square"></i> Apply recommended scope <span class="clicks">2 clicks</span></button></li>
+      <li><button type="button" data-jump="invite" data-clicks="2"><i class="bi bi-envelope"></i> Invite teacher <span class="clicks">2 clicks</span></button></li>
+      <li><button type="button" data-jump="dashboard" data-clicks="1"><i class="bi bi-grid"></i> Command center <span class="clicks">1 click</span></button></li>
+    </ul>
+  </div>
+</div>
+
+<div class="toast era-after" id="toast" hidden>
+  <strong style="font-size:13px;color:var(--warn)">Security review</strong>
+  <p style="margin:6px 0 0;font-size:12px;color:var(--text-2)">1 tap to complete quarterly check.</p>
+  <button type="button" data-clicks="1">Review now</button>
+</div>
+
+<div class="flash" id="flash"></div>
+
+<div class="spec">
+  <h2>Zero-friction innovations in this preview (ship to all tenant profiles)</h2>
+  <div class="spec-grid">
+    <div class="spec-item"><strong>Mission strip</strong>Replaces flow + launchpad. One “Do it now” button = next milestone. Shows click budget.</div>
+    <div class="spec-item"><strong>One-click presets</strong>“Roster starter pack” applies 3 domains in 1 click — no chip toggling.</div>
+    <div class="spec-item"><strong>3-pane canvas</strong>Form · live unlock preview · zero-click action stack — fills space, no void.</div>
+    <div class="spec-item"><strong>Sticky dock</strong>Primary path always visible: “Done in 3 clicks” with Next anchored.</div>
+    <div class="spec-item"><strong>Sidebar pins</strong>Top 3 tasks with click badges — Cmd+K still wins at 1 keystroke + Enter.</div>
+    <div class="spec-item"><strong>Action copilot</strong>Execute buttons (not chat-only). “Apply roster pack” = 1 tap.</div>
+    <div class="spec-item"><strong>Attention grid</strong>Dashboard blockers are tiles labeled “1 tap” — not prose in a void.</div>
+    <div class="spec-item"><strong>Click ledger</strong>Session counter trains ≤3-click discipline (production: analytics + guardrails).</div>
+  </div>
+</div>
+</div>
+
+<script>
+(function(){
+  let clicks = 0;
+  const clickEl = document.getElementById('click-count');
+  const flash = document.getElementById('flash');
+  const device = document.getElementById('device');
+
+  function bump(n, msg){
+    clicks += n;
+    clickEl.textContent = clicks;
+    if(msg){ flash.textContent = msg; flash.classList.add('show'); setTimeout(()=>flash.classList.remove('show'), 1400); }
+  }
+
+  document.body.addEventListener('click', e => {
+    const t = e.target.closest('[data-clicks]');
+    if(t) bump(+t.dataset.clicks || 1, t.dataset.flash || '');
+  });
+
+  function applyPreset(ids, msg){
+    document.querySelectorAll('#chips .chip').forEach(c => {
+      c.classList.toggle('on', ids.includes(c.dataset.d));
+    });
+    document.querySelectorAll('#impact li').forEach(li => {
+      li.classList.toggle('on', ids.includes(li.dataset.d));
+      const ic = li.querySelector('i');
+      if(ic) ic.className = ids.includes(li.dataset.d) ? 'bi bi-check-circle-fill' : 'bi bi-circle';
+    });
+    bump(1, msg || 'Preset applied — 1 click');
+  }
+
+  document.getElementById('preset-rec').addEventListener('click', () => applyPreset(['students','staff','sections'], 'Roster starter pack applied'));
+  document.getElementById('preset-full').addEventListener('click', () => applyPreset(['students','staff','sections','guardians','grades'], 'Full academic import applied'));
+  document.getElementById('cp-apply').addEventListener('click', () => applyPreset(['students','staff','sections'], 'Copilot applied scope — 1 tap'));
+  document.getElementById('cp-upload').addEventListener('click', () => { bump(1,'Jumped to upload — 1 tap'); document.querySelector('.step.on')?.classList.replace('on','done'); document.querySelector('[data-step="3"]')?.classList.add('on'); });
+  document.getElementById('mission-go').addEventListener('click', () => document.getElementById('dock-next').click());
+  document.getElementById('dock-next').addEventListener('click', () => bump(1,'Scope saved → Upload (1 click)'));
+  document.getElementById('act-next').addEventListener('click', () => document.getElementById('dock-next').click());
+
+  document.getElementById('chips').addEventListener('click', e => {
+    const c = e.target.closest('.chip');
+    if(!c) return;
+    c.classList.toggle('on');
+    const on = c.classList.contains('on');
+    const li = document.querySelector('#impact li[data-d="'+c.dataset.d+'"]');
+    if(li){ li.classList.toggle('on', on); li.querySelector('i').className = on ? 'bi bi-check-circle-fill' : 'bi bi-circle'; }
+  });
+
+  const NAV = {
+    admin:{ws:'Admin workspace',groups:[
+      {t:'Today',items:[{l:'Dashboard',on:1,i:'bi-speedometer2'},{l:'Setup wizards',i:'bi-magic'},{l:'Workflow',i:'bi-diagram-3'}]},
+      {t:'People',items:[{l:'Students',i:'bi-people'},{l:'Staff',i:'bi-person-badge'},{l:'Attendance',i:'bi-clipboard-check'}]},
+    ],before:[[{l:'Dashboard',on:1,dup:1},{l:'Dashboard',dup:1}],['Workflow','Preferences','Messages','Help','Documents','Attendance','RBAC']]}
+  };
+
+  function renderNav(role, era){
+    const box = document.getElementById('nav');
+    let h = '';
+    if(era==='before' && role==='admin'){
+      ['Frequent','Quick access','Home','Account','Communication'].forEach((g,i)=>{
+        h += '<div class="grp"><div class="grp-h">'+g+'</div><div class="grp-items">';
+        (i===0?[{l:'Dashboard',on:1,dup:1}]:[{l:'Item '+i}]).forEach(it=>{
+          h += '<a class="nav-link'+(it.on?' on':'')+(it.dup?' dup':'')+'" href="#"><i class="bi bi-circle"></i>'+it.l+'</a>';
+        });
+        h += '</div></div>';
+      });
+    } else {
+      (NAV[role]||NAV.admin).groups.forEach(g=>{
+        h += '<div class="grp"><div class="grp-h">'+g.t+'</div><div class="grp-items">';
+        g.items.forEach(it=>{ h += '<a class="nav-link'+(it.on?' on':'')+'" href="#"><i class="bi '+it.i+'"></i>'+it.l+'</a>'; });
+        h += '</div></div>';
+      });
+    }
+    box.innerHTML = h;
+    box.querySelectorAll('.grp-h').forEach(hd=>hd.addEventListener('click',()=>hd.parentElement.classList.toggle('collapsed')));
+  }
+
+  function setEra(e){
+    device.dataset.era = e;
+    document.querySelectorAll('[data-era]').forEach(b=>b.classList.toggle('on', b.dataset.era===e));
+    renderNav(document.querySelector('#roles .on')?.dataset.role||'admin', e);
+  }
+
+  function setPage(p){
+    document.getElementById('page-wizard').hidden = p!=='wizard';
+    document.getElementById('page-dashboard').hidden = p!=='dashboard';
+    document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('on', b.dataset.page===p));
+  }
+
+  document.querySelectorAll('[data-era]').forEach(b=>b.addEventListener('click',()=>setEra(b.dataset.era)));
+  document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>setPage(b.dataset.page)));
+  document.querySelectorAll('#roles [data-role]').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#roles [data-role]').forEach(x=>x.classList.toggle('on',x===b));
+    document.getElementById('ws').textContent = (b.dataset.role==='admin'?'Admin':b.dataset.role)+' workspace';
+    document.getElementById('role-lbl').textContent = b.dataset.role[0].toUpperCase()+b.dataset.role.slice(1);
+    document.getElementById('prof').textContent = b.dataset.role;
+    renderNav(b.dataset.role, device.dataset.era);
+  }));
+
+  const modal = document.getElementById('modal');
+  document.getElementById('open-cmdk').addEventListener('click',()=>{ modal.classList.add('open'); document.getElementById('cmdk-in').focus(); bump(0); });
+  modal.addEventListener('click', e=>{ if(e.target===modal) modal.classList.remove('open'); });
+  document.addEventListener('keydown', e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key==='k'){ e.preventDefault(); modal.classList.toggle('open'); }
+    if(e.key==='Escape') modal.classList.remove('open');
+    if(e.key==='Enter' && document.activeElement?.id==='cmdk-in'){ bump(1,'Cmd+K jump — 1 click'); modal.classList.remove('open'); }
+  });
+  modal.querySelectorAll('[data-jump]').forEach(b=>b.addEventListener('click',()=>{
+    bump(+b.dataset.clicks||1, 'Jumped via Cmd+K');
+    if(b.dataset.jump==='wizard') setPage('wizard');
+    if(b.dataset.jump==='dashboard') setPage('dashboard');
+    if(b.dataset.jump==='scope') document.getElementById('preset-rec').click();
+    modal.classList.remove('open');
+  }));
+
+  document.getElementById('cp-form').addEventListener('submit', e=>{
+    e.preventDefault();
+    bump(2,'Copilot answered — 2 clicks (ask + apply suggestion)');
+    document.getElementById('cp-chat').innerHTML = '<strong style="color:var(--text)">Copilot:</strong> Start with Students + Sections. <button type="button" class="zbtn" style="margin-top:8px;padding:6px 10px;font-size:11px" id="inline-apply">Apply now (1 more click)</button>';
+    document.getElementById('inline-apply')?.addEventListener('click', ()=>document.getElementById('preset-rec').click());
+  });
+
+  renderNav('admin','after');
+  setTimeout(()=>document.getElementById('toast').hidden=false, 2000);
+})();
+</script>
+</body>
+</html>

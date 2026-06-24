@@ -23,7 +23,7 @@
     {
       "key": "select_scope",
       "input_type": "multi_choice",
-      "options_resolver": null,
+      "options_resolver": "apps.setup_studio.wizard_resolvers_operator::list_migration_scope_choices",
       "validation": {"required": true},
       "persistence": {
         "target": "custom",

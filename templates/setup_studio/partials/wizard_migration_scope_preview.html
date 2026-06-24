@@ -1,0 +1,37 @@
+{% load i18n %}
+<aside class="rmc-wizard-zf-preview" aria-label="{% trans 'Live unlock preview' %}" data-rmc-wizard-zf-preview>
+  <h3 class="rmc-wizard-zf-preview__title">{% trans "Unlocks when you continue" %}</h3>
+  <ul class="rmc-wizard-zf-preview__list" data-rmc-wizard-zf-unlock-list>
+    <li class="rmc-wizard-zf-preview__item rmc-wizard-zf-preview__item--muted" data-rmc-wizard-zf-unlock="roster">
+      <i class="bi bi-people" aria-hidden="true"></i>
+      <span>{% trans "Roster validation" %}</span>
+      <em data-rmc-wizard-zf-unlock-state>{% trans "Select students + staff" %}</em>
+    </li>
+    <li class="rmc-wizard-zf-preview__item rmc-wizard-zf-preview__item--muted" data-rmc-wizard-zf-unlock="timetable">
+      <i class="bi bi-calendar3" aria-hidden="true"></i>
+      <span>{% trans "Timetable shell" %}</span>
+      <em data-rmc-wizard-zf-unlock-state>{% trans "Add sections" %}</em>
+    </li>
+    <li class="rmc-wizard-zf-preview__item rmc-wizard-zf-preview__item--muted" data-rmc-wizard-zf-unlock="gradebook">
+      <i class="bi bi-journal-check" aria-hidden="true"></i>
+      <span>{% trans "Gradebook import" %}</span>
+      <em data-rmc-wizard-zf-unlock-state>{% trans "Add grades domain" %}</em>
+    </li>
+    <li class="rmc-wizard-zf-preview__item rmc-wizard-zf-preview__item--muted" data-rmc-wizard-zf-unlock="parent_portal">
+      <i class="bi bi-house-heart" aria-hidden="true"></i>
+      <span>{% trans "Parent portal links" %}</span>
+      <em data-rmc-wizard-zf-unlock-state>{% trans "Add guardians" %}</em>
+    </li>
+    <li class="rmc-wizard-zf-preview__item rmc-wizard-zf-preview__item--muted" data-rmc-wizard-zf-unlock="attendance">
+      <i class="bi bi-clipboard-check" aria-hidden="true"></i>
+      <span>{% trans "Attendance history" %}</span>
+      <em data-rmc-wizard-zf-unlock-state>{% trans "Add attendance" %}</em>
+    </li>
+    <li class="rmc-wizard-zf-preview__item rmc-wizard-zf-preview__item--muted" data-rmc-wizard-zf-unlock="billing">
+      <i class="bi bi-cash-stack" aria-hidden="true"></i>
+      <span>{% trans "Fee ledger import" %}</span>
+      <em data-rmc-wizard-zf-unlock-state>{% trans "Add finance" %}</em>
+    </li>
+  </ul>
+  <p class="rmc-wizard-zf-preview__hint">{% trans "Selections update instantly — no extra clicks." %}</p>
+</aside>
