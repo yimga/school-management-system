@@ -78,9 +78,9 @@
       {% for step in launch_payload.steps %}
       <li class="mb-1">{% if step.done %}<i class="bi bi-check-circle-fill text-success me-1"></i>{% else %}<i class="bi bi-circle me-1"></i>{% endif %}
         {% if step.link and step.link != "#" %}
-        <a href="{{ step.link }}">{{ step.label|default:step.title|default:"" }}</a>
+        <a href="{{ step.link }}">{{ step.label|default:step.key }}</a>
         {% else %}
-        {{ step.label|default:step.title|default:"" }}
+        {{ step.label|default:step.key }}
         {% endif %}
       </li>
       {% endfor %}

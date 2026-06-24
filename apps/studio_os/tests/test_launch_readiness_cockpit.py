@@ -31,6 +31,42 @@ def _render(template_path: str, ctx: dict) -> str:
     return tpl.render(Context(ctx))
 
 
+class LaunchOverviewBodyPartialTests(SimpleTestCase):
+    """launch_studio_overview_body.html must not require step.title (payload uses label only)."""
+
+    PARTIAL = "studio_os/partials/launch_studio_overview_body.html"
+
+    def test_checklist_renders_steps_with_label_only(self):
+        """Regression: default:step.title always resolves and raised VariableDoesNotExist."""
+        html = _render(
+            self.PARTIAL,
+            {
+                "launch_payload": {
+                    "health_score": 42,
+                    "launch_ready": False,
+                    "launch_blockers": ["staff"],
+                    "steps": [
+                        {
+                            "key": "institution_basics",
+                            "order": 1,
+                            "label": "Create school profile",
+                            "description": "Confirm institution identity.",
+                            "done": True,
+                            "status": "Ready",
+                            "group": "foundation",
+                            "link": "/authentication/backend/",
+                            "recommended_choice": "Verify legal name.",
+                            "evidence": "Institution identity is set.",
+                        }
+                    ],
+                },
+                "launch_role_previews": [],
+            },
+        )
+        self.assertIn("Create school profile", html)
+        self.assertNotIn("step.title", html)
+
+
 class LaunchReadinessPreviewPanePartialTests(SimpleTestCase):
     """launch_readiness_preview_pane.html honors launch_role_previews + empty state."""
 
