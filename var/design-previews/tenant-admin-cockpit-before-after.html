@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMyCampus · Admin cockpit — before / after lab (editable)</title>
+<!--
+  EDIT THIS FILE to tweak layout before asking for Django changes.
+  Production CSS paths are relative to var/design-previews/.
+  Batch 1730 target · compare with your live screenshots.
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../../static/css/design-tokens.css">
+<link rel="stylesheet" href="../../static/css/rmc-tenant-dashboard-100x.css">
+<link rel="stylesheet" href="../../static/css/rmc-backend-admin-bento.css">
+<link rel="stylesheet" href="../../static/css/rmc-setup-surface.css">
+<link rel="stylesheet" href="../../static/css/rmc-tenant-post-setup-cockpit.css">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--surface-bg,#0b1020);color:var(--text-primary,#eef2ff);font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:1.45}
+  .flag{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#64748b,#6366f1 50%,#10b981);color:#fff;font-weight:700;font-size:11px;text-align:center;padding:6px;letter-spacing:.03em}
+  .flag a{color:#fff;margin-left:10px}
+  .wrap{max-width:1320px;margin:40px auto 64px;padding:0 18px}
+  .lede{border:1px solid var(--hairline);border-radius:16px;padding:16px 18px;margin-bottom:16px;background:var(--surface-elevated)}
+  .lede h1{margin:0 0 6px;font-size:21px;font-weight:760}
+  .lede p{margin:0;color:var(--text-secondary);font-size:13px;max-width:80ch}
+  .lede .edit-tip{margin-top:10px;font-size:12px;color:var(--text-tertiary);border-top:1px dashed var(--hairline);padding-top:10px}
+  .tabs{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0}
+  .tabs button{border:1px solid var(--hairline);background:var(--surface-canvas);color:inherit;border-radius:999px;padding:7px 13px;font:inherit;font-weight:650;font-size:12px;cursor:pointer}
+  .tabs button.is-on{background:var(--brand-primary,#6366f1);color:#fff;border-color:transparent}
+  .scene{display:none}.scene.is-on{display:block}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  @media(max-width:960px){.split{grid-template-columns:1fr}}
+  .col-flag{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px}
+  .col-flag.before{color:#94a3b8}
+  .col-flag.after{color:#6ee7b7}
+  .col-flag .dot{width:8px;height:8px;border-radius:50%}
+  .col-flag.before .dot{background:#64748b}
+  .col-flag.after .dot{background:#10b981}
+  .frame{border:1px solid var(--hairline);border-radius:16px;background:var(--surface-bg);padding:12px;min-height:420px;overflow:hidden}
+  .frame.after{border-color:color-mix(in oklab,#10b981 35%,var(--hairline))}
+  .frame.before{border-color:color-mix(in oklab,#64748b 35%,var(--hairline));opacity:.92}
+  .issues{list-style:none;margin:8px 0 0;padding:0;font-size:11px;color:#fca5a5}
+  .issues li{padding:3px 0;display:flex;gap:6px;align-items:flex-start}
+  .wins{list-style:none;margin:8px 0 0;padding:0;font-size:11px;color:#6ee7b7}
+  .wins li{padding:3px 0;display:flex;gap:6px;align-items:flex-start}
+  /* ---- mock shell (mini browser) ---- */
+  .mock-shell{border:1px solid var(--hairline);border-radius:12px;overflow:hidden;background:var(--surface-canvas);font-size:12px}
+  .mock-top{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--hairline);background:var(--surface-elevated);font-size:11px}
+  .mock-top .pill{font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(99,102,241,.2);color:#a5b4fc}
+  .mock-body{display:grid;grid-template-columns:140px 1fr;min-height:360px}
+  .mock-rail{border-right:1px solid var(--hairline);padding:8px 6px;font-size:10px;color:var(--text-tertiary)}
+  .mock-rail div{padding:4px 6px;margin:2px 0;border-radius:6px}
+  .mock-rail .dup{color:#f87171;text-decoration:line-through;opacity:.7}
+  .mock-main{padding:10px;min-width:0}
+  /* BEFORE: narrow column + void */
+  .mock-before-narrow{max-width:520px;margin:0 auto}
+  .mock-void{border:2px dashed color-mix(in oklab,var(--hairline) 80%,transparent);border-radius:10px;padding:28px 16px;text-align:center;color:var(--text-tertiary);margin:12px 0;min-height:120px;background:color-mix(in oklab,var(--surface-bg) 60%,transparent)}
+  .mock-void h4{margin:0 0 6px;font-size:13px;color:var(--text-secondary)}
+  .mock-strip{font-size:10px;padding:6px 8px;border-radius:8px;background:var(--surface-elevated);border:1px solid var(--hairline);margin-bottom:8px;color:var(--text-tertiary)}
+  .mock-wz{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+  .mock-wz-card{border:1px solid var(--hairline);border-radius:8px;padding:8px;background:var(--surface-elevated);font-size:10px}
+  .mock-tabs{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
+  .mock-tabs span{padding:4px 8px;border-radius:6px;border:1px solid var(--hairline);font-size:10px;font-weight:600}
+  .mock-tabs span.on{background:#6366f1;border-color:#6366f1;color:#fff}
+  /* AFTER: full width bento */
+  .mock-after-full{max-width:100%}
+  .rmc-intelligent-dashboard-note{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;margin-bottom:8px;font-size:11px;color:var(--text-secondary);border:1px dashed color-mix(in oklab,var(--school-accent,#10b981) 35%,var(--hairline));border-radius:10px;background:color-mix(in oklab,var(--school-accent,#10b981) 6%,transparent)}
+  .rmc-intelligent-dashboard-note i{color:var(--school-accent,#10b981);flex:none}
+  .rmc-admin-zone-intro{display:flex;gap:10px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--hairline);border-radius:12px;background:var(--surface-canvas);font-size:11px}
+  .rmc-admin-zone-intro--setup{border-color:color-mix(in oklab,#6366f1 28%,var(--hairline))}
+  .rmc-admin-zone-intro__icon{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:rgba(99,102,241,.15);color:#818cf8;flex:none}
+  .rmc-admin-zone-intro h4{margin:0 0 2px;font-size:12px}
+  .rmc-admin-zone-intro p{margin:0;color:var(--text-tertiary);font-size:10px}
+  .rmc-dh{margin:0}
+  .rmc-dh-tiles{grid-template-columns:repeat(2,1fr)!important}
+  @media(min-width:480px){.rmc-dh-tiles{grid-template-columns:repeat(4,1fr)!important}}
+  .changelog{margin-top:20px;border:1px dashed var(--hairline);border-radius:14px;padding:14px 16px;font-size:12px;color:var(--text-secondary)}
+  .changelog h3{margin:0 0 8px;font-size:14px;color:var(--text-primary)}
+  .changelog table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+  .changelog th,.changelog td{border:1px solid var(--hairline);padding:6px 8px;text-align:left;vertical-align:top}
+  .changelog th{background:var(--surface-elevated)}
+  .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .links a{font-size:12px;color:#818cf8;text-decoration:none;border:1px solid var(--hairline);padding:5px 10px;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="flag">BEFORE / AFTER LAB · edit this file · batch 1730 · <a href="tenant-post-setup-cockpit-hub.html">Hub</a> · <a href="tenant-shell-100x-before-after.html">Role-home lab</a></div>
+
+<div class="wrap">
+  <div class="lede">
+    <h1>Admin cockpit — before / after (your screenshots → target)</h1>
+    <p>Left column = problems from live UI (narrow column, duplicate welcome, wasted space). Right column = batch 1730 target shipped in Django. Use tabs to compare onboarding vs post-setup vs portal frontend.</p>
+    <p class="edit-tip"><strong>To request changes:</strong> edit the HTML/CSS in this file, note what you changed in the changelog table at the bottom, then tell the agent “match the after column in <code>tenant-admin-cockpit-before-after.html</code> tab X”.</p>
+  </div>
+
+  <nav class="tabs" aria-label="Scenario">
+    <button type="button" class="is-on" data-scene="onboarding">① Onboarding · Setup Studio</button>
+    <button type="button" data-scene="postsetup">② Post-setup · Backend cockpit</button>
+    <button type="button" data-scene="frontend">③ Frontend · Portal home</button>
+    <button type="button" data-scene="branding">④ Branding · Dashboard styles</button>
+  </nav>
+
+  <!-- ===== SCENE 1: ONBOARDING ===== -->
+  <section id="scene-onboarding" class="scene is-on">
+    <div class="split">
+      <div>
+        <div class="col-flag before"><span class="dot"></span> Before · your screenshot</div>
+        <div class="frame before">
+          <div class="mock-shell">
+            <div class="mock-top"><strong>NT</strong> New Test High School <span class="pill">Admin</span></div>
+            <div class="mock-body">
+              <div class="mock-rail">
+                <div>Dashboard</div><div class="dup">Finance</div><div class="dup">Finance</div>
+                <div>Workflow</div><div class="dup">Report Library</div><div class="dup">Report Library</div>
+                <div style="margin-top:20px;color:#64748b">…long duplicate list…</div>
+              </div>
+              <div class="mock-main mock-before-narrow">
+                <div class="mock-strip">YOUR FLOW · 64% set up</div>
+                <div class="mock-void">
+                  <h4>Welcome — let's set up your school</h4>
+                  <p>Your dashboard fills in as you add staff…</p>
+                  <p style="margin-top:20px;font-size:10px">↑ duplicate empty state (portal_base)</p>
+                </div>
+                <div class="mock-tabs"><span class="on">Setup Studio</span><span>At a glance</span></div>
+                <div class="rmc-admin-zone-intro rmc-admin-zone-intro--setup">
+                  <div class="rmc-admin-zone-intro__icon"><i class="bi bi-magic"></i></div>
+                  <div><h4>Setup Studio</h4><p>Wizard cards below…</p></div>
+                </div>
+                <div class="mock-wz">
+                  <div class="mock-wz-card"><strong>Account Migration</strong><br>In progress</div>
+                  <div class="mock-wz-card"><strong>Custom Domain</strong><br>Not started</div>
+                </div>
+                <div class="mock-void" style="min-height:80px;margin-top:12px">Huge empty void below fold</div>
+              </div>
+            </div>
+          </div>
+          <ul class="issues">
+            <li><i class="bi bi-x-circle"></i> Narrow centered column — wasted horizontal space</li>
+            <li><i class="bi bi-x-circle"></i> Duplicate welcome empty state + Setup Studio</li>
+            <li><i class="bi bi-x-circle"></i> “Role home” contract block stacked below</li>
+            <li><i class="bi bi-x-circle"></i> Sidebar duplicate menu rows</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="col-flag after"><span class="dot"></span> After · batch 1730 (live target)</div>
+        <div class="frame after">
+          <div class="mock-shell">
+            <div class="mock-top"><strong>NT</strong> New Test High School <span class="pill">Admin</span></div>
+            <div class="mock-body">
+              <div class="mock-rail">
+                <div style="background:rgba(99,102,241,.12);color:#fff">Dashboard</div>
+                <div>Students</div><div>Finance</div><div>Gradebook</div>
+              </div>
+              <div class="mock-main mock-after-full">
+                <div class="mock-tabs"><span class="on">Setup Studio</span><span>At a glance</span></div>
+                <div class="rmc-admin-zone-intro rmc-admin-zone-intro--setup">
+                  <div class="rmc-admin-zone-intro__icon"><i class="bi bi-magic"></i></div>
+                  <div>
+                    <h4>Setup Studio</h4>
+                    <p>Guided wizards — not the live analytics cockpit.</p>
+                    <p style="margin-top:4px"><a href="#" style="color:#818cf8">All wizards</a> · <a href="#" style="color:#818cf8">Dashboard styles</a></p>
+                  </div>
+                </div>
+                <div class="rmc-setup-surface">
+                  <div class="rmc-setup-surface__hero" style="--rmc-setup-ring-pct:64">
+                    <div class="rmc-setup-surface__hero-copy">
+                      <p class="rmc-setup-surface__eyebrow">Get started</p>
+                      <h2 class="rmc-setup-surface__title">Set up your school</h2>
+                      <p class="rmc-setup-surface__lede">A guided path from first login to go-live.</p>
+                    </div>
+                    <div class="rmc-setup-surface__ring" aria-hidden="true"><span>64%</span></div>
+                  </div>
+                  <div class="mock-wz">
+                    <div class="mock-wz-card"><strong>Account Migration</strong><br>Resume</div>
+                    <div class="mock-wz-card"><strong>MFA setup</strong><br>Done</div>
+                  </div>
+                </div>
+                <p style="font-size:10px;color:var(--text-tertiary);margin:8px 0 0">No duplicate welcome slab · full-width canvas · compact vertical rhythm</p>
+              </div>
+            </div>
+          </div>
+          <ul class="wins">
+            <li><i class="bi bi-check-circle"></i> First-run welcome hidden when Setup Studio active</li>
+            <li><i class="bi bi-check-circle"></i> Full-width canvas (max 1440px)</li>
+            <li><i class="bi bi-check-circle"></i> Setup vs Cockpit zone banners</li>
+            <li><i class="bi bi-check-circle"></i> At a glance tab for early KPI preview</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SCENE 2: POST-SETUP BACKEND ===== -->
+  <section id="scene-postsetup" class="scene">
+    <div class="split">
+      <div>
+        <div class="col-flag before"><span class="dot"></span> Before · sparse / legacy stack</div>
+        <div class="frame before">
+          <div class="mock-shell">
+            <div class="mock-main mock-before-narrow" style="padding:14px">
+              <div class="mock-void">
+                <h4>Welcome — let's set up your school</h4>
+                <p>Still showing after 64% if threshold not crossed</p>
+              </div>
+              <div class="mock-strip">Role home · Job to be done · contract chips</div>
+              <div class="mock-strip">Breadcrumb · About this page · progress bar</div>
+              <div class="mock-void" style="min-height:100px">Legacy v2 grid hidden behind ?simple=1</div>
+              <p style="font-size:10px;color:#f87171">Setup Studio + Role home + welcome = triple stack</p>
+            </div>
+          </div>
+          <ul class="issues">
+            <li><i class="bi bi-x-circle"></i> Unclear Setup Studio vs Operator Cockpit</li>
+            <li><i class="bi bi-x-circle"></i> Empty welcome until threshold ≥ 70%</li>
+            <li><i class="bi bi-x-circle"></i> No dense KPI bento on Overview</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="col-flag after"><span class="dot"></span> After · School Command Center</div>
+        <div class="frame after">
+          <div class="mock-main mock-after-full" style="padding:4px">
+            <div class="mock-tabs"><span class="on">Overview</span><span>Cockpit</span></div>
+            <div class="rmc-intelligent-dashboard-note"><i class="bi bi-lightbulb"></i><p class="mb-0">Intelligent dashboard: widgets fill as you add students, fees, attendance.</p></div>
+            <div class="rmc-dh">
+              <div class="rmc-dh-hero">
+                <div class="rmc-dh-hero__body">
+                  <p class="rmc-dh-hero__eyebrow">Admin workspace</p>
+                  <h2 class="rmc-dh-hero__title">School command surface</h2>
+                  <p class="rmc-dh-hero__sub">Live KPIs · Term 2</p>
+                </div>
+                <div class="rmc-dh-ring" style="--rmc-dh-ring-pct:100"><span>100%</span></div>
+              </div>
+              <div class="rmc-dh-tiles">
+                <div class="rmc-dh-tile"><span class="rmc-dh-tile__ic"><i class="bi bi-people"></i></span><span class="rmc-dh-tile__k">Students</span><span class="rmc-dh-tile__v">248</span></div>
+                <div class="rmc-dh-tile"><span class="rmc-dh-tile__ic"><i class="bi bi-clipboard-check"></i></span><span class="rmc-dh-tile__k">Present</span><span class="rmc-dh-tile__v">93%</span></div>
+                <div class="rmc-dh-tile"><span class="rmc-dh-tile__ic"><i class="bi bi-cash-stack"></i></span><span class="rmc-dh-tile__k">Collected</span><span class="rmc-dh-tile__v">₣4.2M</span></div>
+                <div class="rmc-dh-tile"><span class="rmc-dh-tile__ic"><i class="bi bi-cash-coin"></i></span><span class="rmc-dh-tile__k">Overdue</span><span class="rmc-dh-tile__v">12</span></div>
+              </div>
+              <div class="rmc-dh-attention">
+                <h2 class="rmc-dh-attention__title"><i class="bi bi-exclamation-octagon"></i> What needs you</h2>
+                <div class="rmc-dh-attn-row"><i class="bi bi-cash-coin"></i><span>12 invoices overdue</span><a class="rmc-dh-attn-row__go" href="#">Chase</a></div>
+              </div>
+            </div>
+            <p style="font-size:10px;margin:8px 0 0"><a href="tenant-post-setup-backend-cockpit.html" style="color:#818cf8">Open full backend preview →</a></p>
+          </div>
+          <ul class="wins">
+            <li><i class="bi bi-check-circle"></i> Overview | Cockpit tabs only (no Setup Studio on home)</li>
+            <li><i class="bi bi-check-circle"></i> .rmc-dh KPI + attention queue</li>
+            <li><i class="bi bi-check-circle"></i> Cockpit tab = Configure → widgets</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SCENE 3: FRONTEND ===== -->
+  <section id="scene-frontend" class="scene">
+    <div class="split">
+      <div>
+        <div class="col-flag before"><span class="dot"></span> Before · widget scatter</div>
+        <div class="frame before legacy" style="padding:16px">
+          <div style="border:1px dashed var(--hairline);border-radius:10px;padding:12px;margin-bottom:8px;color:var(--text-tertiary)">Scattered KPI cards · no hero ring</div>
+          <div style="border:1px dashed var(--hairline);border-radius:10px;padding:12px;margin-bottom:8px;color:var(--text-tertiary)">Duplicate cockpit accordions</div>
+          <div style="border:1px dashed var(--hairline);border-radius:10px;padding:12px;color:var(--text-tertiary)">No “what needs you” band</div>
+        </div>
+      </div>
+      <div>
+        <div class="col-flag after"><span class="dot"></span> After · Family / Teaching / Learning home</div>
+        <div class="frame after">
+          <div class="rmc-dh">
+            <div class="rmc-dh-hero rmc-dh-hero--accent">
+              <div class="rmc-dh-hero__body">
+                <p class="rmc-dh-hero__eyebrow">Family home</p>
+                <h2 class="rmc-dh-hero__title">Good day, Amina</h2>
+                <p class="rmc-dh-hero__sub">2 children · fees &amp; attendance at a glance</p>
+              </div>
+              <div class="rmc-dh-ring" style="--rmc-dh-ring-pct:94"><span>94%</span></div>
+            </div>
+            <div class="rmc-dh-tiles">
+              <div class="rmc-dh-tile"><span class="rmc-dh-tile__ic"><i class="bi bi-check2-circle"></i></span><span class="rmc-dh-tile__k">Attendance</span><span class="rmc-dh-tile__v">94%</span></div>
+              <div class="rmc-dh-tile"><span class="rmc-dh-tile__ic"><i class="bi bi-wallet2"></i></span><span class="rmc-dh-tile__k">Balance</span><span class="rmc-dh-tile__v">₣12k</span></div>
+            </div>
+          </div>
+          <p style="font-size:10px;margin:8px 0 0"><a href="tenant-post-setup-frontend-dashboard.html" style="color:#818cf8">Open frontend preview (role switcher) →</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SCENE 4: BRANDING ===== -->
+  <section id="scene-branding" class="scene">
+    <div class="split">
+      <div>
+        <div class="col-flag before"><span class="dot"></span> Before · no in-context picker</div>
+        <div class="frame before" style="padding:16px;color:var(--text-tertiary)">
+          <p>Dashboard look buried in Preferences / Theme pages only.</p>
+          <p>No per-role Soft Glass vs Crisp Professional preview.</p>
+          <p>No backend vs frontend pack distinction on the dashboard itself.</p>
+        </div>
+      </div>
+      <div>
+        <div class="col-flag after"><span class="dot"></span> After · Dashboard styles entry points</div>
+        <div class="frame after" style="padding:14px">
+          <p><strong>Zone banners:</strong> “Dashboard styles” chip → Preferences</p>
+          <p><strong>User prefs:</strong> Soft Glass · Crisp Professional · High Contrast</p>
+          <p><strong>Packs:</strong> school-admin-operations · teacher-planner · family-fees-first</p>
+          <p style="margin-top:10px"><a href="tenant-dashboard-style-branding.html" style="color:#818cf8">Open interactive branding mock →</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="changelog">
+    <h3><i class="bi bi-pencil-square"></i> Change log (edit when you tweak this file)</h3>
+    <table>
+      <thead><tr><th>Date</th><th>Tab</th><th>Your change</th><th>Ask agent to ship?</th></tr></thead>
+      <tbody>
+        <tr><td>2026-06-24</td><td>All</td><td>Initial before/after from screenshots + batch 1730</td><td>Partial (1730 shipped)</td></tr>
+        <tr><td>—</td><td>—</td><td><em>Add rows when you edit mockups</em></td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="links">
+    <a href="tenant-post-setup-cockpit-hub.html">Post-setup hub</a>
+    <a href="tenant-admin-workspace-preview.html">Onboarding preview (old)</a>
+    <a href="tenant-shell-100x-before-after.html">Role-home 100X lab</a>
+    <a href="tenant-student-dashboard-enrichment-100x.html">Student enrichment</a>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tabs button').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.tabs button').forEach(function(b){b.classList.remove('is-on');});
+    document.querySelectorAll('.scene').forEach(function(s){s.classList.remove('is-on');});
+    btn.classList.add('is-on');
+    var id='scene-'+btn.dataset.scene;
+    var el=document.getElementById(id);
+    if(el) el.classList.add('is-on');
+  });
+});
+</script>
+</body>
+</html>
