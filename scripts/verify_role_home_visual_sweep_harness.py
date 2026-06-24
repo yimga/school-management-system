@@ -11,8 +11,17 @@ ROOT = Path(__file__).resolve().parents[1]
 def main() -> int:
     errors: list[str] = []
     sweep = ROOT / "scripts/run_role_home_visual_sweep.mjs"
+    orchestrator = ROOT / "scripts/run_role_home_e2e.mjs"
+    workflow = ROOT / ".github/workflows/role-home-visual-sweep-e2e.yml"
     login = ROOT / "tests/e2e/helpers/tenant-login.js"
     pkg = ROOT / "package.json"
+
+    if not orchestrator.is_file():
+        errors.append("missing run_role_home_e2e.mjs")
+    if not workflow.is_file():
+        errors.append("missing role-home-visual-sweep-e2e.yml workflow")
+    elif "role-home-marketing" not in workflow.read_text(encoding="utf-8"):
+        errors.append("role-home workflow missing marketing sweep job (batch 1713)")
 
     if not sweep.is_file():
         errors.append("missing run_role_home_visual_sweep.mjs")
@@ -34,9 +43,15 @@ def main() -> int:
 
     if pkg.is_file() and "sweep:role-home:tenant" not in pkg.read_text(encoding="utf-8"):
         errors.append("package.json missing sweep:role-home:tenant script")
+    if pkg.is_file() and "sweep:role-home:e2e" not in pkg.read_text(encoding="utf-8"):
+        errors.append("package.json missing sweep:role-home:e2e script")
 
     if not login.is_file():
         errors.append("missing tenant-login.js")
+    elif "requestSubmit" not in login.read_text(encoding="utf-8"):
+        errors.append("tenant-login.js missing overlay-safe requestSubmit login")
+    if orchestrator.is_file() and "stableOk" not in orchestrator.read_text(encoding="utf-8"):
+        errors.append("run_role_home_e2e.mjs missing stable HTTP 200 server wait")
     if pkg.is_file() and "sweep:role-home" not in pkg.read_text(encoding="utf-8"):
         errors.append("package.json missing sweep:role-home script")
 

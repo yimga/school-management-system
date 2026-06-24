@@ -1,0 +1,139 @@
+name: Role-home visual sweep E2E
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/portal/**"
+      - "apps/accounts/**"
+      - "apps/schools/demo_user_seeding.py"
+      - "apps/schools/management/commands/seed_demo_tenant_users.py"
+      - "apps/schools/management/commands/ensure_developer_sandbox_tenant.py"
+      - "apps/observability/tenant_performance.py"
+      - "apps/schools/views_tenant_performance.py"
+      - "templates/parent/**"
+      - "templates/teacher/**"
+      - "templates/student/**"
+      - "templates/marketing/**"
+      - "static/marketing/**"
+      - "templates/accounts/tenant_performance_dashboard.html"
+      - "templates/portal_base.html"
+      - "static/css/rmc-tenant-performance.css"
+      - "scripts/run_role_home_visual_sweep.mjs"
+      - "scripts/run_role_home_e2e.mjs"
+      - "tests/e2e/helpers/tenant-login.js"
+      - "package.json"
+      - ".github/workflows/role-home-visual-sweep-e2e.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  role-home-sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SECRET_KEY: "ci-role-home-sweep-not-production-64chars__________"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com"
+      DEBUG: "0"
+      DJANGO_SETTINGS_MODULE: "config.settings"
+      MULTI_TENANT_BASE_DOMAIN: "runmycampus.com"
+      VISUAL_QA_PORT: "8012"
+      TENANT_SLUG: "demo-school"
+      TENANT_SWEEP_PASSWORD: "Test1234"
+      ROLE_SWEEP_TENANT_ONLY: "1"
+      VISUAL_QA_TOTP_HEX_KEY: "eab95095c004f245721ba0fa7ebf82d5dc73"
+      DB_FILE: "${{ github.workspace }}/db_playwright_role_home_tenant_ci.sqlite3"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          npm ci
+          node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Role-home E2E (migrate + seed + sweep)
+        run: npm run sweep:role-home:e2e
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: role-home-sweep-artifacts
+          path: |
+            artifacts/role-home-e2e
+            var/role-home-visual-sweep.json
+          if-no-files-found: ignore
+
+  role-home-marketing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SECRET_KEY: "ci-role-home-marketing-not-production-64chars____"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com"
+      DEBUG: "0"
+      DJANGO_SETTINGS_MODULE: "config.settings"
+      MULTI_TENANT_BASE_DOMAIN: "runmycampus.com"
+      VISUAL_QA_PORT: "8013"
+      TENANT_SLUG: "demo-school"
+      TENANT_SWEEP_PASSWORD: "Test1234"
+      ROLE_SWEEP_TENANT_ONLY: "0"
+      MARKETING_SWEEP_HOST: "runmycampus.com"
+      VISUAL_QA_TOTP_HEX_KEY: "eab95095c004f245721ba0fa7ebf82d5dc73"
+      DB_FILE: "${{ github.workspace }}/db_playwright_role_home_marketing_ci.sqlite3"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          npm ci
+          node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Map marketing host
+        run: |
+          echo "127.0.0.1 runmycampus.com" | sudo tee -a /etc/hosts
+
+      - name: Role-home + marketing E2E (7 surfaces)
+        run: npm run sweep:role-home:e2e
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: role-home-marketing-artifacts
+          path: |
+            artifacts/role-home-e2e
+            var/role-home-visual-sweep.json
+          if-no-files-found: ignore

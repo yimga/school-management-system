@@ -1,0 +1,80 @@
+name: Globe layout Playwright E2E
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/siteconfig/world_map_geo.py"
+      - "apps/siteconfig/cockpit_*"
+      - "src/apps/worldGlobe/**"
+      - "static/js/rmc-world-globe*.js"
+      - "templates/partials/cockpit/_live_world_map.html"
+      - "templates/control_plane_skeleton.html"
+      - "tests/e2e/world-globe*.spec.js"
+      - "tests/e2e/control-plane-layout-audit.spec.js"
+      - "scripts/run_globe_layout_playwright.sh"
+      - "scripts/verify_globe_void_ai_lab_parity.py"
+      - ".github/workflows/globe-layout-playwright-e2e.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  globe-layout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SECRET_KEY: "ci-globe-layout-not-production-64chars______________"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,manager.runmycampus.com,.runmycampus.com"
+      DEBUG: "0"
+      DJANGO_SETTINGS_MODULE: "config.settings"
+      VISUAL_QA_PORT: "8012"
+      VISUAL_QA_MANAGER_HOST: "manager.runmycampus.com"
+      VISUAL_QA_USERNAME: "admin"
+      VISUAL_QA_PASSWORD: "Sch00l_1234"
+      VISUAL_QA_TOTP_HEX_KEY: "eab95095c004f245721ba0fa7ebf82d5dc73"
+      DB_FILE: "${{ github.workspace }}/db_playwright_globe_ci.sqlite3"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Globe parity verifiers
+        run: |
+          python scripts/verify_globe_void_ai_lab_parity.py
+          python scripts/verify_world_globe_10x.py
+
+      - name: Map manager host
+        run: |
+          echo "127.0.0.1 manager.runmycampus.com" | sudo tee -a /etc/hosts
+
+      - name: Globe layout Playwright sweep
+        run: bash scripts/run_globe_layout_playwright.sh
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: globe-layout-artifacts
+          path: artifacts/globe-layout-playwright
+          if-no-files-found: ignore

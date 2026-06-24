@@ -1,5 +1,45 @@
 # RunMyCampus autonomous execution log
 
+## Slice — 50-app Django test matrix Linux CI (batch 1714 — 2026-06-24)
+
+**A. Scope:** Close batch 1701 honest residual — full 50-app matrix on Linux CI (Windows SQLite keepdb drift).
+
+**B. Shipped:** `.github/workflows/django-50-app-matrix.yml` (weekly + dispatch); `FIFTY_APP_TEST_MATRIX_PASS` token; `verify_50_app_test_matrix_ci_harness.py`; batch 1701 flipped **DONE**.
+
+**C. Proof:** **FIFTY_APP_TEST_MATRIX_CI_HARNESS_PASS**.
+
+**D. Honest:** First green run confirms on GitHub Actions (360m budget); not on every PR.
+
+## Slice — Marketing role-home sweep CI (batch 1713 — 2026-06-24)
+
+**A. Scope:** Close batch 1711 honest residual — automated Playwright proof for marketing threshold + homepage (Host-header sweep).
+
+**B. Shipped:** `role-home-marketing` parallel CI job (`ROLE_SWEEP_TENANT_ONLY=0`, port 8013, `/etc/hosts runmycampus.com`); harness verifier requires marketing job.
+
+**C. Proof:** **ROLE_HOME_VISUAL_SWEEP_HARNESS_PASS**.
+
+**D. Honest:** Full 7-surface sweep runs in CI marketing job; tenant-only job remains fast path for portal regressions.
+
+## Slice — Globe layout Playwright CI (batch 1712 — 2026-06-24)
+
+**A. Scope:** Close batch 1703 honest residual — live manager globe layout proof in CI.
+
+**B. Shipped:** `.github/workflows/globe-layout-playwright-e2e.yml`; `verify_globe_layout_playwright_ci_harness.py`.
+
+**C. Proof:** **GLOBE_LAYOUT_PLAYWRIGHT_CI_HARNESS_PASS**; workflow runs parity verifiers + `run_globe_layout_playwright.sh`.
+
+**D. Honest:** Concurrent-operator presence/wow-plus still manual QA.
+
+## Slice — Role-home visual sweep CI (batch 1711 — 2026-06-24)
+
+**A. Scope:** Close batch 1704/1710 honest residual — automated Playwright proof for tenant role homes without operator manual server boot.
+
+**B. Shipped:** `run_role_home_e2e.mjs` (migrate → sandbox tenant → TOTP seed → sweep); `.github/workflows/role-home-visual-sweep-e2e.yml`; `npm run sweep:role-home:e2e`; harness extended.
+
+**C. Proof:** **ROLE_HOME_VISUAL_SWEEP_HARNESS_PASS**; local/CI emits **`ROLE_HOME_VISUAL_SWEEP_E2E_PASS`**.
+
+**D. Honest:** Marketing surfaces shipped in batch **1713**.
+
 ## Slice — Role-home sweep login hardening (batch 1710 — 2026-06-24)
 
 **A. Scope:** Fix Playwright login click timeouts blocking live role-home visual sweep (batch 1704 honest residual).
