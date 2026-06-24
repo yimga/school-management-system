@@ -209,6 +209,13 @@
       <span class="lx-world__status-chip" data-rmc-status-filter="suspended" role="button" tabindex="0"><span class="lx-world__status-swatch" style="background:#fcd34d;/* inline-style-allow: cockpit-status-key-fixed-semantic-swatch */"></span>{% trans "Suspended" %}</span>
       <span class="lx-world__status-chip" data-rmc-status-filter="frozen" role="button" tabindex="0"><span class="lx-world__status-swatch" style="background:#93c5fd;/* inline-style-allow: cockpit-status-key-fixed-semantic-swatch */"></span>{% trans "Frozen" %}</span>
     </div>
+    <div class="lx-world__stream-key" id="rmc-world-globe-stream-key" aria-label="{% trans 'Globe stream lane key' %}">
+      <span class="lx-world__stream-key-title">{% trans "Signal lanes" %}</span>
+      <span><i class="lx-world__stream-swatch lx-world__stream-swatch--command"></i>{% trans "Command" %}</span>
+      <span><i class="lx-world__stream-swatch lx-world__stream-swatch--hours"></i>{% trans "School hours" %}</span>
+      <span><i class="lx-world__stream-swatch lx-world__stream-swatch--ai"></i>{% trans "AI copilot" %}</span>
+      <span><i class="lx-world__stream-swatch lx-world__stream-swatch--data"></i>{% trans "Data pulse" %}</span>
+    </div>
     <p id="rmc-world-globe-offline-note" class="lx-world__offline-note small text-muted mb-0" hidden>{% trans "Interactive globe unavailable — showing regional map. Visit online once to cache the 3D globe for offline use, or connect to retry." %}</p>
     <p id="rmc-world-globe-live-region" class="visually-hidden-focusable" aria-live="polite"></p>
     <div class="lx-world__fleet-pulse" id="rmc-world-globe-fleet-pulse" data-rmc-globe-ai-block{% if not lwm_fleet or not lwm_fleet.pulse_events %} hidden{% endif %}>

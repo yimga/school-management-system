@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 WOW_MARKERS: dict[str, tuple[str, ...]] = {
     "W1": ("lx-world__globe--revealed", "lx-world-globe-reveal"),
@@ -94,6 +97,19 @@ def main() -> int:
             _fail(f"_live_world_map.html missing void/fleet marker {marker!r}")
 
     for marker in (
+        "rmc-world-globe-stream-key",
+        "lx-world__stream-swatch--command",
+        "lx-world__stream-swatch--hours",
+        "lx-world__stream-swatch--ai",
+        "lx-world__stream-swatch--data",
+    ):
+        if marker.startswith("lx-world"):
+            if marker not in css:
+                _fail(f"rmc-cp-200x.css missing stream key marker {marker!r}")
+        elif marker not in tpl:
+            _fail(f"_live_world_map.html missing stream key marker {marker!r}")
+
+    for marker in (
         "wireMasterLabControls",
         "lx-world-lab--void-hidden",
         "lx-world-lab--ai-hidden",
@@ -172,6 +188,27 @@ def main() -> int:
     for token in (".arcAltitude((d: object)", ".arcStroke((d: object)", ".arcDashAnimateTime((d: object)"):
         if token not in mount:
             _fail("mount.ts must render globe stream lanes with coordinated per-lane motion")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+    try:
+        import django
+
+        django.setup()
+        from apps.siteconfig.world_map_geo import _build_arcs
+    except Exception as exc:  # pragma: no cover - verifier should print actionable failure.
+        _fail(f"could not import world_map_geo stream builder: {exc}")
+    sample_arcs = _build_arcs([
+        {
+            "lat": 5.36,
+            "lng": -4.01,
+            "region": "West Africa",
+            "status": "active",
+            "name": "New School",
+            "school_id": "sample",
+        }
+    ])
+    sample_kinds = {row.get("kind") for row in sample_arcs}
+    if {"operator_command", "school_hours", "ai_copilot", "data_pulse"} - sample_kinds:
+        _fail("one-marker globe payload must still emit all coordinated stream lanes")
     if "parseGlobeHash" not in mount or "applyGlobeHashIfPresent" not in mount:
         _fail("mount.ts missing globe hash viewport restore")
     if "DEFAULT_CAMERA" not in mount or "FILL_ALTITUDE" not in mount:
