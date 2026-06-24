@@ -34,6 +34,26 @@ def resolve_demo_school(
     return School.objects.filter(is_active=True).order_by("created_at").first()
 
 
+def _ensure_demo_portal_toggles_enabled() -> None:
+    """Parent/student demo personas require portal toggles on (E2E + sandbox)."""
+    try:
+        from apps.platform_runtime.models import RuntimeDefaults
+
+        rt, _ = RuntimeDefaults.objects.get_or_create(pk=1, defaults={"payload": {}})
+        update_fields: list[str] = []
+        if rt.enable_student_portal is not True:
+            rt.enable_student_portal = True
+            update_fields.append("enable_student_portal")
+        if rt.enable_parent_portal is not True:
+            rt.enable_parent_portal = True
+            update_fields.append("enable_parent_portal")
+        if update_fields:
+            update_fields.append("updated_at")
+            rt.save(update_fields=update_fields)
+    except (AttributeError, ImportError, RuntimeError, TypeError, ValueError):
+        pass
+
+
 def seed_demo_users_for_school(
     school: School,
     *,
@@ -123,6 +143,8 @@ def seed_demo_users_for_school(
             student=student,
             defaults={"relationship": StudentGuardian.Relationship.GUARDIAN},
         )
+
+    _ensure_demo_portal_toggles_enabled()
 
     stdout.write(
         style.SUCCESS(
