@@ -555,6 +555,38 @@
     renderAiGlobeGuide();
   }
 
+  function wireCommandIconRail() {
+    var constellation = document.getElementById("rmc-world-globe-constellation-toggle");
+    var regions = document.getElementById("rmc-world-globe-regions-rail");
+    var tour = document.getElementById("rmc-world-globe-tour-rail");
+    if (constellation && !constellation.__rmcIconRailWired) {
+      constellation.__rmcIconRailWired = true;
+      constellation.addEventListener("click", function () {
+        var on = constellation.getAttribute("aria-pressed") !== "true";
+        constellation.setAttribute("aria-pressed", on ? "true" : "false");
+        if (api() && api().setConstellationMode) api().setConstellationMode(on);
+        document.dispatchEvent(new CustomEvent("rmc:globe-wow-toggle", { detail: { on: on } }));
+        announce(on ? "Connection lines on." : "Connection lines off.");
+      });
+    }
+    if (regions && !regions.__rmcIconRailWired) {
+      regions.__rmcIconRailWired = true;
+      regions.addEventListener("click", function () {
+        var row = section && section.querySelector(".lx-world__legend-row[data-rmc-region]");
+        if (row) row.dispatchEvent(new Event("mouseenter"));
+        announce("Region focus applied.");
+      });
+    }
+    if (tour && !tour.__rmcIconRailWired) {
+      tour.__rmcIconRailWired = true;
+      tour.addEventListener("click", function () {
+        if (api() && api().isReady()) api().startTour();
+        else startSvgRegionTour();
+        announce("Globe tour started.");
+      });
+    }
+  }
+
   function wireShareViewport() {
     var btn = document.getElementById("rmc-world-globe-share-viewport");
     if (!btn || btn.__rmcShareWired) return;
@@ -1395,6 +1427,7 @@
     applySvgPalette();
     wireAskFleet();
     wireAiGlobeGuide();
+    wireCommandIconRail();
     wireShareViewport();
     wireGuideCompact();
     wireDayNightTerminator();

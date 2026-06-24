@@ -45,6 +45,9 @@ VOID_TIER = (
     "rmc-world-globe-ai-guide",
     "rmc-world-globe-ai-guide-ask",
     "rmc-world-globe-ai-guide-tour",
+    "rmc-world-globe-glass-dock",
+    "rmc-world-globe-icon-rail",
+    "rmc-world-globe-pulse-timeline",
     "rmc-world-globe-void-viewport",
     "rmc-world-globe-void-whisper",
     "rmc-world-globe-void-caption",
@@ -98,9 +101,21 @@ def main() -> int:
         "lx-world-lab__ai-guide",
         "wireAiGlobeGuide",
         "renderAiGlobeGuide",
+        "lx-world__glass-dock",
+        "lx-world__icon-rail",
+        "wireCommandIconRail",
     ):
         if marker not in (bridge + css):
             _fail(f"production globe lab missing marker {marker!r}")
+
+    for hidden_marker in (
+        ".lx-world-lab .lx-world__glass-dock,",
+        ".lx-world-lab .lx-world__kbd-bar,",
+        ".lx-world-lab .lx-world__icon-rail,",
+        ".lx-world-lab .lx-world__pulse-timeline",
+    ):
+        if hidden_marker in css:
+            _fail(f"cockpit command layer is still hidden by lab CSS: {hidden_marker!r}")
 
     for wow_id, tokens in WOW_MARKERS.items():
         haystacks = (tpl, bridge, wow_plus, mount, css, geo, fleet_svc, fleet_api, urls)
