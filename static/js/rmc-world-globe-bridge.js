@@ -1190,6 +1190,16 @@
       document.dispatchEvent(new CustomEvent("rmc:globe-wow-toggle", { detail: { on: !!on } }));
     }
 
+    function reflectWow(on) {
+      lab.classList.toggle("lx-world--wow-on", !!on);
+      lab.classList.toggle("lx-world-lab--wow-hidden", !on);
+      if (wowToggle) wowToggle.checked = !!on;
+      if (wowButton) {
+        wowButton.classList.toggle("on", !!on);
+        wowButton.textContent = on ? "✦ Wow demo ON" : "✦ Wow demo";
+      }
+    }
+
     function syncLayers() {
       lab.classList.toggle("lx-world-lab--void-hidden", voidToggle ? !voidToggle.checked : false);
       lab.classList.toggle("lx-world-lab--ai-hidden", aiToggle ? !aiToggle.checked : false);
@@ -1258,6 +1268,10 @@
         if (existing) existing.click();
       });
     }
+    document.addEventListener("rmc:globe-wow-toggle", function (ev) {
+      if (!ev.detail || typeof ev.detail.on !== "boolean") return;
+      reflectWow(ev.detail.on);
+    });
     syncLayers();
   }
 

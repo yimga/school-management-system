@@ -184,7 +184,7 @@ Open locally → scroll slowly → the right-hand stage should swap sims as chap
 | 1. One Record Scroll on `/storefront/` | **DONE** | `templates/marketing/partials/sections/_one_record_scroll.html` + `mkt-one-record-scroll.js` wired in `homepage.html`. |
 | 2. Reuse existing sim partials in sticky stage | **DONE** | `templates/marketing/partials/one_record_scroll/_stage_*.html` |
 | 3. Scroll progress + thread spine | **DONE** | Midpoint scroll spy + click rail; `prefers-reduced-motion` respected in CSS/JS. |
-| 4. Playwright sweep on `/storefront/` | **PARTIAL** | Run `npm run test:e2e:marketing:visual-engine` when Django is up. |
-| 5. Deprecate threshold-era default routes | **PARTIAL** | Threshold-era remains opt-in via flag/route; not default on `/storefront/`. |
+| 4. Playwright sweep on `/storefront/` | **DONE** | `tests/e2e/marketing-visual-engine.spec.js` — `/storefront/` One Record Scroll chapter → panel swap. |
+| 5. Deprecate threshold-era default routes | **DONE** | Default `/storefront/` → One Record Scroll; threshold-era only at `/experience/threshold-era/` (noindex preview). |
 
 **Lab (parity check):** `var/design-previews/runmycampus-one-record-scroll-lab-browsable.html` — uses the same production CSS/JS as `/storefront/`.
