@@ -577,6 +577,8 @@ def _run_app_isolation_mode(args) -> int:
         f"all_green={payload['all_shards_green']}",
         flush=True,
     )
+    if payload["all_shards_green"]:
+        print("FIFTY_APP_TEST_MATRIX_PASS", flush=True)
     return 0 if payload["all_shards_green"] else 1
 
 
@@ -682,6 +684,8 @@ def main() -> int:
             )
 
         print(f"Matrix: {payload['shards_run']}/{payload['shard_count']} shards; all_green={payload['all_shards_green']}")
+        if payload["all_shards_green"]:
+            print("FIFTY_APP_TEST_MATRIX_PASS")
         return 0 if payload["all_shards_green"] else 1
 
 

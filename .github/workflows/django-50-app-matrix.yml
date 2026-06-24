@@ -1,0 +1,56 @@
+name: Django 50-app test matrix
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    # Weekly Sunday 04:00 UTC — closes batch 1701 honest residual on Linux CI.
+    - cron: "0 4 * * 0"
+
+concurrency:
+  group: django-50-app-matrix
+  cancel-in-progress: false
+
+jobs:
+  fifty-app-matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      SECRET_KEY: "ci-50-app-matrix-not-production-64chars____________"
+      DJANGO_SETTINGS_MODULE: "config.settings"
+      DEBUG: "0"
+      RMC_SQLITE_TEST_MEMORY: "1"
+      RMC_50_APP_GATE_SESSION: "ci_50_app_matrix"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Django system check
+        run: python manage.py check
+
+      - name: Run 50-app matrix (per-app isolation)
+        run: |
+          rm -rf .django_test_dbs
+          python scripts/run_50_app_test_shards.py --write --isolation app 2>&1 | tee var/50-app-matrix-ci.log
+          grep -q FIFTY_APP_TEST_MATRIX_PASS var/50-app-matrix-ci.log
+
+      - name: Upload matrix artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fifty-app-matrix-artifacts
+          path: |
+            docs/generated/full_50_app_test_matrix_completion.json
+            docs/generated/full_50_app_test_matrix_completion.md
+            var/50-app-matrix-ci.log
+          if-no-files-found: ignore
