@@ -52,7 +52,7 @@ not exist; `PARTIAL` means it exists but stops short.
 | B1 | No scheduled invoicing beat (operator runs a command) | ~~PARTIAL~~ **CLOSED 2026-06-24** | `scheduled_invoicing.py` + hourly Celery beat; tenant-local day-of-month + hour window via `is_invoice_generation_due_for_school`; wired into `auto_generate_fee_invoices` task. |
 | B2 | No per-country plan SKU variants (one base × multiplier) | ~~ABSENT~~ **CLOSED 2026-06-24** | `Plan.regional_sku_overrides` + `regional_sku_override_for()` + billing resolver; migration `0202_b2_sku_overrides_b4_holding_rollup`; tests `test_regional_sku_override.py`. |
 | B3 | Tax at country level only | ~~PARTIAL~~ **CLOSED 2026-06-24** | `SubdivisionTaxRate` platform catalog + `tax_engine._subdivision_tax_rate()` overrides country rate when `subdivision_code` supplied; wired through `compute_localized_price`. |
-| B4 | Single currency per tenant | PARTIAL | Materialized multi-currency sub-ledger for holding-company rollups. |
+| B4 | Single currency per tenant | ~~PARTIAL~~ **CLOSED 2026-06-24** | `HoldingCurrencyRollup` model + `holding_rollup.materialize_holding_currency_rollups()` aggregates sub-school billing by currency (no FX fiction); tests `test_holding_currency_rollup.py`; verifier `verify_holding_currency_rollup_b4.py`. |
 
 ### Proactive AI resilience
 | # | Gap | State | Move |
@@ -139,6 +139,4 @@ trust, and zero-cost transparency** — features that make switching *to* us saf
 and switching *away* painless, which is exactly what wins a global market where
 every district fears being trapped. We carve the blue ocean by being the only
 vendor whose **simplicity is a moat**: each loop above closes one real gap, fully
-tested, no rebuilds. Next loop targets **B1** (timezone-aware scheduled invoicing beat),
-**R1** (keystroke-level wizard delta-sync), or **O4** (Stripe remote cancel hardening) —
-pure value-adds on foundations that already exist.
+tested, no rebuilds. **B1, R1, O4 closed 2026-06-24** (see §2). Next loop targets **B2** (per-country plan SKU overrides), **R3** (SW Background Sync drain), or **B3** (subdivision tax table).

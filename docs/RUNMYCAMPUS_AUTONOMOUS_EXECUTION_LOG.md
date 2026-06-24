@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice — B4 holding multi-currency rollup closeout (batch 1708 — 2026-06-24)
+
+**A. Scope:** Close competitive-audit B4 — materialized per-currency rollup for holding companies (already implemented; add verifier + audit truth).
+
+**B. Shipped:** `verify_holding_currency_rollup_b4.py`; competitive gap verifier checks `holding_rollup.py` + tests; audit row B4 CLOSED.
+
+**C. Proof:** **HOLDING_CURRENCY_ROLLUP_B4_PASS**; **COMPETITIVE_GAP_CLOSURE_PASS**.
+
+**D. Honest:** Operator dashboard for holding rollups + scheduled materialize beat still optional follow-up.
+
 ## Slice — SLO metrics live emit wiring (batch 1707 — 2026-06-24)
 
 **A. Scope:** Close T2/T3 honest gap — Prometheus alert rules existed but metric series were inert until backend + emit sites wired.
