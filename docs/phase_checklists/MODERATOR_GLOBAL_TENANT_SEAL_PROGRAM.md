@@ -1,7 +1,7 @@
 # Moderator Program — Global Multi-Tenant + Tenant Customer 250+ Seal
 
 **Batch:** SOT §11.4 **1726** (moderator orchestration)  
-**Status:** IN PROGRESS  
+**Status:** PARTIAL — Program 1+2 repo seal green; P0 live Playwright pending  
 **Primary E2E tenant:** `demo-school` (display name: **New Test High School**)  
 **Isolation tenant:** `rmc-tenant-isolation-probe` (cross-tenant tests only)
 
@@ -61,21 +61,25 @@ P0-BLOCKER → P1-W1.1 → P1-W1.2 → P1-W1.3 → P2-W0 inventory → P2-W2 see
 
 | Cycle | Agent | Wave | Gate | Status | Notes |
 |-------|-------|------|------|--------|-------|
-| 1 | M0 | Baseline | G0–G4 | PENDING | Initial audit |
-| 2 | A1+A10 | P0-BLOCKER | G5 | PENDING | Seed + role-home |
-| 3 | I1 | P1-W1.1 | G2 | PENDING | |
-| 4 | L1 | P1-W1.2 | G7 | PENDING | |
-| 5 | A3 | P1-W1.3 | G6 | PENDING | Manifest 2.0 |
-| 6 | A4 | P2-W5 | G3,G5 | PENDING | |
-| 7 | A2 | P2-W3 Africa | G8 | PENDING | |
+| 1 | M0 | Baseline | G0,G1,G4 | **PASS** | makemigrations clean; Django check OK; harness PASS |
+| 2 | A1+A3 | P2-W2 seed | G6,G8 | **PASS** | Manifest v2 + blueprint + customer delivery |
+| 3 | L1 | P1-W1.2 | G7 | **PASS** | `tenant_operational_lifecycle.py` |
+| 4 | A3 | P1-W1.3 | G6 | **PASS** | SCHEMA_VERSION 2 + operational_context |
+| 5 | A4 | P2-W5 | G3 | **PASS** | nav_role sidebar verifier alignment |
+| 6 | A2 | P2-W3 matrix | G8 | **PASS** | 249 ISO honest matrix JSON generated |
+| 7 | M0 | Bundle | ALL | **PASS** | `GLOBAL_TENANT_SEAL_PROGRAM_PASS` |
+| 8 | A10 | P0-BLOCKER | G5 | **PENDING** | Live role-home Playwright 5/5 (CI canonical) |
+| 9 | I1 | P1-W1.1 | G2 | **PENDING** | scan_tenant_queryset_safety --compare |
+| 10 | A2 | P2-W3 W-Africa | — | **NOT STARTED** | Next country depth wave |
 
 ## Verifier creation backlog
 
-- [ ] `scripts/verify_tenant_manifest_runtime_consistency.py` (A3)
-- [ ] `scripts/verify_operational_lifecycle_fsm_coverage.py` (L1)
-- [ ] `scripts/verify_tenant_customer_250_country_matrix.py` (A2)
-- [ ] `scripts/verify_tenant_seed_blueprint.py` (A1)
-- [ ] `scripts/verify_new_test_high_school_customer_delivery.py` (A1)
+- [x] `scripts/verify_tenant_manifest_runtime_consistency.py` (A3)
+- [x] `scripts/verify_operational_lifecycle_fsm_coverage.py` (L1)
+- [x] `scripts/verify_tenant_customer_250_country_matrix.py` (A2)
+- [x] `scripts/verify_tenant_seed_blueprint.py` (A1)
+- [x] `scripts/verify_new_test_high_school_customer_delivery.py` (A1)
+- [x] `scripts/verify_global_tenant_seal_program.py` (M0 bundle)
 
 ## Rules
 
