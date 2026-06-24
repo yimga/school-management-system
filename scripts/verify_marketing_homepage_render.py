@@ -21,13 +21,14 @@ HOST = os.environ.get("MKT_LIGHTHOUSE_HOST", "runmycampus.com")
 
 PATHS = (
     "/",
+    "/storefront/",
     "/academics/",
     "/admissions/",
     "/finance/",
     "/pricing/",
 )
 
-MARKERS = (
+ROOT_MARKERS = (
     "data-mkt-day-role",
     "mkt-edt-globe__map--interactive",
     "marketing-gear2-home.css",
@@ -35,6 +36,13 @@ MARKERS = (
     "mkt-edt-hero--edge",
     "marketing-page-personality.css",
     'data-mkt-personality="home"',
+)
+
+STOREFRONT_MARKERS = (
+    "data-mkt-one-record-scroll",
+    "panel-run",
+    "data-mkt-speed-duel",
+    "mkt-one-record-scroll.js",
 )
 
 
@@ -47,8 +55,11 @@ def main() -> int:
         if response.status_code != 200:
             failures.append(f"{path} -> HTTP {response.status_code} (final {response.request.get('PATH_INFO', path)})")
             continue
-        if path == "/" and not all(marker in response.content.decode("utf-8", errors="replace") for marker in MARKERS):
+        body = response.content.decode("utf-8", errors="replace")
+        if path == "/" and not all(marker in body for marker in ROOT_MARKERS):
             failures.append(f"{path} -> missing gear2 homepage markers")
+        if path == "/storefront/" and not all(marker in body for marker in STOREFRONT_MARKERS):
+            failures.append(f"{path} -> missing One Record Scroll storefront markers")
 
     if failures:
         for item in failures:

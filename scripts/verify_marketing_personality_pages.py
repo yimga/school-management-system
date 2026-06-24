@@ -56,8 +56,8 @@ def main() -> int:
         if rel != "templates/marketing/homepage.html":
             if "data-mkt-personality-page=" not in text:
                 findings.append(f"{rel}: missing data-mkt-personality-page")
-            if 'data-rmc-scroll-policy="viewport-lock"' not in text:
-                findings.append(f"{rel}: missing viewport-lock scroll policy")
+            if "mkt-personality-page__viewport" not in text:
+                findings.append(f"{rel}: missing mkt-personality-page__viewport shell")
         if "marketing_copy" not in text and "marketing_media" not in text:
             if rel != "templates/marketing/homepage.html":
                 findings.append(f"{rel}: missing marketing_copy / marketing_media load")
@@ -69,14 +69,19 @@ def main() -> int:
     homepage = REPO / "templates/marketing/homepage.html"
     if homepage.is_file():
         hp = homepage.read_text(encoding="utf-8")
-        if "_hero_speed_duel.html" not in hp:
-            findings.append("homepage.html missing _hero_speed_duel.html")
-        if "marketing-acquisition-engine.css" not in hp:
-            findings.append("homepage.html missing acquisition CSS")
+        for marker in (
+            "_one_record_scroll.html",
+            "mkt-one-record-scroll.js",
+            "mkt-one-record-scroll.css",
+        ):
+            if marker not in hp:
+                findings.append(f"homepage.html missing {marker}")
         if "mkt-speed-duel.js" not in hp:
-            findings.append("homepage.html missing mkt-speed-duel.js")
-        if "mkt-edge-map.js" not in hp:
-            findings.append("homepage.html missing mkt-edge-map.js")
+            findings.append("homepage.html missing mkt-speed-duel.js (stage sim)")
+        if "mkt-sandbox-wizard.js" not in hp:
+            findings.append("homepage.html missing mkt-sandbox-wizard.js (stage sim)")
+    else:
+        findings.append("missing templates/marketing/homepage.html")
 
     edge = REPO / "templates/marketing/edge_mesh.html"
     if edge.is_file() and "_viewport_trinity.html" not in edge.read_text(encoding="utf-8"):
@@ -119,10 +124,10 @@ def main() -> int:
     fluid = REPO / "templates/marketing/partials/sections/_fluid_classroom.html"
     if fluid.is_file():
         ft = fluid.read_text(encoding="utf-8")
-        if "mkt-ve-section--viewport-lock" not in ft:
-            findings.append("_fluid_classroom.html: missing viewport-lock")
         if 'marketing_copy "txt_academics_headline"' not in ft:
             findings.append("_fluid_classroom.html: missing academics copy token")
+        if "data-mkt-gradebook-morph" not in ft:
+            findings.append("_fluid_classroom.html: missing gradebook morph hook")
 
     for partial in ("_governance_auditor_gateway.html", "_entitlement_calculator.html"):
         p = REPO / "templates/marketing/partials/sections" / partial

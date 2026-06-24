@@ -70,14 +70,15 @@ class MarketingPersonalityPagesTests(SimpleTestCase):
         self.assertIn("_enterprise_constellation.html", text)
         self.assertIn("data-mkt-enterprise-constellation", partial)
 
-    def test_homepage_speed_duel(self):
+    def test_homepage_one_record_scroll(self):
         text = (REPO / "templates/marketing/homepage.html").read_text(encoding="utf-8")
-        partial = (
-            REPO / "templates/marketing/partials/sections/_hero_speed_duel.html"
+        stage = (
+            REPO / "templates/marketing/partials/one_record_scroll/_stage_speed_duel.html"
         ).read_text(encoding="utf-8")
-        self.assertIn("_hero_speed_duel.html", text)
+        self.assertIn("_one_record_scroll.html", text)
+        self.assertIn("mkt-one-record-scroll.js", text)
         self.assertIn("mkt-speed-duel.js", text)
-        self.assertIn("data-mkt-speed-duel", partial)
+        self.assertIn("data-mkt-speed-duel", stage)
 
     def test_edge_mesh_trinity(self):
         text = (REPO / "templates/marketing/edge_mesh.html").read_text(encoding="utf-8")

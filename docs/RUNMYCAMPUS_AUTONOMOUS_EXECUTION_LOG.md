@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Marketing One Record Scroll gate alignment (batch 1715 — 2026-06-24)
+
+**A. Scope:** Close batch 1704 honest residual — marketing CI gates still asserted viewport-lock hero stack after `/storefront/` One Record Scroll became default acquisition surface.
+
+**B. Shipped:** `verify_marketing_one_record_scroll.py` in lane2 audit + frontend completion + `marketing-gates.yml`; intent viewport + personality page gates aligned to storefront partial + personality viewport shells; homepage render adds `/storefront/` markers; Django tests updated.
+
+**C. Proof:** **ONE_RECORD_SCROLL_PASS**; **MARKETING_INTENT_VIEWPORT_PASS**; **MARKETING_PERSONALITY_PAGES_PASS**; **MARKETING_GLOCAL_VISUAL_ENGINE_PASS**; homepage render 6 routes OK; 19 Django tests green.
+
+**D. Honest:** Lane2 full orchestrator slow locally; Playwright chapter swap covered by batch 1713 marketing CI job.
+
 ## Slice — 50-app Django test matrix Linux CI (batch 1714 — 2026-06-24)
 
 **A. Scope:** Close batch 1701 honest residual — full 50-app matrix on Linux CI (Windows SQLite keepdb drift).

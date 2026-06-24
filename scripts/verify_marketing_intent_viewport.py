@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gate: marketing personality sections use 100dvh viewport-lock + geo shell attrs."""
+"""Gate: /storefront/ One Record Scroll + personality page shells + geo middleware."""
 
 from __future__ import annotations
 
@@ -7,45 +7,80 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-SECTIONS = REPO / "templates/marketing/partials/sections"
 BASE = REPO / "templates/marketing/base_marketing.html"
+STAGE_DIR = REPO / "templates/marketing/partials/one_record_scroll"
+
+PERSONALITY_PAGES = (
+    "zero_ui_lab.html",
+    "enterprise_ledger.html",
+    "academics.html",
+    "edge_mesh.html",
+    "compliance.html",
+    "pricing.html",
+)
+
+STOREFRONT_HOMEPAGE_MARKERS = (
+    "_one_record_scroll.html",
+    "mkt-one-record-scroll.js",
+    "mkt-one-record-scroll.css",
+)
+
+SCROLL_PARTIAL_MARKERS = (
+    "data-mkt-one-record-scroll",
+)
+
+STAGE_SIM_HOOKS = (
+    ("_stage_speed_duel.html", "data-mkt-speed-duel"),
+    ("_stage_sovereign_wizard.html", "data-mkt-sandbox-wizard"),
+    ("_stage_fluid_gradebook.html", "data-mkt-gradebook-morph"),
+    ("_stage_clinical_ledger.html", "data-mkt-split-ledger"),
+    ("_stage_rugged_console.html", "data-mkt-network-state"),
+)
 
 
 def main() -> int:
     findings: list[str] = []
-    for name in (
-        "_hero_speed_duel.html",
-        "_sovereign_kernel.html",
-        "_clinical_ledger.html",
-        "_rugged_engine.html",
-        "_fluid_classroom.html",
-        "_zero_ui_lab.html",
-        "_viewport_trinity.html",
-        "_enterprise_constellation.html",
-    ):
-        path = SECTIONS / name
-        if not path.is_file():
-            findings.append(f"missing {path.relative_to(REPO)}")
-            continue
-        text = path.read_text(encoding="utf-8")
-        if "mkt-ve-section--viewport-lock" not in text:
-            findings.append(f"{name}: missing viewport-lock class")
-        if 'data-mkt-scroll-policy="viewport-lock"' not in text:
-            findings.append(f"{name}: missing viewport-lock scroll policy")
 
     homepage = REPO / "templates/marketing/homepage.html"
-    if homepage.is_file():
-        hp = homepage.read_text(encoding="utf-8")
-        for partial in (
-            "_hero_speed_duel.html",
-            "_sovereign_kernel.html",
-            "_clinical_ledger.html",
-            "_rugged_engine.html",
-        ):
-            if partial not in hp:
-                findings.append(f"homepage.html missing include {partial}")
-    else:
+    if not homepage.is_file():
         findings.append("missing templates/marketing/homepage.html")
+    else:
+        hp = homepage.read_text(encoding="utf-8")
+        for marker in STOREFRONT_HOMEPAGE_MARKERS:
+            if marker not in hp:
+                findings.append(f"homepage.html missing {marker}")
+        if "mkt-speed-duel.js" not in hp:
+            findings.append("homepage.html missing mkt-speed-duel.js (stage sim)")
+
+    scroll_partial = REPO / "templates/marketing/partials/sections/_one_record_scroll.html"
+    if not scroll_partial.is_file():
+        findings.append("missing _one_record_scroll.html partial")
+    else:
+        sp = scroll_partial.read_text(encoding="utf-8")
+        for marker in SCROLL_PARTIAL_MARKERS:
+            if marker not in sp:
+                findings.append(f"_one_record_scroll.html missing {marker}")
+        if sp.count("data-mkt-or-panel=") != 6:
+            findings.append("_one_record_scroll.html: expected 6 chapter panels")
+
+    for stage_file, hook in STAGE_SIM_HOOKS:
+        path = STAGE_DIR / stage_file
+        if not path.is_file():
+            findings.append(f"missing stage partial {stage_file}")
+            continue
+        if hook not in path.read_text(encoding="utf-8"):
+            findings.append(f"{stage_file}: missing sim hook {hook}")
+
+    for page in PERSONALITY_PAGES:
+        path = REPO / "templates/marketing" / page
+        if not path.is_file():
+            findings.append(f"missing personality page {page}")
+            continue
+        text = path.read_text(encoding="utf-8")
+        if "data-mkt-personality-page=" not in text:
+            findings.append(f"{page}: missing data-mkt-personality-page")
+        if "mkt-personality-page__viewport" not in text:
+            findings.append(f"{page}: missing mkt-personality-page__viewport shell")
 
     if BASE.is_file():
         base = BASE.read_text(encoding="utf-8")
@@ -58,15 +93,13 @@ def main() -> int:
     if "RunMyCampusGeoMiddleware" not in settings_py.read_text(encoding="utf-8"):
         findings.append("settings.py missing RunMyCampusGeoMiddleware")
 
-    css = REPO / "static/marketing/css/marketing-visual-engine.css"
-    if css.is_file():
-        css_text = css.read_text(encoding="utf-8")
-        if "max-height: 100dvh" not in css_text:
-            findings.append("marketing-visual-engine.css: missing max-height 100dvh")
-        if ".mkt-edos-text-shield" not in css_text:
-            findings.append("marketing-visual-engine.css: missing text-shield")
+    or_css = REPO / "static/marketing/css/mkt-one-record-scroll.css"
+    if not or_css.is_file():
+        findings.append("missing mkt-one-record-scroll.css")
     else:
-        findings.append("missing marketing-visual-engine.css")
+        css_text = or_css.read_text(encoding="utf-8")
+        if ".mkt-or__stage-wrap" not in css_text:
+            findings.append("mkt-one-record-scroll.css: missing sticky stage wrap")
 
     if findings:
         print("verify_marketing_intent_viewport: FAIL", file=sys.stderr)

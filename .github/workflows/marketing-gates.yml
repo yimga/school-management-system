@@ -52,6 +52,7 @@ jobs:
           python scripts/verify_marketing_view_layer_complete.py
           python scripts/verify_trust_compliance_surfaces.py
           python scripts/verify_marketing_homepage_render.py
+          python scripts/verify_marketing_one_record_scroll.py
           python scripts/audit_marketing_frontend_100.py
 
   marketing-playwright-gates:

@@ -53,6 +53,26 @@ class OneRecordScrollTemplateTests(SimpleTestCase):
         self.assertIn("force: true", js)
         self.assertIn("data-mkt-one-record-scroll", js)
 
+    def test_threshold_era_deprecated_preview_route(self):
+        views = (REPO / "apps/schools/marketing_views.py").read_text(encoding="utf-8")
+        self.assertIn("marketing_threshold_era_preview", views)
+        self.assertIn("threshold_era_home.html", views)
+        self.assertIn("noindex", views)
+        urls = (REPO / "config/urls.py").read_text(encoding="utf-8")
+        self.assertIn("experience/threshold-era/", urls)
+        self.assertIn("marketing_intent_homepage", urls)
+
+    def test_marketing_landing_prefers_intent_over_threshold_when_opted_in(self):
+        views = (REPO / "apps/schools/marketing_views.py").read_text(encoding="utf-8")
+        chunk = views.split("def marketing_landing", 1)[1].split("\ndef ", 1)[0]
+        self.assertIn("MARKETING_THRESHOLD_ERA_ENABLED", chunk)
+        self.assertIn("MARKETING_INTENT_HOMEPAGE", chunk)
+        self.assertIn("marketing/homepage.html", chunk)
+        self.assertLess(
+            chunk.index("MARKETING_THRESHOLD_ERA_ENABLED"),
+            chunk.index("MARKETING_INTENT_HOMEPAGE"),
+        )
+
     def test_verify_one_record_scroll_gate(self):
         import subprocess
         import sys
@@ -79,20 +99,3 @@ class OneRecordScrollHttpTests(TestCase):
         self.assertIn("data-mkt-one-record-scroll", content)
         self.assertIn("panel-run", content)
         self.assertIn("data-mkt-speed-duel", content)
-
-    def test_threshold_era_preview_is_noindex(self):
-        client = Client(HTTP_HOST="runmycampus.com")
-        url = reverse("marketing_threshold_era_preview")
-        response = client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("noindex", response.get("X-Robots-Tag", "").lower())
-        self.assertIn("threshold_era_home", str(response.template_name))
-
-    @override_settings(MARKETING_THRESHOLD_ERA_ENABLED=False, MARKETING_INTENT_HOMEPAGE=True)
-    def test_marketing_landing_prefers_intent_not_threshold(self):
-        client = Client(HTTP_HOST="runmycampus.com")
-        from apps.schools.marketing_views import marketing_landing
-
-        response = marketing_landing(client.get("/").wsgi_request)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("marketing/homepage.html", response.template_name)

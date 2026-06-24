@@ -15,21 +15,27 @@ REPO = Path(__file__).resolve().parents[3]
 
 
 class MarketingIntentViewportTests(SimpleTestCase):
-    def test_personality_sections_viewport_locked(self):
-        for partial in (
-            "_hero_speed_duel.html",
-            "_zero_ui_lab.html",
-            "_viewport_trinity.html",
-            "_enterprise_constellation.html",
-            "_sovereign_kernel.html",
-            "_clinical_ledger.html",
-            "_rugged_engine.html",
-        ):
-            text = (REPO / "templates/marketing/partials/sections" / partial).read_text(
-                encoding="utf-8"
-            )
-            self.assertIn("mkt-ve-section--viewport-lock", text, partial)
-            self.assertIn('data-mkt-scroll-policy="viewport-lock"', text, partial)
+    def test_storefront_stage_partials_embed_sims(self):
+        stage_dir = REPO / "templates/marketing/partials/one_record_scroll"
+        hooks = {
+            "_stage_speed_duel.html": "data-mkt-speed-duel",
+            "_stage_sovereign_wizard.html": "data-mkt-sandbox-wizard",
+            "_stage_clinical_ledger.html": "data-mkt-split-ledger",
+            "_stage_rugged_console.html": "data-mkt-network-state",
+        }
+        for name, hook in hooks.items():
+            text = (stage_dir / name).read_text(encoding="utf-8")
+            self.assertIn(hook, text, name)
+
+    def test_intent_viewport_gate(self):
+        proc = subprocess.run(
+            [sys.executable, str(REPO / "scripts/verify_marketing_intent_viewport.py")],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr or proc.stdout)
+        self.assertIn("MARKETING_INTENT_VIEWPORT_PASS", proc.stdout)
 
     def test_base_marketing_geo_lang_dir(self):
         base = (REPO / "templates/marketing/base_marketing.html").read_text(encoding="utf-8")
