@@ -10,18 +10,37 @@ import { createRequire } from 'module';
 
 const PORT = process.env.VISUAL_QA_PORT || '8012';
 process.env.VISUAL_QA_PORT = PORT;
-// Path-tenant on 127.0.0.1 is the default sweep transport (avoids HSTS / host-map flakes).
-if (!process.env.TENANT_E2E_SUBDOMAIN) {
-  process.env.TENANT_E2E_SUBDOMAIN = '0';
+const TENANT_SLUG = process.env.TENANT_SLUG || 'demo-school';
+// Subdomain base + Chromium host-resolver keeps session cookies aligned with Django redirects.
+if (!process.env.TENANT_E2E_BASE_URL) {
+  process.env.TENANT_E2E_BASE_URL = `http://${TENANT_SLUG}.runmycampus.com:${PORT}`;
 }
+process.env.TENANT_E2E_SUBDOMAIN = '1';
 
 const require = createRequire(import.meta.url);
 const { loginTenant, TENANT_BASE_URL } = require('../tests/e2e/helpers/tenant-login.js');
 
 const MKT_HOST = process.env.MARKETING_SWEEP_HOST || 'runmycampus.com';
-const MKT_BASE = process.env.MARKETING_SWEEP_BASE || `http://127.0.0.1:${PORT}`;
+const MKT_BASE =
+  process.env.MARKETING_SWEEP_BASE || `http://${MKT_HOST}:${PORT}`;
 const TENANT_ONLY = process.env.ROLE_SWEEP_TENANT_ONLY === '1';
 const OUT = path.join(process.cwd(), 'var/role-home-visual-sweep.json');
+
+const HOST_RESOLVER_RULES =
+  process.env.PLAYWRIGHT_ROLE_SWEEP_HOST_RULES ||
+  'MAP runmycampus.com 127.0.0.1,' +
+    'MAP demo-school.runmycampus.com 127.0.0.1,' +
+    'MAP manager.runmycampus.com 127.0.0.1,' +
+    'MAP *.runmycampus.com 127.0.0.1';
+
+function chromiumLaunchArgs() {
+  return [
+    `--host-resolver-rules=${HOST_RESOLVER_RULES}`,
+    '--proxy-server=direct://',
+    '--proxy-bypass-list=*',
+    '--disable-features=HttpsUpgrades,HttpsFirstMode',
+  ];
+}
 
 function sweepPageInBrowser(scrollRootSel) {
   function findScrollable(el) {
@@ -145,7 +164,10 @@ if (!TENANT_ONLY) {
   );
 }
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({
+  headless: true,
+  args: chromiumLaunchArgs(),
+});
 const results = [];
 
 for (const s of SURFACES) {
@@ -154,9 +176,6 @@ for (const s of SURFACES) {
     baseURL: base,
     viewport: { width: 1400, height: 900 },
   };
-  if (s.host) {
-    ctxOpts.extraHTTPHeaders = { Host: s.host };
-  }
   const ctx = await browser.newContext(ctxOpts);
   const page = await ctx.newPage();
   const row = { label: s.label, requested: s.url, base, host: s.host || null };
@@ -180,6 +199,16 @@ for (const s of SURFACES) {
     const title = await page.title();
     if (/page not found|404|not found at/i.test(title)) {
       row.failures = ['page_not_found'];
+      row.ok = false;
+      results.push(row);
+      await ctx.close();
+      continue;
+    }
+    if (
+      !s.anon &&
+      /\/authentication\/login\/?$/i.test(new URL(page.url()).pathname)
+    ) {
+      row.failures = [...(row.failures || []), 'session_lost_login_redirect'];
       row.ok = false;
       results.push(row);
       await ctx.close();

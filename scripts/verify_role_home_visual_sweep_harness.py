@@ -31,12 +31,13 @@ def main() -> int:
             "tenant-login.js",
             "loginTenant",
             "VISUAL_QA_PORT",
-            "127.0.0.1",
+            "TENANT_SLUG",
+            "runmycampus.com",
             "marketing-home",
             "marketing-threshold",
             "admin-performance",
             "ROLE_SWEEP_TENANT_ONLY",
-            "extraHTTPHeaders",
+            "host-resolver-rules",
         ):
             if needle not in text:
                 errors.append(f"sweep script missing {needle}")

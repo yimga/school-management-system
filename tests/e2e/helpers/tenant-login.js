@@ -121,10 +121,14 @@ async function completeTenantMfaIfPresent(page, username) {
         waitUntil: 'commit',
       })
       .catch(() => null);
-    await page
-      .locator('form[method="post"] button[type="submit"]')
-      .first()
-      .click({ timeout: 30000 });
+    const mfaForm = page.locator('form[method="post"]').first();
+    await mfaForm.evaluate((form) => {
+      if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+      } else {
+        form.submit();
+      }
+    });
     await leftMfa;
     await ensurePathTenantHost(page);
   };

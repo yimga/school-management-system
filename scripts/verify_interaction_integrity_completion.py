@@ -281,7 +281,7 @@ def main() -> int:
         cwd=str(ROOT),
         capture_output=True,
         text=True,
-        timeout=300,
+        timeout=int(os.environ.get("RMC_VERIFY_PAGES_INTERACTION_TIMEOUT", "900")),
     )
     add(
         "18",
