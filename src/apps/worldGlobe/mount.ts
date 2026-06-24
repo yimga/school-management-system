@@ -53,6 +53,8 @@ type GlobeArc = {
   end_lng: number;
   color?: string;
   region?: string;
+  kind?: string;
+  lane?: number;
 };
 
 type TourWaypoint = {
@@ -529,11 +531,32 @@ function bindArcs(globe: GlobeInstance, arcs: GlobeArc[], golden = false): void 
       if (golden) return "rgba(251,191,36,0.62)";
       return (d as GlobeArc).color || "rgba(99,102,241,0.42)";
     })
-    .arcAltitude(golden ? 0.14 : 0.16)
-    .arcStroke(golden ? 0.5 : 0.58)
-    .arcDashLength(0.4)
-    .arcDashGap(golden ? 0.24 : 0.35)
-    .arcDashAnimateTime(prefersReducedMotion() ? 0 : golden ? 3200 : 4000);
+    .arcAltitude((d: object) => {
+      if (golden) return 0.14;
+      var lane = ((d as GlobeArc).lane ?? 0) % 4;
+      return [0.18, 0.23, 0.15, 0.2][lane] || 0.18;
+    })
+    .arcStroke((d: object) => {
+      if (golden) return 0.5;
+      var lane = ((d as GlobeArc).lane ?? 0) % 4;
+      return [0.62, 0.68, 0.46, 0.42][lane] || 0.56;
+    })
+    .arcDashLength((d: object) => {
+      if (golden) return 0.4;
+      var lane = ((d as GlobeArc).lane ?? 0) % 4;
+      return [0.42, 0.34, 0.5, 0.28][lane] || 0.4;
+    })
+    .arcDashGap((d: object) => {
+      if (golden) return 0.24;
+      var lane = ((d as GlobeArc).lane ?? 0) % 4;
+      return [0.34, 0.42, 0.24, 0.46][lane] || 0.35;
+    })
+    .arcDashAnimateTime((d: object) => {
+      if (prefersReducedMotion()) return 0;
+      if (golden) return 3200;
+      var lane = ((d as GlobeArc).lane ?? 0) % 4;
+      return [4200, 3600, 5200, 4600][lane] || 4000;
+    });
 }
 
 function syncArcLayer(): void {

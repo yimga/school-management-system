@@ -153,12 +153,25 @@ def main() -> int:
 
     if "compute_default_camera" not in geo or "GLOBE_FILL_ALTITUDE" not in geo:
         _fail("world_map_geo missing fill-frame camera helpers")
-    for token in ("PREVIEW_STREAM_COLORS", "rgba(129,140,248,0.66)", "rgba(252,211,77,0.56)"):
+    for token in (
+        "GLOBE_STREAM_LANES",
+        "operator_command",
+        "school_hours",
+        "ai_copilot",
+        "data_pulse",
+        "rgba(129,140,248,0.72)",
+        "rgba(252,211,77,0.66)",
+        "rgba(103,232,249,0.58)",
+        "rgba(110,231,183,0.50)",
+    ):
         if token not in geo:
             _fail(f"world_map_geo missing preview stream arc token {token!r}")
-    for token in ('"end_lat": float(m["lat"])', '"end_lng": float(m["lng"])'):
+    for token in ("lane_count = max", '"lane": i % len(GLOBE_STREAM_LANES)', '"kind": lane["kind"]'):
         if token not in geo:
-            _fail("world_map_geo arcs must target real marker coordinates, not region centroids")
+            _fail("world_map_geo arcs must emit coordinated multi-lane stream metadata")
+    for token in (".arcAltitude((d: object)", ".arcStroke((d: object)", ".arcDashAnimateTime((d: object)"):
+        if token not in mount:
+            _fail("mount.ts must render globe stream lanes with coordinated per-lane motion")
     if "parseGlobeHash" not in mount or "applyGlobeHashIfPresent" not in mount:
         _fail("mount.ts missing globe hash viewport restore")
     if "DEFAULT_CAMERA" not in mount or "FILL_ALTITUDE" not in mount:

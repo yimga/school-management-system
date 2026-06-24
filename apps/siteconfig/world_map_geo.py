@@ -144,11 +144,44 @@ SVG_VIEWBOX_HEIGHT = 280.0
 GLOBE_EARTH_TEXTURE_VERSION = "20260624-earth-daylight-v2"
 GLOBE_EARTH_TEXTURE_URL = f"/static/img/globe/earth-night-1k.jpg?v={GLOBE_EARTH_TEXTURE_VERSION}"
 
-# Preview-parity stream anchor for the lavender/yellow globe fly lines.
+# Coordinated live stream lanes for the globe fly lines. These are not roads;
+# they are operator intelligence lanes: command, school-hours, AI assist, and data pulse.
 DEFAULT_HQ = {"lat": 40.71, "lng": -74.01, "label": "Platform HQ"}
 PREVIEW_STREAM_COLORS = (
-    "rgba(129,140,248,0.66)",
-    "rgba(252,211,77,0.56)",
+    "rgba(129,140,248,0.72)",
+    "rgba(252,211,77,0.66)",
+    "rgba(103,232,249,0.58)",
+    "rgba(110,231,183,0.50)",
+)
+GLOBE_STREAM_LANES: tuple[dict[str, Any], ...] = (
+    {
+        "kind": "operator_command",
+        "start_lat": DEFAULT_HQ["lat"],
+        "start_lng": DEFAULT_HQ["lng"],
+        "color": PREVIEW_STREAM_COLORS[0],
+        "end_offset": (0.0, 0.0),
+    },
+    {
+        "kind": "school_hours",
+        "start_lat": 51.51,
+        "start_lng": -0.13,
+        "color": PREVIEW_STREAM_COLORS[1],
+        "end_offset": (0.34, -0.28),
+    },
+    {
+        "kind": "ai_copilot",
+        "start_lat": 37.77,
+        "start_lng": -122.42,
+        "color": PREVIEW_STREAM_COLORS[2],
+        "end_offset": (-0.32, 0.26),
+    },
+    {
+        "kind": "data_pulse",
+        "start_lat": 6.52,
+        "start_lng": 3.38,
+        "color": PREVIEW_STREAM_COLORS[3],
+        "end_offset": (0.22, 0.32),
+    },
 )
 
 # Low-discrepancy unit offsets — same pattern as cockpit_panels_realdata_service.
@@ -417,26 +450,34 @@ def cluster_markers(markers: list[dict[str, Any]], *, zoom: float) -> list[dict[
 
 
 def _build_arcs(markers: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """HQ → regional centroid arcs for schools active in each region."""
-    hq = DEFAULT_HQ
-    regions_seen: set[str] = set()
+    """Build coordinated command streams that stay visible even with one live region."""
+    if not markers:
+        return []
     arcs: list[dict[str, Any]] = []
-    for m in markers:
-        region = m.get("region") or "Other"
-        if region in regions_seen:
-            continue
-        regions_seen.add(region)
-        color = PREVIEW_STREAM_COLORS[len(arcs) % len(PREVIEW_STREAM_COLORS)]
+    ordered = sorted(
+        markers,
+        key=lambda row: (
+            0 if row.get("status") == "suspended" else 1 if row.get("status") == "frozen" else 2,
+            row.get("region") or "",
+            row.get("name") or row.get("label") or "",
+        ),
+    )
+    lane_count = max(len(GLOBE_STREAM_LANES), min(8, len(ordered) * 2))
+    for i in range(lane_count):
+        lane = GLOBE_STREAM_LANES[i % len(GLOBE_STREAM_LANES)]
+        m = ordered[i % len(ordered)]
+        dlat, dlng = lane["end_offset"]
         arcs.append({
-            "start_lat": hq["lat"],
-            "start_lng": hq["lng"],
-            "end_lat": float(m["lat"]),
-            "end_lng": float(m["lng"]),
-            "color": color,
-            "region": region,
+            "start_lat": lane["start_lat"],
+            "start_lng": lane["start_lng"],
+            "end_lat": round(float(m["lat"]) + float(dlat), 5),
+            "end_lng": round(float(m["lng"]) + float(dlng), 5),
+            "color": lane["color"],
+            "region": m.get("region") or "Other",
+            "kind": lane["kind"],
+            "lane": i % len(GLOBE_STREAM_LANES),
+            "school_id": m.get("school_id") or "",
         })
-        if len(arcs) >= 6:
-            break
     return arcs
 
 
