@@ -8,6 +8,17 @@ import fs from 'fs';
 import path from 'path';
 import { createRequire } from 'module';
 
+const ROOT = process.cwd();
+if (!process.env.VISUAL_QA_PYTHON) {
+  const winVenv = path.join(ROOT, '.venv', 'Scripts', 'python.exe');
+  const unixVenv = path.join(ROOT, '.venv', 'bin', 'python');
+  if (fs.existsSync(winVenv)) {
+    process.env.VISUAL_QA_PYTHON = winVenv;
+  } else if (fs.existsSync(unixVenv)) {
+    process.env.VISUAL_QA_PYTHON = unixVenv;
+  }
+}
+
 const PORT = process.env.VISUAL_QA_PORT || '8012';
 process.env.VISUAL_QA_PORT = PORT;
 const TENANT_SLUG = process.env.TENANT_SLUG || 'demo-school';

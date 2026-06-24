@@ -34,22 +34,68 @@ def resolve_demo_school(
     return School.objects.filter(is_active=True).order_by("created_at").first()
 
 
+_PORTAL_TOGGLE_KEYS = (
+    "enable_student_portal",
+    "enable_parent_portal",
+    "enable_teacher_portal",
+)
+
+
 def _ensure_demo_portal_toggles_enabled() -> None:
-    """Parent/student demo personas require portal toggles on (E2E + sandbox)."""
+    """Platform defaults: parent/teacher/student demo personas need portals on."""
     try:
         from apps.platform_runtime.models import RuntimeDefaults
+        from apps.siteconfig.config_service import invalidate_effective_site_settings_cache
 
         rt, _ = RuntimeDefaults.objects.get_or_create(pk=1, defaults={"payload": {}})
         update_fields: list[str] = []
-        if rt.enable_student_portal is not True:
-            rt.enable_student_portal = True
-            update_fields.append("enable_student_portal")
-        if rt.enable_parent_portal is not True:
-            rt.enable_parent_portal = True
-            update_fields.append("enable_parent_portal")
+        for key in _PORTAL_TOGGLE_KEYS:
+            if getattr(rt, key, None) is not True:
+                setattr(rt, key, True)
+                update_fields.append(key)
+        payload = dict(rt.payload or {})
+        payload_dirty = False
+        for key in _PORTAL_TOGGLE_KEYS:
+            if payload.get(key) is False:
+                payload[key] = True
+                payload_dirty = True
+        if payload_dirty:
+            rt.payload = payload
+            update_fields.append("payload")
         if update_fields:
             update_fields.append("updated_at")
-            rt.save(update_fields=update_fields)
+            rt.save(update_fields=list(dict.fromkeys(update_fields)))
+            invalidate_effective_site_settings_cache()
+    except (AttributeError, ImportError, RuntimeError, TypeError, ValueError):
+        pass
+
+
+def _ensure_school_demo_portal_toggles_enabled(school: School) -> None:
+    """Per-tenant overrides in school.settings must not block demo portal E2E."""
+    try:
+        from apps.platform_runtime.runtime_defaults_first_class import set_runtime_default
+        from apps.siteconfig.config_service import invalidate_effective_site_settings_cache
+
+        changed = False
+        for key in _PORTAL_TOGGLE_KEYS:
+            if set_runtime_default(school=school, field=key, value=True):
+                changed = True
+
+        settings = getattr(school, "settings", None) or {}
+        if not isinstance(settings, dict):
+            settings = {}
+        top_dirty = False
+        for key in _PORTAL_TOGGLE_KEYS:
+            if settings.get(key) is False:
+                settings[key] = True
+                top_dirty = True
+        if top_dirty:
+            school.settings = settings
+            school.save(update_fields=["settings"])
+            changed = True
+
+        if changed:
+            invalidate_effective_site_settings_cache()
     except (AttributeError, ImportError, RuntimeError, TypeError, ValueError):
         pass
 
@@ -145,6 +191,7 @@ def seed_demo_users_for_school(
         )
 
     _ensure_demo_portal_toggles_enabled()
+    _ensure_school_demo_portal_toggles_enabled(school)
 
     stdout.write(
         style.SUCCESS(

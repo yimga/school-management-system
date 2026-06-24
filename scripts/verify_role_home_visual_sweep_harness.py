@@ -38,6 +38,7 @@ def main() -> int:
             "admin-performance",
             "ROLE_SWEEP_TENANT_ONLY",
             "host-resolver-rules",
+            "VISUAL_QA_PYTHON",
         ):
             if needle not in text:
                 errors.append(f"sweep script missing {needle}")

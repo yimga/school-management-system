@@ -11,6 +11,7 @@ from django.test import TestCase
 from apps.people.models import StudentGuardian, StudentProfile
 from apps.schools.demo_user_seeding import seed_demo_users_for_school
 from apps.schools.models import School, SchoolMembership
+from apps.siteconfig.config_service import get_effective_site_settings
 
 User = get_user_model()
 
@@ -79,3 +80,26 @@ class SeedDemoUsersForSchoolTests(TestCase):
         student_user = User.objects.get(username="demo.student")
         self.assertEqual(profile.user_id, student_user.id)
         self.assertTrue(student_user.check_password("NewPass5678"))
+
+    def test_seed_enables_student_portal_for_school(self):
+        self.school.settings = {
+            "runtime_defaults": {"enable_student_portal": False},
+            "enable_student_portal": False,
+        }
+        self.school.save(update_fields=["settings"])
+
+        seed_demo_users_for_school(
+            self.school,
+            password="Test1234",
+            username_prefix="demo",
+            stdout=self.stdout,
+            style=self.style,
+        )
+
+        self.school.refresh_from_db()
+        rd = (self.school.settings or {}).get("runtime_defaults") or {}
+        self.assertTrue(rd.get("enable_student_portal"))
+        self.assertTrue((self.school.settings or {}).get("enable_student_portal"))
+
+        site = get_effective_site_settings(school=self.school)
+        self.assertTrue(getattr(site, "enable_student_portal", False))
