@@ -40,6 +40,8 @@ from typing import Any
 from django.core.cache import cache
 from django.utils.translation import gettext_lazy as _
 
+from apps.siteconfig.currency import platform_currency_symbol
+
 logger = logging.getLogger(__name__)
 
 PULSE_CACHE_TTL_SECONDS = 60
@@ -291,11 +293,13 @@ def _resolve_mrr_card() -> dict[str, Any] | None:
             if sub.billing_cycle == Cycle.ANNUAL:
                 amount = amount / Decimal("12")
             monthly_total += amount
-        # Format: $42k for 4-digit-plus, $1.2k for thousands, $850 below.
+        # Format: <sym>42k for 4-digit-plus, <sym>1.2k for thousands, <sym>850 below,
+        # where <sym> is the platform reporting-currency symbol (not a hardcoded $).
+        cur = platform_currency_symbol()
         if monthly_total >= 1000:
-            value = f"${(monthly_total / 1000):.1f}k".replace(".0k", "k")
+            value = f"{cur}{(monthly_total / 1000):.1f}k".replace(".0k", "k")
         else:
-            value = f"${monthly_total:.0f}"
+            value = f"{cur}{monthly_total:.0f}"
         # Snapshot raw value in whole dollars/month (Decimal → int truncation
         # is acceptable for delta purposes — sub-dollar precision isn't shown).
         raw_int = int(monthly_total)

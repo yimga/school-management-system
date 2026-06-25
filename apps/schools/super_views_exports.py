@@ -12,6 +12,8 @@ from django.db.models import Count, OuterRef, Subquery, Sum
 from django.http import HttpResponse
 from django.utils import timezone
 
+from apps.siteconfig.currency import platform_currency_symbol
+
 from .models import School, SchoolProvisioningEvent
 from .super_views_dashboard_helpers import parse_month_param, selected_system_names
 from apps.platform_runtime.operator_identity import (
@@ -199,17 +201,18 @@ def export_super_dashboard_pdf(request):
     )
     flow.append(Spacer(1, 0.25 * inch))
 
+    cur = platform_currency_symbol()
     flow.append(Paragraph("North Star", heading_style))
     north_star_label = "Total MRR"
-    north_star_value = f"${total_mrr:,.2f}"
+    north_star_value = f"{cur}{total_mrr:,.2f}"
     flow.append(Paragraph(f"<b>{north_star_label}:</b> {north_star_value}", body_style))
     flow.append(Spacer(1, 0.2 * inch))
 
     flow.append(Paragraph("Financial snapshot", heading_style))
     fin_data = [
         ["Metric", "Value"],
-        ["MRR (actual)", f"${total_mrr:,.2f}"],
-        ["Waived", f"${total_waived:,.2f}"],
+        ["MRR (actual)", f"{cur}{total_mrr:,.2f}"],
+        ["Waived", f"{cur}{total_waived:,.2f}"],
         ["Waiver %", f"{waiver_percentage:.1f}%"],
     ]
     fin_table = Table(fin_data, colWidths=[2.5 * inch, 2 * inch])
@@ -233,8 +236,8 @@ def export_super_dashboard_pdf(request):
             country_data.append(
                 [
                     row["country_code"] or "—",
-                    f"${(row.get('actual') or 0):,.2f}",
-                    f"${(row.get('waived') or 0):,.2f}",
+                    f"{cur}{(row.get('actual') or 0):,.2f}",
+                    f"{cur}{(row.get('waived') or 0):,.2f}",
                 ]
             )
         country_table = Table(
