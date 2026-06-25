@@ -1,0 +1,78 @@
+name: Tenant abrupt-end phased sweep E2E
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/run_tenant_abrupt_end_e2e.mjs"
+      - "scripts/verify_platform_abrupt_end_sweep.mjs"
+      - "scripts/generate_tenant_surface_coverage_matrix.py"
+      - "scripts/generate_portal_tenant_sweep_routes.py"
+      - "scripts/verify_tenant_abrupt_end_phased_sweep.py"
+      - "tests/e2e/helpers/tenant-login.js"
+      - "docs/generated/portal_tenant_sweep_routes.json"
+      - "package.json"
+      - ".github/workflows/tenant-abrupt-end-e2e.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tenant-abrupt-end-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      SECRET_KEY: "ci-tenant-abrupt-end-not-production-64chars________"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com"
+      DEBUG: "0"
+      DJANGO_SETTINGS_MODULE: "config.settings"
+      MULTI_TENANT_BASE_DOMAIN: "runmycampus.com"
+      VISUAL_QA_PORT: "8015"
+      TENANT_SLUG: "demo-school"
+      TENANT_SWEEP_PASSWORD: "Test1234"
+      TENANT_SWEEP_MAX: "200"
+      TENANT_SWEEP_MAX_INFRA_SKIP: "0"
+      VISUAL_QA_TOTP_HEX_KEY: "eab95095c004f245721ba0fa7ebf82d5dc73"
+      DB_FILE: "${{ github.workspace }}/db_playwright_tenant_abrupt_ci.sqlite3"
+      SWEEP_HEALTH_SECS: "360"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          npm ci
+          node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Tenant abrupt-end E2E (200 routes)
+        run: npm run sweep:abrupt-end:tenant:e2e
+
+      - name: Phased sweep gate
+        run: python scripts/verify_tenant_abrupt_end_phased_sweep.py
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tenant-abrupt-end-e2e-artifacts
+          path: |
+            artifacts/tenant-abrupt-end-e2e
+            var/tenant-abrupt-end-sweep.json
+            docs/generated/preview_tenant_surface_coverage_matrix.html
+          if-no-files-found: ignore

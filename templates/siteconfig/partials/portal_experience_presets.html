@@ -1,0 +1,72 @@
+{% load i18n %}
+{% comment %}Shopify-style one-click portal experience presets.{% endcomment %}
+{% if portal_experience_presets %}
+<div class="mb-4" data-rmc-portal-experience-presets="1">
+  <h3 class="h6 fw-semibold mb-2">{% trans "School-wide experience preset" %}</h3>
+  <p class="text-muted small mb-3">
+    {% trans "Default bundle for every role unless a per-role theme is set below. Active preset:" %}
+    <span class="rmc-badge rmc-badge--muted border ms-1">{{ portal_experience_active_preset_label }}</span>
+  </p>
+  <div class="row g-2">
+    {% for preset in portal_experience_presets %}
+    <div class="col-12 col-md-6 col-xl-3">
+      <form method="post" action="{{ portal_experience_preset_post_url }}" class="h-100">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="apply_portal_experience_preset">
+        <input type="hidden" name="preset_id" value="{{ preset.id }}">
+        <button type="submit" class="btn btn-outline-secondary w-100 h-100 text-start p-3 rounded-3{% if preset.id == portal_experience_active_preset %} border-primary{% endif %}"{% if preset.id == portal_experience_active_preset %} aria-current="true"{% endif %}>
+          <span class="d-flex align-items-center gap-2 mb-1">
+            <i class="bi {{ preset.icon }} text-primary" aria-hidden="true"></i>
+            <strong class="small">{{ preset.label }}</strong>
+          </span>
+          <span class="d-block text-muted small">{{ preset.description }}</span>
+        </button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% if portal_role_experience_presets %}
+<div class="mb-4" data-rmc-portal-role-experience-presets="1">
+  <h3 class="h6 fw-semibold mb-2">{% trans "Per-role themes" %}</h3>
+  <p class="text-muted small mb-3">
+    {% trans "Shopify-style template overrides — each role can inherit the school default or use its own preset." %}
+  </p>
+  <div class="row g-3">
+    {% for row in portal_role_experience_presets %}
+    <div class="col-12 col-lg-6">
+      <div class="border rounded-3 p-3 h-100 bg-body-tertiary">
+        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+          <strong class="small">{{ row.label }}</strong>
+          <span class="rmc-badge rmc-badge--muted border">{{ row.preset_label }}</span>
+        </div>
+        <div class="d-flex flex-wrap gap-1">
+          {% for preset in portal_experience_presets %}
+          <form method="post" action="{{ portal_experience_preset_post_url }}" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="apply_portal_experience_preset">
+            <input type="hidden" name="preset_id" value="{{ preset.id }}">
+            <input type="hidden" name="role_bucket" value="{{ row.bucket }}">
+            <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill{% if preset.id == row.preset_id %} active{% endif %}">
+              {{ preset.label }}
+            </button>
+          </form>
+          {% endfor %}
+          <form method="post" action="{{ portal_experience_preset_post_url }}" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="apply_portal_experience_preset">
+            <input type="hidden" name="preset_id" value="inherit">
+            <input type="hidden" name="role_bucket" value="{{ row.bucket }}">
+            <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill{% if row.preset_id == 'inherit' %} active{% endif %}">
+              {% trans "Inherit" %}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endif %}
