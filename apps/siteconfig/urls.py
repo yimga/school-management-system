@@ -173,6 +173,10 @@ from .views_cockpit_admin import (
     CockpitShellConfigureView,
     MarketingVoiceConfigureView,
 )
+from .views_live_banner_studio import (
+    api_live_banner_draft_emergency,
+    api_live_banner_suggest_program,
+)
 from .views_dashboard_defaults_admin import DashboardDefaultsAdminView
 from .views_cockpit_previews import CockpitPreviewIndexView, CockpitPreviewServeView
 from .views_cockpit_health import CockpitHealthView
@@ -682,6 +686,18 @@ urlpatterns = [
         "super/configure/cockpit/",
         CockpitConfigureView.as_view(),
         name="cockpit_configure",
+    ),
+    # rbac-allow: staff-configure-live-banner-studio-ai-assist
+    path(
+        "super/configure/cockpit/live-banner/suggest-program/",
+        api_live_banner_suggest_program,
+        name="live_banner_suggest_program",
+    ),
+    # rbac-allow: staff-configure-live-banner-studio-ai-assist
+    path(
+        "super/configure/cockpit/live-banner/draft-emergency/",
+        api_live_banner_draft_emergency,
+        name="live_banner_draft_emergency",
     ),
     # v8 cockpit shell chrome — skin per surface, header composition toggles,
     # emoji nav glyphs, page-header action buttons (cockpit_* brand_experience keys).

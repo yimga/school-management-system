@@ -1024,6 +1024,13 @@ def cockpit_context(request) -> dict[str, Any]:
             atk_section["enabled"] = True
             manager_cockpit["activity_ticker"] = atk_section
 
+        from .cockpit_live_banner_program import finalize_live_banner_section
+
+        manager_cockpit["activity_ticker"] = finalize_live_banner_section(
+            manager_cockpit.get("activity_ticker") or {},
+            request,
+        )
+
         try:
             from .cockpit_calendar_weather_runtime import resolve_calendar_weather_runtime
 
@@ -1149,6 +1156,13 @@ def cockpit_context(request) -> dict[str, Any]:
         tat_section["enabled"] = True
     if tat_section:
         tenant_cockpit["tenant_activity_ticker"] = tat_section
+
+    from .cockpit_live_banner_program import finalize_live_banner_section
+
+    tenant_cockpit["tenant_activity_ticker"] = finalize_live_banner_section(
+        tenant_cockpit.get("tenant_activity_ticker") or {},
+        request,
+    )
 
     if _request_wants_cockpit_realdata(request):
         try:

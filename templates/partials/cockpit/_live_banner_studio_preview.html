@@ -1,0 +1,42 @@
+{% load i18n %}
+{% comment %} Live Banner Studio preview — cockpit configure only. {% endcomment %}
+{% if preview.cards %}
+<section class="rmc-live-banner-studio-preview mb-3" aria-label="{% trans 'Live banner preview' %}">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+    <div class="small fw-semibold text-uppercase">{{ title }}</div>
+    <div class="small text-muted">
+      {% blocktrans with count=preview.card_count %} {{ count }} cards{% endblocktrans %}
+      · {% blocktrans with count=preview.announcement_count %} {{ count }} announcements{% endblocktrans %}
+    </div>
+  </div>
+  <div class="rmc-cockpit-ticker cp-activity-ticker rmc-live-banner-studio-preview__strip"
+       style="--rmc-cockpit-ticker-seconds: {{ preview.scroll_seconds|default:40 }}s;">
+    <span class="rmc-cockpit-ticker__badge">{{ preview.live_badge_label|default:_("LIVE") }}</span>
+    <div class="rmc-cockpit-ticker__viewport">
+      <div class="rmc-cockpit-ticker__track">
+        {% for card in preview.cards %}
+          {% if card.text %}
+          <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--{{ card.severity|default:'info' }}"
+                {% if card.aria_live %}aria-live="{{ card.aria_live }}"{% endif %}>
+            {% if card.icon %}<span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">{{ card.icon }}</span>{% endif %}
+            <span class="rmc-cockpit-ticker__event-text">{{ card.text }}</span>
+            {% if card.timestamp %}<span class="rmc-cockpit-ticker__event-time">· {{ card.timestamp }}</span>{% endif %}
+          </span>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% if preview.sources_enabled %}
+  <div class="small text-muted mt-2">
+    {% trans "Enabled metric sources:" %}
+    {% for source_id in preview.sources_enabled %}<code class="ms-1">{{ source_id }}</code>{% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% else %}
+<div class="rmc-empty-state rmc-live-banner-studio-preview__empty border rounded-3 p-3 mb-3">
+  <div class="small fw-semibold mb-1">{{ title }}</div>
+  <p class="small text-muted mb-0">{% trans "No live banner cards yet. Enable metric sources or add announcements to preview the marquee." %}</p>
+</div>
+{% endif %}

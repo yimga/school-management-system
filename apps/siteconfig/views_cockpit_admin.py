@@ -209,6 +209,26 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         ctx["activity_ticker_fields"] = [
             form[name] for name in getattr(form, "ACTIVITY_TICKER_FIELDS", ())
         ]
+        ctx["live_banner_studio_fields"] = [
+            form[name] for name in getattr(form, "LIVE_BANNER_STUDIO_FIELDS", ())
+        ]
+        try:
+            from apps.siteconfig.cockpit_live_banner_program import build_live_banner_preview
+
+            payload = getattr(form.instance, "cockpit_payload", None) or {}
+            if not isinstance(payload, dict):
+                payload = {}
+            ctx["live_banner_manager_preview"] = build_live_banner_preview(
+                payload.get("activity_ticker") or {},
+                self.request,
+            )
+            ctx["live_banner_tenant_preview"] = build_live_banner_preview(
+                payload.get("tenant_activity_ticker") or {},
+                self.request,
+            )
+        except Exception:
+            ctx["live_banner_manager_preview"] = {}
+            ctx["live_banner_tenant_preview"] = {}
         ctx["gradebook_trend_fields"] = [
             form[name] for name in getattr(form, "GRADEBOOK_TREND_FIELDS", ())
         ]

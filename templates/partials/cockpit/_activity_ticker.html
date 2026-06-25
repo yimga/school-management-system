@@ -67,7 +67,8 @@
     <div class="rmc-cockpit-ticker__track">
       {% for card in cockpit.activity_ticker.cards %}
       {% if card.text %}
-      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--{{ card.severity|default:'info' }}">
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--{{ card.severity|default:'info' }}"
+            {% if card.aria_live %}aria-live="{{ card.aria_live }}"{% elif card.kind == 'emergency' %}aria-live="assertive"{% endif %}>
         {% if card.icon %}<span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">{{ card.icon }}</span>{% endif %}
         <span class="rmc-cockpit-ticker__event-text">{{ card.text }}</span>
         {% if card.timestamp %}<span class="rmc-cockpit-ticker__event-time">· {{ card.timestamp }}</span>{% endif %}
@@ -131,7 +132,8 @@
   <div class="rmc-cockpit-ticker__viewport">
     <div class="rmc-cockpit-ticker__track">
       {% for card in cockpit.tenant_activity_ticker.cards %}
-      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--{{ card.severity|default:'info' }}">
+      <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--{{ card.severity|default:'info' }}"
+            {% if card.aria_live %}aria-live="{{ card.aria_live }}"{% elif card.kind == 'emergency' %}aria-live="assertive"{% endif %}>
         {% if card.icon %}<span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">{{ card.icon }}</span>{% endif %}
         <span class="rmc-cockpit-ticker__event-text">{{ card.text }}</span>
         {% if card.timestamp %}<span class="rmc-cockpit-ticker__event-time">· {{ card.timestamp }}</span>{% endif %}

@@ -17,6 +17,7 @@ re-syncable when the schema evolves.
 
 from __future__ import annotations
 
+import uuid
 from typing import Any
 
 from django import forms
@@ -1258,6 +1259,76 @@ def _serialize_activity_ticker_cards(
         icon = str(item.get("icon", "")).strip()
         severity = str(item.get("severity", "")).strip() or "info"
         rows.append(f"{text} | {timestamp} | {icon} | {severity}".rstrip(" |"))
+    return "\n".join(rows)
+
+
+def _parse_live_banner_announcements(value: str) -> list[dict[str, Any]]:
+    """One per line: text | kind | severity | pin | starts_at | ends_at | audiences."""
+    kind_allow = {"info", "alert", "emergency"}
+    severity_allow = {"ok", "info", "warn", "danger"}
+    out: list[dict[str, Any]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|", 6)]
+        text = parts[0]
+        if not text:
+            continue
+        kind = (parts[1] if len(parts) > 1 else "info").lower() or "info"
+        if kind not in kind_allow:
+            kind = "info"
+        raw_severity = (parts[2] if len(parts) > 2 else "").lower()
+        severity = raw_severity if raw_severity in severity_allow else ""
+        pin_raw = (parts[3] if len(parts) > 3 else "").lower()
+        pin = pin_raw in {"1", "yes", "true", "y", "pin"}
+        starts_at = parts[4] if len(parts) > 4 else ""
+        ends_at = parts[5] if len(parts) > 5 else ""
+        audiences_raw = parts[6] if len(parts) > 6 else "all"
+        audiences = [
+            item.strip().lower()
+            for item in audiences_raw.split(",")
+            if item.strip()
+        ] or ["all"]
+        row: dict[str, Any] = {
+            "id": str(uuid.uuid4()),
+            "text": text,
+            "kind": kind,
+            "pin": pin,
+            "audiences": audiences,
+        }
+        if severity:
+            row["severity"] = severity
+        if starts_at:
+            row["starts_at"] = starts_at
+        if ends_at:
+            row["ends_at"] = ends_at
+        out.append(row)
+    return out
+
+
+def _serialize_live_banner_announcements(
+    items: list[dict[str, Any]] | None,
+) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        text = str(item.get("text", "")).strip()
+        if not text:
+            continue
+        kind = str(item.get("kind", "info")).strip() or "info"
+        severity = str(item.get("severity", "")).strip()
+        pin = "yes" if item.get("pin") else "no"
+        starts_at = str(item.get("starts_at", "")).strip()
+        ends_at = str(item.get("ends_at", "")).strip()
+        audiences = item.get("audiences") or ["all"]
+        if isinstance(audiences, (list, tuple)):
+            audience_text = ",".join(str(a).strip() for a in audiences if str(a).strip())
+        else:
+            audience_text = str(audiences).strip()
+        rows.append(
+            f"{text} | {kind} | {severity} | {pin} | {starts_at} | {ends_at} | {audience_text or 'all'}"
+        )
     return "\n".join(rows)
 
 
@@ -3506,6 +3577,45 @@ class CockpitPayloadForm(forms.ModelForm):
             "to render ONLY operator-published cards (no auto-fill)."
         ),
     )
+    atk_manager_sources = forms.MultipleChoiceField(
+        required=False,
+        choices=(),
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
+        label=_("Manager metric sources"),
+        help_text=_(
+            "Choose which platform-wide metrics feed the operator LIVE banner. "
+            "Unchecked sources are omitted from auto-fill cards."
+        ),
+    )
+    atk_tenant_sources = forms.MultipleChoiceField(
+        required=False,
+        choices=(),
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
+        label=_("Tenant metric sources"),
+        help_text=_(
+            "Choose which tenant-scoped metrics feed the portal LIVE banner. "
+            "Tenant sources never read operator-platform models."
+        ),
+    )
+    atk_manager_announcements = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Manager announcements"),
+        help_text=_(
+            "One per line: text | kind | severity | pin | starts_at | ends_at | audiences. "
+            "kind ∈ {info, alert, emergency}; pin ∈ {yes, no}; audiences comma-separated "
+            "(all, parent, teacher, student, staff). Pinned emergencies render first."
+        ),
+    )
+    atk_tenant_announcements = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_LARGE,
+        label=_("Tenant announcements"),
+        help_text=_(
+            "Same row format as manager announcements. These render only on tenant hosts "
+            "and respect audience + schedule windows."
+        ),
+    )
 
     # 24) tenant_v3_extended.gradebook_trend
     gbt_label = forms.CharField(
@@ -4260,6 +4370,15 @@ class CockpitPayloadForm(forms.ModelForm):
         "atk_live_badge_label",
         "atk_cards",
     )
+    LIVE_BANNER_STUDIO_FIELDS: tuple[str, ...] = (
+        "atk_enabled_on_manager",
+        "atk_enabled_on_tenant",
+        "atk_realdata_enabled",
+        "atk_manager_sources",
+        "atk_tenant_sources",
+        "atk_manager_announcements",
+        "atk_tenant_announcements",
+    )
     GRADEBOOK_TREND_FIELDS: tuple[str, ...] = (
         "gbt_label",
         "gbt_subjects",
@@ -4386,6 +4505,14 @@ class CockpitPayloadForm(forms.ModelForm):
         )
         for bucket in ("ADMIN", "TEACHER", "PARENT", "STUDENT"):
             self.fields[f"txp_role_preset_{bucket}"].choices = ROLE_PRESET_FIELD_CHOICES
+        from apps.siteconfig.cockpit_live_banner_program import (
+            manager_source_choices,
+            resolve_sources_enabled,
+            tenant_source_choices,
+        )
+
+        self.fields["atk_manager_sources"].choices = manager_source_choices()
+        self.fields["atk_tenant_sources"].choices = tenant_source_choices()
         payload = self._read_existing_payload()
         self._seed_initial_from_payload(payload)
 
@@ -4759,6 +4886,32 @@ class CockpitPayloadForm(forms.ModelForm):
             self.fields["atk_realdata_enabled"].initial = bool(
                 atk.get("realdata_enabled")
             )
+        tat = payload.get("tenant_activity_ticker") or {}
+        nested_sources = atk.get("sources_enabled")
+        manager_sources = resolve_sources_enabled(
+            nested_sources.get("manager")
+            if isinstance(nested_sources, dict)
+            else nested_sources,
+            "manager",
+        )
+        tenant_sources = resolve_sources_enabled(
+            tat.get("sources_enabled")
+            if tat.get("sources_enabled") is not None
+            else (
+                nested_sources.get("tenant")
+                if isinstance(nested_sources, dict)
+                else None
+            ),
+            "tenant",
+        )
+        self.fields["atk_manager_sources"].initial = sorted(manager_sources)
+        self.fields["atk_tenant_sources"].initial = sorted(tenant_sources)
+        self.fields["atk_manager_announcements"].initial = _serialize_live_banner_announcements(
+            atk.get("announcements")
+        )
+        self.fields["atk_tenant_announcements"].initial = _serialize_live_banner_announcements(
+            tat.get("announcements")
+        )
 
         # tenant_v3_extended.gradebook_trend
         gbt = payload.get("gradebook_trend") or {}
@@ -5383,10 +5536,25 @@ class CockpitPayloadForm(forms.ModelForm):
         atk_overlay["realdata_enabled"] = bool(
             cleaned.get("atk_realdata_enabled")
         )
+        manager_sources = list(cleaned.get("atk_manager_sources") or [])
+        tenant_sources = list(cleaned.get("atk_tenant_sources") or [])
+        atk_overlay["sources_enabled"] = {
+            "manager": manager_sources,
+            "tenant": tenant_sources,
+        }
+        manager_announcements = _parse_live_banner_announcements(
+            cleaned.get("atk_manager_announcements") or ""
+        )
+        atk_overlay["announcements"] = manager_announcements
         if atk_overlay:
             payload.setdefault("activity_ticker", {}).update(atk_overlay)
-        tat_enabled = bool(cleaned.get("atk_enabled_on_tenant"))
-        payload.setdefault("tenant_activity_ticker", {})["enabled"] = tat_enabled
+        tat_overlay = payload.setdefault("tenant_activity_ticker", {})
+        tat_overlay["enabled"] = bool(cleaned.get("atk_enabled_on_tenant"))
+        tat_overlay["sources_enabled"] = tenant_sources
+        tenant_announcements = _parse_live_banner_announcements(
+            cleaned.get("atk_tenant_announcements") or ""
+        )
+        tat_overlay["announcements"] = tenant_announcements
 
         # 24) tenant_v3_extended.gradebook_trend
         gbt_overlay: dict[str, Any] = {}

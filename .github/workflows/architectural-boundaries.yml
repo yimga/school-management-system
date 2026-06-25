@@ -813,6 +813,9 @@ jobs:
       - name: Run Workflow Progress Bus 10x gate (smoke + coverage + shell wiring)
         run: |
           python scripts/verify_workflow_progress_10x.py
+          python scripts/verify_workflow_recovery_end_to_end.py
+          python scripts/verify_workflow_recovery_command_center.py
+          python scripts/verify_workflow_healing_coverage.py --strict
 
   email-infrastructure:
     name: "Email infrastructure 7-phase gate (v4.00.98)"

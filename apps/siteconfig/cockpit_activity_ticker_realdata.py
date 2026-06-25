@@ -47,7 +47,7 @@ from __future__ import annotations
 import hashlib
 import logging
 from datetime import timedelta
-from typing import Any
+from typing import Any, Callable
 
 from django.core.cache import cache
 from django.db.utils import OperationalError, ProgrammingError
@@ -57,7 +57,7 @@ from django.utils.translation import gettext_lazy as _
 logger = logging.getLogger(__name__)
 
 CACHE_TTL_SECONDS = 30  # Shorter than panels (60s) — ticker should feel live.
-CACHE_PREFIX = "rmc:cockpit:activity_ticker:v2"
+CACHE_PREFIX = "rmc:cockpit:activity_ticker:v3"
 
 # Hard cap on cards emitted per resolver pass — protects the partial from
 # emitting a 200-event scroll on a busy day.
@@ -447,29 +447,54 @@ def _source_tenant_subscription_changes() -> list[dict[str, Any]]:
         return []
 
 
-def resolve_manager_ticker_cards() -> list[dict[str, Any]]:
-    """Aggregate platform-wide ticker cards from all manager sources.
+def _manager_source_resolvers() -> dict[str, Callable[[], list[dict[str, Any]]]]:
+    return {
+        "migration_audit": _source_migration_audit_events,
+        "offboarding": _source_offboarding_activity,
+        "provisioning": _source_school_provisioning,
+        "pending_approval": _source_schools_pending_approval,
+        "subscriptions": _source_tenant_subscription_changes,
+        "webhook_failures": _source_webhook_delivery_failures,
+        "migration_failures": _source_migration_run_failures,
+    }
 
-    Returns at most ``MAX_CARDS_TOTAL`` cards. Cache key is host-scoped
-    (``:manager``) so this never overlaps a tenant cache entry.
 
-    Empty return → caller falls back to operator-published seed cards.
-    """
-    cache_key = f"{CACHE_PREFIX}:manager:v1"
+def _tenant_source_resolvers(request: Any) -> dict[str, Callable[[], list[dict[str, Any]]]]:
+    return {
+        "attendance": lambda: _source_tenant_attendance_milestones(request),
+        "fees": lambda: _source_tenant_fee_receipts(request),
+        "enrollments": lambda: _source_tenant_new_enrollments(request),
+        "communications": lambda: _source_tenant_communication_activity(request),
+        "email_delivery": _source_email_delivery_events,
+    }
+
+
+def resolve_manager_ticker_cards(
+    sources_enabled: frozenset[str] | None = None,
+) -> list[dict[str, Any]]:
+    """Aggregate platform-wide ticker cards from enabled manager sources."""
+    from .cockpit_live_banner_program import (
+        default_sources_enabled,
+        sources_cache_suffix,
+    )
+
+    enabled = (
+        sources_enabled
+        if sources_enabled is not None
+        else default_sources_enabled("manager")
+    )
+    cache_key = f"{CACHE_PREFIX}:manager:{sources_cache_suffix(enabled)}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
 
-    cards = merge_activity_ticker_card_lists(
-        _source_migration_audit_events(),
-        _source_offboarding_activity(),
-        _source_school_provisioning(),
-        _source_schools_pending_approval(),
-        _source_tenant_subscription_changes(),
-        _source_webhook_delivery_failures(),
-        _source_migration_run_failures(),
-        max_total=MAX_CARDS_TOTAL,
-    )
+    resolvers = _manager_source_resolvers()
+    card_lists = [
+        resolvers[source_id]()
+        for source_id in sorted(enabled)
+        if source_id in resolvers
+    ]
+    cards = merge_activity_ticker_card_lists(*card_lists, max_total=MAX_CARDS_TOTAL)
 
     try:
         cache.set(cache_key, cards, CACHE_TTL_SECONDS)
@@ -626,30 +651,37 @@ def _source_tenant_fee_receipts(request: Any) -> list[dict[str, Any]]:
         return []
 
 
-def resolve_tenant_ticker_cards(request: Any) -> list[dict[str, Any]]:
-    """Aggregate tenant-scoped ticker cards from all tenant sources.
+def resolve_tenant_ticker_cards(
+    request: Any,
+    sources_enabled: frozenset[str] | None = None,
+) -> list[dict[str, Any]]:
+    """Aggregate tenant-scoped ticker cards from enabled tenant sources."""
+    from .cockpit_live_banner_program import (
+        default_sources_enabled,
+        sources_cache_suffix,
+    )
 
-    Cache key includes the tenant slug HASH so a cache-set on one tenant
-    can never contaminate another tenant's render.
-
-    Empty return → caller falls back to operator-published seed cards
-    (or the static helper defaults). Never returns operator-platform data.
-    """
+    enabled = (
+        sources_enabled
+        if sources_enabled is not None
+        else default_sources_enabled("tenant")
+    )
     tenant_slug = _resolve_tenant_slug(request)
     tenant_hash = _hash_prefix(tenant_slug) if tenant_slug else "anon"
-    cache_key = f"{CACHE_PREFIX}:tenant:{tenant_hash}:v1"
+    cache_key = (
+        f"{CACHE_PREFIX}:tenant:{tenant_hash}:{sources_cache_suffix(enabled)}"
+    )
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
 
-    cards = merge_activity_ticker_card_lists(
-        _source_tenant_attendance_milestones(request),
-        _source_tenant_fee_receipts(request),
-        _source_tenant_new_enrollments(request),
-        _source_tenant_communication_activity(request),
-        _source_email_delivery_events(),
-        max_total=MAX_CARDS_TOTAL,
-    )
+    resolvers = _tenant_source_resolvers(request)
+    card_lists = [
+        resolvers[source_id]()
+        for source_id in sorted(enabled)
+        if source_id in resolvers
+    ]
+    cards = merge_activity_ticker_card_lists(*card_lists, max_total=MAX_CARDS_TOTAL)
 
     try:
         cache.set(cache_key, cards, CACHE_TTL_SECONDS)
@@ -662,33 +694,32 @@ def resolve_tenant_ticker_cards(request: Any) -> list[dict[str, Any]]:
 # Orchestrator entry point
 # ============================================================
 
+def _resolve_cockpit_payload_from_request(request: Any) -> dict[str, Any]:
+    site = getattr(request, "site_settings", None) or getattr(request, "SITE", None)
+    if site is None:
+        return {}
+    payload = getattr(site, "cockpit_payload", None)
+    return payload if isinstance(payload, dict) else {}
+
+
 def resolve_activity_ticker_cards(request: Any) -> dict[str, list[dict[str, Any]]]:
-    """Return ``{section_key: cards_list}`` for whichever host applies.
-
-    Manager host returns ``{"activity_ticker": [...]}``.
-    Tenant host returns ``{"tenant_activity_ticker": [...]}``.
-    Other hosts (auth / marketing / base) return ``{}`` — the partial
-    handles the silent case via its early-exit gate.
-
-    Total wall-clock budget: each source has its own try/except; an
-    individual model-missing scenario adds zero cards but doesn't poison
-    the rest of the call. A catastrophic failure returns ``{}``.
-    """
+    """Return ``{section_key: cards_list}`` for whichever host applies."""
     try:
+        from .cockpit_live_banner_program import sources_enabled_from_payload
+
+        payload = _resolve_cockpit_payload_from_request(request)
         host_kind = getattr(request, "public_host_kind", None)
         if host_kind == "manager":
-            cards = resolve_manager_ticker_cards()
+            enabled = sources_enabled_from_payload(payload, "manager")
+            cards = resolve_manager_ticker_cards(enabled)
             if cards:
                 return {"activity_ticker": {"cards": cards}}
             return {}
-        # Anything other than manager that has an authenticated user is treated
-        # as tenant for ticker purposes. The partial gates rendering on
-        # `request.user.is_authenticated` so anonymous/marketing/auth shells
-        # stay silent regardless.
         user = getattr(request, "user", None)
         if user is None or not getattr(user, "is_authenticated", False):
             return {}
-        cards = resolve_tenant_ticker_cards(request)
+        enabled = sources_enabled_from_payload(payload, "tenant")
+        cards = resolve_tenant_ticker_cards(request, enabled)
         if cards:
             return {"tenant_activity_ticker": {"cards": cards}}
         return {}
@@ -700,16 +731,23 @@ def resolve_activity_ticker_cards(request: Any) -> dict[str, list[dict[str, Any]
 def invalidate_activity_ticker_cache(request: Any | None = None) -> None:
     """Clear ticker cache keys. Safe to call from a signal handler."""
     try:
-        cache.delete(f"{CACHE_PREFIX}:manager:v1")
+        from .cockpit_live_banner_program import default_sources_enabled, sources_cache_suffix
+
+        cache.delete(
+            f"{CACHE_PREFIX}:manager:{sources_cache_suffix(default_sources_enabled('manager'))}"
+        )
         if request is not None:
             tenant_slug = _resolve_tenant_slug(request)
             tenant_hash = _hash_prefix(tenant_slug) if tenant_slug else "anon"
-            cache.delete(f"{CACHE_PREFIX}:tenant:{tenant_hash}:v1")
+            cache.delete(
+                f"{CACHE_PREFIX}:tenant:{tenant_hash}:{sources_cache_suffix(default_sources_enabled('tenant'))}"
+            )
     except Exception:
         pass
 
 
 __all__ = [
+    "LIVE_BANNER_SOURCE_REGISTRY",
     "merge_activity_ticker_card_lists",
     "merge_activity_ticker_sections",
     "resolve_activity_ticker_cards",
@@ -718,3 +756,5 @@ __all__ = [
     "invalidate_activity_ticker_cache",
     "MAX_CARDS_TOTAL",
 ]
+
+from .cockpit_live_banner_program import LIVE_BANNER_SOURCE_REGISTRY  # noqa: E402

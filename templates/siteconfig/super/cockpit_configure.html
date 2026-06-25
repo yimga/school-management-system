@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block cp_title %}{% trans "Cockpit configuration" %} — RunMyCampus Manager{% endblock %}
 
@@ -791,6 +791,55 @@
     </fieldset>
     {% endif %}
 
+    {% comment %} ---- Live Banner Studio (metrics, announcements, preview) ---- {% endcomment %}
+    {% if live_banner_studio_fields %}
+    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="live-banner-studio" id="live-banner-studio">
+      <legend class="h6 px-2 fw-bold">{% trans "Live banner studio" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Configure which LIVE header metrics appear on the operator and tenant shells, schedule custom or emergency announcements, and preview the merged marquee before publish." %}
+      </p>
+      <div class="row g-3">
+        {% for field in live_banner_studio_fields %}
+          <div class="col-md-6{% if field.name == 'atk_manager_announcements' or field.name == 'atk_tenant_announcements' %} col-12{% endif %}">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {% if field.field.widget.input_type == 'checkbox' and field.name != 'atk_manager_sources' and field.name != 'atk_tenant_sources' %}
+              <div class="form-check">{{ field }} <label class="form-check-label small" for="{{ field.id_for_label }}">{{ field.help_text }}</label></div>
+            {% elif field.name == 'atk_manager_sources' or field.name == 'atk_tenant_sources' %}
+              <div class="d-flex flex-column gap-1">
+                {% for checkbox in field %}
+                  <div class="form-check">{{ checkbox.tag }} <label class="form-check-label small" for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label></div>
+                {% endfor %}
+              </div>
+              {% if field.help_text %}<div class="form-text small">{{ field.help_text }}</div>{% endif %}
+            {% else %}
+              {{ field }}
+              {% if field.help_text %}<div class="form-text small">{{ field.help_text }}</div>{% endif %}
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <button type="button" class="btn btn-outline-primary btn-sm rmc-button rmc-button--secondary" id="rmc-live-banner-suggest-program" data-rmc-live-banner-action="suggest-program">
+          {% trans "Generate live banner program" %}
+        </button>
+        <button type="button" class="btn btn-outline-danger btn-sm rmc-button rmc-button--destructive" id="rmc-live-banner-draft-emergency" data-rmc-live-banner-action="draft-emergency">
+          {% trans "Draft emergency announcement" %}
+        </button>
+      </div>
+      <div class="row g-3 mt-2">
+        <div class="col-lg-6">
+          {% include "partials/cockpit/_live_banner_studio_preview.html" with preview=live_banner_manager_preview title=_("Manager preview") %}
+        </div>
+        <div class="col-lg-6">
+          {% include "partials/cockpit/_live_banner_studio_preview.html" with preview=live_banner_tenant_preview title=_("Tenant preview") %}
+        </div>
+      </div>
+    </fieldset>
+    {% endif %}
+
     {% comment %} ---- v3.57.16 Activity ticker rich editor --------------------------- {% endcomment %}
     {% if activity_ticker_fields %}
     <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="activity-ticker">
@@ -1065,4 +1114,9 @@
     </div>
   </form>
 </div>
+{% endblock %}
+
+{% block cp_shell_after %}
+  {{ block.super }}
+  <script src="{% static 'js/rmc-live-banner-studio.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
