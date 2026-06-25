@@ -7242,3 +7242,9 @@ A final audit caught a critical latent bug + three cleanups, all closed before d
 - [x] Zero TODO/FIXME/XXX comments in `apps/migration_cloud/`.
 - [x] SW pre-cache includes `migration_cloud_wizard.js`.
 - [x] Config routes mount migration_cloud under both shells with correct `shell` kwarg.
+
+## 2026-06-24 — parent role-home tile parity + snapshot-card retirement
+
+Closed the one genuine mockup-vs-live gap from the tenant-shell 100X audit: the parent role-home (`templates/parent/_rmc_dh_family_home.html`) rendered a bespoke `.rmc-preview-live-snapshot-grid` / `.rmc-preview-live-snapshot-card` block instead of the canonical premium `.rmc-dh-tiles` KPI row that admin/teacher/student already use. Replaced it with a 4-tile `rmc_dh_tile.html` row (Attendance / Balance due / Average / Messages), all fed from already-in-context vars (`attendance_pct`, `finance_balance`, `widget_data.performance.average`, `unread_messages_aggregate`) — finance + results tiles gated on `can_view_finance` / `can_view_results` + data presence (no fabricated values). The `#rmc-parent-today` section anchor moved onto the tile row so the "Today" jump-nav link still resolves; "Next event" is already covered by the "Upcoming at school" section.
+
+**Retired (zero references confirmed platform-wide):** `.rmc-preview-live-snapshot-grid`, `.rmc-preview-live-snapshot-card`, `.rmc-preview-live-snapshot-card strong` (3 rules, ~24 lines) from `static/css/rmc-tenant-preview-live-bridge.css`. They were used only by the parent snapshot block that this change removed. Template-only + CSS-retire; no migration, no new class names (so undefined-css/off-token/theme-locked gates unaffected); `audit_template_render_safety` clean.
