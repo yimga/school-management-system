@@ -133,6 +133,39 @@ function sweepPageInBrowser(scrollRootSel) {
 const DEMO_PREFIX = process.env.TENANT_DEMO_USERNAME_PREFIX || 'demo';
 const DEMO_PASS = process.env.TENANT_SWEEP_PASSWORD || 'Test1234';
 
+async function probeTenantServer(baseUrl) {
+  const http = await import('node:http');
+  return new Promise((resolve) => {
+    let url;
+    try {
+      url = new URL(`${baseUrl.replace(/\/$/, '')}/authentication/login/`);
+    } catch (_e) {
+      resolve(0);
+      return;
+    }
+    const req = http.get(url, (res) => {
+      res.resume();
+      resolve(res.statusCode ?? 0);
+    });
+    req.on('error', () => resolve(0));
+    req.setTimeout(8000, () => {
+      req.destroy();
+      resolve(0);
+    });
+  });
+}
+
+async function waitForTenantServer(baseUrl, maxSeconds = 120) {
+  for (let i = 0; i < maxSeconds; i += 1) {
+    const code = await probeTenantServer(baseUrl);
+    if (code >= 200 && code < 500) {
+      return;
+    }
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  throw new Error(`tenant server not ready at ${baseUrl}`);
+}
+
 const SURFACES = [
   {
     label: 'parent-home',
@@ -217,7 +250,13 @@ const browser = await chromium.launch({
 const results = [];
 
 for (const s of activeSurfaces) {
+  if (P0_MENUS && results.length > 0) {
+    await new Promise((r) => setTimeout(r, 3000));
+  }
   const base = s.base || TENANT_BASE_URL;
+  if (!s.anon) {
+    await waitForTenantServer(base);
+  }
   const ctxOpts = {
     baseURL: base,
     viewport: { width: 1400, height: 900 },

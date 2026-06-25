@@ -25,6 +25,7 @@
  */
 import { chromium } from 'playwright';
 import fs from 'fs';
+import http from 'http';
 import path from 'path';
 import { createRequire } from 'module';
 
@@ -33,7 +34,7 @@ const {
   loginManager,
   AUTH_STATE_PATH,
 } = require('../tests/e2e/helpers/manager-login');
-const { loginTenant: loginTenantMfa } = require('../tests/e2e/helpers/tenant-login');
+const { loginTenant: loginTenantMfa, ensurePathTenantHost } = require('../tests/e2e/helpers/tenant-login');
 
 const LOG = path.join(process.cwd(), 'debug-7911e1.log');
 const SESSION = '7911e1';
@@ -43,13 +44,27 @@ const BASE = process.env.MANAGER_BASE_URL || `http://${HOST}:${PORT}`;
 const TENANT_SLUG = process.env.TENANT_SWEEP_SLUG || 'demo-school';
 const TENANT_HOST =
   process.env.VISUAL_QA_TENANT_HOST || `${TENANT_SLUG}.runmycampus.com`;
-const TENANT_BASE =
-  process.env.TENANT_BASE_URL || `http://${TENANT_HOST}:${PORT}`;
 const USE_TENANT_SUBDOMAIN =
   (process.env.USE_TENANT_SUBDOMAIN || '1').toLowerCase() !== '0';
+const TENANT_BASE =
+  process.env.TENANT_BASE_URL ||
+  process.env.TENANT_E2E_BASE_URL ||
+  process.env.PLAYWRIGHT_TENANT_BASE_URL ||
+  (USE_TENANT_SUBDOMAIN
+    ? `http://${TENANT_HOST}:${PORT}`
+    : `http://127.0.0.1:${PORT}`);
 const AUTH = AUTH_STATE_PATH;
 const HOST_RULES =
   process.env.PLAYWRIGHT_HOST_RULES || `MAP ${HOST} 127.0.0.1`;
+
+function chromiumLaunchArgs(hostRules) {
+  return [
+    `--host-resolver-rules=${hostRules}`,
+    '--proxy-server=direct://',
+    '--proxy-bypass-list=*',
+    '--disable-features=HttpsUpgrades,HttpsFirstMode',
+  ];
+}
 const ROUTES_JSON = path.join(
   process.cwd(),
   'docs/generated/control_plane_sweep_routes.json'
@@ -239,6 +254,54 @@ function sleepMs(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function probeTenantHealth() {
+  return new Promise((resolve) => {
+    if (USE_TENANT_SUBDOMAIN) {
+      const req = http.request(
+        {
+          hostname: '127.0.0.1',
+          port: PORT,
+          path: '/authentication/login/',
+          method: 'GET',
+          headers: { Host: TENANT_HOST },
+          timeout: 8000,
+        },
+        (res) => {
+          res.resume();
+          resolve(res.statusCode >= 200 && res.statusCode < 500);
+        },
+      );
+      req.on('error', () => resolve(false));
+      req.on('timeout', () => {
+        req.destroy();
+        resolve(false);
+      });
+      req.end();
+      return;
+    }
+    const probePath = `/t/${TENANT_SLUG}/authentication/login/`;
+    const req = http.get(`http://127.0.0.1:${PORT}${probePath}`, (res) => {
+      res.resume();
+      resolve(res.statusCode >= 200 && res.statusCode < 500);
+    });
+    req.on('error', () => resolve(false));
+    req.setTimeout(8000, () => {
+      req.destroy();
+      resolve(false);
+    });
+  });
+}
+
+async function waitForTenantHealth(maxAttempts = 60) {
+  for (let i = 0; i < maxAttempts; i += 1) {
+    if (await probeTenantHealth()) {
+      return;
+    }
+    await sleepMs(1000);
+  }
+  throw new Error(`tenant abrupt-end: server not healthy at ${TENANT_BASE}`);
+}
+
 async function gotoWithRetries(page, url) {
   let lastErr;
   for (let attempt = 1; attempt <= GOTO_RETRIES; attempt++) {
@@ -369,12 +432,28 @@ async function loginTenant(page) {
   await loginTenantMfa(page, { username: tenantUser, password: tenantPassword });
 }
 
+async function assertTenantSessionReady(page) {
+  let pathname = '';
+  try {
+    pathname = new URL(page.url()).pathname;
+  } catch (_e) {
+    throw new Error('tenant login incomplete: invalid page URL after login');
+  }
+  if (/\/authentication\/(login|mfa\/verify)/i.test(pathname)) {
+    throw new Error(`tenant login incomplete: stuck on ${pathname}`);
+  }
+}
+
+function isAuthEscapePath(pathname) {
+  return /\/authentication\/(login|mfa\/verify)/i.test(String(pathname || ''));
+}
+
 async function main() {
   if (fs.existsSync(LOG)) fs.unlinkSync(LOG);
 
   const browser = await chromium.launch({
     headless: true,
-    args: [`--host-resolver-rules=${HOST_RULES}`],
+    args: chromiumLaunchArgs(HOST_RULES),
   });
 
   const results = [];
@@ -463,10 +542,10 @@ async function main() {
   // --- Tenant surfaces (separate host + inner paths when USE_TENANT_SUBDOMAIN=1) ---
   const tenHostRules =
     process.env.PLAYWRIGHT_TENANT_HOST_RULES ||
-    `MAP ${TENANT_HOST} 127.0.0.1`;
+    `MAP ${TENANT_HOST} 127.0.0.1,MAP *.runmycampus.com 127.0.0.1`;
   const tenBrowser = await chromium.launch({
     headless: true,
-    args: [`--host-resolver-rules=${tenHostRules}`],
+    args: chromiumLaunchArgs(tenHostRules),
   });
   const tenCtx = await tenBrowser.newContext({
     baseURL: TENANT_BASE,
@@ -474,10 +553,15 @@ async function main() {
   });
   const tenPage = await tenCtx.newPage();
   try {
+    await waitForTenantHealth();
     await loginTenant(tenPage);
+    await assertTenantSessionReady(tenPage);
     for (const s of SURFACES.filter((x) => x.surface === 'tenant')) {
       try {
         await gotoWithRetries(tenPage, s.url);
+        if (!USE_TENANT_SUBDOMAIN) {
+          await ensurePathTenantHost(tenPage);
+        }
         await tenPage.waitForTimeout(1200);
         let audit = await tenPage.evaluate(
           sweepPageInBrowser,
@@ -488,12 +572,58 @@ async function main() {
           sweepPageInBrowser,
           s.scrollRoot || '#main-content'
         );
+        if (isAuthEscapePath(audit.path) && !isAuthEscapePath(s.url)) {
+          await loginTenant(tenPage);
+          await assertTenantSessionReady(tenPage);
+          await gotoWithRetries(tenPage, s.url);
+          if (!USE_TENANT_SUBDOMAIN) {
+            await ensurePathTenantHost(tenPage);
+          }
+          await tenPage.waitForTimeout(1200);
+          audit = await tenPage.evaluate(
+            sweepPageInBrowser,
+            s.scrollRoot || '#main-content'
+          );
+        }
+        if (isAuthEscapePath(audit.path) && !isAuthEscapePath(s.url)) {
+          failures += 1;
+          const row = {
+            ...s,
+            ...audit,
+            ok: false,
+            failures: ['auth_escape'],
+          };
+          results.push(row);
+          writeLog('SWEEP', 'FAIL', row);
+          continue;
+        }
         const row = { ...s, ...audit };
         results.push(row);
         writeLog('SWEEP', row.ok ? 'pass' : 'FAIL', row);
         if (!row.ok) failures += 1;
       } catch (e) {
         const err = String(e);
+        if (isInfraOrNonHtmlSkip(err)) {
+          await waitForTenantHealth(30).catch(() => null);
+          try {
+            await gotoWithRetries(tenPage, s.url);
+            if (!USE_TENANT_SUBDOMAIN) {
+              await ensurePathTenantHost(tenPage);
+            }
+            await tenPage.waitForTimeout(1200);
+            const audit = await tenPage.evaluate(
+              sweepPageInBrowser,
+              s.scrollRoot || '#main-content'
+            );
+            const row = { ...s, ...audit };
+            results.push(row);
+            writeLog('SWEEP', row.ok ? 'pass' : 'FAIL', row);
+            if (!row.ok) failures += 1;
+            continue;
+          } catch (retryErr) {
+            /* fall through to infra skip */
+          }
+        }
         if (isInfraOrNonHtmlSkip(err)) {
           skipped += 1;
           const row = { ...s, ok: true, skipped: 'infra_or_redirect', error: err };
@@ -531,7 +661,11 @@ async function main() {
   const tenantTested = results.filter((r) => r.surface === 'tenant').length;
   const infraSkipped = results.filter((r) => r.skipped).length;
   const layoutProven = results.filter(
-    (r) => r.surface === 'tenant' && r.ok === true && !r.skipped
+    (r) =>
+      r.surface === 'tenant' &&
+      r.ok === true &&
+      !r.skipped &&
+      !isAuthEscapePath(r.path)
   ).length;
   const maxInfraSkip = parseInt(
     process.env.TENANT_SWEEP_MAX_INFRA_SKIP || '0',

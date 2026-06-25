@@ -104,6 +104,24 @@ async function waitForServer(maxSeconds = 360) {
   process.exit(1);
 }
 
+async function waitForRunserverLogReady(logPath, maxSeconds = 360) {
+  for (let i = 0; i < maxSeconds; i += 1) {
+    if (fs.existsSync(logPath)) {
+      const tail = fs.readFileSync(logPath, 'utf8');
+      if (
+        tail.includes('Starting development server at') ||
+        tail.includes('Quit the server with CTRL-BREAK') ||
+        tail.includes('Quit the server with CONTROL-C')
+      ) {
+        return;
+      }
+    }
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  console.error(`run_role_home_e2e: runserver log never became ready (${logPath})`);
+  process.exit(1);
+}
+
 const py = resolvePython();
 const gateSnapshot = (process.env.RMC_E2E_GATE_SNAPSHOT || '').trim();
 
@@ -130,6 +148,9 @@ const baseEnv = {
   TENANT_SWEEP_PASSWORD: process.env.TENANT_SWEEP_PASSWORD || 'Test1234',
   DB_LOG_LEVEL: process.env.DB_LOG_LEVEL || 'WARNING',
   LOGIN_POW_ENABLED: '0',
+  LOGIN_MIN_FORM_SECONDS: '0',
+  RMC_E2E_DISABLE_ACCESS_LOG: '1',
+  RMC_E2E_BYPASS_MFA: process.env.RMC_E2E_BYPASS_MFA || '1',
   PYTHONUTF8: '1',
 };
 /** Demo seed commands require DEBUG=1; runserver stays production-like unless DEBUG=1 in env. */
@@ -149,32 +170,72 @@ function removeSqliteDbFiles(dbPath) {
   }
 }
 
+function sqliteIntegrityOk(dbPath) {
+  if (!fs.existsSync(dbPath)) {
+    return false;
+  }
+  const result = spawnSync(
+    resolvePython(),
+    [
+      '-c',
+      `import sqlite3, sys
+conn = sqlite3.connect(sys.argv[1], timeout=30)
+row = conn.execute("PRAGMA integrity_check").fetchone()
+conn.close()
+sys.exit(0 if row and row[0] == "ok" else 1)`,
+      dbPath,
+    ],
+    { cwd: repo, stdio: 'pipe', shell: false },
+  );
+  return result.status === 0;
+}
+
 console.log('=== role-home e2e: migrate ===');
 if (gateSnapshot && fs.existsSync(gateSnapshot)) {
-  fs.copyFileSync(gateSnapshot, dbFile);
-  console.log(`seeded e2e db from gate snapshot ${gateSnapshot}`);
+  if (process.env.RMC_E2E_KEEP_DB === '1' && sqliteIntegrityOk(dbFile)) {
+    console.log(`reusing e2e db ${dbFile} (RMC_E2E_KEEP_DB=1)`);
+  } else {
+    removeSqliteDbFiles(dbFile);
+    fs.copyFileSync(gateSnapshot, dbFile);
+    removeSqliteDbFiles(dbFile);
+    console.log(`seeded e2e db from gate snapshot ${gateSnapshot}`);
+  }
+} else if (process.env.RMC_E2E_KEEP_DB === '1' && fs.existsSync(dbFile)) {
+  if (!sqliteIntegrityOk(dbFile)) {
+    console.warn(`e2e db failed integrity_check — recreating ${dbFile}`);
+    removeSqliteDbFiles(dbFile);
+  } else {
+    console.log(`reusing e2e db ${dbFile} (RMC_E2E_KEEP_DB=1)`);
+  }
 } else if (process.env.RMC_E2E_KEEP_DB !== '1' && fs.existsSync(dbFile)) {
   removeSqliteDbFiles(dbFile);
   console.log(`removed stale e2e db ${dbFile}`);
 }
 migrateDatabase(seedEnv);
 
-console.log(`=== role-home e2e: ensure developer sandbox (${slug}) ===`);
-runSync(
-  [
-    'manage.py',
-    'ensure_developer_sandbox_tenant',
-    `--school-slug=${slug}`,
-    `--password=${baseEnv.TENANT_SWEEP_PASSWORD}`,
-  ],
-  seedEnv,
-);
+if (process.env.RMC_E2E_SKIP_SANDBOX === '1') {
+  console.log('=== role-home e2e: sandbox skipped (RMC_E2E_SKIP_SANDBOX=1) ===');
+} else {
+  console.log(`=== role-home e2e: ensure developer sandbox (${slug}) ===`);
+  runSync(
+    [
+      'manage.py',
+      'ensure_developer_sandbox_tenant',
+      `--school-slug=${slug}`,
+      `--password=${baseEnv.TENANT_SWEEP_PASSWORD}`,
+    ],
+    seedEnv,
+  );
+}
 
-console.log('=== role-home e2e: seed TOTP for demo personas ===');
-runSync(
-  [
-    '-c',
-    `
+if (process.env.RMC_E2E_SKIP_TOTP === '1') {
+  console.log('=== role-home e2e: TOTP skipped (RMC_E2E_SKIP_TOTP=1) ===');
+} else {
+  console.log('=== role-home e2e: seed TOTP for demo personas ===');
+  runSync(
+    [
+      '-c',
+      `
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 import django
@@ -203,9 +264,10 @@ for username in users:
     device.save()
     print(f'Seeded TOTP e2e-playwright for {username}')
 `.trim(),
-  ],
-  seedEnv,
-);
+    ],
+    seedEnv,
+  );
+}
 
 const artifactDir = path.join(repo, 'artifacts', 'role-home-e2e');
 fs.mkdirSync(artifactDir, { recursive: true });
@@ -275,9 +337,35 @@ for (const sig of ['SIGINT', 'SIGTERM']) {
 }
 
 await waitForServer();
+await waitForRunserverLogReady(serverLog);
 
 // Allow first template compile + SQLite WAL settle before Playwright hammers login.
-await new Promise((r) => setTimeout(r, 3000));
+const warmSeconds =
+  process.env.RMC_E2E_KEEP_DB === '1'
+    ? Number(process.env.RMC_E2E_WARMUP_SECONDS || '90')
+    : Number(process.env.RMC_E2E_WARMUP_SECONDS || '5');
+await new Promise((r) => setTimeout(r, warmSeconds * 1000));
+
+const integrity = spawnSync(
+  py,
+  [
+    '-c',
+    `import os, sqlite3
+path = os.environ["DB_FILE"]
+conn = sqlite3.connect(path, timeout=30)
+row = conn.execute("PRAGMA integrity_check").fetchone()
+conn.close()
+if not row or row[0] != "ok":
+    raise SystemExit(f"sqlite integrity_check failed: {row}")
+print("sqlite integrity_check ok")`,
+  ],
+  { cwd: repo, env: { ...process.env, ...baseEnv }, stdio: 'inherit', shell: false },
+);
+if (integrity.status !== 0) {
+  console.error('run_role_home_e2e: sqlite integrity_check failed');
+  stopServer();
+  process.exit(1);
+}
 
 console.log('=== role-home e2e: visual sweep ===');
 const tenantOnly = process.env.ROLE_SWEEP_TENANT_ONLY || '1';

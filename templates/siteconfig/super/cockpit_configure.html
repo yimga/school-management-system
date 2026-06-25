@@ -79,6 +79,31 @@
     {% csrf_token %}
     {{ form.cockpit_payload.as_hidden }}
 
+    {% comment %} ---- Portal experience policy + Shopify-style presets ---------------- {% endcomment %}
+    <fieldset id="cockpit-tenant-experience-policy" class="border rounded-3 p-3 mb-4" data-cockpit-block="tenant-experience-policy" data-cat="portal_experience">
+      <legend class="h6 px-2 fw-bold">{% trans "Portal experience" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "School-wide and per-role portal themes, command-strip scoring, and v3 chrome toggles." %}
+      </p>
+      {% include "siteconfig/partials/portal_experience_presets.html" %}
+      {% if tenant_experience_policy_fields %}
+      <div class="row g-3 mt-2">
+        {% for field in tenant_experience_policy_fields %}
+          <div class="col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text small">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </fieldset>
+
     {% comment %} ---- Footer fieldset ------------------------------------------------ {% endcomment %}
     <fieldset id="cockpit-footer" class="border rounded-3 p-3 mb-4" data-cockpit-block="footer">
       <legend class="h6 px-2 fw-bold">{% trans "Footer" %}</legend>

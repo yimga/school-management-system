@@ -27,6 +27,10 @@
 
 {% include "components/next_action_strip.html" %}
 
+{% if tp_v3_role_home %}
+{% include "partials/tenant/hero_greeting.html" %}
+{% endif %}
+
 {% url 'portal:portal_operational_health_json' as tenant_health_api_url %}
 {% url 'portal:portal_operational_health_stream' as tenant_health_stream_url %}
 {% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="parent" %}

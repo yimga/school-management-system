@@ -27,7 +27,7 @@
         <div id="passkey-verify-msg" class="mt-1 mb-3 small text-muted"></div>
         <div class="rmc-account-or-divider"><span>{% trans "or" %}</span></div>
         {% endif %}
-        <form method="post">
+        <form method="post" data-rmc-form-enhance="0">
           {% csrf_token %}
           {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
           <div class="mb-3">

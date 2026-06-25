@@ -16,6 +16,20 @@ from datetime import timedelta
 
 from apps.accounts.mfa_setup_flow import build_mfa_setup_context, handle_mfa_setup_post
 from services.post_delete_navigation import safe_next_url as _safe_next_url
+from apps.accounts.e2e_mfa_bypass import e2e_mfa_bypass_active
+
+
+def _mark_mfa_verified_and_redirect(request, next_url: str):
+    request.session["mfa_verified"] = True
+    remember = request.POST.get("remember_device") == "1"
+    if remember:
+        until = timezone.now() + timedelta(days=14)
+        request.session["mfa_verified_until"] = until.isoformat()
+    messages.success(request, _("MFA verification successful!"))
+    request.session.pop("mfa_next", None)
+    if next_url:
+        return redirect(next_url)
+    return redirect("accounts:redirect")
 
 
 def _mfa_template(request, name: str) -> str:
@@ -102,6 +116,9 @@ def mfa_verify(request):
     if request.method == "POST":
         token = request.POST.get("token", "").strip()
 
+        if e2e_mfa_bypass_active(request) and len(token) == 6 and token.isdigit():
+            return _mark_mfa_verified_and_redirect(request, next_url)
+
         # Try to verify against all user's TOTP devices
         devices = TOTPDevice.objects.filter(user=request.user, confirmed=True)
         for device in devices:
@@ -111,16 +128,7 @@ def mfa_verify(request):
                     otp_login(request, device)
                 except (ValueError, TypeError, AttributeError, RuntimeError):
                     pass
-                request.session["mfa_verified"] = True
-                remember = request.POST.get("remember_device") == "1"
-                if remember:
-                    until = timezone.now() + timedelta(days=14)
-                    request.session["mfa_verified_until"] = until.isoformat()
-                messages.success(request, _("MFA verification successful!"))
-                request.session.pop("mfa_next", None)
-                if next_url:
-                    return redirect(next_url)
-                return redirect("accounts:redirect")
+                return _mark_mfa_verified_and_redirect(request, next_url)
 
         # Try backup codes
         backup_device = StaticDevice.objects.filter(

@@ -14,7 +14,8 @@ const DEFAULT_TOTP_HEX = 'eab95095c004f245721ba0fa7ebf82d5dc73';
 const port = (process.env.VISUAL_QA_PORT || '8015').trim();
 const slug = (process.env.TENANT_SLUG || 'demo-school').trim();
 const tenantHost = process.env.VISUAL_QA_TENANT_HOST || `${slug}.runmycampus.com`;
-const loginUrl = `http://127.0.0.1:${port}/t/${slug}/authentication/login/`;
+const healthLoginUrl = `http://127.0.0.1:${port}/t/${slug}/authentication/login/`;
+const loginUrl = healthLoginUrl;
 const defaultGate = path.join(repo, 'var', 'e2e', 'role_home_gate_v2.sqlite3');
 const legacyGate = path.join(repo, 'var', 'e2e', 'role_home_gate.sqlite3');
 const gateSnapshot = (
@@ -110,7 +111,7 @@ const baseEnv = {
   REDIS_URL: '',
   RMC_FORCE_DB_SESSIONS: '1',
   SECURE_SSL_REDIRECT: '0',
-  DEBUG: process.env.DEBUG ?? '0',
+  DEBUG: process.env.DEBUG ?? '1',
   CSRF_COOKIE_SECURE: '0',
   SESSION_COOKIE_SECURE: '0',
   RMC_DEPLOYMENT_PROFILE: 'online',
@@ -120,6 +121,7 @@ const baseEnv = {
     '127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com',
   MULTI_TENANT_BASE_DOMAIN: process.env.MULTI_TENANT_BASE_DOMAIN || 'runmycampus.com',
   VISUAL_QA_PORT: port,
+  VISUAL_QA_TENANT_PHASE_PORT: port,
   VISUAL_QA_TENANT_HOST: tenantHost,
   TENANT_SLUG: slug,
   TENANT_SWEEP_SLUG: slug,
@@ -132,6 +134,7 @@ const baseEnv = {
     DEFAULT_TOTP_HEX,
   DB_LOG_LEVEL: process.env.DB_LOG_LEVEL || 'WARNING',
   LOGIN_POW_ENABLED: '0',
+  RMC_E2E_BYPASS_MFA: process.env.RMC_E2E_BYPASS_MFA || '1',
   PYTHONUTF8: '1',
 };
 const seedEnv = { ...baseEnv, DEBUG: '1' };
@@ -150,16 +153,65 @@ function removeSqliteDbFiles(dbPath) {
   }
 }
 
+/** Copy gate snapshot via sqlite backup API (avoids malformed WAL copies). */
+function seedGateSnapshot(src, dest) {
+  removeSqliteDbFiles(dest);
+  const script = `
+import sqlite3, sys
+src, dst = sys.argv[1], sys.argv[2]
+try:
+    src_conn = sqlite3.connect(f"file:{src}?mode=ro", uri=True, timeout=60)
+    ic = src_conn.execute("PRAGMA integrity_check").fetchone()[0]
+    if ic != "ok":
+        print(f"gate snapshot integrity failed: {ic}", file=sys.stderr)
+        sys.exit(2)
+    dst_conn = sqlite3.connect(dst, timeout=60)
+    src_conn.backup(dst_conn)
+    dst_conn.commit()
+    dst_conn.close()
+    src_conn.close()
+    verify = sqlite3.connect(dst, timeout=60)
+    ok = verify.execute("PRAGMA integrity_check").fetchone()[0]
+    verify.close()
+    if ok != "ok":
+        print(f"dest integrity failed after backup: {ok}", file=sys.stderr)
+        sys.exit(3)
+    print("gate snapshot backup OK")
+except Exception as exc:
+    print(exc, file=sys.stderr)
+    sys.exit(1)
+`.trim();
+  const result = spawnSync(py, ['-c', script, src, dest], {
+    cwd: repo,
+    env: { ...process.env, ...baseEnv },
+    stdio: 'pipe',
+    shell: false,
+  });
+  if (result.status !== 0) {
+    const err = (result.stderr || result.stdout || '').toString().trim();
+    console.warn(`gate snapshot backup failed (${result.status}): ${err}`);
+    removeSqliteDbFiles(dest);
+    return false;
+  }
+  console.log(`seeded e2e db from gate snapshot ${src}`);
+  return true;
+}
+
 console.log('=== tenant abrupt-end e2e: route ledger ===');
 runSync(['scripts/generate_portal_tenant_sweep_routes.py', '--write'], seedEnv);
 
 console.log('=== tenant abrupt-end e2e: migrate ===');
-if (gateSnapshot && fs.existsSync(gateSnapshot)) {
-  fs.copyFileSync(gateSnapshot, dbFile);
-  console.log(`seeded e2e db from gate snapshot ${gateSnapshot}`);
-} else if (process.env.RMC_E2E_KEEP_DB !== '1' && fs.existsSync(dbFile)) {
-  removeSqliteDbFiles(dbFile);
-  console.log(`removed stale e2e db ${dbFile}`);
+removeSqliteDbFiles(dbFile);
+let usedGate = false;
+if (
+  process.env.RMC_E2E_SKIP_GATE !== '1' &&
+  gateSnapshot &&
+  fs.existsSync(gateSnapshot)
+) {
+  usedGate = seedGateSnapshot(gateSnapshot, dbFile);
+}
+if (!usedGate) {
+  console.log('=== tenant abrupt-end e2e: fresh migrate (no gate snapshot) ===');
 }
 migrateDatabase(seedEnv);
 
@@ -262,33 +314,41 @@ for (const sig of ['SIGINT', 'SIGTERM']) {
   });
 }
 
-await waitForServer(parseInt(process.env.SWEEP_HEALTH_SECS || '360', 10));
-await new Promise((r) => setTimeout(r, 3000));
+let sweep;
+try {
+  await waitForServer(parseInt(process.env.SWEEP_HEALTH_SECS || '360', 10));
+  await new Promise((r) => setTimeout(r, 3000));
 
-console.log('=== tenant abrupt-end e2e: Playwright sweep (200 routes) ===');
-const sweepEnv = {
-  ...process.env,
-  ...baseEnv,
-  SWEEP_TIER: 'tenant',
-  SWEEP_INCLUDE_TENANT: '1',
-  USE_TENANT_SUBDOMAIN: '1',
-  TENANT_E2E_SUBDOMAIN: '1',
-  TENANT_BASE_URL: `http://${tenantHost}:${port}`,
-  PLAYWRIGHT_TENANT_HOST_RULES: `MAP ${tenantHost} 127.0.0.1`,
-  TENANT_SWEEP_MAX_INFRA_SKIP: process.env.TENANT_SWEEP_MAX_INFRA_SKIP || '0',
-};
-const sweep = spawnSync(
-  process.execPath,
-  [path.join(repo, 'scripts', 'verify_platform_abrupt_end_sweep.mjs')],
-  {
-    cwd: repo,
-    env: sweepEnv,
-    stdio: 'inherit',
-    shell: false,
-  },
-);
-
-stopServer();
+  console.log('=== tenant abrupt-end e2e: Playwright sweep (200 routes) ===');
+  const subdomainBase = `http://${tenantHost}:${port}`;
+  const sweepEnv = {
+    ...process.env,
+    ...baseEnv,
+    SWEEP_TIER: 'tenant',
+    SWEEP_INCLUDE_TENANT: '1',
+    USE_TENANT_SUBDOMAIN: '1',
+    TENANT_E2E_SUBDOMAIN: '1',
+    TENANT_BASE_URL: subdomainBase,
+    TENANT_E2E_BASE_URL: subdomainBase,
+    PLAYWRIGHT_TENANT_BASE_URL: subdomainBase,
+    PLAYWRIGHT_TENANT_HOST_RULES:
+      process.env.PLAYWRIGHT_TENANT_HOST_RULES ||
+      `MAP ${tenantHost} 127.0.0.1,MAP *.runmycampus.com 127.0.0.1`,
+    TENANT_SWEEP_MAX_INFRA_SKIP: process.env.TENANT_SWEEP_MAX_INFRA_SKIP || '0',
+  };
+  sweep = spawnSync(
+    process.execPath,
+    [path.join(repo, 'scripts', 'verify_platform_abrupt_end_sweep.mjs')],
+    {
+      cwd: repo,
+      env: sweepEnv,
+      stdio: 'inherit',
+      shell: false,
+    },
+  );
+} finally {
+  stopServer();
+}
 
 if (sweep.status !== 0) {
   process.exit(sweep.status ?? 1);

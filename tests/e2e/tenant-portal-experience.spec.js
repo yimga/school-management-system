@@ -6,32 +6,35 @@
 const { test, expect } = require('@playwright/test');
 const { TENANT_BASE_URL, loginTenant } = require('./helpers/tenant-login');
 
+const SSE_STREAM_RE = /\/(?:workflow-progress|context|operational-health)\/stream\//;
+
 async function openPortalExperiencePresets(page) {
-  await page.goto(`${TENANT_BASE_URL}/siteconfig/feature-control/`, {
+  await page.goto(`${TENANT_BASE_URL}/siteconfig/super/configure/cockpit/`, {
     waitUntil: 'domcontentloaded',
     timeout: 120000,
   });
   if (page.url().includes('/authentication/login')) {
-    await page.goto(`${TENANT_BASE_URL}/siteconfig/school-configuration/cockpit/configure/`, {
+    await loginTenant(page, { username: process.env.E2E_TENANT_ADMIN_USER || 'demo.admin' });
+    await page.goto(`${TENANT_BASE_URL}/siteconfig/super/configure/cockpit/`, {
       waitUntil: 'domcontentloaded',
       timeout: 120000,
     });
   }
   const portalTab = page.locator(
-    '[data-cat="portal_experience"], #feature-cat-tab-portal_experience'
+    '[data-cat="portal_experience"], #feature-cat-tab-portal_experience',
   );
   if (await portalTab.count()) {
     await portalTab.first().click();
   }
-  if (!(await page.locator('[data-rmc-portal-experience-presets="1"]').count())) {
-    await page.goto(`${TENANT_BASE_URL}/siteconfig/school-configuration/cockpit/configure/`, {
-      waitUntil: 'domcontentloaded',
-      timeout: 120000,
-    });
-  }
 }
 
 test.describe('Tenant portal experience', () => {
+  test.describe.configure({ timeout: 300000 });
+
+  test.beforeEach(async ({ context }) => {
+    await context.route(SSE_STREAM_RE, (route) => route.abort());
+  });
+
   test('tenant admin sees school-wide and per-role preset markers', async ({ page }) => {
     await loginTenant(page, { username: process.env.E2E_TENANT_ADMIN_USER || 'demo.admin' });
     await openPortalExperiencePresets(page);
@@ -42,7 +45,7 @@ test.describe('Tenant portal experience', () => {
   });
 
   test('parent dashboard command strip exposes score band metadata', async ({ page }) => {
-    await loginTenant(page, { username: process.env.E2E_TENANT_PARENT_USER || 'parent' });
+    await loginTenant(page, { username: process.env.E2E_TENANT_PARENT_USER || 'demo.parent' });
     await page.goto(`${TENANT_BASE_URL}/portal/parent/`, {
       waitUntil: 'domcontentloaded',
       timeout: 120000,
@@ -53,7 +56,7 @@ test.describe('Tenant portal experience', () => {
   });
 
   test('parent workflow exposes workflow contract + section nav', async ({ page }) => {
-    await loginTenant(page, { username: process.env.E2E_TENANT_PARENT_USER || 'parent' });
+    await loginTenant(page, { username: process.env.E2E_TENANT_PARENT_USER || 'demo.parent' });
     await page.goto(`${TENANT_BASE_URL}/portal/parent/workflow/`, {
       waitUntil: 'domcontentloaded',
       timeout: 120000,
@@ -67,7 +70,7 @@ test.describe('Tenant portal experience', () => {
 
   test('parent workflow mobile hides desktop step grid', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await loginTenant(page, { username: process.env.E2E_TENANT_PARENT_USER || 'parent' });
+    await loginTenant(page, { username: process.env.E2E_TENANT_PARENT_USER || 'demo.parent' });
     await page.goto(`${TENANT_BASE_URL}/portal/parent/workflow/`, {
       waitUntil: 'domcontentloaded',
       timeout: 120000,

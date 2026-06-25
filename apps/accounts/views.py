@@ -4271,9 +4271,14 @@ def login_view(request):
                     return redirect(mfa_setup_url)
 
                 if (has_device or must_have_mfa) and not _mfa_remembered():
-                    if next_url:
-                        request.session["mfa_next"] = next_url
-                    return redirect(reverse("accounts:mfa_verify"))
+                    from apps.accounts.e2e_mfa_bypass import e2e_mfa_bypass_active
+
+                    if e2e_mfa_bypass_active(request):
+                        request.session["mfa_verified"] = True
+                    else:
+                        if next_url:
+                            request.session["mfa_next"] = next_url
+                        return redirect(reverse("accounts:mfa_verify"))
             except ACCOUNTS_SOFT_FAILURES:
                 pass
 

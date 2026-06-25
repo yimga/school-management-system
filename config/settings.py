@@ -1204,10 +1204,15 @@ if RUNNING_TESTS:
 # Compliance AccessLog middleware: one INSERT per HTTP response amplifies SQLite lock
 # contention during large test batches. Off by default in tests; opt in with
 # RMC_ENABLE_TEST_ACCESS_LOG=1 when exercising audit middleware explicitly.
+# RMC_E2E_DISABLE_ACCESS_LOG=1 during long Playwright sweeps (SQLite write amplification).
 COMPLIANCE_AUDIT_ACCESS_LOG_MIDDLEWARE_WRITES = (
-    not RUNNING_TESTS
-    or os.getenv("RMC_ENABLE_TEST_ACCESS_LOG", "").strip().lower()
-    in ("1", "true", "yes")
+    os.getenv("RMC_E2E_DISABLE_ACCESS_LOG", "").strip().lower()
+    not in ("1", "true", "yes")
+    and (
+        not RUNNING_TESTS
+        or os.getenv("RMC_ENABLE_TEST_ACCESS_LOG", "").strip().lower()
+        in ("1", "true", "yes")
+    )
 )
 # Successful GET/HEAD/OPTIONS AccessLog rows: sample rate (0–1). Mutations and 4xx/5xx always log.
 COMPLIANCE_ACCESS_LOG_GET_SAMPLE_RATE = float(

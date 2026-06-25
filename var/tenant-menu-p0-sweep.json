@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-06-24T23:58:45.462Z",
-  "tenantBase": "http://demo-school.runmycampus.com:8034",
-  "marketingBase": "http://runmycampus.com:8034",
+  "generatedAt": "2026-06-25T17:56:02.184Z",
+  "tenantBase": "http://demo-school.runmycampus.com:8024",
+  "marketingBase": "http://runmycampus.com:8024",
   "marketingHost": "runmycampus.com",
   "tenantOnly": true,
   "p0Menus": true,
@@ -11,244 +11,244 @@
     {
       "label": "parent-home",
       "requested": "/portal/parent/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "teacher-home",
       "requested": "/portal/teacher/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "student-grades",
       "requested": "/portal/student-portal/grades/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "admin-backend",
       "requested": "/authentication/backend/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "admin-performance",
       "requested": "/authentication/backend/performance/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "teacher-teacher_home",
       "requested": "/portal/teacher/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "teacher-teacher_workflow",
       "requested": "/portal/teacher/workflow/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "teacher-teacher_marks",
       "requested": "/evals/teacher/marks/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "teacher-teacher_attendance",
       "requested": "/portal/teacher/attendance/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "teacher-teacher_timetable",
       "requested": "/portal/teacher/timetable/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "parent-parent_home",
       "requested": "/portal/parent/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "parent-parent_workflow",
       "requested": "/portal/parent/workflow/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "parent-parent_finance",
       "requested": "/portal/parent/finance/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "parent-parent_calendar",
       "requested": "/portal/calendar/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "student-student_home",
       "requested": "/portal/student-portal/grades/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "student-student_workflow",
       "requested": "/portal/student/workflow/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "admin-backend_dashboard",
       "requested": "/authentication/backend/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "admin-setup_wizards",
       "requested": "/school/studio/wizards/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "admin-people",
       "requested": "/authentication/backend/students/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "admin-rbac",
       "requested": "/authentication/rbac/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "admin-finance",
       "requested": "/finance/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     },
     {
       "label": "admin-config",
       "requested": "/school/configuration/",
-      "base": "http://demo-school.runmycampus.com:8034",
+      "base": "http://demo-school.runmycampus.com:8024",
       "host": null,
       "ok": false,
       "failures": [
         "exception"
       ],
-      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+      "error": "Error: page.goto: net::ERR_CONNECTION_REFUSED at http://demo-school.runmycampus.com:8024/authentication/login/\nCall log:\n  - navigating to \"http://demo-school.runmycampus.com:8024/authentication/login/\", waiting until \"domcontentloaded\"\n"
     }
   ]
 }

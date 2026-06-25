@@ -779,6 +779,10 @@ class RequireMFAMiddleware:
 
     @staticmethod
     def _is_mfa_verified(request) -> bool:
+        from apps.accounts.e2e_mfa_bypass import e2e_mfa_bypass_active
+
+        if e2e_mfa_bypass_active(request):
+            return True
         if request.session.get("mfa_verified"):
             return True
         until_raw = request.session.get("mfa_verified_until")

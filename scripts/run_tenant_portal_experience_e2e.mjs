@@ -75,6 +75,7 @@ const baseEnv = {
   RMC_FORCE_DB_SESSIONS: '1',
   SECURE_SSL_REDIRECT: '0',
   DEBUG: '1',
+  RMC_E2E_BYPASS_MFA: '1',
   CSRF_COOKIE_SECURE: '0',
   SESSION_COOKIE_SECURE: '0',
   VISUAL_QA_PORT: port,
@@ -125,6 +126,7 @@ if username == 'demo.admin':
     device.save()
 else:
     user.save(update_fields=['is_active'])
+    TOTPDevice.objects.filter(user=user).delete()
 print(f'Seeded e2e user {username}')
 `.trim(),
     ],
@@ -173,6 +175,10 @@ const pw = spawnSync(
       ...process.env,
       ...baseEnv,
       RMC_E2E_EXTERNAL_SERVER: '1',
+      RMC_E2E_BYPASS_MFA: '1',
+      E2E_TENANT_PARENT_USER: 'demo.parent',
+      E2E_TENANT_ADMIN_USER: 'demo.admin',
+      E2E_TENANT_PASSWORD: process.env.E2E_TENANT_PASSWORD || 'Test1234',
     },
     stdio: 'inherit',
     shell: false,
