@@ -73,22 +73,53 @@ def _ensure_demo_portal_toggles_enabled() -> None:
 def _ensure_demo_active_term(school: School, year: AcademicYear) -> None:
     """Teacher marks list requires active year + term (batch 1728 P0 E2E)."""
     try:
+        from django.db import IntegrityError
         from apps.academics.models import Term
 
-        if Term.objects.filter(school=school, academic_year=year, is_active=True).exists():
+        if Term.objects.filter(academic_year=year, is_active=True).exists():
             return
-        Term.objects.get_or_create(
-            school=school,
-            academic_year=year,
-            name="FIRST",
-            defaults={
-                "custom_label": "Term 1",
-                "position": 1,
-                "start_date": year.start_date,
-                "end_date": year.end_date,
-                "is_active": True,
-            },
+        existing = (
+            Term.objects.filter(academic_year=year)
+            .order_by("position", "id")
+            .first()
         )
+        if existing is not None:
+            Term.objects.filter(academic_year=year, is_active=True).exclude(
+                pk=existing.pk
+            ).update(is_active=False)
+            update_fields: list[str] = []
+            if existing.school_id != school.pk:
+                existing.school = school
+                update_fields.append("school")
+            if not existing.is_active:
+                existing.is_active = True
+                update_fields.append("is_active")
+            if update_fields:
+                existing.save(update_fields=update_fields)
+            return
+        try:
+            Term.objects.create(
+                school=school,
+                academic_year=year,
+                name="FIRST",
+                custom_label="Term 1",
+                position=1,
+                start_date=year.start_date,
+                end_date=year.end_date,
+                is_active=True,
+            )
+        except IntegrityError:
+            fallback = Term.objects.filter(academic_year=year).order_by("position", "id").first()
+            if fallback is not None:
+                Term.objects.filter(academic_year=year, is_active=True).exclude(
+                    pk=fallback.pk
+                ).update(is_active=False)
+                fallback.is_active = True
+                if fallback.school_id != school.pk:
+                    fallback.school = school
+                    fallback.save(update_fields=["is_active", "school"])
+                else:
+                    fallback.save(update_fields=["is_active"])
     except (AttributeError, ImportError, TypeError, ValueError):
         pass
 
