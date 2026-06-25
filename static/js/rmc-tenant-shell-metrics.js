@@ -33,15 +33,11 @@
   function apply() {
     rafPending = false;
     var hh = heightOf(".tp-header");
-    /* Guard a 0/transient measurement (e.g. display:none during a theme
-       flip) from clobbering a good value. */
     if (hh > 24) {
       var px = hh + "px";
       root.style.setProperty("--rmc-tenant-header-h", px);
       root.style.setProperty("--rmc-app-shell-header-h", px);
     }
-    /* Preview banner (SITE.is_preview) — 0 when absent so the chrome calcs
-       collapse to no-offset. */
     var pb = heightOf('[data-shell-chrome="site-preview-banner-top"]');
     root.style.setProperty("--rmc-preview-banner-h", (pb > 0 ? pb : 0) + "px");
   }
