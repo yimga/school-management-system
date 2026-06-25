@@ -35,21 +35,21 @@
       <div class="card shadow-sm h-100">
         <div class="card-body">
           <h1 class="h5">Corridor profile</h1>
-          <dl class="row mb-0 small">
-            <dt class="col-sm-5">Compliance profile</dt>
-            <dd class="col-sm-7">{{ profile.name }}</dd>
-            <dt class="col-sm-5">Country</dt>
-            <dd class="col-sm-7">{{ readiness.country_code|default:"—" }}</dd>
-            <dt class="col-sm-5">Currency</dt>
-            <dd class="col-sm-7">{{ readiness.currency_code|default:"—" }}</dd>
-            <dt class="col-sm-5">Primary rail</dt>
-            <dd class="col-sm-7">{{ readiness.recommended_primary_rail|default:"—" }}</dd>
-            <dt class="col-sm-5">Backup rail</dt>
-            <dd class="col-sm-7">{{ readiness.recommended_backup_rail|default:"—" }}</dd>
-            <dt class="col-sm-5">Offline receipts</dt>
-            <dd class="col-sm-7">{% if readiness.manual_offline_proof_allowed %}Allowed{% else %}Disabled{% endif %}</dd>
-            <dt class="col-sm-5">Operator label</dt>
-            <dd class="col-sm-7">{{ catalog.operator_ready_label|default:"—" }}</dd>
+          <dl class="rmc-kv mb-0 small">
+            <dt>Compliance profile</dt>
+            <dd>{{ profile.name }}</dd>
+            <dt>Country</dt>
+            <dd>{{ readiness.country_code|default:"—" }}</dd>
+            <dt>Currency</dt>
+            <dd>{{ readiness.currency_code|default:"—" }}</dd>
+            <dt>Primary rail</dt>
+            <dd>{{ readiness.recommended_primary_rail|default:"—" }}</dd>
+            <dt>Backup rail</dt>
+            <dd>{{ readiness.recommended_backup_rail|default:"—" }}</dd>
+            <dt>Offline receipts</dt>
+            <dd>{% if readiness.manual_offline_proof_allowed %}Allowed{% else %}Disabled{% endif %}</dd>
+            <dt>Operator label</dt>
+            <dd>{{ catalog.operator_ready_label|default:"—" }}</dd>
           </dl>
         </div>
       </div>

@@ -74,13 +74,13 @@
       <div class="card shadow-sm mb-3">
         <div class="card-body">
           <h2 class="h5">Country & currency</h2>
-          <dl class="row mb-0 small">
-            <dt class="col-sm-5">Compliance profile</dt>
-            <dd class="col-sm-7">{{ profile.name }}</dd>
-            <dt class="col-sm-5">Country</dt>
-            <dd class="col-sm-7">{{ readiness.country_code|default:"—" }}</dd>
-            <dt class="col-sm-5">Currency</dt>
-            <dd class="col-sm-7">{{ readiness.currency_code|default:"—" }}</dd>
+          <dl class="rmc-kv mb-0 small">
+            <dt>Compliance profile</dt>
+            <dd>{{ profile.name }}</dd>
+            <dt>Country</dt>
+            <dd>{{ readiness.country_code|default:"—" }}</dd>
+            <dt>Currency</dt>
+            <dd>{{ readiness.currency_code|default:"—" }}</dd>
           </dl>
         </div>
       </div>
@@ -122,9 +122,9 @@
           <p class="small text-muted mb-2">
             {% trans "School → RunMyCampus SaaS billing. Separate from parent tuition (Engine 2)." %}
           </p>
-          <dl class="row mb-2 small">
-            <dt class="col-sm-6">{% trans "Connected" %}</dt>
-            <dd class="col-sm-6">
+          <dl class="rmc-kv mb-2 small">
+            <dt>{% trans "Connected" %}</dt>
+            <dd>
               {% if stripe_connect.connected %}
               <span class="rmc-badge rmc-badge--success">{% trans "Yes" %}</span>
               {% else %}
@@ -132,8 +132,8 @@
               {% endif %}
             </dd>
             {% if stripe_connect.account_id %}
-            <dt class="col-sm-6">{% trans "Account" %}</dt>
-            <dd class="col-sm-6"><code>{{ stripe_connect.account_id }}</code></dd>
+            <dt>{% trans "Account" %}</dt>
+            <dd><code>{{ stripe_connect.account_id }}</code></dd>
             {% endif %}
           </dl>
           <a class="btn btn-sm btn-outline-primary" href="{{ stripe_connect_url }}">

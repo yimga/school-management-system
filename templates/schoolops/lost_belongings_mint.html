@@ -44,13 +44,13 @@
       <div class="card shadow-sm">
         <div class="card-body">
           <h2 class="h6 mb-3">{% trans "Tag minted" %}</h2>
-          <dl class="row mb-0">
-            <dt class="col-sm-4">{% trans "Short code" %}</dt>
-            <dd class="col-sm-8"><code>{{ tag.short_code }}</code></dd>
-            <dt class="col-sm-4">{% trans "Tenant (hashed)" %}</dt>
-            <dd class="col-sm-8"><code>{{ tag.tenant_id_hash }}</code></dd>
-            <dt class="col-sm-4">{% trans "Label hint" %}</dt>
-            <dd class="col-sm-8">{{ tag.label_hint }}</dd>
+          <dl class="rmc-kv mb-0">
+            <dt>{% trans "Short code" %}</dt>
+            <dd><code>{{ tag.short_code }}</code></dd>
+            <dt>{% trans "Tenant (hashed)" %}</dt>
+            <dd><code>{{ tag.tenant_id_hash }}</code></dd>
+            <dt>{% trans "Label hint" %}</dt>
+            <dd>{{ tag.label_hint }}</dd>
           </dl>
           <p class="text-muted small mt-3 mb-0">
             {% trans "Print the short code as a QR sticker. Anonymous finders enter it on the public lookup page." %}
