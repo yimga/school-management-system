@@ -5,11 +5,16 @@ Requires region_settings context processor for production; tests use mock contex
 
 from datetime import date, datetime
 from decimal import Decimal
+from unittest import mock
 
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 
+from apps.siteconfig.currency import get_currency_symbol
+from apps.siteconfig.templatetags import region_format
 from apps.siteconfig.templatetags.region_format import (
     _date_format_to_django,
+    _resolve_currency_context,
+    _resolve_pinned_tenant_currency,
     format_date,
     format_currency,
     format_number,
@@ -74,6 +79,107 @@ class FormatCurrencyFilterTests(TestCase):
 
     def test_decimal_input(self):
         self.assertEqual(format_currency(Decimal("5000.00")), "FCFA5,000.00")
+
+
+class _FakeSchool:
+    """Stand-in School whose currency resolution is fixed, so the pinned-tenant
+    currency tests need no DB row."""
+
+    def __init__(self, currency_code):
+        self._currency_code = currency_code
+
+    def resolve_currency(self):
+        return self._currency_code
+
+
+def _patch_pin_and_school(pinned_id, school):
+    """Context-manager bundle patching the request tenant pin + School lookup.
+
+    Both are imported lazily inside ``_resolve_pinned_tenant_currency`` so patching
+    them at their definition module takes effect on the next call.
+    """
+    qs = mock.Mock()
+    qs.first.return_value = school
+    objects = mock.Mock()
+    objects.filter.return_value = qs
+    fake_school_model = mock.Mock()
+    fake_school_model.objects = objects
+    return (
+        mock.patch(
+            "apps.tenancy.boundary_core_guard.get_pinned_school_id",
+            return_value=pinned_id,
+        ),
+        mock.patch("apps.schools.models.School", fake_school_model),
+        objects,
+    )
+
+
+@override_settings(PLATFORM_DEFAULT_CURRENCY="USD", DEFAULT_CURRENCY="USD")
+class PinnedTenantCurrencyTests(SimpleTestCase):
+    """The ``format_currency`` filter cannot see template context, so it resolves
+    the school's currency from the per-request tenant pin — a tenant in XAF/NGN
+    must not see the platform-default "$" on its own money documents."""
+
+    def setUp(self):
+        # The per-pin memo is a module-level ContextVar; reset between tests.
+        region_format._PINNED_CURRENCY.set(None)
+
+    def test_pinned_tenant_currency_used_for_filter(self):
+        pin, school, _ = _patch_pin_and_school("school-ng", _FakeSchool("NGN"))
+        with pin, school:
+            self.assertEqual(
+                format_currency(12500.50),
+                f"{get_currency_symbol('NGN')}12,500.50",
+            )
+
+    def test_no_pin_falls_back_to_platform_default(self):
+        pin, school, _ = _patch_pin_and_school(None, None)
+        with pin, school:
+            self.assertEqual(
+                format_currency(1000), f"{get_currency_symbol('USD')}1,000.00"
+            )
+
+    def test_missing_school_row_falls_back_to_platform_default(self):
+        pin, school, _ = _patch_pin_and_school("ghost-id", None)
+        with pin, school:
+            self.assertEqual(
+                format_currency(1000), f"{get_currency_symbol('USD')}1,000.00"
+            )
+
+    def test_cross_tenant_memo_does_not_bleed(self):
+        pin_a, school_a, _ = _patch_pin_and_school("school-cm", _FakeSchool("XAF"))
+        with pin_a, school_a:
+            self.assertEqual(
+                _resolve_pinned_tenant_currency()[0], get_currency_symbol("XAF")
+            )
+        pin_b, school_b, _ = _patch_pin_and_school("school-ng", _FakeSchool("NGN"))
+        with pin_b, school_b:
+            # Different pinned school_id => memo is bypassed, NGN resolved fresh.
+            self.assertEqual(
+                _resolve_pinned_tenant_currency()[0], get_currency_symbol("NGN")
+            )
+
+    def test_memo_avoids_requerying_same_pinned_school(self):
+        pin, school, objects = _patch_pin_and_school("school-cm", _FakeSchool("XAF"))
+        with pin, school:
+            _resolve_pinned_tenant_currency()
+            _resolve_pinned_tenant_currency()
+            _resolve_pinned_tenant_currency()
+        # School looked up once; subsequent amounts served from the per-pin memo.
+        self.assertEqual(objects.filter.call_count, 1)
+
+    def test_explicit_context_currency_overrides_pin(self):
+        # A context-aware caller passing currency_symbol wins over the pin.
+        pin, school, _ = _patch_pin_and_school("school-cm", _FakeSchool("XAF"))
+        with pin, school:
+            symbol, dec_sep, thousands_sep = _resolve_currency_context(
+                {
+                    "currency_symbol": "€",
+                    "decimal_separator": ",",
+                    "thousands_separator": ".",
+                }
+            )
+        self.assertEqual((symbol, dec_sep, thousands_sep), ("€", ",", "."))
 
 
 class FormatNumberFilterTests(TestCase):

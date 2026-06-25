@@ -11,21 +11,73 @@ Note: format_currency takes a single value argument and uses context when availa
 template-provided argument.
 """
 
+from contextvars import ContextVar
+
 from django import template
 from django.conf import settings
 from django.utils import dateformat
 
 register = template.Library()
 
+# Memoise the resolved (symbol, dec_sep, thousands_sep) per pinned school_id so a
+# statement rendering many amounts does not re-query the School for each value.
+# Keyed by school_id and only used when the *live* pin still matches, so it never
+# bleeds one tenant's currency into another's request.
+_PINNED_CURRENCY: ContextVar = ContextVar("rmc_pinned_currency", default=None)
+
+
+def _resolve_pinned_tenant_currency():
+    """``(symbol, dec_sep, thousands_sep)`` for the request's pinned tenant, or None.
+
+    The ``format_currency`` filter cannot receive the template context (Django
+    filters never do), so without this it always rendered the platform-default
+    symbol — a school billing in XAF/NGN/KES saw "$" on its own invoices. We
+    resolve the currency from the per-request tenant pin (set and reset by
+    ``TenantBoundaryCoreGuardMiddleware``) so tenant-facing money documents render
+    the school's own currency, while operator / control-plane pages (no pin) keep
+    the platform default. Returns None when no tenant is pinned.
+    """
+    try:
+        from apps.tenancy.boundary_core_guard import get_pinned_school_id
+
+        school_id = get_pinned_school_id()
+    except (ImportError, AttributeError):
+        return None
+    if not school_id:
+        return None
+    cached = _PINNED_CURRENCY.get()
+    if cached is not None and cached[0] == school_id:
+        return cached[1]
+    try:
+        from django.db import Error as _DBError
+        from apps.schools.models import School
+        from apps.siteconfig.currency import get_currency_symbol
+
+        school = School.objects.filter(pk=school_id).first()
+        if school is None:
+            return None
+        code = (school.resolve_currency() or "").strip().upper()
+        if not code:
+            return None
+        resolved = (get_currency_symbol(code), ".", ",")
+    except (ImportError, AttributeError, TypeError, ValueError, _DBError):
+        return None
+    _PINNED_CURRENCY.set((school_id, resolved))
+    return resolved
+
 
 def _resolve_currency_context(context):
-    """Get currency symbol and separators from context or settings defaults."""
+    """Get currency symbol and separators from context, the request's pinned
+    tenant, or settings defaults — in that order."""
     if context:
         symbol = context.get("currency_symbol")
         dec_sep = context.get("decimal_separator")
         thousands_sep = context.get("thousands_separator")
         if symbol is not None and dec_sep is not None and thousands_sep is not None:
             return symbol or "", dec_sep or ".", thousands_sep or ","
+    pinned = _resolve_pinned_tenant_currency()
+    if pinned is not None:
+        return pinned
     from apps.siteconfig.currency import get_currency_symbol
 
     currency = (
