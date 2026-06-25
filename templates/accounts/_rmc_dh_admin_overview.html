@@ -62,12 +62,7 @@
         {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-trophy" dh_title=_("Top performers") %}
         <ul class="rmc-dh-lead">
           {% for s in top_performing_students|slice:":5" %}
-          <li>
-            <span class="rmc-dh-lead__rk{% if forloop.first %} rmc-dh-lead__rk--top{% endif %}">{{ forloop.counter }}</span>
-            <span class="rmc-dh-lead__av" aria-hidden="true">{{ s.name|slice:":1" }}</span>
-            <span class="rmc-dh-lead__main"><span class="rmc-dh-lead__nm">{{ s.name|truncatechars:24 }}</span><br><span class="rmc-dh-lead__sub">{{ s.classroom }}</span></span>
-            <span class="rmc-dh-lead__rt rmc-dh-lead__rt--up">{{ s.score|floatformat:1 }}</span>
-          </li>
+          {% include "components/dashboard/rmc_dh_lead_item.html" with dh_rank=forloop.counter dh_top=forloop.first dh_avatar=s.name|slice:":1" dh_name=s.name|truncatechars:24 dh_sub=s.classroom dh_rt=s.score|floatformat:1 dh_rt_dir="up" %}
           {% endfor %}
         </ul>
       </section>
@@ -78,12 +73,7 @@
         {% include "components/dashboard/rmc_dh_panel_head.html" with dh_icon="bi-people" dh_title=_("Students who need attention") %}
         <ul class="rmc-dh-lead">
           {% for s in at_risk_students|slice:":5" %}
-          <li>
-            <span class="rmc-dh-lead__rk">{{ forloop.counter }}</span>
-            <span class="rmc-dh-lead__av" aria-hidden="true">{{ s.name|slice:":1" }}</span>
-            <span class="rmc-dh-lead__main"><span class="rmc-dh-lead__nm">{{ s.name|truncatechars:24 }}</span><br><span class="rmc-dh-lead__sub">{{ s.classroom }} · {{ s.tag }}</span></span>
-            <span class="rmc-dh-lead__rt rmc-dh-lead__rt--down">{{ s.value }}</span>
-          </li>
+          {% include "components/dashboard/rmc_dh_lead_item.html" with dh_rank=forloop.counter dh_avatar=s.name|slice:":1" dh_name=s.name|truncatechars:24 dh_sub=s.classroom dh_sub2=s.tag dh_rt=s.value dh_rt_dir="down" %}
           {% endfor %}
         </ul>
       </section>
