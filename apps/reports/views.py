@@ -978,6 +978,28 @@ def publish_term_results(request: HttpRequest):
                     dispatch_domain_triggers_safe(school, "report_generated", rp_ctx)
                 except ImportError:
                     pass
+
+                # Closed-loop: tell each affected student + results-permitted guardian
+                # the moment the term is published — the milestone that gates the
+                # "published" results-visibility mode. Policy-gated (off => silent),
+                # on-commit, failure-isolated; never blocks the publish write.
+                if publish_school or selected_classrooms:
+                    try:
+                        from apps.reports.notify_term_published import (
+                            notify_term_results_published,
+                        )
+
+                        notify_term_results_published(
+                            school=school,
+                            year=year_obj,
+                            term=term_obj,
+                            classroom_ids=(
+                                None if publish_school else list(selected_classrooms)
+                            ),
+                            site=site,
+                        )
+                    except ImportError:
+                        pass
             messages.success(request, "Publish status updated.")
             return redirect(f"{request.path}?year={year_obj.id}&term={term_obj.id}")
 
