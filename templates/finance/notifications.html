@@ -1,0 +1,69 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Finance Notifications" %}{% endblock %}
+
+{% block content %}
+{% include "components/next_action_strip.html" %}
+
+<h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Finance Notifications" %}</h1>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  {% url 'finance:requests' as finance_requests_url %}
+  {% trans "Back to Finance" as back_action %}
+  {% include "studio_os/components/page_header.html" with title=_("Finance notifications") subtitle=_("Alerts and updates from your finance workspace") action_url=finance_requests_url action_text=back_action %}
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      {% if alerts %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-4col="1">
+            <caption class="visually-hidden">{% trans "Finance Notifications" %}</caption>
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">{% trans "Details" %}</th>
+                <th scope="col">{% trans "Status" %}</th>
+                <th scope="col">{% trans "Received" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for notif in alerts %}
+                <tr class="{% if not notif.is_read %}table-warning{% endif %}"
+                    data-rmc-row-detail="1"
+                    tabindex="0"
+                    data-rmc-row-title="{{ notif.title|escapejs }}"
+                    data-rmc-row-subtitle="{% if notif.is_read %}{% trans 'Read' %}{% else %}{% trans 'Unread' %}{% endif %}"
+                    data-rmc-row-meta='{"{% trans "Received" %}":"{{ notif.created_at|date:"M d, Y H:i"|escapejs }}"}'>
+                  <th scope="row">{{ forloop.counter }}</th>
+                  <td>
+                    <strong>{{ notif.title }}</strong>
+                    <div class="small text-muted">{{ notif.message|linebreaksbr }}</div>
+                  </td>
+                  <td>
+                    {% if notif.is_read %}
+                      <span class="rmc-badge rmc-badge--success">{% trans "Read" %}</span>
+                    {% else %}
+                      <span class="rmc-badge rmc-badge--warning">{% trans "Unread" %}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-muted small">{{ notif.created_at|date:"M d, Y" }} {{ notif.created_at|time:"H:i" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        {% trans "No finance notifications yet." as finance_notifications_empty_title %}
+        {% include "components/rmc_empty_state.html" with icon="bi-bell" title=finance_notifications_empty_title message=_("Nothing here yet — alerts will appear as your finance workspace generates them.") %}
+      {% endif %}
+      {% if page_obj and page_obj.paginator.num_pages > 1 %}
+        {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
+{% endblock %}

@@ -1,0 +1,10 @@
+{% load i18n %}{% blocktrans with name=student_name term=term_name %}{{ name }}'s {{ term }} report card is now available.{% endblocktrans %}
+
+{% trans "Student:" %} {{ student_name }}
+{% trans "Term:" %} {{ term_name }}
+{% trans "Academic year:" %} {{ academic_year }}
+
+{% trans "View report card:" %} {{ portal_link }}
+
+{% trans "Questions about these results? Contact the school office." %}
+{% trans "RunMyCampus" %}
