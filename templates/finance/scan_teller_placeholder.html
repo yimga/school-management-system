@@ -19,7 +19,7 @@
       <div class="card-body">
         <h5 class="mb-3">Extraction</h5>
         {% if ocr_runtime_status %}
-        <div class="alert {% if ocr_runtime_status.ready %}alert-success{% else %}alert-warning{% endif %} small" role="alert">
+        <div class="rmc-banner {% if ocr_runtime_status.ready %}rmc-banner--success{% else %}rmc-banner--warning{% endif %} small" role="alert">
           <div class="fw-semibold mb-1">OCR runtime status: {{ ocr_runtime_status.provider }} ({{ ocr_runtime_status.method }})</div>
           <div>{{ ocr_runtime_status.message }}</div>
           {% if ocr_runtime_status.missing %}

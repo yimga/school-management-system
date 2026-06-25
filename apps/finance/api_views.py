@@ -25,7 +25,6 @@ from apps.finance.json_decimal import amount_str
 from apps.finance.models import Invoice, Payment, Notification, ComplianceProfile
 from apps.finance.services import pay_invoice_with_wallet
 from apps.observability.tracing import trace_view
-from apps.platform_runtime.helpers import get_platform_defaults
 from apps.api.serializers import InvoiceSerializer, PaymentSerializer
 from apps.api.permissions import IsAdminUser
 from apps.accounts.drf_rebac import RebacPermission
@@ -698,9 +697,10 @@ class FinancialAnalyticsAPI(APIView):
                 "outstanding_fees": amount_str(outstanding_fees),
                 "payment_methods": _money_aggregate_rows(payment_methods),
                 "monthly_revenue": _money_aggregate_rows(monthly_revenue),
-                "currency": ComplianceProfile.objects.filter(is_active=True)
-                .values_list("currency_code", flat=True)
-                .first()
-                or get_platform_defaults(use_db=False)["currency"],
+                # Local-first: the analytics summary belongs to THIS tenant, so its
+                # currency is the requesting school's (resolve_currency cascades to
+                # the platform default and never returns blank) — not an arbitrary
+                # first-active ComplianceProfile, which could be another tenant's.
+                "currency": school.resolve_currency(),
             }
         )
