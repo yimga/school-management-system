@@ -665,12 +665,17 @@ class Evaluation(models.Model):
         unique_together = ("academic_year", "term", "subject_assignment", "student")
 
     def clean(self):
-        from apps.evals.grading import max_score_for_school
+        # Score upper-bound = the school's OPERATIONAL grade scale
+        # (AssessmentWeights.score_scale via resolve_school_score_scale), NOT the
+        # locale-derived max_score_for_school which lags the per-school seeded scale
+        # (it reports 100 for a /20 francophone school) and would accept out-of-range
+        # scores. Consistent with OCR/EWS validation and how grades are actually scored.
+        from apps.evals.grading_provisioning import resolve_school_score_scale
 
         school = getattr(self, "school", None)
         if school is None and self.subject_assignment_id:
             school = getattr(self.subject_assignment, "school", None)
-        max_score = max_score_for_school(school)
+        max_score = resolve_school_score_scale(school)
 
         score_fields = {
             "seq1_score": self.seq1_score,
