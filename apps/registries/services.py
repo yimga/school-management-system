@@ -563,82 +563,91 @@ def ensure_fee_category_seed() -> None:
         )
 
 
+# Single source of truth for the canonical grade-scale families. Lifted to a
+# module constant so the durable seed migration (registries/0008) and the
+# coverage gate (scripts/verify_grading_scale_registry_coverage.py) both read
+# the SAME data instead of carrying drifting copies, and a no-DB test can assert
+# the seed codes match the gate's REQUIRED_CODES. Adding a world scale here =
+# one edit; the migration, the opportunistic provisioning seed, and the gate all
+# pick it up. Keep codes in sync with verify_grading_scale_registry_coverage.REQUIRED_CODES.
+GRADE_SCALE_SEED_DEFAULTS: tuple[dict, ...] = (
+    {
+        "code": "0-20",
+        "name": "0-20 scale",
+        "family": "numeric",
+        "sort_order": 10,
+        "range_definition": {"min": 0, "max": 20},
+    },
+    {
+        "code": "0-100",
+        "name": "0-100 percentage",
+        "family": "numeric",
+        "sort_order": 20,
+        "range_definition": {"min": 0, "max": 100},
+    },
+    {
+        "code": "GPA_4",
+        "name": "4.0 GPA",
+        "family": "gpa",
+        "sort_order": 30,
+        "range_definition": {"min": 0, "max": 4},
+    },
+    {
+        "code": "LETTER",
+        "name": "Letter grades",
+        "family": "letter",
+        "sort_order": 40,
+    },
+    {
+        "code": "PASS_FAIL",
+        "name": "Pass/Fail",
+        "family": "binary",
+        "sort_order": 50,
+    },
+    {
+        "code": "NUMERIC_1_5",
+        "name": "1-5 scale (Post-Soviet)",
+        "family": "numeric",
+        "sort_order": 60,
+        "range_definition": {"min": 1, "max": 5, "pass_threshold": 3},
+        "metadata": {"ranking_mode": "average", "governance_archetype": "europe-eastern"},
+    },
+    {
+        "code": "WAEC_LETTER",
+        "name": "WAEC letter bands",
+        "family": "letter",
+        "sort_order": 70,
+        "metadata": {
+            "ranking_mode": "average",
+            "boundary_map": [
+                {"grade": "A1", "min": 75, "max": 100},
+                {"grade": "B2", "min": 70, "max": 74.99},
+                {"grade": "C6", "min": 50, "max": 69.99},
+                {"grade": "F9", "min": 0, "max": 49.99},
+            ],
+        },
+    },
+    {
+        "code": "STANDARD_SCORE_T",
+        "name": "T-score (East Asia)",
+        "family": "standard_score",
+        "sort_order": 80,
+        "range_definition": {"min": 0, "max": 100},
+        "metadata": {"ranking_mode": "standard_score_t"},
+    },
+    {
+        "code": "QUALITATIVE_PD",
+        "name": "Qualitative descriptors",
+        "family": "qualitative",
+        "sort_order": 90,
+        "metadata": {"ranking_mode": "average"},
+    },
+)
+
+
 def ensure_grade_scale_seed() -> None:
     """Idempotent seed for grade scale families."""
-    defaults = [
-        {
-            "code": "0-20",
-            "name": "0-20 scale",
-            "family": "numeric",
-            "sort_order": 10,
-            "range_definition": {"min": 0, "max": 20},
-        },
-        {
-            "code": "0-100",
-            "name": "0-100 percentage",
-            "family": "numeric",
-            "sort_order": 20,
-            "range_definition": {"min": 0, "max": 100},
-        },
-        {
-            "code": "GPA_4",
-            "name": "4.0 GPA",
-            "family": "gpa",
-            "sort_order": 30,
-            "range_definition": {"min": 0, "max": 4},
-        },
-        {
-            "code": "LETTER",
-            "name": "Letter grades",
-            "family": "letter",
-            "sort_order": 40,
-        },
-        {
-            "code": "PASS_FAIL",
-            "name": "Pass/Fail",
-            "family": "binary",
-            "sort_order": 50,
-        },
-        {
-            "code": "NUMERIC_1_5",
-            "name": "1-5 scale (Post-Soviet)",
-            "family": "numeric",
-            "sort_order": 60,
-            "range_definition": {"min": 1, "max": 5, "pass_threshold": 3},
-            "metadata": {"ranking_mode": "average", "governance_archetype": "europe-eastern"},
-        },
-        {
-            "code": "WAEC_LETTER",
-            "name": "WAEC letter bands",
-            "family": "letter",
-            "sort_order": 70,
-            "metadata": {
-                "ranking_mode": "average",
-                "boundary_map": [
-                    {"grade": "A1", "min": 75, "max": 100},
-                    {"grade": "B2", "min": 70, "max": 74.99},
-                    {"grade": "C6", "min": 50, "max": 69.99},
-                    {"grade": "F9", "min": 0, "max": 49.99},
-                ],
-            },
-        },
-        {
-            "code": "STANDARD_SCORE_T",
-            "name": "T-score (East Asia)",
-            "family": "standard_score",
-            "sort_order": 80,
-            "range_definition": {"min": 0, "max": 100},
-            "metadata": {"ranking_mode": "standard_score_t"},
-        },
-        {
-            "code": "QUALITATIVE_PD",
-            "name": "Qualitative descriptors",
-            "family": "qualitative",
-            "sort_order": 90,
-            "metadata": {"ranking_mode": "average"},
-        },
-    ]
-    for row in defaults:
+    for row in GRADE_SCALE_SEED_DEFAULTS:
         GradeScaleRegistry.objects.update_or_create(
             code=row["code"],
             defaults={
