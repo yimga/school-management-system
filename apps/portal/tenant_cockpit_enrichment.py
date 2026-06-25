@@ -280,6 +280,13 @@ def enrich_tenant_cockpit_for_request(
             tenant_cockpit["community_band"] = _seed_role_home_community_band(request, cb)
 
     try:
+        from apps.portal.tenant_cockpit_realdata import hydrate_year_progress_realdata
+
+        tenant_cockpit = hydrate_year_progress_realdata(request, tenant_cockpit)
+    except Exception:
+        pass
+
+    try:
         from apps.portal.tenant_cockpit_realdata import hydrate_role_home_cockpit_realdata
 
         tenant_cockpit = hydrate_role_home_cockpit_realdata(request, tenant_cockpit)

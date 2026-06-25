@@ -15,6 +15,9 @@ from django.utils.translation import gettext_lazy as _
 from apps.accounts.models import User
 from apps.portal.tenant_role_home import is_tp_v3_role_home_request
 
+#: Whole-percent scale (ratio → 0..100) for the year-progress bar.
+_PERCENT_SCALE = 100
+
 
 def _parent_widget_bundle(request: HttpRequest) -> dict[str, dict] | None:
     user = getattr(request, "user", None)
@@ -326,6 +329,86 @@ def _hydrate_quick_actions(
     out["enabled"] = True
     out["tiles"] = tiles
     return out
+
+
+def _hydrate_year_progress(
+    request: HttpRequest, section: dict[str, Any]
+) -> dict[str, Any]:
+    """Auto-derive the academic-year progress bar from the active year + term.
+
+    The ``year_progress`` cockpit section ships ``enabled=True`` but with empty
+    defaults (``percent=0``, no ``term_label``/``eta_label``), so out of the box
+    the bar renders at 0% with no labels — a visible empty state on every admin /
+    parent / teacher landing. This overlays live values computed from the active
+    ``AcademicYear`` (today's position between its start and end dates) and the
+    active ``Term`` label.
+
+    PII-safe: the academic year + term are school-wide calendar markers — no
+    student-specific dates ever appear here (same guarantee the section's
+    template documents). School-scoped via ``get_active_year_and_term(school=)``.
+
+    Operator override is respected in BOTH directions:
+      * ``enabled=False`` (operator opted out)  -> untouched.
+      * operator already published a ``term_label`` or non-zero ``percent`` via
+        ``SiteSettings.cockpit_payload.year_progress`` -> untouched.
+    Degrade-safe: any missing data / malformed dates returns the section as-is.
+    """
+    if not section.get("enabled"):
+        return section
+    if section.get("term_label") or section.get("percent"):
+        return section
+    try:
+        from apps.academics.services import get_active_year_and_term
+
+        school = getattr(request, "school", None)
+        year, term = get_active_year_and_term(school=school)
+    except Exception:
+        return section
+    if year is None:
+        return section
+    start = getattr(year, "start_date", None)
+    end = getattr(year, "end_date", None)
+    if not start or not end:
+        return section
+    try:
+        span_days = (end - start).days
+        if span_days <= 0:
+            return section
+        elapsed_days = (timezone.localdate() - start).days
+        percent = max(
+            0, min(_PERCENT_SCALE, round(elapsed_days / span_days * _PERCENT_SCALE))
+        )
+    except (TypeError, ValueError):
+        return section
+
+    out = dict(section)
+    out["percent"] = percent
+    if term is not None:
+        term_label = str(getattr(term, "label", "") or "")
+        if term_label:
+            out["term_label"] = term_label
+    try:
+        out["eta_label"] = str(
+            _("Ends %(date)s") % {"date": year.format_end_date_display()}
+        )
+    except Exception:
+        out["eta_label"] = ""
+    return out
+
+
+def hydrate_year_progress_realdata(
+    request: HttpRequest, tenant_cockpit: dict[str, Any]
+) -> dict[str, Any]:
+    """Overlay live academic-year progress onto the cockpit ``year_progress``.
+
+    Not role-gated — the year-progress bar is a school-wide marker that renders
+    on the admin, parent and teacher landings alike, so this runs for every
+    tenant cockpit request (unlike the role-home widget hydrators below).
+    """
+    yp = tenant_cockpit.get("year_progress")
+    if isinstance(yp, dict):
+        tenant_cockpit["year_progress"] = _hydrate_year_progress(request, yp)
+    return tenant_cockpit
 
 
 def hydrate_role_home_cockpit_realdata(

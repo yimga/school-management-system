@@ -13,8 +13,29 @@ from apps.accounts.models import User
 from apps.portal.tenant_cockpit_realdata import (
     _format_widget_event,
     _hydrate_today_snapshot,
+    _hydrate_year_progress,
     hydrate_role_home_cockpit_realdata,
+    hydrate_year_progress_realdata,
 )
+
+
+def _make_year(start, end, eta="June 12"):
+    class _Year:
+        start_date = start
+        end_date = end
+
+        def format_end_date_display(self):
+            return eta
+
+    return _Year()
+
+
+def _make_term(label="Term 2"):
+    return type("_Term", (), {"label": label})()
+
+
+class _ReqNoSchool:
+    school = None
 
 
 class TenantCockpitRealdataTests(SimpleTestCase):
@@ -111,3 +132,91 @@ class TenantCockpitRealdataTests(SimpleTestCase):
         self.assertTrue(out["today_snapshot"]["enabled"])
         values = [c.get("value") for c in out["today_snapshot"]["cards"]]
         self.assertIn("72", values)
+
+
+class YearProgressHydrationTests(SimpleTestCase):
+    """Live academic-year progress bar overlay (PII-safe, override-respecting)."""
+
+    def _section(self, **overrides):
+        base = {"enabled": True, "label": "Academic year", "term_label": "", "percent": 0, "eta_label": ""}
+        base.update(overrides)
+        return base
+
+    @patch("apps.academics.services.get_active_year_and_term")
+    def test_auto_derives_percent_term_and_eta(self, mock_active):
+        today = timezone.localdate()
+        mock_active.return_value = (
+            _make_year(today - timedelta(days=50), today + timedelta(days=50)),
+            _make_term("Term 2"),
+        )
+        out = _hydrate_year_progress(_ReqNoSchool(), self._section())
+        # 50 of 100 days elapsed -> ~50%.
+        self.assertEqual(out["percent"], 50)
+        self.assertEqual(out["term_label"], "Term 2")
+        self.assertIn("June 12", out["eta_label"])
+
+    @patch("apps.academics.services.get_active_year_and_term")
+    def test_percent_clamps_high_when_year_has_ended(self, mock_active):
+        today = timezone.localdate()
+        mock_active.return_value = (
+            _make_year(today - timedelta(days=200), today - timedelta(days=100)),
+            _make_term(),
+        )
+        out = _hydrate_year_progress(_ReqNoSchool(), self._section())
+        self.assertEqual(out["percent"], 100)
+
+    @patch("apps.academics.services.get_active_year_and_term")
+    def test_percent_clamps_low_before_year_starts(self, mock_active):
+        today = timezone.localdate()
+        mock_active.return_value = (
+            _make_year(today + timedelta(days=10), today + timedelta(days=110)),
+            _make_term(),
+        )
+        out = _hydrate_year_progress(_ReqNoSchool(), self._section())
+        self.assertEqual(out["percent"], 0)
+
+    @patch("apps.academics.services.get_active_year_and_term")
+    def test_respects_operator_opt_out(self, mock_active):
+        out = _hydrate_year_progress(_ReqNoSchool(), self._section(enabled=False))
+        self.assertEqual(out["percent"], 0)
+        self.assertEqual(out["term_label"], "")
+        mock_active.assert_not_called()
+
+    @patch("apps.academics.services.get_active_year_and_term")
+    def test_respects_operator_published_values(self, mock_active):
+        out = _hydrate_year_progress(
+            _ReqNoSchool(), self._section(term_label="Trimester 1", percent=33)
+        )
+        self.assertEqual(out["term_label"], "Trimester 1")
+        self.assertEqual(out["percent"], 33)
+        mock_active.assert_not_called()
+
+    @patch("apps.academics.services.get_active_year_and_term", return_value=(None, None))
+    def test_degrades_when_no_active_year(self, _mock_active):
+        out = _hydrate_year_progress(_ReqNoSchool(), self._section())
+        self.assertEqual(out["percent"], 0)
+        self.assertEqual(out["term_label"], "")
+
+    @patch("apps.academics.services.get_active_year_and_term")
+    def test_degrades_on_zero_length_span(self, mock_active):
+        today = timezone.localdate()
+        mock_active.return_value = (_make_year(today, today), _make_term())
+        out = _hydrate_year_progress(_ReqNoSchool(), self._section())
+        self.assertEqual(out["percent"], 0)
+
+    @patch("apps.academics.services.get_active_year_and_term")
+    def test_orchestrator_overlays_year_progress_key(self, mock_active):
+        today = timezone.localdate()
+        mock_active.return_value = (
+            _make_year(today - timedelta(days=25), today + timedelta(days=75)),
+            _make_term("Term 1"),
+        )
+        cockpit = {"year_progress": self._section()}
+        out = hydrate_year_progress_realdata(_ReqNoSchool(), cockpit)
+        self.assertEqual(out["year_progress"]["percent"], 25)
+        self.assertEqual(out["year_progress"]["term_label"], "Term 1")
+
+    def test_orchestrator_no_op_when_section_absent(self):
+        cockpit = {"today_snapshot": {"enabled": True}}
+        out = hydrate_year_progress_realdata(_ReqNoSchool(), cockpit)
+        self.assertEqual(out, cockpit)
