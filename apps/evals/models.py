@@ -24,6 +24,9 @@ GRADING_SCALE_BANDS: dict[str, dict[str, float]] = {
     "letter_a_e": {"a": 18, "b": 16, "c": 14, "d": 10, "e": 0, "score_scale": 20},
     "gpa_4_0": {"a": 3.5, "b": 3.0, "c": 2.0, "d": 1.0, "e": 0, "score_scale": 4},
     "percentage": {"a": 80, "b": 70, "c": 60, "d": 50, "e": 0, "score_scale": 100},
+    # Post-Soviet 1–5 (5=excellent … 1=poor), pass at 3. Fits the 5-band model on a
+    # 0–5 axis, so GradeConverter computes letters/GPA/% with no special casing.
+    "numeric_1_5": {"a": 4.5, "b": 4, "c": 3.5, "d": 3, "e": 0, "score_scale": 5},
 }
 
 # Field defaults for the numeric_0_20 scale — used to detect "thresholds untouched".
@@ -148,6 +151,7 @@ class AssessmentWeights(models.Model):
             ("letter_a_e", "Letters A–E (Cameroon Anglophone)"),
             ("gpa_4_0", "GPA 4.0 Scale"),
             ("percentage", "Percentage 0–100"),
+            ("numeric_1_5", "Numeric 1–5 (Post-Soviet)"),
         ],
         default="numeric_0_20",
     )

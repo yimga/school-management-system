@@ -212,6 +212,10 @@ function loadTenantSurfaces() {
         return tenantOnlyFilter.some((x) => p.startsWith(x));
       }
       if (pathFilter.length) {
+        const exact = process.env.SWEEP_PATHS_EXACT === '1';
+        if (exact) {
+          return pathFilter.some((x) => p === x || row.inner === x);
+        }
         return pathFilter.some((x) => p.startsWith(x));
       }
       return true;
@@ -420,12 +424,30 @@ function sweepPageInBrowser(scrollRootSel) {
   };
 }
 
-async function loginTenant(page) {
+function finalizeTenantSweepRow(s, audit) {
+  if (
+    isAuthEscapePath(audit.path) &&
+    !isAuthEscapePath(s.url) &&
+    !isAuthenticationRootRoute(s.url)
+  ) {
+    return {
+      ...s,
+      ...audit,
+      ok: false,
+      failures: ['auth_escape'],
+    };
+  }
+  return { ...s, ...audit };
+}
+
+async function loginTenant(page, opts = {}) {
   const tenantUser =
+    opts.username ||
     process.env.TENANT_SWEEP_USERNAME ||
     process.env.E2E_TENANT_USER ||
     'demo.admin';
   const tenantPassword =
+    opts.password ||
     process.env.TENANT_SWEEP_PASSWORD ||
     process.env.E2E_TENANT_PASSWORD ||
     'Test1234';
@@ -475,6 +497,7 @@ function resolveUserForRoute(url) {
 }
 
 async function ensureTenantUser(page, username) {
+  await page.context().clearCookies();
   await loginTenant(page, { username, password: TENANT_SWEEP_PASSWORD });
   await assertTenantSessionReady(page);
 }
@@ -627,17 +650,12 @@ async function main() {
           !isAuthenticationRootRoute(s.url)
         ) {
           failures += 1;
-          const row = {
-            ...s,
-            ...audit,
-            ok: false,
-            failures: ['auth_escape'],
-          };
+          const row = finalizeTenantSweepRow(s, audit);
           results.push(row);
           writeLog('SWEEP', 'FAIL', row);
           continue;
         }
-        const row = { ...s, ...audit };
+        const row = finalizeTenantSweepRow(s, audit);
         results.push(row);
         writeLog('SWEEP', row.ok ? 'pass' : 'FAIL', row);
         if (!row.ok) failures += 1;
@@ -655,7 +673,7 @@ async function main() {
               sweepPageInBrowser,
               s.scrollRoot || '#main-content'
             );
-            const row = { ...s, ...audit };
+            const row = finalizeTenantSweepRow(s, audit);
             results.push(row);
             writeLog('SWEEP', row.ok ? 'pass' : 'FAIL', row);
             if (!row.ok) failures += 1;
@@ -751,16 +769,20 @@ async function main() {
     ) + '\n'
   );
   if (SWEEP_TIER === 'tenant') {
-    const tenantArtifact = path.join(
-      process.cwd(),
-      'var/tenant-abrupt-end-sweep.json'
-    );
-    fs.mkdirSync(path.dirname(tenantArtifact), { recursive: true });
-    fs.writeFileSync(
-      tenantArtifact,
-      JSON.stringify({ ...summary, results }, null, 2) + '\n'
-    );
-    console.log(`Wrote ${tenantArtifact}`);
+    const writeArtifact =
+      (process.env.TENANT_SWEEP_WRITE_ARTIFACT || '1').toLowerCase() !== '0';
+    if (writeArtifact) {
+      const tenantArtifact = path.join(
+        process.cwd(),
+        'var/tenant-abrupt-end-sweep.json'
+      );
+      fs.mkdirSync(path.dirname(tenantArtifact), { recursive: true });
+      fs.writeFileSync(
+        tenantArtifact,
+        JSON.stringify({ ...summary, results }, null, 2) + '\n'
+      );
+      console.log(`Wrote ${tenantArtifact}`);
+    }
   }
 
   writeLog('SUMMARY', 'platform abrupt-end sweep', summary);

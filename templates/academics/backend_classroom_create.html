@@ -15,31 +15,59 @@
   {% include "studio_os/components/page_header.html" with title=title|default:_("Create classroom") subtitle=_("Add a classroom to your school") %}
 
   <div class="row g-3 rmc-reveal-stagger">
-    <div class="col-12 col-lg-8 col-xl-6 rmc-reveal">
+    <div class="col-12 col-lg-8 rmc-reveal">
       <div class="card border-0 shadow-sm rmc-glass-surface">
         <div class="card-body">
+          {% if form.non_field_errors or form.errors %}
+            <div class="alert alert-danger" role="alert" aria-live="assertive" tabindex="-1">
+              <div class="fw-semibold mb-1"><i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i>{% trans "Please fix the following before saving:" %}</div>
+              {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+              {% if form.errors %}
+                <ul class="mb-0 ps-3">
+                  {% for field in form %}{% for err in field.errors %}
+                    <li><a href="#{{ field.id_for_label }}" class="alert-link">{{ field.label }}</a>: {{ err }}</li>
+                  {% endfor %}{% endfor %}
+                </ul>
+              {% endif %}
+            </div>
+          {% endif %}
+
           <form method="post" novalidate
                 data-rmc-offline-form="field_capture"
                 data-rmc-offline-workflow="backend_classroom_create">
             {% csrf_token %}
-            {% if form.non_field_errors %}
-              <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
-            {% endif %}
             {% for field in form %}
               <div class="mb-3">
                 <label for="{{ field.id_for_label }}" class="form-label fw-semibold small">
-                  {{ field.label }}{% if field.field.required %} <span class="text-danger" aria-hidden="true">*</span>{% endif %}
+                  {{ field.label }}{% if field.field.required %} <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden">{% trans "(required)" %}</span>{% endif %}
                 </label>
                 {{ field }}
                 {% if field.help_text %}<div class="form-text small text-muted">{{ field.help_text }}</div>{% endif %}
                 {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
               </div>
             {% endfor %}
-            <div class="d-flex flex-wrap gap-2 mt-4">
-              <button type="submit" class="btn btn-primary">{% trans "Create classroom" %}</button>
+            <div class="d-flex flex-wrap gap-2 mt-4 pt-2 border-top">
+              <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{% trans "Create classroom" %}</button>
               <a href="{{ return_url|default:'' }}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
             </div>
+            <p class="form-text small text-muted mt-2 mb-0">{% trans "Fields marked" %} <span class="text-danger">*</span> {% trans "are required." %}</p>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4 rmc-reveal">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <p class="text-uppercase small text-muted mb-2 fw-semibold"><i class="bi bi-lightbulb me-1" aria-hidden="true"></i>{% trans "Before you start" %}</p>
+          <ul class="small text-muted ps-3 mb-3">
+            <li class="mb-1">{% trans "Give the classroom a clear, unique name students and staff will recognise." %}</li>
+            <li class="mb-1">{% trans "Link it to the right academic year so rosters and reports line up." %}</li>
+            <li class="mb-0">{% trans "You can assign teachers and enrol students after the classroom is created." %}</li>
+          </ul>
+          <a href="{% url 'accounts:backend_classroom_list' %}" class="btn btn-sm btn-outline-secondary w-100">
+            <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Back to all classrooms" %}
+          </a>
         </div>
       </div>
     </div>

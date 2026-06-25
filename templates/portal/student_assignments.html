@@ -1,0 +1,57 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Homework" %}{% endblock %}
+
+{% block page_archetype %}student-homework{% endblock %}
+
+{% block content %}
+{% include "components/next_action_strip.html" %}
+
+<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div data-rmc-scroll-policy="paginate"
+  class="portal-student-homework-read-shell"
+  data-page-critical-read="student-homework"
+  data-sms-offline-read-cache-key="portal_student_homework"
+  tabindex="-1"
+>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-0" id="student-homework-heading">{% trans "Homework" %}</h1>
+    <p class="text-muted small mb-1">{% trans "Assignments for your class. Submissions work offline and sync when you reconnect." %}</p>
+  </div>
+</div>
+
+{% if rows %}
+<div class="list-group">
+  {% for row in rows %}
+  <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-start"
+     href="{% url 'portal:student_assignment_submit' assignment_id=row.assignment.id %}">
+    <div class="me-3">
+      <div class="fw-semibold">{{ row.assignment.subject.name }} — {{ row.assignment.title }}</div>
+      <div class="small text-muted">
+        {% if row.assignment.due_at %}{% trans "Due" %} {{ row.assignment.due_at|date:"D, M j, P" }}{% else %}{% trans "No due date" %}{% endif %}
+      </div>
+    </div>
+    <div class="text-end">
+      {% if row.submitted %}
+        <span class="badge bg-success">{% trans "Submitted" %}</span>
+      {% elif row.overdue %}
+        <span class="badge bg-danger">{% trans "Overdue" %}</span>
+      {% else %}
+        <span class="badge bg-secondary">{% trans "To do" %}</span>
+      {% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center text-muted py-5">
+    <p class="mb-1 fw-semibold">{% trans "No homework right now" %}</p>
+    <p class="small mb-0">{% trans "Published assignments for your class will appear here." %}</p>
+  </div>
+</div>
+{% endif %}
+</div>
+{% endblock %}

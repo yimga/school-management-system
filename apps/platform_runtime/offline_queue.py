@@ -1025,6 +1025,68 @@ def _apply_support_ticket(school_id, user_id: int, payload: dict[str, Any]) -> d
     return {"ok": True, "ticket_id": str(ticket.pk)}
 
 
+def _apply_lms_submission(
+    school_id,
+    user_id: int,
+    payload: dict[str, Any],
+    *,
+    force_local: bool = False,
+) -> dict[str, Any]:
+    """Canonical: persist a queued submission into ``academics.LMSSubmission``.
+
+    The single offline applier for the LMS homework loop; delegates to
+    ``academics.lms_services.submit_assignment`` so the offline-then-synced path and
+    the online portal submit path converge on ONE store. Idempotent / remote-wins —
+    a replay of an already-submitted piece of work is a clean no-op (``dedup=True``).
+    """
+    from apps.academics.lms_services import AssignmentClosedError, submit_assignment
+    from apps.academics.models_lms import LMSAssignment
+    from apps.people.models import StudentProfile
+
+    assignment_id = payload.get("assignment_id")
+    if assignment_id in (None, ""):
+        return {"ok": False, "error": "assignment_id required."}
+
+    assignment = (
+        LMSAssignment.objects.filter(pk=assignment_id, school_id=school_id)
+        .select_related("school")
+        .first()
+    )
+    if assignment is None:
+        return {"ok": False, "error": "assignment_not_found"}
+
+    # Security: a student may only submit their OWN work. Resolve the student from the
+    # authenticated queuing user_id, never a spoofable payload student_id.
+    student = StudentProfile.objects.filter(
+        user_id=user_id, school_id=school_id, is_active=True
+    ).first()
+    if student is None:
+        return {"ok": False, "error": "student_profile_not_found"}
+    # A queued submission must target the student's own assigned classroom.
+    if assignment.classroom_id and assignment.classroom_id != student.classroom_id:
+        return {"ok": False, "error": "assignment_not_for_student_classroom"}
+
+    content = str(payload.get("content") or payload.get("submission_text") or "")[:8000]
+    try:
+        submission, changed = submit_assignment(
+            assignment=assignment,
+            student=student,
+            content=content,
+            force=force_local,
+        )
+    except AssignmentClosedError:
+        return {"ok": False, "error": "assignment_not_open_for_submissions"}
+    return {
+        "ok": True,
+        "submission_id": submission.pk,
+        "assignment_id": assignment.pk,
+        "student_id": student.pk,
+        "status": submission.status,
+        "dedup": not changed,
+        "submitted_by_user_id": user_id,
+    }
+
+
 def _apply_homework_submission(
     school_id,
     user_id: int,
@@ -1032,7 +1094,19 @@ def _apply_homework_submission(
     *,
     force_local: bool = False,
 ) -> dict[str, Any]:
-    """Persist a queued homework submission into ``School.settings`` academics bucket."""
+    """Persist a queued homework submission.
+
+    Canonical path: a payload carrying ``assignment_id`` targets the
+    ``academics.LMSSubmission`` system of record (online + offline converge there).
+    Legacy path: a payload with only ``homework_id`` lands in the ``School.settings``
+    academics bucket (the lesson_homework_kernel edge store) so actions queued before
+    the canonical cutover still apply.
+    """
+    if payload.get("assignment_id") not in (None, ""):
+        return _apply_lms_submission(
+            school_id, user_id, payload, force_local=force_local
+        )
+
     from datetime import date as date_cls
 
     from apps.academics.lesson_homework_kernel import (

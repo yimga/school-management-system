@@ -1,0 +1,82 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{{ assignment.title }}{% endblock %}
+
+{% block page_archetype %}student-homework-detail{% endblock %}
+
+{% block content %}
+{% include "components/next_action_strip.html" %}
+
+<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div data-rmc-scroll-policy="paginate"
+  class="portal-student-homework-detail-read-shell"
+  data-page-critical-read="student-homework-detail"
+  data-sms-offline-read-cache-key="portal_student_homework_detail"
+  tabindex="-1"
+>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-0">{{ assignment.title }}</h1>
+    <p class="text-muted small mb-1">
+      {{ assignment.subject.name }}
+      {% if assignment.due_at %} · {% trans "Due" %} {{ assignment.due_at|date:"D, M j, P" }}{% endif %}
+    </p>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:student_assignments' %}">{% trans "Back" %}</a>
+</div>
+
+{% if assignment.instructions %}
+<div class="card mb-3">
+  <div class="card-header py-2">{% trans "Instructions" %}</div>
+  <div class="card-body" dir="auto">{{ assignment.instructions|linebreaksbr }}</div>
+</div>
+{% endif %}
+
+{% if submission and submission.status == "GRADED" %}
+<div class="card mb-3 border-success">
+  <div class="card-body">
+    <span class="badge bg-success mb-2">{% trans "Graded" %}</span>
+    {% if submission.score is not None %}<p class="mb-1"><strong>{% trans "Score" %}:</strong> {{ submission.score }}</p>{% endif %}
+    {% if submission.feedback %}<p class="mb-0 small text-muted">{{ submission.feedback|linebreaksbr }}</p>{% endif %}
+  </div>
+</div>
+{% elif submission and submission.submitted_at %}
+<div class="alert alert-success" role="status">
+  {% trans "Submitted" %} {{ submission.submitted_at|date:"D, M j, P" }}{% if submission.status == "LATE" %} · <span class="text-danger">{% trans "Late" %}</span>{% endif %}.
+  {% trans "You can resubmit until the assignment closes." %}
+</div>
+{% endif %}
+
+{% if is_open %}
+<div class="card">
+  <div class="card-body">
+    <form method="post" id="student-homework-form" dir="auto" enctype="multipart/form-data"
+          data-rmc-offline-form="homework_submission" data-offline-action-type="homework_submission"
+          data-draft-key="student_homework_{{ assignment.id }}" data-draft-max-age-hours="72"
+          data-draft-pending-label="{% trans 'Unsynced submission' %}">
+      {% csrf_token %}
+      <input type="hidden" name="assignment_id" value="{{ assignment.id }}">
+      <input type="hidden" name="student_id" value="{{ profile.id }}">
+      <div class="mb-3">
+        <label class="form-label" for="hw-content">{% trans "Your answer" %}</label>
+        <textarea class="form-control" id="hw-content" name="content" rows="8"
+                  placeholder="{% trans 'Type your answer here…' %}">{% if submission %}{{ submission.content }}{% endif %}</textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="hw-attachment">{% trans "Attachment (optional)" %}</label>
+        <input class="form-control" type="file" id="hw-attachment" name="attachment">
+      </div>
+      <button class="btn btn-primary" type="submit">{% trans "Submit homework" %}</button>
+    </form>
+  </div>
+</div>
+{% else %}
+<div class="alert alert-warning" role="status">{% trans "This assignment is not open for submissions." %}</div>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/form-draft-save.js' %}"></script>
+{% endblock %}

@@ -33,8 +33,18 @@
 {% endif %}
 
 {% if locked %}
-  <div class="rmc-banner rmc-banner--error">
-    <b>LOCKED:</b> This {% term_lower "term" %} has been published. Marks entry is disabled.
+  <div class="rmc-banner rmc-banner--warning" role="status">
+    <div class="d-flex align-items-start gap-2">
+      <i class="bi bi-lock-fill mt-1" aria-hidden="true"></i>
+      <div class="flex-grow-1">
+        <div class="fw-semibold"><b>{% trans "Locked:" %}</b> {% trans "this" %} {% term_lower "term" %} {% trans "has been published, so marks are final and read-only." %}</div>
+        <div class="small mt-1">{% trans "Everything you already saved is preserved. If a correction is needed, ask your school's exams office or leadership to reopen it." %}</div>
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          <a href="{% url 'evals:teacher_marks_list' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye me-1" aria-hidden="true"></i>{% trans "Review my submitted marks" %}</a>
+          <a href="{% url 'evals:teacher_dashboard' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-grid me-1" aria-hidden="true"></i>{% trans "Back to dashboard" %}</a>
+        </div>
+      </div>
+    </div>
   </div>
 {% endif %}
 

@@ -25,7 +25,15 @@ const gateSnapshot = (
 ).trim();
 const dbFile =
   process.env.DB_FILE ||
-  path.join(repo, `db_playwright_tenant_abrupt_${process.pid}.sqlite3`);
+  (process.env.TENANT_SWEEP_BATCH_ONLY !== undefined &&
+  process.env.TENANT_SWEEP_BATCH_ONLY !== ''
+    ? path.join(repo, 'db_playwright_tenant_abrupt.sqlite3')
+    : path.join(repo, `db_playwright_tenant_abrupt_${process.pid}.sqlite3`));
+const batchOnlyMode =
+  process.env.TENANT_SWEEP_BATCH_ONLY !== undefined &&
+  process.env.TENANT_SWEEP_BATCH_ONLY !== '';
+const skipBoot =
+  process.env.TENANT_SWEEP_SKIP_BOOT === '1' && fs.existsSync(dbFile);
 const lockFile = path.join(repo, 'var', 'tenant-abrupt-end-e2e.lock');
 
 function acquireRunLock() {
@@ -166,6 +174,7 @@ const baseEnv = {
     process.env.VISUAL_QA_TOTP_HEX ||
     DEFAULT_TOTP_HEX,
   DB_LOG_LEVEL: process.env.DB_LOG_LEVEL || 'WARNING',
+  USE_FILE_LOGGING: process.env.USE_FILE_LOGGING || 'False',
   LOGIN_POW_ENABLED: '0',
   RMC_E2E_BYPASS_MFA: process.env.RMC_E2E_BYPASS_MFA || '1',
   PYTHONUTF8: '1',
@@ -233,6 +242,7 @@ except Exception as exc:
 console.log('=== tenant abrupt-end e2e: route ledger ===');
 runSync(['scripts/generate_portal_tenant_sweep_routes.py', '--write'], seedEnv);
 
+if (!skipBoot) {
 console.log('=== tenant abrupt-end e2e: migrate ===');
 removeSqliteDbFiles(dbFile);
 let usedGate = false;
@@ -436,6 +446,8 @@ try {
       `MAP ${tenantHost} 127.0.0.1,MAP *.runmycampus.com 127.0.0.1`,
     TENANT_SWEEP_MAX_INFRA_SKIP: process.env.TENANT_SWEEP_MAX_INFRA_SKIP || '0',
     TENANT_SWEEP_MAX: '0',
+    SWEEP_PATHS_EXACT: '1',
+    TENANT_SWEEP_WRITE_ARTIFACT: '0',
   };
   const allResults = [];
   const auditPath = path.join(repo, 'docs/generated/admin_playwright_sweep_audit.json');
@@ -519,20 +531,4 @@ try {
   ) {
     sweepStatus = 1;
   }
-  if (sweepStatus === 0) {
-    console.log('TENANT_ABRUPT_END_SWEEP_PASS');
-  }
-} finally {
-  stopServer();
-  releaseRunLock();
-}
-
-if (sweepStatus !== 0) {
-  process.exit(sweepStatus);
-}
-
-console.log('=== tenant abrupt-end e2e: regenerate coverage matrix ===');
-runSync(['scripts/generate_tenant_surface_coverage_matrix.py', '--write'], seedEnv);
-
-console.log('TENANT_ABRUPT_END_SWEEP_E2E_PASS');
-process.exit(0);
+  if (sweepStatus === 0) {

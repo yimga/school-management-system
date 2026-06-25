@@ -55,6 +55,7 @@ from .views import (
     preview_student_syllabus,
     preview_communication_test,
 )
+from .views_lms import student_assignments, student_assignment_submit
 from .views_parent_gdpr import api_parent_data_rights_status, parent_data_rights
 from .parent_finance_health import parent_finance_health
 from .views_parent_finance import (
@@ -402,6 +403,13 @@ urlpatterns = [
     # Student onboarding
     path("student/onboarding/", student_onboarding_wizard, name="student_onboarding"),
     path("student/workflow/", student_workflow_center, name="student_workflow"),
+    # Homework loop (canonical LMSAssignment/LMSSubmission; offline-capable submit).
+    path("student/homework/", student_assignments, name="student_assignments"),
+    path(
+        "student/homework/<int:assignment_id>/",
+        student_assignment_submit,
+        name="student_assignment_submit",
+    ),
     # Semantic aliases for Phase 7 URL cleanup
     path("student-portal/grades/", student_portal_grades, name="student_portal_grades"),
     path(

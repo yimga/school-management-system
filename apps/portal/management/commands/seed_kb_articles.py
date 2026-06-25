@@ -30,6 +30,21 @@ class Command(BaseCommand):
             action="store_true",
             help="Print one line per KB article that already exists (default: summary only).",
         )
+        parser.add_argument(
+            "--all-tenants",
+            action="store_true",
+            help=(
+                "Seed every tenant schema (KB articles are per-schema content). "
+                "Default: seed only the currently-active schema."
+            ),
+        )
+        parser.add_argument(
+            "--schema",
+            action="append",
+            dest="schemas",
+            metavar="NAME",
+            help="Limit to specific tenant schema(s). Repeatable.",
+        )
 
     def handle(self, *args, **options):
         verbosity = int(options.get("verbosity", 1))
@@ -39,6 +54,68 @@ class Command(BaseCommand):
                 self.style.SUCCESS("Dry run: would ensure KB categories and articles.")
             )
             return
+
+        schemas = self._target_schemas(options)
+        if schemas is None:
+            # Default: seed the currently-active schema (dev, or inside a tenant context).
+            self._seed_one_schema(verbose_existing)
+            return
+
+        if not schemas:
+            self.stdout.write(
+                self.style.WARNING("No tenant schemas found — nothing to seed.")
+            )
+            return
+
+        from django_tenants.utils import schema_context
+
+        for schema_name in schemas:
+            self.stdout.write(self.style.SUCCESS(f"== schema: {schema_name} =="))
+            try:
+                with schema_context(schema_name):
+                    self._seed_one_schema(verbose_existing)
+            except _KB_SEED_RESOLVE_ERRORS as exc:
+                # One tenant's failure (e.g. missing table mid-migration) must not
+                # abort the rest of the fleet. Log and continue.
+                log_exception_with_context(
+                    "seed_kb_articles: per-schema seeding failed (non-fatal)",
+                    extra={
+                        "command": "seed_kb_articles",
+                        "schema": schema_name,
+                        "error": str(exc),
+                    },
+                )
+                self.stdout.write(
+                    self.style.WARNING(f"  ! {schema_name}: skipped ({exc})")
+                )
+
+    def _target_schemas(self, options):
+        """Schemas to seed: explicit list, all tenants, or None for current-schema only."""
+        explicit = options.get("schemas") or []
+        if explicit:
+            return explicit
+        if not options.get("all_tenants"):
+            return None
+
+        from django.conf import settings
+
+        if not getattr(settings, "USE_DJANGO_TENANTS", False):
+            # Single-DB mode: --all-tenants degrades to current schema.
+            return None
+
+        from django_tenants.utils import get_tenant_model
+
+        Tenant = get_tenant_model()
+        names: list[str] = []
+        # KBArticle is a TENANT_APP model — the table does not exist in `public`,
+        # so seed tenant schemas only.
+        for client in Tenant.objects.exclude(schema_name="public").only("schema_name"):
+            name = (getattr(client, "schema_name", None) or "").strip()
+            if name and name not in names:
+                names.append(name)
+        return names
+
+    def _seed_one_schema(self, verbose_existing):
         self.stdout.write(self.style.SUCCESS("Starting KB article seeding..."))
 
         # Get or create categories
@@ -914,12 +991,10 @@ Example: 2024/10/001</pre>
 <ol>
 <li>Navigate to: Staff Management → Payroll</li>
 <li>Click "Create Salary Structure"</li>
-<li>Define salary components:</li>
-<li>Basic salary</li>
-<li>Dearness allowance</li>
-<li>House rent allowance</li>
-<li>Other allowances</li>
-<li>Deductions (PF, TDS, etc.)</li>
+<li>Define salary components (names and statutory items vary by country):</li>
+<li>Base salary</li>
+<li>Allowances (e.g. housing, transport) as configured for your region</li>
+<li>Statutory deductions (income tax and social contributions per your jurisdiction)</li>
 <li>Save structure</li>
 </ol>
 

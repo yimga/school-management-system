@@ -114,8 +114,12 @@ def validate_offline_payload(action_type: str, payload: dict[str, Any]) -> list[
             errors.append("support.ticket requires message")
 
     if at == OfflineActionType.HOMEWORK_SUBMIT:
-        if not str(payload.get("homework_id") or "").strip():
-            errors.append("homework.submit requires homework_id")
+        # Canonical path carries assignment_id (academics.LMSSubmission); the legacy
+        # kernel path carries homework_id (School.settings edge store). Either is valid.
+        has_assignment = str(payload.get("assignment_id") or "").strip()
+        has_homework = str(payload.get("homework_id") or "").strip()
+        if not has_assignment and not has_homework:
+            errors.append("homework.submit requires assignment_id (or legacy homework_id)")
         student_id = payload.get("student_id")
         if student_id in (None, ""):
             errors.append("homework.submit requires student_id")

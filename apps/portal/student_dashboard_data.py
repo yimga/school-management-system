@@ -105,7 +105,9 @@ def _student_due_items(profile, *, school, year, term) -> list[dict]:
                 "when": due_local,
                 "cd": due_local.strftime("%a, %b %d"),
                 "soon": (assignment.due_at - now).total_seconds() < 86400 * 2,
-                "url": reverse("portal:portal_syllabus"),
+                "url": reverse(
+                    "portal:student_assignment_submit", args=[assignment.id]
+                ),
             }
         )
     return items[:4]
