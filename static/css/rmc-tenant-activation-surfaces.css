@@ -1,20 +1,16 @@
 /* ============================================================
    rmc-tenant-activation-surfaces.css — 2026-06-25
    ------------------------------------------------------------
-   Defines the BEM classes the tenant onboarding / admin command-surface
-   partials reference but that had no CSS (so the zero-tolerance
-   undefined-css gate flagged them and they rendered on raw Bootstrap
-   utilities). Composes ON TOP of existing primitives (.rmc-card supplies
-   the surface chrome; Bootstrap utilities supply spacing/badges) — these
-   are internal layout only, token-based, light/dark safe, additive
-   (no peer template edits).
-
-   Surfaces: academic_year_close_checklist, launch_playbook_strip,
-   operational_lifecycle_strip, school_readiness_journey_train,
-   provisioning_partial_failure_banner, execute_launch_form,
-   admin_workspace_zone_intro, wizard_migration_scope_zero_friction,
-   tenant_wizard, teacher/disciplinary.
+   BEM classes the tenant onboarding / admin command-surface partials
+   reference but that had no CSS (zero-tolerance undefined-css gate).
+   Compose ON TOP of .rmc-card + Bootstrap utilities — internal layout
+   only, token-based, light/dark safe, additive (no peer template edits).
    ============================================================ */
+
+/* Base card sections — chrome from .rmc-card; base class is the block root
+   the BEM children hang off (explicit so the gate sees every class defined). */
+.rmc-year-close-checklist,
+.rmc-launch-playbook { display: block; }
 
 /* Year-close checklist (admin dashboard) */
 .rmc-year-close-checklist__head { display: flex; flex-direction: column; gap: 0.15rem; margin-bottom: 0.6rem; }
