@@ -50,21 +50,21 @@
       <div class="card shadow-sm mb-3">
         <div class="card-body">
           <h2 class="h6 mb-3">{% trans "In-flight request" %}</h2>
-          <dl class="row mb-0">
-            <dt class="col-sm-5">{% trans "Request ID" %}</dt>
-            <dd class="col-sm-7"><code>{{ in_flight.request_id }}</code></dd>
-            <dt class="col-sm-5">{% trans "Tenant (hashed)" %}</dt>
-            <dd class="col-sm-7"><code>{{ in_flight.tenant_id_hash }}</code></dd>
-            <dt class="col-sm-5">{% trans "Student (hashed)" %}</dt>
-            <dd class="col-sm-7"><code>{{ in_flight.student_id_hash }}</code></dd>
-            <dt class="col-sm-5">{% trans "Event" %}</dt>
-            <dd class="col-sm-7">{{ in_flight.event_code }}</dd>
-            <dt class="col-sm-5">{% trans "Amount" %}</dt>
-            <dd class="col-sm-7">{{ in_flight.amount }} {{ in_flight.currency }}</dd>
-            <dt class="col-sm-5">{% trans "State" %}</dt>
-            <dd class="col-sm-7"><span class="rmc-badge rmc-badge--info">{{ in_flight.state }}</span></dd>
-            <dt class="col-sm-5">{% trans "Guardian approval" %}</dt>
-            <dd class="col-sm-7">
+          <dl class="rmc-kv mb-0">
+            <dt>{% trans "Request ID" %}</dt>
+            <dd><code>{{ in_flight.request_id }}</code></dd>
+            <dt>{% trans "Tenant (hashed)" %}</dt>
+            <dd><code>{{ in_flight.tenant_id_hash }}</code></dd>
+            <dt>{% trans "Student (hashed)" %}</dt>
+            <dd><code>{{ in_flight.student_id_hash }}</code></dd>
+            <dt>{% trans "Event" %}</dt>
+            <dd>{{ in_flight.event_code }}</dd>
+            <dt>{% trans "Amount" %}</dt>
+            <dd>{{ in_flight.amount }} {{ in_flight.currency }}</dd>
+            <dt>{% trans "State" %}</dt>
+            <dd><span class="rmc-badge rmc-badge--info">{{ in_flight.state }}</span></dd>
+            <dt>{% trans "Guardian approval" %}</dt>
+            <dd>
               {% if in_flight.guardian_approval %}
               <code>{{ in_flight.guardian_approval.guardian_id }}</code>
               ({{ in_flight.guardian_approval.method }})
@@ -75,8 +75,8 @@
               {% endif %}
             </dd>
             {% if in_flight.payment_result %}
-            <dt class="col-sm-5">{% trans "Payment" %}</dt>
-            <dd class="col-sm-7">
+            <dt>{% trans "Payment" %}</dt>
+            <dd>
               {% if in_flight.payment_result.success %}
               <span class="rmc-badge rmc-badge--success">{% trans "Paid" %}</span>
               {% else %}

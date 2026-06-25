@@ -31,15 +31,15 @@
       <div class="card mb-3">
         <div class="card-header"><h2 class="h6 mb-0">{% trans "Who & when" %}</h2></div>
         <div class="card-body">
-          <dl class="row mb-0">
-            <dt class="col-sm-4">{% trans_term "Student" key="student" %}</dt>
-            <dd class="col-sm-8">
+          <dl class="rmc-kv mb-0">
+            <dt>{% trans_term "Student" key="student" %}</dt>
+            <dd>
               {{ disclosure.student.last_name }}, {{ disclosure.student.first_name }}
               <span class="text-muted small">({{ disclosure.student.student_code|default:"—" }})</span>
             </dd>
 
-            <dt class="col-sm-4">{% trans "Disclosed by" %}</dt>
-            <dd class="col-sm-8">
+            <dt>{% trans "Disclosed by" %}</dt>
+            <dd>
               {% if disclosure.disclosed_by %}
                 {{ disclosure.disclosed_by.get_full_name|default:disclosure.disclosed_by.username }}
               {% else %}
@@ -47,14 +47,14 @@
               {% endif %}
             </dd>
 
-            <dt class="col-sm-4">{% trans "Recipient" %}</dt>
-            <dd class="col-sm-8">
+            <dt>{% trans "Recipient" %}</dt>
+            <dd>
               <strong>{{ disclosure.recipient_name }}</strong>
               {% if disclosure.recipient_org %}<div class="small text-muted">{{ disclosure.recipient_org }}</div>{% endif %}
             </dd>
 
-            <dt class="col-sm-4">{% trans "When" %}</dt>
-            <dd class="col-sm-8"><time datetime="{{ disclosure.disclosed_at|date:'c' }}">{{ disclosure.disclosed_at|date:"DATETIME_FORMAT" }}</time></dd>
+            <dt>{% trans "When" %}</dt>
+            <dd><time datetime="{{ disclosure.disclosed_at|date:'c' }}">{{ disclosure.disclosed_at|date:"DATETIME_FORMAT" }}</time></dd>
           </dl>
         </div>
       </div>
@@ -79,13 +79,13 @@
       <div class="card mb-3">
         <div class="card-header"><h2 class="h6 mb-0">{% trans "Legal basis" %}</h2></div>
         <div class="card-body">
-          <dl class="row mb-0">
-            <dt class="col-sm-5">{% trans "Purpose" %}</dt>
-            <dd class="col-sm-7">{{ disclosure.get_purpose_display }}</dd>
+          <dl class="rmc-kv mb-0">
+            <dt>{% trans "Purpose" %}</dt>
+            <dd>{{ disclosure.get_purpose_display }}</dd>
 
             {% term "parent" capitalize=True as ferpa_parent_sg %}
-            <dt class="col-sm-5">{% blocktrans with t=ferpa_parent_sg %}{{ t }} consent on file{% endblocktrans %}</dt>
-            <dd class="col-sm-7">
+            <dt>{% blocktrans with t=ferpa_parent_sg %}{{ t }} consent on file{% endblocktrans %}</dt>
+            <dd>
               {% if disclosure.parent_consent_obtained %}
                 <span class="rmc-badge rmc-badge--success">{% trans "Yes" %}</span>
               {% else %}

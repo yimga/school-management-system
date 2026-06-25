@@ -25,17 +25,17 @@
           {% trans "are unchanged; this table is used for labels, grade points, and normalized band alignment when present." %}
         </p>
         {% if effective_scale %}
-        <dl class="row small mb-0">
-          <dt class="col-sm-3">{% trans "Name" %}</dt><dd class="col-sm-9">{{ effective_scale.name }}</dd>
-          <dt class="col-sm-3">{% trans "Code" %}</dt><dd class="col-sm-9">{{ effective_scale.code|default:"—" }}</dd>
-          <dt class="col-sm-3">{% trans "Type" %}</dt><dd class="col-sm-9">{{ effective_scale.get_scale_type_display }}</dd>
-          <dt class="col-sm-3">{% trans "Default" %}</dt><dd class="col-sm-9">{% if effective_scale.is_default %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
-          <dt class="col-sm-3">{% trans "Locale / Rosetta scale id" %}</dt><dd class="col-sm-9"><code>{{ locale_rosetta_scale|default:"—" }}</code></dd>
+        <dl class="rmc-kv small mb-0">
+          <dt>{% trans "Name" %}</dt><dd>{{ effective_scale.name }}</dd>
+          <dt>{% trans "Code" %}</dt><dd>{{ effective_scale.code|default:"—" }}</dd>
+          <dt>{% trans "Type" %}</dt><dd>{{ effective_scale.get_scale_type_display }}</dd>
+          <dt>{% trans "Default" %}</dt><dd>{% if effective_scale.is_default %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
+          <dt>{% trans "Locale / Rosetta scale id" %}</dt><dd><code>{{ locale_rosetta_scale|default:"—" }}</code></dd>
           {% if region %}
-          <dt class="col-sm-3">{% trans "School region" %}</dt><dd class="col-sm-9">{{ region.name }} ({{ region.code }})</dd>
+          <dt>{% trans "School region" %}</dt><dd>{{ region.name }} ({{ region.code }})</dd>
           {% endif %}
           {% if effective_scale.region %}
-          <dt class="col-sm-3">{% trans "Linked region template" %}</dt><dd class="col-sm-9">{{ effective_scale.region.name }}</dd>
+          <dt>{% trans "Linked region template" %}</dt><dd>{{ effective_scale.region.name }}</dd>
           {% endif %}
         </dl>
         {% else %}

@@ -34,22 +34,22 @@
       <div class="card">
         <div class="card-header"><h2 class="h6 mb-0">{% trans "Current scores" %}</h2></div>
         <div class="card-body">
-          <dl class="row mb-0">
-            <dt class="col-sm-5">{% trans "Sequence 1" %}</dt>
-            <dd class="col-sm-7">{{ evaluation.seq1_score|default:"—" }}</dd>
-            <dt class="col-sm-5">{% trans "Sequence 2" %}</dt>
-            <dd class="col-sm-7">{{ evaluation.seq2_score|default:"—" }}</dd>
-            <dt class="col-sm-5">{% trans_term "Exam" key="exam" %}</dt>
-            <dd class="col-sm-7">{{ evaluation.exam_score|default:"—" }}</dd>
-            <dt class="col-sm-5">{% trans "Mock" %}</dt>
-            <dd class="col-sm-7">{{ evaluation.mock_score|default:"—" }}</dd>
-            <dt class="col-sm-5">{% trans "Practical" %}</dt>
-            <dd class="col-sm-7">{{ evaluation.practical_score|default:"—" }}</dd>
-            <dt class="col-sm-5">{% trans "Internship" %}</dt>
-            <dd class="col-sm-7">{{ evaluation.internship_score|default:"—" }}</dd>
+          <dl class="rmc-kv mb-0">
+            <dt>{% trans "Sequence 1" %}</dt>
+            <dd>{{ evaluation.seq1_score|default:"—" }}</dd>
+            <dt>{% trans "Sequence 2" %}</dt>
+            <dd>{{ evaluation.seq2_score|default:"—" }}</dd>
+            <dt>{% trans_term "Exam" key="exam" %}</dt>
+            <dd>{{ evaluation.exam_score|default:"—" }}</dd>
+            <dt>{% trans "Mock" %}</dt>
+            <dd>{{ evaluation.mock_score|default:"—" }}</dd>
+            <dt>{% trans "Practical" %}</dt>
+            <dd>{{ evaluation.practical_score|default:"—" }}</dd>
+            <dt>{% trans "Internship" %}</dt>
+            <dd>{{ evaluation.internship_score|default:"—" }}</dd>
             {% if evaluation.letter_grade %}
-            <dt class="col-sm-5">{% trans "Letter grade" %}</dt>
-            <dd class="col-sm-7"><span class="rmc-badge">{{ evaluation.letter_grade }}</span></dd>
+            <dt>{% trans "Letter grade" %}</dt>
+            <dd><span class="rmc-badge">{{ evaluation.letter_grade }}</span></dd>
             {% endif %}
           </dl>
         </div>
@@ -59,20 +59,20 @@
       <div class="card">
         <div class="card-header"><h2 class="h6 mb-0">{% trans "Context" %}</h2></div>
         <div class="card-body">
-          <dl class="row mb-0">
-            <dt class="col-sm-5">{% trans_term "Classroom" key="classroom" %}</dt>
-            <dd class="col-sm-7">{{ evaluation.subject_assignment.classroom.name }}</dd>
-            <dt class="col-sm-5">{% trans_term "Teacher" key="teacher" %}</dt>
-            <dd class="col-sm-7">
+          <dl class="rmc-kv mb-0">
+            <dt>{% trans_term "Classroom" key="classroom" %}</dt>
+            <dd>{{ evaluation.subject_assignment.classroom.name }}</dd>
+            <dt>{% trans_term "Teacher" key="teacher" %}</dt>
+            <dd>
               {% with t_user=evaluation.teacher.user %}
                 {% if t_user %}{{ t_user.get_full_name|default:t_user.username }}{% else %}{{ evaluation.teacher.position_title|default:"—" }}{% endif %}
               {% endwith %}
             </dd>
-            <dt class="col-sm-5">{% trans "Coefficient" %}</dt>
-            <dd class="col-sm-7">{{ evaluation.subject_assignment.coefficient }}</dd>
+            <dt>{% trans "Coefficient" %}</dt>
+            <dd>{{ evaluation.subject_assignment.coefficient }}</dd>
             {% if evaluation.remarks %}
-            <dt class="col-sm-5">{% trans "Remarks" %}</dt>
-            <dd class="col-sm-7">{{ evaluation.remarks }}</dd>
+            <dt>{% trans "Remarks" %}</dt>
+            <dd>{{ evaluation.remarks }}</dd>
             {% endif %}
           </dl>
         </div>
