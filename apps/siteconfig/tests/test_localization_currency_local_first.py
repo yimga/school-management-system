@@ -6,7 +6,7 @@ falling back to the static country map only on public/marketing hosts. ``localiz
 also now carries the tenant ``timezone``.
 """
 
-from django.test import RequestFactory, SimpleTestCase
+from django.test import RequestFactory, SimpleTestCase, override_settings
 
 
 class _SchoolNGN:
@@ -66,6 +66,43 @@ class ResolveCurrencyForRequestTests(SimpleTestCase):
             _resolve_timezone_for_request(self._req(_SchoolNGN())), "Africa/Lagos"
         )
         self.assertEqual(_resolve_timezone_for_request(self._req()), "")
+
+
+class PlatformCurrencySymbolTests(SimpleTestCase):
+    """``platform_currency_symbol()`` is the operator/control-plane counterpart to
+    the per-tenant currency resolution: pages that report the platform's OWN revenue
+    (MRR, North Star, cockpit pulse) must render ``PLATFORM_DEFAULT_CURRENCY`` rather
+    than a hardcoded ``$`` — so a platform run in XAF/NGN reports in its own currency."""
+
+    def test_matches_configured_platform_currency(self):
+        from apps.siteconfig.currency import (
+            get_currency_symbol,
+            platform_currency_symbol,
+        )
+
+        with override_settings(PLATFORM_DEFAULT_CURRENCY="XAF"):
+            self.assertEqual(platform_currency_symbol(), get_currency_symbol("XAF"))
+        with override_settings(PLATFORM_DEFAULT_CURRENCY="NGN"):
+            self.assertEqual(platform_currency_symbol(), get_currency_symbol("NGN"))
+
+    def test_defaults_to_usd_when_unset_or_blank(self):
+        from apps.siteconfig.currency import (
+            get_currency_symbol,
+            platform_currency_symbol,
+        )
+
+        with override_settings(PLATFORM_DEFAULT_CURRENCY=""):
+            self.assertEqual(platform_currency_symbol(), get_currency_symbol("USD"))
+
+    def test_normalizes_lowercase_code(self):
+        from apps.siteconfig.currency import (
+            get_currency_symbol,
+            platform_currency_symbol,
+        )
+
+        # Settings could carry a lowercase code; the helper upper-cases before lookup.
+        with override_settings(PLATFORM_DEFAULT_CURRENCY="ngn"):
+            self.assertEqual(platform_currency_symbol(), get_currency_symbol("NGN"))
 
 
 class LocalizationContextShapeTests(SimpleTestCase):
