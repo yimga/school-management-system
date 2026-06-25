@@ -4,6 +4,7 @@
 {% endcomment %}
 <div class="rmc-dh-areachart{% if dh_accent %} rmc-dh-areachart--accent{% endif %}" role="img" aria-label="{{ dh_aria|default:'trend' }}">
   <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+    <title>{{ dh_aria|default:'trend' }}</title>
     {% if dh_area_points %}<polygon class="rmc-dh-areachart__fill" points="{{ dh_area_points }}"></polygon>{% endif %}
     <polyline class="rmc-dh-areachart__line" points="{{ dh_points }}"></polyline>
   </svg>

@@ -1,11 +1,14 @@
 {% comment %}
-  rmc-dh attendance heatmap. Params: dh_cells = list of {label, level}
-  where level ∈ l1|l2|l3|miss|"" (blank = neutral/no data). dh_aria (opt).
+  rmc-dh attendance heatmap. Params: dh_cells = list of {label, level, title}
+  where level ∈ l1|l2|l3|miss|"" (blank = neutral/no data). Optional per-cell `title`
+  carries the accessible value (e.g. "Mon · 90%") so the level is never colour-only
+  (WCAG 1.4.1): it drives a native hover tooltip and is folded into the wrapper
+  aria-label for screen readers. dh_aria (opt).
 {% endcomment %}
-<div class="rmc-dh-heat" role="img" aria-label="{{ dh_aria|default:'attendance' }}">
+<div class="rmc-dh-heat" role="img" aria-label="{{ dh_aria|default:'attendance' }}{% if dh_cells %}: {% for cell in dh_cells %}{{ cell.title|default:cell.label }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}">
   {% for cell in dh_cells %}
   <div class="rmc-dh-heat__col">
-    <div class="rmc-dh-heat__cell{% if cell.level %} rmc-dh-heat__cell--{{ cell.level }}{% endif %}"></div>
+    <div class="rmc-dh-heat__cell{% if cell.level %} rmc-dh-heat__cell--{{ cell.level }}{% endif %}"{% if cell.title %} title="{{ cell.title }}"{% endif %}></div>
     <div class="rmc-dh-heat__lbl">{{ cell.label }}</div>
   </div>
   {% endfor %}
