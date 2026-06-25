@@ -4,11 +4,14 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.core.paginator import Paginator
 from django.http import HttpRequest
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import User
+
+WORKFLOW_STEPS_PER_PAGE = 3
 
 
 def _safe_reverse(name: str) -> str:
@@ -38,6 +41,27 @@ def _step_done(step: dict[str, Any]) -> bool:
         "request access",
     )
     return bool(label) and not any(token in label for token in negative_tokens)
+
+
+def _workflow_page_number(request: HttpRequest | None) -> int:
+    if request is None:
+        return 1
+    try:
+        return max(1, int(request.GET.get("page", 1) or 1))
+    except (TypeError, ValueError):
+        return 1
+
+
+def _paginate_steps(
+    steps: list[dict[str, Any]], page: int, per_page: int = WORKFLOW_STEPS_PER_PAGE
+) -> tuple[list[dict[str, Any]], Any]:
+    if not steps:
+        paginator = Paginator([], per_page)
+        page_obj = paginator.get_page(1)
+        return [], page_obj
+    paginator = Paginator(steps, per_page)
+    page_obj = paginator.get_page(page)
+    return list(page_obj.object_list), page_obj
 
 
 def _role_copy(role: str) -> dict[str, str]:
@@ -82,8 +106,9 @@ def _metrics_for_role(role: str, progress: dict[str, Any], done: int, total: int
         metrics.extend(
             [
                 _metric(_("Classes"), progress.get("assignments", 0)),
-                _metric(_("Marks"), f"{progress.get('completion_pct', 0)}%"),
-                _metric(_("Pending"), progress.get("pending_marks", 0), "warning" if progress.get("pending_marks") else "success"),
+                _metric(_("Present today"), progress.get("present_today", progress.get("assignments", 0))),
+                _metric(_("Pending marks"), progress.get("pending_marks", 0), "warning" if progress.get("pending_marks") else "success"),
+                _metric(_("Leave pending"), progress.get("pending_leaves", 0), "warning" if progress.get("pending_leaves") else "neutral"),
             ]
         )
     elif role_upper == User.Role.STUDENT:
@@ -105,6 +130,23 @@ def _metrics_for_role(role: str, progress: dict[str, Any], done: int, total: int
     return metrics[:4]
 
 
+def _workflow_contract(
+    *,
+    empty_state: bool,
+    help_url: str,
+    feedback_url: str,
+    focus: dict[str, Any],
+) -> dict[str, str]:
+    return {
+        "readiness": "blocked" if empty_state else "visible",
+        "blocker": "visible" if empty_state else "clear",
+        "help": "visible" if help_url else "hidden",
+        "ai_guidance": "visible" if focus.get("tip") else "hint",
+        "feedback": "visible" if feedback_url else "hidden",
+        "mobile": "responsive",
+    }
+
+
 def build_tenant_workflow_portal(
     request: HttpRequest,
     *,
@@ -114,6 +156,7 @@ def build_tenant_workflow_portal(
     active_year: Any = None,
     active_term: Any = None,
     empty_state: bool = False,
+    steps_per_page: int = WORKFLOW_STEPS_PER_PAGE,
 ) -> dict[str, Any]:
     """Normalize role workflow data into one premium tenant workflow shape."""
     progress = workflow_progress or {}
@@ -148,10 +191,18 @@ def build_tenant_workflow_portal(
         if len(secondary_actions) >= 4:
             break
 
+    page_num = _workflow_page_number(request)
+    steps_page, page_obj = _paginate_steps(normalized_steps, page_num, steps_per_page)
+    help_url = _safe_reverse("feedback:help_center")
+    feedback_url = _safe_reverse("feedback:school_feedback")
+
     return {
         **copy,
         "role": (role or "").upper(),
         "steps": normalized_steps,
+        "steps_page": steps_page,
+        "page_obj": page_obj,
+        "steps_per_page": steps_per_page,
         "focus": focus,
         "done_steps": done,
         "total_steps": total,
@@ -162,6 +213,13 @@ def build_tenant_workflow_portal(
         "active_year_label": getattr(active_year, "name", None) or str(active_year or ""),
         "active_term_label": getattr(active_term, "label", None) or str(active_term or ""),
         "empty_state": bool(empty_state),
-        "help_url": _safe_reverse("feedback:help_center"),
-        "feedback_url": _safe_reverse("feedback:school_feedback"),
+        "help_url": help_url,
+        "feedback_url": feedback_url,
+        "workflow_contract": _workflow_contract(
+            empty_state=bool(empty_state),
+            help_url=help_url,
+            feedback_url=feedback_url,
+            focus=focus,
+        ),
+        "suppress_command_strip": True,
     }

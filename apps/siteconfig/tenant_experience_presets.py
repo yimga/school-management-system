@@ -44,20 +44,6 @@ ROLE_HOME_EXPERIENCE_MODE_CHOICES: tuple[tuple[str, str], ...] = (
     (ROLE_HOME_MODE_LEGACY, _("Legacy stack on role homes only")),
 )
 
-ROLE_PRESET_INHERIT = "inherit"
-
-ROLE_PRESET_BUCKETS: dict[str, dict[str, str]] = {
-    "ADMIN_OPERATOR": {"label": str(_("Admin / operator"))},
-    "TEACHER": {"label": str(_("Teacher"))},
-    "PARENT": {"label": str(_("Parent"))},
-    "STUDENT": {"label": str(_("Student"))},
-}
-
-ROLE_PRESET_FIELD_CHOICES: tuple[tuple[str, str], ...] = (
-    (ROLE_PRESET_INHERIT, _("Inherit school default")),
-    *EXPERIENCE_PRESET_CHOICES,
-)
-
 # Keys compared when detecting whether a stored policy still matches a preset.
 _PRESET_COMPARE_KEYS: tuple[str, ...] = (
     "use_v3_shell",
@@ -87,31 +73,6 @@ _PRESET_COMPARE_KEYS: tuple[str, ...] = (
     "show_zero_click_command_strip_on_v3",
     "show_dashboard_stats_cards_on_v3",
     "show_legacy_sidebar_user_header_on_v3",
-)
-
-ROLE_PRESET_MERGE_KEYS: frozenset[str] = frozenset(
-    {
-        *_PRESET_COMPARE_KEYS,
-        "experience_score_label",
-        "experience_score_profile_weight",
-        "experience_score_school_weight",
-        "experience_score_ready_threshold",
-        "experience_score_attention_threshold",
-        "experience_score_country_bonus",
-    }
-)
-
-ADMIN_OPERATOR_ROLES: frozenset[str] = frozenset(
-    {
-        "ADMIN",
-        "SUPERADMIN",
-        "BURSAR",
-        "IT_ADMIN",
-        "PRINCIPAL",
-        "LEADERSHIP",
-        "SECRETARY",
-        "PROPRIETOR",
-    }
 )
 
 _ALL_LEGACY_ON_V3_TRUE: dict[str, bool] = {
@@ -284,64 +245,7 @@ def merge_manual_fields_onto_policy(
     return out
 
 
-def normalize_role_experience_presets(raw: Any) -> dict[str, str]:
-    if not isinstance(raw, dict):
-        return {}
-    out: dict[str, str] = {}
-    for key, value in raw.items():
-        bucket = str(key or "").strip().upper()
-        preset = str(value or "").strip().lower()
-        if bucket in ROLE_PRESET_BUCKETS and preset:
-            out[bucket] = preset
-    return out
-
-
-def experience_policy_role_bucket(role: str) -> str:
-    role_upper = str(role or "").strip().upper()
-    if role_upper in ADMIN_OPERATOR_ROLES:
-        return "ADMIN_OPERATOR"
-    if role_upper == "TEACHER":
-        return "TEACHER"
-    if role_upper == "PARENT":
-        return "PARENT"
-    if role_upper == "STUDENT":
-        return "STUDENT"
-    return "ADMIN_OPERATOR"
-
-
-def merge_role_preset_onto_policy(policy: dict[str, Any], role: str) -> dict[str, Any]:
-    bucket = experience_policy_role_bucket(role)
-    role_presets = normalize_role_experience_presets(policy.get("role_experience_presets"))
-    preset_id = role_presets.get(bucket, ROLE_PRESET_INHERIT)
-    out = dict(policy)
-    out["effective_experience_preset"] = str(policy.get("experience_preset") or PRESET_CUSTOM)
-    if preset_id in {"", ROLE_PRESET_INHERIT}:
-        return out
-    overlay = apply_experience_preset(preset_id)
-    merged = _deep_merge_policy(out, {k: overlay[k] for k in ROLE_PRESET_MERGE_KEYS if k in overlay})
-    if preset_id == PRESET_LEGACY_SHELL:
-        merged["role_home_experience_mode"] = ROLE_HOME_MODE_LEGACY
-    merged["effective_experience_preset"] = preset_id
-    return merged
-
-
-def apply_role_overlay(
-    policy: dict[str, Any], *, role_bucket: str, preset_id: str
-) -> dict[str, Any]:
-    out = dict(policy)
-    presets = normalize_role_experience_presets(out.get("role_experience_presets"))
-    bucket = str(role_bucket or "").strip().upper()
-    preset = str(preset_id or ROLE_PRESET_INHERIT).strip().lower()
-    if preset in {"", "inherit", "school", "tenant"}:
-        presets.pop(bucket, None)
-    elif bucket in ROLE_PRESET_BUCKETS:
-        presets[bucket] = preset
-    out["role_experience_presets"] = presets
-    return out
-
-
 __all__ = [
-    "ADMIN_OPERATOR_ROLES",
     "EXPERIENCE_PRESET_CHOICES",
     "EXPERIENCE_PRESET_IDS",
     "PRESET_CUSTOM",
@@ -352,16 +256,9 @@ __all__ = [
     "ROLE_HOME_EXPERIENCE_MODE_CHOICES",
     "ROLE_HOME_MODE_LEGACY",
     "ROLE_HOME_MODE_V3",
-    "ROLE_PRESET_BUCKETS",
-    "ROLE_PRESET_INHERIT",
-    "ROLE_PRESET_MERGE_KEYS",
     "apply_experience_preset",
-    "apply_role_overlay",
     "detect_matching_preset",
-    "experience_policy_role_bucket",
     "merge_manual_fields_onto_policy",
-    "merge_role_preset_onto_policy",
-    "normalize_role_experience_presets",
     "policy_matches_preset",
     "preset_catalog",
 ]
