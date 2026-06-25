@@ -81,12 +81,21 @@ class FormatCurrencyFilterTests(TestCase):
         self.assertEqual(format_currency(Decimal("5000.00")), "FCFA5,000.00")
 
 
+class _FakeRegion:
+    """Stand-in default_region carrying locale separators."""
+
+    def __init__(self, decimal_separator=".", thousands_separator=","):
+        self.decimal_separator = decimal_separator
+        self.thousands_separator = thousands_separator
+
+
 class _FakeSchool:
     """Stand-in School whose currency resolution is fixed, so the pinned-tenant
     currency tests need no DB row."""
 
-    def __init__(self, currency_code):
+    def __init__(self, currency_code, default_region=None):
         self._currency_code = currency_code
+        self.default_region = default_region
 
     def resolve_currency(self):
         return self._currency_code
@@ -99,6 +108,7 @@ def _patch_pin_and_school(pinned_id, school):
     them at their definition module takes effect on the next call.
     """
     qs = mock.Mock()
+    qs.select_related.return_value = qs
     qs.first.return_value = school
     objects = mock.Mock()
     objects.filter.return_value = qs
@@ -167,6 +177,26 @@ class PinnedTenantCurrencyTests(SimpleTestCase):
             _resolve_pinned_tenant_currency()
         # School looked up once; subsequent amounts served from the per-pin memo.
         self.assertEqual(objects.filter.call_count, 1)
+
+    def test_pinned_tenant_separators_localized(self):
+        # A francophone region (decimal ",", thousands space) formats accordingly.
+        region = _FakeRegion(decimal_separator=",", thousands_separator=" ")
+        pin, school, _ = _patch_pin_and_school(
+            "school-fr", _FakeSchool("XAF", default_region=region)
+        )
+        with pin, school:
+            symbol, dec_sep, thousands_sep = _resolve_pinned_tenant_currency()
+        self.assertEqual(symbol, get_currency_symbol("XAF"))
+        self.assertEqual(dec_sep, ",")
+        self.assertEqual(thousands_sep, " ")
+
+    def test_pinned_tenant_separators_default_when_region_missing(self):
+        pin, school, _ = _patch_pin_and_school(
+            "school-x", _FakeSchool("USD", default_region=None)
+        )
+        with pin, school:
+            _, dec_sep, thousands_sep = _resolve_pinned_tenant_currency()
+        self.assertEqual((dec_sep, thousands_sep), (".", ","))
 
     def test_explicit_context_currency_overrides_pin(self):
         # A context-aware caller passing currency_symbol wins over the pin.
