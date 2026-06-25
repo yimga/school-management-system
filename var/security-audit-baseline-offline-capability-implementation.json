@@ -1,0 +1,8 @@
+{
+  "finding_count": 0,
+  "generated_at": "2026-06-25",
+  "note": "Every OFFLINE_QUEUED_WRITE capability declared in the offline manifest taxonomy has a real client producer AND server applier on the SODP or WAL rail. Latent capabilities (producer+applier exist but no UI surface yet) are reported non-fatally and are NOT findings. Zero-tolerance from introduction.",
+  "latent_known": [
+    "enable_offline_homework_sync"
+  ]
+}
