@@ -53,13 +53,23 @@ def _resolve_pinned_tenant_currency():
         from apps.schools.models import School
         from apps.siteconfig.currency import get_currency_symbol
 
-        school = School.objects.filter(pk=school_id).first()
+        school = (
+            School.objects.filter(pk=school_id).select_related("default_region").first()
+        )
         if school is None:
             return None
         code = (school.resolve_currency() or "").strip().upper()
         if not code:
             return None
-        resolved = (get_currency_symbol(code), ".", ",")
+        # Number separators are locale-specific (e.g. francophone "12 500,50").
+        # Resolve them from the school's region exactly as the region_settings
+        # context processor does, defaulting to en-style when the region is unset.
+        region = getattr(school, "default_region", None)
+        dec_sep = (getattr(region, "decimal_separator", None) or ".") if region else "."
+        thousands_sep = (
+            (getattr(region, "thousands_separator", None) or ",") if region else ","
+        )
+        resolved = (get_currency_symbol(code), dec_sep, thousands_sep)
     except (ImportError, AttributeError, TypeError, ValueError, _DBError):
         return None
     _PINNED_CURRENCY.set((school_id, resolved))
