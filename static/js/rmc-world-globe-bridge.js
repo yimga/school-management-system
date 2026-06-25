@@ -702,6 +702,7 @@
 
   function isOfflineGlobeMode() {
     return (
+      (stageEl && stageEl.getAttribute("data-rmc-globe-operator-mode") === "offline") ||
       (stageEl && stageEl.classList.contains("lx-world__globe--fallback")) ||
       (stageEl && stageEl.getAttribute("data-rmc-globe-mode") === "svg-offline") ||
       !(api() && api().isReady())
@@ -1503,6 +1504,9 @@
 
   document.addEventListener("rmc:globe-ready", bootBridge);
   document.addEventListener("rmc:globe-offline-fallback", bootBridge);
+  document.addEventListener("rmc:globe-operator-mode", function () {
+    syncGlobeModeChrome();
+  });
 
   if (typeof window !== "undefined") {
     window.addEventListener("online", function () {

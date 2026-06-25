@@ -73,7 +73,7 @@
         class="lx-world__globe"
         id="rmc-world-globe"
         data-rmc-world-globe="1"
-        data-rmc-schools-list-url="{% url 'super:schools_list' %}"
+        {% url 'super:schools_list' as cp_schools_list_url %}{% if cp_schools_list_url %}data-rmc-schools-list-url="{{ cp_schools_list_url }}"{% endif %}
       ></div>
       <div class="lx-world__terminator" id="rmc-world-globe-terminator" hidden aria-hidden="true"></div>
     </div>
@@ -84,6 +84,10 @@
     <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-operator-fleet-bootstrap">{{ cockpit.live_world_map.fleet_snapshot_json|safe }}</script>
     {% endif %}
     <div class="lx-world__map-chrome" id="rmc-world-globe-map-chrome">
+      <div class="lx-world__globe-mode-toggle" id="rmc-world-globe-mode-toggle" role="group" aria-label="{% trans 'Globe display mode' %}">
+        <button type="button" class="lx-world__globe-mode-btn on" id="rmc-world-globe-mode-live" data-rmc-globe-mode="live" aria-pressed="true">{% trans "Live" %}</button>
+        <button type="button" class="lx-world__globe-mode-btn" id="rmc-world-globe-mode-offline" data-rmc-globe-mode="offline" aria-pressed="false">{% trans "Offline" %}</button>
+      </div>
       <span id="rmc-world-globe-freshness" class="lx-world__freshness">{% trans "Loading…" %}</span>
       {% if lwm_features.wow_enabled != False %}
       <button type="button" class="lx-world__tour-btn lx-world__wow-demo-btn on" id="rmc-world-globe-wow-demo">{% trans "✦ Wow demo" %}</button>
@@ -162,6 +166,7 @@
       <span><kbd>Esc</kbd> {% trans "clear" %}</span>
     </div>
     {% endif %}
+    {% if lwm_layout != 'hero' %}
     {% if lwm_features.chrome_rail != False %}
     <div class="lx-world__chrome-rail" id="rmc-world-globe-chrome-rail" data-rmc-globe-chrome-rail="1">
       <div class="lx-world__chrome-rail-caption lx-world__void-zone lx-world__void-zone--data" id="rmc-world-globe-chrome-caption">
@@ -177,7 +182,8 @@
       </div>
     </div>
     {% endif %}
-    {% if lwm_features.glass_dock != False %}
+    {% endif %}
+    {% if lwm_layout != 'hero' and lwm_features.glass_dock != False %}
     <div class="lx-world__glass-dock{% if lwm_features.chrome_rail != False %} lx-world__glass-dock--chrome-rail{% endif %}" id="rmc-world-globe-glass-dock">
       <span class="lx-world__glass-dock-metric" id="rmc-world-globe-dock-metric">{{ cockpit.live_world_map.schools_live|default:"—" }} {% trans "schools live" %}</span>
       <span class="lx-world__glass-dock-sep" aria-hidden="true"></span>
@@ -205,6 +211,41 @@
     <div class="lx-world__celebrate" id="rmc-world-globe-celebrate" aria-hidden="true"></div>
     <p id="rmc-world-globe-tour-caption" class="lx-world__tour-caption" aria-live="polite"></p>
   </div>
+
+  {% if lwm_layout == 'hero' %}
+  {% if lwm_features.glass_dock != False %}
+  <div class="lx-world__glass-dock lx-world__glass-dock--stacked{% if lwm_features.chrome_rail != False %} lx-world__glass-dock--chrome-rail{% endif %}" id="rmc-world-globe-glass-dock">
+    <span class="lx-world__glass-dock-metric" id="rmc-world-globe-dock-metric">{{ cockpit.live_world_map.schools_live|default:"—" }} {% trans "schools live" %}</span>
+    <span class="lx-world__glass-dock-sep" aria-hidden="true"></span>
+    <div class="lx-world__glass-dock-chips" id="rmc-world-globe-dock-regions" data-rmc-scroll-policy="discovery">
+      {% for row in cockpit.live_world_map.regional_breakdown %}
+      <button type="button" class="lx-world__glass-dock-chip" data-rmc-region="{{ row.label }}" data-rmc-fly-lat="{{ row.fly_lat|default:'' }}" data-rmc-fly-lng="{{ row.fly_lng|default:'' }}">{{ row.label }} {{ row.count }}</button>
+      {% endfor %}
+    </div>
+    <span class="lx-world__glass-dock-sep" aria-hidden="true"></span>
+    <div class="lx-world__glass-dock-chips lx-world__glass-dock-chips--status">
+      <button type="button" class="lx-world__glass-dock-chip on" data-rmc-status-filter="active">{% trans "Active" %}</button>
+      <button type="button" class="lx-world__glass-dock-chip" data-rmc-status-filter="suspended">{% trans "Suspended" %}</button>
+      <button type="button" class="lx-world__glass-dock-chip" data-rmc-status-filter="frozen">{% trans "Frozen" %}</button>
+    </div>
+  </div>
+  {% endif %}
+  {% if lwm_features.chrome_rail != False %}
+  <div class="lx-world__chrome-rail lx-world__chrome-rail--stacked" id="rmc-world-globe-chrome-rail" data-rmc-globe-chrome-rail="1">
+    <div class="lx-world__chrome-rail-caption lx-world__void-zone lx-world__void-zone--data" id="rmc-world-globe-chrome-caption">
+      <b>{% trans "C · Caption" %}</b>
+      <span id="rmc-world-globe-chrome-caption-text">{% if lwm_fleet and lwm_fleet.pulse_events and lwm_fleet.pulse_events.0.text %}{{ lwm_fleet.pulse_events.0.text }}{% else %}{% trans "School now live" %}{% endif %}</span>
+    </div>
+    {% if lwm_features.glass_dock != False %}
+    <div class="lx-world__chrome-rail-dock" id="rmc-world-globe-chrome-dock-host"></div>
+    {% endif %}
+    <div class="lx-world__chrome-rail-whisper lx-world__void-zone lx-world__void-zone--ai" id="rmc-world-globe-chrome-whisper">
+      <b>{% trans "D · Fleet whisper" %}</b>
+      <span id="rmc-world-globe-chrome-whisper-text">{% if lwm_fleet and lwm_fleet.whisper_line %}{{ lwm_fleet.whisper_line }}{% else %}{% trans "Fleet healthy · pan to explore pins" %}{% endif %}</span>
+    </div>
+  </div>
+  {% endif %}
+  {% endif %}
 
   {% include "partials/cockpit/_globe_prism_interstitial.html" %}
 
@@ -288,7 +329,6 @@
 {% endwith %}
 {% endwith %}
 {% if cockpit.live_world_map.globe_payload_json %}
-<script src="{% static 'js/rmc-world-globe-prism.js' %}" defer nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/rmc-world-globe-loader.js' %}" defer nonce="{{ csp_nonce }}" data-rmc-world-globe-loader="1" data-rmc-mount-src="{% static 'js/dist/world-globe.mount.js' %}"></script>
 <script src="{% static 'js/rmc-world-globe-bridge.js' %}" defer nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/rmc-world-globe-wow-plus.js' %}" defer nonce="{{ csp_nonce }}"></script>

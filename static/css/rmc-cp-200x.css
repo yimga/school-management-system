@@ -246,6 +246,150 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .rmc-app-shell__canvas-body {
   padding-top: 0;
 }
+/* Globe landing lab — stacked lab column: map → C·dock·D → 96px prism → 6D timeline. */
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__controls {
+  display: none !important;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__header {
+  padding: 6px 10px 4px;
+  margin: 0;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__ai-guide {
+  gap: 6px 10px;
+  padding: 4px 0;
+  font-size: 12px;
+  line-height: 1.25;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__ai-guide strong {
+  font-size: 13px;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__ai-guide-btn {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] #master-card.lx-world--hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) min(260px, 26vw);
+  grid-template-rows: minmax(180px, 1fr) auto auto auto;
+  min-height: 0;
+  max-height: min(78vh, 680px);
+  overflow: hidden;
+  align-items: stretch;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__map {
+  grid-column: 1;
+  grid-row: 1;
+  height: 100%;
+  min-height: 180px;
+  max-height: none;
+  align-self: stretch;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__glass-dock--stacked.lx-world__glass-dock--chrome-rail {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__chrome-rail--stacked {
+  grid-column: 1;
+  grid-row: 2;
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  z-index: 2;
+  padding: 6px 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(8, 12, 20, 0.95);
+  pointer-events: auto;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__void-band {
+  grid-column: 1;
+  grid-row: 3;
+  min-height: 0;
+  padding: 6px 10px;
+  gap: 8px;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__pulse-timeline {
+  grid-column: 1;
+  grid-row: 4;
+  padding: 6px 10px 8px;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world__void-band .rmc-cockpit-pulse__label {
+  display: none;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world__void-band .rmc-cockpit-pulse-card {
+  min-height: 58px;
+  padding: 6px 8px;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world__void-explain.rmc-page-explain-strip {
+  padding: 6px 10px;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__legend-panel {
+  grid-column: 2;
+  grid-row: 1 / -1;
+  min-height: 0;
+  max-height: none;
+  height: auto;
+  align-self: stretch;
+  overflow-y: auto;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__globe-stage,
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__globe,
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__svg-fallback {
+  width: 100%;
+  height: 100%;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__globe-stage,
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__globe {
+  align-items: stretch;
+  justify-content: stretch;
+}
+/* Hero stack (all manager landing pages using hero layout). */
+.lx-world--hero .lx-world__chrome-rail--stacked {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  z-index: 2;
+  grid-column: 1;
+  padding: 10px 14px;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(8, 12, 20, 0.95);
+  pointer-events: auto;
+}
+.lx-world--hero .lx-world__glass-dock--stacked.lx-world__glass-dock--chrome-rail {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+.lx-world__prism-about-label {
+  display: block;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 1px;
+}
+@media (max-width: 1100px) {
+  [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] #master-card.lx-world--hero,
+  .lx-world--hero {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(200px, 48vh) auto auto auto auto;
+  }
+  [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__legend-panel,
+  .lx-world--hero .lx-world__legend-panel {
+    grid-column: 1;
+    grid-row: 5;
+    max-height: 240px;
+  }
+}
 .rmc-cp-200x-landing > .lx-card,
 .rmc-cp-200x-landing > .lx-slo,
 .rmc-cp-200x-landing > .lx-forecast-section,
@@ -810,7 +954,117 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   color: var(--text-tertiary);
 }
 
-/* ── Prism Bridge void (96px) — 40% About+Flow · 60% pulse ── */
+/* ── Void band — original explain strip + platform pulse (balanced, full width) ── */
+.lx-world__void-band {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 36%) minmax(0, 64%);
+  gap: 10px;
+  align-items: stretch;
+  min-height: 84px;
+  max-height: 96px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--hairline);
+  background: var(--surface-canvas);
+}
+.lx-world--hero:has(.lx-world__chrome-rail--stacked) .lx-world__void-band {
+  grid-column: 1;
+}
+.lx-world__void-band__explain {
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+}
+.lx-world__void-explain.rmc-page-explain-strip {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  padding: 8px 12px;
+  align-items: center;
+  flex-wrap: nowrap;
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface-elevated);
+}
+.lx-world__void-explain.rmc-page-explain-strip--flow .rmc-page-explain-strip__lead {
+  min-width: 0;
+}
+.lx-world__void-explain .rmc-page-explain-strip__title {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lx-world__void-explain .rmc-page-explain-strip__next {
+  flex-shrink: 0;
+  padding: 6px 10px;
+}
+.lx-world__void-band__pulse {
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+}
+.lx-world__void-band .rmc-cockpit-pulse {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  gap: 6px;
+  justify-content: center;
+}
+.lx-world__void-band .rmc-cockpit-pulse__label {
+  flex-shrink: 0;
+  font-size: 9px;
+  margin: 0;
+  letter-spacing: 0.08em;
+}
+.lx-world__void-band .rmc-cockpit-pulse__cards {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  align-items: stretch;
+  min-height: 0;
+  min-width: 0;
+}
+.lx-world__void-band .rmc-cockpit-pulse-card {
+  height: 100%;
+  min-height: 72px;
+  padding: 8px 10px;
+  gap: 4px;
+  justify-content: space-between;
+}
+.lx-world__void-band .rmc-cockpit-pulse-card__value {
+  font-size: 18px;
+  line-height: 1.1;
+}
+.lx-world__void-band .rmc-cockpit-pulse-card__head {
+  font-size: 9px;
+}
+.lx-world__void-band .rmc-cockpit-pulse-card__label {
+  font-size: 10px;
+  line-height: 1.2;
+}
+.lx-world__void-band .rmc-cockpit-pulse-card__delta,
+.lx-world__void-band .rmc-cockpit-pulse-card__spark,
+.lx-world__void-band .rmc-cockpit-pulse-card__status-row {
+  display: none;
+}
+@media (max-width: 1100px) {
+  .lx-world__void-band {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    gap: 8px;
+  }
+  .lx-world__void-band .rmc-cockpit-pulse__cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 720px) {
+  .lx-world__void-band .rmc-cockpit-pulse__cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── Prism Bridge void (96px) — legacy holo; superseded by lx-world__void-band ── */
 .lx-world__interstitial--prism {
   height: 96px;
   max-height: 96px;
@@ -1410,6 +1664,32 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   border-radius: var(--radius-lg, 16px) 0 0 var(--radius-lg, 16px);
   background: radial-gradient(120% 110% at 42% 38%, rgba(99,102,241,0.16), transparent 68%); /* off-token-allow: dark-chrome-world-panel */
 }
+/* Hero stack — map → chrome rail → 96px prism → 6D timeline (approval mock order). */
+.lx-world--hero:has(.lx-world__chrome-rail--stacked) {
+  grid-template-rows: minmax(180px, 1fr) auto auto auto;
+  min-height: 0;
+  max-height: min(78vh, 680px);
+}
+.lx-world--hero:has(.lx-world__chrome-rail--stacked) .lx-world__map {
+  height: 100%;
+  min-height: 180px;
+  max-height: none;
+  border-radius: var(--radius-lg, 16px) 0 0 0;
+}
+.lx-world--hero:has(.lx-world__chrome-rail--stacked) .lx-world__legend-panel {
+  grid-row: 1 / -1;
+}
+.lx-world--hero:has(.lx-world__chrome-rail--stacked) .lx-world__chrome-rail--stacked {
+  grid-row: 2;
+}
+.lx-world--hero:has(.lx-world__chrome-rail--stacked) .lx-world__void-band {
+  grid-column: 1;
+  grid-row: 3;
+}
+.lx-world--hero:has(.lx-world__chrome-rail--stacked) .lx-world__pulse-timeline {
+  grid-column: 1;
+  grid-row: 4;
+}
 .lx-world--hero .lx-world__globe,
 .lx-world--hero .lx-world__globe-skeleton {
   inset: 0;
@@ -1503,7 +1783,44 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+}
+.lx-world__globe-mode-toggle {
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid var(--hairline);
+  background: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+  overflow: hidden;
+}
+.lx-world__globe-mode-btn {
+  appearance: none;
+  border: 0;
+  margin: 0;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: transparent;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.lx-world__globe-mode-btn + .lx-world__globe-mode-btn {
+  border-left: 1px solid var(--hairline);
+}
+.lx-world__globe-mode-btn.on {
+  color: rgba(110, 231, 183, 0.95); /* off-token-allow: dark-chrome-world-freshness-ink */
+  background: rgba(52, 211, 153, 0.12); /* off-token-allow: dark-chrome-world-mode-active */
+}
+.lx-world__globe-mode-btn[data-rmc-globe-mode="offline"].on {
+  color: rgba(251, 191, 36, 0.95); /* off-token-allow: dark-chrome-world-offline-ink */
+  background: rgba(251, 191, 36, 0.1); /* off-token-allow: dark-chrome-world-offline-active */
+}
+.lx-world__globe-mode-btn:focus-visible {
+  outline: 2px solid var(--color-primary-500, #6366f1);
+  outline-offset: 1px;
 }
 .lx-world__freshness {
   font-size: 11px;

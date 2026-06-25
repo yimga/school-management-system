@@ -1,15 +1,17 @@
 /**
- * Lazy-load world-globe.mount.js (single-file ES module) when globe JSON is present.
- * Offline: SVG fallback is visible immediately; WebGL is progressive enhancement only.
- * Skips WebGL on offline / low-bandwidth / Save-Data / forced svg-offline mode.
- * SVG lives in #rmc-world-globe-stage (sibling of #rmc-world-globe) so globe.gl init
- * cannot wipe the fallback markup.
+ * Lazy-load world-globe.mount.js when globe JSON is present.
+ * Operator toggle: Live (WebGL when available) vs Offline (regional SVG only).
+ * SVG lives in #rmc-world-globe-stage so globe.gl init cannot wipe fallback markup.
  */
 (function () {
   if (window.__rmcWorldGlobeLoader) {
     return;
   }
   window.__rmcWorldGlobeLoader = true;
+
+  var MODE_KEY = "rmc-globe-display-mode";
+  var MODE_LIVE = "live";
+  var MODE_OFFLINE = "offline";
 
   function currentScriptSrc() {
     var scripts = document.getElementsByTagName("script");
@@ -43,7 +45,51 @@
     return !!(c && c.getAttribute("data-rmc-world-globe-inited") === "1");
   }
 
+  function getOperatorMode() {
+    try {
+      var stored = window.sessionStorage.getItem(MODE_KEY);
+      if (stored === MODE_OFFLINE || stored === MODE_LIVE) {
+        return stored;
+      }
+    } catch (_err) {
+      /* sessionStorage blocked */
+    }
+    return MODE_LIVE;
+  }
+
+  function setOperatorMode(mode) {
+    var next = mode === MODE_OFFLINE ? MODE_OFFLINE : MODE_LIVE;
+    try {
+      window.sessionStorage.setItem(MODE_KEY, next);
+    } catch (_err) {
+      /* ignore */
+    }
+    var stage = globeStage();
+    if (stage) {
+      stage.setAttribute("data-rmc-globe-operator-mode", next);
+    }
+    syncModeToggleUi(next);
+    return next;
+  }
+
+  function syncModeToggleUi(mode) {
+    var liveBtn = document.getElementById("rmc-world-globe-mode-live");
+    var offlineBtn = document.getElementById("rmc-world-globe-mode-offline");
+    var isLive = mode !== MODE_OFFLINE;
+    if (liveBtn) {
+      liveBtn.classList.toggle("on", isLive);
+      liveBtn.setAttribute("aria-pressed", isLive ? "true" : "false");
+    }
+    if (offlineBtn) {
+      offlineBtn.classList.toggle("on", !isLive);
+      offlineBtn.setAttribute("aria-pressed", !isLive ? "true" : "false");
+    }
+  }
+
   function isSvgOfflineMode() {
+    if (getOperatorMode() === MODE_OFFLINE) {
+      return true;
+    }
     var stage = globeStage();
     if (!stage) return false;
     return (
@@ -57,6 +103,9 @@
   }
 
   function shouldSkipHeavyGlobe() {
+    if (getOperatorMode() === MODE_OFFLINE) {
+      return true;
+    }
     if (isNavigatorOffline()) {
       return true;
     }
@@ -109,7 +158,7 @@
     }
     var note = document.getElementById("rmc-world-globe-offline-note");
     if (note) {
-      note.hidden = false;
+      note.hidden = getOperatorMode() !== MODE_OFFLINE;
     }
     var sk = stage.closest(".lx-world__map");
     if (sk) {
@@ -117,72 +166,6 @@
       if (skeleton) skeleton.remove();
     }
     document.dispatchEvent(new CustomEvent("rmc:globe-offline-fallback"));
-  }
-
-  function loadMountBundle() {
-    var mount = globeMount();
-    var stage = globeStage();
-    if (!mount || !stage) {
-      return;
-    }
-    ensureSvgVisible();
-
-    if (isSvgOfflineMode()) {
-      markOfflineFallback();
-      return;
-    }
-
-    var dataEl = document.getElementById("rmc-world-globe-data");
-    if (!dataEl || !dataEl.textContent || !dataEl.textContent.trim()) {
-      markOfflineFallback();
-      return;
-    }
-    if (shouldSkipHeavyGlobe()) {
-      markOfflineFallback();
-      return;
-    }
-    var mountSrc = currentScriptSrc();
-    if (!mountSrc) {
-      markOfflineFallback();
-      return;
-    }
-    if (document.querySelector('script[data-rmc-world-globe-mount="1"]')) {
-      return;
-    }
-
-    var tag = document.createElement("script");
-    tag.type = "module";
-    tag.src = mountSrc;
-    tag.setAttribute("data-rmc-world-globe-mount", "1");
-    var loadTimeout = window.setTimeout(function () {
-      if (!globeAlreadyMounted()) {
-        markOfflineFallback();
-      }
-    }, 12000);
-    tag.addEventListener("load", function () {
-      if (isSvgOfflineMode()) {
-        window.clearTimeout(loadTimeout);
-        markOfflineFallback();
-        return;
-      }
-      var watch = window.setInterval(function () {
-        if (isSvgOfflineMode()) {
-          window.clearInterval(watch);
-          window.clearTimeout(loadTimeout);
-          markOfflineFallback();
-          return;
-        }
-        if (globeAlreadyMounted()) {
-          window.clearInterval(watch);
-          window.clearTimeout(loadTimeout);
-        }
-      }, 250);
-    });
-    tag.addEventListener("error", function () {
-      window.clearTimeout(loadTimeout);
-      markOfflineFallback();
-    });
-    document.head.appendChild(tag);
   }
 
   function clearOfflineModeForRetry() {
@@ -199,28 +182,154 @@
     }
   }
 
-  function retryMountWhenOnline() {
+  function loadMountBundle() {
+    var mount = globeMount();
+    var stage = globeStage();
+    if (!mount || !stage) {
+      return;
+    }
+    ensureSvgVisible();
+
     if (shouldSkipHeavyGlobe()) {
+      markOfflineFallback();
       return;
     }
-    if (globeAlreadyMounted()) {
+
+    var dataEl = document.getElementById("rmc-world-globe-data");
+    if (!dataEl || !dataEl.textContent || !dataEl.textContent.trim()) {
+      markOfflineFallback();
       return;
     }
-    if (!isSvgOfflineMode()) {
+    var mountSrc = currentScriptSrc();
+    if (!mountSrc) {
+      markOfflineFallback();
+      return;
+    }
+    if (document.querySelector('script[data-rmc-world-globe-mount="1"]')) {
+      return;
+    }
+
+    clearOfflineModeForRetry();
+
+    var tag = document.createElement("script");
+    tag.type = "module";
+    tag.src = mountSrc;
+    tag.setAttribute("data-rmc-world-globe-mount", "1");
+    var loadTimeout = window.setTimeout(function () {
+      if (!globeAlreadyMounted()) {
+        markOfflineFallback();
+      }
+    }, 12000);
+    tag.addEventListener("load", function () {
+      if (shouldSkipHeavyGlobe()) {
+        window.clearTimeout(loadTimeout);
+        markOfflineFallback();
+        return;
+      }
+      var watch = window.setInterval(function () {
+        if (shouldSkipHeavyGlobe()) {
+          window.clearInterval(watch);
+          window.clearTimeout(loadTimeout);
+          markOfflineFallback();
+          return;
+        }
+        if (globeAlreadyMounted()) {
+          window.clearInterval(watch);
+          window.clearTimeout(loadTimeout);
+          document.dispatchEvent(new CustomEvent("rmc:globe-ready"));
+        }
+      }, 250);
+    });
+    tag.addEventListener("error", function () {
+      window.clearTimeout(loadTimeout);
+      markOfflineFallback();
+    });
+    document.head.appendChild(tag);
+  }
+
+  function applyOperatorMode(mode) {
+    setOperatorMode(mode);
+    document.dispatchEvent(
+      new CustomEvent("rmc:globe-operator-mode", { detail: { mode: mode } })
+    );
+    if (mode === MODE_OFFLINE) {
+      markOfflineFallback();
+      return;
+    }
+    if (isNavigatorOffline()) {
+      markOfflineFallback();
       return;
     }
     clearOfflineModeForRetry();
     loadMountBundle();
   }
 
+  function wireModeToggle() {
+    var toggle = document.getElementById("rmc-world-globe-mode-toggle");
+    if (!toggle || toggle.getAttribute("data-rmc-globe-mode-wired") === "1") {
+      return;
+    }
+    toggle.setAttribute("data-rmc-globe-mode-wired", "1");
+    var liveBtn = document.getElementById("rmc-world-globe-mode-live");
+    var offlineBtn = document.getElementById("rmc-world-globe-mode-offline");
+    if (liveBtn) {
+      liveBtn.addEventListener("click", function () {
+        applyOperatorMode(MODE_LIVE);
+      });
+    }
+    if (offlineBtn) {
+      offlineBtn.addEventListener("click", function () {
+        applyOperatorMode(MODE_OFFLINE);
+      });
+    }
+    syncModeToggleUi(getOperatorMode());
+  }
+
+  function retryMountWhenOnline() {
+    if (getOperatorMode() === MODE_OFFLINE) {
+      markOfflineFallback();
+      return;
+    }
+    if (shouldSkipHeavyGlobe()) {
+      markOfflineFallback();
+      return;
+    }
+    if (globeAlreadyMounted()) {
+      return;
+    }
+    clearOfflineModeForRetry();
+    loadMountBundle();
+  }
+
+  function initGlobeLoader() {
+    var stage = globeStage();
+    if (stage) {
+      stage.setAttribute("data-rmc-globe-operator-mode", getOperatorMode());
+    }
+    wireModeToggle();
+    if (getOperatorMode() === MODE_OFFLINE) {
+      markOfflineFallback();
+      return;
+    }
+    loadMountBundle();
+  }
+
+  window.RMCWorldGlobeLoader = {
+    getMode: getOperatorMode,
+    setMode: applyOperatorMode,
+    retryMount: retryMountWhenOnline,
+  };
+
   if (typeof window !== "undefined") {
-    window.addEventListener("offline", markOfflineFallback);
+    window.addEventListener("offline", function () {
+      markOfflineFallback();
+    });
     window.addEventListener("online", retryMountWhenOnline);
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", loadMountBundle);
+    document.addEventListener("DOMContentLoaded", initGlobeLoader);
   } else {
-    loadMountBundle();
+    initGlobeLoader();
   }
 })();

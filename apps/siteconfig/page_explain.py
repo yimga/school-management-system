@@ -131,8 +131,7 @@ def build_page_explain_context(request: Any) -> dict[str, Any]:
     if user is None or not getattr(user, "is_authenticated", False):
         return {}
 
-    if getattr(request, "rmc_cp_globe_landing_minimal_chrome", False):
-        return {"rmc_page_explain_enabled": False}
+    globe_landing = getattr(request, "rmc_cp_globe_landing_minimal_chrome", False)
 
     route_help = resolve_route_help(request) or {}
     workflow, workflow_tags = _workflow_context(request)
@@ -146,5 +145,5 @@ def build_page_explain_context(request: Any) -> dict[str, Any]:
         "rmc_page_workflow": workflow,
         "rmc_page_workflow_tags": workflow_tags,
         "rmc_page_field_manifest": manifest,
-        "rmc_page_explain_enabled": True,
+        "rmc_page_explain_enabled": not globe_landing,
     }

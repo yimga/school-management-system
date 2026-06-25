@@ -7,6 +7,8 @@ __pycache__/
 *.egg-info/
 .eggs/
 dist/
+!static/js/dist/
+!static/js/dist/world-globe.mount.js
 build/
 
 # Virtual environments
