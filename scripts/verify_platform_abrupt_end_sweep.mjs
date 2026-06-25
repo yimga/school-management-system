@@ -33,6 +33,7 @@ const {
   loginManager,
   AUTH_STATE_PATH,
 } = require('../tests/e2e/helpers/manager-login');
+const { loginTenant: loginTenantMfa } = require('../tests/e2e/helpers/tenant-login');
 
 const LOG = path.join(process.cwd(), 'debug-7911e1.log');
 const SESSION = '7911e1';
@@ -186,7 +187,9 @@ function loadTenantSurfaces() {
   }
   const data = JSON.parse(fs.readFileSync(TENANT_ROUTES_JSON, 'utf8'));
   const routes = Array.isArray(data.routes) ? data.routes : [];
-  return routes
+  const maxRoutes = parseInt(process.env.TENANT_SWEEP_MAX || '0', 10);
+  const capped = maxRoutes > 0 ? routes.slice(0, maxRoutes) : routes;
+  return capped
     .filter((row) => row.sweep !== false)
     .filter((row) => {
       const p = row.path;
@@ -355,19 +358,15 @@ function sweepPageInBrowser(scrollRootSel) {
 }
 
 async function loginTenant(page) {
-  const loginUrl = USE_TENANT_SUBDOMAIN
-    ? '/authentication/login/'
-    : `/t/${TENANT_SLUG}/authentication/login/`;
-  await gotoWithRetries(page, loginUrl);
-  const tenantUser = process.env.TENANT_SWEEP_USERNAME || 'admin';
-  const tenantPassword = process.env.TENANT_SWEEP_PASSWORD || 'Sch00l_1234';
-  await page.locator('input[name="username"]').fill(tenantUser);
-  await page.locator('input[name="password"]').fill(tenantPassword);
-  await page.getByRole('button', { name: /log in/i }).click();
-  await page.waitForURL(
-    (u) => !/\/authentication\/login\/?$/i.test(u.pathname),
-    { timeout: 90000 }
-  );
+  const tenantUser =
+    process.env.TENANT_SWEEP_USERNAME ||
+    process.env.E2E_TENANT_USER ||
+    'demo.admin';
+  const tenantPassword =
+    process.env.TENANT_SWEEP_PASSWORD ||
+    process.env.E2E_TENANT_PASSWORD ||
+    'Test1234';
+  await loginTenantMfa(page, { username: tenantUser, password: tenantPassword });
 }
 
 async function main() {
@@ -530,7 +529,16 @@ async function main() {
   const tenantPlanned = SURFACES.filter((x) => x.surface === 'tenant').length;
   const managerTested = results.filter((r) => r.surface === 'manager').length;
   const tenantTested = results.filter((r) => r.surface === 'tenant').length;
+  const infraSkipped = results.filter((r) => r.skipped).length;
+  const layoutProven = results.filter(
+    (r) => r.surface === 'tenant' && r.ok === true && !r.skipped
+  ).length;
+  const maxInfraSkip = parseInt(
+    process.env.TENANT_SWEEP_MAX_INFRA_SKIP || '0',
+    10
+  );
   const summary = {
+    generatedAt: new Date().toISOString(),
     sweepTier: process.env.SWEEP_TIER || 'operator',
     managerBase: BASE,
     tenantBase: TENANT_BASE,
@@ -539,11 +547,12 @@ async function main() {
     tenantPlanned,
     managerTested,
     tenantTested,
+    layoutProven,
     resultsCount: results.length,
     passed: results.filter((r) => r.ok).length,
     failed: layoutFailed.length,
     skipped,
-    infraSkipped: results.filter((r) => r.skipped).length,
+    infraSkipped,
     failedUrls: layoutFailed.map((r) => ({
       url: r.url,
       failures: r.failures,
@@ -567,15 +576,51 @@ async function main() {
       2
     ) + '\n'
   );
+  if (SWEEP_TIER === 'tenant') {
+    const tenantArtifact = path.join(
+      process.cwd(),
+      'var/tenant-abrupt-end-sweep.json'
+    );
+    fs.mkdirSync(path.dirname(tenantArtifact), { recursive: true });
+    fs.writeFileSync(
+      tenantArtifact,
+      JSON.stringify({ ...summary, results }, null, 2) + '\n'
+    );
+    console.log(`Wrote ${tenantArtifact}`);
+  }
+
   writeLog('SUMMARY', 'platform abrupt-end sweep', summary);
   console.log(JSON.stringify(summary, null, 2));
   console.log(`Wrote ${auditPath}`);
+  if (SWEEP_TIER === 'tenant') {
+    if (tenantTested < tenantPlanned) {
+      console.error(
+        `tenant abrupt-end: tenantTested=${tenantTested} < tenantPlanned=${tenantPlanned}`
+      );
+      process.exit(1);
+    }
+    if (layoutProven < tenantPlanned) {
+      console.error(
+        `tenant abrupt-end: layoutProven=${layoutProven} < tenantPlanned=${tenantPlanned}`
+      );
+      process.exit(1);
+    }
+    if (infraSkipped > maxInfraSkip) {
+      console.error(
+        `tenant abrupt-end: infraSkipped=${infraSkipped} > max ${maxInfraSkip}`
+      );
+      process.exit(1);
+    }
+  }
   if (layoutFailed.length) {
     console.error('\nLayout failures (abrupt end / stranded reveal):');
     for (const f of layoutFailed) {
       console.error(`  ${f.url} → ${(f.failures || []).join(', ')}`);
     }
     process.exit(1);
+  }
+  if (SWEEP_TIER === 'tenant') {
+    console.log('TENANT_ABRUPT_END_SWEEP_PASS');
   }
   process.exit(0);
 }

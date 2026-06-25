@@ -7,6 +7,7 @@
  */
 
 const { execFileSync } = require('child_process');
+const fs = require('fs');
 const path = require('path');
 
 const ROOT_DIR = path.join(__dirname, '..', '..', '..');
@@ -77,11 +78,27 @@ async function ensurePathTenantHost(page) {
   });
 }
 
+function resolvePython() {
+  if (process.env.VISUAL_QA_PYTHON) {
+    return process.env.VISUAL_QA_PYTHON;
+  }
+  const candidates = [
+    path.join(ROOT_DIR, '.venv', 'Scripts', 'python.exe'),
+    path.join(ROOT_DIR, '.venv', 'bin', 'python'),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return process.platform === 'win32' ? 'python' : 'python3';
+}
+
 /**
  * @param {string} username
  */
 function fetchTenantTotpToken(username) {
-  const pythonCmd = process.env.VISUAL_QA_PYTHON || 'python';
+  const pythonCmd = resolvePython();
   return execFileSync(pythonCmd, [TOTP_HELPER], {
     cwd: ROOT_DIR,
     env: {

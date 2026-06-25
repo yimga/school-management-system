@@ -26,9 +26,10 @@ TP_V3_ROLE_HOME_URL_NAMES = frozenset(
 
 
 def role_home_show_legacy(request: HttpRequest) -> bool:
-    """Opt-in full legacy stack via ``?simple=1`` (matches parent simplified mode)."""
-    raw = request.GET.get("simple", "")
-    return str(raw).strip().lower() in {"1", "true", "yes", "legacy"}
+    """Legacy role-home stack — persisted tenant policy or ``?simple=`` override."""
+    from apps.siteconfig.tenant_experience_policy import role_home_legacy_mode_active
+
+    return role_home_legacy_mode_active(request)
 
 
 def is_tenant_role_home_landing_request(request: HttpRequest) -> bool:
@@ -68,6 +69,13 @@ def is_tp_v3_tenant_shell_request(request: HttpRequest) -> bool:
     user = getattr(request, "user", None)
     if user is None or not getattr(user, "is_authenticated", False):
         return False
+    try:
+        from apps.siteconfig.tenant_experience_policy import use_v3_shell_for_request
+
+        if not use_v3_shell_for_request(request):
+            return False
+    except Exception:
+        pass
     match = getattr(request, "resolver_match", None)
     url_name = getattr(match, "url_name", None) or "" if match else ""
     if role_home_show_legacy(request) and url_name in TP_V3_ROLE_HOME_URL_NAMES:
@@ -117,6 +125,19 @@ def tp_v3_role_home_shell_context(request: HttpRequest) -> dict[str, object]:
             year_label = str(year_name)
     except (AttributeError, ImportError, TypeError, ValueError):
         year_label = ""
+    chrome_flags: dict[str, object] = {}
+    policy: dict[str, object] = {}
+    try:
+        from apps.siteconfig.tenant_experience_policy import (
+            derive_chrome_flags,
+            resolve_tenant_experience_policy,
+        )
+
+        policy = resolve_tenant_experience_policy(request, apply_role_overlay=True, role=role)
+        chrome_flags = derive_chrome_flags(request, tp_v3_tenant_shell=tenant_shell)
+    except Exception:
+        chrome_flags = {}
+
     return {
         "tp_v3_role_home": active,
         "tp_v3_tenant_shell": tenant_shell,
@@ -125,6 +146,8 @@ def tp_v3_role_home_shell_context(request: HttpRequest) -> dict[str, object]:
         "tp_brand_surface_pill": _tp_brand_surface_pill(role),
         "tp_brand_tagline": _tp_brand_tagline(role),
         "tp_brand_year_label": year_label,
+        "tenant_experience_policy": policy,
+        **chrome_flags,
     }
 
 

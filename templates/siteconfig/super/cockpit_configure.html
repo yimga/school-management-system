@@ -23,7 +23,7 @@
         <div class="h6 text-uppercase mb-1">{% trans "Cockpit configurability cascade" %}</div>
         <h1 class="h4 mb-1 fw-bold page-h1">{% trans "Cockpit configuration" %}</h1>
         <p class="small mb-0 text-muted">
-          {% trans "Operator-published values for the footer, community band, and newsletter band. Empty fields fall through to per-host defaults." %}
+          {% trans "Operator-published values for portal experience policy, footer, community band, and newsletter band. Empty fields fall through to per-host defaults." %}
         </p>
       </div>
       <div class="d-flex flex-wrap gap-2">
@@ -65,6 +65,7 @@
 
   {% comment %} On-this-page nav — 36 fieldsets need a jump-list so operators don't lose their place. {% endcomment %}
   <nav class="rmc-section-nav mb-3 d-flex flex-wrap gap-1 small" aria-label="{% trans 'On this page' %}" data-rmc-toc data-rmc-section-nav="curated">
+    <a href="#cockpit-tenant-experience-policy" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Portal experience" %}</a>
     <a href="#cockpit-footer" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Footer" %}</a>
     <a href="#cockpit-community-band" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Community" %}</a>
     <a href="#cockpit-newsletter-band" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Newsletter" %}</a>

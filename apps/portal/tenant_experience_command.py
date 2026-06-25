@@ -16,7 +16,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import User
-from apps.siteconfig.country_experience_baselines import baseline_index
+from apps.siteconfig.tenant_country_readiness import country_readiness_context
 
 
 @dataclass(frozen=True)
@@ -66,26 +66,24 @@ def _country_code(request: HttpRequest) -> str:
     return code[:2].upper() if code else ""
 
 
-def _local_global_payload(request: HttpRequest) -> dict[str, str | bool]:
-    code = _country_code(request)
-    baseline = baseline_index().get(code) if code else None
-    if baseline is None:
-        return {
-            "configured": False,
-            "label": str(_("Global baseline")),
-            "detail": str(_("Set country to unlock local currency and payment rails.")),
-            "currency": "",
-            "rail": "",
-        }
+def _local_global_payload(request: HttpRequest) -> dict[str, str | bool | int]:
+    ctx = country_readiness_context(request)
+    code = str(ctx.get("country_code") or "")
+    from apps.siteconfig.local_experience_resolver import resolve_local_experience_for_country
+
+    deep = resolve_local_experience_for_country(code) if code else {"configured": False}
     return {
-        "configured": True,
-        "label": f"{baseline.label} ({baseline.country_code})",
-        "detail": str(
-            _("%(currency)s with %(rail)s primary rail")
-            % {"currency": baseline.currency, "rail": baseline.primary_rail}
-        ),
-        "currency": baseline.currency,
-        "rail": baseline.primary_rail,
+        "configured": bool(ctx.get("configured")),
+        "label": str(ctx.get("label") or ""),
+        "detail": str(ctx.get("detail") or ""),
+        "currency": str(ctx.get("currency") or ""),
+        "rail": str(ctx.get("rail") or ""),
+        "country_code": code,
+        "readiness_status": str(ctx.get("readiness_status") or ""),
+        "auto_bonus": int(ctx.get("auto_bonus") or 0),
+        "experience_depth": str(deep.get("depth") or "none"),
+        "profile_key": str(deep.get("profile_key") or ""),
+        "profile_count": int(deep.get("profile_count") or 0),
     }
 
 
@@ -221,16 +219,53 @@ def _role_actions(role: str) -> list[ExperienceAction]:
 
 def build_tenant_experience_command(request: HttpRequest, role: str) -> dict[str, Any]:
     """Return the tenant command payload used by all role-home dashboards."""
+    from apps.siteconfig.tenant_experience_policy import (
+        compute_weighted_experience_score,
+        experience_score_band,
+        resolve_tenant_experience_policy,
+    )
+
+    policy = resolve_tenant_experience_policy(request, apply_role_overlay=True, role=role)
     local_global = _local_global_payload(request)
+    country_ctx = country_readiness_context(request)
     profile = _profile_payload(request)
     school = _school_readiness_payload(request)
     actions = [action.as_dict() for action in _role_actions(role)]
-    score = int(round((int(profile["score"]) + int(school["score"])) / 2))
+    score = compute_weighted_experience_score(
+        int(profile["score"]),
+        int(school["score"]),
+        policy,
+        country_configured=bool(local_global.get("configured")),
+        country_ctx=country_ctx,
+    )
+    score_band = experience_score_band(score, policy)
+    score_label = (policy.get("experience_score_label") or "").strip() or str(
+        _("Tenant readiness")
+    )
     return {
-        "enabled": True,
+        "enabled": bool(policy.get("show_experience_command_strip", True)),
         "role": (role or "").upper() or "TENANT",
         "score": score,
-        "score_label": str(_("Tenant readiness")),
+        "score_band": score_band,
+        "score_ready_threshold": int(policy.get("experience_score_ready_threshold", 75)),
+        "score_attention_threshold": int(
+            policy.get("experience_score_attention_threshold", 50)
+        ),
+        "score_label": score_label,
+        "experience_preset": str(
+            policy.get("effective_experience_preset")
+            or policy.get("experience_preset")
+            or "custom"
+        ),
+        "experience_policy_role_bucket": str(
+            policy.get("experience_policy_role_bucket") or ""
+        ),
+        "country_readiness_status": str(local_global.get("readiness_status") or ""),
+        "country_auto_bonus": int(local_global.get("auto_bonus") or 0),
+        "local_experience_depth": str(local_global.get("experience_depth") or "none"),
+        "local_profile_key": str(local_global.get("profile_key") or ""),
+        "mission_eyebrow": (policy.get("mission_eyebrow") or "").strip(),
+        "mission_cta_label": (policy.get("mission_cta_label") or "").strip(),
         "local_global": local_global,
         "profile": profile,
         "school": school,

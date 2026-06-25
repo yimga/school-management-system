@@ -5,6 +5,7 @@
   data-rmc-reveal
   data-rmc-tenant-experience-command="1"
   data-rmc-tenant-role="{{ tenant_experience_command.role }}"
+  data-rmc-score-band="{{ tenant_experience_command.score_band|default:'progress' }}"
   aria-label="{% trans 'Tenant command summary' %}"
 >
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

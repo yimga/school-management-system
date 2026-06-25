@@ -170,22 +170,7 @@ def _priority(inner: str) -> int:
     return len(PRIORITY_INNER_PREFIXES)
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--write", action="store_true")
-    parser.add_argument(
-        "--max",
-        type=int,
-        default=int(os.environ.get("TENANT_SWEEP_MAX", "200")),
-        help="Cap routes after sort (default TENANT_SWEEP_MAX or 200).",
-    )
-    args = parser.parse_args()
-
-    slug = os.environ.get("TENANT_SWEEP_SLUG", "demo-school").strip().strip("/")
-    if not slug or not re.match(r"^[a-z0-9][a-z0-9-]*$", slug, re.I):
-        print("Invalid TENANT_SWEEP_SLUG", file=sys.stderr)
-        return 1
-
+def _build_payload(slug: str, max_routes: int) -> dict:
     import django
 
     django.setup()
@@ -213,28 +198,61 @@ def main() -> int:
         )
 
     rows.sort(key=lambda r: (_priority(r["inner"]), r["path"]))
-    if args.max > 0 and len(rows) > args.max:
+    if max_routes > 0 and len(rows) > max_routes:
         mandatory_inner = set(MANDATORY_SCHOOL_STUDIO_INNER) | set(
             MANDATORY_ROLE_HOME_INNER
         )
         mandatory = [r for r in rows if r["inner"] in mandatory_inner]
         rest = [r for r in rows if r["inner"] not in mandatory_inner]
-        cap = max(args.max - len(mandatory), 0)
+        cap = max(max_routes - len(mandatory), 0)
         rows = mandatory + rest[:cap]
 
-    payload = {
+    return {
         "version": "2026-05-18",
         "slug": slug,
         "count": len(rows),
         "routes": rows,
     }
 
-    if args.write:
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write", action="store_true")
+    parser.add_argument("--check", action="store_true", help="Fail if artifact drift")
+    parser.add_argument(
+        "--max",
+        type=int,
+        default=int(os.environ.get("TENANT_SWEEP_MAX", "200")),
+        help="Cap routes after sort (default TENANT_SWEEP_MAX or 200).",
+    )
+    args = parser.parse_args()
+
+    slug = os.environ.get("TENANT_SWEEP_SLUG", "demo-school").strip().strip("/")
+    if not slug or not re.match(r"^[a-z0-9][a-z0-9-]*$", slug, re.I):
+        print("Invalid TENANT_SWEEP_SLUG", file=sys.stderr)
+        return 1
+
+    payload = _build_payload(slug, args.max)
+    canonical = json.dumps(payload, indent=2, sort_keys=True) + "\n"
+
+    if args.write or (not args.check and not OUT.is_file()):
         OUT.parent.mkdir(parents=True, exist_ok=True)
-        OUT.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        print(f"Wrote {len(rows)} tenant paths to {OUT}")
-    else:
-        print(json.dumps(payload, indent=2))
+        OUT.write_text(canonical, encoding="utf-8")
+        print(f"Wrote {len(payload['routes'])} tenant paths to {OUT}")
+        return 0
+
+    if args.check:
+        if not OUT.is_file():
+            print(f"Missing {OUT} — run with --write", file=sys.stderr)
+            return 1
+        existing = OUT.read_text(encoding="utf-8")
+        if existing != canonical:
+            print("portal_tenant_sweep_routes: DRIFT — run with --write", file=sys.stderr)
+            return 1
+        print("portal_tenant_sweep_routes: OK (no drift)")
+        return 0
+
+    print(json.dumps(payload, indent=2))
     return 0
 
 

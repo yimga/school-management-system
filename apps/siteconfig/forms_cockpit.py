@@ -1814,6 +1814,112 @@ _URL = forms.URLInput(attrs={"class": "form-control"})
 _CHECK = forms.CheckboxInput(attrs={"class": "form-check-input"})
 
 
+def build_tenant_experience_policy_from_cleaned(cleaned: dict[str, Any]) -> dict[str, Any]:
+    """Build ``tenant_experience_policy`` storage dict from flat ``txp_*`` keys."""
+    from apps.siteconfig.tenant_experience_presets import detect_matching_preset
+
+    policy = {
+        "use_v3_shell": bool(cleaned.get("txp_use_v3_shell", True)),
+        "show_mission_strip": bool(cleaned.get("txp_show_mission_strip", True)),
+        "hide_mission_strip_after_launch": bool(
+            cleaned.get("txp_hide_mission_strip_after_launch")
+        ),
+        "show_experience_command_strip": bool(
+            cleaned.get("txp_show_experience_command_strip", True)
+        ),
+        "show_security_posture_inline": bool(
+            cleaned.get("txp_show_security_posture_inline")
+        ),
+        "show_mfa_nudge": bool(cleaned.get("txp_show_mfa_nudge")),
+        "show_legacy_explain_strip": bool(cleaned.get("txp_show_legacy_explain_strip")),
+        "show_next_action_strip": bool(cleaned.get("txp_show_next_action_strip")),
+        "show_community_band_on_v3": bool(cleaned.get("txp_show_community_band_on_v3")),
+        "show_newsletter_band_on_v3": bool(
+            cleaned.get("txp_show_newsletter_band_on_v3")
+        ),
+        "show_proactive_help_nudge": bool(cleaned.get("txp_show_proactive_help_nudge")),
+        "show_lifecycle_concierge": bool(cleaned.get("txp_show_lifecycle_concierge")),
+        "show_kb_ai_panel": bool(cleaned.get("txp_show_kb_ai_panel")),
+        "show_legacy_ai_copilot_dock": bool(
+            cleaned.get("txp_show_legacy_ai_copilot_dock")
+        ),
+        "ai_layer_strip_mode": (cleaned.get("txp_ai_layer_strip_mode") or "inherit"),
+        "ai_copilot_rail_mode": (cleaned.get("txp_ai_copilot_rail_mode") or "inherit"),
+        "sidebar_default_width": cleaned.get("txp_sidebar_default_width") or 280,
+        "sidebar_min_width": cleaned.get("txp_sidebar_min_width") or 200,
+        "sidebar_max_width": cleaned.get("txp_sidebar_max_width") or 420,
+        "sidebar_rail_width": cleaned.get("txp_sidebar_rail_width") or 44,
+        "mission_eyebrow": (cleaned.get("txp_mission_eyebrow") or "").strip(),
+        "mission_cta_label": (cleaned.get("txp_mission_cta_label") or "").strip(),
+        "experience_score_label": (
+            cleaned.get("txp_experience_score_label") or ""
+        ).strip(),
+        "setup_surface_enabled": bool(cleaned.get("txp_setup_surface_enabled", True)),
+        "hidden_setup_wizard_keys": [
+            part.strip()
+            for part in str(cleaned.get("txp_hidden_setup_wizard_keys") or "").split(",")
+            if part.strip()
+        ],
+        "show_first_run_zero_state_on_v3": bool(
+            cleaned.get("txp_show_first_run_zero_state_on_v3")
+        ),
+        "show_smart_action_hub_on_v3": bool(
+            cleaned.get("txp_show_smart_action_hub_on_v3")
+        ),
+        "show_portal_chathead_on_v3": bool(
+            cleaned.get("txp_show_portal_chathead_on_v3")
+        ),
+        "show_header_home_link_on_v3": bool(
+            cleaned.get("txp_show_header_home_link_on_v3")
+        ),
+        "show_workspace_os_header_on_v3": bool(
+            cleaned.get("txp_show_workspace_os_header_on_v3")
+        ),
+        "show_operator_console_strip_on_v3": bool(
+            cleaned.get("txp_show_operator_console_strip_on_v3")
+        ),
+        "show_os_status_strip_on_v3": bool(
+            cleaned.get("txp_show_os_status_strip_on_v3")
+        ),
+        "show_zero_click_command_strip_on_v3": bool(
+            cleaned.get("txp_show_zero_click_command_strip_on_v3")
+        ),
+        "show_dashboard_stats_cards_on_v3": bool(
+            cleaned.get("txp_show_dashboard_stats_cards_on_v3")
+        ),
+        "show_legacy_sidebar_user_header_on_v3": bool(
+            cleaned.get("txp_show_legacy_sidebar_user_header_on_v3")
+        ),
+        "experience_preset": (cleaned.get("txp_experience_preset") or "custom").strip()
+        or "custom",
+        "role_home_experience_mode": (
+            cleaned.get("txp_role_home_experience_mode") or "v3_canvas"
+        ),
+        "experience_score_profile_weight": cleaned.get("txp_experience_score_profile_weight")
+        or 50,
+        "experience_score_school_weight": cleaned.get("txp_experience_score_school_weight")
+        or 50,
+        "experience_score_ready_threshold": cleaned.get(
+            "txp_experience_score_ready_threshold"
+        )
+        or 75,
+        "experience_score_attention_threshold": cleaned.get(
+            "txp_experience_score_attention_threshold"
+        )
+        or 50,
+        "experience_score_country_bonus": cleaned.get("txp_experience_score_country_bonus")
+        or 0,
+        "role_experience_presets": {
+            bucket: (cleaned.get(f"txp_role_preset_{bucket}") or "inherit").strip().lower()
+            for bucket in ("ADMIN", "TEACHER", "PARENT", "STUDENT")
+        },
+    }
+    preset = str(policy.get("experience_preset") or "custom").strip().lower()
+    if preset == "custom":
+        policy["experience_preset"] = detect_matching_preset(policy)
+    return policy
+
+
 class CockpitPayloadForm(forms.ModelForm):
     """Flat form whose ``clean()`` writes the nested ``cockpit_payload`` dict.
 
@@ -1877,6 +1983,295 @@ class CockpitPayloadForm(forms.ModelForm):
     )
     footer_powered_by_url = forms.CharField(
         required=False, widget=_TEXT, label=_("Powered-by URL")
+    )
+
+    # ---- Tenant experience policy (cockpit.tenant_experience_policy.*) ----
+    txp_experience_preset = forms.ChoiceField(
+        required=False,
+        choices=(),
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label=_("Experience preset"),
+        initial="custom",
+        help_text=_("Shopify-style bundles; pick Custom to tune individual toggles."),
+    )
+    txp_role_home_experience_mode = forms.ChoiceField(
+        required=False,
+        choices=(),
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label=_("Role-home experience mode"),
+        initial="v3_canvas",
+        help_text=_(
+            "Persisted one-click mode for role-home landings (replaces ?simple=1 bookmarks)."
+        ),
+    )
+    txp_role_preset_ADMIN = forms.ChoiceField(
+        required=False,
+        choices=(),
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label=_("Admin / operator theme"),
+        initial="inherit",
+        help_text=_("Per-role Shopify theme; inherits school default when set to Inherit."),
+    )
+    txp_role_preset_TEACHER = forms.ChoiceField(
+        required=False,
+        choices=(),
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label=_("Teacher theme"),
+        initial="inherit",
+    )
+    txp_role_preset_PARENT = forms.ChoiceField(
+        required=False,
+        choices=(),
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label=_("Parent theme"),
+        initial="inherit",
+    )
+    txp_role_preset_STUDENT = forms.ChoiceField(
+        required=False,
+        choices=(),
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label=_("Student theme"),
+        initial="inherit",
+    )
+    txp_use_v3_shell = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=_CHECK,
+        label=_("Use v3 tenant shell canvas"),
+        help_text=_("When off, the school uses the legacy portal chrome on all pages."),
+    )
+    txp_show_mission_strip = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=_CHECK,
+        label=_("Show mission strip (v3)"),
+    )
+    txp_hide_mission_strip_after_launch = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Hide mission strip after go-live"),
+    )
+    txp_show_experience_command_strip = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=_CHECK,
+        label=_("Show experience command strip on role homes"),
+    )
+    txp_show_security_posture_inline = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show security posture banner on v3"),
+    )
+    txp_show_mfa_nudge = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show MFA enrollment nudge on v3"),
+    )
+    txp_show_legacy_explain_strip = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show page explain strip on v3"),
+    )
+    txp_show_next_action_strip = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show next-action strip on v3"),
+    )
+    txp_show_community_band_on_v3 = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show community band on v3"),
+    )
+    txp_show_newsletter_band_on_v3 = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show newsletter band on v3"),
+    )
+    txp_show_proactive_help_nudge = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show proactive help nudge on v3"),
+    )
+    txp_show_lifecycle_concierge = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show lifecycle concierge on v3"),
+    )
+    txp_show_kb_ai_panel = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show KB AI assistant panel on v3"),
+    )
+    txp_show_legacy_ai_copilot_dock = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show legacy floating AI copilot dock on v3"),
+    )
+    txp_ai_layer_strip_mode = forms.ChoiceField(
+        required=False,
+        choices=(),
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label=_("AI system layer strip"),
+        initial="inherit",
+    )
+    txp_ai_copilot_rail_mode = forms.ChoiceField(
+        required=False,
+        choices=(),
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label=_("AI copilot rail"),
+        initial="inherit",
+    )
+    txp_sidebar_default_width = forms.IntegerField(
+        required=False,
+        initial=280,
+        min_value=200,
+        max_value=420,
+        widget=_NUMBER,
+        label=_("Sidebar default width (px)"),
+    )
+    txp_sidebar_min_width = forms.IntegerField(
+        required=False,
+        initial=200,
+        min_value=200,
+        max_value=420,
+        widget=_NUMBER,
+        label=_("Sidebar minimum width (px)"),
+    )
+    txp_sidebar_max_width = forms.IntegerField(
+        required=False,
+        initial=420,
+        min_value=200,
+        max_value=420,
+        widget=_NUMBER,
+        label=_("Sidebar maximum width (px)"),
+    )
+    txp_mission_eyebrow = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Mission strip eyebrow override"),
+    )
+    txp_mission_cta_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Mission strip CTA label override"),
+    )
+    txp_experience_score_label = forms.CharField(
+        required=False,
+        widget=_TEXT,
+        label=_("Experience score label override"),
+    )
+    txp_experience_score_profile_weight = forms.IntegerField(
+        required=False,
+        initial=50,
+        min_value=0,
+        max_value=100,
+        widget=_NUMBER,
+        label=_("Score weight: profile (%)"),
+    )
+    txp_experience_score_school_weight = forms.IntegerField(
+        required=False,
+        initial=50,
+        min_value=0,
+        max_value=100,
+        widget=_NUMBER,
+        label=_("Score weight: school setup (%)"),
+    )
+    txp_experience_score_ready_threshold = forms.IntegerField(
+        required=False,
+        initial=75,
+        min_value=0,
+        max_value=100,
+        widget=_NUMBER,
+        label=_("Ready threshold (%)"),
+    )
+    txp_experience_score_attention_threshold = forms.IntegerField(
+        required=False,
+        initial=50,
+        min_value=0,
+        max_value=100,
+        widget=_NUMBER,
+        label=_("Needs-attention threshold (%)"),
+    )
+    txp_experience_score_country_bonus = forms.IntegerField(
+        required=False,
+        initial=0,
+        min_value=0,
+        max_value=25,
+        widget=_NUMBER,
+        label=_("Country baseline bonus (points)"),
+        help_text=_(
+            "Adds to school setup score when ISO country rails are configured (250-country matrix)."
+        ),
+    )
+    txp_setup_surface_enabled = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=_CHECK,
+        label=_("Show setup command surface during onboarding"),
+    )
+    txp_hidden_setup_wizard_keys = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_SMALL,
+        label=_("Hidden setup wizard keys"),
+        help_text=_("Comma-separated wizard or stage keys to hide from onboarding."),
+    )
+    txp_show_first_run_zero_state_on_v3 = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show first-run zero state on v3"),
+    )
+    txp_show_smart_action_hub_on_v3 = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show smart action hub on v3"),
+    )
+    txp_show_portal_chathead_on_v3 = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show floating messages chathead on v3"),
+    )
+    txp_show_header_home_link_on_v3 = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show header Home link on v3"),
+    )
+    txp_show_workspace_os_header_on_v3 = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show workspace OS page header on v3"),
+    )
+    txp_show_operator_console_strip_on_v3 = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show operator console strip on v3"),
+    )
+    txp_show_os_status_strip_on_v3 = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show OS status strip on v3"),
+    )
+    txp_show_zero_click_command_strip_on_v3 = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show zero-click command strip on v3"),
+    )
+    txp_show_dashboard_stats_cards_on_v3 = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show dashboard stats cards on v3"),
+    )
+    txp_show_legacy_sidebar_user_header_on_v3 = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Show legacy sidebar user header on v3"),
+    )
+    txp_sidebar_rail_width = forms.IntegerField(
+        required=False,
+        initial=44,
+        min_value=36,
+        max_value=72,
+        widget=_NUMBER,
+        label=_("Sidebar collapsed rail width (px)"),
     )
 
     # ---- Community band fieldset (mirrors cockpit.community_band.*) ---
@@ -3625,6 +4020,54 @@ class CockpitPayloadForm(forms.ModelForm):
         fields: list[str] = []
 
     # ----- helpers for declarative fieldset grouping (templates / admin) ---
+    TENANT_EXPERIENCE_POLICY_FIELDS: tuple[str, ...] = (
+        "txp_experience_preset",
+        "txp_role_home_experience_mode",
+        "txp_role_preset_ADMIN",
+        "txp_role_preset_TEACHER",
+        "txp_role_preset_PARENT",
+        "txp_role_preset_STUDENT",
+        "txp_use_v3_shell",
+        "txp_show_mission_strip",
+        "txp_hide_mission_strip_after_launch",
+        "txp_show_experience_command_strip",
+        "txp_show_security_posture_inline",
+        "txp_show_mfa_nudge",
+        "txp_show_legacy_explain_strip",
+        "txp_show_next_action_strip",
+        "txp_show_community_band_on_v3",
+        "txp_show_newsletter_band_on_v3",
+        "txp_show_proactive_help_nudge",
+        "txp_show_lifecycle_concierge",
+        "txp_show_kb_ai_panel",
+        "txp_show_legacy_ai_copilot_dock",
+        "txp_ai_layer_strip_mode",
+        "txp_ai_copilot_rail_mode",
+        "txp_sidebar_default_width",
+        "txp_sidebar_min_width",
+        "txp_sidebar_max_width",
+        "txp_mission_eyebrow",
+        "txp_mission_cta_label",
+        "txp_experience_score_label",
+        "txp_experience_score_profile_weight",
+        "txp_experience_score_school_weight",
+        "txp_experience_score_ready_threshold",
+        "txp_experience_score_attention_threshold",
+        "txp_experience_score_country_bonus",
+        "txp_setup_surface_enabled",
+        "txp_hidden_setup_wizard_keys",
+        "txp_show_first_run_zero_state_on_v3",
+        "txp_show_smart_action_hub_on_v3",
+        "txp_show_portal_chathead_on_v3",
+        "txp_show_header_home_link_on_v3",
+        "txp_show_workspace_os_header_on_v3",
+        "txp_show_operator_console_strip_on_v3",
+        "txp_show_os_status_strip_on_v3",
+        "txp_show_zero_click_command_strip_on_v3",
+        "txp_show_dashboard_stats_cards_on_v3",
+        "txp_show_legacy_sidebar_user_header_on_v3",
+        "txp_sidebar_rail_width",
+    )
     FOOTER_FIELDS: tuple[str, ...] = (
         "footer_wordmark",
         "footer_motto",
@@ -3926,6 +4369,23 @@ class CockpitPayloadForm(forms.ModelForm):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
+        from apps.siteconfig.tenant_experience_policy import AI_MODE_CHOICES
+        from apps.siteconfig.tenant_experience_presets import (
+            EXPERIENCE_PRESET_CHOICES,
+            ROLE_HOME_EXPERIENCE_MODE_CHOICES,
+            ROLE_PRESET_FIELD_CHOICES,
+            ROLE_PRESET_INHERIT,
+            normalize_role_experience_presets,
+        )
+
+        self.fields["txp_ai_layer_strip_mode"].choices = AI_MODE_CHOICES
+        self.fields["txp_ai_copilot_rail_mode"].choices = AI_MODE_CHOICES
+        self.fields["txp_experience_preset"].choices = EXPERIENCE_PRESET_CHOICES
+        self.fields["txp_role_home_experience_mode"].choices = (
+            ROLE_HOME_EXPERIENCE_MODE_CHOICES
+        )
+        for bucket in ("ADMIN", "TEACHER", "PARENT", "STUDENT"):
+            self.fields[f"txp_role_preset_{bucket}"].choices = ROLE_PRESET_FIELD_CHOICES
         payload = self._read_existing_payload()
         self._seed_initial_from_payload(payload)
 
@@ -3940,6 +4400,34 @@ class CockpitPayloadForm(forms.ModelForm):
         return {}
 
     def _seed_initial_from_payload(self, payload: dict[str, Any]) -> None:
+        from apps.siteconfig.tenant_experience_policy import (
+            tenant_experience_policy_defaults,
+        )
+        from apps.siteconfig.tenant_experience_presets import (
+            ROLE_PRESET_INHERIT,
+            normalize_role_experience_presets,
+        )
+
+        txp = payload.get("tenant_experience_policy") or {}
+        defaults = tenant_experience_policy_defaults()
+        role_presets = normalize_role_experience_presets(txp.get("role_experience_presets"))
+        for key, default_value in defaults.items():
+            if key == "role_experience_presets":
+                continue
+            field_name = f"txp_{key}"
+            if field_name not in self.fields:
+                continue
+            stored = txp.get(key, default_value)
+            if key == "hidden_setup_wizard_keys" and isinstance(stored, list):
+                stored = ", ".join(str(item) for item in stored if item)
+            self.fields[field_name].initial = stored
+        for bucket in ("ADMIN", "TEACHER", "PARENT", "STUDENT"):
+            field_name = f"txp_role_preset_{bucket}"
+            if field_name in self.fields:
+                self.fields[field_name].initial = role_presets.get(
+                    bucket, ROLE_PRESET_INHERIT
+                )
+
         footer = payload.get("footer") or {}
         community = payload.get("community_band") or {}
         newsletter = payload.get("newsletter_band") or {}
@@ -4532,6 +5020,9 @@ class CockpitPayloadForm(forms.ModelForm):
             "footer": footer,
             "community_band": community,
             "newsletter_band": newsletter,
+            "tenant_experience_policy": build_tenant_experience_policy_from_cleaned(
+                cleaned
+            ),
         }
         for field_name, payload_key in self._FRONT_OFFICE_FIELD_TO_KEY:
             payload[payload_key] = {"enabled": bool(cleaned.get(field_name))}

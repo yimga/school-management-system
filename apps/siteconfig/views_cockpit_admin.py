@@ -26,6 +26,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import FormView
 
 from .forms_cockpit import CockpitPayloadForm
+from .tenant_experience_policy import user_may_configure_tenant_experience
 
 
 def _resolve_site_settings_instance(request: HttpRequest) -> Any:
@@ -77,10 +78,7 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
     # ------------------------------------------------------------------
 
     def test_func(self) -> bool:
-        user = self.request.user
-        if not user.is_authenticated:
-            return False
-        return bool(getattr(user, "is_staff", False) or getattr(user, "is_superuser", False))
+        return user_may_configure_tenant_experience(self.request.user)
 
     # ------------------------------------------------------------------
     # FormView wiring — instance + initial come from the tenant SiteSettings.
@@ -95,6 +93,21 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         ctx = super().get_context_data(**kwargs)
         form: CockpitPayloadForm = ctx["form"]
         ctx["footer_fields"] = [form[name] for name in form.FOOTER_FIELDS]
+        ctx["tenant_experience_policy_fields"] = [
+            form[name] for name in getattr(form, "TENANT_EXPERIENCE_POLICY_FIELDS", ())
+        ]
+        from apps.siteconfig.tenant_experience_policy import (
+            portal_experience_preset_ui_context,
+            resolve_tenant_experience_policy,
+        )
+
+        ctx.update(
+            portal_experience_preset_ui_context(
+                self.request,
+                resolve_tenant_experience_policy(self.request),
+                post_url=self.request.path,
+            )
+        )
         ctx["community_fields"] = [form[name] for name in form.COMMUNITY_FIELDS]
         ctx["newsletter_fields"] = [form[name] for name in form.NEWSLETTER_FIELDS]
         # v3.57.1: enable toggles for the 20 NEW v3.57 cockpit sections.
@@ -280,7 +293,60 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         if request.POST.get("action") == "reset_defaults":
             return self._handle_reset(request)
+        if request.POST.get("action") == "apply_portal_experience_preset":
+            return self._handle_apply_portal_experience_preset(request)
         return super().post(request, *args, **kwargs)
+
+    def _handle_apply_portal_experience_preset(self, request: HttpRequest) -> HttpResponse:
+        from apps.siteconfig.tenant_experience_policy import (
+            apply_and_persist_experience_preset,
+        )
+        from apps.siteconfig.tenant_experience_presets import (
+            EXPERIENCE_PRESET_IDS,
+            ROLE_PRESET_BUCKETS,
+            ROLE_PRESET_INHERIT,
+        )
+
+        instance = _resolve_site_settings_instance(request)
+        preset_id = str(request.POST.get("preset_id") or "").strip().lower()
+        role_bucket = str(request.POST.get("role_bucket") or "").strip().upper()
+
+        if role_bucket in ROLE_PRESET_BUCKETS:
+            if preset_id == ROLE_PRESET_INHERIT:
+                apply_and_persist_experience_preset(
+                    instance, ROLE_PRESET_INHERIT, role_bucket=role_bucket
+                )
+                messages.success(
+                    request,
+                    _("%(role)s theme reset to inherit school default.")
+                    % {"role": role_bucket.title()},
+                )
+            elif preset_id in EXPERIENCE_PRESET_IDS and preset_id != "custom":
+                apply_and_persist_experience_preset(
+                    instance, preset_id, role_bucket=role_bucket
+                )
+                messages.success(
+                    request,
+                    _("%(role)s theme set to “%(preset)s”.")
+                    % {
+                        "role": role_bucket.title(),
+                        "preset": preset_id.replace("_", " ").title(),
+                    },
+                )
+            else:
+                messages.error(request, _("Unknown portal experience preset."))
+            return HttpResponseRedirect(self._success_url())
+
+        if preset_id not in EXPERIENCE_PRESET_IDS or preset_id == "custom":
+            messages.error(request, _("Unknown portal experience preset."))
+            return HttpResponseRedirect(self._success_url())
+        apply_and_persist_experience_preset(instance, preset_id)
+        messages.success(
+            request,
+            _("Portal experience preset “%(preset)s” applied.")
+            % {"preset": preset_id.replace("_", " ").title()},
+        )
+        return HttpResponseRedirect(self._success_url())
 
     def _handle_reset(self, request: HttpRequest) -> HttpResponse:
         instance = _resolve_site_settings_instance(request)
