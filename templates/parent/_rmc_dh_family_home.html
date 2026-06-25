@@ -45,7 +45,7 @@
   <div id="rmc-parent-today" class="rmc-dh-tiles" data-rmc-section-anchor>
     {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-calendar-check" dh_k=_("Attendance") dh_v=attendance_pct|default:0|stringformat:"d"|add:"%" dh_d=_("overall") dh_dir="flat" dh_href=ph_stats_url %}
     {% if can_view_finance %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-cash-coin" dh_k=_("Balance due") dh_v=finance_balance|format_currency dh_d=_("this term") dh_dir="flat" dh_href=ph_finance_url %}{% endif %}
-    {% if can_view_results and widget_data.performance.average != None %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-mortarboard" dh_k=_("Average") dh_v=widget_data.performance.average|floatformat:1 dh_d=_("this term") dh_dir="flat" %}{% endif %}
+    {% if parent_average_display %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-mortarboard" dh_k=_("Average") dh_v=parent_average_display dh_d=_("this term") dh_dir="flat" %}{% endif %}
     {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-chat-dots" dh_k=_("Messages") dh_v=unread_messages_aggregate|default:0 dh_d=_("unread") dh_dir="flat" dh_href=ph_contact_url %}
   </div>
 
@@ -161,6 +161,15 @@
       <summary><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> {% trans "Grade trend" %}</summary>
       <div class="rmc-preview-live-section__body">
         {% include "components/dashboard/rmc_dh_minichart.html" with dh_cols=widget_data.grade_trend dh_aria=_("Recent grade trend") %}
+      </div>
+    </details>
+    {% endif %}
+
+    {% if parent_subject_rows %}
+    <details class="rmc-preview-live-section">
+      <summary><i class="bi bi-bar-chart-line" aria-hidden="true"></i> {% trans "Subject performance" %}</summary>
+      <div class="rmc-preview-live-section__body">
+        {% include "components/dashboard/rmc_dh_subj_grid.html" with dh_subjects=parent_subject_rows %}
       </div>
     </details>
     {% endif %}

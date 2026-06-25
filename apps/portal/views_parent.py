@@ -1251,11 +1251,51 @@ def parent_dashboard(request: HttpRequest):
         getattr(request, "school", None), request=request, surface="parent"
     )
 
+    # Scale-aware grade display (local-first): resolve the school's operational
+    # grade scale once (/20 Bac, /100 percentage, /4 GPA) and reuse it for the
+    # parent "Average" KPI denominator + subject result-bar widths — the same
+    # machinery the student dashboard uses (never a hardcoded /20).
+    # resolve_school_score_scale never raises and defaults to 100; the guard is
+    # belt-and-suspenders against the optional import.
+    parent_score_scale_label = None
+    parent_average_display = None
+    parent_subject_rows = []
+    if can_view_results:
+        parent_score_scale = 100.0
+        try:
+            from apps.evals.grading_provisioning import resolve_school_score_scale
+
+            _scale = float(resolve_school_score_scale(school) or 0)
+            if _scale > 0:
+                parent_score_scale = _scale
+        except PORTAL_SOFT_FAILURES:
+            parent_score_scale = 100.0
+        parent_score_scale_label = (
+            str(int(parent_score_scale))
+            if float(parent_score_scale).is_integer()
+            else str(parent_score_scale)
+        )
+        _perf = widget_data.get("performance", {}) or {}
+        if _perf.get("average") is not None:
+            parent_average_display = f"{_perf.get('average')}/{parent_score_scale_label}"
+        for _row in widget_data.get("subject_performance", []) or []:
+            _savg = float(_row.get("average") or 0)
+            _pct = max(0.0, min(100.0, _savg / parent_score_scale * 100.0))
+            parent_subject_rows.append(
+                {
+                    "name": _row.get("subject") or "",
+                    "pct": int(round(_pct)),
+                    "label": str(_row.get("average")),
+                }
+            )
     return render(
         request,
         "parent/dashboard.html",
         {
             "links": links,
+            "parent_average_display": parent_average_display,
+            "parent_subject_rows": parent_subject_rows,
+            "parent_score_scale_label": parent_score_scale_label,
             "show_parent_dashboard_hint": show_parent_dashboard_hint,
             "can_view_results": can_view_results,
             "can_view_finance": can_view_finance,
