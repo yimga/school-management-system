@@ -47,6 +47,7 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     ("scripts/verify_url_name_integrity.py", "ci.yml"),
     ("scripts/verify_template_reference_integrity.py", "ci.yml"),
     ("scripts/verify_settings_key_integrity.py", "ci.yml"),
+    ("scripts/verify_field_reference_integrity.py", "ci.yml"),
     # Documented-baseline drift meta-check (doc vs JSON).
     ("scripts/check_documented_baselines.py", "architectural-boundaries.yml"),
     # Template render safety + attribute-context layout-frame guard.
@@ -56,6 +57,10 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     ("scripts/scan_money_float.py", "architectural-boundaries.yml"),
     ("scripts/scan_tenant_queryset_safety.py", "tenant-isolation-scan.yml"),
     ("scripts/verify_offline_capability_implementation.py", "architectural-boundaries.yml"),
+    # Global academic kernel — the canonical world grade-scale families must
+    # stay seeded; without this gate a deploy could ship an empty registry and
+    # the catalog's "9 world scales" claim becomes silent theater.
+    ("scripts/verify_grading_scale_registry_coverage.py", "ci.yml"),
 )
 
 
