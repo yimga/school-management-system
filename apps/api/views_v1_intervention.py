@@ -18,6 +18,8 @@ from django.views.decorators.http import require_http_methods
 
 from apps.api.views_v1 import (
     _backend_flag_enabled,
+    _offset_limit,
+    _pagination_meta,
     _require_auth_and_tenant_member,
 )
 from apps.platform_runtime.structured_logging import log_view_exception
@@ -112,7 +114,11 @@ class InterventionActionCenterView(View):
             qs = InterventionLog.objects.filter(school=school)
         else:
             qs = InterventionLog.objects.filter(school=school, status=status_filter)
-        qs = qs.select_related("student", "student__user").order_by("-created_at")[:100]
+        limit, offset = _offset_limit(request)
+        total = qs.count()
+        qs = qs.select_related("student", "student__user").order_by("-created_at")[
+            offset : offset + limit
+        ]
         items = []
         for log in qs:
             risk = (
@@ -138,7 +144,13 @@ class InterventionActionCenterView(View):
                     "risk_band": risk_band,
                 }
             )
-        return JsonResponse({"count": len(items), "interventions": items})
+        meta, link_header = _pagination_meta(request, total, limit, offset)
+        resp = JsonResponse(
+            {"count": len(items), "interventions": items, "pagination": meta}
+        )
+        if link_header:
+            resp["Link"] = link_header
+        return resp
 
 
 @method_decorator(require_http_methods(["PATCH"]), name="dispatch")

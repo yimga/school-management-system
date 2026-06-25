@@ -2295,6 +2295,53 @@ def _apply_scheduled_reports_list_filters(qs, request):
     return qs
 
 
+def _offset_limit(request, *, default=100, max_limit=100):
+    """Parse ``?limit`` / ``?offset`` for v1 list endpoints. ``default`` matches
+    the historical hard cap so no-param callers see unchanged behavior; clamps
+    limit to [1, max_limit] and offset to >= 0."""
+
+    def _int(name, fallback):
+        try:
+            return int(request.GET.get(name, fallback))
+        except (TypeError, ValueError):
+            return fallback
+
+    limit = _int("limit", default)
+    offset = _int("offset", 0)
+    if limit < 1:
+        limit = default
+    if limit > max_limit:
+        limit = max_limit
+    if offset < 0:
+        offset = 0
+    return limit, offset
+
+
+def _pagination_meta(request, total, limit, offset):
+    """Return ``(meta_dict, link_header)`` — meta for the JSON body plus an
+    RFC 8288 ``Link`` header value with next/prev for the current slice."""
+    has_next = (offset + limit) < total
+    has_prev = offset > 0
+    path = request.path
+
+    def _u(off):
+        return f"{path}?limit={limit}&offset={max(off, 0)}"
+
+    links = []
+    if has_next:
+        links.append(f'<{_u(offset + limit)}>; rel="next"')
+    if has_prev:
+        links.append(f'<{_u(offset - limit)}>; rel="prev"')
+    meta = {
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "has_next": has_next,
+        "has_prev": has_prev,
+    }
+    return meta, ", ".join(links)
+
+
 class ScheduledReportsListView(View):
     """
     GET /api/v1/reports/scheduled — list (summary, no raw recipient addresses).
@@ -2320,7 +2367,11 @@ class ScheduledReportsListView(View):
                 {"error": f"Invalid {field}; use true or false (or 1/0)."},
                 status=400,
             )
-        rows = base.order_by("next_run").select_related("created_by")[:100]
+        limit, offset = _offset_limit(request)
+        total = base.count()
+        rows = base.order_by("next_run").select_related("created_by")[
+            offset : offset + limit
+        ]
         items = []
         for s in rows:
             items.append(
@@ -2338,12 +2389,17 @@ class ScheduledReportsListView(View):
                     **_tenant_schedule_delivery_summary(s),
                 }
             )
-        return JsonResponse(
+        meta, link_header = _pagination_meta(request, total, limit, offset)
+        resp = JsonResponse(
             {
                 "schedules": items,
                 "schema": "reports_scheduled_delivery_v2",
+                "pagination": meta,
             }
         )
+        if link_header:
+            resp["Link"] = link_header
+        return resp
 
     def post(self, request):
         ok, err = _require_super_or_school(request)
@@ -2568,7 +2624,9 @@ class AdHocReportListCreateView(View):
             qs = qs.filter(Q(school_id=school.pk) | Q(school__isnull=True))
         else:
             qs = qs.filter(school__isnull=True)
-        qs = qs.order_by("-created_at")[:100]
+        limit, offset = _offset_limit(request)
+        total = qs.count()
+        qs = qs.order_by("-created_at")[offset : offset + limit]
         items = [
             {
                 "id": d.id,
@@ -2580,7 +2638,11 @@ class AdHocReportListCreateView(View):
             }
             for d in qs
         ]
-        return JsonResponse({"definitions": items})
+        meta, link_header = _pagination_meta(request, total, limit, offset)
+        resp = JsonResponse({"definitions": items, "pagination": meta})
+        if link_header:
+            resp["Link"] = link_header
+        return resp
 
     def post(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:

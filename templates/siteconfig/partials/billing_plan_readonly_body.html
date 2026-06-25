@@ -194,14 +194,14 @@
     {% if stripe_processor_configured and plan and has_stripe_price_for_current_plan %}
     <a class="btn btn-sm btn-primary ds-btn" href="{{ checkout_start_url }}?plan_code={{ plan.slug|urlencode }}&billing_cycle={% if platform_subscription %}{{ platform_subscription.billing_cycle|urlencode }}{% else %}MONTHLY{% endif %}">{% trans "Checkout / renew (Stripe)" %}</a>
     {% else %}
-    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="{% trans 'Stripe is not configured or no price is mapped for this plan.' %}">
+    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" aria-label="{% trans 'Stripe is not configured or no price is mapped for this plan.' %}" title="{% trans 'Stripe is not configured or no price is mapped for this plan.' %}">
       <button type="button" class="btn btn-sm btn-primary" disabled>{% trans "Checkout / renew (Stripe)" %}</button>
     </span>
     {% endif %}
     {% if upgrade_next_tier and upgrade_checkout_plan_code and stripe_processor_configured %}
     <a class="btn btn-sm btn-outline-primary" href="{{ checkout_start_url }}?plan_code={{ upgrade_checkout_plan_code|urlencode }}&billing_cycle={% if platform_subscription %}{{ platform_subscription.billing_cycle|urlencode }}{% else %}MONTHLY{% endif %}">{% blocktrans with t=upgrade_next_tier|title %}Upgrade toward {{ t }}{% endblocktrans %}</a>
     {% elif upgrade_next_tier %}
-    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="{% trans 'No Stripe price mapped for the next tier, or Stripe is not configured.' %}">
+    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" aria-label="{% trans 'No Stripe price mapped for the next tier, or Stripe is not configured.' %}" title="{% trans 'No Stripe price mapped for the next tier, or Stripe is not configured.' %}">
       <button type="button" class="btn btn-sm btn-outline-primary" disabled>{% blocktrans with t=upgrade_next_tier|title %}Upgrade toward {{ t }}{% endblocktrans %}</button>
     </span>
     {% endif %}
@@ -209,7 +209,7 @@
     {% if stripe_processor_configured and stripe_customer_linked %}
     <a class="btn btn-sm btn-outline-secondary" href="{{ customer_portal_url }}">{% trans "Manage billing (Stripe portal)" %}</a>
     {% else %}
-    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="{% trans 'Requires Stripe configuration and a linked customer record.' %}">
+    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" aria-label="{% trans 'Requires Stripe configuration and a linked customer record.' %}" title="{% trans 'Requires Stripe configuration and a linked customer record.' %}">
       <button type="button" class="btn btn-sm btn-outline-secondary" disabled>{% trans "Manage billing (Stripe portal)" %}</button>
     </span>
     {% endif %}

@@ -23,17 +23,20 @@
       </div>
     </div>
 
-    <ul class="nav nav-tabs mb-3" role="tablist">
+    {% comment %} These tab-styled links navigate server-side (?tab=…), so they
+       are navigation links, not an in-page ARIA tablist. aria-current="page"
+       (not role=tab/aria-controls) is the correct screen-reader signal. {% endcomment %}
+    <ul class="nav nav-tabs mb-3" aria-label="Message folders">
       <li class="nav-item">
-        <a class="nav-link {% if active_tab == 'direct' %}active{% endif %}" href="{% url 'accounts:user_messages' %}?tab=direct">
-          <i class="bi bi-chat-dots me-1"></i>Direct
+        <a class="nav-link {% if active_tab == 'direct' %}active{% endif %}"{% if active_tab == 'direct' %} aria-current="page"{% endif %} href="{% url 'accounts:user_messages' %}?tab=direct">
+          <i class="bi bi-chat-dots me-1" aria-hidden="true"></i>Direct
           {% if direct_conversations %}<span class="rmc-badge ms-1">{{ direct_conversations|length }}</span>{% endif %}
         </a>
       </li>
       {% if not direct_only %}
       <li class="nav-item">
-        <a class="nav-link {% if active_tab == 'groups' %}active{% endif %}" href="{% url 'accounts:user_messages' %}?tab=groups">
-          <i class="bi bi-people me-1"></i>Groups
+        <a class="nav-link {% if active_tab == 'groups' %}active{% endif %}"{% if active_tab == 'groups' %} aria-current="page"{% endif %} href="{% url 'accounts:user_messages' %}?tab=groups">
+          <i class="bi bi-people me-1" aria-hidden="true"></i>Groups
           {% if threads %}<span class="rmc-badge ms-1">{{ threads|length }}</span>{% endif %}
         </a>
       </li>

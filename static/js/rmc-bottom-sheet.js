@@ -94,6 +94,14 @@
   function onOpen(sheet) {
     if (sheet.__rmcSheetOpen) return;
     sheet.__rmcSheetOpen = true;
+    /* Remember where focus came from so we can return it on close — but ONLY
+       if that element lives outside the sheet. For showModal() the browser has
+       already moved focus inside by the time this observer fires (and natively
+       restores it on close), so capturing an in-sheet node would wrongly
+       override the native restore. Non-modal open paths (HTMX swaps / direct
+       `open` attribute) get no native restore, which is the gap this fixes. */
+    var __prev = document.activeElement;
+    sheet.__rmcReturnFocus = __prev && !sheet.contains(__prev) ? __prev : null;
     lockScroll();
     wireAria(sheet);
     sheet.removeAttribute("data-expanded");
@@ -106,6 +114,14 @@
     unlockScroll();
     sheet.style.removeProperty("transform");
     sheet.removeAttribute("data-dragging");
+    /* Return focus to the opener for non-modal open paths, where the native
+       <dialog> focus-restore does not run. Guarded so a removed/detached
+       opener never throws. */
+    var __ret = sheet.__rmcReturnFocus;
+    sheet.__rmcReturnFocus = null;
+    if (__ret && document.contains(__ret) && typeof __ret.focus === "function") {
+      try { __ret.focus({ preventScroll: true }); } catch (e) { try { __ret.focus(); } catch (_e) {} }
+    }
   }
 
   function mount(sheet) {

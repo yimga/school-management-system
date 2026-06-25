@@ -125,6 +125,9 @@ def parent_finance(request: HttpRequest):
     int((paid / total_due) * 100) if total_due else 0
     bool(students)
 
+    # Prefetch payments so the per-invoice loop below resolves in one extra
+    # query instead of one-per-invoice (N+1) on this hot parent-facing page.
+    invoices_qs = invoices_qs.prefetch_related("payments")
     page_obj = paginate_for_request(request, invoices_qs, per_page=20)
 
     payment_method_counts = Counter()

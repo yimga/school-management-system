@@ -121,7 +121,9 @@ class FeeDefaultPredictor:
 
         # Average days late for completed payments
         late_payment_days = []
-        for payment in payments.filter(status="COMPLETED"):
+        # select_related: the loop dereferences payment.invoice per row — JOIN it
+        # in one query instead of N+1 over the completed-payments set.
+        for payment in payments.filter(status="COMPLETED").select_related("invoice"):
             if payment.paid_at and payment.invoice.due_date:
                 days_late = (payment.paid_at.date() - payment.invoice.due_date).days
                 if days_late > 0:

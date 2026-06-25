@@ -365,6 +365,28 @@ def _check_cache_liveness() -> dict:
         return {"status": "degraded", "error": str(exc)[:120]}
 
 
+def _check_celery_broker_liveness() -> dict:
+    """Best-effort Celery broker reachability for /healthz/. Never throws and
+    never FAILS the probe: /healthz is the liveness signal, so a transient
+    broker outage must not trigger web-tier restarts while DB + app are healthy.
+    Operators read this field for readiness/alerting (a dead broker = silent
+    task backlog). Bounded connect timeout so a down broker can't hang the probe."""
+    try:
+        from config.celery import app as celery_app
+
+        conn = celery_app.connection()
+        try:
+            conn.ensure_connection(max_retries=1, timeout=2)
+        finally:
+            try:
+                conn.release()
+            except Exception:  # noqa: BLE001 - connection release is best-effort
+                pass
+        return {"status": "ok"}
+    except Exception as exc:  # noqa: BLE001 - liveness check must never crash the probe
+        return {"status": "degraded", "error": str(exc)[:120]}
+
+
 @require_GET
 def csrf_token_refresh(request):
     """Offline foundational: return a freshly-rotated CSRF token.
@@ -414,14 +436,17 @@ def healthz(request):
         )
         return JsonResponse({"status": "error", "error": str(exc)}, status=500)
 
-    # Cache (Redis) is best-effort: degraded does not fail the healthz response.
+    # Cache (Redis) + Celery broker are best-effort: a degraded result is
+    # reported but does NOT fail the healthz (liveness) response.
     cache_result = _check_cache_liveness()
+    broker_result = _check_celery_broker_liveness()
 
     return JsonResponse(
         {
             "status": "ok",
             "database": "ok",
             "cache": cache_result.get("status", "unknown"),
+            "celery_broker": broker_result.get("status", "unknown"),
         }
     )
 
