@@ -63,7 +63,7 @@
       </form>
       {% if wallet and not can_pay_with_wallet %}
       <p class="small text-muted mt-2 mb-0">
-        {% blocktrans with bal=wallet_balance %}Wallet balance {{ bal }} is below the family total. Top up your wallet or pay online.{% endblocktrans %}
+        {% blocktrans with bal=wallet_balance|format_currency %}Wallet balance {{ bal }} is below the family total. Top up your wallet or pay online.{% endblocktrans %}
         <a href="{% url 'portal:parent_wallet' %}">{% trans "Open wallet" %}</a>
       </p>
       {% endif %}

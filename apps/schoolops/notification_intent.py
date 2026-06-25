@@ -12,6 +12,26 @@ from apps.platform_runtime.offline_action_types import validate_offline_payload
 
 logger = logging.getLogger(__name__)
 
+
+def _ctx_currency(ctx: dict[str, Any]) -> str:
+    """Local-first fallback currency for a notification body when the caller
+    omits one: the context school's ``resolve_currency()`` cascade -> platform
+    default. Never blank — so a body never reads "Amount: 50 ." with a bare
+    number and no currency for a non-USD school.
+    """
+    from django.conf import settings
+
+    school = ctx.get("school")
+    if school is not None:
+        try:
+            code = (school.resolve_currency() or "").strip()
+            if code:
+                return code.upper()
+        except Exception:  # noqa: BLE001 — never break a notification on currency lookup
+            pass
+    return (getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD") or "USD").upper()
+
+
 _TEMPLATE_RENDERERS: dict[str, str] = {
     "low_meal_balance": "schoolops/email/locale/{locale}/low_meal_balance",
     "exam_readiness": "schoolops/email/locale/{locale}/exam_readiness",
@@ -77,7 +97,7 @@ def render_notification_intent(
     if template_key == "payment_received":
         student = ctx.get("student_name") or "your student"
         amount = ctx.get("amount") or ""
-        currency = ctx.get("currency") or ""
+        currency = ctx.get("currency") or _ctx_currency(ctx)
         reference = ctx.get("reference") or ""
         subject = "Payment received"
         body = (

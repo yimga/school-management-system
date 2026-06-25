@@ -43,7 +43,7 @@
         <h2 class="h6 mb-1">{% trans "Pay all open balances" %}</h2>
         {% if family_summary %}
         <p class="small text-muted mb-0">
-          {% trans "Family total due" %}: <strong>{{ family_summary.family_total_open_balance }}</strong>
+          {% trans "Family total due" %}: <strong>{{ family_summary.family_total_open_balance|format_currency }}</strong>
           {% if family_summary.has_overdue %}
           · <span class="text-danger">{% trans "Includes overdue" %}</span>
           {% endif %}
@@ -53,7 +53,7 @@
       <div class="d-flex flex-wrap gap-2 align-items-center">
         <a class="btn btn-primary" href="{{ pay_all_url }}" data-rmc-one-click-pay="1" data-task-step="finance:pay-all">{% trans "Pay all" %}</a>
         {% if parent_wallet %}
-        <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_wallet' %}">{% trans "Wallet" %}: {{ parent_wallet.balance }}</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_wallet' %}">{% trans "Wallet" %}: {{ parent_wallet.balance|format_currency }}</a>
         {% else %}
         <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_wallet' %}">{% trans "Wallet" %}</a>
         {% endif %}
@@ -63,7 +63,7 @@
     <ul class="list-unstyled small mt-2 mb-0">
       {% for row in family_summary.child_rows %}
       {% if row.open_invoice_count %}
-      <li>{{ row.student.display_name }} — {{ row.total_balance_open }} ({{ row.open_invoice_count }} {% trans "open" %})</li>
+      <li>{{ row.student.display_name }} — {{ row.total_balance_open|format_currency }} ({{ row.open_invoice_count }} {% trans "open" %})</li>
       {% endif %}
       {% endfor %}
     </ul>
@@ -139,7 +139,7 @@
           <span class="label">{% trans "Referral rewards" %}</span>
           <span class="kpi-icon success" aria-hidden="true"><i class="bi bi-gift"></i></span>
         </div>
-        <div class="value" data-kpi-count="parent-referral-total">{{ referral_total|default:"0.00" }}</div>
+        <div class="value" data-kpi-count="parent-referral-total">{{ referral_total|default:0|format_currency }}</div>
         <p class="small text-muted mb-0">{% blocktrans with p=referral_pending %}{{ p }} pending for approval.{% endblocktrans %}</p>
       </div>
     </div>

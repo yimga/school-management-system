@@ -34,6 +34,37 @@ from .models import (
 from .services import recalculate_invoice, post_scholarship_disbursement_to_ledger
 
 
+def _resolve_aid_currency(explicit=None, *, school=None, school_id=None) -> str:
+    """Local-first ISO 4217 currency for aid / scholarship money.
+
+    Precedence: an explicit per-row value -> the school's ``resolve_currency()``
+    cascade -> ``PLATFORM_DEFAULT_CURRENCY``. Never a hardcoded ``"USD"`` tenant
+    lock: a non-USD school's scholarship disbursement / net-price estimate must
+    carry the school's real currency. Degrade-safe — any lookup failure falls
+    through to the platform default.
+    """
+    from django.conf import settings
+
+    val = str(explicit).strip() if explicit else ""
+    if val:
+        return val.upper()
+    if school is None and school_id:
+        try:
+            from apps.schools.models import School
+
+            school = School.objects.filter(pk=school_id).first()
+        except Exception:  # noqa: BLE001 — currency resolution must never break disbursement
+            school = None
+    if school is not None:
+        try:
+            code = (school.resolve_currency() or "").strip()
+            if code:
+                return code.upper()
+        except Exception:  # noqa: BLE001
+            pass
+    return (getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD") or "USD").upper()
+
+
 def _student_context(student: StudentProfile) -> dict[str, Any]:
     """Build context for eligibility: gpa, sibling_count, student_tags, custom_attributes, etc."""
     tags = (
@@ -264,7 +295,10 @@ def execute_disbursement(
                 school_id=school_id,
                 student=app.student,
                 amount=amount,
-                currency_code=getattr(app.scholarship.source, "currency", "USD"),
+                currency_code=_resolve_aid_currency(
+                    getattr(app.scholarship.source, "currency", None),
+                    school_id=school_id,
+                ),
                 purpose="tuition",
                 description=f"Scholarship disbursement: {app.scholarship.title}",
                 method="BANK",
@@ -473,5 +507,5 @@ def net_price_estimate(school_id: Any, context: dict) -> dict:
         "estimated_tuition": tuition,
         "estimated_aid": max(0, (context.get("list_price") or tuition) - tuition),
         "out_of_pocket": tuition,
-        "currency": context.get("currency", "USD"),
+        "currency": _resolve_aid_currency(context.get("currency"), school=school),
     }
