@@ -37,6 +37,7 @@
     "sweep:abrupt-end": "bash scripts/run_platform_abrupt_end_sweep.sh",
     "sweep:abrupt-end:tenant-studio": "bash scripts/run_tenant_studio_abrupt_end_sweep.sh",
     "sweep:abrupt-end:tenant:e2e": "node scripts/run_tenant_abrupt_end_e2e.mjs",
+    "sweep:abrupt-end:tenant:batches": "node scripts/run_tenant_abrupt_end_batches.mjs",
     "test:e2e:tenant-studio": "bash scripts/run_tenant_studio_e2e.sh",
     "sweep:abrupt-end:node": "node scripts/verify_platform_abrupt_end_sweep.mjs",
     "sweep:role-home": "node scripts/run_role_home_visual_sweep.mjs",

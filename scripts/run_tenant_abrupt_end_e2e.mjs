@@ -303,6 +303,9 @@ print(f'Seeded TOTP e2e-playwright for {username}')
   ],
   seedEnv,
 );
+} else {
+  console.log(`=== tenant abrupt-end e2e: skip boot (reuse ${dbFile}) ===`);
+}
 
 const artifactDir = path.join(repo, 'artifacts', 'tenant-abrupt-end-e2e');
 fs.mkdirSync(artifactDir, { recursive: true });
@@ -429,7 +432,9 @@ function mergeBatchSummary(allResults, totalPlanned) {
 let sweepStatus = 0;
 try {
   const routes = loadRouteLedger();
+  const fullRouteCount = routes.length;
   const batchSize = parseInt(process.env.TENANT_SWEEP_BATCH_SIZE || '25', 10);
+  const partialPath = path.join(repo, 'var/tenant-abrupt-end-sweep.partial.json');
   const subdomainBase = `http://${tenantHost}:${port}`;
   const sweepEnvBase = {
     ...process.env,
@@ -449,17 +454,43 @@ try {
     SWEEP_PATHS_EXACT: '1',
     TENANT_SWEEP_WRITE_ARTIFACT: '0',
   };
-  const allResults = [];
+  let allResults = [];
+  if (fs.existsSync(partialPath)) {
+    try {
+      const partial = JSON.parse(fs.readFileSync(partialPath, 'utf8'));
+      allResults = Array.isArray(partial.results) ? partial.results : [];
+    } catch (_e) {
+      allResults = [];
+    }
+  }
   const auditPath = path.join(repo, 'docs/generated/admin_playwright_sweep_audit.json');
 
+  const batchOffsets = [];
+  if (batchOnlyMode) {
+    const batchIndex = parseInt(process.env.TENANT_SWEEP_BATCH_ONLY || '0', 10);
+    const start = batchIndex * batchSize;
+    if (start >= routes.length) {
+      console.error(`batch index ${batchIndex} out of range (${routes.length} routes)`);
+      sweepStatus = 1;
+    } else {
+      batchOffsets.push(start);
+    }
+  } else {
+    for (let offset = 0; offset < routes.length; offset += batchSize) {
+      batchOffsets.push(offset);
+    }
+  }
+
   console.log(
-    `=== tenant abrupt-end e2e: Playwright sweep (${routes.length} routes, batch=${batchSize}) ===`,
+    `=== tenant abrupt-end e2e: Playwright sweep (${fullRouteCount} routes, batch=${batchSize}, runs=${batchOffsets.length}) ===`,
   );
 
-  for (let offset = 0; offset < routes.length; offset += batchSize) {
+  for (const offset of batchOffsets) {
     const batch = routes.slice(offset, offset + batchSize);
     const batchNum = Math.floor(offset / batchSize) + 1;
-    const batchTotal = Math.ceil(routes.length / batchSize);
+    const batchTotal =
+      parseInt(process.env.TENANT_SWEEP_BATCH_TOTAL || '0', 10) ||
+      Math.ceil(routes.length / batchSize);
     console.log(
       `=== tenant abrupt-end e2e: batch ${batchNum}/${batchTotal} (${batch.length} routes) ===`,
     );
@@ -506,7 +537,14 @@ try {
     }
     const audit = JSON.parse(fs.readFileSync(auditPath, 'utf8'));
     const batchResults = Array.isArray(audit.results) ? audit.results : [];
-    allResults.push(...batchResults);
+    const batchUrls = new Set(batch.map((row) => row.inner || row.path));
+    allResults = allResults.filter((row) => !batchUrls.has(row.url || row.inner));
+    allResults.push(...batchResults.filter((row) => row.surface === 'tenant'));
+    fs.mkdirSync(path.dirname(partialPath), { recursive: true });
+    fs.writeFileSync(
+      partialPath,
+      `${JSON.stringify({ results: allResults, totalPlanned: fullRouteCount }, null, 2)}\n`,
+    );
 
     if (batchSweep.status !== 0) {
       sweepStatus = batchSweep.status ?? 1;
@@ -515,20 +553,65 @@ try {
     }
   }
 
-  const merged = mergeBatchSummary(allResults, routes.length);
+  const routeTotal =
+    parseInt(process.env.TENANT_SWEEP_ROUTE_TOTAL || '0', 10) || fullRouteCount;
+  const merged = mergeBatchSummary(allResults, routeTotal);
   const tenantArtifact = path.join(repo, 'var/tenant-abrupt-end-sweep.json');
-  fs.mkdirSync(path.dirname(tenantArtifact), { recursive: true });
-  fs.writeFileSync(tenantArtifact, `${JSON.stringify(merged, null, 2)}\n`);
-  console.log(`Wrote ${tenantArtifact}`);
-  console.log(JSON.stringify({ ...merged, results: undefined }, null, 2));
+  const writeFinal =
+    !batchOnlyMode ||
+    merged.tenantTested >= routeTotal ||
+    parseInt(process.env.TENANT_SWEEP_BATCH_ONLY || '0', 10) >=
+      Math.ceil(routeTotal / batchSize) - 1;
 
-  if (
-    sweepStatus === 0 &&
-    (merged.tenantTested < merged.tenantPlanned ||
-      merged.layoutProven < merged.tenantPlanned ||
-      merged.failed !== 0 ||
-      merged.infraSkipped > parseInt(process.env.TENANT_SWEEP_MAX_INFRA_SKIP || '0', 10))
-  ) {
-    sweepStatus = 1;
+  if (writeFinal) {
+    fs.mkdirSync(path.dirname(tenantArtifact), { recursive: true });
+    fs.writeFileSync(tenantArtifact, `${JSON.stringify(merged, null, 2)}\n`);
+    console.log(`Wrote ${tenantArtifact}`);
+    console.log(JSON.stringify({ ...merged, results: undefined }, null, 2));
+
+    if (
+      sweepStatus === 0 &&
+      (merged.tenantTested < merged.tenantPlanned ||
+        merged.layoutProven < merged.tenantPlanned ||
+        merged.failed !== 0 ||
+        merged.infraSkipped > parseInt(process.env.TENANT_SWEEP_MAX_INFRA_SKIP || '0', 10))
+    ) {
+      sweepStatus = 1;
+    }
+    if (sweepStatus === 0) {
+      console.log('TENANT_ABRUPT_END_SWEEP_PASS');
+    }
+  } else {
+    console.log(
+      JSON.stringify(
+        {
+          batchOnly: process.env.TENANT_SWEEP_BATCH_ONLY,
+          tenantTested: merged.tenantTested,
+          tenantPlanned: merged.tenantPlanned,
+          layoutProven: merged.layoutProven,
+          failed: merged.failed,
+        },
+        null,
+        2,
+      ),
+    );
   }
-  if (sweepStatus === 0) {
+} finally {
+  stopServer();
+  releaseRunLock();
+}
+
+if (sweepStatus !== 0) {
+  process.exit(sweepStatus);
+}
+
+const wroteFinalArtifact = fs.existsSync(path.join(repo, 'var/tenant-abrupt-end-sweep.json'));
+if (!wroteFinalArtifact) {
+  process.exit(0);
+}
+
+console.log('=== tenant abrupt-end e2e: regenerate coverage matrix ===');
+runSync(['scripts/generate_tenant_surface_coverage_matrix.py', '--write'], seedEnv);
+
+console.log('TENANT_ABRUPT_END_SWEEP_E2E_PASS');
+process.exit(0);
