@@ -168,6 +168,10 @@
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-preview-live-bridge.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-exception-task-surface.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
+    {% comment %} v4.05 (2026-06-25): operator-parity sticky chrome + activation-surface
+       styles. High-specificity rules win over the deferred bundle's Phase-2 fluid. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-tenant-app-shell-100x.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-tenant-activation-surfaces.css' %}">
     {% endif %}
     {% comment %} v4.02.9: tenant workspace Tools edge-tray (tenant host) + manager portal bridge operator tray. {% endcomment %}
     {% include "partials/rmc_tenant_tools_styles.html" %}
@@ -199,14 +203,9 @@
        is dark, so BS components (buttons/dropdowns/forms) inside the header flip too —
        mirrors the tenant sidebar scoping. CONFIGURABLE via cockpit_shell.skin. {% endcomment %}
     <div class="tp-header" data-rmc-tenant-header-100x="1"{% if cockpit_shell.skin == 'dark' and request.public_host_kind != 'manager' %} data-bs-theme="dark"{% endif %}>
-      {% block portal_shell_header_ticker_tenant %}
-        {% comment %}v4.01.43: Tier-2 LIVE banner embedded in header on role-home landings only.{% endcomment %}
-        {% if tenant_role_home_landing and request.public_host_kind != 'manager' %}
-        <div class="tp-header__live-banner" data-rmc-tenant-header-live="1">
-          {% include "partials/cockpit/_activity_ticker_landing_strip.html" %}
-        </div>
-        {% endif %}
-      {% endblock %}
+    {% comment %} v4.05 (2026-06-25): LIVE banner relocated to the BOTTOM of the header
+       stack (operator-parity) — it now renders as the last sub-bar of .tp-header below,
+       and rmc-tenant-app-shell-100x.css keeps the whole stack sticky. {% endcomment %}
     <div id="portalHeader" class="tp-header__row" role="banner" aria-label="{% trans 'Main navigation' %}" data-rmc-shell-header="portal">
       <div class="container-fluid px-3 tp-header__row-inner" id="preview-header-bar" data-preview-label="{% trans 'Header bar (background & colors)' %}">
         <button class="btn btn-sm btn-outline-secondary d-lg-none me-2 tp-header__menu-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#portalSidebar" aria-controls="portalSidebar" aria-label="{% trans 'Open sidebar menu' %}">
@@ -378,6 +377,15 @@
       {% include "partials/tenant/tp_mission_strip.html" %}
       {% endif %}
     {% endif %}
+      {% comment %} v4.05 (2026-06-25): LIVE banner = bottom-most sub-bar of the pinned
+         header stack (operator parity). {% endcomment %}
+      {% block portal_shell_header_ticker_tenant %}
+        {% if tenant_role_home_landing and request.public_host_kind != 'manager' %}
+        <div class="tp-header__live-banner" data-rmc-tenant-header-live="1">
+          {% include "partials/cockpit/_activity_ticker_landing_strip.html" %}
+        </div>
+        {% endif %}
+      {% endblock %}
     </div>
     {% endif %}
 
@@ -577,6 +585,10 @@
     <script src="{% static 'js/rmc-nav-sidebar.js' %}" defer></script>
     <script src="{% static 'js/rmc-sidebar-intelligence.js' %}" defer></script>
     <script src="{% static 'js/portal-shell-bootstrap.js' %}" defer></script>
+    {% comment %} v4.05 (2026-06-25): publishes .tp-header + preview-banner heights into
+       CSS vars so the sticky sidebar + fixed copilot rail anchor under the pinned chrome.
+       Self-no-ops where .tp-header is absent (manager). {% endcomment %}
+    <script src="{% static 'js/rmc-tenant-shell-metrics.js' %}" defer></script>
     {% comment %} Legacy inline theme+search+sidebar block fully retired 2026-05-12. Live
        behavior: theme = theme-preference-bootstrap.js + RMCTheme; Ctrl+K =
        rmc-command-palette.js; header search filtering + sidebar resize/collapse
