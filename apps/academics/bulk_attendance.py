@@ -223,15 +223,21 @@ def _default_apply_runner(
         return BulkAttendanceResult(errors=[{"classroom_id": classroom_id, "reason": "not_found"}])
 
     result = BulkAttendanceResult()
-    # tenant-isolation-allow: bulk-attendance-student-lookup-by-external-id-scoped
-    students_by_ext = {
-        s.external_id: s
-        for s in StudentProfile.objects.filter(
-            classroom=classroom, school_id=school_id,
-        ).only("id", "external_id")
-        if getattr(s, "external_id", None)
-    }
-    result.student_count = len(students_by_ext)
+    # Match the CSV "student_external_id" against ANY identifier the school might have
+    # keyed their roster by (student_code / admission_number / exam_candidate_number),
+    # so the upload tolerates whichever external id they exported. The prior code read
+    # a non-existent ``external_id`` field and raised FieldError (500) on every apply.
+    id_fields = ("student_code", "admission_number", "exam_candidate_number")
+    # tenant-isolation-allow: bulk-attendance-student-lookup-confined-to-classroom-school
+    students_by_ext: dict[str, StudentProfile] = {}
+    for s in StudentProfile.objects.filter(
+        classroom=classroom, school_id=school_id,
+    ).only("id", *id_fields):
+        for fld in id_fields:
+            val = getattr(s, fld, None)
+            if val:
+                students_by_ext[str(val)] = s
+    result.student_count = len({s.pk for s in students_by_ext.values()})
 
     for row in rows:
         student = students_by_ext.get(row.student_external_id)

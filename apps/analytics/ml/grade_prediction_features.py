@@ -87,7 +87,7 @@ def _populate_eval_history(features, student, subject, term):
                 subject_assignment__subject=subject,
                 subject_assignment__term=term,
             )
-            .only("seq1", "seq2", "exam", "updated_at")
+            .only("seq1_score", "seq2_score", "exam_score", "updated_at")
             .order_by("updated_at")
         )
     except (AttributeError, TypeError, ValueError):
@@ -95,8 +95,8 @@ def _populate_eval_history(features, student, subject, term):
     scores: list[float] = []
     for ev in current:
         candidates = [
-            getattr(ev, "seq1", None),
-            getattr(ev, "seq2", None),
+            getattr(ev, "seq1_score", None),
+            getattr(ev, "seq2_score", None),
         ]
         nums = [float(v) for v in candidates if v is not None]
         if nums:
@@ -114,7 +114,7 @@ def _populate_eval_history(features, student, subject, term):
                 subject_assignment__subject=subject,
             )
             .exclude(subject_assignment__term=term)
-            .only("seq1", "seq2", "exam")
+            .only("seq1_score", "seq2_score", "exam_score")
             .order_by("-id")[:8]
         )
     except (AttributeError, TypeError, ValueError):
@@ -123,9 +123,9 @@ def _populate_eval_history(features, student, subject, term):
     for ev in prior:
         nums = [
             float(v) for v in [
-                getattr(ev, "seq1", None),
-                getattr(ev, "seq2", None),
-                getattr(ev, "exam", None),
+                getattr(ev, "seq1_score", None),
+                getattr(ev, "seq2_score", None),
+                getattr(ev, "exam_score", None),
             ]
             if v is not None
         ]

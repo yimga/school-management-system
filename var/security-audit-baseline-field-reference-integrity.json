@@ -1,49 +1,6 @@
 {
-  "finding_count": 7,
-  "findings": [
-    {
-      "error": "FieldDoesNotExist",
-      "line": 229,
-      "path": "apps/academics/bulk_attendance.py",
-      "statement": "StudentProfile.objects...only(\"external_id\")"
-    },
-    {
-      "error": "FieldDoesNotExist",
-      "line": 85,
-      "path": "apps/analytics/ml/grade_prediction_features.py",
-      "statement": "Evaluation.objects...only(\"exam\")"
-    },
-    {
-      "error": "FieldDoesNotExist",
-      "line": 85,
-      "path": "apps/analytics/ml/grade_prediction_features.py",
-      "statement": "Evaluation.objects...only(\"seq1\")"
-    },
-    {
-      "error": "FieldDoesNotExist",
-      "line": 85,
-      "path": "apps/analytics/ml/grade_prediction_features.py",
-      "statement": "Evaluation.objects...only(\"seq2\")"
-    },
-    {
-      "error": "FieldDoesNotExist",
-      "line": 112,
-      "path": "apps/analytics/ml/grade_prediction_features.py",
-      "statement": "Evaluation.objects...only(\"exam\")"
-    },
-    {
-      "error": "FieldDoesNotExist",
-      "line": 112,
-      "path": "apps/analytics/ml/grade_prediction_features.py",
-      "statement": "Evaluation.objects...only(\"seq1\")"
-    },
-    {
-      "error": "FieldDoesNotExist",
-      "line": 112,
-      "path": "apps/analytics/ml/grade_prediction_features.py",
-      "statement": "Evaluation.objects...only(\"seq2\")"
-    }
-  ],
-  "generated_at": "2026-06-25T19:44:13+00:00",
+  "finding_count": 0,
+  "findings": [],
+  "generated_at": "2026-06-25T20:01:37+00:00",
   "rule": "every literal field name passed to .order_by/.values/.values_list/.only/.defer/.distinct on a directly-resolvable <Model>.objects chain must resolve via the model's _meta.get_field; guard with try/except FieldError or # field-ref-allow: <reason>"
 }
