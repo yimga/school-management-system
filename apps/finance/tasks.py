@@ -663,6 +663,11 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                 context = {
                     "guardian": guardian_name,
                     "amount": amount_due,
+                    # Expose the document's own stored currency so a tenant-edited
+                    # reminder template can render "{currency}{amount}" in the
+                    # school's currency (local-first) rather than a bare number.
+                    "currency": getattr(invoice, "currency_symbol", "") or "",
+                    "currency_code": getattr(invoice, "currency_code", "") or "",
                     "invoice": invoice.reference or invoice.id,
                     "due_date": due_for_guardian,
                     "link": link_display,
