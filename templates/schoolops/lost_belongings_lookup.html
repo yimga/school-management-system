@@ -45,13 +45,13 @@
           <p class="mb-2">
             {% trans "We've logged your sighting. School staff will follow up via their custody loop." %}
           </p>
-          <dl class="row mb-0">
-            <dt class="col-sm-4">{% trans "Event ID" %}</dt>
-            <dd class="col-sm-8"><code>{{ event.event_id }}</code></dd>
-            <dt class="col-sm-4">{% trans "Parent notified" %}</dt>
-            <dd class="col-sm-8">{% if event.parent_notified %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
-            <dt class="col-sm-4">{% trans "Notes (redacted)" %}</dt>
-            <dd class="col-sm-8">{{ event.notes_redacted|default:"—" }}</dd>
+          <dl class="rmc-kv mb-0">
+            <dt>{% trans "Event ID" %}</dt>
+            <dd><code>{{ event.event_id }}</code></dd>
+            <dt>{% trans "Parent notified" %}</dt>
+            <dd>{% if event.parent_notified %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
+            <dt>{% trans "Notes (redacted)" %}</dt>
+            <dd>{{ event.notes_redacted|default:"—" }}</dd>
           </dl>
         </div>
       </div>
