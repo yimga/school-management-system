@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static terminology_tags %}
 
 {% block title %}Bulk Add Candidates{% endblock %}
 
@@ -16,7 +16,7 @@
         · {{ session.get_board_display }} / {{ session.get_level_display }}
       </div>
       <div class="small text-muted mt-1">
-        Select classroom(s) and (optionally) specialty to create candidates in one click.
+        Select {% term_lower "classroom" %}(s) and (optionally) specialty to create candidates in one click.
       </div>
     </div>
     <div class="d-flex flex-wrap gap-2">
@@ -60,7 +60,7 @@
           <div class="form-check">
             {{ form.include_inactive_students }}
             <label class="form-check-label" for="{{ form.include_inactive_students.id_for_label }}">
-              Include inactive students
+              Include inactive {% term_lower "student" plural=True %}
             </label>
           </div>
         </div>
@@ -86,8 +86,8 @@
           <caption class="visually-hidden">Preview (first {{ preview_students|length }} students)</caption>
           <thead>
             <tr>
-              <th scope="col">Student</th>
-              <th scope="col">Classroom</th>
+              <th scope="col">{% term "student" capitalize=True %}</th>
+              <th scope="col">{% term "classroom" capitalize=True %}</th>
               <th scope="col">Specialty</th>
             </tr>
           </thead>
