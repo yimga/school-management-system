@@ -410,6 +410,17 @@ MODULE_ACCESS_DEFAULTS = {
         "read": ALL_AUTHENTICATED,
         "write": ALL_AUTHENTICATED,
     },
+    # Universal shell chrome — assist dock context/presence for every authenticated role.
+    "assist_dock": {
+        "read": ALL_AUTHENTICATED,
+        "write": ALL_AUTHENTICATED,
+    },
+    # Tenant runtime hooks (remote-support heartbeat/poll, offline sync, RUM). Views enforce
+    # school scope and operator grants; the module gate must not block tenant shells.
+    "platform_runtime": {
+        "read": ALL_AUTHENTICATED,
+        "write": ALL_AUTHENTICATED,
+    },
     "communication": {
         "read": {
             "TEACHER",
