@@ -3,9 +3,12 @@
 {% load region_format %}
 {% block body_class %}marketing-surface{% endblock %}
 {% block title %}{{ seo_title|default:"RunMyCampus" }}{% endblock %}
-{% block extrahead %}
-  <meta name="description" content="{{ seo_description|default:'RunMyCampus school management platform.' }}">
-  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+{% comment %} Override base's meta_description block (single tag) rather than
+  emitting a second one in extrahead — and let base own the lone canonical
+  (base_marketing.html already emits an identical {% if canonical_url %} link),
+  so type_* pages no longer ship duplicate description + canonical tags. {% endcomment %}
+{% block meta_description %}
+  <meta name="description" content="{{ seo_description|default:'RunMyCampus school management platform.'|truncatewords:50 }}">
 {% endblock %}
 {% block extrastyle %}
   {{ block.super }}

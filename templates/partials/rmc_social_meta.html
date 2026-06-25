@@ -34,7 +34,10 @@
 {% endif %}
 <meta property="og:url" content="{{ og_url|default:request.build_absolute_uri }}">
 <meta property="og:site_name" content="{{ SITE.site_name|default:'RunMyCampus' }}">
-{% if request.LANGUAGE_CODE %}<meta property="og:locale" content="{{ request.LANGUAGE_CODE }}">{% endif %}
+{% comment %} og:locale intentionally omitted here: a bare LANGUAGE_CODE ("en") is a
+  malformed OG locale, and marketing pages emit a correctly-formatted one (en_US,
+  fr_FR, …) via marketing/partials/_intl_seo_head.html. Authenticated app shells
+  are not publicly shared/indexed, so they don't need an og:locale. {% endcomment %}
 
 {% comment %} Twitter / X cards {% endcomment %}
 <meta name="twitter:card" content="summary_large_image">
