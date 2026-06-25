@@ -383,6 +383,38 @@ def build_student_home_extras(
 
     grade_trend_out = grade_trend if can_view_results else []
 
+    # Premium first-run: a brand-new school (student linked, but nothing seeded yet)
+    # gets a warm, oriented "getting ready" card instead of a wall of hidden panels.
+    # Built from the already-approved aicard grammar — no new style. Shown only when a
+    # real student is linked AND every data surface is genuinely empty (honest: each
+    # panel still turns itself on the moment its data exists).
+    is_data_thin = (
+        attendance_pct is None
+        and not timetable
+        and not due_items
+        and not subjects
+        and not grade_trend
+        and not announcements
+        and not badges
+    )
+    onboarding = None
+    if profile is not None and is_data_thin:
+        onboarding = {
+            "title": _("Welcome — your student home is getting ready"),
+            "text": _(
+                "As your school adds your timetable, attendance, results and "
+                "announcements, each section turns on here automatically. Nothing is "
+                "hidden — your dashboard fills in the moment there's something to show."
+            ),
+            "acts": [
+                {
+                    "label": _("Syllabus & resources"),
+                    "href": reverse("portal:portal_syllabus"),
+                },
+                {"label": _("Messages"), "href": reverse("accounts:user_messages")},
+            ],
+        }
+
     return {
         "student_attendance_pct": attendance_pct,
         "student_grade_avg": grade_avg if can_view_results or results_locked else None,
@@ -402,4 +434,5 @@ def build_student_home_extras(
         "student_hero_sub": hero_sub,
         "student_metrics": metrics,
         "student_due_count": due_count,
+        "student_onboarding": onboarding,
     }
