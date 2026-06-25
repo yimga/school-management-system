@@ -1699,18 +1699,18 @@ class PaymentReminder(models.Model):
     last_sent_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     message_template_email = models.TextField(
-        default="Dear {guardian}, please pay {amount} for {invoice} by {due_date}.",
-        help_text="Email message template",
+        default="Dear {guardian}, please pay {currency}{amount} for {invoice} by {due_date}.",
+        help_text="Email message template. {currency} is the school's currency symbol.",
     )
     message_template_sms = models.TextField(
-        default="Reminder: Pay {amount} for {invoice} by {due_date}.",
+        default="Reminder: Pay {currency}{amount} for {invoice} by {due_date}.",
         blank=True,
-        help_text="SMS message template",
+        help_text="SMS message template. {currency} is the school's currency symbol.",
     )
     message_template_whatsapp = models.TextField(
-        default="Hi {guardian}! 👋 Please pay *{amount}* for invoice *{invoice}* by *{due_date}*.",
+        default="Hi {guardian}! 👋 Please pay *{currency}{amount}* for invoice *{invoice}* by *{due_date}*.",
         blank=True,
-        help_text="WhatsApp message template",
+        help_text="WhatsApp message template. {currency} is the school's currency symbol.",
     )
 
     class Meta:
