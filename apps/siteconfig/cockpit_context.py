@@ -144,6 +144,27 @@ def _deep_merge(base: Any, override: Any) -> Any:
     return override
 
 
+def _apply_globe_landing_cockpit_contract(request, manager_cockpit: dict[str, Any]) -> None:
+    """Globe landing (/super/) always renders AI guide + live world map regardless of payload toggles."""
+    if not getattr(request, "rmc_cp_globe_landing_minimal_chrome", False):
+        return
+    lwm = manager_cockpit.setdefault("live_world_map", {})
+    if not isinstance(lwm, dict):
+        return
+    lwm["enabled"] = True
+    if not lwm.get("fleet_snapshot"):
+        try:
+            import json
+
+            from apps.siteconfig.operator_fleet_snapshot import build_operator_fleet_snapshot
+
+            fleet = build_operator_fleet_snapshot(pulse_limit=3)
+            lwm["fleet_snapshot"] = fleet
+            lwm["fleet_snapshot_json"] = json.dumps(fleet)
+        except Exception:
+            pass
+
+
 def _ensure_world_map_globe_json(cockpit: dict[str, Any]) -> None:
     """Serialize globe_payload for CSP-safe template bootstrap; sync auto-rotate."""
     lwm = cockpit.get("live_world_map") or {}
@@ -1014,6 +1035,7 @@ def cockpit_context(request) -> dict[str, Any]:
         except Exception:
             pass
 
+        _apply_globe_landing_cockpit_contract(request, manager_cockpit)
         _ensure_world_map_globe_json(manager_cockpit)
 
         rmc_page_help_on_copilot_rail = bool(

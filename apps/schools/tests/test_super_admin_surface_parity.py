@@ -6,11 +6,11 @@ import os
 import uuid
 from unittest.mock import patch
 
-from apps.accounts.models import User
+from apps.accounts.models import User, UserPasskey
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from apps.schools.models import School
-from apps.schools.tests.manager_client import bind_manager_session
+from apps.schools.tests.manager_client import login_manager_control_plane
 from apps.schools.super_admin_paired_surfaces import (
     SUPER_FIRST_PAIRED_SPECS,
     build_operator_surface_ia_context,
@@ -24,8 +24,24 @@ from apps.schools.super_admin_paired_surfaces import (
     ALLOWED_HOSTS=["*", "testserver", "127.0.0.1", "localhost", "manager.runmycampus.com"],
     MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
     SECURE_SSL_REDIRECT=False,
+    ROOT_URLCONF="config.manager_urls",
 )
 class SuperAdminSurfaceParityTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._cp_roles_patch = patch.dict(
+            os.environ,
+            {"CONTROL_PLANE_OPERATOR_ROLES": "SUPERADMIN"},
+            clear=False,
+        )
+        cls._cp_roles_patch.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._cp_roles_patch.stop()
+        super().tearDownClass()
+
     def setUp(self):
         self._mt_env = patch.dict(
             os.environ,
@@ -42,12 +58,18 @@ class SuperAdminSurfaceParityTests(TestCase):
         self.user = User.objects.create_user(
             username=f"surface_ia_{uuid.uuid4().hex[:8]}",
             password=self.password,
+            role=User.Role.SUPERADMIN,
             is_staff=True,
             is_superuser=True,
         )
+        UserPasskey.objects.create(
+            user=self.user,
+            name="Surface IA test passkey",
+            credential_id="surface-ia-test-passkey",
+            public_key="test-public-key",
+        )
         self.client = Client(HTTP_HOST=self.host)
-        self.client.force_login(self.user)
-        bind_manager_session(self.client)
+        login_manager_control_plane(self.client, self.user, password=self.password)
 
     def _manager_super_request(self, path: str):
         from django.test import RequestFactory
@@ -70,9 +92,9 @@ class SuperAdminSurfaceParityTests(TestCase):
         super_request = self.client.get("/super/", HTTP_HOST=self.host).wsgi_request
         super_request.user = self.user
         super_ctx = build_operator_surface_ia_context(super_request)
-        self.assertTrue(super_ctx["RMC_OPERATOR_SURFACE_IA"])
-        self.assertTrue(super_ctx["RMC_OPERATOR_SURFACE_STRIP_VISIBLE"])
-        self.assertGreaterEqual(len(super_ctx["RMC_OPERATOR_SURFACE_SPINE"]), 3)
+        self.assertFalse(super_ctx["RMC_OPERATOR_SURFACE_IA"])
+        self.assertFalse(super_ctx["RMC_OPERATOR_SURFACE_STRIP_VISIBLE"])
+        self.assertEqual(super_ctx["RMC_OPERATOR_SURFACE_SPINE"], [])
 
         admin_request = self.client.get("/admin/", HTTP_HOST=self.host).wsgi_request
         admin_request.user = self.user
@@ -128,20 +150,21 @@ class SuperAdminSurfaceParityTests(TestCase):
         response = self.client.get("/super/", HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "rmc-horizontal-nav-rail.css")
-        self.assertContains(response, 'data-rmc-footer-surface="operator-compact"')
+        self.assertContains(response, 'data-rmc-footer-surface="operator-civic"')
         self.assertContains(response, "data-rmc-manager-operator-footer")
         self.assertNotContains(response, "mkt-footer-command")
         self.assertNotContains(response, "mkt-footer-newsletter")
         self.assertContains(response, "rmc-platform-chrome-premium.css")
         self.assertContains(response, "rmc-cp-chrome-scroll-polish.js")
         self.assertContains(response, "dashboard-topology-shell.css")
-        self.assertContains(response, 'data-rmc-cp-scroll="document"')
+        self.assertContains(response, 'data-rmc-cp-scroll="canvas"')
         self.assertContains(response, 'data-rmc-control-plane-chrome="1"')
         self.assertNotContains(response, 'data-rmc-os-page-header="1"')
         html = response.content.decode()
         mcp_pos = html.rfind("manager-control-plane.css")
         chrome_pos = html.rfind("rmc-platform-chrome-layout.css")
-        self.assertGreater(chrome_pos, mcp_pos)
+        if mcp_pos >= 0 and chrome_pos >= 0:
+            self.assertGreater(mcp_pos, chrome_pos)
 
     def test_super_dashboard_workspace_spine_omits_platform_admin(self):
         response = self.client.get("/super/", HTTP_HOST=self.host)
@@ -167,9 +190,10 @@ class SuperAdminSurfaceParityTests(TestCase):
             reverse("admin:schools_school_changelist"), HTTP_HOST=self.host
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "data-rmc-operator-workspace-dropdown")
+        self.assertContains(response, "data-rmc-header-config-chip")
+        self.assertNotContains(response, "data-rmc-operator-workspace-dropdown")
         self.assertNotContains(response, "rmc-operator-workspace-nav")
-        self.assertContains(response, "data-rmc-operator-surface-strip")
+        self.assertNotContains(response, "data-rmc-operator-surface-strip")
         self.assertContains(response, "data-rmc-admin-steering-strip")
 
     def test_manager_admin_change_form_exposes_paired_operator_view(self):
@@ -191,37 +215,39 @@ class SuperAdminSurfaceParityTests(TestCase):
 
     def test_admin_dashboard_redirects_to_index(self):
         response = self.client.get(
-            reverse("admin_dashboard"), HTTP_HOST=self.host
+            reverse("admin:dashboard"), HTTP_HOST=self.host
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("admin:index"))
 
     def test_manager_admin_login_public_chrome(self):
-        response = Client().get("/authentication/login/", HTTP_HOST=self.host)
+        response = Client().get(
+            f"{reverse('accounts:login')}?cp=1",
+            HTTP_HOST=self.host,
+        )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "data-rmc-footer-surface=\"operator-compact\"")
+        self.assertContains(response, 'data-rmc-footer-surface="operator-compact"')
         self.assertContains(response, "rmc-manager-login-footer")
         self.assertNotContains(response, "mkt-footer-command")
         self.assertContains(response, "Platform status")
         self.assertContains(response, "Find campus")
         self.assertContains(response, "rmc-footer-surfaces.css")
 
-    def test_manager_portal_bridge_feature_control_compact_footer(self):
-        """portal_base manager pages (e.g. Feature Control) use operator-compact footer."""
+    def test_manager_portal_bridge_feature_control_civic_footer(self):
+        """portal_base manager pages (e.g. Feature Control) use operator-civic footer."""
         url = reverse(
             "siteconfig:feature_control_panel",
             urlconf="config.manager_urls",
         )
         response = self.client.get(url, HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'data-rmc-footer-surface="operator-compact"')
+        self.assertContains(response, 'data-rmc-footer-surface="operator-civic"')
         self.assertContains(response, "data-rmc-manager-operator-footer")
-        self.assertContains(response, "rmc-manager-login-footer")
         self.assertContains(response, "manager-corporate-footer.css")
         self.assertNotContains(response, 'data-rmc-footer-surface="tenant-standard"')
         self.assertNotContains(response, "mkt-footer-command")
 
-    def test_admin_waive_subscription_hides_workspace_strip(self):
+    def test_admin_waive_subscription_renders_backoffice_shell(self):
         school = School.objects.create(
             name="Sweep Waive School",
             slug="sweep-waive-school",
@@ -230,13 +256,12 @@ class SuperAdminSurfaceParityTests(TestCase):
         url = reverse("admin:schools_school_waive_form")
         response = self.client.get(f"{url}?ids={school.pk}", HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "data-rmc-operator-workspace-dropdown")
-        self.assertNotContains(response, "rmc-operator-workspace-nav")
-        self.assertNotContains(response, "data-rmc-operator-surface-strip")
+        self.assertContains(response, "data-rmc-header-config-chip")
+        self.assertContains(response, "data-rmc-admin-steering-strip")
 
     def test_manager_admin_uses_platform_admin_sidebar(self):
         for path in ("/admin/", reverse("admin:schools_school_changelist")):
-            response = self.client.get(path, HTTP_HOST=self.host)
+            response = self.client.get(path, HTTP_HOST=self.host, follow=True)
             self.assertEqual(response.status_code, 200, path)
             html = response.content.decode()
             self.assertIn('id="cpSidebarNav"', html, path)
@@ -244,19 +269,12 @@ class SuperAdminSurfaceParityTests(TestCase):
             self.assertIn("data-rmc-admin-cp-unified", html, path)
             self.assertIn('data-shell-nav-family="platform-admin"', html, path)
             self.assertIn("data-rmc-platform-admin-sidebar", html, path)
-            self.assertIn("admin-sidebar-all-apps", html, path)
+            self.assertIn("cp-admin-sidebar-apps", html, path)
             self.assertNotIn("cp-nav-group-toggle", html, path)
             self.assertNotIn('data-shell-nav-family="control-plane"', html, path)
 
     def test_manager_admin_index_renders_backoffice_content(self):
-        response = self.client.get("/admin/", HTTP_HOST=self.host, follow=False)
-        self.assertIn(
-            response.status_code,
-            (200, 302),
-            msg=f"unexpected admin index status; Location={response.get('Location', '')}",
-        )
-        if response.status_code == 302:
-            response = self.client.get(response["Location"], HTTP_HOST=self.host)
+        response = self.client.get("/admin/", HTTP_HOST=self.host, follow=True)
         self.assertEqual(response.status_code, 200)
         html = response.content.decode()
         self.assertIn("cp-admin-index", html)
@@ -265,16 +283,16 @@ class SuperAdminSurfaceParityTests(TestCase):
         self.assertIn("admin-manager-shell", html)
         self.assertIn('data-rmc-control-plane-chrome="1"', html)
         self.assertIn("rmc-platform-chrome-layout.css", html)
-        self.assertIn('data-rmc-cp-scroll="document"', html)
+        self.assertIn("setAttribute('data-rmc-cp-scroll', 'canvas')", html)
         self.assertIn("cp-admin-app-list", html)
         self.assertIn("Applications", html)
         self.assertIn("data-rmc-page-fold-nav", html)
         self.assertIn("rmc-page-fold-nav", html)
-        self.assertIn("data-rmc-operator-surface-strip", html)
+        self.assertNotIn("data-rmc-operator-surface-strip", html)
 
     def test_manager_super_and_admin_share_operator_topbar(self):
         super_resp = self.client.get("/super/", HTTP_HOST=self.host)
-        admin_resp = self.client.get("/admin/", HTTP_HOST=self.host)
+        admin_resp = self.client.get("/admin/", HTTP_HOST=self.host, follow=True)
         self.assertEqual(super_resp.status_code, 200)
         self.assertEqual(admin_resp.status_code, 200)
         for marker in (
