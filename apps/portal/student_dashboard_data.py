@@ -252,6 +252,24 @@ def build_student_home_extras(
     results_locked = bool(access.get("results_locked"))
     visibility_mode = str(access.get("visibility_mode") or visibility_mode)
 
+    # School operational grade scale (local-first): /20 francophone Bac, /100
+    # percentage, /4 GPA — never a hardcoded /20. Resolved once and reused for both
+    # the Average KPI denominator and the subject-bar widths so a /100 school, a /20
+    # school and a /4 GPA school each render truthfully. Never raises; defaults to 100.
+    score_scale = 100.0
+    if can_view_results:
+        try:
+            from apps.evals.grading_provisioning import resolve_school_score_scale
+
+            _scale = float(resolve_school_score_scale(school) or 0)
+            if _scale > 0:
+                score_scale = _scale
+        except _SOFT:
+            score_scale = 100.0
+    scale_label = (
+        str(int(score_scale)) if float(score_scale).is_integer() else str(score_scale)
+    )
+
     if can_view_results:
         ai_insight = _student_ai_insight(grade_trend=grade_trend, subjects=subjects)
 
@@ -315,7 +333,7 @@ def build_student_home_extras(
         metrics.append(
             {
                 "label": _("Average"),
-                "value": str(grade_avg),
+                "value": f"{grade_avg}/{scale_label}",
                 "meta": _("live")
                 if visibility_mode == STUDENT_RESULTS_VISIBILITY_ENTERED
                 else _("published"),
@@ -350,12 +368,15 @@ def build_student_home_extras(
 
     subject_rows = []
     if can_view_results and subjects:
+        # Bar width uses the school's operational grade scale resolved once above —
+        # never a hardcoded /20 (×5). A /100, /20 or /4 school each fills truthfully.
         for row in subjects:
             avg = float(row.get("average") or 0)
+            pct_val = max(0.0, min(100.0, avg / score_scale * 100.0))
             subject_rows.append(
                 {
                     "name": row.get("subject") or "",
-                    "pct": min(100, int(round(avg * 5))),
+                    "pct": int(round(pct_val)),
                     "label": str(row.get("average")),
                 }
             )
