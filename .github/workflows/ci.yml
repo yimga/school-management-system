@@ -27,6 +27,8 @@ jobs:
         run: python scripts/verify_url_name_integrity.py --compare
       - name: Verify template-reference integrity
         run: python scripts/verify_template_reference_integrity.py --compare
+      - name: Verify settings-key integrity
+        run: python scripts/verify_settings_key_integrity.py --compare
       - name: Run Django tests
         run: python manage.py test --noinput -v 0 2>/dev/null || true
 
