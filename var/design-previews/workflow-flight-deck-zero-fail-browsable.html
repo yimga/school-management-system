@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMyCampus · Workflow Flight Deck zero-fail (1737)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  :root{--bg:#0b1020;--canvas:#0e1426;--elev:#141c33;--hair:rgba(255,255,255,.08);--text:#eef2ff;--t2:#aab3d4;--brand:#6366f1;--ok:#10b981;--err:#f87171}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:1.5}
+  .flag{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,var(--brand),var(--ok));color:#04121a;font-weight:700;font-size:11px;text-align:center;padding:6px}
+  .page{padding:48px 20px 64px;max-width:1200px;margin:0 auto}
+  .hdr{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;margin-bottom:20px}
+  .hdr h1{margin:0;font-size:1.3rem}
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:16px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--canvas);border:1px solid var(--hair);border-radius:14px;padding:14px}
+  .row{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--hair);font-size:12px}
+  .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px}
+  .badge--fail{background:rgba(248,113,113,.15);color:var(--err)}
+  .badge--stuck{background:rgba(245,158,11,.15);color:#fbbf24}
+  .btn{font:inherit;font-size:11px;font-weight:600;padding:5px 10px;border-radius:8px;border:1px solid var(--hair);background:var(--elev);color:var(--text);cursor:pointer}
+  .btn--pri{background:var(--brand);border-color:var(--brand);color:#fff}
+  .btn--net{opacity:.55;cursor:not-allowed}
+  .btn small{display:block;font-weight:500;font-size:9px;color:var(--t2)}
+  .tabs{display:flex;gap:6px;margin-bottom:12px}
+  .tabs button{border:1px solid var(--hair);background:transparent;color:inherit;border-radius:999px;padding:6px 12px;font:inherit;font-size:11px;cursor:pointer}
+  .tabs button.is-on{background:var(--brand);color:#fff;border-color:transparent}
+  .offline-note{display:none;padding:10px;border-radius:10px;background:rgba(245,158,11,.08);border:1px dashed rgba(245,158,11,.35);font-size:11px;margin-bottom:12px}
+  .offline-note.is-on{display:block}
+  .conn{position:fixed;top:32px;right:12px;z-index:9998;display:flex;gap:6px}
+  .conn button{font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--hair);background:var(--elev);color:var(--t2);cursor:pointer}
+  .conn .is-on{background:var(--brand);color:#fff;border-color:transparent}
+</style>
+</head>
+<body>
+<div class="flag">BATCH 1737 · Zero-fail flight deck · auto-requeue + honest network labels · <a href="world-class-tenant-journey-hub-browsable.html" style="color:#04121a">Hub</a></div>
+<div class="conn" aria-label="Connection simulator"><button type="button" class="is-on" data-conn="online">Online</button><button type="button" data-conn="offline">Offline</button><button type="button" data-conn="hub">LAN hub</button></div>
+<div class="page">
+  <div class="hdr">
+    <div><h1><i class="bi bi-airplane"></i> Workflow Flight Deck</h1><p style="margin:4px 0 0;color:var(--t2);font-size:12px">No silent failures — stuck provision auto-requeues; operator kick always visible.</p></div>
+    <div class="tabs"><button type="button" class="is-on" data-mode="online">Operator online</button><button type="button" data-mode="offline">Tenant offline</button></div>
+  </div>
+  <div class="offline-note" id="offline-note"><i class="bi bi-wifi-off"></i> Bulk apply / cancel require network. Tenant provision retry queues locally when offline.</div>
+  <div class="grid">
+    <div class="panel">
+      <div class="row" style="font-weight:700;color:var(--t2);font-size:10px;text-transform:uppercase"><span>Workflow</span><span>Status</span><span>Fix</span><span>Action</span></div>
+      <div class="row">
+        <span><strong>tenant_school_provision</strong><br><span style="color:var(--t2)">demo-academy · Phase B seed</span></span>
+        <span class="badge badge--fail">failed</span>
+        <span style="font-size:11px">Requeue provisioning</span>
+        <button type="button" class="btn btn--pri" id="btn-requeue">Apply fix</button>
+      </div>
+      <div class="row">
+        <span><strong>tenant_school_provision</strong><br><span style="color:var(--t2)">north-hills · stuck 45m</span></span>
+        <span class="badge badge--stuck">stuck</span>
+        <span style="font-size:11px">Auto-requeue scheduled</span>
+        <button type="button" class="btn">Kick job</button>
+      </div>
+      <div class="row">
+        <span><strong>oauth_lms_connect</strong></span>
+        <span class="badge badge--fail">failed</span>
+        <span style="font-size:11px">Refresh token</span>
+        <button type="button" class="btn btn--net" title="Requires network">Apply fix<small>requires network</small></button>
+      </div>
+    </div>
+    <aside class="panel">
+      <h2 style="margin:0 0 10px;font-size:13px">Zero-fail contract</h2>
+      <ul style="margin:0;padding-left:18px;font-size:11px;color:var(--t2)">
+        <li>Celery beat scans stuck &gt;30m → requeue</li>
+        <li>Failed provision never shows auto_fix: false</li>
+        <li>Periodic sync replays tenant retry intents</li>
+        <li>Incident banner on manager shell when &gt;0 failed</li>
+      </ul>
+    </aside>
+  </div>
+</div>
+<script>
+document.querySelector('.tabs').addEventListener('click',function(e){
+  var b=e.target.closest('[data-mode]'); if(!b) return;
+  document.querySelectorAll('.tabs button').forEach(function(x){x.classList.remove('is-on');});
+  b.classList.add('is-on');
+  document.getElementById('offline-note').classList.toggle('is-on',b.getAttribute('data-mode')==='offline');
+  document.querySelectorAll('.btn--net').forEach(function(x){
+    x.classList.toggle('btn--net',b.getAttribute('data-mode')==='offline');
+  });
+});
+(function(){
+  var conn=document.querySelector('.conn');
+  if(!conn) return;
+  conn.addEventListener('click',function(e){
+    var b=e.target.closest('[data-conn]'); if(!b) return;
+    conn.querySelectorAll('button').forEach(function(x){x.classList.remove('is-on');});
+    b.classList.add('is-on');
+    if(b.getAttribute('data-conn')==='offline'){
+      document.getElementById('offline-note').classList.add('is-on');
+    }
+  });
+})();
+</script>
+</body>
+</html>

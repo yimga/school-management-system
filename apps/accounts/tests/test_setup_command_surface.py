@@ -38,6 +38,21 @@ class SetupCommandSurfaceRenderTests(SimpleTestCase):
             "show_setup_landing": True,
             "backend_show_legacy_dashboard": False,
             "rmc_school_onboarding": _ONBOARDING,
+            "rmc_dashboard_visual_preset_choices": [
+                ("soft-glass", "Soft Glass"),
+                ("bento-focus", "Bento Focus"),
+            ],
+            "rmc_school_readiness": {
+                "ok": True,
+                "meter_percent": 50,
+                "phases": [
+                    {"key": "provision", "label": "Provisioned", "done": True, "detail": "ok"},
+                    {"key": "configure", "label": "Configured", "done": False, "detail": "50%"},
+                    {"key": "launch", "label": "Launch ready", "done": False, "detail": "2 blockers"},
+                    {"key": "operate", "label": "Daily operations", "done": False, "detail": "unknown"},
+                ],
+                "provisioning_slo": {"tone": "progress", "label": "In progress"},
+            },
         }
         ctx.update(overrides)
         return render_to_string(_PARTIAL, ctx)
@@ -57,7 +72,8 @@ class SetupCommandSurfaceRenderTests(SimpleTestCase):
         out = self._render()
         # progress ring fed the real percent via an inline custom property
         self.assertIn("rmc-setup-surface__ring", out)
-        self.assertIn("--rmc-setup-ring-pct: 55%", out)
+        self.assertIn("--rmc-setup-ring-pct: 50%", out)
+        self.assertIn("data-rmc-readiness-train", out)
         # stage count is real completed/total, not a fabricated "0/15"
         self.assertIn("3/9", out)
         # step labels + next action come straight from onboarding data

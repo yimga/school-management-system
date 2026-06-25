@@ -203,7 +203,7 @@
 //   translated/pluralized (completion_summary_text) and rendered by the progress JS.
 // v4.04.99: globe Blue Marble texture cache-bust + network-first globe texture
 // so deployed manager surfaces cannot keep replaying the retired purple earth.
-const CACHE_VERSION = "sms-v4.05.11-tenant-v3-waste-surface-burndown-2026-06-24";
+const CACHE_VERSION = "sms-v4.05.20-pillar-e-gap-close-setup-mirror-2026-06-17";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -752,6 +752,7 @@ function isApiWriteRequest(request, url) {
   if (url.pathname.startsWith("/api/sync/")) return true;
   // Offline foundational (2026-05-11): teacher grade entry now queues offline.
   if (url.pathname.startsWith("/api/grades/") || url.pathname.startsWith("/api/evals/")) return true;
+  if (url.pathname.startsWith("/api/discipline/")) return true;
   if (url.pathname.startsWith("/portal/api/offline/")) return true;
   return false;
 }
@@ -760,6 +761,7 @@ function inferSyncType(pathname) {
   if (pathname.startsWith("/api/attendance/")) return "attendance";
   if (pathname.startsWith("/api/entity/") || pathname.startsWith("/api/entities/") || pathname.startsWith("/api/finance/") || pathname.startsWith("/api/requests/")) return "api";
   if (pathname.startsWith("/api/grades/") || pathname.startsWith("/api/evals/")) return "grade";
+  if (pathname.startsWith("/api/discipline/")) return "api";
   return null;
 }
 

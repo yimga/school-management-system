@@ -1,0 +1,27 @@
+{% load i18n %}
+{% url 'siteconfig:quick_set_dashboard_visual_preset' as preset_post_url %}
+{% url 'siteconfig:user_preferences' as prefs_url %}
+{% if preset_post_url %}
+<div class="rmc-setup-style-strip" data-rmc-setup-style-strip="1">
+  <span class="rmc-setup-style-strip__label">
+    <i class="bi bi-palette" aria-hidden="true"></i> {% trans "Dashboard style" %}
+  </span>
+  <span class="rmc-setup-style-strip__value">{{ USER_DASHBOARD_VISUAL_PRESET|default:"soft-glass"|cut:"-" }}</span>
+  <div class="rmc-setup-style-strip__picker" role="group" aria-label="{% trans 'Pick dashboard style' %}">
+    {% for slug, label in rmc_dashboard_visual_preset_choices %}
+    <form method="post" action="{{ preset_post_url }}" class="rmc-setup-style-strip__preset-form">
+      {% csrf_token %}
+      <input type="hidden" name="preset" value="{{ slug }}">
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <button type="submit" class="rmc-setup-style-strip__chip{% if USER_DASHBOARD_VISUAL_PRESET == slug %} is-active{% endif %}" aria-pressed="{% if USER_DASHBOARD_VISUAL_PRESET == slug %}true{% else %}false{% endif %}">
+        {{ label }}
+      </button>
+    </form>
+    {% empty %}
+    {% endfor %}
+  </div>
+  {% if prefs_url %}
+  <a class="rmc-setup-style-strip__link" href="{{ prefs_url }}">{% trans "All preferences" %}</a>
+  {% endif %}
+</div>
+{% endif %}

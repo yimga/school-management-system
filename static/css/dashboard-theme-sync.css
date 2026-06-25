@@ -414,6 +414,50 @@ body.dashboard-preset-high-contrast[data-dashboard-page] {
   --dashboard-text-muted: var(--color-base-300); /* theme-locked-allow: manual-review */
 }
 
+body.dashboard-preset-warm-editorial[data-dashboard-page] {
+  --dashboard-surface: color-mix(in srgb, var(--color-base-0) 94%, var(--dashboard-theme-accent) 6%); /* theme-locked-allow: decorative-tint-mix */
+  --dashboard-surface-soft: color-mix(in srgb, var(--color-base-0) 90%, var(--dashboard-theme-primary) 10%); /* theme-locked-allow: decorative-tint-mix */
+  --dashboard-border: color-mix(in srgb, var(--color-base-300) 72%, var(--dashboard-theme-primary) 28%); /* theme-locked-allow: decorative-tint-mix */
+}
+
+body.dashboard-preset-midnight-ops[data-dashboard-page] {
+  --dashboard-surface: var(--color-base-900); /* theme-locked-allow: manual-review */
+  --dashboard-surface-soft: color-mix(in srgb, var(--color-base-900) 88%, var(--dashboard-theme-primary) 12%); /* theme-locked-allow: decorative-tint-mix */
+  --dashboard-border: color-mix(in srgb, var(--color-base-700) 70%, var(--dashboard-theme-primary) 30%); /* theme-locked-allow: decorative-tint-mix */
+  --dashboard-text-strong: var(--color-base-50); /* theme-locked-allow: manual-review */
+  --dashboard-text-muted: var(--color-base-400); /* theme-locked-allow: manual-review */
+}
+
+body.dashboard-preset-bento-focus[data-dashboard-page] .card,
+body.dashboard-preset-bento-focus[data-dashboard-page] .rmc-dh-tile {
+  border-radius: 14px;
+}
+
+body.dashboard-preset-bento-focus[data-dashboard-page] {
+  --dashboard-surface: var(--color-base-0); /* theme-locked-allow: manual-review */
+  --dashboard-surface-soft: color-mix(in srgb, var(--color-base-0) 90%, var(--dashboard-theme-primary) 10%); /* theme-locked-allow: decorative-tint-mix */
+}
+
+body.dashboard-preset-regional-heritage[data-dashboard-page] {
+  --dashboard-surface: color-mix(in srgb, var(--color-base-0) 92%, var(--dashboard-theme-accent) 8%); /* theme-locked-allow: decorative-tint-mix */
+  --dashboard-surface-soft: color-mix(in srgb, var(--color-base-0) 88%, var(--dashboard-theme-accent) 12%); /* theme-locked-allow: decorative-tint-mix */
+  --dashboard-border: color-mix(in srgb, var(--color-base-300) 60%, var(--dashboard-theme-accent) 40%); /* theme-locked-allow: decorative-tint-mix */
+}
+
+body.dashboard-preset-regional-heritage[data-dashboard-page] #main-content {
+  border-left: 3px solid var(--dashboard-theme-accent);
+}
+
+body.dashboard-preset-family-friendly[data-dashboard-page] {
+  --dashboard-surface: color-mix(in srgb, var(--color-base-0) 96%, var(--dashboard-theme-primary) 4%); /* theme-locked-allow: decorative-tint-mix */
+  --dashboard-surface-soft: color-mix(in srgb, var(--color-base-0) 94%, var(--dashboard-theme-accent) 6%); /* theme-locked-allow: decorative-tint-mix */
+}
+
+body.dashboard-preset-family-friendly[data-dashboard-page] .card,
+body.dashboard-preset-family-friendly[data-dashboard-page] .rmc-dh-tile {
+  border-radius: 16px;
+}
+
 body.dashboard-preset-high-contrast[data-dashboard-page] .btn-outline-primary,
 body.dashboard-preset-high-contrast[data-dashboard-page] .backend-quick-action-btn {
   color: var(--text-tertiary, var(--color-base-50));
@@ -676,6 +720,44 @@ body.dashboard-preset-high-contrast.dashboard-page-backend {
   --dashboard-border: var(--color-primary-400); /* theme-locked-allow: brand-token */
   --dashboard-text-strong: var(--color-base-50); /* theme-locked-allow: manual-review */
   --dashboard-text-muted: var(--color-base-300); /* theme-locked-allow: manual-review */
+}
+
+html[data-dashboard-page] body.dashboard-preset-warm-editorial,
+body.dashboard-preset-warm-editorial.dashboard-page-parent,
+body.dashboard-preset-warm-editorial.dashboard-page-teacher,
+body.dashboard-preset-warm-editorial.dashboard-page-backend {
+  --dashboard-surface: color-mix(in srgb, var(--color-base-0) 94%, var(--dashboard-theme-accent) 6%); /* theme-locked-allow: decorative-tint-mix */
+  --dashboard-surface-soft: color-mix(in srgb, var(--color-base-0) 90%, var(--dashboard-theme-primary) 10%); /* theme-locked-allow: decorative-tint-mix */
+}
+
+html[data-dashboard-page] body.dashboard-preset-midnight-ops,
+body.dashboard-preset-midnight-ops.dashboard-page-parent,
+body.dashboard-preset-midnight-ops.dashboard-page-teacher,
+body.dashboard-preset-midnight-ops.dashboard-page-backend {
+  --dashboard-surface: var(--color-base-900); /* theme-locked-allow: manual-review */
+  --dashboard-surface-soft: color-mix(in srgb, var(--color-base-900) 88%, var(--dashboard-theme-primary) 12%); /* theme-locked-allow: decorative-tint-mix */
+  --dashboard-text-strong: var(--color-base-50); /* theme-locked-allow: manual-review */
+}
+
+html[data-dashboard-page] body.dashboard-preset-bento-focus,
+body.dashboard-preset-bento-focus.dashboard-page-parent,
+body.dashboard-preset-bento-focus.dashboard-page-teacher,
+body.dashboard-preset-bento-focus.dashboard-page-backend {
+  --dashboard-surface: var(--color-base-0); /* theme-locked-allow: manual-review */
+}
+
+html[data-dashboard-page] body.dashboard-preset-regional-heritage,
+body.dashboard-preset-regional-heritage.dashboard-page-parent,
+body.dashboard-preset-regional-heritage.dashboard-page-teacher,
+body.dashboard-preset-regional-heritage.dashboard-page-backend {
+  --dashboard-surface: color-mix(in srgb, var(--color-base-0) 92%, var(--dashboard-theme-accent) 8%); /* theme-locked-allow: decorative-tint-mix */
+}
+
+html[data-dashboard-page] body.dashboard-preset-family-friendly,
+body.dashboard-preset-family-friendly.dashboard-page-parent,
+body.dashboard-preset-family-friendly.dashboard-page-teacher,
+body.dashboard-preset-family-friendly.dashboard-page-backend {
+  --dashboard-surface: color-mix(in srgb, var(--color-base-0) 96%, var(--dashboard-theme-primary) 4%); /* theme-locked-allow: decorative-tint-mix */
 }
 
 html[data-dashboard-page="parent"] body .parent-dashboard,

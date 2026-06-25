@@ -1,0 +1,71 @@
+{% load i18n %}
+
+{% if rmc_school_readiness and rmc_school_readiness.provision.needs_resume %}
+
+{% with failed=rmc_school_readiness.provision.phase_b_failed_steps %}
+
+<section class="rmc-provision-partial-failure" data-rmc-provision-partial-failure="1" data-page-critical-read="1" role="alert">
+
+  <div class="rmc-provision-partial-failure__inner">
+
+    <p class="rmc-provision-partial-failure__title">
+
+      <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+
+      {% trans "We're still finishing your campus setup" %}
+
+    </p>
+
+    <p class="rmc-provision-partial-failure__lede">
+
+      {% trans "Your portal is open, but some seed steps did not complete. You can keep configuring while we retry in the background — grades or finance may be empty until setup finishes." %}
+
+    </p>
+
+    <p class="rmc-provision-partial-failure__offline small text-muted mb-2 d-none" data-rmc-provision-partial-offline="1">
+      {% trans "Showing last known setup status · retry when connected" %}
+    </p>
+
+    {% if failed %}
+
+    <ul class="rmc-provision-partial-failure__steps">
+
+      {% for step in failed %}
+
+      <li>
+
+        {% if step == "terms" %}{% trans "Academic terms" %}
+
+        {% elif step == "academic_structure" %}{% trans "Class structure" %}
+
+        {% elif step == "subjects" %}{% trans "Subjects" %}
+
+        {% elif step == "grading_scale" %}{% trans "Grading scale" %}
+
+        {% elif step == "classrooms" %}{% trans "Classrooms" %}
+
+        {% elif step == "compliance_profile" %}{% trans "Compliance profile" %}
+
+        {% else %}{{ step }}{% endif %}
+
+      </li>
+
+      {% endfor %}
+
+    </ul>
+
+    {% endif %}
+
+    <p class="rmc-provision-partial-failure__meta">
+
+      {% trans "No action needed — our team is notified automatically. Contact support if this persists beyond 30 minutes." %}
+
+    </p>
+
+  </div>
+
+</section>
+
+{% endwith %}
+
+{% endif %}

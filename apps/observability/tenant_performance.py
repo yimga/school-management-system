@@ -270,6 +270,14 @@ def build_tenant_performance_snapshot(
             )
         except Exception:  # noqa: BLE001
             operational_health = {}
+        try:
+            from apps.schools.school_readiness import build_school_readiness
+
+            readiness = build_school_readiness(school)
+            operational_health = dict(operational_health or {})
+            operational_health["provisioning_slo"] = readiness.get("provisioning_slo") or {}
+        except Exception:  # noqa: BLE001
+            pass
 
     slug = getattr(school, "slug", "") or ""
     payload_core = {

@@ -1,0 +1,18 @@
+{% load i18n static %}
+{% if rmc_show_launch_ceremony %}
+<section class="rmc-launch-ceremony" data-rmc-launch-ceremony="1" aria-label="{% trans 'Launch celebration' %}">
+  <div class="rmc-launch-ceremony__inner">
+    <p class="rmc-launch-ceremony__icon" aria-hidden="true">🎓</p>
+    <h2 class="rmc-launch-ceremony__title">{% trans "You're live" %}</h2>
+    <p class="rmc-launch-ceremony__lede">{% trans "Launch blockers cleared — School Command Center is your new home. Invite staff and families when you're ready." %}</p>
+    <div class="rmc-launch-ceremony__actions">
+      <a class="btn btn-primary btn-sm" href="{% url 'accounts:backend_dashboard' %}">
+        <i class="bi bi-grid-1x2" aria-hidden="true"></i> {% trans "Open Command Center" %}
+      </a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:user_preferences' %}">
+        <i class="bi bi-palette" aria-hidden="true"></i> {% trans "Choose dashboard style" %}
+      </a>
+    </div>
+  </div>
+</section>
+{% endif %}

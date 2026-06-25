@@ -39,10 +39,20 @@ def main() -> int:
             "try_apply_field_capture_workflow",
             "substitute_handover",
             "lost_belongings_mint",
+            "apply_tenant_journey_workflow",
             *PLATFORM_DISPATCH,
         ):
             if needle not in text:
                 findings.append(f"offline_workflow_apply missing {needle}")
+
+    schools_mod = ROOT / "apps/schools/offline_workflow_handlers.py"
+    if not schools_mod.is_file():
+        findings.append("missing schools/offline_workflow_handlers.py")
+    else:
+        stext = schools_mod.read_text(encoding="utf-8", errors="replace")
+        for wf in ("discipline_refer", "launch_playbook_ack", "year_close_ack"):
+            if wf not in stext:
+                findings.append(f"schools handlers missing {wf}")
 
     fin_mod = ROOT / "apps/finance/offline_workflow_handlers.py"
     if not fin_mod.is_file():

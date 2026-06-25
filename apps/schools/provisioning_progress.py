@@ -708,6 +708,14 @@ def resolve_provisioning_progress(
         "phase_a_complete": flags["phase_a_complete"],
         "phase_b_step": flags["phase_b_step"],
         "phase_b_complete": flags["phase_b_complete"],
+        "needs_resume": provisioning_needs_resume(school),
+        "phase_b_failed_steps": sorted(
+            {
+                str(step).strip()
+                for step in (_provisioning_settings(school).get("phase_b_failed_steps") or [])
+                if str(step).strip()
+            }
+        ),
         "blocking_error": blocking,
         "stuck": stuck,
         "completed_at": completed_at,

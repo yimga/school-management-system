@@ -1,0 +1,14 @@
+{% load i18n %}
+{% comment %}
+  Shown on School Command Center when checklist threshold lifted setup landing
+  but execute_launch has not run yet (launch_ready, not launched).
+{% endcomment %}
+{% if rmc_school_readiness_launch_ready and not rmc_school_has_launched and not show_setup_landing %}
+<div class="rmc-setup-golive-panel" data-rmc-setup-golive-panel="1" role="region" aria-label="{% trans 'Go live' %}">
+  <div class="rmc-setup-golive-panel__copy">
+    <p class="rmc-setup-golive-panel__title">{% trans "Ready to go live" %}</p>
+    <p class="rmc-setup-golive-panel__meta">{% trans "Launch blockers are cleared. Go live to record your launch and unlock the full Command Center experience." %}</p>
+  </div>
+  {% include "partials/tenant/execute_launch_form.html" %}
+</div>
+{% endif %}

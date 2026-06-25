@@ -62,6 +62,7 @@ WIZARD_CATEGORY_BY_KEY: dict[str, str] = {
     "custom_domain_setup": "get_started",
     "super_create_school": "get_started",
     "account_migration": "get_started",
+    "academic_year_setup": "get_started",
     "legacy_data_extraction_pipeline": "get_started",
     "staff_onboarding": "get_started",
     "teacher_self_onboarding": "get_started",

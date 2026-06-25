@@ -26,6 +26,11 @@
       {% endif %}
     </div>
     {% endif %}
+    {% if launch_payload.launch_ready %}
+    <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+      {% include "partials/tenant/execute_launch_form.html" with rmc_school_readiness_launch_ready=launch_payload.launch_ready rmc_school_has_launched=launch_payload.launched_at %}
+    </div>
+    {% endif %}
   </div>
 
   {% if launch_payload.registry_alignment %}

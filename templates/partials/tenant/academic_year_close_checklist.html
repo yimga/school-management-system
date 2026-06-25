@@ -1,0 +1,31 @@
+{% load i18n %}
+{% if rmc_year_close_checklist and rmc_year_close_checklist.visible %}
+<section class="rmc-year-close-checklist rmc-card" data-rmc-year-close-checklist="1" data-page-critical-read="1" data-rmc-scroll-policy="paginate">
+  <header class="rmc-year-close-checklist__head">
+    <h2 class="rmc-year-close-checklist__title">{% trans "Academic year close" %}</h2>
+    <p class="small text-muted mb-0">{{ rmc_year_close_checklist.summary }}</p>
+  </header>
+  <ul class="list-unstyled mb-0">
+    {% for item in rmc_year_close_checklist.items %}
+    <li class="rmc-year-close-checklist__item{% if item.done %} is-done{% endif %} py-2 border-bottom border-light-subtle">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span>{{ item.label }}</span>
+        <div class="d-flex align-items-center gap-2">
+          {% if item.blocker %}<span class="badge bg-warning-subtle text-warning-emphasis">{% trans "Blocker" %}</span>{% endif %}
+          {% if not item.blocker and not item.done %}
+          <form method="post" data-rmc-offline-form="field_capture" data-rmc-offline-workflow="year_close_ack">
+            {% csrf_token %}
+            <input type="hidden" name="item_key" value="{{ item.key }}">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Confirm" %}</button>
+          </form>
+          {% elif item.done %}
+          <span class="badge bg-success-subtle text-success-emphasis">{% trans "Confirmed" %}</span>
+          {% endif %}
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  <p class="small text-muted mt-2 mb-0">{% trans "Year-close confirmations queue offline via field capture when needed." %}</p>
+</section>
+{% endif %}

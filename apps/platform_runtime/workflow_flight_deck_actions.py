@@ -81,6 +81,30 @@ def resolve_effective_remediation(run: Any) -> dict[str, Any]:
     return rem
 
 
+_ONLINE_ONLY_ACTION_KINDS = frozenset(
+    {
+        "apply_fix",
+        "preview_fix",
+        "bulk_apply_fix",
+        "requeue_provision",
+        "cancel",
+    }
+)
+
+
+def _action_meta(kind: str, **fields: Any) -> dict[str, Any]:
+    return {
+        "kind": kind,
+        **fields,
+        "requires_network": kind in _ONLINE_ONLY_ACTION_KINDS,
+        "offline_hint": (
+            "Requires network — retry when connected"
+            if kind in _ONLINE_ONLY_ACTION_KINDS
+            else ""
+        ),
+    }
+
+
 def build_operator_actions(*, run: Any, payload: dict[str, Any]) -> list[dict[str, Any]]:
     """Return ordered operator actions for a workflow run row."""
 
@@ -93,18 +117,18 @@ def build_operator_actions(*, run: Any, payload: dict[str, Any]) -> list[dict[st
 
     if rem.get("auto_fix_available") and auto_fix_kind:
         actions.append(
-            {
-                "kind": "apply_fix",
-                "label": _apply_fix_label(auto_fix_kind),
-                "primary": True,
-            }
+            _action_meta(
+                "apply_fix",
+                label=_apply_fix_label(auto_fix_kind),
+                primary=True,
+            )
         )
         actions.append(
-            {
-                "kind": "preview_fix",
-                "label": "Preview fix",
-                "primary": False,
-            }
+            _action_meta(
+                "preview_fix",
+                label="Preview fix",
+                primary=False,
+            )
         )
 
     if workflow_key == "tenant_school_provision" and school_id:
@@ -113,19 +137,19 @@ def build_operator_actions(*, run: Any, payload: dict[str, Any]) -> list[dict[st
         if can_requeue and not has_apply:
             actions.insert(
                 0,
-                {
-                    "kind": "requeue_provision",
-                    "label": "Requeue provisioning",
-                    "primary": True,
-                },
+                _action_meta(
+                    "requeue_provision",
+                    label="Requeue provisioning",
+                    primary=True,
+                ),
             )
         elif can_requeue and auto_fix_kind != "requeue_provision":
             actions.append(
-                {
-                    "kind": "requeue_provision",
-                    "label": "Requeue provisioning",
-                    "primary": False,
-                }
+                _action_meta(
+                    "requeue_provision",
+                    label="Requeue provisioning",
+                    primary=False,
+                )
             )
         try:
             actions.append(
@@ -166,11 +190,11 @@ def build_operator_actions(*, run: Any, payload: dict[str, Any]) -> list[dict[st
 
     if status in ("running", "stuck", "degrading"):
         actions.append(
-            {
-                "kind": "cancel",
-                "label": "Cancel run",
-                "primary": False,
-            }
+            _action_meta(
+                "cancel",
+                label="Cancel run",
+                primary=False,
+            )
         )
 
     return actions

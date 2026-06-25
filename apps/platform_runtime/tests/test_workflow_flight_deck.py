@@ -147,6 +147,12 @@ class FlightDeckEnrichmentTests(TestCase):
         row = failed[0]
         self.assertIn("operator_actions", row)
         self.assertTrue(row["operator_actions"])
+        apply_action = next(
+            (a for a in row["operator_actions"] if a.get("kind") == "apply_fix"),
+            None,
+        )
+        self.assertIsNotNone(apply_action)
+        self.assertTrue(apply_action.get("requires_network"))
 
     @override_settings(ALLOWED_HOSTS=["*"])
     def test_run_detail_renders_html_for_browser(self):

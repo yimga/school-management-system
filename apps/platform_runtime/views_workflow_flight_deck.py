@@ -45,6 +45,9 @@ def flight_deck_labels() -> dict[str, str]:
         "action_unavailable": _(
             "This action isn't available for this run — open run detail or Tenant 360."
         ),
+        "action_requires_network": _(
+            "Requires network — retry when connected."
+        ),
         "preview_title": _("Fix preview"),
     }
 

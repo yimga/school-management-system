@@ -1,0 +1,29 @@
+{% load i18n %}
+{% if rmc_school_readiness and rmc_school_readiness.ok %}
+{% url 'api_school_readiness' as rmc_readiness_api_url %}
+{% with readiness=rmc_school_readiness slo=rmc_school_readiness.provisioning_slo %}
+<div class="rmc-readiness-train" data-rmc-readiness-train="1" data-rmc-readiness-url="{{ rmc_readiness_api_url|default:'/api/school/readiness/' }}" data-rmc-readiness-school-key="{{ request.school.slug|default:'' }}">
+  <div class="rmc-readiness-train__stale alert alert-warning py-2 px-3 small mb-2" data-rmc-readiness-stale="1" hidden role="status">
+    <i class="bi bi-wifi-off" aria-hidden="true"></i>
+    <span data-rmc-readiness-stale-label="1">{% trans "Offline · showing cached readiness" %}</span>
+  </div>
+  <div class="rmc-readiness-train__head">
+    <span class="rmc-readiness-train__label">{% trans "Journey" %}</span>
+    {% if slo.label %}
+    <span class="rmc-readiness-train__slo rmc-readiness-train__slo--{{ slo.tone|default:'unknown' }}" data-rmc-readiness-slo="1">{{ slo.label }}</span>
+    {% endif %}
+  </div>
+  <div class="rmc-readiness-train__meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ readiness.meter_percent|default:0 }}" data-rmc-readiness-meter="1">
+    <i style="width: {{ readiness.meter_percent|default:0 }}%"></i>
+  </div>
+  <ol class="rmc-readiness-train__phases" data-rmc-readiness-phases="1">
+    {% for phase in readiness.phases %}
+    <li class="rmc-readiness-train__phase{% if phase.done %} is-done{% endif %}" data-phase-key="{{ phase.key }}">
+      <span class="rmc-readiness-train__phase-label">{{ phase.label }}</span>
+      <span class="rmc-readiness-train__phase-detail">{{ phase.detail }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+</div>
+{% endwith %}
+{% endif %}

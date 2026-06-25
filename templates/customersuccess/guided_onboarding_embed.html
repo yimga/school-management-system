@@ -116,5 +116,17 @@
     </div>
   </div>
   {% endif %}
+
+  {% if launch_ready and not launch_blockers %}
+  <div class="setup-studio-panel mt-3">
+    <div class="setup-studio-section-head">
+      <div>
+        <div class="fw-semibold">{% trans "Go live" %}</div>
+        <div class="setup-studio-muted">{% trans "Launch your school and open the Command Center." %}</div>
+      </div>
+    </div>
+    {% include "partials/tenant/execute_launch_form.html" with rmc_school_readiness_launch_ready=launch_ready rmc_school_has_launched=launched_at %}
+  </div>
+  {% endif %}
 </section>
 {% endblock %}

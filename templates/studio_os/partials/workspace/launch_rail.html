@@ -34,6 +34,11 @@
   <p class="small text-success mb-1">
     <i class="bi bi-check-circle me-1" aria-hidden="true"></i>{% trans "Ready to launch" %}
   </p>
+  {% if not launch_payload.launched_at %}
+  <div class="mb-2">
+    {% include "partials/tenant/execute_launch_form.html" with rmc_school_readiness_launch_ready=launch_payload.launch_ready rmc_school_has_launched=launch_payload.launched_at %}
+  </div>
+  {% endif %}
   {% elif launch_payload.launch_blockers %}
   <p class="small text-warning mb-1">
     <i class="bi bi-exclamation-octagon me-1" aria-hidden="true"></i>{% blocktrans count counter=launch_payload.launch_blockers|length %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}

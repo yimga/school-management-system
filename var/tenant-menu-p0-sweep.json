@@ -1,0 +1,254 @@
+{
+  "generatedAt": "2026-06-24T23:58:45.462Z",
+  "tenantBase": "http://demo-school.runmycampus.com:8034",
+  "marketingBase": "http://runmycampus.com:8034",
+  "marketingHost": "runmycampus.com",
+  "tenantOnly": true,
+  "p0Menus": true,
+  "passed": 0,
+  "failed": 22,
+  "results": [
+    {
+      "label": "parent-home",
+      "requested": "/portal/parent/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "teacher-home",
+      "requested": "/portal/teacher/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "student-grades",
+      "requested": "/portal/student-portal/grades/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "admin-backend",
+      "requested": "/authentication/backend/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "admin-performance",
+      "requested": "/authentication/backend/performance/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "teacher-teacher_home",
+      "requested": "/portal/teacher/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "teacher-teacher_workflow",
+      "requested": "/portal/teacher/workflow/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "teacher-teacher_marks",
+      "requested": "/evals/teacher/marks/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "teacher-teacher_attendance",
+      "requested": "/portal/teacher/attendance/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "teacher-teacher_timetable",
+      "requested": "/portal/teacher/timetable/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "parent-parent_home",
+      "requested": "/portal/parent/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "parent-parent_workflow",
+      "requested": "/portal/parent/workflow/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "parent-parent_finance",
+      "requested": "/portal/parent/finance/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "parent-parent_calendar",
+      "requested": "/portal/calendar/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "student-student_home",
+      "requested": "/portal/student-portal/grades/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "student-student_workflow",
+      "requested": "/portal/student/workflow/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "admin-backend_dashboard",
+      "requested": "/authentication/backend/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "admin-setup_wizards",
+      "requested": "/school/studio/wizards/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "admin-people",
+      "requested": "/authentication/backend/students/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "admin-rbac",
+      "requested": "/authentication/rbac/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "admin-finance",
+      "requested": "/finance/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    },
+    {
+      "label": "admin-config",
+      "requested": "/school/configuration/",
+      "base": "http://demo-school.runmycampus.com:8034",
+      "host": null,
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n  - waiting for locator('#login-username, input[name=\"username\"], input[name=\"email\"]').first() to be visible\n"
+    }
+  ]
+}

@@ -7,7 +7,7 @@
   'use strict';
 
   var DB_NAME = 'sms-offline-mirror';
-  var DB_VERSION = 5;
+  var DB_VERSION = 6;
   var db = null;
 
   function getDexie() {
@@ -28,6 +28,16 @@
     if (!Dexie) return Promise.resolve(null);
     try {
       db = new Dexie(DB_NAME);
+      db.version(5).stores({
+        students: 'id, school_id, classroom_id, updated_at',
+        attendance: 'id, student_id, classroom_id, date, updated_at',
+        evaluations: 'id, student_id, subject_assignment_id, updated_at',
+        classrooms: 'id, school_id, updated_at',
+        ocr_corrections: 'original, corrected, updated_at',
+        outbox: 'id, ts, action_type, synced',
+        kb_articles: 'id, slug, locale, updated_at',
+        wizard_drafts: 'key, school_id, wizard_key, step_key, updated_at',
+      });
       db.version(DB_VERSION).stores({
         students: 'id, school_id, classroom_id, updated_at',
         attendance: 'id, student_id, classroom_id, date, updated_at',
@@ -37,6 +47,9 @@
         outbox: 'id, ts, action_type, synced',
         kb_articles: 'id, slug, locale, updated_at',
         wizard_drafts: 'key, school_id, wizard_key, step_key, updated_at',
+        school_readiness: 'school_key, updated_at',
+        operational_lifecycle: 'school_key, updated_at',
+        discipline_incidents: 'id, school_id, updated_at',
       });
       return db.open().then(function () { return db; });
     } catch (err) {
@@ -120,6 +133,9 @@
         database.outbox.clear(),
         database.kb_articles.clear(),
         database.wizard_drafts.clear(),
+        database.school_readiness.clear(),
+        database.operational_lifecycle.clear(),
+        database.discipline_incidents.clear(),
       ]);
     });
   }
@@ -279,6 +295,65 @@
     });
   }
 
+  function putSchoolReadiness(schoolKey, payload) {
+    return open().then(function (database) {
+      if (!database || !database.school_readiness) return null;
+      var row = {
+        school_key: String(schoolKey || "default"),
+        payload: payload,
+        updated_at: Date.now(),
+      };
+      return database.school_readiness.put(row).then(function () { return row; });
+    });
+  }
+
+  function getSchoolReadiness(schoolKey) {
+    return open().then(function (database) {
+      if (!database || !database.school_readiness) return null;
+      return database.school_readiness.get(String(schoolKey || "default"));
+    });
+  }
+
+  function putOperationalLifecycle(schoolKey, payload) {
+    return open().then(function (database) {
+      if (!database || !database.operational_lifecycle) return null;
+      var row = {
+        school_key: String(schoolKey || "default"),
+        payload: payload,
+        updated_at: Date.now(),
+      };
+      return database.operational_lifecycle.put(row).then(function () { return row; });
+    });
+  }
+
+  function getOperationalLifecycle(schoolKey) {
+    return open().then(function (database) {
+      if (!database || !database.operational_lifecycle) return null;
+      return database.operational_lifecycle.get(String(schoolKey || "default"));
+    });
+  }
+
+  function putDisciplineIncidents(schoolId, rows) {
+    return open().then(function (database) {
+      if (!database || !database.discipline_incidents) return null;
+      var stamped = (rows || []).map(function (item) {
+        return Object.assign({}, item, {
+          school_id: schoolId,
+          updated_at: Date.now(),
+        });
+      });
+      if (!stamped.length) return database.discipline_incidents.clear();
+      return database.discipline_incidents.bulkPut(stamped);
+    });
+  }
+
+  function getDisciplineIncidents(schoolId) {
+    return open().then(function (database) {
+      if (!database || !database.discipline_incidents) return [];
+      return database.discipline_incidents.where("school_id").equals(schoolId).toArray();
+    });
+  }
+
   global.SMSOfflineDB = {
     isAvailable: isAvailable,
     open: open,
@@ -299,5 +374,11 @@
     putWizardDraft: putWizardDraft,
     getWizardDraft: getWizardDraft,
     deleteWizardDraft: deleteWizardDraft,
+    putSchoolReadiness: putSchoolReadiness,
+    getSchoolReadiness: getSchoolReadiness,
+    putOperationalLifecycle: putOperationalLifecycle,
+    getOperationalLifecycle: getOperationalLifecycle,
+    putDisciplineIncidents: putDisciplineIncidents,
+    getDisciplineIncidents: getDisciplineIncidents,
   };
 })(typeof window !== 'undefined' ? window : this);

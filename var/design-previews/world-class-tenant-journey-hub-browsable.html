@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMyCampus · World-class tenant journey hub (1732–1742)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  :root{--bg:#060912;--canvas:#0e1426;--elev:#141c33;--hair:rgba(255,255,255,.08);--text:#eef2ff;--t2:#aab3d4;--t3:#7b86ad;--brand:#6366f1;--ok:#10b981;--warn:#f59e0b;--r:14px;--font:Inter,system-ui,sans-serif}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.55}
+  .flag{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,var(--brand),var(--ok));color:#04121a;font-weight:700;font-size:11px;text-align:center;padding:6px}
+  .conn{position:fixed;top:32px;right:12px;z-index:9998;display:flex;gap:6px}
+  .conn button,.conn span{font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--hair);background:var(--elev);color:var(--t2);cursor:pointer}
+  .conn .is-on{background:var(--brand);color:#fff;border-color:transparent}
+  .wrap{max-width:1100px;margin:48px auto 72px;padding:0 20px}
+  h1{margin:0 0 8px;font-size:24px;font-weight:760}
+  .sub{color:var(--t3);font-size:13px;margin:0 0 20px;max-width:72ch}
+  .pillar{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin:18px 0 28px}
+  .card{background:var(--canvas);border:1px solid var(--hair);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:8px}
+  .card:hover{border-color:rgba(99,102,241,.4);transform:translateY(-1px);transition:.15s}
+  .card h2{margin:0;font-size:14px;display:flex;align-items:center;gap:8px}
+  .card p{margin:0;color:var(--t2);font-size:12px;flex:1}
+  .card a{font-weight:650;font-size:12px;color:var(--brand);text-decoration:none}
+  .tag{font-size:9px;font-weight:800;text-transform:uppercase;padding:3px 7px;border-radius:999px;align-self:flex-start}
+  .tag--e{background:rgba(16,185,129,.12);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+  .tag--batch{background:rgba(99,102,241,.12);color:#a5b4fc;border:1px solid rgba(99,102,241,.3)}
+  .offline-panel{display:none;margin:16px 0;padding:14px;border:1px dashed rgba(245,158,11,.4);border-radius:12px;background:rgba(245,158,11,.06);font-size:12px}
+  .offline-panel.is-on{display:block}
+  .outbox{margin-top:8px;padding:8px;border-radius:8px;background:var(--elev);font-size:11px}
+  .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .links a{font-size:11px;color:var(--t3);text-decoration:none;border:1px solid var(--hair);padding:5px 10px;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="flag">WORLD-CLASS TENANT JOURNEY · batches 1732–1742 · Pillar E offline-first mandatory · <a href="provisioning-golive-hub-browsable.html" style="color:#04121a">← Provisioning hub</a></div>
+<div class="conn" aria-label="Connection simulator">
+  <button type="button" class="is-on" data-conn="online">Online</button>
+  <button type="button" data-conn="offline">Offline</button>
+  <button type="button" data-conn="hub">LAN hub</button>
+</div>
+<div class="wrap">
+  <h1><i class="bi bi-globe2"></i> Tenant lifecycle OS — full program</h1>
+  <p class="sub">Provision → setup → migrate → launch → daily ops → year close → discipline → offboard. Every lab includes an <strong>Offline / edge</strong> panel (Pillar E). Approve HTML here, then plan, then Django batches.</p>
+
+  <div class="offline-panel is-on" id="offline-panel">
+    <strong><i class="bi bi-wifi-off"></i> Offline / edge contract</strong>
+    <div class="outbox" id="outbox">Outbox: 0 items queued</div>
+    <p style="margin:8px 0 0;color:var(--t2)">Readiness meter shows <em>last updated</em> when stale. Teacher refer + attendance queue locally. Operator flight-deck bulk actions require network — labeled honestly.</p>
+  </div>
+
+  <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3)">Phase 5 — Post go-live (1732–1736)</p>
+  <div class="pillar">
+    <article class="card"><span class="tag tag--batch">1732</span><h2><i class="bi bi-speedometer2"></i> Provision truth + cache</h2><p>Readiness API cached in IndexedDB; partial-failure honest offline.</p><a href="provisioning-offline-edge-lab-browsable.html">Offline edge lab →</a></article>
+    <article class="card"><span class="tag tag--batch">1733</span><h2><i class="bi bi-signpost-split"></i> One meter everywhere</h2><p>Same train on setup, backend, Launch Studio — shared cache key.</p><a href="provisioning-journey-train-browsable.html">Journey train →</a></article>
+    <article class="card"><span class="tag tag--batch">1734</span><h2><i class="bi bi-check2-circle"></i> Golden path CI</h2><p>Online Playwright + offline-sim readiness stale UX.</p><a href="provisioning-golive-lab-browsable.html">Go-live lab →</a></article>
+    <article class="card"><span class="tag tag--batch">1735</span><h2><i class="bi bi-calendar-week"></i> Launch +7 days</h2><p>Post-launch playbook checklist; ack tasks queue offline.</p><a href="launch-ceremony-browsable.html">Launch ceremony →</a></article>
+    <article class="card"><span class="tag tag--batch">1736</span><h2><i class="bi bi-database"></i> Migration on train</h2><p>MC branch on readiness phases; local-first Companion ingest.</p><a href="migration-branch-onboarding-browsable.html">Migration branch →</a></article>
+  </div>
+
+  <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3)">Phase 6 — Operations OS (1737–1739)</p>
+  <div class="pillar">
+    <article class="card"><span class="tag tag--e">Pillar E</span><span class="tag tag--batch">1737</span><h2><i class="bi bi-airplane"></i> Workflow Flight Deck zero-fail</h2><p>Auto-requeue stuck provision; operator kick; network labels.</p><a href="workflow-flight-deck-zero-fail-browsable.html">Flight deck lab →</a></article>
+    <article class="card"><span class="tag tag--batch">1738</span><h2><i class="bi bi-diagram-3"></i> Lifecycle OS</h2><p>14-state FSM visible; cached labels offline.</p><a href="tenant-lifecycle-os-browsable.html">Lifecycle OS →</a></article>
+    <article class="card"><span class="tag tag--batch">1739</span><h2><i class="bi bi-calendar2-range"></i> Year close / open</h2><p>Rollover checklist; field_capture offline ack.</p><a href="academic-year-close-open-browsable.html">Year close lab →</a></article>
+  </div>
+
+  <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3)">Phase 7 — Discipline excellence (1740–1742)</p>
+  <div class="pillar">
+    <article class="card"><span class="tag tag--e">Pillar E</span><span class="tag tag--batch">1740–42</span><h2><i class="bi bi-shield-exclamation"></i> Disciplinary module</h2><p>Refer queue, MTSS tiers, parent loop, Discipline Master cockpit.</p><a href="disciplinary-excellence-lab-browsable.html">Discipline lab →</a></article>
+    <article class="card"><span class="tag tag--batch">Post-setup</span><h2><i class="bi bi-grid-1x2"></i> Command Center</h2><p>Bento Overview | Cockpit after launch.</p><a href="tenant-post-setup-cockpit-hub.html">Cockpit hub →</a></article>
+  </div>
+
+  <div class="links">
+    <a href="provisioning-golive-hub-browsable.html">Batch 1731 hub</a>
+    <a href="workflow-flight-deck-preview.html">Legacy flight deck preview</a>
+    <a href="../../docs/phase_checklists/PROVISIONING_TO_GOLIVE_AUDIT.md">PGL audit</a>
+    <a href="../../docs/OFFLINE_PLATFORM_AND_DATA_INTEGRITY.md">Offline platform SOT</a>
+  </div>
+</div>
+<script>
+(function(){
+  var outbox={online:0,offline:3,hub:1};
+  var panel=document.getElementById('offline-panel');
+  var ob=document.getElementById('outbox');
+  document.querySelector('.conn').addEventListener('click',function(e){
+    var b=e.target.closest('[data-conn]'); if(!b) return;
+    document.querySelectorAll('.conn button').forEach(function(x){x.classList.remove('is-on');});
+    b.classList.add('is-on');
+    var m=b.getAttribute('data-conn');
+    panel.classList.toggle('is-on',m!=='online');
+    var labels={online:'Outbox: 0 items',offline:'Outbox: 3 queued (refer, attendance, setup ack)',hub:'LAN hub · 1 sync pending'};
+    ob.textContent=labels[m]||labels.online;
+  });
+})();
+</script>
+</body>
+</html>

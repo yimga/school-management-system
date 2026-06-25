@@ -3,36 +3,46 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RunMyCampus · Theme &amp; Experience — dashboard style picker</title>
+<title>RunMyCampus · Dashboard visual style gallery</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
   :root{--bg:#0b1020;--canvas:#0e1426;--elevated:#141c33;--hairline:rgba(255,255,255,.08);--text:#eef2ff;--text-2:#aab3d4;--text-3:#7b86ad;--brand:#6366f1;--accent:#10b981;--radius:14px;--font:Inter,system-ui,sans-serif}
   *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5}
-  .flag{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#ec4899,#6366f1);color:#fff;font-weight:700;font-size:12px;text-align:center;padding:5px}
+  .flag{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#ec4899,#6366f1,#10b981);color:#fff;font-weight:700;font-size:12px;text-align:center;padding:5px}
   .flag a{color:#fff;margin-left:8px}
-  .page{max-width:960px;margin:42px auto 60px;padding:0 20px}
+  .page{max-width:1100px;margin:42px auto 60px;padding:0 20px}
   h1{margin:0 0 6px;font-size:22px;font-weight:750}
-  .sub{color:var(--text-3);font-size:13px;margin:0 0 24px;max-width:65ch}
+  .sub{color:var(--text-3);font-size:13px;margin:0 0 20px;max-width:70ch}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center}
+  .toolbar button,.toolbar select{border:1px solid var(--hairline);background:var(--elevated);color:var(--text);border-radius:999px;padding:6px 12px;font:inherit;font-size:12px;cursor:pointer}
   .card{background:var(--canvas);border:1px solid var(--hairline);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
   .card h2{margin:0 0 4px;font-size:16px;display:flex;align-items:center;gap:8px}
   .card .hint{margin:0 0 14px;font-size:12px;color:var(--text-3)}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   @media(max-width:720px){.grid2{grid-template-columns:1fr}}
   label{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px}
-  select,.inp{width:100%;background:var(--elevated);border:1px solid var(--hairline);border-radius:10px;padding:9px 12px;color:var(--text);font:inherit;font-size:13px}
-  .style-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
-  @media(max-width:600px){.style-grid{grid-template-columns:1fr}}
+  select{width:100%;background:var(--elevated);border:1px solid var(--hairline);border-radius:10px;padding:9px 12px;color:var(--text);font:inherit;font-size:13px}
+  .style-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+  @media(max-width:900px){.style-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:480px){.style-grid{grid-template-columns:1fr}}
   .style-opt{border:2px solid var(--hairline);border-radius:12px;padding:12px;cursor:pointer;transition:.15s;background:var(--elevated)}
   .style-opt:hover{border-color:rgba(99,102,241,.4)}
   .style-opt.is-picked{border-color:var(--brand);box-shadow:0 0 0 1px rgba(99,102,241,.25)}
   .style-opt h3{margin:0 0 4px;font-size:13px}
-  .style-opt p{margin:0;font-size:11px;color:var(--text-3)}
-  .mini-preview{height:72px;border-radius:8px;margin-bottom:8px;border:1px solid var(--hairline);overflow:hidden;position:relative}
-  .mini-preview--soft{background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(16,185,129,.08));backdrop-filter:blur(8px)}
+  .style-opt p{margin:0;font-size:10px;color:var(--text-3)}
+  .style-opt .rec{font-size:9px;font-weight:700;text-transform:uppercase;color:var(--accent);margin-top:4px}
+  .mini-preview{height:64px;border-radius:8px;margin-bottom:8px;border:1px solid var(--hairline);overflow:hidden;position:relative}
+  .mini-preview--soft{background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(16,185,129,.08))}
   .mini-preview--crisp{background:var(--canvas)}
   .mini-preview--hc{background:#000;border-color:#fff}
-  .mini-preview .bar{height:8px;margin:8px;background:rgba(255,255,255,.15);border-radius:4px;width:60%}
-  .mini-preview .tile{position:absolute;bottom:8px;left:8px;right:8px;height:28px;background:rgba(255,255,255,.08);border-radius:6px}
+  .mini-preview--warm{background:linear-gradient(180deg,#faf6ef,#f3ebe0)}
+  .mini-preview--midnight{background:#050810;border-color:#1e293b}
+  .mini-preview--bento{display:grid;grid-template-columns:2fr 1fr;gap:3px;padding:4px;background:var(--canvas)}
+  .mini-preview--bento i{background:rgba(99,102,241,.25);border-radius:4px}
+  .mini-preview--heritage{background:linear-gradient(135deg,rgba(234,179,8,.2),rgba(16,185,129,.15))}
+  .mini-preview--family{background:linear-gradient(135deg,#fdf2f8,#eff6ff);border-color:#fbcfe8}
+  .mini-preview .bar{height:6px;margin:6px;background:rgba(128,128,128,.25);border-radius:3px;width:55%}
+  .mini-preview .tile{position:absolute;bottom:6px;left:6px;right:6px;height:22px;background:rgba(128,128,128,.12);border-radius:5px}
   .dash-type{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
   .dash-type label{display:flex;flex-direction:column;gap:8px;padding:14px;border:2px solid var(--hairline);border-radius:12px;cursor:pointer;background:var(--elevated);font-weight:600;font-size:13px;color:var(--text)}
   .dash-type input{accent-color:var(--brand);width:16px;height:16px}
@@ -40,16 +50,31 @@
   .dash-type span.desc{font-weight:400;font-size:11px;color:var(--text-3)}
   .live-preview{margin-top:16px;border:1px solid var(--hairline);border-radius:14px;padding:16px;background:var(--bg)}
   .live-preview h3{margin:0 0 10px;font-size:14px;color:var(--text-2)}
-  .lp-hero{display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;margin-bottom:10px;border:1px solid var(--hairline)}
-  .lp-hero.soft{background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(16,185,129,.06));backdrop-filter:blur(12px)}
-  .lp-hero.crisp{background:var(--canvas);border-color:var(--hairline)}
-  .lp-hero.hc{background:#000;border:2px solid #fff;color:#fff}
-  .lp-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .lp-shell{border-radius:12px;overflow:hidden;border:1px solid var(--hairline)}
+  .lp-hero{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--hairline)}
+  .lp-hero.soft{background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(16,185,129,.06))}
+  .lp-hero.crisp{background:var(--canvas)}
+  .lp-hero.hc{background:#000;color:#fff;border-bottom-color:#fff}
+  .lp-hero.warm{background:linear-gradient(180deg,#faf6ef,#f5efe6);color:#1a1510;font-family:Georgia,serif}
+  .lp-hero.midnight{background:#070b14;color:#e2e8f0}
+  .lp-hero.bento{background:var(--canvas);padding:0;border:0}
+  .lp-hero.bento .bento-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:10px;width:100%;padding:12px}
+  .lp-hero.bento .bento-hero{background:linear-gradient(135deg,rgba(99,102,241,.22),transparent);border-radius:12px;padding:16px;min-height:100px}
+  .lp-hero.bento .bento-stack{display:flex;flex-direction:column;gap:8px}
+  .lp-hero.bento .bento-stack div{background:var(--elevated);border-radius:10px;padding:12px;font-size:12px;border:1px solid var(--hairline)}
+  .lp-hero.heritage{background:linear-gradient(135deg,rgba(234,179,8,.12),rgba(16,185,129,.08));border-left:4px solid #eab308}
+  .lp-hero.family{background:linear-gradient(135deg,#fdf2f8,#eff6ff);color:#334155;border-radius:16px 16px 0 0}
+  .lp-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px}
+  .lp-tiles.hidden{display:none}
   .lp-tile{padding:10px;border-radius:10px;border:1px solid var(--hairline);font-size:11px}
   .lp-tile .v{font-size:16px;font-weight:700;display:block;margin-top:2px}
   .lp-tile.soft{background:rgba(255,255,255,.04)}
   .lp-tile.crisp{background:var(--elevated)}
   .lp-tile.hc{background:#111;border-color:#fff;color:#fff}
+  .lp-tile.warm{background:#fff;border-color:#e8dcc8;color:#1a1510}
+  .lp-tile.midnight{background:#0f172a;border-color:#334155;color:#e2e8f0}
+  .lp-tile.heritage{background:rgba(234,179,8,.08);border-color:rgba(234,179,8,.3)}
+  .lp-tile.family{background:#fff;border-color:#fbcfe8;border-radius:14px;color:#475569}
   .actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
   .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;font-weight:600;font-size:13px;border:none;cursor:pointer;text-decoration:none}
   .btn--primary{background:var(--brand);color:#fff}
@@ -59,25 +84,30 @@
 </style>
 </head>
 <body>
-<div class="flag">BRANDING PREVIEW · Theme &amp; Experience · dashboard packs + visual presets · <a href="tenant-post-setup-cockpit-hub.html">← Hub</a></div>
+<div class="flag">DASHBOARD STYLE GALLERY · 8 visual presets · <a href="provisioning-golive-hub-browsable.html">Provisioning hub</a> · <a href="tenant-post-setup-cockpit-hub.html">Post-setup hub</a></div>
 
 <div class="page">
-  <h1><i class="bi bi-palette"></i> Theme &amp; Experience</h1>
-  <p class="sub">School admins choose how dashboards look for each role. Maps to live fields: <code>dashboard_visual_preset</code>, <code>role_dashboard_packs</code>, <code>backend_console_theme</code>, and <code>default_dashboard_view</code> in SiteSettings / user preferences.</p>
+  <h1><i class="bi bi-palette"></i> Dashboard visual style gallery</h1>
+  <p class="sub">School admins pick how each role experiences the platform after go-live. Maps to <code>dashboard_visual_preset</code>, <code>role_dashboard_packs</code>, and <code>backend_console_theme</code>.</p>
+
+  <div class="toolbar">
+    <button type="button" id="theme-toggle">◐ Toggle light/dark page</button>
+    <label style="margin:0;font-weight:500">Density
+      <select id="density-pick"><option value="comfortable">Comfortable</option><option value="compact">Compact</option><option value="spacious">Spacious</option></select>
+    </label>
+  </div>
 
   <div class="grid2">
     <div class="card">
       <h2><i class="bi bi-grid-1x2"></i> Dashboard surface</h2>
-      <p class="hint">Which command surface loads after setup is complete.</p>
+      <p class="hint">Backend Command Center vs frontend role homes.</p>
       <div class="dash-type" id="dash-type">
-        <label class="is-picked"><input type="radio" name="surface" value="backend" checked> Backend cockpit <span class="desc">School Command Center · ops KPIs + Configure → Cockpit widgets · <code>/authentication/backend/</code></span></label>
-        <label><input type="radio" name="surface" value="frontend"> Frontend portal <span class="desc">Role homes for Parent / Teacher / Student · community-facing · <code>/portal/*/</code></span></label>
+        <label class="is-picked"><input type="radio" name="surface" value="backend" checked> Backend cockpit <span class="desc">School Command Center · <code>/authentication/backend/</code></span></label>
+        <label><input type="radio" name="surface" value="frontend"> Frontend portal <span class="desc">Parent / Teacher / Student · <code>/portal/*/</code></span></label>
       </div>
     </div>
-
     <div class="card">
-      <h2><i class="bi bi-person-badge"></i> Role</h2>
-      <p class="hint">Visual preset can differ per role.</p>
+      <h2><i class="bi bi-person-badge"></i> Role &amp; pack</h2>
       <label for="role-pick">Apply style to</label>
       <select id="role-pick">
         <option value="ADMIN">Admin / Leadership</option>
@@ -87,7 +117,7 @@
       </select>
       <label for="pack-pick" style="margin-top:12px">Dashboard pack</label>
       <select id="pack-pick">
-        <option value="school-admin-operations">School admin operations (default)</option>
+        <option value="school-admin-operations">School admin operations</option>
         <option value="school-admin-finance-first">Finance-first admin</option>
         <option value="teacher-planner">Teacher planner</option>
         <option value="family-fees-first">Family · fees first</option>
@@ -96,60 +126,106 @@
   </div>
 
   <div class="card">
-    <h2><i class="bi bi-brush"></i> Dashboard visual style</h2>
-    <p class="hint">Per-role choice — stored in <code>DashboardUserPreference.role_visual_presets</code>.</p>
+    <h2><i class="bi bi-brush"></i> Visual presets (8)</h2>
+    <p class="hint">Click a card — live preview updates below. Suggested defaults shown per role.</p>
     <div class="style-grid" id="style-grid">
-      <div class="style-opt is-picked" data-style="soft">
+      <div class="style-opt is-picked" data-style="soft" data-roles="TEACHER,PARENT">
         <div class="mini-preview mini-preview--soft"><div class="bar"></div><div class="tile"></div></div>
         <h3>Soft Glass</h3>
-        <p>Default for Parent &amp; Teacher · frosted panels, gentle gradients.</p>
+        <p>Frosted panels, gentle gradients.</p>
+        <div class="rec">Parent · Teacher</div>
       </div>
-      <div class="style-opt" data-style="crisp">
+      <div class="style-opt" data-style="crisp" data-roles="ADMIN">
         <div class="mini-preview mini-preview--crisp"><div class="bar"></div><div class="tile"></div></div>
         <h3>Crisp Professional</h3>
-        <p>Default for Admin · flat surfaces, high information density.</p>
+        <p>Flat surfaces, high density.</p>
+        <div class="rec">Admin default</div>
       </div>
       <div class="style-opt" data-style="hc">
         <div class="mini-preview mini-preview--hc"><div class="bar"></div><div class="tile"></div></div>
         <h3>High Contrast</h3>
-        <p>Accessibility · bold borders, maximum legibility.</p>
+        <p>Accessibility · max legibility.</p>
+      </div>
+      <div class="style-opt" data-style="warm">
+        <div class="mini-preview mini-preview--warm"><div class="bar"></div><div class="tile"></div></div>
+        <h3>Warm Editorial</h3>
+        <p>Cream surfaces, serif accents — marketing-adjacent trust.</p>
+      </div>
+      <div class="style-opt" data-style="midnight" data-roles="ADMIN">
+        <div class="mini-preview mini-preview--midnight"><div class="bar"></div><div class="tile"></div></div>
+        <h3>Midnight Ops</h3>
+        <p>Dense control-plane · operator focus.</p>
+      </div>
+      <div class="style-opt" data-style="bento" data-roles="ADMIN">
+        <div class="mini-preview mini-preview--bento"><i></i><i></i></div>
+        <h3>Bento Focus</h3>
+        <p>Hero + side stack · attention-first layout.</p>
+      </div>
+      <div class="style-opt" data-style="heritage">
+        <div class="mini-preview mini-preview--heritage"><div class="bar"></div><div class="tile"></div></div>
+        <h3>Regional Heritage</h3>
+        <p>Gold + emerald accents · Cameroon / W-Africa schools.</p>
+      </div>
+      <div class="style-opt" data-style="family" data-roles="PARENT">
+        <div class="mini-preview mini-preview--family"><div class="bar"></div><div class="tile"></div></div>
+        <h3>Family Friendly</h3>
+        <p>Rounded, soft pastels · parent portal.</p>
       </div>
     </div>
 
     <div class="live-preview" id="live-preview">
-      <h3>Live mini-preview</h3>
-      <div class="lp-hero soft" id="lp-hero">
-        <div><strong id="lp-title">School command surface</strong><br><span style="font-size:12px;color:var(--text-3)" id="lp-sub">Backend cockpit · Admin</span></div>
-      </div>
-      <div class="lp-tiles">
-        <div class="lp-tile soft" id="t1"><span>Students</span><span class="v">248</span></div>
-        <div class="lp-tile soft" id="t2"><span>Present</span><span class="v">93%</span></div>
-        <div class="lp-tile soft" id="t3"><span>Collected</span><span class="v">₣4.2M</span></div>
-        <div class="lp-tile soft" id="t4"><span>Overdue</span><span class="v">12</span></div>
+      <h3>Live preview · <span id="style-label">Soft Glass</span></h3>
+      <div class="lp-shell">
+        <div class="lp-hero soft" id="lp-hero">
+          <div><strong id="lp-title">School command surface</strong><br><span style="font-size:12px;opacity:.7" id="lp-sub">Backend cockpit · Admin</span></div>
+          <span style="font-size:11px;padding:4px 10px;border-radius:999px;border:1px solid var(--hairline)" id="lp-badge">248 students</span>
+        </div>
+        <div class="lp-tiles" id="lp-tiles">
+          <div class="lp-tile soft" id="t1"><span>Students</span><span class="v">248</span></div>
+          <div class="lp-tile soft" id="t2"><span>Present</span><span class="v">93%</span></div>
+          <div class="lp-tile soft" id="t3"><span>Collected</span><span class="v">₣4.2M</span></div>
+          <div class="lp-tile soft" id="t4"><span>Overdue</span><span class="v">12</span></div>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="actions">
     <button type="button" class="btn btn--primary"><i class="bi bi-check2"></i> Save preferences</button>
-    <a class="btn btn--ghost" href="tenant-post-setup-backend-cockpit.html"><i class="bi bi-eye"></i> Preview backend cockpit</a>
-    <a class="btn btn--ghost" href="tenant-post-setup-frontend-dashboard.html"><i class="bi bi-eye"></i> Preview frontend dashboard</a>
+    <a class="btn btn--ghost" href="tenant-post-setup-backend-cockpit.html"><i class="bi bi-eye"></i> Backend cockpit</a>
+    <a class="btn btn--ghost" href="tenant-post-setup-frontend-dashboard.html"><i class="bi bi-eye"></i> Frontend dashboard</a>
+    <a class="btn btn--ghost" href="provisioning-golive-lab-browsable.html"><i class="bi bi-sliders"></i> Go-live lab</a>
   </div>
 
-  <p class="map"><strong>Django wiring (already in repo):</strong> User prefs form <code>UserPreferenceForm.dashboard_visual_preset</code> · packs via <code>role_dashboard_packs</code> · tenant <code>backend_console_theme</code> in SiteSettings · post-setup route switches when <code>show_setup_landing</code> is false → Overview | Cockpit bento in <code>backend_dashboard.html</code>.</p>
+  <p class="map"><strong>Proposed preset keys:</strong> <code>soft_glass</code> · <code>crisp_pro</code> · <code>high_contrast</code> · <code>warm_editorial</code> · <code>midnight_ops</code> · <code>bento_focus</code> · <code>regional_heritage</code> · <code>family_friendly</code> — extend <code>UserPreferenceForm.dashboard_visual_preset</code> choices when adopting.</p>
 </div>
 
 <script>
 var style='soft', surface='backend';
+var styleLabels={soft:'Soft Glass',crisp:'Crisp Professional',hc:'High Contrast',warm:'Warm Editorial',midnight:'Midnight Ops',bento:'Bento Focus',heritage:'Regional Heritage',family:'Family Friendly'};
 function applyPreview(){
   var hero=document.getElementById('lp-hero');
+  var tilesWrap=document.getElementById('lp-tiles');
   var tiles=[document.getElementById('t1'),document.getElementById('t2'),document.getElementById('t3'),document.getElementById('t4')];
-  hero.className='lp-hero '+style;
-  tiles.forEach(function(t){t.className='lp-tile '+style;});
+  if(style==='bento'){
+    hero.className='lp-hero bento';
+    hero.innerHTML='<div class="bento-grid"><div class="bento-hero"><strong id="lp-title">Today at a glance</strong><p style="font-size:12px;margin:6px 0 0;opacity:.8" id="lp-sub">Attention queue · schedule</p></div><div class="bento-stack"><div>Fees due · 12</div><div>Attendance · 93%</div></div></div>';
+    tilesWrap.classList.add('hidden');
+  }else{
+    tilesWrap.classList.remove('hidden');
+    hero.className='lp-hero '+style;
+    hero.innerHTML='<div><strong id="lp-title">School command surface</strong><br><span style="font-size:12px;opacity:.7" id="lp-sub">Backend cockpit · Admin</span></div><span style="font-size:11px;padding:4px 10px;border-radius:999px;border:1px solid var(--hairline)" id="lp-badge">248 students</span>';
+    tiles.forEach(function(t){if(t)t.className='lp-tile '+style;});
+  }
   var role=document.getElementById('role-pick').value;
   var titles={ADMIN:'School command surface',TEACHER:'My teaching day',PARENT:'Family home',STUDENT:'Learning home'};
-  document.getElementById('lp-title').textContent=titles[role]||'Dashboard';
-  document.getElementById('lp-sub').textContent=(surface==='backend'?'Backend cockpit · ':'Frontend portal · ')+role;
+  var titleEl=document.getElementById('lp-title');
+  var subEl=document.getElementById('lp-sub');
+  if(titleEl) titleEl.textContent=titles[role]||'Dashboard';
+  if(subEl) subEl.textContent=(surface==='backend'?'Backend cockpit · ':'Frontend portal · ')+role;
+  document.getElementById('style-label').textContent=styleLabels[style]||style;
+  var dens=document.getElementById('density-pick').value;
+  tilesWrap.style.gap=dens==='compact'?'4px':dens==='spacious'?'14px':'8px';
 }
 document.querySelectorAll('.style-opt').forEach(function(opt){
   opt.addEventListener('click',function(){
@@ -167,7 +243,22 @@ document.querySelectorAll('#dash-type label').forEach(function(lab){
     applyPreview();
   });
 });
-document.getElementById('role-pick').addEventListener('change',applyPreview);
+document.getElementById('role-pick').addEventListener('change',function(){
+  var role=this.value;
+  document.querySelectorAll('.style-opt').forEach(function(o){
+    var roles=(o.dataset.roles||'').split(',');
+    if(roles.indexOf(role)>=0 && !o.classList.contains('is-picked')){
+      o.click();
+    }
+  });
+  applyPreview();
+});
+document.getElementById('density-pick').addEventListener('change',applyPreview);
+document.getElementById('theme-toggle').addEventListener('click',function(){
+  var html=document.documentElement;
+  html.dataset.theme=html.dataset.theme==='dark'?'light':'dark';
+});
+applyPreview();
 </script>
 </body>
 </html>

@@ -162,6 +162,11 @@ class DashboardUserPreference(models.Model):
         ("soft-glass", "Soft Glass"),
         ("crisp-professional", "Crisp Professional"),
         ("high-contrast", "High Contrast"),
+        ("warm-editorial", "Warm Editorial"),
+        ("midnight-ops", "Midnight Ops"),
+        ("bento-focus", "Bento Focus"),
+        ("regional-heritage", "Regional Heritage"),
+        ("family-friendly", "Family Friendly"),
     ]
     VISUAL_PRESET_DEFAULTS = {
         "PARENT": "soft-glass",

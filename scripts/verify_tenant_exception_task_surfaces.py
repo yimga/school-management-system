@@ -15,6 +15,10 @@ NEEDLES: list[tuple[str, str]] = [
     ("templates/people/backend_student_list.html", "data-rmc-tenant-exception-task"),
     ("templates/parent/finance.html", "data-rmc-tenant-exception-task"),
     ("templates/accounts/rbac_dashboard.html", "data-rmc-tenant-exception-task"),
+    ("templates/teacher/attendance.html", "data-rmc-tenant-exception-task"),
+    ("templates/teacher/timetable.html", "data-rmc-tenant-exception-task"),
+    ("templates/portal/unified_calendar.html", "data-rmc-tenant-exception-task"),
+    ("templates/finance/dashboard.html", "data-rmc-tenant-exception-task"),
 ]
 
 

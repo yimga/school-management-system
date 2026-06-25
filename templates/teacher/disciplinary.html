@@ -1,23 +1,73 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Disciplinary" %}{% endblock %}
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
 {% include "components/next_action_strip.html" %}
 
-<div data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
+<div data-rmc-scroll-policy="paginate" data-page-archetype="task-form">
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Disciplinary" %}</h1>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
-  <div class="card">
+  <div class="card mb-3">
     <div class="card-body">
-      <p class="mb-3">{% trans "Refer student incidents or behavioral concerns to the Discipline Master. Use the contact channel below to report an incident." %}</p>
-      <a href="{% url 'portal:support_request' %}?type=support&subject=Discipline%20referral" class="btn btn-outline-primary">{% trans "Submit referral / Contact Discipline Master" %}</a>
+      <h2 class="h6">{% trans "Refer an incident" %}</h2>
+      <p class="small text-muted">{% trans "Submissions queue offline when connectivity is limited." %}</p>
+      <form id="rmc-discipline-refer-form" class="rmc-discipline-refer" data-rmc-offline-form="field_capture" data-rmc-offline-workflow="discipline_refer" data-offline-action-type="discipline_refer">
+        {% csrf_token %}
+        <div class="mb-2">
+          <label class="form-label" for="discipline-student">{% trans "Student" %}</label>
+          <select class="form-select form-select-sm" id="discipline-student" name="student_id" required>
+            <option value="">{% trans "Select student" %}</option>
+            {% for s in discipline_students %}
+            <option value="{{ s.pk }}">{{ s.get_full_name|default:s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-md-4">
+            <label class="form-label" for="discipline-type">{% trans "Type" %}</label>
+            <select class="form-select form-select-sm" id="discipline-type" name="incident_type">
+              <option value="BEHAVIOR">{% trans "Behavior" %}</option>
+              <option value="TARDINESS">{% trans "Tardiness" %}</option>
+              <option value="ABSENCE">{% trans "Unexcused absence" %}</option>
+              <option value="OTHER">{% trans "Other" %}</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="discipline-tier">{% trans "MTSS tier" %}</label>
+            <select class="form-select form-select-sm" id="discipline-tier" name="mtss_tier">
+              <option value="1">{% trans "Tier 1 — Universal" %}</option>
+              <option value="2">{% trans "Tier 2 — Targeted" %}</option>
+              <option value="3">{% trans "Tier 3 — Intensive" %}</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label" for="discipline-severity">{% trans "Severity" %}</label>
+            <select class="form-select form-select-sm" id="discipline-severity" name="severity">
+              <option value="LOW">{% trans "Low" %}</option>
+              <option value="MEDIUM" selected>{% trans "Medium" %}</option>
+              <option value="HIGH">{% trans "High" %}</option>
+            </select>
+          </div>
+        </div>
+        <div class="mb-2">
+          <label class="form-label" for="discipline-desc">{% trans "Description" %}</label>
+          <textarea class="form-control form-control-sm" id="discipline-desc" name="description" rows="3" maxlength="4000"></textarea>
+        </div>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="discipline-notify" name="notify_parent" checked>
+          <label class="form-check-label" for="discipline-notify">{% trans "Notify parent when synced" %}</label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "Submit referral" %}</button>
+        <div class="alert alert-success mt-2 small d-none" id="discipline-refer-success" role="status"></div>
+        <div class="alert alert-warning mt-2 small d-none" id="discipline-refer-queued" role="status"></div>
+      </form>
     </div>
   </div>
 </div>
+<script src="{% static 'js/rmc-discipline-refer.js' %}" defer></script>
 {% endblock %}

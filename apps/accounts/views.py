@@ -2191,15 +2191,23 @@ BACKEND_SETUP_LANDING_HIDDEN_MODULES = (
 BACKEND_SETUP_LANDING_DEFAULT_THRESHOLD = 70
 
 
-def _resolve_setup_landing(onboarding_percent, backend_flags) -> bool:
+def _resolve_setup_landing(
+    onboarding_percent,
+    backend_flags,
+    *,
+    launch_ready: bool | None = None,
+    has_launched: bool | None = None,
+) -> bool:
     """Adaptive-landing decision: True when a school is still onboarding (below
     the operator-tunable setup threshold), so the admin dashboard collapses the
     dense operations center to a focused setup surface. The whole behaviour is
     gated by the backend_adaptive_setup_landing flag (default on); the cutover
     point is backend_setup_landing_threshold (default
-    BACKEND_SETUP_LANDING_DEFAULT_THRESHOLD). Reversible — lifts automatically as
-    setup completes."""
+    BACKEND_SETUP_LANDING_DEFAULT_THRESHOLD). Post-setup cockpit shows after
+    execute_launch records launched_at (Go live ceremony)."""
     if not bool(backend_flags.get("backend_adaptive_setup_landing", True)):
+        return False
+    if has_launched is True:
         return False
     try:
         pct = int(onboarding_percent or 0)
@@ -3403,14 +3411,79 @@ def backend_dashboard(request):
             context["rmc_school_onboarding"] = get_school_onboarding_progress(
                 _sch, user=request.user
             )
+            _launch_ready = None
+            _has_launched = False
+            try:
+                from apps.setup_studio.models import SetupProgress
+                from apps.setup_studio.services import get_setup_studio_payload
+
+                _studio_payload = get_setup_studio_payload(_sch) or {}
+                _launch_ready = bool(_studio_payload.get("launch_ready"))
+                _progress = SetupProgress.objects.filter(school=_sch).first()
+                _has_launched = bool(_progress and _progress.launched_at)
+            except ACCOUNTS_SOFT_FAILURES:
+                _launch_ready = None
+                _has_launched = False
+            context["rmc_school_readiness_launch_ready"] = _launch_ready
+            context["rmc_school_has_launched"] = _has_launched
+            try:
+                from apps.schools.school_readiness import build_school_readiness
+
+                context["rmc_school_readiness"] = build_school_readiness(
+                    _sch, user=request.user
+                )
+            except ACCOUNTS_SOFT_FAILURES:
+                context["rmc_school_readiness"] = None
+            try:
+                from apps.schools.launch_playbook import build_launch_playbook
+
+                context["rmc_launch_playbook"] = build_launch_playbook(
+                    _sch, user=request.user
+                )
+            except ACCOUNTS_SOFT_FAILURES:
+                context["rmc_launch_playbook"] = None
+            try:
+                from apps.platform_runtime.tenant_operational_lifecycle import (
+                    resolve_operational_lifecycle_state,
+                )
+
+                context["rmc_operational_lifecycle"] = resolve_operational_lifecycle_state(
+                    _sch
+                )
+            except ACCOUNTS_SOFT_FAILURES:
+                context["rmc_operational_lifecycle"] = None
+            try:
+                from apps.schools.year_close_checklist import build_year_close_checklist
+
+                context["rmc_year_close_checklist"] = build_year_close_checklist(
+                    _sch, user=request.user
+                )
+            except ACCOUNTS_SOFT_FAILURES:
+                context["rmc_year_close_checklist"] = None
+            try:
+                from apps.siteconfig.models_dashboard import DashboardUserPreference
+
+                context["rmc_dashboard_visual_preset_choices"] = (
+                    DashboardUserPreference.VISUAL_PRESET_CHOICES
+                )
+            except ACCOUNTS_SOFT_FAILURES:
+                context["rmc_dashboard_visual_preset_choices"] = ()
             # Adaptive landing: below the setup threshold, collapse the ops center
             # to a focused setup surface by flipping the existing per-widget
             # visibility gates (no parallel template branches). Reversible.
             _setup_landing = _resolve_setup_landing(
                 (context.get("rmc_school_onboarding") or {}).get("percent"),
                 backend_flags,
+                launch_ready=_launch_ready,
+                has_launched=_has_launched,
             )
             context["show_setup_landing"] = _setup_landing
+            if request.GET.get("launched") == "1" or request.session.pop(
+                "rmc_launch_ceremony_show", False
+            ):
+                context["rmc_show_launch_ceremony"] = True
+            else:
+                context["rmc_show_launch_ceremony"] = False
             if _setup_landing:
                 for _mod in BACKEND_SETUP_LANDING_HIDDEN_MODULES:
                     backend_module_visibility[_mod] = False
@@ -3423,12 +3496,26 @@ def backend_dashboard(request):
                     from apps.setup_studio.setup_surface import (
                         build_setup_wizard_stages,
                     )
+                    from apps.setup_studio.services import get_setup_studio_payload
 
                     context["rmc_setup_wizard_stages"] = build_setup_wizard_stages(
                         _sch
                     )
+                    _studio_payload = get_setup_studio_payload(_sch) or {}
+                    context["rmc_setup_recommended_next"] = _studio_payload.get(
+                        "recommended_next"
+                    )
+                    context["rmc_setup_migration_flow"] = _studio_payload.get(
+                        "migration_path_flow"
+                    )
+                    context["rmc_setup_data_path_choices"] = _studio_payload.get(
+                        "data_path_choices"
+                    )
                 except ACCOUNTS_SOFT_FAILURES:
                     context["rmc_setup_wizard_stages"] = None
+                    context["rmc_setup_recommended_next"] = None
+                    context["rmc_setup_migration_flow"] = None
+                    context["rmc_setup_data_path_choices"] = None
             context["rmc_school_health"] = calculate_school_health(_sch)
             context["rmc_school_health_nudges"] = get_school_health_recommendations(
                 _sch, user=request.user, limit=3

@@ -8,7 +8,9 @@ from django.contrib.auth import get_user_model
 from django.core.management.color import no_style
 from django.test import TestCase
 
-from apps.people.models import StudentGuardian, StudentProfile
+from apps.academics.models import AcademicYear, Term
+from apps.finance.models import ComplianceProfile
+from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
 from apps.schools.demo_user_seeding import seed_demo_users_for_school
 from apps.schools.models import School, SchoolMembership
 from apps.siteconfig.config_service import get_effective_site_settings
@@ -103,3 +105,26 @@ class SeedDemoUsersForSchoolTests(TestCase):
 
         site = get_effective_site_settings(school=self.school)
         self.assertTrue(getattr(site, "enable_student_portal", False))
+
+    def test_seed_creates_active_term_and_finance_profile(self):
+        seed_demo_users_for_school(
+            self.school,
+            password="Test1234",
+            username_prefix="demo",
+            stdout=self.stdout,
+            style=self.style,
+        )
+
+        year = AcademicYear.objects.filter(school=self.school, is_active=True).first()
+        self.assertIsNotNone(year)
+        self.assertTrue(
+            Term.objects.filter(
+                school=self.school, academic_year=year, is_active=True
+            ).exists()
+        )
+        self.assertTrue(ComplianceProfile.objects.filter(is_active=True).exists())
+        self.assertTrue(
+            TeacherProfile.objects.filter(
+                user__username="demo.teacher", school=self.school
+            ).exists()
+        )

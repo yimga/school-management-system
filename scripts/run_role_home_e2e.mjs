@@ -113,7 +113,7 @@ const baseEnv = {
   REDIS_URL: '',
   RMC_FORCE_DB_SESSIONS: '1',
   SECURE_SSL_REDIRECT: '0',
-  DEBUG: '1',
+  DEBUG: process.env.DEBUG ?? '1',
   CSRF_COOKIE_SECURE: '0',
   SESSION_COOKIE_SECURE: '0',
   RMC_DEPLOYMENT_PROFILE: 'online',
@@ -128,21 +128,36 @@ const baseEnv = {
     process.env.VISUAL_QA_TOTP_HEX ||
     DEFAULT_TOTP_HEX,
   TENANT_SWEEP_PASSWORD: process.env.TENANT_SWEEP_PASSWORD || 'Test1234',
+  DB_LOG_LEVEL: process.env.DB_LOG_LEVEL || 'WARNING',
+  LOGIN_POW_ENABLED: '0',
+  PYTHONUTF8: '1',
 };
+/** Demo seed commands require DEBUG=1; runserver stays production-like unless DEBUG=1 in env. */
+const seedEnv = { ...baseEnv, DEBUG: '1' };
+
+function removeSqliteDbFiles(dbPath) {
+  for (const suffix of ['', '-wal', '-shm']) {
+    const candidate = suffix ? `${dbPath}${suffix}` : dbPath;
+    if (!fs.existsSync(candidate)) {
+      continue;
+    }
+    try {
+      fs.unlinkSync(candidate);
+    } catch (err) {
+      console.warn(`could not remove ${candidate}: ${err}`);
+    }
+  }
+}
 
 console.log('=== role-home e2e: migrate ===');
 if (gateSnapshot && fs.existsSync(gateSnapshot)) {
   fs.copyFileSync(gateSnapshot, dbFile);
   console.log(`seeded e2e db from gate snapshot ${gateSnapshot}`);
 } else if (process.env.RMC_E2E_KEEP_DB !== '1' && fs.existsSync(dbFile)) {
-  try {
-    fs.unlinkSync(dbFile);
-    console.log(`removed stale e2e db ${dbFile}`);
-  } catch (err) {
-    console.warn(`could not remove stale e2e db: ${err}`);
-  }
+  removeSqliteDbFiles(dbFile);
+  console.log(`removed stale e2e db ${dbFile}`);
 }
-migrateDatabase(baseEnv);
+migrateDatabase(seedEnv);
 
 console.log(`=== role-home e2e: ensure developer sandbox (${slug}) ===`);
 runSync(
@@ -152,7 +167,7 @@ runSync(
     `--school-slug=${slug}`,
     `--password=${baseEnv.TENANT_SWEEP_PASSWORD}`,
   ],
-  baseEnv,
+  seedEnv,
 );
 
 console.log('=== role-home e2e: seed TOTP for demo personas ===');
@@ -189,7 +204,7 @@ for username in users:
     print(f'Seeded TOTP e2e-playwright for {username}')
 `.trim(),
   ],
-  baseEnv,
+  seedEnv,
 );
 
 const artifactDir = path.join(repo, 'artifacts', 'role-home-e2e');
@@ -260,6 +275,9 @@ for (const sig of ['SIGINT', 'SIGTERM']) {
 }
 
 await waitForServer();
+
+// Allow first template compile + SQLite WAL settle before Playwright hammers login.
+await new Promise((r) => setTimeout(r, 3000));
 
 console.log('=== role-home e2e: visual sweep ===');
 const tenantOnly = process.env.ROLE_SWEEP_TENANT_ONLY || '1';

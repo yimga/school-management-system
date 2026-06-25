@@ -107,6 +107,34 @@ def _safe_reverse(name: str) -> str:
         return "#"
 
 
+def _account_migration_wizard_link() -> str:
+    try:
+        return reverse(
+            "setup_studio:tenant_wizard",
+            kwargs={"wizard_key": "account_migration"},
+        )
+    except (NoReverseMatch, TypeError, ValueError):
+        return "#"
+
+
+def _migration_studio_link() -> str:
+    url = _safe_reverse("studio_os:launch")
+    if url == "#":
+        return url
+    join = "&" if "?" in url else "?"
+    return f"{url}{join}pane=migration"
+
+
+def _academic_year_wizard_link() -> str:
+    try:
+        return reverse(
+            "setup_studio:tenant_wizard",
+            kwargs={"wizard_key": "academic_year_setup"},
+        )
+    except (NoReverseMatch, TypeError, ValueError):
+        return "#"
+
+
 def _step_link_from_definition(definition: dict[str, Any]) -> str:
     """Resolve setup step CTA URL, including optional query (e.g. Launch Studio pane)."""
     url = _safe_reverse(definition["link_name"])
@@ -926,6 +954,21 @@ def _build_recommendations(
                 "icon": "bi-database",
             }
         )
+    blockers_cleared = all(
+        step_state[key]["done"] for key, item in step_state.items() if item["is_blocker"]
+    )
+    if blockers_cleared and not step_state["launch"]["done"]:
+        recommendations.append(
+            {
+                "type": "academic_year",
+                "title": "Create your academic year and terms before launch.",
+                "detail": "Gradebooks, timetables, and report cards need an active academic year.",
+                "cta_label": "Set up academic year",
+                "cta_url": _academic_year_wizard_link(),
+                "tone": "critical",
+                "icon": "bi-calendar-range",
+            }
+        )
     if not recommendations:
         recommendations.append(
             {
@@ -1014,8 +1057,8 @@ def _score(
     return round((earned / total_weight) * 100), breakdown, blockers
 
 
-def _health_summary(score: int, blocker_count: int) -> dict[str, Any]:
-    if score >= 85 and blocker_count == 0:
+def _health_summary(score: int, blocker_count: int, *, launch_step_done: bool = False) -> dict[str, Any]:
+    if score >= 85 and blocker_count == 0 and launch_step_done:
         return {
             "tone": "ready",
             "label": "Launch ready",
@@ -1116,6 +1159,9 @@ def _build_data_path_choices(
 ) -> list[dict[str, Any]]:
     has_students = step_state["data_path"]["done"]
     has_plan = step_state["plan_choice"]["done"]
+    migrate_url = _account_migration_wizard_link()
+    if migrate_url == "#":
+        migrate_url = _migration_studio_link()
     return [
         {
             "key": "roster_import",
@@ -1126,6 +1172,16 @@ def _build_data_path_choices(
             "status": "Ready" if not has_students else "Already in place",
             "tone": "ready" if not has_students else "progress",
             "recommended": True,
+        },
+        {
+            "key": "migrate_from_sis",
+            "label": "Migrate from another platform",
+            "detail": "Companion export → sealed ingest → Migration Cloud apply bundle when moving from PowerSchool, Alma, Veracross, or similar.",
+            "cta_label": "Start migration wizard",
+            "cta_url": migrate_url,
+            "status": "Ready" if has_plan else "Plan first",
+            "tone": "ready" if has_plan else "pending",
+            "recommended": False,
         },
         {
             "key": "integration_sync",
@@ -1507,6 +1563,7 @@ def _recommended_next_step(
         "blueprint": "blueprint",
         "branding": "branding",
         "data": "data_path",
+        "academic_year": "launch",
         "launch": "launch",
     }
     for recommendation in recommendations:
@@ -1550,6 +1607,19 @@ def compile_setup_studio(school) -> dict[str, Any]:
     preview_cards = _build_preview_cards(school, step_state, role_previews)
     launch_checklist = _build_launch_checklist(step_state, school)
     health_score, health_breakdown, launch_blockers = _score(step_state)
+    blockers_cleared = all(
+        step_state[key]["done"] for key, item in step_state.items() if item["is_blocker"]
+    )
+    if blockers_cleared and not step_state["launch"]["done"]:
+        launch_blockers.append(
+            {
+                "key": "academic_year",
+                "label": gettext("Set up academic year"),
+                "detail": step_state["launch"]["evidence"],
+                "link": _academic_year_wizard_link(),
+                "cta_label": gettext("Open wizard"),
+            }
+        )
     preview_workspace = _build_preview_workspace(school, role_previews, preview_cards)
     blueprint_rankings = _rank_blueprints(school)
     data_path_choices = _build_data_path_choices(school, step_state)
@@ -1584,7 +1654,11 @@ def compile_setup_studio(school) -> dict[str, Any]:
         "launch_orchestration": launch_orchestration,
         "health_score": health_score,
         "health_breakdown": health_breakdown,
-        "health_summary": _health_summary(health_score, len(launch_blockers)),
+        "health_summary": _health_summary(
+            health_score,
+            len(launch_blockers),
+            launch_step_done=step_state["launch"]["done"],
+        ),
         "launch_ready": launch_ready,
         "recommended_blueprint": _recommended_blueprint(school),
         "blueprint_rankings": blueprint_rankings,
@@ -1619,13 +1693,9 @@ def compile_setup_studio(school) -> dict[str, Any]:
         progress.health_score = health_score
         progress.health_breakdown = health_breakdown
         progress.launch_ready = launch_ready
-        progress.launched_at = (
-            timezone.now()
-            if launch_ready and progress.launched_at is None
-            else progress.launched_at
-        )
         progress.save()
         payload["progress_id"] = progress.pk
+        payload["launched_at"] = progress.launched_at
 
     return payload
 
@@ -1700,6 +1770,37 @@ def execute_launch(school_id: int, actor_id: int | None = None) -> dict[str, Any
             if progress.launched_at is None:
                 progress.launched_at = timezone.now()
                 progress.save(update_fields=["launched_at"])
+        try:
+            from apps.platform_runtime.tenant_operational_lifecycle import (
+                resolve_operational_lifecycle_state,
+            )
+
+            lifecycle = resolve_operational_lifecycle_state(school)
+            logger.info(
+                "school_launch_ceremony school_id=%s lifecycle_state=%s actor=%s",
+                school_id,
+                lifecycle.get("state"),
+                actor_id,
+            )
+        except Exception:  # noqa: BLE001
+            logger.debug("launch ceremony lifecycle snapshot skipped", exc_info=True)
+        try:
+            from django.core.mail import send_mail
+
+            contact = getattr(school, "contact_email", None) or ""
+            if contact:
+                send_mail(
+                    subject=f"{getattr(school, 'name', 'Your school')} is live on RunMyCampus",
+                    message=(
+                        "Congratulations — your school passed launch readiness checks. "
+                        "Invite staff and families, then open your School Command Center."
+                    ),
+                    from_email=None,
+                    recipient_list=[contact],
+                    fail_silently=True,
+                )
+        except Exception:  # noqa: BLE001
+            logger.debug("launch ceremony email skipped", exc_info=True)
         # Go-live just cleared first-run: drop the cached welcome-card flag so the
         # per-role zero-state vanishes immediately (not at the next cache expiry).
         try:

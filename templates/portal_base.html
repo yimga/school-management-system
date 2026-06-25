@@ -462,9 +462,11 @@
             {% include "components/rmc_page_explain_strip.html" %}
             {% endif %}
             {% comment %} v4.02.10: incident banner in Tools tray context stack. {% endcomment %}
+            {% if not tp_v3_tenant_shell %}
             {% include "partials/shell_chrome_security_posture_banner.html" %}
             {% comment %} MFA enrollment nudge — shown under grace/optional enforcement. {% endcomment %}
             {% include "partials/rmc_mfa_nudge.html" %}
+            {% endif %}
 
             {% if request.user.is_authenticated and not tp_v3_tenant_shell %}
             {% block rmc_zero_click_strip %}
@@ -529,8 +531,10 @@
                override portal_community_band block. {% endcomment %}
             {% if request.public_host_kind != 'manager' %}
             {% block portal_community_band %}
+            {% if not tp_v3_tenant_shell %}
               {% include "partials/cockpit/_community_band.html" %}
               {% include "partials/cockpit/_newsletter_band.html" %}
+            {% endif %}
             {% endblock %}
             {% comment %} v3.57.10 (2026-05-22): block kept as a no-op extension point so tenant
                landing dashboards (parent/student/backend) can pull in the 10 v3 100x extended

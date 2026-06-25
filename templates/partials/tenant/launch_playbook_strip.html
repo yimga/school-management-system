@@ -1,0 +1,33 @@
+{% load i18n %}
+{% if rmc_launch_playbook and rmc_launch_playbook.visible %}
+<section class="rmc-launch-playbook rmc-card" data-rmc-launch-playbook="1" data-page-critical-read="1">
+  <header class="rmc-launch-playbook__head">
+    <h2 class="rmc-launch-playbook__title">{% trans "First 7 days" %}</h2>
+    <p class="rmc-launch-playbook__meta text-muted small mb-0">
+      {% blocktrans with done=rmc_launch_playbook.completed_count total=rmc_launch_playbook.total_count %}{{ done }} of {{ total }} complete{% endblocktrans %}
+    </p>
+  </header>
+  <ol class="rmc-launch-playbook__list list-unstyled mb-0">
+    {% for task in rmc_launch_playbook.tasks %}
+    <li class="rmc-launch-playbook__item{% if task.done %} is-done{% endif %}">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+        <div>
+          <span class="rmc-launch-playbook__label">{{ task.label }}</span>
+          <span class="rmc-launch-playbook__detail small text-muted d-block">{{ task.detail }}</span>
+        </div>
+        {% if not task.done %}
+        <form class="rmc-launch-playbook__ack" method="post" data-rmc-offline-form="field_capture" data-rmc-offline-workflow="launch_playbook_ack">
+          {% csrf_token %}
+          <input type="hidden" name="task_key" value="{{ task.key }}">
+          <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Mark done" %}</button>
+        </form>
+        {% else %}
+        <span class="badge bg-success-subtle text-success-emphasis">{% trans "Done" %}</span>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+  <p class="small text-muted mt-2 mb-0" data-rmc-launch-playbook-offline-hint="1">{% trans "Acknowledgments queue offline when connectivity is limited." %}</p>
+</section>
+{% endif %}

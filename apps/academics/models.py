@@ -961,6 +961,11 @@ class Incident(models.Model):
         OPEN = "OPEN", "Open"
         RESOLVED = "RESOLVED", "Resolved"
 
+    class MtssTier(models.TextChoices):
+        TIER_1 = "1", "Tier 1 — Universal"
+        TIER_2 = "2", "Tier 2 — Targeted"
+        TIER_3 = "3", "Tier 3 — Intensive"
+
     student = models.ForeignKey(
         "people.StudentProfile",
         on_delete=models.CASCADE,
@@ -993,6 +998,13 @@ class Incident(models.Model):
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.OPEN
     )
+    mtss_tier = models.CharField(
+        max_length=1,
+        choices=MtssTier.choices,
+        default=MtssTier.TIER_1,
+        blank=True,
+    )
+    parent_notified_at = models.DateTimeField(null=True, blank=True)
     notify_parent = models.BooleanField(
         default=True,
         help_text="When True, linked guardians are notified (student incidents only).",

@@ -1,5 +1,55 @@
 # RunMyCampus autonomous execution log
 
+## Slice — World-class tenant journey 1732–1742 + Pillar E offline-first (2026-06-17)
+
+**A. Scope:** Complete post-1731 program: HTML preview pack, plan Phase 5–7, offline-first readiness cache, launch+7 playbook, lifecycle/year-close strips, flight-deck zero-fail beat, discipline API + MTSS + offline refer queue.
+
+**B. Shipped:** 6 browsable HTML labs + hub (connection pill/outbox on all); Dexie v6 journey stores; `offline_workflow_handlers.py` (`discipline_refer`, `launch_playbook_ack`, `year_close_ack`); setup surface partial-failure + journey mirror; flight-deck `requires_network`; discipline Dexie mirror; npm `test:e2e:tenant-journey-pillar-e:armed`; `verify_pillar_e_ci_matrix.py`.
+
+**C. Proof:** `verify_pillar_e_ci_matrix.py` → **PILLAR_E_CI_MATRIX_PASS**; `verify_tenant_lifecycle_world_class_program.py` → **PASS**; `verify_provisioning_golive_program.py` → **PASS**; `verify_offline_workflow_apply.py` → **PASS**; `verify_local_first_surface_wiring.py` → **PASS** (19 templates); Django `test_tenant_journey_offline_workflows.py` (4 tests) + `test_world_class_tenant_journey_1732.py`; flight-deck `requires_network` test. **SW:** `sms-v4.05.20-pillar-e-gap-close-setup-mirror-2026-06-17`.
+
+**D. Honest:** Live Playwright golden path operator-gated (`test:e2e:tenant-journey-pillar-e:armed`); cold signup→launch single path remains PGL follow-on.
+
+## Slice — Provisioning → go-live journey audit + waves (batch 1731 - 2026-06-24)
+
+**A. Scope:** Five-lens audit (provision, setup, migration, go-live, competitive); Better/Best/Exceptional implementation from `PROVISIONING_TO_GOLIVE_AUDIT.md`.
+
+**B. Shipped:** Audit handoff (42 PGL findings); `school_readiness.py` + `/api/school/readiness/`; `academic_year_setup` wizard + launch blocker; setup landing ∩ `launch_ready`; setup surface School readiness + data-path branch + recommended next; launch ceremony email/log; provisioning SLO on tenant performance; browsable previews (hub, lab, journey train, migration fork, launch ceremony, 8-preset style gallery); **operator-approved HTML**; live **8 dashboard visual presets** in `VISUAL_PRESET_CHOICES` + `dashboard-theme-sync.css`; `verify_provisioning_golive_program.py`; `HOW_A_SCHOOL_STARTS.md` §4; SW v4.05.14.
+
+**C. Proof:** **PROVISIONING_GOLIVE_PROGRAM_PASS**; 12/12 Django tests (readiness, academic year, adaptive landing).
+
+**D. Honest:** Superseded by E2E + gap-close slices below; PGL-001 UX now shipped.
+
+## Slice — Provisioning go-live gap close (batch 1731 - 2026-06-17)
+
+**A. Scope:** Close honest leftovers from 1731 E2E — PGL-001 tenant UX, Playwright golden path seed, inline dashboard presets, bento-focus live grid.
+
+**B. Shipped:** `provisioning_partial_failure_banner.html` + readiness `needs_resume` / `phase_b_failed_steps`; `seed_provisioning_golive_e2e` + Playwright go-live test + `test:e2e:tenant-lifecycle-launch-ready:armed`; `quick_set_dashboard_visual_preset` + inline 8-chip picker; bento-focus CSS on live Command Center; audit PGL-001 **DONE (UX)**; SW **`sms-v4.05.17-provisioning-golive-gap-close-2026-06-17`**.
+
+**C. Proof:** **PROVISIONING_GOLIVE_PROGRAM_PASS**; 11/11 Django provisioning tests green.
+
+**D. Honest:** Playwright go-live still skips without real `launch_ready` on seeded tenant; PGL-006 / cold signup→launch / CI wiring remain follow-on.
+
+## Slice — Provisioning HTML + dashboard styles approved (batch 1731 post-signoff - 2026-06-17)
+
+**A. Scope:** Operator approval of provisioning/go-live browsable HTML + dashboard style gallery; wire approved presets into tenant preferences.
+
+**B. Shipped:** Enriched standalone previews; go-live hub + lab; 8-preset style gallery; post-setup hub links; `VISUAL_PRESET_CHOICES` (8) + `dashboard-theme-sync.css`; verifier extended; SW **`sms-v4.05.14-provisioning-golive-html-approved-2026-06-17`**.
+
+**C. Proof:** **PROVISIONING_GOLIVE_PROGRAM_PASS**.
+
+**D. Honest:** Bento layout mode is CSS-radius/density only — full bento grid on live admin dashboard remains preview-first.
+
+## Slice — Provisioning go-live Django E2E complete (batch 1731 E2E - 2026-06-17)
+
+**A. Scope:** Wire approved journey end-to-end in production — unified readiness train, Go live, launch ceremony, migration fork, post-setup pending banner, embed + Launch Studio surfaces.
+
+**B. Shipped:** Journey train partial + readiness JS poll; `execute_launch` → Command Center ceremony; `launched_at` only via Go live; migrate_from_sis data path; golive pending banner on post-threshold dashboard; dashboard style strip; guided_onboarding embed Go live; `test_provisioning_golive_e2e.py`; Playwright harness extended; audit PGL-038 closed; SW **`sms-v4.05.16-provisioning-golive-e2e-complete-2026-06-17`**.
+
+**C. Proof:** **PROVISIONING_GOLIVE_PROGRAM_PASS**; Django E2E + setup surface + adaptive landing tests green.
+
+**D. Honest:** Live Playwright golden-path with real blockers cleared remains operator-gated (`SIGNUP_E2E_LOCAL_DNS_MAP=1`).
+
 ## Slice — Tenant surface exception Waves A–D1 + B P0 task surfaces (batch 1728 - 2026-06-24)
 
 **A. Scope:** Menu integrity, P0 Playwright sweep harness, chrome parity verifiers, Wave B inner-page exception task grammar on four P0 routes; closes moderator-adjacent exception track after batch 1726/1727.

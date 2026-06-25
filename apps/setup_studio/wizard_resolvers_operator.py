@@ -349,6 +349,85 @@ def write_teacher_self_onboarding_step(*, school: Any, wizard_key: str, step_key
 # ============================================================================
 
 
+# ============================================================================
+# 8. academic_year_setup — create AcademicYear + terms (batch 1731)
+# ============================================================================
+
+
+def write_academic_year_setup(
+    *,
+    school: Any,
+    wizard_key: str,
+    step_key: str,
+    payload: dict[str, Any],
+    actor_user_id: int | None,
+) -> None:
+    """Create or update the school's active academic year and seed terms idempotently."""
+    if school is None or step_key != "year_dates":
+        return
+    from datetime import date, timedelta
+
+    from django.db import transaction
+
+    from apps.academics.models import AcademicYear, Term
+
+    data = payload or {}
+    name = str(data.get("name") or "").strip()
+    start_raw = data.get("start_date")
+    end_raw = data.get("end_date")
+    try:
+        term_count = max(1, min(6, int(data.get("term_count") or 3)))
+    except (TypeError, ValueError):
+        term_count = 3
+    if not name or not start_raw or not end_raw:
+        logger.warning("academic_year_setup missing required fields school=%s", getattr(school, "pk", None))
+        return
+    if hasattr(start_raw, "isoformat"):
+        start_date = start_raw
+    else:
+        start_date = date.fromisoformat(str(start_raw)[:10])
+    if hasattr(end_raw, "isoformat"):
+        end_date = end_raw
+    else:
+        end_date = date.fromisoformat(str(end_raw)[:10])
+
+    with transaction.atomic():
+        ay, _ = AcademicYear.objects.get_or_create(
+            school=school,
+            name=name,
+            defaults={
+                "start_date": start_date,
+                "end_date": end_date,
+                "is_active": True,
+            },
+        )
+        if ay.start_date != start_date or ay.end_date != end_date:
+            ay.start_date = start_date
+            ay.end_date = end_date
+            ay.is_active = True
+            ay.save(update_fields=["start_date", "end_date", "is_active"])
+        AcademicYear.objects.filter(school=school).exclude(pk=ay.pk).update(is_active=False)
+
+        months_per_term = 12 // term_count
+        for i in range(term_count):
+            t_start = date(
+                start_date.year + ((start_date.month - 1 + i * months_per_term) // 12),
+                ((start_date.month - 1 + i * months_per_term) % 12) + 1,
+                1,
+            )
+            if i == term_count - 1:
+                t_end = end_date
+            else:
+                next_month = ((start_date.month - 1 + (i + 1) * months_per_term) % 12) + 1
+                next_year = start_date.year + ((start_date.month - 1 + (i + 1) * months_per_term) // 12)
+                t_end = date(next_year, next_month, 1) - timedelta(days=1)
+            Term.objects.get_or_create(
+                academic_year=ay,
+                name=f"Term {i + 1}",
+                defaults={"start_date": t_start, "end_date": t_end},
+            )
+
+
 def write_student_self_onboarding_step(*, school: Any, wizard_key: str, step_key: str, payload: dict[str, Any], actor_user_id: int | None) -> None:
     """Capture student-self-onboarding answers. Sensitive fields (DOB) are hash-only.
 

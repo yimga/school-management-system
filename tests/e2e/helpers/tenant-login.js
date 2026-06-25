@@ -198,9 +198,9 @@ async function loginTenant(page, opts = {}) {
     'Test1234';
   const loginUrl = `${TENANT_BASE_URL}/authentication/login/`;
 
-  await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
-  const userField = page.locator('input[name="username"], input[name="email"]').first();
-  await userField.waitFor({ state: 'visible', timeout: 30000 });
+  await page.goto(loginUrl, { waitUntil: 'load', timeout: 120000 });
+  const userField = page.locator('#login-username, input[name="username"], input[name="email"]').first();
+  await userField.waitFor({ state: 'visible', timeout: 120000 });
 
   const loginForm = page
     .locator('form')

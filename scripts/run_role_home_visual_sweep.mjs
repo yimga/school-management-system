@@ -22,11 +22,15 @@ if (!process.env.VISUAL_QA_PYTHON) {
 const PORT = process.env.VISUAL_QA_PORT || '8012';
 process.env.VISUAL_QA_PORT = PORT;
 const TENANT_SLUG = process.env.TENANT_SLUG || 'demo-school';
-// Subdomain base + Chromium host-resolver keeps session cookies aligned with Django redirects.
-if (!process.env.TENANT_E2E_BASE_URL) {
-  process.env.TENANT_E2E_BASE_URL = `http://${TENANT_SLUG}.runmycampus.com:${PORT}`;
+if (process.env.TENANT_E2E_SUBDOMAIN === undefined) {
+  process.env.TENANT_E2E_SUBDOMAIN = '1';
 }
-process.env.TENANT_E2E_SUBDOMAIN = '1';
+if (!process.env.TENANT_E2E_BASE_URL) {
+  process.env.TENANT_E2E_BASE_URL =
+    process.env.TENANT_E2E_SUBDOMAIN === '1'
+      ? `http://${TENANT_SLUG}.runmycampus.com:${PORT}`
+      : `http://127.0.0.1:${PORT}/t/${TENANT_SLUG}`;
+}
 
 const require = createRequire(import.meta.url);
 const { loginTenant, TENANT_BASE_URL } = require('../tests/e2e/helpers/tenant-login.js');
@@ -338,18 +342,38 @@ for (const s of activeSurfaces) {
             nextActionStripCount: document.querySelectorAll('[data-rmc-next-action-strip="1"]').length,
             missionStrip: !!document.querySelector('[data-rmc-tp-mission="1"]'),
             pageWrapMinHeight: wrapStyle ? wrapStyle.minHeight : null,
+            mfaNudgeCount: document.querySelectorAll('[data-rmc-mfa-nudge="1"]').length,
+            communityBandCount: document.querySelectorAll(
+              '[data-rmc-cockpit-section="community_band"]',
+            ).length,
+            newsletterBandCount: document.querySelectorAll(
+              '[data-rmc-cockpit-section="newsletter_band"]',
+            ).length,
           };
         });
-        if (row.chrome.tpV3Shell) {
-          if (row.chrome.pageExplainCount > 0) {
+        const b = row.chrome.adminBento;
+        if (b?.tpV3Shell) {
+          if (b.pageExplainCount > 0) {
             row.failures = [...(row.failures || []), 'legacy_page_explain_on_v3'];
             row.ok = false;
           }
-          if (row.chrome.nextActionStripCount > 0) {
+          if (b.nextActionStripCount > 0) {
             row.failures = [...(row.failures || []), 'duplicate_next_action_on_v3'];
             row.ok = false;
           }
-          const minH = row.chrome.pageWrapMinHeight || '';
+          if (b.mfaNudgeCount > 0) {
+            row.failures = [...(row.failures || []), 'legacy_mfa_nudge_on_v3'];
+            row.ok = false;
+          }
+          if (b.communityBandCount > 0) {
+            row.failures = [...(row.failures || []), 'legacy_community_band_on_v3'];
+            row.ok = false;
+          }
+          if (b.newsletterBandCount > 0) {
+            row.failures = [...(row.failures || []), 'legacy_newsletter_band_on_v3'];
+            row.ok = false;
+          }
+          const minH = b.pageWrapMinHeight || '';
           if (minH.includes('calc') && minH.includes('dvh')) {
             row.failures = [...(row.failures || []), 'page_wrap_void_slab'];
             row.ok = false;

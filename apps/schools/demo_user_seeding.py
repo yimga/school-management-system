@@ -70,6 +70,53 @@ def _ensure_demo_portal_toggles_enabled() -> None:
         pass
 
 
+def _ensure_demo_active_term(school: School, year: AcademicYear) -> None:
+    """Teacher marks list requires active year + term (batch 1728 P0 E2E)."""
+    try:
+        from apps.academics.models import Term
+
+        if Term.objects.filter(school=school, academic_year=year, is_active=True).exists():
+            return
+        Term.objects.get_or_create(
+            school=school,
+            academic_year=year,
+            name="FIRST",
+            defaults={
+                "custom_label": "Term 1",
+                "position": 1,
+                "start_date": year.start_date,
+                "end_date": year.end_date,
+                "is_active": True,
+            },
+        )
+    except (AttributeError, ImportError, TypeError, ValueError):
+        pass
+
+
+def _ensure_demo_finance_profile(school: School) -> None:
+    """Money Center dashboard requires an active ComplianceProfile (batch 1728 P0 E2E)."""
+    try:
+        from apps.finance.models import ComplianceProfile
+        from apps.platform_runtime.helpers import get_platform_site_settings_record
+
+        cc = (getattr(school, "country_code", None) or "US").strip().upper()[:2] or "US"
+        profile, created = ComplianceProfile.objects.get_or_create(
+            name=f"Demo finance — {school.slug}",
+            country_code=cc,
+            defaults={"is_active": True},
+        )
+        if not profile.is_active:
+            profile.is_active = True
+            profile.save(update_fields=["is_active"])
+        site = get_platform_site_settings_record(create=True)
+        if getattr(site, "compliance_profile_id", None) != profile.pk:
+            site.apply_feature_control_state(
+                field_updates={"compliance_profile_id": profile.pk},
+            )
+    except (AttributeError, ImportError, RuntimeError, TypeError, ValueError):
+        pass
+
+
 def _ensure_demo_admin_backend_access(user: User) -> None:
     """Backend dashboard requires settings.manage (batch 1726 role-home E2E)."""
     if user.role != User.Role.ADMIN:
@@ -171,6 +218,9 @@ def seed_demo_users_for_school(
             is_active=True,
         )
         stdout.write(style.WARNING(f"Created academic year: {year.name}"))
+
+    _ensure_demo_active_term(school, year)
+    _ensure_demo_finance_profile(school)
 
     pfx = (username_prefix or "demo").strip().lower().replace(" ", "")
     specs = [

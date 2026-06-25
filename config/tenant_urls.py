@@ -29,6 +29,8 @@ from apps.portal.views_ai_copilot import (
 from apps.portal.views_configure import portal_configure_hub
 from apps.siteconfig.views_school_help_ai import school_help_ai
 from apps.schools.views_pending_provision import api_public_pending_provision_progress
+from apps.schools.views_school_readiness import api_school_readiness
+from apps.academics.views_discipline_api import api_discipline_incidents
 from apps.lifecycle.views_tenant_lifecycle import (
     api_tenant_launch_rail,
     api_tenant_lifecycle_hub,
@@ -368,6 +370,16 @@ urlpatterns = [
         "api/school/lifecycle/hub/",
         api_tenant_lifecycle_hub,
         name="api_tenant_lifecycle_hub",
+    ),
+    path(
+        "api/school/readiness/",
+        api_school_readiness,
+        name="api_school_readiness",
+    ),
+    path(
+        "api/discipline/incidents/",
+        api_discipline_incidents,
+        name="api_discipline_incidents",
     ),
     path("school/studio/setup/", school_studio_redirect_setup, name="school_studio_setup"),
     path("school/studio/readiness/", school_studio_hub, name="school_studio_readiness"),

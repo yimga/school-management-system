@@ -84,6 +84,34 @@ After completion, the school has an active tenant, branding (or placeholder), a 
 
 ---
 
+## Phase 4: Post-login setup → launch (canonical extension)
+
+**Purpose:** After email verification and portal provisioning, the school admin completes Setup Studio, optional Migration Cloud import, and launch readiness before daily operations.
+
+**Steps (in product):**
+
+1. **Owner onboarding (3 steps)** — Account password → school profile → done + provision poll.  
+   - **Code:** `apps/accounts/views_owner_onboarding.py`; routes under `/authentication/onboarding/`.
+
+2. **Setup command surface** — Admin backend shows **School readiness** ring until checklist ≥ 70% **and** Setup Studio `launch_ready` is false.  
+   - **Code:** `templates/partials/tenant/setup_command_surface.html`; `apps/accounts/views.py` `_resolve_setup_landing`.
+
+3. **Setup Studio (9 steps + wizards)** — Plan, blueprint, branding, data path, academic year, launch checklist.  
+   - **Code:** `apps/setup_studio/services.py` `STEP_DEFINITIONS`; wizards under `apps/setup_studio/wizards/`.
+
+4. **Migration branch (optional)** — Public wizard step 3 or `account_migration` wizard → Migration Cloud / CSV.  
+   - **Code:** `signup_views.onboard_migration_handoff`; `apps/migration_cloud/`.
+
+5. **Go live** — `launch_ready` true → post-setup cockpit (Overview | Cockpit); lifecycle `daily_operations` when setup health ≥ 85.  
+   - **Code:** `execute_launch`; `apps/platform_runtime/tenant_operational_lifecycle.py`.
+
+6. **Unified readiness API** — Single meter for provision + checklist + launch blockers.  
+   - **Code:** `apps/schools/school_readiness.py`; `GET /api/school/readiness/`.
+
+**Audit reference:** `docs/phase_checklists/PROVISIONING_TO_GOLIVE_AUDIT.md` (batch 1731).
+
+---
+
 ## Code and doc references
 
 | Item | Location |

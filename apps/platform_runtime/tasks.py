@@ -451,3 +451,58 @@ def scheduled_job_health_monitor_task() -> dict:
         return {"ok": True, "checked": len(findings), "stale": len(stale)}
     except Exception as exc:
         return {"ok": False, "reason": f"exception:{type(exc).__name__}"}
+
+
+@shared_task(name="platform_runtime.workflow_failed_provision_auto_requeue_sweep")
+def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
+    """Batch 1737 — zero-fail: auto-requeue failed/stuck tenant_school_provision runs."""
+    try:
+        from apps.platform_runtime.models import WorkflowRun
+        from apps.platform_runtime.workflow_autopilot import try_auto_apply_on_failure
+        from apps.platform_runtime.workflow_flight_deck_actions import (
+            resolve_effective_remediation,
+        )
+        from apps.platform_runtime.workflow_fix_handlers import apply_auto_fix_kind
+
+        candidates = list(
+            # tenant-isolation-allow: platform-workflow-provision-sweep-no-tenant-scope
+            WorkflowRun.objects.filter(
+                workflow_key="tenant_school_provision",
+                status__in=("failed", "stuck", "cancelled"),
+            ).order_by("-updated_at")[:100]
+        )
+        remediated = 0
+        requeued = 0
+        for run in candidates:
+            try:
+                rem = resolve_effective_remediation(run)
+                if rem.get("auto_fix_kind") != "requeue_provision":
+                    continue
+                if not rem.get("auto_fix_available"):
+                    # tenant-isolation-allow: workflow-remediation-stamp-by-pk
+                    WorkflowRun.objects.filter(pk=run.pk).update(
+                        suggested_remediation=rem
+                    )
+                    remediated += 1
+                result = try_auto_apply_on_failure(run_pk=run.pk)
+                if result:
+                    requeued += 1
+                    continue
+                apply_result = apply_auto_fix_kind(run=run, kind="requeue_provision")
+                if apply_result.get("ok"):
+                    requeued += 1
+            except Exception:
+                logger.debug(
+                    "workflow_failed_provision_auto_requeue skipped run=%s",
+                    getattr(run, "pk", None),
+                    exc_info=True,
+                )
+                continue
+        return {
+            "ok": True,
+            "scanned": len(candidates),
+            "remediated": remediated,
+            "requeued": requeued,
+        }
+    except Exception as exc:
+        return {"ok": False, "reason": f"exception:{type(exc).__name__}"}

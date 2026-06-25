@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMyCampus · Offline / edge readiness lab (1732)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../../static/css/rmc-setup-surface.css">
+<style>
+  :root{--bg:#060912;--canvas:#0e1426;--hair:rgba(255,255,255,.08);--text:#eef2ff;--t2:#aab3d4;--warn:#f59e0b}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:13px}
+  .flag{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#f59e0b,#6366f1);color:#04121a;font-weight:700;font-size:11px;text-align:center;padding:6px}
+  .wrap{max-width:960px;margin:44px auto 60px;padding:0 18px}
+  .tabs{display:flex;gap:6px;margin:14px 0}
+  .tabs button{border:1px solid var(--hair);background:var(--canvas);color:inherit;border-radius:999px;padding:7px 14px;font:inherit;font-size:12px;cursor:pointer}
+  .tabs button.is-on{background:#6366f1;color:#fff;border-color:transparent}
+  .scene{display:none}.scene.is-on{display:block}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.split{grid-template-columns:1fr}}
+  .frame{border:1px solid var(--hair);border-radius:14px;padding:14px;min-height:280px;background:var(--canvas)}
+  .stale-banner{padding:8px 12px;border-radius:10px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);font-size:11px;margin-bottom:10px;display:none}
+  .stale-banner.is-on{display:flex;align-items:center;gap:8px}
+  .meter{height:10px;border-radius:999px;background:var(--hair);margin:8px 0;overflow:hidden}
+  .meter i{display:block;height:100%;background:linear-gradient(90deg,#6366f1,#10b981);width:75%}
+  .train4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:10px}
+  .ph{padding:8px;border:1px solid var(--hair);border-radius:8px}.ph.done{border-color:rgba(16,185,129,.4)}
+  .queue-item{font-size:11px;padding:8px;border:1px dashed rgba(99,102,241,.4);border-radius:8px;margin-top:8px}
+  .conn{position:fixed;top:32px;right:12px;z-index:9998;display:flex;gap:6px}
+  .conn button{font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--hair);background:var(--canvas);color:var(--t2);cursor:pointer}
+  .conn .is-on{background:#6366f1;color:#fff;border-color:transparent}
+  .outbox{font-size:11px;padding:8px;border-radius:8px;background:var(--canvas);border:1px solid var(--hair);margin:8px 0}
+</style>
+</head>
+<body>
+<div class="flag">BATCH 1732 · Offline-first readiness cache · <a href="world-class-tenant-journey-hub-browsable.html" style="color:#04121a">← Hub</a></div>
+<div class="conn" aria-label="Connection simulator"><button type="button" class="is-on" data-conn="online">Online</button><button type="button" data-conn="offline">Offline</button><button type="button" data-conn="hub">LAN hub</button></div>
+<div class="wrap">
+  <h1 style="font-size:20px;margin:0 0 6px"><i class="bi bi-wifi-off"></i> Readiness meter — online vs offline</h1>
+  <p style="color:var(--t2);font-size:12px;margin:0 0 12px">Pillar E: cache <code>/api/school/readiness/</code> in localStorage; poll when online; degrade with honest stale copy.</p>
+  <div class="tabs"><button type="button" class="is-on" data-scene="online">Online (live poll)</button><button type="button" data-scene="offline">Offline (cached)</button><button type="button" data-scene="hub">LAN hub failover</button></div>
+
+  <section class="scene is-on" id="s-online">
+    <div class="split">
+      <div class="frame"><p style="font-size:11px;color:var(--t2)">Live JSON every 60s · meter 75%</p><div class="meter"><i></i></div><div class="train4"><div class="ph done"><b>Provisioned</b>Complete</div><div class="ph done"><b>Configured</b>82%</div><div class="ph"><b>Launch</b>2 blockers</div><div class="ph"><b>Ops</b>Pending</div></div></div>
+      <div class="frame"><p style="font-size:11px;font-weight:700">API fields</p><code style="font-size:10px;color:#6ee7b7">cached_at, offline_hint, migration_phase</code></div>
+    </div>
+  </section>
+  <section class="scene" id="s-offline">
+    <div class="stale-banner is-on"><i class="bi bi-clock-history"></i> Last updated 12m ago · showing cached readiness</div>
+    <div class="frame">
+      <div class="meter"><i style="width:75%"></i></div>
+      <div class="train4"><div class="ph done"><b>Provisioned</b>Cached</div><div class="ph done"><b>Configured</b>82%</div><div class="ph"><b>Launch</b>2 blockers</div><div class="ph"><b>Ops</b>—</div></div>
+      <div class="queue-item"><i class="bi bi-cloud-upload"></i> Queued: setup ack will sync when connected</div>
+    </div>
+  </section>
+  <section class="scene" id="s-hub">
+    <div class="frame">
+      <p style="font-size:11px"><span style="color:#6ee7b7">●</span> Serving from <strong>RMC_HUB_BASE_URL</strong> · Ollama rules fallback</p>
+      <p style="font-size:11px;color:var(--t2)">School ops continue; cloud LLM optional. SW retries writes to hub origin on fetch failure.</p>
+    </div>
+  </section>
+</div>
+<script>
+document.querySelector('.tabs').addEventListener('click',function(e){
+  var b=e.target.closest('[data-scene]'); if(!b) return;
+  document.querySelectorAll('.tabs button').forEach(function(x){x.classList.remove('is-on');});
+  b.classList.add('is-on');
+  document.querySelectorAll('.scene').forEach(function(s){s.classList.remove('is-on');});
+  document.getElementById('s-'+b.getAttribute('data-scene')).classList.add('is-on');
+});
+(function(){
+  var conn=document.querySelector('.conn');
+  if(!conn) return;
+  conn.addEventListener('click',function(e){
+    var b=e.target.closest('[data-conn]'); if(!b) return;
+    conn.querySelectorAll('button').forEach(function(x){x.classList.remove('is-on');});
+    b.classList.add('is-on');
+  });
+})();
+</script>
+</body>
+</html>

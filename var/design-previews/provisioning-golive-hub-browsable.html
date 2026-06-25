@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMyCampus · Provisioning → Go-Live — preview hub</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  :root{--bg:#060912;--canvas:#0e1426;--elevated:#141c33;--hairline:rgba(255,255,255,.08);--text:#eef2ff;--text-2:#aab3d4;--text-3:#7b86ad;--brand:#6366f1;--accent:#10b981;--warn:#f59e0b;--radius:14px;--font:Inter,system-ui,sans-serif}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.55}
+  .flag{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,var(--brand),var(--accent));color:#04121a;font-weight:700;font-size:12px;text-align:center;padding:6px}
+  .wrap{max-width:1080px;margin:42px auto 70px;padding:0 22px}
+  h1{margin:0 0 8px;font-size:24px;font-weight:750}
+  .sub{color:var(--text-3);font-size:13px;margin:0 0 20px;max-width:72ch}
+  .train-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:20px 0 28px}
+  @media(max-width:720px){.train-mini{grid-template-columns:1fr 1fr}}
+  .phase{background:var(--canvas);border:1px solid var(--hairline);border-radius:12px;padding:12px;font-size:12px}
+  .phase strong{display:block;font-size:13px;margin-bottom:4px}
+  .phase span{color:var(--text-2)}
+  .phase.done{border-color:rgba(16,185,129,.35)} .phase.now{border-color:rgba(99,102,241,.45)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+  .card{background:var(--canvas);border:1px solid var(--hairline);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:8px;transition:.15s}
+  .card:hover{border-color:rgba(99,102,241,.45);transform:translateY(-2px)}
+  .card h2{margin:0;font-size:15px;display:flex;align-items:center;gap:8px}
+  .card p{margin:0;color:var(--text-2);font-size:12.5px;flex:1}
+  .card a{font-weight:650;font-size:13px;color:var(--brand);text-decoration:none}
+  .tag{display:inline-block;font-size:10px;font-weight:800;text-transform:uppercase;padding:3px 8px;border-radius:999px;margin-bottom:4px}
+  .tag--lab{background:rgba(99,102,241,.15);color:#a5b4fc;border:1px solid rgba(99,102,241,.35)}
+  .tag--style{background:rgba(236,72,153,.12);color:#f9a8d4;border:1px solid rgba(236,72,153,.35)}
+  .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+  .links a{font-size:12px;color:var(--text-3);text-decoration:none;border:1px solid var(--hairline);padding:5px 10px;border-radius:8px}
+  .links a:hover{color:var(--text);border-color:var(--text-3)}
+</style>
+</head>
+<body>
+<div class="flag">PROVISIONING → GO-LIVE · batch 1731 · <a href="world-class-tenant-journey-hub-browsable.html" style="color:#04121a">World-class program 1732–1742</a> · <a href="tenant-post-setup-cockpit-hub.html" style="color:#04121a">Post-setup hub</a></div>
+<div class="wrap">
+  <h1><i class="bi bi-signpost-split"></i> From signup to daily operations</h1>
+  <p class="sub">One customer journey: provision → configure → migrate (optional) → launch → operate. Open the <strong>full lab</strong> for editable before/after, or drill into each scene.</p>
+
+  <div class="train-mini">
+    <div class="phase done"><strong>1 · Provisioned</strong><span>Portal ready</span></div>
+    <div class="phase now"><strong>2 · Configured</strong><span>Setup Studio</span></div>
+    <div class="phase"><strong>3 · Launch ready</strong><span>Blockers clear</span></div>
+    <div class="phase"><strong>4 · Operations</strong><span>Command Center</span></div>
+  </div>
+
+  <div class="grid">
+    <article class="card">
+      <span class="tag tag--lab">Master lab</span>
+      <h2><i class="bi bi-sliders"></i> Provisioning go-live lab</h2>
+      <p>Editable tabs: journey train, setup surface, migration fork, launch ceremony, dashboard styles — side-by-side before/after.</p>
+      <a href="provisioning-golive-lab-browsable.html">Open full lab →</a>
+    </article>
+    <article class="card">
+      <span class="tag tag--lab">Journey</span>
+      <h2><i class="bi bi-train-front"></i> Readiness train</h2>
+      <p>Unified meter + four phases + live admin mock with style switcher.</p>
+      <a href="provisioning-journey-train-browsable.html">Open train →</a>
+    </article>
+    <article class="card">
+      <span class="tag tag--lab">Data</span>
+      <h2><i class="bi bi-database"></i> Migration branch</h2>
+      <p>Greenfield CSV vs SIS migrate — vendor matrix + Companion handoff.</p>
+      <a href="migration-branch-onboarding-browsable.html">Open migration →</a>
+    </article>
+    <article class="card">
+      <span class="tag tag--lab">Go-live</span>
+      <h2><i class="bi bi-rocket-takeoff"></i> Launch ceremony</h2>
+      <p>launch_ready flip: email, cockpit default, role invites, confetti moment.</p>
+      <a href="launch-ceremony-browsable.html">Open ceremony →</a>
+    </article>
+    <article class="card">
+      <span class="tag tag--style">Dashboards</span>
+      <h2><i class="bi bi-palette"></i> Visual style gallery</h2>
+      <p>8 dashboard presets — Soft Glass through Regional Heritage — per role live preview.</p>
+      <a href="tenant-dashboard-style-branding.html">Open style gallery →</a>
+    </article>
+    <article class="card">
+      <span class="tag tag--lab">Post-setup</span>
+      <h2><i class="bi bi-grid-1x2"></i> Command Center</h2>
+      <p>After launch: backend bento + frontend role homes.</p>
+      <a href="tenant-post-setup-cockpit-hub.html">Post-setup hub →</a>
+    </article>
+    <article class="card">
+      <span class="tag tag--lab">Pillar E</span>
+      <h2><i class="bi bi-wifi-off"></i> Offline / edge lab</h2>
+      <p>Cached readiness, queued writes, LAN hub failover — mandatory for 1732+.</p>
+      <a href="provisioning-offline-edge-lab-browsable.html">Offline edge lab →</a>
+    </article>
+    <article class="card">
+      <span class="tag tag--lab">1732–1742</span>
+      <h2><i class="bi bi-globe2"></i> World-class journey hub</h2>
+      <p>Flight deck, lifecycle OS, year close, discipline — full program matrix.</p>
+      <a href="world-class-tenant-journey-hub-browsable.html">Open program hub →</a>
+    </article>
+  </div>
+
+  <div class="links">
+    <a href="tenant-admin-cockpit-before-after.html">Admin before/after</a>
+    <a href="dashboard-lab-browsable.html">Dashboard lab</a>
+    <a href="tenant-role-dashboards-hub.html">All role previews</a>
+    <a href="../../docs/phase_checklists/PROVISIONING_TO_GOLIVE_AUDIT.md">Audit doc</a>
+  </div>
+</div>
+</body>
+</html>

@@ -21,6 +21,7 @@ from .views import (
     reportcard_style_live_preview,
     reportcard_style_pdf,
     user_preferences,
+    quick_set_dashboard_visual_preset,
     set_default_dashboard_view,
     theme_colors_page,
     theme_experience_redirect,
@@ -416,6 +417,11 @@ urlpatterns = [
     ),
     path("preview-from-form/", preview_from_form, name="preview_from_form"),
     path("preferences/", user_preferences, name="user_preferences"),
+    path(
+        "preferences/dashboard-preset/",
+        quick_set_dashboard_visual_preset,
+        name="quick_set_dashboard_visual_preset",
+    ),
     path(
         "preferences/set-default-view/",
         set_default_dashboard_view,

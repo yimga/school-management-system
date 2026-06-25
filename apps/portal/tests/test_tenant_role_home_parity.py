@@ -258,6 +258,19 @@ class TenantRoleHomeTemplateTests(SimpleTestCase):
         )
         self.assertIn("not tp_v3_tenant_shell", text)
 
+    def test_tp_v3_suppresses_legacy_chrome_bands(self):
+        text = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8")
+        for partial in (
+            "shell_chrome_security_posture_banner.html",
+            "rmc_mfa_nudge.html",
+            "_community_band.html",
+            "_newsletter_band.html",
+        ):
+            idx = text.find(partial)
+            self.assertGreater(idx, 0, partial)
+            window = text[max(0, idx - 500) : idx]
+            self.assertIn("not tp_v3_tenant_shell", window, partial)
+
     def test_hero_wires_tenant_experience_command_strip(self):
         text = (ROOT / "templates/partials/tenant/hero_greeting.html").read_text(
             encoding="utf-8"

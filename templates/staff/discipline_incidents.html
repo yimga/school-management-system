@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n glocal_tags %}
+{% load i18n glocal_tags static %}
 {% load region_format %}
 
 {% block title %}{% trans "Disciplinary Incidents" %}{% endblock %}
@@ -17,6 +17,7 @@
 <div class="card">
   <div class="card-body">
     <p class="text-muted small mb-3">When an incident is recorded with "Notify parent" checked, linked guardians receive a notification. Add or edit incidents via the Configuration Engine (Academics → Incidents) if you have access.</p>
+    <p class="alert alert-warning py-2 small mb-3" data-rmc-discipline-offline-banner="1" hidden>{% trans "Offline — analytics require network; list may show cached incidents." %}</p>
     {% if incidents %}
     <div class="table-responsive">
       <table class="table table-striped align-middle mb-0 table-family table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
@@ -27,17 +28,19 @@
             <th scope="col">Type</th>
             <th scope="col">Student / Teacher</th>
             <th scope="col">Severity</th>
+            <th scope="col">MTSS</th>
             <th scope="col">Status</th>
             <th scope="col">Notify parent</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody{% if incidents %} data-rmc-discipline-mirror-body="1"{% endif %}>
           {% for inc in incidents %}
           <tr>
             <td>{{ inc.date|format_date:"YYYY-MM-DD" }}</td>
             <td>{{ inc.get_incident_type_display }}</td>
             <td>{% if inc.student %}{{ inc.student.get_full_name|default:inc.student }}{% elif inc.teacher %}{{ inc.teacher.user.get_full_name|default:inc.teacher }}{% else %}—{% endif %}</td>
             <td>{{ inc.get_severity_display }}</td>
+            <td>{{ inc.get_mtss_tier_display|default:"—" }}</td>
             <td>{{ inc.get_status_display }}</td>
             <td>{% if inc.notify_parent and inc.student %}<span class="rmc-badge rmc-badge--warning">Yes</span>{% else %}—{% endif %}</td>
           </tr>
@@ -51,6 +54,14 @@
     {% endif %}
   </div>
 </div>
+<div
+  data-rmc-discipline-mirror="1"
+  data-rmc-discipline-api-url="{% url 'api_discipline_incidents' %}"
+  data-rmc-discipline-school-id="{{ request.school.pk }}"
+  hidden
+  aria-hidden="true"
+></div>
 </div>
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
+<script src="{% static 'js/rmc-journey-offline-mirror.js' %}" defer nonce="{{ csp_nonce }}"></script>
 {% endblock %}

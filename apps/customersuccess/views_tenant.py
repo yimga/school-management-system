@@ -1045,6 +1045,7 @@ def guided_onboarding_view(request):
                 studio["launch_ready"],
                 field_name="launch ready",
             ),
+            "launched_at": studio.get("launched_at"),
             "recommended_blueprint": _normalized_recommended_blueprint(
                 studio["recommended_blueprint"]
             ),
@@ -1152,9 +1153,10 @@ def execute_launch_view(request):
         )
         return redirect("siteconfig:guided_onboarding")
     if ok and not errors:
+        request.session["rmc_launch_ceremony_show"] = True
         messages.success(
             request,
-            "Launch executed. Your school is now approved and launch is recorded.",
+            "You're live — your school is approved and launch is recorded.",
         )
     else:
         if not errors:
@@ -1165,6 +1167,11 @@ def execute_launch_view(request):
         else:
             for err in errors:
                 messages.error(request, err)
+    if ok and not errors:
+        try:
+            return redirect(reverse("accounts:backend_dashboard") + "?launched=1")
+        except NoReverseMatch:
+            pass
     return redirect("siteconfig:guided_onboarding")
 
 

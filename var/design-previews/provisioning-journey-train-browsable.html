@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Provisioning journey train — interactive preview</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../../static/css/design-tokens.css">
+<link rel="stylesheet" href="../../static/css/rmc-setup-surface.css">
+<style>
+  body{margin:0;background:var(--surface-bg,#060912);color:var(--text-primary,#eef2ff);font-family:Inter,system-ui,sans-serif;padding:48px 20px 80px;font-size:14px}
+  .flag{position:fixed;top:0;left:0;right:0;z-index:99;background:linear-gradient(90deg,#6366f1,#10b981);color:#04121a;font-weight:700;font-size:12px;text-align:center;padding:6px}
+  .flag a{color:#04121a;margin-left:8px}
+  .wrap{max-width:960px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 8px}
+  .sub{color:var(--text-secondary);font-size:13px;margin:0 0 20px;max-width:65ch}
+  .ctrl{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:16px;font-size:12px;color:var(--text-secondary)}
+  .ctrl input[type=range]{width:200px}
+  .meter{height:12px;border-radius:999px;background:color-mix(in oklab,var(--hairline) 80%,transparent);margin:12px 0 20px;overflow:hidden}
+  .meter i{display:block;height:100%;background:linear-gradient(90deg,var(--brand-primary,#6366f1),#10b981);transition:width .3s ease;width:50%}
+  .train{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+  @media(max-width:720px){.train{grid-template-columns:1fr 1fr}}
+  .step{background:var(--surface-canvas);border:1px solid var(--hairline);border-radius:14px;padding:14px;cursor:pointer;transition:.15s}
+  .step:hover{border-color:rgba(99,102,241,.4)}
+  .step.done{border-color:rgba(16,185,129,.45)} .step.now{border-color:rgba(99,102,241,.5);box-shadow:0 0 0 1px rgba(99,102,241,.2) inset}
+  .step h3{margin:0 0 6px;font-size:14px;display:flex;align-items:center;gap:6px}
+  .step p{margin:0;font-size:12px;color:var(--text-secondary)}
+  .panel{border:1px solid var(--hairline);border-radius:16px;padding:16px;background:var(--surface-elevated);margin-top:8px}
+  .style-row{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+  .chip{font-size:11px;padding:5px 11px;border-radius:999px;border:1px solid var(--hairline);background:var(--surface-canvas);cursor:pointer}
+  .chip.on{background:var(--brand-primary,#6366f1);color:#fff;border-color:transparent}
+  .mock-dash{border:1px solid var(--hairline);border-radius:12px;padding:14px;margin-top:10px;min-height:120px;transition:.2s}
+  .mock-dash.soft{background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(16,185,129,.06))}
+  .mock-dash.crisp{background:var(--surface-canvas)}
+  .mock-dash.heritage{background:linear-gradient(135deg,rgba(234,179,8,.1),rgba(16,185,129,.08));border-left:3px solid #eab308}
+  .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+  .kpi div{font-size:11px;padding:8px;border:1px solid var(--hairline);border-radius:8px;background:rgba(255,255,255,.03)}
+  .kpi .v{font-size:15px;font-weight:700;display:block}
+  .links{margin-top:20px;font-size:13px}
+  .links a{color:#a5b4fc;margin-right:12px}
+</style>
+</head>
+<body>
+<div class="flag">JOURNEY TRAIN · batch 1731 · <a href="provisioning-golive-lab-browsable.html">Full lab</a> · <a href="provisioning-golive-hub-browsable.html">Hub</a></div>
+<div class="wrap">
+  <h1><i class="bi bi-train-front"></i> Provisioning → setup → launch</h1>
+  <p class="sub">One readiness meter replaces four disconnected progress bars. Drag the slider or click a phase to simulate where a new school is in the journey.</p>
+
+  <div class="ctrl">
+    <label>Unified meter <input type="range" id="meter" min="0" max="100" value="50"> <strong id="pct">50%</strong></label>
+    <span id="phase-label">Phase: Configured</span>
+  </div>
+  <div class="meter"><i id="meter-bar"></i></div>
+
+  <div class="train" id="train">
+    <div class="step done" data-phase="0"><h3><i class="bi bi-check-circle"></i> Provisioned</h3><p>Portal ready · Phase B may continue</p></div>
+    <div class="step now" data-phase="1"><h3><i class="bi bi-sliders"></i> Configured</h3><p id="cfg-detail">64% activation checklist</p></div>
+    <div class="step" data-phase="2"><h3><i class="bi bi-rocket"></i> Launch ready</h3><p>Plan · blueprint · data · academic year</p></div>
+    <div class="step" data-phase="3"><h3><i class="bi bi-building"></i> Operations</h3><p>Command Center · health ≥ 85</p></div>
+  </div>
+
+  <div class="panel">
+    <strong>Post-launch dashboard preview</strong> — pick a visual style (see <a href="tenant-dashboard-style-branding.html">full gallery</a>)
+    <div class="style-row" id="styles">
+      <button type="button" class="chip on" data-s="soft">Soft Glass</button>
+      <button type="button" class="chip" data-s="crisp">Crisp Pro</button>
+      <button type="button" class="chip" data-s="heritage">Regional Heritage</button>
+    </div>
+    <div class="mock-dash soft" id="mock">
+      <div>School Command Center</div>
+      <div class="kpi">
+        <div><span>Students</span><span class="v">248</span></div>
+        <div><span>Present</span><span class="v">93%</span></div>
+        <div><span>Collected</span><span class="v">₣4.2M</span></div>
+        <div><span>Blockers</span><span class="v" id="blockers">2</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="links">
+    <a href="migration-branch-onboarding-browsable.html">Migration branch →</a>
+    <a href="launch-ceremony-browsable.html">Launch ceremony →</a>
+    <a href="tenant-dashboard-style-branding.html">8 dashboard styles →</a>
+  </div>
+</div>
+<script>
+(function(){
+  var meter=document.getElementById('meter');
+  var bar=document.getElementById('meter-bar');
+  var pct=document.getElementById('pct');
+  var steps=document.querySelectorAll('.step');
+  function sync(v){
+    v=parseInt(v,10);
+    bar.style.width=v+'%';
+    pct.textContent=v+'%';
+    document.getElementById('cfg-detail').textContent=Math.min(100,v)+'% toward configured';
+    document.getElementById('blockers').textContent=v>=75?'0':String(Math.max(1,4-Math.floor(v/25)));
+    var phase=0;
+    if(v>=85)phase=3; else if(v>=70)phase=2; else if(v>=25)phase=1;
+    var names=['Provisioned','Configured','Launch ready','Daily operations'];
+    document.getElementById('phase-label').textContent='Phase: '+names[phase];
+    steps.forEach(function(s,i){
+      s.classList.remove('done','now');
+      if(i<phase)s.classList.add('done');
+      if(i===phase)s.classList.add('now');
+    });
+  }
+  meter.addEventListener('input',function(){sync(meter.value);});
+  steps.forEach(function(s){
+    s.addEventListener('click',function(){
+      var p=parseInt(s.dataset.phase,10);
+      var v=[15,50,78,95][p]||50;
+      meter.value=v; sync(v);
+    });
+  });
+  document.querySelectorAll('.chip').forEach(function(c){
+    c.addEventListener('click',function(){
+      document.querySelectorAll('.chip').forEach(function(x){x.classList.remove('on');});
+      c.classList.add('on');
+      document.getElementById('mock').className='mock-dash '+c.dataset.s;
+    });
+  });
+  sync(50);
+})();
+</script>
+</body>
+</html>

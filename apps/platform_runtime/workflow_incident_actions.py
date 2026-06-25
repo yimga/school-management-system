@@ -24,6 +24,8 @@ def enrich_incident_row(incident: dict[str, Any]) -> dict[str, Any]:
                 "primary": True,
                 "remediation_key": out.get("remediation_key", ""),
                 "run_count": len(run_ids),
+                "requires_network": True,
+                "offline_hint": _("Requires network — retry when connected."),
             }
         )
     out["operator_actions"] = actions

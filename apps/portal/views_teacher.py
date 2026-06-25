@@ -1005,10 +1005,21 @@ def teacher_disciplinary(request: HttpRequest):
         "subtitle": "Refer incidents to the Discipline Master",
         "actions": [],
     }
+    school = getattr(request, "school", None)
+    students_qs = StudentProfile.objects.none()
+    if school is not None:
+        students_qs = (
+            StudentProfile.objects.filter(school=school)
+            .order_by("last_name", "first_name")[:200]
+        )
     return render(
         request,
         "teacher/disciplinary.html",
-        {"hero": hero, "teacher_profile": profile},
+        {
+            "hero": hero,
+            "teacher_profile": profile,
+            "discipline_students": students_qs,
+        },
     )
 
 

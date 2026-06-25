@@ -25,6 +25,9 @@ REQUIRED_MARKERS = (
     "templates/requests/detail.html",
     "templates/people/backend_student_create.html",
     "templates/people/backend_applicant_create.html",
+    "templates/partials/tenant/launch_playbook_strip.html",
+    "templates/partials/tenant/academic_year_close_checklist.html",
+    "templates/teacher/disciplinary.html",
 )
 
 PORTAL_OFFLINE_WIRING = (

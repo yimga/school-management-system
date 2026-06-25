@@ -811,7 +811,7 @@ class UserPreferenceForm(forms.ModelForm):
         required=False,
         widget=forms.Select(attrs={"class": "form-select"}),
         label="Dashboard visual style",
-        help_text="Choose how dashboards look for your current role: Soft Glass, Crisp Professional, or High Contrast.",
+        help_text="Choose how dashboards look for your current role — Soft Glass through Family Friendly (8 presets).",
     )
     high_contrast = forms.BooleanField(
         required=False,

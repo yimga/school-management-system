@@ -1,0 +1,52 @@
+{
+  "wizard_key": "academic_year_setup",
+  "version": 1,
+  "audience": [
+    "tenant_admin"
+  ],
+  "label_token": "wizards.academic_year_setup.label",
+  "description_token": "wizards.academic_year_setup.description",
+  "icon_class": "bi-calendar-range",
+  "estimated_minutes": 4,
+  "gates": {},
+  "ai": {},
+  "steps": [
+    {
+      "key": "year_dates",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "validation": {
+            "max_length": 50
+          }
+        },
+        {
+          "name": "start_date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "name": "end_date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "name": "term_count",
+          "type": "number",
+          "required": true,
+          "validation": {
+            "min": 1,
+            "max": 6
+          }
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_academic_year_setup"
+      }
+    }
+  ]
+}

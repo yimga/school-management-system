@@ -45,6 +45,15 @@ class ResolveSetupLandingTests(SimpleTestCase):
         self.assertTrue(_resolve_setup_landing(None, {}))
         self.assertTrue(_resolve_setup_landing("oops", {}))
 
+    def test_has_launched_lifts_setup_landing_even_below_threshold(self):
+        self.assertFalse(_resolve_setup_landing(10, {}, has_launched=True))
+
+    def test_launch_ready_alone_keeps_setup_landing_for_golive_ceremony(self):
+        self.assertTrue(_resolve_setup_landing(10, {}, launch_ready=True, has_launched=False))
+
+    def test_setup_landing_when_not_launch_ready_and_low_percent(self):
+        self.assertTrue(_resolve_setup_landing(10, {}, launch_ready=False))
+
     def test_hidden_modules_cover_the_dense_ops_widgets(self):
         # The setup surface must hide the heavy ops modules but is implemented by
         # flipping these specific backend_module_visibility keys.

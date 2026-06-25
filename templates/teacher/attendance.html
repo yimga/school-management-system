@@ -10,7 +10,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<div data-task="teacher_attendance" data-task-step="teacher:attendance-session" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
+<div class="rmc-tenant-exception-task container-fluid px-3 px-lg-4 py-3" data-rmc-tenant-exception-task="1" data-rmc-page-fold-nav="required" data-task="teacher_attendance" data-task-step="teacher:attendance-session" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   {% include "widgets/dashboard_hero.html" with hero=hero %}
   {% if show_module_inline_help_assistant and show_kb_ai_assistant_panel %}
   {% include "partials/help_module_inline_assistant.html" %}

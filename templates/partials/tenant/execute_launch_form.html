@@ -1,0 +1,13 @@
+{% load i18n %}
+{% comment %}
+  Go-live POST — shown when Setup Studio reports launch_ready and school not yet launched.
+  Wired to siteconfig:execute_launch (batch 1731 E2E).
+{% endcomment %}
+{% if rmc_school_readiness_launch_ready and not rmc_school_has_launched %}
+<form method="post" action="{% url 'siteconfig:execute_launch' %}" class="rmc-setup-golive-form" data-rmc-execute-launch-form="1">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-success btn-sm">
+    <i class="bi bi-rocket-takeoff" aria-hidden="true"></i> {% trans "Go live" %}
+  </button>
+</form>
+{% endif %}

@@ -136,6 +136,9 @@
           escapeHtml(action.label) +
           "</a>";
       } else {
+        var netHint = action.requires_network
+          ? '<small class="d-block fw-normal text-muted">Requires network</small>'
+          : "";
         html +=
           '<button type="button" class="' +
           cls +
@@ -145,8 +148,11 @@
           escapeHtml(run.id) +
           '" data-school-id="' +
           escapeHtml(run.school_id || "") +
+          '" data-requires-network="' +
+          (action.requires_network ? "1" : "0") +
           '">' +
           escapeHtml(action.label) +
+          netHint +
           "</button>";
       }
     }
@@ -387,6 +393,17 @@
   function handleActionClick(evt) {
     var btn = evt.currentTarget;
     var kind = btn.getAttribute("data-rmc-flight-action");
+    if (
+      btn.getAttribute("data-requires-network") === "1" &&
+      typeof navigator !== "undefined" &&
+      navigator.onLine === false
+    ) {
+      notify(
+        "gentle",
+        label("action_requires_network") || "Requires network — retry when connected"
+      );
+      return;
+    }
     var runId = btn.getAttribute("data-run-id");
     var remediationKey = btn.getAttribute("data-remediation-key") || "";
     if (!kind) return;

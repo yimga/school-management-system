@@ -124,6 +124,13 @@ def try_apply_field_capture_workflow(
     )
     if schoolops_result is not None:
         return schoolops_result
+    from apps.schools.offline_workflow_handlers import apply_tenant_journey_workflow
+
+    journey_result = apply_tenant_journey_workflow(
+        school_id, user_id, workflow, fields, payload
+    )
+    if journey_result is not None:
+        return journey_result
     return None
 
 

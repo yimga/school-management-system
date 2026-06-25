@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMyCampus · Tenant lifecycle OS (1738)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  :root{--bg:#060912;--canvas:#0e1426;--hair:rgba(255,255,255,.08);--text:#eef2ff;--t2:#aab3d4;--brand:#6366f1;--ok:#10b981}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;font-size:13px}
+  .flag{position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#6366f1,#8b5cf6);color:#fff;font-weight:700;font-size:11px;text-align:center;padding:6px}
+  .wrap{max-width:1000px;margin:44px auto 60px;padding:0 18px}
+  .fsm{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0}
+  .state{font-size:10px;padding:6px 10px;border-radius:999px;border:1px solid var(--hair);background:var(--canvas)}
+  .state.done{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.35)}
+  .state.now{background:rgba(99,102,241,.2);border-color:var(--brand);font-weight:700}
+  .state.future{opacity:.45}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+  @media(max-width:720px){.split{grid-template-columns:1fr}}
+  .frame{border:1px solid var(--hair);border-radius:14px;padding:14px;background:var(--canvas);min-height:200px}
+  .offline{font-size:11px;padding:8px;border-radius:8px;background:rgba(245,158,11,.08);border:1px dashed rgba(245,158,11,.3);margin-top:10px}
+  .conn{position:fixed;top:32px;right:12px;z-index:9998;display:flex;gap:6px}
+  .conn button{font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid var(--hair);background:var(--canvas);color:var(--t2);cursor:pointer}
+  .conn .is-on{background:var(--brand);color:#fff;border-color:transparent}
+</style>
+</head>
+<body>
+<div class="flag">BATCH 1738 · 14-state operational lifecycle FSM · cached offline · <a href="world-class-tenant-journey-hub-browsable.html" style="color:#fff">Hub</a></div>
+<div class="conn" aria-label="Connection simulator"><button type="button" class="is-on" data-conn="online">Online</button><button type="button" data-conn="offline">Offline</button><button type="button" data-conn="hub">LAN hub</button></div>
+<div class="wrap">
+  <h1 style="font-size:20px;margin:0 0 6px"><i class="bi bi-diagram-3"></i> Tenant lifecycle OS</h1>
+  <p style="color:var(--t2);font-size:12px;margin:0">Conception → provisioning → setup → launch → daily ops → year close → renewal → suspension → export → offboard → purge → deletion certificate.</p>
+  <div class="fsm" id="fsm">
+    <span class="state done">conception</span>
+    <span class="state done">provisioning</span>
+    <span class="state done">country_setup</span>
+    <span class="state done">setup_studio</span>
+    <span class="state done">launch_readiness</span>
+    <span class="state now">daily_operations</span>
+    <span class="state future">academic_year_close</span>
+    <span class="state future">renewal</span>
+    <span class="state future">suspension</span>
+    <span class="state future">read_only</span>
+    <span class="state future">export</span>
+    <span class="state future">offboarding</span>
+    <span class="state future">purge_scheduled</span>
+    <span class="state future">deletion_certificate</span>
+  </div>
+  <div class="split">
+    <div class="frame">
+      <p style="font-size:11px;font-weight:700;margin:0 0 8px">Admin backend — lifecycle strip</p>
+      <p style="font-size:12px;margin:0;color:var(--t2)">Current: <strong style="color:var(--ok)">daily_operations</strong></p>
+      <p style="font-size:11px;margin:8px 0 0">Next allowed: academic_year_close, suspension, offboarding</p>
+    </div>
+    <div class="frame">
+      <p style="font-size:11px;font-weight:700;margin:0 0 8px">Offline / edge</p>
+      <div class="offline"><i class="bi bi-wifi-off"></i> State labels from Dexie cache · transitions that mutate require online or queued intent</div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var conn=document.querySelector('.conn');
+  if(!conn) return;
+  conn.addEventListener('click',function(e){
+    var b=e.target.closest('[data-conn]'); if(!b) return;
+    conn.querySelectorAll('button').forEach(function(x){x.classList.remove('is-on');});
+    b.classList.add('is-on');
+  });
+})();
+</script>
+</body>
+</html>

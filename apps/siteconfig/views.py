@@ -26,6 +26,7 @@ from django.views.decorators.clickjacking import (
     xframe_options_exempt,
     xframe_options_sameorigin,
 )
+from django.views.decorators.http import require_POST
 
 from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
@@ -1312,6 +1313,28 @@ def set_default_dashboard_view(request):
     preference.dashboard_view = view_value
     preference.save()
     messages.success(request, "Default view updated.")
+    return redirect(next_url)
+
+
+@login_required
+@require_POST
+def quick_set_dashboard_visual_preset(request):
+    """Apply a dashboard visual preset from setup surface inline picker (batch 1731)."""
+    from apps.siteconfig.models_dashboard import DashboardUserPreference
+
+    preset = (request.POST.get("preset") or "").strip()
+    success_fallback = reverse("accounts:backend_dashboard")
+    invalid_fallback = reverse("siteconfig:user_preferences")
+    next_candidate = request.POST.get("next") or request.META.get("HTTP_REFERER")
+    next_url = _safe_next_url(request, next_candidate, success_fallback)
+    allowed = {choice[0] for choice in DashboardUserPreference.VISUAL_PRESET_CHOICES}
+    if preset not in allowed:
+        messages.warning(request, _("Invalid dashboard style."))
+        return redirect(_safe_next_url(request, next_candidate, invalid_fallback))
+    dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
+    dashboard_pref.set_visual_preset(getattr(request.user, "role", None), preset)
+    dashboard_pref.save()
+    messages.success(request, _("Dashboard style updated."))
     return redirect(next_url)
 
 

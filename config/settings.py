@@ -2003,6 +2003,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 300.0,
         "options": {"expires": 240},
     },
+    "platform-runtime-workflow-failed-provision-requeue": {
+        "task": "platform_runtime.workflow_failed_provision_auto_requeue_sweep",
+        "schedule": 600.0,
+        "options": {"expires": 540},
+    },
     # Workflow 10x — running workflows past registry slo_seconds → breach row + operator email.
     "platform-runtime-workflow-sla-breach-sweep": {
         "task": "platform_runtime.workflow_sla_breach_alert_sweep",
