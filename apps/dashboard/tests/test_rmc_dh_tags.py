@@ -119,6 +119,13 @@ class DhExtendedHelpersTests(SimpleTestCase):
         self.assertEqual(cells[0]["level"], "l3")
         self.assertEqual(cells[1]["level"], "")
 
+    def test_heat_levels_accessible_titles(self):
+        # WCAG 1.4.1: each cell carries a non-colour title for tooltip + screen reader.
+        cells = dh_heat_levels([{"label": "M", "value": 90}, {"label": "T", "value": 0}])
+        self.assertIn("90%", cells[0]["title"])
+        self.assertIn("M", cells[0]["title"])
+        self.assertIn("no data", cells[1]["title"])
+
     def test_syllabus_segbar_splits_counts(self):
         segs = dh_syllabus_segbar({"approved": 5, "pending": 3, "draft": 2, "needs_revision": 0})
         self.assertEqual(sum(s["pct"] for s in segs), 100)

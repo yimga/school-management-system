@@ -10,6 +10,7 @@ from decimal import Decimal, InvalidOperation
 
 from django import template
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext as _
 
 register = template.Library()
 
@@ -193,7 +194,16 @@ def dh_heat_levels(trend) -> list[dict]:
             level = "l1"
         else:
             level = ""
-        cells.append({"label": row.get("label") or "", "level": level})
+        # Accessible per-cell label so the level is never conveyed by colour alone
+        # (WCAG 1.4.1). Drives a native hover tooltip + a screen-reader description.
+        # Mirrors apps.portal.student_dashboard_data._heat_levels for parity across
+        # the student (pre-computed) and teacher (in-template filter) heatmaps.
+        label = row.get("label") or ""
+        if level:
+            title = "%s · %s%%" % (label, v) if label else "%s%%" % v
+        else:
+            title = "%s · %s" % (label, _("no data")) if label else _("no data")
+        cells.append({"label": label, "level": level, "title": title})
     return cells
 
 

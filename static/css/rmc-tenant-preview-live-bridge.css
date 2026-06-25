@@ -302,3 +302,27 @@ body.tp-v3-role-home [data-rmc-preview-live-student="1"] .rmc-preview-live-secti
   border-radius: var(--radius-xl, 14px);
   margin-bottom: 10px;
 }
+
+/* W4 — role-home namespace roots, page workspaces and section-navs.
+   The visual grammar comes from .rmc-dh + the data-attr selectors above; these
+   class hooks carry the role-home block flow and the section-nav rhythm so
+   parent + student match the teacher grammar (.rmc-preview-live-teacher__nav)
+   defined earlier. Without these the role-home wrappers were undefined classes
+   (silent no-style), tripping scan_undefined_css_classes. */
+.rmc-preview-live-parent,
+.rmc-preview-live-student,
+.rmc-preview-live-teacher {
+  width: 100%;
+}
+
+.rmc-preview-live-parent-workspace,
+.rmc-preview-live-student-workspace,
+.rmc-preview-live-teacher-workspace {
+  display: block;
+  width: 100%;
+}
+
+.rmc-preview-live-parent__nav,
+.rmc-preview-live-student__nav {
+  margin-bottom: var(--rmc-dh-gap, 14px);
+}

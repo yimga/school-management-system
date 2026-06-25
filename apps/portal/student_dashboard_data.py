@@ -47,7 +47,14 @@ def _heat_levels(trend: list[dict]) -> list[dict]:
             level = "l1"
         else:
             level = ""
-        cells.append({"label": row.get("label") or "", "level": level})
+        # Accessible per-cell label so the level is never conveyed by colour alone
+        # (WCAG 1.4.1). Drives a native hover tooltip + a screen-reader description.
+        label = row.get("label") or ""
+        if level:
+            title = "%s · %s%%" % (label, v) if label else "%s%%" % v
+        else:
+            title = "%s · %s" % (label, _("no data")) if label else _("no data")
+        cells.append({"label": label, "level": level, "title": title})
     return cells
 
 
@@ -252,6 +259,24 @@ def build_student_home_extras(
     results_locked = bool(access.get("results_locked"))
     visibility_mode = str(access.get("visibility_mode") or visibility_mode)
 
+    # School operational grade scale (local-first): /20 francophone Bac, /100
+    # percentage, /4 GPA — never a hardcoded /20. Resolved once and reused for both
+    # the Average KPI denominator and the subject-bar widths so a /100 school, a /20
+    # school and a /4 GPA school each render truthfully. Never raises; defaults to 100.
+    score_scale = 100.0
+    if can_view_results:
+        try:
+            from apps.evals.grading_provisioning import resolve_school_score_scale
+
+            _scale = float(resolve_school_score_scale(school) or 0)
+            if _scale > 0:
+                score_scale = _scale
+        except _SOFT:
+            score_scale = 100.0
+    scale_label = (
+        str(int(score_scale)) if float(score_scale).is_integer() else str(score_scale)
+    )
+
     if can_view_results:
         ai_insight = _student_ai_insight(grade_trend=grade_trend, subjects=subjects)
 
@@ -315,7 +340,7 @@ def build_student_home_extras(
         metrics.append(
             {
                 "label": _("Average"),
-                "value": str(grade_avg),
+                "value": f"{grade_avg}/{scale_label}",
                 "meta": _("live")
                 if visibility_mode == STUDENT_RESULTS_VISIBILITY_ENTERED
                 else _("published"),
@@ -350,17 +375,52 @@ def build_student_home_extras(
 
     subject_rows = []
     if can_view_results and subjects:
+        # Bar width uses the school's operational grade scale resolved once above —
+        # never a hardcoded /20 (×5). A /100, /20 or /4 school each fills truthfully.
         for row in subjects:
             avg = float(row.get("average") or 0)
+            pct_val = max(0.0, min(100.0, avg / score_scale * 100.0))
             subject_rows.append(
                 {
                     "name": row.get("subject") or "",
-                    "pct": min(100, int(round(avg * 5))),
+                    "pct": int(round(pct_val)),
                     "label": str(row.get("average")),
                 }
             )
 
     grade_trend_out = grade_trend if can_view_results else []
+
+    # Premium first-run: a brand-new school (student linked, but nothing seeded yet)
+    # gets a warm, oriented "getting ready" card instead of a wall of hidden panels.
+    # Built from the already-approved aicard grammar — no new style. Shown only when a
+    # real student is linked AND every data surface is genuinely empty (honest: each
+    # panel still turns itself on the moment its data exists).
+    is_data_thin = (
+        attendance_pct is None
+        and not timetable
+        and not due_items
+        and not subjects
+        and not grade_trend
+        and not announcements
+        and not badges
+    )
+    onboarding = None
+    if profile is not None and is_data_thin:
+        onboarding = {
+            "title": _("Welcome — your student home is getting ready"),
+            "text": _(
+                "As your school adds your timetable, attendance, results and "
+                "announcements, each section turns on here automatically. Nothing is "
+                "hidden — your dashboard fills in the moment there's something to show."
+            ),
+            "acts": [
+                {
+                    "label": _("Syllabus & resources"),
+                    "href": reverse("portal:portal_syllabus"),
+                },
+                {"label": _("Messages"), "href": reverse("accounts:user_messages")},
+            ],
+        }
 
     return {
         "student_attendance_pct": attendance_pct,
@@ -381,4 +441,5 @@ def build_student_home_extras(
         "student_hero_sub": hero_sub,
         "student_metrics": metrics,
         "student_due_count": due_count,
+        "student_onboarding": onboarding,
     }

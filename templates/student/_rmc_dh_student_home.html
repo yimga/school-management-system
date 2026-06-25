@@ -39,6 +39,10 @@
     </div>
   </nav>
 
+  {% if student_onboarding %}
+  {% include "components/dashboard/rmc_dh_aicard.html" with dh_title=student_onboarding.title dh_text=student_onboarding.text dh_acts=student_onboarding.acts dh_primary_first=True %}
+  {% endif %}
+
   {% if phase7_de.metrics %}
   <div class="rmc-dh-tiles">
     {% for m in phase7_de.metrics %}
@@ -60,7 +64,7 @@
       {% else %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-check-circle" dh_text=item.title %}{% endif %}
       {% endfor %}
     </div>
-    {% else %}
+    {% elif not student_onboarding %}
     <div class="rmc-dh-attention rmc-dh-attention--good">
       <h2 class="rmc-dh-attention__title"><i class="bi bi-check2-circle" aria-hidden="true"></i> {% trans "You're on track" %}</h2>
       <p class="rmc-dh-hero__sub" style="margin:0">{% trans "No urgent items — check today's timetable and this week's work below." %}</p>

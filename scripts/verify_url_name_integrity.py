@@ -9,10 +9,19 @@ every dashboard is a web of cross-links, a renamed/removed URL pattern that
 leaves a stale reference behind is a direct production outage.
 
 Ground truth comes from Django's own resolver, so there are no false
-positives from incomplete static knowledge:
+positives from incomplete static knowledge. RMC is **host-split**: a request
+is routed by middleware to one of several per-host/per-schema urlconfs
+(``config.urls`` / ``public_urls`` / ``tenant_urls`` / ``manager_urls`` /
+``api_urls`` / ``docs_urls``), and ``reverse()`` resolves against the active
+host's urlconf — so a name valid on ANY of them is valid. This verifier
+therefore unions the registered-name set across **every** ``config/*urls*.py``
+module (auto-discovered, so a newly added host urlconf is covered without a
+code change) plus the settings-declared ``*_URLCONF`` values, and runs
+``django.contrib.admin.autodiscover()`` first so ``admin:`` route names exist.
+A name is then resolved by:
 
-* membership fast-path — the name is in the resolver's complete registered-name
-  set (built by recursively walking ``reverse_dict`` + ``namespace_dict``); OR
+* membership fast-path — the name is in the unioned registered-name set
+  (built by recursively walking ``reverse_dict`` + ``namespace_dict``); OR
 * authoritative fallback — ``reverse(name)`` is attempted and the
   ``NoReverseMatch`` message is classified. Django says *"... is not a valid
   view function or pattern name"* for an unknown name (→ finding) versus
@@ -206,6 +215,29 @@ def _registered_names(resolver, prefix: str = "") -> set[str]:
     return names
 
 
+def _candidate_urlconfs() -> list[str]:
+    """Every URL-config module a literal reference might legitimately target.
+
+    The settings-declared ``ROOT_URLCONF`` / ``PUBLIC_SCHEMA_URLCONF`` /
+    ``TENANT_SCHEMA_URLCONF`` PLUS every ``config/*urls*.py`` module on disk
+    (auto-discovered — covers host urlconfs like ``manager_urls`` that are
+    selected by middleware rather than a settings constant, and adapts to new
+    ones without a code change).
+    """
+    from django.conf import settings
+
+    confs = ["config.urls"]
+    for key in ("ROOT_URLCONF", "PUBLIC_SCHEMA_URLCONF", "TENANT_SCHEMA_URLCONF"):
+        val = getattr(settings, key, None)
+        if val:
+            confs.append(val)
+    config_dir = REPO_ROOT / "config"
+    if config_dir.is_dir():
+        for path in sorted(config_dir.glob("*urls*.py")):
+            confs.append("config." + path.stem)
+    return list(dict.fromkeys(confs))
+
+
 def _resolve(targets: list[dict]) -> list[dict]:
     import django
     from django.urls import get_resolver, reverse, NoReverseMatch
@@ -214,13 +246,29 @@ def _resolve(targets: list[dict]) -> list[dict]:
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     django.setup()
 
-    valid = _registered_names(get_resolver())
+    # admin: route names are generated from registered ModelAdmins, which
+    # django.setup() alone does not import. Autodiscover so they exist.
+    try:
+        import django.contrib.admin
+
+        django.contrib.admin.autodiscover()
+    except Exception:
+        pass
+
+    valid: set[str] = set()
+    for urlconf in _candidate_urlconfs():
+        try:
+            valid |= _registered_names(get_resolver(urlconf))
+        except Exception:
+            continue  # a urlconf that fails to import contributes no names
 
     findings: list[dict] = []
     for t in targets:
         name = t["name"]
         if name in valid:
             continue
+        if set(name) <= {"."}:
+            continue  # placeholder like {% url "..." %} in a reusable partial
         # Authoritative fallback: distinguish unknown-name from needs-args.
         try:
             reverse(name)

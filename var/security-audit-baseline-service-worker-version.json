@@ -1,12 +1,12 @@
 {
   "date": "2026-06-25",
-  "generated_at": "2026-06-25T16:04:35+00:00",
+  "generated_at": "2026-06-25T20:00:00+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 32,
-  "raw": "sms-v4.05.32-operator-only-offboarding-restore-2026-06-25",
+  "patch": 37,
+  "raw": "sms-v4.05.37-tenant-app-shell-merge-2026-06-25",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "operator-only-offboarding-restore",
+  "slug": "tenant-app-shell-merge",
   "valid": true
 }
