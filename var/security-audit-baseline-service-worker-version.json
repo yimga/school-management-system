@@ -1,12 +1,12 @@
 {
-  "date": "2026-06-24",
-  "generated_at": "2026-06-24T01:45:00+00:00",
+  "date": "2026-06-25",
+  "generated_at": "2026-06-25T00:00:00+00:00",
   "major": 4,
-  "minor": 4,
-  "patch": 96,
-  "raw": "sms-v4.04.96-offline-periodic-sync-r3-2026-06-24",
+  "minor": 5,
+  "patch": 21,
+  "raw": "sms-v4.05.21-tenant-dashboards-100x-audit-2026-06-25",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "offline-periodic-sync-r3",
+  "slug": "tenant-dashboards-100x-audit",
   "valid": true
 }

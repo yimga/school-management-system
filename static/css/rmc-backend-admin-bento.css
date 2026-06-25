@@ -108,6 +108,15 @@ body.tp-v3-role-home .rmc-admin-onboarding[data-rmc-preview-live-admin="1"] .rmc
   margin-top: 0.25rem;
 }
 
+/* Cockpit (onboarding snapshot) + overview zones each stack several operational
+   strips — readiness train, health strip, lifecycle, launch playbook. Give the
+   stacked partials consistent vertical rhythm without changing the bento panel's
+   own layout. Also seals these as defined classes (scan_undefined_css_classes). */
+.rmc-admin-cockpit-zone > * + *,
+.rmc-admin-overview-zone > * + * {
+  margin-top: var(--rmc-dh-gap, 14px);
+}
+
 /* Bento-focus preset: live Command Center matches style-gallery hero grid (batch 1731). */
 body.dashboard-preset-bento-focus[data-dashboard-page] .rmc-admin-bento .rmc-dh-tiles {
   display: grid;

@@ -1280,6 +1280,7 @@ def parent_dashboard(request: HttpRequest):
             "class_threads": class_threads,
             "attendance_pct": attendance_pct,
             "has_fees_due": has_fees_due,
+            "finance_balance": finance_balance,
             "finance_paid_pct": finance_paid_pct,
             "finance_total": finance_total,
             "finance_paid": finance_paid,
