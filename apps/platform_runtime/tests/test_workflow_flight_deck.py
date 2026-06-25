@@ -19,6 +19,7 @@ from apps.platform_runtime.workflow_flight_deck_actions import (
     enrich_run_payload,
     resolve_effective_remediation,
 )
+from apps.platform_runtime.workflow_status_taxonomy import status_meta, status_taxonomy_payload
 from apps.platform_runtime.views_workflow_progress import apply_fix_view
 from apps.schools.models import School
 
@@ -126,7 +127,38 @@ class FlightDeckEnrichmentTests(TestCase):
         self.assertEqual(response.status_code, 200)
         body = json.loads(response.content)
         self.assertTrue(body.get("ok"), body)
+        self.assertTrue(body.get("refresh_deck"), body)
+        self.assertEqual(body.get("remediated_run_id"), self.run.pk)
         dispatch_mock.assert_called_once()
+        self.run.refresh_from_db()
+        self.assertIn("workflow_fix_remediation", self.run.payload_summary)
+        self.assertFalse(self.run.suggested_remediation.get("auto_fix_available"))
+
+    @patch("apps.schools.tasks.dispatch_provision_school")
+    @override_settings(ALLOWED_HOSTS=["*"])
+    def test_apply_fix_removes_remediated_run_from_failure_deck(self, dispatch_mock):
+        request = self.factory.post(
+            f"/platform-runtime/workflow-progress/apply-fix/{self.run.pk}/",
+            HTTP_ACCEPT="application/json",
+            HTTP_HOST=_MANAGER_HOST,
+        )
+        request.user = self.staff
+        apply_response = apply_fix_view(request, run_id=self.run.pk)
+        self.assertEqual(apply_response.status_code, 200)
+        dispatch_mock.assert_called_once()
+
+        deck_request = self.factory.get(
+            "/platform-runtime/workflow-progress/flight-deck.json",
+            HTTP_ACCEPT="application/json",
+            HTTP_HOST=_MANAGER_HOST,
+        )
+        deck_request.user = self.staff
+        deck_response = flight_deck_json_view(deck_request)
+        self.assertEqual(deck_response.status_code, 200)
+        data = json.loads(deck_response.content)
+        failed_ids = {row.get("id") for row in data.get("recent_failed") or []}
+        self.assertNotIn(self.run.pk, failed_ids)
+        self.assertIn("healing_count", data.get("summary") or {})
 
     @override_settings(ALLOWED_HOSTS=["*"])
     def test_flight_deck_json_includes_operator_actions(self):
@@ -141,6 +173,7 @@ class FlightDeckEnrichmentTests(TestCase):
         data = json.loads(response.content)
         self.assertIn("endpoints", data)
         self.assertIn("labels", data)
+        self.assertIn("stream", data["endpoints"])
         self.assertIn("summary", data)
         failed = data.get("recent_failed") or []
         self.assertTrue(failed)
@@ -153,6 +186,62 @@ class FlightDeckEnrichmentTests(TestCase):
         )
         self.assertIsNotNone(apply_action)
         self.assertTrue(apply_action.get("requires_network"))
+        self.assertEqual(apply_action.get("capability", {}).get("mode"), "execute")
+
+    @override_settings(ALLOWED_HOSTS=["*"])
+    def test_flight_deck_json_includes_status_taxonomy(self):
+        request = self.factory.get(
+            "/platform-runtime/workflow-progress/flight-deck.json",
+            HTTP_ACCEPT="application/json",
+            HTTP_HOST=_MANAGER_HOST,
+        )
+        request.user = self.staff
+        response = flight_deck_json_view(request)
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        taxonomy = data.get("status_taxonomy") or {}
+        self.assertEqual(taxonomy["stuck"]["color"], "yellow")
+        self.assertEqual(taxonomy["failed"]["color"], "red")
+        self.assertEqual(taxonomy["cancelled"]["color"], "red")
+        self.assertEqual(taxonomy["succeeded"]["color"], "green")
+        self.assertIn("recovery_queue", data.get("copilot_context") or {})
+
+    def test_status_taxonomy_matches_recovery_colors(self):
+        taxonomy = status_taxonomy_payload()
+        self.assertEqual(status_meta("stuck")["color"], "yellow")
+        self.assertEqual(taxonomy["stuck"]["css_class"], "rmc-wf-status--stuck")
+        self.assertEqual(status_meta("cancelled")["color"], "red")
+        self.assertEqual(status_meta("succeeded")["color"], "green")
+        self.assertEqual(status_meta("failed", remediated=True)["key"], "superseded")
+
+    @override_settings(ALLOWED_HOSTS=["*"])
+    def test_diagnostic_only_fix_returns_explanation(self):
+        run = WorkflowRun.objects.create(
+            workflow_key="integration_sync",
+            workflow_label="Integration sync",
+            status="failed",
+            tenant_schema="diagnostic_school",
+            current_step_name="webhook",
+            current_step_ordinal=1,
+            total_steps=2,
+            suggested_remediation={
+                "auto_fix_available": True,
+                "auto_fix_kind": "replay_webhook",
+                "human_action": "Replay source webhook after checking source metadata.",
+            },
+        )
+        request = self.factory.post(
+            f"/platform-runtime/workflow-progress/apply-fix/{run.pk}/",
+            HTTP_ACCEPT="application/json",
+            HTTP_HOST=_MANAGER_HOST,
+        )
+        request.user = self.staff
+        response = apply_fix_view(request, run_id=run.pk)
+        self.assertEqual(response.status_code, 400)
+        body = json.loads(response.content)
+        self.assertFalse(body.get("ok"))
+        self.assertEqual(body.get("reason"), "diagnostic_only")
+        self.assertEqual(body.get("capability", {}).get("mode"), "diagnostic")
 
     @override_settings(ALLOWED_HOSTS=["*"])
     def test_run_detail_renders_html_for_browser(self):
@@ -166,6 +255,7 @@ class FlightDeckEnrichmentTests(TestCase):
         content = response.content.decode("utf-8")
         self.assertIn("workflow-run-detail", content)
         self.assertIn("Operator actions", content)
+        self.assertIn("Recovery intelligence", content)
 
     @patch("apps.schools.tasks.dispatch_provision_school")
     @override_settings(ALLOWED_HOSTS=["*"])
@@ -202,4 +292,6 @@ class FlightDeckEnrichmentTests(TestCase):
         self.assertEqual(response.status_code, 200)
         body = json.loads(response.content)
         self.assertGreaterEqual(body.get("applied", 0), 1)
+        self.assertTrue(body.get("refresh_deck"))
+        self.assertEqual(body.get("healing_poll_ms"), 2500)
         dispatch_mock.assert_called()

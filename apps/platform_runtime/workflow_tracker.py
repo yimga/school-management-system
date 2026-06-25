@@ -242,8 +242,10 @@ def serialize_workflow_run(run: Any, *, status_override: str = "") -> dict:
 
     from apps.platform_runtime.workflow_degrading import resolve_display_status
     from apps.platform_runtime.workflow_sla import sla_meta_for_run
+    from apps.platform_runtime.workflow_status_taxonomy import status_meta
 
     status = status_override or resolve_display_status(run)
+    meta = status_meta(status)
     ordinal = int(getattr(run, "current_step_ordinal", 0) or 0)
     total = int(getattr(run, "total_steps", 0) or 0)
     age_seconds = _run_age_seconds(run)
@@ -269,6 +271,8 @@ def serialize_workflow_run(run: Any, *, status_override: str = "") -> dict:
         "workflow_key": run.workflow_key,
         "workflow_label": run.workflow_label,
         "status": status,
+        "display_status": meta["label"],
+        "status_meta": meta,
         "registry_route": route,
         "p95_seconds": p95,
         "sla": sla_meta_for_run(run),

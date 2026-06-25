@@ -16,6 +16,7 @@ def cluster_recent_incidents(*, hours: int = 24, min_tenants: int = 2) -> list[d
         from apps.platform_runtime.models import WorkflowRun
     except Exception:
         return []
+    from apps.platform_runtime.workflow_fix_handlers import workflow_run_is_remediated
 
     since = timezone.now() - timedelta(hours=max(hours, 1))
     qs = WorkflowRun.objects.filter(  # tenant-isolation-allow: operator-flight-deck-cross-tenant-incident-cluster
@@ -36,6 +37,8 @@ def cluster_recent_incidents(*, hours: int = 24, min_tenants: int = 2) -> list[d
     )
 
     for run in qs:
+        if workflow_run_is_remediated(run):
+            continue
         rem = run.suggested_remediation or {}
         if run.status == "running":
             from apps.platform_runtime.workflow_tracker import is_stuck
@@ -94,6 +97,7 @@ def runs_for_remediation_key(*, remediation_key: str, hours: int = 24, limit: in
     """Return recent failed/stuck runs matching a remediation cluster key."""
 
     from apps.platform_runtime.models import WorkflowRun
+    from apps.platform_runtime.workflow_fix_handlers import workflow_run_is_remediated
 
     since = timezone.now() - timedelta(hours=max(hours, 1))
     key = str(remediation_key or "").strip()
@@ -107,6 +111,8 @@ def runs_for_remediation_key(*, remediation_key: str, hours: int = 24, limit: in
     ).order_by("-started_at")[:500]
 
     for run in qs:
+        if workflow_run_is_remediated(run):
+            continue
         if run.status == "running":
             from apps.platform_runtime.workflow_tracker import is_stuck
 

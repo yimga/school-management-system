@@ -203,6 +203,11 @@ def build_run_detail_payload(run: Any) -> dict[str, Any]:
         enrich_run_payload,
         resolve_effective_remediation,
     )
+    from apps.platform_runtime.workflow_fix_handlers import workflow_run_remediation_stamp
+    from apps.platform_runtime.workflow_status_taxonomy import (
+        recovery_context_for_run,
+        status_meta,
+    )
     from apps.platform_runtime.workflow_tracker import is_stuck, serialize_workflow_run
 
     steps = []
@@ -222,11 +227,16 @@ def build_run_detail_payload(run: Any) -> dict[str, Any]:
         )
 
     enriched = enrich_run_payload(serialize_workflow_run(run), run=run)
+    display_status = "stuck" if is_stuck(run) else run.status
+    remediation_stamp = workflow_run_remediation_stamp(run)
+    meta = status_meta(display_status, remediated=bool(remediation_stamp))
     return {
         "id": run.pk,
         "workflow_key": run.workflow_key,
         "workflow_label": run.workflow_label,
-        "status": "stuck" if is_stuck(run) else run.status,
+        "status": display_status,
+        "display_status": meta["label"],
+        "status_meta": meta,
         "current_step_ordinal": run.current_step_ordinal,
         "current_step_name": run.current_step_name,
         "total_steps": run.total_steps,
@@ -243,7 +253,13 @@ def build_run_detail_payload(run: Any) -> dict[str, Any]:
         "payload_summary": run.payload_summary or {},
         "error_summary": run.error_summary or {},
         "suggested_remediation": resolve_effective_remediation(run),
+        "remediation_stamp": remediation_stamp,
         "operator_actions": enriched.get("operator_actions") or [],
+        "copilot_recovery_context": recovery_context_for_run(
+            enriched,
+            action_count=len(enriched.get("operator_actions") or []),
+            remediated=bool(remediation_stamp),
+        ),
         "steps": steps,
     }
 
@@ -416,6 +432,13 @@ def apply_fix_view(request, run_id: int):
 
     result = apply_auto_fix_kind(run=run, kind=kind)
     if result.get("ok"):
+        result.setdefault("refresh_deck", True)
+        result.setdefault("remediated_run_id", run.pk)
+        result.setdefault(
+            "operator_message",
+            "Fix launched. The Flight Deck will refresh while delivery resumes.",
+        )
+        result.setdefault("healing_poll_ms", 2500)
         record_apply_log(
             run_id=run.pk,
             workflow_key=workflow_key,

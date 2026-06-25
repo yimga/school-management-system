@@ -8,6 +8,11 @@ from django.urls import reverse
 
 
 def _apply_fix_label(auto_fix_kind: str) -> str:
+    from apps.platform_runtime.workflow_fix_handlers import auto_fix_capability
+
+    capability_label = str(auto_fix_capability(auto_fix_kind).get("label") or "").strip()
+    if capability_label:
+        return capability_label
     labels = {
         "requeue_provision": "Requeue provisioning",
         "resend_welcome": "Resend welcome email",
@@ -108,19 +113,54 @@ def _action_meta(kind: str, **fields: Any) -> dict[str, Any]:
 def build_operator_actions(*, run: Any, payload: dict[str, Any]) -> list[dict[str, Any]]:
     """Return ordered operator actions for a workflow run row."""
 
+    from apps.platform_runtime.workflow_fix_handlers import (
+        auto_fix_capability,
+        auto_fix_kind_is_executable,
+        workflow_run_is_remediated,
+    )
+
     actions: list[dict[str, Any]] = []
     status = (payload.get("status") or "").lower()
     workflow_key = payload.get("workflow_key") or ""
     school_id = str(payload.get("school_id") or "").strip()
     rem = payload.get("suggested_remediation") or {}
     auto_fix_kind = str(rem.get("auto_fix_kind") or "").strip()
+    remediated = bool(run is not None and workflow_run_is_remediated(run))
+    run_id = payload.get("id")
+    detail_action: dict[str, Any] | None = None
 
-    if rem.get("auto_fix_available") and auto_fix_kind:
+    if run_id:
+        try:
+            detail_action = {
+                "kind": "detail",
+                "label": "View run detail",
+                "href": reverse(
+                    "platform_runtime:workflow_progress_run_detail",
+                    args=[run_id],
+                ),
+                "primary": False,
+                "capability": auto_fix_capability("open_diagnostic_detail"),
+            }
+        except Exception:
+            detail_action = None
+
+    if remediated:
+        if detail_action:
+            actions.append(detail_action)
+        return actions
+
+    if (
+        rem.get("auto_fix_available")
+        and auto_fix_kind
+        and auto_fix_kind_is_executable(auto_fix_kind)
+    ):
+        capability = auto_fix_capability(auto_fix_kind)
         actions.append(
             _action_meta(
                 "apply_fix",
                 label=_apply_fix_label(auto_fix_kind),
                 primary=True,
+                capability=capability,
             )
         )
         actions.append(
@@ -128,8 +168,12 @@ def build_operator_actions(*, run: Any, payload: dict[str, Any]) -> list[dict[st
                 "preview_fix",
                 label="Preview fix",
                 primary=False,
+                capability=capability,
             )
         )
+    elif auto_fix_kind and detail_action:
+        detail_action["label"] = "Open AI diagnosis"
+        actions.append(detail_action)
 
     if workflow_key == "tenant_school_provision" and school_id:
         can_requeue = _can_requeue_provision(school_id)
@@ -141,6 +185,7 @@ def build_operator_actions(*, run: Any, payload: dict[str, Any]) -> list[dict[st
                     "requeue_provision",
                     label="Requeue provisioning",
                     primary=True,
+                    capability=auto_fix_capability("requeue_provision"),
                 ),
             )
         elif can_requeue and auto_fix_kind != "requeue_provision":
@@ -149,6 +194,7 @@ def build_operator_actions(*, run: Any, payload: dict[str, Any]) -> list[dict[st
                     "requeue_provision",
                     label="Requeue provisioning",
                     primary=False,
+                    capability=auto_fix_capability("requeue_provision"),
                 )
             )
         try:
@@ -171,22 +217,8 @@ def build_operator_actions(*, run: Any, payload: dict[str, Any]) -> list[dict[st
         except Exception:
             pass
 
-    run_id = payload.get("id")
-    if run_id:
-        try:
-            actions.append(
-                {
-                    "kind": "detail",
-                    "label": "View run detail",
-                    "href": reverse(
-                        "platform_runtime:workflow_progress_run_detail",
-                        args=[run_id],
-                    ),
-                    "primary": False,
-                }
-            )
-        except Exception:
-            pass
+    if detail_action and not any(a.get("kind") == "detail" for a in actions):
+        actions.append(detail_action)
 
     if status in ("running", "stuck", "degrading"):
         actions.append(
@@ -194,6 +226,7 @@ def build_operator_actions(*, run: Any, payload: dict[str, Any]) -> list[dict[st
                 "cancel",
                 label="Cancel run",
                 primary=False,
+                capability=auto_fix_capability("mark_superseded"),
             )
         )
 
@@ -203,12 +236,28 @@ def build_operator_actions(*, run: Any, payload: dict[str, Any]) -> list[dict[st
 def enrich_run_payload(serialized: dict[str, Any], *, run: Any | None = None) -> dict[str, Any]:
     """Augment a serialized workflow run for Flight Deck operator UI."""
 
+    from apps.platform_runtime.workflow_fix_handlers import workflow_run_is_remediated
+    from apps.platform_runtime.workflow_status_taxonomy import (
+        recovery_context_for_run,
+        status_meta,
+    )
+
     out = dict(serialized)
+    remediated = bool(run is not None and workflow_run_is_remediated(run))
     if run is not None:
         out["suggested_remediation"] = resolve_effective_remediation(run)
         if getattr(run, "error_summary", None):
             out["error_summary"] = run.error_summary
+    out["status_meta"] = status_meta(str(out.get("status") or ""), remediated=remediated)
+    out["display_status"] = out["status_meta"]["label"]
+    if remediated:
+        out["recovery_state"] = "superseded"
     out["operator_actions"] = build_operator_actions(run=run, payload=out)
+    out["copilot_recovery_context"] = recovery_context_for_run(
+        out,
+        action_count=len(out["operator_actions"]),
+        remediated=remediated,
+    )
     return out
 
 

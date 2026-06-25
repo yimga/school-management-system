@@ -26,6 +26,7 @@ def flight_deck_labels() -> dict[str, str]:
         "active_count": _("Active"),
         "failed_count": _("Recent failures"),
         "needs_operator_count": _("Needs operator"),
+        "healing_count": _("Healing"),
         "no_runs": _("No runs."),
         "no_incidents": _("No correlated incidents."),
         "no_actions": _(
@@ -67,6 +68,7 @@ def _flight_deck_endpoints() -> dict[str, str]:
             kwargs={"school_id": "00000000-0000-0000-0000-000000000000"},
         ).replace("00000000-0000-0000-0000-000000000000", "{school_id}"),
         "bulk_apply": reverse("platform_runtime:workflow_progress_incident_bulk_apply"),
+        "stream": reverse("platform_runtime:workflow_progress_stream"),
     }
 
 
@@ -106,8 +108,10 @@ def flight_deck_json_view(request):
 
     from apps.platform_runtime.models import WorkflowRun
     from apps.platform_runtime.workflow_flight_deck_actions import enrich_run_payload
+    from apps.platform_runtime.workflow_fix_handlers import workflow_run_is_remediated
     from apps.platform_runtime.workflow_incident_actions import enrich_incident_row
     from apps.platform_runtime.workflow_incidents import cluster_recent_incidents
+    from apps.platform_runtime.workflow_status_taxonomy import status_taxonomy_payload
     from apps.platform_runtime.workflow_tracker import list_active_runs, serialize_workflow_run
 
     schema, actor_id = _resolve_scope(request)
@@ -125,18 +129,25 @@ def flight_deck_json_view(request):
     }
     active = []
     for row in active_rows:
-        active.append(enrich_run_payload(row, run=active_run_map.get(row.get("id"))))
+        run = active_run_map.get(row.get("id"))
+        if run is not None and workflow_run_is_remediated(run):
+            continue
+        active.append(enrich_run_payload(row, run=run))
 
     recent_failed = []
     qs = WorkflowRun.objects.filter(  # tenant-isolation-allow: operator-flight-deck-recent-failed-tenant-schema-filter
         status__in=("failed", "cancelled")
-    ).order_by("-ended_at")[:20]
+    ).order_by("-ended_at")[:60]
     if schema:
         qs = qs.filter(tenant_schema=schema)
     for run in qs:
+        if workflow_run_is_remediated(run):
+            continue
         recent_failed.append(
             enrich_run_payload(serialize_workflow_run(run), run=run)
         )
+        if len(recent_failed) >= 20:
+            break
 
     incidents = [
         enrich_incident_row(row)
@@ -144,6 +155,9 @@ def flight_deck_json_view(request):
     ]
 
     stuck_count = sum(1 for r in active if r.get("status") == "stuck")
+    stopped_count = sum(
+        1 for r in recent_failed if r.get("status") in ("failed", "cancelled", "stopped")
+    )
     needs_operator = sum(
         1
         for r in (*active, *recent_failed)
@@ -159,6 +173,7 @@ def flight_deck_json_view(request):
             "generated_at": timezone.now().isoformat(),
             "endpoints": _flight_deck_endpoints(),
             "labels": flight_deck_labels(),
+            "status_taxonomy": status_taxonomy_payload(),
             "active": active,
             "recent_failed": recent_failed,
             "incidents": incidents,
@@ -166,13 +181,27 @@ def flight_deck_json_view(request):
                 "active_count": len(active),
                 "failed_count": len(recent_failed),
                 "stuck_count": stuck_count,
+                "stopped_count": stopped_count,
                 "needs_operator_count": needs_operator,
+                "healing_count": WorkflowRun.objects.filter(  # tenant-isolation-allow: operator-flight-deck-healing-count-json-key-scan
+                    payload_summary__has_key="workflow_fix_remediation",
+                ).count()
+                if is_staff and not schema
+                else 0,
             },
             "copilot_context": {
                 "active_run_ids": [r.get("id") for r in active if r.get("id")],
+                "failed_run_ids": [r.get("id") for r in recent_failed if r.get("id")],
                 "stuck_count": stuck_count,
+                "stopped_count": stopped_count,
                 "degrading_count": sum(1 for r in active if r.get("status") == "degrading"),
                 "needs_operator_count": needs_operator,
+                "status_taxonomy": status_taxonomy_payload(),
+                "recovery_queue": [
+                    r.get("copilot_recovery_context")
+                    for r in (*active, *recent_failed)
+                    if r.get("copilot_recovery_context")
+                ][:25],
             },
         }
     )

@@ -1,6 +1,9 @@
 {% extends "control_plane_base.html" %}
 {% load i18n static %}
 {% block cp_title %}{{ page_title }}{% endblock %}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-workflow-flight-deck.css' %}">
+{% endblock %}
 {% block cp_content %}
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
@@ -10,7 +13,7 @@
       <h1 class="h3 mb-1">{{ detail.workflow_label|default:detail.workflow_key }}</h1>
       <p class="text-muted mb-0">
         {% trans "Run" %} #{{ detail.id }}
-        · <span class="rmc-badge">{{ detail.status }}</span>
+        · <span class="rmc-wf-status {{ detail.status_meta.css_class }}">{{ detail.display_status }}</span>
         {% if detail.tenant_schema %}· {{ detail.tenant_schema }}{% endif %}
       </p>
     </div>
@@ -68,6 +71,24 @@
       </section>
       {% endif %}
 
+      <section class="card rounded-2xl border shadow-sm mt-3">
+        <div class="card-body">
+          <h2 class="h6 text-uppercase text-muted">{% trans "Recovery intelligence" %}</h2>
+          <dl class="row small mb-0">
+            <dt class="col-5">{% trans "State" %}</dt>
+            <dd class="col-7"><span class="rmc-wf-status {{ detail.status_meta.css_class }}">{{ detail.display_status }}</span></dd>
+            <dt class="col-5">{% trans "Auto fix" %}</dt>
+            <dd class="col-7">{{ detail.suggested_remediation.auto_fix_kind|default:"Diagnostic only" }}</dd>
+            <dt class="col-5">{% trans "Copilot context" %}</dt>
+            <dd class="col-7">{{ detail.copilot_recovery_context.current_step|default:detail.current_step_name }}</dd>
+            {% if detail.remediation_stamp.applied_at %}
+            <dt class="col-5">{% trans "Applied" %}</dt>
+            <dd class="col-7">{{ detail.remediation_stamp.kind }} at {{ detail.remediation_stamp.applied_at }}</dd>
+            {% endif %}
+          </dl>
+        </div>
+      </section>
+
       {% if detail.operator_actions %}
       <section class="card rounded-2xl border shadow-sm mt-3">
         <div class="card-body">
@@ -119,7 +140,7 @@
                     <div class="small text-danger">{{ step.error_text }}</div>
                     {% endif %}
                   </td>
-                  <td><span class="rmc-badge">{{ step.status }}</span></td>
+                  <td><span class="rmc-wf-status rmc-wf-status--{{ step.status }}">{{ step.status }}</span></td>
                   <td>{% if step.duration_ms %}{{ step.duration_ms }} ms{% else %}—{% endif %}</td>
                 </tr>
                 {% endfor %}

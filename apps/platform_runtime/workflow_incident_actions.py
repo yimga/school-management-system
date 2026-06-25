@@ -11,10 +11,21 @@ from django.utils.translation import gettext as _
 def enrich_incident_row(incident: dict[str, Any]) -> dict[str, Any]:
     """Add operator-facing bulk actions to a clustered incident row."""
 
+    from apps.platform_runtime.workflow_fix_handlers import (
+        auto_fix_capability,
+        auto_fix_kind_is_executable,
+    )
+
     out = dict(incident)
     run_ids = list(out.get("run_ids") or [])
     auto_fix_kind = str(out.get("auto_fix_kind") or "").strip()
-    bulk_available = bool(out.get("bulk_apply_available") and auto_fix_kind and run_ids)
+    capability = auto_fix_capability(auto_fix_kind)
+    bulk_available = bool(
+        out.get("bulk_apply_available")
+        and auto_fix_kind
+        and run_ids
+        and auto_fix_kind_is_executable(auto_fix_kind)
+    )
     actions: list[dict[str, Any]] = []
     if bulk_available:
         actions.append(
@@ -25,6 +36,7 @@ def enrich_incident_row(incident: dict[str, Any]) -> dict[str, Any]:
                 "remediation_key": out.get("remediation_key", ""),
                 "run_count": len(run_ids),
                 "requires_network": True,
+                "capability": capability,
                 "offline_hint": _("Requires network — retry when connected."),
             }
         )
@@ -91,5 +103,7 @@ def bulk_apply_incident_remediation(
         "skipped": skipped,
         "failed": failed,
         "results": results[:20],
+        "refresh_deck": applied > 0,
+        "healing_poll_ms": 2500 if applied > 0 else 0,
         "generated_at": timezone.now().isoformat(),
     }

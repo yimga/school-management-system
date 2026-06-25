@@ -8,6 +8,10 @@
     endpoints: {},
     apiUrl: "",
     labels: {},
+    loading: false,
+    liveSource: null,
+    liveRefreshTimer: 0,
+    healingTimer: 0,
   };
 
   var defaultLabels = {
@@ -18,6 +22,7 @@
     active_count: "Active",
     failed_count: "Recent failures",
     needs_operator_count: "Needs operator",
+    healing_count: "Healing",
     no_runs: "No runs.",
     no_incidents: "No correlated incidents.",
     no_actions: "No automated fix available — inspect run detail or Tenant 360.",
@@ -30,6 +35,8 @@
     bulk_apply_done: "Bulk apply finished.",
     action_success: "Action completed.",
     preview_title: "Fix preview",
+    live_connected: "Live updates connected",
+    healing_mode: "Self-Healing is watching repaired runs",
   };
 
   function label(key, fallback) {
@@ -136,6 +143,12 @@
           escapeHtml(action.label) +
           "</a>";
       } else {
+        var capability = action.capability || {};
+        var capabilityTag = capability.mode
+          ? '<small class="d-block fw-normal text-muted">' +
+            escapeHtml(capability.mode === "execute" ? "Executable fix" : capability.mode) +
+            "</small>"
+          : "";
         var netHint = action.requires_network
           ? '<small class="d-block fw-normal text-muted">Requires network</small>'
           : "";
@@ -152,12 +165,42 @@
           (action.requires_network ? "1" : "0") +
           '">' +
           escapeHtml(action.label) +
+          capabilityTag +
           netHint +
           "</button>";
       }
     }
     html += "</div>";
     return html;
+  }
+
+  function renderHealingCommand(summary) {
+    var healing = summary && summary.healing_count ? Number(summary.healing_count) : 0;
+    var live = state.liveSource && state.liveSource.readyState !== 2;
+    return (
+      '<section class="rmc-wfp-flight-deck__command" aria-live="polite">' +
+      '<div class="rmc-wfp-flight-deck__command-copy">' +
+      '<span class="rmc-wfp-flight-deck__pulse-dot"></span>' +
+      '<strong>Self-Healing cockpit</strong>' +
+      '<span>' +
+      escapeHtml(live ? label("live_connected") : "Live polling active") +
+      "</span>" +
+      "</div>" +
+      '<div class="rmc-wfp-flight-deck__command-metrics">' +
+      '<span><strong>' +
+      escapeHtml(summary && summary.stuck_count ? summary.stuck_count : 0) +
+      "</strong> stuck</span>" +
+      '<span><strong>' +
+      escapeHtml(summary && summary.stopped_count ? summary.stopped_count : 0) +
+      "</strong> stopped</span>" +
+      '<span><strong>' +
+      escapeHtml(healing) +
+      "</strong> " +
+      escapeHtml(label("healing_count")) +
+      "</span>" +
+      "</div>" +
+      "</section>"
+    );
   }
 
   function notify(kind, message) {
@@ -172,14 +215,19 @@
   }
 
   function renderRunContent(run) {
+    var statusMeta = run.status_meta || {};
+    var displayStatus = run.display_status || statusMeta.label || run.status || "waiting";
+    var statusClass = statusMeta.css_class || "rmc-wf-status--" + (run.status || "waiting");
     return (
       '<div class="d-flex flex-wrap justify-content-between align-items-start gap-2">' +
       "<div>" +
       "<strong>" +
       escapeHtml(run.workflow_label || run.workflow_key) +
       "</strong> " +
-      '<span class="badge text-bg-secondary">' +
-      escapeHtml(run.status) +
+      '<span class="rmc-wf-status ' +
+      escapeHtml(statusClass) +
+      '">' +
+      escapeHtml(displayStatus) +
       "</span>" +
       '<div class="small text-muted mt-1">' +
       (run.tenant_schema ? escapeHtml(run.tenant_schema) + " · " : "") +
@@ -195,9 +243,11 @@
   }
 
   function renderRunRow(run) {
+    var statusMeta = run.status_meta || {};
+    var dataStatus = statusMeta.key || run.status || "waiting";
     return (
       '<article class="rmc-wfp-flight-deck__run" data-status="' +
-      escapeHtml(run.status) +
+      escapeHtml(dataStatus) +
       '" data-run-id="' +
       escapeHtml(run.id) +
       '">' +
@@ -207,9 +257,11 @@
   }
 
   function renderRunCard(run) {
+    var statusMeta = run.status_meta || {};
+    var dataStatus = statusMeta.key || run.status || "waiting";
     return (
       '<article class="rmc-wfp-flight-deck__run rmc-wfp-flight-deck__run--card" data-status="' +
-      escapeHtml(run.status) +
+      escapeHtml(dataStatus) +
       '" data-run-id="' +
       escapeHtml(run.id) +
       '">' +
@@ -421,7 +473,7 @@
       })
         .then(function (result) {
           if (result.json && (result.json.ok || result.json.applied)) {
-            loadDeck();
+            scheduleHealingRefresh(result.json.healing_poll_ms || 2500);
             notify("success", label("bulk_apply_done"));
             return;
           }
@@ -478,9 +530,13 @@
         }
         if (result.json && result.json.ok) {
           var row = findRunById(runId);
-          if (row) row.classList.add("rmc-wfp-flight-deck__run--acted");
-          notify("success", label("action_success"));
-          loadDeck();
+          if (row) {
+            row.classList.add("rmc-wfp-flight-deck__run--acted");
+            row.setAttribute("data-status", "healing");
+            row.setAttribute("aria-busy", "true");
+          }
+          notify("success", result.json.operator_message || label("action_success"));
+          scheduleHealingRefresh(result.json.healing_poll_ms || 2500);
           return;
         }
         var err =
@@ -512,9 +568,28 @@
     }
   }
 
+  function scheduleLoad(delay) {
+    window.clearTimeout(state.liveRefreshTimer);
+    state.liveRefreshTimer = window.setTimeout(loadDeck, delay || 250);
+  }
+
+  function scheduleHealingRefresh(intervalMs) {
+    var delays = [500, intervalMs || 2500, 6500, 12000];
+    for (var i = 0; i < delays.length; i++) {
+      window.setTimeout(loadDeck, delays[i]);
+    }
+    window.clearTimeout(state.healingTimer);
+    state.healingTimer = window.setInterval(loadDeck, Math.max(intervalMs || 2500, 2500));
+    window.setTimeout(function () {
+      window.clearInterval(state.healingTimer);
+    }, 45000);
+  }
+
   function loadDeck() {
     var root = document.getElementById("rmc-wfp-flight-deck");
     if (!root) return;
+    if (state.loading) return;
+    state.loading = true;
     fetch(state.apiUrl, {
       credentials: "same-origin",
       headers: { Accept: "application/json" },
@@ -526,6 +601,7 @@
         if (data.endpoints) state.endpoints = data.endpoints;
         if (data.labels) state.labels = data.labels;
         root.innerHTML =
+          renderHealingCommand(data.summary) +
           '<div class="rmc-wfp-flight-deck__top">' +
           renderSummary(data.summary) +
           renderRuns(label("active"), data.active) +
@@ -534,11 +610,36 @@
           renderIncidents(data.incidents);
         wireActions(root);
         pushCopilotContext(data.copilot_context);
+        state.loading = false;
       })
       .catch(function () {
         root.innerHTML =
           '<p class="rmc-wfp-flight-deck__empty">' + escapeHtml(label("load_error")) + "</p>";
+        state.loading = false;
       });
+  }
+
+  function connectLiveStream() {
+    if (!window.EventSource || !state.endpoints || !state.endpoints.stream) return;
+    try {
+      if (state.liveSource) state.liveSource.close();
+      state.liveSource = new EventSource(state.endpoints.stream);
+      state.liveSource.addEventListener("snapshot", function () {
+        scheduleLoad(300);
+      });
+      state.liveSource.addEventListener("bye", function () {
+        if (state.liveSource) state.liveSource.close();
+        state.liveSource = null;
+        window.setTimeout(connectLiveStream, 2500);
+      });
+      state.liveSource.onerror = function () {
+        if (state.liveSource) state.liveSource.close();
+        state.liveSource = null;
+        window.setTimeout(connectLiveStream, 8000);
+      };
+    } catch (_) {
+      state.liveSource = null;
+    }
   }
 
   function mount() {
@@ -550,13 +651,14 @@
     state.endpoints = readEndpoints();
     state.labels = readLabels();
     loadDeck();
+    connectLiveStream();
     var refreshBtn = document.getElementById("rmc-wfp-flight-deck-refresh");
     if (refreshBtn) {
       refreshBtn.addEventListener("click", function () {
         loadDeck();
       });
     }
-    window.setInterval(loadDeck, 30000);
+    window.setInterval(loadDeck, 10000);
   }
 
   if (document.readyState === "loading") {

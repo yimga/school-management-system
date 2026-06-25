@@ -28,6 +28,54 @@
   box-shadow: var(--elev-1, 0 2px 8px rgba(0, 0, 0, 0.06));
 }
 
+.rmc-wfp-flight-deck__command {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--ds-success, #22c55e) 35%, var(--hairline));
+  border-radius: var(--radius-lg, 14px);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--brand-primary, #6366f1) 14%, transparent), transparent 45%),
+    color-mix(in srgb, var(--ds-success, #22c55e) 7%, var(--surface-elevated, var(--surface-bg)));
+}
+
+.rmc-wfp-flight-deck__command-copy,
+.rmc-wfp-flight-deck__command-metrics {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.rmc-wfp-flight-deck__command-copy span:last-child {
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+}
+
+.rmc-wfp-flight-deck__command-metrics span {
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
+  padding: 0.18rem 0.55rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--surface-canvas, var(--surface-bg)) 78%, transparent);
+  font-size: 0.78rem;
+}
+
+.rmc-wfp-flight-deck__pulse-dot {
+  inline-size: 0.58rem;
+  block-size: 0.58rem;
+  border-radius: 999px;
+  background: var(--ds-success, #22c55e);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--ds-success, #22c55e) 45%, transparent);
+  animation: rmc-wfp-healing-pulse 1.8s ease-out infinite;
+}
+
 .rmc-wfp-flight-deck__panel h2 {
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -83,13 +131,15 @@
 }
 
 .rmc-wfp-flight-deck__run[data-status="stuck"] {
-  border-left: 3px solid var(--color-danger, var(--hairline));
+  border-left: 3px solid var(--ds-warning, #facc15);
   padding-left: 0.5rem;
 }
 
 .rmc-wfp-flight-deck__run--card[data-status="degrading"],
 .rmc-wfp-flight-deck__run--card[data-status="stuck"],
-.rmc-wfp-flight-deck__run--card[data-status="failed"] {
+.rmc-wfp-flight-deck__run--card[data-status="failed"],
+.rmc-wfp-flight-deck__run--card[data-status="cancelled"],
+.rmc-wfp-flight-deck__run--card[data-status="stopped"] {
   padding-left: calc(0.85rem + 0.5rem);
 }
 
@@ -116,10 +166,117 @@
 }
 
 .rmc-wfp-flight-deck__run--acted {
-  opacity: 0.65;
+  opacity: 0.82;
+  border-left-color: var(--ds-success, #22c55e) !important;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--ds-success, #22c55e) 12%, transparent), transparent 55%),
+    var(--surface-canvas, var(--surface-bg));
 }
 
 .rmc-wfp-flight-deck__run[data-status="failed"] {
   border-left: 3px solid var(--color-danger, var(--hairline));
   padding-left: 0.5rem;
+}
+
+.rmc-wfp-flight-deck__run[data-status="cancelled"],
+.rmc-wfp-flight-deck__run[data-status="stopped"] {
+  border-left: 3px solid var(--color-danger, #ef4444);
+  padding-left: 0.5rem;
+}
+
+.rmc-wfp-flight-deck__run[data-status="healing"] {
+  border-left: 3px solid var(--ds-success, #22c55e);
+  padding-left: 0.5rem;
+}
+
+.rmc-wfp-flight-deck__run[data-status="succeeded"],
+.rmc-wfp-flight-deck__run[data-status="passed"],
+.rmc-wfp-flight-deck__run[data-status="superseded"],
+.rmc-wfp-flight-deck__run[data-status="remediated"] {
+  border-left: 3px solid var(--ds-success, #22c55e);
+  padding-left: 0.5rem;
+}
+
+.rmc-wf-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.35rem;
+  padding: 0.12rem 0.48rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-canvas, var(--surface-bg));
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rmc-wf-status--running {
+  border-color: color-mix(in srgb, #60a5fa 55%, var(--hairline));
+  background: color-mix(in srgb, #60a5fa 16%, transparent);
+  color: #bfdbfe;
+}
+
+.rmc-wf-status--waiting {
+  border-color: color-mix(in srgb, #94a3b8 35%, var(--hairline));
+  background: color-mix(in srgb, #94a3b8 10%, transparent);
+  color: var(--text-secondary);
+}
+
+.rmc-wf-status--degrading {
+  border-color: color-mix(in srgb, #f59e0b 55%, var(--hairline));
+  background: color-mix(in srgb, #f59e0b 16%, transparent);
+  color: #fde68a;
+}
+
+.rmc-wf-status--stuck {
+  border-color: color-mix(in srgb, #facc15 70%, var(--hairline));
+  background: color-mix(in srgb, #facc15 18%, transparent);
+  color: #fef08a;
+}
+
+.rmc-wf-status--failed,
+.rmc-wf-status--cancelled,
+.rmc-wf-status--stopped {
+  border-color: color-mix(in srgb, #ef4444 65%, var(--hairline));
+  background: color-mix(in srgb, #ef4444 14%, transparent);
+  color: #fecaca;
+}
+
+.rmc-wf-status--healing {
+  border-color: color-mix(in srgb, #2dd4bf 60%, var(--hairline));
+  background: color-mix(in srgb, #2dd4bf 15%, transparent);
+  color: #99f6e4;
+}
+
+.rmc-wf-status--succeeded {
+  border-color: color-mix(in srgb, #22c55e 60%, var(--hairline));
+  background: color-mix(in srgb, #22c55e 15%, transparent);
+  color: #bbf7d0;
+}
+
+.rmc-wf-status--superseded {
+  border-color: color-mix(in srgb, #10b981 42%, var(--hairline));
+  background: color-mix(in srgb, #10b981 10%, transparent);
+  color: #a7f3d0;
+}
+
+@keyframes rmc-wfp-healing-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ds-success, #22c55e) 45%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 0.45rem transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-wfp-flight-deck__pulse-dot {
+    animation: none;
+  }
 }
