@@ -1,0 +1,62 @@
+/* ============================================================
+   rmc-tenant-activation-surfaces.css — 2026-06-25
+   ------------------------------------------------------------
+   Defines the BEM classes the tenant onboarding / admin command-surface
+   partials reference but that had no CSS (so the zero-tolerance
+   undefined-css gate flagged them and they rendered on raw Bootstrap
+   utilities). Composes ON TOP of existing primitives (.rmc-card supplies
+   the surface chrome; Bootstrap utilities supply spacing/badges) — these
+   are internal layout only, token-based, light/dark safe, additive
+   (no peer template edits).
+
+   Surfaces: academic_year_close_checklist, launch_playbook_strip,
+   operational_lifecycle_strip, school_readiness_journey_train,
+   provisioning_partial_failure_banner, execute_launch_form,
+   admin_workspace_zone_intro, wizard_migration_scope_zero_friction,
+   tenant_wizard, teacher/disciplinary.
+   ============================================================ */
+
+/* Year-close checklist (admin dashboard) */
+.rmc-year-close-checklist__head { display: flex; flex-direction: column; gap: 0.15rem; margin-bottom: 0.6rem; }
+.rmc-year-close-checklist__title { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+.rmc-year-close-checklist__item { font-size: 0.9rem; color: var(--text-primary); }
+.rmc-year-close-checklist__item.is-done { color: var(--text-muted); }
+.rmc-year-close-checklist__item.is-done span:first-child { text-decoration: line-through; text-decoration-color: var(--hairline-strong, var(--hairline)); }
+
+/* Launch playbook — "First 7 days" (admin) */
+.rmc-launch-playbook__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.4rem; margin-bottom: 0.6rem; }
+.rmc-launch-playbook__title { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+.rmc-launch-playbook__meta { margin: 0; }
+.rmc-launch-playbook__list { display: flex; flex-direction: column; gap: 0.35rem; }
+.rmc-launch-playbook__item { padding: 0.55rem 0.65rem; border: 1px solid var(--hairline); border-radius: var(--radius-md, 0.5rem); background: var(--surface-elevated, #fff); } /* off-token-allow: card-fallback-white */
+.rmc-launch-playbook__item.is-done { opacity: 0.72; }
+.rmc-launch-playbook__label { font-weight: 600; color: var(--text-primary); }
+.rmc-launch-playbook__item.is-done .rmc-launch-playbook__label { text-decoration: line-through; }
+.rmc-launch-playbook__detail { margin-top: 0.1rem; }
+.rmc-launch-playbook__ack { margin: 0; flex: 0 0 auto; }
+
+/* Operational lifecycle strip (inline badge row) */
+.rmc-lifecycle-strip { display: flex; align-items: center; flex-wrap: wrap; gap: 0.25rem; }
+.rmc-lifecycle-strip__label { font-size: 0.7rem; letter-spacing: 0.02em; }
+.rmc-lifecycle-strip__state { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); text-transform: capitalize; }
+
+/* Readiness train — offline stale notice */
+.rmc-readiness-train__stale { display: flex; align-items: center; gap: 0.4rem; }
+
+/* Provisioning partial-failure — offline note */
+.rmc-provision-partial-failure__offline { display: flex; align-items: center; gap: 0.35rem; }
+
+/* Go-live form (inline submit) */
+.rmc-setup-golive-form { display: inline-flex; margin: 0; }
+
+/* Admin zone intro — body column (base is a flex row: icon + body) */
+.rmc-admin-zone-intro__body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+
+/* Setup-studio zero-friction wizard */
+.rmc-wizard-shell--zero-friction { --rmc-wizard-step-gap: 0.85rem; }
+.rmc-wizard-zf-scope { display: flex; flex-direction: column; gap: 0.85rem; }
+.rmc-wizard-zf-scope__lead { margin: 0; color: var(--text-secondary); }
+.rmc-wizard-zf-domains { border: 0; margin: 0; padding: 0; min-width: 0; }
+
+/* Teacher — refer an incident form */
+.rmc-discipline-refer { display: flex; flex-direction: column; gap: 0.6rem; max-width: 640px; }
