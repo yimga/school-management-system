@@ -10,13 +10,138 @@ from typing import Any
 
 from django.utils.translation import gettext_lazy as _
 
-# Hand-tuned overrides (wins over workflow + sovereign 50X when keys collide)
+# Hand-tuned overrides (wins over workflow + sovereign 50X when keys collide).
+# Curated, locale-neutral "About this page" copy for high-value tenant detail /
+# workflow routes that otherwise fall back to the generic namespace blurb. Each
+# body is grounded in what the page actually does (verified against its template),
+# not a humanised url_name. Keep copy country-agnostic per local-first.
 ROUTE_HELP_OVERRIDES: dict[str, dict[str, Any]] = {
     "people:backend_applicant_list": {
         "title": _("Applicants"),
         "body": _("Admissions pipeline from enquiry through enrollment."),
         "surface": "tenant",
         "fields": ("stage", "status"),
+    },
+    "siteconfig:grading_scale_bands": {
+        "title": _("Grading scale bands"),
+        "body": _(
+            "Read-only view of this school's effective grading scale — band labels, "
+            "grade points, and normalized ranges. Conversions between locale scales are "
+            "handled automatically; edit the scale itself from Grading & language."
+        ),
+        "surface": "tenant",
+        "fields": (),
+    },
+    "accounts:substitute_handover_create": {
+        "title": _("Substitute handover"),
+        "body": _(
+            "Generate a redacted, time-boxed handover packet for a covering teacher. "
+            "Identifiers are hashed before any audit row, and medical / IEP detail stays "
+            "gated unless explicitly authorised."
+        ),
+        "surface": "tenant",
+        "fields": (),
+    },
+    "accounts:lost_belongings_mint": {
+        "title": _("Mint lost-and-found tag"),
+        "body": _(
+            "Create a tenant-scoped QR tag for an asset. Anonymous finders later return it "
+            "using only the short code — no student PII is ever exposed by the loop."
+        ),
+        "surface": "tenant",
+        "fields": (),
+    },
+    "accounts:lost_belongings_lookup": {
+        "title": _("Lost & found lookup"),
+        "body": _(
+            "Anonymous return page: a finder enters the short code from a sticker to log a "
+            "sighting. No personal information is recorded; staff follow up through the "
+            "custody loop."
+        ),
+        "surface": "tenant",
+        "fields": (),
+    },
+    "accounts:lost_belongings_recover": {
+        "title": _("Record recovery"),
+        "body": _(
+            "Log the recovery of a tagged item. The event is written to the custody trail "
+            "with redacted notes; guardians are notified when the record is linked to a "
+            "student."
+        ),
+        "surface": "tenant",
+        "fields": (),
+    },
+    "accounts:permission_to_pay_open": {
+        "title": _("Permission to pay"),
+        "body": _(
+            "Bundles event permission and payment authorisation into one workflow. Amounts "
+            "at or above this tenant's threshold require guardian approval before payment "
+            "can be authorised."
+        ),
+        "surface": "tenant",
+        "fields": (),
+    },
+    "finance:payment_readiness_dashboard": {
+        "title": _("Payment Readiness Center"),
+        "body": _(
+            "Honest, metadata-only health of this school's payment corridors — no live "
+            "charges. Shows the configured rails, gateway status, and the next action "
+            "needed to go live."
+        ),
+        "surface": "tenant",
+        "fields": (),
+    },
+    "finance:payment_readiness_setup": {
+        "title": _("Payment setup & readiness"),
+        "body": _(
+            "Plain-language checklist to make this school ready to collect payments: "
+            "country & currency corridor, recommended rails, Stripe Connect for SaaS "
+            "billing, and marketplace credentials. A manual receipt fallback stays "
+            "available if every gateway is down."
+        ),
+        "surface": "tenant",
+        "fields": (),
+    },
+    "compliance:ferpa_disclosure_detail": {
+        "title": _("FERPA disclosure record"),
+        "body": _(
+            "A single §99.32 disclosure: who released which records to whom, the legal "
+            "basis, and consent status. This view is itself audit-logged — each load adds "
+            "a VIEW row to the evidence trail."
+        ),
+        "surface": "tenant",
+        "fields": (),
+    },
+    "portal:student_passport_detail": {
+        "title": _("Student passport"),
+        "body": _(
+            "Portable, tenant-scoped identity record used to link verified transcripts "
+            "across schools. Shows passport ID, school memberships, and consent status; "
+            "deeper history lives in Student 360 and the Transcript vault."
+        ),
+        "surface": "tenant",
+        "fields": (),
+    },
+    "portal:mfa_policy": {
+        "title": _("Two-factor enforcement"),
+        "body": _(
+            "Privileged roles always require 2FA — this page controls HOW it's rolled out: "
+            "a hard wall (Strict), a grace window, or a nudge (Optional). Scope it to this "
+            "school only or set the platform default. Users who already have 2FA are "
+            "unaffected."
+        ),
+        "surface": "tenant",
+        "fields": (),
+    },
+    "evals:evaluation_drilldown": {
+        "title": _("Evaluation drill-down"),
+        "body": _(
+            "Per-student, per-subject breakdown of a single evaluation — sequence scores, "
+            "term, and academic year — for review and correction. Scores are bounded by "
+            "this school's operational grade scale."
+        ),
+        "surface": "tenant",
+        "fields": (),
     },
 }
 
