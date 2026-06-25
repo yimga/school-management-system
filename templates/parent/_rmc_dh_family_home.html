@@ -41,6 +41,14 @@
     <a class="rmc-preview-live-hero-actions__secondary" href="{{ ph_contact_url }}"><i class="bi bi-chat" aria-hidden="true"></i> {% trans "Message teacher" %}</a>
   </div>
 
+  {# ---------- KPI tiles (canonical .rmc-dh grammar — parity with admin/teacher/student role-homes) ---------- #}
+  <div id="rmc-parent-today" class="rmc-dh-tiles" data-rmc-section-anchor>
+    {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-calendar-check" dh_k=_("Attendance") dh_v=attendance_pct|default:0|stringformat:"d"|add:"%" dh_d=_("overall") dh_dir="flat" dh_href=ph_stats_url %}
+    {% if can_view_finance %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-cash-coin" dh_k=_("Balance due") dh_v=finance_balance|format_currency dh_d=_("this term") dh_dir="flat" dh_href=ph_finance_url %}{% endif %}
+    {% if can_view_results and widget_data.performance.average != None %}{% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-mortarboard" dh_k=_("Average") dh_v=widget_data.performance.average|floatformat:1 dh_d=_("this term") dh_dir="flat" %}{% endif %}
+    {% include "components/dashboard/rmc_dh_tile.html" with dh_icon="bi-chat-dots" dh_k=_("Messages") dh_v=unread_messages_aggregate|default:0 dh_d=_("unread") dh_dir="flat" dh_href=ph_contact_url %}
+  </div>
+
   <nav class="rmc-section-nav rmc-preview-live-parent__nav" aria-label="{% trans 'Jump to' %}">
     <div class="rmc-surface-subnav" role="list">
       <a href="#rmc-parent-attention" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "Attention" %}</a>
@@ -81,17 +89,6 @@
     <p class="mb-0">{% trans "Your school has not published this term's results yet. Grades are recorded but hidden until publish." %}</p>
   </div>
   {% endif %}
-
-  <details id="rmc-parent-today" class="rmc-preview-live-section" open data-rmc-section-anchor>
-    <summary><i class="bi bi-sun" aria-hidden="true"></i> {% trans "Today snapshot" %}</summary>
-    <div class="rmc-preview-live-section__body">
-      <div class="rmc-preview-live-snapshot-grid">
-        <div class="rmc-preview-live-snapshot-card"><strong>{% trans "Attendance" %}</strong><span>{{ attendance_pct|default:0 }}%</span></div>
-        {% if parent_upcoming_events %}<div class="rmc-preview-live-snapshot-card"><strong>{% trans "Next event" %}</strong><span>{{ parent_upcoming_events.0.title|truncatechars:28 }}</span></div>{% endif %}
-        {% if can_view_finance %}<div class="rmc-preview-live-snapshot-card"><strong>{% trans "Balance due" %}</strong><span>{{ finance_balance|format_currency }}</span></div>{% endif %}
-      </div>
-    </div>
-  </details>
 
   <details class="rmc-preview-live-section" data-rmc-section-anchor>
     <summary><i class="bi bi-lightning" aria-hidden="true"></i> {% trans "Quick actions" %}</summary>

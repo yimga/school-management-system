@@ -292,31 +292,6 @@ body.tp-v3-role-home .rmc-preview-live-hero-actions__secondary,
   color: var(--text-secondary);
 }
 
-body.tp-v3-role-home .rmc-preview-live-snapshot-grid,
-[data-rmc-preview-live-parent="1"] .rmc-preview-live-snapshot-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 10px;
-}
-
-body.tp-v3-role-home .rmc-preview-live-snapshot-card,
-[data-rmc-preview-live-parent="1"] .rmc-preview-live-snapshot-card {
-  background: var(--surface-elevated);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-lg, 12px);
-  padding: 12px;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-body.tp-v3-role-home .rmc-preview-live-snapshot-card strong,
-[data-rmc-preview-live-parent="1"] .rmc-preview-live-snapshot-card strong {
-  display: block;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-  font-size: 13px;
-}
-
 /* Shared preview-live parent/teacher/student section grammar */
 body.tp-v3-role-home [data-rmc-preview-live-parent="1"] .rmc-preview-live-section,
 body.tp-v3-role-home [data-rmc-preview-live-student="1"] .rmc-preview-live-section,
