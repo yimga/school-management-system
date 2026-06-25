@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login card — filled “Who are you?” (browser preview)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--pri:#ea580c;--sec:#fbbf24;--bg:#050810;--glass:rgba(10,14,28,.9);--hair:rgba(255,255,255,.12);--text:#f8fafc;--muted:#94a3b8;--font:Inter,sans-serif}
+*{box-sizing:border-box}body{margin:0;font-family:var(--font);color:var(--text);background:var(--bg);min-height:100vh}
+.banner{position:fixed;top:0;left:0;right:0;z-index:50;padding:8px 12px;text-align:center;font-size:11px;background:rgba(99,102,241,.12);border-bottom:1px solid rgba(99,102,241,.25);color:#c4b5fd}
+.banner a{color:#e9d5ff;margin-left:8px}
+.scene{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;position:relative}
+.bg{position:fixed;inset:0;z-index:0;background:linear-gradient(135deg,rgba(234,88,12,.35),rgba(6,9,18,.95)),url("https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1400&q=80") center/cover}
+.left{position:relative;z-index:1;padding:56px 32px 24px;opacity:.85;font-size:13px}
+.auth{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;padding:56px 24px 32px;min-height:100vh}
+.glass{width:min(500px,100%);border-radius:28px;padding:28px 28px 22px;background:var(--glass);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(28px);box-shadow:0 40px 100px rgba(0,0,0,.55);position:relative;overflow:hidden}
+.glass::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 100% 0,rgba(234,88,12,.12),transparent 55%);pointer-events:none}
+.glass-inner{position:relative;z-index:1}
+.card-head{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--hair)}
+.card-head .ring{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-weight:800;font-size:18px;background:#fff;color:var(--pri);box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.card-head h2{margin:0;font-size:15px;font-weight:700}
+.card-head p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+.step-labels{display:flex;gap:8px;margin-bottom:18px}
+.step-labels span{flex:1;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:8px 6px;border-radius:10px;color:var(--muted);background:rgba(255,255,255,.03);border:1px solid transparent}
+.step-labels span.on{color:var(--text);background:rgba(234,88,12,.12);border-color:rgba(234,88,12,.35)}
+.step{display:none}.step.on{display:block;animation:up .25s ease}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+h1{margin:0 0 6px;font-size:26px;font-weight:800;letter-spacing:-.02em}
+.lede{margin:0 0 16px;color:var(--muted);font-size:14px;line-height:1.5}
+.role-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.role-row{display:flex;align-items:center;gap:14px;width:100%;padding:14px 16px;border-radius:14px;border:1px solid var(--hair);background:rgba(255,255,255,.04);color:inherit;font:inherit;text-align:left;cursor:pointer;transition:.15s}
+.role-row:hover,.role-row.pick{border-color:rgba(234,88,12,.5);background:rgba(234,88,12,.1);transform:translateX(4px)}
+.role-row .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;background:rgba(255,255,255,.06);flex-shrink:0}
+.role-row .txt{flex:1;min-width:0}
+.role-row .txt strong{display:block;font-size:14px;margin-bottom:2px}
+.role-row .txt small{display:block;font-size:11px;color:var(--muted);line-height:1.35}
+.role-row .chev{opacity:.4;font-size:18px}
+.sso-block{margin-bottom:14px}
+.sso-block .lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px;display:block}
+.sso-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sso-grid button{padding:11px;border-radius:11px;border:1px solid var(--hair);background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.trust-in{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--hair)}
+.trust-in span{font-size:9px;font-weight:700;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--muted)}
+.family-box{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:14px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);margin-top:4px}
+.family-box strong{display:block;font-size:13px;margin-bottom:4px;color:#6ee7b7}
+.family-box p{margin:0 0 8px;font-size:12px;color:var(--muted);line-height:1.4}
+.family-box a{font-size:12px;font-weight:700;color:#6ee7b7;text-decoration:none}
+.divider{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:10px;margin:14px 0}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--hair)}
+.back{border:0;background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;padding:0;margin-bottom:12px}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px}
+input{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--hair);background:rgba(255,255,255,.05);color:var(--text);font:inherit;margin-bottom:12px;font-size:15px}
+.btn{width:100%;padding:14px;border:0;border-radius:12px;font:inherit;font-weight:700;font-size:16px;cursor:pointer;background:linear-gradient(135deg,var(--pri),#c2410c);color:#fff;margin-top:4px}
+.help{margin-top:16px;padding-top:14px;border-top:1px solid var(--hair);font-size:12px;color:var(--muted);line-height:1.5}
+.help a{color:#6ee7b7;font-weight:600;text-decoration:none}
+.note{margin-top:14px;padding:10px 12px;border-radius:10px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.22);font-size:11px;color:#a5b4fc;line-height:1.45}
+@media(max-width:900px){.scene{grid-template-columns:1fr}.left{display:none}.auth{min-height:auto;padding-top:48px}}
+</style>
+</head>
+<body>
+<div class="banner">Filled login card preview · fixes empty “Who are you?” · <a href="tenant-login-100x-hub-browsable.html">hub</a> · <a href="tenant-login-option-ab-hybrid-v3-immersive.html">v3 full page</a></div>
+<div class="bg" aria-hidden="true"></div>
+<div class="scene">
+  <div class="left">← Left canvas unchanged (ticker, stats, dashboard preview, photos)</div>
+  <div class="auth">
+    <div class="glass">
+      <div class="glass-inner">
+        <div class="card-head">
+          <div class="ring">N</div>
+          <div><h2>New Test High School</h2><p>Secure portal · Term 2 · Tue, Jun 23</p></div>
+        </div>
+        <div class="step-labels">
+          <span id="lbl-role" class="on">① Choose role</span>
+          <span id="lbl-creds">② Sign in</span>
+        </div>
+
+        <div class="step on" id="step-role">
+          <h1>Who are you?</h1>
+          <p class="lede">Pick the door that matches you — we’ll show the right workspace on the left.</p>
+          <div class="role-list">
+            <button type="button" class="role-row" data-role="staff" data-title="Staff & admin" data-desc="Gradebook, attendance, announcements">
+              <span class="ico">🎓</span>
+              <span class="txt"><strong>Staff & admin</strong><small>Teachers, leadership, finance, IT</small></span>
+              <span class="chev">›</span>
+            </button>
+            <button type="button" class="role-row" data-role="parent" data-title="Parent / guardian" data-desc="Fees, report cards, messages">
+              <span class="ico">👨‍👩‍👧</span>
+              <span class="txt"><strong>Parent / guardian</strong><small>View your child’s progress · invite required first time</small></span>
+              <span class="chev">›</span>
+            </button>
+            <button type="button" class="role-row" data-role="student" data-title="Student" data-desc="Timetable, assignments, results">
+              <span class="ico">📚</span>
+              <span class="txt"><strong>Student</strong><small>Homework, schedule, and report cards</small></span>
+              <span class="chev">›</span>
+            </button>
+          </div>
+          <div class="sso-block">
+            <span class="lbl">Or sign in instantly</span>
+            <div class="sso-grid">
+              <button type="button">Continue with Google</button>
+              <button type="button">Continue with Microsoft</button>
+            </div>
+          </div>
+          <div class="trust-in">
+            <span>Ferpa-safe</span><span>Encrypted</span><span>SSO</span><span>No school name as username</span>
+          </div>
+          <div class="family-box">
+            <span style="font-size:24px" aria-hidden="true">💚</span>
+            <div>
+              <strong>First time as a parent?</strong>
+              <p>Claim your invite code from email or SMS, then pick Parent above.</p>
+              <a href="#">Claim an invite →</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="step" id="step-creds">
+          <button type="button" class="back" id="back">← Change role</button>
+          <h1>Sign in</h1>
+          <p class="lede">Use <strong id="picked-role">Staff</strong> credentials · school email, not the school name.</p>
+          <div class="sso-grid" style="margin-bottom:12px">
+            <button type="button">Google</button><button type="button">Microsoft</button>
+          </div>
+          <div class="divider">or email & password</div>
+          <label>Email or username</label><input placeholder="you@school.edu">
+          <label>Password</label><input type="password" placeholder="••••••••">
+          <button class="btn" type="button">Log in</button>
+        </div>
+
+        <div class="help">
+          <a href="#">Forgot password?</a> · Contact school IT · <a href="#">Claim family invite</a>
+        </div>
+        <p class="note"><strong>Why this feels fuller:</strong> stacked role rows with descriptions (not 3 tiny boxes), SSO on step 1, trust chips, and family invite inside the card — not empty space below the title.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const stepRole=document.getElementById('step-role'),stepCreds=document.getElementById('step-creds'),lblRole=document.getElementById('lbl-role'),lblCreds=document.getElementById('lbl-creds'),picked=document.getElementById('picked-role');
+document.querySelectorAll('.role-row').forEach(r=>r.onclick=()=>{
+  document.querySelectorAll('.role-row').forEach(x=>x.classList.remove('pick'));
+  r.classList.add('pick');
+  picked.textContent=r.dataset.title;
+  stepRole.classList.remove('on');stepCreds.classList.add('on');
+  lblRole.classList.remove('on');lblCreds.classList.add('on');
+});
+document.getElementById('back').onclick=()=>{
+  stepCreds.classList.remove('on');stepRole.classList.add('on');
+  lblCreds.classList.remove('on');lblRole.classList.add('on');
+};
+</script>
+</body>
+</html>

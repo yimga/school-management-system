@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login Option C — Calm Command</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f5f7;--card:#fff;--hair:rgba(0,0,0,.08);--text:#1d1d1f;--muted:#6e6e73;
+  --brand:#4f46e5;--radius:16px;--font:Inter,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:var(--font);background:var(--bg);color:var(--text);display:grid;place-items:center;padding:24px}
+.card{width:min(400px,100%);background:var(--card);border:1px solid var(--hair);border-radius:var(--radius);padding:36px 32px 32px;box-shadow:0 1px 3px rgba(0,0,0,.05),0 20px 50px rgba(0,0,0,.06)}
+.mark{width:48px;height:48px;border-radius:14px;background:linear-gradient(145deg,#ea580c,#f59e0b);display:grid;place-items:center;color:#fff;font-weight:800;font-size:20px;margin:0 auto 20px}
+.card h1{margin:0 0 4px;font-size:22px;font-weight:700;text-align:center;letter-spacing:-.02em}
+.sub{text-align:center;color:var(--muted);font-size:14px;margin:0 0 28px}
+.oauth{display:grid;gap:8px;margin-bottom:20px}
+.oauth button{display:flex;align-items:center;justify-content:center;gap:10px;padding:11px;border-radius:10px;border:1px solid var(--hair);background:#fff;font:inherit;font-size:14px;font-weight:500;cursor:pointer;color:var(--text)}
+.oauth button:hover{background:#fafafa}
+.split{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:12px;margin:18px 0}
+.split::before,.split::after{content:"";flex:1;height:1px;background:var(--hair)}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--hair);font:inherit;font-size:15px;margin-bottom:14px;background:#fff}
+input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(79,70,229,.12)}
+select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--hair);font:inherit;margin-bottom:14px;background:#fff}
+.btn{width:100%;padding:12px;border:0;border-radius:10px;background:var(--brand);color:#fff;font:inherit;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px}
+.btn:hover{filter:brightness(1.05)}
+.links{display:flex;justify-content:space-between;margin-top:14px;font-size:13px}
+.links a{color:var(--brand);text-decoration:none}
+.links a:hover{text-decoration:underline}
+.invite{margin-top:24px;padding-top:20px;border-top:1px solid var(--hair);text-align:center;font-size:13px;color:var(--muted)}
+.invite a{color:var(--brand);font-weight:600;text-decoration:none}
+.hub{position:fixed;top:14px;left:14px;font-size:12px;color:var(--muted);text-decoration:none}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#000;--card:#1c1c1e;--hair:rgba(255,255,255,.12);--text:#f5f5f7;--muted:#98989d}
+  .oauth button,.card input,.card select{background:#2c2c2e;border-color:var(--hair);color:var(--text)}
+}
+</style>
+</head>
+<body>
+<a class="hub" href="tenant-login-100x-hub-browsable.html">← All options</a>
+<div class="card">
+  <div class="mark">N</div>
+  <h1>Sign in to New Test High</h1>
+  <p class="sub">Staff, parents, and students use one secure portal.</p>
+  <div class="oauth">
+    <button type="button"><span aria-hidden="true">G</span> Continue with Google</button>
+    <button type="button"><span aria-hidden="true">◆</span> Continue with Microsoft</button>
+  </div>
+  <div class="split">or</div>
+  <form onsubmit="return false">
+    <label for="role">Signing in as</label>
+    <select id="role"><option>Staff</option><option>Parent</option><option>Student</option></select>
+    <label for="email">Email or username</label>
+    <input id="email" type="text" placeholder="name@school.edu" autocomplete="username">
+    <label for="pw">Password</label>
+    <input id="pw" type="password" placeholder="••••••••" autocomplete="current-password">
+    <button class="btn" type="submit">Log in</button>
+  </form>
+  <div class="links">
+    <a href="#">Forgot password?</a>
+    <a href="#">Need help?</a>
+  </div>
+  <p class="invite">Parent first time here? <a href="#">Claim invite</a></p>
+</div>
+</body>
+</html>

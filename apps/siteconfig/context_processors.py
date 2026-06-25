@@ -35,6 +35,27 @@ OPTIONAL_CONTEXT_ERRORS = (
 )
 OPTIONAL_STORAGE_ERRORS = (AttributeError, OSError, RuntimeError, TypeError, ValueError)
 
+_UNAUTHENTICATED_AUTH_SHELL_PATH_MARKERS = (
+    "/authentication/login",
+    "/authentication/logout",
+    "/authentication/password",
+    "/authentication/register",
+    "/authentication/signup",
+    "/account/login",
+    "/admin/login",
+    "/auth/login",
+    "/auth/logout",
+)
+
+
+def _request_is_unauthenticated_auth_shell(request) -> bool:
+    """Login/signup shells omit portal chrome — skip sidebar badge/sidebar builder work."""
+    user = getattr(request, "user", None)
+    if user is not None and getattr(user, "is_authenticated", False):
+        return False
+    path = (getattr(request, "path", "") or "").lower()
+    return any(marker in path for marker in _UNAUTHENTICATED_AUTH_SHELL_PATH_MARKERS)
+
 _LEGACY_MISSING_PLATFORM_LOGO_FRAGMENTS = (
     "runmycampus-logo-mark.png",
     "runmycampus-logo-lockup.png",
@@ -678,18 +699,26 @@ def site_settings(request):
         "NOTIFICATIONS_UNREAD_COUNT": notifications_unread_count,
         "SIDEBAR_COLLAPSED": sidebar_collapsed,
         "CAN_MANAGE_SETTINGS": can_manage_settings,
-        "PORTAL_SIDEBAR_ITEMS": _get_portal_sidebar_items(request, site),
+        "PORTAL_SIDEBAR_ITEMS": (
+            []
+            if _request_is_unauthenticated_auth_shell(request)
+            else _get_portal_sidebar_items(request, site)
+        ),
     }
     # Copilot rail "Pending / Due" quickstats — previously dead template bindings.
     # The helper is cached per (user, school) and fully failure-isolated, so this
     # never raises and runs its COUNT queries at most once a minute per user.
-    try:
-        from apps.siteconfig.copilot_quickstats import build_copilot_quickstats
-
-        ctx.update(build_copilot_quickstats(request))
-    except Exception:  # noqa: BLE001 — quickstats are decorative; never 500 the page
+    if _request_is_unauthenticated_auth_shell(request):
         ctx.setdefault("copilot_pending_approvals_count", 0)
         ctx.setdefault("copilot_due_today_count", 0)
+    else:
+        try:
+            from apps.siteconfig.copilot_quickstats import build_copilot_quickstats
+
+            ctx.update(build_copilot_quickstats(request))
+        except Exception:  # noqa: BLE001 — quickstats are decorative; never 500 the page
+            ctx.setdefault("copilot_pending_approvals_count", 0)
+            ctx.setdefault("copilot_due_today_count", 0)
     try:
         ctx["PORTAL_DOCUMENT_LIBRARY_MANAGE_URL"] = reverse(
             "portal:document_library_manage"
@@ -1549,7 +1578,6 @@ def platform_surface_settings(request):
     from django.conf import settings as django_settings
 
     from apps.siteconfig.platform_surface_config import (
-        platform_surface_config_json,
         resolve_platform_surface_config,
         sms_offline_config_json,
     )
@@ -1588,9 +1616,10 @@ def platform_surface_settings(request):
         policy_offline
     )
 
+    surface_cfg = resolve_platform_surface_config(request)
     return {
-        "PLATFORM_SURFACE_CONFIG": resolve_platform_surface_config(request),
-        "PLATFORM_SURFACE_CONFIG_JSON": platform_surface_config_json(request),
+        "PLATFORM_SURFACE_CONFIG": surface_cfg,
+        "PLATFORM_SURFACE_CONFIG_JSON": json.dumps(surface_cfg, separators=(",", ":")),
         "SMS_OFFLINE_CONFIG_JSON": sms_offline_config_json(
             request,
             site=site,

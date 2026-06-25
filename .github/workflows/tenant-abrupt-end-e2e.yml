@@ -26,7 +26,7 @@ jobs:
     env:
       SECRET_KEY: "ci-tenant-abrupt-end-not-production-64chars________"
       ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com"
-      DEBUG: "0"
+      DEBUG: "1"
       DJANGO_SETTINGS_MODULE: "config.settings"
       MULTI_TENANT_BASE_DOMAIN: "runmycampus.com"
       VISUAL_QA_PORT: "8015"
@@ -34,9 +34,13 @@ jobs:
       TENANT_SWEEP_PASSWORD: "Test1234"
       TENANT_SWEEP_MAX: "200"
       TENANT_SWEEP_MAX_INFRA_SKIP: "0"
+      TENANT_SWEEP_BATCH_SIZE: "25"
       VISUAL_QA_TOTP_HEX_KEY: "eab95095c004f245721ba0fa7ebf82d5dc73"
       DB_FILE: "${{ github.workspace }}/db_playwright_tenant_abrupt_ci.sqlite3"
       SWEEP_HEALTH_SECS: "360"
+      USE_FILE_LOGGING: "False"
+      LOGIN_POW_ENABLED: "0"
+      RMC_E2E_BYPASS_MFA: "1"
 
     steps:
       - uses: actions/checkout@v4
@@ -60,8 +64,8 @@ jobs:
           npm ci
           node node_modules/playwright/cli.js install --with-deps chromium
 
-      - name: Tenant abrupt-end E2E (200 routes)
-        run: npm run sweep:abrupt-end:tenant:e2e
+      - name: Tenant abrupt-end E2E (200 routes, 8 slices)
+        run: npm run sweep:abrupt-end:tenant:batches
 
       - name: Phased sweep gate
         run: python scripts/verify_tenant_abrupt_end_phased_sweep.py

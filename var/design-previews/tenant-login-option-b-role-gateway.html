@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login Option B — Role Gateway</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0f1a;--card:#121a2e;--hair:rgba(255,255,255,.09);--text:#f1f5f9;--muted:#94a3b8;--brand:#6366f1;--accent:#10b981;--warn:#f59e0b;--radius:18px;--font:Inter,sans-serif}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:var(--font);background:radial-gradient(700px 380px at 50% -10%,rgba(99,102,241,.14),transparent 60%),var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;padding:32px 20px 48px}
+.top{text-align:center;max-width:520px;margin-bottom:28px}
+.logo{width:56px;height:56px;border-radius:16px;margin:0 auto 16px;background:linear-gradient(135deg,#ea580c,#fbbf24);display:grid;place-items:center;font-weight:800;font-size:24px;color:#fff}
+.top h1{margin:0 0 6px;font-size:24px;font-weight:800;letter-spacing:-.02em}
+.top p{margin:0;color:var(--muted);font-size:14px}
+.stage{width:min(480px,100%)}
+.step{display:none;animation:fade .25s ease}
+.step.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border:1px solid var(--hair);border-radius:var(--radius);padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.card h2{margin:0 0 6px;font-size:18px}
+.card .sub{margin:0 0 20px;color:var(--muted);font-size:13px}
+.roles{display:grid;gap:10px}
+.role{
+  display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;
+  border:1px solid var(--hair);background:rgba(255,255,255,.02);cursor:pointer;text-align:left;color:inherit;font:inherit;width:100%;
+  transition:border-color .15s,background .15s,transform .12s;
+}
+.role:hover{border-color:rgba(99,102,241,.45);background:rgba(99,102,241,.06);transform:translateY(-1px)}
+.role-icon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;flex-shrink:0}
+.role-icon.staff{background:rgba(99,102,241,.15)}
+.role-icon.parent{background:rgba(16,185,129,.15)}
+.role-icon.student{background:rgba(245,158,11,.15)}
+.role strong{display:block;font-size:15px;margin-bottom:2px}
+.role span{font-size:12px;color:var(--muted)}
+.back-link{display:inline-flex;align-items:center;gap:6px;margin-bottom:16px;font-size:13px;color:var(--muted);background:none;border:0;cursor:pointer;font:inherit;padding:0}
+.back-link:hover{color:var(--text)}
+.chip{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:4px 10px;border-radius:999px;background:rgba(99,102,241,.15);color:#a5b4fc;margin-bottom:12px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.field input{width:100%;padding:12px 14px;border-radius:11px;border:1px solid var(--hair);background:rgba(255,255,255,.03);color:var(--text);font:inherit}
+.btn{width:100%;padding:13px;border:0;border-radius:11px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;background:linear-gradient(135deg,var(--brand),#4f46e5);color:#fff;margin-top:6px}
+.footer{margin-top:20px;text-align:center;font-size:12px;color:var(--muted)}
+.footer a{color:#a5b4fc}
+.hub{position:fixed;top:14px;left:14px;font-size:12px;color:var(--muted);text-decoration:none;padding:7px 12px;border:1px solid var(--hair);border-radius:999px}
+</style>
+</head>
+<body>
+<a class="hub" href="tenant-login-100x-hub-browsable.html">← Options</a>
+<div class="top">
+  <div class="logo">N</div>
+  <h1>New Test High School</h1>
+  <p>Who is signing in today?</p>
+</div>
+<div class="stage">
+  <div class="step active" id="step-roles">
+    <div class="card">
+      <h2>Choose your role</h2>
+      <p class="sub">We’ll show the right dashboard and keep family data private.</p>
+      <div class="roles">
+        <button type="button" class="role" data-role="Staff">
+          <span class="role-icon staff">🎓</span>
+          <span><strong>Staff &amp; admin</strong><span>Teachers, leadership, finance, IT</span></span>
+        </button>
+        <button type="button" class="role" data-role="Parent">
+          <span class="role-icon parent">👨‍👩‍👧</span>
+          <span><strong>Parent / guardian</strong><span>Attendance, fees, messages — invite required first time</span></span>
+        </button>
+        <button type="button" class="role" data-role="Student">
+          <span class="role-icon student">📚</span>
+          <span><strong>Student</strong><span>Assignments, timetable, results</span></span>
+        </button>
+      </div>
+    </div>
+    <p class="footer">New parent? <a href="#">Claim your invite</a> before signing in.</p>
+  </div>
+  <div class="step" id="step-form">
+    <button type="button" class="back-link" id="go-back">← Change role</button>
+    <div class="card">
+      <span class="chip" id="role-chip">Staff</span>
+      <h2>Enter your credentials</h2>
+      <p class="sub">School email or username — not your school name.</p>
+      <form onsubmit="return false">
+        <div class="field"><label>Email or username</label><input type="text" placeholder="teacher@newtesthigh.edu" autofocus></div>
+        <div class="field"><label>Password</label><input type="password" placeholder="••••••••"></div>
+        <button class="btn" type="submit">Continue to dashboard</button>
+      </form>
+    </div>
+    <p class="footer"><a href="#">Forgot password?</a></p>
+  </div>
+</div>
+<script>
+const roles=document.getElementById('step-roles'),form=document.getElementById('step-form'),chip=document.getElementById('role-chip');
+document.querySelectorAll('.role').forEach(r=>r.addEventListener('click',()=>{
+  chip.textContent=r.dataset.role;roles.classList.remove('active');form.classList.add('active');
+}));
+document.getElementById('go-back').addEventListener('click',()=>{form.classList.remove('active');roles.classList.add('active');});
+</script>
+</body>
+</html>

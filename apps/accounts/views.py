@@ -4398,6 +4398,20 @@ def login_view(request):
         context["password_reset_public_url"] = None
     context["public_tenant_login_hub"] = False
     context["login_workspace_schools"] = []
+    try:
+        from apps.accounts.login_immersive_context import build_login_immersive_context
+
+        context["LOGIN_IMMERSIVE"] = build_login_immersive_context(request)
+    except Exception:
+        context["LOGIN_IMMERSIVE"] = {
+            "ticker_items": [_("Welcome — sign in to reach your school workspace.")],
+            "carousel_slides": [],
+            "bento_stats": [],
+            "dash_feed": [],
+            "moments": [],
+            "clock_label": "",
+            "date_label": "",
+        }
     template = (
         "auth/manager_login.html"
         if getattr(request, "public_host_kind", None) == "manager"

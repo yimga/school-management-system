@@ -126,6 +126,38 @@ function probe(url) {
   });
 }
 
+async function warmTenantSubdomainLogin(attempts = 3) {
+  for (let i = 0; i < attempts; i += 1) {
+    const ok = await new Promise((resolve) => {
+      const req = http.request(
+        {
+          hostname: '127.0.0.1',
+          port,
+          path: '/authentication/login/',
+          method: 'GET',
+          headers: { Host: tenantHost },
+          timeout: 120000,
+        },
+        (res) => {
+          res.resume();
+          resolve(res.statusCode >= 200 && res.statusCode < 500);
+        },
+      );
+      req.on('error', () => resolve(false));
+      req.on('timeout', () => {
+        req.destroy();
+        resolve(false);
+      });
+      req.end();
+    });
+    if (ok) {
+      return;
+    }
+    await new Promise((r) => setTimeout(r, 5000));
+  }
+  console.warn('tenant abrupt-end e2e: login warmup did not return 2xx (continuing)');
+}
+
 async function waitForServer(maxSeconds = 360) {
   let stableOk = 0;
   for (let i = 0; i < maxSeconds; i += 1) {
@@ -240,7 +272,10 @@ except Exception as exc:
 }
 
 console.log('=== tenant abrupt-end e2e: route ledger ===');
-runSync(['scripts/generate_portal_tenant_sweep_routes.py', '--write'], seedEnv);
+runSync(
+  ['scripts/generate_portal_tenant_sweep_routes.py', '--write'],
+  { ...seedEnv, TENANT_SWEEP_MAX: '200' },
+);
 
 if (!skipBoot) {
 console.log('=== tenant abrupt-end e2e: migrate ===');
@@ -380,9 +415,13 @@ function loadRouteLedger() {
   const ledgerPath = path.join(repo, 'docs/generated/portal_tenant_sweep_routes.json');
   const data = JSON.parse(fs.readFileSync(ledgerPath, 'utf8'));
   const routes = Array.isArray(data.routes) ? data.routes : [];
+  const routeOffset = parseInt(process.env.TENANT_SWEEP_ROUTE_OFFSET || '0', 10);
   const maxRoutes = parseInt(process.env.TENANT_SWEEP_MAX || '200', 10);
-  const capped = maxRoutes > 0 ? routes.slice(0, maxRoutes) : routes;
-  return capped.filter((row) => row.sweep !== false);
+  const sliced =
+    maxRoutes > 0
+      ? routes.slice(routeOffset, routeOffset + maxRoutes)
+      : routes.slice(routeOffset);
+  return sliced.filter((row) => row.sweep !== false);
 }
 
 function mergeBatchSummary(allResults, totalPlanned) {
@@ -497,7 +536,8 @@ try {
 
     startServer();
     await waitForServer(parseInt(process.env.SWEEP_HEALTH_SECS || '360', 10));
-    await new Promise((r) => setTimeout(r, 2000));
+    await warmTenantSubdomainLogin(3);
+    await new Promise((r) => setTimeout(r, 5000));
 
     const pathFilter = batch.map((row) => row.path).join(',');
     let batchSweep = spawnSync(

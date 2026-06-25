@@ -9,119 +9,300 @@
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
+{% url 'accounts:password_reset' as password_reset_url %}
+{% url 'portal:link_child' as portal_claim_url %}
+{% if not portal_claim_url %}{% url 'accounts:claim_invite' as portal_claim_url %}{% endif %}
+{% url 'resend_signup_verification' as resend_url %}
 
-{% comment %} Login A — branded canvas split (2026-06-22). Left = the school's own
-brand canvas (wallpaper if set, else the tenant brand gradient + logo + motto +
-a value line); right = a clean sign-in. The <form> and every security/host guard
-below are preserved verbatim from the prior login. {% endcomment %}
-<div class="rmc-auth-split" id="preview-login-page" data-rmc-scroll-policy="paginate"{% if TENANT_WALLPAPER_URL %} data-rmc-auth-has-wallpaper="1"{% endif %}>
+{% with immersive=LOGIN_IMMERSIVE post_role=request.POST.role|default:request.GET.role|default:"staff" %}
+<div class="rmc-auth-immersive"
+     id="preview-login-page"
+     data-rmc-auth-immersive
+     data-rmc-scroll-policy="paginate"
+     data-preview-label="{% trans 'Immersive login' %}"
+     data-preview-default-label="{% trans 'School pulse' %}"
+     data-preview-staff-label="{% trans 'Staff dashboard' %}"
+     data-preview-parent-label="{% trans 'Family portal' %}"
+     data-preview-student-label="{% trans 'Student hub' %}"
+     {% if request.method == "POST" %}data-rmc-auth-start-creds="1"{% endif %}>
 
-  <aside class="rmc-auth-split__canvas" id="preview-login-hero"{% if TENANT_WALLPAPER_URL %} style="--rmc-auth-wallpaper: url('{{ TENANT_WALLPAPER_URL|escape }}');"{% endif %} data-preview-label="{% trans 'Login canvas (brand)' %}" data-preview-changes="{% trans 'Logo, school name, motto, brand colors' %}">
-    <div class="rmc-auth-split__brand" id="preview-login-brand">
-      <div class="rmc-auth-split__logo hero-logo">
-        {% if is_manager_host and not SITE_LOGO_URL and not PUBLIC_BRAND_FAVICON_URL %}
-          <span>R</span>
-        {% elif PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}
-          <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="80" height="80" decoding="async" loading="eager">
-        {% elif SITE_LOGO_URL %}
-          <img src="{{ SITE_LOGO_URL }}" alt="" width="80" height="80" decoding="async" loading="eager">
-        {% else %}
-          <span>{% if PUBLIC_BRAND_MODE %}R{% elif SITE.site_name %}{{ SITE.site_name|slice:":1" }}{% else %}S{% endif %}</span>
-        {% endif %}
-      </div>
-      <div class="rmc-auth-split__brandtext">
-        {% if is_manager_host %}
-          <strong>RunMyCampus</strong>
-          <small>{% trans "Platform & school management" %}</small>
-          <small class="rmc-auth-split__note">{% trans "You're signing in to manage schools and tenants" %}</small>
-        {% else %}
-          <strong>{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% elif SITE.login_hero_heading %}{{ SITE.login_hero_heading }}{% else %}{{ SITE.site_name|default:"School Management System" }}{% endif %}</strong>
-          <small>{% if PUBLIC_BRAND_MODE %}{% trans "Platform & school management" %}{% elif SITE.login_hero_subtext %}{{ SITE.login_hero_subtext }}{% else %}{{ SITE.tagline|default:"Sign in for staff, families, and admins" }}{% endif %}</small>
-          {% if SITE_BRANDED_DOMAIN %}
-            <small class="rmc-auth-split__note">{% trans "You're logging in to" %} {{ SITE_BRANDED_DOMAIN }}</small>
+  <div class="rmc-auth-immersive__bg" aria-hidden="true">
+    {% if TENANT_WALLPAPER_URL %}
+      <img class="rmc-auth-immersive__wallpaper" src="{{ TENANT_WALLPAPER_URL }}" alt="" width="1600" height="900" decoding="async" loading="eager">
+    {% endif %}
+    <div class="rmc-auth-immersive__mesh"></div>
+  </div>
+
+  {% if immersive.ticker_items %}
+  <div class="rmc-auth-immersive__ticker" aria-hidden="true">
+    <div class="rmc-auth-immersive__ticker-track">
+      {% for item in immersive.ticker_items %}
+        <span class="rmc-auth-immersive__ticker-item"><span class="rmc-auth-immersive__ticker-dot"></span>{{ item }}</span>
+      {% endfor %}
+      {% for item in immersive.ticker_items %}
+        <span class="rmc-auth-immersive__ticker-item"><span class="rmc-auth-immersive__ticker-dot"></span>{{ item }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <aside class="rmc-auth-immersive__canvas" id="preview-login-hero" data-preview-label="{% trans 'Login canvas' %}">
+    <header class="rmc-auth-immersive__head">
+      <div class="rmc-auth-immersive__brand" id="preview-login-brand">
+        <div class="rmc-auth-immersive__logo hero-logo">
+          {% if is_manager_host and not SITE_LOGO_URL and not PUBLIC_BRAND_FAVICON_URL %}
+            <span>R</span>
+          {% elif PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}
+            <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="80" height="80" decoding="async" loading="eager">
+          {% elif SITE_LOGO_URL %}
+            <img src="{{ SITE_LOGO_URL }}" alt="" width="80" height="80" decoding="async" loading="eager">
+          {% else %}
+            <span>{% if PUBLIC_BRAND_MODE %}R{% elif SITE.site_name %}{{ SITE.site_name|slice:":1" }}{% else %}S{% endif %}</span>
           {% endif %}
-        {% endif %}
+        </div>
+        <div>
+          <h1>
+            {% if is_manager_host %}
+              RunMyCampus
+            {% elif PUBLIC_BRAND_MODE %}
+              {{ PUBLIC_BRAND_NAME }}
+            {% elif SITE.login_hero_heading %}
+              {{ SITE.login_hero_heading }}
+            {% else %}
+              {{ SITE.site_name|default:"School Management System" }}
+            {% endif %}
+          </h1>
+          <p>
+            {% if is_manager_host %}
+              {% trans "Platform & school management" %}
+            {% elif PUBLIC_BRAND_MODE %}
+              {% trans "Platform & school management" %}
+            {% elif SITE.login_hero_subtext %}
+              {{ SITE.login_hero_subtext }}
+            {% else %}
+              {{ SITE.tagline|default:"Sign in for staff, families, and admins" }}
+            {% endif %}
+          </p>
+        </div>
+      </div>
+      <div class="rmc-auth-immersive__clock">
+        <strong data-rmc-auth-clock>{{ immersive.clock_label }}</strong>
+        {{ immersive.date_label }}
+      </div>
+    </header>
+
+    {% if immersive.carousel_slides %}
+    <div class="rmc-auth-immersive__carousel" id="preview-login-carousel">
+      {% for slide in immersive.carousel_slides %}
+        <div class="rmc-auth-immersive__slide{% if forloop.first %} is-on{% endif %}" data-rmc-auth-carousel-slide>
+          <em>{{ slide.eyebrow }}</em>
+          <strong>{{ slide.title }}</strong>
+          {% if slide.body %}<p>{{ slide.body }}</p>{% endif %}
+        </div>
+      {% endfor %}
+      <div class="rmc-auth-immersive__dots">
+        {% for slide in immersive.carousel_slides %}
+          <button type="button" class="{% if forloop.first %}is-on{% endif %}" data-rmc-auth-carousel-dot data-index="{{ forloop.counter0 }}" aria-label="{% blocktrans with num=forloop.counter %}Slide {{ num }}{% endblocktrans %}"></button>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if immersive.bento_stats %}
+    <div class="rmc-auth-immersive__bento">
+      {% for tile in immersive.bento_stats %}
+        <article class="rmc-auth-immersive__tile">
+          <span class="rmc-auth-immersive__tile-k">{{ tile.label }}</span>
+          <span class="rmc-auth-immersive__tile-v">{{ tile.value }}</span>
+          <span class="rmc-auth-immersive__tile-s">{{ tile.sub }}</span>
+        </article>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="rmc-auth-immersive__preview-head">
+      <span>{% trans "After you sign in" %}</span>
+      <span class="rmc-auth-immersive__pill" data-rmc-auth-preview-pill>{% trans "School pulse" %}</span>
+    </div>
+    <div class="rmc-auth-immersive__dash">
+      <div class="rmc-auth-immersive__dash-top">{% trans "Today at your school" %}</div>
+      <div class="rmc-auth-immersive__dash-body">
+        {% include "auth/partials/login_immersive_dash_panels.html" %}
       </div>
     </div>
 
-    <p class="rmc-auth-split__value">
-      {% if is_manager_host %}
-        {% trans "One console for every school, tenant, and operator workflow." %}
-      {% else %}
-        {% trans "Attendance, marks, fees, and messages — one secure place for staff and families." %}
-      {% endif %}
-    </p>
+    {% if immersive.moments %}
+    <div class="rmc-auth-immersive__moments">
+      {% for moment in immersive.moments %}
+        <figure class="rmc-auth-immersive__moment">
+          <img src="{{ moment.url }}" alt="{{ moment.caption }}" width="400" height="250" decoding="async" loading="lazy">
+          <figcaption>{{ moment.caption }}</figcaption>
+        </figure>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="rmc-auth-immersive__trust">
+      <span>{% trans "FERPA-safe" %}</span>
+      <span>{% trans "Encrypted" %}</span>
+      <span>{% trans "SSO ready" %}</span>
+      <span>{% trans "Tenant branded" %}</span>
+    </div>
 
     {% if request.user.is_authenticated %}
-      <div class="rmc-auth-split__signedin">
+      <div class="rmc-auth-immersive__signedin">
         <span>{% blocktrans with name=request.user.username %}Logged in as {{ name }}{% endblocktrans %}</span>
       </div>
     {% endif %}
   </aside>
 
-  <div class="rmc-auth-split__panel">
-    <div class="rmc-auth-split__formcard card login-card" id="preview-login-form" data-preview-label="{% trans 'Sign-in form' %}" data-preview-changes="{% trans 'Form layout and styling' %}">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
-          <div>
-            <div class="eyebrow mb-1">{% trans "Staff & admin access" %}</div>
-            <h1 class="page-h1 h5 mb-0">{% trans "Secure sign in" %}</h1>
+  <div class="rmc-auth-immersive__auth">
+    <div class="rmc-auth-immersive__glass" id="preview-login-form" data-preview-label="{% trans 'Sign-in form' %}">
+      <div class="rmc-auth-immersive__glass-inner">
+      <form method="post" novalidate id="rmc-auth-login-form">
+        {% csrf_token %}
+        {% if request.GET.next %}
+          <input type="hidden" name="next" value="{{ request.GET.next }}">
+        {% elif request.POST.next %}
+          <input type="hidden" name="next" value="{{ request.POST.next }}">
+        {% endif %}
+        <div class="visually-hidden" aria-hidden="true">
+          <label for="{{ honeypot_field }}">{% trans "Leave this field blank" %}</label>
+          <input type="text" name="{{ honeypot_field }}" id="{{ honeypot_field }}" tabindex="-1" autocomplete="off" value="">
+        </div>
+        <input type="hidden" name="form_ts" value="{{ form_ts }}">
+        <input type="hidden" name="role" id="login-role" value="{{ post_role }}">
+
+        <header class="rmc-auth-immersive__card-head">
+          <div class="rmc-auth-immersive__card-ring" aria-hidden="true">
+            {% if is_manager_host %}
+              R
+            {% elif PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}
+              <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="40" height="40" decoding="async">
+            {% elif SITE_LOGO_URL %}
+              <img src="{{ SITE_LOGO_URL }}" alt="" width="40" height="40" decoding="async">
+            {% elif SITE.site_name %}
+              {{ SITE.site_name|slice:":1" }}
+            {% else %}
+              S
+            {% endif %}
           </div>
-          <span class="rmc-badge text-primary border border-primary px-3 py-1">
-            {% trans "Portal credentials" %}
-          </span>
+          <div>
+            <h2 class="rmc-auth-immersive__card-title">
+              {% if is_manager_host %}
+                RunMyCampus
+              {% elif PUBLIC_BRAND_MODE %}
+                {{ PUBLIC_BRAND_NAME }}
+              {% else %}
+                {{ SITE.site_name|default:"School portal" }}
+              {% endif %}
+            </h2>
+            <p class="rmc-auth-immersive__card-meta">{% trans "Secure portal" %} · {{ immersive.date_label }}</p>
+          </div>
+        </header>
+
+        <div class="rmc-auth-immersive__step-labels" aria-hidden="true">
+          <span data-rmc-auth-step-label="role" class="{% if request.method != 'POST' %}is-on{% endif %}">① {% trans "Choose role" %}</span>
+          <span data-rmc-auth-step-label="creds" class="{% if request.method == 'POST' %}is-on{% endif %}">② {% trans "Sign in" %}</span>
         </div>
 
-        <form method="post" novalidate>
-          {% csrf_token %}
-          {% if request.GET.next %}
-            <input type="hidden" name="next" value="{{ request.GET.next }}">
-          {% elif request.POST.next %}
-            <input type="hidden" name="next" value="{{ request.POST.next }}">
+        <div class="rmc-auth-immersive__progress" aria-hidden="true">
+          <i data-rmc-auth-progress class="{% if request.method != 'POST' %}is-on{% endif %}"></i>
+          <i data-rmc-auth-progress class="{% if request.method == 'POST' %}is-on{% endif %}"></i>
+        </div>
+
+        <div class="rmc-auth-immersive__step{% if request.method != 'POST' %} is-on{% endif %}" data-rmc-auth-step="role">
+          <h2 class="rmc-auth-immersive__step-title">{% trans "Who are you?" %}</h2>
+          <p class="rmc-auth-immersive__sub">{% trans "Pick the door that matches you — the preview on the left updates as you hover." %}</p>
+          <div class="rmc-auth-immersive__role-list" role="group" aria-label="{% trans 'Sign-in role' %}">
+            <button type="button" class="rmc-auth-immersive__role-row{% if post_role == 'staff' %} is-picked{% endif %}" data-rmc-auth-role="staff" data-rmc-auth-role-title="{{ TENANT_LABELS.staff|default:'Staff' }}">
+              <span class="rmc-auth-immersive__role-row-ico" aria-hidden="true">🎓</span>
+              <span class="rmc-auth-immersive__role-row-txt">
+                <strong>{{ TENANT_LABELS.staff|default:"Staff" }} &amp; {% trans "admin" %}</strong>
+                <small>{% trans "Teachers, leadership, finance, and IT" %}</small>
+              </span>
+              <span class="rmc-auth-immersive__role-row-chev" aria-hidden="true">›</span>
+            </button>
+            <button type="button" class="rmc-auth-immersive__role-row{% if post_role == 'parent' %} is-picked{% endif %}" data-rmc-auth-role="parent" data-rmc-auth-role-title="{{ TENANT_LABELS.parent|default:'Parent' }}">
+              <span class="rmc-auth-immersive__role-row-ico" aria-hidden="true">👨‍👩‍👧</span>
+              <span class="rmc-auth-immersive__role-row-txt">
+                <strong>{{ TENANT_LABELS.parent|default:"Parent" }} / {% trans "guardian" %}</strong>
+                <small>{% trans "Fees, report cards, and messages — invite required first time" %}</small>
+              </span>
+              <span class="rmc-auth-immersive__role-row-chev" aria-hidden="true">›</span>
+            </button>
+            <button type="button" class="rmc-auth-immersive__role-row{% if post_role == 'student' %} is-picked{% endif %}" data-rmc-auth-role="student" data-rmc-auth-role-title="{{ TENANT_LABELS.student|default:'Student' }}">
+              <span class="rmc-auth-immersive__role-row-ico" aria-hidden="true">📚</span>
+              <span class="rmc-auth-immersive__role-row-txt">
+                <strong>{{ TENANT_LABELS.student|default:"Student" }}</strong>
+                <small>{% trans "Homework, schedule, and report cards" %}</small>
+              </span>
+              <span class="rmc-auth-immersive__role-row-chev" aria-hidden="true">›</span>
+            </button>
+          </div>
+
+          {% if LOGIN_SSO_INTEGRATIONS or saml_login_initiator.available %}
+          <div class="rmc-auth-immersive__sso-block">
+            <span class="rmc-auth-immersive__sso-lbl">{% trans "Or sign in instantly" %}</span>
+            <div class="rmc-auth-immersive__sso">
+              {% for item in LOGIN_SSO_INTEGRATIONS %}
+                <a href="{{ item.url }}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}">{{ item.label }}</a>
+              {% endfor %}
+              {% if saml_login_initiator.available %}
+                <a href="{{ saml_login_initiator.start_url }}" data-rmc-saml-sso-button="1" rel="nofollow">{{ saml_login_initiator.label }}</a>
+              {% endif %}
+            </div>
+          </div>
           {% endif %}
-          {% comment %} Bot honeypot: a real field hidden from people; automated submitters fill it. {% endcomment %}
-          <div class="visually-hidden" aria-hidden="true">
-            <label for="{{ honeypot_field }}">{% trans "Leave this field blank" %}</label>
-            <input type="text" name="{{ honeypot_field }}" id="{{ honeypot_field }}" tabindex="-1" autocomplete="off" value="">
+
+          <div class="rmc-auth-immersive__trust-in" aria-label="{% trans 'Security highlights' %}">
+            <span>{% trans "FERPA-safe" %}</span>
+            <span>{% trans "Encrypted" %}</span>
+            <span>{% trans "SSO ready" %}</span>
+            <span>{% trans "No school name as username" %}</span>
           </div>
-          {% comment %} Timing trap: signed render time (rejects sub-second bot submissions). {% endcomment %}
-          <input type="hidden" name="form_ts" value="{{ form_ts }}">
-          <div class="mb-3">
-            <label class="form-label">{% trans "I am signing in as" %}</label>
-            <select class="form-select" name="role" id="login-role">
-              <option value="staff">{{ TENANT_LABELS.staff|default:"Staff" }}</option>
-              <option value="student">{{ TENANT_LABELS.student|default:"Student" }}</option>
-              <option value="parent">{{ TENANT_LABELS.parent|default:"Parent" }}</option>
-            </select>
+
+          {% if not is_manager_host %}
+          <div class="rmc-auth-immersive__family-box">
+            <span class="rmc-auth-immersive__family-ico" aria-hidden="true">💚</span>
+            <div>
+              <strong>{% trans "First time as a parent?" %}</strong>
+              <p>{% trans "Claim your invite code from email or SMS, then pick Parent above." %}</p>
+              {% if portal_claim_url %}
+                <a href="{{ portal_claim_url }}">{% trans "Claim an invite" %} →</a>
+              {% else %}
+                <a href="{% url 'accounts:claim_invite' %}">{% trans "Claim an invite" %} →</a>
+              {% endif %}
+            </div>
           </div>
-          {% if LOGIN_SSO_INTEGRATIONS %}
-          <div class="mb-3">
+          {% endif %}
+        </div>
+
+        <div class="rmc-auth-immersive__step{% if request.method == 'POST' %} is-on{% endif %}" data-rmc-auth-step="creds">
+          <button type="button" class="rmc-auth-immersive__back" data-rmc-auth-back">← {% trans "Change role" %}</button>
+          <h2 class="rmc-auth-immersive__step-title">{% trans "Sign in securely" %}</h2>
+          <p class="rmc-auth-immersive__sub">{% blocktrans %}Use <strong data-rmc-auth-picked-role>{{ TENANT_LABELS.staff|default:"Staff" }}</strong> credentials — school email, not the school name.{% endblocktrans %}</p>
+
+          {% if LOGIN_SSO_INTEGRATIONS or saml_login_initiator.available %}
+          <div class="rmc-auth-immersive__sso">
             {% for item in LOGIN_SSO_INTEGRATIONS %}
-            <a href="{{ item.url }}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn btn-outline-secondary w-100 mb-2">{{ item.label }}</a>
+              <a href="{{ item.url }}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}">{{ item.label }}</a>
             {% endfor %}
-            <p class="small text-muted text-center my-2">{% trans "— or sign in with username —" %}</p>
+            {% if saml_login_initiator.available %}
+              <a href="{{ saml_login_initiator.start_url }}" data-rmc-saml-sso-button="1" rel="nofollow">{{ saml_login_initiator.label }}</a>
+            {% endif %}
           </div>
+          <div class="rmc-auth-immersive__divider">{% trans "or email" %}</div>
           {% endif %}
-          {% comment %} v4.00.68 — SAML LoginInitiator surface. Renders only when the operator {% endcomment %}
-          {% comment %} has configured RMC_SAML_IDP_SSO_URL; safe no-op otherwise. The button {% endcomment %}
-          {% comment %} carries ?next= through via the prebuilt start_url (open-redirect-safe). {% endcomment %}
-          {% if saml_login_initiator.available %}
-          <div class="mb-3" id="saml-login-initiator" data-rmc-saml-sso-block="1">
-            <a href="{{ saml_login_initiator.start_url }}" class="btn btn-outline-primary w-100 mb-2" data-rmc-saml-sso-button="1" rel="nofollow">
-              {{ saml_login_initiator.label }}
-            </a>
-            <p class="small text-muted text-center my-2">{% trans "— or sign in with username —" %}</p>
-          </div>
-          {% endif %}
+
           <div class="mb-3">
             <label class="form-label" for="login-username">{% trans "Email or username" %}</label>
-            <input id="login-username" class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" placeholder="{{ LOGIN_EMAIL_PLACEHOLDER|default:'School Email' }}" required autofocus>
+            <input id="login-username" class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" placeholder="{{ LOGIN_EMAIL_PLACEHOLDER|default:'School Email' }}" required{% if request.method == 'POST' %} autofocus{% endif %}>
           </div>
           {% trans "Password" as login_password_label %}
           {% include "components/rmc_password_field.html" with field_id="login-password" field_name="password" label=login_password_label autocomplete="current-password" %}
+
           {% if pow_required and pow_challenge %}
           <div class="mb-3" id="rmc-pow"
                data-salt="{{ pow_challenge.salt }}" data-bits="{{ pow_challenge.bits }}"
@@ -136,94 +317,84 @@ below are preserved verbatim from the prior login. {% endcomment %}
           <noscript>
             <p class="small text-danger mb-2">{% trans "JavaScript is needed to verify you’re human. If it’s turned off, use “Reset your password” below to sign in." %}</p>
           </noscript>
-          <p class="small text-muted mb-2">
-            {% trans "Trouble verifying?" %}
-            <a href="{% url 'accounts:password_reset' %}">{% trans "Reset your password instead." %}</a>
-          </p>
           {% elif turnstile_required and turnstile_site_key %}
           <div class="mb-3">
             <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
           </div>
           <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script> <!-- sri-allow: cloudflare-turnstile-loader-rotates-no-sri -->
-          <p class="small text-muted mb-2">
-            {% trans "Trouble with the verification?" %}
-            <a href="{% url 'accounts:password_reset' %}">{% trans "Reset your password instead." %}</a>
+          {% endif %}
+
+          <button class="rmc-auth-immersive__submit" type="submit">{% trans "Log in" %}</button>
+
+          {% if pow_required or turnstile_required %}
+          <p class="rmc-auth-immersive__links mt-2 mb-0">
+            {% trans "Trouble verifying?" %}
+            {% if password_reset_public_url %}
+              <a href="{{ password_reset_public_url }}" data-rmc-parent-password-reset="1">{% trans "Reset your password instead." %}</a>
+            {% elif password_reset_url %}
+              <a href="{{ password_reset_url }}" data-rmc-parent-password-reset="1">{% trans "Reset your password instead." %}</a>
+            {% endif %}
           </p>
           {% endif %}
-          <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
-        </form>
-        <p class="small text-center mt-2 mb-0">
-          <a href="{% url 'accounts:password_reset' %}" data-rmc-parent-password-reset="1">{% trans "Forgot password?" %}</a>
-        </p>
-        {% comment %} Resend link only on hosts whose urlconf carries the public route {% endcomment %}
-        {% comment %} (it lives in the marketing urlconf, not the tenant/manager one) — {% endcomment %}
-        {% comment %} a bare {% url %} would NoReverseMatch and 500 the whole login page. {% endcomment %}
-        {% url 'resend_signup_verification' as resend_url %}
-        {% if resend_url %}
-        <p class="small text-center text-muted mt-1 mb-0">
-          {% trans "Just signed up and didn’t get your verification email?" %}
-          <a href="{{ resend_url }}">{% trans "Resend it" %}</a>
-        </p>
-        {% endif %}
+        </div>
+      </form>
 
-        <p class="small text-muted mt-3 mb-0">
-          {% trans "Teachers land on the teacher dashboard, admins land on the console, and parents claim invites to link students." %}
-          <br>
-          {% trans "New parents can claim an invite" %} <a href="{% url 'accounts:claim_invite' %}">{% trans "here" %}</a>.
-        </p>
-        {% if is_manager_host and public_site_url %}
-        <p class="small text-muted mt-3 mb-0 text-center">
-          <a href="{{ public_site_url }}" class="text-muted">{% trans "School accounts sign in at runmycampus.com" %}</a>
-        </p>
+      <div class="rmc-auth-immersive__tabs" role="tablist">
+        <button type="button" class="is-on" data-rmc-auth-tab="signin" role="tab" aria-selected="true">{% trans "Sign in help" %}</button>
+        <button type="button" data-rmc-auth-tab="family" role="tab" aria-selected="false">{% trans "Family invite" %}</button>
+      </div>
+      <div class="rmc-auth-immersive__tab-panel is-on" data-rmc-auth-tab-panel="signin" role="tabpanel">
+        {% if password_reset_public_url %}
+          <a href="{{ password_reset_public_url }}" data-rmc-parent-password-reset="1">{% trans "Forgot password?" %}</a>
+        {% elif password_reset_url %}
+          <a href="{{ password_reset_url }}" data-rmc-parent-password-reset="1">{% trans "Forgot password?" %}</a>
+        {% endif %}
+        · {% trans "Contact the school office or IT help desk." %}
+        {% if resend_url %}
+          <br><span class="mt-1 d-inline-block">{% trans "Just signed up and didn’t get your verification email?" %} <a href="{{ resend_url }}">{% trans "Resend it" %}</a></span>
         {% endif %}
       </div>
-    </div>
-
-    <div class="rmc-auth-split__families card info-card">
-      <div>
-        <p class="text-uppercase small text-muted mb-1">{% trans "Families & guardians" %}</p>
-        <h3 class="h6 mb-2">
-          {% if is_manager_host %}
-            {% trans "Use your school login" %}
-          {% else %}
-            {% trans "Link your children securely" %}
-          {% endif %}
-        </h3>
-        <p class="text-muted small mb-3">
-          {% if is_manager_host %}
-            {% trans "The manager host is reserved for platform operators. Families and school staff should sign in through their own school workspace or claim an invite first." %}
-          {% else %}
-            {% trans "Use the invite email, SMS, or WhatsApp token sent by the school to claim your learner and unlock attendance, marks, and open invoices." %}
-          {% endif %}
-        </p>
+      <div class="rmc-auth-immersive__tab-panel" data-rmc-auth-tab-panel="family" role="tabpanel">
         {% if is_manager_host %}
-          <a class="btn btn-outline-primary btn-sm" href="{{ public_site_url|default:'https://runmycampus.com' }}/discover/">{% trans "Find your school" %}</a>
+          <p class="mb-2">{% trans "The manager host is for platform operators. Families should find their school workspace first." %}</p>
+          <a href="{{ public_site_url|default:'https://runmycampus.com' }}/discover/">{% trans "Find your school" %}</a>
+          · <a href="{% url 'accounts:claim_invite' %}">{% trans "Claim an invite" %}</a>
         {% else %}
-          {% comment %} portal: is absent from the public-host urlconf — guard or this 500s the page. {% endcomment %}
-          {% url 'portal:link_child' as claim_invite_url %}
-          {% if not claim_invite_url %}{% url 'accounts:claim_invite' as claim_invite_url %}{% endif %}
-          {% if claim_invite_url %}<a class="btn btn-outline-primary btn-sm" href="{{ claim_invite_url }}">{% trans "Claim an invite" %}</a>{% endif %}
-        {% endif %}
-        <div class="rmc-auth-split__quicklinks d-flex flex-wrap gap-2 mt-3">
-          {% if is_manager_host %}
-            <a class="quick-link" href="{% url 'accounts:claim_invite' %}">{% trans "Claim an invite" %}</a>
-            <a class="quick-link" href="{% url 'manager_help_center' %}">{% trans "Help center" %}</a>
-            <a class="quick-link quick-link-muted" href="{% url 'super:dashboard' %}" title="{% trans 'Platform operators only' %}">{% trans "Control plane" %}</a>
-          {% else %}
-            {% comment %} portal:/siteconfig:/studio_os: are tenant-host routes, absent from the {% endcomment %}
-            {% comment %} public-host urlconf — guard each so the public login page can't 500. {% endcomment %}
-            {% url 'portal:parent_dashboard' as parent_dash_url %}
-            {% if parent_dash_url %}<a class="quick-link" href="{{ parent_dash_url }}">{% trans "Parent portal" %}</a>{% endif %}
-            {% url 'siteconfig:user_preferences' as prefs_url %}
-            {% if prefs_url %}<a class="quick-link" href="{{ prefs_url }}">{% trans "Preferences" %}</a>{% endif %}
-            {% url 'studio_os:experience' as studio_exp_url %}
-            {% if studio_exp_url %}<a class="quick-link quick-link-muted" href="{{ studio_exp_url }}" title="{% trans 'Admins only: Site Settings & theme packs' %}">{% trans "Site Settings (admin only)" %}</a>{% endif %}
+          <p class="mb-2">{% trans "Use the invite email, SMS, or WhatsApp token sent by the school to claim your learner." %}</p>
+          {% if portal_claim_url %}
+            <a href="{{ portal_claim_url }}">{% trans "Claim an invite" %}</a>
           {% endif %}
-        </div>
+          · {% trans "Then return here and choose Parent." %}
+        {% endif %}
+      </div>
+
+      {% if is_manager_host %}
+      {% if public_site_url %}
+      <p class="rmc-auth-immersive__links">
+        <a href="{{ public_site_url }}" class="text-muted">{% trans "School accounts sign in at runmycampus.com" %}</a>
+      </p>
+      {% endif %}
+      <p class="rmc-auth-immersive__links">
+        <a href="{% url 'accounts:claim_invite' %}">{% trans "Claim an invite" %}</a>
+        · <a href="{% url 'manager_help_center' %}">{% trans "Help center" %}</a>
+        · <a href="{% url 'super:dashboard' %}" title="{% trans 'Platform operators only' %}">{% trans "Control plane" %}</a>
+      </p>
+      {% else %}
+      <p class="rmc-auth-immersive__links">
+        {% url 'portal:parent_dashboard' as parent_dash_url %}
+        {% if parent_dash_url %}<a href="{{ parent_dash_url }}">{% trans "Parent portal" %}</a> · {% endif %}
+        {% url 'siteconfig:user_preferences' as prefs_url %}
+        {% if prefs_url %}<a href="{{ prefs_url }}">{% trans "Preferences" %}</a>{% endif %}
+        {% url 'studio_os:experience' as studio_exp_url %}
+        {% if studio_exp_url %} · <a href="{{ studio_exp_url }}" title="{% trans 'Admins only: Site Settings & theme packs' %}">{% trans "Site Settings (admin only)" %}</a>{% endif %}
+      </p>
+      {% endif %}
       </div>
     </div>
   </div>
-
 </div>
+{% endwith %}
+
 {% include "components/rmc_password_toggle_script.html" %}
+<script src="{% static 'js/rmc-auth-login-immersive.js' %}" defer></script>
 {% endblock %}

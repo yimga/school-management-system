@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login A+B+C+D — Full Synthesis</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{--pri:#ea580c;--sec:#fbbf24;--staff:#6366f1;--family:#10b981;--bg:#060912;--glass:rgba(12,18,34,.82);--hair:rgba(255,255,255,.09);--text:#f8fafc;--muted:#94a3b8;--radius:18px;--font:Inter,sans-serif;--serif:"Source Serif 4",Georgia,serif}
+*{box-sizing:border-box}html,body{min-height:100%;margin:0}
+body{font-family:var(--font);color:var(--text);background:var(--bg)}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:30;padding:10px 16px;background:rgba(16,185,129,.12);border-bottom:1px solid rgba(16,185,129,.3);font-size:12px;text-align:center;color:#6ee7b7}
+.topbar a{color:#a7f3d0;margin-left:10px}
+.layout{min-height:100vh;display:grid;grid-template-columns:1fr 1.05fr}
+@media(max-width:980px){.layout{grid-template-columns:1fr}.canvas{min-height:34vh;padding-top:48px!important}}
+.canvas{padding:48px clamp(20px,4vw,44px) 32px;padding-top:56px;background:linear-gradient(160deg,rgba(234,88,12,.88),rgba(251,191,36,.7) 40%,rgba(6,9,18,.85)),radial-gradient(circle at 80% 20%,rgba(255,255,255,.15),transparent 45%);display:flex;flex-direction:column;justify-content:space-between}
+.canvas h1{margin:0;font-family:var(--serif);font-size:clamp(26px,3.5vw,36px);max-width:16ch;line-height:1.15}
+.canvas p.lead{margin:12px 0 0;opacity:.9;font-size:14px;max-width:36ch}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:20px}
+.pills span{font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:4px 8px;border-radius:999px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.15)}
+.main{padding:48px 24px 40px;display:flex;align-items:center;justify-content:center;background:var(--bg);padding-top:56px}
+.panel{width:min(460px,100%)}
+.progress{display:flex;gap:4px;margin-bottom:18px}
+.progress i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.07);transition:background .2s}
+.progress i.on{background:linear-gradient(90deg,var(--staff),var(--family))}
+.stage{display:none;animation:fade .25s ease}
+.stage.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card{background:var(--glass);border:1px solid var(--hair);border-radius:var(--radius);padding:24px;backdrop-filter:blur(20px);box-shadow:0 20px 50px rgba(0,0,0,.4)}
+.card h2{margin:0 0 6px;font-size:19px;font-weight:700}
+.card .sub{margin:0 0 18px;color:var(--muted);font-size:13px}
+.dual{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:480px){.dual{grid-template-columns:1fr}}
+.door{padding:18px 14px;border-radius:14px;border:1px solid var(--hair);background:rgba(255,255,255,.02);cursor:pointer;text-align:center;font:inherit;color:inherit;transition:transform .12s,border-color .15s}
+.door:hover{transform:translateY(-2px)}
+.door.staff:hover{border-color:rgba(99,102,241,.5)}
+.door.family:hover{border-color:rgba(16,185,129,.5)}
+.door .ico{font-size:28px;display:block;margin-bottom:8px}
+.door strong{display:block;font-size:14px;margin-bottom:4px}
+.door span{font-size:11px;color:var(--muted);line-height:1.35}
+.roles{display:grid;gap:8px}
+.role{display:flex;gap:12px;align-items:center;width:100%;padding:12px;border-radius:12px;border:1px solid var(--hair);background:rgba(255,255,255,.02);color:inherit;font:inherit;text-align:left;cursor:pointer}
+.role:hover{border-color:rgba(99,102,241,.4)}
+.calm .oauth{display:grid;gap:6px;margin-bottom:14px}
+.calm .oauth button{padding:10px;border-radius:10px;border:1px solid var(--hair);background:rgba(255,255,255,.02);color:var(--text);font:inherit;font-size:13px;cursor:pointer}
+.calm label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.calm input{width:100%;padding:10px 11px;border-radius:10px;border:1px solid var(--hair);background:rgba(255,255,255,.03);color:var(--text);font:inherit;margin-bottom:10px}
+.calm input:focus{outline:none;border-color:rgba(99,102,241,.45);box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+.calm .btn{width:100%;padding:11px;border:0;border-radius:10px;background:var(--staff);color:#fff;font:inherit;font-weight:700;cursor:pointer;margin-top:6px}
+.calm.family-accent .btn{background:var(--family)}
+.invite input{width:100%;padding:11px;border-radius:10px;border:1px solid var(--hair);background:rgba(255,255,255,.03);color:var(--text);font:inherit;margin-bottom:10px;font-size:15px;letter-spacing:.06em;text-transform:uppercase}
+.back{border:0;background:none;color:var(--muted);font:inherit;font-size:12px;cursor:pointer;padding:0;margin-bottom:12px}
+.back:hover{color:var(--text)}
+.map{margin-top:16px;padding:14px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--hair);font-size:11px;color:var(--muted);line-height:1.55}
+.map b{color:var(--text);display:block;margin-bottom:6px;font-size:12px}
+.map .tag{display:inline-block;margin:2px 4px 2px 0;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700}
+.map .a{background:rgba(234,88,12,.2);color:#fdba74}
+.map .b{background:rgba(99,102,241,.2);color:#a5b4fc}
+.map .c{background:rgba(255,255,255,.08);color:#e2e8f0}
+.map .d{background:rgba(16,185,129,.2);color:#6ee7b7}
+</style>
+</head>
+<body>
+<div class="topbar">Preview: <strong>A+B+C+D synthesis</strong> — all four patterns in one flow · <a href="tenant-login-100x-hub-browsable.html">← all options</a></div>
+<div class="layout">
+  <aside class="canvas">
+    <div>
+      <div class="pills"><span>A · Editorial</span><span>Always on</span></div>
+      <h1>New Test High School</h1>
+      <p class="lead">Knowledge · Technology · Excellence — one portal for staff and families.</p>
+    </div>
+    <p style="font-size:12px;opacity:.75;margin:0">No breadcrumbs. No app chrome. Dedicated sign-in moment.</p>
+  </aside>
+  <main class="main">
+    <div class="panel">
+      <div class="progress"><i id="p1" class="on"></i><i id="p2"></i><i id="p3"></i></div>
+
+      <!-- D: Dual path -->
+      <div class="stage active" id="st-path">
+        <div class="card">
+          <h2>How are you joining today?</h2>
+          <p class="sub"><span class="tag d" style="display:inline;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:800;background:rgba(16,185,129,.2);color:#6ee7b7">D · Dual path</span> Two equal doors — staff never buried under family copy.</p>
+          <div class="dual">
+            <button type="button" class="door staff" id="pick-staff"><span class="ico">🏫</span><strong>I work here</strong><span>Staff, teachers, leadership, IT</span></button>
+            <button type="button" class="door family" id="pick-family"><span class="ico">👨‍👩‍👧</span><strong>I'm a family member</strong><span>Parents &amp; guardians with invite</span></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- B: Role gateway (staff path only) -->
+      <div class="stage" id="st-role">
+        <button type="button" class="back" data-target="st-path">← Back</button>
+        <div class="card">
+          <h2>Choose your role</h2>
+          <p class="sub"><span class="tag b" style="display:inline;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:800;background:rgba(99,102,241,.2);color:#a5b4fc">B · Role gateway</span> Before credentials — fewer wrong logins.</p>
+          <div class="roles">
+            <button type="button" class="role" data-go="st-creds"><span>🎓</span><span><strong>Staff / teacher</strong><br><small style="color:var(--muted)">Dashboard &amp; gradebook</small></span></button>
+            <button type="button" class="role" data-go="st-creds"><span>🛡</span><span><strong>Admin / leadership</strong><br><small style="color:var(--muted)">Console &amp; settings</small></span></button>
+            <button type="button" class="role" data-go="st-creds"><span>📚</span><span><strong>Student</strong><br><small style="color:var(--muted)">Assignments &amp; results</small></span></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- C: Calm credentials (staff) -->
+      <div class="stage" id="st-creds">
+        <button type="button" class="back" data-target="st-role">← Back</button>
+        <div class="card calm">
+          <h2>Sign in</h2>
+          <p class="sub"><span class="tag c" style="display:inline;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:800;background:rgba(255,255,255,.08);color:#e2e8f0">C · Calm command</span> SSO first, minimal fields, zero clutter.</p>
+          <div class="oauth"><button type="button">Continue with Google</button><button type="button">Continue with Microsoft</button></div>
+          <label>Email or username</label><input type="text" placeholder="you@school.edu">
+          <label>Password</label><input type="password" placeholder="••••••••">
+          <button class="btn" type="button">Log in</button>
+        </div>
+      </div>
+
+      <!-- D+C: Family invite path -->
+      <div class="stage" id="st-invite">
+        <button type="button" class="back" data-target="st-path">← Back</button>
+        <div class="card calm family-accent">
+          <h2>Claim your invite</h2>
+          <p class="sub"><span class="tag d">D</span> + <span class="tag c">C</span> — family-first flow, calm single purpose.</p>
+          <label>Invite code from email / SMS</label>
+          <input class="invite" type="text" placeholder="NTH-2026-8F3K">
+          <label>Your email</label>
+          <input type="email" placeholder="parent@email.com">
+          <button class="btn" type="button">Continue</button>
+          <p style="text-align:center;margin:14px 0 0;font-size:12px;color:var(--muted)">Already claimed? <a href="#" style="color:#6ee7b7" id="to-parent-creds">Sign in as Parent</a></p>
+        </div>
+      </div>
+
+      <div class="map">
+        <b>What each letter contributes in this flow</b>
+        <span class="tag a">A</span> Left brand canvas always visible<br>
+        <span class="tag d">D</span> Step 1: Staff vs Family (equal weight)<br>
+        <span class="tag b">B</span> Step 2a: Role tiles (staff path only)<br>
+        <span class="tag c">C</span> Step 3: Calm SSO + credential card<br>
+        <span class="tag d">D</span> Step 2b: Invite code (family path, skips role picker)
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+const stages={st-path:1,st-role:2,st-creds:3,st-invite:2};
+function show(id){
+  document.querySelectorAll('.stage').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const n=stages[id]||1;
+  ['p1','p2','p3'].forEach((p,i)=>document.getElementById(p).classList.toggle('on',i<n));
+}
+document.getElementById('pick-staff').onclick=()=>show('st-role');
+document.getElementById('pick-family').onclick=()=>show('st-invite');
+document.querySelectorAll('.role').forEach(r=>r.onclick=()=>show('st-creds'));
+document.querySelectorAll('.back').forEach(b=>b.onclick=()=>show(b.dataset.target));
+document.getElementById('to-parent-creds').onclick=e=>{e.preventDefault();show('st-creds');};
+</script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login Option A — Civic Editorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --school-primary:#ea580c;--school-secondary:#fbbf24;
+  --bg:#070b14;--glass:rgba(14,20,38,.72);--hair:rgba(255,255,255,.10);
+  --text:#f8fafc;--muted:#94a3b8;--ok:#22c55e;--bad:#ef4444;
+  --radius:20px;--font:Inter,system-ui,sans-serif;--serif:"Source Serif 4",Georgia,serif;
+}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{font-family:var(--font);color:var(--text);background:var(--bg);overflow-x:hidden}
+.shell{min-height:100%;display:grid;grid-template-columns:1.15fr 1fr}
+@media(max-width:960px){.shell{grid-template-columns:1fr}.hero{min-height:42vh}}
+.hero{
+  position:relative;padding:clamp(28px,5vw,56px);
+  background:
+    linear-gradient(135deg,rgba(234,88,12,.92) 0%,rgba(251,191,36,.78) 48%,rgba(15,23,42,.55) 100%),
+    radial-gradient(800px 400px at 20% 80%,rgba(255,255,255,.12),transparent 60%);
+  display:flex;flex-direction:column;justify-content:space-between;
+}
+.hero::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M0 60h120M60 0v120' stroke='%23fff' stroke-opacity='.04'/%3E%3C/svg%3E");opacity:.5;pointer-events:none}
+.brand{display:flex;align-items:center;gap:14px;position:relative;z-index:1}
+.logo{width:52px;height:52px;border-radius:14px;background:#fff;display:grid;place-items:center;font-weight:800;color:var(--school-primary);font-size:22px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.brand h1{margin:0;font-family:var(--serif);font-size:clamp(22px,3vw,28px);font-weight:600;line-height:1.15}
+.brand p{margin:4px 0 0;font-size:13px;opacity:.88}
+.hero-copy{position:relative;z-index:1;max-width:42ch;margin:clamp(24px,8vh,80px) 0}
+.hero-copy blockquote{margin:0;font-family:var(--serif);font-size:clamp(26px,3.5vw,38px);line-height:1.2;font-weight:600}
+.hero-copy cite{display:block;margin-top:14px;font-style:normal;font-size:13px;opacity:.85}
+.trust{display:flex;flex-wrap:wrap;gap:10px;position:relative;z-index:1}
+.trust span{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px)}
+.panel{display:flex;align-items:center;justify-content:center;padding:clamp(20px,4vw,48px);background:radial-gradient(600px 400px at 100% 0%,rgba(99,102,241,.08),transparent 55%),var(--bg)}
+.stack{width:min(440px,100%);display:flex;flex-direction:column;gap:16px}
+.glass{
+  background:var(--glass);border:1px solid var(--hair);border-radius:var(--radius);
+  padding:28px 28px 24px;backdrop-filter:saturate(160%) blur(24px);
+  box-shadow:0 24px 64px rgba(0,0,0,.35);
+}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.glass h2{margin:0 0 20px;font-size:22px;font-weight:700;letter-spacing:-.02em}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:18px;padding:4px;background:rgba(255,255,255,.04);border-radius:12px;border:1px solid var(--hair)}
+.seg button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:12px;font-weight:600;padding:10px 6px;border-radius:9px;cursor:pointer;transition:background .15s,color .15s}
+.seg button.active{background:linear-gradient(135deg,var(--school-primary),var(--school-secondary));color:#fff;box-shadow:0 4px 14px rgba(234,88,12,.35)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.field input,.field select{
+  width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--hair);
+  background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-size:15px;
+  transition:border-color .15s,box-shadow .15s;
+}
+.field input:focus{outline:none;border-color:rgba(234,88,12,.55);box-shadow:0 0 0 3px rgba(234,88,12,.18)}
+.field input.ok{border-color:rgba(34,197,94,.5)}
+.row{display:flex;justify-content:space-between;align-items:center;margin:4px 0 16px;font-size:13px}
+.row a{color:#fdba74;text-decoration:none}
+.row a:hover{text-decoration:underline}
+.btn{
+  width:100%;padding:13px 16px;border:0;border-radius:12px;font:inherit;font-size:15px;font-weight:700;cursor:pointer;
+  background:linear-gradient(135deg,var(--school-primary),#c2410c);color:#fff;
+  box-shadow:0 8px 24px rgba(234,88,12,.35);transition:transform .12s,box-shadow .12s;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:0 12px 32px rgba(234,88,12,.4)}
+.sso{display:grid;gap:8px;margin-bottom:16px}
+.sso button{padding:11px;border-radius:11px;border:1px solid var(--hair);background:rgba(255,255,255,.03);color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:11px;margin:14px 0}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--hair)}
+.family{
+  background:rgba(255,255,255,.03);border:1px solid var(--hair);border-radius:var(--radius);
+  padding:20px 22px;display:flex;gap:16px;align-items:flex-start;
+}
+.family-icon{width:40px;height:40px;border-radius:12px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);display:grid;place-items:center;font-size:18px;flex-shrink:0}
+.family h3{margin:0 0 6px;font-size:15px;font-weight:700}
+.family p{margin:0 0 12px;font-size:13px;color:var(--muted);line-height:1.45}
+.family .link{font-size:13px;font-weight:600;color:#6ee7b7;text-decoration:none}
+.hint{font-size:12px;color:var(--muted);text-align:center;margin-top:12px}
+.back{position:fixed;top:16px;right:16px;z-index:9;font-size:12px;color:var(--muted);text-decoration:none;padding:8px 12px;border:1px solid var(--hair);border-radius:999px;background:rgba(0,0,0,.4);backdrop-filter:blur(8px)}
+</style>
+</head>
+<body>
+<a class="back" href="tenant-login-100x-hub-browsable.html">← All options</a>
+<div class="shell">
+  <aside class="hero">
+    <div class="brand">
+      <div class="logo">N</div>
+      <div>
+        <h1>New Test High School</h1>
+        <p>Knowledge · Technology · Excellence</p>
+      </div>
+    </div>
+    <div class="hero-copy">
+      <blockquote>One secure front door for staff, families, and learners.</blockquote>
+      <cite>Attendance, marks, fees, and messages — always in sync.</cite>
+    </div>
+    <div class="trust">
+      <span>Ferpa-safe</span>
+      <span>Encrypted</span>
+      <span>24/7 access</span>
+    </div>
+  </aside>
+  <main class="panel">
+    <div class="stack">
+      <div class="glass">
+        <p class="eyebrow">Staff &amp; admin</p>
+        <h2>Sign in securely</h2>
+        <div class="seg" role="tablist">
+          <button type="button" class="active" aria-selected="true">Staff</button>
+          <button type="button">Parent</button>
+          <button type="button">Student</button>
+        </div>
+        <div class="sso">
+          <button type="button">Continue with Google Workspace</button>
+          <button type="button">Continue with Microsoft</button>
+        </div>
+        <div class="divider">or use school credentials</div>
+        <form onsubmit="return false">
+          <div class="field">
+            <label for="user">Email or username</label>
+            <input id="user" type="text" placeholder="you@school.edu" autocomplete="username" class="ok">
+          </div>
+          <div class="field">
+            <label for="pass">Password</label>
+            <input id="pass" type="password" placeholder="••••••••" autocomplete="current-password">
+          </div>
+          <div class="row">
+            <label style="display:flex;align-items:center;gap:6px;color:var(--muted);cursor:pointer"><input type="checkbox"> Remember device</label>
+            <a href="#">Forgot password?</a>
+          </div>
+          <button class="btn" type="submit">Log in</button>
+        </form>
+        <p class="hint">Teachers → dashboard · Admins → console · Parents → claim invite first</p>
+      </div>
+      <div class="family">
+        <div class="family-icon" aria-hidden="true">👨‍👩‍👧</div>
+        <div>
+          <h3>Families &amp; guardians</h3>
+          <p>Use the invite from email, SMS, or WhatsApp to link your child — then sign in as Parent above.</p>
+          <a class="link" href="#">Claim an invite →</a>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+document.querySelectorAll('.seg button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.seg button').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-selected','false')});
+    btn.classList.add('active');btn.setAttribute('aria-selected','true');
+  });
+});
+</script>
+</body>
+</html>

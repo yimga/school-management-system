@@ -27,6 +27,19 @@ logger = logging.getLogger(__name__)
 
 PLATFORM_SURFACE_VERSION = "v4.00.97"
 
+_REQUEST_CACHE_ATTR = "_rmc_platform_surface_request_cache"
+
+
+def _request_surface_cache(request) -> dict[str, Any] | None:
+    """Per-request memo for URL catalog + surface config (context processor calls 3×)."""
+    if request is None:
+        return None
+    cache = getattr(request, _REQUEST_CACHE_ATTR, None)
+    if cache is None or not isinstance(cache, dict):
+        cache = {}
+        setattr(request, _REQUEST_CACHE_ATTR, cache)
+    return cache
+
 # (payload_key, django_url_name, optional urlconf — None uses request.urlconf)
 _API_URL_CATALOG: tuple[tuple[str, str, str | None], ...] = (
     ("api_health", "api_health", None),
@@ -121,6 +134,10 @@ def _merge_platform_client_urls(flags: dict[str, Any], urls: dict[str, str]) -> 
 
 def resolve_api_urls(request) -> dict[str, str]:
     """Host-aware named API paths for client modules."""
+    cache = _request_surface_cache(request)
+    if cache is not None and "api_urls" in cache:
+        return cache["api_urls"]
+
     urlconf = getattr(request, "urlconf", None)
     host_kind = getattr(request, "public_host_kind", "") or ""
     flags = _effective_flags(request)
@@ -187,7 +204,10 @@ def resolve_api_urls(request) -> dict[str, str]:
     if not urls.get("health"):
         urls["health"] = "/health/"
 
-    return _merge_platform_client_urls(flags, urls)
+    urls = _merge_platform_client_urls(flags, urls)
+    if cache is not None:
+        cache["api_urls"] = urls
+    return urls
 
 
 def _offline_urls_for_request(request) -> dict[str, str | None]:
@@ -371,12 +391,16 @@ def _assist_dock_ui(flags: dict[str, Any]) -> dict[str, str]:
 
 
 def resolve_platform_surface_config(request) -> dict[str, Any]:
+    cache = _request_surface_cache(request)
+    if cache is not None and "platform_surface" in cache:
+        return cache["platform_surface"]
+
     flags = _effective_flags(request)
     ai = resolve_ai_chrome_config(request)
     urls = resolve_api_urls(request)
     dock_ui = _assist_dock_ui(flags)
 
-    return {
+    payload = {
         "version": PLATFORM_SURFACE_VERSION,
         "urls": urls,
         "ai": ai,
@@ -395,7 +419,18 @@ def resolve_platform_surface_config(request) -> dict[str, Any]:
             ),
         },
     }
+    if cache is not None:
+        cache["platform_surface"] = payload
+    return payload
 
 
 def platform_surface_config_json(request) -> str:
-    return json.dumps(resolve_platform_surface_config(request), separators=(",", ":"))
+    cache = _request_surface_cache(request)
+    if cache is not None and "platform_surface_json" in cache:
+        return cache["platform_surface_json"]
+    payload = json.dumps(
+        resolve_platform_surface_config(request), separators=(",", ":")
+    )
+    if cache is not None:
+        cache["platform_surface_json"] = payload
+    return payload

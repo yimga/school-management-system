@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login A+B Hybrid — Living Canvas (left panel filled)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{--pri:#ea580c;--sec:#fbbf24;--bg:#070b14;--glass:rgba(14,20,38,.78);--hair:rgba(255,255,255,.10);--text:#f8fafc;--muted:#94a3b8;--radius:16px;--font:Inter,sans-serif;--serif:"Source Serif 4",Georgia,serif}
+*{box-sizing:border-box}html,body{min-height:100%;margin:0}
+body{font-family:var(--font);color:var(--text);background:var(--bg)}
+.banner{position:fixed;top:0;left:0;right:0;z-index:30;padding:9px 14px;background:rgba(99,102,241,.14);border-bottom:1px solid rgba(99,102,241,.3);font-size:11.5px;text-align:center;color:#c4b5fd}
+.banner a{color:#e9d5ff;margin-left:8px}
+.shell{min-height:100vh;display:grid;grid-template-columns:1fr 1.08fr}
+@media(max-width:960px){.shell{grid-template-columns:1fr}.hero{min-height:auto}}
+.hero{position:relative;overflow:hidden;padding:52px clamp(18px,3vw,36px) clamp(20px,3vw,32px);display:flex;flex-direction:column;gap:18px;min-height:100vh}
+.hero-bg{position:absolute;inset:0;background:
+  linear-gradient(165deg,rgba(234,88,12,.82) 0%,rgba(120,53,15,.55) 38%,rgba(6,9,18,.92) 100%),
+  url("https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1400&q=80") center/cover no-repeat}
+.hero-bg::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(251,191,36,.25),transparent 55%),linear-gradient(0deg,rgba(6,9,18,.85),transparent 45%);pointer-events:none}
+.hero-inner{position:relative;z-index:1;display:flex;flex-direction:column;gap:16px;flex:1;min-height:0}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:48px;height:48px;border-radius:13px;background:#fff;display:grid;place-items:center;font-weight:800;color:var(--pri);font-size:18px;flex-shrink:0;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.brand h1{margin:0;font-family:var(--serif);font-size:clamp(20px,2.5vw,24px);font-weight:600;line-height:1.15}
+.brand p{margin:3px 0 0;font-size:12px;opacity:.88}
+.live-pill{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:5px 10px;border-radius:999px;background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.35);color:#fecaca;width:fit-content}
+.live-pill i{width:6px;height:6px;border-radius:50%;background:#ef4444;animation:pulse 1.4s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.bento{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr;gap:10px;flex:1;min-height:0}
+@media(max-width:960px){.bento{grid-template-columns:1fr}}
+.tile{border-radius:var(--radius);padding:14px 15px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(12px);display:flex;flex-direction:column;gap:6px;min-height:0}
+.tile span.lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;opacity:.75}
+.tile strong{font-size:14px;line-height:1.35;font-weight:600}
+.tile p{margin:0;font-size:12px;line-height:1.45;opacity:.88}
+.tile-wide{grid-column:1/-1}
+.tile-tall{grid-row:span 2}
+.events{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;overflow:auto}
+.events li{display:flex;gap:10px;align-items:flex-start;font-size:12px;line-height:1.35}
+.events time{flex-shrink:0;font-size:10px;font-weight:700;padding:3px 7px;border-radius:6px;background:rgba(0,0,0,.25);min-width:52px;text-align:center}
+.context{margin-top:auto;padding:14px 16px;border-radius:var(--radius);background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.12);transition:opacity .2s}
+.context h3{margin:0 0 4px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+.context p{margin:0;font-size:12px;line-height:1.45;opacity:.9}
+.trust{display:flex;flex-wrap:wrap;gap:6px}
+.trust span{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16)}
+.panel{display:flex;align-items:center;justify-content:center;padding:52px 22px 28px;background:radial-gradient(480px 300px at 100% 0,rgba(99,102,241,.07),transparent 50%),var(--bg)}
+.stack{width:min(420px,100%)}
+.glass{background:var(--glass);border:1px solid var(--hair);border-radius:20px;padding:26px;backdrop-filter:blur(22px);box-shadow:0 24px 60px rgba(0,0,0,.35)}
+.steps{display:flex;gap:6px;margin-bottom:18px}
+.steps span{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.08);transition:background .2s}
+.steps span.on{background:linear-gradient(90deg,var(--pri),var(--sec))}
+.step{display:none;animation:in .22s ease}
+.step.active{display:block}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h2{margin:0 0 6px;font-size:20px;font-weight:700}
+.sub{margin:0 0 16px;color:var(--muted);font-size:13px;line-height:1.45}
+.roles{display:grid;gap:8px}
+.role{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--hair);background:rgba(255,255,255,.03);color:inherit;font:inherit;text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.role:hover,.role.selected{border-color:rgba(234,88,12,.5);background:rgba(234,88,12,.08)}
+.role-icon{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:18px;background:rgba(255,255,255,.06)}
+.role strong{display:block;font-size:14px}
+.role small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.chip{display:inline-block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:4px 10px;border-radius:999px;background:rgba(234,88,12,.15);color:#fdba74;margin-bottom:10px}
+.back{background:none;border:0;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;padding:0;margin-bottom:12px;display:inline-flex;align-items:center;gap:4px}
+.back:hover{color:var(--text)}
+.sso{display:grid;gap:7px;margin-bottom:14px}
+.sso button{padding:10px;border-radius:10px;border:1px solid var(--hair);background:rgba(255,255,255,.03);color:var(--text);font:inherit;font-size:13px;cursor:pointer}
+.divider{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11px;margin:12px 0}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--hair)}
+label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px}
+input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--hair);background:rgba(255,255,255,.04);color:var(--text);font:inherit;margin-bottom:12px}
+input:focus{outline:none;border-color:rgba(234,88,12,.5);box-shadow:0 0 0 3px rgba(234,88,12,.15)}
+.btn{width:100%;padding:12px;border:0;border-radius:11px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;background:linear-gradient(135deg,var(--pri),#c2410c);color:#fff;margin-top:4px}
+.family{margin-top:14px;padding:16px 18px;border-radius:var(--radius);border:1px solid var(--hair);background:rgba(255,255,255,.02);display:flex;gap:12px}
+.family h3{margin:0 0 4px;font-size:14px}
+.family p{margin:0 0 8px;font-size:12px;color:var(--muted);line-height:1.4}
+.family a{font-size:12px;font-weight:600;color:#6ee7b7;text-decoration:none}
+.hint{font-size:11px;color:#a5b4fc;margin-top:12px;line-height:1.45;padding:10px 12px;border-radius:10px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2)}
+</style>
+</head>
+<body>
+<div class="banner">A+B v2 · <strong>Living canvas</strong> — campus photo + today’s news + role tips (not empty orange) · <a href="tenant-login-100x-hub-browsable.html">← hub</a></div>
+<div class="shell">
+  <aside class="hero">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="hero-inner">
+      <div class="brand">
+        <div class="logo">N</div>
+        <div><h1>New Test High School</h1><p>Knowledge · Technology · Excellence</p></div>
+      </div>
+      <span class="live-pill"><i aria-hidden="true"></i> Live from school</span>
+      <div class="bento">
+        <article class="tile tile-wide">
+          <span class="lbl">Announcement</span>
+          <strong>PTA meeting Thursday · 6:00 PM · Main hall</strong>
+          <p>Childcare provided. RSVP in the portal after sign-in.</p>
+        </article>
+        <article class="tile">
+          <span class="lbl">Today</span>
+          <strong>Term 2 · Week 8</strong>
+          <p>Period 3 · Tue, Jun 23</p>
+        </article>
+        <article class="tile">
+          <span class="lbl">This week</span>
+          <strong>94% attendance</strong>
+          <p>+2% vs last week</p>
+        </article>
+        <article class="tile tile-wide tile-tall">
+          <span class="lbl">Coming up</span>
+          <ul class="events">
+            <li><time>Thu</time><span>Science fair submissions close</span></li>
+            <li><time>Fri</time><span>Grade 10 mock exams begin</span></li>
+            <li><time>Mon</time><span>New term clubs registration opens</span></li>
+          </ul>
+        </article>
+      </div>
+      <div class="context" id="context">
+        <h3 id="ctx-title">👋 Welcome back</h3>
+        <p id="ctx-body">Pick your role on the right — this panel shows tips and what you’ll see after sign-in.</p>
+      </div>
+      <div class="trust"><span>Ferpa-safe</span><span>Encrypted</span><span>Tenant branded</span></div>
+    </div>
+  </aside>
+  <main class="panel">
+    <div class="stack">
+      <div class="glass">
+        <div class="steps"><span id="s1" class="on"></span><span id="s2"></span></div>
+        <div class="step active" id="step-role">
+          <h2>Who is signing in?</h2>
+          <p class="sub">Step 1 of 2 — the left panel updates with role-specific guidance.</p>
+          <div class="roles">
+            <button type="button" class="role" data-role="Staff" data-ctx-title="🎓 Staff workspace" data-ctx-body="Gradebook, attendance, and class announcements. Use your school email — not the school name."><span class="role-icon">🎓</span><span><strong>Staff &amp; admin</strong><small>Teachers, leadership, finance, IT</small></span></button>
+            <button type="button" class="role" data-role="Parent" data-ctx-title="👨‍👩‍👧 Family portal" data-ctx-body="View fees, report cards, and messages. First time? Claim your invite below, then return here."><span class="role-icon">👨‍👩‍👧</span><span><strong>Parent / guardian</strong><small>Needs invite first time</small></span></button>
+            <button type="button" class="role" data-role="Student" data-ctx-title="📚 Student hub" data-ctx-body="Assignments, timetable, and results. Sign in with your student ID or school email."><span class="role-icon">📚</span><span><strong>Student</strong><small>Assignments &amp; timetable</small></span></button>
+          </div>
+        </div>
+        <div class="step" id="step-creds">
+          <button type="button" class="back" id="back">← Change role</button>
+          <span class="chip" id="chip">Staff</span>
+          <h2>Sign in securely</h2>
+          <p class="sub">Step 2 of 2 — SSO or username + password.</p>
+          <div class="sso"><button type="button">Continue with Google</button><button type="button">Continue with Microsoft</button></div>
+          <div class="divider">or credentials</div>
+          <label>Email or username</label><input type="text" placeholder="teacher@newtesthigh.edu">
+          <label>Password</label><input type="password" placeholder="••••••••">
+          <button class="btn" type="button">Log in</button>
+        </div>
+        <p class="hint">Left panel pulls from Live Banner + calendar (same data as your portal ticker). In production: tenant wallpaper replaces the stock photo.</p>
+      </div>
+      <div class="family">
+        <span style="font-size:22px" aria-hidden="true">💚</span>
+        <div><h3>Families &amp; guardians</h3><p>Claim your invite first, then choose Parent above.</p><a href="#">Claim an invite →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+const stepRole=document.getElementById('step-role'),stepCreds=document.getElementById('step-creds'),chip=document.getElementById('chip'),s2=document.getElementById('s2');
+const ctxTitle=document.getElementById('ctx-title'),ctxBody=document.getElementById('ctx-body');
+const defaultCtx={title:'👋 Welcome back',body:'Pick your role on the right — this panel shows tips and what you’ll see after sign-in.'};
+function setContext(title,body){ctxTitle.textContent=title;ctxBody.textContent=body;}
+document.querySelectorAll('.role').forEach(r=>r.addEventListener('click',()=>{
+  document.querySelectorAll('.role').forEach(x=>x.classList.remove('selected'));
+  r.classList.add('selected');
+  setContext(r.dataset.ctxTitle,r.dataset.ctxBody);
+  chip.textContent=r.dataset.role;
+  stepRole.classList.remove('active');stepCreds.classList.add('active');s2.classList.add('on');
+}));
+document.getElementById('back').addEventListener('click',()=>{
+  stepCreds.classList.remove('active');stepRole.classList.add('active');s2.classList.remove('on');
+  document.querySelectorAll('.role').forEach(x=>x.classList.remove('selected'));
+  setContext(defaultCtx.title,defaultCtx.body);
+});
+document.querySelectorAll('.role').forEach(r=>r.addEventListener('mouseenter',()=>setContext(r.dataset.ctxTitle,r.dataset.ctxBody)));
+document.querySelectorAll('.role').forEach(r=>r.addEventListener('mouseleave',()=>{
+  if(!stepCreds.classList.contains('active'))setContext(defaultCtx.title,defaultCtx.body);
+}));
+</script>
+</body>
+</html>

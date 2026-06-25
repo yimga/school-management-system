@@ -61,6 +61,26 @@ class PlatformSurfaceConfigTests(SimpleTestCase):
         self.assertIn("ai", cfg)
         self.assertIn("cmdk", cfg)
 
+    @mock.patch("apps.siteconfig.platform_surface_config.resolve_ai_chrome_config")
+    @mock.patch("apps.siteconfig.platform_surface_config._reverse")
+    @mock.patch("apps.siteconfig.platform_surface_config._effective_flags", return_value={})
+    def test_resolve_api_urls_cached_per_request(self, _mock_flags, mock_reverse, mock_ai):
+        mock_reverse.return_value = "/x/"
+        mock_ai.return_value = {}
+        from apps.siteconfig.platform_surface_config import (
+            platform_surface_config_json,
+            resolve_api_urls,
+            resolve_platform_surface_config,
+        )
+
+        req = self.rf.get("/portal/parent/")
+        resolve_platform_surface_config(req)
+        resolve_platform_surface_config(req)
+        platform_surface_config_json(req)
+        calls_after_surface = mock_reverse.call_count
+        resolve_api_urls(req)
+        self.assertEqual(mock_reverse.call_count, calls_after_surface)
+
     @mock.patch("apps.siteconfig.platform_surface_config._hydrate_endpoints")
     @mock.patch("apps.siteconfig.platform_surface_config._effective_flags")
     def test_offline_config_uses_named_hydrate(self, mock_flags, mock_hydrate):

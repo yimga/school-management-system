@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A+B v3 — Immersive Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{--pri:#ea580c;--sec:#fbbf24;--bg:#050810;--glass:rgba(10,14,28,.88);--hair:rgba(255,255,255,.11);--text:#f8fafc;--muted:#94a3b8;--radius:14px;--font:Inter,sans-serif;--serif:"Source Serif 4",Georgia,serif;--ok:#22c55e;--info:#6366f1}
+*{box-sizing:border-box}html,body{min-height:100%;margin:0}
+body{font-family:var(--font);color:var(--text);background:var(--bg);overflow-x:hidden}
+.scene{position:relative;min-height:100vh;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(380px,1fr);align-items:stretch}
+@media(max-width:980px){.scene{grid-template-columns:1fr}}
+.scene-bg{position:fixed;inset:0;z-index:0;background:#050810}
+.scene-bg img{width:100%;height:100%;object-fit:cover;opacity:.58}
+.mesh{position:absolute;inset:0;background:
+  radial-gradient(ellipse 70% 50% at 15% 20%,rgba(234,88,12,.42),transparent 55%),
+  radial-gradient(ellipse 50% 40% at 85% 80%,rgba(99,102,241,.22),transparent 50%),
+  linear-gradient(105deg,rgba(6,9,18,.93) 0%,rgba(6,9,18,.58) 50%,rgba(6,9,18,.82) 100%)}
+.ticker-wrap{position:fixed;top:0;left:0;right:0;z-index:40;background:rgba(0,0,0,.55);border-bottom:1px solid var(--hair);backdrop-filter:blur(10px);overflow:hidden;height:36px;display:flex;align-items:center}
+.ticker{display:flex;gap:48px;animation:scroll 28s linear infinite;white-space:nowrap;padding-left:100%}
+.ticker span{font-size:11px;font-weight:600;color:#e2e8f0;display:inline-flex;align-items:center;gap:8px}
+.ticker .dot{width:5px;height:5px;border-radius:50%;background:var(--pri)}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.banner{position:fixed;top:36px;left:0;right:0;z-index:35;padding:7px 12px;background:rgba(99,102,241,.1);border-bottom:1px solid rgba(99,102,241,.22);font-size:11px;text-align:center;color:#c4b5fd}
+.banner a{color:#e9d5ff;margin-left:8px}
+.canvas{position:relative;z-index:1;padding:88px clamp(16px,3vw,36px) 32px;display:flex;flex-direction:column;gap:12px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:44px;height:44px;border-radius:12px;background:#fff;display:grid;place-items:center;font-weight:800;color:var(--pri);font-size:17px}
+.brand h1{margin:0;font-family:var(--serif);font-size:22px;font-weight:600}
+.brand p{margin:2px 0 0;font-size:11px;opacity:.85}
+.clock{text-align:right;font-size:11px;opacity:.85}
+.clock strong{display:block;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.carousel{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--hair);background:rgba(0,0,0,.38);min-height:112px;padding-bottom:28px}
+.slide{position:absolute;inset:0 0 28px;padding:16px 18px;display:flex;flex-direction:column;justify-content:center;opacity:0;transform:translateX(10px);transition:opacity .4s,transform .4s;pointer-events:none}
+.slide.on{opacity:1;transform:none}
+.slide em{font-style:normal;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#fdba74;margin-bottom:5px}
+.slide strong{font-family:var(--serif);font-size:clamp(16px,2vw,21px);line-height:1.25;max-width:32ch}
+.slide p{margin:6px 0 0;font-size:12px;opacity:.88;line-height:1.4}
+.dots{position:absolute;bottom:10px;left:18px;display:flex;gap:5px}
+.dots button{width:20px;height:3px;border:0;border-radius:2px;background:rgba(255,255,255,.15);cursor:pointer;padding:0}
+.dots button.on{background:linear-gradient(90deg,var(--pri),var(--sec))}
+.bento{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media(max-width:1200px){.bento{grid-template-columns:repeat(2,1fr)}}
+.tile{border-radius:var(--radius);padding:11px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(8px)}
+.tile .lbl{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;opacity:.7;display:block;margin-bottom:3px}
+.tile .val{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums}
+.tile .sub{font-size:10px;opacity:.8;margin-top:2px}
+.tile.w2{grid-column:span 2}
+.bar{height:5px;border-radius:3px;background:rgba(255,255,255,.1);margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--pri),var(--sec))}
+/* Rich dashboard preview — real UI, not skeleton boxes */
+.preview-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.preview-head span{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;opacity:.65}
+.preview-head .pill{font-size:9px;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(16,185,129,.18);color:#6ee7b7;border:1px solid rgba(16,185,129,.35)}
+.dash{border-radius:16px;border:1px solid var(--hair);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.35));overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.dash-top{display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(0,0,0,.35);border-bottom:1px solid var(--hair)}
+.dash-dots{display:flex;gap:4px}
+.dash-dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);font-style:normal}
+.dash-dots i:nth-child(1){background:#ef4444}.dash-dots i:nth-child(2){background:#eab308}.dash-dots i:nth-child(3){background:#22c55e}
+.dash-title{flex:1;font-size:11px;font-weight:600;opacity:.9}
+.dash-body{padding:12px;display:flex;flex-direction:column;gap:10px;min-height:200px}
+.dash-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mini-card{padding:10px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.mini-card .k{font-size:8px;font-weight:800;text-transform:uppercase;opacity:.65;margin-bottom:4px}
+.mini-card .v{font-size:15px;font-weight:800}
+.mini-card .s{font-size:10px;opacity:.75;margin-top:2px}
+.mini-card.hot{border-color:rgba(234,88,12,.35);background:rgba(234,88,12,.12)}
+.mini-card.green{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.1)}
+.mini-card.blue{border-color:rgba(99,102,241,.3);background:rgba(99,102,241,.1)}
+.dash-list{display:flex;flex-direction:column;gap:6px}
+.dash-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);font-size:11px}
+.dash-row .av{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:700;flex-shrink:0}
+.dash-row .meta{flex:1;min-width:0}
+.dash-row .meta b{display:block;font-size:11px;font-weight:600}
+.dash-row .meta small{display:block;font-size:10px;opacity:.7;margin-top:1px}
+.dash-row .tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;flex-shrink:0}
+.tag-ok{background:rgba(34,197,94,.2);color:#86efac}
+.tag-warn{background:rgba(234,88,12,.2);color:#fdba74}
+.tag-info{background:rgba(99,102,241,.2);color:#a5b4fc}
+.dash-table{width:100%;border-collapse:collapse;font-size:10px}
+.dash-table th{text-align:left;font-size:8px;text-transform:uppercase;opacity:.6;padding:4px 6px;border-bottom:1px solid var(--hair)}
+.dash-table td{padding:6px;border-bottom:1px solid rgba(255,255,255,.04)}
+.score{font-weight:700;color:#fde68a}
+.child-card{display:flex;gap:12px;align-items:center;padding:10px;border-radius:12px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25)}
+.child-card .avatar{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--pri),var(--sec));display:grid;place-items:center;font-weight:800;font-size:14px}
+.child-card b{font-size:12px}.child-card small{font-size:10px;opacity:.75;display:block;margin-top:2px}
+.schedule{display:grid;grid-template-columns:52px 1fr;gap:8px;align-items:center}
+.schedule time{font-size:10px;font-weight:700;text-align:center;padding:6px 4px;border-radius:8px;background:rgba(234,88,12,.15);color:#fdba74}
+.schedule div b{font-size:11px;display:block}.schedule div small{font-size:10px;opacity:.7}
+.moments{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:640px){.moments{grid-template-columns:1fr}}
+.moment{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:16/10;border:1px solid var(--hair)}
+.moment img{width:100%;height:100%;object-fit:cover;display:block}
+.moment figcaption{position:absolute;inset:auto 0 0;padding:8px 10px;font-size:10px;font-weight:600;background:linear-gradient(transparent,rgba(0,0,0,.85))}
+.trust-row{display:flex;flex-wrap:wrap;gap:8px;font-size:10px;opacity:.8;padding-top:4px}
+.trust-row span{padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
+.auth-col{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:88px clamp(16px,3vw,32px) 32px}
+@media(max-width:980px){.auth-col{min-height:auto;padding:20px 16px 40px;align-items:stretch}}
+.auth-stack{width:100%;max-width:min(480px,100%);margin:0}
+@media(max-width:980px){.auth-stack{max-width:100%}}
+.glass{background:var(--glass);border:1px solid rgba(255,255,255,.14);border-radius:28px;padding:clamp(28px,4vw,36px) clamp(24px,3.5vw,32px);backdrop-filter:blur(28px);box-shadow:0 40px 100px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.05) inset}
+.steps{display:flex;gap:6px;margin-bottom:22px}
+.steps i{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.08);font-style:normal;transition:background .2s}
+.steps i.on{background:linear-gradient(90deg,var(--pri),var(--sec))}
+.step{display:none;animation:up .22s ease}.step.on{display:block}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+.glass h2{margin:0 0 8px;font-size:clamp(24px,3vw,30px);font-weight:800;letter-spacing:-.02em}
+.glass .sub{margin:0 0 22px;color:var(--muted);font-size:14px;line-height:1.5}
+.roles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px}
+.role{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:108px;padding:16px 10px;border-radius:16px;border:1px solid var(--hair);background:rgba(255,255,255,.04);color:inherit;font:inherit;cursor:pointer;transition:.15s}
+.role:hover,.role.pick{border-color:rgba(234,88,12,.55);background:rgba(234,88,12,.12);transform:translateY(-3px);box-shadow:0 12px 28px rgba(234,88,12,.15)}
+.role .ico{font-size:32px;line-height:1}.role strong{font-size:13px;font-weight:700}
+.sso{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.sso button{padding:12px 10px;border-radius:12px;border:1px solid var(--hair);background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.divider{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11px;margin:14px 0}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--hair)}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+input{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--hair);background:rgba(255,255,255,.05);color:var(--text);font:inherit;margin-bottom:14px;font-size:15px}
+input:focus{outline:none;border-color:rgba(234,88,12,.5);box-shadow:0 0 0 3px rgba(234,88,12,.12)}
+.btn{width:100%;padding:14px;border:0;border-radius:12px;font:inherit;font-weight:700;font-size:16px;cursor:pointer;background:linear-gradient(135deg,var(--pri),#c2410c);color:#fff;margin-top:4px}
+.back{border:0;background:none;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;padding:0;margin-bottom:14px}
+.back:hover{color:var(--text)}
+.tabs{display:flex;gap:4px;margin-top:20px;padding:4px;background:rgba(255,255,255,.04);border-radius:12px;border:1px solid var(--hair)}
+.tabs button{flex:1;border:0;background:transparent;color:var(--muted);font:inherit;font-size:12px;font-weight:600;padding:10px;border-radius:9px;cursor:pointer}
+.tabs button.on{background:rgba(255,255,255,.1);color:var(--text)}
+.tab-panel{display:none;margin-top:12px;font-size:13px;color:var(--muted);line-height:1.5}.tab-panel.on{display:block}
+.tab-panel a{color:#6ee7b7;font-weight:600;text-decoration:none}
+.fade-in{animation:up .35s ease}
+</style>
+</head>
+<body>
+<div class="ticker-wrap" aria-hidden="true"><div class="ticker">
+  <span><i class="dot"></i> PTA Thursday 6 PM · Main hall</span>
+  <span><i class="dot"></i> Report cards published Friday</span>
+  <span><i class="dot"></i> Science fair submissions close Thursday</span>
+  <span><i class="dot"></i> Clubs registration opens Monday</span>
+  <span><i class="dot"></i> PTA Thursday 6 PM · Main hall</span>
+  <span><i class="dot"></i> Report cards published Friday</span>
+  <span><i class="dot"></i> Science fair submissions close Thursday</span>
+  <span><i class="dot"></i> Clubs registration opens Monday</span>
+</div></div>
+<div class="banner">A+B v3 · immersive login · <a href="tenant-login-100x-hub-browsable.html">hub</a></div>
+
+<div class="scene">
+  <div class="scene-bg"><img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1600&q=80" alt=""><div class="mesh"></div></div>
+
+  <div class="canvas">
+    <header class="head">
+      <div class="brand"><div class="logo">N</div><div><h1>New Test High School</h1><p>Knowledge · Technology · Excellence</p></div></div>
+      <div class="clock"><strong id="clock">--:--</strong>Term 2 · Tue, Jun 23</div>
+    </header>
+
+    <div class="carousel" id="carousel">
+      <div class="slide on"><em>Portal</em><strong>Attendance, marks, fees, and messages — one secure place.</strong><p>Staff, families, and students share one front door.</p></div>
+      <div class="slide"><em>Families</em><strong>Report cards and fee balances the same day they post.</strong><p>No more waiting for paper slips or phone calls.</p></div>
+      <div class="slide"><em>Staff</em><strong>Gradebook, attendance, and announcements in one workspace.</strong><p>Less switching between tools during the school day.</p></div>
+      <div class="dots"><button type="button" class="on" data-go="0"></button><button type="button" data-go="1"></button><button type="button" data-go="2"></button></div>
+    </div>
+
+    <div class="bento">
+      <article class="tile"><span class="lbl">Students</span><span class="val">1,842</span><span class="sub">Enrolled</span></article>
+      <article class="tile"><span class="lbl">Attendance</span><span class="val">94%</span><span class="sub">This week</span><div class="bar"><i style="width:94%"></i></div></article>
+      <article class="tile"><span class="lbl">Events</span><span class="val">12</span><span class="sub">Next 7 days</span></article>
+      <article class="tile"><span class="lbl">Messages</span><span class="val">38</span><span class="sub">Unread</span></article>
+    </div>
+
+    <div class="preview-head">
+      <span>After you sign in</span>
+      <span class="pill" id="preview-pill">School pulse</span>
+    </div>
+    <div class="dash" id="dash">
+      <div class="dash-top">
+        <div class="dash-dots"><i></i><i></i><i></i></div>
+        <span class="dash-title" id="dash-title">Today at New Test High</span>
+      </div>
+      <div class="dash-body fade-in" id="dash-body"></div>
+    </div>
+
+    <div class="moments">
+      <figure class="moment"><img src="https://images.unsplash.com/photo-1509062529246-5952592572a7?auto=format&fit=crop&w=400&q=80" alt=""><figcaption>Science fair · Thu</figcaption></figure>
+      <figure class="moment"><img src="https://images.unsplash.com/photo-1571260899304-425eee4c276e?auto=format&fit=crop&w=400&q=80" alt=""><figcaption>Basketball finals · Fri</figcaption></figure>
+      <figure class="moment"><img src="https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=400&q=80" alt=""><figcaption>Graduation planning</figcaption></figure>
+    </div>
+
+    <div class="trust-row">
+      <span>FERPA-safe</span><span>Encrypted</span><span>SSO ready</span><span>Tenant branded</span>
+    </div>
+  </div>
+
+  <div class="auth-col">
+    <div class="auth-stack">
+      <div class="glass">
+        <div class="steps"><i id="p1" class="on"></i><i id="p2"></i></div>
+        <div class="step on" id="st1">
+          <h2>Who are you?</h2>
+          <p class="sub">Hover a role — the preview above shows your workspace.</p>
+          <div class="roles">
+            <button type="button" class="role" data-role="staff"><span class="ico">🎓</span><strong>Staff</strong></button>
+            <button type="button" class="role" data-role="parent"><span class="ico">👨‍👩‍👧</span><strong>Parent</strong></button>
+            <button type="button" class="role" data-role="student"><span class="ico">📚</span><strong>Student</strong></button>
+          </div>
+        </div>
+        <div class="step" id="st2">
+          <button type="button" class="back" id="back">← Roles</button>
+          <h2>Sign in</h2>
+          <p class="sub">Use school email — not the school name.</p>
+          <div class="sso"><button type="button">Google</button><button type="button">Microsoft</button></div>
+          <div class="divider">or email</div>
+          <label>Email or username</label><input placeholder="you@school.edu">
+          <label>Password</label><input type="password" placeholder="••••••••">
+          <button class="btn" type="button">Log in</button>
+        </div>
+        <div class="tabs">
+          <button type="button" class="on" data-tab="signin">Sign in</button>
+          <button type="button" data-tab="family">Family invite</button>
+        </div>
+        <div class="tab-panel on" id="tab-signin">Forgot password? Contact the school office or IT help desk.</div>
+        <div class="tab-panel" id="tab-family">First time? <a href="#">Claim your invite code</a>, then choose Parent.</div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const PREVIEWS={
+  default:{
+    pill:'School pulse',title:'Today at New Test High',
+    html:`<div class="dash-grid3">
+      <div class="mini-card hot"><div class="k">Attendance</div><div class="v">94%</div><div class="s">+2% this week</div></div>
+      <div class="mini-card green"><div class="k">Lunch today</div><div class="v">Jollof</div><div class="s">+ fruit &amp; water</div></div>
+      <div class="mini-card blue"><div class="k">Sports</div><div class="v">W 72–68</div><div class="s">Basketball · Mon</div></div>
+    </div>
+    <div class="dash-list">
+      <div class="dash-row"><span class="av" style="background:rgba(234,88,12,.25)">📢</span><span class="meta"><b>PTA meeting Thursday 6 PM</b><small>Main hall · childcare available</small></span><span class="tag tag-warn">New</span></div>
+      <div class="dash-row"><span class="av" style="background:rgba(99,102,241,.25)">📋</span><span class="meta"><b>Report cards publish Friday</b><small>Available in family portal at 4 PM</small></span><span class="tag tag-info">Soon</span></div>
+      <div class="dash-row"><span class="av" style="background:rgba(34,197,94,.25)">✓</span><span class="meta"><b>Mock exams · Grade 10</b><small>Exam halls A–C · Friday</small></span><span class="tag tag-ok">Scheduled</span></div>
+    </div>`
+  },
+  staff:{
+    pill:'Staff dashboard',title:'Gradebook · Class 10A',
+    html:`<div class="dash-grid3">
+      <div class="mini-card hot"><div class="k">Class</div><div class="v">10A</div><div class="s">28 students</div></div>
+      <div class="mini-card"><div class="k">Pending</div><div class="v">3</div><div class="s">Grades to enter</div></div>
+      <div class="mini-card green"><div class="k">Present</div><div class="v">26</div><div class="s">Today</div></div>
+    </div>
+    <table class="dash-table"><thead><tr><th>Student</th><th>Assignment</th><th>Score</th></tr></thead>
+    <tbody><tr><td>Amah, K.</td><td>Physics lab</td><td class="score">—</td></tr>
+    <tr><td>Bello, S.</td><td>Physics lab</td><td class="score">88</td></tr>
+    <tr><td>Chen, L.</td><td>Physics lab</td><td class="score">91</td></tr>
+    <tr><td>Diallo, M.</td><td>Physics lab</td><td class="score">—</td></tr></tbody></table>`
+  },
+  parent:{
+    pill:'Family portal',title:'Emma Thompson · Grade 9',
+    html:`<div class="child-card"><span class="avatar">ET</span><span><b>Emma Thompson</b><small>Grade 9 · Homeroom 9B · Ms. Okonkwo</small></span></div>
+    <div class="dash-grid3">
+      <div class="mini-card hot"><div class="k">Fee balance</div><div class="v">$120</div><div class="s">Due Jun 30</div></div>
+      <div class="mini-card green"><div class="k">Attendance</div><div class="v">98%</div><div class="s">This term</div></div>
+      <div class="mini-card blue"><div class="k">Report card</div><div class="v">Fri</div><div class="s">Publishes 4 PM</div></div>
+    </div>
+    <div class="dash-list">
+      <div class="dash-row"><span class="av" style="background:rgba(99,102,241,.3)">💬</span><span class="meta"><b>Message from Ms. Okonkwo</b><small>Emma did excellent work on the history essay.</small></span></div>
+      <div class="dash-row"><span class="av" style="background:rgba(234,88,12,.25)">📅</span><span class="meta"><b>Parent-teacher slot open</b><small>Book a 15-min slot for next week.</small></span></div>
+    </div>`
+  },
+  student:{
+    pill:'Student hub',title:'Your day · Tuesday',
+    html:`<div class="dash-list">
+      <div class="schedule"><time>NOW</time><div><b>Chemistry · Room B12</b><small>Mr. Adeyemi · ends 11:15</small></div></div>
+      <div class="schedule"><time>11:20</time><div><b>English Literature</b><small>Room A04 · Ms. Foster</small></div></div>
+      <div class="schedule"><time>13:00</time><div><b>Physical Education</b><small>Sports hall</small></div></div>
+    </div>
+    <div class="dash-grid3" style="margin-top:4px">
+      <div class="mini-card hot"><div class="k">Due tomorrow</div><div class="v">Physics</div><div class="s">Lab report</div></div>
+      <div class="mini-card"><div class="k">Math quiz</div><div class="v">84%</div><div class="s">Returned today</div></div>
+      <div class="mini-card green"><div class="k">Streak</div><div class="v">12</div><div class="s">Days on time</div></div>
+    </div>`
+  }
+};
+const pillEl=document.getElementById('preview-pill'),titleEl=document.getElementById('dash-title'),bodyEl=document.getElementById('dash-body');
+function showPreview(key){
+  const p=PREVIEWS[key]||PREVIEWS.default;
+  pillEl.textContent=p.pill;titleEl.textContent=p.title;
+  bodyEl.classList.remove('fade-in');void bodyEl.offsetWidth;bodyEl.classList.add('fade-in');
+  bodyEl.innerHTML=p.html;
+}
+showPreview('default');
+
+const slides=[...document.querySelectorAll('.slide')],dots=[...document.querySelectorAll('.dots button')];
+let ci=0,timer=setInterval(()=>{ci=(ci+1)%slides.length;slides.forEach((s,i)=>s.classList.toggle('on',i===ci));dots.forEach((d,i)=>d.classList.toggle('on',i===ci));},6000);
+dots.forEach(d=>d.onclick=()=>{ci=+d.dataset.go;slides.forEach((s,i)=>s.classList.toggle('on',i===ci));dots.forEach((x,i)=>x.classList.toggle('on',i===ci));clearInterval(timer);});
+
+function tick(){document.getElementById('clock').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+tick();setInterval(tick,30000);
+
+document.querySelectorAll('.role').forEach(r=>{
+  r.onmouseenter=()=>showPreview(r.dataset.role);
+  r.onclick=()=>{
+    document.querySelectorAll('.role').forEach(x=>x.classList.remove('pick'));
+    r.classList.add('pick');showPreview(r.dataset.role);
+    document.getElementById('st1').classList.remove('on');document.getElementById('st2').classList.add('on');
+    document.getElementById('p2').classList.add('on');
+  };
+});
+document.getElementById('back').onclick=()=>{
+  document.getElementById('st2').classList.remove('on');document.getElementById('st1').classList.add('on');
+  document.getElementById('p2').classList.remove('on');showPreview('default');
+  document.querySelectorAll('.role').forEach(x=>x.classList.remove('pick'));
+};
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  document.getElementById('tab-signin').classList.toggle('on',b.dataset.tab==='signin');
+  document.getElementById('tab-family').classList.toggle('on',b.dataset.tab==='family');
+});
+</script>
+</body>
+</html>
