@@ -7,7 +7,7 @@
     "templates/siteconfig/partials/lexicon_",
     "templates/siteconfig/feature_control"
   ],
-  "finding_count": 785,
+  "finding_count": 775,
   "findings": [
     {
       "key": "subject",
@@ -71,55 +71,31 @@
     },
     {
       "key": "school",
-      "line": 40,
+      "line": 41,
       "literal": "School",
       "path": "templates/accounts/backend_dashboard.html"
     },
     {
       "key": "assignment",
-      "line": 47,
+      "line": 53,
       "literal": "Assignments",
       "path": "templates/accounts/backend_dashboard.html"
     },
     {
       "key": "school",
-      "line": 53,
-      "literal": "School",
-      "path": "templates/accounts/backend_dashboard.html"
-    },
-    {
-      "key": "school",
-      "line": 54,
-      "literal": "School",
-      "path": "templates/accounts/backend_dashboard.html"
-    },
-    {
-      "key": "school",
-      "line": 55,
-      "literal": "School",
-      "path": "templates/accounts/backend_dashboard.html"
-    },
-    {
-      "key": "school",
-      "line": 56,
-      "literal": "School",
-      "path": "templates/accounts/backend_dashboard.html"
-    },
-    {
-      "key": "school",
-      "line": 57,
-      "literal": "School",
-      "path": "templates/accounts/backend_dashboard.html"
-    },
-    {
-      "key": "school",
-      "line": 58,
-      "literal": "School",
-      "path": "templates/accounts/backend_dashboard.html"
-    },
-    {
-      "key": "school",
       "line": 59,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 60,
+      "literal": "School",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "key": "school",
+      "line": 61,
       "literal": "School",
       "path": "templates/accounts/backend_dashboard.html"
     },
@@ -149,49 +125,43 @@
     },
     {
       "key": "school",
-      "line": 89,
+      "line": 68,
       "literal": "School",
       "path": "templates/accounts/backend_dashboard.html"
     },
     {
-      "key": "module",
-      "line": 91,
-      "literal": "Module",
-      "path": "templates/accounts/backend_dashboard.html"
-    },
-    {
       "key": "school",
-      "line": 95,
+      "line": 69,
       "literal": "School",
       "path": "templates/accounts/backend_dashboard.html"
     },
     {
-      "key": "teacher",
-      "line": 100,
-      "literal": "Teacher",
+      "key": "school",
+      "line": 70,
+      "literal": "School",
       "path": "templates/accounts/backend_dashboard.html"
     },
     {
       "key": "school",
-      "line": 103,
+      "line": 71,
       "literal": "School",
       "path": "templates/accounts/backend_dashboard.html"
     },
     {
       "key": "class",
-      "line": 163,
+      "line": 225,
       "literal": "Class",
       "path": "templates/accounts/backend_dashboard.html"
     },
     {
       "key": "module",
-      "line": 641,
+      "line": 703,
       "literal": "Modules",
       "path": "templates/accounts/backend_dashboard.html"
     },
     {
       "key": "module",
-      "line": 643,
+      "line": 705,
       "literal": "Modules",
       "path": "templates/accounts/backend_dashboard.html"
     },
@@ -866,6 +836,24 @@
       "line": 2,
       "literal": "Attendance",
       "path": "templates/components/dashboard/rmc_dh_heat.html"
+    },
+    {
+      "key": "student",
+      "line": 4,
+      "literal": "Students",
+      "path": "templates/components/dashboard/rmc_dh_lead_item.html"
+    },
+    {
+      "key": "message",
+      "line": 5,
+      "literal": "Messages",
+      "path": "templates/components/dashboard/rmc_dh_lead_item.html"
+    },
+    {
+      "key": "class",
+      "line": 9,
+      "literal": "Class",
+      "path": "templates/components/dashboard/rmc_dh_lead_item.html"
     },
     {
       "key": "class",
@@ -1684,6 +1672,12 @@
       "path": "templates/migration_cloud/progress.html"
     },
     {
+      "key": "parent",
+      "line": 2,
+      "literal": "Parent",
+      "path": "templates/parent/_rmc_dh_family_home.html"
+    },
+    {
       "key": "attendance",
       "line": 37,
       "literal": "Attendance",
@@ -1691,19 +1685,13 @@
     },
     {
       "key": "attendance",
-      "line": 41,
+      "line": 46,
       "literal": "Attendance",
       "path": "templates/parent/_rmc_dh_family_home.html"
     },
     {
       "key": "attendance",
-      "line": 42,
-      "literal": "Attendance",
-      "path": "templates/parent/_rmc_dh_family_home.html"
-    },
-    {
-      "key": "attendance",
-      "line": 89,
+      "line": 114,
       "literal": "Attendance",
       "path": "templates/parent/_rmc_dh_family_home.html"
     },
@@ -1733,25 +1721,25 @@
     },
     {
       "key": "parent",
-      "line": 58,
+      "line": 59,
       "literal": "Parent",
       "path": "templates/parent/dashboard.html"
     },
     {
       "key": "campus",
-      "line": 59,
+      "line": 60,
       "literal": "Campus",
       "path": "templates/parent/dashboard.html"
     },
     {
       "key": "fee",
-      "line": 64,
+      "line": 65,
       "literal": "Fees",
       "path": "templates/parent/dashboard.html"
     },
     {
       "key": "school",
-      "line": 66,
+      "line": 67,
       "literal": "Schools",
       "path": "templates/parent/dashboard.html"
     },
@@ -1889,13 +1877,13 @@
     },
     {
       "key": "class",
-      "line": 363,
+      "line": 372,
       "literal": "Class",
       "path": "templates/partials/cockpit/_ai_copilot_rail.html"
     },
     {
       "key": "school",
-      "line": 417,
+      "line": 426,
       "literal": "School",
       "path": "templates/partials/cockpit/_ai_copilot_rail.html"
     },
@@ -2212,30 +2200,6 @@
       "path": "templates/partials/cockpit/_year_progress.html"
     },
     {
-      "key": "session",
-      "line": 127,
-      "literal": "Session",
-      "path": "templates/partials/control_plane_primary_nav.html"
-    },
-    {
-      "key": "message",
-      "line": 131,
-      "literal": "Message",
-      "path": "templates/partials/control_plane_primary_nav.html"
-    },
-    {
-      "key": "session",
-      "line": 145,
-      "literal": "Session",
-      "path": "templates/partials/control_plane_primary_nav.html"
-    },
-    {
-      "key": "message",
-      "line": 149,
-      "literal": "Message",
-      "path": "templates/partials/control_plane_primary_nav.html"
-    },
-    {
       "key": "class",
       "line": 3,
       "literal": "Classes",
@@ -2434,6 +2398,12 @@
       "path": "templates/partials/shell_chrome_site_preview_banner_top.html"
     },
     {
+      "key": "school",
+      "line": 3,
+      "literal": "School",
+      "path": "templates/partials/tenant/execute_launch_form.html"
+    },
+    {
       "key": "parent",
       "line": 4,
       "literal": "Parent",
@@ -2456,6 +2426,12 @@
       "line": 5,
       "literal": "School",
       "path": "templates/partials/tenant/setup_command_surface.html"
+    },
+    {
+      "key": "school",
+      "line": 3,
+      "literal": "School",
+      "path": "templates/partials/tenant/setup_golive_pending_banner.html"
     },
     {
       "key": "school",
@@ -2963,67 +2939,67 @@
     },
     {
       "key": "campus",
-      "line": 277,
+      "line": 280,
       "literal": "Campus",
       "path": "templates/portal_base.html"
     },
     {
       "key": "student",
-      "line": 288,
+      "line": 293,
       "literal": "Students",
       "path": "templates/portal_base.html"
     },
     {
       "key": "message",
-      "line": 327,
+      "line": 332,
       "literal": "Messages",
       "path": "templates/portal_base.html"
     },
     {
       "key": "class",
-      "line": 340,
+      "line": 345,
       "literal": "Class",
       "path": "templates/portal_base.html"
     },
     {
       "key": "staff",
-      "line": 353,
+      "line": 358,
       "literal": "Staff",
       "path": "templates/portal_base.html"
     },
     {
       "key": "student",
-      "line": 524,
+      "line": 554,
       "literal": "Student",
       "path": "templates/portal_base.html"
     },
     {
       "key": "teacher",
-      "line": 580,
+      "line": 617,
       "literal": "Teachers",
       "path": "templates/portal_base.html"
     },
     {
       "key": "attendance",
-      "line": 581,
+      "line": 618,
       "literal": "Attendance",
       "path": "templates/portal_base.html"
     },
     {
       "key": "attendance",
-      "line": 582,
+      "line": 619,
       "literal": "Attendance",
       "path": "templates/portal_base.html"
     },
     {
       "key": "message",
-      "line": 620,
+      "line": 657,
       "literal": "Messages",
       "path": "templates/portal_base.html"
     },
     {
       "key": "teacher",
-      "line": 628,
+      "line": 665,
       "literal": "Teacher",
       "path": "templates/portal_base.html"
     },
@@ -3857,61 +3833,61 @@
     },
     {
       "key": "term",
-      "line": 171,
+      "line": 174,
       "literal": "Terms",
       "path": "templates/schools/signup_school.html"
     },
     {
       "key": "school",
-      "line": 222,
+      "line": 225,
       "literal": "School",
       "path": "templates/schools/signup_school.html"
     },
     {
       "key": "school",
-      "line": 233,
+      "line": 236,
       "literal": "School",
       "path": "templates/schools/signup_school.html"
     },
     {
       "key": "school",
-      "line": 276,
+      "line": 279,
       "literal": "School",
       "path": "templates/schools/signup_school.html"
     },
     {
       "key": "school",
-      "line": 277,
+      "line": 280,
       "literal": "School",
       "path": "templates/schools/signup_school.html"
     },
     {
       "key": "school",
-      "line": 288,
+      "line": 291,
       "literal": "School",
       "path": "templates/schools/signup_school.html"
     },
     {
       "key": "school",
-      "line": 294,
+      "line": 297,
       "literal": "School",
       "path": "templates/schools/signup_school.html"
     },
     {
       "key": "school",
-      "line": 299,
+      "line": 302,
       "literal": "School",
       "path": "templates/schools/signup_school.html"
     },
     {
       "key": "school",
-      "line": 329,
+      "line": 332,
       "literal": "School",
       "path": "templates/schools/signup_school.html"
     },
     {
       "key": "campus",
-      "line": 344,
+      "line": 347,
       "literal": "Campus",
       "path": "templates/schools/signup_school.html"
     },
@@ -4145,61 +4121,61 @@
     },
     {
       "key": "lesson",
-      "line": 193,
+      "line": 217,
       "literal": "Lesson",
       "path": "templates/siteconfig/super/cockpit_configure.html"
     },
     {
       "key": "teacher",
-      "line": 244,
+      "line": 268,
       "literal": "Teacher",
       "path": "templates/siteconfig/super/cockpit_configure.html"
     },
     {
       "key": "teacher",
-      "line": 522,
+      "line": 546,
       "literal": "Teacher",
       "path": "templates/siteconfig/super/cockpit_configure.html"
     },
     {
       "key": "attendance",
-      "line": 816,
+      "line": 840,
       "literal": "Attendance",
       "path": "templates/siteconfig/super/cockpit_configure.html"
     },
     {
       "key": "message",
-      "line": 867,
+      "line": 891,
       "literal": "Messages",
       "path": "templates/siteconfig/super/cockpit_configure.html"
     },
     {
       "key": "message",
-      "line": 903,
+      "line": 927,
       "literal": "Message",
       "path": "templates/siteconfig/super/cockpit_configure.html"
     },
     {
       "key": "parent",
-      "line": 906,
+      "line": 930,
       "literal": "Parent",
       "path": "templates/siteconfig/super/cockpit_configure.html"
     },
     {
       "key": "parent",
-      "line": 907,
+      "line": 931,
       "literal": "Parent",
       "path": "templates/siteconfig/super/cockpit_configure.html"
     },
     {
       "key": "school",
-      "line": 989,
+      "line": 1013,
       "literal": "School",
       "path": "templates/siteconfig/super/cockpit_configure.html"
     },
     {
       "key": "school",
-      "line": 998,
+      "line": 1022,
       "literal": "School",
       "path": "templates/siteconfig/super/cockpit_configure.html"
     },
@@ -4223,13 +4199,13 @@
     },
     {
       "key": "student",
-      "line": 28,
+      "line": 29,
       "literal": "Student",
       "path": "templates/staff/discipline_incidents.html"
     },
     {
       "key": "parent",
-      "line": 31,
+      "line": 33,
       "literal": "Parent",
       "path": "templates/staff/discipline_incidents.html"
     },
@@ -4240,14 +4216,8 @@
       "path": "templates/student/_rmc_dh_student_home.html"
     },
     {
-      "key": "grade",
-      "line": 3,
-      "literal": "Grades",
-      "path": "templates/student/_rmc_dh_student_home.html"
-    },
-    {
       "key": "attendance",
-      "line": 21,
+      "line": 27,
       "literal": "Attendance",
       "path": "templates/student/_rmc_dh_student_home.html"
     },
@@ -4265,13 +4235,13 @@
     },
     {
       "key": "student",
-      "line": 27,
+      "line": 29,
       "literal": "Student",
       "path": "templates/student/learning_home.html"
     },
     {
       "key": "class",
-      "line": 30,
+      "line": 32,
       "literal": "Class",
       "path": "templates/student/learning_home.html"
     },
@@ -4469,7 +4439,7 @@
     },
     {
       "key": "message",
-      "line": 247,
+      "line": 249,
       "literal": "Message",
       "path": "templates/studio_os/shell.html"
     },
@@ -4516,20 +4486,20 @@
       "path": "templates/teacher/_rmc_dh_teacher_home.html"
     },
     {
-      "key": "assignment",
+      "key": "class",
       "line": 3,
-      "literal": "Assignments",
+      "literal": "Classes",
       "path": "templates/teacher/_rmc_dh_teacher_home.html"
     },
     {
       "key": "attendance",
-      "line": 27,
+      "line": 121,
       "literal": "Attendance",
       "path": "templates/teacher/_rmc_dh_teacher_home.html"
     },
     {
       "key": "attendance",
-      "line": 28,
+      "line": 122,
       "literal": "Attendance",
       "path": "templates/teacher/_rmc_dh_teacher_home.html"
     },
@@ -4547,14 +4517,8 @@
     },
     {
       "key": "teacher",
-      "line": 35,
+      "line": 36,
       "literal": "Teacher",
-      "path": "templates/teacher/dashboard.html"
-    },
-    {
-      "key": "school",
-      "line": 39,
-      "literal": "Schools",
       "path": "templates/teacher/dashboard.html"
     },
     {
@@ -4564,33 +4528,9 @@
       "path": "templates/teacher/marks_entry.html"
     },
     {
-      "key": "term",
-      "line": 31,
-      "literal": "Term",
-      "path": "templates/teacher/marks_entry.html"
-    },
-    {
-      "key": "term",
-      "line": 37,
-      "literal": "Term",
-      "path": "templates/teacher/marks_entry.html"
-    },
-    {
-      "key": "student",
-      "line": 64,
-      "literal": "Students",
-      "path": "templates/teacher/marks_entry.html"
-    },
-    {
       "key": "grade",
       "line": 127,
       "literal": "Grade",
-      "path": "templates/teacher/marks_entry.html"
-    },
-    {
-      "key": "student",
-      "line": 231,
-      "literal": "Student",
       "path": "templates/teacher/marks_entry.html"
     },
     {
@@ -4607,19 +4547,19 @@
     },
     {
       "key": "subject",
-      "line": 94,
+      "line": 96,
       "literal": "Subject",
       "path": "templates/teacher/marks_list.html"
     },
     {
       "key": "class",
-      "line": 95,
+      "line": 97,
       "literal": "Class",
       "path": "templates/teacher/marks_list.html"
     },
     {
       "key": "exam",
-      "line": 97,
+      "line": 99,
       "literal": "Exam",
       "path": "templates/teacher/marks_list.html"
     },
@@ -4720,7 +4660,7 @@
       "path": "templates/widgets/parent_dashboard_widgets.html"
     }
   ],
-  "generated_at": "2026-06-23T21:54:12+00:00",
+  "generated_at": "2026-06-25T09:11:25+00:00",
   "rule": "Tenant-facing templates must not hardcode canonical lexicon defaults; use {% term %} / {% trans_term %} / legacy *_label tags.",
   "scan_root": "templates"
 }

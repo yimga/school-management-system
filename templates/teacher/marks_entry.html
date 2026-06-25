@@ -28,13 +28,13 @@
 
 {% if year and term %}
   <div class="rmc-banner rmc-banner--info">
-    <b>Active Year:</b> {{ year.name }} | <b>Term:</b> {{ term.get_name_display }}
+    <b>Active Year:</b> {{ year.name }} | <b>{% term "term" capitalize=True %}:</b> {{ term.get_name_display }}
   </div>
 {% endif %}
 
 {% if locked %}
   <div class="rmc-banner rmc-banner--error">
-    <b>LOCKED:</b> This term has been published. Marks entry is disabled.
+    <b>LOCKED:</b> This {% term_lower "term" %} has been published. Marks entry is disabled.
   </div>
 {% endif %}
 
@@ -61,7 +61,7 @@
 {% if selected_sa %}
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
     <div class="small text-muted">
-      <b>Progress:</b> {{ filled_count }} / {{ total_students }} students have all required marks.
+      <b>Progress:</b> {{ filled_count }} / {{ total_students }} {% term_lower "student" plural=True %} have all required marks.
       <span class="ms-2">Required: {{ required_fields|join:", " }}</span>
     </div>
     <div>
@@ -228,7 +228,7 @@
             <div class="form-check mt-3">
               <input class="form-check-input" type="checkbox" value="1" name="confirm_human_review" id="confirm-human-ocr-review" required>
               <label class="form-check-label" for="confirm-human-ocr-review">
-                I reviewed the student matches and every proposed score.
+                I reviewed the {% term_lower "student" %} matches and every proposed score.
               </label>
             </div>
             <button class="btn btn-primary mt-2" type="submit" data-action="marks-ocr-apply" data-task-step="marks:ocr-commit">Apply teacher-confirmed proposal</button>
