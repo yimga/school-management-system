@@ -1,0 +1,163 @@
+/* ============================================================
+   rmc-tenant-app-shell-100x.css — 2026-06-25
+   ------------------------------------------------------------
+   Tenant workspace shell: operator-PARITY sticky chrome.
+
+   The operator control plane does NOT hard-lock the viewport on its
+   working pages — /admin/ runs data-rmc-cp-scroll="document" (locked
+   "main" mode is rollback only). Its premium feel = DOCUMENT SCROLL +
+   STICKY CHROME: header + sidebar stay pinned while the document
+   scrolls the content; the footer stays at end-of-flow (never clipped).
+   This gives the TENANT the same contract — inspired, not copied.
+
+   Standalone (not the deferred bundle) + [data-rmc-tp-v3-shell="1"]
+   specificity so it beats portal-app-shell-bridge.css "Phase 2 fluid"
+   regardless of load order, and scopes the refactor to the v3 tenant
+   shell every authenticated profile renders through.
+
+   CSS vars (published by rmc-tenant-shell-metrics.js):
+     --rmc-tenant-header-h   live .tp-header height
+     --rmc-preview-banner-h  site-preview banner height (0 when absent)
+   ============================================================ */
+
+/* 1. STICKY MASTER HEADER (whole stack pins as one unit) */
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .tp-header {
+  position: sticky;
+  top: var(--rmc-preview-banner-h, 0px);
+  z-index: 1030;
+  background: var(--surface-popover, #fff); /* off-token-allow: opaque-pin-fallback */
+}
+html[data-rmc-tp-v3-shell="1"] {
+  scroll-padding-top: calc(var(--rmc-preview-banner-h, 0px) + var(--rmc-tenant-header-h, 4.75rem));
+}
+
+/* 2. LIVE BANNER AS THE LAST HEADER SUB-BAR (operator parity at lg+) */
+@media (min-width: 992px) {
+  html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .tp-header__live-banner {
+    display: block;
+  }
+  html[data-rmc-tp-v3-shell="1"] body.tp-v3-role-home.portal-body-with-layout:not(.control-plane-shell) .tp-header__row .rmc-cp-ticker-inline {
+    display: none;
+  }
+}
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .tp-header__live-banner {
+  border-top: 1px solid var(--hairline);
+  background: var(--surface-elevated, #fff); /* off-token-allow: opaque-pin-fallback */
+}
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .tp-header__live-banner > * {
+  max-height: 2.5rem;
+  overflow: hidden;
+}
+
+/* 3. UN-BREAK STICKY: layout wrap must not be a scroll container.
+   portal-base-shell.css gives .portal-layout-wrap overflow-x:hidden,
+   which the browser promotes to a scroll container (would anchor a
+   sticky sidebar to the wrap instead of the viewport). Restore visible
+   overflow at lg+; horizontal containment still lives on .portal-main-col
+   (overflow-x:clip + min-width:0) + grids minmax(0,1fr). */
+@media (min-width: 992px) {
+  html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-layout-wrap,
+  html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-layout-row {
+    overflow: visible;
+  }
+}
+
+/* 4. STICKY SIDEBAR WITH ITS OWN SCROLL TRACK (lg+) — a long sidebar
+   (activation checklist open) scrolls within calc(100dvh - header)
+   instead of inflating page height (= the "empty space" complaint).
+   fluid prefix + v3 attr outrank Phase 2's overflow:visible. */
+@media (min-width: 992px) {
+  html[data-rmc-layout="fluid"][data-surface="tenant"][data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col {
+    position: sticky;
+    top: calc(var(--rmc-preview-banner-h, 0px) + var(--rmc-tenant-header-h, 4.75rem));
+    height: calc(100dvh - var(--rmc-preview-banner-h, 0px) - var(--rmc-tenant-header-h, 4.75rem));
+    max-height: calc(100dvh - var(--rmc-preview-banner-h, 0px) - var(--rmc-tenant-header-h, 4.75rem));
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1020;
+  }
+  html[data-rmc-layout="fluid"][data-surface="tenant"][data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col.rmc-nav-sidebar__mount > .tp-sidebar-inner,
+  html[data-rmc-layout="fluid"][data-surface="tenant"][data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col.rmc-nav-sidebar__mount > .sidebar,
+  html[data-rmc-layout="fluid"][data-surface="tenant"][data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col > .tp-sidebar-inner {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col > .rmc-nav-sidebar__toolbar {
+    flex: 0 0 auto;
+  }
+}
+
+/* 5. COGNITIVE SURFACE BALANCING — centre when capped, fill when none. */
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-main-col > .page-wrap {
+  margin-inline: auto;
+  max-width: min(100%, 1760px);
+}
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-page-body,
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .tp-canvas-body {
+  width: 100%;
+  margin-inline: auto;
+}
+
+/* 6. AI-COPILOT RAIL — anchored below the header; expanded panel owns its scroll.
+   --rmc-app-shell-header-h was never set on the tenant (its setter targets a
+   .rmc-app-shell the tenant lacks) so the rail floated at the 72px fallback and
+   the expanded panel had no internal scroll. metrics.js now publishes the real
+   height; this anchors the mount + scrolls the panel. */
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount {
+  top: calc(var(--rmc-preview-banner-h, 0px) + var(--rmc-tenant-header-h, var(--rmc-app-shell-header-h, 4.75rem)));
+}
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount .lx-copilot {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount .lx-copilot__expanded {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* #3 — RTL: rail follows the inline-end edge (right in LTR, LEFT in RTL). */
+html[dir="rtl"][data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount {
+  right: auto;
+  left: 0;
+}
+html[dir="rtl"][data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] .portal-main-col,
+html[dir="rtl"][data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] #main-content {
+  padding-right: 0;
+  padding-left: calc(var(--rmc-app-shell-copilot-w, 56px) + 8px);
+}
+@media (min-width: 1200px) {
+  html[dir="rtl"][data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .portal-main-col,
+  html[dir="rtl"][data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] #main-content {
+    padding-right: 0;
+    padding-left: calc(360px + 8px);
+  }
+}
+
+/* 7. #2 — SITE-PREVIEW BANNER pinned as part of the stack (offset above). */
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) [data-shell-chrome="site-preview-banner-top"] {
+  position: sticky;
+  top: 0;
+  z-index: 1035;
+}
+
+/* 8. PRINT ESCAPE — natural flow, nothing pinned/clipped. */
+@media print {
+  html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .tp-header,
+  html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) [data-shell-chrome="site-preview-banner-top"],
+  html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col {
+    position: static !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}

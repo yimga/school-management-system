@@ -141,4 +141,5 @@ def recovery_context_for_run(
         "action_count": action_count,
         "human_action": remediation.get("human_action", ""),
         "remediated": remediated,
+        "recovery_strategy": run_payload.get("recovery_strategy") or {},
     }

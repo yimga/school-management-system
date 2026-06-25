@@ -30,7 +30,7 @@ Pairs with rmc-operator-tools-tray.js on manager / control-plane shells.
   },
   "urls": {
     "platform_status": "{% filter escapejs %}{% marketing_public_href 'status' %}{% endfilter %}",
-    "incidents": "{% filter escapejs %}{% if platform_incidents_url %}{{ platform_incidents_url }}{% else %}{% url 'super:command_center' %}{% endif %}{% endfilter %}",
+    "incidents": "{% filter escapejs %}{% url 'super:command_center' as cp_command_center_url %}{% if platform_incidents_url %}{{ platform_incidents_url }}{% elif cp_command_center_url %}{{ cp_command_center_url }}{% endif %}{% endfilter %}",
     "security_posture": "{% filter escapejs %}{% url 'accounts:security_posture_review' %}{% endfilter %}",
     "activity_drawer_id": "rmcCpActivityDrawer",
     "messages": "{% filter escapejs %}{% url 'accounts:user_messages' %}{% endfilter %}"

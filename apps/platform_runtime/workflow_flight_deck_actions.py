@@ -237,6 +237,9 @@ def enrich_run_payload(serialized: dict[str, Any], *, run: Any | None = None) ->
     """Augment a serialized workflow run for Flight Deck operator UI."""
 
     from apps.platform_runtime.workflow_fix_handlers import workflow_run_is_remediated
+    from apps.platform_runtime.workflow_recovery_playbook import (
+        recovery_strategy_for_workflow,
+    )
     from apps.platform_runtime.workflow_status_taxonomy import (
         recovery_context_for_run,
         status_meta,
@@ -253,6 +256,9 @@ def enrich_run_payload(serialized: dict[str, Any], *, run: Any | None = None) ->
     if remediated:
         out["recovery_state"] = "superseded"
     out["operator_actions"] = build_operator_actions(run=run, payload=out)
+    out["recovery_strategy"] = recovery_strategy_for_workflow(
+        str(out.get("workflow_key") or "")
+    )
     out["copilot_recovery_context"] = recovery_context_for_run(
         out,
         action_count=len(out["operator_actions"]),

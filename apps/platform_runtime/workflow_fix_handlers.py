@@ -5,7 +5,9 @@ from __future__ import annotations
 from io import StringIO
 from typing import Any
 
+from django.core.cache import cache
 from django.core.management import call_command
+from django.db.models import Q
 from django.utils import timezone
 
 _REMEDIATED_PAYLOAD_KEY = "workflow_fix_remediation"
@@ -83,38 +85,38 @@ AUTO_FIX_HANDLER_CATALOG: dict[str, dict[str, Any]] = {
     },
     "resume_from_checkpoint": {
         "label": "Resume from checkpoint",
-        "mode": "diagnostic",
-        "confidence": "unknown",
+        "mode": "execute",
+        "confidence": "conditional",
         "requires_network": False,
-        "description": "No deterministic resume handler is registered yet.",
+        "description": "Routes to a workflow-specific checkpoint handler when metadata is present.",
     },
     "retry_failed_step": {
         "label": "Retry failed step",
-        "mode": "diagnostic",
-        "confidence": "unknown",
+        "mode": "execute",
+        "confidence": "conditional",
         "requires_network": False,
-        "description": "No per-step replay handler is registered yet.",
+        "description": "Routes to a workflow-specific step retry handler when metadata is present.",
     },
     "replay_webhook": {
         "label": "Replay webhook",
-        "mode": "diagnostic",
-        "confidence": "unknown",
+        "mode": "execute",
+        "confidence": "high",
         "requires_network": True,
-        "description": "Webhook source metadata is required before replay.",
+        "description": "Replays a domain webhook delivery, platform webhook delivery, or platform event.",
     },
     "clear_stale_lock": {
         "label": "Clear stale lock",
-        "mode": "diagnostic",
-        "confidence": "unknown",
+        "mode": "execute",
+        "confidence": "conditional",
         "requires_network": False,
-        "description": "Lock identity is required before automated unlock.",
+        "description": "Deletes an explicit cache lock key from the run payload.",
     },
     "cancel_duplicate_run": {
         "label": "Cancel duplicate run",
-        "mode": "diagnostic",
-        "confidence": "unknown",
+        "mode": "execute",
+        "confidence": "high",
         "requires_network": False,
-        "description": "Duplicate target selection must be confirmed in run detail.",
+        "description": "Cancels active duplicate workflow rows for the same idempotency or tenant target.",
     },
     "open_diagnostic_detail": {
         "label": "Open AI diagnosis",
@@ -145,6 +147,30 @@ def auto_fix_capability(kind: str) -> dict[str, Any]:
 
 def auto_fix_kind_is_executable(kind: str) -> bool:
     return auto_fix_capability(kind).get("mode") == "execute"
+
+
+def _payload_first(payload: dict[str, Any], *keys: str) -> str:
+    for key in keys:
+        value = payload.get(key)
+        if value not in (None, ""):
+            return str(value).strip()
+    return ""
+
+
+def _as_int(value: Any) -> int:
+    try:
+        return int(str(value).strip())
+    except (TypeError, ValueError):
+        return 0
+
+
+def _chain_to_kind(*, run: Any, kind: str, source_kind: str) -> dict[str, Any]:
+    if not kind or kind == source_kind:
+        return {"ok": False, "reason": "missing_recovery_handler", "kind": source_kind}
+    result = apply_auto_fix_kind(run=run, kind=kind)
+    if result.get("ok"):
+        result["delegated_from"] = source_kind
+    return result
 
 
 def workflow_run_remediation_stamp(run: Any) -> dict[str, Any]:
@@ -273,6 +299,11 @@ def preview_auto_fix_kind(*, run: Any, kind: str) -> dict[str, Any]:
         "repair_tenant_schema_drift",
         "run_tenant_migrations",
         "mark_superseded",
+        "resume_from_checkpoint",
+        "retry_failed_step",
+        "replay_webhook",
+        "clear_stale_lock",
+        "cancel_duplicate_run",
     ):
         return {
             "ok": True,
@@ -290,6 +321,36 @@ def preview_auto_fix_kind(*, run: Any, kind: str) -> dict[str, Any]:
         "kind": kind,
         "capability": capability,
     }
+
+
+def _payload_first(payload: dict[str, Any], *keys: str) -> Any:
+    for key in keys:
+        value = payload.get(key)
+        if value not in (None, ""):
+            return value
+    return None
+
+
+def _as_int(value: Any) -> int | None:
+    try:
+        if value in (None, ""):
+            return None
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _chain_to_kind(run: Any, kind: str, source_kind: str) -> dict[str, Any]:
+    if not kind or kind == source_kind:
+        return {
+            "ok": False,
+            "reason": "missing_recovery_route",
+            "kind": source_kind,
+        }
+    result = apply_auto_fix_kind(run=run, kind=kind)
+    result.setdefault("source_kind", source_kind)
+    result.setdefault("delegated_from", source_kind)
+    return result
 
 
 def apply_auto_fix_kind(*, run: Any, kind: str) -> dict[str, Any]:
@@ -310,6 +371,168 @@ def apply_auto_fix_kind(*, run: Any, kind: str) -> dict[str, Any]:
             "kind": kind,
             "capability": capability,
         }
+
+    if kind == "resume_from_checkpoint":
+        if workflow_key == "tenant_school_provision":
+            return _chain_to_kind(run, "requeue_provision", kind)
+        route_kind = str(
+            _payload_first(
+                payload,
+                "resume_auto_fix_kind",
+                "checkpoint_auto_fix_kind",
+                "recovery_auto_fix_kind",
+            )
+            or ""
+        ).strip()
+        return _chain_to_kind(run, route_kind, kind)
+
+    if kind == "retry_failed_step":
+        if workflow_key == "tenant_school_provision":
+            return _chain_to_kind(run, "requeue_provision", kind)
+        route_kind = str(
+            _payload_first(
+                payload,
+                "retry_step_auto_fix_kind",
+                "failed_step_auto_fix_kind",
+                "recovery_auto_fix_kind",
+            )
+            or ""
+        ).strip()
+        return _chain_to_kind(run, route_kind, kind)
+
+    if kind == "replay_webhook":
+        platform_event_id = _as_int(_payload_first(payload, "platform_event_id", "event_id"))
+        if platform_event_id:
+            from apps.platform_runtime.event_bus import replay_event
+
+            result = dict(replay_event(platform_event_id, dispatch_webhooks=True))
+            if result.get("ok"):
+                result.update(
+                    {
+                        "applied": kind,
+                        "refresh_deck": True,
+                        "healing_poll_ms": 2500,
+                    }
+                )
+                result["remediation"] = _mark_run_remediated(
+                    run=run,
+                    kind=kind,
+                    result=result,
+                )
+            else:
+                result.setdefault("kind", kind)
+            return result
+
+        platform_delivery_id = _as_int(
+            _payload_first(
+                payload,
+                "platform_webhook_delivery_id",
+                "event_webhook_delivery_id",
+            )
+        )
+        if platform_delivery_id:
+            from apps.platform_runtime.models import EventWebhookDelivery
+
+            updated = EventWebhookDelivery.objects.filter(pk=platform_delivery_id).update(  # tenant-isolation-allow: platform-webhook-delivery-operator-replay-by-pk
+                status=EventWebhookDelivery.Status.PENDING,
+                next_retry_at=timezone.now(),
+                last_error="",
+                operator_resolution=None,
+                operator_resolution_reason="",
+                operator_resolution_by_id=None,
+                operator_resolution_at=None,
+            )
+            if not updated:
+                return {"ok": False, "reason": "webhook_delivery_not_found", "kind": kind}
+            result = {
+                "ok": True,
+                "applied": kind,
+                "platform_webhook_delivery_id": platform_delivery_id,
+                "refresh_deck": True,
+                "healing_poll_ms": 2500,
+            }
+            result["remediation"] = _mark_run_remediated(run=run, kind=kind, result=result)
+            return result
+
+        domain_delivery_id = _as_int(
+            _payload_first(payload, "webhook_delivery_id", "domain_webhook_delivery_id")
+        )
+        if domain_delivery_id:
+            from apps.events.models import WebhookDelivery
+            from apps.events.webhooks import replay_webhook_delivery
+
+            delivery = WebhookDelivery.objects.filter(pk=domain_delivery_id).first()
+            if delivery is None:
+                return {"ok": False, "reason": "webhook_delivery_not_found", "kind": kind}
+            replayed = replay_webhook_delivery(delivery)
+            result = {
+                "ok": True,
+                "applied": kind,
+                "webhook_delivery_id": domain_delivery_id,
+                "replayed_delivery_id": getattr(replayed, "pk", None),
+                "refresh_deck": True,
+                "healing_poll_ms": 2500,
+            }
+            result["remediation"] = _mark_run_remediated(run=run, kind=kind, result=result)
+            return result
+
+        return {"ok": False, "reason": "missing_webhook_replay_target", "kind": kind}
+
+    if kind == "clear_stale_lock":
+        lock_key = str(
+            _payload_first(payload, "lock_key", "cache_lock_key", "stale_lock_key") or ""
+        ).strip()
+        if not lock_key:
+            return {"ok": False, "reason": "missing_lock_key", "kind": kind}
+        if len(lock_key) > 250 or any(ch.isspace() for ch in lock_key):
+            return {"ok": False, "reason": "unsafe_lock_key", "kind": kind}
+        deleted = cache.delete(lock_key)
+        result = {
+            "ok": True,
+            "applied": kind,
+            "lock_key": lock_key,
+            "deleted": bool(deleted),
+            "refresh_deck": True,
+            "healing_poll_ms": 2500,
+        }
+        result["remediation"] = _mark_run_remediated(run=run, kind=kind, result=result)
+        return result
+
+    if kind == "cancel_duplicate_run":
+        duplicate_id = _as_int(_payload_first(payload, "duplicate_run_id", "duplicate_id"))
+        candidates = WorkflowRun.objects.filter(status__in=("running", "stuck"))  # tenant-isolation-allow: workflow-duplicate-cancel-operator-scoped
+        if duplicate_id:
+            candidates = candidates.filter(pk=duplicate_id)
+        elif getattr(run, "idempotency_key", ""):
+            candidates = candidates.filter(idempotency_key=run.idempotency_key).exclude(pk=run.pk)
+        else:
+            candidates = candidates.filter(
+                Q(workflow_key=workflow_key),
+                Q(tenant_schema=getattr(run, "tenant_schema", "")),
+                Q(school_id=getattr(run, "school_id", "")),
+            ).exclude(pk=run.pk)
+        cancelled_ids = list(candidates.values_list("pk", flat=True))
+        cancelled = candidates.update(
+            status="cancelled",
+            ended_at=timezone.now(),
+            payload_summary={
+                **payload,
+                "cancelled_as_duplicate_of": str(getattr(run, "pk", "") or ""),
+                "cancelled_at": timezone.now().isoformat(),
+            },
+        )
+        if not cancelled:
+            return {"ok": False, "reason": "duplicate_run_not_found", "kind": kind}
+        result = {
+            "ok": True,
+            "applied": kind,
+            "cancelled": cancelled,
+            "cancelled_run_ids": cancelled_ids,
+            "refresh_deck": True,
+            "healing_poll_ms": 2500,
+        }
+        result["remediation"] = _mark_run_remediated(run=run, kind=kind, result=result)
+        return result
 
     if kind == "suggest_alternate_slug":
         base = payload.get("slug") or workflow_key
@@ -396,6 +619,173 @@ def apply_auto_fix_kind(*, run: Any, kind: str) -> dict[str, Any]:
             result=result,
             status=status,
         )
+        return result
+
+    if kind == "resume_from_checkpoint":
+        if workflow_key == "tenant_school_provision":
+            return _chain_to_kind(
+                run=run,
+                kind="requeue_provision",
+                source_kind=kind,
+            )
+        delegated = _payload_first(
+            payload,
+            "resume_auto_fix_kind",
+            "checkpoint_auto_fix_kind",
+            "recovery_auto_fix_kind",
+        )
+        return _chain_to_kind(run=run, kind=delegated, source_kind=kind)
+
+    if kind == "retry_failed_step":
+        if workflow_key == "tenant_school_provision":
+            return _chain_to_kind(
+                run=run,
+                kind="requeue_provision",
+                source_kind=kind,
+            )
+        delegated = _payload_first(
+            payload,
+            "retry_step_auto_fix_kind",
+            "failed_step_auto_fix_kind",
+            "recovery_auto_fix_kind",
+        )
+        return _chain_to_kind(run=run, kind=delegated, source_kind=kind)
+
+    if kind == "replay_webhook":
+        domain_delivery_id = _as_int(
+            _payload_first(payload, "webhook_delivery_id", "domain_webhook_delivery_id")
+        )
+        platform_delivery_id = _as_int(
+            _payload_first(payload, "platform_webhook_delivery_id", "event_webhook_delivery_id")
+        )
+        platform_event_id = _as_int(
+            _payload_first(payload, "platform_event_id", "event_id")
+        )
+        if domain_delivery_id:
+            from apps.events.models import WebhookDelivery
+            from apps.events.webhooks import replay_webhook_delivery
+
+            delivery = WebhookDelivery.objects.select_related(
+                "domain_event", "subscription"
+            ).filter(pk=domain_delivery_id).first()
+            if delivery is None:
+                return {"ok": False, "reason": "webhook_delivery_not_found", "kind": kind}
+            new_delivery = replay_webhook_delivery(delivery)
+            result = {
+                "ok": True,
+                "applied": kind,
+                "webhook_delivery_id": domain_delivery_id,
+                "new_webhook_delivery_id": new_delivery.pk,
+                "refresh_deck": True,
+                "healing_poll_ms": 2500,
+            }
+            result["remediation"] = _mark_run_remediated(run=run, kind=kind, result=result)
+            return result
+        if platform_delivery_id:
+            from apps.platform_runtime.models import EventWebhookDelivery
+
+            delivery = EventWebhookDelivery.objects.filter(pk=platform_delivery_id).first()
+            if delivery is None:
+                return {
+                    "ok": False,
+                    "reason": "platform_webhook_delivery_not_found",
+                    "kind": kind,
+                }
+            now = timezone.now()
+            EventWebhookDelivery.objects.filter(pk=delivery.pk).update(  # tenant-isolation-allow: workflow-platform-webhook-delivery-retry-by-pk
+                status=EventWebhookDelivery.Status.PENDING,
+                attempt_count=0,
+                last_error="",
+                next_retry_at=now,
+                operator_resolution=None,
+                operator_resolution_reason="",
+                operator_resolution_by=None,
+                operator_resolution_at=None,
+                updated_at=now,
+            )
+            result = {
+                "ok": True,
+                "applied": kind,
+                "platform_webhook_delivery_id": platform_delivery_id,
+                "refresh_deck": True,
+                "healing_poll_ms": 2500,
+            }
+            result["remediation"] = _mark_run_remediated(run=run, kind=kind, result=result)
+            return result
+        if platform_event_id:
+            from apps.platform_runtime.event_bus import replay_event
+
+            replay = replay_event(platform_event_id, dispatch_webhooks=True)
+            if not replay.get("ok"):
+                return {
+                    "ok": False,
+                    "reason": replay.get("error") or "platform_event_replay_failed",
+                    "kind": kind,
+                }
+            result = {
+                "ok": True,
+                "applied": kind,
+                "platform_event_id": platform_event_id,
+                "replay": replay,
+                "refresh_deck": True,
+                "healing_poll_ms": 2500,
+            }
+            result["remediation"] = _mark_run_remediated(run=run, kind=kind, result=result)
+            return result
+        return {"ok": False, "reason": "missing_webhook_replay_target", "kind": kind}
+
+    if kind == "clear_stale_lock":
+        lock_key = _payload_first(payload, "lock_key", "cache_lock_key", "stale_lock_key")
+        if not lock_key:
+            return {"ok": False, "reason": "missing_lock_key", "kind": kind}
+        if len(lock_key) > 220 or any(part in lock_key for part in ("\n", "\r", "\x00")):
+            return {"ok": False, "reason": "unsafe_lock_key", "kind": kind}
+        deleted = cache.delete(lock_key)
+        result = {
+            "ok": True,
+            "applied": kind,
+            "lock_key": lock_key,
+            "deleted": bool(deleted),
+            "refresh_deck": True,
+            "healing_poll_ms": 2500,
+        }
+        result["remediation"] = _mark_run_remediated(run=run, kind=kind, result=result)
+        return result
+
+    if kind == "cancel_duplicate_run":
+        duplicate_run_id = _as_int(
+            _payload_first(payload, "duplicate_run_id", "duplicate_workflow_run_id")
+        )
+        now = timezone.now()
+        qs = WorkflowRun.objects.filter(status__in=("running", "stuck"))  # tenant-isolation-allow: workflow-duplicate-cancel-operator-scope
+        if duplicate_run_id:
+            qs = qs.filter(pk=duplicate_run_id).exclude(pk=run.pk)
+        else:
+            idem = str(getattr(run, "idempotency_key", "") or "").strip()
+            if idem:
+                qs = qs.filter(idempotency_key=idem).exclude(pk=run.pk)
+            else:
+                qs = qs.filter(
+                    workflow_key=workflow_key,
+                    tenant_schema=getattr(run, "tenant_schema", "") or "",
+                    school_id=getattr(run, "school_id", "") or "",
+                ).exclude(pk=run.pk)
+        cancelled_ids = list(qs.values_list("pk", flat=True)[:25])
+        if not cancelled_ids:
+            return {"ok": False, "reason": "no_duplicate_runs_found", "kind": kind}
+        WorkflowRun.objects.filter(pk__in=cancelled_ids).update(  # tenant-isolation-allow: workflow-duplicate-cancel-by-pk-list
+            status="cancelled",
+            ended_at=now,
+            last_heartbeat_at=now,
+        )
+        result = {
+            "ok": True,
+            "applied": kind,
+            "cancelled_run_ids": cancelled_ids,
+            "refresh_deck": True,
+            "healing_poll_ms": 2500,
+        }
+        result["remediation"] = _mark_run_remediated(run=run, kind=kind, result=result)
         return result
 
     if kind == "requeue_provision" and workflow_key == "tenant_school_provision":

@@ -26,6 +26,39 @@ const gateSnapshot = (
 const dbFile =
   process.env.DB_FILE ||
   path.join(repo, `db_playwright_tenant_abrupt_${process.pid}.sqlite3`);
+const lockFile = path.join(repo, 'var', 'tenant-abrupt-end-e2e.lock');
+
+function acquireRunLock() {
+  if (fs.existsSync(lockFile)) {
+    try {
+      const ageMs = Date.now() - fs.statSync(lockFile).mtimeMs;
+      if (ageMs < 4 * 60 * 60 * 1000) {
+        const owner = fs.readFileSync(lockFile, 'utf8').trim();
+        console.error(
+          `tenant abrupt-end e2e: lock held by pid ${owner || 'unknown'} — stop the other run first`,
+        );
+        process.exit(1);
+      }
+    } catch (_e) {
+      /* stale lock — overwrite */
+    }
+  }
+  fs.mkdirSync(path.dirname(lockFile), { recursive: true });
+  fs.writeFileSync(lockFile, String(process.pid));
+}
+
+function releaseRunLock() {
+  try {
+    if (fs.existsSync(lockFile)) {
+      fs.unlinkSync(lockFile);
+    }
+  } catch (_e) {
+    /* ignore */
+  }
+}
+
+acquireRunLock();
+process.on('exit', releaseRunLock);
 
 function resolvePython() {
   if (process.env.VISUAL_QA_PYTHON) {
@@ -264,31 +297,37 @@ print(f'Seeded TOTP e2e-playwright for {username}')
 const artifactDir = path.join(repo, 'artifacts', 'tenant-abrupt-end-e2e');
 fs.mkdirSync(artifactDir, { recursive: true });
 const serverLog = path.join(artifactDir, 'runserver.log');
-fs.writeFileSync(serverLog, '');
-const serverLogFd = fs.openSync(serverLog, 'a');
 
 console.log(`=== tenant abrupt-end e2e: runserver 127.0.0.1:${port} ===`);
-const server = spawn(
-  py,
-  ['manage.py', 'runserver', `127.0.0.1:${port}`, '--noreload'],
-  {
-    cwd: repo,
-    env: { ...process.env, ...baseEnv, PYTHONUNBUFFERED: '1' },
-    stdio: ['ignore', serverLogFd, serverLogFd],
-    shell: false,
-  },
-);
+let server = null;
+let serverExited = true;
+let serverLogFd = null;
 
-let serverExited = false;
-server.on('exit', (code) => {
-  serverExited = true;
-  if (code && code !== 0) {
-    console.error(`run_tenant_abrupt_end_e2e: runserver exited ${code}`);
-  }
-});
+function startServer() {
+  stopServer();
+  fs.writeFileSync(serverLog, '');
+  serverLogFd = fs.openSync(serverLog, 'a');
+  server = spawn(
+    py,
+    ['manage.py', 'runserver', `127.0.0.1:${port}`, '--noreload'],
+    {
+      cwd: repo,
+      env: { ...process.env, ...baseEnv, PYTHONUNBUFFERED: '1' },
+      stdio: ['ignore', serverLogFd, serverLogFd],
+      shell: false,
+    },
+  );
+  serverExited = false;
+  server.on('exit', (code) => {
+    serverExited = true;
+    if (code && code !== 0) {
+      console.error(`run_tenant_abrupt_end_e2e: runserver exited ${code}`);
+    }
+  });
+}
 
 const stopServer = () => {
-  if (!serverExited && server.pid) {
+  if (!serverExited && server?.pid) {
     try {
       if (process.platform === 'win32') {
         spawnSync('taskkill', ['/pid', String(server.pid), '/t', '/f'], {
@@ -302,6 +341,16 @@ const stopServer = () => {
       /* ignore */
     }
   }
+  serverExited = true;
+  server = null;
+  if (serverLogFd != null) {
+    try {
+      fs.closeSync(serverLogFd);
+    } catch (_e) {
+      /* ignore */
+    }
+    serverLogFd = null;
+  }
 };
 
 process.on('exit', () => {
@@ -314,14 +363,65 @@ for (const sig of ['SIGINT', 'SIGTERM']) {
   });
 }
 
-let sweep;
-try {
-  await waitForServer(parseInt(process.env.SWEEP_HEALTH_SECS || '360', 10));
-  await new Promise((r) => setTimeout(r, 3000));
+function loadRouteLedger() {
+  const ledgerPath = path.join(repo, 'docs/generated/portal_tenant_sweep_routes.json');
+  const data = JSON.parse(fs.readFileSync(ledgerPath, 'utf8'));
+  const routes = Array.isArray(data.routes) ? data.routes : [];
+  const maxRoutes = parseInt(process.env.TENANT_SWEEP_MAX || '200', 10);
+  const capped = maxRoutes > 0 ? routes.slice(0, maxRoutes) : routes;
+  return capped.filter((row) => row.sweep !== false);
+}
 
-  console.log('=== tenant abrupt-end e2e: Playwright sweep (200 routes) ===');
+function mergeBatchSummary(allResults, totalPlanned) {
+  const tenantResults = allResults.filter((r) => r.surface === 'tenant');
+  const layoutFailed = tenantResults.filter(
+    (r) =>
+      r.ok === false &&
+      !(r.failures || []).every(
+        (f) => f === 'exception' && /ERR_CONNECTION|Timeout/i.test(String(r.error || '')),
+      ),
+  );
+  const layoutProven = tenantResults.filter(
+    (r) =>
+      r.ok === true &&
+      !r.skipped &&
+      !/\/authentication\/(login|mfa\/verify)/i.test(String(r.path || '')),
+  ).length;
+  const infraSkipped = tenantResults.filter((r) => r.skipped).length;
+  const failed = layoutFailed.filter((r) =>
+    (r.failures || []).some((f) => f !== 'exception'),
+  ).length;
+  return {
+    generatedAt: new Date().toISOString(),
+    sweepTier: 'tenant',
+    managerBase: `http://manager.runmycampus.com:${port}`,
+    tenantBase: `http://${tenantHost}:${port}`,
+    useTenantSubdomain: true,
+    managerPlanned: 0,
+    tenantPlanned: totalPlanned,
+    managerTested: 0,
+    tenantTested: tenantResults.length,
+    layoutProven,
+    resultsCount: tenantResults.length,
+    passed: tenantResults.filter((r) => r.ok).length,
+    failed,
+    skipped: tenantResults.filter((r) => r.skipped).length,
+    infraSkipped,
+    failedUrls: layoutFailed.map((r) => ({
+      url: r.url,
+      failures: r.failures,
+      error: r.error,
+    })),
+    results: tenantResults,
+  };
+}
+
+let sweepStatus = 0;
+try {
+  const routes = loadRouteLedger();
+  const batchSize = parseInt(process.env.TENANT_SWEEP_BATCH_SIZE || '25', 10);
   const subdomainBase = `http://${tenantHost}:${port}`;
-  const sweepEnv = {
+  const sweepEnvBase = {
     ...process.env,
     ...baseEnv,
     SWEEP_TIER: 'tenant',
@@ -335,23 +435,100 @@ try {
       process.env.PLAYWRIGHT_TENANT_HOST_RULES ||
       `MAP ${tenantHost} 127.0.0.1,MAP *.runmycampus.com 127.0.0.1`,
     TENANT_SWEEP_MAX_INFRA_SKIP: process.env.TENANT_SWEEP_MAX_INFRA_SKIP || '0',
+    TENANT_SWEEP_MAX: '0',
   };
-  sweep = spawnSync(
-    process.execPath,
-    [path.join(repo, 'scripts', 'verify_platform_abrupt_end_sweep.mjs')],
-    {
-      cwd: repo,
-      env: sweepEnv,
-      stdio: 'inherit',
-      shell: false,
-    },
+  const allResults = [];
+  const auditPath = path.join(repo, 'docs/generated/admin_playwright_sweep_audit.json');
+
+  console.log(
+    `=== tenant abrupt-end e2e: Playwright sweep (${routes.length} routes, batch=${batchSize}) ===`,
   );
+
+  for (let offset = 0; offset < routes.length; offset += batchSize) {
+    const batch = routes.slice(offset, offset + batchSize);
+    const batchNum = Math.floor(offset / batchSize) + 1;
+    const batchTotal = Math.ceil(routes.length / batchSize);
+    console.log(
+      `=== tenant abrupt-end e2e: batch ${batchNum}/${batchTotal} (${batch.length} routes) ===`,
+    );
+
+    startServer();
+    await waitForServer(parseInt(process.env.SWEEP_HEALTH_SECS || '360', 10));
+    await new Promise((r) => setTimeout(r, 2000));
+
+    const pathFilter = batch.map((row) => row.path).join(',');
+    let batchSweep = spawnSync(
+      process.execPath,
+      [path.join(repo, 'scripts', 'verify_platform_abrupt_end_sweep.mjs')],
+      {
+        cwd: repo,
+        env: { ...sweepEnvBase, SWEEP_PATHS: pathFilter },
+        stdio: 'inherit',
+        shell: false,
+      },
+    );
+
+    if (batchSweep.status !== 0 && !serverExited) {
+      console.warn(`batch ${batchNum} failed — restarting server and retrying once`);
+      startServer();
+      await waitForServer(parseInt(process.env.SWEEP_HEALTH_SECS || '360', 10));
+      await new Promise((r) => setTimeout(r, 2000));
+      batchSweep = spawnSync(
+        process.execPath,
+        [path.join(repo, 'scripts', 'verify_platform_abrupt_end_sweep.mjs')],
+        {
+          cwd: repo,
+          env: { ...sweepEnvBase, SWEEP_PATHS: pathFilter },
+          stdio: 'inherit',
+          shell: false,
+        },
+      );
+    }
+
+    stopServer();
+
+    if (!fs.existsSync(auditPath)) {
+      console.error(`missing batch audit ${auditPath}`);
+      sweepStatus = batchSweep.status ?? 1;
+      break;
+    }
+    const audit = JSON.parse(fs.readFileSync(auditPath, 'utf8'));
+    const batchResults = Array.isArray(audit.results) ? audit.results : [];
+    allResults.push(...batchResults);
+
+    if (batchSweep.status !== 0) {
+      sweepStatus = batchSweep.status ?? 1;
+      console.error(`batch ${batchNum} exit ${batchSweep.status}`);
+      break;
+    }
+  }
+
+  const merged = mergeBatchSummary(allResults, routes.length);
+  const tenantArtifact = path.join(repo, 'var/tenant-abrupt-end-sweep.json');
+  fs.mkdirSync(path.dirname(tenantArtifact), { recursive: true });
+  fs.writeFileSync(tenantArtifact, `${JSON.stringify(merged, null, 2)}\n`);
+  console.log(`Wrote ${tenantArtifact}`);
+  console.log(JSON.stringify({ ...merged, results: undefined }, null, 2));
+
+  if (
+    sweepStatus === 0 &&
+    (merged.tenantTested < merged.tenantPlanned ||
+      merged.layoutProven < merged.tenantPlanned ||
+      merged.failed !== 0 ||
+      merged.infraSkipped > parseInt(process.env.TENANT_SWEEP_MAX_INFRA_SKIP || '0', 10))
+  ) {
+    sweepStatus = 1;
+  }
+  if (sweepStatus === 0) {
+    console.log('TENANT_ABRUPT_END_SWEEP_PASS');
+  }
 } finally {
   stopServer();
+  releaseRunLock();
 }
 
-if (sweep.status !== 0) {
-  process.exit(sweep.status ?? 1);
+if (sweepStatus !== 0) {
+  process.exit(sweepStatus);
 }
 
 console.log('=== tenant abrupt-end e2e: regenerate coverage matrix ===');

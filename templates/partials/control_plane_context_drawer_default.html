@@ -1,4 +1,5 @@
 {% load i18n %}
+{% url 'super:trust_center' as cp_trust_center_url %}
 <p class="small text-white-50 mb-3">{% trans "Shortcuts and cross-links for this surface. Use the primary nav (top) for Home, Studio, Operations, and Control." %}</p>
 <ul class="list-unstyled small mb-0">
   <li class="mb-2"><kbd class="text-bg-dark px-1 rounded">Ctrl</kbd> + <kbd class="text-bg-dark px-1 rounded">K</kbd> — {% trans "Global search (control plane top bar)" %}</li>
@@ -8,6 +9,8 @@
 <ul class="list-unstyled mb-0">
   <li class="mb-2"><a href="{% url 'studio_os:shell' %}" class="text-decoration-none"><i class="bi bi-window-stack me-1"></i>{% trans "Studio OS" %}</a></li>
   <li class="mb-2"><a href="{% url 'siteconfig:console_domains_hub' %}" class="text-decoration-none"><i class="bi bi-gear-wide-connected me-1"></i>{% trans "Config center" %}</a></li>
-  <li class="mb-2"><a href="{% url 'super:trust_center' %}" class="text-decoration-none"><i class="bi bi-shield-lock me-1"></i>{% trans "Trust center" %}</a></li>
+  {% if cp_trust_center_url %}
+  <li class="mb-2"><a href="{{ cp_trust_center_url }}" class="text-decoration-none"><i class="bi bi-shield-lock me-1"></i>{% trans "Trust center" %}</a></li>
+  {% endif %}
 </ul>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

@@ -1,4 +1,6 @@
 {% load i18n %}
+{% url 'super:command_center' as cp_command_center_url %}
+{% url 'super:dashboard' as cp_super_dashboard_url %}
 {% comment %}
 Consolidated operator header — one high-density band (utility + inline ticker + primary nav).
 Replaces the former triple stack: utility row + marquee ticker + canvas primary nav.
@@ -43,9 +45,9 @@ Replaces the former triple stack: utility row + marquee ticker + canvas primary 
            /admin/ keeps the plain centred nav (this whole row is its <xl fallback). The redundant
            "Security" pill is dropped from the nav (hide_security) since the security shield already
            lives in the utility row above. {% endcomment %}
-        {% if not MANAGER_PLATFORM_ADMIN_SHELL %}
+        {% if not MANAGER_PLATFORM_ADMIN_SHELL and cp_command_center_url %}
         <div class="cp-header__nav-flank cp-header__nav-flank--start" data-rmc-cp-nav-flank="start">
-          <a href="{% url 'super:command_center' %}" class="cp-nav-status-chip{% if platform_incidents|length %} cp-nav-status-chip--alert{% endif %}" title="{% if platform_incidents|length %}{% trans 'Open incidents' %}{% else %}{% trans 'All systems operational' %}{% endif %}">
+          <a href="{{ cp_command_center_url }}" class="cp-nav-status-chip{% if platform_incidents|length %} cp-nav-status-chip--alert{% endif %}" title="{% if platform_incidents|length %}{% trans 'Open incidents' %}{% else %}{% trans 'All systems operational' %}{% endif %}">
             <span class="cp-nav-status-chip__dot" aria-hidden="true"></span>
             <span class="cp-nav-status-chip__text">{% if platform_incidents|length %}{% blocktrans count count=platform_incidents|length %}{{ count }} incident{% plural %}{{ count }} incidents{% endblocktrans %}{% else %}{% trans "All systems operational" %}{% endif %}</span>
           </a>
@@ -54,15 +56,15 @@ Replaces the former triple stack: utility row + marquee ticker + canvas primary 
         <div class="cp-header__nav-slot" data-rmc-cp-nav-slot="1">
           {% include "partials/control_plane_primary_nav.html" with rail=True hide_security=True %}
         </div>
-        {% if not MANAGER_PLATFORM_ADMIN_SHELL %}
+        {% if not MANAGER_PLATFORM_ADMIN_SHELL and cp_command_center_url %}
         <div class="cp-header__nav-flank cp-header__nav-flank--end" data-rmc-cp-nav-flank="end">
-          {% if attention_school_count %}
-          <a href="{% url 'super:dashboard' %}" class="cp-nav-flank-stat" title="{% trans 'Schools needing attention' %}">
+          {% if attention_school_count and cp_super_dashboard_url %}
+          <a href="{{ cp_super_dashboard_url }}" class="cp-nav-flank-stat" title="{% trans 'Schools needing attention' %}">
             <span class="cp-nav-flank-stat__value">{{ attention_school_count }}</span>
             <span class="cp-nav-flank-stat__label">{% trans "need attention" %}</span>
           </a>
           {% endif %}
-          <a href="{% url 'super:command_center' %}" class="cp-nav-flank-action" title="{% trans 'Command center' %}">
+          <a href="{{ cp_command_center_url }}" class="cp-nav-flank-action" title="{% trans 'Command center' %}">
             <span aria-hidden="true">⌘</span><span class="cp-nav-flank-action__label">{% trans "Command" %}</span>
           </a>
         </div>

@@ -111,6 +111,10 @@ def flight_deck_json_view(request):
     from apps.platform_runtime.workflow_fix_handlers import workflow_run_is_remediated
     from apps.platform_runtime.workflow_incident_actions import enrich_incident_row
     from apps.platform_runtime.workflow_incidents import cluster_recent_incidents
+    from apps.platform_runtime.workflow_recovery_playbook import (
+        recovery_coverage_gaps,
+        workflow_recovery_coverage,
+    )
     from apps.platform_runtime.workflow_status_taxonomy import status_taxonomy_payload
     from apps.platform_runtime.workflow_tracker import list_active_runs, serialize_workflow_run
 
@@ -167,6 +171,8 @@ def flight_deck_json_view(request):
             for a in r.get("operator_actions") or []
         )
     )
+    recovery_coverage = workflow_recovery_coverage()
+    coverage_gaps = recovery_coverage_gaps()
 
     return JsonResponse(
         {
@@ -197,6 +203,11 @@ def flight_deck_json_view(request):
                 "degrading_count": sum(1 for r in active if r.get("status") == "degrading"),
                 "needs_operator_count": needs_operator,
                 "status_taxonomy": status_taxonomy_payload(),
+                "recovery_coverage": {
+                    "workflow_count": len(recovery_coverage),
+                    "gap_count": len(coverage_gaps),
+                    "gap_keys": coverage_gaps,
+                },
                 "recovery_queue": [
                     r.get("copilot_recovery_context")
                     for r in (*active, *recent_failed)

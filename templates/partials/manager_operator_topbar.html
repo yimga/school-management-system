@@ -5,6 +5,7 @@
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid px-3 rmc-platform-header__inner">
       {% url 'super:dashboard' as bm_dashboard_url %}
+      {% url 'super:command_center' as cp_command_center_url %}
       {% url 'admin:index' as admin_home_url %}
       <div class="rmc-platform-header__brand">
         {% if MANAGER_PLATFORM_ADMIN_SHELL %}
@@ -64,10 +65,12 @@
           {% comment %} Incident / all-clear status chip — relocated UP from the former nav row
              (control_plane_unified_header inline-chrome) so the single compact band keeps the
              at-a-glance system signal. Control-plane only; /admin/ surfaces incidents via the bell. {% endcomment %}
-          <a href="{% url 'super:command_center' %}" class="cp-nav-status-chip cp-nav-status-chip--header d-none d-xl-inline-flex{% if platform_incidents|length %} cp-nav-status-chip--alert{% endif %}" title="{% if platform_incidents|length %}{% trans 'Open incidents' %}{% else %}{% trans 'All systems operational' %}{% endif %}">
+          {% if cp_command_center_url %}
+          <a href="{{ cp_command_center_url }}" class="cp-nav-status-chip cp-nav-status-chip--header d-none d-xl-inline-flex{% if platform_incidents|length %} cp-nav-status-chip--alert{% endif %}" title="{% if platform_incidents|length %}{% trans 'Open incidents' %}{% else %}{% trans 'All systems operational' %}{% endif %}">
             <span class="cp-nav-status-chip__dot" aria-hidden="true"></span>
             <span class="cp-nav-status-chip__text">{% if platform_incidents|length %}{% blocktrans count count=platform_incidents|length %}{{ count }} incident{% plural %}{{ count }} incidents{% endblocktrans %}{% else %}{% trans "All systems operational" %}{% endif %}</span>
           </a>
+          {% endif %}
           {% comment %} Operator presence — CONFIGURABLE via cockpit_shell.presence_enabled. {% endcomment %}
           {% if cockpit_shell.presence_enabled or not cockpit_shell %}
           {% include "partials/cockpit/_operator_presence.html" %}
@@ -123,8 +126,8 @@
                 <i class="bi bi-bell" aria-hidden="true"></i>
                 {% if platform_incidents|length %}<span class="cp-topbar-bell__badge" aria-hidden="true">{{ platform_incidents|length }}</span>{% endif %}
               </a>
-            {% else %}
-              <a href="{% url 'super:command_center' %}" class="cp-topbar-bell rmc-platform-header__icon-btn" aria-label="{% trans 'Notifications' %}" title="{% trans 'Notifications' %}">
+            {% elif cp_command_center_url %}
+              <a href="{{ cp_command_center_url }}" class="cp-topbar-bell rmc-platform-header__icon-btn" aria-label="{% trans 'Notifications' %}" title="{% trans 'Notifications' %}">
                 <i class="bi bi-bell" aria-hidden="true"></i>
                 {% if attention_school_count %}<span class="cp-topbar-bell__badge" aria-hidden="true">{{ attention_school_count }}</span>{% endif %}
               </a>

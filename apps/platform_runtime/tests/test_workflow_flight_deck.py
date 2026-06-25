@@ -7,9 +7,10 @@ import uuid
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import Client, RequestFactory, TestCase, override_settings
 
-from apps.platform_runtime.models import WorkflowRun
+from apps.platform_runtime.models import PlatformEventLog, WorkflowRun
 from apps.platform_runtime.views_workflow_flight_deck import (
     flight_deck_json_view,
     incident_bulk_apply_view,
@@ -18,6 +19,10 @@ from apps.platform_runtime.workflow_auto_fix import suggest_remediation
 from apps.platform_runtime.workflow_flight_deck_actions import (
     enrich_run_payload,
     resolve_effective_remediation,
+)
+from apps.platform_runtime.workflow_recovery_playbook import (
+    recovery_coverage_gaps,
+    workflow_recovery_coverage,
 )
 from apps.platform_runtime.workflow_status_taxonomy import status_meta, status_taxonomy_payload
 from apps.platform_runtime.views_workflow_progress import apply_fix_view
@@ -205,6 +210,21 @@ class FlightDeckEnrichmentTests(TestCase):
         self.assertEqual(taxonomy["cancelled"]["color"], "red")
         self.assertEqual(taxonomy["succeeded"]["color"], "green")
         self.assertIn("recovery_queue", data.get("copilot_context") or {})
+        self.assertEqual(
+            data.get("copilot_context", {})
+            .get("recovery_coverage", {})
+            .get("gap_count"),
+            0,
+        )
+
+    def test_workflow_recovery_playbook_covers_registry(self):
+        coverage = workflow_recovery_coverage()
+        self.assertGreaterEqual(len(coverage), 1)
+        self.assertEqual(recovery_coverage_gaps(), [])
+        self.assertEqual(
+            coverage["tenant_school_provision"]["primary_auto_fix_kind"],
+            "resume_from_checkpoint",
+        )
 
     def test_status_taxonomy_matches_recovery_colors(self):
         taxonomy = status_taxonomy_payload()
@@ -215,7 +235,7 @@ class FlightDeckEnrichmentTests(TestCase):
         self.assertEqual(status_meta("failed", remediated=True)["key"], "superseded")
 
     @override_settings(ALLOWED_HOSTS=["*"])
-    def test_diagnostic_only_fix_returns_explanation(self):
+    def test_replay_webhook_requires_target_metadata(self):
         run = WorkflowRun.objects.create(
             workflow_key="integration_sync",
             workflow_label="Integration sync",
@@ -240,8 +260,129 @@ class FlightDeckEnrichmentTests(TestCase):
         self.assertEqual(response.status_code, 400)
         body = json.loads(response.content)
         self.assertFalse(body.get("ok"))
-        self.assertEqual(body.get("reason"), "diagnostic_only")
-        self.assertEqual(body.get("capability", {}).get("mode"), "diagnostic")
+        self.assertEqual(body.get("reason"), "missing_webhook_replay_target")
+
+    @override_settings(ALLOWED_HOSTS=["*"])
+    def test_replay_webhook_replays_platform_event(self):
+        event = PlatformEventLog.objects.create(
+            event_type="bus.test_ping",
+            payload={"msg": "retry"},
+        )
+        run = WorkflowRun.objects.create(
+            workflow_key="integration_sync",
+            workflow_label="Integration sync",
+            status="failed",
+            tenant_schema="diagnostic_school",
+            current_step_name="webhook",
+            current_step_ordinal=1,
+            total_steps=2,
+            payload_summary={"platform_event_id": event.pk},
+            suggested_remediation={
+                "auto_fix_available": True,
+                "auto_fix_kind": "replay_webhook",
+                "human_action": "Replay source webhook.",
+            },
+        )
+        request = self.factory.post(
+            f"/platform-runtime/workflow-progress/apply-fix/{run.pk}/",
+            HTTP_ACCEPT="application/json",
+            HTTP_HOST=_MANAGER_HOST,
+        )
+        request.user = self.staff
+        response = apply_fix_view(request, run_id=run.pk)
+        self.assertEqual(response.status_code, 200)
+        body = json.loads(response.content)
+        self.assertTrue(body.get("ok"), body)
+        self.assertTrue(body.get("refresh_deck"), body)
+        self.assertTrue(
+            PlatformEventLog.objects.filter(
+                event_type="platform_event_replayed",
+                payload__source_event_id=str(event.pk),
+            ).exists()
+        )
+
+    @override_settings(ALLOWED_HOSTS=["*"])
+    def test_clear_stale_lock_deletes_explicit_cache_key(self):
+        lock_key = "workflow:test:lock"
+        cache.set(lock_key, "held", timeout=60)
+        run = WorkflowRun.objects.create(
+            workflow_key="integration_sync",
+            workflow_label="Integration sync",
+            status="failed",
+            payload_summary={"lock_key": lock_key},
+            suggested_remediation={
+                "auto_fix_available": True,
+                "auto_fix_kind": "clear_stale_lock",
+                "human_action": "Clear stale lock.",
+            },
+        )
+        request = self.factory.post(
+            f"/platform-runtime/workflow-progress/apply-fix/{run.pk}/",
+            HTTP_ACCEPT="application/json",
+            HTTP_HOST=_MANAGER_HOST,
+        )
+        request.user = self.staff
+        response = apply_fix_view(request, run_id=run.pk)
+        self.assertEqual(response.status_code, 200)
+        body = json.loads(response.content)
+        self.assertTrue(body.get("ok"), body)
+        self.assertIsNone(cache.get(lock_key))
+
+    @override_settings(ALLOWED_HOSTS=["*"])
+    def test_cancel_duplicate_run_cancels_active_duplicate(self):
+        duplicate = WorkflowRun.objects.create(
+            workflow_key="integration_sync",
+            workflow_label="Integration sync",
+            status="running",
+            tenant_schema="dupe_school",
+            idempotency_key="dupe-key",
+        )
+        run = WorkflowRun.objects.create(
+            workflow_key="integration_sync",
+            workflow_label="Integration sync",
+            status="failed",
+            tenant_schema="dupe_school",
+            idempotency_key="dupe-key",
+            suggested_remediation={
+                "auto_fix_available": True,
+                "auto_fix_kind": "cancel_duplicate_run",
+                "human_action": "Cancel duplicate run.",
+            },
+        )
+        request = self.factory.post(
+            f"/platform-runtime/workflow-progress/apply-fix/{run.pk}/",
+            HTTP_ACCEPT="application/json",
+            HTTP_HOST=_MANAGER_HOST,
+        )
+        request.user = self.staff
+        response = apply_fix_view(request, run_id=run.pk)
+        self.assertEqual(response.status_code, 200)
+        body = json.loads(response.content)
+        self.assertIn(duplicate.pk, body.get("cancelled_run_ids") or [])
+        duplicate.refresh_from_db()
+        self.assertEqual(duplicate.status, "cancelled")
+
+    @patch("apps.schools.tasks.dispatch_provision_school")
+    @override_settings(ALLOWED_HOSTS=["*"])
+    def test_resume_from_checkpoint_routes_provision_to_requeue(self, dispatch_mock):
+        self.run.suggested_remediation = {
+            "auto_fix_available": True,
+            "auto_fix_kind": "resume_from_checkpoint",
+            "human_action": "Resume from checkpoint.",
+        }
+        self.run.save(update_fields=["suggested_remediation"])
+        request = self.factory.post(
+            f"/platform-runtime/workflow-progress/apply-fix/{self.run.pk}/",
+            HTTP_ACCEPT="application/json",
+            HTTP_HOST=_MANAGER_HOST,
+        )
+        request.user = self.staff
+        response = apply_fix_view(request, run_id=self.run.pk)
+        self.assertEqual(response.status_code, 200)
+        body = json.loads(response.content)
+        self.assertTrue(body.get("ok"), body)
+        self.assertEqual(body.get("delegated_from"), "resume_from_checkpoint")
+        dispatch_mock.assert_called_once()
 
     @override_settings(ALLOWED_HOSTS=["*"])
     def test_run_detail_renders_html_for_browser(self):

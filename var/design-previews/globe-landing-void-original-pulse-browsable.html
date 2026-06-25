@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/super/ void — original explain + pulse (simple)</title>
+<link rel="stylesheet" href="../../static/css/design-tokens.css">
+<link rel="stylesheet" href="../../static/css/manager-cockpit-v7.css">
+<link rel="stylesheet" href="../../static/css/rmc-class-grammar.css">
+<link rel="stylesheet" href="../../static/css/rmc-cp-200x.css">
+<style>
+  body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #050810; color: var(--text-primary, #f1f5f9); }
+  .bar { padding: 12px 16px; border-bottom: 1px solid var(--hairline); background: #0a0e18; font-size: 12px; color: var(--text-secondary); }
+  .bar h1 { margin: 0 0 6px; font-size: 15px; color: var(--text-primary); }
+  .page { max-width: 1180px; margin: 0 auto; padding: 16px; }
+  .lab { border: 1px solid var(--hairline); border-radius: 16px; overflow: hidden; background: #121829;
+    display: grid; grid-template-columns: 1fr 200px; grid-template-rows: minmax(180px, 1fr) auto auto auto; }
+  .map { grid-column: 1; grid-row: 1; background: radial-gradient(ellipse 80% 70% at 50% 40%, rgba(99,102,241,0.14), transparent 60%), #080c14; min-height: 180px; }
+  .side { grid-column: 2; grid-row: 1 / -1; padding: 12px; border-left: 1px solid var(--hairline); font-size: 11px; color: var(--text-tertiary); }
+  .rail { grid-column: 1; grid-row: 2; padding: 10px 14px; border-top: 1px solid var(--hairline); background: rgba(8,12,20,0.95); font-size: 10px; text-align: center; color: var(--text-tertiary); }
+  .timeline { grid-column: 1; grid-row: 4; padding: 10px 14px; border-top: 1px solid var(--hairline); background: rgba(9,13,24,0.58); font-size: 10px; color: var(--text-secondary); }
+  /* void band uses production CSS from rmc-cp-200x.css */
+  .lx-world__void-band { grid-column: 1; grid-row: 3; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <h1>Original look — About · Flow · Platform pulse KPIs</h1>
+  <p>Same components as the rest of the manager shell: <code>rmc-page-explain-strip</code> + <code>rmc-cockpit-pulse-card</code>. No holo mesh, no lens, no animations. Balanced 36% / 64% grid filling the void.</p>
+</div>
+<div class="page">
+  <div class="lab">
+    <div class="map" aria-hidden="true"></div>
+    <div class="side">Global footprint · 2 schools live</div>
+    <div class="rail">C · Caption · dock · D · Fleet whisper (frozen row above void)</div>
+
+    <div class="lx-world__void-band" data-rmc-globe-void-band="1">
+      <div class="lx-world__void-band__explain">
+        <section class="rmc-page-explain-strip lx-world__void-explain rmc-page-explain-strip--flow" aria-label="Page guidance">
+          <div class="rmc-page-explain-strip__lead">
+            <span class="rmc-page-explain-strip__here-dot" aria-hidden="true"></span>
+            <div class="rmc-page-explain-strip__copy">
+              <span class="rmc-page-explain-strip__label text-secondary small">About this page</span>
+              <span class="rmc-page-explain-strip__title fw-semibold">Control Plane</span>
+            </div>
+          </div>
+          <span class="rmc-page-explain-strip__flow" aria-hidden="true"></span>
+          <a class="rmc-page-explain-strip__next" href="#">
+            <span class="rmc-page-explain-strip__next-kicker">Next</span>
+            <span class="rmc-page-explain-strip__next-name">Review tenant health</span>
+            <span class="rmc-page-explain-strip__next-go" aria-hidden="true">&rarr;</span>
+          </a>
+        </section>
+      </div>
+      <div class="lx-world__void-band__pulse rmc-cp-canvas-pulse">
+        <section class="rmc-cockpit-pulse" aria-labelledby="pulse-label">
+          <div class="rmc-cockpit-pulse__label" id="pulse-label">
+            <span class="rmc-cockpit-pulse__live-dot" aria-hidden="true"></span>
+            Platform pulse · live
+          </div>
+          <div class="rmc-cockpit-pulse__cards">
+            <article class="rmc-cockpit-pulse-card rmc-stat-card--mono" tabindex="0"><div class="rmc-cockpit-pulse-card__head"><span class="rmc-cockpit-pulse-card__dot"></span>Schools</div><div class="rmc-cockpit-pulse-card__value rmc-stat-card__count--mono">2</div><div class="rmc-cockpit-pulse-card__label">Healthy</div></article>
+            <article class="rmc-cockpit-pulse-card rmc-stat-card--mono rmc-cockpit-pulse-card--muted" tabindex="0"><div class="rmc-cockpit-pulse-card__head"><span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--muted"></span>Incidents</div><div class="rmc-cockpit-pulse-card__value rmc-stat-card__count--mono">0</div><div class="rmc-cockpit-pulse-card__label">Clear</div></article>
+            <article class="rmc-cockpit-pulse-card rmc-stat-card--mono" tabindex="0"><div class="rmc-cockpit-pulse-card__head"><span class="rmc-cockpit-pulse-card__dot"></span>Countries</div><div class="rmc-cockpit-pulse-card__value rmc-stat-card__count--mono">1</div><div class="rmc-cockpit-pulse-card__label">1 region</div></article>
+            <article class="rmc-cockpit-pulse-card rmc-stat-card--mono rmc-cockpit-pulse-card--muted" tabindex="0"><div class="rmc-cockpit-pulse-card__head"><span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--muted"></span>MRR</div><div class="rmc-cockpit-pulse-card__value rmc-stat-card__count--mono">$0</div><div class="rmc-cockpit-pulse-card__label">Pre-rev</div></article>
+            <article class="rmc-cockpit-pulse-card rmc-stat-card--mono rmc-cockpit-pulse-card--muted" tabindex="0"><div class="rmc-cockpit-pulse-card__head"><span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--muted"></span>Webhooks</div><div class="rmc-cockpit-pulse-card__value rmc-stat-card__count--mono">0</div><div class="rmc-cockpit-pulse-card__label">Idle</div></article>
+            <article class="rmc-cockpit-pulse-card rmc-stat-card--mono" tabindex="0"><div class="rmc-cockpit-pulse-card__head"><span class="rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--warn"></span>Pipeline</div><div class="rmc-cockpit-pulse-card__value rmc-stat-card__count--mono">Onb</div><div class="rmc-cockpit-pulse-card__label">Active</div></article>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="timeline">6D fleet pulse timeline (frozen row below void)</div>
+  </div>
+</div>
+</body>
+</html>

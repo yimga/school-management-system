@@ -448,6 +448,37 @@ function isAuthEscapePath(pathname) {
   return /\/authentication\/(login|mfa\/verify)/i.test(String(pathname || ''));
 }
 
+function isAuthenticationRootRoute(url) {
+  return /^\/authentication\/?$/i.test(String(url || ''));
+}
+
+const TENANT_SWEEP_USER =
+  process.env.TENANT_SWEEP_USERNAME || process.env.E2E_TENANT_USER || 'demo.admin';
+const TENANT_SWEEP_PASSWORD =
+  process.env.TENANT_SWEEP_PASSWORD || process.env.E2E_TENANT_PASSWORD || 'Test1234';
+
+/** @type {Array<[RegExp, string]>} */
+const ROUTE_USER_MAP = [
+  [/^\/portal\/parent(?:\/|$)/i, 'demo.parent'],
+  [/^\/portal\/teacher(?:\/|$)/i, 'demo.teacher'],
+  [/^\/portal\/student-portal(?:\/|$)/i, 'demo.student'],
+];
+
+function resolveUserForRoute(url) {
+  const path = String(url || '');
+  for (const [pattern, username] of ROUTE_USER_MAP) {
+    if (pattern.test(path)) {
+      return username;
+    }
+  }
+  return TENANT_SWEEP_USER;
+}
+
+async function ensureTenantUser(page, username) {
+  await loginTenant(page, { username, password: TENANT_SWEEP_PASSWORD });
+  await assertTenantSessionReady(page);
+}
+
 async function main() {
   if (fs.existsSync(LOG)) fs.unlinkSync(LOG);
 
@@ -553,11 +584,16 @@ async function main() {
   });
   const tenPage = await tenCtx.newPage();
   try {
-    await waitForTenantHealth();
-    await loginTenant(tenPage);
-    await assertTenantSessionReady(tenPage);
+    let activeSweepUser = '';
+    await ensureTenantUser(tenPage, TENANT_SWEEP_USER);
+    activeSweepUser = TENANT_SWEEP_USER;
     for (const s of SURFACES.filter((x) => x.surface === 'tenant')) {
       try {
+        const routeUser = resolveUserForRoute(s.url);
+        if (routeUser !== activeSweepUser) {
+          await ensureTenantUser(tenPage, routeUser);
+          activeSweepUser = routeUser;
+        }
         await gotoWithRetries(tenPage, s.url);
         if (!USE_TENANT_SUBDOMAIN) {
           await ensurePathTenantHost(tenPage);
@@ -573,8 +609,8 @@ async function main() {
           s.scrollRoot || '#main-content'
         );
         if (isAuthEscapePath(audit.path) && !isAuthEscapePath(s.url)) {
-          await loginTenant(tenPage);
-          await assertTenantSessionReady(tenPage);
+          await ensureTenantUser(tenPage, routeUser);
+          activeSweepUser = routeUser;
           await gotoWithRetries(tenPage, s.url);
           if (!USE_TENANT_SUBDOMAIN) {
             await ensurePathTenantHost(tenPage);
@@ -585,7 +621,11 @@ async function main() {
             s.scrollRoot || '#main-content'
           );
         }
-        if (isAuthEscapePath(audit.path) && !isAuthEscapePath(s.url)) {
+        if (
+          isAuthEscapePath(audit.path) &&
+          !isAuthEscapePath(s.url) &&
+          !isAuthenticationRootRoute(s.url)
+        ) {
           failures += 1;
           const row = {
             ...s,

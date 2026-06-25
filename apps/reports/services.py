@@ -615,18 +615,29 @@ def _sequence_weight_cues(weights, labels: dict) -> list[dict]:
     return cues
 
 
-def _auto_teacher_remark(average: Optional[float]) -> str:
+def _auto_teacher_remark(average: Optional[float], school=None) -> str:
     if average is None:
         return "Pending results."
-    if average >= 16:
+    # Normalize the average onto [0,1] using the SCHOOL'S grading scale so the
+    # remark bands hold on any scale — /20 (16→0.80), /100 (80→0.80), /4 GPA
+    # (3.2→0.80) — instead of the old hardcoded /20 thresholds that mislabelled
+    # every non-/20 school's report card. Degrades to the /20 basis only when the
+    # scale can't be resolved, preserving prior behaviour for francophone schools.
+    try:
+        from apps.evals.grading import score_to_normalized
+
+        norm = float(score_to_normalized(average, school=school))
+    except (ImportError, TypeError, ValueError, ArithmeticError):
+        norm = float(average) / 20.0
+    if norm >= 0.80:
         return "Excellent performance."
-    if average >= 14:
+    if norm >= 0.70:
         return "Very good work."
-    if average >= 12:
+    if norm >= 0.60:
         return "Good progress."
-    if average >= 10:
+    if norm >= 0.50:
         return "Satisfactory performance."
-    if average >= 8:
+    if norm >= 0.40:
         return "Needs improvement."
     return "Unsatisfactory performance."
 
@@ -839,7 +850,7 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         "school_size": len(school_rankings),
         "school_rank_display": _rank_display(school_position, len(school_rankings)),
         "promotion_status": promotion_status,
-        "teacher_remark": _auto_teacher_remark(overall_average),
+        "teacher_remark": _auto_teacher_remark(overall_average, school=school),
         "best_average": max(class_averages) if class_averages else None,
         "worst_average": min(class_averages) if class_averages else None,
         "class_average": (sum(class_averages) / len(class_averages))
@@ -1001,7 +1012,7 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         "promotion_status": promotion_status,
         "promotion_average": thresholds.get("promotion_average"),
         "demotion_average": thresholds.get("demotion_average"),
-        "teacher_remark": _auto_teacher_remark(annual_average),
+        "teacher_remark": _auto_teacher_remark(annual_average, school=school),
         "labels": labels,
         "metadata": _school_report_metadata(),
         "school": school,

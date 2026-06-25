@@ -38,7 +38,7 @@ def build_report_pack_preview(pack: ReportPack) -> dict[str, Any]:
     rows = config.get("rows")
     if not isinstance(rows, list) or not rows:
         rows = [
-            {"label": "Average", "value": "13.42 / 20"},
+            {"label": "Average", "value": "13.42"},
             {"label": "Promotion", "value": "Promoted"},
             {"label": "Class rank", "value": "4 / 28"},
         ]
@@ -53,7 +53,7 @@ def build_report_pack_preview(pack: ReportPack) -> dict[str, Any]:
                 val = raw.get("val", "—")
             norm_rows.append({"label": str(lbl), "value": str(val)})
         rows = norm_rows or [
-            {"label": "Average", "value": "13.42 / 20"},
+            {"label": "Average", "value": "13.42"},
         ]
     summary = config.get("summary")
     if not isinstance(summary, Mapping):

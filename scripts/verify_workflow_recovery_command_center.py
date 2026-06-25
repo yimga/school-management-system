@@ -51,6 +51,9 @@ def main() -> None:
         "mark_superseded",
         "heal_tenant_schema_drift",
         "auto_fix_kind_is_executable",
+        "missing_webhook_replay_target",
+        "cancel_duplicate_run",
+        "resume_from_checkpoint",
     ):
         require(handlers, token, path=handlers_path)
 
@@ -63,6 +66,18 @@ def main() -> None:
         "Open AI diagnosis",
     ):
         require(actions, token, path=actions_path)
+
+    playbook_path = "apps/platform_runtime/workflow_recovery_playbook.py"
+    playbook = read(playbook_path)
+    for token in (
+        "recovery_strategy_for_workflow",
+        "workflow_recovery_coverage",
+        "recovery_coverage_gaps",
+        "tenant_school_provision",
+        "replay_webhook",
+        "operator_guided",
+    ):
+        require(playbook, token, path=playbook_path)
 
     views_path = "apps/platform_runtime/views_workflow_flight_deck.py"
     views = read(views_path)
@@ -121,7 +136,12 @@ def main() -> None:
         "test_apply_fix_removes_remediated_run_from_failure_deck",
         "test_flight_deck_json_includes_status_taxonomy",
         "test_status_taxonomy_matches_recovery_colors",
-        "test_diagnostic_only_fix_returns_explanation",
+        "test_replay_webhook_requires_target_metadata",
+        "test_replay_webhook_replays_platform_event",
+        "test_clear_stale_lock_deletes_explicit_cache_key",
+        "test_cancel_duplicate_run_cancels_active_duplicate",
+        "test_resume_from_checkpoint_routes_provision_to_requeue",
+        "test_workflow_recovery_playbook_covers_registry",
     ):
         require(tests, token, path=tests_path)
 
