@@ -80,6 +80,7 @@ from apps.api.roadmap_extended_views import (
     NiceToHaveModulesAPI,
 )
 from apps.schools.api_views import SchoolConfigAPI
+from apps.schools import views_offboarding_public
 from apps.analytics.benchmark_views import BenchmarkComparisonAPI
 from apps.api.offline_replay_views import (
     OfflineQueueEncryptionKeyAPI,
@@ -798,6 +799,11 @@ urlpatterns = [
         "ai/offboarding-playbook/",
         api_offboarding_playbook_ask,
         name="ai-offboarding-playbook",
+    ),
+    path(  # rbac-allow: public-purge-certificate-hmac-verify-no-tenant-data
+        "offboarding/verify-deletion-certificate/",
+        views_offboarding_public.api_verify_deletion_certificate,
+        name="offboarding-verify-deletion-certificate",
     ),
     path("ai/mcp/tools/", api_mcp_list_tools, name="ai-mcp-list-tools"),
     path("ai/mcp/invoke/", api_mcp_invoke_tool, name="ai-mcp-invoke"),

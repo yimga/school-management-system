@@ -25,6 +25,7 @@ User = get_user_model()
     ALLOWED_HOSTS=["*"],
     TENANT_PURGE_REQUIRE_DUAL_APPROVAL="1",
     TENANT_OFFBOARDING_EMAIL_ENABLED="1",
+    TENANT_SELF_SERVICE_OFFBOARDING_ENABLED="1",
 )
 class TenantOffboardingOptionalTests(TestCase):
     def setUp(self):

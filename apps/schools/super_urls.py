@@ -352,6 +352,21 @@ urlpatterns = [
         name="api_school_offboarding_dual_approve",
     ),
     path(
+        "api/schools/<uuid:school_id>/offboarding/approve-request/",
+        require_super_access_with_host(super_views.api_school_offboarding_approve_request),
+        name="api_school_offboarding_approve_request",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/offboarding/reject-request/",
+        require_super_access_with_host(super_views.api_school_offboarding_reject_request),
+        name="api_school_offboarding_reject_request",
+    ),
+    path(
+        "api/schools/<uuid:school_id>/offboarding/purge-certificate/",
+        require_super_access_with_host(super_views.api_purge_certificate_download),
+        name="api_school_offboarding_purge_certificate",
+    ),
+    path(
         "api/schools/<uuid:school_id>/offboarding/schedule/",
         require_super_access_with_host(super_views.api_school_offboarding_schedule),
         name="api_school_offboarding_schedule",

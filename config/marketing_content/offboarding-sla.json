@@ -1,0 +1,30 @@
+{
+  "label": "Tenant offboarding SLA",
+  "seo_title": "RunMyCampus — tenant offboarding and data custody SLA",
+  "seo_description": "How schools export data, request closure, and receive operator-gated wind-down with grace periods and signed deletion certificates.",
+  "headline": "Tenant offboarding you can trust.",
+  "subheadline": "School administrators export portability packs and submit offboarding requests. Platform operators approve wind-down, enforce legal holds, and execute permanent purge only after gated review.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Export first",
+      "body": "Full portability ZIP with student JSON, canonical CSV domains, and a switching pack README before any closure is approved."
+    },
+    {
+      "title": "Operator approval",
+      "body": "By default tenants cannot self-delete. School admins submit a request; RunMyCampus operators approve or reject before wind-down and grace scheduling."
+    },
+    {
+      "title": "Grace and purge",
+      "body": "Configurable grace period (default 30 days). Auto-purge is opt-in per deployment. Dual approval and billing clearance gates apply when enabled."
+    },
+    {
+      "title": "Deletion certificate",
+      "body": "Completed purges emit an HMAC-signed deletion certificate verifiable via our public API — audit logs are retained separately per contract."
+    },
+    {
+      "title": "Individual rights",
+      "body": "Parents may download child-specific exports and submit erasure requests from the parent portal; school admins use the GDPR export and DSAR flows."
+    }
+  ]
+}

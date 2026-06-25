@@ -370,6 +370,15 @@ def super_tenant_360(request, school_id):
             "api_offboarding_dual_approve_url": reverse(
                 "super:api_school_offboarding_dual_approve", args=[school.id]
             ),
+            "api_offboarding_approve_request_url": reverse(
+                "super:api_school_offboarding_approve_request", args=[school.id]
+            ),
+            "api_offboarding_reject_request_url": reverse(
+                "super:api_school_offboarding_reject_request", args=[school.id]
+            ),
+            "api_offboarding_purge_certificate_url": reverse(
+                "super:api_school_offboarding_purge_certificate", args=[school.id]
+            ),
             "api_offboarding_export_download_url": reverse(
                 "super:api_school_offboarding_export_download", args=[school.id]
             ),

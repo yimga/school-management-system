@@ -22,10 +22,12 @@ from apps.platform_runtime.operator_identity import (
 )
 from apps.schools.tenant_offboarding import (
     apply_purge,
+    approve_offboarding_request,
     dry_run_purge,
     get_offboarding_snapshot,
     record_dual_approval,
     record_primary_dual_approval,
+    reject_offboarding_request,
     run_wind_down_export,
     set_legal_hold,
 )
@@ -268,3 +270,76 @@ def api_school_offboarding_dual_approve(request, school_id):
         new_values=result,
     )
     return JsonResponse({"ok": True, **result, **get_offboarding_snapshot(school)})
+
+
+@require_http_methods(["POST"])
+@require_platform_scope(PLATFORM_SCOPE_FLEET)
+def api_school_offboarding_approve_request(request, school_id):
+    school = get_object_or_404(School, id=school_id)
+    try:
+        result = approve_offboarding_request(school, actor=request.user)
+    except ValueError as exc:
+        return _json_error(str(exc), code="approve_failed")
+    log_control_plane_action(
+        request,
+        AuditLog.Action.UPDATE,
+        "School",
+        str(school.id),
+        object_repr=school.name,
+        reason="Operator approved tenant offboarding request",
+        sensitivity=AuditLog.Sensitivity.CRITICAL,
+        new_values=result,
+    )
+    return JsonResponse({"ok": True, **result, **get_offboarding_snapshot(school)})
+
+
+@require_http_methods(["POST"])
+@require_platform_scope(PLATFORM_SCOPE_FLEET)
+def api_school_offboarding_reject_request(request, school_id):
+    school = get_object_or_404(School, id=school_id)
+    body = _parse_json_body(request)
+    reason = str(body.get("reason") or "").strip()
+    try:
+        result = reject_offboarding_request(school, actor=request.user, reason=reason)
+    except ValueError as exc:
+        return _json_error(str(exc), code="reject_failed")
+    log_control_plane_action(
+        request,
+        AuditLog.Action.UPDATE,
+        "School",
+        str(school.id),
+        object_repr=school.name,
+        reason="Operator rejected tenant offboarding request",
+        sensitivity=AuditLog.Sensitivity.HIGH,
+        new_values=result,
+    )
+    return JsonResponse({"ok": True, **result, **get_offboarding_snapshot(school)})
+
+
+@require_http_methods(["GET"])
+@require_platform_scope(PLATFORM_SCOPE_AUDIT_EXPORT)
+def api_purge_certificate_download(request, school_id):
+    from apps.lifecycle.models_purge import PurgeOperation
+
+    school = get_object_or_404(School, id=school_id)
+    op = (
+        PurgeOperation.objects.filter(school_id=str(school.id), status="completed")
+        .order_by("-completed_at")
+        .first()
+    )
+    if op is None:
+        op = (
+            PurgeOperation.objects.filter(school_slug=school.slug, status="completed")
+            .order_by("-completed_at")
+            .first()
+        )
+    if op is None or not op.certificate:
+        return _json_error("No deletion certificate found for this school", status=404)
+    payload = {
+        "certificate": op.certificate,
+        "certificate_signature": op.certificate_signature,
+        "school_slug": op.school_slug,
+        "school_id": op.school_id,
+        "completed_at": op.completed_at.isoformat() if op.completed_at else None,
+    }
+    return JsonResponse({"ok": True, "deletion_certificate": payload})

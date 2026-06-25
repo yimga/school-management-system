@@ -11,7 +11,10 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_GET
 
-from apps.lifecycle.enrollment_workflow_matrix import build_lifecycle_workflow_hub_payload
+from apps.lifecycle.enrollment_workflow_matrix import (
+    build_lifecycle_workflow_hub_payload,
+    build_offboarding_exit_status,
+)
 from apps.lifecycle.launch_rail import build_launch_rail_payload
 from apps.lifecycle.tenant_school_resolve import (
     can_access_tenant_lifecycle,
@@ -171,6 +174,7 @@ def tenant_lifecycle_command_center(request: HttpRequest) -> HttpResponse:
             "registration": hub.get("registration") or {},
             "enrollment": hub.get("enrollment") or {},
             "tenant_offboarding": hub.get("tenant_offboarding") or {},
+            "offboarding_exit": hub.get("offboarding_exit") or build_offboarding_exit_status(school),
             "studio_url": _tenant_reverse("school_studio"),
             "provisioning_url": _tenant_reverse("tenant_provisioning_status"),
             "fast_path_url": _tenant_reverse("tenant_launch_fast_path"),

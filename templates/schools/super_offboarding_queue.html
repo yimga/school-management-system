@@ -14,6 +14,8 @@
     {% trans "Schools with self-service or operator-scheduled purge." %}
     {% trans "Self-service offboarding" %}:
     {% if self_service_enabled %}{% trans "enabled" %}{% else %}{% trans "disabled" %}{% endif %}.
+    {% trans "Operator-only mode" %}:
+    {% if operator_only %}{% trans "yes" %} — {% trans "tenants submit requests; operators approve before wind-down." %}{% else %}{% trans "no" %}{% endif %}.
     {% trans "Auto-purge (nightly Celery)" %}:
     {% if auto_purge_enabled %}{% trans "enabled" %} ({{ grace_days }} {% trans "day grace" %}){% else %}<strong>{% trans "disabled" %}</strong>{% endif %}.
     {% trans "Due today" %}: <strong>{{ due_count }}</strong>.
@@ -78,6 +80,8 @@
         {% url 'super:tenant_360' row.school.id as offboard_tenant_360_url %}
         {% url 'super:api_school_lens_snapshot' row.school.id as school_lens_api_url %}
         {% url 'super:api_school_requeue_provision' row.school.id as school_requeue_api_url %}
+        {% url 'super:api_school_offboarding_approve_request' row.school.id as approve_api_url %}
+        {% url 'super:api_school_offboarding_reject_request' row.school.id as reject_api_url %}
         <tr data-rmc-row-detail="1"
             tabindex="0"
             data-rmc-row-school-id="{{ row.school.id }}"
@@ -98,7 +102,13 @@
             {% elif row.billing_state == "outstanding" %}<span class="rmc-badge rmc-badge--warning" title="{{ row.billing_reason }}">{% trans "Outstanding" %}</span>
             {% else %}<span class="rmc-badge rmc-badge--muted" title="{{ row.billing_reason }}">{% trans "Unknown" %}</span>{% endif %}
           </td>
-          <td><a href="{{ offboard_tenant_360_url }}#offboarding" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();">{% trans "Offboarding" %}</a></td>
+          <td>
+            <a href="{{ offboard_tenant_360_url }}#offboarding" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();">{% trans "Offboarding" %}</a>
+            {% if row.status == "requested" %}
+            <button type="button" class="btn btn-sm btn-success ms-1" data-rmc-approve-request data-school-id="{{ row.school.id }}" data-api-url="{{ approve_api_url }}" onclick="event.stopPropagation();">{% trans "Approve" %}</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-1" data-rmc-reject-request data-school-id="{{ row.school.id }}" data-api-url="{{ reject_api_url }}" onclick="event.stopPropagation();">{% trans "Reject" %}</button>
+            {% endif %}
+          </td>
         </tr>
         {% empty %}
         <tr><td colspan="8" class="text-secondary">{% trans "No schools in offboarding queue." %}</td></tr>

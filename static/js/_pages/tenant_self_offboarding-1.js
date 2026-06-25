@@ -7,6 +7,7 @@
   if (dataEl && dataEl.textContent) {
     try { cfg = JSON.parse(dataEl.textContent); } catch (_e) { cfg = {}; }
   }
+  var operatorOnly = !!cfg.operator_only;
   function csrf() {
     var i = document.querySelector('[name=csrfmiddlewaretoken]');
     if (i && i.value) return i.value;
@@ -52,15 +53,26 @@
     reqBtn.addEventListener('click', function () {
       var ack = root.querySelector('[data-rmc-tenant-ack]');
       if (!ack || !ack.checked) {
-        status('Acknowledge irreversible closure first.', 'warning');
+        status(operatorOnly
+          ? 'Acknowledge operator approval and grace period first.'
+          : 'Acknowledge irreversible closure first.', 'warning');
         return;
       }
-      if (!window.confirm('Request account closure and schedule deletion after the grace period?')) return;
+      var confirmMsg = operatorOnly
+        ? 'Submit offboarding request to platform operators? Your school stays active until approved.'
+        : 'Request account closure and schedule deletion after the grace period?';
+      if (!window.confirm(confirmMsg)) return;
       post(cfg.api_request, { acknowledge: true })
         .then(function (d) {
-          status('Closure scheduled for ' + (d.scheduled_purge_at || ''), 'success');
-          var s = root.querySelector('[data-rmc-ss-scheduled]');
-          if (s) s.textContent = d.scheduled_purge_at || '';
+          if (operatorOnly || d.mode === 'operator_request') {
+            status('Offboarding request submitted. Platform operators will review it.', 'success');
+            var st = root.querySelector('[data-rmc-ss-status]');
+            if (st) st.textContent = 'requested';
+          } else {
+            status('Closure scheduled for ' + (d.scheduled_purge_at || ''), 'success');
+            var s = root.querySelector('[data-rmc-ss-scheduled]');
+            if (s) s.textContent = d.scheduled_purge_at || '';
+          }
         })
         .catch(function (e) { status(e.message, 'danger'); });
     });
@@ -69,7 +81,11 @@
   if (cancelBtn) {
     cancelBtn.addEventListener('click', function () {
       post(cfg.api_cancel, {})
-        .then(function () { status('Scheduled closure cancelled.', 'success'); })
+        .then(function () {
+          status(operatorOnly ? 'Offboarding request withdrawn.' : 'Scheduled closure cancelled.', 'success');
+          var st = root.querySelector('[data-rmc-ss-status]');
+          if (st) st.textContent = 'cancelled';
+        })
         .catch(function (e) { status(e.message, 'danger'); });
     });
   }

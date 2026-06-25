@@ -119,6 +119,32 @@
      `section-offboarding` anchor is preserved for the section nav. {% endcomment %}
   <section class="mb-4" id="section-offboarding" data-rmc-section-anchor>
     <h2 class="h5 text-muted">{% trans "Account lifecycle" %}</h2>
+    <div class="card border-0 shadow-sm mb-3" data-rmc-offboarding-exit-status>
+      <div class="card-body small">
+        <p class="mb-2 fw-medium">{% trans "Exit status" %}</p>
+        <dl class="row mb-0">
+          <dt class="col-sm-4">{% trans "Phase" %}</dt>
+          <dd class="col-sm-8"><code>{{ offboarding_exit.phase }}</code></dd>
+          <dt class="col-sm-4">{% trans "Request status" %}</dt>
+          <dd class="col-sm-8">{{ offboarding_exit.status }}</dd>
+          {% if offboarding_exit.operator_only %}
+          <dt class="col-sm-4">{% trans "Mode" %}</dt>
+          <dd class="col-sm-8">{% trans "Operator approval required" %}</dd>
+          {% endif %}
+          <dt class="col-sm-4">{% trans "Scheduled purge" %}</dt>
+          <dd class="col-sm-8">{{ offboarding_exit.scheduled_purge_at|default:"—" }}</dd>
+          <dt class="col-sm-4">{% trans "Portability export" %}</dt>
+          <dd class="col-sm-8">{% if offboarding_exit.has_export %}{% trans "Ready" %}{% else %}{% trans "Not generated" %}{% endif %}</dd>
+          {% if offboarding_exit.legal_hold_active %}
+          <dt class="col-sm-4">{% trans "Legal hold" %}</dt>
+          <dd class="col-sm-8 text-warning">{% trans "Active" %}</dd>
+          {% endif %}
+        </dl>
+        {% if offboarding_exit.phase == "pending_operator_review" %}
+        <p class="text-warning mb-0 mt-2">{% trans "Your offboarding request is pending platform operator review. You may withdraw it from the close-account page until approved." %}</p>
+        {% endif %}
+      </div>
+    </div>
     {% if offboarding_url %}
     <p class="small text-muted mb-2">
       {% trans "Closing the school? Account closure and a full one-click data export are handled on a dedicated, owner-only page, so a destructive action is never triggered from the everyday workspace." %}

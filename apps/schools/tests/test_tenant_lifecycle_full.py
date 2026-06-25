@@ -23,7 +23,11 @@ from apps.siteconfig.models import RegionConfig
 User = get_user_model()
 
 
-@override_settings(ALLOWED_HOSTS=["*"], TENANT_AUTO_PURGE_ENABLED=False)
+@override_settings(
+    ALLOWED_HOSTS=["*"],
+    TENANT_AUTO_PURGE_ENABLED=False,
+    TENANT_SELF_SERVICE_OFFBOARDING_ENABLED="1",
+)
 class TenantLifecycleFullTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()

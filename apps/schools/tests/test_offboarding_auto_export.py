@@ -14,7 +14,7 @@ from __future__ import annotations
 from unittest import mock
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import RequestFactory, TestCase, override_settings
 
 from apps.schools import tenant_offboarding as to
 from apps.schools.models import School
@@ -23,6 +23,10 @@ from apps.siteconfig.models import RegionConfig
 User = get_user_model()
 
 
+@override_settings(
+    ALLOWED_HOSTS=["*"],
+    TENANT_SELF_SERVICE_OFFBOARDING_ENABLED="1",
+)
 class AutoExportOnClosureTests(TestCase):
     def setUp(self):
         self.school = School.objects.create(

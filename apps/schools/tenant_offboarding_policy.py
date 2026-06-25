@@ -21,7 +21,12 @@ def _env_bool(name: str, default: str = "0") -> bool:
 
 
 def self_service_enabled() -> bool:
-    return _env_bool("TENANT_SELF_SERVICE_OFFBOARDING_ENABLED", "1")
+    """When False (default), tenants may export + request offboarding only; operators execute."""
+    return _env_bool("TENANT_SELF_SERVICE_OFFBOARDING_ENABLED", "0")
+
+
+def operator_only_offboarding() -> bool:
+    return not self_service_enabled()
 
 
 def auto_purge_enabled() -> bool:

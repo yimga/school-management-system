@@ -216,7 +216,7 @@ services:
         value: "mailto:ops@runmycampus.com"
       # Tenant lifecycle / offboarding (Lane 2) — explicit defaults; see docs/TENANT_OFFBOARDING.md
       - key: TENANT_SELF_SERVICE_OFFBOARDING_ENABLED
-        value: "1"
+        value: "0"
       - key: TENANT_AUTO_PURGE_ENABLED
         value: "0"
       - key: TENANT_AUTO_PURGE_GRACE_DAYS

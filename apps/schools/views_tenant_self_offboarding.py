@@ -17,7 +17,7 @@ from apps.schools.tenant_offboarding import (
     get_offboarding_snapshot,
     get_self_service_snapshot,
     latest_export_zip_path,
-    request_self_service_closure,
+    request_tenant_offboarding,
     run_wind_down_export,
 )
 from apps.siteconfig.control_plane_render import render_siteconfig_stem
@@ -113,7 +113,7 @@ def api_tenant_offboarding_request_closure(request):
         return err
     body = _parse_json(request)
     try:
-        result = request_self_service_closure(
+        result = request_tenant_offboarding(
             school,
             actor=request.user,
             acknowledge=bool(body.get("acknowledge")),
@@ -126,7 +126,7 @@ def api_tenant_offboarding_request_closure(request):
         "School",
         str(school.id),
         object_repr=school.name,
-        reason="Tenant self-service closure requested",
+        reason="Tenant offboarding request submitted",
         sensitivity=AuditLog.Sensitivity.CRITICAL,
         new_values=result,
     )

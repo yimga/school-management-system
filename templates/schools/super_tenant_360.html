@@ -232,6 +232,20 @@
           {% endfor %}
         </ul>
       </div>
+      <section class="mb-4" aria-labelledby="offboarding-step-request">
+        <h3 id="offboarding-step-request" class="h6">{% trans "Tenant request (operator-only mode)" %}</h3>
+        <p class="small text-secondary mb-2">{% trans "When a school admin submits an offboarding request, approve wind-down here or reject with a reason." %}</p>
+        <p class="small mb-2">{% trans "Self-service status" %}: <strong>{{ offboarding.self_service_status|default:"none" }}</strong></p>
+        <div class="d-flex flex-wrap gap-2">
+          <button type="button" class="btn btn-sm btn-success" data-rmc-approve-offboarding-request>{% trans "Approve request" %}</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-reject-offboarding-request>{% trans "Reject request" %}</button>
+        </div>
+      </section>
+      <section class="mb-4" aria-labelledby="offboarding-step-cert">
+        <h3 id="offboarding-step-cert" class="h6">{% trans "Deletion certificate" %}</h3>
+        <p class="small text-secondary">{% trans "After purge completes, download the signed deletion certificate for compliance records." %}</p>
+        <button type="button" class="btn btn-sm btn-outline-primary" data-rmc-download-purge-certificate>{% trans "Download certificate JSON" %}</button>
+      </section>
       <section class="mb-4" aria-labelledby="offboarding-step-restrict">
         <h3 id="offboarding-step-restrict" class="h6">{% trans "Step 1 — Restrict access" %}</h3>
         <p class="small text-secondary">{% trans "Freeze blocks logins with a billing/storage message. Deactivate turns off active access for wind-down. Neither deletes data." %}</p>
@@ -361,6 +375,9 @@
   "api_purge": "{{ api_offboarding_purge_url|escapejs }}",
   "api_schedule": "{{ api_offboarding_schedule_url|escapejs }}",
   "api_dual_approve": "{{ api_offboarding_dual_approve_url|escapejs }}",
+  "api_approve_request": "{{ api_offboarding_approve_request_url|escapejs }}",
+  "api_reject_request": "{{ api_offboarding_reject_request_url|escapejs }}",
+  "api_purge_certificate": "{{ api_offboarding_purge_certificate_url|escapejs }}",
   "dual_approval_required": {% if offboarding.dual_approval_required %}true{% else %}false{% endif %},
   "dual_approved": {% if offboarding.dual_approved %}true{% else %}false{% endif %}
 }</script>

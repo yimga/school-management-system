@@ -27,6 +27,7 @@ from apps.schools.tenant_offboarding_policy import (
     auto_purge_grace_days,
     default_scheduled_purge_date,
     dual_approval_required,
+    operator_only_offboarding,
     self_service_enabled,
 )
 
@@ -63,6 +64,7 @@ class PurgePreview:
     purge_blocked_reasons: list[str] = field(default_factory=list)
     media_hints: list[str] = field(default_factory=list)
     membership_count: int = 0
+    external_refs: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -93,6 +95,18 @@ def _save_offboarding_settings(school, patch: dict) -> None:
     off = dict(raw.get("offboarding") or {})
     off.update(patch)
     raw["offboarding"] = off
+    school.settings = raw
+    school.save(update_fields=["settings", "updated_at"])
+
+
+def _patch_school_top_level_settings(school, patch: dict) -> None:
+    """Operational lifecycle FSM flags live at settings root (tenant_operational_lifecycle)."""
+    if not patch:
+        return
+    raw = getattr(school, "settings", None) or {}
+    if not isinstance(raw, dict):
+        raw = {}
+    raw.update(patch)
     school.settings = raw
     school.save(update_fields=["settings", "updated_at"])
 
@@ -174,6 +188,10 @@ def _purge_blockers(
         off = _offboarding_settings(school)
         if not dual_approved and not off.get("dual_approved"):
             reasons.append("dual_approval_required")
+    if operator_only_offboarding():
+        off = _offboarding_settings(school)
+        if not off.get("operator_approved_at"):
+            reasons.append("operator_approval_required")
     return reasons
 
 
@@ -254,6 +272,9 @@ def get_offboarding_snapshot(school) -> dict[str, Any]:
         "legal_hold_active": hold_active,
         "legal_hold_until": hold_until,
         "wind_down_mode": wind_down_mode,
+        "self_service_status": off.get("self_service_status") or "none",
+        "operator_approved_at": off.get("operator_approved_at"),
+        "scheduled_purge_at": off.get("scheduled_purge_at"),
         "offboarding": off,
         "last_activity": (
             school.last_activity.isoformat()
@@ -262,6 +283,7 @@ def get_offboarding_snapshot(school) -> dict[str, Any]:
         ),
         "purge_blockers": _purge_blockers(school),
         "self_service_enabled": self_service_enabled(),
+        "operator_only_offboarding": operator_only_offboarding(),
         "auto_purge_enabled": auto_purge_enabled(),
         "auto_purge_grace_days": auto_purge_grace_days(),
         "dual_approval_required": dual_approval_required(),
@@ -274,16 +296,207 @@ def get_offboarding_snapshot(school) -> dict[str, Any]:
 def get_self_service_snapshot(school) -> dict[str, Any]:
     off = _offboarding_settings(school)
     scheduled = (off.get("scheduled_purge_at") or "").strip()
+    status = off.get("self_service_status") or "none"
+    op_only = operator_only_offboarding()
+    can_cancel = False
+    if op_only:
+        can_cancel = status == "requested" and not legal_hold_active(school)[0]
+    else:
+        can_cancel = status in ("requested", "scheduled") and not legal_hold_active(school)[0]
     return {
         "enabled": self_service_enabled(),
-        "status": off.get("self_service_status") or "none",
+        "operator_only": op_only,
+        "status": status,
         "requested_at": off.get("self_service_requested_at"),
+        "operator_approved_at": off.get("operator_approved_at"),
         "scheduled_purge_at": scheduled or None,
         "last_export_zip": off.get("last_export_zip_path"),
-        "can_cancel": off.get("self_service_status") in ("requested", "scheduled")
-        and not legal_hold_active(school)[0],
+        "can_cancel": can_cancel,
         "grace_days": auto_purge_grace_days(),
     }
+
+
+def request_tenant_offboarding(
+    school,
+    *,
+    actor,
+    acknowledge: bool = False,
+    reason: str = "",
+) -> dict[str, Any]:
+    """Tenant-facing entry: legacy self-service closure OR operator-gated request only."""
+    if self_service_enabled():
+        return request_self_service_closure(
+            school, actor=actor, acknowledge=acknowledge
+        )
+    if not acknowledge:
+        raise ValueError(
+            "You must acknowledge that permanent deletion requires platform operator approval."
+        )
+    hold_active, _ = legal_hold_active(school)
+    if hold_active:
+        raise ValueError("Legal hold is active; contact platform support.")
+    off = _offboarding_settings(school)
+    if off.get("self_service_status") in ("requested", "scheduled"):
+        raise ValueError("An offboarding request is already in progress.")
+    now_iso = datetime.now(tz=timezone.utc).isoformat()
+    _save_offboarding_settings(
+        school,
+        {
+            "self_service_status": "requested",
+            "self_service_requested_at": now_iso,
+            "self_service_requested_by": getattr(actor, "pk", None),
+            "request_reason": (reason or "")[:200],
+            "scheduled_purge_at": None,
+            "operator_approved_at": None,
+        },
+    )
+    export_ready = False
+    try:
+        export_result = run_wind_down_export(school, full=True, actor=actor)
+        export_ready = bool(export_result and export_result.export_zip_path)
+    except Exception:  # noqa: BLE001
+        logger.warning(
+            "tenant_offboarding request export failed slug=%s",
+            school.slug,
+            exc_info=True,
+        )
+    SchoolProvisioningEvent.log_event(
+        school=school,
+        event_type=SchoolProvisioningEvent.EventType.OFFBOARDING_SELF_SERVICE_REQUESTED,
+        status=SchoolProvisioningEvent.Status.INFO,
+        message="Tenant offboarding request pending operator approval",
+        payload={"request_reason": (reason or "")[:200], "export_ready": export_ready},
+        created_by=actor,
+    )
+    try:
+        from apps.schools.tenant_offboarding_notifications import (
+            notify_offboarding_request_submitted,
+        )
+
+        notify_offboarding_request_submitted(school, actor=actor, reason=reason)
+    except Exception:
+        logger.warning(
+            "tenant_offboarding notify request failed slug=%s",
+            school.slug,
+            exc_info=True,
+        )
+    return {
+        "ok": True,
+        "mode": "operator_request",
+        "export_ready": export_ready,
+        "self_service": get_self_service_snapshot(school),
+    }
+
+
+def approve_offboarding_request(school, *, actor) -> dict[str, Any]:
+    """Operator executes wind-down after tenant request (operator-only mode)."""
+    off = _offboarding_settings(school)
+    status = (off.get("self_service_status") or "").strip()
+    if status not in ("requested",):
+        raise ValueError(
+            "No pending tenant offboarding request to approve "
+            f"(status={status or 'none'})."
+        )
+    if legal_hold_active(school)[0]:
+        raise ValueError("Legal hold is active.")
+    purge_date = default_scheduled_purge_date()
+    now_iso = datetime.now(tz=timezone.utc).isoformat()
+    _save_offboarding_settings(
+        school,
+        {
+            "self_service_status": "scheduled",
+            "operator_approved_at": now_iso,
+            "operator_approved_by": getattr(actor, "pk", None),
+            "operator_approved_username": getattr(actor, "username", "") or "",
+            "scheduled_purge_at": purge_date.isoformat(),
+            "auto_purge": auto_purge_enabled(),
+        },
+    )
+    _patch_school_top_level_settings(
+        school,
+        {"purge_scheduled_at": purge_date.isoformat()},
+    )
+    try:
+        from apps.lifecycle.wind_down import apply_wind_down_mode
+
+        apply_wind_down_mode(school, actor=actor, note="operator_approved_offboarding")
+    except ImportError:
+        run_wind_down_deactivate(school, actor=actor)
+    export_ready = False
+    try:
+        export_result = run_wind_down_export(school, full=True, actor=actor)
+        export_ready = bool(export_result and export_result.export_zip_path)
+    except Exception:  # noqa: BLE001
+        logger.warning(
+            "tenant_offboarding approve export failed slug=%s",
+            school.slug,
+            exc_info=True,
+        )
+    SchoolProvisioningEvent.log_event(
+        school=school,
+        event_type=SchoolProvisioningEvent.EventType.OFFBOARDING_DEACTIVATED,
+        status=SchoolProvisioningEvent.Status.WARNING,
+        message=f"Operator approved offboarding; purge scheduled {purge_date.isoformat()}",
+        payload={
+            "scheduled_purge_at": purge_date.isoformat(),
+            "operator_approved_at": now_iso,
+        },
+        created_by=actor,
+    )
+    if auto_purge_enabled():
+        SchoolProvisioningEvent.log_event(
+            school=school,
+            event_type=SchoolProvisioningEvent.EventType.OFFBOARDING_AUTO_PURGE_SCHEDULED,
+            status=SchoolProvisioningEvent.Status.INFO,
+            message=f"Auto-purge scheduled for {purge_date.isoformat()}",
+            payload={"grace_days": auto_purge_grace_days()},
+            created_by=actor,
+        )
+    try:
+        from apps.schools.tenant_offboarding_notifications import (
+            notify_self_service_closure_requested,
+        )
+
+        notify_self_service_closure_requested(
+            school, actor=actor, scheduled_purge_at=purge_date.isoformat()
+        )
+    except Exception:
+        logger.warning(
+            "tenant_offboarding notify approve failed slug=%s",
+            school.slug,
+            exc_info=True,
+        )
+    return {
+        "ok": True,
+        "scheduled_purge_at": purge_date.isoformat(),
+        "export_ready": export_ready,
+        "self_service": get_self_service_snapshot(school),
+    }
+
+
+def reject_offboarding_request(school, *, actor, reason: str = "") -> dict[str, Any]:
+    off = _offboarding_settings(school)
+    if (off.get("self_service_status") or "") != "requested":
+        raise ValueError("No pending tenant offboarding request to reject.")
+    _save_offboarding_settings(
+        school,
+        {
+            "self_service_status": "rejected",
+            "rejected_at": datetime.now(tz=timezone.utc).isoformat(),
+            "rejected_by": getattr(actor, "pk", None),
+            "rejection_reason": (reason or "")[:200],
+            "scheduled_purge_at": None,
+        },
+    )
+    SchoolProvisioningEvent.log_event(
+        school=school,
+        event_type=SchoolProvisioningEvent.EventType.OFFBOARDING_SELF_SERVICE_CANCELLED,
+        status=SchoolProvisioningEvent.Status.INFO,
+        message="Operator rejected tenant offboarding request",
+        payload={"rejection_reason": (reason or "")[:200]},
+        created_by=actor,
+    )
+    return {"ok": True, "self_service": get_self_service_snapshot(school)}
 
 
 def request_self_service_closure(school, *, actor, acknowledge: bool = False) -> dict[str, Any]:
@@ -368,7 +581,14 @@ def request_self_service_closure(school, *, actor, acknowledge: bool = False) ->
 
 def cancel_self_service_closure(school, *, actor) -> dict[str, Any]:
     off = _offboarding_settings(school)
-    if off.get("self_service_status") not in ("requested", "scheduled"):
+    status = off.get("self_service_status") or ""
+    if operator_only_offboarding():
+        if status != "requested":
+            raise ValueError(
+                "Only a pending offboarding request can be withdrawn. "
+                "After operator approval, contact platform support."
+            )
+    elif status not in ("requested", "scheduled"):
         raise ValueError("No active self-service closure to cancel.")
     if legal_hold_active(school)[0]:
         raise ValueError("Legal hold is active.")
@@ -432,6 +652,7 @@ def record_export_path_for_school(school, export_zip_path: str) -> None:
             or "export_ready",
         },
     )
+    _patch_school_top_level_settings(school, {"offboarding_export_ready": True})
 
 
 def _school_scheduled_purge_due(
@@ -454,9 +675,7 @@ def _school_scheduled_purge_due(
     status = (block.get("self_service_status") or "").strip().lower()
     if status in ("scheduled", "operator_scheduled"):
         return True
-    if block.get("wind_down_mode") and status not in ("cancelled", "none", ""):
-        return True
-    if status in ("closure_requested", "requested") and purge_day <= on_or_before:
+    if block.get("wind_down_mode") and status not in ("cancelled", "none", "", "rejected"):
         return True
     return False
 
@@ -531,14 +750,18 @@ def run_scheduled_purges(
 
 
 def operator_schedule_purge(school, *, purge_at: str, actor) -> dict[str, Any]:
+    now_iso = datetime.now(tz=timezone.utc).isoformat()
     _save_offboarding_settings(
         school,
         {
             "self_service_status": "operator_scheduled",
             "scheduled_purge_at": purge_at,
             "operator_scheduled_by": getattr(actor, "pk", None),
+            "operator_approved_at": now_iso,
+            "operator_approved_by": getattr(actor, "pk", None),
         },
     )
+    _patch_school_top_level_settings(school, {"purge_scheduled_at": purge_at})
     SchoolProvisioningEvent.log_event(
         school=school,
         event_type=SchoolProvisioningEvent.EventType.OFFBOARDING_AUTO_PURGE_SCHEDULED,
@@ -583,6 +806,12 @@ def dry_run_purge(
     inventory = build_inventory(school)
     manifest_path = write_archive_manifest(school, inventory, extra={"dry_run": True})
     hold_active, hold_until = legal_hold_active(school)
+    try:
+        from apps.schools.offboarding_integrations import external_refs_for_purge_preview
+
+        external_refs = external_refs_for_purge_preview(school)
+    except Exception:
+        external_refs = {}
     return PurgePreview(
         school_slug=school.slug,
         school_id=str(school.id),
@@ -601,6 +830,7 @@ def dry_run_purge(
         ),
         media_hints=_media_hints(school),
         membership_count=SchoolMembership.objects.filter(school=school).count(),
+        external_refs=external_refs,
     )
 
 
@@ -619,6 +849,7 @@ def run_wind_down_export(school, *, full: bool = True, actor=None) -> ExportResu
 
     export_zip_path = out_dir / "portability_export.zip"
     student_count = 0
+    canonical_domains: list[str] = []
     with zipfile.ZipFile(export_zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("manifest.json", Path(manifest_path).read_text(encoding="utf-8"))
         try:
@@ -657,11 +888,41 @@ def run_wind_down_export(school, *, full: bool = True, actor=None) -> ExportResu
             from apps.migration_cloud.tier3 import export_tenant_to_canonical
 
             canonical = export_tenant_to_canonical(school=school)
+            canonical_domains = list(canonical.keys())
             for domain, csv_text in canonical.items():
                 zf.writestr(f"canonical/{domain}.csv", csv_text or "")
         except Exception as exc:
             logger.warning(
                 "offboarding canonical export skipped slug=%s err=%s",
+                school.slug,
+                type(exc).__name__,
+            )
+
+        try:
+            from apps.schools.offboarding_switching_pack import (
+                build_switching_pack_readme,
+                validation_report_json,
+            )
+
+            zf.writestr(
+                "switching/README.md",
+                build_switching_pack_readme(
+                    school_slug=school.slug,
+                    domains=canonical_domains,
+                ),
+            )
+            zf.writestr(
+                "switching/validation_report.json",
+                validation_report_json(
+                    school_slug=school.slug,
+                    student_count=student_count,
+                    domains=canonical_domains,
+                    inventory=inventory,
+                ),
+            )
+        except Exception as exc:
+            logger.warning(
+                "offboarding switching pack skipped slug=%s err=%s",
                 school.slug,
                 type(exc).__name__,
             )
@@ -887,6 +1148,15 @@ def _apply_purge_tracked(
     # rls_bypass(). No-op on non-PostgreSQL. Scoped strictly to this atomic block.
     from apps.schools.rls_context import rls_bypass
 
+    # Revoke marketplace connectors + migration tokens before destructive steps.
+    integration_teardown_result: dict[str, Any] = {}
+    try:
+        from apps.schools.offboarding_integrations import teardown_integrations_for_offboarding
+
+        integration_teardown_result = teardown_integrations_for_offboarding(school)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("tenant_offboarding integration teardown failed slug=%s: %s", school_slug, exc)
+
     # Cancel platform subscriptions BEFORE the CASCADE delete so the external
     # (Stripe) ref is captured for reconciliation; otherwise the remote sub keeps
     # billing with no local trace once the row is gone.
@@ -984,6 +1254,7 @@ def _apply_purge_tracked(
         "schema_dropped": schema_dropped,
         "wal_streams_purged": wal_purge_result,
         "subscriptions_canceled": subscription_cancel_result,
+        "integrations_teardown": integration_teardown_result,
         "deleted_at": datetime.now(tz=timezone.utc).isoformat(),
     }
     Path(manifest_path).write_text(

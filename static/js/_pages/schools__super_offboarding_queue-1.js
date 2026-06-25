@@ -133,4 +133,73 @@
       });
     });
   }
+
+  function postJson(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken(),
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(body || {}),
+    }).then(function (res) {
+      return res.text().then(function (text) {
+        var payload = null;
+        if (text) {
+          try {
+            payload = JSON.parse(text);
+          } catch (_e) {
+            throw new Error('Unexpected response (not JSON).' + htmlLoginHint(text));
+          }
+        }
+        if (!res.ok) {
+          var err =
+            (payload && (payload.error || payload.detail || payload.hint)) ||
+            res.statusText;
+          throw new Error(err);
+        }
+        return payload;
+      });
+    });
+  }
+
+  document.querySelectorAll('[data-rmc-approve-request]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var url = btn.getAttribute('data-api-url');
+      if (!url) return;
+      if (!window.confirm('Approve offboarding request? School will wind down and purge will be scheduled.')) {
+        return;
+      }
+      btn.disabled = true;
+      postJson(url, {})
+        .then(function () {
+          window.location.reload();
+        })
+        .catch(function (err) {
+          out.classList.remove('d-none');
+          out.textContent = String(err && err.message ? err.message : err);
+          btn.disabled = false;
+        });
+    });
+  });
+
+  document.querySelectorAll('[data-rmc-reject-request]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var url = btn.getAttribute('data-api-url');
+      if (!url) return;
+      var reason = window.prompt('Rejection reason (optional):') || '';
+      btn.disabled = true;
+      postJson(url, { reason: reason })
+        .then(function () {
+          window.location.reload();
+        })
+        .catch(function (err) {
+          out.classList.remove('d-none');
+          out.textContent = String(err && err.message ? err.message : err);
+          btn.disabled = false;
+        });
+    });
+  });
 })();

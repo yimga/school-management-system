@@ -17,7 +17,17 @@
 
   {% if error %}<div class="rmc-banner rmc-banner--error small">{{ error }}</div>{% endif %}
 
-  {% if phase == "submitted" %}
+  {% if phase == "request_submitted" %}
+  <div class="rmc-banner rmc-banner--success">
+    <strong>{% trans "Request submitted." %}</strong>
+    <p class="mb-1">{% trans "Platform operators will review your offboarding request. Your school remains active until approved." %}</p>
+    {% if export_path_present %}
+      <p class="mb-0">{% trans "A portability export archive was generated. Download it from the offboarding page or await operator instructions." %}</p>
+    {% else %}
+      <p class="mb-0">{% trans "Export generation is in progress. Generate or download from the offboarding page when ready." %}</p>
+    {% endif %}
+  </div>
+  {% elif phase == "submitted" %}
   <div class="rmc-banner rmc-banner--success">
     <strong>{% trans "Request received." %}</strong>
     <p class="mb-1">{% trans "Your school is now in the grace period." %}</p>
@@ -35,16 +45,24 @@
     <div class="card-body">
       <h2 class="h6">{% trans "What will happen" %}</h2>
       <ol class="small mb-0">
+        {% if operator_only %}
+        <li>{% trans "A full data export ZIP is generated server-side." %}</li>
+        <li>{% trans "An offboarding request is sent to platform operators for review." %}</li>
+        <li>{% trans "After operator approval, your school enters the grace period before permanent purge." %}</li>
+        <li>{% trans "You may withdraw the request while it is pending operator review." %}</li>
+        {% else %}
         <li>{% trans "Your school is marked as soft-deleted (deleted_at = now)." %}</li>
         <li>{% trans "A full data export ZIP is generated server-side." %}</li>
         <li>{% trans "Your school enters a 30-day grace period during which closure can be reversed." %}</li>
         <li>{% trans "After grace expires, the tenant schema is permanently purged." %}</li>
+        {% endif %}
       </ol>
     </div>
   </div>
 
   <form method="post" class="card border-0 shadow-sm p-3">
     {% csrf_token %}
+    {% if not operator_only %}
     <div class="mb-2">
       <label class="form-label small">{% trans "Reason (optional, 200 chars)" %}</label>
       <input type="text" name="reason" maxlength="200" class="form-control form-control-sm" placeholder="{% trans 'Migrating to a different platform' %}">
@@ -54,7 +72,7 @@
       <input type="text" name="confirm" required class="form-control form-control-sm" autocomplete="off" autocapitalize="off">
     </div>
     <div class="d-flex gap-2">
-      <button type="submit" class="btn btn-sm btn-danger">{% trans "Export and close" %}</button>
+      <button type="submit" class="btn btn-sm btn-danger">{% if operator_only %}{% trans "Export and submit request" %}{% else %}{% trans "Export and close" %}{% endif %}</button>
       <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "Cancel" %}</a>
     </div>
   </form>

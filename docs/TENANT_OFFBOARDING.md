@@ -13,17 +13,26 @@ Operator-grade and school-admin–initiated tenant removal on **manager.runmycam
 ### School administrator (tenant host)
 
 1. **School Studio → Close account** — `/school/studio/offboarding/`
-2. Export portability ZIP (unlimited students)
-3. **Request account closure** — deactivates immediately; schedules purge after grace period
-4. **Cancel** — before purge date (unless legal hold)
+2. Export portability ZIP (unlimited students; includes switching pack README + validation report)
+3. **Submit offboarding request** (default) — stays active until platform operator approves
+4. **Withdraw request** — while status is `requested` (operator-only mode)
 
-School admins **cannot** immediate purge — only platform operators or the auto-purge job after the grace period.
+When `TENANT_SELF_SERVICE_OFFBOARDING_ENABLED=1` (legacy Shopify-style), step 3 deactivates immediately and schedules purge after grace.
+
+School admins **cannot** immediate purge — only platform operators or the auto-purge job after approval + grace period.
+
+### Operator approval (default platform mode)
+
+1. Tenant submits request → status `requested`
+2. Operator **Approve** on `/super/offboarding/` or Tenant 360 → wind-down + grace schedule + export
+3. Operator **Reject** → status `rejected` (tenant may re-request later)
+4. Purge gates include `operator_approval_required` until `operator_approved_at` is set
 
 ## Environment policy
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `TENANT_SELF_SERVICE_OFFBOARDING_ENABLED` | `1` | Tenant `/school/studio/offboarding/` |
+| `TENANT_SELF_SERVICE_OFFBOARDING_ENABLED` | `0` | `0` = operator-only (export + request); `1` = legacy self-close |
 | `TENANT_AUTO_PURGE_ENABLED` | `0` | Nightly Celery `schools.run_scheduled_tenant_purges` |
 | `TENANT_AUTO_PURGE_GRACE_DAYS` | `30` | Days after self-service request before purge |
 | `TENANT_PURGE_REQUIRE_DUAL_APPROVAL` | `0` | Operator purge requires `dual_approved` |
@@ -75,7 +84,7 @@ Until steps 2–5 pass on Render, **Lane 2 signup email is not complete** — re
 |----------------|----------|--------|
 | `TENANT_AUTO_PURGE_ENABLED` | **Yes (set explicitly)** | **`0`** (default) — nightly Celery **does not** delete tenants; use `/super/offboarding/` dry-run + **Apply due purges (operator)** with confirm `purge-due-tenants`. Set **`1`** only after export + legal review. |
 | `TENANT_AUTO_PURGE_GRACE_DAYS` | When auto on | Default `30` — days after self-service closure before purge eligibility. |
-| `TENANT_SELF_SERVICE_OFFBOARDING_ENABLED` | Recommended | `1` — tenant `/school/studio/offboarding/`. |
+| `TENANT_SELF_SERVICE_OFFBOARDING_ENABLED` | **Yes (set explicitly)** | **`0`** (default) — tenants export + submit requests; operators approve on `/super/offboarding/`. Set **`1`** only for legacy self-close. |
 | `TENANT_OFFBOARDING_EMAIL_ENABLED` | Recommended | `1` — closure/purge notification emails (same SMTP/Anymail stack as § A). |
 | `TENANT_OFFBOARDING_NOTIFY_TENANT_ADMINS` | Optional | `1` — email school admins on self-service request. |
 | `TENANT_OFFBOARDING_PLATFORM_EMAILS` | Recommended | Comma-separated ops inbox for purge summaries. |
@@ -210,6 +219,9 @@ Unified checklist for registration, enrollment, onboarding, and offboarding:
 
 - **URL:** `/school/studio/lifecycle/` on the school tenant host
 - **API:** `GET /api/school/lifecycle/hub/`
+- **Exit status panel:** read-only `data-rmc-offboarding-exit-status` (phase, scheduled purge, export readiness) — destructive closure stays on `/school/studio/offboarding/`
+- **Parent data rights:** `/portal/parent/data-rights/` (child JSON export + EraseRequest queue)
+- **Public SLA:** `https://runmycampus.com/trust-center/offboarding/`
 - **Gate:** `python scripts/verify_tenant_lifecycle_completion.py`
 
 School Studio links **Open lifecycle command center** from the hub landing.

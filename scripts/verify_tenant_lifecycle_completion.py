@@ -57,6 +57,7 @@ def main() -> int:
         "purge_scheduled",
         "signup_verified",
         "applicant_enrolled",
+        "build_offboarding_exit_status",
     ):
         if needle not in matrix:
             failures.append(f"enrollment_workflow_matrix missing state `{needle}`")

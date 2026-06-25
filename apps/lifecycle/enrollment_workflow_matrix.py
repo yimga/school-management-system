@@ -382,6 +382,48 @@ def build_tenant_offboarding_track(school) -> dict[str, Any]:
     }
 
 
+def build_offboarding_exit_status(school) -> dict[str, Any]:
+    """Read-only exit posture for lifecycle command center (no destructive controls)."""
+    from apps.schools.tenant_offboarding import (
+        get_offboarding_snapshot,
+        get_self_service_snapshot,
+    )
+    from apps.schools.tenant_offboarding_policy import (
+        auto_purge_enabled,
+        auto_purge_grace_days,
+        operator_only_offboarding,
+    )
+
+    self_svc = get_self_service_snapshot(school)
+    snap = get_offboarding_snapshot(school)
+    status = (self_svc.get("status") or "none").strip()
+    phase = "active"
+    if status == "requested":
+        phase = "pending_operator_review"
+    elif status in ("scheduled", "operator_scheduled"):
+        phase = "approved_scheduled"
+    elif status in ("rejected", "cancelled"):
+        phase = status
+    elif status in ("closure_requested",):
+        phase = "wind_down"
+    return {
+        "phase": phase,
+        "status": status,
+        "operator_only": self_svc.get("operator_only", operator_only_offboarding()),
+        "operator_approved_at": self_svc.get("operator_approved_at"),
+        "scheduled_purge_at": self_svc.get("scheduled_purge_at"),
+        "can_withdraw": bool(self_svc.get("can_cancel")),
+        "has_export": bool(
+            (snap.get("last_export_path") or "").strip()
+            or (self_svc.get("last_export_zip") or "").strip()
+        ),
+        "legal_hold_active": bool(snap.get("legal_hold_active")),
+        "purge_blockers": snap.get("purge_blockers") or [],
+        "auto_purge_enabled": auto_purge_enabled(),
+        "grace_days": auto_purge_grace_days(),
+    }
+
+
 def build_lifecycle_workflow_hub_payload(school, user=None) -> dict[str, Any]:
     """Aggregated registration + enrollment + onboarding + offboarding for command center."""
     from apps.lifecycle.launch_rail import build_launch_rail_payload
@@ -407,6 +449,7 @@ def build_lifecycle_workflow_hub_payload(school, user=None) -> dict[str, Any]:
             "total": len(operator_offboarding),
             "percent": int(100 * op_done / max(len(operator_offboarding), 1)),
         },
+        "offboarding_exit": build_offboarding_exit_status(school),
         "summary": {
             "registration_percent": registration["percent"],
             "enrollment_percent": enrollment["percent"],

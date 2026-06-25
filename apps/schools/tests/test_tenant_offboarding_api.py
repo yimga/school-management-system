@@ -90,8 +90,9 @@ class TenantOffboardingApiTests(TestCase):
         self.assertTrue(body.get("dry_run"))
         self.assertTrue(School.objects.filter(pk=self.school.pk).exists())
 
+    @patch("apps.lifecycle.purge_operations.mark_purge_phase")
     @patch("apps.schools.tenant_offboarding.drop_tenant_schema_for_school", return_value=None)
-    def test_apply_purge_deletes_school(self, _mock_drop):
+    def test_apply_purge_deletes_school(self, _mock_drop, _mock_phase):
         school = School.objects.create(
             name="Purge Me",
             slug="purge-me-school",
@@ -99,6 +100,14 @@ class TenantOffboardingApiTests(TestCase):
             is_active=False,
             default_region=self.region,
         )
+        from datetime import datetime, timezone
+
+        settings = dict(school.settings or {})
+        settings["offboarding"] = {
+            "operator_approved_at": datetime.now(tz=timezone.utc).isoformat(),
+        }
+        school.settings = settings
+        school.save(update_fields=["settings", "updated_at"])
         receipt = apply_purge(
             school,
             actor=self.superuser,

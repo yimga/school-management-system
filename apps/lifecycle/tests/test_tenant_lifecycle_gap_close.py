@@ -158,6 +158,7 @@ class OnboardingAccessTests(TestCase):
 
 
 class CancelClosureTests(TestCase):
+    @override_settings(TENANT_SELF_SERVICE_OFFBOARDING_ENABLED="1")
     def test_cancel_reactivates_school_and_clears_wind_down(self):
         from apps.schools.tenant_offboarding import (
             cancel_self_service_closure,

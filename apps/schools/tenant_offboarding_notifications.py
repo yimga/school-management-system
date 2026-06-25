@@ -86,6 +86,40 @@ def _send(recipients: list[str], subject: str, body: str, *, school: Any = None)
     send_email(recipients, subject, body, school=school, fail_silently=True)
 
 
+def notify_offboarding_request_submitted(
+    school, *, actor, reason: str = ""
+) -> None:
+    slug = school.slug
+    name = school.name
+    actor_label = getattr(actor, "username", "") or "school-admin"
+    body = (
+        f"School '{name}' ({slug}) submitted an offboarding REQUEST (operator approval required).\n"
+        f"Requested by: {actor_label}\n"
+        f"Reason: {(reason or '—')[:200]}\n"
+        f"Approve from Offboarding queue or Tenant 360.\n"
+        f"Tenant 360: {_manager_tenant_360_url(school)}\n"
+        f"Offboarding queue: {_queue_url()}\n"
+    )
+    _send(
+        platform_notification_emails(),
+        f"[RunMyCampus] Offboarding request pending approval — {slug}",
+        body,
+        school=school,
+    )
+    if notify_tenant_admins_enabled():
+        tenant_body = (
+            f"Your offboarding request for '{name}' was received.\n"
+            f"Platform operations will review and approve before any deactivation or purge schedule.\n"
+            f"You may withdraw the request from School Studio while it is still pending.\n"
+        )
+        _send(
+            school_admin_emails(school),
+            f"Offboarding request received — {name}",
+            tenant_body,
+            school=school,
+        )
+
+
 def notify_self_service_closure_requested(
     school, *, actor, scheduled_purge_at: str
 ) -> None:
@@ -145,11 +179,28 @@ def notify_operator_purge_scheduled(school, *, actor, purge_at: str) -> None:
 
 
 def notify_purge_completed(receipt: Any, *, purge_source: str = "operator") -> None:
+    cert_note = ""
+    try:
+        from apps.lifecycle.models_purge import PurgeOperation
+
+        op = (
+            PurgeOperation.objects.filter(school_slug=receipt.school_slug)
+            .order_by("-completed_at")
+            .first()
+        )
+        if op and op.certificate_signature:
+            cert_note = (
+                f"\nDeletion certificate: purge_operation_id={op.id} "
+                f"signature={op.certificate_signature[:24]}…\n"
+            )
+    except Exception:
+        pass
     body = (
         f"Permanent purge completed ({purge_source}).\n"
         f"School: {receipt.school_slug}\n"
         f"Rows removed: {receipt.row_total}\n"
         f"Manifest: {receipt.manifest_path}\n"
+        f"{cert_note}"
     )
     _send(
         platform_notification_emails(),

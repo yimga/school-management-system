@@ -1609,6 +1609,12 @@ urlpatterns = [
         name="marketing_trust_retention",
     ),
     path(
+        "trust-center/offboarding/",
+        marketing_page,
+        {"page_slug": "offboarding-sla"},
+        name="marketing_trust_offboarding_sla",
+    ),
+    path(
         "trust-center/incidents/",
         marketing_page,
         {"page_slug": "trust-center-breach"},

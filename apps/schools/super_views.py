@@ -28,12 +28,15 @@ from .super_views_offboarding_queue import (
     super_offboarding_queue,
 )
 from .super_views_tenant_offboarding import (
+    api_purge_certificate_download,
     api_school_offboarding,
+    api_school_offboarding_approve_request,
     api_school_offboarding_deactivate,
     api_school_offboarding_dual_approve,
     api_school_offboarding_export,
     api_school_offboarding_hold,
     api_school_offboarding_purge,
+    api_school_offboarding_reject_request,
 )
 from .super_views_phase_b import super_phase_b_snapshot_diff
 from .super_views_policy import (

@@ -350,4 +350,56 @@
   }
 
   updateApplyEnabled();
+
+  var approveBtn = panel.querySelector('[data-rmc-approve-offboarding-request]');
+  if (approveBtn && cfg.api_approve_request) {
+    approveBtn.addEventListener('click', function () {
+      if (!window.confirm('Approve tenant offboarding request and schedule wind-down?')) return;
+      apiPost(cfg.api_approve_request, {})
+        .then(function () {
+          showStatus('Offboarding request approved.', 'success');
+          window.setTimeout(function () { window.location.reload(); }, 1200);
+        })
+        .catch(function (e) { showStatus(e.message, 'danger'); });
+    });
+  }
+
+  var rejectBtn = panel.querySelector('[data-rmc-reject-offboarding-request]');
+  if (rejectBtn && cfg.api_reject_request) {
+    rejectBtn.addEventListener('click', function () {
+      var reason = window.prompt('Rejection reason (optional):') || '';
+      apiPost(cfg.api_reject_request, { reason: reason })
+        .then(function () {
+          showStatus('Offboarding request rejected.', 'success');
+          window.setTimeout(function () { window.location.reload(); }, 1200);
+        })
+        .catch(function (e) { showStatus(e.message, 'danger'); });
+    });
+  }
+
+  var certBtn = panel.querySelector('[data-rmc-download-purge-certificate]');
+  if (certBtn && cfg.api_purge_certificate) {
+    certBtn.addEventListener('click', function () {
+      fetch(cfg.api_purge_certificate, {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (!data.ok || !data.deletion_certificate) {
+            throw new Error((data && data.error) || 'No certificate');
+          }
+          var blob = new Blob([JSON.stringify(data.deletion_certificate, null, 2)], {
+            type: 'application/json',
+          });
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = (cfg.school_slug || 'tenant') + '-deletion-certificate.json';
+          a.click();
+          URL.revokeObjectURL(a.href);
+          showStatus('Certificate downloaded.', 'success');
+        })
+        .catch(function (e) { showStatus(e.message, 'warning'); });
+    });
+  }
 })();

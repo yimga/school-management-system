@@ -55,6 +55,7 @@ from .views import (
     preview_student_syllabus,
     preview_communication_test,
 )
+from .views_parent_gdpr import api_parent_data_rights_status, parent_data_rights
 from .parent_finance_health import parent_finance_health
 from .views_parent_finance import (
     parent_feed,
@@ -303,6 +304,12 @@ urlpatterns = [
         "parent/settings/security/",
         parent_settings_security,
         name="parent_settings_security",
+    ),
+    path("parent/data-rights/", parent_data_rights, name="parent_data_rights"),
+    path(
+        "parent/data-rights/status.json",
+        api_parent_data_rights_status,
+        name="api_parent_data_rights_status",
     ),
     path("parent/feed/", parent_feed, name="parent_feed"),
     path("teacher/feed/", teacher_feed, name="teacher_feed"),

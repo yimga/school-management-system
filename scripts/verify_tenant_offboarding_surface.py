@@ -42,6 +42,8 @@ def main() -> int:
         findings.append("super_offboarding_queue missing auto-purge disabled banner")
     if "data-rmc-run-scheduled-apply" not in queue_tpl:
         findings.append("super_offboarding_queue missing operator apply purge control")
+    if "data-rmc-approve-request" not in queue_tpl:
+        findings.append("super_offboarding_queue missing approve-request control")
     queue_js = _text("static/js/_pages/schools__super_offboarding_queue-1.js")
     if "force_operator" not in queue_js:
         findings.append("super_offboarding_queue JS missing force_operator apply path")
@@ -72,6 +74,9 @@ def main() -> int:
         "api_school_offboarding_deactivate",
         "api_school_offboarding_purge",
         "api_school_offboarding_dual_approve",
+        "api_school_offboarding_approve_request",
+        "api_school_offboarding_reject_request",
+        "api_school_offboarding_purge_certificate",
         "api_school_offboarding_schedule",
         "api_school_offboarding_export_download",
         "offboarding_queue",
@@ -116,6 +121,8 @@ def main() -> int:
 
     service = _text("apps/schools/tenant_offboarding.py")
     for sym in (
+        "request_tenant_offboarding",
+        "approve_offboarding_request",
         "request_self_service_closure",
         "run_scheduled_purges",
         "schools_scheduled_for_purge",

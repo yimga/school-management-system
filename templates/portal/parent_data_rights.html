@@ -1,0 +1,54 @@
+{% extends "portal_base.html" %}
+{% load i18n static terminology_tags %}
+{% term "student" capitalize=True as student_sg %}
+
+{% block title %}{% trans "Your data rights" %} — {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container py-3" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate" style="max-width: 42rem;">
+  <header class="mb-3">
+    <h1 class="h4 mb-1">{% trans "Your data rights" %}</h1>
+    <p class="text-secondary small mb-0">{% trans "Download a copy of your child's records or request erasure under GDPR / FERPA. School administrators process erasure within the SLA below." %}</p>
+  </header>
+
+  {% if empty_guardian %}
+  <div class="rmc-banner rmc-banner--info small">
+    {% blocktrans with t=student_sg %}Link a {{ t }} to your parent account before requesting exports or erasure.{% endblocktrans %}
+    <a class="ms-1" href="{% url 'portal:link_child' %}">{% trans "Link a child" %}</a>
+  </div>
+  {% else %}
+
+  {% for child in children %}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+      <h2 class="h6 mb-1">{{ child.display_name|default:child }}</h2>
+      <p class="small text-muted mb-3">{% trans "Student ID" %}: {{ child.pk }}</p>
+      <form method="post" class="d-flex flex-wrap gap-2 align-items-center">
+        {% csrf_token %}
+        <input type="hidden" name="student_id" value="{{ child.pk }}">
+        <input type="hidden" name="format" value="json">
+        <button type="submit" name="action" value="export" class="btn btn-sm btn-primary">{% trans "Download JSON export" %}</button>
+        <button type="submit" name="action" value="erasure" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% trans "Submit erasure request for this child? This cannot be undone after processing." %}');">{% trans "Request erasure" %}</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+
+  {% if erase_requests %}
+  <section class="mb-3">
+    <h2 class="h6">{% trans "Your erasure requests" %}</h2>
+    <ul class="list-group list-group-flush border rounded">
+      {% for er in erase_requests %}
+      <li class="list-group-item small d-flex justify-content-between">
+        <span>#{{ er.pk }} — {{ er.get_status_display }}</span>
+        <span class="text-muted">{% if er.due_at %}{% trans "Due" %} {{ er.due_at|date:"Y-m-d" }}{% endif %}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    <p class="small text-muted mt-2">{% blocktrans with days=sla_days %}Standard processing time: {{ days }} days.{% endblocktrans %}</p>
+  </section>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

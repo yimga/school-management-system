@@ -23,6 +23,7 @@ from apps.schools.tenant_offboarding import (
 from apps.schools.tenant_offboarding_policy import (
     auto_purge_enabled,
     auto_purge_grace_days,
+    operator_only_offboarding,
     self_service_enabled,
 )
 from apps.platform_runtime.operator_identity import (
@@ -127,6 +128,7 @@ def super_offboarding_queue(request):
             "due_count": len(due_today),
             "auto_purge_enabled": auto_purge_enabled(),
             "self_service_enabled": self_service_enabled(),
+            "operator_only": operator_only_offboarding(),
             "grace_days": auto_purge_grace_days(),
             "dashboard_url": reverse("super:dashboard"),
             "billing_outstanding_count": not_cleared_count,

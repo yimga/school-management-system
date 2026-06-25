@@ -1,12 +1,12 @@
 {
   "date": "2026-06-25",
-  "generated_at": "2026-06-25T13:29:29+00:00",
+  "generated_at": "2026-06-25T16:04:35+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 31,
-  "raw": "sms-v4.05.31-globe-landing-chrome-minimal-2026-06-25",
+  "patch": 32,
+  "raw": "sms-v4.05.32-operator-only-offboarding-restore-2026-06-25",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "globe-landing-chrome-minimal",
+  "slug": "operator-only-offboarding-restore",
   "valid": true
 }
