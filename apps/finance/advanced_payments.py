@@ -8,6 +8,7 @@ INTEGRATES WITH:
 """
 
 import logging
+from django.conf import settings
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -26,6 +27,31 @@ from .models import (
 )
 
 User = get_user_model()
+
+logger = logging.getLogger(__name__)
+
+
+def _resolve_charge_currency(school) -> str:
+    """ISO 4217 currency for an outbound gateway charge, local-first.
+
+    Tenant ``School.resolve_currency()`` (the canonical per-school cascade:
+    explicit override -> country pack -> region -> platform default) wins; falls
+    back to ``PLATFORM_DEFAULT_CURRENCY`` only when there is no school. Never a
+    hardcoded tenant lock, never blank — a non-USD school's recurring charge must
+    be sent to the gateway in the school's real currency, not USD.
+    """
+    default = (getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD") or "USD").upper()
+    if school is None:
+        return default
+    try:
+        resolved = (school.resolve_currency() or "").strip()
+        return resolved.upper() if resolved else default
+    except Exception:  # noqa: BLE001 — currency resolution must never block a charge
+        logger.debug(
+            "advanced_payments: school.resolve_currency failed; using platform default",
+            exc_info=True,
+        )
+        return default
 
 
 def _recurring_subscription_process_payment(self):
@@ -63,7 +89,7 @@ def _recurring_subscription_process_payment(self):
         result = processor.process_payment(
             {
                 "amount": float(self.plan.amount),  # money-float-allow: gateway-input-format (stripe processor wrapper expects float)
-                "currency": "USD",
+                "currency": _resolve_charge_currency(school),
                 "customer_id": self.customer_payment_method_id,
             }
         )
