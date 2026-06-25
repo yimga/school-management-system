@@ -19,16 +19,16 @@
   <section class="card mt-3 mb-4">
     <div class="card-body">
       <h2 class="h6 mb-2">{% trans "Current state" %}</h2>
-      <dl class="row mb-0 small">
-        <dt class="col-sm-5">{% trans "Effective mode (this context)" %}</dt>
-        <dd class="col-sm-7"><span class="rmc-badge rmc-badge--brand text-uppercase">{{ effective_mode }}</span>
+      <dl class="rmc-kv mb-0 small">
+        <dt>{% trans "Effective mode (this context)" %}</dt>
+        <dd><span class="rmc-badge rmc-badge--brand text-uppercase">{{ effective_mode }}</span>
           {% if effective_mode == "grace" %}<span class="text-muted">· {{ effective_grace_days }} {% trans "day grace" %}</span>{% endif %}
         </dd>
-        <dt class="col-sm-5">{% trans "Platform default" %}</dt>
-        <dd class="col-sm-7">{{ platform_default_mode }}{% if platform_default_mode == "grace" %} · {{ platform_default_grace_days }} {% trans "days" %}{% endif %}</dd>
+        <dt>{% trans "Platform default" %}</dt>
+        <dd>{{ platform_default_mode }}{% if platform_default_mode == "grace" %} · {{ platform_default_grace_days }} {% trans "days" %}{% endif %}</dd>
         {% if has_school %}
-        <dt class="col-sm-5">{% trans "This school's override" %}</dt>
-        <dd class="col-sm-7">{% if tenant_override.mode %}{{ tenant_override.mode }}{% else %}<span class="text-muted">{% trans "none (inherits platform default)" %}</span>{% endif %}</dd>
+        <dt>{% trans "This school's override" %}</dt>
+        <dd>{% if tenant_override.mode %}{{ tenant_override.mode }}{% else %}<span class="text-muted">{% trans "none (inherits platform default)" %}</span>{% endif %}</dd>
         {% endif %}
       </dl>
     </div>

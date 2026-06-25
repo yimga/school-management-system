@@ -14,11 +14,11 @@
 <div data-rmc-scroll-policy="paginate" class="container py-4" data-rmc-student-passport="1">
   <h1 class="h5 mb-3">{% blocktrans with t=passport_student_sg %}{{ t }} passport{% endblocktrans %}</h1>
   <p class="small text-muted mb-3">{% trans "Portable identity record for verified transcript linkage (tenant-scoped)." %}</p>
-  <dl class="row small mb-4">
-    <dt class="col-sm-3">{% trans "Passport ID" %}</dt>
-    <dd class="col-sm-9"><code>{{ passport.pk }}</code></dd>
-    <dt class="col-sm-3">{% trans_term "Student" key="student" %}</dt>
-    <dd class="col-sm-9">{{ student.first_name }} {{ student.last_name }}</dd>
+  <dl class="rmc-kv small mb-4">
+    <dt>{% trans "Passport ID" %}</dt>
+    <dd><code>{{ passport.pk }}</code></dd>
+    <dt>{% trans_term "Student" key="student" %}</dt>
+    <dd>{{ student.first_name }} {{ student.last_name }}</dd>
   </dl>
 
   <div class="card shadow-sm mb-3">
