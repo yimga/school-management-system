@@ -143,6 +143,7 @@ on:
       - "apps/schools/residency_readiness.py"
       - "apps/schools/rls_readiness.py"
       - "scripts/check_documented_baselines.py"
+      - "scripts/verify_ci_gate_wiring.py"
       - "scripts/audit_role_permission_matrix.py"
       - "scripts/scan_bell_clock_consistency.py"
       - "scripts/check_marketing_assets_claimed_vs_present.py"
@@ -1211,6 +1212,13 @@ jobs:
         # the JSON moved but the doc didn't.
         run: |
           python scripts/check_documented_baselines.py
+      - name: Verify CI gate wiring
+        # Meta-gate: assert every critical gate (the reference-integrity
+        # family + key zero-tolerance scanners) is still invoked in a
+        # workflow, so an unrelated workflow edit can never silently
+        # un-enforce a gate (the url-name-step-dropped regression).
+        run: |
+          python scripts/verify_ci_gate_wiring.py
 
   platform-readiness:
     name: "Platform readiness preflight (csp / at_risk / baselines)"
