@@ -39,8 +39,38 @@ def main() -> None:
         "cancel_duplicate_run",
         "missing_webhook_replay_target",
         "cancelled_run_ids",
+        "defer_remediation_stamp",
     ):
         require(token in handlers, f"handler contract missing: {token}")
+
+    healing = read("apps/platform_runtime/workflow_healing.py")
+    for token in (
+        "apply_healing_for_run",
+        "healing_supported_for_run",
+        "_classify_run",
+    ):
+        require(token in healing, f"healing contract missing: {token}")
+
+    chains = read("apps/platform_runtime/workflow_healing_chains.py")
+    for token in (
+        "default_healing_chain_for_workflow",
+        "healing_coverage_gaps",
+        "chain_indicates_async_job",
+    ):
+        require(token in chains, f"healing chains contract missing: {token}")
+
+    classifier = read("apps/platform_runtime/workflow_error_classifier.py")
+    require("classify_workflow_run" in classifier, "classifier missing")
+    require("tenant_school_provision" in classifier, "provision classifier missing")
+    require("_classify_migration" in classifier, "migration classifier missing")
+
+    ai = read("apps/platform_runtime/workflow_healing_ai.py")
+    for token in (
+        "invoke_with_workflow_context",
+        "ai_diagnosis_for_run",
+        "enrich_fingerprint_with_ai",
+    ):
+        require(token in ai, f"healing AI contract missing: {token}")
 
     playbook = read("apps/platform_runtime/workflow_recovery_playbook.py")
     for token in (
@@ -65,7 +95,9 @@ def main() -> None:
         "renderHealingCommand",
         "connectLiveStream",
         "scheduleHealingRefresh",
+        "renderHealingPanel",
         "Self-Healing cockpit",
+        "error_fingerprint",
     ):
         require(token in js, f"browser recovery contract missing: {token}")
 
@@ -75,6 +107,9 @@ def main() -> None:
 
     package_json = read("package.json")
     require("playwright" in package_json.lower(), "Playwright browser QA hook missing")
+
+    healing_cov = read("scripts/verify_workflow_healing_coverage.py")
+    require("WORKFLOW_HEALING_COVERAGE_PASS" in healing_cov, "healing coverage verifier missing")
 
     print("WORKFLOW_RECOVERY_END_TO_END_PASS")
 

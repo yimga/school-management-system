@@ -69,6 +69,10 @@ def _flight_deck_endpoints() -> dict[str, str]:
         ).replace("00000000-0000-0000-0000-000000000000", "{school_id}"),
         "bulk_apply": reverse("platform_runtime:workflow_progress_incident_bulk_apply"),
         "stream": reverse("platform_runtime:workflow_progress_stream"),
+        "healing_status": reverse(
+            "platform_runtime:workflow_progress_healing_status",
+            kwargs={"run_id": 0},
+        ).replace("/0/", "/{run_id}/"),
     }
 
 
@@ -171,6 +175,16 @@ def flight_deck_json_view(request):
             for a in r.get("operator_actions") or []
         )
     )
+    healing_count = sum(
+        1
+        for r in (*active, *recent_failed)
+        if (r.get("healing_session") or {}).get("session_id")
+        and str((r.get("healing_session") or {}).get("phase") or "")
+        not in ("succeeded", "failed", "cancelled", "")
+    )
+    from apps.platform_runtime.workflow_healing_chains import healing_coverage_report
+
+    healing_report = healing_coverage_report()
     recovery_coverage = workflow_recovery_coverage()
     coverage_gaps = recovery_coverage_gaps()
 
@@ -189,11 +203,7 @@ def flight_deck_json_view(request):
                 "stuck_count": stuck_count,
                 "stopped_count": stopped_count,
                 "needs_operator_count": needs_operator,
-                "healing_count": WorkflowRun.objects.filter(  # tenant-isolation-allow: operator-flight-deck-healing-count-json-key-scan
-                    payload_summary__has_key="workflow_fix_remediation",
-                ).count()
-                if is_staff and not schema
-                else 0,
+                "healing_count": healing_count,
             },
             "copilot_context": {
                 "active_run_ids": [r.get("id") for r in active if r.get("id")],
@@ -207,6 +217,10 @@ def flight_deck_json_view(request):
                     "workflow_count": len(recovery_coverage),
                     "gap_count": len(coverage_gaps),
                     "gap_keys": coverage_gaps,
+                },
+                "healing_coverage": {
+                    "workflow_count": healing_report.get("workflow_count", 0),
+                    "gap_count": healing_report.get("gap_count", 0),
                 },
                 "recovery_queue": [
                     r.get("copilot_recovery_context")

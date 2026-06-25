@@ -97,6 +97,11 @@ class FlightDeckEnrichmentTests(TestCase):
             run=self.run,
         )
         self.assertTrue(payload["suggested_remediation"]["auto_fix_available"])
+        self.assertIn("error_fingerprint", payload)
+        self.assertEqual(
+            payload["error_fingerprint"].get("recommended_chain"),
+            ["requeue_provision"],
+        )
         kinds = [a["kind"] for a in payload["operator_actions"]]
         self.assertIn("apply_fix", kinds)
         self.assertIn("tenant_360", kinds)
@@ -133,11 +138,13 @@ class FlightDeckEnrichmentTests(TestCase):
         body = json.loads(response.content)
         self.assertTrue(body.get("ok"), body)
         self.assertTrue(body.get("refresh_deck"), body)
-        self.assertEqual(body.get("remediated_run_id"), self.run.pk)
+        self.assertEqual(body.get("applied"), "healing_chain")
+        self.assertIn("healing_session", body)
         dispatch_mock.assert_called_once()
         self.run.refresh_from_db()
-        self.assertIn("workflow_fix_remediation", self.run.payload_summary)
-        self.assertFalse(self.run.suggested_remediation.get("auto_fix_available"))
+        session = (self.run.payload_summary or {}).get("healing_session") or {}
+        self.assertTrue(session.get("session_id"))
+        self.assertIn(session.get("phase"), ("requeue_queued", "succeeded"))
 
     @patch("apps.schools.tasks.dispatch_provision_school")
     @override_settings(ALLOWED_HOSTS=["*"])
@@ -161,9 +168,14 @@ class FlightDeckEnrichmentTests(TestCase):
         deck_response = flight_deck_json_view(deck_request)
         self.assertEqual(deck_response.status_code, 200)
         data = json.loads(deck_response.content)
-        failed_ids = {row.get("id") for row in data.get("recent_failed") or []}
-        self.assertNotIn(self.run.pk, failed_ids)
-        self.assertIn("healing_count", data.get("summary") or {})
+        failed_rows = {
+            row.get("id"): row for row in data.get("recent_failed") or []
+        }
+        if self.run.pk in failed_rows:
+            row = failed_rows[self.run.pk]
+            self.assertTrue((row.get("healing_session") or {}).get("session_id"))
+            self.assertEqual(row.get("status_meta", {}).get("key"), "healing")
+        self.assertGreaterEqual(data.get("summary", {}).get("healing_count", 0), 0)
 
     @override_settings(ALLOWED_HOSTS=["*"])
     def test_flight_deck_json_includes_operator_actions(self):

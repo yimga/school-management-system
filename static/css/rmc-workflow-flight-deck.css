@@ -189,6 +189,40 @@
   padding-left: 0.5rem;
 }
 
+.rmc-wfp-flight-deck__healing-bar {
+  block-size: 0.42rem;
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--surface-canvas, var(--surface-bg)) 82%, transparent);
+  border: 1px solid var(--hairline);
+  overflow: hidden;
+}
+
+.rmc-wfp-flight-deck__healing-bar-fill {
+  block-size: 100%;
+  inline-size: var(--healing-pct, 4%);
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--brand-primary, #6366f1) 88%, transparent),
+    color-mix(in srgb, var(--ds-success, #22c55e) 88%, transparent)
+  );
+  transition: inline-size var(--motion-normal, 240ms) var(--ease-standard, ease);
+}
+
+.rmc-wfp-flight-deck__healing-plan {
+  color: var(--text-secondary);
+  margin-top: 0.45rem;
+}
+
+.rmc-wfp-flight-deck__healing-log {
+  margin-top: 0.35rem;
+  max-block-size: 4.5rem;
+  overflow: auto;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
 .rmc-wfp-flight-deck__run[data-status="succeeded"],
 .rmc-wfp-flight-deck__run[data-status="passed"],
 .rmc-wfp-flight-deck__run[data-status="superseded"],

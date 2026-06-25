@@ -83,13 +83,13 @@
     var base = state.endpoints || {};
     var runId = run.id;
     var schoolId = run.school_id || "";
-    if (kind === "apply_fix" || kind === "preview_fix") {
+    if (kind === "apply_fix" || kind === "preview_fix" || kind === "requeue_provision") {
       return (base.apply_fix || "").replace("{run_id}", String(runId));
     }
     if (kind === "cancel") {
       return (base.cancel || "").replace("{run_id}", String(runId));
     }
-    if (kind === "requeue_provision") {
+    if (kind === "requeue_provision_legacy" && schoolId) {
       return (base.requeue_provision || "").replace("{school_id}", String(schoolId));
     }
     if (kind === "bulk_apply_fix") {
@@ -100,20 +100,90 @@
 
   function renderRemediation(run) {
     var rem = run.suggested_remediation || {};
-    if (!rem.human_action && !(run.error_summary && run.error_summary.message)) {
+    var fingerprint = run.error_fingerprint || {};
+    var session = run.healing_session || {};
+    var diag = session.ai_diagnosis || {};
+    var human =
+      diag.cause ||
+      fingerprint.human_cause ||
+      rem.human_action ||
+      "";
+    if (!human && !(run.error_summary && run.error_summary.message)) {
       return "";
     }
-    var err = run.error_summary && run.error_summary.message
-      ? '<div class="rmc-wfp-flight-deck__error small text-danger mt-1">' +
+    var err = "";
+    if (
+      !session.session_id &&
+      run.error_summary &&
+      run.error_summary.message
+    ) {
+      err =
+        '<div class="rmc-wfp-flight-deck__error small text-danger mt-1">' +
         escapeHtml(run.error_summary.message) +
-        "</div>"
+        "</div>";
+    }
+    var title = diag.title || fingerprint.human_title || "";
+    var titleHtml = title
+      ? '<strong class="d-block">' + escapeHtml(title) + "</strong>"
       : "";
     return (
       '<div class="rmc-wfp-flight-deck__remediation mt-2">' +
+      titleHtml +
       '<div class="small text-muted">' +
-      escapeHtml(rem.human_action || "") +
+      escapeHtml(human) +
       "</div>" +
       err +
+      "</div>"
+    );
+  }
+
+  function renderHealingPanel(run) {
+    var session = run.healing_session || {};
+    if (!session.session_id) return "";
+    var pct = Number(session.progress_percent || 0);
+    var phase = session.phase || "diagnosing";
+    var step = session.current_step_label || "Self-healing in progress…";
+    var diag = session.ai_diagnosis || {};
+    var plan = diag.plan || [];
+    var planHtml = "";
+    if (plan.length) {
+      planHtml = '<ul class="rmc-wfp-flight-deck__healing-plan small mb-2 ps-3">';
+      for (var i = 0; i < plan.length; i++) {
+        planHtml += "<li>" + escapeHtml(plan[i]) + "</li>";
+      }
+      planHtml += "</ul>";
+    }
+    var logs = session.log_lines || [];
+    var logHtml = "";
+    if (logs.length) {
+      logHtml =
+        '<div class="rmc-wfp-flight-deck__healing-log small text-muted">';
+      for (var j = Math.max(0, logs.length - 4); j < logs.length; j++) {
+        logHtml += "<div>" + escapeHtml(logs[j]) + "</div>";
+      }
+      logHtml += "</div>";
+    }
+    return (
+      '<div class="rmc-wfp-flight-deck__healing mt-2" data-healing-phase="' +
+      escapeHtml(phase) +
+      '">' +
+      '<div class="d-flex justify-content-between align-items-center gap-2 mb-1">' +
+      '<span class="small fw-semibold">' +
+      escapeHtml(step) +
+      "</span>" +
+      '<span class="small text-muted">' +
+      escapeHtml(String(pct)) +
+      "%</span>" +
+      "</div>" +
+      '<div class="rmc-wfp-flight-deck__healing-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' +
+      escapeHtml(String(pct)) +
+      '" style="--healing-pct:' +
+      escapeHtml(String(Math.max(4, pct))) +
+      '%">' +
+      '<div class="rmc-wfp-flight-deck__healing-bar-fill"></div>' +
+      "</div>" +
+      planHtml +
+      logHtml +
       "</div>"
     );
   }
@@ -238,6 +308,7 @@
       "</div>" +
       "</div>" +
       renderRemediation(run) +
+      renderHealingPanel(run) +
       renderActions(run)
     );
   }

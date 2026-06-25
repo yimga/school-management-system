@@ -237,6 +237,7 @@ def enrich_run_payload(serialized: dict[str, Any], *, run: Any | None = None) ->
     """Augment a serialized workflow run for Flight Deck operator UI."""
 
     from apps.platform_runtime.workflow_fix_handlers import workflow_run_is_remediated
+    from apps.platform_runtime.workflow_healing import healing_status_for_run
     from apps.platform_runtime.workflow_recovery_playbook import (
         recovery_strategy_for_workflow,
     )
@@ -251,8 +252,18 @@ def enrich_run_payload(serialized: dict[str, Any], *, run: Any | None = None) ->
         out["suggested_remediation"] = resolve_effective_remediation(run)
         if getattr(run, "error_summary", None):
             out["error_summary"] = run.error_summary
-    out["status_meta"] = status_meta(str(out.get("status") or ""), remediated=remediated)
-    out["display_status"] = out["status_meta"]["label"]
+        healing_status = healing_status_for_run(run)
+        out["healing_session"] = healing_status.get("healing_session") or {}
+        out["error_fingerprint"] = healing_status.get("error_fingerprint") or {}
+        if healing_status.get("healing_active"):
+            out["status_meta"] = status_meta("healing", remediated=remediated)
+            out["display_status"] = out["status_meta"]["label"]
+    else:
+        out.setdefault("healing_session", {})
+        out.setdefault("error_fingerprint", {})
+    if not out.get("status_meta"):
+        out["status_meta"] = status_meta(str(out.get("status") or ""), remediated=remediated)
+        out["display_status"] = out["status_meta"]["label"]
     if remediated:
         out["recovery_state"] = "superseded"
     out["operator_actions"] = build_operator_actions(run=run, payload=out)

@@ -16,6 +16,7 @@ from apps.platform_runtime.views_workflow_flight_deck import (
 from apps.platform_runtime.views_workflow_progress import (
     active_runs_view as workflow_progress_active_runs_view,
     apply_fix_view as workflow_progress_apply_fix_view,
+    healing_status_view as workflow_progress_healing_status_view,
     badge_view as workflow_progress_badge_view,
     cancel_view as workflow_progress_cancel_view,
     e2e_demo_start_view as workflow_progress_e2e_demo_start_view,
@@ -139,6 +140,11 @@ urlpatterns = [
         "workflow-progress/apply-fix/<int:run_id>/",
         workflow_progress_apply_fix_view,
         name="workflow_progress_apply_fix",
+    ),
+    path(  # rbac-allow: auth-gated-via-login_required_api-401-on-anonymous
+        "workflow-progress/healing-status/<int:run_id>/",
+        workflow_progress_healing_status_view,
+        name="workflow_progress_healing_status",
     ),
     path(  # rbac-allow: auth-gated-via-login_required_api-401-on-anonymous
         "workflow-progress/e2e-demo/start/",

@@ -428,9 +428,43 @@ def apply_fix_view(request, run_id: int):
     )
 
     if _request_dry_run(request):
+        from apps.platform_runtime.workflow_error_classifier import classify_workflow_run
+        from apps.platform_runtime.workflow_healing import (
+            healing_supported_for_run,
+            resolve_healing_chain,
+        )
+
+        if healing_supported_for_run(run, kind=kind):
+            fingerprint = classify_workflow_run(run)
+            chain = resolve_healing_chain(run, kind=kind)
+            return JsonResponse(
+                {
+                    "dry_run": True,
+                    "chain": chain,
+                    "fingerprint": fingerprint.as_dict(),
+                    "would_apply": chain,
+                    "note": (
+                        "Would run healing chain: "
+                        + (" → ".join(chain) if chain else kind)
+                    ),
+                }
+            )
         return JsonResponse(preview_auto_fix_kind(run=run, kind=kind))
 
-    result = apply_auto_fix_kind(run=run, kind=kind)
+    from apps.platform_runtime.workflow_healing import (
+        apply_healing_for_run,
+        healing_supported_for_run,
+    )
+
+    if healing_supported_for_run(run, kind=kind):
+        result = apply_healing_for_run(
+            run=run,
+            kind=kind,
+            actor_user_id=str(getattr(request.user, "id", "") or ""),
+            request=request,
+        )
+    else:
+        result = apply_auto_fix_kind(run=run, kind=kind)
     if result.get("ok"):
         result.setdefault("refresh_deck", True)
         result.setdefault("remediated_run_id", run.pk)
@@ -442,7 +476,7 @@ def apply_fix_view(request, run_id: int):
         record_apply_log(
             run_id=run.pk,
             workflow_key=workflow_key,
-            auto_fix_kind=kind,
+            auto_fix_kind=str(result.get("applied") or kind),
             outcome="applied",
             actor_user_id=str(getattr(request.user, "id", "") or ""),
             autopilot=False,
@@ -453,6 +487,30 @@ def apply_fix_view(request, run_id: int):
         return _respond_mutation(request, run_id, result)
 
     return _respond_mutation(request, run_id, result)
+
+
+@login_required_api
+@require_GET
+def healing_status_view(request, run_id: int):
+    """Return healing session + error fingerprint for a workflow run."""
+
+    from apps.platform_runtime.models import WorkflowRun
+    from apps.platform_runtime.workflow_healing import healing_status_for_run
+
+    try:
+        run = WorkflowRun.objects.get(pk=run_id)  # tenant-isolation-allow: workflow-healing-status-pk-lookup-tenant-checked-post-query
+    except WorkflowRun.DoesNotExist:
+        return JsonResponse({"error": "not_found", "ok": False}, status=404)
+
+    schema, _actor_id = _resolve_scope(request)
+    is_staff = bool(getattr(request.user, "is_staff", False))
+    if not is_staff:
+        if schema and run.tenant_schema and run.tenant_schema != schema:
+            return JsonResponse({"error": "forbidden", "ok": False}, status=403)
+
+    payload = healing_status_for_run(run)
+    payload["ok"] = True
+    return JsonResponse(payload)
 
 
 def _format_sse_frame(event_id, kind: str, payload: dict) -> bytes:

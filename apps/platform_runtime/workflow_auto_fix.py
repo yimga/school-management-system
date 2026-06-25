@@ -211,6 +211,27 @@ def suggest_remediation(
     if workflow_key == "tenant_school_provision":
         return _provision_requeue_envelope()
 
+    from apps.platform_runtime.workflow_healing_chains import (
+        default_healing_chain_for_workflow,
+    )
+
+    strategy_chain = default_healing_chain_for_workflow(workflow_key)
+    if strategy_chain:
+        from apps.platform_runtime.workflow_recovery_playbook import (
+            recovery_strategy_for_workflow,
+        )
+
+        strategy = recovery_strategy_for_workflow(workflow_key)
+        return {
+            "verdict": "strategy_match",
+            "remediation_key": f"{workflow_key}_auto_heal",
+            "human_action": str(strategy.get("summary") or "Apply the recommended automated fix."),
+            "auto_fix_available": True,
+            "auto_fix_kind": strategy_chain[0],
+            "suggested_next": " → ".join(strategy_chain[:3]),
+            "healing_chain": strategy_chain,
+        }
+
     # Unknown — try AI diagnosis via the platform's allowed bridge.
     ai_envelope = _try_ai_diagnosis(
         error_type=error_type,
@@ -254,77 +275,41 @@ def _try_ai_diagnosis(
     error_type: str,
     error_message: str,
     workflow_key: str,
+    request: Any | None = None,
 ) -> dict[str, Any] | None:
-    """Best-effort AI diagnosis via ``services.ai_helpers``. Returns ``None``
-    on any failure (import error, gateway unavailable, parse failure)."""
+    """Best-effort AI diagnosis via workflow-aware invoker."""
 
     try:
-        from services import ai_helpers  # type: ignore[attr-defined]
+        from apps.platform_runtime.workflow_error_classifier import ErrorFingerprint
+        from apps.platform_runtime.workflow_healing_ai import ai_diagnosis_for_run
     except Exception:
         return None
 
-    invoke = getattr(ai_helpers, "invoke_with_request", None)
-    if not callable(invoke):
-        return None
-
-    prompt = (
-        "A platform workflow failed. Diagnose the most likely cause and "
-        "suggest ONE concrete remediation in JSON.\n\n"
-        f"workflow_key: {workflow_key}\n"
-        f"error_type: {error_type}\n"
-        f"error_message: {error_message[:400]}\n\n"
-        "Respond with JSON only: "
-        '{"remediation_key": "<short_slug>", "human_action": "<one sentence>", '
-        '"auto_fix_available": false, "suggested_next": "<one sentence>"}'
+    stub = ErrorFingerprint(
+        class_key="auto_fix_fallback",
+        human_title="Workflow failure",
+        human_cause=f"{error_type}: {error_message[:200]}",
+        human_fix_summary="Inspect run detail or apply an automated fix when available.",
+        recommended_chain=[],
+        confidence="low",
     )
 
-    try:
-        # NOTE: ai_helpers.invoke_with_request needs a request; for unattended
-        # auto-fix lookups, we pass request=None and let the helper either
-        # accept it (cloud profile w/ system identity) or refuse cleanly.
-        response = invoke(
-            request=None,
-            prompt=prompt,
-            purpose="workflow_auto_fix",
-            max_tokens=200,
-        )
-    except Exception:
-        logger.warning("workflow_auto_fix_ai_invoke_failed key=%s", workflow_key)
-        return None
+    class _RunStub:
+        workflow_key = workflow_key
+        error_summary = {"type": error_type, "message": error_message}
+        suggested_remediation = {}
+        payload_summary = {}
 
-    if not response:
-        return None
-
-    text = ""
-    if isinstance(response, dict):
-        text = str(response.get("text") or response.get("output") or "")
-    else:
-        text = str(response)
-
-    if not text:
-        return None
-
-    import json
-
-    try:
-        parsed = json.loads(text)
-    except Exception:
-        # Try to find a JSON object inside the text.
-        match = re.search(r"\{[^{}]*\}", text)
-        if not match:
-            return None
-        try:
-            parsed = json.loads(match.group(0))
-        except Exception:
-            return None
-
-    if not isinstance(parsed, dict):
+    ai = ai_diagnosis_for_run(run=_RunStub(), fingerprint=stub, request=request)
+    if not ai:
         return None
 
     return {
         "verdict": "ai_match",
-        "remediation_key": str(parsed.get("remediation_key", "ai_suggested"))[:64],
-        "human_action": str(parsed.get("human_action", ""))[:400],
-        "auto_fix_available": bool(parsed.get("auto_fix_available", False)),
-        "suggested_next": str(parsed.get("suggested_next", ""))[:200],
+        "remediation_key": str(ai.get("title", "ai_suggested"))[:64].lower().replace(" ", "_"),
+        "human_action": str(ai.get("cause", ""))[:400],
+        "auto_fix_available": bool(ai.get("auto_fix_available")),
+        "auto_fix_kind": (ai.get("recommended_chain") or [None])[0],
+        "suggested_next": " → ".join(ai.get("plan") or [])[:200],
+        "diagnosis_source": "ai_assisted",
     }

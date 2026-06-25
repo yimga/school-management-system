@@ -11,6 +11,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 _REMEDIATED_PAYLOAD_KEY = "workflow_fix_remediation"
+_DEFER_REMEDIATION_STAMP = False
 
 AUTO_FIX_HANDLER_CATALOG: dict[str, dict[str, Any]] = {
     "requeue_provision": {
@@ -207,6 +208,9 @@ def _mark_run_remediated(
     an unresolved red item while the newly queued workflow takes over.
     """
 
+    if _DEFER_REMEDIATION_STAMP:
+        return {}
+
     if run is None or getattr(run, "pk", None) is None:
         return {}
 
@@ -353,8 +357,19 @@ def _chain_to_kind(run: Any, kind: str, source_kind: str) -> dict[str, Any]:
     return result
 
 
-def apply_auto_fix_kind(*, run: Any, kind: str) -> dict[str, Any]:
+def apply_auto_fix_kind(*, run: Any, kind: str, defer_remediation_stamp: bool = False) -> dict[str, Any]:
     """Execute a supported ``auto_fix_kind``. Returns JSON-serializable result."""
+
+    global _DEFER_REMEDIATION_STAMP
+    prior_defer = _DEFER_REMEDIATION_STAMP
+    _DEFER_REMEDIATION_STAMP = defer_remediation_stamp
+    try:
+        return _apply_auto_fix_kind_impl(run=run, kind=kind)
+    finally:
+        _DEFER_REMEDIATION_STAMP = prior_defer
+
+
+def _apply_auto_fix_kind_impl(*, run: Any, kind: str) -> dict[str, Any]:
 
     from apps.platform_runtime.models import WorkflowRun
 
@@ -871,6 +886,17 @@ def apply_auto_fix_kind(*, run: Any, kind: str) -> dict[str, Any]:
 # "Apply" button).
 STUCK_DEFAULT_FIX_BY_WORKFLOW = {
     "tenant_school_provision": "requeue_provision",
+    "tenant_school_create": "requeue_provision",
+    "migration_bundle_apply": "retry_failed_step",
+    "migration_bundle_advance": "retry_failed_step",
+    "migration_bundle_fetch_assets": "retry_failed_step",
+    "marketplace_webhook_deliver_due": "replay_webhook",
+    "orchestration_process_due": "retry_failed_step",
+    "evals_bulk_grades": "retry_failed_step",
+    "finance_auto_generate_fee_invoices": "retry_failed_step",
+    "finance_auto_copy_fee_plans": "retry_failed_step",
+    "tenant_school_purge": "retry_failed_step",
+    "tenant_school_offboard_purge": "retry_failed_step",
 }
 
 
@@ -892,6 +918,22 @@ def resolve_stuck_remediation(*, run: Any) -> dict[str, Any]:
             "human_action": (
                 "Provisioning has stalled past its expected time. Re-queue the "
                 "job — it is idempotent and resumes safely."
+            ),
+            "reason": "stuck",
+            "source": "stuck_sweep",
+        }
+    if kind and auto_fix_kind_is_executable(kind):
+        from apps.platform_runtime.workflow_recovery_playbook import (
+            recovery_strategy_for_workflow,
+        )
+
+        strategy = recovery_strategy_for_workflow(workflow_key)
+        return {
+            "auto_fix_available": True,
+            "auto_fix_kind": kind,
+            "human_action": (
+                f"This workflow has stalled past its expected time. "
+                f"{strategy.get('summary') or 'Retry the failed step.'}"
             ),
             "reason": "stuck",
             "source": "stuck_sweep",
