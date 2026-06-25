@@ -1,14 +1,29 @@
 {% comment %}
-  rmc-dh leaderboard / ranking row. Wrap items in <ul class="rmc-dh-lead">…</ul>.
-  Params: dh_rank (int), dh_avatar (initials), dh_name, dh_sub, dh_rt (rating text),
-  dh_rt_dir (up|down|"", opt), dh_href (opt → make name a link).
+  rmc-dh leaderboard / attention / message row. Wrap items in <ul class="rmc-dh-lead">…</ul>.
+  Single source of truth for the .rmc-dh-lead__* row grammar — used by the admin
+  (top performers + students-to-watch), teacher (students-to-watch) and parent
+  (class messages) role-home dashboards. Extend here, never re-fork the markup inline.
+
+  Params:
+    dh_rank       int   — rank/position number shown in the leading chip.
+    dh_rank_icon  str   — Bootstrap icon class (e.g. "bi-chat-dots"); when set,
+                          an icon replaces the number in the leading chip.
+    dh_top        bool  — highlight the chip as the podium leader (gold). Opt-in.
+    dh_avatar     str   — initials for the avatar bubble; omitted entirely when blank.
+    dh_name       str   — primary label (pre-truncate at the call site).
+    dh_href       str   — optional → primary label becomes a link.
+    dh_sub        str   — secondary label.
+    dh_sub2       str   — optional second secondary part, joined with " · ".
+    dh_rt         any   — trailing rated value; the chip is omitted when blank.
+    dh_rt_prefix  str   — optional prefix glued before the rated value (e.g. "−").
+    dh_rt_dir     str   — up|down|"" → colour direction modifier on the rated value.
 {% endcomment %}
 <li>
-  <span class="rmc-dh-lead__rk{% if dh_rank == 1 %} rmc-dh-lead__rk--top{% endif %}">{{ dh_rank }}</span>
-  <span class="rmc-dh-lead__av" aria-hidden="true">{{ dh_avatar }}</span>
+  <span class="rmc-dh-lead__rk{% if dh_top %} rmc-dh-lead__rk--top{% endif %}">{% if dh_rank_icon %}<i class="bi {{ dh_rank_icon }}" aria-hidden="true"></i>{% else %}{{ dh_rank }}{% endif %}</span>
+  {% if dh_avatar %}<span class="rmc-dh-lead__av" aria-hidden="true">{{ dh_avatar }}</span>{% endif %}
   <span class="rmc-dh-lead__main">
     <span class="rmc-dh-lead__nm">{% if dh_href %}<a href="{{ dh_href }}" class="rmc-dh-lead__nm">{{ dh_name }}</a>{% else %}{{ dh_name }}{% endif %}</span><br>
-    <span class="rmc-dh-lead__sub">{{ dh_sub }}</span>
+    <span class="rmc-dh-lead__sub">{{ dh_sub }}{% if dh_sub2 %} · {{ dh_sub2 }}{% endif %}</span>
   </span>
-  {% if dh_rt %}<span class="rmc-dh-lead__rt{% if dh_rt_dir %} rmc-dh-lead__rt--{{ dh_rt_dir }}{% endif %}">{{ dh_rt }}</span>{% endif %}
+  {% if dh_rt %}<span class="rmc-dh-lead__rt{% if dh_rt_dir %} rmc-dh-lead__rt--{{ dh_rt_dir }}{% endif %}">{{ dh_rt_prefix }}{{ dh_rt }}</span>{% endif %}
 </li>

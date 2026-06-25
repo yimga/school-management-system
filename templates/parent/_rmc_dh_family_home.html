@@ -171,11 +171,7 @@
       <div class="rmc-preview-live-section__body">
         <ul class="rmc-dh-lead">
           {% for thread in class_threads|slice:":6" %}
-          <li>
-            <span class="rmc-dh-lead__rk"><i class="bi bi-chat-dots" aria-hidden="true"></i></span>
-            <span class="rmc-dh-lead__main"><span class="rmc-dh-lead__nm">{{ thread.title|default:_("Class thread")|truncatechars:34 }}</span><br><span class="rmc-dh-lead__sub">{{ thread.snippet|default:thread.description|default:_("No new summary.")|truncatechars:60 }}</span></span>
-            {% if thread.unread_count %}<span class="rmc-dh-lead__rt rmc-dh-lead__rt--down">{{ thread.unread_count }}</span>{% endif %}
-          </li>
+          {% include "components/dashboard/rmc_dh_lead_item.html" with dh_rank_icon="bi-chat-dots" dh_name=thread.title|default:_("Class thread")|truncatechars:34 dh_sub=thread.snippet|default:thread.description|default:_("No new summary.")|truncatechars:60 dh_rt=thread.unread_count dh_rt_dir="down" %}
           {% endfor %}
         </ul>
       </div>

@@ -133,12 +133,7 @@
       <div class="rmc-preview-live-section__body">
         <ul class="rmc-dh-lead">
           {% for item in ews_list|slice:":6" %}
-          <li>
-            <span class="rmc-dh-lead__rk">{{ forloop.counter }}</span>
-            <span class="rmc-dh-lead__av" aria-hidden="true">{{ item.student_name|slice:":1" }}</span>
-            <span class="rmc-dh-lead__main"><span class="rmc-dh-lead__nm">{{ item.student_name|truncatechars:26 }}</span><br><span class="rmc-dh-lead__sub">{{ item.subject }} · {{ item.classroom }}</span></span>
-            <span class="rmc-dh-lead__rt rmc-dh-lead__rt--down">−{{ item.drop_points }}</span>
-          </li>
+          {% include "components/dashboard/rmc_dh_lead_item.html" with dh_rank=forloop.counter dh_avatar=item.student_name|slice:":1" dh_name=item.student_name|truncatechars:26 dh_sub=item.subject dh_sub2=item.classroom dh_rt=item.drop_points dh_rt_prefix="−" dh_rt_dir="down" %}
           {% endfor %}
         </ul>
       </div>
