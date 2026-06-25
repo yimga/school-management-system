@@ -44,6 +44,32 @@ ROLE_HOME_EXPERIENCE_MODE_CHOICES: tuple[tuple[str, str], ...] = (
     (ROLE_HOME_MODE_LEGACY, _("Legacy stack on role homes only")),
 )
 
+ROLE_PRESET_INHERIT = "inherit"
+
+ROLE_PRESET_BUCKETS: dict[str, dict[str, str]] = {
+    "ADMIN": {"label": str(_("Administrators"))},
+    "TEACHER": {"label": str(_("Teachers"))},
+    "PARENT": {"label": str(_("Parents"))},
+    "STUDENT": {"label": str(_("Students"))},
+}
+
+ROLE_PRESET_FIELD_CHOICES: tuple[tuple[str, str], ...] = (
+    (ROLE_PRESET_INHERIT, _("Inherit school default")),
+    *EXPERIENCE_PRESET_CHOICES,
+)
+
+ADMIN_OPERATOR_ROLES: frozenset[str] = frozenset(
+    {
+        "ADMIN",
+        "SUPERADMIN",
+        "PROPRIETOR",
+        "IT_ADMIN",
+        "BURSAR",
+        "FINANCE_ADMIN",
+        "LEADERSHIP",
+    }
+)
+
 # Keys compared when detecting whether a stored policy still matches a preset.
 _PRESET_COMPARE_KEYS: tuple[str, ...] = (
     "use_v3_shell",
@@ -74,6 +100,8 @@ _PRESET_COMPARE_KEYS: tuple[str, ...] = (
     "show_dashboard_stats_cards_on_v3",
     "show_legacy_sidebar_user_header_on_v3",
 )
+
+ROLE_PRESET_MERGE_KEYS: frozenset[str] = frozenset(_PRESET_COMPARE_KEYS)
 
 _ALL_LEGACY_ON_V3_TRUE: dict[str, bool] = {
     "show_first_run_zero_state_on_v3": True,
@@ -245,7 +273,84 @@ def merge_manual_fields_onto_policy(
     return out
 
 
+def experience_policy_role_bucket(role: str | None) -> str:
+    """Map a portal role to a Shopify-style preset bucket."""
+    normalized = str(role or "").strip().upper()
+    if not normalized:
+        return ""
+    if normalized in ADMIN_OPERATOR_ROLES:
+        return "ADMIN"
+    if normalized in {"TEACHER", "HOD"}:
+        return "TEACHER"
+    if normalized == "PARENT":
+        return "PARENT"
+    if normalized == "STUDENT":
+        return "STUDENT"
+    return ""
+
+
+def normalize_role_experience_presets(raw: Any) -> dict[str, str]:
+    """Return ``{ADMIN|TEACHER|PARENT|STUDENT: preset_id}`` with inherit rows omitted."""
+    buckets = set(ROLE_PRESET_BUCKETS)
+    out: dict[str, str] = {}
+    if not isinstance(raw, dict):
+        return out
+    for key, value in raw.items():
+        bucket = str(key or "").strip().upper()
+        if bucket not in buckets:
+            continue
+        preset = str(value or ROLE_PRESET_INHERIT).strip().lower()
+        if preset in {"", ROLE_PRESET_INHERIT}:
+            continue
+        if preset in EXPERIENCE_PRESET_IDS and preset != PRESET_CUSTOM:
+            out[bucket] = preset
+    return out
+
+
+def merge_role_preset_onto_policy(policy: dict[str, Any], role: str) -> dict[str, Any]:
+    """Apply per-role preset overlay for the active portal role."""
+    out = deepcopy(policy)
+    bucket = experience_policy_role_bucket(role)
+    out["experience_policy_role_bucket"] = bucket
+    school_preset = str(out.get("experience_preset") or PRESET_CUSTOM)
+    out["effective_experience_preset"] = school_preset
+    if not bucket:
+        return out
+    role_presets = normalize_role_experience_presets(out.get("role_experience_presets"))
+    role_preset = role_presets.get(bucket)
+    if not role_preset or role_preset not in _PRESET_OVERLAYS:
+        return out
+    overlay = apply_experience_preset(role_preset)
+    for key in ROLE_PRESET_MERGE_KEYS:
+        if key in overlay:
+            out[key] = overlay[key]
+    out["effective_experience_preset"] = role_preset
+    return out
+
+
+def apply_role_overlay(
+    policy: dict[str, Any],
+    *,
+    role_bucket: str,
+    preset_id: str,
+) -> dict[str, Any]:
+    """Persist a role-bucket preset selection onto stored policy."""
+    out = deepcopy(policy)
+    bucket = str(role_bucket or "").strip().upper()
+    if bucket not in ROLE_PRESET_BUCKETS:
+        return out
+    presets = normalize_role_experience_presets(out.get("role_experience_presets"))
+    preset = str(preset_id or "").strip().lower()
+    if preset in {"", ROLE_PRESET_INHERIT}:
+        presets.pop(bucket, None)
+    elif preset in EXPERIENCE_PRESET_IDS and preset != PRESET_CUSTOM:
+        presets[bucket] = preset
+    out["role_experience_presets"] = presets
+    return out
+
+
 __all__ = [
+    "ADMIN_OPERATOR_ROLES",
     "EXPERIENCE_PRESET_CHOICES",
     "EXPERIENCE_PRESET_IDS",
     "PRESET_CUSTOM",
@@ -256,9 +361,17 @@ __all__ = [
     "ROLE_HOME_EXPERIENCE_MODE_CHOICES",
     "ROLE_HOME_MODE_LEGACY",
     "ROLE_HOME_MODE_V3",
+    "ROLE_PRESET_BUCKETS",
+    "ROLE_PRESET_FIELD_CHOICES",
+    "ROLE_PRESET_INHERIT",
+    "ROLE_PRESET_MERGE_KEYS",
     "apply_experience_preset",
+    "apply_role_overlay",
     "detect_matching_preset",
+    "experience_policy_role_bucket",
     "merge_manual_fields_onto_policy",
+    "merge_role_preset_onto_policy",
+    "normalize_role_experience_presets",
     "policy_matches_preset",
     "preset_catalog",
 ]

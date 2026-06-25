@@ -190,15 +190,24 @@ def compute_weighted_experience_score(
     *,
     country_configured: bool = False,
     country_bonus: int | None = None,
+    country_ctx: dict[str, Any] | None = None,
 ) -> int:
     profile_weight = int(policy.get("experience_score_profile_weight", 50))
     school_weight = int(policy.get("experience_score_school_weight", 50))
     total = profile_weight + school_weight or 100
     school_value = max(0, min(100, int(school_score)))
     if country_configured:
-        bonus = country_bonus if country_bonus is not None else int(
-            policy.get("experience_score_country_bonus", 0)
-        )
+        if country_bonus is None:
+            if country_ctx is not None:
+                from apps.siteconfig.tenant_country_readiness import (
+                    resolve_effective_country_bonus,
+                )
+
+                bonus = resolve_effective_country_bonus(policy, country_ctx=country_ctx)
+            else:
+                bonus = int(policy.get("experience_score_country_bonus", 0))
+        else:
+            bonus = country_bonus
         if bonus > 0:
             school_value = min(100, school_value + bonus)
     profile_value = max(0, min(100, int(profile_score)))
