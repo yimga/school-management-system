@@ -227,7 +227,7 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   gap: 14px;
   margin-bottom: 0.75rem;
 }
-/* Globe landing — canvas starts at AI Copilot (no explain / workspace / breadcrumb bands). */
+/* Globe landing — master preview parity + void band + Live/Offline toggle. */
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] {
   padding-top: 0 !important;
   padding-bottom: 0.25rem;
@@ -242,37 +242,42 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] #rmc-globe-master-lab {
   margin-top: 0;
+  gap: 10px;
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .rmc-app-shell__canvas-body {
   padding-top: 0;
 }
-/* Globe landing lab — stacked lab column: map → C·dock·D → 96px prism → 6D timeline. */
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__controls {
-  display: none !important;
-}
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__header {
-  padding: 6px 10px 4px;
+  padding: 0 4px 2px;
   margin: 0;
 }
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__ai-guide {
-  gap: 6px 10px;
-  padding: 4px 0;
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__title {
+  font-size: 17px;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__note {
+  margin: 0;
   font-size: 12px;
-  line-height: 1.25;
+  line-height: 1.35;
+  color: var(--text-secondary);
 }
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__ai-guide strong {
-  font-size: 13px;
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__controls {
+  display: flex !important;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  gap: 8px;
 }
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__ai-guide-btn {
-  padding: 4px 8px;
-  font-size: 11px;
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world__chrome-rail--globe-landing-hidden {
+  display: none !important;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world__map .lx-world__void-zone--chrome-rail-hide {
+  display: block !important;
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] #master-card.lx-world--hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) min(260px, 26vw);
-  grid-template-rows: minmax(180px, 1fr) auto auto auto;
+  grid-template-columns: minmax(0, 1fr) min(280px, 28vw);
+  grid-template-rows: minmax(240px, 1fr) auto auto;
   min-height: 0;
-  max-height: min(78vh, 680px);
+  max-height: min(82vh, 720px);
   overflow: hidden;
   align-items: stretch;
 }
@@ -280,7 +285,7 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   grid-column: 1;
   grid-row: 1;
   height: 100%;
-  min-height: 180px;
+  min-height: 240px;
   max-height: none;
   align-self: stretch;
 }
@@ -293,28 +298,18 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   white-space: nowrap;
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__chrome-rail--stacked {
-  grid-column: 1;
-  grid-row: 2;
-  position: relative;
-  left: auto;
-  right: auto;
-  bottom: auto;
-  z-index: 2;
-  padding: 6px 12px;
-  border-top: 1px solid rgba(148, 163, 184, 0.12);
-  background: rgba(8, 12, 20, 0.95);
-  pointer-events: auto;
+  display: none !important;
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__void-band {
   grid-column: 1;
-  grid-row: 3;
+  grid-row: 2;
   min-height: 0;
   padding: 6px 10px;
   gap: 8px;
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__pulse-timeline {
   grid-column: 1;
-  grid-row: 4;
+  grid-row: 3;
   padding: 6px 10px 8px;
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world__void-band .rmc-cockpit-pulse__label {
@@ -378,12 +373,19 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   margin-bottom: 1px;
 }
 @media (max-width: 1100px) {
-  [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] #master-card.lx-world--hero,
+  [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] #master-card.lx-world--hero {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(220px, 46vh) auto auto auto;
+  }
+  [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__legend-panel {
+    grid-column: 1;
+    grid-row: 4;
+    max-height: 240px;
+  }
   .lx-world--hero {
     grid-template-columns: 1fr;
     grid-template-rows: minmax(200px, 48vh) auto auto auto auto;
   }
-  [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__legend-panel,
   .lx-world--hero .lx-world__legend-panel {
     grid-column: 1;
     grid-row: 5;
@@ -466,6 +468,12 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   line-height: 1.2;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+.lx-world-lab__note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-secondary);
 }
 .lx-world-lab__tag {
   display: inline-flex;

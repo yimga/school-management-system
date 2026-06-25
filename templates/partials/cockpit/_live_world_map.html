@@ -8,6 +8,19 @@
 {% with lwm_features=cockpit.live_world_map.globe_payload.features %}
 <section class="lx-world-lab{% if lwm_features.wow_enabled != False %} lx-world--wow-on{% endif %}" id="rmc-globe-master-lab" aria-label="{% trans 'Live world map of tenant locations' %}" data-rmc-page-fold-nav="required" data-rmc-globe-wow-plus="1" data-rmc-globe-surface-elevation="1" data-rmc-globe-master-lab="1">
   <header class="lx-world-lab__header">
+    {% if rmc_cp_globe_landing_minimal_chrome %}
+    <h2 class="lx-world-lab__title">
+      <span class="lx-world-lab__tag">{% trans "Live" %}</span>
+      {% trans "Master preview — all layers" %}
+    </h2>
+    <p class="lx-world-lab__note">{% trans "Drag the globe · hover legend rows (magnetic fly-to) · toggle layers · turn on Wow demo for aurora + arcs + auto-rotate." %}</p>
+    <div class="visually-hidden" aria-hidden="true" id="rmc-world-globe-ai-guide" data-rmc-globe-ai-block>
+      <strong id="rmc-world-globe-ai-guide-headline"></strong>
+      <span id="rmc-world-globe-ai-guide-copy"></span>
+      <button type="button" class="lx-world-lab__ai-guide-btn" id="rmc-world-globe-ai-guide-ask" tabindex="-1">{% trans "Ask AI" %}</button>
+      <button type="button" class="lx-world-lab__ai-guide-btn" id="rmc-world-globe-ai-guide-tour" tabindex="-1">{% trans "Smart tour" %}</button>
+    </div>
+    {% else %}
     <div class="lx-world-lab__ai-guide" id="rmc-world-globe-ai-guide" data-rmc-globe-ai-block>
       <span class="lx-world-lab__tag">{% trans "AI Copilot" %}</span>
       <strong id="rmc-world-globe-ai-guide-headline">{% if lwm_fleet and lwm_fleet.fleet_brief.headline %}{{ lwm_fleet.fleet_brief.headline }}{% else %}{% trans "Fleet focus ready" %}{% endif %}</strong>
@@ -15,6 +28,7 @@
       <button type="button" class="lx-world-lab__ai-guide-btn" id="rmc-world-globe-ai-guide-ask">{% trans "Ask AI" %}</button>
       <button type="button" class="lx-world-lab__ai-guide-btn" id="rmc-world-globe-ai-guide-tour">{% trans "Smart tour" %}</button>
     </div>
+    {% endif %}
   </header>
   <div class="lx-world-lab__controls" role="group" aria-label="{% trans 'Globe AI controls' %}">
     <label><input type="checkbox" id="layer-void" checked> {% trans "Void zones A-D" %}</label>
@@ -130,7 +144,7 @@
       <span id="rmc-world-globe-void-caption-text">{% if lwm_fleet and lwm_fleet.pulse_events and lwm_fleet.pulse_events.0.text %}{{ lwm_fleet.pulse_events.0.text }}{% else %}{% trans "Drag · zoom · click pin" %}{% endif %}</span>
     </div>
     <div class="lx-world__void-zone lx-world__void-zone--ai lx-world__void-zone--br lx-world__void-zone--chrome-rail-hide" id="rmc-world-globe-void-whisper">
-      <b>{% trans "D · Fleet whisper" %}</b>
+      <b>{% trans "D · AI whisper" %}</b>
       <span id="rmc-world-globe-whisper-line">{% if lwm_fleet and lwm_fleet.whisper_line %}{{ lwm_fleet.whisper_line }}{% else %}{% trans "Fleet healthy · pan to explore pins" %}{% endif %}</span>
     </div>
     {% endif %}
@@ -231,7 +245,7 @@
   </div>
   {% endif %}
   {% if lwm_features.chrome_rail != False %}
-  <div class="lx-world__chrome-rail lx-world__chrome-rail--stacked" id="rmc-world-globe-chrome-rail" data-rmc-globe-chrome-rail="1">
+  <div class="lx-world__chrome-rail lx-world__chrome-rail--stacked{% if rmc_cp_globe_landing_minimal_chrome %} lx-world__chrome-rail--globe-landing-hidden{% endif %}" id="rmc-world-globe-chrome-rail" data-rmc-globe-chrome-rail="1">
     <div class="lx-world__chrome-rail-caption lx-world__void-zone lx-world__void-zone--data" id="rmc-world-globe-chrome-caption">
       <b>{% trans "C · Caption" %}</b>
       <span id="rmc-world-globe-chrome-caption-text">{% if lwm_fleet and lwm_fleet.pulse_events and lwm_fleet.pulse_events.0.text %}{{ lwm_fleet.pulse_events.0.text }}{% else %}{% trans "School now live" %}{% endif %}</span>

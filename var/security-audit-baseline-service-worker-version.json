@@ -1,12 +1,12 @@
 {
-  "date": "2026-06-25",
-  "generated_at": "2026-06-25T20:00:00+00:00",
+  "date": "2026-06-20",
+  "generated_at": "2026-06-25T21:30:45+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 37,
-  "raw": "sms-v4.05.37-tenant-app-shell-merge-2026-06-25",
+  "patch": 38,
+  "raw": "sms-v4.05.38-globe-master-preview-parity-2026-06-20",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "tenant-app-shell-merge",
+  "slug": "globe-master-preview-parity",
   "valid": true
 }

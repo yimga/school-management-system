@@ -85,9 +85,10 @@ def main() -> int:
     skeleton = _read("templates/control_plane_skeleton.html")
 
     tpl_lower = tpl.lower()
-    for removed in ("master preview", "drag the globe"):
-        if removed in tpl_lower:
-            _fail(f"_live_world_map.html still contains removed static preview copy {removed!r}")
+    if "master preview" not in tpl_lower:
+        _fail("_live_world_map.html missing Master preview landing title")
+    if "rmc-world-globe-mode-live" not in tpl or "rmc-world-globe-mode-offline" not in tpl:
+        _fail("_live_world_map.html missing Live/Offline globe mode toggle")
 
     for marker in VOID_TIER:
         if marker == "rmc-operator-fleet-bus":

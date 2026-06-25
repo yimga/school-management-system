@@ -170,9 +170,9 @@ class SuperAdminSurfaceParityTests(TestCase):
         response = self.client.get("/super/", HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "rmc-operator-surface-strip")
-        self.assertNotContains(response, "rmc-page-explain-strip")
-        self.assertNotContains(response, "About this page")
-        self.assertContains(response, 'id="rmc-world-globe-ai-guide"')
+        self.assertContains(response, "Master preview")
+        self.assertContains(response, 'id="rmc-world-globe-mode-live"')
+        self.assertContains(response, 'data-rmc-globe-void-band="1"')
         self.assertNotContains(response, "Platform admin")
         self.assertNotContains(response, "Open platform admin")
 
