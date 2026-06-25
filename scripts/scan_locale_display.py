@@ -11,18 +11,23 @@ invoices, statements, receipts, or emails. This is the regression that the
 operator-revenue burndown (``a7f815b8f``) + tenant currency-resolution fix
 (``b084a85d4``) closed by hand; this gate stops it coming back.
 
-It flags the two highest-signal shapes (chosen to keep false positives at zero):
+It flags the high-signal shapes (chosen to keep false positives at zero):
 
   Python  an f-string whose literal segment ENDS in a currency symbol that is
           immediately followed by an interpolation -- e.g.
               f"${amount}"   f"${total:,.2f}"   f"₦{x:.0f}"   f"{label}: ${v}"
+          a glyph glued to a printf conversion that is the LEFT operand of % --
+              "$%.2f" % value      "₦%d" % qty
+          a glyph glued to a str.format field on the formatted literal --
+              "${}".format(value)  "${:,.2f}".format(total)
   HTML     a currency symbol glued to a Django variable -- e.g.
               ${{ amount }}   ₦{{ invoice.total }}
 
-It deliberately does NOT try to flag ``"$" + str(x)`` concat or ``"$%s" % x``
-(too ambiguous for a zero-FP static gate); the f-string + template shapes cover
-the documented bug. JS template literals (``${expr}``, single brace) never match
-the template pattern (which requires Django's ``{{``).
+The % / .format detectors are AST-anchored to the real ``%`` operation / the
+real ``.format()`` receiver, so a shell-style ``"${HOME}"`` literal, a regex, or
+a docstring never false-positives. It deliberately does NOT flag ``"$" + str(x)``
+concat (too ambiguous for a zero-FP static gate). JS template literals
+(``${expr}``, single brace) never match the template pattern (Django needs ``{{``).
 
 Mark intentional symbol-only sites (genuine USD-only platform contexts, fixtures,
 docs) with ``# locale-display-allow: <reason>`` (Python, same line or line above)
@@ -78,6 +83,14 @@ ALLOW_MARKER = "locale-display-allow:"
 # A currency glyph immediately before a Django variable open (optional space).
 HTML_PATTERN = re.compile(r"[" + re.escape(CURRENCY_SYMBOLS) + r"]\s*\{\{")
 
+# A currency glyph glued to a printf conversion (``"$%.2f" % x``) or to a
+# ``str.format`` field (``"${}".format(x)``). Only consulted on the literal that
+# is the actual left operand of ``%`` / the actual receiver of ``.format()`` (AST
+# anchored), so a shell-style ``"${HOME}"`` or a regex never false-positives.
+_SYM_CLASS = "[" + re.escape(CURRENCY_SYMBOLS) + "]"
+PRINTF_MONEY = re.compile(_SYM_CLASS + r"%[#0\- +]*\d*(?:\.\d+)?[sdifeEgGxXr]")
+FORMAT_MONEY = re.compile(_SYM_CLASS + r"\{[^{}]*\}")
+
 
 def _rel(path: Path) -> str:
     return path.relative_to(REPO_ROOT).as_posix()
@@ -98,37 +111,61 @@ def _ends_in_symbol(text: str) -> bool:
     return bool(text) and text[-1] in CURRENCY_SYMBOLS
 
 
+def _const_str(node) -> str | None:
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    return None
+
+
 def _scan_python_text(rel: str, text: str) -> list[dict[str, str | int]]:
-    """Flag f-strings whose literal segment ends in a currency symbol that is
-    immediately followed by an interpolation."""
+    """Flag a currency glyph hardcoded onto an interpolated/formatted value:
+
+    * f-string whose literal segment ENDS in a glyph before an interpolation
+      (``f"${amount}"``),
+    * ``"$%.2f" % value`` printf formatting (glyph glued to the conversion),
+    * ``"${}".format(value)`` (glyph glued to the format field).
+    """
     findings: list[dict[str, str | int]] = []
     try:
         tree = ast.parse(text)
     except SyntaxError:
         return findings
     lines = text.splitlines()
+    seen: set[int] = set()
+
+    def record(line_no: int) -> None:
+        if line_no in seen or _has_allow_marker(lines, line_no):
+            return
+        seen.add(line_no)
+        snippet = (
+            lines[line_no - 1].strip()[:160] if 0 <= line_no - 1 < len(lines) else ""
+        )
+        findings.append({"path": rel, "line": line_no, "snippet": snippet})
+
     for node in ast.walk(tree):
-        if not isinstance(node, ast.JoinedStr):
-            continue
-        values = node.values
-        for i, part in enumerate(values[:-1]):
-            nxt = values[i + 1]
-            if (
-                isinstance(part, ast.Constant)
-                and isinstance(part.value, str)
-                and _ends_in_symbol(part.value)
-                and isinstance(nxt, ast.FormattedValue)
-            ):
-                line_no = getattr(node, "lineno", 1)
-                if _has_allow_marker(lines, line_no):
-                    continue
-                snippet = (
-                    lines[line_no - 1].strip()[:160]
-                    if 0 <= line_no - 1 < len(lines)
-                    else ""
-                )
-                findings.append({"path": rel, "line": line_no, "snippet": snippet})
-                break  # one finding per f-string
+        if isinstance(node, ast.JoinedStr):
+            values = node.values
+            for i, part in enumerate(values[:-1]):
+                txt = _const_str(part)
+                if (
+                    txt is not None
+                    and _ends_in_symbol(txt)
+                    and isinstance(values[i + 1], ast.FormattedValue)
+                ):
+                    record(getattr(node, "lineno", 1))
+                    break  # one finding per f-string
+        elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.Mod):
+            txt = _const_str(node.left)
+            if txt is not None and PRINTF_MONEY.search(txt):
+                record(getattr(node, "lineno", 1))
+        elif isinstance(node, ast.Call):
+            func = node.func
+            if isinstance(func, ast.Attribute) and func.attr == "format":
+                txt = _const_str(func.value)
+                if txt is not None and FORMAT_MONEY.search(txt):
+                    record(getattr(node, "lineno", 1))
+
+    findings.sort(key=lambda item: int(item["line"]))
     return findings
 
 

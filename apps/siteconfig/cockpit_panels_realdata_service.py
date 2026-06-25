@@ -567,11 +567,15 @@ def _fc_confidence_pct(r2: float, n: int) -> int:
 
 
 def _fc_fmt_mrr(value: float) -> str:
-    """Format a monthly-dollar figure like the pulse card ($42k / $1.2k / $850)."""
+    """Format a monthly figure like the pulse card (e.g. 42k / 1.2k / 850) in the
+    platform's reporting currency — symbol resolved, never hardcoded."""
+    from apps.siteconfig.currency import platform_currency_symbol
+
+    cur = platform_currency_symbol()
     value = max(0.0, value)
     if value >= _FC_MRR_THOUSANDS:
-        return ("$%.1fk" % (value / _FC_MRR_THOUSANDS)).replace(".0k", "k")
-    return "$%.0f" % value
+        return f"{cur}{value / _FC_MRR_THOUSANDS:.1f}k".replace(".0k", "k")
+    return f"{cur}{value:.0f}"
 
 
 def _fc_value_and_prediction(

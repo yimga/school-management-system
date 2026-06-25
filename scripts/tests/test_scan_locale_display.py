@@ -74,6 +74,52 @@ class PythonDetectorTests(unittest.TestCase):
         self.assertEqual(self._scan("def (:\n"), [])
 
 
+class PrintfAndFormatDetectorTests(unittest.TestCase):
+    def _scan(self, src: str):
+        return s._scan_python_text("apps/x/foo.py", src)
+
+    def test_flags_printf_dollar(self):
+        out = self._scan('def f(v):\n    return "$%.2f" % v\n')
+        self.assertEqual(len(out), 1)
+
+    def test_flags_printf_thousands_suffix(self):
+        out = self._scan('def f(v):\n    return "$%.1fk" % (v / 1000)\n')
+        self.assertEqual(len(out), 1)
+
+    def test_flags_printf_non_dollar_symbol(self):
+        out = self._scan('def f(q):\n    return "₦%d" % q\n')  # NGN
+        self.assertEqual(len(out), 1)
+
+    def test_flags_format_method(self):
+        out = self._scan('def f(v):\n    return "${}".format(v)\n')
+        self.assertEqual(len(out), 1)
+
+    def test_flags_format_method_with_spec(self):
+        out = self._scan('def f(v):\n    return "${:,.2f}".format(v)\n')
+        self.assertEqual(len(out), 1)
+
+    def test_shell_var_literal_not_flagged(self):
+        # "${HOME}" is not a % op nor a .format receiver — never money.
+        out = self._scan('def f():\n    path = "${HOME}/x"\n    return path\n')
+        self.assertEqual(out, [])
+
+    def test_printf_without_symbol_not_flagged(self):
+        out = self._scan('def f(v):\n    return "%.2f" % v\n')
+        self.assertEqual(out, [])
+
+    def test_percent_without_conversion_not_flagged(self):
+        out = self._scan('def f():\n    return "rate $5" % ()\n')
+        self.assertEqual(out, [])
+
+    def test_format_on_non_money_not_flagged(self):
+        out = self._scan('def f(v):\n    return "value {}".format(v)\n')
+        self.assertEqual(out, [])
+
+    def test_printf_allow_marker_suppresses(self):
+        src = 'def f(v):\n    return "$%.2f" % v  # locale-display-allow: usd-internal\n'
+        self.assertEqual(self._scan(src), [])
+
+
 class HtmlDetectorTests(unittest.TestCase):
     def _scan(self, src: str):
         return s._scan_html_text("templates/x.html", src)
