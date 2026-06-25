@@ -28,6 +28,16 @@ on:
       - "scripts/scan_migration_model_imports.py"
       - "scripts/scan_import_reference_integrity.py"
       - "var/security-audit-baseline-import-reference-integrity.json"
+      - "scripts/verify_offline_capability_implementation.py"
+      - "var/security-audit-baseline-offline-capability-implementation.json"
+      - "scripts/verify_offline_manifest_taxonomy.py"
+      - "apps/platform_runtime/offline_action_types.py"
+      - "apps/platform_runtime/offline_queue.py"
+      - "apps/wal_stream/writers.py"
+      - "apps/wal_stream/consumers.py"
+      - "static/js/rmc-offline-portal-forms.js"
+      - "static/js/offline-queue-client.js"
+      - "static/js/rmc-wal-stream.js"
       - "scripts/scan_drf_schema_coverage.py"
       - "scripts/scan_role_strings.py"
       - "scripts/lint_terminology_adoption.py"
@@ -298,6 +308,20 @@ jobs:
       - name: Run scanner --compare
         run: |
           python scripts/scan_import_reference_integrity.py --compare
+
+  offline-capability-implementation:
+    name: Offline capability implementation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run gate
+        run: |
+          python scripts/verify_offline_capability_implementation.py
 
   drf-schema-coverage:
     name: DRF view schema coverage
