@@ -1,0 +1,60 @@
+{% load i18n %}
+{% comment %}88px fixed interstitial — nexus ribbon fills the void between chrome rail and pulse timeline.{% endcomment %}
+{% if lwm_features.nexus_interstitial != False %}
+<div
+  class="lx-world__interstitial lx-world--nexus-on"
+  id="rmc-world-globe-interstitial"
+  data-rmc-globe-nexus="1"
+  aria-label="{% trans 'Fleet command ribbon' %}"
+>
+  <div class="lx-world__nexus" id="rmc-world-globe-nexus">
+    <div class="lx-world__nexus-aurora" aria-hidden="true"></div>
+    <div class="lx-world__nexus-scan" aria-hidden="true"></div>
+    <div class="lx-world__nexus-ribbon">
+      <div class="lx-world__nexus-context">
+        <div class="lx-world__nexus-glyph" aria-hidden="true">⌁</div>
+        <div class="lx-world__nexus-context-copy">
+          <strong>{% trans "Manager dashboard" %}</strong>
+          <span>{% trans "Command center · fleet overview" %}</span>
+        </div>
+      </div>
+      <div class="lx-world__nexus-filament">
+        <div class="lx-world__nexus-filament-track" aria-hidden="true">
+          <div class="lx-world__nexus-filament-pulse"></div>
+        </div>
+        <div class="lx-world__nexus-nodes">
+          <a class="lx-world__nexus-node lx-world__nexus-node--live" href="{% url 'super:schools_list' %}">
+            <span class="lx-world__nexus-node-dot"></span>
+            <span class="lx-world__nexus-node-label">{% trans "Directory" %}</span>
+          </a>
+          <a class="lx-world__nexus-node" href="{% url 'siteconfig:cockpit_configure' %}#cockpit-tenant-experience-policy">
+            <span class="lx-world__nexus-node-dot"></span>
+            <span class="lx-world__nexus-node-label">{% trans "Experience" %}</span>
+          </a>
+          <a class="lx-world__nexus-node" href="{% url 'siteconfig:feature_control_panel' %}">
+            <span class="lx-world__nexus-node-dot"></span>
+            <span class="lx-world__nexus-node-label">{% trans "Features" %}</span>
+          </a>
+        </div>
+      </div>
+      <div class="lx-world__nexus-ticker" id="rmc-world-globe-nexus-ticker">
+        <span class="lx-world__nexus-live" aria-hidden="true"></span>
+        <div class="lx-world__nexus-metrics">
+          <div class="lx-world__nexus-metric" title="{% trans 'Schools live' %}">
+            <span class="lx-world__nexus-metric-v" id="rmc-nexus-metric-schools">{{ cockpit.live_world_map.schools_live|default:"0" }}</span>
+            <span class="lx-world__nexus-metric-k">{% trans "Sch" %}</span>
+          </div>
+          <div class="lx-world__nexus-metric" title="{% trans 'Regions' %}">
+            <span class="lx-world__nexus-metric-v" id="rmc-nexus-metric-regions">{{ cockpit.live_world_map.regional_breakdown|length|default:"0" }}</span>
+            <span class="lx-world__nexus-metric-k">{% trans "Reg" %}</span>
+          </div>
+          <div class="lx-world__nexus-metric" title="{% trans 'Countries' %}">
+            <span class="lx-world__nexus-metric-v" id="rmc-nexus-metric-countries">—</span>
+            <span class="lx-world__nexus-metric-k">{% trans "Co" %}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}

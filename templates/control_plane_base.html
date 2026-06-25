@@ -60,47 +60,63 @@
    includes it. Other /super/ pages keep their own personality. Breadcrumb stays
    (universally useful, no-op when breadcrumb_trail absent). {% endcomment %}
 {% block rmc_operator_surface_strip %}
+{% if not rmc_cp_globe_landing_minimal_chrome %}
 {% include "components/rmc_operator_surface_strip.html" %}
+{% endif %}
 {% endblock %}
 
 <div class="container-fluid px-3 py-2 cp-layout d-flex flex-column rmc-shell-canvas-container" data-rmc-authenticated-shell="{{ rmc_shell.cp_layout_authenticated_shell|default:'manager-control-plane' }}" {% block cp_layout_attrs %}{% endblock %}>
   <main id="cp-main-content" class="cp-main-col rmc-shell-main" role="main" data-shell-main="control-plane" data-page-archetype="{% block cp_page_archetype %}decision-console{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'manager-control-plane' }}" data-rmc-shell-main="control-plane" data-rmc-static-chrome="1">
     {% include "partials/shell_chrome_django_messages_control_plane.html" %}
+    {% if not rmc_cp_globe_landing_minimal_chrome %}
     {% include "components/rmc_page_explain_strip.html" %}
     {% comment %} v4.02.10: Tier-3 incident banner lives in Tools tray context stack. {% endcomment %}
     {% include "partials/shell_chrome_security_posture_banner.html" %}
+    {% endif %}
     {% include "partials/shell_chrome_impersonation_session_strip.html" %}
-    {% if cp_show_operator_disclaimer %}
+    {% if cp_show_operator_disclaimer and not rmc_cp_globe_landing_minimal_chrome %}
     <p class="text-secondary small mb-2" role="note">
       {% trans "Platform Studio and system tools here are operator-facing. For school workflows and live tenant previews, use Open as school (impersonation) from the dashboard." %}
     </p>
     {% endif %}
+    {% if not rmc_cp_globe_landing_minimal_chrome %}
     {% include "partials/shell_chrome_breadcrumb_row_open.html" with shell_chrome_breadcrumb_surface=rmc_shell.control_plane_breadcrumb_surface shell_chrome_breadcrumb_row_extra_class="cp-page-header" %}
+    {% endif %}
       {% block breadcrumbs %}{% endblock %}
+    {% if not rmc_cp_globe_landing_minimal_chrome %}
     {% include "partials/shell_chrome_breadcrumb_row_between_primary_and_actions.html" %}
+    {% endif %}
       {% block breadcrumb_actions %}{% endblock %}
+    {% if not rmc_cp_globe_landing_minimal_chrome %}
     {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
+    {% endif %}
     {% if request.user.is_authenticated %}
     {% block cp_preview_page_h1 %}
-    {% if cp_page_title %}
+    {% if cp_page_title and not rmc_cp_globe_landing_minimal_chrome %}
     {% include "partials/cp_page_h1_row.html" %}
     {% endif %}
     {% endblock %}
     {% block cp_workspace_header %}
-    {% if show_cp_workspace_header and not cp_page_title and not page_provides_own_h1 %}
+    {% if show_cp_workspace_header and not cp_page_title and not page_provides_own_h1 and not rmc_cp_globe_landing_minimal_chrome %}
     {% include "components/rmc_os_page_header.html" %}
     {% endif %}
     {% endblock %}
+    {% if not rmc_cp_globe_landing_minimal_chrome %}
     <div class="d-flex flex-wrap justify-content-end gap-2 mb-0" data-rmc-os-primary-action-slot="1" data-rmc-primary-action-slot="1">
       {% block rmc_os_shell_primary_action %}{% endblock %}
     </div>
+    {% endif %}
     {% block cp_status_strip %}
+    {% if not rmc_cp_globe_landing_minimal_chrome %}
     {% include "components/rmc_os_status_strip.html" %}
+    {% endif %}
     {% endblock %}
     {% endif %}
     {% if request.user.is_authenticated %}
     {% block rmc_zero_click_strip %}
+    {% if not rmc_cp_globe_landing_minimal_chrome %}
     {% include "partials/rmc_zero_click_command_strip.html" with triage_anchor="#cp-main-content" %}
+    {% endif %}
     {% endblock %}
     {% endif %}
     <div class="cp-page-body" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">

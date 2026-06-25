@@ -693,6 +693,9 @@ def build_globe_payload(
             "glass_dock": True,
             "constellation_mode": True,
             "orbit_chips": True,
+            "chrome_rail": True,
+            "prism_interstitial": True,
+            "nexus_interstitial": False,
         },
         "live_refresh": {
             "sse_interval_seconds": 5,

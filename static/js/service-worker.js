@@ -203,7 +203,7 @@
 //   translated/pluralized (completion_summary_text) and rendered by the progress JS.
 // v4.04.99: globe Blue Marble texture cache-bust + network-first globe texture
 // so deployed manager surfaces cannot keep replaying the retired purple earth.
-const CACHE_VERSION = "sms-v4.05.20-pillar-e-gap-close-setup-mirror-2026-06-17";
+const CACHE_VERSION = "sms-v4.05.31-globe-landing-chrome-minimal-2026-06-25";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -342,6 +342,7 @@ const STATIC_ASSETS = [
   // v4.02.66: Global Footprint interactive globe (manager landing).
   "/static/js/rmc-offline-queue-crypto.js",
   "/static/js/rmc-world-globe-loader.js",
+  "/static/js/rmc-world-globe-prism.js",
   "/static/js/rmc-world-globe-bridge.js",
   "/static/js/dist/world-globe.mount.js",
   "/static/geo/world-countries-110m.json",

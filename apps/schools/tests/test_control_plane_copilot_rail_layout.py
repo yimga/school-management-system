@@ -158,6 +158,19 @@ class ControlPlaneCopilotRailLayoutTests(TestCase):
                 assert_manager_copilot_shell_contract(self, html, path)
 
     @mock.patch.dict(os.environ, {"CONTROL_PLANE_OPERATOR_ROLES": "SUPERADMIN"})
+    def test_super_dashboard_landing_opens_on_globe_ai_copilot(self):
+        response = self.client.get("/super/", follow=False)
+        self.assertEqual(response.status_code, 200, response.content[:500])
+        html = response.content.decode("utf-8", errors="replace")
+        self.assertIn('data-rmc-cp-globe-landing="1"', html)
+        self.assertNotIn("rmc-page-explain-strip", html)
+        self.assertNotIn("rmc-operator-surface-strip", html)
+        ai_pos = html.find('id="rmc-world-globe-ai-guide"')
+        explain_pos = html.find("About this page")
+        self.assertGreater(ai_pos, 0)
+        self.assertEqual(explain_pos, -1)
+
+    @mock.patch.dict(os.environ, {"CONTROL_PLANE_OPERATOR_ROLES": "SUPERADMIN"})
     def test_super_dashboard_landing_is_only_page_with_200x_cockpit_band(self):
         """Landing embeds 200x sections inside canvas — copilot mount stays in skeleton."""
         response = self.client.get("/super/", follow=False)

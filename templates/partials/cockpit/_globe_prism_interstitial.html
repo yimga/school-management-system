@@ -1,0 +1,99 @@
+{% load i18n %}
+{% comment %}
+  96px void band — Prism Bridge (40% About+Flow · 60% Platform pulse).
+  Only occupies the interstitial between chrome rail (C·dock·D) and 6D timeline.
+  Pulse cards reuse cockpit.pulse_metrics (same SOT as _platform_pulse.html).
+{% endcomment %}
+{% if lwm_features.prism_interstitial != False and cockpit.pulse_metrics.cards %}
+<div
+  class="lx-world__interstitial lx-world__interstitial--prism lx-world--prism-on"
+  id="rmc-world-globe-interstitial"
+  data-rmc-globe-prism="1"
+  aria-label="{% trans 'Fleet command bridge' %}"
+>
+  <div class="lx-world__prism-bridge" id="rmc-world-globe-prism">
+    <div class="lx-world__prism-bridge-field" aria-hidden="true">
+      <div class="lx-world__prism-bridge-mesh"></div>
+      <div class="lx-world__prism-bridge-pillars"></div>
+      <div class="lx-world__prism-bridge-grain"></div>
+    </div>
+
+    <div class="lx-world__prism">
+      <div class="lx-world__prism-edge" aria-hidden="true"></div>
+
+      <div class="lx-world__prism-left">
+        <div class="lx-world__prism-about">
+          <div class="lx-world__prism-lens" aria-hidden="true">
+            <div class="lx-world__prism-lens-ring"></div>
+            <div class="lx-world__prism-lens-ring"></div>
+            <div class="lx-world__prism-lens-core">⌁</div>
+          </div>
+          <div class="lx-world__prism-about-copy">
+            <strong>{% trans "Manager dashboard" %}</strong>
+            <span>{% trans "Fleet command · live overview" %}</span>
+          </div>
+        </div>
+
+        <div class="lx-world__prism-flow">
+          <span class="lx-world__prism-flow-line" aria-hidden="true"></span>
+          <div class="lx-world__prism-flow-compact">
+            <div class="lx-world__prism-flow-track">
+              <a class="lx-world__prism-flow-pill lx-world__prism-flow-pill--live" href="{% url 'super:tenant_health' %}" title="{% trans 'School health monitor' %}">{% trans "Health" %}</a>
+              <a class="lx-world__prism-flow-pill" href="{% url 'super:command_center' %}" title="{% trans 'Operational queues' %}">{% trans "Queues" %}</a>
+              <a class="lx-world__prism-flow-pill" href="{% url 'super:schools_list' %}" title="{% trans 'School directory' %}">{% trans "Dir" %}</a>
+            </div>
+            <a class="lx-world__prism-flow-next" href="{% url 'super:command_center' %}" title="{% trans 'Open command center' %}">→</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="lx-world__prism-pulse">
+        <div class="lx-world__prism-pulse-head">
+          {% if cockpit.pulse_metrics.show_live_dot|default:True %}
+          <span class="lx-world__prism-pulse-beacon" aria-hidden="true"></span>
+          {% endif %}
+          <span>{{ cockpit.pulse_metrics.label|default:_("Pulse · live") }}</span>
+          <time id="rmc-globe-prism-refreshed" data-rmc-cp-pulse-refreshed="1" aria-live="polite"></time>
+        </div>
+        <div class="lx-world__holo-strip" id="rmc-globe-prism-holo-strip" role="group" aria-label="{% trans 'Platform pulse metrics' %}">
+          <div class="lx-world__holo-strip-sweep" aria-hidden="true"></div>
+          {% for card in cockpit.pulse_metrics.cards %}
+          {% with sev=card.severity|default:"muted" %}
+          <button
+            type="button"
+            class="lx-world__holo-cell lx-world__holo-cell--{% if sev == 'danger' %}warn{% elif sev == 'info' %}ok{% else %}{{ sev }}{% endif %}{% if forloop.first %} lx-world__holo-cell--focus{% endif %}"
+            data-rmc-cp-pulse-drill="1"
+            data-rmc-pulse-head="{{ card.head }}"
+            {% if card.raw_value is not None %}data-rmc-holo-raw="{{ card.raw_value }}"{% endif %}
+            {% if card.spark_points %}data-rmc-holo-spark="{{ card.spark_points }}"{% endif %}
+            aria-label="{{ card.head }}: {{ card.value|default:'—' }}"
+          >
+            <div class="lx-world__holo-cell-top">
+              <span class="lx-world__holo-cell-dot" aria-hidden="true"></span>
+              <span class="lx-world__holo-cell-head">{{ card.head }}</span>
+            </div>
+            <div class="lx-world__holo-cell-v-wrap">
+              <span class="lx-world__holo-cell-v"{% if card.raw_value is not None and card.value != "—" %} data-rmc-holo-target="{{ card.raw_value }}"{% endif %}>{{ card.value|default:"—" }}</span>
+              {% if card.delta %}
+              <span class="lx-world__holo-cell-delta lx-world__holo-cell-delta--{{ card.delta_direction|default:'flat' }}">{{ card.delta }}</span>
+              {% elif card.delta_direction %}
+              <span class="lx-world__holo-cell-delta lx-world__holo-cell-delta--flat">—</span>
+              {% endif %}
+            </div>
+            <div class="lx-world__holo-cell-foot">
+              {% if card.label %}<span class="lx-world__holo-cell-sub">{{ card.label }}</span>{% endif %}
+              {% if card.spark_points %}
+              <svg class="lx-world__holo-cell-spark" viewBox="0 0 36 12" aria-hidden="true" data-rmc-holo-spark-svg></svg>
+              {% endif %}
+            </div>
+          </button>
+          {% endwith %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% elif lwm_features.nexus_interstitial != False %}
+{% include "partials/cockpit/_globe_nexus_interstitial.html" %}
+{% endif %}

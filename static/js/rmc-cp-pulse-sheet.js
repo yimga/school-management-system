@@ -8,10 +8,18 @@
   function openFromCard(card) {
     var sheet = document.getElementById("rmcCpPulseDrillSheet");
     if (!sheet || typeof sheet.showModal !== "function") return;
-    var head = card.querySelector(".rmc-cockpit-pulse-card__head");
-    var value = card.querySelector(".rmc-cockpit-pulse-card__value");
-    var label = card.querySelector(".rmc-cockpit-pulse-card__label");
-    var delta = card.querySelector(".rmc-cockpit-pulse-card__delta");
+    var head =
+      card.querySelector(".rmc-cockpit-pulse-card__head") ||
+      card.querySelector(".lx-world__holo-cell-head");
+    var value =
+      card.querySelector(".rmc-cockpit-pulse-card__value") ||
+      card.querySelector(".lx-world__holo-cell-v");
+    var label =
+      card.querySelector(".rmc-cockpit-pulse-card__label") ||
+      card.querySelector(".lx-world__holo-cell-sub");
+    var delta =
+      card.querySelector(".rmc-cockpit-pulse-card__delta") ||
+      card.querySelector(".lx-world__holo-cell-delta");
     var title = document.getElementById("rmcCpPulseDrillTitle");
     var elHead = document.getElementById("rmcCpPulseDrillHead");
     var elValue = document.getElementById("rmcCpPulseDrillValue");

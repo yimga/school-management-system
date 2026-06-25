@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Globe void — Prism Bridge (mockup only)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --hairline: rgba(148, 163, 184, 0.14);
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --dim: #64748b;
+    --brand: #818cf8;
+    --good: #6ee7b7;
+    --ai: #c4b5fd;
+    --glass: rgba(10, 14, 26, 0.88);
+    /* ONLY this band may change — rail + timeline stay fixed */
+    --void-h: 96px;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 14px/1.45 Inter, system-ui, sans-serif;
+    background: #050810;
+    color: var(--text);
+  }
+
+  .bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--hairline);
+    background: rgba(5, 8, 16, 0.97);
+    backdrop-filter: blur(20px);
+  }
+  .bar h1 { margin: 0 0 4px; font-size: 15px; letter-spacing: -0.02em; }
+  .bar p { margin: 0 0 10px; font-size: 12px; color: var(--muted); max-width: 820px; line-height: 1.55; }
+  .bar p em { color: #f9a8d4; font-style: normal; font-weight: 600; }
+  .bar p strong { color: var(--good); }
+  .toggles { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .toggles span { font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
+  .toggles button {
+    font: inherit; font-size: 11px; font-weight: 600;
+    padding: 7px 14px; border-radius: 999px;
+    border: 1px solid var(--hairline);
+    background: rgba(255,255,255,0.03); color: var(--muted);
+    cursor: pointer; transition: all 0.25s var(--ease);
+  }
+  .toggles button.on { color: var(--text); border-color: rgba(129,140,248,0.45); background: rgba(129,140,248,0.12); }
+  .toggles button.prism.on {
+    color: #fff; border-color: rgba(110,231,183,0.5);
+    background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(110,231,183,0.12));
+    box-shadow: 0 0 28px rgba(129,140,248,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .lock { margin-left: auto; font-family: "JetBrains Mono", monospace; font-size: 9px; color: var(--good); opacity: 0.85; }
+
+  .page { max-width: 1180px; margin: 0 auto; padding: 16px 16px 56px; }
+
+  .lab {
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    background: #0a0e18;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  /* ── Above void: production chrome (FROZEN) ── */
+  .ai-row {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 10px 14px; border-bottom: 1px solid var(--hairline);
+    background: rgba(99,102,241,0.07); font-size: 12px;
+  }
+  .ai-row .tag {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--ai);
+    padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(196,181,253,0.3);
+  }
+  .ai-row .copy { color: var(--muted); flex: 1; }
+  .upper { display: grid; grid-template-columns: 1fr 200px; min-height: 200px; }
+  .map-pane {
+    position: relative;
+    background: radial-gradient(ellipse 80% 70% at 50% 40%, rgba(99,102,241,0.14), transparent 60%), #080c14;
+  }
+  .map-pane .orb {
+    position: absolute; left: 50%; top: 42%; transform: translate(-50%,-50%);
+    width: 140px; height: 140px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #334155, #0f172a 55%, #020617);
+    box-shadow: 0 0 50px rgba(99,102,241,0.18);
+  }
+  .side-pane { border-left: 1px solid var(--hairline); padding: 12px; font-size: 10px; color: var(--dim); }
+  .side-pane .n { font-family: "JetBrains Mono", monospace; font-size: 24px; font-weight: 600; color: var(--text); }
+
+  .chrome-rail {
+    display: grid; grid-template-columns: minmax(120px,1fr) auto minmax(120px,1fr);
+    align-items: center; gap: 10px; padding: 10px 14px;
+    border-top: 1px solid var(--hairline);
+    background: rgba(8,12,20,0.95);
+    position: relative;
+  }
+  .chrome-rail::after {
+    content: "FROZEN — not part of redesign";
+    position: absolute; right: 10px; top: -18px;
+    font-size: 7px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgba(148,163,184,0.35);
+  }
+  .vz-c, .vz-d {
+    padding: 8px 10px; border-radius: 8px; font-size: 10px; line-height: 1.35;
+    backdrop-filter: blur(14px); border: 1px solid;
+  }
+  .vz-c { border-color: rgba(110,231,183,0.35); background: rgba(6,18,14,0.85); }
+  .vz-c b, .vz-d b { display: block; font-size: 9px; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 2px; }
+  .vz-c b { color: var(--good); }
+  .vz-d { border-color: rgba(196,181,253,0.35); background: rgba(18,12,32,0.88); text-align: right; }
+  .vz-d b { color: var(--ai); }
+  .dock {
+    display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;
+    padding: 6px 12px; border-radius: 999px; border: 1px solid var(--hairline);
+    background: var(--glass); font-size: 9px; color: var(--muted);
+  }
+  .dock .chip { padding: 3px 8px; border-radius: 999px; border: 1px solid var(--hairline); white-space: nowrap; }
+  .dock .chip.on { border-color: rgba(110,231,183,0.45); color: var(--good); }
+
+  /* ── THE ONLY EDITABLE ZONE ── */
+  .void-zone {
+    position: relative;
+    height: var(--void-h);
+    max-height: var(--void-h);
+    overflow: hidden;
+    border-top: 1px solid rgba(148,163,184,0.06);
+    background: #070b12;
+  }
+  .void-zone::before,
+  .void-zone::after {
+    content: "";
+    position: absolute; left: 14px; right: 14px; height: 1px; z-index: 1;
+    background: linear-gradient(90deg, transparent, rgba(249,168,212,0.35), transparent);
+    pointer-events: none;
+  }
+  .void-zone::before { top: 0; }
+  .void-zone::after { bottom: 0; }
+
+  .void-empty {
+    height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(249,168,212,0.45);
+    background: repeating-linear-gradient(
+      -45deg,
+      rgba(249,168,212,0.02),
+      rgba(249,168,212,0.02) 4px,
+      transparent 4px,
+      transparent 10px
+    );
+  }
+
+  /* ═══ PRISM BRIDGE — exceptional fused strip ═══ */
+  .prism-bridge {
+    display: none;
+    position: absolute;
+    inset: 0;
+    padding: 7px 12px;
+  }
+  .prism-bridge.on { display: block; }
+
+  .prism-bridge__field {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .prism-bridge__mesh {
+    position: absolute; inset: -40%;
+    background:
+      radial-gradient(ellipse 40% 60% at 20% 50%, rgba(99,102,241,0.22), transparent 55%),
+      radial-gradient(ellipse 35% 50% at 55% 30%, rgba(110,231,183,0.14), transparent 50%),
+      radial-gradient(ellipse 30% 45% at 85% 60%, rgba(196,181,253,0.16), transparent 50%);
+    animation: mesh-drift 18s ease-in-out infinite alternate;
+    filter: blur(28px);
+  }
+  @keyframes mesh-drift {
+    0% { transform: translate(-2%, 0) scale(1); }
+    100% { transform: translate(3%, -4%) scale(1.08); }
+  }
+  .prism-bridge__grain {
+    position: absolute; inset: 0; opacity: 0.35;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+  }
+  .prism-bridge__pillars {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(110,231,183,0.06) 0%, transparent 35%, transparent 65%, rgba(129,140,248,0.05) 100%);
+  }
+
+  .prism {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 40% 60%;
+    gap: 0;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(6, 10, 20, 0.72);
+    backdrop-filter: blur(24px) saturate(1.4);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.12),
+      inset 0 -1px 0 rgba(0,0,0,0.4),
+      0 12px 40px rgba(0,0,0,0.45),
+      0 0 0 1px rgba(129,140,248,0.08);
+    overflow: hidden;
+    transform: perspective(800px) rotateX(1.2deg);
+    transform-origin: center bottom;
+    transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+  }
+  .prism-bridge.on:hover .prism {
+    transform: perspective(800px) rotateX(0deg) translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.14),
+      0 16px 48px rgba(99,102,241,0.15),
+      0 0 60px rgba(110,231,183,0.08);
+  }
+  .prism__edge {
+    position: absolute; top: 0; left: 0; right: 0; height: 2px; z-index: 3;
+    background: linear-gradient(90deg,
+      rgba(110,231,183,0) 0%,
+      rgba(110,231,183,0.9) 18%,
+      rgba(129,140,248,1) 42%,
+      rgba(244,114,182,0.7) 58%,
+      rgba(196,181,253,0.8) 78%,
+      rgba(110,231,183,0) 100%
+    );
+    background-size: 200% 100%;
+    animation: edge-flow 5s linear infinite;
+  }
+  @keyframes edge-flow { to { background-position: 200% 0; } }
+
+  /* 40% — About + Flow */
+  .prism__left {
+    display: grid;
+    grid-template-columns: minmax(0, 38%) minmax(0, 62%);
+    align-items: stretch;
+    min-width: 0;
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+
+  /* ── 1 · ABOUT → Context lens ── */
+  .prism__about {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    min-width: 0;
+  }
+  .lens {
+    position: relative;
+    flex-shrink: 0;
+    width: 30px; height: 30px;
+  }
+  .lens__ring {
+    position: absolute; inset: 0; border-radius: 50%;
+    border: 1.5px solid rgba(129,140,248,0.5);
+    animation: lens-spin 8s linear infinite;
+  }
+  .lens__ring:nth-child(2) {
+    inset: 4px;
+    border-color: rgba(110,231,183,0.35);
+    animation-direction: reverse;
+    animation-duration: 6s;
+  }
+  @keyframes lens-spin { to { transform: rotate(360deg); } }
+  .lens__core {
+    position: absolute; inset: 8px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, rgba(129,140,248,0.5), rgba(99,102,241,0.15));
+    box-shadow: 0 0 20px rgba(129,140,248,0.35);
+    display: grid; place-items: center;
+    font-size: 11px; font-weight: 800; color: #fff;
+  }
+  .prism__about-copy { min-width: 0; }
+  .prism__about-copy strong {
+    display: block;
+    font-size: 11px; font-weight: 700; letter-spacing: -0.02em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .prism__about-copy span {
+    display: block; font-size: 9px; color: var(--dim); margin-top: 1px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* ── 2 · FLOW → compact inline thread (smaller footprint) ── */
+  .prism__flow {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    min-width: 0;
+  }
+  .flow-compact {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    min-width: 0;
+  }
+  .flow-compact__track {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 6px;
+    border-radius: 999px;
+    border: 1px solid rgba(148,163,184,0.12);
+    background: rgba(0,0,0,0.25);
+  }
+  .flow-compact__line {
+    position: absolute;
+    left: 14px; right: 36px;
+    top: 50%; height: 1px;
+    background: linear-gradient(90deg, rgba(110,231,183,0.5), rgba(129,140,248,0.2));
+    pointer-events: none; z-index: 0;
+  }
+  .flow-pill {
+    position: relative; z-index: 1;
+    flex: 1; min-width: 0;
+    padding: 2px 5px;
+    border-radius: 999px;
+    font-size: 7px; font-weight: 700;
+    text-align: center;
+    text-decoration: none; color: var(--dim);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    border: 1px solid transparent;
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease), background 0.2s var(--ease);
+  }
+  .flow-pill:hover { color: var(--muted); background: rgba(255,255,255,0.04); }
+  .flow-pill--live {
+    color: var(--good);
+    border-color: rgba(110,231,183,0.35);
+    background: rgba(110,231,183,0.1);
+    box-shadow: 0 0 10px rgba(110,231,183,0.15);
+  }
+  .flow-next {
+    flex-shrink: 0;
+    width: 24px; height: 24px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    font-size: 11px; font-weight: 800;
+    text-decoration: none; color: #041008;
+    background: linear-gradient(135deg, #6ee7b7, #34d399);
+    box-shadow: 0 0 12px rgba(110,231,183,0.3);
+    transition: transform 0.2s var(--ease);
+  }
+  .flow-next:hover { transform: scale(1.08); }
+
+  /* ── 3 · PULSE → 60% column, animated holo cards ── */
+  .prism__pulse {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 8px 0 4px;
+    min-width: 0;
+  }
+  .pulse-rail-head {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 4px 3px;
+    min-height: 9px;
+  }
+  .pulse-beacon {
+    flex-shrink: 0;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--good);
+    box-shadow: 0 0 0 0 rgba(110,231,183,0.5);
+    animation: beacon 2s ease-out infinite;
+  }
+  @keyframes beacon {
+    0% { box-shadow: 0 0 0 0 rgba(110,231,183,0.55); }
+    70% { box-shadow: 0 0 0 7px rgba(110,231,183,0); }
+    100% { box-shadow: 0 0 0 0 rgba(110,231,183,0); }
+  }
+  .pulse-rail-head span {
+    font-size: 6px; font-weight: 800; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(148,163,184,0.7);
+  }
+  .pulse-rail-head time {
+    margin-left: auto;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 6px; color: rgba(110,231,183,0.55);
+  }
+  .holo-strip {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+    height: 68px;
+    padding: 4px;
+    border-radius: 11px;
+    border: 1px solid rgba(255,255,255,0.09);
+    background:
+      radial-gradient(ellipse 90% 60% at 50% -10%, rgba(99,102,241,0.14), transparent 55%),
+      linear-gradient(165deg, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.28) 100%);
+    overflow: hidden;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      0 4px 24px rgba(0,0,0,0.25);
+  }
+  .holo-strip__sweep {
+    position: absolute; inset: 0; z-index: 5; pointer-events: none;
+    background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,0.09) 50%, transparent 62%);
+    transform: translateX(-130%);
+    animation: holo-sweep 6s ease-in-out infinite;
+  }
+  @keyframes holo-sweep {
+    0%, 75% { transform: translateX(-130%); opacity: 0; }
+    80% { opacity: 1; }
+    100% { transform: translateX(130%); opacity: 0; }
+  }
+  .holo-cell {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-end;
+    min-width: 0;
+    padding: 4px 3px 3px;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    background:
+      radial-gradient(120% 80% at 50% 0%, rgba(129,140,248,0.08), transparent 60%),
+      rgba(8,12,22,0.55);
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    overflow: hidden;
+    transition: transform 0.22s var(--ease), box-shadow 0.22s var(--ease), border-color 0.22s var(--ease);
+  }
+  .holo-cell::after {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.12), transparent 65%);
+    transition: opacity 0.22s var(--ease);
+    pointer-events: none;
+  }
+  .holo-cell:hover,
+  .holo-cell:focus-visible,
+  .holo-cell--focus {
+    z-index: 2;
+    transform: translateY(-3px) scale(1.04);
+    border-color: rgba(129,140,248,0.35);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.4), 0 0 20px rgba(129,140,248,0.12);
+  }
+  .holo-cell:hover::after,
+  .holo-cell--focus::after { opacity: 1; }
+  .holo-cell--ok { --cell-accent: #22c55e; --cell-glow: rgba(34,197,94,0.35); }
+  .holo-cell--warn { --cell-accent: #f59e0b; --cell-glow: rgba(245,158,11,0.4); }
+  .holo-cell--muted { --cell-accent: #64748b; --cell-glow: rgba(100,116,139,0.2); }
+  .holo-cell--focus.holo-cell--ok,
+  .holo-cell--focus.holo-cell--warn {
+    box-shadow: 0 8px 22px rgba(0,0,0,0.4), 0 0 18px var(--cell-glow);
+    border-color: color-mix(in srgb, var(--cell-accent) 50%, transparent);
+  }
+  .holo-cell__top {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 2px; margin-bottom: 1px; position: relative; z-index: 1;
+  }
+  .holo-cell__dot {
+    width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0;
+    background: var(--cell-accent, #64748b);
+    box-shadow: 0 0 5px var(--cell-glow, transparent);
+  }
+  .holo-cell__head {
+    flex: 1; min-width: 0;
+    font-size: 5px; font-weight: 800; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--dim);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-align: right;
+  }
+  .holo-cell__v-wrap {
+    position: relative; z-index: 1;
+    display: flex; align-items: baseline; justify-content: center;
+    gap: 2px; min-height: 17px;
+  }
+  .holo-cell__v {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 16px; font-weight: 700; line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    text-shadow: 0 0 20px rgba(255,255,255,0.12);
+  }
+  .holo-cell--ok .holo-cell__v { color: #6ee7b7; text-shadow: 0 0 14px rgba(110,231,183,0.35); }
+  .holo-cell--warn .holo-cell__v { color: #fcd34d; text-shadow: 0 0 14px rgba(245,158,11,0.3); font-size: 12px; }
+  .holo-cell--muted .holo-cell__v { color: #94a3b8; font-size: 14px; }
+  .holo-cell__delta {
+    font-size: 5px; font-weight: 800;
+    padding: 1px 3px; border-radius: 3px;
+    line-height: 1.2;
+  }
+  .holo-cell__delta--up { color: #6ee7b7; background: rgba(6,18,14,0.9); }
+  .holo-cell__delta--flat { color: var(--dim); opacity: 0.7; }
+  .holo-cell__foot {
+    position: relative; z-index: 1;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 2px; margin-top: 1px; min-height: 12px;
+  }
+  .holo-cell__sub {
+    font-size: 5px; color: var(--dim);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 55%;
+  }
+  .holo-cell__spark {
+    width: 100%; max-width: 34px; height: 11px;
+    flex-shrink: 0; opacity: 0.85;
+  }
+  .holo-cell__spark polyline {
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: spark-draw 1s var(--ease) forwards;
+  }
+  .holo-cell__spark-fill { opacity: 0.22; }
+  .holo-strip .holo-cell:nth-child(2) .holo-cell__spark polyline { animation-delay: 0.08s; }
+  .holo-strip .holo-cell:nth-child(3) .holo-cell__spark polyline { animation-delay: 0.16s; }
+  .holo-strip .holo-cell:nth-child(4) .holo-cell__spark polyline { animation-delay: 0.24s; }
+  .holo-strip .holo-cell:nth-child(5) .holo-cell__spark polyline { animation-delay: 0.32s; }
+  .holo-strip .holo-cell:nth-child(6) .holo-cell__spark polyline { animation-delay: 0.4s; }
+  .holo-strip .holo-cell:nth-child(7) .holo-cell__spark polyline { animation-delay: 0.48s; }
+  @keyframes spark-draw { to { stroke-dashoffset: 0; } }
+  .holo-cell--focus .holo-cell__spark { filter: drop-shadow(0 0 4px var(--cell-glow)); opacity: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .holo-strip__sweep, .pulse-beacon, .holo-cell__spark polyline { animation: none; }
+    .holo-cell:hover, .holo-cell--focus { transform: none; }
+    .holo-cell__spark polyline { stroke-dashoffset: 0; }
+  }
+
+  /* ── Below void: timeline (FROZEN) ── */
+  .timeline {
+    display: flex; gap: 10px; padding: 10px 14px; overflow-x: auto;
+    border-top: 1px solid var(--hairline);
+    background: rgba(9,13,24,0.58);
+    position: relative;
+  }
+  .timeline::before {
+    content: "FROZEN — 6D fleet timeline";
+    position: absolute; right: 10px; top: -16px;
+    font-size: 7px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgba(148,163,184,0.35);
+  }
+  .tl-card {
+    flex: 0 0 auto; min-width: 160px; padding: 10px 14px;
+    border-radius: 8px; border: 1px solid rgba(148,163,184,0.12);
+    background: rgba(15,23,42,0.62); font-size: 10px;
+  }
+  .tl-card time { display: block; font-size: 9px; color: var(--dim); margin-bottom: 4px; font-weight: 600; }
+  .tl-card strong { font-size: 12px; font-weight: 600; }
+
+  .legend {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .legend div {
+    padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--hairline);
+    background: rgba(18,24,41,0.5);
+    font-size: 10px; color: var(--muted); line-height: 1.45;
+  }
+  .legend b { display: block; color: var(--text); font-size: 11px; margin-bottom: 3px; }
+
+  @media (max-width: 900px) {
+    .prism { grid-template-columns: 1fr; grid-template-rows: auto auto; transform: none; }
+    .prism__left { grid-template-columns: 1fr; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .void-zone.prism-on { height: auto; max-height: none; }
+    .prism__about, .prism__flow, .prism__pulse { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); padding: 8px 12px; }
+    .legend { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 760px) {
+    .upper { grid-template-columns: 1fr; }
+    .chrome-rail { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <h1>Prism Bridge — void mockup (v7 · 40 / 60 flipped)</h1>
+  <p>
+    <em>C · Caption</em>, glass dock, <em>D · Fleet whisper</em>, and the <em>6D timeline</em> are frozen.
+    Void band: <strong>40% About + Flow</strong> · <strong>60% Pulse</strong> (animated) — same 96px height.
+  </p>
+  <div class="toggles">
+    <span>Void</span>
+    <button type="button" id="btn-empty">Empty (today)</button>
+    <button type="button" class="prism on" id="btn-prism">Prism Bridge ★</button>
+    <span class="lock">96px locked · mockup only</span>
+  </div>
+</div>
+
+<div class="page">
+  <div class="lab">
+    <div class="ai-row">
+      <span class="tag">AI Copilot</span>
+      <strong>2 schools live · 1 need sync</strong>
+      <span class="copy">Fleet attention — 1 suspended</span>
+    </div>
+    <div class="upper">
+      <div class="map-pane"><div class="orb" aria-hidden="true"></div></div>
+      <div class="side-pane">Global footprint<div class="n">2</div>schools live</div>
+    </div>
+
+    <!-- ═══ FROZEN: C + dock + D ═══ -->
+    <div class="chrome-rail">
+      <div class="vz-c"><b>C · Caption</b>School now live</div>
+      <div class="dock">
+        <span>2 schools live</span>
+        <span class="chip">West Africa 1</span>
+        <span class="chip on">Active</span>
+        <span class="chip">Suspended</span>
+      </div>
+      <div class="vz-d"><b>D · Fleet whisper</b>Fleet attention · 1 suspended</div>
+    </div>
+
+    <!-- ═══ ONLY ZONE WE DESIGN ═══ -->
+    <div class="void-zone" id="void">
+      <div class="void-empty" id="void-empty">Unused band — 96px</div>
+
+      <div class="prism-bridge on" id="prism-bridge">
+        <div class="prism-bridge__field">
+          <div class="prism-bridge__mesh"></div>
+          <div class="prism-bridge__pillars"></div>
+          <div class="prism-bridge__grain"></div>
+        </div>
+
+        <div class="prism">
+          <div class="prism__edge" aria-hidden="true"></div>
+
+          <div class="prism__left">
+          <!-- About → Context lens -->
+          <div class="prism__about">
+            <div class="lens" aria-hidden="true">
+              <div class="lens__ring"></div>
+              <div class="lens__ring"></div>
+              <div class="lens__core">⌁</div>
+            </div>
+            <div class="prism__about-copy">
+              <strong>Manager dashboard</strong>
+              <span>Fleet command · live overview</span>
+            </div>
+          </div>
+
+          <!-- Flow → compact inline thread -->
+          <div class="prism__flow">
+            <span class="flow-compact__line" aria-hidden="true"></span>
+            <div class="flow-compact">
+              <div class="flow-compact__track">
+                <a class="flow-pill flow-pill--live" href="#" title="Tenant health grid">Health</a>
+                <a class="flow-pill" href="#" title="Operational queues">Queues</a>
+                <a class="flow-pill" href="#" title="School directory">Dir</a>
+              </div>
+              <a class="flow-next" href="#" title="Next step">→</a>
+            </div>
+          </div>
+          </div><!-- /.prism__left 40% -->
+
+          <!-- Pulse → 60% animated -->
+          <div class="prism__pulse">
+            <div class="pulse-rail-head">
+              <span class="pulse-beacon" aria-hidden="true"></span>
+              <span>Pulse · live</span>
+              <time id="pulse-refreshed">just now</time>
+            </div>
+            <div class="holo-strip" id="holo-strip" role="group" aria-label="Platform pulse metrics">
+              <div class="holo-strip__sweep" aria-hidden="true"></div>
+              <button type="button" class="holo-cell holo-cell--ok holo-cell--focus" data-drill="1" aria-label="Schools: 2, Healthy">
+                <div class="holo-cell__top"><span class="holo-cell__dot"></span><span class="holo-cell__head">Schools</span></div>
+                <div class="holo-cell__v-wrap"><span class="holo-cell__v" data-target="2">0</span><span class="holo-cell__delta holo-cell__delta--up">▲1</span></div>
+                <div class="holo-cell__foot">
+                  <span class="holo-cell__sub">Healthy</span>
+                  <svg class="holo-cell__spark" viewBox="0 0 36 12" aria-hidden="true">
+                    <polygon class="holo-cell__spark-fill" fill="#6ee7b7" points="0,12 0,9 6,6 12,7 18,4 24,5 30,3 36,4 36,12"/>
+                    <polyline fill="none" stroke="#6ee7b7" stroke-width="1.4" points="0,9 6,6 12,7 18,4 24,5 30,3 36,4"/>
+                  </svg>
+                </div>
+              </button>
+              <button type="button" class="holo-cell holo-cell--muted" data-drill="1" aria-label="Incidents: 0">
+                <div class="holo-cell__top"><span class="holo-cell__dot"></span><span class="holo-cell__head">Incidents</span></div>
+                <div class="holo-cell__v-wrap"><span class="holo-cell__v" data-target="0">0</span><span class="holo-cell__delta holo-cell__delta--flat">—</span></div>
+                <div class="holo-cell__foot">
+                  <span class="holo-cell__sub">Clear</span>
+                  <svg class="holo-cell__spark" viewBox="0 0 36 12" aria-hidden="true"><polyline fill="none" stroke="#64748b" stroke-width="1.2" points="0,6 36,6"/></svg>
+                </div>
+              </button>
+              <button type="button" class="holo-cell holo-cell--ok" data-drill="1" aria-label="Countries: 1">
+                <div class="holo-cell__top"><span class="holo-cell__dot"></span><span class="holo-cell__head">Countries</span></div>
+                <div class="holo-cell__v-wrap"><span class="holo-cell__v" data-target="1">0</span><span class="holo-cell__delta holo-cell__delta--up">▲1</span></div>
+                <div class="holo-cell__foot">
+                  <span class="holo-cell__sub">1 region</span>
+                  <svg class="holo-cell__spark" viewBox="0 0 36 12" aria-hidden="true">
+                    <polygon class="holo-cell__spark-fill" fill="#818cf8" points="0,12 0,8 8,7 16,5 24,3 36,2 36,12"/>
+                    <polyline fill="none" stroke="#818cf8" stroke-width="1.4" points="0,8 8,7 16,5 24,3 36,2"/>
+                  </svg>
+                </div>
+              </button>
+              <button type="button" class="holo-cell holo-cell--muted" data-drill="1" aria-label="MRR: $0">
+                <div class="holo-cell__top"><span class="holo-cell__dot"></span><span class="holo-cell__head">MRR</span></div>
+                <div class="holo-cell__v-wrap"><span class="holo-cell__v" data-target="0" data-prefix="$">$0</span><span class="holo-cell__delta holo-cell__delta--flat">flat</span></div>
+                <div class="holo-cell__foot"><span class="holo-cell__sub">Pre-rev</span></div>
+              </button>
+              <button type="button" class="holo-cell holo-cell--muted" data-drill="1" aria-label="Webhooks: 0">
+                <div class="holo-cell__top"><span class="holo-cell__dot"></span><span class="holo-cell__head">Webhooks</span></div>
+                <div class="holo-cell__v-wrap"><span class="holo-cell__v" data-target="0">0</span><span class="holo-cell__delta holo-cell__delta--flat">—</span></div>
+                <div class="holo-cell__foot"><span class="holo-cell__sub">Idle</span></div>
+              </button>
+              <button type="button" class="holo-cell holo-cell--warn" data-drill="1" aria-label="Pipeline: Onboarding">
+                <div class="holo-cell__top"><span class="holo-cell__dot"></span><span class="holo-cell__head">Pipeline</span></div>
+                <div class="holo-cell__v-wrap"><span class="holo-cell__v" style="font-size:12px">Onb</span><span class="holo-cell__delta holo-cell__delta--up">▲2</span></div>
+                <div class="holo-cell__foot">
+                  <span class="holo-cell__sub">Active</span>
+                  <svg class="holo-cell__spark" viewBox="0 0 36 12" aria-hidden="true">
+                    <polygon class="holo-cell__spark-fill" fill="#f59e0b" points="0,12 0,9 10,8 18,6 28,4 36,3 36,12"/>
+                    <polyline fill="none" stroke="#f59e0b" stroke-width="1.4" points="0,9 10,8 18,6 28,4 36,3"/>
+                  </svg>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ FROZEN: 6D timeline ═══ -->
+    <div class="timeline">
+      <div class="tl-card"><time>6D</time><strong>School now live</strong></div>
+      <div class="tl-card"><time>6D</time><strong>Provisioning started</strong></div>
+      <div class="tl-card"><time>14D</time><strong>Provisioning started</strong></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div><b>40% left</b>About lens + flow pills (compact).</div>
+    <div><b>60% right</b>Pulse — 6 animated holo cards: lift, glow, spark draw, sweep, count-up, spotlight.</div>
+    <div><b>96px locked</b>C · dock · D and 6D timeline unchanged.</div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var voidEl = document.getElementById("void");
+    var empty = document.getElementById("void-empty");
+    var bridge = document.getElementById("prism-bridge");
+    var btnEmpty = document.getElementById("btn-empty");
+    var btnPrism = document.getElementById("btn-prism");
+
+    function setMode(prism) {
+      btnEmpty.classList.toggle("on", !prism);
+      btnPrism.classList.toggle("on", prism);
+      empty.style.display = prism ? "none" : "flex";
+      bridge.classList.toggle("on", prism);
+      voidEl.classList.toggle("prism-on", prism);
+    }
+    btnEmpty.addEventListener("click", function () { setMode(false); });
+    btnPrism.addEventListener("click", function () { setMode(true); });
+    setMode(true);
+
+    /* Pulse: count-up numerals */
+    document.querySelectorAll(".holo-cell__v[data-target]").forEach(function (el) {
+      var target = parseInt(el.getAttribute("data-target"), 10);
+      var prefix = el.getAttribute("data-prefix") || "";
+      if (isNaN(target) || target === 0) {
+        el.textContent = prefix + "0";
+        return;
+      }
+      var start = performance.now();
+      function tick(now) {
+        var t = Math.min(1, (now - start) / 700);
+        var eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = prefix + Math.round(target * eased);
+        if (t < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+
+    /* Pulse: auto spotlight rotation */
+    var cells = Array.prototype.slice.call(document.querySelectorAll(".holo-cell"));
+    var focusIdx = 0;
+    setInterval(function () {
+      if (!bridge.classList.contains("on")) return;
+      cells.forEach(function (c) { c.classList.remove("holo-cell--focus"); });
+      focusIdx = (focusIdx + 1) % cells.length;
+      cells[focusIdx].classList.add("holo-cell--focus");
+    }, 3000);
+
+    /* Pulse: refresh timestamp */
+    var refreshed = document.getElementById("pulse-refreshed");
+    setInterval(function () {
+      if (!refreshed) return;
+      var s = Math.floor(Date.now() / 1000) % 60;
+      refreshed.textContent = s < 5 ? "just now" : s + "s ago";
+    }, 4000);
+  })();
+</script>
+</body>
+</html>

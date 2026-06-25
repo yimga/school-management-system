@@ -102,6 +102,11 @@ from .cockpit_tenant_v3_extended import build_tenant_v3_extended_cockpit
 # Production defaults (batch 1611): flags False — realdata + honest empty states.
 from .cockpit_manager_200x_preview_data import manager_200x_demo_payload
 from .cockpit_tenant_v3_preview_data import tenant_v3_extended_demo_payload
+from .tenant_experience_policy import (
+    nav_sidebar_from_policy,
+    resolve_ai_copilot_rail_policy_enabled,
+    tenant_experience_policy_defaults,
+)
 
 
 # ============================================================
@@ -744,10 +749,13 @@ def _tenant_ai_copilot_rail_master_enabled(request) -> bool:
 
         flags = get_effective_flags(request) or {}
         if "enable_tenant_ai_copilot_rail" in flags:
-            return bool(flags.get("enable_tenant_ai_copilot_rail"))
+            backend_enabled = bool(flags.get("enable_tenant_ai_copilot_rail"))
+            return resolve_ai_copilot_rail_policy_enabled(
+                request, backend_enabled=backend_enabled
+            )
     except Exception:
         pass
-    return True
+    return resolve_ai_copilot_rail_policy_enabled(request, backend_enabled=True)
 
 
 def _tenant_footer_defaults(site: Any | None, request=None) -> dict[str, Any]:
@@ -1031,6 +1039,8 @@ def cockpit_context(request) -> dict[str, Any]:
         "footer": _tenant_footer_defaults(site, request=request),
         "community_band": _tenant_community_band_defaults(),
         "newsletter_band": _tenant_newsletter_band_defaults(),
+        "tenant_experience_policy": tenant_experience_policy_defaults(),
+        "nav_sidebar": nav_sidebar_from_policy(tenant_experience_policy_defaults()),
         # v3.57.18 Wave 8 — emit signup_form on the tenant/public branch so
         # the marketing-host `/signup/` template receives operator-configurable
         # copy. Defaults to enabled=True (front-door section); operators can
@@ -1095,6 +1105,16 @@ def cockpit_context(request) -> dict[str, Any]:
     )
     if payload:
         tenant_cockpit = _deep_merge(tenant_cockpit, payload)
+
+    policy = _deep_merge(
+        tenant_experience_policy_defaults(),
+        tenant_cockpit.get("tenant_experience_policy") or {},
+    )
+    tenant_cockpit["tenant_experience_policy"] = policy
+    tenant_cockpit["nav_sidebar"] = _deep_merge(
+        nav_sidebar_from_policy(policy),
+        tenant_cockpit.get("nav_sidebar") or {},
+    )
 
     # v4.01.27: tenant ticker default-on. Explicit opt-out ONLY when
     # tenant_activity_ticker.enabled=False is persisted in cockpit_payload.

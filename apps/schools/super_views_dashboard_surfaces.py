@@ -18,6 +18,8 @@ from apps.platform_runtime.operator_identity import (
     PLATFORM_SCOPE_TENANT_READ,
     require_platform_scope,
 )
+from apps.siteconfig.currency import platform_currency_symbol
+
 from .decision_architecture import get_decision_architecture_for_page
 from .models import School
 from .super_dashboard_cache import (
@@ -320,9 +322,10 @@ def super_dashboard_v2(request):
         row["waived_revenue"] = revenue_row.get("waived") or 0
     timings["country_rollup_ms"] = int((time.perf_counter() - t0) * 1000)
 
+    cur = platform_currency_symbol()
     if total_mrr is not None and total_mrr > 0:
         north_star_label = "Total MRR"
-        north_star_formatted = f"${total_mrr:,.2f}"
+        north_star_formatted = f"{cur}{total_mrr:,.2f}"
     else:
         north_star_label = "Schools"
         north_star_formatted = str(school_count)
@@ -376,7 +379,7 @@ def super_dashboard_v2(request):
         {
             "label": north_star_label,
             "value": north_star_formatted,
-            "meta": f"${total_waived:,.2f} waived in {first_of_month.strftime('%b %Y')}",
+            "meta": f"{cur}{total_waived:,.2f} waived in {first_of_month.strftime('%b %Y')}",
             "tone": "emerald",
         },
         {
@@ -594,6 +597,7 @@ def super_dashboard_v2(request):
     data_residency_readiness = assess_readiness()
     from apps.schools.fleet_status import format_fleet_summary_label, resolve_fleet_summary
 
+    request.rmc_cp_globe_landing_minimal_chrome = True
     response = render(
         request,
         "schools/super_dashboard.html",
@@ -658,6 +662,7 @@ def super_dashboard_v2(request):
             "peer_operators": peer_operators,
             "data_residency_readiness": data_residency_readiness,
             "fleet_summary_label": format_fleet_summary_label(resolve_fleet_summary()),
+            "rmc_cp_globe_landing_minimal_chrome": True,
         },
     )
     response["X-RMC-SuperDashboard-Elapsed-Ms"] = str(

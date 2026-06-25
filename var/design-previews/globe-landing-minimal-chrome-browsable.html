@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/super/ globe landing — minimal chrome (pre-commit preview)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --hairline: rgba(148, 163, 184, 0.14);
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --dim: #64748b;
+    --brand: #818cf8;
+    --good: #6ee7b7;
+    --warn: #fcd34d;
+    --ai: #c4b5fd;
+    --bad: #fda4af;
+    --canvas: #0a0e18;
+    --elevated: #121829;
+    --live: #6ee7b7;
+    --void-h: 96px;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font: 14px/1.45 Inter, system-ui, sans-serif;
+    background: #050810;
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .preview-bar {
+    position: sticky; top: 0; z-index: 500;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--hairline);
+    background: rgba(5, 8, 16, 0.97);
+    backdrop-filter: blur(20px);
+  }
+  .preview-bar h1 { margin: 0 0 4px; font-size: 14px; letter-spacing: -0.02em; }
+  .preview-bar p { margin: 0 0 10px; font-size: 11px; color: var(--muted); max-width: 900px; line-height: 1.55; }
+  .preview-bar p code { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--ai); }
+  .preview-bar p strong { color: var(--good); }
+  .toggles { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .toggles button {
+    font: inherit; font-size: 11px; font-weight: 600;
+    padding: 7px 14px; border-radius: 999px;
+    border: 1px solid var(--hairline);
+    background: rgba(255,255,255,0.03); color: var(--muted);
+    cursor: pointer; transition: all 0.25s var(--ease);
+  }
+  .toggles button.on {
+    color: var(--text);
+    border-color: rgba(129,140,248,0.45);
+    background: rgba(129,140,248,0.12);
+  }
+  .toggles button.after.on {
+    border-color: rgba(110,231,183,0.5);
+    background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(110,231,183,0.1));
+    color: #fff;
+  }
+  .badge {
+    margin-left: auto;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    color: var(--live);
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(110,231,183,0.25);
+    background: rgba(6,18,14,0.6);
+  }
+
+  .page { max-width: 1280px; margin: 0 auto; padding: 16px 16px 64px; }
+
+  /* ── Manager shell mock ── */
+  .shell {
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.55);
+    background: var(--canvas);
+  }
+  .shell-grid {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr) 44px;
+    grid-template-rows: auto 1fr;
+    min-height: 720px;
+  }
+  .shell-header {
+    grid-column: 1 / -1;
+    background: #060a12;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .shell-header__util {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 14px; font-size: 10px; color: var(--dim);
+    border-bottom: 1px solid rgba(148,163,184,0.06);
+  }
+  .shell-header__live {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    background: linear-gradient(90deg, rgba(6,18,14,0.9), rgba(8,12,20,0.95));
+    border-bottom: 1px solid rgba(110,231,183,0.15);
+    font-size: 11px;
+  }
+  .live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--live);
+    box-shadow: 0 0 10px rgba(110,231,183,0.6);
+    animation: live-pulse 2s ease-in-out infinite;
+  }
+  @keyframes live-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+  .live-label {
+    font-size: 9px; font-weight: 800; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--live);
+  }
+  .live-ticker { color: var(--muted); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .shell-header__nav {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; font-size: 12px;
+  }
+  .shell-header__nav .logo { font-weight: 700; color: var(--text); }
+  .shell-header__nav .nav-item { color: var(--dim); }
+
+  .shell-sidebar {
+    grid-row: 2;
+    border-right: 1px solid var(--hairline);
+    padding: 12px 10px;
+    background: rgba(6,9,16,0.95);
+    font-size: 11px;
+  }
+  .shell-sidebar .item {
+    padding: 8px 10px; border-radius: 8px; color: var(--dim); margin-bottom: 4px;
+  }
+  .shell-sidebar .item.active {
+    background: rgba(129,140,248,0.12); color: var(--text);
+    border: 1px solid rgba(129,140,248,0.2);
+  }
+
+  .shell-canvas { grid-row: 2; min-width: 0; display: flex; flex-direction: column; }
+  .shell-copilot {
+    grid-row: 2;
+    border-left: 1px solid var(--hairline);
+    background: rgba(8,12,20,0.98);
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--dim);
+  }
+
+  /* Thin strips — hidden in "after" mode */
+  .thin-strip {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 11px;
+    display: flex; align-items: center; gap: 8px;
+    transition: opacity 0.3s var(--ease), max-height 0.35s var(--ease), padding 0.35s var(--ease);
+    max-height: 80px; overflow: hidden;
+  }
+  .thin-strip--explain { background: rgba(99,102,241,0.06); color: var(--muted); }
+  .thin-strip--workspace { background: rgba(15,23,42,0.8); }
+  .thin-strip--workspace .pill {
+    padding: 4px 10px; border-radius: 999px; font-size: 10px;
+    border: 1px solid var(--hairline); color: var(--dim);
+  }
+  .thin-strip--workspace .pill.on { color: var(--text); border-color: rgba(129,140,248,0.35); background: rgba(129,140,248,0.1); }
+  .thin-strip--next { background: rgba(251,191,36,0.06); color: var(--warn); }
+  .thin-strip--security { background: rgba(253,164,175,0.06); color: var(--bad); font-size: 10px; }
+
+  body[data-chrome="after"] .thin-strip {
+    opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0;
+    border-bottom-width: 0; pointer-events: none;
+  }
+
+  .canvas-body { flex: 1; padding: 0; }
+
+  /* AI Copilot row — first major frame */
+  .ai-guide {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--hairline);
+    background: rgba(99,102,241,0.08);
+  }
+  .ai-guide .tag {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--ai); padding: 3px 8px; border-radius: 999px;
+    border: 1px solid rgba(196,181,253,0.3);
+  }
+  .ai-guide strong { font-size: 13px; }
+  .ai-guide .copy { color: var(--muted); font-size: 12px; flex: 1; min-width: 180px; }
+  .ai-guide .btn {
+    font: inherit; font-size: 11px; font-weight: 600;
+    padding: 6px 12px; border-radius: 8px;
+    border: 1px solid rgba(129,140,248,0.35);
+    background: rgba(129,140,248,0.12); color: var(--text);
+    cursor: pointer;
+  }
+
+  .globe-controls {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    padding: 8px 14px; font-size: 10px; color: var(--dim);
+    border-bottom: 1px solid rgba(148,163,184,0.08);
+  }
+
+  .globe-upper {
+    display: grid; grid-template-columns: 1fr 180px;
+    min-height: 220px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .globe-map {
+    position: relative;
+    background: radial-gradient(ellipse 80% 70% at 50% 40%, rgba(99,102,241,0.16), transparent 60%), #080c14;
+  }
+  .globe-map .orb {
+    position: absolute; left: 50%; top: 44%; transform: translate(-50%,-50%);
+    width: 150px; height: 150px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #475569, #0f172a 55%, #020617);
+    box-shadow: 0 0 60px rgba(99,102,241,0.2);
+  }
+  .globe-side {
+    border-left: 1px solid var(--hairline);
+    padding: 14px; font-size: 10px; color: var(--dim);
+  }
+  .globe-side .n {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 28px; font-weight: 600; color: var(--text);
+  }
+
+  .chrome-rail {
+    display: grid; grid-template-columns: minmax(100px,1fr) auto minmax(100px,1fr);
+    align-items: center; gap: 8px; padding: 10px 14px;
+    border-top: 1px solid var(--hairline);
+    background: rgba(8,12,20,0.95); font-size: 10px;
+  }
+  .vz-c, .vz-d {
+    padding: 8px 10px; border-radius: 8px; line-height: 1.35; border: 1px solid;
+  }
+  .vz-c { border-color: rgba(110,231,183,0.35); background: rgba(6,18,14,0.85); }
+  .vz-c b { color: var(--good); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; display: block; }
+  .vz-d { border-color: rgba(196,181,253,0.35); background: rgba(18,12,32,0.88); text-align: right; }
+  .vz-d b { color: var(--ai); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; display: block; }
+  .dock {
+    display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+    padding: 6px 12px; border-radius: 999px;
+    border: 1px solid rgba(148,163,184,0.2);
+    background: rgba(15,23,42,0.7); font-size: 9px;
+  }
+  .dock span { padding: 3px 8px; border-radius: 999px; background: rgba(129,140,248,0.12); color: var(--muted); }
+
+  /* Prism void */
+  .prism-void {
+    height: var(--void-h); max-height: var(--void-h);
+    border-top: 1px solid var(--hairline);
+    background: rgba(9,13,22,0.92);
+    display: grid; grid-template-columns: 40% 60%;
+    overflow: hidden; position: relative;
+  }
+  .prism-left {
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 8px 12px; gap: 6px; border-right: 1px solid rgba(148,163,184,0.08);
+  }
+  .prism-about { display: flex; align-items: center; gap: 8px; }
+  .prism-lens {
+    width: 26px; height: 26px; border-radius: 8px;
+    display: grid; place-items: center;
+    border: 1px solid rgba(129,140,248,0.35);
+    background: rgba(129,140,248,0.12); color: var(--brand); font-size: 12px;
+  }
+  .prism-about strong { display: block; font-size: 10px; }
+  .prism-about span { font-size: 9px; color: var(--dim); }
+  .prism-flow { display: flex; align-items: center; gap: 6px; }
+  .prism-flow-pill {
+    font-size: 9px; padding: 3px 8px; border-radius: 999px;
+    border: 1px solid var(--hairline); color: var(--muted); text-decoration: none;
+  }
+  .prism-flow-pill.live { border-color: rgba(110,231,183,0.4); color: var(--good); }
+
+  .prism-pulse { padding: 6px 10px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+  .prism-pulse-head { font-size: 9px; color: var(--dim); display: flex; align-items: center; gap: 6px; }
+  .prism-pulse-head .beacon {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--good);
+    box-shadow: 0 0 8px rgba(110,231,183,0.5);
+  }
+  .holo-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  .holo-cell {
+    padding: 4px 6px; border-radius: 6px; font-size: 8px;
+    border: 1px solid rgba(148,163,184,0.12);
+    background: rgba(15,23,42,0.55); text-align: left;
+  }
+  .holo-cell .v { font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 600; color: var(--text); display: block; }
+  .holo-cell.warn { border-color: rgba(252,211,77,0.35); }
+  .holo-cell.ok { border-color: rgba(110,231,183,0.25); }
+
+  .timeline-6d {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 0;
+    border-top: 1px solid var(--hairline);
+    font-size: 9px; text-align: center;
+  }
+  .timeline-6d div {
+    padding: 8px 4px; border-right: 1px solid rgba(148,163,184,0.08);
+    color: var(--dim);
+  }
+  .timeline-6d div:last-child { border-right: 0; }
+  .timeline-6d b { display: block; color: var(--text); font-size: 10px; }
+
+  .below-fold {
+    margin-top: 14px; padding: 16px;
+    border: 1px dashed rgba(148,163,184,0.2);
+    border-radius: 12px;
+    background: rgba(15,23,42,0.35);
+  }
+  .below-fold h2 {
+    margin: 0 0 6px; font-size: 13px; color: var(--muted);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .below-fold h2 span {
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--dim);
+    padding: 2px 8px; border-radius: 999px; border: 1px solid var(--hairline);
+  }
+  .hero-mock {
+    padding: 20px; border-radius: 12px;
+    border: 1px solid var(--hairline);
+    background: var(--elevated);
+  }
+  .hero-mock .role { font-size: 10px; color: var(--brand); text-transform: uppercase; letter-spacing: 0.08em; }
+  .hero-mock h3 { margin: 6px 0; font-size: 22px; letter-spacing: -0.02em; }
+  .hero-mock p { margin: 0; font-size: 12px; color: var(--muted); max-width: 640px; }
+
+  .callout {
+    margin-top: 16px; padding: 12px 14px; border-radius: 10px;
+    border: 1px solid rgba(110,231,183,0.25);
+    background: rgba(6,18,14,0.5);
+    font-size: 11px; color: var(--muted); line-height: 1.6;
+  }
+  .callout strong { color: var(--good); }
+
+  .arrow-annot {
+    position: relative;
+    margin: 8px 0 0 14px;
+    font-size: 10px;
+    color: var(--good);
+    font-family: "JetBrains Mono", monospace;
+  }
+  body[data-chrome="before"] .arrow-annot.after-only { display: none; }
+  body[data-chrome="after"] .arrow-annot.before-only { display: none; }
+</style>
+</head>
+<body data-chrome="after">
+  <header class="preview-bar">
+    <h1>/super/ globe landing — browser preview (pre-commit)</h1>
+    <p>
+      Toggle <strong>Before</strong> vs <strong>After</strong> to compare shell chrome.
+      Production ships <code>data-rmc-cp-globe-landing="1"</code> + <code>rmc_cp_globe_landing_minimal_chrome</code>
+      so the canvas starts at <strong>AI Copilot</strong>, not thin explain / workspace / Next up bands.
+      Platform Command Center hero stays in <code>#super-dashboard-main</code> further down.
+    </p>
+    <div class="toggles">
+      <button type="button" id="btn-before">Before (old strips)</button>
+      <button type="button" id="btn-after" class="after on">After (minimal chrome)</button>
+      <span class="badge">OPEN IN BROWSER · file or localhost</span>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="shell">
+      <div class="shell-grid">
+        <header class="shell-header">
+          <div class="shell-header__util">
+            <span>RunMyCampus Manager</span>
+            <span>operator · SUPERADMIN</span>
+          </div>
+          <div class="shell-header__live">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span class="live-label">Live</span>
+            <span class="live-ticker">2 schools live · 1 needs eyes · Fleet attention · 1 suspended · MRR $12,400</span>
+          </div>
+          <div class="shell-header__nav">
+            <span class="logo">RunMyCampus</span>
+            <span class="nav-item">Schools</span>
+            <span class="nav-item">Billing</span>
+            <span class="nav-item">Migration</span>
+          </div>
+        </header>
+
+        <aside class="shell-sidebar" aria-label="Sidebar mock">
+          <div class="item active">Command center</div>
+          <div class="item">Schools</div>
+          <div class="item">Billing</div>
+          <div class="item">Trust</div>
+        </aside>
+
+        <div class="shell-canvas">
+          <!-- Thin strips removed in "after" mode -->
+          <div class="thin-strip thin-strip--explain" data-strip="explain">
+            <span>ℹ</span> About this page · Control Plane · Flow thread
+          </div>
+          <div class="thin-strip thin-strip--workspace" data-strip="workspace">
+            <span class="pill on">Command center</span>
+            <span class="pill">Schools</span>
+            <span class="pill">Platform admin</span>
+          </div>
+          <div class="thin-strip thin-strip--security" data-strip="security">
+            ⚠ Security posture · MFA coverage 94% · review in Tools tray
+          </div>
+          <div class="thin-strip thin-strip--next" data-strip="next">
+            Next up · Highest-impact moves · Open command center →
+          </div>
+
+          <p class="arrow-annot after-only">↓ first major frame (no strips above)</p>
+          <p class="arrow-annot before-only">↓ four thin bands stack here in the old layout</p>
+
+          <div class="canvas-body">
+            <section class="ai-guide" id="rmc-world-globe-ai-guide">
+              <span class="tag">AI Copilot</span>
+              <strong>2 schools live. 1 need eyes.</strong>
+              <span class="copy">Fleet attention · 1 suspended</span>
+              <button type="button" class="btn">Ask AI</button>
+              <button type="button" class="btn">Smart tour</button>
+            </section>
+
+            <div class="globe-controls" aria-hidden="true">
+              <label><input type="checkbox" checked> Void zones A-D</label>
+              <label><input type="checkbox" checked> AI + pulse blocks</label>
+              <button type="button" class="btn" style="font-size:10px;padding:4px 8px">↻ Simulate SSE</button>
+            </div>
+
+            <div class="globe-upper">
+              <div class="globe-map"><div class="orb" aria-hidden="true"></div></div>
+              <div class="globe-side">
+                <div>Tenants on map</div>
+                <div class="n">2</div>
+                <div style="margin-top:8px;color:var(--good)">● Live footprint</div>
+              </div>
+            </div>
+
+            <div class="chrome-rail">
+              <div class="vz-c"><b>C · Context</b>West Africa focus</div>
+              <div class="dock"><span>Schools</span><span>Incidents</span><span>MRR</span></div>
+              <div class="vz-d"><b>D · Decision</b>Review suspended tenant</div>
+            </div>
+
+            <div class="prism-void" aria-label="Prism Bridge void">
+              <div class="prism-left">
+                <div class="prism-about">
+                  <div class="prism-lens">⌁</div>
+                  <div>
+                    <strong>Manager dashboard</strong>
+                    <span>Fleet command · live overview</span>
+                  </div>
+                </div>
+                <div class="prism-flow">
+                  <a class="prism-flow-pill live" href="#">Health</a>
+                  <a class="prism-flow-pill" href="#">Queues</a>
+                  <a class="prism-flow-pill" href="#">Dir</a>
+                  <span style="color:var(--dim);font-size:10px">→</span>
+                </div>
+              </div>
+              <div class="prism-pulse">
+                <div class="prism-pulse-head">
+                  <span class="beacon"></span>
+                  <span>Pulse · live</span>
+                </div>
+                <div class="holo-strip">
+                  <div class="holo-cell ok"><span>Schools</span><span class="v">2</span></div>
+                  <div class="holo-cell warn"><span>At risk</span><span class="v">1</span></div>
+                  <div class="holo-cell ok"><span>MRR</span><span class="v">12k</span></div>
+                  <div class="holo-cell ok"><span>Live</span><span class="v">2</span></div>
+                  <div class="holo-cell"><span>Queue</span><span class="v">3</span></div>
+                  <div class="holo-cell"><span>SLO</span><span class="v">99</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-6d" aria-label="6D timeline">
+              <div><b>Now</b>Live</div>
+              <div><b>24h</b>Trend</div>
+              <div><b>7d</b>Roll</div>
+              <div><b>Risk</b>1</div>
+              <div><b>MRR</b>↑</div>
+              <div><b>Proof</b>OK</div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="shell-copilot" aria-label="Copilot rail">AI</aside>
+      </div>
+    </div>
+
+    <div class="below-fold">
+      <h2><span>Below fold</span> #super-dashboard-main</h2>
+      <div class="hero-mock">
+        <div class="role">Platform operators</div>
+        <h3>Platform Command Center</h3>
+        <p>Operate platform health, tenant risk, implementation pipeline, revenue/payment readiness, marketplace governance, security/compliance, and proof ledger from one premium command center.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Before commit:</strong> use the toggle above to confirm the After state matches intent —
+      LIVE banner → AI Copilot immediately → globe lab → Prism void → 6D timeline.
+      Django flash messages and impersonation strip still render when active; everything else above AI Copilot is suppressed on <code>/super/</code> only.
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      var body = document.body;
+      var btnBefore = document.getElementById("btn-before");
+      var btnAfter = document.getElementById("btn-after");
+      function setMode(mode) {
+        body.setAttribute("data-chrome", mode);
+        btnBefore.classList.toggle("on", mode === "before");
+        btnAfter.classList.toggle("on", mode === "after");
+      }
+      btnBefore.addEventListener("click", function () { setMode("before"); });
+      btnAfter.addEventListener("click", function () { setMode("after"); });
+    })();
+  </script>
+</body>
+</html>

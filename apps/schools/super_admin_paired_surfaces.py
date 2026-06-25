@@ -468,6 +468,14 @@ def build_paired_surface_links(request) -> list[OperatorSurfaceLink]:
 
 
 def build_operator_surface_ia_context(request) -> dict[str, Any]:
+    if getattr(request, "rmc_cp_globe_landing_minimal_chrome", False):
+        return {
+            "RMC_OPERATOR_SURFACE_IA": False,
+            "RMC_OPERATOR_SURFACE_STRIP_VISIBLE": False,
+            "RMC_OPERATOR_SURFACE_SPINE": [],
+            "RMC_OPERATOR_PAIRED_LINKS": [],
+            "RMC_OPERATOR_SURFACE_CURRENT": None,
+        }
     if not _is_manager_operator_host(request):
         return {
             "RMC_OPERATOR_SURFACE_IA": False,

@@ -146,7 +146,10 @@ class SuperAdminSurfaceParityTests(TestCase):
     def test_super_dashboard_workspace_spine_omits_platform_admin(self):
         response = self.client.get("/super/", HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "rmc-operator-surface-strip")
+        self.assertNotContains(response, "rmc-operator-surface-strip")
+        self.assertNotContains(response, "rmc-page-explain-strip")
+        self.assertNotContains(response, "About this page")
+        self.assertContains(response, 'id="rmc-world-globe-ai-guide"')
         self.assertNotContains(response, "Platform admin")
         self.assertNotContains(response, "Open platform admin")
 

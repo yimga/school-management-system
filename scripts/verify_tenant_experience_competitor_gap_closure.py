@@ -55,6 +55,18 @@ def main() -> int:
     accounts_views = _read("apps/accounts/views.py")
     role_home_css = _read("static/css/rmc-tenant-v3-100x-role-home.css")
     audit_doc = _read("docs/generated/tenant_profiles_tools_workflows_competitor_gap_audit.md")
+    experience_policy = _read("apps/siteconfig/tenant_experience_policy.py")
+    experience_presets = _read("apps/siteconfig/tenant_experience_presets.py")
+    country_readiness = _read("apps/siteconfig/tenant_country_readiness.py")
+    experience_seed = _read("apps/siteconfig/tenant_experience_seed.py")
+    provision_tasks = _read("apps/schools/tasks.py")
+    preset_template = _read("templates/siteconfig/partials/portal_experience_presets.html")
+    globe_map_template = _read("templates/partials/cockpit/_live_world_map.html")
+    nexus_partial = _read("templates/partials/cockpit/_globe_nexus_interstitial.html")
+    prism_partial = _read("templates/partials/cockpit/_globe_prism_interstitial.html")
+    workflow_portal_tpl = _read("templates/partials/tenant/workflow_portal.html")
+    local_resolver = _read("apps/siteconfig/local_experience_resolver.py")
+    matrix_path = ROOT / "docs/generated/tenant_customer_250_country_matrix.json"
 
     _require(
         'include(("apps.feedback.tenant_urls", "feedback")' in tenant_urls,
@@ -145,6 +157,7 @@ def main() -> int:
         "data-rmc-tenant-experience-command",
         "data-rmc-tenant-toolbelt",
         "data-rmc-tenant-signal",
+        "data-rmc-score-band",
     ):
         _require(token in command_template, f"tenant command strip template missing {token}", failures)
     for token in (
@@ -246,6 +259,103 @@ def main() -> int:
         ".tp-workflow-step",
     ):
         _require(token in role_home_css, f"tenant role-home css missing workflow token {token}", failures)
+
+    for token in (
+        "role_experience_presets",
+        "apply_role_overlay",
+        "merge_role_preset_onto_policy",
+        "country_readiness_context",
+        "resolve_effective_country_bonus",
+    ):
+        _require(
+            token in experience_policy or token in command_service,
+            f"portal experience policy layer missing {token}",
+            failures,
+        )
+    for token in (
+        "ROLE_PRESET_BUCKETS",
+        "merge_role_preset_onto_policy",
+        "experience_policy_role_bucket",
+    ):
+        _require(token in experience_presets, f"experience presets missing {token}", failures)
+    for token in (
+        "country_readiness_context",
+        "resolve_effective_country_bonus",
+        "READINESS_STATUS_BONUS",
+    ):
+        _require(token in country_readiness, f"country readiness module missing {token}", failures)
+    for token in (
+        "ensure_tenant_experience_policy",
+        "build_provision_tenant_experience_policy",
+        "_provision_seeded",
+    ):
+        _require(token in experience_seed, f"tenant experience seed missing {token}", failures)
+    _require(
+        "ensure_tenant_experience_policy" in provision_tasks,
+        "provisioning Phase B must seed tenant experience policy",
+        failures,
+    )
+    for token in (
+        'data-rmc-portal-experience-presets="1"',
+        'data-rmc-portal-role-experience-presets="1"',
+        "role_bucket",
+    ):
+        _require(token in preset_template, f"portal preset template missing {token}", failures)
+    _require(
+        matrix_path.is_file(),
+        "249-country customer matrix JSON must exist for readiness bonus tiers",
+        failures,
+    )
+    for token in (
+        "country_readiness_status",
+        "country_auto_bonus",
+        "effective_experience_preset",
+        "local_experience_depth",
+    ):
+        _require(
+            token in command_service,
+            f"tenant command payload missing {token}",
+            failures,
+        )
+    for token in (
+        'data-rmc-globe-chrome-rail="1"',
+        'data-rmc-globe-prism="1"',
+        "lx-world__interstitial",
+        "lx-world__chrome-rail",
+    ):
+        _require(
+            token in globe_map_template or token in nexus_partial or token in prism_partial,
+            f"globe void/prism surface missing {token}",
+            failures,
+        )
+    _require(
+        "resolve_local_experience_for_country" in local_resolver,
+        "local experience resolver must bridge deep profiles",
+        failures,
+    )
+    _require(
+        'data-rmc-mobile-workflow="1"' in workflow_portal_tpl,
+        "workflow portal must expose mobile bottom-sheet affordance",
+        failures,
+    )
+    for token in (
+        "data-rmc-workflow-contract",
+        "data-rmc-readiness-state",
+        "tp-workflow-progress-train",
+        "components/pagination.html",
+        "suppress_command_strip",
+    ):
+        _require(token in workflow_portal_tpl or token in workflow_service, f"workflow density missing {token}", failures)
+    _require(
+        "count_configured_countries" in local_resolver,
+        "local experience resolver must expose coverage stats",
+        failures,
+    )
+    _require(
+        '"derived"' in local_resolver or "derived" in local_resolver,
+        "local experience resolver must support derived depth tier",
+        failures,
+    )
 
     for token in (
         "Make `/school/studio/` the canonical tenant command center",

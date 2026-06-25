@@ -18,31 +18,66 @@
     };
   }
 
+  function patchPulseCard(el, card) {
+    var valueEl =
+      el.querySelector(".rmc-cockpit-pulse-card__value") ||
+      el.querySelector(".lx-world__holo-cell-v");
+    var labelEl =
+      el.querySelector(".rmc-cockpit-pulse-card__label") ||
+      el.querySelector(".lx-world__holo-cell-sub");
+    var deltaEl =
+      el.querySelector(".rmc-cockpit-pulse-card__delta") ||
+      el.querySelector(".lx-world__holo-cell-delta");
+    var dotEl = el.querySelector(".rmc-cockpit-pulse-card__dot");
+    if (valueEl && card.value != null) valueEl.textContent = String(card.value);
+    if (labelEl && card.label) labelEl.textContent = String(card.label);
+    if (dotEl && card.severity) {
+      dotEl.className = "rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--" + card.severity;
+    }
+    if (el.classList && el.classList.contains("lx-world__holo-cell") && card.severity) {
+      el.classList.remove("lx-world__holo-cell--ok", "lx-world__holo-cell--warn", "lx-world__holo-cell--muted");
+      var holoSev = card.severity === "danger" ? "warn" : card.severity;
+      if (holoSev === "info") holoSev = "ok";
+      if (holoSev === "ok" || holoSev === "warn" || holoSev === "muted") {
+        el.classList.add("lx-world__holo-cell--" + holoSev);
+      } else {
+        el.classList.add("lx-world__holo-cell--muted");
+      }
+    }
+    if (deltaEl) {
+      if (card.delta) {
+        deltaEl.textContent = String(card.delta);
+        deltaEl.hidden = false;
+        if (deltaEl.classList && card.delta_direction) {
+          deltaEl.classList.remove(
+            "lx-world__holo-cell-delta--up",
+            "lx-world__holo-cell-delta--down",
+            "lx-world__holo-cell-delta--flat",
+            "rmc-cockpit-pulse-card__delta--up",
+            "rmc-cockpit-pulse-card__delta--down",
+            "rmc-cockpit-pulse-card__delta--flat"
+          );
+          var dir = card.delta_direction === "down" ? "down" : card.delta_direction === "up" ? "up" : "flat";
+          if (el.classList.contains("lx-world__holo-cell")) {
+            deltaEl.classList.add("lx-world__holo-cell-delta--" + dir);
+          } else {
+            deltaEl.classList.add("rmc-cockpit-pulse-card__delta--" + dir);
+          }
+        }
+      } else {
+        deltaEl.textContent = "";
+        deltaEl.hidden = true;
+      }
+    }
+    var head = card.head || el.getAttribute("data-rmc-pulse-head") || "";
+    el.setAttribute("aria-label", head + ": " + (card.value != null ? card.value : "—"));
+  }
+
   function patchPulse(cards) {
     if (!cards || !cards.length) return;
     var nodes = document.querySelectorAll("[data-rmc-cp-pulse-drill]");
     for (var i = 0; i < nodes.length && i < cards.length; i++) {
-      var card = cards[i];
-      var el = nodes[i];
-      var valueEl = el.querySelector(".rmc-cockpit-pulse-card__value");
-      var labelEl = el.querySelector(".rmc-cockpit-pulse-card__label");
-      var deltaEl = el.querySelector(".rmc-cockpit-pulse-card__delta");
-      var dotEl = el.querySelector(".rmc-cockpit-pulse-card__dot");
-      if (valueEl && card.value != null) valueEl.textContent = String(card.value);
-      if (labelEl && card.label) labelEl.textContent = String(card.label);
-      if (dotEl && card.severity) {
-        dotEl.className = "rmc-cockpit-pulse-card__dot rmc-cockpit-pulse-card__dot--" + card.severity;
-      }
-      if (deltaEl) {
-        if (card.delta) {
-          deltaEl.textContent = String(card.delta);
-          deltaEl.hidden = false;
-        } else {
-          deltaEl.textContent = "";
-          deltaEl.hidden = true;
-        }
-      }
-      el.setAttribute("aria-label", (card.head || "") + ": " + (card.value != null ? card.value : "—"));
+      patchPulseCard(nodes[i], cards[i]);
     }
     var stamp = document.querySelector("[data-rmc-cp-pulse-refreshed]");
     if (stamp) {

@@ -63,6 +63,13 @@ class PageExplainPlatformWideTests(SimpleTestCase):
         req.user = _Anon()
         self.assertEqual(build_page_explain_context(req), {})
 
+    def test_globe_landing_minimal_chrome_suppresses_strip(self):
+        req = self.rf.get("/super/")
+        req.user = _AuthedUser()
+        req.rmc_cp_globe_landing_minimal_chrome = True
+        ctx = build_page_explain_context(req)
+        self.assertFalse(ctx["rmc_page_explain_enabled"])
+
     def test_fallback_skips_numeric_and_action_segments(self):
         req = self.rf.get("/admin/finance/notification/123/change/")
         self.assertEqual(_fallback_page_title(req), "Notification")
