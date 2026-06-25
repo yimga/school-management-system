@@ -103,9 +103,11 @@ def _delta_for_card(metric_key: str, current_raw: int | None) -> tuple[str, str 
         direction = "up" if delta > 0 else "down"
         sign = "+" if delta > 0 else "-"
         magnitude = abs(delta)
-        # Format MRR-style values without "+3" — they're already dollars.
+        # Format MRR-style values without "+3" — they're already in the
+        # platform reporting currency (whole units / mo).
         if metric_key == PlatformPulseSnapshot.MRR:
-            return f"{sign}${magnitude} / mo this week", direction
+            cur = platform_currency_symbol()
+            return f"{sign}{cur}{magnitude} / mo this week", direction
         return f"{sign}{magnitude} this week", direction
     except Exception:
         logger.warning("pulse: delta lookup failed for %s", metric_key, exc_info=True)

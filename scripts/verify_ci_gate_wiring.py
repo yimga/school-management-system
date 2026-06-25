@@ -57,6 +57,8 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     ("scripts/scan_money_float.py", "architectural-boundaries.yml"),
     ("scripts/scan_tenant_queryset_safety.py", "tenant-isolation-scan.yml"),
     ("scripts/verify_offline_capability_implementation.py", "architectural-boundaries.yml"),
+    # Tenant-facing money renders the locale currency, never a hardcoded symbol.
+    ("scripts/scan_locale_display.py", "architectural-boundaries.yml"),
     # Global academic kernel — the canonical world grade-scale families must
     # stay seeded; without this gate a deploy could ship an empty registry and
     # the catalog's "9 world scales" claim becomes silent theater.

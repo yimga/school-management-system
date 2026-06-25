@@ -25,6 +25,15 @@ from apps.marketplace.models import (
 def metrics_for_publisher(publisher: PublisherOrganization) -> dict:
     """Aggregate top-line metrics. Cheap counts/sums, suitable for a dashboard hit."""
 
+    from django.conf import settings
+
+    from apps.siteconfig.currency import platform_currency_symbol
+
+    # Marketplace MRR/payouts are denominated in the platform's reporting
+    # currency — resolve it (and its display symbol) rather than hardcoding USD/$.
+    mrr_currency = (getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD") or "USD").upper()
+    currency_symbol = platform_currency_symbol()
+
     app_ids = list(MarketplaceApp.objects.filter(publisher=publisher).values_list("id", flat=True))
     if not app_ids:
         return {
@@ -32,7 +41,8 @@ def metrics_for_publisher(publisher: PublisherOrganization) -> dict:
             "installs_active": 0,
             "installs_lifetime": 0,
             "mrr_cents": 0,
-            "mrr_currency": "USD",
+            "mrr_currency": mrr_currency,
+            "currency_symbol": currency_symbol,
             "publisher_share_30d": Decimal("0.00"),
             "publisher_share_lifetime": Decimal("0.00"),
             "churn_30d_pct": 0.0,
@@ -91,7 +101,8 @@ def metrics_for_publisher(publisher: PublisherOrganization) -> dict:
         "installs_active": active,
         "installs_lifetime": install_counts["lifetime"] or 0,
         "mrr_cents": mrr_cents,
-        "mrr_currency": "USD",
+        "mrr_currency": mrr_currency,
+        "currency_symbol": currency_symbol,
         "publisher_share_30d": pub_share_30d,
         "publisher_share_lifetime": pub_share_lifetime,
         "churn_30d_pct": round(churn_30d_pct, 2),

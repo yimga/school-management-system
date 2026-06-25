@@ -232,7 +232,11 @@ class AdminDashboardWidget:
         if self.metric_type == "percentage":
             return f"{self.value:.1f}%"
         elif self.metric_type == "currency":
-            return f"₦{self.value:,.2f}"
+            # Platform admin widget → render the platform's own reporting
+            # currency, never a hardcoded symbol. # locale-display: resolved
+            from apps.siteconfig.currency import platform_currency_symbol
+
+            return f"{platform_currency_symbol()}{self.value:,.2f}"
         else:
             return str(self.value)
 

@@ -46,6 +46,8 @@ on:
       - "var/security-audit-baseline-exam-board-filtering.json"
       - "scripts/scan_currency_tenant_fallback.py"
       - "var/security-audit-baseline-currency-tenant-fallback.json"
+      - "scripts/scan_locale_display.py"
+      - "var/security-audit-baseline-locale-display.json"
       - "scripts/scan_assert_in_production.py"
       - "scripts/scan_magic_numbers.py"
       - "scripts/scan_subprocess_shell_true.py"
@@ -393,6 +395,20 @@ jobs:
       - name: Run scanner --compare
         run: |
           python scripts/scan_currency_tenant_fallback.py --compare
+
+  locale-display:
+    name: Locale display (no hardcoded currency symbol)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_locale_display.py --compare
 
   assert-in-production:
     name: assert statements in production code
