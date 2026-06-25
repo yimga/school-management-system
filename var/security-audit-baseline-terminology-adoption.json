@@ -7,7 +7,7 @@
     "templates/siteconfig/partials/lexicon_",
     "templates/siteconfig/feature_control"
   ],
-  "finding_count": 775,
+  "finding_count": 770,
   "findings": [
     {
       "key": "subject",
@@ -1750,39 +1750,9 @@
       "path": "templates/parent/link_child.html"
     },
     {
-      "key": "student",
-      "line": 58,
-      "literal": "Student",
-      "path": "templates/parent/link_child_wizard.html"
-    },
-    {
-      "key": "school",
-      "line": 63,
-      "literal": "School",
-      "path": "templates/parent/link_child_wizard.html"
-    },
-    {
       "key": "class",
       "line": 64,
       "literal": "Class",
-      "path": "templates/parent/link_child_wizard.html"
-    },
-    {
-      "key": "class",
-      "line": 98,
-      "literal": "Class",
-      "path": "templates/parent/link_child_wizard.html"
-    },
-    {
-      "key": "parent",
-      "line": 235,
-      "literal": "Parent",
-      "path": "templates/parent/link_child_wizard.html"
-    },
-    {
-      "key": "school",
-      "line": 347,
-      "literal": "School",
       "path": "templates/parent/link_child_wizard.html"
     },
     {
@@ -4660,7 +4630,7 @@
       "path": "templates/widgets/parent_dashboard_widgets.html"
     }
   ],
-  "generated_at": "2026-06-25T09:11:25+00:00",
+  "generated_at": "2026-06-25T10:36:14+00:00",
   "rule": "Tenant-facing templates must not hardcode canonical lexicon defaults; use {% term %} / {% trans_term %} / legacy *_label tags.",
   "scan_root": "templates"
 }

@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load region_format i18n static %}
+{% load region_format i18n static terminology_tags %}
 {% block title %}{% trans "Link a Child" %}{% endblock %}
 
 {% block extrastyle %}
@@ -55,12 +55,12 @@
       {% if step == 1 %}
         <h3 class="wizard-step-title">Step 1: Identify Your Child</h3>
         <p class="wizard-step-description">
-          Enter the admission number you received from the school. We'll verify it and show you the student details.
+          Enter the admission number you received from the {% term_lower "school" %}. We'll verify it and show you the {% term_lower "student" %} details.
         </p>
 
         {% if school_code %}
           <div class="rmc-banner rmc-banner--info small mb-3">
-            <strong>School code:</strong> {{ school_code }}<br>
+            <strong>{% term "school" capitalize=True %} code:</strong> {{ school_code }}<br>
             <strong>Format:</strong> YY + {{ school_code }} + #### + SPEC + CLASS (no dashes)
           </div>
         {% endif %}
@@ -95,7 +95,7 @@
             <h6><i class="bi bi-check-circle me-2"></i>Student Found</h6>
             <p>
               <strong>{{ student_info.get_full_name }}</strong><br>
-              {% if student_info.classroom %}Class: {{ student_info.classroom.name }}{% endif %}
+              {% if student_info.classroom %}{% term "class" capitalize=True %}: {{ student_info.classroom.name }}{% endif %}
               {% if student_info.specialty %} • {{ student_info.specialty.name }}{% endif %}
             </p>
           </div>
@@ -232,7 +232,7 @@
         <div class="optional-section">
           <div class="optional-section-title">
             <i class="bi bi-person-circle"></i>
-            Parent Profile (Optional)
+            {% term "parent" capitalize=True %} Profile (Optional)
           </div>
           <div class="row g-3">
             <div class="col-md-6">
@@ -344,7 +344,7 @@
         <i class="bi bi-question-circle me-2"></i>Need Help?
       </h6>
       <p class="small text-muted mb-2">
-        Don't have an admission number? Contact the school:
+        Don't have an admission number? Contact the {% term_lower "school" %}:
       </p>
       <div class="d-flex flex-wrap gap-2">
         {% if support_email %}
