@@ -96,13 +96,8 @@ jobs:
       - name: Run offline IndexedDB multiday (serverless)
         run: npm run test:e2e:offline-multiday
 
-      - name: Run tenant moat Playwright suite
-        run: |
-          npx playwright test \
-            tests/e2e/offline-authenticated-sync.spec.js \
-            tests/e2e/report-card-hash-parent.spec.js \
-            tests/e2e/tenant-shell-a11y.spec.js \
-            --project=offline-sync-chromium
+      - name: Run tenant moat Playwright suite (armed)
+        run: npm run test:e2e:tenant-moat:armed
 
       - name: Upload Playwright report
         if: always()

@@ -86,14 +86,31 @@ class ReportHashLedgerTests(TestCase):
         self.assertTrue(payload.get("verified"))
         self.assertEqual(payload.get("report_card_id"), self.report_card.pk)
 
-    def test_verify_report_hash_endpoint_by_report_card_id(self):
+    def test_verify_report_hash_endpoint_by_report_card_id_requires_tenant(self):
         _record_report_hash(self.user, self.report_card, b"pdf-two")
         response = self.client.get(
             reverse("reports:verify_report_hash"),
             {"report_card_id": self.report_card.pk},
         )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("hash", response.json().get("error", "").lower())
+
+    def test_verify_report_hash_endpoint_by_report_card_id_within_tenant(self):
+        from django.test import RequestFactory
+
+        from apps.reports.views import verify_report_hash
+
+        _record_report_hash(self.user, self.report_card, b"pdf-three")
+        request = RequestFactory().get(
+            "/reports/verify-hash/",
+            {"report_card_id": str(self.report_card.pk)},
+        )
+        request.school = self.school
+        response = verify_report_hash(request)
         self.assertEqual(response.status_code, 200)
-        payload = response.json()
+        import json
+
+        payload = json.loads(response.content)
         self.assertTrue(payload.get("verified"))
         self.assertEqual(payload.get("student_id"), self.student.pk)
 
