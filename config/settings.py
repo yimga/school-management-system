@@ -1724,6 +1724,16 @@ RMC_LIST_UNSUBSCRIBE_MAILTO = os.getenv("RMC_LIST_UNSUBSCRIBE_MAILTO", "")
 RMC_LIST_UNSUBSCRIBE_URL = os.getenv("RMC_LIST_UNSUBSCRIBE_URL", "")
 # DKIM posture: extra SMTP relay hostnames that sign DKIM at the edge.
 EMAIL_DKIM_RELAY_TRUSTED = os.getenv("EMAIL_DKIM_RELAY_TRUSTED", "")
+# Hard boot gate: when truthy the communication app refuses to start unless DKIM
+# signing is provably configured (assert_dkim_configured in apps/communication/
+# apps.py). Turn this ON in production so a misconfigured relay can never ship
+# unsigned mail; left OFF by default for local/dev. Read via getattr fallback.
+EMAIL_SIGNING_REQUIRED = os.getenv("EMAIL_SIGNING_REQUIRED", "0").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
 # Durable async transactional sends via Celery when the worker is always-on.
 SCHOOLOPS_EMAIL_ASYNC_USE_CELERY = os.getenv(
     "SCHOOLOPS_EMAIL_ASYNC_USE_CELERY", "0"

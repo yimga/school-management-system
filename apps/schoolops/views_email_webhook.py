@@ -441,6 +441,26 @@ def _verify_signature(
             return (False, False)
         logger.info("schoolops.email_webhook.sendgrid_unverified_fallback")
         return (False, True)
+    if provider == "brevo":
+        # Brevo's transactional webhooks don't natively HMAC-sign the body, but a
+        # webhook definition can carry a static custom header. The operator sets a
+        # shared-secret token header (``X-RMC-Brevo-Token``) equal to the configured
+        # secret; we constant-time compare it. A relay may instead HMAC the raw body
+        # into ``X-RMC-Brevo-Signature`` (same shape as the ses path), which we also
+        # accept. With no secret configured this returns (False, False) → 401, the
+        # same posture as every other provider (operator must configure intake).
+        token = (request.META.get("HTTP_X_RMC_BREVO_TOKEN") or "").strip()
+        if token and hmac.compare_digest(token, secret):
+            return (True, False)
+        provided = (request.META.get("HTTP_X_RMC_BREVO_SIGNATURE") or "").strip()
+        if provided:
+            computed = hmac.new(
+                secret.encode("utf-8"),
+                msg=body_bytes,
+                digestmod=hashlib.sha256,
+            ).hexdigest()
+            return (hmac.compare_digest(computed, provided), False)
+        return (False, False)
     return (False, False)
 
 
