@@ -38,7 +38,7 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="4">{% include "components/tp_empty.html" with tp_empty_title=_("No documents") tp_empty_hint=_("Office documents will appear here when published.") %}</td></tr>
+      <tr><td colspan="4">{% include "components/rmc_empty_state.html" with title=_("No documents") message=_("Office documents will appear here when published.") %}</td></tr>
       {% endfor %}
     </tbody>
   </table>

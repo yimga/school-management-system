@@ -29,12 +29,11 @@ def _run(script: str, *args: str) -> tuple[bool, str]:
 def main() -> int:
     findings: list[str] = []
 
-    for partial in (
-        "templates/components/cp_empty.html",
-        "templates/components/tp_empty.html",
-    ):
-        if not (ROOT / partial).is_file():
-            findings.append(f"missing {partial}")
+    # Empty-state partials retired 2026-06-26 (cp_empty / tp_empty / world_class_empty_state)
+    # — superseded by the canonical components/rmc_empty_state.html; callers migrated.
+    canonical_empty = "templates/components/rmc_empty_state.html"
+    if not (ROOT / canonical_empty).is_file():
+        findings.append(f"missing {canonical_empty}")
 
     data: dict = {}
     if not REGISTRY.is_file():

@@ -1,6 +1,18 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-20 (Flow Thread Phase 1+2 — page-explain/next-action merge + flow-continuation launchpad; SW v4.04.37; see § below. Docket reconciled across the 2026-06-18→20 platform waves that shipped between v4.03.76 and here.)
+**Last updated:** 2026-06-26 (empty-state shim retirement — `cp_empty.html` / `tp_empty.html` / `world_class_empty_state.html` deleted; see § below. Prior: 2026-06-20 Flow Thread Phase 1+2.)
+
+## 2026-06-26 — Empty-state shim retirement (cp_empty / tp_empty / world_class_empty_state)
+
+**Context:** three deprecated empty-state partials had been converted to thin delegating shims that `{% include %}`'d the canonical `components/rmc_empty_state.html`. They were marked "DEPRECATED … scheduled for file removal v4.02.0 once callers include `components/rmc_empty_state.html` directly," but 8 caller include sites still referenced the shims, and `world_class_empty_state.html`'s conversion to a shim had silently **left `apps/platform_runtime/tests/test_world_class_component_contracts.py` red on main** (the shim no longer carries the `data-world-class-empty-state` / `data-world-class-primary-action-slot` markers the contract asserted).
+
+**What landed:**
+- **8 caller include sites migrated** from the shims to the canonical component (`*_title`→`title`, `*_hint`→`message`; emoji `*_icon` args dropped — the shims never forwarded them, so this is behavior-preserving: the canonical default brand mark renders today and after): `templates/accounts/messages.html` (×2), `templates/portal/signature_pending_list.html`, `templates/portal/office_document_list.html`, `templates/portal/kb_docs_hub.html` (×2), `templates/portal/cahier_list.html`, `templates/platform_runtime/change_requests.html`.
+- **3 shim files deleted:** `templates/components/{cp_empty,tp_empty,world_class_empty_state}.html`.
+- **Tests realigned:** `test_empty_intelligence.py::test_deprecated_variants_delegate_to_canonical` → `test_deprecated_variants_are_retired` + new `test_no_template_includes_retired_empty_variants` (tree-wide guard against re-includes); `test_world_class_component_contracts.py` drops the retired member from its required-marker dict + asserts `primary_url`/`secondary_url` on the canonical instead — **greens the previously-red contract test**.
+- **Verifier + token comment updated:** `scripts/verify_preview_shell_100x_phase4.py` pre-flight now requires `rmc_empty_state.html` (not the deleted shims); `static/css/design-tokens.css` retirement comment marks the 3 as retired (dashboard_empty_state.html still scheduled v4.02.0).
+
+**No CSS change, no migration, no SW bump** (template/test/doc only). Generated audit JSONs (`docs/generated/page_standards_audit.json`, `platform_layout_balance_audit.json`) still name the deleted files until regenerated — informational, not load-bearing.
 
 ## 2026-06-20 — Flow Thread — page-explain + next-action merge (Phase 1) + flow-continuation launchpad (Phase 2)
 

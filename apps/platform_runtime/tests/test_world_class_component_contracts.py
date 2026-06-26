@@ -15,7 +15,8 @@ class WorldClassComponentContractTests(SimpleTestCase):
             "world_class_summary_strip.html": "data-world-class-summary-strip",
             "world_class_product_moment_card.html": "data-world-class-product-moment",
             "world_class_action_rail.html": "data-world-class-action-rail",
-            "world_class_empty_state.html": "data-world-class-empty-state",
+            # world_class_empty_state.html retired 2026-06-26 — superseded by the
+            # canonical components/rmc_empty_state.html (all callers migrated).
             "world_class_risk_blocker_card.html": "data-world-class-risk-blocker",
             "world_class_guided_stepper.html": "data-world-class-guided-stepper",
             "world_class_readiness_meter.html": "data-world-class-readiness-meter",
@@ -29,14 +30,15 @@ class WorldClassComponentContractTests(SimpleTestCase):
                 get_template(f"components/{name}")
 
     def test_primary_action_slots_and_empty_state_have_actions(self):
+        # Empty-state actions now live in the canonical components/rmc_empty_state.html
+        # (primary_url/secondary_url asserted by apps/siteconfig test_empty_intelligence).
         hero = (COMPONENTS / "world_class_page_hero.html").read_text(encoding="utf-8")
-        empty = (COMPONENTS / "world_class_empty_state.html").read_text(encoding="utf-8")
         action_rail = (COMPONENTS / "world_class_action_rail.html").read_text(encoding="utf-8")
         self.assertIn("data-world-class-primary-action-slot", hero)
-        self.assertIn("data-world-class-primary-action-slot", empty)
         self.assertIn("data-world-class-primary-action-slot", action_rail)
-        self.assertIn("primary_url", empty)
-        self.assertIn("secondary_url", empty)
+        canonical = (COMPONENTS / "rmc_empty_state.html").read_text(encoding="utf-8")
+        self.assertIn("primary_url", canonical)
+        self.assertIn("secondary_url", canonical)
 
     def test_no_dummy_href_or_action_in_world_class_components(self):
         for path in COMPONENTS.glob("world_class_*.html"):

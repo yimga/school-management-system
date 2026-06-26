@@ -49,7 +49,7 @@
             <td><a href="{% url 'configuration:change_request_detail' row.id %}">{% trans "View" %}</a></td>
           </tr>
         {% empty %}
-          <tr><td colspan="6">{% include "components/cp_empty.html" with cp_empty_title="No change requests yet" cp_empty_hint="New blueprint and pack requests will appear here with risk, approval, scheduling, and audit state." %}</td></tr>
+          <tr><td colspan="6">{% include "components/rmc_empty_state.html" with title="No change requests yet" message="New blueprint and pack requests will appear here with risk, approval, scheduling, and audit state." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>

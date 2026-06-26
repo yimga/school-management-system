@@ -84,7 +84,7 @@
       {% endfor %}
     </div>
   {% else %}
-    {% include "components/tp_empty.html" with tp_empty_title="All caught up" tp_empty_hint="You have no pending signature requests." tp_empty_icon="✓" %}
+    {% include "components/rmc_empty_state.html" with title="All caught up" message="You have no pending signature requests." %}
     <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-primary btn-back-primary mt-3"><i class="bi bi-arrow-left me-1"></i>Back to Dashboard</a>
   {% endif %}
 </div>

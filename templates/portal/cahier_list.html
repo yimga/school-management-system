@@ -73,7 +73,7 @@
     {% include "components/pagination.html" with page_obj=page_obj %}
     {% endif %}
     {% else %}
-    {% include "components/tp_empty.html" with tp_empty_title=_("No entries yet") tp_empty_hint=_("Submit your first lesson diary entry above.") tp_empty_icon="📓" %}
+    {% include "components/rmc_empty_state.html" with title=_("No entries yet") message=_("Submit your first lesson diary entry above.") %}
     {% endif %}
   </div>
 </div>

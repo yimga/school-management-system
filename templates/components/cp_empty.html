@@ -1,3 +1,0 @@
-{% load i18n %}
-{% comment %} DEPRECATED v4.01.06 → now DELEGATES to the canonical empty-state component (Surface 4, 2026-06-22): same params, unified .rmc-empty look. Scheduled for file removal v4.02.0 once callers include components/rmc_empty_state.html directly. {% endcomment %}
-{% include "components/rmc_empty_state.html" with title=cp_empty_title|default:_("Nothing here yet") message=cp_empty_hint %}

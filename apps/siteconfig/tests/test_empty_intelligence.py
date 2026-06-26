@@ -3,8 +3,9 @@
 Two TABLE empty states ride rmc-table-intelligence.js (filter-to-zero + zero-
 data); ad-hoc adoption rides rmc-empty-intelligence.js; the first-run welcome
 card becomes progress-aware. Config is a SITE cascade (default-on, zero
-migration). The 3 deprecated empty variants now delegate to the canonical
-component. Guards:
+migration). The 3 deprecated empty variants (cp_empty / tp_empty /
+world_class_empty_state) were retired once every caller migrated to the
+canonical component. Guards:
 
   1. cascade gate logic (default-on);
   2. the table engine owns both table empty states + is CSP-safe;
@@ -12,7 +13,7 @@ component. Guards:
   4. CSS grammar defined;
   5. the five cascade keys are write-whitelisted AND prefix-owned shadow keys;
   6. the admin settings route/view/template + registry action exist;
-  7. deprecated variants delegate to the canonical component;
+  7. deprecated variants are retired + no template still includes them;
   8. the first-run card is progress-aware (server + template);
   9. the school defaults round-trip through set_runtime_default + the façade.
 """
@@ -91,10 +92,24 @@ class EmptyEngineContractTests(SimpleTestCase):
         for name in ("empty_intelligence", "empty_table_filter", "empty_table_data", "empty_adopt", "empty_first_run"):
             self.assertIn(name, tpl, name)
 
-    def test_deprecated_variants_delegate_to_canonical(self):
+    def test_deprecated_variants_are_retired(self):
+        # The 3 deprecated shims (cp_empty / tp_empty / world_class_empty_state)
+        # were retired once every caller was migrated to the canonical component.
         for variant in ("cp_empty.html", "tp_empty.html", "world_class_empty_state.html"):
-            src = _read("templates/components/" + variant)
-            self.assertIn("components/rmc_empty_state.html", src, variant)
+            self.assertFalse(
+                (_ROOT / "templates" / "components" / variant).exists(),
+                f"{variant} should be deleted — callers must include rmc_empty_state.html directly",
+            )
+
+    def test_no_template_includes_retired_empty_variants(self):
+        offenders = []
+        for tpl in (_ROOT / "templates").rglob("*.html"):
+            text = tpl.read_text(encoding="utf-8", errors="replace")
+            for variant in ("components/cp_empty.html", "components/tp_empty.html",
+                            "components/world_class_empty_state.html"):
+                if variant in text:
+                    offenders.append(f"{tpl}: {variant}")
+        self.assertEqual(offenders, [], f"retired empty-state shims still included: {offenders}")
 
     def test_first_run_card_is_progress_aware(self):
         src = _read("apps/dashboard/first_run_zero_state.py")

@@ -71,7 +71,7 @@
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="4">{% include "components/tp_empty.html" with tp_empty_title=_("No articles yet") tp_empty_hint=_("Submit an article or import an ODT file.") %}</td></tr>
+          <tr><td colspan="4">{% include "components/rmc_empty_state.html" with title=_("No articles yet") message=_("Submit an article or import an ODT file.") %}</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -97,7 +97,7 @@
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="4">{% include "components/tp_empty.html" with tp_empty_title=_("No office documents") tp_empty_hint=_("Upload ODT, DOCX, ODS, or ODP files to share templates.") %}</td></tr>
+          <tr><td colspan="4">{% include "components/rmc_empty_state.html" with title=_("No office documents") message=_("Upload ODT, DOCX, ODS, or ODP files to share templates.") %}</td></tr>
           {% endfor %}
         </tbody>
       </table>

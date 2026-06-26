@@ -72,9 +72,9 @@
             </div>
           {% else %}
             {% if is_student %}
-            {% include "components/tp_empty.html" with tp_empty_title="No messages yet" tp_empty_hint="When a teacher or staff member messages you, the conversation will appear here." tp_empty_icon="💬" %}
+            {% include "components/rmc_empty_state.html" with title="No messages yet" message="When a teacher or staff member messages you, the conversation will appear here." %}
             {% else %}
-            {% include "components/tp_empty.html" with tp_empty_title="No direct messages yet" tp_empty_hint="Use New message to start a conversation." tp_empty_icon="💬" %}
+            {% include "components/rmc_empty_state.html" with title="No direct messages yet" message="Use New message to start a conversation." %}
             {% endif %}
           {% endif %}
         {% else %}
