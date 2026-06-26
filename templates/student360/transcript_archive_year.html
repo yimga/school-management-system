@@ -26,7 +26,7 @@
         <tbody>
           <tr><th scope="row" class="text-muted" style="width:12rem;">{% trans_term "Student" key="student" %}</th><td>{{ snapshot.student_name|default:student.get_full_name }}</td></tr>
           <tr><th scope="row" class="text-muted">{% trans_term "Academic year" key="academic_year" %}</th><td>{{ snapshot.academic_year_name|default:transcript.academic_year.name }}</td></tr>
-          <tr><th scope="row" class="text-muted">{% trans "Annual average" %}</th><td>{{ snapshot.annual_average|floatformat:2|default:"—" }}</td></tr>
+          <tr><th scope="row" class="text-muted">{% trans "Annual average" %}</th><td>{{ snapshot.annual_average|floatformat:2|default:"—" }}{% if snapshot.annual_band %} <span class="text-muted">({{ snapshot.annual_band }})</span>{% endif %}</td></tr>
           {% term "classroom" capitalize=True as ta_cl_sg %}
           {% term "teacher" capitalize=True as ta_t_sg %}
           <tr><th scope="row" class="text-muted">{% blocktrans with t=ta_cl_sg %}Rank in {{ t }}{% endblocktrans %}</th><td>{{ snapshot.class_rank_display|default:"—" }}</td></tr>
@@ -42,7 +42,7 @@
           {% for row in snapshot.term_rows %}
           <tr>
             <td>{{ row.term }}</td>
-            <td>{{ row.avg|floatformat:2|default:"—" }}</td>
+            <td>{{ row.avg|floatformat:2|default:"—" }}{% if row.band %} <span class="text-muted">({{ row.band }})</span>{% endif %}</td>
             <td>{{ row.rank_display|default:"—" }}</td>
           </tr>
           {% endfor %}

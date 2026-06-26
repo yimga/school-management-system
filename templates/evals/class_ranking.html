@@ -11,7 +11,7 @@
 <div class="d-flex align-items-center justify-content-between mb-3">
   <div>
     <h1 class="mb-0">Class Ranking</h1>
-    <div class="text-muted">Ranks students by average score for the selected term.</div>
+    <div class="text-muted">{% if is_t_score %}{% trans "Ranks students by cohort-relative T-score (hensachi, mean 50) for the selected term." %}{% else %}{% trans "Ranks students by average score for the selected term." %}{% endif %}</div>
   </div>
   <a class="btn btn-outline-secondary btn-back-outline" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to Backend" %}</a>
 </div>
@@ -93,7 +93,7 @@
             <tr>
               <th scope="col" style="width: 80px;">Rank</th>
               <th scope="col">Student</th>
-              <th scope="col" class="text-end">Average</th>
+              <th scope="col" class="text-end">{{ score_label }}</th>
             </tr>
           </thead>
           <tbody>
@@ -102,7 +102,7 @@
                   tabindex="0"
                   data-rmc-row-title="{{ r.student }}"
                   data-rmc-row-subtitle="{% trans 'Rank' %} {{ r.rank }}"
-                  data-rmc-row-meta='{"{% trans "Average" %}":"{{ r.average|format_number:2|escapejs }}"}'>
+                  data-rmc-row-meta='{"{{ score_label|escapejs }}":"{{ r.average|format_number:2|escapejs }}"}'>
                 <td><span class="badge bg-dark">{{ r.rank }}</span></td>
                 <td>{{ r.student }}</td>
                 <td class="text-end">{{ r.average|format_number:2 }}</td>

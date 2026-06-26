@@ -6,7 +6,6 @@ Phase 1.2: Complete Evaluation Module
 
 from __future__ import annotations
 
-import statistics
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -181,15 +180,16 @@ def _compute_rankings(
 
     ranking_mode = _resolve_ranking_mode(term, classroom)
     if ranking_mode == "standard_score_t" and len(aggregates) > 1:
-        scores = [avg for _, avg in aggregates]
-        mean = statistics.mean(scores)
-        stdev = statistics.pstdev(scores) or 1.0
+        # Cohort-relative standardized T-score (hensachi). Delegate to the single
+        # tested implementation in grading.cohort_t_scores so the ranking and the
+        # report-card surfaces can never drift apart. Input order is preserved by
+        # the helper, so we re-pair each student with their T-score by zip.
+        from .grading import cohort_t_scores
+
+        t_scores = cohort_t_scores([avg for _, avg in aggregates], ndigits=2)
         aggregates = [
-            (
-                student,
-                round(50.0 + 10.0 * ((avg - mean) / stdev), 2),
-            )
-            for student, avg in aggregates
+            (student, t_score)
+            for (student, _avg), t_score in zip(aggregates, t_scores)
         ]
 
     # Sort by average (descending), then by name, then by ID for stability
@@ -304,6 +304,17 @@ def _resolve_ranking_mode(term: Term, classroom: Optional[Classroom]) -> str:
     except (ImportError, AttributeError, TypeError, ValueError):
         pass
     return "average"
+
+
+def resolve_ranking_mode(term: Term, classroom: Optional[Classroom] = None) -> str:
+    """Public accessor for the ranking mode of a term/classroom.
+
+    Returns ``"standard_score_t"`` for cohorts ranked on the East-Asian T-score
+    (hensachi) and ``"average"`` otherwise. A view uses this to label the ranking
+    column correctly — under T-score mode ``RankingEntry.average`` carries a
+    cohort-relative standardized score (mean 50), not a raw mean.
+    """
+    return _resolve_ranking_mode(term, classroom)
 
 
 def get_class_ranking(

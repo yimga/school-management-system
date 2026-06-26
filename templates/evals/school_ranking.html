@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load region_format %}
+{% load i18n region_format %}
 
 {% block title %}School Ranking{% endblock %}
 
@@ -11,7 +11,7 @@
 <div class="d-flex align-items-center justify-content-between mb-3">
   <div>
     <h1 class="mb-0">School Ranking</h1>
-    <div class="text-muted">Ranks all students (all classes) by term average.</div>
+    <div class="text-muted">{% if is_t_score %}{% trans "Ranks all students (all classes) by cohort-relative T-score (hensachi, mean 50)." %}{% else %}{% trans "Ranks all students (all classes) by term average." %}{% endif %}</div>
   </div>
 </div>
 
@@ -50,7 +50,7 @@
             <th scope="col" style="width:72px">Rank</th>
             <th scope="col">Student</th>
             <th scope="col">Class</th>
-            <th scope="col" class="text-end">Average</th>
+            <th scope="col" class="text-end">{{ score_label }}</th>
           </tr>
         </thead>
         <tbody>

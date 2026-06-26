@@ -2377,6 +2377,8 @@ def class_ranking_view(request: HttpRequest):
     Optimization: Uses cached rankings with 15-minute TTL and batch-loaded
     evaluations to avoid N+1 queries.
     """
+    from django.utils.translation import gettext
+
     year, active_term = get_active_year_and_term()
     if not year or not active_term:
         return HttpResponseForbidden("No active academic year/term set by admin yet.")
@@ -2396,15 +2398,21 @@ def class_ranking_view(request: HttpRequest):
     ranking = []
     stats = None
     rows = []
+    is_t_score = False
 
     if classroom_id:
         selected_classroom = get_object_or_404(Classroom, id=classroom_id)
 
         from .services import get_class_stats
-        from .ranking import get_class_ranking
+        from .ranking import get_class_ranking, resolve_ranking_mode
 
         # Get optimized ranking with tie handling and caching
         ranking = get_class_ranking(selected_classroom, term_obj)
+        # Under T-score mode the "average" column carries a cohort-relative
+        # standardized score (hensachi, mean 50), not a raw mean — label it honestly.
+        is_t_score = (
+            resolve_ranking_mode(term_obj, selected_classroom) == "standard_score_t"
+        )
         stats = get_class_stats(selected_classroom, year_obj, term_obj)
 
         # Build rows from ranking entries (rank already included)
@@ -2462,6 +2470,8 @@ def class_ranking_view(request: HttpRequest):
             "selected_classroom": selected_classroom,
             "rows": rows,
             "stats": stats,
+            "is_t_score": is_t_score,
+            "score_label": gettext("T-score") if is_t_score else gettext("Average"),
             "page_obj": page_obj,
             "pagination_extra_query": pagination_extra_query,
         },
@@ -2476,6 +2486,8 @@ def school_ranking_view(request: HttpRequest):
     evaluations to avoid N+1 queries. Proper tie handling ensures deterministic
     ranking even when students have identical averages.
     """
+    from django.utils.translation import gettext
+
     year, active_term = get_active_year_and_term()
     if not year or not active_term:
         return HttpResponseForbidden("No active academic year/term set by admin yet.")
@@ -2486,10 +2498,13 @@ def school_ranking_view(request: HttpRequest):
     year_obj = get_object_or_404(AcademicYear, id=year_id)
     term_obj = get_object_or_404(Term, id=term_id)
 
-    from .ranking import get_school_ranking
+    from .ranking import get_school_ranking, resolve_ranking_mode
 
     # Get optimized ranking with tie handling and caching
     ranking = get_school_ranking(term_obj)
+    # Under T-score mode the "average" column carries a cohort-relative standardized
+    # score (hensachi, mean 50), not a raw mean — label it honestly in the display.
+    is_t_score = resolve_ranking_mode(term_obj, None) == "standard_score_t"
 
     # Build rows from ranking entries (rank already included with tie handling)
     rows = [
@@ -2538,6 +2553,8 @@ def school_ranking_view(request: HttpRequest):
                 "start_date", "name"
             ),
             "rows": rows,
+            "is_t_score": is_t_score,
+            "score_label": gettext("T-score") if is_t_score else gettext("Average"),
             "page_obj": page_obj,
             "pagination_extra_query": pagination_extra_query,
         },

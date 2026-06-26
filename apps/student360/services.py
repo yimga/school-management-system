@@ -208,6 +208,10 @@ def build_transcript_snapshot(student, academic_year) -> Optional[Dict[str, Any]
             "term_rows": ctx.get("term_rows") or [],
             "terms": terms_data,
             "annual_average": ctx.get("annual_average"),
+            # World-scale band label captured at FREEZE time (None for numeric/letter
+            # schools, so old/numeric snapshots are visually unchanged). Per-term bands
+            # already ride along inside term_rows from annual_report_context.
+            "annual_band": ctx.get("annual_band"),
             "class_position": ctx.get("class_position"),
             "class_size": ctx.get("class_size"),
             "class_rank_display": ctx.get("class_rank_display"),
