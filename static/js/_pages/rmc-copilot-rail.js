@@ -886,6 +886,38 @@
     }
   }
 
+  function wireMobileCopilotFab() {
+    var fab = document.querySelector("[data-rmc-copilot-mobile-fab]");
+    var rail = findRail();
+    if (!fab || !rail) { return; }
+    var mq = window.matchMedia("(max-width: 1199.98px)");
+    function syncFab() {
+      fab.hidden = !mq.matches;
+      if (!mq.matches && document.body) {
+        document.body.removeAttribute("data-rmc-copilot-mobile-open");
+      }
+    }
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", syncFab);
+    } else if (typeof mq.addListener === "function") {
+      mq.addListener(syncFab);
+    }
+    syncFab();
+    fab.addEventListener("click", function () {
+      var shell = findShell(rail);
+      if (!shell || !document.body) { return; }
+      var open = document.body.getAttribute("data-rmc-copilot-mobile-open") === "1";
+      if (open) {
+        document.body.removeAttribute("data-rmc-copilot-mobile-open");
+        setShellState(shell, "collapsed");
+      } else {
+        document.body.setAttribute("data-rmc-copilot-mobile-open", "1");
+        setShellState(shell, "expanded");
+        focusRailInput(shell);
+      }
+    });
+  }
+
   function boot() {
     dedupeFloatingChrome();
     restoreNotebookPosition();
@@ -893,6 +925,7 @@
     renderRecentNotes();
     wireNotebookDrag();
     wireNotebookForm();
+    wireMobileCopilotFab();
   }
 
   if (document.readyState === "loading") {

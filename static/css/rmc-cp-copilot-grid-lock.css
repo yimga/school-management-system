@@ -100,7 +100,49 @@ html[data-rmc-isomorphic-template="operator-control-plane"]
   html[data-rmc-isomorphic-template="operator-control-plane"]
     body.control-plane-shell
     .rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__copilot {
+    display: block !important;
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 1080;
+    width: 100% !important;
+    max-width: none !important;
+    height: min(78vh, 640px);
+    transform: translateY(100%);
+    transition: transform var(--motion-normal, 240ms) var(--ease-out, ease-out);
+    box-shadow: var(--elev-3, 0 -12px 40px rgba(0, 0, 0, 0.28));
+    border-radius: var(--radius-xl, 16px) var(--radius-xl, 16px) 0 0;
+    overflow: hidden;
+  }
+
+  .rmc-copilot-mobile-fab {
     display: none;
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 1075;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 999px;
+    border: 1px solid var(--hairline);
+    background: var(--brand-primary, #6366f1);
+    color: #fff; /* off-token-allow: copilot-fab-on-brand */
+    font-size: 1.25rem;
+    line-height: 1;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--elev-2);
+    cursor: pointer;
+  }
+
+  .rmc-copilot-mobile-fab:not([hidden]) {
+    display: inline-flex;
+  }
+
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell[data-rmc-copilot-mobile-open="1"]
+    .rmc-app-shell[data-rmc-app-shell-copilot="1"]
+    > .rmc-app-shell__copilot {
+    transform: translateY(0);
   }
 }
 
@@ -213,6 +255,48 @@ html[data-rmc-isomorphic-template="operator-control-plane"]
   html[data-rmc-isomorphic-template="operator-control-plane"]
     body.control-plane-shell
     .rmc-app-shell:has(> .rmc-app-shell__copilot) > .rmc-app-shell__copilot {
+    display: block !important;
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 1080;
+    width: 100% !important;
+    max-width: none !important;
+    height: min(78vh, 640px);
+    transform: translateY(100%);
+    transition: transform var(--motion-normal, 240ms) var(--ease-out, ease-out);
+    box-shadow: var(--elev-3, 0 -12px 40px rgba(0, 0, 0, 0.28));
+    border-radius: var(--radius-xl, 16px) var(--radius-xl, 16px) 0 0;
+    overflow: hidden;
+  }
+
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell[data-rmc-copilot-mobile-open="1"]
+    .rmc-app-shell:has(> .rmc-app-shell__copilot)
+    > .rmc-app-shell__copilot {
+    transform: translateY(0);
+  }
+
+  .rmc-copilot-mobile-fab {
     display: none;
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 1075;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 999px;
+    border: 1px solid var(--hairline);
+    background: var(--brand-primary, #6366f1);
+    color: #fff; /* off-token-allow: copilot-fab-on-brand */
+    font-size: 1.25rem;
+    line-height: 1;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--elev-2);
+    cursor: pointer;
+  }
+
+  .rmc-copilot-mobile-fab:not([hidden]) {
+    display: inline-flex;
   }
 }

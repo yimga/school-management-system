@@ -70,9 +70,9 @@
     {% include "partials/shell_chrome_django_messages_control_plane.html" %}
     {% if not rmc_cp_globe_landing_minimal_chrome %}
     {% include "components/rmc_page_explain_strip.html" %}
+    {% endif %}
     {% comment %} v4.02.10: Tier-3 incident banner lives in Tools tray context stack. {% endcomment %}
     {% include "partials/shell_chrome_security_posture_banner.html" %}
-    {% endif %}
     {% include "partials/shell_chrome_impersonation_session_strip.html" %}
     {% if cp_show_operator_disclaimer and not rmc_cp_globe_landing_minimal_chrome %}
     <p class="text-secondary small mb-2" role="note">
@@ -116,6 +116,8 @@
     {% block rmc_zero_click_strip %}
     {% if not rmc_cp_globe_landing_minimal_chrome %}
     {% include "partials/rmc_zero_click_command_strip.html" with triage_anchor="#cp-main-content" %}
+    {% else %}
+    {% include "partials/rmc_zero_click_command_strip.html" with triage_anchor="#rmc-globe-master-lab" %}
     {% endif %}
     {% endblock %}
     {% endif %}

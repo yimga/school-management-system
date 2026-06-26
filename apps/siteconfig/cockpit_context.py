@@ -151,7 +151,8 @@ def _apply_globe_landing_cockpit_contract(request, manager_cockpit: dict[str, An
     lwm = manager_cockpit.setdefault("live_world_map", {})
     if not isinstance(lwm, dict):
         return
-    lwm["enabled"] = True
+    if lwm.get("enabled") is not False:
+        lwm["enabled"] = True
     if not lwm.get("fleet_snapshot"):
         try:
             import json

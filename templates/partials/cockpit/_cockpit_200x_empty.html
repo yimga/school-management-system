@@ -1,0 +1,10 @@
+{% load i18n %}
+{% comment %} Empty state when a 200x cockpit section is enabled but has no data yet. {% endcomment %}
+<div class="lx-card lx-cockpit-empty rmc-empty-state" id="{{ section_id|default:'' }}" data-rmc-cockpit-empty="1"{% if section_id %} data-rmc-section-anchor{% endif %}>
+  <div class="lx-cockpit-empty__icon" aria-hidden="true">{{ icon|default:"◌" }}</div>
+  <p class="lx-cockpit-empty__title">{{ title }}</p>
+  {% if message %}<p class="lx-cockpit-empty__message text-secondary small mb-0">{{ message }}</p>{% endif %}
+  {% if action_url and action_label %}
+  <a href="{{ action_url }}" class="btn btn-sm btn-outline-secondary mt-2">{{ action_label }}</a>
+  {% endif %}
+</div>

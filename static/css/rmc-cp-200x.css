@@ -269,12 +269,37 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab--globe-landing .lx-world-lab__ai-guide {
   margin: 0;
 }
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab--globe-landing .lx-world-lab__controls {
-  display: flex !important;
-  flex-wrap: wrap;
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab--globe-landing .lx-world-lab__controls-advanced {
   flex: 0 0 auto;
-  padding: 4px 8px;
+  margin: 0;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab--globe-landing .lx-world-lab__controls-advanced-summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--rmc-globe-lab-glass);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 650;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab--globe-landing .lx-world-lab__controls-advanced:not([open]) .lx-world-lab__controls {
+  display: none;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab--globe-landing .lx-world-lab__controls-advanced[open] .lx-world-lab__controls {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  padding: 8px 10px;
   gap: 5px;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab--globe-landing .lx-world-lab__controls {
+  display: none;
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world__chrome-rail--globe-landing-hidden {
   display: none !important;
@@ -318,9 +343,11 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__chrome-rail--stacked {
   display: none !important;
 }
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__void-band,
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__void-band {
+  display: flex !important;
+}
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__pulse-timeline {
-  display: none !important;
+  display: block;
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world__void-band .rmc-cockpit-pulse__label {
   display: none;
@@ -4470,6 +4497,41 @@ body[data-rmc-notebook-footer-dock="1"] .rmc-footer-notebook-anchor .lx-notebook
    read the current domain at a glance from the 44px strip. */
 [data-rmc-page-domain] .lx-copilot__rail-icon--context {
   color: var(--rmc-page-accent, #6366f1);
+}
+
+/* v4.05.55 — Globe landing mission/ops split + 200x empty states */
+.rmc-cp-landing-mode__tabs {
+  max-width: 28rem;
+}
+.rmc-cp-landing-pane[hidden] {
+  display: none !important;
+}
+[data-rmc-cp-landing-mode="operations"] .rmc-cp-landing-pane[data-rmc-cp-landing-pane="mission"] {
+  display: none !important;
+}
+[data-rmc-cp-landing-mode="operations"] .rmc-cp-landing-pane[data-rmc-cp-landing-pane="operations"] {
+  display: block !important;
+}
+[data-rmc-cp-landing-mode="operations"] .rmc-cp-landing-pane[data-rmc-cp-landing-pane="operations"][hidden] {
+  display: block !important;
+}
+.lx-cockpit-empty {
+  text-align: center;
+  padding: 1.25rem 1rem;
+}
+.lx-cockpit-empty__icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  margin-bottom: 0.35rem;
+  opacity: 0.85;
+}
+.lx-cockpit-empty__title {
+  font-weight: 650;
+  margin-bottom: 0.25rem;
+  color: var(--text-primary);
+}
+.rmc-cp-cockpit-live-stale[hidden] {
+  display: none !important;
 }
 
 /* Active-tab wiring for Context follows the same pattern as the other

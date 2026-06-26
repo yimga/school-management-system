@@ -23,17 +23,20 @@
       <button type="button" class="lx-world-lab__ai-guide-btn" id="rmc-world-globe-ai-guide-tour">{% trans "Smart tour" %}</button>
     </div>
   </header>
-  <div class="lx-world-lab__controls" role="group" aria-label="{% trans 'Globe AI controls' %}">
-    <label><input type="checkbox" id="layer-void" checked> {% trans "Void zones A-D" %}</label>
-    <label><input type="checkbox" id="layer-ai" checked> {% trans "AI + pulse blocks" %}</label>
-    <label><input type="checkbox" id="layer-wow" checked> {% trans "Wow effects" %}</label>
-    <span class="lx-world-lab__sep" aria-hidden="true"></span>
-    <button type="button" class="lx-world-lab__btn lx-world-lab__btn--wow on" id="toggle-wow">{% trans "✦ Wow demo ON" %}</button>
-    <button type="button" class="lx-world-lab__btn lx-world-lab__btn--primary" id="simulate-sse">{% trans "↻ Simulate SSE" %}</button>
-    <button type="button" class="lx-world-lab__btn" id="fly-wa">{% trans "Fly West Africa" %}</button>
-    <button type="button" class="lx-world-lab__btn" id="reset-view">{% trans "Reset view" %}</button>
-    <button type="button" class="lx-world-lab__btn" id="export-snapshot" title="{% trans 'Wow+ W20' %}">{% trans "Export PNG" %}</button>
-  </div>
+  <details class="lx-world-lab__controls-advanced"{% if not rmc_cp_globe_landing_minimal_chrome %} open{% endif %}>
+    <summary class="lx-world-lab__controls-advanced-summary">{% trans "Advanced globe controls" %}</summary>
+    <div class="lx-world-lab__controls" role="group" aria-label="{% trans 'Globe AI controls' %}">
+      <label><input type="checkbox" id="layer-void" checked> {% trans "Void zones A-D" %}</label>
+      <label><input type="checkbox" id="layer-ai" checked> {% trans "AI + pulse blocks" %}</label>
+      <label><input type="checkbox" id="layer-wow" checked> {% trans "Wow effects" %}</label>
+      <span class="lx-world-lab__sep" aria-hidden="true"></span>
+      <button type="button" class="lx-world-lab__btn lx-world-lab__btn--wow on" id="toggle-wow">{% trans "✦ Wow demo ON" %}</button>
+      <button type="button" class="lx-world-lab__btn lx-world-lab__btn--primary" id="simulate-sse">{% trans "↻ Simulate SSE" %}</button>
+      <button type="button" class="lx-world-lab__btn" id="fly-wa">{% trans "Fly West Africa" %}</button>
+      <button type="button" class="lx-world-lab__btn" id="reset-view">{% trans "Reset view" %}</button>
+      <button type="button" class="lx-world-lab__btn" id="export-snapshot" title="{% trans 'Wow+ W20' %}">{% trans "Export PNG" %}</button>
+    </div>
+  </details>
   <div class="lx-card lx-world lx-world--{{ lwm_layout }}{% if lwm_features.wow_enabled != False %} lx-world--wow-on{% endif %}{% if lwm_features.context_lens != False %} lx-world--quiet-lens{% endif %}{% if lwm_layout == 'full' and lwm_features.glass_dock != False %} lx-world--full-bleed{% endif %}" id="master-card">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="lx-world__map" id="rmc-world-globe-map-shell">
@@ -221,10 +224,10 @@
 
   {% if lwm_layout == 'hero' %}
   {% if lwm_features.glass_dock != False %}
-  <div class="lx-world__glass-dock lx-world__glass-dock--stacked{% if lwm_features.chrome_rail != False %} lx-world__glass-dock--chrome-rail{% endif %}" id="rmc-world-globe-glass-dock">
-    <span class="lx-world__glass-dock-metric" id="rmc-world-globe-dock-metric">{{ cockpit.live_world_map.schools_live|default:"—" }} {% trans "schools live" %}</span>
+  <div class="lx-world__glass-dock lx-world__glass-dock--stacked{% if lwm_features.chrome_rail != False %} lx-world__glass-dock--chrome-rail{% endif %}" id="rmc-world-globe-glass-dock-stacked" data-rmc-globe-glass-dock="1">
+    <span class="lx-world__glass-dock-metric" id="rmc-world-globe-dock-metric-stacked">{{ cockpit.live_world_map.schools_live|default:"—" }} {% trans "schools live" %}</span>
     <span class="lx-world__glass-dock-sep" aria-hidden="true"></span>
-    <div class="lx-world__glass-dock-chips" id="rmc-world-globe-dock-regions" data-rmc-scroll-policy="discovery">
+    <div class="lx-world__glass-dock-chips" id="rmc-world-globe-dock-regions-stacked" data-rmc-scroll-policy="discovery">
       {% for row in cockpit.live_world_map.regional_breakdown %}
       <button type="button" class="lx-world__glass-dock-chip" data-rmc-region="{{ row.label }}" data-rmc-fly-lat="{{ row.fly_lat|default:'' }}" data-rmc-fly-lng="{{ row.fly_lng|default:'' }}">{{ row.label }} {{ row.count }}</button>
       {% endfor %}
@@ -238,17 +241,17 @@
   </div>
   {% endif %}
   {% if lwm_features.chrome_rail != False %}
-  <div class="lx-world__chrome-rail lx-world__chrome-rail--stacked{% if rmc_cp_globe_landing_minimal_chrome %} lx-world__chrome-rail--globe-landing-hidden{% endif %}" id="rmc-world-globe-chrome-rail" data-rmc-globe-chrome-rail="1">
-    <div class="lx-world__chrome-rail-caption lx-world__void-zone lx-world__void-zone--data" id="rmc-world-globe-chrome-caption">
+  <div class="lx-world__chrome-rail lx-world__chrome-rail--stacked{% if rmc_cp_globe_landing_minimal_chrome %} lx-world__chrome-rail--globe-landing-hidden{% endif %}" id="rmc-world-globe-chrome-rail-stacked" data-rmc-globe-chrome-rail="1">
+    <div class="lx-world__chrome-rail-caption lx-world__void-zone lx-world__void-zone--data" id="rmc-world-globe-chrome-caption-stacked">
       <b>{% trans "C · Caption" %}</b>
-      <span id="rmc-world-globe-chrome-caption-text">{% if lwm_fleet and lwm_fleet.pulse_events and lwm_fleet.pulse_events.0.text %}{{ lwm_fleet.pulse_events.0.text }}{% else %}{% trans "School now live" %}{% endif %}</span>
+      <span id="rmc-world-globe-chrome-caption-text-stacked">{% if lwm_fleet and lwm_fleet.pulse_events and lwm_fleet.pulse_events.0.text %}{{ lwm_fleet.pulse_events.0.text }}{% else %}{% trans "School now live" %}{% endif %}</span>
     </div>
     {% if lwm_features.glass_dock != False %}
-    <div class="lx-world__chrome-rail-dock" id="rmc-world-globe-chrome-dock-host"></div>
+    <div class="lx-world__chrome-rail-dock" id="rmc-world-globe-chrome-dock-host-stacked"></div>
     {% endif %}
-    <div class="lx-world__chrome-rail-whisper lx-world__void-zone lx-world__void-zone--ai" id="rmc-world-globe-chrome-whisper">
+    <div class="lx-world__chrome-rail-whisper lx-world__void-zone lx-world__void-zone--ai" id="rmc-world-globe-chrome-whisper-stacked">
       <b>{% trans "D · Fleet whisper" %}</b>
-      <span id="rmc-world-globe-chrome-whisper-text">{% if lwm_fleet and lwm_fleet.whisper_line %}{{ lwm_fleet.whisper_line }}{% else %}{% trans "Fleet healthy · pan to explore pins" %}{% endif %}</span>
+      <span id="rmc-world-globe-chrome-whisper-text-stacked">{% if lwm_fleet and lwm_fleet.whisper_line %}{{ lwm_fleet.whisper_line }}{% else %}{% trans "Fleet healthy · pan to explore pins" %}{% endif %}</span>
     </div>
   </div>
   {% endif %}

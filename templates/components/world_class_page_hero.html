@@ -5,7 +5,11 @@
 <div>
     {% if breadcrumb_label %}<nav aria-label="{% trans 'Breadcrumb' %}" class="small mb-2"><a href="{{ breadcrumb_url }}">{{ breadcrumb_label }}</a></nav>{% endif %}
     <div class="rmc-wcx-hero__eyebrow rmc-page-eyebrow">{{ role|default:_("RunMyCampus workspace") }}</div>
+    {% if heading_tag == "h2" %}
+    <h2 id="{{ hero_id|default:'world-class-page-title' }}" class="rmc-wcx-hero__title">{{ title }}</h2>
+    {% else %}
     <h1 id="{{ hero_id|default:'world-class-page-title' }}" class="rmc-wcx-hero__title">{{ title }}</h1>
+    {% endif %}
     {% if status %}<span class="rmc-badge" data-world-class-status-pill="1">{{ status }}</span>{% endif %}
     <p class="rmc-wcx-hero__copy">{{ subtitle }}</p>
     <div class="rmc-wcx-actions" data-world-class-primary-action-slot="1">

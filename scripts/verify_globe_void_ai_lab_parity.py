@@ -115,6 +115,7 @@ def main() -> int:
         "lx-world-lab--void-hidden",
         "lx-world-lab--ai-hidden",
         "lx-world-lab--wow-hidden",
+        "lx-world-lab__controls-advanced",
         "lx-world-lab__ai-guide",
         "wireAiGlobeGuide",
         "renderAiGlobeGuide",

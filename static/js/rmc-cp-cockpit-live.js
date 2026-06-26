@@ -203,6 +203,12 @@
     if (payload.activity_ticker) patchTicker(payload.activity_ticker.cards);
   }
 
+  function setLiveStale(stale) {
+    var stamp = document.querySelector("[data-rmc-cp-cockpit-live-stale]");
+    if (!stamp) return;
+    stamp.hidden = !stale;
+  }
+
   function pollOnce(intervalRef) {
     // Error backoff: when the endpoint is failing (e.g. 502 while the web
     // service is restarting / under load), skip an increasing number of ticks
@@ -222,12 +228,14 @@
           intervalRef._fails = 0;
           intervalRef._skip = 0;
         }
+        setLiveStale(false);
         if (payload && payload.poll_interval_seconds && intervalRef) {
           intervalRef.ms = Math.max(5000, Number(payload.poll_interval_seconds) * 1000);
         }
         applyPayload(payload);
       })
       .catch(function () {
+        setLiveStale(true);
         // SSR snapshot stays visible. Back off: skip up to ~8 ticks of the base
         // interval (caps the retry rate while the endpoint recovers).
         if (intervalRef) {

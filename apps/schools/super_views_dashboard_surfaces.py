@@ -6,12 +6,13 @@ from __future__ import annotations
 
 import json
 import time
-from pathlib import Path
 
 from django.db.models import Count, Sum
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
+from django.utils.formats import number_format
+from django.utils.translation import gettext as _, ngettext
 
 from apps.platform_runtime.models import PlatformOperatorSuperDashboardLink
 from apps.platform_runtime.operator_identity import (
@@ -55,39 +56,6 @@ from .super_dashboard_registry import (
     load_country_names,
     paginate_registry,
 )
-
-_DEBUG_LOG_PATH = Path(__file__).resolve().parents[2] / "debug-0f968b.log"
-
-
-def _agent_debug_log(
-    hypothesis_id: str, location: str, message: str, data: dict | None = None
-) -> None:
-    import os
-
-    if os.environ.get("RMC_AGENT_DEBUG", "").strip().lower() not in (
-        "1",
-        "true",
-        "yes",
-        "on",
-    ):
-        return
-    # region agent log
-    try:
-        import json as _json
-
-        payload = {
-            "sessionId": "0f968b",
-            "hypothesisId": hypothesis_id,
-            "location": location,
-            "message": message,
-            "data": data or {},
-            "timestamp": int(time.time() * 1000),
-        }
-        with _DEBUG_LOG_PATH.open("a", encoding="utf-8") as fh:
-            fh.write(_json.dumps(payload, default=str) + "\n")
-    except OSError:
-        pass
-    # endregion
 
 
 def _optional_reverse_for_request(request, name: str) -> str:
@@ -137,12 +105,6 @@ def super_dashboard_v2(request):
     timings: dict[str, int] = {}
     if request.method == "POST":
         # Stray POST (browser resubmit) must not rebuild ~600KB HTML on a sync/gthread worker.
-        _agent_debug_log(
-            "H-POST",
-            "super_views_dashboard_surfaces.super_dashboard_v2",
-            "post_redirect_prg",
-            {"path": request.path, "query": request.META.get("QUERY_STRING", "")},
-        )
         target = request.get_full_path() or reverse("super:dashboard")
         return HttpResponseRedirect(target)
 
@@ -324,91 +286,73 @@ def super_dashboard_v2(request):
 
     cur = platform_currency_symbol()
     if total_mrr is not None and total_mrr > 0:
-        north_star_label = "Total MRR"
-        north_star_formatted = f"{cur}{total_mrr:,.2f}"
+        north_star_label = _("Total MRR")
+        north_star_formatted = f"{cur}{number_format(total_mrr, decimal_pos=2, force_grouping=True)}"
     else:
-        north_star_label = "Schools"
+        north_star_label = _("Schools")
         north_star_formatted = str(school_count)
 
     next_best_actions = []
     if pending_approval_count:
         next_best_actions.append(
             {
-                "label": f"{pending_approval_count} pending approval"
-                + ("s" if pending_approval_count != 1 else ""),
+                "label": ngettext(
+                    "%(count)s pending approval",
+                    "%(count)s pending approvals",
+                    pending_approval_count,
+                )
+                % {"count": pending_approval_count},
                 "url": request.path + "#cp-action-queue",
                 "count": pending_approval_count,
             }
         )
     if command_center.get("trial_ending_soon_count", 0):
         cc_url = safe_command_center_url()
+        trial_count = command_center["trial_ending_soon_count"]
         if cc_url:
             next_best_actions.append(
                 {
-                    "label": f"{command_center['trial_ending_soon_count']} trial(s) ending soon",
+                    "label": ngettext(
+                        "%(count)s trial ending soon",
+                        "%(count)s trials ending soon",
+                        trial_count,
+                    )
+                    % {"count": trial_count},
                     "url": cc_url,
-                    "count": command_center["trial_ending_soon_count"],
+                    "count": trial_count,
                 }
             )
     if command_center.get("provisioning_sla_breaches", 0):
         cc_url = safe_command_center_url()
+        breach_count = command_center["provisioning_sla_breaches"]
         if cc_url:
             next_best_actions.append(
                 {
-                    "label": f"{command_center['provisioning_sla_breaches']} provisioning breach(es)",
+                    "label": ngettext(
+                        "%(count)s provisioning breach",
+                        "%(count)s provisioning breaches",
+                        breach_count,
+                    )
+                    % {"count": breach_count},
                     "url": cc_url,
-                    "count": command_center["provisioning_sla_breaches"],
+                    "count": breach_count,
                 }
             )
     if platform_incidents:
+        incident_count = len(platform_incidents)
         next_best_actions.append(
             {
-                "label": f"{len(platform_incidents)} live incident(s)",
+                "label": ngettext(
+                    "%(count)s live incident",
+                    "%(count)s live incidents",
+                    incident_count,
+                )
+                % {"count": incident_count},
                 "url": safe_platform_incidents_url() or request.path,
-                "count": len(platform_incidents),
+                "count": incident_count,
             }
         )
 
-    overview_cards = [
-        {
-            "label": "Fleet tenants",
-            "value": school_count,
-            "meta": f"{fleet_metrics.active_school_count} active / {pending_approval_count} pending approval",
-            "tone": "blue",
-        },
-        {
-            "label": north_star_label,
-            "value": north_star_formatted,
-            "meta": f"{cur}{total_waived:,.2f} waived in {first_of_month.strftime('%b %Y')}",
-            "tone": "emerald",
-        },
-        {
-            "label": "Open platform incidents",
-            "value": len(platform_incidents),
-            "meta": f"{critical_incident_count} critical or high severity",
-            "tone": "crimson" if platform_incidents else "slate",
-        },
-        {
-            "label": "Support backlog 48h+",
-            "value": command_center.get("support_backlog_48h_count", 0),
-            "meta": f"{command_center.get('support_backlog_7d_count', 0)} older than 7 days",
-            "tone": "amber"
-            if command_center.get("support_backlog_48h_count", 0)
-            else "slate",
-        },
-        {
-            "label": "Countries live",
-            "value": countries_live_count,
-            "meta": f"{registry_counts['countries']} countries in registry / {registry_counts['subdivisions']} subdivisions",
-            "tone": "sky",
-        },
-        {
-            "label": "Billing exceptions",
-            "value": len(billing_watchlist),
-            "meta": f"{active_subscription_count} active or trialing subscriptions / {billing_account_count} billing accounts",
-            "tone": "violet" if billing_watchlist else "slate",
-        },
-    ]
     migration_start_url = _optional_reverse_for_request(
         request, "migration_cloud_super:bundle_new"
     )
@@ -418,36 +362,40 @@ def super_dashboard_v2(request):
     proof_surface_cards = []
     for card in (
         {
-            "title": "Public-to-Product matrix",
-            "metric": "Proof",
-            "meta": "Public claims mapped to product routes and delivery proof",
+            "title": _("Public-to-Product matrix"),
+            "metric": _("Proof"),
+            "meta": _(
+                "Public claims mapped to product routes and delivery proof"
+            ),
             "url": _optional_reverse_for_request(
                 request, "manager_public_to_product_matrix"
             ),
-            "cta": "Open matrix",
+            "cta": _("Open matrix"),
         },
         {
-            "title": "Feature gap register",
-            "metric": "Gaps",
-            "meta": "Feature status, proof route, model, command, and CI coverage",
+            "title": _("Feature gap register"),
+            "metric": _("Gaps"),
+            "meta": _(
+                "Feature status, proof route, model, command, and CI coverage"
+            ),
             "url": _optional_reverse_for_request(
                 request, "manager_feature_gap_register"
             ),
-            "cta": "Review gaps",
+            "cta": _("Review gaps"),
         },
         {
-            "title": "Feedback loop",
-            "metric": "Live",
-            "meta": "Friction, feedback, and AI-assistant adoption signals",
+            "title": _("Feedback loop"),
+            "metric": _("Live"),
+            "meta": _("Friction, feedback, and AI-assistant adoption signals"),
             "url": _optional_reverse_for_request(request, "manager_feedback_loop"),
-            "cta": "Inspect signals",
+            "cta": _("Inspect signals"),
         },
         {
-            "title": "Lane-2 readiness",
-            "metric": "External",
-            "meta": "PSP, SOC2 evidence, and pilot readiness in one scoreboard",
+            "title": _("Lane-2 readiness"),
+            "metric": _("External"),
+            "meta": _("PSP, SOC2 evidence, and pilot readiness in one scoreboard"),
             "url": _optional_reverse_for_request(request, "manager_lane2_readiness"),
-            "cta": "Check readiness",
+            "cta": _("Check readiness"),
         },
     ):
         if card["url"]:
@@ -455,62 +403,79 @@ def super_dashboard_v2(request):
 
     workstream_cards = [
         {
-            "title": "Mission queues",
+            "title": _("Mission queues"),
             "metric": pending_approval_count
             + command_center.get("support_backlog_48h_count", 0)
             + len(platform_incidents),
-            "meta": "Approvals, stale support, incidents, and provisioning breaches",
+            "meta": _(
+                "Approvals, stale support, incidents, and provisioning breaches"
+            ),
             "url": safe_command_center_url(),
-            "cta": "Open queues",
+            "cta": _("Open queues"),
         },
         {
-            "title": "Platform billing",
+            "title": _("Platform billing"),
             "metric": active_subscription_count,
-            "meta": f"{len(billing_watchlist)} tenants need billing attention",
+            "meta": ngettext(
+                "%(count)s tenant needs billing attention",
+                "%(count)s tenants need billing attention",
+                len(billing_watchlist),
+            )
+            % {"count": len(billing_watchlist)},
             "url": reverse("super:billing_dashboard"),
-            "cta": "Inspect billing",
+            "cta": _("Inspect billing"),
         },
         {
-            "title": "Incident console",
+            "title": _("Incident console"),
             "metric": len(platform_incidents),
-            "meta": f"{critical_incident_count} critical/high severity incidents",
+            "meta": ngettext(
+                "%(count)s critical/high severity incident",
+                "%(count)s critical/high severity incidents",
+                critical_incident_count,
+            )
+            % {"count": critical_incident_count},
             "url": safe_platform_incidents_url(),
-            "cta": "Review incidents",
+            "cta": _("Review incidents"),
         },
         {
-            "title": "Usage and quotas",
+            "title": _("Usage and quotas"),
             "metric": command_center.get("tenant_churn_risk_count", 0),
-            "meta": "Usage posture, risk watchlist, and adoption signals",
+            "meta": _("Usage posture, risk watchlist, and adoption signals"),
             "url": reverse("super:usage"),
-            "cta": "View usage",
+            "cta": _("View usage"),
         },
         {
-            "title": "Migration Cloud",
-            "metric": "Ready" if migration_start_url else "Summary",
-            "meta": "Intake, profile registry, health, audit, tokens, and webhook operations",
+            "title": _("Migration Cloud"),
+            "metric": _("Ready") if migration_start_url else _("Summary"),
+            "meta": _(
+                "Intake, profile registry, health, audit, tokens, and webhook operations"
+            ),
             "url": migration_start_url or reverse("super:migration_cloud"),
-            "cta": "Open migration",
+            "cta": _("Open migration"),
         },
         {
-            "title": "Fleet health",
+            "title": _("Fleet health"),
             "metric": str(platform_health.get("overall_status", "unknown")).upper(),
-            "meta": f"Webhook drift groups: {webhook_stack.get('unsynced_legacy_groups', 0)}",
+            "meta": _("Webhook drift groups: %(count)s")
+            % {"count": webhook_stack.get("unsynced_legacy_groups", 0)},
             "url": reverse("super:tenant_health"),
-            "cta": "Audit tenants",
+            "cta": _("Audit tenants"),
         },
         {
-            "title": "Health hub",
+            "title": _("Health hub"),
             "metric": "—",
-            "meta": "Runbooks, SLOs, incidents, tenant health",
+            "meta": _("Runbooks, SLOs, incidents, tenant health"),
             "url": reverse("super:control_health"),
-            "cta": "Health hub",
+            "cta": _("Health hub"),
         },
         {
-            "title": "Tenant Studio",
+            "title": _("Tenant Studio"),
             "metric": registry_counts["education_system_types"],
-            "meta": "Registry-backed onboarding with branding and control-plane defaults",
+            "meta": _(
+                "Registry-backed onboarding with branding and control-plane defaults"
+            ),
             "url": reverse("super:create_school_wizard"),
-            "cta": "Open tenant studio",
+            "cta": _("Open tenant studio"),
         },
     ] + proof_surface_cards
     readiness_cards = [
@@ -597,6 +562,13 @@ def super_dashboard_v2(request):
     data_residency_readiness = assess_readiness()
     from apps.schools.fleet_status import format_fleet_summary_label, resolve_fleet_summary
 
+    proof_ledger_url = _optional_reverse_for_request(
+        request, "manager_public_to_product_matrix"
+    ) or _optional_reverse_for_request(request, "manager_feature_gap_register")
+    cockpit_export_pdf_url = reverse("super:export_super_dashboard_pdf")
+    if current_request_month:
+        cockpit_export_pdf_url = f"{cockpit_export_pdf_url}?month={current_request_month}"
+
     request.rmc_cp_globe_landing_minimal_chrome = True
     response = render(
         request,
@@ -643,7 +615,6 @@ def super_dashboard_v2(request):
             "countries_live_pct": safe_percentage(
                 countries_live_count, registry_counts["countries"]
             ),
-            "overview_cards": overview_cards,
             "workstream_cards": workstream_cards,
             "readiness_cards": readiness_cards,
             "attention_school_count": attention_school_count,
@@ -663,20 +634,11 @@ def super_dashboard_v2(request):
             "data_residency_readiness": data_residency_readiness,
             "fleet_summary_label": format_fleet_summary_label(resolve_fleet_summary()),
             "rmc_cp_globe_landing_minimal_chrome": True,
+            "proof_ledger_url": proof_ledger_url,
+            "cockpit_export_pdf_url": cockpit_export_pdf_url,
         },
     )
     response["X-RMC-SuperDashboard-Elapsed-Ms"] = str(
         int((time.perf_counter() - t0) * 1000)
-    )
-    _agent_debug_log(
-        "H-LOAD",
-        "super_views_dashboard_surfaces.super_dashboard_v2",
-        "dashboard_render_complete",
-        {
-            "method": request.method,
-            "elapsed_ms": int((time.perf_counter() - t0) * 1000),
-            "registry_total_count": registry_page.paginator.count,
-            "timings": timings,
-        },
     )
     return response

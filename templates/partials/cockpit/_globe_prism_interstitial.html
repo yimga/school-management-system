@@ -12,6 +12,7 @@
   aria-label="{% trans 'Page guidance and platform pulse' %}"
 >
   <div class="lx-world__void-band__explain">
+    {% if rmc_page_explain_enabled and not rmc_cp_globe_landing_minimal_chrome %}
     <section
       class="rmc-page-explain-strip lx-world__void-explain{% if rmc_system_actions_available and rmc_pe_next %} rmc-page-explain-strip--flow{% endif %}"
       aria-label="{% trans 'Page guidance' %}"
@@ -43,6 +44,7 @@
       </a>
       {% endif %}
     </section>
+    {% endif %}
   </div>
   <div class="lx-world__void-band__pulse rmc-cp-canvas-pulse">
     {% include "partials/cockpit/_platform_pulse.html" %}

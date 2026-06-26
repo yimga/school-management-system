@@ -24,7 +24,7 @@
 {% block cp_layout_attrs %} data-rmc-cp-globe-landing="1"{% endblock %}
 
 {% block cp_content %}
-<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-dashboard-main">{% trans "Skip to control plane dashboard" %}</a>
+<a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#rmc-globe-master-lab">{% trans "Skip to live globe mission" %}</a>
 {% comment %} v3.57.10 (2026-05-22): the 8 v8 200x dashboard sections render ONLY on this
    landing page (Schools/Incidents/Countries/MRR/Webhooks/Pipeline pulse strip + world map +
    forecast lane + SLO clocks + tenant heatmap + revenue waterfall + audit feed + trust
@@ -43,7 +43,22 @@
    that read as empty ruled bands on /super/ while cockpit health still reported
    would_render=true. {% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="rmc-cp-200x-landing" data-rmc-cp-200x-landing="1" data-rmc-cp-cockpit-live="1" data-rmc-section-nav="off">
+<div class="rmc-cp-landing-mode" data-rmc-cp-landing-mode="mission" data-rmc-page-fold-nav="required">
+  <div class="rmc-segmented rmc-cp-landing-mode__tabs mb-3" role="tablist" aria-label="{% trans 'Control plane landing view' %}">
+    <button type="button" class="rmc-segmented__btn is-active" role="tab" aria-selected="true" data-rmc-cp-landing-tab="mission" id="rmc-cp-landing-tab-mission">{% trans "Globe mission" %}</button>
+    <button type="button" class="rmc-segmented__btn" role="tab" aria-selected="false" data-rmc-cp-landing-tab="operations" id="rmc-cp-landing-tab-operations">{% trans "Operations board" %}</button>
+  </div>
+  <p class="rmc-cp-cockpit-live-stale small text-warning mb-2" data-rmc-cp-cockpit-live-stale hidden aria-live="polite">{% trans "Live metrics may be stale — showing last snapshot." %}</p>
+  <div class="rmc-cp-landing-pane" data-rmc-cp-landing-pane="mission">
+<div class="rmc-cp-200x-landing" data-rmc-cp-200x-landing="1" data-rmc-cp-cockpit-live="1" data-rmc-section-nav="curated">
+<nav class="rmc-section-nav rmc-page-fold-nav mb-2" aria-label="{% trans 'Mission sections' %}">
+  <a href="#rmc-globe-master-lab" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Globe" %}</a>
+  {% if cockpit.forecast_lane.enabled %}<a href="#rmc-cockpit-forecast" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Forecast" %}</a>{% endif %}
+  {% if cockpit.slo_clocks.enabled %}<a href="#rmc-cockpit-slo" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "SLO" %}</a>{% endif %}
+  {% if cockpit.tenant_heatmap.enabled %}<a href="#rmc-cockpit-heatmap" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Heatmap" %}</a>{% endif %}
+  {% if cockpit.revenue_waterfall.enabled %}<a href="#rmc-cockpit-revenue" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Revenue" %}</a>{% endif %}
+  {% if cockpit.audit_feed.enabled %}<a href="#rmc-cockpit-audit" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Audit" %}</a>{% endif %}
+</nav>
 {% comment %}v4.01.43: LIVE banner moved to cp_shell_header_ticker header row.{% endcomment %}
 {% if cockpit.pulse_metrics.cards and not cockpit.live_world_map.enabled %}
 {% comment %}v4.05.28: When live world map is on, pulse renders inside the 96px
@@ -55,29 +70,55 @@
 {% if cockpit.live_world_map.enabled %}
 {% include "partials/cockpit/_live_world_map.html" %}
 {% endif %}
-{% if cockpit.forecast_lane.enabled and cockpit.forecast_lane.cards %}
-{% include "partials/cockpit/_forecast_lane.html" %}
+{% if cockpit.forecast_lane.enabled %}
+  {% if cockpit.forecast_lane.cards %}
+  <div id="rmc-cockpit-forecast" data-rmc-section-anchor>{% include "partials/cockpit/_forecast_lane.html" %}</div>
+  {% else %}
+  {% include "partials/cockpit/_cockpit_200x_empty.html" with section_id="rmc-cockpit-forecast" title=_("Forecast lane") message=_("Seven-day MRR and incident forecasts will appear when enough history is available.") icon="📈" %}
+  {% endif %}
 {% endif %}
-{% if cockpit.slo_clocks.enabled and cockpit.slo_clocks.clocks %}
-{% include "partials/cockpit/_slo_clocks.html" %}
+{% if cockpit.slo_clocks.enabled %}
+  {% if cockpit.slo_clocks.clocks %}
+  <div id="rmc-cockpit-slo" data-rmc-section-anchor>{% include "partials/cockpit/_slo_clocks.html" %}</div>
+  {% else %}
+  {% include "partials/cockpit/_cockpit_200x_empty.html" with section_id="rmc-cockpit-slo" title=_("SLO clocks") message=_("Service-level objectives will appear when observability data is wired.") icon="⏱" %}
+  {% endif %}
 {% endif %}
-{% if cockpit.tenant_heatmap.enabled and cockpit.tenant_heatmap.tiles or cockpit.trust_nutrition.enabled and cockpit.trust_nutrition.rows %}
+{% if cockpit.tenant_heatmap.enabled or cockpit.trust_nutrition.enabled %}
 <div class="lx-cols-2" data-rmc-cockpit-cols="heatmap-trust">
-  {% if cockpit.tenant_heatmap.enabled and cockpit.tenant_heatmap.tiles %}
-  {% include "partials/cockpit/_tenant_heatmap.html" %}
+  {% if cockpit.tenant_heatmap.enabled %}
+    {% if cockpit.tenant_heatmap.tiles %}
+    <div id="rmc-cockpit-heatmap" data-rmc-section-anchor>{% include "partials/cockpit/_tenant_heatmap.html" %}</div>
+    {% else %}
+    {% include "partials/cockpit/_cockpit_200x_empty.html" with section_id="rmc-cockpit-heatmap" title=_("Tenant heatmap") message=_("Fleet health tiles will populate as tenant telemetry arrives.") icon="▦" %}
+    {% endif %}
   {% endif %}
-  {% if cockpit.trust_nutrition.enabled and cockpit.trust_nutrition.rows %}
-  {% include "partials/cockpit/_trust_nutrition.html" %}
+  {% if cockpit.trust_nutrition.enabled %}
+    {% if cockpit.trust_nutrition.rows %}
+    <div id="rmc-cockpit-trust" data-rmc-section-anchor>{% include "partials/cockpit/_trust_nutrition.html" %}</div>
+    {% else %}
+    {% include "partials/cockpit/_cockpit_200x_empty.html" with section_id="rmc-cockpit-trust" title=_("Trust nutrition") message=_("Trust posture rows will appear when compliance signals are available.") icon="🛡" %}
+    {% endif %}
   {% endif %}
 </div>
 {% endif %}
-{% if cockpit.revenue_waterfall.enabled and cockpit.revenue_waterfall.bars %}
-{% include "partials/cockpit/_revenue_waterfall.html" %}
+{% if cockpit.revenue_waterfall.enabled %}
+  {% if cockpit.revenue_waterfall.bars %}
+  <div id="rmc-cockpit-revenue" data-rmc-section-anchor>{% include "partials/cockpit/_revenue_waterfall.html" %}</div>
+  {% else %}
+  {% include "partials/cockpit/_cockpit_200x_empty.html" with section_id="rmc-cockpit-revenue" title=_("Revenue waterfall") message=_("MRR movement will chart here once billing snapshots exist.") icon="💧" %}
+  {% endif %}
 {% endif %}
-{% if cockpit.audit_feed.enabled and cockpit.audit_feed.events %}
-{% include "partials/cockpit/_audit_feed.html" %}
+{% if cockpit.audit_feed.enabled %}
+  {% if cockpit.audit_feed.events %}
+  <div id="rmc-cockpit-audit" data-rmc-section-anchor>{% include "partials/cockpit/_audit_feed.html" %}</div>
+  {% else %}
+  {% include "partials/cockpit/_cockpit_200x_empty.html" with section_id="rmc-cockpit-audit" title=_("Audit feed") message=_("Recent audit events will stream here when the audit chain is active.") icon="◎" %}
+  {% endif %}
 {% endif %}
 </div>
+  </div>
+  <div class="rmc-cp-landing-pane" data-rmc-cp-landing-pane="operations" hidden>
 {% comment %} v3.58.x Wave 10 Agent S (2026-05-22): Trust pillars alerts feed — closes
    the v8 200x preview's alerts-feed gap (Audit chain integrity / MAA signatures
    / Encryption at rest / FERPA retention / Webhook signing / MFA enforcement /
@@ -87,7 +128,7 @@
 {% if cockpit.trust_pillars_alerts.enabled and cockpit.trust_pillars_alerts.pillars %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Trust pillars alerts") key="super__trust_pillars_alerts" include_partial="partials/cockpit/_trust_pillars_alerts.html" chrome="section" %}
 {% endif %}
-<div id="super-dashboard-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-rmc-premium-command-center="1" data-page-header="platform-command-center" data-page-archetype="role-home" data-decision-engine="surface" data-apple-class-super-command-center="1" data-rmc-copilot-page-lens="operator-dashboard-fleet"{% include "schools/partials/decision_architecture_attrs.html" %} data-page-critical-read="1">
+<div id="super-dashboard-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="curated" data-rmc-premium-command-center="1" data-page-header="platform-command-center" data-page-archetype="role-home" data-decision-engine="surface" data-apple-class-super-command-center="1" data-rmc-copilot-page-lens="operator-dashboard-fleet"{% include "schools/partials/decision_architecture_attrs.html" %} data-page-critical-read="1">
   {% phase8_dashboard_declaration "schools/super_dashboard.html" %}
   {% url 'super:create_school_wizard' as wcx_create_school_url %}
   {% url 'configuration:center' as wcx_configuration_url %}
@@ -101,7 +142,7 @@
      We now keep ONE hero + ONE consolidated KPI strip + ONE story-card row. Detail
      remains accessible inside the <details data-rmc-manager-progressive-disclosure>
      panel further down. {% endcomment %}
-  {% include "components/world_class_page_hero.html" with hero_id="super-command-center-title" role=_("Platform operators") title=_("Platform Command Center") subtitle=_("Operate platform health, tenant risk, implementation pipeline, revenue/payment readiness, marketplace governance, security/compliance, and proof ledger from one premium command center.") purpose=_("Platform command center") status=_("UI/UX transformation active") primary_url=wcx_create_school_url primary_label=_("Setup Studio") secondary_url=wcx_configuration_url secondary_label=_("Configuration center") visual_title=_("Operator confidence") visual_body=_("Top risks, external blockers, queues, and recent proof are above the fold before deep configuration opens.") %}
+  {% include "components/world_class_page_hero.html" with hero_id="super-command-center-title" heading_tag="h2" role=_("Platform operators") title=_("Platform Command Center") subtitle=_("Operate platform health, tenant risk, implementation pipeline, revenue/payment readiness, marketplace governance, security/compliance, and proof ledger from one premium command center.") purpose=_("Platform command center") status=_("UI/UX transformation active") primary_url=wcx_create_school_url primary_label=_("Setup Studio") secondary_url=wcx_configuration_url secondary_label=_("Configuration center") visual_title=_("Operator confidence") visual_body=_("Top risks, external blockers, queues, and recent proof are above the fold before deep configuration opens.") cockpit_export_pdf_url=cockpit_export_pdf_url %}
 
   {% comment %} Chips: at-a-glance platform pulse. Replaces the redundant cp-hero chip row. {% endcomment %}
   <div class="cp-chip-row mb-3" data-rmc-cp-chip-row="1" data-apple-class-command-strip>
@@ -141,7 +182,7 @@
   <section id="cmd-product-moments" data-rmc-section-anchor class="rmc-wcx-grid mb-4 rmc-reveal-stagger rmc-canvas-adaptive-grid rmc-canvas-adaptive-grid--dashboard" data-world-class-super-sections="platform-pulse tenant-risk implementation-pipeline revenue-payment-readiness marketplace-governance security-compliance proof-ledger">
     {% include "components/world_class_product_moment_card.html" with title=_("Platform Pulse") outcome=_("Health, incidents, open approvals, and support pressure are visible immediately.") status=platform_health.overall_status action_url=command_center_url action_label=_("Open queues") %}
     {% include "components/world_class_risk_blocker_card.html" with title=_("External blockers") severity="medium" owner=_("Platform operator") boundary=_("PSP, settlement, and live certification remain external proof") next_step=_("Collect proof before claiming readiness") %}
-    {% include "components/world_class_product_moment_card.html" with title=_("Proof Ledger") outcome=_("Local proof and pending live parity stay separate so buyers see honest readiness.") status=_("Local only") action_url="/docs/generated/live_browser_ux_certification_report.md" action_label=_("View proof") %}
+    {% include "components/world_class_product_moment_card.html" with title=_("Proof Ledger") outcome=_("Local proof and pending live parity stay separate so buyers see honest readiness.") status=_("Local only") action_url=proof_ledger_url action_label=_("View proof") %}
   </section>
   {% if operator_super_dashboard_links %}
   {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): operator-curated grouping adopts `.rmc-app-section--glass` per v8 200x preview. {% endcomment %}
@@ -820,6 +861,8 @@
     </div>
   </details>
 </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extrajs %}
@@ -828,7 +871,15 @@
 {% comment %} v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section runtime. {% endcomment %}
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 <script type="application/json" id="page-data-schools__super_dashboard-1">{
-  "var_super_dashboard_layout_url_escapejs": "{{ super_dashboard_layout_url|escapejs|escapejs }}"
+  "var_super_dashboard_layout_url_escapejs": "{{ super_dashboard_layout_url|escapejs|escapejs }}",
+  "sortable_js_url": "{% filter escapejs %}{% static 'js/sortable.min.js' %}{% endfilter %}",
+  "section_labels": {
+    "cp-action-queue": "{% filter escapejs %}{% trans 'Action queue' %}{% endfilter %}",
+    "cp-fleet-health": "{% filter escapejs %}{% trans 'Fleet health' %}{% endfilter %}",
+    "cp-global-footprint": "{% filter escapejs %}{% trans 'Global footprint' %}{% endfilter %}",
+    "cp-tenant-registry": "{% filter escapejs %}{% trans 'School registry' %}{% endfilter %}",
+    "cp-readiness": "{% filter escapejs %}{% trans 'Readiness' %}{% endfilter %}"
+  }
 }</script><script src="{% static 'js/_pages/schools__super_dashboard-1.js' %}"></script>
 <script src="{% static 'js/rmc-fleet-live.js' %}" defer></script>
 {% endblock %}

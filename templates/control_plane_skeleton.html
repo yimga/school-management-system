@@ -236,6 +236,9 @@
          Mounted BEFORE pulse drill sheet so auto-placement never parks the rail on a
          full-width implicit row below the canvas. Self-gates on cockpit.ai_copilot_rail.enabled. {% endcomment %}
       {% include "partials/cockpit/_ai_copilot_rail.html" %}
+      {% if cockpit.ai_copilot_rail.enabled %}
+      <button type="button" class="rmc-copilot-mobile-fab" data-rmc-copilot-mobile-fab aria-label="{% trans 'Open AI copilot' %}" hidden>✦</button>
+      {% endif %}
       {% include "partials/cockpit/_pulse_drill_sheet.html" %}
       {% if request.user.is_authenticated %}
       {% include "partials/cockpit/_operator_notebook.html" %}
