@@ -20,6 +20,18 @@
      --rmc-preview-banner-h  site-preview banner height (0 when absent)
    ============================================================ */
 
+/* 0. SCROLL ROOT — un-break the sticky stack. The enhanced bundle sets
+   `body.portal-body-with-layout{overflow-y:hidden}`, which turns <body> into a
+   scroll container and silently defeats position:sticky on BOTH the header and
+   the sidebar (owner: "header still scrolls"). The v3 tenant shell is document
+   scroll + sticky chrome, so <body> must not clip/scroll vertically. overflow-x:clip
+   keeps horizontal containment (clip is sticky-safe; hidden is not). Verified in
+   real Chromium: header/banner/sidebar go from scrolling-off to pinned with this. */
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
 /* 1. STICKY MASTER HEADER (whole stack pins as one unit) */
 html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .tp-header {
   position: sticky;
