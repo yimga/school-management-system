@@ -34,6 +34,12 @@ def main() -> int:
         subprocess.check_call([py, "manage.py", "migrate", "--noinput"], cwd=REPO, env=env)
 
     subprocess.check_call(
+        [py, "manage.py", "ensure_developer_sandbox_tenant", f"--school-slug={slug}"],
+        cwd=REPO,
+        env=env,
+    )
+
+    subprocess.check_call(
         [
             py,
             "manage.py",
@@ -44,6 +50,19 @@ def main() -> int:
         cwd=REPO,
         env=env,
     )
+
+    if os.environ.get("RMC_E2E_SEED_REPORT_CARD", "1") != "0":
+        subprocess.check_call(
+            [
+                py,
+                "manage.py",
+                "seed_report_card_e2e",
+                f"--school-slug={slug}",
+                f"--password={password}",
+            ],
+            cwd=REPO,
+            env=env,
+        )
 
     os.execv(
         py,

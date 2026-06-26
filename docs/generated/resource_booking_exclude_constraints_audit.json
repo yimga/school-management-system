@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-06-26T14:48:27.182221+00:00",
+  "verdict": "RESOURCE_BOOKING_EXCLUDE_CONSTRAINTS_PASS",
+  "finding_count": 0,
+  "checks": [
+    {
+      "id": "model:ExclusionConstraint",
+      "status": "PASS"
+    },
+    {
+      "id": "model:DateTimeRangeField",
+      "status": "PASS"
+    },
+    {
+      "id": "service:create_resource_booking",
+      "status": "PASS"
+    },
+    {
+      "id": "service:BookingConflictError",
+      "status": "PASS"
+    },
+    {
+      "id": "migration:btree_gist",
+      "status": "PASS"
+    },
+    {
+      "id": "migration:exclude_constraint",
+      "status": "PASS"
+    },
+    {
+      "id": "test:postgres_exclusion",
+      "status": "PASS"
+    },
+    {
+      "id": "test:capacity",
+      "status": "PASS"
+    }
+  ],
+  "failures": []
+}

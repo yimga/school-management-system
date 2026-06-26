@@ -87,7 +87,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **opts):
         from apps.schools.models import School
-        from apps.schools.signup_views import build_slug_suggestions
         from apps.schools.tasks import (
             complete_provisioning_for_school,
             ensure_admin_user_for_school,

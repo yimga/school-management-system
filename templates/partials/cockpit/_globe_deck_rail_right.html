@@ -68,13 +68,13 @@
   </div>
   {% endif %}
 
-  <div class="rmc-globe-deck-v2__ai-compact" id="rmc-world-globe-ai-guide" data-rmc-globe-ai-block>
+  <div class="rmc-globe-deck-v2__ai-compact rmc-globe-deck-v2__ai-compact--rail-fallback" id="rmc-world-globe-ai-guide-rail" data-rmc-globe-ai-block hidden>
     <div class="rmc-globe-deck-v2__lbl">{% trans "Fleet brief" %}</div>
-    <strong id="rmc-world-globe-ai-guide-headline">{% if lwm_fleet and lwm_fleet.fleet_brief.headline %}{{ lwm_fleet.fleet_brief.headline }}{% else %}{% trans "Fleet focus ready" %}{% endif %}</strong>
-    <p id="rmc-world-globe-ai-guide-copy">{% if lwm_fleet and lwm_fleet.whisper_line %}{{ lwm_fleet.whisper_line }}{% elif lwm_fleet and lwm_fleet.fleet_brief.body %}{{ lwm_fleet.fleet_brief.body }}{% else %}{% trans "Ask AI where to look first, then run a guided tour from the live globe." %}{% endif %}</p>
+    <strong>{% if lwm_fleet and lwm_fleet.fleet_brief.headline %}{{ lwm_fleet.fleet_brief.headline }}{% else %}{% trans "Fleet focus ready" %}{% endif %}</strong>
+    <p>{% if lwm_fleet and lwm_fleet.whisper_line %}{{ lwm_fleet.whisper_line }}{% elif lwm_fleet and lwm_fleet.fleet_brief.body %}{{ lwm_fleet.fleet_brief.body }}{% else %}{% trans "Ask AI where to look first, then run a guided tour from the live globe." %}{% endif %}</p>
     <div class="rmc-globe-deck-v2__ai-row">
-      <button type="button" class="rmc-globe-deck-v2__crown-btn" id="rmc-world-globe-ai-guide-ask">{% trans "Ask AI" %}</button>
-      <button type="button" class="rmc-globe-deck-v2__crown-btn" id="rmc-world-globe-ai-guide-tour">{% trans "Smart tour" %}</button>
+      <button type="button" class="rmc-globe-deck-v2__crown-btn" data-rmc-globe-deck-proxy="rmc-world-globe-ai-guide-ask">{% trans "Ask AI" %}</button>
+      <button type="button" class="rmc-globe-deck-v2__crown-btn" data-rmc-globe-deck-proxy="rmc-world-globe-ai-guide-tour">{% trans "Smart tour" %}</button>
     </div>
   </div>
 </aside>

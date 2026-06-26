@@ -374,19 +374,48 @@
     return ((12 - utcHours) * 15 + 360) % 360 - 180;
   }
 
+  function subsolarLatitudeUtc(date) {
+    var d = date || new Date();
+    var start = Date.UTC(d.getUTCFullYear(), 0, 0);
+    var day = Math.floor((Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - start) / 86400000);
+    return 23.44 * Math.sin((2 * Math.PI * (day - 81)) / 365);
+  }
+
   function wireDayNightTerminator() {
     if (!featureEnabled("day_night_terminator")) return;
     var el = document.getElementById("rmc-world-globe-terminator");
     if (!el || el.__rmcTerminatorWired) return;
     el.__rmcTerminatorWired = true;
     el.hidden = false;
+    var sunOrb = document.getElementById("rmc-world-globe-sun-orb");
+    var moonOrb = document.getElementById("rmc-world-globe-moon-orb");
+    var mapShell = document.getElementById("rmc-world-globe-map-shell");
     var tick = function () {
-      var lon = subsolarLongitudeUtc(new Date());
+      var now = new Date();
+      var lon = subsolarLongitudeUtc(now);
       var pct = ((lon + 180) / 360) * 100;
+      var moonPct = (pct + 50) % 100;
+      var sunLat = subsolarLatitudeUtc(now);
+      var sunYOffset = ((90 - sunLat) / 180) * 28;
       el.style.setProperty("--rmc-terminator-x", pct.toFixed(2) + "%");
+      if (sunOrb) {
+        sunOrb.style.left = "calc(" + pct.toFixed(2) + "% - 16px)";
+        sunOrb.style.top = "calc(" + (14 + sunYOffset).toFixed(1) + "%)";
+      }
+      if (moonOrb) {
+        moonOrb.style.left = "calc(" + moonPct.toFixed(2) + "% - 11px)";
+        moonOrb.style.top = "calc(" + (58 - sunYOffset * 0.35).toFixed(1) + "%)";
+      }
+      var localHour = now.getHours();
+      var phase = localHour >= 6 && localHour < 20 ? "day" : "night";
+      el.setAttribute("data-rmc-day-phase", phase);
+      if (mapShell) {
+        mapShell.setAttribute("data-rmc-day-phase", phase);
+      }
     };
     tick();
     window.setInterval(tick, 60000);
+    document.addEventListener("rmc:globe-ready", tick);
   }
 
   function tourNarratorOptIn() {

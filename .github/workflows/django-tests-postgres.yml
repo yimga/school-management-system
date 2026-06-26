@@ -1,0 +1,202 @@
+# Postgres-backed Django tests for schoolops booking, inventory, and discipline.
+
+# Complements django-tests.yml (SQLite) and tenants-rls.yml (@tag tenants_rls only).
+
+
+
+name: Django tests (Postgres)
+
+
+
+on:
+
+  push:
+
+    branches: [main]
+
+  pull_request:
+
+    branches: [main]
+
+    paths:
+
+      - "apps/schoolops/**"
+
+      - "apps/academics/**"
+
+      - "apps/schools/demo_user_seeding.py"
+
+      - "apps/reports/report_card_e2e_seed.py"
+      - "apps/reports/management/commands/seed_report_card_e2e.py"
+      - "apps/lifecycle/**"
+      - "tests/e2e/report-card-hash-parent.spec.js"
+      - "tests/e2e/tenant-shell-a11y.spec.js"
+      - ".github/workflows/tenant-moat-e2e.yml"
+      - "apps/portal/tests/test_offline_authenticated_api_replay.py"
+      - "apps/platform_runtime/**"
+
+      - "scripts/run_postgres_booking_proof.sh"
+
+      - "scripts/verify_postgres_booking_ci_proof.py"
+
+      - ".github/workflows/django-tests-postgres.yml"
+
+      - "requirements.txt"
+
+  workflow_dispatch: {}
+
+
+
+concurrency:
+
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+
+  cancel-in-progress: true
+
+
+
+jobs:
+
+  django-postgres:
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 30
+
+    services:
+
+      postgres:
+
+        image: pgvector/pgvector:pg15
+
+        env:
+
+          POSTGRES_USER: postgres
+
+          POSTGRES_PASSWORD: postgres
+
+          POSTGRES_DB: ci_django_postgres
+
+        ports:
+
+          - 5432:5432
+
+        options: >-
+
+          --health-cmd "pg_isready -U postgres -d ci_django_postgres"
+
+          --health-interval 5s
+
+          --health-timeout 5s
+
+          --health-retries 10
+
+
+
+    env:
+
+      PGCONNECT_TIMEOUT: "15"
+
+      SECRET_KEY: "ci-django-postgres-not-for-production-64chars___________________________"
+
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ci_django_postgres
+
+      USE_DJANGO_TENANTS: "0"
+
+      DEBUG: "1"
+
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com"
+
+      MULTI_TENANT_BASE_DOMAIN: runmycampus.com
+
+
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+
+
+      - name: Set up Python
+
+        uses: actions/setup-python@v5
+
+        with:
+
+          python-version: "3.12"
+
+
+
+      - name: Install dependencies
+
+        run: |
+
+          python -m pip install --upgrade pip
+
+          pip install -r requirements.txt
+
+
+
+      - name: Enable pgvector extension
+
+        env:
+
+          PGPASSWORD: postgres
+
+        run: |
+
+          psql -h 127.0.0.1 -U postgres -d ci_django_postgres -v ON_ERROR_STOP=1 -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
+
+
+      - name: Migrate (Postgres)
+
+        run: python manage.py migrate --noinput --settings=config.settings
+
+
+
+      - name: Verify booking exclusion constraints
+
+        run: python scripts/verify_resource_booking_exclude_constraints.py
+
+
+
+      - name: Postgres booking exclusion proof
+
+        run: python scripts/verify_postgres_booking_ci_proof.py
+
+
+
+      - name: Run Postgres schoolops + reports tests
+
+        run: |
+
+          python manage.py test \
+
+            apps.schoolops.tests.test_resource_booking \
+
+            apps.schoolops.tests.test_inventory_movement \
+
+            apps.schoolops.tests.test_substitute_market \
+
+            apps.academics.tests.test_discipline_routing \
+
+            apps.reports.tests.test_report_dynamic_fields \
+            apps.reports.tests.test_report_card_e2e_flow \
+            apps.reports.tests.test_report_card_e2e_seed \
+            apps.reports.tests.test_report_hash_ledger \
+            apps.reports.tests.test_year_end_report_archive \
+            apps.reports.tests.test_compliance_residency_export_gate \
+
+            apps.platform_runtime.tests.test_frontier_moat_runtime_proof \
+            apps.platform_runtime.tests.test_offline_multiday_replay_simulation \
+            apps.portal.tests.test_offline_authenticated_api_replay \
+            apps.lifecycle.tests.test_tenant_dr_snapshot \
+
+            --settings=config.settings \
+
+            --verbosity=2 \
+
+            --noinput
+
+

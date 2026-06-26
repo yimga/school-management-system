@@ -74,8 +74,9 @@ class BehaviorLander(Lander):
                 )
                 continue
 
-            stable_hash = hashlib.sha1(
-                f"{external_id}|{date_val}|{description}".encode("utf-8")
+            stable_hash = hashlib.sha256(
+                f"{external_id}|{date_val}|{description}".encode("utf-8"),
+                usedforsecurity=False,
             ).hexdigest()[:16]
 
             defaults: dict[str, Any] = {

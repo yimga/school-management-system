@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-06-23T00:21:23.500565+00:00",
+  "generated_at": "2026-06-26T18:41:06.684503+00:00",
   "generated_by": "scripts/audit_role_permission_matrix.py",
-  "row_count": 1615,
-  "views_indexed": 2616,
+  "row_count": 1634,
+  "views_indexed": 2670,
   "summary": {
-    "login_gated": 1257,
-    "role_gated": 77,
-    "permission_gated": 107,
-    "has_inline_auth_check": 73,
-    "auth_mixin_gated": 115,
-    "rbac_allow_reason": 179,
+    "login_gated": 1274,
+    "role_gated": 81,
+    "permission_gated": 109,
+    "has_inline_auth_check": 72,
+    "auth_mixin_gated": 116,
+    "rbac_allow_reason": 182,
     "candidate_anonymous": 0,
-    "public_surface": 194,
+    "public_surface": 196,
     "unresolved": 168
   },
   "rows": [
@@ -1558,6 +1558,78 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "backend/identity/<int:user_id>/grant-ownership/",
+      "view_symbol": "tenant_identity_grant_ownership",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/accounts/views_tenant_identity.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_school",
+        "require_POST"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "backend/identity/<int:user_id>/revoke-ownership/",
+      "view_symbol": "tenant_identity_revoke_ownership",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/accounts/views_tenant_identity.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_school",
+        "require_POST"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "backend/identity/<int:user_id>/transfer-ownership/",
+      "view_symbol": "tenant_identity_transfer_ownership",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/accounts/views_tenant_identity.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_school",
+        "require_POST"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "backend/ops/",
       "view_symbol": "ops_hub",
       "urls_file": "apps/accounts/urls.py",
@@ -1740,7 +1812,6 @@
       "kind": "func",
       "decorators": [
         "login_required",
-        "user_passes_test(user_can_access_ops_extended_modules)",
         "require_school",
         "require_feature('substitutes')",
         "require_http_methods(['GET', 'POST'])"
@@ -2213,6 +2284,56 @@
       "login_gated": true,
       "role_gated": false,
       "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "backend/performance/",
+      "view_symbol": "tenant_performance_dashboard",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/schools/views_tenant_performance.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "permission_required('settings.manage')",
+        "user_passes_test(_is_admin_user)",
+        "require_GET"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": true,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "backend/api/performance.json",
+      "view_symbol": "tenant_performance_json",
+      "urls_file": "apps/accounts/urls.py",
+      "view_file": "apps/schools/views_tenant_performance.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "permission_required('settings.manage')",
+        "user_passes_test(_is_admin_user)",
+        "require_GET"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
@@ -14393,6 +14514,7 @@
       "view_file": "apps/evals/views.py",
       "kind": "func",
       "decorators": [
+        "trace_view('grade.entry')",
         "teacher_portal_required",
         "role_required(User.Role.TEACHER)"
       ],
@@ -21703,6 +21825,52 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "parent/data-rights/",
+      "view_symbol": "parent_data_rights",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_parent_gdpr.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_http_methods(['GET', 'POST'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "parent/data-rights/status.json",
+      "view_symbol": "api_parent_data_rights_status",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_parent_gdpr.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_http_methods(['GET'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "parent/feed/",
       "view_symbol": "parent_feed",
       "urls_file": "apps/portal/urls.py",
@@ -22895,6 +23063,152 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "student/homework/",
+      "view_symbol": "student_assignments",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_lms.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_http_methods(['GET'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "student/homework/<int:assignment_id>/",
+      "view_symbol": "student_assignment_submit",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_lms.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_http_methods(['GET', 'POST'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "teacher/homework/",
+      "view_symbol": "teacher_assignments",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_lms.py",
+      "kind": "func",
+      "decorators": [
+        "role_required(User.Role.TEACHER)",
+        "require_http_methods(['GET'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [
+        "User.Role.TEACHER"
+      ],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": true,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "teacher/homework/new/",
+      "view_symbol": "teacher_assignment_create",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_lms.py",
+      "kind": "func",
+      "decorators": [
+        "role_required(User.Role.TEACHER)",
+        "require_http_methods(['GET', 'POST'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [
+        "User.Role.TEACHER"
+      ],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": true,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "teacher/homework/gradebook/",
+      "view_symbol": "teacher_gradebook",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_lms.py",
+      "kind": "func",
+      "decorators": [
+        "role_required(User.Role.TEACHER)",
+        "require_http_methods(['GET'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [
+        "User.Role.TEACHER"
+      ],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": true,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "teacher/homework/<int:assignment_id>/grade/",
+      "view_symbol": "teacher_assignment_grade",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_lms.py",
+      "kind": "func",
+      "decorators": [
+        "role_required(User.Role.TEACHER)",
+        "require_http_methods(['GET', 'POST'])"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [
+        "User.Role.TEACHER"
+      ],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": true,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "student-portal/grades/",
       "view_symbol": "student_portal_grades",
       "urls_file": "apps/portal/urls.py",
@@ -23077,7 +23391,8 @@
       "view_file": "apps/portal/views_teacher.py",
       "kind": "func",
       "decorators": [
-        "login_required"
+        "login_required",
+        "require_http_methods(['GET', 'POST'])"
       ],
       "drf_permission_classes": [],
       "bases": [],
@@ -26309,6 +26624,29 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "preferences/dashboard-preset/",
+      "view_symbol": "quick_set_dashboard_visual_preset",
+      "urls_file": "apps/siteconfig/urls.py",
+      "view_file": "apps/siteconfig/views.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_POST"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "preferences/set-default-view/",
       "view_symbol": "set_default_dashboard_view",
       "urls_file": "apps/siteconfig/urls.py",
@@ -28315,8 +28653,78 @@
       "login_gated": true,
       "role_gated": false,
       "permission_gated": false,
-      "has_inline_auth_check": true,
+      "has_inline_auth_check": false,
       "auth_mixin_gated": true,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "super/configure/cockpit/login-canvas/gallery-upload/",
+      "view_symbol": "LoginCanvasGalleryUploadView.as_view",
+      "urls_file": "apps/siteconfig/urls.py",
+      "view_file": "apps/siteconfig/views_cockpit_admin.py",
+      "kind": "class",
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [
+        "LoginRequiredMixin",
+        "UserPassesTestMixin",
+        "View"
+      ],
+      "roles_required": [],
+      "rbac_allow_reason": "staff-configure-login-canvas-gallery-upload",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": true,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "super/configure/cockpit/live-banner/suggest-program/",
+      "view_symbol": "api_live_banner_suggest_program",
+      "urls_file": "apps/siteconfig/urls.py",
+      "view_file": "apps/siteconfig/views_live_banner_studio.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_GET"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": "staff-configure-live-banner-studio-ai-assist",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "super/configure/cockpit/live-banner/draft-emergency/",
+      "view_symbol": "api_live_banner_draft_emergency",
+      "urls_file": "apps/siteconfig/urls.py",
+      "view_file": "apps/siteconfig/views_live_banner_studio.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_POST"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": "staff-configure-live-banner-studio-ai-assist",
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
       "public_surface": false,
       "candidate_anonymous": false
     },
@@ -31401,6 +31809,28 @@
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "experience/threshold-era/",
+      "view_symbol": "marketing_threshold_era_preview",
+      "urls_file": "config/urls.py",
+      "view_file": "apps/schools/marketing_views.py",
+      "kind": "func",
+      "decorators": [
+        "require_GET"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": true,
       "candidate_anonymous": false
     },
     {
@@ -35669,6 +36099,28 @@
     },
     {
       "url_pattern": "trust-center/retention/",
+      "view_symbol": "marketing_page",
+      "urls_file": "config/urls.py",
+      "view_file": "apps/schools/marketing_views.py",
+      "kind": "func",
+      "decorators": [
+        "require_GET"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": true,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "trust-center/offboarding/",
       "view_symbol": "marketing_page",
       "urls_file": "config/urls.py",
       "view_file": "apps/schools/marketing_views.py",

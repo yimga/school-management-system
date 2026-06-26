@@ -96,3 +96,4 @@ def _settings_school_field() -> str:
 # Resumable, signed tenant-purge record (owner-decision b). Separate module so
 # the purge state machine doesn't entangle the append-only lifecycle timeline.
 from apps.lifecycle.models_purge import PurgeOperation  # noqa: E402,F401
+from apps.lifecycle.models_dr_snapshot import TenantImmutableSnapshot  # noqa: E402,F401

@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import DatabaseError, IntegrityError, transaction
 from django.db.models import F
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
@@ -35,19 +35,22 @@ from services.post_delete_navigation import redirect_after_save
 def _ops_save_redirect(request, url_name: str):
     target = reverse(url_name)
     return redirect_after_save(request, target, list_url=target)
-from django.utils.dateparse import parse_date
+from django.utils.dateparse import parse_date, parse_datetime
 
 from apps.schoolops.models import (
+    BookableResource,
     CanteenMeal,
     InventoryItem,
     LibraryItem,
     PosSaleLine,
+    ResourceBooking,
     Route,
     Stop,
     MaintenanceRequest,
     SubstituteCover,
     VisitorCheckIn,
 )
+from apps.schoolops.booking_services import BookingConflictError, cancel_resource_booking, create_resource_booking
 
 
 def _scoped_library_items(school):
@@ -241,26 +244,32 @@ def ops_inventory(request):
                     messages.error(request, "Enter a non-zero adjustment (positive or negative).")
                 else:
                     try:
-                        with transaction.atomic():
-                            item = InventoryItem.objects.select_for_update().get(
-                                pk=int(pk_raw), school=school
-                            )
-                            new_qty = int(item.quantity) + delta
-                            if new_qty < 0:
-                                messages.error(
-                                    request,
-                                    "Adjustment would drop quantity below zero.",
-                                )
-                            else:
-                                item.quantity = new_qty
-                                item.save(update_fields=["quantity"])
-                                messages.success(
-                                    request,
-                                    f"Stock updated for “{item.name}” (now {new_qty}).",
-                                )
-                                return _ops_save_redirect(request, "accounts:ops_inventory")
+                        from apps.schoolops.inventory_services import (
+                            InventoryMovementError,
+                            record_inventory_movement,
+                        )
+                        from apps.schoolops.models_inventory_movement import (
+                            InventoryMovement,
+                        )
+
+                        record_inventory_movement(
+                            school=school,
+                            item=InventoryItem.objects.get(pk=int(pk_raw), school=school),
+                            movement_type=InventoryMovement.MovementType.ADJUST,
+                            quantity_delta=delta,
+                            recorded_by=request.user,
+                            notes=(request.POST.get("adjust_notes") or "").strip(),
+                        )
+                        item = InventoryItem.objects.get(pk=int(pk_raw), school=school)
+                        messages.success(
+                            request,
+                            f"Stock updated for “{item.name}” (now {item.quantity}).",
+                        )
+                        return _ops_save_redirect(request, "accounts:ops_inventory")
                     except InventoryItem.DoesNotExist:
                         messages.error(request, "Inventory line not found.")
+                    except InventoryMovementError as exc:
+                        messages.error(request, str(exc))
                     except (DatabaseError, TypeError, ValueError):
                         messages.error(request, "Could not adjust stock.")
         else:
@@ -284,10 +293,22 @@ def ops_inventory(request):
                 except (DatabaseError, TypeError, ValueError):
                     messages.error(request, "Could not add item.")
     items = InventoryItem.objects.filter(school=school).order_by("name")[:500]
+    from apps.schoolops.models_inventory_movement import InventoryMovement
+
+    movements = list(
+        InventoryMovement.objects.filter(school=school)
+        .select_related("item", "recorded_by")
+        .order_by("-created_at")[:100]
+    )
     return render(
         request,
         "schoolops/ops_inventory.html",
-        {"school": school, "items": items, "hub_url": reverse("accounts:ops_hub")},
+        {
+            "school": school,
+            "items": items,
+            "movements": movements,
+            "hub_url": reverse("accounts:ops_hub"),
+        },
     )
 
 
@@ -385,13 +406,27 @@ def _teacher_user_ids_at_school(school):
     )
 
 
+def _user_can_view_substitutes_hub(user, school) -> bool:
+    """Ops admins manage covers; teachers may view open market shifts to claim."""
+    if user_can_access_ops_extended_modules(user):
+        return True
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    return user.pk in _teacher_user_ids_at_school(school)
+
+
 @login_required
-@user_passes_test(user_can_access_ops_extended_modules)
 @require_school
 @require_feature("substitutes")
 @require_http_methods(["GET", "POST"])
 def ops_substitutes(request):
     school = request.school
+    if not _user_can_view_substitutes_hub(request.user, school):
+        from django.http import HttpResponseForbidden
+
+        return HttpResponseForbidden("Substitute market access denied.")
+
+    is_ops_admin = user_can_access_ops_extended_modules(request.user)
     teacher_ids = _teacher_user_ids_at_school(school)
     teachers_qs = (
         TeacherProfile.objects.filter(school=school, is_active=True)
@@ -415,7 +450,36 @@ def ops_substitutes(request):
                 cover_pk = int(cover_id)
             except (TypeError, ValueError):
                 cover_pk = -1
-        if not wd:
+
+        if action == "claim_market":
+            shift_id = (request.POST.get("shift_id") or "").strip()
+            if not shift_id:
+                messages.error(request, "Select an open shift to claim.")
+            else:
+                claim_as = cover_pk or request.user.pk
+                if cover_pk == -1:
+                    messages.error(request, "Invalid covering teacher.")
+                elif not is_ops_admin and claim_as != request.user.pk:
+                    messages.error(request, "Teachers may only claim shifts for themselves.")
+                elif claim_as not in teacher_ids:
+                    messages.error(request, "Claiming teacher must be on staff at this school.")
+                else:
+                    from apps.schoolops.substitute_market import (
+                        SubstituteMarketError,
+                        claim_shift,
+                    )
+
+                    try:
+                        claim_shift(
+                            school=school,
+                            shift_id=shift_id,
+                            substitute_teacher_id=claim_as,
+                        )
+                        messages.success(request, "Shift claimed and cover recorded.")
+                        return _ops_save_redirect(request, "accounts:ops_substitutes")
+                    except SubstituteMarketError as exc:
+                        messages.error(request, str(exc).replace("_", " "))
+        elif not wd:
             messages.error(request, "Valid work date is required.")
         elif not absent_pk or absent_pk not in teacher_ids:
             messages.error(
@@ -428,6 +492,33 @@ def ops_substitutes(request):
             messages.error(request, "Covering teacher must be on staff at this school.")
         elif cover_pk == absent_pk:
             messages.error(request, "Absent and covering teacher must differ.")
+        elif action == "open_market":
+            if not is_ops_admin:
+                messages.error(request, "Only operations staff can open market shifts.")
+            else:
+                from apps.schoolops.substitute_market import (
+                    ShiftAlreadyBooked,
+                    open_shift,
+                )
+
+                try:
+                    shift = open_shift(
+                        school=school,
+                        absent_teacher_id=absent_pk,
+                        work_date=wd,
+                        period_label=(request.POST.get("period_label") or "").strip()[:80],
+                    )
+                    messages.success(
+                        request,
+                        f"Market shift opened ({shift.shift_id[:8]}…). "
+                        "Teachers can claim from the open shifts list.",
+                    )
+                    return _ops_save_redirect(request, "accounts:ops_substitutes")
+                except ShiftAlreadyBooked:
+                    messages.error(
+                        request,
+                        "That period is already locked or booked in the substitute market.",
+                    )
         elif action == "broadcast":
             from apps.schoolops.substitute_handover import (
                 broadcast_substitute_request,
@@ -477,6 +568,13 @@ def ops_substitutes(request):
         .select_related("absent_teacher", "covering_teacher")
         .order_by("-work_date", "-created_at")[:200]
     )
+    from apps.schoolops.substitute_market import list_open_shifts
+
+    open_shifts = list_open_shifts(school_id=int(school.pk))
+    teacher_by_id = {tp.user_id: tp.user for tp in teachers_qs}
+    for row in open_shifts:
+        absent_id = int(row.get("absent_teacher_id") or 0)
+        row["absent_teacher"] = teacher_by_id.get(absent_id)
     return render(
         request,
         "schoolops/ops_substitutes.html",
@@ -484,6 +582,9 @@ def ops_substitutes(request):
             "school": school,
             "covers": covers,
             "teachers": teachers_qs,
+            "open_shifts": open_shifts,
+            "is_ops_admin": is_ops_admin,
+            "can_self_claim": request.user.pk in teacher_ids,
             "broker_results": broker_results,
             "hub_url": reverse("accounts:ops_hub"),
         },
@@ -560,6 +661,76 @@ def ops_facilities(request):
     school = request.school
     if request.method == "POST":
         action = (request.POST.get("action") or "").strip().lower()
+        if action == "create_resource":
+            name = (request.POST.get("resource_name") or "").strip()
+            if not name:
+                messages.error(request, "Resource name is required.")
+            else:
+                try:
+                    capacity = max(1, int(request.POST.get("resource_capacity") or 1))
+                except (TypeError, ValueError):
+                    capacity = 1
+                rtype = (request.POST.get("resource_type") or "room").strip()[:16]
+                allowed = {c.value for c in BookableResource.ResourceType}
+                if rtype not in allowed:
+                    rtype = BookableResource.ResourceType.ROOM
+                try:
+                    BookableResource.objects.create(
+                        school=school,
+                        name=name[:120],
+                        resource_type=rtype,
+                        capacity=capacity,
+                    )
+                    messages.success(request, "Bookable resource added.")
+                except IntegrityError:
+                    messages.error(request, "A resource with that name already exists.")
+            return _ops_save_redirect(request, "accounts:ops_facilities")
+        if action == "book_resource":
+            try:
+                resource_id = int(request.POST.get("resource_id") or 0)
+            except (TypeError, ValueError):
+                resource_id = 0
+            resource = BookableResource.objects.filter(
+                school=school, pk=resource_id, is_active=True
+            ).first()
+            start_raw = (request.POST.get("booking_start") or "").strip()
+            end_raw = (request.POST.get("booking_end") or "").strip()
+            title = (request.POST.get("booking_title") or "").strip()
+            start = parse_datetime(start_raw) if start_raw else None
+            end = parse_datetime(end_raw) if end_raw else None
+            if not resource or not start or not end:
+                messages.error(request, "Resource and start/end times are required.")
+            else:
+                try:
+                    create_resource_booking(
+                        school=school,
+                        resource=resource,
+                        booked_by=request.user,
+                        title=title,
+                        start=start,
+                        end=end,
+                    )
+                    messages.success(request, "Booking confirmed.")
+                except BookingConflictError:
+                    messages.error(
+                        request,
+                        "That time slot conflicts with an existing booking.",
+                    )
+                except ValueError as exc:
+                    messages.error(request, str(exc))
+            return _ops_save_redirect(request, "accounts:ops_facilities")
+        if action == "cancel_booking":
+            try:
+                bid = int(request.POST.get("booking_id") or 0)
+            except (TypeError, ValueError):
+                bid = 0
+            booking = ResourceBooking.objects.filter(school=school, pk=bid).first()
+            if not booking:
+                messages.error(request, "Booking not found.")
+            else:
+                cancel_resource_booking(booking=booking)
+                messages.success(request, "Booking cancelled.")
+            return _ops_save_redirect(request, "accounts:ops_facilities")
         if action == "set_status":
             try:
                 tid = int(request.POST.get("ticket_id") or 0)
@@ -602,6 +773,17 @@ def ops_facilities(request):
     tickets = list(
         MaintenanceRequest.objects.filter(school=school).order_by("-created_at")[:200]
     )
+    resources = list(
+        BookableResource.objects.filter(school=school, is_active=True).order_by("name")
+    )
+    bookings = list(
+        ResourceBooking.objects.filter(
+            school=school,
+            status=ResourceBooking.Status.CONFIRMED,
+        )
+        .select_related("resource", "booked_by")
+        .order_by("-created_at")[:100]
+    )
     return render(
         request,
         "schoolops/ops_facilities.html",
@@ -609,6 +791,9 @@ def ops_facilities(request):
             "school": school,
             "tickets": tickets,
             "status_choices": MaintenanceRequest.Status,
+            "resources": resources,
+            "resource_type_choices": BookableResource.ResourceType,
+            "bookings": bookings,
             "hub_url": reverse("accounts:ops_hub"),
         },
     )

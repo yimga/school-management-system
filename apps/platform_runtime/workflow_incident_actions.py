@@ -52,7 +52,6 @@ def bulk_apply_incident_remediation(
 ) -> dict[str, Any]:
     """Apply auto-fix to eligible runs in an incident cluster (staff-only caller)."""
 
-    from apps.platform_runtime.models import WorkflowRun
     from apps.platform_runtime.workflow_autopilot import record_apply_log
     from apps.platform_runtime.workflow_fix_handlers import apply_auto_fix_kind
     from apps.platform_runtime.workflow_flight_deck_actions import (

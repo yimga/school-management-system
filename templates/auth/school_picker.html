@@ -1,49 +1,56 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Select school" %}{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
-
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="onboarding" %}
 <section class="auth-shell" aria-labelledby="picker-title">
   <div data-rmc-scroll-policy="paginate" class="auth-card">
-    <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--school-primary),color-mix(in oklab,var(--school-primary) 70%, var(--school-accent)));color:var(--text-on-brand);display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px;" aria-hidden="true">
-      <i class="bi bi-buildings" style="font-size:var(--type-size-body-l)"></i>
+    <div class="rmc-security-checkpoint__head" style="border-bottom:0">
+      <span class="rmc-security-checkpoint__icon" aria-hidden="true"><i class="bi bi-buildings"></i></span>
+      <div>
+        <div class="rmc-security-checkpoint__eyebrow">{% trans "Sign-in" %}</div>
+        <h1 id="picker-title">{% trans "Choose a school" %}</h1>
+      </div>
     </div>
-    <h1 id="picker-title">{% trans "Choose a school" %}</h1>
+    <div class="rmc-security-checkpoint__body">
     {% if memberships %}
-      <p class="auth-sub">{% trans "You have access to the following schools. Pick one to continue — you can switch from your profile menu later." %}</p>
+      <p class="rmc-security-checkpoint__sub">{% trans "You have access to the following schools. Pick one to continue — you can switch from your profile menu later." %}</p>
       <form method="post" action="">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.GET.next }}">
         <div class="list-group mb-3">
           {% for m in memberships %}
-            <label class="list-group-item d-flex align-items-center gap-3 cursor-pointer" >
+            <label class="list-group-item d-flex align-items-center gap-3 cursor-pointer">
               <input class="form-check-input m-0 flex-shrink-0" type="radio" name="school_id" id="school-{{ m.school_id }}" value="{{ m.school_id }}" {% if forloop.first %}checked{% endif %}>
               <div class="avatar avatar-sm" style="background:linear-gradient(135deg,var(--school-primary),var(--school-accent))" aria-hidden="true">{{ m.school.name|slice:":1"|upper }}</div>
               <div style="flex:1;min-width:0">
                 <div style="font-weight:600;letter-spacing:-0.005em">{{ m.school.name }}</div>
-                {% if m.role %}<div style="font-size:var(--type-size-caption);color:var(--admin-content-text-muted)">{{ m.role|title }}</div>{% endif %}
+                {% if m.role %}<div class="small text-muted">{{ m.role|title }}</div>{% endif %}
               </div>
               {% if m.is_primary %}<span class="rmc-badge" data-tone="soft-primary" style="font-size:var(--type-size-micro)">{% trans "Primary" %}</span>{% endif %}
             </label>
           {% endfor %}
         </div>
-        <button type="submit" class="btn btn-primary" style="width:100%">{% trans "Continue" %} <i class="bi bi-arrow-right ms-1"></i></button>
+        <button type="submit" class="btn btn-primary w-100">{% trans "Continue" %} <i class="bi bi-arrow-right ms-1"></i></button>
       </form>
     {% else %}
-      <div style="text-align:center;padding:14px 0">
-        <div style="width:56px;height:56px;border-radius:16px;background:var(--surface-bg-subtle);color:var(--admin-content-text-muted);display:inline-flex;align-items:center;justify-content:center;margin:0 auto 14px" aria-hidden="true">
-          <i class="bi bi-shield-x" style="font-size:var(--type-size-headline-m)"></i>
-        </div>
-        <p style="color:var(--admin-content-text-muted);margin-bottom:18px">{% trans "You don't currently have access to any school. Ask your school administrator to add you, or sign out." %}</p>
+      <div class="text-center py-2">
+        <div class="rmc-security-checkpoint__icon mx-auto mb-3" style="background:var(--surface-bg-subtle);color:var(--text-secondary)" aria-hidden="true"><i class="bi bi-shield-x"></i></div>
+        <p class="rmc-security-checkpoint__sub">{% trans "You don't currently have access to any school. Ask your school administrator to add you, or sign out." %}</p>
         <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary"><i class="bi bi-box-arrow-left me-1"></i>{% trans "Sign out" %}</a>
       </div>
     {% endif %}
+    </div>
   </div>
 </section>
+{% include "components/security_checkpoint_page_close.html" %}
 {% endblock %}

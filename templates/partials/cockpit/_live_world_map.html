@@ -15,7 +15,6 @@
     </h2>
     <p class="lx-world-lab__note">{% trans "Drag the globe · hover legend rows (magnetic fly-to) · toggle layers · turn on Wow demo for aurora + arcs + auto-rotate." %}</p>
     {% endif %}
-    {% if not rmc_cp_globe_deck_v2 %}
     <div class="lx-world-lab__ai-guide" id="rmc-world-globe-ai-guide" data-rmc-globe-ai-block>
       <span class="lx-world-lab__tag">{% trans "AI Copilot" %}</span>
       <strong id="rmc-world-globe-ai-guide-headline">{% if lwm_fleet and lwm_fleet.fleet_brief.headline %}{{ lwm_fleet.fleet_brief.headline }}{% else %}{% trans "Fleet focus ready" %}{% endif %}</strong>
@@ -23,9 +22,8 @@
       <button type="button" class="lx-world-lab__ai-guide-btn" id="rmc-world-globe-ai-guide-ask">{% trans "Ask AI" %}</button>
       <button type="button" class="lx-world-lab__ai-guide-btn" id="rmc-world-globe-ai-guide-tour">{% trans "Smart tour" %}</button>
     </div>
-    {% endif %}
   </header>
-  <details class="lx-world-lab__controls-advanced"{% if not rmc_cp_globe_landing_minimal_chrome %} open{% endif %}>
+  <details class="lx-world-lab__controls-advanced"{% if rmc_cp_globe_deck_v2 or not rmc_cp_globe_landing_minimal_chrome %} open{% endif %}>
     <summary class="lx-world-lab__controls-advanced-summary">{% trans "Advanced globe controls" %}</summary>
     <div class="lx-world-lab__controls" role="group" aria-label="{% trans 'Globe AI controls' %}">
       <label><input type="checkbox" id="layer-void" checked> {% trans "Void zones A-D" %}</label>
@@ -87,7 +85,10 @@
         data-rmc-world-globe="1"
         {% url 'super:schools_list' as cp_schools_list_url %}{% if cp_schools_list_url %}data-rmc-schools-list-url="{{ cp_schools_list_url }}"{% endif %}
       ></div>
-      <div class="lx-world__terminator" id="rmc-world-globe-terminator" hidden aria-hidden="true"></div>
+      <div class="lx-world__terminator" id="rmc-world-globe-terminator" hidden aria-hidden="true">
+        <span class="lx-world__celestial lx-world__celestial--sun" id="rmc-world-globe-sun-orb" aria-hidden="true"></span>
+        <span class="lx-world__celestial lx-world__celestial--moon" id="rmc-world-globe-moon-orb" aria-hidden="true"></span>
+      </div>
     </div>
     {% if cockpit.live_world_map.globe_payload_json %}
     <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-world-globe-data">{{ cockpit.live_world_map.globe_payload_json|safe }}</script>

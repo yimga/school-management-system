@@ -1,0 +1,269 @@
+# RUNMYCAMPUS — A+ END-TO-END IMPLEMENTATION MANDATE (for Cursor)
+
+> **Hand this entire file to Cursor.** It contains two prompts:
+> 1. **PROMPT A — THE BUILD MANDATE** (implement everything end-to-end to A+ / ≥98% on every metric).
+> 2. **PROMPT B — THE FINAL AUDIT** (re-audit, produce an A+ scorecard, and decide GO / NO-GO; if NO-GO, loop back to Prompt A).
+>
+> Run **Prompt A** until it self-reports all gates green, then run **Prompt B**. If Prompt B returns NO-GO, feed its findings back into Prompt A and repeat. **Do not stop until Prompt B returns GO.**
+
+---
+
+## CONTEXT YOU ARE OPERATING IN (read first, do not skip)
+
+- **Repo:** Django 5 multi-tenant School Management OS ("RunMyCampus"). Active codebase is `beta/school-management-system/`. ~1M LOC, 54 apps, ~700 models, 1,011 migrations, ~10,000 tests, **237 CI-wired architectural gates**, a self-protecting meta-gate (`scripts/verify_ci_gate_wiring.py`, `REQUIRED_GATES`).
+- **Production DB is PostgreSQL.** Local/test default is SQLite. **SQLite hides Postgres-only bugs (RLS, exclusion constraints, JSON ops, constraint timing). You MUST validate correctness-critical work on real Postgres** (workflows already exist: `tenants-rls.yml`, `playwright-tenant-postgres.yml`).
+- **This is a SHARED, HIGH-CHURN working tree.** Other agents/sessions commit constantly. Obey the **Integrity Rules** (Part 0). Never `git add -A`. Never delete or revert work you did not author. Never use `|| true`, `2>/dev/null`, `--no-verify`, `.skip`, `xfail`, or baseline edits to make a gate *appear* green.
+- A prior independent audit (summarized in Part 2) found the platform is **real and strong on infrastructure** but that **marketing/docstrings run ahead of wiring** in several headline areas. **Your job is to make reality match — and exceed — the claims, with proof.**
+
+---
+
+# PROMPT A — THE BUILD MANDATE
+
+You are a **fleet of senior staff engineers** shipping RunMyCampus to **best-in-class, A+ (≥98%) on every metric**. Anything below 98 on any metric is a **NO-GO**. You will deploy multiple parallel agents, verify everything against objective gates, and **keep closing gaps until every gate is green and every metric is ≥98**.
+
+## PART 0 — THE OPERATING CONTRACT (non-negotiable; these rules cannot be waived)
+
+1. **AUDIT-FIRST, NEVER ASSUME.** Before implementing any item, open the actual files and confirm the current state with `file:line` evidence. The audit in Part 2 is a *starting map*, not gospel — verify it. If a claimed gap is already fixed, say so and move on. If you find a NEW gap not listed here, fix it too (the mandate is **expansive**: cover everything, listed or not).
+2. **END-TO-END OR IT DOES NOT COUNT.** A feature is "done" only when it is wired **producer → store → server → UI → test → CI gate**. Models without views, services called only by tests, formulas evaluated only in tests, tables that ship empty, and "no-op bridges" all count as **NOT DONE**. (The prior audit caught exactly these.)
+3. **EVIDENCE IS MANDATORY.** Every "done" claim must carry: the `file:line` of the implementation, the test that proves it, and the exact command + output proving the relevant gate is at baseline 0 / green.
+4. **NO FAKE GREEN.** Forbidden, automatic NO-GO if detected: deleting/weakening tests to pass; `|| true` / `continue-on-error` to mask failures; editing a gate's baseline/allowlist to hide a real finding; `# type: ignore`/bare `except`/`--no-verify`; stubbing a return value to satisfy an assertion; marking a flag enabled without the producer+applier behind it.
+5. **TENANT-SAFE BY CONSTRUCTION.** Every new model that holds tenant data MUST have a `school` FK, an RLS enable migration + default-deny policy, and pass `scan_tenant_queryset_safety.py` (baseline 0). Every new query MUST be school-scoped. No raw SQL with f-string-interpolated values (identifiers-only, parameterized values).
+6. **POSTGRES TRUTH.** Any work touching RLS, constraints (exclusion/gist), JSON fields, or transactions MUST have a test that runs on Postgres (tag it for `tenants-rls.yml` / `playwright-tenant-postgres.yml`). Do not rely on SQLite passing.
+7. **SHARED-TREE HYGIENE.** Stage only the specific files you changed (explicit paths, never `-A`). Run the relevant gates locally before commit. Rebase/fast-forward over peers; never force-push shared branches; never absorb another agent's uncommitted work. Before any push, confirm the tree is intact (`git ls-tree -r HEAD | wc -l` is sane, not collapsed).
+8. **DECIMAL MONEY, LOCALE DISPLAY, NO PII IN LOGS.** Honor existing zero-tolerance gates `scan_money_float.py`, `scan_locale_display.py`, `scan_pii_logging_smell.py`.
+9. **MIGRATIONS ARE FORWARD-ONLY & REVERSIBLE.** Idempotent data migrations; no destructive hot migrations on populated tables; seed via migration + management command (both), never runtime-only.
+10. **DOCS MUST NOT OVERSTATE.** When you finish an item, update its docstring/CLAUDE.md note to describe **only what is wired**, with the proving test named. Remove or correct any docstring that overstates delivered surface.
+
+## PART 1 — MODEL & AGENT FLEET
+
+- **Use the highest-capability frontier model available in Cursor for ALL implementation and audit work** (e.g., the top Claude Opus / max-reasoning tier). **Do NOT use fast/mini/lite tiers** for implementation, security, tenancy, billing, or audit. Lightweight tiers are permitted only for mechanical formatting.
+- **Deploy multiple parallel agents** (Cursor background agents / multi-composer). Suggested fleet — run workstreams concurrently where files don't collide; serialize where they do:
+
+  | Agent | Owns | Primary dirs (avoid cross-collision) |
+  |---|---|---|
+  | **A1 — Tenant Experience Lead** | Tenant shell, onboarding, dashboards, a11y, i18n/RTL, best-in-class UX | `templates/`, `static/css`, `static/js`, `apps/portal`, `apps/setup_studio` |
+  | **A2 — Grading & Reporting** | Polymorphic grading wiring, report-card render/PDF/distribute | `apps/evals`, `apps/reports`, `apps/academics` |
+  | **A3 — Metadata/EAV Delivery** | Dynamic forms+reports+search, country catalog auto-seed | `apps/metadata`, `apps/people`, `apps/locale` |
+  | **A4 — Billing/PPP/Payments** | Seed PPP, tuition scaling, live PSP gateways, entitlements | `apps/billing`, `apps/finance`, `apps/plans_entitlements`, `apps/payroll` |
+  | **A5 — Core Ops Features** | Room/asset booking + double-booking constraint, discipline engine, substitute auto-match, inventory, athletics | `apps/schoolops`, `apps/academics`, `apps/school_events`, `apps/people` |
+  | **A6 — Security & Compliance** | Rate-limit/lockout, ReBAC enforcement, bandit/SAST, FERPA/GDPR/COPPA, DSAR/residency | `apps/accounts`, `apps/security`, `apps/compliance`, `apps/lifecycle`, `config` |
+  | **A7 — Platform/Infra/Perf/Obs** | Celery worker+beat, Postgres test path, performance/N+1, observability, healthz, DR/backups | `config`, `render.yaml`, `apps/observability`, `apps/platform_runtime` |
+  | **A8 — Offline/PWA/Realtime** | Homework offline applier+UI, background-sync, WAL completeness, manifest/SW | `apps/wal_stream`, `apps/sync_engine`, `static/js`, `apps/brand_experience` |
+  | **A0 — Coordinator/Integrator** | Merges, runs the full gate suite, owns the scorecard, blocks NO-GO | repo-wide (read), gate runs, scorecard |
+
+- **Coordination protocol:** A0 keeps a live `A_PLUS_PROGRESS.md` scoreboard (per-metric status + evidence links). Agents post `file:line` evidence per item. No item is "done" on the scoreboard without its proving test + green-gate command output. A0 runs the **full** gate suite before declaring any metric A+.
+
+## PART 2 — GROUND-TRUTH BASELINE (verify, then exceed)
+
+Current honest state from the prior audit (your floor — push every one of these to A+):
+
+**Already strong (protect, don't regress):** Tenant RLS isolation (real `FORCE` RLS + parameterized GUC + Postgres CI). Test/CI rigor (~10k tests, 237 gates, meta-gate). Offline two-rail (SODP+WAL). i18n breadth (24 locales). Security baseline (MFA, Argon2, CSP/HSTS, RBAC+ReBAC).
+
+**Overstated / partial / absent (THE WORK — fix to A+ end-to-end):**
+- **Grading:** registry of ~9 scales is real & wired, but the "polymorphic any-country formula engine" (`apps/evals/grading_formula_engine.py`) is **called only from tests** — not in the grade path (`apps/evals/signals.py` / `validators.py` use threshold columns). UK GCSE 9–1, IB 1–7, German 1–6, CBSE, etc. are not first-class.
+- **Report cards:** grades compute (`apps/reports/services.py`) but there is **no UI to render, approve, PDF, or distribute** a report card. **Core function gap.**
+- **EAV/metadata:** real storage (`apps/metadata/models.py`) but **no dynamic form rendering** (`apps/people/forms_backend.py` is a static ModelForm), **no report/search wiring**, and the country identity catalog (`apps/metadata/country_eav_catalog.py`) is **not auto-seeded at signup**. The siteconfig form bridge is a **no-op**.
+- **Billing/PPP:** engine real (`apps/billing/regional_pricing.py`) but `CountryMultiplier` **ships empty (no seed)** → defaults to 1×/USD; **PPP never scales tuition** (subscriptions only); local PSP gateways (Paystack/Flutterwave/MoMo/etc. in `apps/finance/gateways/`) are **config-gated stubs with no live HTTP** (only Stripe is live).
+- **Booking:** **zero** double-booking prevention — no `ExclusionConstraint`/`EXCLUDE USING`/gist anywhere. Blueprint promised gist exclusion.
+- **Discipline:** single `Incident` flag model — no points ledger, routing, or restorative tracking.
+- **Substitute marketplace:** manual `SubstituteCover` FK only — no auto-matching.
+- **Athletics/sports, inventory movement ledger:** absent/thin.
+- **Offline homework:** producer exists, **applier is a no-op + no UI surface** (latent).
+- **Security:** **no login rate-limiting / lockout** (`django-ratelimit` is already a dependency); ReBAC enforcement is opt-in (`RMC_REBAC_ENFORCE_SENSITIVE=0`); no `bandit`/SAST in CI.
+- **Infra:** **Celery runs eager/inline in prod** (`render.yaml` worker commented out) — no retries/durability; **main test suite runs on SQLite**, not Postgres.
+
+**Frontier moat (metrics 25–28) — verified current state (push to A+ end-to-end, not scaffolding):**
+- **CRDT/offline (25):** real CRDT modules exist (`apps/sync_engine/crdt.py`, `crdt_wallet.py`, `crdt_wire_protocol.py`, `conflict_resolver.py`, `views_crdt.py`, `verify_crdt_convergence`/`verify_sync_semantics` commands + tests) — but it is the **legacy** sync rail (WAL supersedes it) and **multi-day (5–7d) full-app offline read+write is NOT proven**. Make multi-day CRDT (or WAL-equivalent) the live, tested path.
+- **Micro-finance (26):** real `apps/finance/payment_plans.py`, `advanced_payments.py`, `wallet_payment`, `split_billing`, `family_billing_aggregator`, `regional_payment_profiles.json`, `country_readiness_register.py` — but local rails are **config-gated stubs (no live HTTP)** and **fractional/cash micro-ledger is absent**. Make ≥3 local rails live + build the fractional sub-ledger.
+- **Sovereignty (27):** governance/compliance scaffolding (`compliance/cross_border_export.py`, `governance/turbo/sovereignty_trust_score.py`, `residency-readiness.yml`) exists — but there is **no `DATABASE_ROUTERS`/multi-region storage routing** (single Postgres). Enforce residency at the data layer, not just policy.
+- **DR (28):** on-demand encrypted offboarding export + purge (`apps/lifecycle/models_purge.py`, `purge_operations.py`) exist — but **no daily automated immutable signed snapshot pipeline and no self-host runtime**. Build the daily pipeline + restore-proof + self-host runbook.
+
+## PART 3 — THE A+ RUBRIC (every metric must reach ≥98 / A+)
+
+Each metric is scored /100. **A+ = ≥98.** A metric is ≥98 only when **all** of: (a) every listed gate is GREEN at its baseline, (b) the capability is wired end-to-end with `file:line` evidence, (c) new behavior is covered by tests that pass **on Postgres where correctness-critical**, (d) no regression in the full suite, (e) docs describe only what's wired.
+
+| # | Metric | A+ bar (objective, must all hold) |
+|---|---|---|
+| 1 | **Tenant Isolation** | All RLS gates green (`scan_rls_force_coverage`, `scan_rls_policy_coverage`, `scan_rls_bypass`, `scan_tenant_queryset_safety`=0, `verify_unscoped_tenant_writes`, `verify_websocket_tenant_scope`, `audit_celery_tenant_task_scoping`); `tenants-rls.yml` green on Postgres; every tenant model has enable+default-deny migration; pooler-safe (`SET LOCAL` in txn or documented constraint). |
+| 2 | **Tenant Experience (BEST-IN-CLASS)** | Sticky chrome, collapsible nav + copilot, balanced content, zero layout-contract violations (`audit_shell_scroll_contract`, `scan_undefined_css_classes`=0); onboarding wizard genesis→launch fully wired; 5 role dashboards live-data, no dead space; Lighthouse ≥98 perf/best-practices/SEO on tenant shell; WCAG 2.2 AA (axe/pa11y 0 serious). |
+| 3 | **Grading Engine** | Polymorphic formula engine **wired into the live grade path** (not tests); ≥15 country scales first-class incl. UK GCSE 9–1, IB 1–7, German 1–6, CBSE, WAEC, French 0–20, US GPA, T-score; durable seed (migration+command); displayed on report card/gradebook/transcript/rankings; gate `verify_grading_scale_registry_coverage` extended to assert band-table+display per scale, green. |
+| 4 | **Report Cards** | End-to-end render → approve → **PDF (WeasyPrint)** → distribute (parent portal + export); per-term & annual; scale-aware bands; immutable archive; tenant-scoped; Playwright E2E proving a teacher/admin can produce & a parent can view a report card. |
+| 5 | **EAV / Metadata Delivery** | `DynamicFieldDefinition` rendered into **real student/teacher/parent forms** with validation; values persisted via `set_dynamic_field_value`; surfaced in **reports + search** (indexed); country catalog **auto-seeded at provisioning**; no-op bridge removed; E2E proving a school adds "Aadhaar/Civil ID" at runtime and it appears in form+detail+search with **zero migration**. |
+| 6 | **Billing / PPP / Currency** | `CountryMultiplier` **seeded for all supported countries** (migration+command, real PPP data + source noted); PPP applied to **subscriptions AND tuition** (opt-in per tenant); Decimal everywhere (`scan_money_float`=0); locale display (`scan_locale_display`=0); ≥2 local PSPs **live (real HTTP, sandbox-verified)** behind config + the Stripe path; entitlement freeze/unfreeze tested. |
+| 7 | **Payments Reliability** | Webhook signature verification, idempotency keys, retry/outbox, reconciliation; no money lost on retry; tests cover duplicate-webhook and partial-failure. |
+| 8 | **Offline / PWA** | `verify_offline_capability_implementation`=0 with **homework applier real + UI wired** (no latent); background-sync on reconnect functional (not just "sync now"); manifest+SW gates green; SW version monotonic; E2E offline→online replay for attendance, grades, messaging, **homework**. |
+| 9 | **Security & AuthZ** | Login/reset **rate-limited + lockout FSM**; ReBAC enforced on sensitive ops (`RMC_REBAC_ENFORCE_SENSITIVE=1` for defined classes) with tests; `bandit`/SAST in CI at 0 highs; `audit_role_permission_matrix` candidate_anonymous=0; secrets only via env (no plaintext keys in tracked files); CSP enforce + nonce; security headers complete. |
+| 10 | **Core Ops — Booking** | Room/asset/hostel booking model with **Postgres `ExclusionConstraint` (btree_gist) preventing double-booking**, tested on Postgres; fractional capacity honored; UI to book + conflict error surfaced; tenant-scoped. |
+| 11 | **Core Ops — Discipline** | Behavior **points ledger** + incident **routing FSM** (escalate to counselor/parent per rules) + **restorative action** tracking; safeguarding-aware; UI + tests. |
+| 12 | **Core Ops — People** | Substitute **auto-matching** (availability + qualification + radius) on absence with notify; payroll already real — verify approval FSM + payslip PDF; staff lifecycle complete. |
+| 13 | **Athletics / Extracurricular** | Team/roster/sport models, health-clearance workflow with signoff, clubs, event ticketing (already real) — wired with UI + tests. |
+| 14 | **Inventory / Assets** | Movement ledger (checkout/return/consume/transfer/loss) with audit trail + reorder alerts, not bare quantity; UI + tests. |
+| 15 | **Scheduling / Timetable** | Solver conflict-free under load; respects room booking constraint (#10); publish + clash detection + UI; tested with realistic fixtures. |
+| 16 | **Testing & CI** | Main suite runs **green on Postgres** (nightly or PR job), not only SQLite; `django-tests.yml` blocking (no `|| true` masking); coverage gate enforced per-app (finance≥85, security≥90, api≥75) not just global 60; `verify_ci_gate_wiring` REQUIRED_GATES intact + expanded. |
+| 17 | **Performance** | No N+1 on hot paths (assert via query-count tests); p95 server time budget documented + met; Lighthouse ≥98; key list endpoints paginated (RFC-8288). |
+| 18 | **Observability** | Structured logs (no PII), Sentry wired, Prometheus metrics, `/healthz` covers DB+cache+Celery+queue depth; error-budget/SLO doc; tracing on critical flows. |
+| 19 | **Data Privacy / Compliance** | FERPA/GDPR/COPPA mapping doc; DSAR export+erase end-to-end (already partial — complete it); data-residency switch honored; consent + retention policies enforced in code with tests. |
+| 20 | **API Quality** | DRF schema coverage gate=0; versioned, paginated, rate-limited, documented (OpenAPI), auth-gated; contract tests; deprecation policy. |
+| 21 | **Internationalization** | All 24 locales compile + no missing critical msgids on key flows; RTL verified (Arabic/Hebrew/Farsi) via Playwright; locale number/date/currency formatting correct; pseudo-locale QA. |
+| 22 | **Infra / Reliability / DR** | Real Celery **worker+beat** in prod (retries+durability); backups + restore runbook tested; migration safety gate; graceful degradation when Redis/Celery down; documented capacity headroom. |
+| 23 | **Reference Integrity (no silent 500s)** | All integrity gates 0: import / get_model / url-name / template-ref / static-ref / settings-key / field-ref / relation-path. |
+| 24 | **Documentation & Runbooks** | Architecture, per-app READMEs current, runbooks for deploy/rollback/incident/offboarding; **no doc overstates delivered surface** (audited). |
+| 25 | **Zero-Connectivity CRDT Local-First (the Offline Moat)** | Daily flows (attendance, grades, **homework**, fees, behavior) work **fully offline for ≥7 continuous days** — read AND write — from IndexedDB; on reconnect, **CRDT merge with multi-tenant vector clocks** converges deterministically with **zero data loss** under concurrent edits; `verify_crdt_convergence` + `verify_sync_semantics` green; **Postgres** convergence test + an E2E multi-day offline→online simulation. CRDT rail must be the LIVE path (not legacy/superseded), or WAL must provide equivalent multi-day guarantees. |
+| 26 | **Micro-Financing & Local Cash Rails** | **≥3 local rails LIVE (real sandbox HTTP, verified)** incl. at least one mobile-money (M-Pesa/MoMo) + one of Pix/UPI, behind config alongside Stripe; **fractional/installment sub-ledger** supports irregular partial payments (incl. cash-over-counter capture) with Decimal precision, partial-payment → enrollment-permission gating, localized tax on partials, and reconciliation; idempotent; tested. Money gates (`scan_money_float`, `scan_locale_display`) = 0. |
+| 27 | **Data Sovereignty / Border-Lock Routing** | `country_iso_code` drives a **residency policy enforced at the data layer** — student PII writes/reads are pinned to the tenant's region (real DB router / region binding, or a documented + tested region-deployment topology, not faked); **cross-border PII transfer blocked + audited** (`compliance/cross_border_export.py`); platform sees only anonymized cross-region aggregates; `residency-readiness.yml` green; tests prove a non-region read is denied. |
+| 28 | **Immutable DR Snapshots + Self-Host Runtime** | **Daily automated, cryptographically-signed, tenant-key-encrypted** full-state snapshot shipped to **≥2 independent stores**; **restore tested** (snapshot → working school) in CI; tenant can **download a master file** and stand the school back up via a **documented self-host/offline runtime**; tamper-evident (signature verify on restore); runbook complete. |
+
+> **The platform GO requires EVERY metric ≥98 AND zero items in the "NO-FAKE-GREEN" forbidden list.** Track all 28 on the scoreboard.
+>
+> **Metrics 25–28 are the "frontier moat" — the systemic, real-world-friction dimensions that decide global dominance. Do not let them be scored on scaffolding/readiness alone: a readiness gate that is green but unenforced at runtime is < 98. Enforced + tested + (where ops-gated) documented-and-restore-proven only.**
+
+## PART 4 — WORKSTREAM DETAIL (scope + Definition of Done + verify command)
+
+For **each** item: (1) re-verify current state with `file:line`; (2) implement end-to-end per Part 0; (3) add tests (Postgres where correctness-critical); (4) run the listed gate(s) to green; (5) post evidence to the scoreboard.
+
+> Verify-command convention (Cursor terminal, from `beta/school-management-system/`):
+> - Run a gate: `python scripts/<gate>.py` (expect exit 0 / baseline 0).
+> - Run app tests: `python manage.py test apps.<app> -v2`.
+> - Run Postgres-tagged tests: use the `tenants-rls` / `requires_postgres` path (see `.github/workflows/tenants-rls.yml`).
+> - Full gate sweep before A+ claim: `bash scripts/pre_deploy_gate.sh` (chains the scanners).
+
+**W1 — Tenant Experience (A1).** Audit shell + onboarding + dashboards. DoD: sticky-chrome contract green; wizard genesis→launch wired with real data; 5 role dashboards no dead space; Lighthouse ≥98 + axe/pa11y 0 serious on tenant shell. Verify: `python scripts/audit_shell_scroll_contract.py`, `python scripts/scan_undefined_css_classes.py`, Playwright role-home + a11y specs.
+
+**W2 — Grading polymorphic wiring (A2).** Wire `evaluate_grading_formula` into the live grade-save path; make ≥15 scales first-class with band tables; extend `verify_grading_scale_registry_coverage.py` to assert band+display per scale. DoD: changing a tenant's scale changes computed letters/bands across report card+gradebook+transcript+rankings, proven by tests. Verify: `python scripts/verify_grading_scale_registry_coverage.py --strict`; `python manage.py test apps.evals apps.reports`.
+
+**W3 — Report cards (A2).** Build render → approve → WeasyPrint PDF → distribute (parent portal + export), per-term + annual, scale-aware, tenant-scoped, immutable archive. DoD: Playwright E2E: teacher/admin generates, parent views/downloads. Verify: new E2E spec + `apps.reports` tests + render-safety gate.
+
+**W4 — EAV delivery (A3).** Render `DynamicFieldDefinition` into student/teacher/parent forms with validation; persist via `set_dynamic_field_value`; surface in reports + indexed search; auto-seed country catalog at provisioning; delete no-op bridge. DoD: E2E adds "Aadhaar"/"Civil ID" at runtime → appears in form+detail+search, zero migration. Verify: `apps.metadata` + `apps.people` tests + new E2E.
+
+**W5 — PPP + tuition + PSPs (A4).** Seed `CountryMultiplier` for all supported countries (migration + command, real data + source); apply PPP to tuition (opt-in per tenant) and subscriptions; make ≥2 local PSPs perform **real sandbox HTTP** behind config; keep Decimal + locale gates at 0. DoD: tests prove PPP scales tuition for IN/NG/etc., and a sandbox PSP charge round-trips. Verify: `python scripts/scan_money_float.py`, `python scripts/scan_locale_display.py`, `apps.billing` + `apps.finance` tests.
+
+**W6 — Booking + exclusion constraint (A5).** New booking model with Postgres `ExclusionConstraint` (`btree_gist`, `tstzrange`) preventing overlap per resource+tenant; fractional capacity; UI + conflict error. DoD: **Postgres** test asserts a second overlapping booking raises IntegrityError. Verify: `requires_postgres`-tagged test in `playwright-tenant-postgres.yml` path.
+
+**W7 — Discipline engine (A5).** Behavior points ledger + incident routing FSM + restorative actions; safeguarding hooks. DoD: incident escalates per rule, points accrue, restorative task tracked; UI + tests.
+
+**W8 — Substitute auto-match (A5/A12).** On teacher absence, match available+qualified+nearby substitutes and notify. DoD: service returns ranked matches; absence triggers notification; tests.
+
+**W9 — Athletics + Inventory (A5).** Team/roster/sport + health-clearance signoff; inventory movement ledger + reorder alerts. DoD: UI + tests for each.
+
+**W10 — Security hardening (A6).** Login/reset rate-limit + lockout FSM (use `django-ratelimit`); enforce ReBAC on sensitive classes; add `bandit`/SAST to CI (0 highs); confirm no plaintext secrets in tracked files; verify CSP/headers. DoD: brute-force test gets throttled+locked; ReBAC denial test; bandit job green. Verify: `python scripts/audit_role_permission_matrix.py`, new `bandit` CI job, security tests.
+
+**W11 — Compliance/DSAR/residency (A6).** Complete DSAR export+erase; residency switch; consent + retention enforcement. DoD: E2E export+erase; residency-routed write test. Verify: `apps.compliance` + `apps.lifecycle` tests, `residency-readiness.yml`.
+
+**W12 — Infra/Celery/Postgres-tests/Perf/Obs/DR (A7).** Stand up real Celery worker+beat in `render.yaml`; add a Postgres run of the main suite; N+1 query-count tests on hot paths; `/healthz` covers DB+cache+Celery+queue; backup/restore runbook. DoD: worker processes a real task with retry; Postgres suite green; query-count tests pass; healthz reflects dependencies. Verify: new workflow job + `apps.observability` tests.
+
+**W13 — Offline homework + background-sync (A8).** Implement homework applier (real write) + UI surface; background-sync on reconnect. DoD: `verify_offline_capability_implementation.py`=0 with **no latent**; E2E offline homework → online replay. Verify: `python scripts/verify_offline_capability_implementation.py`.
+
+**W14 — API + i18n + reference integrity + docs (A1/A3/A0).** DRF schema coverage=0; pagination+rate-limit+versioning; 24-locale compile + RTL Playwright; all reference-integrity gates 0; docs corrected to not overstate. Verify: `python scripts/scan_drf_schema_coverage.py`, the 8 reference-integrity gates, `python manage.py compilemessages`.
+
+**W15 — EXPANSIVE SWEEP (all agents).** Beyond the list: hunt and fix anything blocking A+ — accessibility on every surface, empty-states, error pages, email/SMS deliverability, AI copilot/at-risk-ML quality+safety+guardrails, notification preferences, audit-log completeness, rate-limit coverage on all mutating endpoints, file-upload validation/AV, timezone correctness, soft-delete/restore, bulk-import validation, idempotent webhooks everywhere. **If a reasonable best-in-class platform would have it and we don't, build it.**
+
+### FRONTIER MOAT WORKSTREAMS (W16–W19) — the systemic real-world dimensions
+
+**W16 — Zero-Connectivity CRDT Local-First (A8, metric 25).** Make the daily flows survive **5–7 days fully offline** (read + write) from IndexedDB, then converge via CRDT + multi-tenant vector clocks with zero loss. Re-verify `apps/sync_engine/crdt*.py` vs the live WAL rail; pick ONE as the authoritative multi-day path and wire it end-to-end (don't leave CRDT as legacy-dead). Homework must no longer be latent. DoD: `verify_crdt_convergence` + `verify_sync_semantics` green; a **Postgres** convergence test for concurrent multi-device edits; an E2E that goes offline for a simulated week of attendance/grades/homework/fees and replays with deterministic merge + zero loss. Verify: `python manage.py verify_crdt_convergence`, `python manage.py verify_sync_semantics`, `python scripts/verify_offline_capability_implementation.py`.
+
+**W17 — Micro-Financing & Local Cash Rails (A4, metric 26).** Make **≥3 local rails live** (real sandbox HTTP) — at least one mobile-money (M-Pesa/MoMo) and one of Pix/UPI — behind config alongside Stripe (extend `apps/finance/gateways/` + `psp_adapter_registry`/`regional_payment_profiles.json`). Build the **fractional/installment sub-ledger** on top of the existing `payment_plans.py`/`wallet_payment`/`split_billing`: irregular partial payments (incl. bursar cash-over-counter capture), Decimal precision, partial-payment → enrollment-permission gating, localized tax on partials, idempotent posting, reconciliation. DoD: sandbox charge round-trips on ≥3 rails; tests prove a sequence of small partial payments settles a fee and updates enrollment permissions. Verify: `python scripts/scan_money_float.py`, `python scripts/scan_locale_display.py`, `apps.finance` + `apps.billing` tests.
+
+**W18 — Data Sovereignty / Border-Lock Routing (A6/A7, metric 27).** Turn residency from policy-scaffolding into **data-layer enforcement**: `country_iso_code` pins student-PII storage to the tenant's region — via a real Django `DATABASE_ROUTERS` region router, region-bound connection, or a documented + tested multi-region deployment topology (no faking). Block + audit cross-border PII transfer (`compliance/cross_border_export.py`); expose only anonymized cross-region aggregates to the platform. DoD: a test proves a read/write for a region-A tenant cannot touch region-B PII storage; `residency-readiness.yml` green with enforcement (not just readiness flags). Verify: `.github/workflows/residency-readiness.yml`, `apps.compliance` tests, new router test.
+
+**W19 — Immutable DR Snapshots + Self-Host Runtime (A7, metric 28).** Build a **daily automated** job that compiles each tenant's full state into a compressed, **cryptographically signed, tenant-key-encrypted** snapshot shipped to **≥2 independent stores**; verify signature on restore (tamper-evident). Provide a tenant-downloadable **master file** and a **documented self-host/offline runtime** that stands the school back up. DoD: CI test does snapshot → restore → working school; signature-tamper test fails closed; restore + self-host runbook written. Verify: new Celery beat task + restore test (Postgres) + runbook in `docs/`.
+
+## PART 5 — TENANT BEST-IN-CLASS MANDATE (explicit, weighted heavily)
+
+The **tenant (the school) experience is the product.** Hold it to Shopify/Salesforce/Linear-grade polish:
+- **Instant genesis:** a school self-serves from signup → branded workspace → guided activation checklist → operating, with real data at every step (no placeholders, no dead space).
+- **Locally native from day one:** correct currency, grading scale, identity fields, language, and date/number formats auto-resolved from the school's country — **no migration, no consultant**.
+- **Sovereign & programmable:** runtime custom fields (EAV) that flow into forms+reports+search; academic-year clone/branch; clean one-click offboarding with encrypted export.
+- **Works on cheap devices / bad networks:** offline-first for the daily flows (attendance, grades, homework, messaging) with reliable resync.
+- **Premium chrome:** sticky header+sidebar, collapsible nav + copilot, balanced content, WCAG 2.2 AA, Lighthouse ≥98, zero layout-contract violations.
+- **Trustworthy:** strict tenant isolation, no cross-tenant leakage, fast, observable, recoverable.
+
+Every workstream must ask: *"Does this make the tenant's experience best-in-class?"* If not, raise the bar until it does.
+
+## PART 6 — EXECUTION LOOP (run until self-green)
+
+```
+WHILE any metric < 98 OR any forbidden-pattern present:
+  1. A0 refreshes the scoreboard (28 metrics) from real gate runs — never from memory.
+  2. Assign open gaps to agents (parallel where files don't collide).
+  3. Each agent: audit-first → implement end-to-end → test (Postgres where needed) → gate-green → post file:line evidence.
+  4. A0 runs the FULL gate sweep (scripts/pre_deploy_gate.sh + the metric-specific gates + Postgres jobs).
+  5. Any red gate, latent flag, overstated doc, or missing E2E → reopen the metric (< 98), back to step 2.
+  6. Commit path-scoped, fast-forward over peers, verify tree intact.
+END
+Then: run PROMPT B.
+```
+
+**Do not declare victory from intentions.** Declare it only when the gate sweep is green and the scoreboard shows 28/28 ≥ 98 with evidence.
+
+---
+
+# PROMPT B — THE FINAL AUDIT (run after Prompt A self-reports green)
+
+You are an **independent, adversarial audit fleet**. Assume the implementers are over-optimistic and that docstrings/memory overstate reality (this has happened before). **Trust nothing; verify everything from the actual code and live gate runs.** Deploy multiple parallel auditors (highest-capability model only). Your output is an **A+ scorecard** and a **GO / NO-GO** decision.
+
+## Audit rules
+1. **Re-derive every metric from scratch** by reading code and running gates — do not read the implementers' scoreboard as truth (you may use it only as a list of claims to falsify).
+2. **For each of the 28 metrics**, attempt to **disprove** the A+ claim. A metric is A+ (≥98) ONLY if you can independently produce: the `file:line` of the end-to-end wiring, the proving test, and the green-gate command output (run it yourself). If any leg is missing → the metric is **< 98**. **Pay special attention to metrics 25–28 (frontier moat): a green readiness gate is NOT proof of runtime enforcement — demand the enforcement test and (for ops-gated items) the restore/self-host proof.**
+3. **Hunt the known failure modes:** latent flags (producer without applier), services/formulas called only by tests, tables that ship empty, no-op bridges, `|| true` / `continue-on-error` masking, baseline/allowlist edits hiding findings, deleted/weakened tests, docstrings that overstate, SQLite-only "passing" of Postgres-only logic, cross-tenant leakage, money-as-float, PII in logs, secrets in tracked files.
+4. **Expansive:** also score anything a best-in-class platform needs that isn't in the 28 (note it as an extra metric and score it).
+5. **Run, don't assume:** execute `bash scripts/pre_deploy_gate.sh`, every metric-specific gate, the Postgres workflows (`tenants-rls.yml`, `playwright-tenant-postgres.yml`), the test suite, Lighthouse, axe/pa11y, `bandit`. Paste real output.
+
+## Required output — THE SCORECARD
+
+```
+RUNMYCAMPUS A+ AUDIT — <date>
+Auditor fleet: <models/agents>  | Commit audited: <sha>  | Tree size: <git ls-tree -r HEAD | wc -l>
+
+| # | Metric | Score /100 | A+? | Evidence (file:line + test + gate output) | Gaps if <98 |
+|---|--------|-----------|-----|-------------------------------------------|-------------|
+| 1 | Tenant Isolation | ... | YES/NO | ... | ... |
+| ...                                                                                    |
+| 24| Documentation & Runbooks | ... | ... | ... | ... |
+| 25| Zero-Connectivity CRDT Local-First | ... | ... | ... | ... |
+| 26| Micro-Financing & Local Cash Rails | ... | ... | ... | ... |
+| 27| Data Sovereignty / Border-Lock Routing | ... | ... | ... | ... |
+| 28| Immutable DR Snapshots + Self-Host Runtime | ... | ... | ... | ... |
+| E+| <extra metrics found> | ... | ... | ... | ... |
+
+OVERALL: <average + min>    BLOCKERS (any forbidden pattern): <list or NONE>
+DECISION: GO  (only if EVERY metric ≥ 98 AND zero blockers)
+       or NO-GO (otherwise) — with the exact, ordered list of gaps to fix.
+```
+
+## Decision rule
+- **GO** — and only GO — if **every** metric (the 28 + any extras) is **≥ 98** AND there are **zero** forbidden patterns AND the full gate sweep + Postgres jobs are green with output you ran yourself.
+- **NO-GO** otherwise. Emit the ordered, specific gap list (`file:line`, what's missing, which gate is red, which test is absent).
+
+## On NO-GO
+Hand the gap list **back to PROMPT A**, which reopens those metrics and loops. **Repeat A → B → A → B until PROMPT B returns GO.** Do not soften the bar to force a GO — softening the bar is itself a NO-GO.
+
+---
+
+## APPENDIX — KEY FILES, GATES & COMMANDS (starting map; verify against repo)
+
+**Gate runner / meta:** `scripts/pre_deploy_gate.sh`, `scripts/verify_ci_gate_wiring.py` (REQUIRED_GATES), `.github/workflows/{ci,django-tests,architectural-boundaries,coverage-gate,tenants-rls,playwright-tenant-postgres,residency-readiness}.yml`.
+
+**Tenant/RLS:** `apps/schools/rls.py`, `apps/schools/repositories/rls_context_repository.py`, `apps/tenancy/`, gates `scan_rls_force_coverage.py`, `scan_rls_policy_coverage.py`, `scan_rls_bypass.py`, `scan_tenant_queryset_safety.py`, `verify_unscoped_tenant_writes.py`, `verify_websocket_tenant_scope.py`, `audit_celery_tenant_task_scoping.py`.
+
+**Grading:** `apps/evals/grading_formula_engine.py`, `apps/evals/signals.py`, `apps/evals/validators.py`, `apps/evals/grading.py`, `apps/evals/models.py`, `apps/registries/`, gate `verify_grading_scale_registry_coverage.py`.
+
+**Report cards:** `apps/reports/services.py`, `templates/reports/`, WeasyPrint (already a dependency).
+
+**EAV:** `apps/metadata/models.py`, `apps/metadata/services.py`, `apps/metadata/country_eav_catalog.py`, `apps/people/forms_backend.py`.
+
+**Billing/PPP:** `apps/billing/regional_pricing.py`, `apps/siteconfig/models_platform_catalog.py` (`CountryMultiplier`), `apps/billing/services.py`, `apps/finance/gateways/`, `apps/billing/stripe_checkout.py`, gates `scan_money_float.py`, `scan_locale_display.py`.
+
+**Offline/PWA:** `apps/wal_stream/{consumers,writers,tasks}.py`, `apps/platform_runtime/offline_queue.py`, `static/js/service-worker.js`, `apps/brand_experience/pwa_manifest.py`, gates `verify_offline_capability_implementation.py`, `verify_offline_manifest_taxonomy.py`, `scan_pwa_manifest_coverage.py`, `verify_service_worker_version.py`.
+
+**Security:** `apps/accounts/{views.py,middleware.py,permissions.py,rebac.py}`, `config/settings.py`, gate `audit_role_permission_matrix.py`, add `bandit`.
+
+**Reference integrity (no silent 500s):** `scan_import_reference_integrity.py`, `verify_get_model_integrity.py`, `verify_url_name_integrity.py`, `verify_template_reference_integrity.py`, `verify_static_reference_integrity.py`, `verify_settings_key_integrity.py`, `verify_field_reference_integrity.py`, `verify_relation_path_integrity.py`.
+
+**Infra:** `render.yaml` (Celery worker/beat), `config/celery.py`, `config/settings.py` (DB, `CELERY_TASK_ALWAYS_EAGER`), `apps/observability/`.
+
+**Core ops (new work):** `apps/schoolops/`, `apps/academics/` (booking, discipline, scheduling), `apps/people/` (substitute auto-match), `apps/school_events/` (athletics/tickets).
+
+---
+
+### FINAL WORD TO THE FLEET
+Build for the school. Make it sovereign, local-first, offline-capable, premium, and provably correct. **Every claim carries evidence; every gate is green; every metric is ≥98 — or it is not done.** Loop A→B until B says **GO**.

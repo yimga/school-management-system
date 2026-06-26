@@ -37,6 +37,12 @@ GRADING_SCALE_BANDS: dict[str, dict[str, float]] = {
     # cohort_t_scores, not from one raw score). These coarse bands only drive score_scale
     # + the single-score letter fallback; the T value comes from the cohort helper.
     "standard_score_t": {"a": 70, "b": 60, "c": 50, "d": 40, "e": 0, "score_scale": 100},
+    "uk_gcse_9_1": {"a": 7, "b": 5, "c": 4, "d": 3, "e": 1, "score_scale": 9},
+    "ib_1_7": {"a": 6, "b": 5, "c": 4, "d": 3, "e": 1, "score_scale": 7},
+    "german_1_6": {"a": 1.5, "b": 2.5, "c": 3.5, "d": 4.5, "e": 5.5, "score_scale": 6},
+    "cbse_10": {"a": 9, "b": 8, "c": 7, "d": 6, "e": 0, "score_scale": 10},
+    "french_0_20": {"a": 18, "b": 16, "c": 14, "d": 10, "e": 0, "score_scale": 20},
+    "us_letter": {"a": 90, "b": 80, "c": 70, "d": 60, "e": 0, "score_scale": 100},
 }
 
 # Field defaults for the numeric_0_20 scale — used to detect "thresholds untouched".
@@ -72,6 +78,16 @@ EXTENDED_GRADE_BANDS: dict[str, dict] = {
             ("Approaching Expectations", 50),
             ("Beginning", 0),
         ],
+    },
+    "uk_gcse_9_1": {
+        "score_scale": 9,
+        "kind": "numeric",
+        "bands": [("9", 9), ("7", 7), ("4", 4), ("1", 1)],
+    },
+    "ib_1_7": {
+        "score_scale": 7,
+        "kind": "numeric",
+        "bands": [("7", 7), ("6", 6), ("5", 5), ("4", 4), ("3", 1)],
     },
 }
 
@@ -219,6 +235,12 @@ class AssessmentWeights(models.Model):
             ("pass_fail", "Pass / Fail"),
             ("qualitative_pd", "Qualitative descriptors"),
             ("standard_score_t", "T-score (East Asia)"),
+            ("uk_gcse_9_1", "UK GCSE 9–1"),
+            ("ib_1_7", "IB 1–7"),
+            ("german_1_6", "German 1–6"),
+            ("cbse_10", "CBSE 10-point"),
+            ("french_0_20", "French 0–20"),
+            ("us_letter", "US letter A–F"),
         ],
         default="numeric_0_20",
     )
@@ -675,42 +697,12 @@ class Evaluation(models.Model):
     def total_score(self) -> float:
         """Single score used for ranking/statistics.
 
-        Uses configurable weights from AssessmentWeights.
-        Falls back to a sensible default if no config exists.
+        Uses AssessmentWeights + tenant GradingScale formula when configured;
+        otherwise weighted mean of components (legacy path).
         """
-        # Prefer new fields; fall back to legacy if new fields are empty.
-        s1 = self.seq1_score if self.seq1_score is not None else self.test1
-        s2 = self.seq2_score if self.seq2_score is not None else self.test2
+        from apps.evals.grade_computation import compute_evaluation_total_score
 
-        # Weights are configured per school (and optionally per classroom).
-        # Terms do not affect weights.
-        weights = AssessmentWeights.get_for(
-            academic_year=self.academic_year,
-            classroom=self.subject_assignment.classroom
-            if self.subject_assignment_id
-            else None,
-            term=self.term,
-        )
-        components = {
-            "seq1": (s1, weights.seq1_weight),
-            "seq2": (s2, weights.seq2_weight),
-            "exam": (self.exam_score, weights.exam_weight),
-            "mock": (self.mock_score, weights.mock_weight),
-            "practical": (self.practical_score, weights.practical_weight),
-        }
-
-        total_w = 0
-        total = 0.0
-        for _, (val, w) in components.items():
-            if w <= 0:
-                continue
-            total_w += w
-            score_val = float(val) if val is not None else 0.0
-            total += score_val * w
-
-        if total_w <= 0:
-            return 0.0
-        return round(total / total_w, 2)
+        return compute_evaluation_total_score(self)
 
     @property
     def is_complete_for_ranking(self) -> bool:

@@ -4857,8 +4857,6 @@ class CockpitPayloadForm(forms.ModelForm):
             EXPERIENCE_PRESET_CHOICES,
             ROLE_HOME_EXPERIENCE_MODE_CHOICES,
             ROLE_PRESET_FIELD_CHOICES,
-            ROLE_PRESET_INHERIT,
-            normalize_role_experience_presets,
         )
 
         self.fields["txp_ai_layer_strip_mode"].choices = AI_MODE_CHOICES
@@ -4871,7 +4869,6 @@ class CockpitPayloadForm(forms.ModelForm):
             self.fields[f"txp_role_preset_{bucket}"].choices = ROLE_PRESET_FIELD_CHOICES
         from apps.siteconfig.cockpit_live_banner_program import (
             manager_source_choices,
-            resolve_sources_enabled,
             tenant_source_choices,
         )
 

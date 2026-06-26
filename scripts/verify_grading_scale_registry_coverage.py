@@ -22,6 +22,12 @@ REQUIRED_CODES = (
     "WAEC_LETTER",
     "STANDARD_SCORE_T",
     "QUALITATIVE_PD",
+    "UK_GCSE_9_1",
+    "IB_1_7",
+    "GERMAN_1_6",
+    "CBSE_10",
+    "FRENCH_0_20",
+    "US_LETTER",
 )
 
 if str(REPO) not in sys.path:
@@ -48,19 +54,37 @@ def main() -> int:
         for code in REQUIRED_CODES
         if not GradeScaleRegistry.objects.filter(code=code, is_active=True).exists()
     ]
+    band_gaps: list[str] = []
+    if args.strict:
+        for code in REQUIRED_CODES:
+            row = GradeScaleRegistry.objects.filter(code=code, is_active=True).first()
+            if row is None:
+                continue
+            rng = row.range_definition if isinstance(row.range_definition, dict) else {}
+            meta = row.metadata if isinstance(row.metadata, dict) else {}
+            boundary = meta.get("boundary_map")
+            has_range = "min" in rng and "max" in rng
+            has_bands = isinstance(boundary, list) and len(boundary) >= 2
+            if not has_range and not has_bands:
+                band_gaps.append(code)
     payload = {
-        "verdict": "GRADING_SCALE_REGISTRY_PASS" if not missing else "GRADING_SCALE_REGISTRY_FAIL",
+        "verdict": (
+            "GRADING_SCALE_REGISTRY_PASS"
+            if not missing and not band_gaps
+            else "GRADING_SCALE_REGISTRY_FAIL"
+        ),
         "required": list(REQUIRED_CODES),
         "missing": missing,
-        "finding_count": len(missing),
+        "band_gaps": band_gaps,
+        "finding_count": len(missing) + len(band_gaps),
     }
     if args.write:
         OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
         OUT_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
-    if missing and args.strict:
+    if (missing or band_gaps) and args.strict:
         print(
-            f"verify_grading_scale_registry_coverage: FAIL missing={missing}",
+            f"verify_grading_scale_registry_coverage: FAIL missing={missing} band_gaps={band_gaps}",
             file=sys.stderr,
         )
         return 1

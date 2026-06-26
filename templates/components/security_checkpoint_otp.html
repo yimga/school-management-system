@@ -1,0 +1,11 @@
+{% load i18n %}
+{% comment %}
+  Six-cell OTP wired to hidden input name=token (or custom field_name).
+  field_name defaults to "token"; input_id defaults to "token".
+{% endcomment %}
+<div class="rmc-mfa-otp" data-rmc-mfa-otp role="group" aria-label="{% trans 'Authentication code' %}">
+  <input type="hidden" name="{{ field_name|default:'token' }}" id="{{ input_id|default:'token' }}" value="{{ field_value|default:'' }}" data-rmc-mfa-otp-value autocomplete="one-time-code">
+  {% for i in "123456" %}
+  <input type="text" class="rmc-mfa-otp__cell" inputmode="numeric" maxlength="1" pattern="[0-9]" autocomplete="{% if forloop.first %}one-time-code{% else %}off{% endif %}" aria-label="{% blocktrans with n=forloop.counter %}Digit {{ n }}{% endblocktrans %}"{% if autofocus and forloop.first %} autofocus{% endif %}>
+  {% endfor %}
+</div>

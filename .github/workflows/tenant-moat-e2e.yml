@@ -1,0 +1,113 @@
+# Tenant moat E2E — offline auth sync, report-card hash, axe (metrics #4/#8/#25/#2).
+name: Tenant moat E2E
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/portal/**"
+      - "apps/platform_runtime/**"
+      - "apps/reports/**"
+      - "apps/lifecycle/**"
+      - "static/js/offline*.js"
+      - "static/js/rmc-offline*.js"
+      - "tests/e2e/**"
+      - "scripts/run_playwright_tenant_e2e_server.py"
+      - "scripts/serve_offline_e2e_fixture.mjs"
+      - "scripts/playwright_tenant_web_server.mjs"
+      - "playwright.config.js"
+      - "package.json"
+      - ".github/workflows/tenant-moat-e2e.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/portal/**"
+      - "apps/platform_runtime/**"
+      - "apps/reports/**"
+      - "apps/lifecycle/**"
+      - "static/js/offline*.js"
+      - "static/js/rmc-offline*.js"
+      - "tests/e2e/offline-multiday-indexeddb.spec.js"
+      - "tests/e2e/offline-authenticated-sync.spec.js"
+      - "tests/e2e/report-card-hash-parent.spec.js"
+      - "tests/e2e/tenant-shell-a11y.spec.js"
+      - "tests/e2e/helpers/tenant-login.js"
+      - "scripts/run_playwright_tenant_e2e_server.py"
+      - "scripts/serve_offline_e2e_fixture.mjs"
+      - "scripts/playwright_tenant_web_server.mjs"
+      - "playwright.config.js"
+      - "package.json"
+      - ".github/workflows/tenant-moat-e2e.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tenant-moat-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SECRET_KEY: "ci-tenant-moat-not-production-64chars_______________________"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com"
+      DEBUG: "1"
+      DJANGO_SETTINGS_MODULE: "config.settings"
+      MULTI_TENANT_BASE_DOMAIN: "runmycampus.com"
+      VISUAL_QA_TENANT_PHASE_PORT: "8016"
+      VISUAL_QA_PORT: "8016"
+      TENANT_SLUG: "demo-school"
+      E2E_TENANT_PASSWORD: "Test1234"
+      DB_FILE: "${{ github.workspace }}/db_playwright_tenant_moat_ci.sqlite3"
+      USE_FILE_LOGGING: "False"
+      LOGIN_POW_ENABLED: "0"
+      RMC_E2E_BYPASS_MFA: "1"
+      RMC_E2E_SEED_REPORT_CARD: "1"
+      CI: "1"
+      REDIS_URL: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          npm ci
+          node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Ensure demo-school exists
+        run: |
+          python manage.py migrate --noinput
+          python manage.py ensure_developer_sandbox_tenant --school-slug=demo-school
+
+      - name: Run offline IndexedDB multiday (serverless)
+        run: npm run test:e2e:offline-multiday
+
+      - name: Run tenant moat Playwright suite
+        run: |
+          npx playwright test \
+            tests/e2e/offline-authenticated-sync.spec.js \
+            tests/e2e/report-card-hash-parent.spec.js \
+            tests/e2e/tenant-shell-a11y.spec.js \
+            --project=offline-sync-chromium
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tenant-moat-e2e-report
+          path: playwright-report/
+          if-no-files-found: ignore

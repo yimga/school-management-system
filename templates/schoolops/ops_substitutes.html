@@ -11,6 +11,7 @@
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <div class="card shadow-sm mb-4">
     <div class="card-body">
+      {% if is_ops_admin %}
       <h1 class="h6">{% trans "Record cover" %}</h1>
       {% if not teachers %}
       <p class="text-secondary small mb-0">{% trans "No teachers linked to this school yet. Add staff in People first." %}</p>
@@ -31,11 +32,16 @@
         </div>
         <div class="col-md-2"><label class="form-label small">{% trans "Period / slot" %}</label><input class="form-control" name="period_label" maxlength="80" placeholder="{% trans 'Full day' %}"></div>
         <div class="col-md-6"><label class="form-label small">{% trans "Notes" %}</label><input class="form-control" name="notes" maxlength="500"></div>
-        <div class="col-12 d-flex gap-2">
+        <div class="col-12 d-flex flex-wrap gap-2">
           <button type="submit" name="action" value="save" class="btn btn-primary">{% trans "Save" %}</button>
-          <button type="submit" name="action" value="broadcast" class="btn btn-outline-primary">{% trans "Find and broadcast" %}</button>
+          <button type="submit" name="action" value="open_market" class="btn btn-outline-primary">{% trans "Open market shift" %}</button>
+          <button type="submit" name="action" value="broadcast" class="btn btn-outline-secondary">{% trans "Find and broadcast" %}</button>
         </div>
       </form>
+      {% endif %}
+      {% else %}
+      <h1 class="h6">{% trans "Substitute market" %}</h1>
+      <p class="text-secondary small mb-0">{% trans "Claim an open shift below to record cover for a colleague." %}</p>
       {% endif %}
       {% if broker_results %}
       <p class="small text-muted mt-3 mb-0">
@@ -47,6 +53,40 @@
       {% endif %}
     </div>
   </div>
+  {% if open_shifts %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6">{% trans "Open market shifts" %}</h2>
+      <p class="small text-secondary mb-3">{% trans "Claim a shift to record cover automatically. Teachers may claim for themselves; ops staff may assign any staff member." %}</p>
+      <div class="table-responsive">
+        <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-scroll-policy="paginate">
+          <thead><tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans "Absent" %}</th><th scope="col">{% trans_term "Period" key="period" %}</th><th scope="col">{% trans "Claim" %}</th></tr></thead>
+          <tbody>
+            {% for shift in open_shifts %}
+            <tr>
+              <td>{{ shift.work_date }}</td>
+              <td>{% if shift.absent_teacher %}{{ shift.absent_teacher.get_full_name|default:shift.absent_teacher.username }}{% else %}—{% endif %}</td>
+              <td>{{ shift.period_label|default:"—" }}</td>
+              <td>
+                <form method="post" class="d-flex flex-wrap gap-2 align-items-center">{% csrf_token %}
+                  <input type="hidden" name="shift_id" value="{{ shift.shift_id }}">
+                  {% if is_ops_admin %}
+                  <select class="form-select form-select-sm w-auto" name="covering_teacher_id">
+                    <option value="">{% trans "Select cover" %}</option>
+                    {% for tp in teachers %}<option value="{{ tp.user_id }}">{{ tp.user.get_full_name|default:tp.user.username }}</option>{% endfor %}
+                  </select>
+                  {% endif %}
+                  <button type="submit" name="action" value="claim_market" class="btn btn-sm btn-primary">{% if can_self_claim and not is_ops_admin %}{% trans "Claim for me" %}{% else %}{% trans "Claim shift" %}{% endif %}</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
   <div class="table-responsive">
     <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
       <caption class="visually-hidden">{% trans "Record cover" %}</caption>

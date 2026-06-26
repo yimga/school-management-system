@@ -119,7 +119,9 @@ def create_audit_trail_and_convert_grades(sender, instance, created, **kwargs):
         # Convert to letter grade
         converter = GradeConverter(weights)
         if instance.total_score:
-            instance.letter_grade = converter.numeric_to_letter(instance.total_score)
+            instance.letter_grade = converter.band_label(
+                Decimal(str(instance.total_score))
+            )
 
         # Save validation without triggering signal again
         _update_evaluation_with_school_context(

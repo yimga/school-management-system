@@ -25,11 +25,14 @@ logger = logging.getLogger(__name__)
 # Education-DNA preset key (apps.governance.academic_pack_bridge.resolve_grading_preset_key)
 # → GradingScale.ScaleType. Keeps the country→scale decision in one auditable place.
 _PRESET_TO_SCALE_TYPE: dict[str, str] = {
-    "francophone_bac": "numeric_0_20",       # France / Francophone Africa — 0–20
-    "west_african_waec": "percentage",       # WAEC raw scores are percentages
+    "francophone_bac": "french_0_20",       # France / Francophone Africa — 0–20
+    "west_african_waec": "waec_letter",       # WAEC raw scores are percentages
     "east_asia_competitive": "percentage",   # CN/KR/JP — 0–100
-    "american": "gpa_4_0",                   # US — 4.0 GPA
-    "british_igcse": "letter_a_e",           # UK/Commonwealth — letter grades
+    "american": "us_letter",                   # US — letter bands on 0–100
+    "british_igcse": "uk_gcse_9_1",           # UK GCSE 9–1
+    "ib_programme": "ib_1_7",
+    "german_standard": "german_1_6",
+    "indian_cbse": "cbse_10",
     "generic": "percentage",
 }
 
@@ -37,6 +40,7 @@ _LOCAL_DEFAULT_CODE = "local-default"
 _VALID_SCALE_TYPES = {
     "numeric_0_20", "letter_a_e", "gpa_4_0", "percentage", "numeric_1_5",
     "waec_letter", "pass_fail", "qualitative_pd", "standard_score_t",
+    "uk_gcse_9_1", "ib_1_7", "german_1_6", "cbse_10", "french_0_20", "us_letter",
 }
 
 

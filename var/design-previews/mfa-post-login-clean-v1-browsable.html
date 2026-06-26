@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MFA post-login — clean checkpoint v1 (tenant + manager)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&family=Source+Serif+4:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* Tokens — aligned with preview_app_shell_admin_v1_200x.html */
+:root {
+  --surface-bg: #f5f5f7;
+  --surface-canvas: #fbfbfd;
+  --surface-elevated: #ffffff;
+  --hairline: rgba(0, 0, 0, 0.08);
+  --hairline-strong: rgba(0, 0, 0, 0.14);
+  --text-primary: #1d1d1f;
+  --text-secondary: #424245;
+  --text-tertiary: #6e6e73;
+  --elev-1: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 1px rgba(15, 23, 42, 0.04);
+  --elev-2: 0 4px 12px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --motion-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-pill: 999px;
+  --school-primary: #4f46e5;
+  --school-accent: #10b981;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --serif: "Source Serif 4", Georgia, serif;
+  --cp-chrome-bg: #07091a;
+  --cp-chrome-hairline: rgba(255, 255, 255, 0.08);
+  --cp-chrome-text: #f1f5f9;
+  --cp-chrome-text-muted: #94a3b8;
+  --cp-glow-indigo: 99, 102, 241;
+  --portal-sidebar: #0f172a;
+  --checkpoint-w: min(100%, 420px);
+}
+* , *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: var(--text-primary);
+  background: #e8e8ed;
+}
+
+/* Preview chrome */
+.preview-bar {
+  position: sticky; top: 0; z-index: 1000;
+  padding: 10px 16px;
+  background: linear-gradient(90deg, #312e81, #4f46e5 40%, #059669);
+  color: #fff;
+  font-size: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+.preview-bar h1 { margin: 0 0 4px; font-size: 14px; font-weight: 800; }
+.preview-bar p { margin: 0 0 8px; opacity: 0.92; max-width: 900px; line-height: 1.45; font-size: 11px; }
+.preview-bar code { font-family: var(--mono); font-size: 10px; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px; }
+.preview-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.preview-controls label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.85; }
+.seg {
+  display: inline-flex; padding: 2px; border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.seg button {
+  font: inherit; font-size: 11px; font-weight: 600;
+  padding: 5px 12px; border: 0; border-radius: var(--radius-pill);
+  background: transparent; color: rgba(255, 255, 255, 0.75); cursor: pointer;
+}
+.seg button.on { background: #fff; color: #312e81; }
+
+.stage-wrap {
+  max-width: 1280px; margin: 20px auto 60px; padding: 0 16px;
+}
+.stage-label {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+
+/* App shell — manager (dark chrome) */
+.shell {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: clamp(220px, 20vw, 260px) 1fr;
+  height: min(720px, calc(100dvh - 180px));
+  min-height: 520px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid var(--hairline-strong);
+  box-shadow: var(--elev-2), 0 24px 80px rgba(15, 23, 42, 0.12);
+  background: var(--surface-bg);
+}
+.shell__header {
+  grid-column: 1 / -1;
+  background:
+    radial-gradient(900px 200px at 8% -20%, rgba(var(--cp-glow-indigo), 0.22), transparent 55%),
+    linear-gradient(180deg, #0a0d22, var(--cp-chrome-bg));
+  color: var(--cp-chrome-text);
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+}
+.shell__hdr-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 16px; min-height: 44px;
+}
+.shell__brand {
+  display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px;
+}
+.shell__mark {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--school-primary), #7c3aed);
+  display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 800;
+}
+.shell__pill {
+  font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px;
+  background: rgba(251, 191, 36, 0.2); color: #fde68a; border: 1px solid rgba(251, 191, 36, 0.35);
+}
+.shell__crumb { color: var(--cp-chrome-text-muted); font-size: 12px; margin-left: 8px; }
+.shell__crumb b { color: var(--cp-chrome-text); font-weight: 600; }
+.shell__spacer { flex: 1; }
+.shell__user {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a78bfa);
+  display: grid; place-items: center; font-size: 11px; font-weight: 700;
+}
+.shell__sidebar {
+  grid-row: 2; grid-column: 1;
+  background: linear-gradient(180deg, var(--cp-chrome-bg), #04060f);
+  border-right: 1px solid var(--cp-chrome-hairline);
+  padding: 12px 10px; overflow-y: auto;
+}
+.shell__nav-g {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.1em;
+  text-transform: uppercase; color: #64748b; padding: 8px 10px 4px;
+}
+.shell__nav {
+  padding: 6px 10px; border-radius: 8px; font-size: 12px;
+  color: var(--cp-chrome-text-muted); margin-bottom: 2px;
+}
+.shell__nav.on {
+  background: rgba(99, 102, 241, 0.18);
+  color: var(--cp-chrome-text); font-weight: 600;
+  border: 1px solid rgba(99, 102, 241, 0.28);
+}
+.shell__canvas {
+  grid-row: 2; grid-column: 2;
+  min-width: 0; min-height: 0;
+  overflow-y: auto;
+  background:
+    radial-gradient(900px 400px at 20% 0%, rgba(var(--cp-glow-indigo), 0.04), transparent 55%),
+    var(--surface-bg);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 24px 20px 32px;
+}
+
+/* Tenant shell variant — lighter portal */
+.shell--tenant .shell__header {
+  background: linear-gradient(180deg, #fff, var(--surface-canvas));
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--hairline);
+}
+.shell--tenant .shell__sidebar {
+  background: var(--portal-sidebar);
+}
+.shell--tenant .shell__crumb { color: var(--text-tertiary); }
+.shell--tenant .shell__crumb b { color: var(--text-primary); }
+
+/* Checkpoint — centered, nothing clipped */
+.checkpoint {
+  width: var(--checkpoint-w);
+  flex-shrink: 0;
+}
+.checkpoint__trail {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--text-tertiary);
+  margin-bottom: 14px; width: 100%; max-width: var(--checkpoint-w);
+}
+.checkpoint__trail span.on { color: var(--school-primary); font-weight: 600; }
+.checkpoint__trail i { font-style: normal; opacity: 0.4; }
+
+.checkpoint__card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elev-2);
+  overflow: visible;
+}
+.checkpoint__head {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--hairline);
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.checkpoint__icon {
+  width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+  background: color-mix(in oklab, var(--school-primary) 12%, transparent);
+  color: var(--school-primary);
+  display: grid; place-items: center; font-size: 18px;
+}
+.checkpoint__eyebrow {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-tertiary);
+}
+.checkpoint__head h2 {
+  margin: 2px 0 0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em;
+}
+.checkpoint__body { padding: 18px 20px 20px; }
+.checkpoint__sub {
+  margin: 0 0 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.5;
+}
+
+/* OTP — 6 boxes, innovative but compact */
+.otp {
+  display: flex; gap: 8px; justify-content: center; margin: 0 0 16px;
+}
+.otp input {
+  width: 44px; height: 52px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface-canvas);
+  font-family: var(--mono); font-size: 20px; font-weight: 700;
+  text-align: center; color: var(--text-primary);
+  transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+}
+.otp input:focus {
+  outline: none;
+  border-color: var(--school-primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--school-primary) 18%, transparent);
+}
+
+.trust-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+.trust-row input { accent-color: var(--school-primary); }
+
+.btn-row { display: flex; flex-direction: column; gap: 8px; }
+.btn {
+  font: inherit; font-size: 13px; font-weight: 600;
+  padding: 11px 16px; border-radius: var(--radius-md);
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface-elevated);
+  cursor: pointer; text-align: center;
+  transition: box-shadow var(--motion-fast);
+}
+.btn--primary {
+  background: linear-gradient(135deg, var(--school-primary), #6366f1);
+  color: #fff; border-color: transparent;
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.28);
+}
+.btn--ghost {
+  background: transparent; color: var(--text-secondary); font-size: 12px;
+  border: 0; padding: 8px;
+}
+.btn--outline {
+  background: transparent; color: var(--school-primary);
+  border-color: color-mix(in oklab, var(--school-primary) 35%, var(--hairline));
+}
+
+.divider {
+  display: flex; align-items: center; gap: 10px;
+  margin: 14px 0; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary);
+}
+.divider::before, .divider::after {
+  content: ""; flex: 1; height: 1px; background: var(--hairline);
+}
+
+.checkpoint__foot {
+  padding: 12px 20px;
+  border-top: 1px solid var(--hairline);
+  font-size: 11px; color: var(--text-tertiary);
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.checkpoint__foot a { color: var(--school-primary); text-decoration: none; font-weight: 600; }
+
+/* Setup steps */
+.stepper {
+  display: flex; gap: 0; margin-bottom: 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline);
+  overflow: hidden; background: var(--surface-canvas);
+}
+.stepper button {
+  flex: 1; font: inherit; font-size: 10px; font-weight: 700;
+  padding: 8px 6px; border: 0; background: transparent;
+  color: var(--text-tertiary); cursor: pointer;
+  border-right: 1px solid var(--hairline);
+}
+.stepper button:last-child { border-right: 0; }
+.stepper button.on {
+  background: color-mix(in oklab, var(--school-primary) 10%, transparent);
+  color: var(--school-primary);
+}
+
+.qr-block {
+  display: grid; grid-template-columns: 140px 1fr; gap: 14px;
+  align-items: start; margin-bottom: 16px;
+}
+.qr {
+  width: 140px; height: 140px; border-radius: var(--radius-md);
+  background:
+    repeating-conic-gradient(#1d1d1f 0 25%, #fff 0 50%) 50% / 16px 16px;
+  border: 6px solid #fff;
+  box-shadow: var(--elev-1), inset 0 0 0 1px var(--hairline);
+}
+.secret {
+  font-family: var(--mono); font-size: 11px;
+  padding: 8px 10px; border-radius: var(--radius-sm);
+  background: var(--surface-canvas); border: 1px solid var(--hairline);
+  word-break: break-all; margin-top: 6px;
+}
+
+.banner {
+  padding: 10px 12px; border-radius: var(--radius-md);
+  font-size: 12px; margin-bottom: 14px; line-height: 1.45;
+}
+.banner--warn {
+  background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
+}
+.banner--ok {
+  background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46;
+}
+
+.pane { display: none; }
+.pane.on { display: block; }
+
+.hint-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  margin-top: 16px; width: 100%; max-width: var(--checkpoint-w);
+}
+.hint {
+  padding: 10px 12px; border-radius: var(--radius-md);
+  border: 1px dashed var(--hairline-strong);
+  background: color-mix(in oklab, var(--surface-elevated) 80%, var(--surface-bg));
+  font-size: 11px; color: var(--text-secondary); line-height: 1.4;
+}
+.hint b { display: block; font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text-tertiary); margin-bottom: 4px; }
+
+.contract {
+  max-width: 1280px; margin: 32px auto 80px; padding: 0 16px;
+}
+.contract details {
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-elevated);
+  padding: 14px 18px;
+}
+.contract summary { cursor: pointer; font-weight: 700; color: var(--school-primary); }
+.contract table {
+  width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 11px;
+}
+.contract th, .contract td {
+  text-align: left; padding: 8px 10px;
+  border-bottom: 1px solid var(--hairline); vertical-align: top;
+}
+.contract code { font-family: var(--mono); font-size: 10px; }
+
+@media (max-width: 700px) {
+  .shell { grid-template-columns: 1fr; height: auto; min-height: 0; }
+  .shell__sidebar { display: none; }
+  .otp input { width: 40px; height: 48px; font-size: 18px; }
+  .qr-block { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .hint-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="preview-bar">
+  <h1>MFA post-login — clean checkpoint v1</h1>
+  <p>
+    Reference: <code>docs/generated/preview_app_shell_admin_v1_200x.html</code> density.
+    Nothing hidden — full shell stays visible; MFA is a <strong>centered checkpoint card</strong>, not a buried dual-rail form.
+    Switch surface + sub-page below. Production targets: <code>mfa_verify.html</code>, <code>mfa_setup.html</code>, manager twins.
+  </p>
+  <div class="preview-controls">
+    <label>Surface</label>
+    <div class="seg" id="surfaceSeg">
+      <button type="button" class="on" data-surface="tenant">Tenant portal</button>
+      <button type="button" data-surface="manager">Manager control plane</button>
+    </div>
+    <label>Sub-page</label>
+    <div class="seg" id="pageSeg">
+      <button type="button" class="on" data-page="verify">Verify code</button>
+      <button type="button" data-page="setup-intro">Setup intro</button>
+      <button type="button" data-page="setup-qr">Scan QR</button>
+      <button type="button" data-page="setup-done">Enrolled</button>
+      <button type="button" data-page="passkey">Passkey path</button>
+    </div>
+  </div>
+</div>
+
+<div class="stage-wrap">
+  <div class="stage-label" id="stageLabel">Tenant portal · Verify code</div>
+
+  <div class="shell shell--tenant" id="shell">
+    <header class="shell__header">
+      <div class="shell__hdr-row">
+        <div class="shell__brand">
+          <div class="shell__mark" id="brandMark">G</div>
+          <span id="brandName">Gilead Tech High</span>
+          <span class="shell__pill" id="brandPill" hidden>MGR</span>
+        </div>
+        <div class="shell__crumb" id="crumb">
+          <span>Sign-in</span> <i>›</i> <b>Verify</b>
+        </div>
+        <div class="shell__spacer"></div>
+        <div class="shell__user" title="Signed in">A</div>
+      </div>
+    </header>
+    <aside class="shell__sidebar" id="sidebar">
+      <div class="shell__nav-g">Today</div>
+      <div class="shell__nav on">Dashboard</div>
+      <div class="shell__nav">Schedule</div>
+      <div class="shell__nav-g">People</div>
+      <div class="shell__nav">Students</div>
+      <div class="shell__nav">Staff</div>
+    </aside>
+    <main class="shell__canvas">
+      <div class="checkpoint__trail" id="trail">
+        <span class="on">Password</span><i>›</i>
+        <span class="on">Verify</span><i>›</i>
+        <span>Dashboard</span>
+      </div>
+
+      <div class="checkpoint">
+        <!-- VERIFY -->
+        <div class="checkpoint__card pane on" data-pane="verify">
+          <div class="checkpoint__head">
+            <div class="checkpoint__icon" aria-hidden="true">🛡</div>
+            <div>
+              <div class="checkpoint__eyebrow">Protected sign-in</div>
+              <h2>Verify it is you</h2>
+            </div>
+          </div>
+          <div class="checkpoint__body">
+            <p class="checkpoint__sub">Enter the 6-digit code from your authenticator app. Backup codes work too.</p>
+            <div class="otp" role="group" aria-label="Authentication code">
+              <input maxlength="1" inputmode="numeric" value="4" aria-label="Digit 1">
+              <input maxlength="1" inputmode="numeric" value="2" aria-label="Digit 2">
+              <input maxlength="1" inputmode="numeric" value="" aria-label="Digit 3" autofocus>
+              <input maxlength="1" inputmode="numeric" value="" aria-label="Digit 4">
+              <input maxlength="1" inputmode="numeric" value="" aria-label="Digit 5">
+              <input maxlength="1" inputmode="numeric" value="" aria-label="Digit 6">
+            </div>
+            <label class="trust-row">
+              <input type="checkbox"> Trust this device for 14 days
+            </label>
+            <div class="btn-row">
+              <button type="button" class="btn btn--primary">Verify and continue</button>
+              <button type="button" class="btn btn--outline">Use a passkey instead</button>
+            </div>
+          </div>
+          <div class="checkpoint__foot">
+            <span>Lost authenticator?</span>
+            <a href="#">Contact IT support</a>
+            <a href="#">Sign out</a>
+          </div>
+        </div>
+
+        <!-- SETUP INTRO -->
+        <div class="checkpoint__card pane" data-pane="setup-intro">
+          <div class="checkpoint__head">
+            <div class="checkpoint__icon">🔐</div>
+            <div>
+              <div class="checkpoint__eyebrow">Account security</div>
+              <h2>Set up two-factor auth</h2>
+            </div>
+          </div>
+          <div class="checkpoint__body">
+            <div class="banner banner--warn">
+              <strong>Your role requires 2FA.</strong> Takes about one minute — then you land on your dashboard.
+            </div>
+            <p class="checkpoint__sub">Install Google Authenticator, Authy, 1Password, or Microsoft Authenticator. We'll show a QR code next.</p>
+            <div class="stepper" role="tablist">
+              <button type="button" class="on">1 · App</button>
+              <button type="button">2 · Scan</button>
+              <button type="button">3 · Verify</button>
+            </div>
+            <div class="btn-row">
+              <button type="button" class="btn btn--primary">Continue — show QR code</button>
+              <button type="button" class="btn btn--outline">Add a passkey instead</button>
+            </div>
+          </div>
+          <div class="checkpoint__foot">
+            <a href="#">Security documentation</a>
+            <a href="#">Skip for now (grace)</a>
+          </div>
+        </div>
+
+        <!-- SETUP QR -->
+        <div class="checkpoint__card pane" data-pane="setup-qr">
+          <div class="checkpoint__head">
+            <div class="checkpoint__icon">📱</div>
+            <div>
+              <div class="checkpoint__eyebrow">Step 2 of 3</div>
+              <h2>Scan this QR code</h2>
+            </div>
+          </div>
+          <div class="checkpoint__body">
+            <div class="qr-block">
+              <div class="qr" role="img" aria-label="MFA QR code placeholder"></div>
+              <div>
+                <p class="checkpoint__sub" style="margin-bottom:8px">Can't scan? Enter this key manually:</p>
+                <div class="secret">JBSW Y3DP EHPK 3PXP</div>
+                <button type="button" class="btn btn--ghost" style="margin-top:8px;padding-left:0">Copy secret</button>
+              </div>
+            </div>
+            <p class="checkpoint__sub">Enter the 6-digit code your app shows:</p>
+            <div class="otp">
+              <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
+              <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
+              <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
+            </div>
+            <button type="button" class="btn btn--primary">Verify and enable MFA</button>
+          </div>
+          <div class="checkpoint__foot">
+            <a href="#">← Back</a>
+            <a href="#">Save backup codes later</a>
+          </div>
+        </div>
+
+        <!-- SETUP DONE -->
+        <div class="checkpoint__card pane" data-pane="setup-done">
+          <div class="checkpoint__head">
+            <div class="checkpoint__icon">✓</div>
+            <div>
+              <div class="checkpoint__eyebrow">All set</div>
+              <h2>MFA is protecting your account</h2>
+            </div>
+          </div>
+          <div class="checkpoint__body">
+            <div class="banner banner--ok">
+              <strong>Enrolled.</strong> You'll enter a code when signing in from a new device.
+            </div>
+            <p class="checkpoint__sub">Store these backup codes offline — each works once.</p>
+            <div class="secret" style="font-size:13px;line-height:1.8">
+              8f2k-9m1p · 3x7q-2n8r · 5v4w-1k6j · 9h3t-7p2m
+            </div>
+            <div class="btn-row" style="margin-top:16px">
+              <button type="button" class="btn btn--primary">Continue to dashboard</button>
+              <button type="button" class="btn btn--outline">Download backup codes</button>
+            </div>
+          </div>
+          <div class="checkpoint__foot">
+            <span>TOTP · Configured</span>
+            <a href="#">Manage in profile</a>
+          </div>
+        </div>
+
+        <!-- PASSKEY -->
+        <div class="checkpoint__card pane" data-pane="passkey">
+          <div class="checkpoint__head">
+            <div class="checkpoint__icon">👆</div>
+            <div>
+              <div class="checkpoint__eyebrow">Passwordless</div>
+              <h2>Use your passkey</h2>
+            </div>
+          </div>
+          <div class="checkpoint__body">
+            <p class="checkpoint__sub">Touch ID, Windows Hello, or a security key — no code typing.</p>
+            <div class="banner" style="background:var(--surface-canvas);border:1px solid var(--hairline)">
+              Waiting for device… <span style="font-family:var(--mono);font-size:11px;color:var(--text-tertiary)">webauthn</span>
+            </div>
+            <div class="divider">or enter code</div>
+            <div class="otp">
+              <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
+              <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
+              <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
+            </div>
+            <button type="button" class="btn btn--primary">Verify with code</button>
+          </div>
+          <div class="checkpoint__foot">
+            <a href="#">Try passkey again</a>
+            <a href="#">Sign out</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="hint-grid">
+        <div class="hint"><b>Not hidden</b>Shell header + sidebar stay visible — user knows where they are.</div>
+        <div class="hint"><b>Not saturated</b>One accent (indigo). Rest is neutral canvas + hairline borders.</div>
+        <div class="hint"><b>Compact</b>Max 420px card; 6-box OTP replaces wide single input.</div>
+        <div class="hint"><b>No dead rail</b>Footer links replace the preachy right-rail paragraph.</div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<section class="contract">
+  <details>
+    <summary>Implementation contract — MFA sub-pages → production (review before ship)</summary>
+    <table>
+      <thead><tr><th>Preview pane</th><th>Production template</th><th>Fix vs today</th></tr></thead>
+      <tbody>
+        <tr><td>Verify code</td><td><code>accounts/partials/mfa_verify_page_body.html</code></td><td>Drop dual-rail grid; center card; 6-box OTP; shell-off clutter strip</td></tr>
+        <tr><td>Setup intro</td><td><code>accounts/partials/mfa_setup_page_body.html</code> (no QR branch)</td><td>Single column; stepper tabs; remove duplicate banners</td></tr>
+        <tr><td>Scan QR</td><td>Same partial (qr_code branch)</td><td>QR + secret beside code entry — no vertical scroll trap</td></tr>
+        <tr><td>Enrolled</td><td>Same partial (has_mfa branch)</td><td>Success + backup codes + one primary CTA to dashboard</td></tr>
+        <tr><td>Passkey path</td><td>Verify/setup + passkey JS</td><td>Passkey first with code fallback — not full-width stacked buttons</td></tr>
+        <tr><td>Tenant shell</td><td><code>mfa_verify.html</code> extends <code>base.html</code></td><td>Remove <code>next_action_strip</code> above MFA; optional <code>data-rmc-shell="checkpoint"</code></td></tr>
+        <tr><td>Manager shell</td><td><code>mfa_verify_manager.html</code></td><td>Keep CP chrome; same checkpoint card in <code>backend_main</code></td></tr>
+        <tr><td>CSS</td><td>New <code>rmc-mfa-checkpoint.css</code></td><td>Replace wide <code>rmc-account-auth-shell</code> grid for post-login only</td></tr>
+      </tbody>
+    </table>
+  </details>
+</section>
+
+<script>
+(function () {
+  var surfaceSeg = document.getElementById("surfaceSeg");
+  var pageSeg = document.getElementById("pageSeg");
+  var shell = document.getElementById("shell");
+  var stageLabel = document.getElementById("stageLabel");
+  var brandName = document.getElementById("brandName");
+  var brandMark = document.getElementById("brandMark");
+  var brandPill = document.getElementById("brandPill");
+  var sidebar = document.getElementById("sidebar");
+  var crumb = document.getElementById("crumb");
+  var trail = document.getElementById("trail");
+
+  var pageLabels = {
+    verify: "Verify code",
+    "setup-intro": "Setup intro",
+    "setup-qr": "Scan QR",
+    "setup-done": "Enrolled",
+    passkey: "Passkey path"
+  };
+
+  var crumbs = {
+    verify: '<span>Sign-in</span> <i>›</i> <b>Verify</b>',
+    "setup-intro": '<span>Sign-in</span> <i>›</i> <b>Set up MFA</b>',
+    "setup-qr": '<span>Set up MFA</span> <i>›</i> <b>Scan QR</b>',
+    "setup-done": '<span>Set up MFA</span> <i>›</i> <b>Done</b>',
+    passkey: '<span>Sign-in</span> <i>›</i> <b>Passkey</b>'
+  };
+
+  var trails = {
+    verify: '<span class="on">Password</span><i>›</i><span class="on">Verify</span><i>›</i><span>Dashboard</span>',
+    "setup-intro": '<span class="on">Password</span><i>›</i><span class="on">Enroll MFA</span><i>›</i><span>Dashboard</span>',
+    "setup-qr": '<span class="on">Password</span><i>›</i><span class="on">Scan</span><i>›</i><span>Dashboard</span>',
+    "setup-done": '<span class="on">Password</span><i>›</i><span class="on">Done</span><i>›</i><span class="on">Dashboard</span>',
+    passkey: '<span class="on">Password</span><i>›</i><span class="on">Passkey</span><i>›</i><span>Dashboard</span>'
+  };
+
+  function setSurface(mode) {
+    shell.classList.toggle("shell--tenant", mode === "tenant");
+    shell.classList.toggle("shell--manager", mode === "manager");
+    if (mode === "manager") {
+      brandName.textContent = "RUNMYCAMPUS";
+      brandMark.textContent = "R";
+      brandPill.hidden = false;
+      sidebar.innerHTML =
+        '<div class="shell__nav-g">Platform</div>' +
+        '<div class="shell__nav">Command center</div>' +
+        '<div class="shell__nav on">Dashboard</div>' +
+        '<div class="shell__nav-g">Security</div>' +
+        '<div class="shell__nav">Trust center</div>';
+    } else {
+      brandName.textContent = "Gilead Tech High";
+      brandMark.textContent = "G";
+      brandPill.hidden = true;
+      sidebar.innerHTML =
+        '<div class="shell__nav-g">Today</div>' +
+        '<div class="shell__nav on">Dashboard</div>' +
+        '<div class="shell__nav">Schedule</div>' +
+        '<div class="shell__nav-g">People</div>' +
+        '<div class="shell__nav">Students</div>' +
+        '<div class="shell__nav">Staff</div>';
+    }
+    updateLabel();
+  }
+
+  function setPage(page) {
+    document.querySelectorAll(".pane").forEach(function (p) {
+      p.classList.toggle("on", p.getAttribute("data-pane") === page);
+    });
+    crumb.innerHTML = crumbs[page] || crumbs.verify;
+    trail.innerHTML = trails[page] || trails.verify;
+    updateLabel();
+  }
+
+  function updateLabel() {
+    var surface = surfaceSeg.querySelector(".on").getAttribute("data-surface");
+    var page = pageSeg.querySelector(".on").getAttribute("data-page");
+    stageLabel.textContent =
+      (surface === "manager" ? "Manager control plane" : "Tenant portal") +
+      " · " + (pageLabels[page] || page);
+  }
+
+  surfaceSeg.addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-surface]");
+    if (!btn) return;
+    surfaceSeg.querySelectorAll("button").forEach(function (b) { b.classList.remove("on"); });
+    btn.classList.add("on");
+    setSurface(btn.getAttribute("data-surface"));
+  });
+
+  pageSeg.addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-page]");
+    if (!btn) return;
+    pageSeg.querySelectorAll("button").forEach(function (b) { b.classList.remove("on"); });
+    btn.classList.add("on");
+    setPage(btn.getAttribute("data-page"));
+  });
+
+  /* OTP auto-advance demo */
+  document.querySelectorAll(".otp").forEach(function (row) {
+    var inputs = row.querySelectorAll("input");
+    inputs.forEach(function (inp, i) {
+      inp.addEventListener("input", function () {
+        if (inp.value.length === 1 && inputs[i + 1]) inputs[i + 1].focus();
+      });
+      inp.addEventListener("keydown", function (ev) {
+        if (ev.key === "Backspace" && !inp.value && inputs[i - 1]) inputs[i - 1].focus();
+      });
+    });
+  });
+
+  setSurface("tenant");
+  setPage("verify");
+})();
+</script>
+</body>
+</html>

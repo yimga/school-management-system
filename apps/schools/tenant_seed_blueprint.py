@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from django.db import transaction
 
 from apps.schools.demo_user_seeding import seed_demo_users_for_school
 from apps.schools.models import School

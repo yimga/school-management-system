@@ -3,55 +3,56 @@
 
 {% block title %}{% trans "Claim an invite" %}{% endblock %}
 
-{% block content %}
-<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
-
-{% include "components/next_action_strip.html" %}
-
-<h1 class="visually-hidden">{% trans "Claim an invite" %}</h1>
-<div data-rmc-scroll-policy="paginate" class="container mt-4" data-page-archetype="setup-studio">
-  <div class="row justify-content-center">
-    <div class="col-md-8">
-      {% if show_claim_invite_hint %}
-      <div class="alert alert-info alert-dismissible fade show d-flex align-items-start gap-2 mb-3" role="alert">
-        <i class="bi bi-lightbulb flex-shrink-0 mt-1"></i>
-        <div class="flex-grow-1">
-          <strong>{% trans "Tip:" %}</strong> {% trans "Enter the 6-digit invite code from the school email or SMS. After claiming, you can view this child's attendance, grades, and fees on your dashboard." %}
-          <a href="?dismiss_hint=claim_invite" class="alert-link ms-2">{% trans "Got it" %}</a>
-        </div>
-        <a href="?dismiss_hint=claim_invite" class="btn-close" aria-label="Dismiss"></a>
-      </div>
-      {% endif %}
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">{% trans "Claim an invite" %}</h5>
-          <p class="text-muted mb-3">{% trans "Enter the invite code you received to link the student to your account." %}</p>
-          <form method="post" novalidate id="claim-invite-form" dir="auto" data-draft-key="claim_invite_{{ request.user.id }}" data-draft-max-age-hours="72" data-draft-pending-label="{% trans 'Unsaved invite code' %}">
-            {% csrf_token %}
-            {{ form.non_field_errors }}
-            <div class="mb-3">
-              <label class="form-label">{{ form.token.label }}</label>
-              {{ form.token }}
-              {% if form.token.help_text %}
-                <div class="form-text">{{ form.token.help_text }}</div>
-              {% endif %}
-              {% if form.token.errors %}
-                <div class="text-danger small mt-1">{{ form.token.errors|striptags }}</div>
-              {% endif %}
-            </div>
-            <button type="submit" class="btn btn-primary">{% trans "Claim invite" %}</button>
-            <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-link btn-back-primary"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to dashboard" %}</a>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
 {% endblock %}
 
-{% block extrajs %}
-<script src="{% static 'js/form-draft-save.js' %}"></script>
-{% comment %} FormDraftSave.init is called by the page script after the library loads. {% endcomment %}
-<script src="{% static 'js/_pages/parent__claim_invite.js' %}"></script>
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="invite" checkpoint_wide=True %}
+<section class="auth-shell" data-rmc-security-checkpoint="parent-invite" aria-labelledby="parent-claim-title">
+  <div data-rmc-scroll-policy="paginate" class="auth-card">
+    {% if show_claim_invite_hint %}
+    <div class="alert alert-info alert-dismissible fade show d-flex align-items-start gap-2 mb-3" role="alert">
+      <i class="bi bi-lightbulb flex-shrink-0 mt-1"></i>
+      <div class="flex-grow-1">
+        <strong>{% trans "Tip:" %}</strong> {% trans "Enter the 6-digit invite code from the school email or SMS. After claiming, you can view this child's attendance, grades, and fees on your dashboard." %}
+        <a href="?dismiss_hint=claim_invite" class="alert-link ms-2">{% trans "Got it" %}</a>
+      </div>
+      <a href="?dismiss_hint=claim_invite" class="btn-close" aria-label="Dismiss"></a>
+    </div>
+    {% endif %}
+    <div class="rmc-security-checkpoint__head" style="border-bottom:0">
+      <span class="rmc-security-checkpoint__icon" aria-hidden="true"><i class="bi bi-ticket-perforated"></i></span>
+      <div>
+        <div class="rmc-security-checkpoint__eyebrow">{% trans "Parent account" %}</div>
+        <h1 id="parent-claim-title" class="h5 mb-0">{% trans "Claim an invite" %}</h1>
+      </div>
+    </div>
+    <div class="rmc-security-checkpoint__body">
+      <p class="rmc-security-checkpoint__sub">{% trans "Enter the invite code you received to link the student to your account." %}</p>
+      <form method="post" novalidate id="claim-invite-form" dir="auto" data-draft-key="claim_invite_{{ request.user.id }}" data-draft-max-age-hours="72" data-draft-pending-label="{% trans 'Unsaved invite code' %}">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="mb-3">
+          <label class="form-label">{{ form.token.label }}</label>
+          {{ form.token }}
+          {% if form.token.help_text %}
+            <div class="form-text">{{ form.token.help_text }}</div>
+          {% endif %}
+          {% if form.token.errors %}
+            <div class="text-danger small mt-1">{{ form.token.errors|striptags }}</div>
+          {% endif %}
+        </div>
+        <div class="rmc-security-checkpoint__actions">
+          <button type="submit" class="btn btn-primary">{% trans "Claim invite" %}</button>
+          <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to dashboard" %}</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% include "components/security_checkpoint_page_close.html" %}
 {% endblock %}

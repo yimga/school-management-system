@@ -38,7 +38,7 @@ from apps.schools.control_plane import (
     log_control_plane_action,
     require_super_access_with_host,
 )
-from apps.siteconfig.models import Plan
+from apps.plans_entitlements.models import Plan
 
 from .models import School
 

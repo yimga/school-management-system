@@ -18,7 +18,6 @@ from apps.registries.models import CountryRegistry
 from apps.schools.models import School
 from apps.schoolops.substitute_market import (
     ShiftAlreadyBooked,
-    SubstituteShiftOpenEvent,
     acquire_shift_slot_lock,
     open_shift,
     release_shift_slot_lock,

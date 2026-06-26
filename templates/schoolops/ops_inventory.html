@@ -19,14 +19,44 @@
       </form>
     </div>
   </div>
-  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1"><thead><tr><th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "Qty" %}</th><th scope="col">{% trans "Location" %}</th></tr></thead>
+  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1"><thead><tr><th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "Qty" %}</th><th scope="col">{% trans "Location" %}</th><th scope="col">{% trans "Adjust" %}</th></tr></thead>
     <caption class="visually-hidden">{% trans "Inventory" %} — {{ school.name }}</caption>
-    <tbody>{% for it in items %}<tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ it.name }}" data-rmc-row-subtitle="{{ it.location|default:'—' }}"><td>{{ it.name }}</td><td>{{ it.quantity }}</td><td>{{ it.location|default:"—" }}</td></tr>{% empty %}<tr><td colspan="3" class="rmc-empty-state rmc-empty-state--row">
+    <tbody>{% for it in items %}<tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ it.name }}" data-rmc-row-subtitle="{{ it.location|default:'—' }}"><td>{{ it.name }}</td><td>{{ it.quantity }}</td><td>{{ it.location|default:"—" }}</td><td>
+      <form method="post" class="d-flex gap-1 align-items-center">{% csrf_token %}
+        <input type="hidden" name="intent" value="adjust">
+        <input type="hidden" name="adjust_item_id" value="{{ it.pk }}">
+        <input class="form-control form-control-sm" type="number" name="quantity_delta" placeholder="{% trans '+/- qty' %}" aria-label="{% trans 'Quantity change' %}">
+        <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Apply" %}</button>
+      </form>
+    </td></tr>{% empty %}<tr><td colspan="4" class="rmc-empty-state rmc-empty-state--row">
       <i class="bi bi-box-seam rmc-empty-state__icon" aria-hidden="true"></i>
       <p class="rmc-empty-state__title">{% trans "No inventory items yet" %}</p>
       <p class="rmc-empty-state__body">{% trans "Add an item using the form above to start tracking stock and locations." %}</p>
     </td></tr>{% endfor %}</tbody>
   </table>
+  <div class="card shadow-sm mt-4">
+    <div class="card-header">{% trans "Recent movements" %}</div>
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0 rmc-data-table" data-rmc-scroll-policy="paginate">
+        <thead><tr><th scope="col">{% trans "When" %}</th><th scope="col">{% trans "Item" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Delta" %}</th><th scope="col">{% trans "After" %}</th></tr></thead>
+        <tbody>
+          {% for mv in movements %}
+          <tr>
+            <td>{{ mv.created_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+            <td>{{ mv.item.name }}</td>
+            <td>{{ mv.get_movement_type_display }}</td>
+            <td>{{ mv.quantity_delta|stringformat:"+d" }}</td>
+            <td>{{ mv.quantity_after }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="rmc-empty-state rmc-empty-state--row">
+            <p class="rmc-empty-state__title mb-0">{% trans "No stock movements yet" %}</p>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

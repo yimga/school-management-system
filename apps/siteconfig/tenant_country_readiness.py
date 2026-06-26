@@ -80,7 +80,6 @@ def country_readiness_context(request: HttpRequest | None) -> dict[str, Any]:
     code = school_country_code(request)
     baseline = baseline_index().get(code) if code else None
     matrix_status = _matrix_index().get(code) if code else ""
-    configured = bool(code and (baseline is not None or matrix_status))
     if baseline is not None:
         return {
             "configured": True,

@@ -154,7 +154,7 @@ def api_tenant_offboarding_export(request):
         return err
     try:
         result = run_wind_down_export(school, full=True, actor=request.user)
-    except Exception as exc:
+    except Exception:
         logger.exception(
             "tenant offboarding export failed school_id=%s",
             getattr(school, "pk", None),

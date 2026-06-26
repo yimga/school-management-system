@@ -172,6 +172,12 @@
        styles. High-specificity rules win over the deferred bundle's Phase-2 fluid. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-app-shell-100x.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-activation-surfaces.css' %}">
+    {% comment %} v4.05 (2026-06-23): viewport-locked canvas scroll — header/sidebar pinned, main scrolls. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-tenant-workspace-canvas.css' %}">
+    {% comment %} v4.05 (2026-06-23): tenant-wide operator parity — cp-header band,
+       collapsible cp-sidebar v8 groups, compact luxurious task surfaces. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-sidebar-luxury-10x.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-tenant-cp-parity.css' %}">
     {% endif %}
     {% comment %} v4.02.9: tenant workspace Tools edge-tray (tenant host) + manager portal bridge operator tray. {% endcomment %}
     {% include "partials/rmc_tenant_tools_styles.html" %}
@@ -188,7 +194,7 @@
 
   {% comment %} Pass 8 UX consistency: activate `.form-system` globally so the design system's
      focus rings / hover borders / button polish actually render on every portal form. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif tp_v3_tenant_shell %}{% if tp_v3_role_home %} tp-v3-role-home{% else %} tp-v3-inner{% endif %}{% endif %} {% block body_extra_class %}{% endblock %}"{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %} data-rmc-cp-scroll="{% block body_scroll_policy %}document{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace"{% if request.user.is_authenticated %} data-rmc-page-help="1"{% if request.public_host_kind == 'manager' and cockpit.operator_tools.enabled|default:False %}{% elif request.public_host_kind != 'manager' and cockpit.tenant_tools.enabled|default:False %}{% else %} data-rmc-back-to-top-policy="always"{% endif %}{% endif %}{% if request.user.is_authenticated and cockpit.ai_copilot_rail.enabled %}{% if request.public_host_kind == 'manager' %} data-rmc-notebook-footer-dock="1"{% else %} data-rmc-tenant-copilot-rail="1"{% endif %} data-copilot="{{ cockpit.ai_copilot_rail.default_state|default:'collapsed' }}"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %}{% endif %}{% if tp_v3_role_home %} data-rmc-preview-live-shell="1"{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif tp_v3_tenant_shell %}{% if tp_v3_role_home %} tp-v3-role-home{% else %} tp-v3-inner{% endif %}{% endif %} {% block body_extra_class %}{% endblock %}"{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %} data-rmc-cp-scroll="{% block body_scroll_policy %}{% if tp_v3_tenant_shell %}canvas{% else %}document{% endif %}{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace"{% if request.user.is_authenticated %} data-rmc-page-help="1"{% if request.public_host_kind == 'manager' and cockpit.operator_tools.enabled|default:False %}{% elif request.public_host_kind != 'manager' and cockpit.tenant_tools.enabled|default:False %}{% else %} data-rmc-back-to-top-policy="always"{% endif %}{% endif %}{% if request.user.is_authenticated and cockpit.ai_copilot_rail.enabled %}{% if request.public_host_kind == 'manager' %} data-rmc-notebook-footer-dock="1"{% else %} data-rmc-tenant-copilot-rail="1"{% endif %} data-copilot="{{ cockpit.ai_copilot_rail.default_state|default:'collapsed' }}"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %}{% endif %}{% if tp_v3_role_home %} data-rmc-preview-live-shell="1"{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -202,7 +208,7 @@
     {% comment %} Scope Bootstrap dark tokens onto the tenant header when the cockpit skin
        is dark, so BS components (buttons/dropdowns/forms) inside the header flip too —
        mirrors the tenant sidebar scoping. CONFIGURABLE via cockpit_shell.skin. {% endcomment %}
-    <div class="tp-header" data-rmc-tenant-header-100x="1"{% if cockpit_shell.skin == 'dark' and request.public_host_kind != 'manager' %} data-bs-theme="dark"{% endif %}>
+    <div class="tp-header cp-header cp-header--consolidated cp-header--tenant" data-rmc-tenant-header-100x="1" data-rmc-cp-header-200x="1" data-rmc-cp-header-mode="consolidated"{% if cockpit_shell.skin == 'dark' and request.public_host_kind != 'manager' %} data-bs-theme="dark"{% endif %}>
     {% comment %} v4.05 (2026-06-25): LIVE banner relocated to the BOTTOM of the header
        stack (operator-parity) — it now renders as the last sub-bar of .tp-header below,
        and rmc-tenant-app-shell-100x.css keeps the whole stack sticky. {% endcomment %}
@@ -396,7 +402,7 @@
           {% if request.public_host_kind == 'manager' %}
             {% include "partials/control_plane_sidebar.html" %}
           {% else %}
-          <div class="tp-sidebar-inner sidebar p-3{% if tp_v3_tenant_shell %} tp-sidebar-inner--v3{% endif %}">
+          <div class="tp-sidebar-inner{% if tp_v3_tenant_shell %} tp-sidebar-inner--v3{% else %} sidebar p-3{% endif %}"{% if tp_v3_tenant_shell %} data-rmc-cp-sidebar-v8="1"{% endif %}>
             {% include "partials/portal_sidebar.html" %}
           </div>
           {% endif %}
@@ -554,6 +560,14 @@
             {% block rmc_os_context_rail %}
             {% include "components/rmc_os_context_rail.html" %}
             {% endblock %}
+            {% if tp_v3_tenant_shell %}
+            {% comment %} v4.05: footer scrolls inside #main-content so canvas mode has no body void. {% endcomment %}
+            <div data-rmc-shell-footer="portal" class="tp-v3-shell-footer">
+              {% with portal_footer_partial=PORTAL_FOOTER_PARTIAL|default:"components/footer.html" %}
+              {% include portal_footer_partial %}
+              {% endwith %}
+            </div>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -581,7 +595,7 @@
     Externalised from portal_base.html so the shell is CSP-friendly.
     {% endcomment %}
     <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
-    <script type="application/json" id="page-data-rmc-nav-sidebar" nonce="{{ csp_nonce }}">{"enabled": true, "default_width": 280, "min_width": 200, "max_width": 420}</script>
+    {% include "partials/rmc_nav_sidebar_page_data.html" %}
     <script src="{% static 'js/rmc-nav-sidebar.js' %}" defer></script>
     <script src="{% static 'js/rmc-sidebar-intelligence.js' %}" defer></script>
     <script src="{% static 'js/portal-shell-bootstrap.js' %}" defer></script>
@@ -717,7 +731,8 @@
     {% comment %} S5: Help tooltips — data-tooltip and runmycampusTooltips {% endcomment %}
     <script src="{% static 'js/tooltips.js' %}" defer></script>
 
-    {% comment %} Main Footer with Accreditation and Support {% endcomment %}
+    {% comment %} Main Footer with Accreditation and Support (legacy document-scroll shell) {% endcomment %}
+    {% if not tp_v3_tenant_shell %}
     <div data-rmc-shell-footer="portal">
       {% if request.public_host_kind == 'manager' and SHOW_MANAGER_CORPORATE_FOOTER %}
       {% include "partials/rmc_operator_footer_civic.html" %}
@@ -727,6 +742,11 @@
       {% endwith %}
       {% endif %}
     </div>
+    {% elif request.public_host_kind == 'manager' and SHOW_MANAGER_CORPORATE_FOOTER %}
+    <div data-rmc-shell-footer="portal">
+      {% include "partials/rmc_operator_footer_civic.html" %}
+    </div>
+    {% endif %}
 
     {% if request.user.is_authenticated and cockpit.ai_copilot_rail.enabled %}
     <div class="{% if request.public_host_kind == 'manager' %}rmc-manager-portal-copilot-mount{% else %}rmc-tenant-portal-copilot-mount{% endif %}" data-rmc-copilot-mount="1" aria-hidden="false">

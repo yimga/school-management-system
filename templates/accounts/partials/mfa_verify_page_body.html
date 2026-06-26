@@ -1,58 +1,59 @@
 {% load i18n static %}
-<section class="rmc-account-auth-shell rmc-account-auth-shell--verify" data-rmc-auth-manager-shell="mfa-verify" aria-labelledby="mfa-title">
-  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="rmc-account-auth-shell__primary">
-    <div class="content-card rmc-account-mfa-card">
+<div class="rmc-security-checkpoint-page" data-rmc-security-checkpoint-page="1">
+{% include "components/security_checkpoint_trail.html" with checkpoint_flow="verify" %}
+<section class="rmc-security-checkpoint rmc-account-auth-shell rmc-account-auth-shell--verify" data-rmc-security-checkpoint="mfa-verify" data-rmc-auth-manager-shell="mfa-verify" aria-labelledby="mfa-title">
+  <div class="rmc-account-auth-shell__primary">
+    <div class="rmc-security-checkpoint__card rmc-account-mfa-card">
       {% if messages %}
-        <div class="rmc-account-auth-message-stack">
+      <div class="rmc-account-auth-message-stack px-3 pt-3">
         {% for message in messages %}
-          <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'Close' %}"></button>
-          </div>
-        {% endfor %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show mb-2" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'Close' %}"></button>
         </div>
+        {% endfor %}
+      </div>
       {% endif %}
-      <div class="rmc-account-mfa-card__head">
-        <span class="rmc-account-auth-icon rmc-account-auth-icon--warning" aria-hidden="true"><i class="bi bi-shield-lock"></i></span>
+      <div class="rmc-security-checkpoint__head rmc-account-mfa-card__head">
+        <span class="rmc-security-checkpoint__icon rmc-account-auth-icon rmc-account-auth-icon--warning" aria-hidden="true"><i class="bi bi-shield-lock"></i></span>
         <div>
-          <div class="eyebrow">{% trans "Protected sign-in" %}</div>
-          <h1 id="mfa-title">{% trans "Verify it is you." %}</h1>
+          <div class="rmc-security-checkpoint__eyebrow">{% trans "Protected sign-in" %}</div>
+          <h1 id="mfa-title">{% trans "Verify it is you" %}</h1>
         </div>
       </div>
-      <div class="rmc-account-mfa-card__body">
-        <p class="auth-sub">{% trans "Enter the 6-digit code from your authenticator app to continue. Backup codes also work." %}</p>
+      <div class="rmc-security-checkpoint__body rmc-account-mfa-card__body">
+        <p class="rmc-security-checkpoint__sub">{% trans "Enter the 6-digit code from your authenticator app. Backup codes also work." %}</p>
         {% if use_passkey %}
-        <button type="button" id="btn-use-passkey" class="btn btn-outline-primary w-100 mb-3"><i class="bi bi-fingerprint me-1"></i>{% trans "Use a passkey instead" %}</button>
-        <div id="passkey-verify-msg" class="mt-1 mb-3 small text-muted"></div>
-        <div class="rmc-account-or-divider"><span>{% trans "or" %}</span></div>
+        <button type="button" id="btn-use-passkey" class="btn btn-outline-primary w-100 mb-2"><i class="bi bi-fingerprint me-1"></i>{% trans "Use a passkey instead" %}</button>
+        <div id="passkey-verify-msg" class="mb-2 small text-muted"></div>
+        <div class="rmc-security-checkpoint__divider">{% trans "or" %}</div>
         {% endif %}
         <form method="post" data-rmc-form-enhance="0">
           {% csrf_token %}
           {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
-          <div class="mb-3">
-            <label for="token" class="form-label">{% trans "Authentication code" %}</label>
-            <input type="text" name="token" id="token" class="form-control form-control-lg text-center rmc-account-verify-token" inputmode="numeric" placeholder="000000" maxlength="6" pattern="\d{6}" required autocomplete="off" autofocus>
+          <label class="visually-hidden" for="token">{% trans "Authentication code" %}</label>
+          {% include "components/security_checkpoint_otp.html" with autofocus=True %}
+          <label class="rmc-security-checkpoint__trust">
+            <input type="checkbox" id="remember_device" name="remember_device" value="1">
+            {% trans "Trust this device for 14 days" %}
+          </label>
+          <div class="rmc-security-checkpoint__actions">
+            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check2-circle me-1"></i>{% trans "Verify and continue" %}</button>
           </div>
-          <div class="form-check mb-4">
-            <input class="form-check-input" type="checkbox" id="remember_device" name="remember_device" value="1">
-            <label class="form-check-label" for="remember_device">{% trans "Trust this device for 14 days" %}</label>
-          </div>
-          <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check2-circle me-1"></i>{% trans "Verify and continue" %}</button>
         </form>
-        <p class="rmc-account-verify-divider"><i class="bi bi-info-circle me-1"></i>{% trans "Lost access to your authenticator? Contact IT support for assistance." %}</p>
+      </div>
+      <div class="rmc-security-checkpoint__foot rmc-account-mfa-card__foot">
+        <span>{% trans "Lost authenticator?" %}</span>
+        <span>
+          <a href="{% url 'kb:kb_home' %}">{% trans "IT support" %}</a>
+          ·
+          <a href="{% url 'accounts:login' %}">{% trans "Sign out" %}</a>
+        </span>
       </div>
     </div>
   </div>
-  <aside class="rmc-account-auth-shell__rail" aria-label="{% trans 'Security guidance' %}">
-    <div class="content-card rmc-account-auth-rail-card">
-      <div class="eyebrow">{% trans "Security checkpoint" %}</div>
-      <h2>{% trans "This page should stay inside the platform shell." %}</h2>
-      <p>{% trans "Manager operators keep the control-plane frame while tenant users keep the tenant auth frame." %}</p>
-      <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary"><i class="bi bi-box-arrow-left me-1"></i>{% trans "Sign out" %}</a>
-    </div>
-  </aside>
 </section>
+</div>
 
 {% if use_passkey %}
 <script type="application/json" id="page-data-accounts__mfa_verify-1">{
@@ -62,3 +63,4 @@
   "var_next_url_escapejs": "{{ next_url|escapejs|escapejs }}"
 }</script><script src="{% static 'js/_pages/accounts__mfa_verify-1.js' %}"></script>
 {% endif %}
+<script src="{% static 'js/rmc-mfa-otp.js' %}" defer nonce="{{ csp_nonce }}"></script>

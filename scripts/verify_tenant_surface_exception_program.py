@@ -16,6 +16,7 @@ VERIFIERS = [
     "scripts/verify_tenant_menu_p0_sweep_harness.py",
     "scripts/verify_tenant_exception_task_surfaces.py",
     "scripts/verify_tenant_copilot_expand_contract.py",
+    "scripts/verify_copilot_chrome_stack.py",
     "scripts/verify_operator_tools_tray.py",
     "scripts/verify_tenant_preview_to_live_adoption.py",
     "scripts/verify_role_home_visual_sweep_harness.py",

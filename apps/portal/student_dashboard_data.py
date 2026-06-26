@@ -119,7 +119,6 @@ def _student_ai_insight(*, grade_trend: list, subjects: list) -> dict | None:
         first = float(grade_trend[0].get("value") or 0)
         last = float(grade_trend[-1].get("value") or 0)
         if last > first + 1:
-            top = subjects[0]["subject"] if subjects else _("your work")
             return {
                 "title": _("Your recent scores are trending up"),
                 "text": _(

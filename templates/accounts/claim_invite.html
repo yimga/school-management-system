@@ -1,42 +1,48 @@
 {% extends "base.html" %}
+{% load i18n static %}
 
-{% block title %}Claim Your Invite{% endblock %}
+{% block title %}{% trans "Claim your invite" %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
-
-  <div data-rmc-scroll-policy="paginate" class="row justify-content-center py-5">
-    <div class="col-lg-6">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h1 class="h4 mb-3">Claim your parent account</h1>
-          <p class="text-muted mb-4">
-            Use the invite token sent via email, SMS, or WhatsApp so we can link you to your child.
-            New accounts require a token and a secure password.
-          </p>
-          <form method="post">
-            {% csrf_token %}
-            {% for field in form.visible_fields %}
-              <div class="mb-3">
-                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}
-                  <div class="form-text">{{ field.help_text }}</div>
-                {% endif %}
-                {% if field.errors %}
-                  <div class="invalid-feedback d-block">
-                    {{ field.errors|join:", " }}
-                  </div>
-                {% endif %}
-              </div>
-            {% endfor %}
-            <button type="submit" class="btn btn-primary w-100">Claim invite</button>
-          </form>
-        </div>
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="invite" %}
+<section class="auth-shell" aria-labelledby="claim-invite-title">
+  <div data-rmc-scroll-policy="paginate" class="auth-card">
+    <div class="rmc-security-checkpoint__head" style="border-bottom:0">
+      <span class="rmc-security-checkpoint__icon" aria-hidden="true"><i class="bi bi-envelope-open"></i></span>
+      <div>
+        <div class="rmc-security-checkpoint__eyebrow">{% trans "Parent account" %}</div>
+        <h1 id="claim-invite-title">{% trans "Claim your parent account" %}</h1>
       </div>
     </div>
+    <div class="rmc-security-checkpoint__body">
+      <p class="rmc-security-checkpoint__sub">
+        {% trans "Use the invite token sent via email, SMS, or WhatsApp so we can link you to your child. New accounts require a token and a secure password." %}
+      </p>
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form.visible_fields %}
+          <div class="mb-3">
+            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <div class="form-text">{{ field.help_text }}</div>
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary w-100">{% trans "Claim invite" %}</button>
+      </form>
+    </div>
   </div>
+</section>
+{% include "components/security_checkpoint_page_close.html" %}
 {% endblock %}

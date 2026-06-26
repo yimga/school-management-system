@@ -10,7 +10,6 @@ from django.http import (
     HttpResponse,
     HttpResponseRedirect,
     HttpResponsePermanentRedirect,
-    JsonResponse,
 )
 from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin

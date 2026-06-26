@@ -16,7 +16,7 @@
 
 <div class="card">
   <div class="card-body">
-    <p class="text-muted small mb-3">When an incident is recorded with "Notify parent" checked, linked guardians receive a notification. Add or edit incidents via the Configuration Engine (Academics → Incidents) if you have access.</p>
+    <p class="text-muted small mb-3">{% trans "Behavior points accrue automatically when incidents are recorded. Restorative actions appear for medium and high severity events. Update restorative status below." %}</p>
     <p class="alert alert-warning py-2 small mb-3" data-rmc-discipline-offline-banner="1" hidden>{% trans "Offline — analytics require network; list may show cached incidents." %}</p>
     {% if incidents %}
     <div class="table-responsive">
@@ -24,13 +24,14 @@
         <caption class="visually-hidden">{% trans "Disciplinary Incidents" %}</caption>
         <thead>
           <tr>
-            <th scope="col">Date</th>
-            <th scope="col">Type</th>
-            <th scope="col">Student / Teacher</th>
-            <th scope="col">Severity</th>
-            <th scope="col">MTSS</th>
-            <th scope="col">Status</th>
-            <th scope="col">Notify parent</th>
+            <th scope="col">{% trans "Date" %}</th>
+            <th scope="col">{% trans "Type" %}</th>
+            <th scope="col">{% trans "Student / Teacher" %}</th>
+            <th scope="col">{% trans "Points" %}</th>
+            <th scope="col">{% trans "Severity" %}</th>
+            <th scope="col">{% trans "Status" %}</th>
+            <th scope="col">{% trans "Restorative" %}</th>
+            <th scope="col">{% trans "Actions" %}</th>
           </tr>
         </thead>
         <tbody{% if incidents %} data-rmc-discipline-mirror-body="1"{% endif %}>
@@ -38,19 +39,57 @@
           <tr>
             <td>{{ inc.date|format_date:"YYYY-MM-DD" }}</td>
             <td>{{ inc.get_incident_type_display }}</td>
-            <td>{% if inc.student %}{{ inc.student.get_full_name|default:inc.student }}{% elif inc.teacher %}{{ inc.teacher.user.get_full_name|default:inc.teacher }}{% else %}—{% endif %}</td>
+            <td>
+              {% if inc.student %}
+                {{ inc.student.get_full_name|default:inc.student }}
+                {% if inc.behavior_point_total is not None %}
+                <br><span class="small text-secondary">{% trans "Total" %}: {{ inc.behavior_point_total }}</span>
+                {% endif %}
+              {% elif inc.teacher %}{{ inc.teacher.user.get_full_name|default:inc.teacher }}{% else %}—{% endif %}
+            </td>
+            <td>
+              {% with entry=inc.point_entries.all|first %}
+              {% if entry %}{{ entry.points }}{% else %}—{% endif %}
+              {% endwith %}
+            </td>
             <td>{{ inc.get_severity_display }}</td>
-            <td>{{ inc.get_mtss_tier_display|default:"—" }}</td>
-            <td>{{ inc.get_status_display }}</td>
-            <td>{% if inc.notify_parent and inc.student %}<span class="rmc-badge rmc-badge--warning">Yes</span>{% else %}—{% endif %}</td>
+            <td><span class="rmc-badge">{{ inc.get_status_display }}</span></td>
+            <td>
+              {% with ra=inc.restorative_actions.all|first %}
+              {% if ra %}
+                <span class="rmc-badge">{{ ra.get_status_display }}</span>
+                <div class="small text-secondary">{{ ra.title|truncatechars:40 }}</div>
+              {% else %}—{% endif %}
+              {% endwith %}
+            </td>
+            <td>
+              {% with ra=inc.restorative_actions.all|first %}
+              {% if ra and ra.status != "completed" %}
+              <form method="post" class="d-flex flex-wrap gap-1">{% csrf_token %}
+                <input type="hidden" name="action" value="update_restorative">
+                <input type="hidden" name="restorative_id" value="{{ ra.pk }}">
+                {% if ra.status != "in_progress" %}
+                <button type="submit" name="new_status" value="in_progress" class="btn btn-outline-primary btn-sm">{% trans "Start" %}</button>
+                {% endif %}
+                <button type="submit" name="new_status" value="completed" class="btn btn-outline-success btn-sm">{% trans "Complete" %}</button>
+              </form>
+              {% else %}
+              <span class="small text-secondary">—</span>
+              {% endif %}
+              {% endwith %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-    <p class="small text-muted mt-2 mb-0">Showing up to 100 most recent incidents.</p>
+    <p class="small text-muted mt-2 mb-0">{% trans "Showing up to 100 most recent incidents." %}</p>
     {% else %}
-    <p class="text-muted mb-0">No incidents recorded yet.</p>
+    <div class="rmc-empty-state">
+      <i class="bi bi-shield-exclamation rmc-empty-state__icon" aria-hidden="true"></i>
+      <p class="rmc-empty-state__title">{% trans "No incidents recorded yet" %}</p>
+      <p class="rmc-empty-state__body">{% trans "Teachers can refer incidents from the cahier; points and restorative tasks will appear here automatically." %}</p>
+    </div>
     {% endif %}
   </div>
 </div>

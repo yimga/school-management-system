@@ -162,22 +162,27 @@ body.admin-manager-shell #cp-admin-sidebar-apps.admin-sidebar-apps--embed {
 .cp-sidebar-inner,
 #nav-sidebar-apps,
 .admin-sidebar-apps,
-.portal-sidebar-col .sidebar {
+.portal-sidebar-col .sidebar,
+.portal-sidebar-col .tp-sidebar-inner,
+.portal-sidebar-col nav.cp-sidebar-nav {
   scrollbar-width: thin;
 }
 
 .cp-sidebar-inner::-webkit-scrollbar,
 #nav-sidebar-apps::-webkit-scrollbar,
 .admin-sidebar-apps::-webkit-scrollbar,
-.portal-sidebar-col .sidebar::-webkit-scrollbar {
+.portal-sidebar-col .sidebar::-webkit-scrollbar,
+.portal-sidebar-col .tp-sidebar-inner::-webkit-scrollbar,
+.portal-sidebar-col nav.cp-sidebar-nav::-webkit-scrollbar {
   width: 8px;
 }
 
 .cp-sidebar-inner::-webkit-scrollbar-thumb,
 #nav-sidebar-apps::-webkit-scrollbar-thumb,
 .admin-sidebar-apps::-webkit-scrollbar-thumb,
-.portal-sidebar-col .sidebar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.22); /* off-token-allow: sidebar-scroll-thumb */
+.portal-sidebar-col .sidebar::-webkit-scrollbar-thumb,
+.portal-sidebar-col .tp-sidebar-inner::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.22); /* off-token-allow: sidebar-scroll-thumb */
   border-radius: 4px;
   min-height: 40px;
 }

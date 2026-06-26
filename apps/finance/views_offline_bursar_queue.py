@@ -12,7 +12,7 @@ import csv
 import io
 
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST, require_GET
 
 from apps.finance.models import OfflinePaymentIntent

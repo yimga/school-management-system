@@ -9,7 +9,7 @@ from django.test import TestCase
 
 from apps.registries.models import CountryRegistry
 from apps.schools.models import School
-from apps.setup_studio import wizard_engine, wizard_state_resolver
+from apps.setup_studio import wizard_engine
 from apps.setup_studio.sovereignty_kernel import ensure_sovereignty_kernel_for_tenant, sovereignty_kernel_ready
 from apps.setup_studio.wizard_gates import assert_wizard_gates, prerequisite_satisfied
 from apps.setup_studio.wizard_resolvers import (

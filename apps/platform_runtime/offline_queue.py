@@ -1144,7 +1144,7 @@ def _apply_homework_submission(
     if not hw_raw:
         return {"ok": False, "error": "homework_not_found"}
     homework = homework_from_dict(hw_raw)
-    if homework.school_id and homework.school_id != school_id:
+    if homework.school_id and str(homework.school_id) != str(school_id):
         return {"ok": False, "error": "Tenant mismatch for homework."}
 
     subs_bucket = dict(academics.get("homework_submissions") or {})

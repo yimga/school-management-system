@@ -15,9 +15,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.db import models, transaction
 from django.http import HttpRequest, HttpResponseForbidden
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from django.views.decorators.http import require_POST
-from django.urls import reverse
 from apps.schoolops.email_compat import send_mail
 
 from apps.evals.notifications import NotificationService

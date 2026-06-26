@@ -382,7 +382,6 @@ def global_login_discovery(request):
             },
         )
     from .models import SchoolMembership
-    from apps.schools.domain_resolution_service import get_canonical_base_domain
     from apps.schools.pending_tenant_discovery import (
         build_pending_recovery_links,
         pending_school_state,

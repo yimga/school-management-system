@@ -6,6 +6,7 @@
 <title>/super/ globe landing — reference parity preview</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../static/css/rmc-cp-200x.css">
 <style>
 :root {
   --hairline: rgba(148, 163, 184, 0.14);
@@ -221,6 +222,10 @@ body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #050810
             <div class="lx-world__globe-stage revealed">
               <div id="rmc-world-globe"></div>
             </div>
+            <div class="lx-world__terminator" id="rmc-world-globe-terminator" aria-hidden="true">
+              <span class="lx-world__celestial lx-world__celestial--sun" id="rmc-world-globe-sun-orb"></span>
+              <span class="lx-world__celestial lx-world__celestial--moon" id="rmc-world-globe-moon-orb"></span>
+            </div>
             <div class="map-chrome">
               <div class="mode-toggle"><span class="on">Live</span><span class="off">Offline</span></div>
               <span class="pill" id="fresh-pill">Updated 3:11 PM</span>
@@ -405,6 +410,44 @@ body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #050810
     if (globe) globe.controls().autoRotate = wowOn;
   });
   document.getElementById("reset-pill").addEventListener("click", resetView);
+  function subsolarLongitudeUtc(date) {
+    var d = date || new Date();
+    var utcHours = d.getUTCHours() + d.getUTCMinutes() / 60 + d.getUTCSeconds() / 3600;
+    return ((12 - utcHours) * 15 + 360) % 360 - 180;
+  }
+  function subsolarLatitudeUtc(date) {
+    var d = date || new Date();
+    var start = Date.UTC(d.getUTCFullYear(), 0, 0);
+    var day = Math.floor((Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - start) / 86400000);
+    return 23.44 * Math.sin((2 * Math.PI * (day - 81)) / 365);
+  }
+  function tickDayNight() {
+    var el = document.getElementById("rmc-world-globe-terminator");
+    var sunOrb = document.getElementById("rmc-world-globe-sun-orb");
+    var moonOrb = document.getElementById("rmc-world-globe-moon-orb");
+    var mapShell = document.getElementById("master-map");
+    if (!el) return;
+    var now = new Date();
+    var lon = subsolarLongitudeUtc(now);
+    var pct = ((lon + 180) / 360) * 100;
+    var moonPct = (pct + 50) % 100;
+    var sunLat = subsolarLatitudeUtc(now);
+    var sunYOffset = ((90 - sunLat) / 180) * 28;
+    el.style.setProperty("--rmc-terminator-x", pct.toFixed(2) + "%");
+    if (sunOrb) {
+      sunOrb.style.left = "calc(" + pct.toFixed(2) + "% - 16px)";
+      sunOrb.style.top = "calc(" + (14 + sunYOffset).toFixed(1) + "%)";
+    }
+    if (moonOrb) {
+      moonOrb.style.left = "calc(" + moonPct.toFixed(2) + "% - 11px)";
+      moonOrb.style.top = "calc(" + (58 - sunYOffset * 0.35).toFixed(1) + "%)";
+    }
+    var phase = now.getHours() >= 6 && now.getHours() < 20 ? "day" : "night";
+    el.setAttribute("data-rmc-day-phase", phase);
+    if (mapShell) mapShell.setAttribute("data-rmc-day-phase", phase);
+  }
+  tickDayNight();
+  window.setInterval(tickDayNight, 60000);
   document.getElementById("btn-sse").addEventListener("click", function () {
     document.getElementById("fresh-pill").textContent = "Updated " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
     document.getElementById("zone-c").innerHTML = "<b>C · Caption</b>Provisioning started";

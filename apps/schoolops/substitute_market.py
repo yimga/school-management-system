@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 LOCK_PREFIX = "rmc:substitute:lock:"
 SHIFT_PREFIX = "rmc:substitute:shift:"
+OPEN_INDEX_PREFIX = "rmc:substitute:open_index:"
 DEFAULT_LOCK_TTL_SEC = 120
 DEFAULT_SHIFT_TTL_SEC = 86400  # magic-number-allow: substitute shift availability TTL = 1 day (seconds)
 
@@ -83,6 +84,42 @@ def _shift_cache_key(shift_id: str) -> str:
     return f"{SHIFT_PREFIX}{shift_id}"
 
 
+def _open_index_key(school_id: int) -> str:
+    return f"{OPEN_INDEX_PREFIX}{school_id}"
+
+
+def _append_open_shift(school_id: int, shift_id: str) -> None:
+    key = _open_index_key(school_id)
+    current = list(cache.get(key) or [])
+    if shift_id not in current:
+        current.append(shift_id)
+        cache.set(key, current, DEFAULT_SHIFT_TTL_SEC)
+
+
+def _remove_open_shift(school_id: int, shift_id: str) -> None:
+    key = _open_index_key(school_id)
+    current = [sid for sid in (cache.get(key) or []) if sid != shift_id]
+    cache.set(key, current, DEFAULT_SHIFT_TTL_SEC)
+
+
+def list_open_shifts(*, school_id: int) -> list[dict[str, Any]]:
+    """Return open shift payloads for a school (for ops claim UI)."""
+    key = _open_index_key(school_id)
+    shift_ids = list(cache.get(key) or [])
+    open_rows: list[dict[str, Any]] = []
+    kept: list[str] = []
+    for shift_id in shift_ids:
+        cached = cache.get(_shift_cache_key(shift_id))
+        if cached and cached.get("status") == "open":
+            open_rows.append(cached)
+            kept.append(shift_id)
+        elif cached and cached.get("status") == "claimed":
+            continue
+    if kept != shift_ids:
+        cache.set(key, kept, DEFAULT_SHIFT_TTL_SEC)
+    return open_rows
+
+
 def acquire_shift_slot_lock(
     *,
     school_id: int,
@@ -130,6 +167,7 @@ def open_shift(
         },
         DEFAULT_SHIFT_TTL_SEC,
     )
+    _append_open_shift(school_id, shift.shift_id)
 
     from apps.schoolops.substitute_handover import find_substitute_candidates
     import hashlib
@@ -187,8 +225,9 @@ def claim_shift(
     work_date = date.fromisoformat(cached["work_date"])
     period_label = cached.get("period_label") or ""
 
-    if not acquire_shift_slot_lock(school_id=school_id, work_date=work_date, period_label=period_label):
-        raise ShiftAlreadyBooked("slot claimed by another substitute")
+    lock_key = _lock_key(school_id=school_id, work_date=work_date, period_label=period_label)
+    if not cache.get(lock_key):
+        raise SubstituteMarketError("shift_not_open")
 
     try:
         with transaction.atomic():
@@ -205,12 +244,12 @@ def claim_shift(
                 cover.covering_teacher_id = substitute_teacher_id
                 cover.save(update_fields=["covering_teacher_id"])
     except ShiftAlreadyBooked:
-        release_shift_slot_lock(school_id=school_id, work_date=work_date, period_label=period_label)
         raise
 
     cached["status"] = "claimed"
     cached["claimed_by_id"] = substitute_teacher_id
     cache.set(_shift_cache_key(shift_id), cached, DEFAULT_SHIFT_TTL_SEC)
+    _remove_open_shift(school_id, shift_id)
 
     payload = SubstituteShiftClaimEvent(
         shift_id=shift_id,

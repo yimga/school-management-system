@@ -86,7 +86,7 @@ class LessonPlanBlock:
 @dataclass
 class LessonPlan:
     lesson_id: str
-    school_id: int
+    school_id: int | str
     teacher_user_id: int
     classroom_id: int | None
     subject: str
@@ -118,7 +118,7 @@ _VALID_BLOCK_TYPES = ("objective", "activity", "assessment", "standard")
 
 def create_lesson_plan(
     *,
-    school_id: int,
+    school_id: int | str,
     teacher_user_id: int,
     classroom_id: int | None,
     subject: str,
@@ -179,7 +179,7 @@ def advance_lesson_stage(
 @dataclass
 class Homework:
     homework_id: str
-    school_id: int
+    school_id: int | str
     teacher_user_id: int
     classroom_id: int | None
     subject: str
@@ -196,9 +196,9 @@ class Homework:
     def as_dict(self) -> dict:
         return {
             "homework_id": self.homework_id,
-            "school_id": self.school_id,
-            "teacher_user_id": self.teacher_user_id,
-            "classroom_id": self.classroom_id,
+            "school_id": _storage_id(self.school_id),
+            "teacher_user_id": _storage_id(self.teacher_user_id),
+            "classroom_id": _storage_id(self.classroom_id) if self.classroom_id is not None else None,
             "subject": self.subject,
             "title": self.title,
             "instructions": self.instructions,
@@ -210,6 +210,22 @@ class Homework:
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
+
+
+def _storage_id(value: Any) -> str:
+    """JSON-safe tenant/user ids (School PK may be UUID)."""
+    if value in (None, ""):
+        return ""
+    return str(value)
+
+
+def _parse_storage_id(value: Any) -> int | str:
+    if value in (None, ""):
+        return 0
+    text = str(value).strip()
+    if text.isdigit():
+        return int(text)
+    return text
 
 
 def homework_from_dict(data: dict[str, Any]) -> Homework:
@@ -226,11 +242,15 @@ def homework_from_dict(data: dict[str, Any]) -> Homework:
         int(sid) for sid in assigned_raw if str(sid).strip().isdigit()
     )
     classroom_raw = data.get("classroom_id")
-    classroom_id = int(classroom_raw) if classroom_raw not in (None, "") else None
+    classroom_id = (
+        int(classroom_raw)
+        if classroom_raw not in (None, "") and str(classroom_raw).isdigit()
+        else None
+    )
     return Homework(
         homework_id=str(data.get("homework_id") or ""),
-        school_id=int(data.get("school_id") or 0),
-        teacher_user_id=int(data.get("teacher_user_id") or 0),
+        school_id=_parse_storage_id(data.get("school_id")),
+        teacher_user_id=_parse_storage_id(data.get("teacher_user_id")),
         classroom_id=classroom_id,
         subject=str(data.get("subject") or "")[:120],
         title=str(data.get("title") or "")[:240],
@@ -247,7 +267,7 @@ def homework_from_dict(data: dict[str, Any]) -> Homework:
 
 def create_homework(
     *,
-    school_id: int,
+    school_id: int | str,
     teacher_user_id: int,
     classroom_id: int | None,
     subject: str,

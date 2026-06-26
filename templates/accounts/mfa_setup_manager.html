@@ -9,11 +9,10 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/rmc-account-surface.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
 {% endblock %}
 
-{% block breadcrumbs %}
-{% include "partials/breadcrumbs.html" %}
-{% endblock %}
+{% block breadcrumbs %}{% endblock %}
 
 {% block backend_main %}
 {% include "accounts/partials/mfa_setup_page_body.html" %}

@@ -116,3 +116,44 @@ class TenantOpsWave15SubstitutesTests(TestCase):
         self.assertContains(response, "Ranked candidates contacted")
         self.assertEqual(SubstituteCover.objects.count(), 0)
         broadcast.assert_called_once()
+
+    def test_open_market_and_teacher_claim(self):
+        from apps.schoolops.substitute_market import list_open_shifts
+
+        open_resp = ops_substitutes(
+            self._req(
+                "POST",
+                "/sub/",
+                {
+                    "action": "open_market",
+                    "work_date": "2026-06-10",
+                    "absent_teacher_id": str(self.t1.id),
+                    "period_label": "P2",
+                },
+            )
+        )
+        self.assertEqual(open_resp.status_code, 302)
+        open_rows = list_open_shifts(school_id=int(self.school.pk))
+        self.assertEqual(len(open_rows), 1)
+        shift_id = open_rows[0]["shift_id"]
+
+        teacher_req = self._req(
+            "POST",
+            "/sub/",
+            {"action": "claim_market", "shift_id": shift_id},
+        )
+        teacher_req.user = self.t2
+        claim_resp = ops_substitutes(teacher_req)
+        self.assertEqual(claim_resp.status_code, 302)
+        cover = SubstituteCover.objects.get(school=self.school)
+        self.assertEqual(cover.absent_teacher_id, self.t1.id)
+        self.assertEqual(cover.covering_teacher_id, self.t2.id)
+        self.assertEqual(list_open_shifts(school_id=int(self.school.pk)), [])
+
+    def test_teacher_can_view_open_shifts_without_ops_role(self):
+        self.t2.role = User.Role.TEACHER
+        self.t2.save(update_fields=["role"])
+        req = self._req("GET", "/sub/")
+        req.user = self.t2
+        resp = ops_substitutes(req)
+        self.assertEqual(resp.status_code, 200)

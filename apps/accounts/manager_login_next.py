@@ -111,7 +111,19 @@ def should_show_manager_login_surface(request) -> bool:
     next_raw = (request.GET.get("next") or "").strip()
     if next_raw and manager_login_next_is_operator_intent(next_raw):
         return True
+    # POST may carry next without repeating it in the query string.
+    if request.method == "POST":
+        post_next = (request.POST.get("next") or "").strip()
+        if post_next and manager_login_next_is_operator_intent(post_next):
+            return True
     return False
+
+
+def use_operator_login_template(request) -> bool:
+    """Corporate control-plane login vs tenant immersive role-picker login."""
+    if getattr(request, "public_host_kind", None) == "manager":
+        return True
+    return should_show_manager_login_surface(request)
 
 
 def request_is_manager_host(request) -> bool:

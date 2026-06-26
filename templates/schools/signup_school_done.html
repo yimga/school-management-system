@@ -5,14 +5,14 @@
 
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/rmc-signup-v2.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
-
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="onboarding" checkpoint_wide=True %}
 {% comment %}Wave L7 (v3.61.8 — 2026-05-22): post-signup success state upgraded to a
    confidence-building "what happens next" view. Shows the workspace URL
    the new admin will land on, a 3-step activation timeline, and (when
@@ -83,4 +83,5 @@
     </div>
   </div>
 </section>
+{% include "components/security_checkpoint_page_close.html" %}
 {% endblock %}

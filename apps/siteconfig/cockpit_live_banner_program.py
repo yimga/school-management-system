@@ -6,7 +6,7 @@ import hashlib
 import logging
 import uuid
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any
 
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _

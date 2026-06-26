@@ -3461,7 +3461,7 @@ def backend_dashboard(request):
             except ACCOUNTS_SOFT_FAILURES:
                 context["rmc_year_close_checklist"] = None
             try:
-                from apps.siteconfig.models_dashboard import DashboardUserPreference
+                from apps.runtime_blueprints.models import DashboardUserPreference
 
                 context["rmc_dashboard_visual_preset_choices"] = (
                     DashboardUserPreference.VISUAL_PRESET_CHOICES
@@ -4394,38 +4394,60 @@ def login_view(request):
                 "/authentication/password_reset/"
             )
     else:
-        context["public_site_url"] = None
-        context["password_reset_public_url"] = None
+        from apps.accounts.manager_login_next import use_operator_login_template
+
+        if use_operator_login_template(request):
+            try:
+                from apps.schools.provision_email_urls import build_public_site_url
+
+                context["public_site_url"] = build_public_site_url("/")
+                context["password_reset_public_url"] = build_public_site_url(
+                    "/authentication/password_reset/"
+                )
+            except ACCOUNTS_SOFT_FAILURES:
+                context["public_site_url"] = getattr(
+                    settings, "PUBLIC_SITE_URL", "https://runmycampus.com"
+                )
+                context["password_reset_public_url"] = (
+                    f"{(context.get('public_site_url') or 'https://runmycampus.com').rstrip('/')}"
+                    "/authentication/password_reset/"
+                )
+        else:
+            context["public_site_url"] = None
+            context["password_reset_public_url"] = None
     context["public_tenant_login_hub"] = False
     context["login_workspace_schools"] = []
-    context["post_role"] = (
-        request.POST.get("role") or request.GET.get("role") or "staff"
-    )
-    try:
-        from apps.accounts.login_immersive_context import build_login_immersive_context
+    from apps.accounts.manager_login_next import use_operator_login_template
 
-        context["LOGIN_IMMERSIVE"] = build_login_immersive_context(request)
-    except Exception:
-        context["LOGIN_IMMERSIVE"] = {
-            "ticker_items": [_("Welcome — sign in to reach your school workspace.")],
-            "carousel_slides": [],
-            "bento_stats": [],
-            "dash_feed": [],
-            "moments": [],
-            "clock_label": "",
-            "date_label": "",
-            "dash_preview": {},
-            "role_preview_labels": {
-                "default": _("School pulse"),
-                "staff": _("Staff dashboard"),
-                "parent": _("Family portal"),
-                "student": _("Student hub"),
-            },
-        }
+    operator_login_surface = use_operator_login_template(request)
+    context["is_operator_login_surface"] = operator_login_surface
+    if not operator_login_surface:
+        context["post_role"] = (
+            request.POST.get("role") or request.GET.get("role") or "staff"
+        )
+        try:
+            from apps.accounts.login_immersive_context import build_login_immersive_context
+
+            context["LOGIN_IMMERSIVE"] = build_login_immersive_context(request)
+        except Exception:
+            context["LOGIN_IMMERSIVE"] = {
+                "ticker_items": [_("Welcome — sign in to reach your school workspace.")],
+                "carousel_slides": [],
+                "bento_stats": [],
+                "dash_feed": [],
+                "moments": [],
+                "clock_label": "",
+                "date_label": "",
+                "dash_preview": {},
+                "role_preview_labels": {
+                    "default": _("School pulse"),
+                    "staff": _("Staff dashboard"),
+                    "parent": _("Family portal"),
+                    "student": _("Student hub"),
+                },
+            }
     template = (
-        "auth/manager_login.html"
-        if getattr(request, "public_host_kind", None) == "manager"
-        else "auth/login.html"
+        "auth/manager_login.html" if operator_login_surface else "auth/login.html"
     )
     return render(request, template, context)
 

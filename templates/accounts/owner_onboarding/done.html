@@ -1,15 +1,20 @@
 {% extends "schools/tenant_minimal_shell.html" %}
 {% load i18n static %}
 
-{% block title %}{% trans "You’re all set" %}{% endblock %}
+{% block title %}{% trans "You're all set" %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="onboarding" checkpoint_wide=True %}
 <section class="auth-shell" aria-labelledby="ob-title">
   <div data-rmc-scroll-policy="paginate" class="auth-card text-center">
-    <div class="auth-badge" aria-hidden="true"><i class="bi bi-check2-circle"></i></div>
+    <div class="rmc-security-checkpoint__icon mx-auto mb-3" aria-hidden="true"><i class="bi bi-check2-circle"></i></div>
     <h1 id="ob-title">
       {% if school_is_live %}
       {% blocktrans with name=school.name|default:"Your school" %}{{ name }} is ready 🎉{% endblocktrans %}
@@ -17,7 +22,7 @@
       {% blocktrans with name=school.name|default:"Your school" %}Almost there — finishing setup for {{ name }}{% endblocktrans %}
       {% endif %}
     </h1>
-    <p class="auth-sub">
+    <p class="rmc-security-checkpoint__sub">
       {% if school_is_live %}
       {% trans "Your account is set up. Here are a couple of good next steps — or jump straight to your dashboard." %}
       {% else %}
@@ -56,7 +61,7 @@
       {% endif %}
     </div>
     {% if school_is_live %}
-    <a href="{{ dashboard_href }}" class="btn btn-primary auth-submit mt-3">
+    <a href="{{ dashboard_href }}" class="btn btn-primary auth-submit mt-3 w-100">
       <i class="bi bi-speedometer2 me-1"></i>{% trans "Go to my dashboard" %}
     </a>
     {% else %}
@@ -91,4 +96,5 @@
     {% endif %}
   </div>
 </section>
+{% include "components/security_checkpoint_page_close.html" %}
 {% endblock %}

@@ -741,6 +741,31 @@ def _region_display_context(
     }
 
 
+def student_dynamic_fields_for_report(student, *, school=None) -> list[dict[str, str]]:
+    """EAV custom fields to render on report cards (metric 5 / Option C)."""
+    from apps.metadata.dynamic_forms import definitions_for_entity
+    from apps.metadata.services import get_dynamic_field_value
+
+    resolved_school = school or getattr(student, "school", None)
+    entity_type = "people.studentprofile"
+    rows: list[dict[str, str]] = []
+    for defn in definitions_for_entity(school=resolved_school, entity_type=entity_type):
+        value = get_dynamic_field_value(
+            student,
+            defn.field_key,
+            school=resolved_school,
+        )
+        if value is None or not str(value).strip():
+            continue
+        rows.append(
+            {
+                "label": (defn.label or defn.field_key).strip(),
+                "value": str(value).strip(),
+            }
+        )
+    return rows
+
+
 def term_report_context(student: StudentProfile, academic_year, term: Term) -> dict:
     from django.db.models import Q
 # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
@@ -803,6 +828,9 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         teacher_name = ""
         if getattr(e, "teacher", None):
             teacher_name = e.teacher.user.get_full_name() or e.teacher.user.username
+        band_label = resolve_extended_band_label(scale_type, average_score)
+        letter = (getattr(e, "letter_grade", None) or "").strip()
+        grade_label = band_label or letter or ""
         rows.append(
             {
                 "subject": e.subject_assignment.subject.name,
@@ -813,8 +841,11 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
                 "mock": e.mock_score,
                 "practical": e.practical_score,
                 "average": average_score,
+                "avg": average_score,
+                "letter_grade": letter,
+                "band": band_label,
+                "grade_label": grade_label,
                 "total": total_score,
-                "band": resolve_extended_band_label(scale_type, average_score),
                 "subject_rank_display": subject_rankings.get(
                     e.subject_assignment_id, "- / -"
                 ),
@@ -881,6 +912,9 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
     ctx["dual_transcript"] = (
         getattr(student, "transcript_track", "") or ""
     ).upper() == "DUAL"
+    ctx["student_dynamic_fields"] = student_dynamic_fields_for_report(
+        student, school=school
+    )
     return ctx
 
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from apps.marketplace.models import MarketplaceApp, MarketplaceReview, PublisherOrganization
+from apps.marketplace.models import MarketplaceReview, PublisherOrganization
 from apps.marketplace.partner_submission import list_pending_for_governance
 from apps.marketplace.services import upsert_marketplace_submission
 

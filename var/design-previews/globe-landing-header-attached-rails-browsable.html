@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/super/ Globe — header-attached frame + side rails (preview)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --hair: rgba(148, 163, 184, 0.14);
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --dim: #64748b;
+  --brand: #818cf8;
+  --good: #6ee7b7;
+  --warn: #fde68a;
+  --bad: #fda4af;
+  --ai: #c4b5fd;
+  --canvas: #0a0e18;
+  --elev: #121829;
+  --header-h: 118px;
+  --rail-w: 248px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font: 13px/1.45 Inter, system-ui, sans-serif;
+  background: #050810;
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── Preview meta bar (not part of product) ── */
+.preview-meta {
+  position: sticky; top: 0; z-index: 900;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.35);
+  background: rgba(5, 8, 16, 0.97);
+  backdrop-filter: blur(16px);
+}
+.preview-meta h1 { margin: 0 0 4px; font-size: 14px; letter-spacing: -0.02em; }
+.preview-meta p { margin: 0 0 8px; font-size: 11px; color: var(--muted); max-width: 960px; line-height: 1.55; }
+.preview-meta strong { color: var(--good); }
+.preview-meta code { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--ai); }
+
+/* ── Manager shell ── */
+.manager {
+  display: grid;
+  grid-template-columns: 212px minmax(0, 1fr) 40px;
+  grid-template-rows: auto 1fr;
+  min-height: calc(100dvh - 72px);
+  max-width: 1440px;
+  margin: 0 auto;
+  border: 1px solid var(--hair);
+  border-radius: 0 0 16px 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  background: var(--canvas);
+}
+
+/* STICKY HEADER — spans full width, stays put when page scrolls */
+.cp-header {
+  grid-column: 1 / -1;
+  position: sticky;
+  top: 72px;
+  z-index: 200;
+  background: #060a12;
+  border-bottom: 1px solid var(--hair);
+}
+.cp-header__util {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 12px; font-size: 10px; color: var(--dim);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+}
+.cp-header__live {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px;
+  background: linear-gradient(90deg, rgba(6, 18, 14, 0.92), rgba(8, 12, 20, 0.96));
+  border-bottom: 1px solid rgba(110, 231, 183, 0.12);
+  font-size: 10.5px;
+  color: var(--muted);
+  white-space: nowrap; overflow: hidden;
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  background: var(--good);
+  box-shadow: 0 0 10px rgba(110, 231, 183, 0.55);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.live-tag {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--good);
+}
+.live-ticker { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+
+.cp-header__main {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 10px;
+}
+.brand { display: flex; align-items: center; gap: 8px; }
+.brand-mark {
+  width: 32px; height: 32px; border-radius: 10px;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  display: grid; place-items: center; font-weight: 800; font-size: 14px;
+}
+.brand b { display: block; font-size: 12px; }
+.brand small { display: block; font-size: 9px; color: var(--dim); }
+.badge-mgr {
+  font-size: 8px; font-weight: 800; letter-spacing: 0.06em;
+  padding: 2px 6px; border-radius: 4px;
+  background: rgba(251, 191, 36, 0.15); color: var(--warn);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+}
+
+.header-center { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.search {
+  flex: 1; min-width: 120px; max-width: 340px;
+  padding: 7px 12px; border-radius: 10px;
+  border: 1px solid var(--hair);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--dim); font-size: 11px;
+}
+
+/* RELOCATED: mission mode + lens dock live IN header (not above globe) */
+.mission-seg {
+  display: flex; padding: 2px; border-radius: 999px;
+  border: 1px solid var(--hair);
+  background: rgba(255, 255, 255, 0.03);
+  flex-shrink: 0;
+}
+.mission-seg button {
+  font: inherit; font-size: 10px; font-weight: 700;
+  padding: 5px 12px; border: 0; border-radius: 999px;
+  background: transparent; color: var(--dim); cursor: pointer;
+}
+.mission-seg button.on {
+  background: rgba(129, 140, 248, 0.2);
+  color: var(--text);
+  box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.25);
+}
+
+.lens-dock {
+  display: flex; gap: 2px; padding: 2px;
+  border-radius: 10px; border: 1px solid var(--hair);
+  background: rgba(8, 12, 20, 0.9);
+  flex-shrink: 0;
+}
+.lens-dock button {
+  font: inherit; font-size: 9px; font-weight: 700;
+  padding: 5px 8px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--dim); cursor: pointer;
+  letter-spacing: 0.02em;
+}
+.lens-dock button.on {
+  color: var(--text);
+  background: rgba(129, 140, 248, 0.14);
+}
+
+.header-actions {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+.pill-stat {
+  font-size: 10px; font-weight: 600; padding: 5px 10px;
+  border-radius: 999px; border: 1px solid var(--hair);
+  background: rgba(255, 255, 255, 0.03);
+}
+.pill-stat.warn { border-color: rgba(252, 211, 77, 0.4); color: var(--warn); }
+.pill-stat.good { border-color: rgba(110, 231, 183, 0.35); color: var(--good); }
+.avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Sidebar */
+.cp-side {
+  grid-row: 2; grid-column: 1;
+  border-right: 1px solid var(--hair);
+  padding: 10px 8px;
+  background: rgba(6, 9, 16, 0.96);
+  font-size: 11px;
+  overflow-y: auto;
+}
+.cp-side .grp {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--dim);
+  padding: 10px 8px 4px;
+}
+.cp-side .item {
+  padding: 7px 10px; border-radius: 8px; color: var(--dim);
+  margin-bottom: 2px;
+}
+.cp-side .item.on {
+  background: rgba(129, 140, 248, 0.12);
+  color: var(--text); font-weight: 600;
+  border: 1px solid rgba(129, 140, 248, 0.2);
+}
+
+.cp-copilot-rail {
+  grid-row: 2; grid-column: 3;
+  border-left: 1px solid var(--hair);
+  writing-mode: vertical-rl;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--dim);
+}
+
+/* ── MAIN: globe frame flush under header ── */
+.cp-main {
+  grid-row: 2; grid-column: 2;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* ZERO GAP — globe frame attached to header bottom border */
+.globe-frame {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr) var(--rail-w);
+  grid-template-rows: 1fr;
+  border-top: none;
+  background: var(--elev);
+  height: clamp(480px, calc(100dvh - 72px - var(--header-h) - 48px), 920px);
+}
+
+/* ── LEFT RAIL: operator metrics ── */
+.rail {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-right: 1px solid var(--hair);
+  background: rgba(8, 12, 22, 0.92);
+  overflow: hidden;
+}
+.rail--right {
+  border-right: 0;
+  border-left: 1px solid var(--hair);
+}
+.rail__block {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  flex-shrink: 0;
+}
+.rail__block--grow {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.rail__label {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--dim);
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.rail__label .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--good);
+  box-shadow: 0 0 6px rgba(110, 231, 183, 0.5);
+}
+
+.metric-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  font-size: 11px;
+}
+.metric-row:last-child { border-bottom: 0; }
+.metric-row b { font-weight: 600; }
+.metric-row .v {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700; font-size: 13px;
+}
+.metric-row .v.warn { color: var(--warn); }
+.metric-row .v.bad { color: var(--bad); }
+.metric-row .v.good { color: var(--good); }
+
+.pulse-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+}
+.pulse-cell {
+  padding: 8px; border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+}
+.pulse-cell em {
+  display: block; font-style: normal; font-size: 8px;
+  font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--dim);
+  margin-bottom: 4px;
+}
+.pulse-cell strong {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 16px; font-weight: 700;
+}
+.pulse-cell span { display: block; font-size: 9px; color: var(--muted); margin-top: 2px; }
+
+.feed-scroll {
+  flex: 1; min-height: 0; overflow-y: auto;
+  padding-right: 4px;
+}
+.feed-item {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 6px 0; font-size: 10px; color: var(--muted);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+}
+.feed-item time { font-family: "JetBrains Mono", monospace; font-size: 9px; color: var(--dim); flex-shrink: 0; }
+.feed-item b { color: var(--text); font-weight: 600; }
+
+/* ── CENTER: globe ── */
+.globe-stage-wrap {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 90% 80% at 50% 45%, rgba(99, 102, 241, 0.14), transparent 58%),
+    radial-gradient(ellipse 60% 50% at 30% 70%, rgba(16, 185, 129, 0.08), transparent 52%),
+    #080c14;
+}
+
+/* Floating globe chrome — NOT rows above the frame */
+.globe-float {
+  position: absolute; z-index: 5;
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(8, 12, 22, 0.78);
+  backdrop-filter: blur(12px);
+  font-size: 10px; color: var(--muted);
+}
+.globe-float--tl { top: 10px; left: 10px; }
+.globe-float--tr { top: 10px; right: 10px; flex-direction: column; align-items: flex-end; gap: 4px; }
+.globe-float--bl { bottom: 12px; left: 12px; }
+.globe-float button {
+  font: inherit; font-size: 9px; font-weight: 700;
+  padding: 4px 8px; border-radius: 6px;
+  border: 1px solid var(--hair);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text); cursor: pointer;
+}
+.globe-float .on { border-color: rgba(110, 231, 183, 0.4); color: var(--good); }
+
+.globe-orb {
+  position: absolute;
+  left: 50%; top: 48%;
+  transform: translate(-50%, -50%);
+  width: min(62vmin, 420px);
+  height: min(62vmin, 420px);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.12), transparent 42%),
+    radial-gradient(circle at 70% 72%, rgba(99, 102, 241, 0.25), transparent 45%),
+    radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 55%, #020617 100%);
+  box-shadow:
+    0 0 80px rgba(99, 102, 241, 0.22),
+    inset -20px -30px 60px rgba(0, 0, 0, 0.5);
+}
+.globe-orb::before {
+  content: "";
+  position: absolute; inset: 8%;
+  border-radius: 50%;
+  border: 1px dashed rgba(129, 140, 248, 0.2);
+  animation: spin 48s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.arc {
+  position: absolute;
+  width: 120px; height: 60px;
+  border: 2px solid rgba(110, 231, 183, 0.45);
+  border-bottom: 0; border-radius: 120px 120px 0 0;
+  transform: rotate(-25deg);
+  left: 58%; top: 38%;
+  filter: drop-shadow(0 0 8px rgba(110, 231, 183, 0.3));
+}
+.pin {
+  position: absolute;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--good);
+  box-shadow: 0 0 12px rgba(110, 231, 183, 0.7);
+}
+.pin--wa { left: 52%; top: 52%; }
+.pin--other { left: 44%; top: 48%; background: var(--brand); box-shadow: 0 0 12px rgba(129, 140, 248, 0.6); }
+.region-label {
+  position: absolute; left: 54%; top: 56%;
+  font-size: 10px; font-weight: 700;
+  padding: 4px 8px; border-radius: 8px;
+  background: rgba(8, 12, 22, 0.85);
+  border: 1px solid rgba(110, 231, 183, 0.3);
+  color: var(--good);
+}
+
+/* ── RIGHT RAIL: schools hero (was before) ── */
+.schools-hero {
+  text-align: center;
+  padding: 14px 12px 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+}
+.schools-hero .n {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 42px; font-weight: 700; line-height: 1;
+  background: linear-gradient(180deg, #fff, #94a3b8);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.schools-hero .k {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--dim);
+  margin-top: 4px;
+}
+.schools-hero .sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+.region-stack { display: flex; flex-direction: column; gap: 6px; }
+.region-chip {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 10px; border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 11px;
+}
+.region-chip b { font-weight: 600; }
+.region-chip .c {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700; color: var(--good);
+}
+
+.signal-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.signal-legend span {
+  font-size: 9px; padding: 3px 7px; border-radius: 999px;
+  border: 1px solid var(--hair); color: var(--dim);
+}
+
+/* RELOCATED AI — compact card in right rail, not full-width bar */
+.ai-brief {
+  margin-top: auto;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(196, 181, 253, 0.2);
+  background: linear-gradient(135deg, rgba(196, 181, 253, 0.08), rgba(16, 185, 129, 0.04));
+}
+.ai-brief .tag {
+  font-size: 8px; font-weight: 800; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ai);
+}
+.ai-brief p { margin: 6px 0 8px; font-size: 11px; color: var(--muted); line-height: 1.45; }
+.ai-brief .row { display: flex; gap: 6px; }
+.ai-brief button {
+  flex: 1; font: inherit; font-size: 10px; font-weight: 700;
+  padding: 6px 8px; border-radius: 8px; cursor: pointer;
+  border: 1px solid rgba(196, 181, 253, 0.28);
+  background: rgba(12, 16, 28, 0.86); color: var(--text);
+}
+
+/* Below-fold scroll demo */
+.scroll-demo {
+  max-width: 1440px; margin: 0 auto;
+  padding: 20px 16px 80px;
+}
+.scroll-demo h2 {
+  font-size: 13px; color: var(--muted);
+  margin: 0 0 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.scroll-demo h2::before {
+  content: ""; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--brand);
+}
+.fold-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+}
+.fold-card {
+  padding: 16px; border-radius: 12px;
+  border: 1px dashed rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.35);
+  font-size: 12px; color: var(--dim);
+  min-height: 120px;
+}
+.fold-card b { display: block; color: var(--text); margin-bottom: 6px; }
+
+@media (max-width: 1100px) {
+  :root { --rail-w: 200px; }
+  .lens-dock { display: none; }
+  .mission-seg { display: none; }
+}
+@media (max-width: 900px) {
+  .globe-frame { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+  .rail--left { border-right: 0; border-bottom: 1px solid var(--hair); max-height: 140px; flex-direction: row; overflow-x: auto; }
+  .rail--right { border-left: 0; border-top: 1px solid var(--hair); }
+  .rail--left .rail__block, .rail--left .rail__block--grow { border-bottom: 0; border-right: 1px solid var(--hair); min-width: 180px; }
+}
+</style>
+</head>
+<body>
+
+<div class="preview-meta">
+  <h1>Globe landing — header-attached frame (HTML preview)</h1>
+  <p>
+    <strong>Proposal:</strong> Globe frame starts <em>directly</em> under the sticky manager header — no mission tabs, lens pills, or AI bar eating vertical space above the globe.
+    Mission mode + lenses move into the <strong>header center</strong>; AI becomes a <strong>compact Fleet brief</strong> on the right rail;
+    <strong>Schools</strong> hero stat returns to the <strong>right of the globe</strong>; left rail carries incidents + platform pulse + live feed.
+    Scroll the page — header stays fixed; only content below the globe frame scrolls.
+  </p>
+  <p>File: <code>var/design-previews/globe-landing-header-attached-rails-browsable.html</code> · <a href="globe-landing-wow-v2-browsable.html" style="color:#818cf8">WOW v2 →</a></p>
+</div>
+
+<div class="manager">
+  <header class="cp-header" id="cp-header">
+    <div class="cp-header__util">
+      <span>RunMyCampus Manager</span>
+      <span>Operator command surface</span>
+    </div>
+    <div class="cp-header__live">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span class="live-tag">Live</span>
+      <span class="live-ticker">lifecycle.offboarding.deactivated · lifecycle.offboarding.purge_completed · lifecycle.offboarding.export_ready · 18d ago</span>
+    </div>
+    <div class="cp-header__main">
+      <div class="brand">
+        <div class="brand-mark">R</div>
+        <div>
+          <b>RUNMYCAMPUS <span class="badge-mgr">MANAGER</span></b>
+          <small>Knowledge · Technology · Excellence</small>
+        </div>
+      </div>
+      <div class="header-center">
+        <div class="search">Search schools, incidents… ⌘K</div>
+        <div class="mission-seg" role="tablist" aria-label="Mission mode">
+          <button type="button" class="on" aria-selected="true">Globe mission</button>
+          <button type="button">Operations board</button>
+        </div>
+        <div class="lens-dock" role="tablist" aria-label="Cockpit lenses">
+          <button type="button" class="on">Globe</button>
+          <button type="button">Forecast</button>
+          <button type="button">SLO</button>
+          <button type="button">Heatmap</button>
+          <button type="button">Revenue</button>
+          <button type="button">Audit</button>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span class="pill-stat warn">12 incidents</span>
+        <span class="pill-stat good">1 operator online</span>
+        <div class="avatar" title="Operator"></div>
+      </div>
+    </div>
+  </header>
+
+  <aside class="cp-side" aria-label="Navigation">
+    <div class="grp">Start</div>
+    <div class="item">Platform backoffice</div>
+    <div class="grp">Platform overview</div>
+    <div class="item on">Dashboard</div>
+    <div class="item">Command center</div>
+    <div class="grp">Tenants</div>
+    <div class="item">All schools</div>
+    <div class="item">Provisioning</div>
+  </aside>
+
+  <main class="cp-main">
+    <section class="globe-frame" aria-label="Live globe mission">
+      <!-- LEFT RAIL -->
+      <aside class="rail rail--left">
+        <div class="rail__block">
+          <div class="rail__label"><span class="dot"></span> Incidents</div>
+          <div class="metric-row"><span>Open</span><span class="v warn">12</span></div>
+          <div class="metric-row"><span>Critical</span><span class="v bad">2</span></div>
+          <div class="metric-row"><span>Resolved 24h</span><span class="v good">8</span></div>
+        </div>
+        <div class="rail__block">
+          <div class="rail__label">Platform pulse</div>
+          <div class="pulse-grid">
+            <div class="pulse-cell"><em>Countries</em><strong>1</strong><span>Active today</span></div>
+            <div class="pulse-cell"><em>MRR</em><strong>—</strong><span>Awaiting billing</span></div>
+            <div class="pulse-cell"><em>Webhooks</em><strong>98%</strong><span>Delivery OK</span></div>
+            <div class="pulse-cell"><em>Pipeline</em><strong>1</strong><span>Provisioning</span></div>
+          </div>
+        </div>
+        <div class="rail__block rail__block--grow">
+          <div class="rail__label">Live fleet pulse</div>
+          <div class="feed-scroll">
+            <div class="feed-item"><time>1d</time><span><b>Provisioning started</b> — demo-west</span></div>
+            <div class="feed-item"><time>3d</time><span><b>Incident cleared</b> — webhook retry</span></div>
+            <div class="feed-item"><time>5d</time><span><b>School activated</b> — new-school</span></div>
+            <div class="feed-item"><time>8d</time><span><b>Export ready</b> — offboarding</span></div>
+            <div class="feed-item"><time>12d</time><span><b>Audit chain</b> — verified</span></div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- GLOBE CENTER -->
+      <div class="globe-stage-wrap">
+        <div class="globe-float globe-float--tl">
+          <button type="button" class="on">LIVE</button>
+          <button type="button">OFFLINE</button>
+          <span>Updated 12:27:04 PM</span>
+        </div>
+        <div class="globe-float globe-float--tr">
+          <small style="font-size:9px;color:var(--dim)">SHARE VIEW</small>
+          <code style="font-size:9px;color:var(--ai)">rmc://globe/a8f3…</code>
+        </div>
+        <div class="globe-float globe-float--bl">
+          <button type="button">Tour</button>
+          <button type="button">Reset view</button>
+          <button type="button">1–4 regions</button>
+        </div>
+        <div class="globe-orb" aria-hidden="true"></div>
+        <div class="arc" aria-hidden="true"></div>
+        <span class="pin pin--wa" aria-hidden="true"></span>
+        <span class="pin pin--other" aria-hidden="true"></span>
+        <div class="region-label">West Africa (2)</div>
+      </div>
+
+      <!-- RIGHT RAIL — Schools hero restored -->
+      <aside class="rail rail--right">
+        <div class="schools-hero">
+          <div class="n">3</div>
+          <div class="k">Schools</div>
+          <div class="sub">Across 2 regions · 1 country today</div>
+        </div>
+        <div class="rail__block">
+          <div class="rail__label">Regional breakdown</div>
+          <div class="region-stack">
+            <div class="region-chip"><b>West Africa</b><span class="c">2</span></div>
+            <div class="region-chip"><b>Other</b><span class="c">1</span></div>
+          </div>
+        </div>
+        <div class="rail__block">
+          <div class="rail__label">Signal lanes</div>
+          <div class="metric-row"><span>Active</span><span class="v good">2</span></div>
+          <div class="metric-row"><span>Suspended</span><span class="v warn">1</span></div>
+          <div class="metric-row"><span>Frozen</span><span class="v">0</span></div>
+          <div class="signal-legend">
+            <span>Command</span><span>School hours</span><span>AI copilot</span><span>Data pulse</span>
+          </div>
+        </div>
+        <div class="rail__block">
+          <div class="rail__label">B · School hours</div>
+          <p style="margin:0;font-size:11px;color:var(--muted)">No regions in school hours</p>
+        </div>
+        <div class="ai-brief">
+          <span class="tag">Fleet brief</span>
+          <p>2 schools live. 1 need eyes. Fleet attention — 1 suspended.</p>
+          <div class="row">
+            <button type="button">Ask AI</button>
+            <button type="button">Smart tour</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <div class="cp-copilot-rail">AI Copilot</div>
+</div>
+
+<!-- Scroll demo: header + globe frame stay; this scrolls -->
+<section class="scroll-demo" aria-label="Below-fold lenses (scroll test)">
+  <h2>Below fold — lens panels scroll here (Forecast · SLO · Heatmap…)</h2>
+  <p style="font-size:12px;color:var(--dim);margin:0 0 16px">When you pick Forecast / SLO / etc. in the header dock, those panels land here — not above the globe.</p>
+  <div class="fold-grid">
+    <div class="fold-card"><b>Forecast lane</b>Seven-day MRR + incident forecast cards</div>
+    <div class="fold-card"><b>SLO clocks</b>Availability · latency · freshness targets</div>
+    <div class="fold-card"><b>Tenant heatmap</b>Fleet health tiles by region</div>
+    <div class="fold-card"><b>Revenue waterfall</b>MRR movement breakdown</div>
+    <div class="fold-card"><b>Audit feed</b>Append-only operator events</div>
+    <div class="fold-card"><b>Trust nutrition</b>Compliance posture rows</div>
+  </div>
+</section>
+
+<script>
+(function () {
+  document.querySelectorAll(".mission-seg button, .lens-dock button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var parent = btn.parentElement;
+      parent.querySelectorAll("button").forEach(function (b) {
+        b.classList.toggle("on", b === btn);
+      });
+    });
+  });
+  document.querySelectorAll(".globe-float--tl button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".globe-float--tl button").forEach(function (b) {
+        b.classList.toggle("on", b === btn);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

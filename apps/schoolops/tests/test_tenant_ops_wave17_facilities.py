@@ -5,6 +5,7 @@ import uuid
 from django.contrib.auth import get_user_model
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.db import connection
 from django.test import RequestFactory, TestCase
 
 from apps.schoolops.models import MaintenanceRequest
@@ -72,6 +73,45 @@ class TenantOpsWave17FacilitiesTests(TestCase):
         t.refresh_from_db()
         self.assertEqual(t.status, MaintenanceRequest.Status.CLOSED)
         self.assertIsNotNone(t.closed_at)
+
+    def test_create_resource_and_booking(self):
+        r = ops_facilities(
+            self._req(
+                "POST",
+                "/f/",
+                {
+                    "action": "create_resource",
+                    "resource_name": "Lab A",
+                    "resource_type": "lab",
+                    "resource_capacity": "1",
+                },
+            )
+        )
+        self.assertEqual(r.status_code, 302)
+        from apps.schoolops.models import BookableResource
+
+        resource = BookableResource.objects.get(school=self.school, name="Lab A")
+        if connection.vendor != "postgresql":
+            self.skipTest("Resource booking insert requires PostgreSQL")
+        start = "2026-07-01T09:00"
+        end = "2026-07-01T10:00"
+        r2 = ops_facilities(
+            self._req(
+                "POST",
+                "/f/",
+                {
+                    "action": "book_resource",
+                    "resource_id": str(resource.pk),
+                    "booking_title": "Chem class",
+                    "booking_start": start,
+                    "booking_end": end,
+                },
+            )
+        )
+        self.assertEqual(r2.status_code, 302)
+        r3 = ops_facilities(self._req("GET", "/f/"))
+        self.assertEqual(r3.status_code, 200)
+        self.assertIn(b"Chem class", r3.content)
 
     def test_facilities_feature_off_403(self):
         self.school.features = {"facilities_ops": False}

@@ -1547,4 +1547,5 @@ from .models_tenant_runtime import (  # noqa: E402,F401
 from .models_lms import LMSAssignment, LMSSubmission  # noqa: E402,F401
 from .instruction_day_ledger import InstructionDay  # noqa: E402,F401
 from .academic_structure import AcademicStructureNode  # noqa: E402,F401
+from .models_discipline import BehaviorPointLedger, RestorativeAction  # noqa: E402,F401
 from .scheduling import InstructionShift  # noqa: E402,F401

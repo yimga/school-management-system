@@ -6,7 +6,6 @@ from typing import Any
 
 from apps.siteconfig.tenant_experience_policy import (
     persist_tenant_experience_policy,
-    tenant_experience_policy_defaults,
 )
 from apps.siteconfig.tenant_experience_presets import apply_experience_preset, PRESET_MINIMAL_V3
 

@@ -24,7 +24,6 @@ from __future__ import annotations
 import logging
 from datetime import date as date_type
 from decimal import ROUND_HALF_UP, Decimal
-from typing import Any
 
 from django.db import transaction
 from django.utils import timezone

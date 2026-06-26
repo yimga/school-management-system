@@ -54,9 +54,13 @@
     return attrOn(root, "data-rmc-sidebar-" + name);
   }
 
+  function usesDetailsGroups(root) {
+    return family(root) === "control-plane" || root.getAttribute("data-rmc-cp-sidebar-v8") === "1";
+  }
+
   // ── per-surface adapter ────────────────────────────────────────────────
   function adapter(root) {
-    if (family(root) === "control-plane") {
+    if (usesDetailsGroups(root)) {
       return {
         kind: "details",
         itemSel: "a.cp-sidebar__item",
@@ -347,7 +351,7 @@
   function markActive(root) {
     try {
       var here = (location.pathname || "/").replace(/\/+$/, "") || "/";
-      var links = [].slice.call(root.querySelectorAll("a.nav-link[href]"));
+      var links = [].slice.call(root.querySelectorAll("a.nav-link[href], a.cp-sidebar__item[href]"));
       var best = null, bestLen = -1;
       links.forEach(function (a) {
         var href = a.getAttribute("href") || "";
@@ -363,8 +367,16 @@
           if (path.length > bestLen) { best = a; bestLen = path.length; }
         }
       });
-      links.forEach(function (a) { if (a !== best) a.removeAttribute("aria-current"); });
-      if (best) best.setAttribute("aria-current", "page");
+      links.forEach(function (a) {
+        a.classList.remove("cp-sidebar__item--current");
+        if (a !== best) a.removeAttribute("aria-current");
+      });
+      if (best) {
+        best.setAttribute("aria-current", "page");
+        if (best.classList.contains("cp-sidebar__item")) {
+          best.classList.add("cp-sidebar__item--current");
+        }
+      }
     } catch (err) { /* never break the sidebar over an active marker */ }
   }
 
@@ -425,10 +437,22 @@
   }
 
   // ── init one sidebar ────────────────────────────────────────────────────
+  function ensureScrollRoot(root) {
+    var scrollRoot =
+      root.closest(".tp-sidebar-inner") ||
+      root.closest(".cp-sidebar-inner") ||
+      root.closest("[data-rmc-sidebar-scroll-root]");
+    if (!scrollRoot || scrollRoot === root) return;
+    scrollRoot.setAttribute("data-rmc-sidebar-scroll-root", "1");
+    root.style.overflow = "visible";
+    root.style.maxHeight = "none";
+  }
+
   function init(root) {
     if (root.__rmcIntel) return;
     root.__rmcIntel = true;
     try {
+      ensureScrollRoot(root);
       var ad = adapter(root);
       applyDensity(root);
       trackClicks(root);

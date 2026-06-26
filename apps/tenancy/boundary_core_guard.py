@@ -13,12 +13,11 @@ from __future__ import annotations
 
 import logging
 import re
-import threading
 import uuid
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Mapping
 
 from apps.tenancy.exceptions import SecurityIsolationException
 

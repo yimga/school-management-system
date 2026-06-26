@@ -67,6 +67,22 @@
     </div>
   </div>
 
+  {% if student_dynamic_fields %}
+  <div class="box" style="margin-top:10px;">
+    <b>{% trans "Student identity & records" %}</b>
+    <table class="table table-sm" aria-label="{% trans 'Custom student fields' %}">
+      <tbody>
+        {% for row in student_dynamic_fields %}
+        <tr>
+          <th scope="row" class="sub">{{ row.label }}</th>
+          <td>{{ row.value }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
   <div class="box" style="margin-top:10px;">
     <div class="sub">
       Weights:

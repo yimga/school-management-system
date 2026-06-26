@@ -31,9 +31,20 @@ def main() -> int:
         "body[data-copilot=\"expanded\"] .rmc-tenant-portal-copilot-mount .lx-copilot__expanded",
         "body[data-copilot=\"expanded\"] .rmc-manager-portal-copilot-mount .lx-copilot__expanded",
         ".rmc-tenant-portal-copilot-mount .lx-copilot__collapsed",
+        "body[data-copilot=\"collapsed\"] .rmc-tenant-portal-copilot-mount .lx-copilot__expanded",
     ):
         if needle not in css:
             findings.append(f"rmc-cp-200x.css: missing '{needle}'")
+
+    if "transition: width var(--motion-slow" not in compact:
+        findings.append(
+            "rmc-platform-vertical-compact.css: missing tenant copilot width transition"
+        )
+
+    if "overflow: hidden" not in compact.split("body[data-rmc-tenant-copilot-rail=\"1\"] .rmc-tenant-portal-copilot-mount")[1][:400]:
+        findings.append(
+            "rmc-platform-vertical-compact.css: tenant copilot mount must clip during collapse"
+        )
 
     if "data-rmc-copilot-mount" not in portal:
         findings.append("portal_base.html: missing data-rmc-copilot-mount wrapper")

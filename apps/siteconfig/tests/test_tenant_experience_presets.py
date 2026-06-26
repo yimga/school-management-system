@@ -11,7 +11,6 @@ from apps.portal.tenant_role_home import role_home_show_legacy
 from apps.siteconfig.tenant_experience_policy import (
     compute_weighted_experience_score,
     experience_score_band,
-    resolve_tenant_experience_policy,
     tenant_experience_policy_defaults,
 )
 from apps.siteconfig.tenant_experience_presets import (

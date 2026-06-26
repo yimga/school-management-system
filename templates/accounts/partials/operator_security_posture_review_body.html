@@ -1,17 +1,44 @@
-{% load i18n %}
-<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="container-fluid py-3" data-rmc-page="security-posture-review">
-  <h1 class="h4 mb-2">{% trans "Security posture review" %}</h1>
-  <p class="text-muted small mb-3">
-    {% blocktrans with days=posture_review_interval_days %}Quarterly check-in (every {{ days }} days).{% endblocktrans %}
+{% load i18n static %}
+<div class="rmc-security-checkpoint-page rmc-security-checkpoint-page--wide" data-rmc-security-checkpoint-page="1" data-rmc-surface-density="hub">
+{% include "components/security_checkpoint_trail.html" with checkpoint_flow="password" %}
+<div data-rmc-scroll-policy="paginate" data-rmc-page="security-posture-review" data-rmc-security-checkpoint="security-posture-operator">
+  <div class="rmc-security-checkpoint__head mb-3" style="border:0;padding:0">
+    <span class="rmc-security-checkpoint__icon" aria-hidden="true"><i class="bi bi-shield-check"></i></span>
+    <div>
+      <div class="rmc-security-checkpoint__eyebrow">{% trans "Quarterly check-in" %}</div>
+      <h1 class="h4 mb-0">{% trans "Review your account security" %}</h1>
+    </div>
+  </div>
+  <p class="rmc-security-checkpoint__sub">
+    {% blocktrans with days=posture_review_interval_days %}RunMyCampus asks every {{ days }} days that you confirm your password, MFA, and profile contact details are still correct.{% endblocktrans %}
   </p>
+
   {% include "accounts/partials/_profile_security_gauge.html" %}
-  <form method="post" class="card shadow-sm mt-3">
-    <div class="card-body">
-      {% csrf_token %}
-      {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
-      <button type="submit" class="btn btn-primary btn-sm">{% trans "I reviewed my security posture" %}</button>
-      <a class="btn btn-outline-secondary btn-sm ms-2" href="{% url 'accounts:user_profile' %}">{% trans "Profile" %}</a>
+
+  <div class="content-card mb-3" style="padding:1rem 1.25rem;">
+    <h2 class="h6">{% trans "Checklist" %}</h2>
+    <ul class="small mb-0">
+      <li>{% trans "Password is strong and not expired" %}</li>
+      <li>{% trans "Multi-factor authentication is enabled" %}</li>
+      <li>{% trans "Email is verified and up to date" %}</li>
+      <li>{% trans "Active sessions belong to devices you still use" %}</li>
+    </ul>
+    <div class="d-flex flex-wrap gap-2 mt-3">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:mfa_setup' %}">{% trans "MFA setup" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:password_change' %}">{% trans "Change password" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:sessions_page' %}">{% trans "Active sessions" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:profile_edit' %}">{% trans "Edit profile" %}</a>
+    </div>
+  </div>
+
+  <form method="post" class="content-card rmc-account-posture-pad">
+    {% csrf_token %}
+    {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+    <p class="small text-muted mb-3">{% trans "By confirming, you attest that you reviewed your security settings this quarter." %}</p>
+    <div class="rmc-security-checkpoint__actions">
+      <button type="submit" class="btn btn-primary">{% trans "I reviewed my security posture" %}</button>
+      <a class="btn btn-outline-secondary" href="{% url 'accounts:user_profile' %}">{% trans "Back to profile" %}</a>
     </div>
   </form>
+</div>
 </div>

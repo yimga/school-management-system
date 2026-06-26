@@ -12,7 +12,7 @@ from django.db import transaction
 from django.db.models import Q
 
 from apps.accounts.models import User
-from apps.academics.models import AcademicYear
+from apps.academics.models import AcademicYear, Classroom, Department
 from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
 from apps.schools.models import School, SchoolMembership
 
@@ -76,15 +76,17 @@ def _ensure_demo_active_term(school: School, year: AcademicYear) -> None:
         from django.db import IntegrityError
         from apps.academics.models import Term
 
-        if Term.objects.filter(academic_year=year, is_active=True).exists():
+        if Term.objects.filter(school=school, academic_year=year, is_active=True).exists():
             return
         existing = (
-            Term.objects.filter(academic_year=year)
+            Term.objects.filter(school=school, academic_year=year)
             .order_by("position", "id")
             .first()
         )
         if existing is not None:
-            Term.objects.filter(academic_year=year, is_active=True).exclude(
+            Term.objects.filter(
+                school=school, academic_year=year, is_active=True
+            ).exclude(
                 pk=existing.pk
             ).update(is_active=False)
             update_fields: list[str] = []
@@ -109,11 +111,15 @@ def _ensure_demo_active_term(school: School, year: AcademicYear) -> None:
                 is_active=True,
             )
         except IntegrityError:
-            fallback = Term.objects.filter(academic_year=year).order_by("position", "id").first()
+            fallback = (
+                Term.objects.filter(school=school, academic_year=year)
+                .order_by("position", "id")
+                .first()
+            )
             if fallback is not None:
-                Term.objects.filter(academic_year=year, is_active=True).exclude(
-                    pk=fallback.pk
-                ).update(is_active=False)
+                Term.objects.filter(
+                    school=school, academic_year=year, is_active=True
+                ).exclude(pk=fallback.pk).update(is_active=False)
                 fallback.is_active = True
                 if fallback.school_id != school.pk:
                     fallback.school = school
@@ -225,6 +231,34 @@ def _ensure_school_demo_portal_toggles_enabled(school: School) -> None:
         pass
 
 
+def _ensure_demo_student_classroom(
+    school: School, year: AcademicYear, student: StudentProfile
+) -> Classroom | None:
+    """Demo student needs a classroom for offline attendance E2E replay."""
+    if student.classroom_id:
+        return student.classroom
+    try:
+        department, _ = Department.objects.get_or_create(
+            school=school,
+            code="DEMO",
+            defaults={"name": "Demo Department"},
+        )
+        classroom, _ = Classroom.objects.get_or_create(
+            school=school,
+            academic_year=year,
+            code="DEMO-1A",
+            defaults={
+                "department": department,
+                "name": "Demo Class 1A",
+            },
+        )
+        student.classroom = classroom
+        student.save(update_fields=["classroom"])
+        return classroom
+    except (AttributeError, TypeError, ValueError):
+        return None
+
+
 def seed_demo_users_for_school(
     school: School,
     *,
@@ -320,6 +354,7 @@ def seed_demo_users_for_school(
             student=student,
             defaults={"relationship": StudentGuardian.Relationship.GUARDIAN},
         )
+        _ensure_demo_student_classroom(school, year, student)
 
     _ensure_demo_portal_toggles_enabled()
     _ensure_school_demo_portal_toggles_enabled(school)

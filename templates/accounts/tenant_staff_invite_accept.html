@@ -1,19 +1,28 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Accept staff invite" %}{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
-
-<div data-rmc-scroll-policy="paginate" class="container py-5" style="max-width: 28rem;">
-  <h1 class="h4 mb-2">{% trans "Join" %} {{ school.name }}</h1>
-  <p class="text-muted small mb-4">{% blocktrans with email=invite.email %}Create your account for <strong>{{ email }}</strong>.{% endblocktrans %}</p>
-  <div class="card shadow-sm">
-    <div class="card-body">
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="invite" %}
+<section class="auth-shell" aria-labelledby="staff-invite-title">
+  <div data-rmc-scroll-policy="paginate" class="auth-card">
+    <div class="rmc-security-checkpoint__head" style="border-bottom:0">
+      <span class="rmc-security-checkpoint__icon" aria-hidden="true"><i class="bi bi-person-plus"></i></span>
+      <div>
+        <div class="rmc-security-checkpoint__eyebrow">{% trans "Staff invite" %}</div>
+        <h1 id="staff-invite-title">{% trans "Join" %} {{ school.name }}</h1>
+      </div>
+    </div>
+    <div class="rmc-security-checkpoint__body">
+      <p class="rmc-security-checkpoint__sub">{% blocktrans with email=invite.email %}Create your account for <strong>{{ email }}</strong>.{% endblocktrans %}</p>
       <form method="post" class="vstack gap-3">
         {% csrf_token %}
         <div>
@@ -24,10 +33,11 @@
         {% trans "Confirm password" as staff_pwd2_label %}
         {% include "components/rmc_password_field.html" with field_id="id_password" field_name="password" label=staff_pwd1_label autocomplete="new-password" minlength="8" %}
         {% include "components/rmc_password_field.html" with field_id="id_password2" field_name="password2" label=staff_pwd2_label autocomplete="new-password" minlength="8" wrap_class="mb-0" %}
-        <button type="submit" class="btn btn-primary">{% trans "Create account" %}</button>
+        <button type="submit" class="btn btn-primary w-100">{% trans "Create account" %}</button>
       </form>
     </div>
   </div>
-</div>
+</section>
+{% include "components/security_checkpoint_page_close.html" %}
 {% include "components/rmc_password_toggle_script.html" %}
 {% endblock %}

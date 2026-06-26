@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Changes review hub — tenant shell + /super/ globe · 2026-06-26</title>
+<link rel="stylesheet" href="../../static/css/design-tokens.css">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,sans-serif;background:#050810;color:#f1f5f9;min-height:100vh;display:flex;flex-direction:column}
+  .hub-top{padding:14px 18px;border-bottom:1px solid rgba(148,163,184,.18);background:rgba(10,14,26,.96);backdrop-filter:blur(12px);position:sticky;top:0;z-index:20}
+  .hub-top h1{margin:0 0 6px;font-size:17px;font-weight:800}
+  .hub-top p{margin:0;font-size:12px;color:#94a3b8;line-height:1.5;max-width:920px}
+  .hub-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .hub-tabs button{font:inherit;font-size:12px;font-weight:700;padding:8px 14px;border-radius:999px;border:1px solid rgba(148,163,184,.25);background:rgba(18,24,41,.9);color:#e2e8f0;cursor:pointer}
+  .hub-tabs button.on{border-color:#818cf8;background:rgba(129,140,248,.18);color:#fff}
+  .hub-tabs button em{font-style:normal;font-size:10px;font-weight:600;color:#6ee7b7;margin-left:6px}
+  .hub-body{flex:1;display:flex;flex-direction:column;min-height:0}
+  .panel{display:none;flex:1;flex-direction:column;min-height:0}
+  .panel.on{display:flex}
+  .panel-head{padding:10px 18px;font-size:11px;color:#94a3b8;border-bottom:1px solid rgba(148,163,184,.12);background:rgba(12,16,28,.85)}
+  .panel-head strong{color:#f1f5f9}
+  .panel-head a{color:#818cf8;margin-left:10px}
+  .panel iframe{flex:1;border:0;width:100%;min-height:calc(100dvh - 168px);background:#0a0e18}
+  .checklist{padding:12px 18px 0;font-size:11px;color:#94a3b8;line-height:1.6}
+  .checklist ul{margin:6px 0 0;padding-left:18px}
+  .checklist li{margin-bottom:4px}
+  .checklist code{font-size:10px;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;color:#c4b5fd}
+</style>
+</head>
+<body>
+<header class="hub-top">
+  <h1>Changes review hub — approve before prod merge</h1>
+  <p>Static HTML mirrors using live <code>static/css/</code> from the repo. Use tabs below — each opens a full preview. Hard-refresh (<kbd>Ctrl+Shift+R</kbd>) if CSS looks stale.</p>
+  <div class="hub-tabs" role="tablist">
+    <button type="button" class="on" data-panel="tenant" role="tab" aria-selected="true">① Tenant shell <em>sidebar scroll · header · copilot</em></button>
+    <button type="button" data-panel="globe" role="tab">② /super/ globe <em>bright colors · sun/moon</em></button>
+    <button type="button" data-panel="globe-wow" role="tab">③ Globe WOW v2 deck</button>
+    <button type="button" data-panel="tenant-proposal" role="tab">④ Zero-friction lab</button>
+  </div>
+  <div class="checklist">
+    <strong style="color:#6ee7b7">What to verify</strong>
+    <ul>
+      <li><b>Tenant:</b> sidebar scrolls internally · collapsible groups · header/copilot pinned · main column scroll only</li>
+      <li><b>Globe:</b> brighter indigo/emerald palette · sun orb on day side · moon on night side · terminator moves with UTC</li>
+      <li><b>Prod Django:</b> after HTML sign-off → <code>/super/</code> + tenant login paths get same CSS/JS bundle</li>
+    </ul>
+  </div>
+</header>
+<div class="hub-body">
+  <section class="panel on" id="panel-tenant" role="tabpanel">
+    <div class="panel-head"><strong>Tenant v3 shell</strong> — maps to <code>portal_base.html</code> + workspace canvas + cp parity
+      <a href="tenant-implemented-shell-live.html" target="_blank" rel="noopener">Open full tab ↗</a></div>
+    <iframe src="tenant-implemented-shell-live.html" title="Tenant implemented shell preview"></iframe>
+  </section>
+  <section class="panel" id="panel-globe" role="tabpanel">
+    <div class="panel-head"><strong>/super/ globe landing</strong> — bright colors + day/night sun/moon (prod: <code>rmc-cp-200x.css</code> + <code>world-globe.mount.js</code>)
+      <a href="globe-landing-ai-frame-fit-preview.html" target="_blank" rel="noopener">Open full tab ↗</a></div>
+    <iframe src="globe-landing-ai-frame-fit-preview.html" title="Globe landing preview"></iframe>
+  </section>
+  <section class="panel" id="panel-globe-wow" role="tabpanel">
+    <div class="panel-head"><strong>Globe WOW v2 command deck</strong> — production deck rails
+      <a href="globe-landing-wow-v2-browsable.html" target="_blank" rel="noopener">Open full tab ↗</a></div>
+    <iframe src="globe-landing-wow-v2-browsable.html" title="Globe WOW v2 deck preview"></iframe>
+  </section>
+  <section class="panel" id="panel-tenant-proposal" role="tabpanel">
+    <div class="panel-head"><strong>Zero-friction tenant lab</strong> — earlier design reference
+      <a href="tenant-surface-world-class-proposal.html" target="_blank" rel="noopener">Open full tab ↗</a></div>
+    <iframe src="tenant-surface-world-class-proposal.html" title="Tenant surface proposal"></iframe>
+  </section>
+</div>
+<script>
+(function () {
+  var tabs = document.querySelectorAll(".hub-tabs button");
+  var panels = document.querySelectorAll(".panel");
+  tabs.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var id = btn.getAttribute("data-panel");
+      tabs.forEach(function (b) {
+        b.classList.toggle("on", b === btn);
+        b.setAttribute("aria-selected", b === btn ? "true" : "false");
+      });
+      panels.forEach(function (p) {
+        p.classList.toggle("on", p.id === "panel-" + id);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,26 +1,29 @@
 {% load i18n static %}
-<section class="rmc-mfa-inline-wizard content-card mb-3" id="profile-mfa-wizard" data-rmc-section-anchor data-rmc-section-nav-label="{% trans 'Set up MFA' %}" aria-labelledby="profile-mfa-wizard-title">
+<section class="rmc-mfa-inline-wizard rmc-security-checkpoint__card content-card mb-3" id="profile-mfa-wizard" data-rmc-section-anchor data-rmc-section-nav-label="{% trans 'Set up MFA' %}" data-rmc-security-checkpoint="mfa-setup-inline" aria-labelledby="profile-mfa-wizard-title">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="rmc-mfa-inline-wizard__head d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
-    <div>
-      <div class="eyebrow text-muted small text-uppercase">{% trans "Authenticator" %}</div>
-      <h2 id="profile-mfa-wizard-title" class="h6 mb-0">{% trans "Set up MFA inline" %}</h2>
+  <div class="rmc-security-checkpoint__head rmc-mfa-inline-wizard__head d-flex flex-wrap align-items-start justify-content-between gap-2" style="border-bottom:0">
+    <div class="d-flex gap-2 align-items-start">
+      <span class="rmc-security-checkpoint__icon" style="width:2rem;height:2rem;font-size:0.875rem" aria-hidden="true"><i class="bi bi-shield-lock"></i></span>
+      <div>
+        <div class="rmc-security-checkpoint__eyebrow">{% trans "Authenticator" %}</div>
+        <h2 id="profile-mfa-wizard-title" class="h6 mb-0">{% trans "Set up MFA inline" %}</h2>
+      </div>
     </div>
     <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:mfa_setup' %}">{% trans "Full-page setup" %}</a>
   </div>
 
   {% if messages %}
     {% for message in messages %}
-      <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show py-2 small" role="alert">
+      <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show py-2 small mx-3 mt-2" role="alert">
         {{ message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'Close' %}"></button>
       </div>
     {% endfor %}
   {% endif %}
 
-  <div class="rmc-account-mfa-card__body">
+  <div class="rmc-security-checkpoint__body rmc-account-mfa-card__body">
     {% if not has_mfa and not qr_code %}
-      <p class="small text-muted mb-3">{% trans "Add a one-time code from your phone as a second factor." %}</p>
+      <p class="rmc-security-checkpoint__sub">{% trans "Add a one-time code from your phone as a second factor." %}</p>
       <form method="post" action="{% url 'accounts:user_profile' %}#profile-mfa-wizard">
         {% csrf_token %}
         <input type="hidden" name="mfa_inline" value="1">
@@ -31,29 +34,32 @@
 
     {% elif qr_code %}
       <div class="rmc-banner rmc-banner--warning py-2 small mb-3">{% trans "Save your secret key before closing this page." %}</div>
-      <div class="rmc-account-mfa-qr-wrap mb-3">
-        <img src="data:image/png;base64,{{ qr_code }}" alt="{% trans 'MFA QR code' %}" width="200" height="200" decoding="async" class="img-fluid" style="max-width:200px;border-radius:8px;background:var(--color-base-0);padding:10px">
-      </div>
-      <div class="rmc-account-mfa-secret mb-3">
-        <code class="small">{{ secret_key }}</code>
-        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" data-rmc-copy-mfa-secret="{{ secret_key }}">{% trans "Copy" %}</button>
+      <div class="rmc-security-checkpoint__qr-grid">
+        <div class="rmc-security-checkpoint__qr-wrap rmc-account-mfa-qr-wrap">
+          <img src="data:image/png;base64,{{ qr_code }}" alt="{% trans 'MFA QR code' %}" width="140" height="140" decoding="async">
+        </div>
+        <div>
+          <p class="rmc-security-checkpoint__sub mb-1">{% trans "Can't scan? Enter this key manually:" %}</p>
+          <div class="rmc-security-checkpoint__secret">
+            <code class="small">{{ secret_key }}</code>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-secondary mt-2" data-rmc-copy-mfa-secret="{{ secret_key }}">{% trans "Copy" %}</button>
+        </div>
       </div>
       <form method="post" action="{% url 'accounts:user_profile' %}#profile-mfa-wizard">
         {% csrf_token %}
         <input type="hidden" name="mfa_inline" value="1">
         <input type="hidden" name="device_id" value="{{ device_id }}">
-        <label class="form-label small fw-semibold" for="mfa-inline-token">{% trans "6-digit code" %}</label>
-        <div class="input-group input-group-sm mb-2">
-          <input id="mfa-inline-token" type="text" name="token" class="form-control" inputmode="numeric" maxlength="6" pattern="\d{6}" required autocomplete="one-time-code" placeholder="000000">
-          <button type="submit" name="verify_token" class="btn btn-primary">{% trans "Verify" %}</button>
-        </div>
+        <label class="visually-hidden" for="mfa-inline-token">{% trans "6-digit code" %}</label>
+        {% include "components/security_checkpoint_otp.html" with input_id="mfa-inline-token" autofocus=True %}
+        <button type="submit" name="verify_token" class="btn btn-primary w-100 mt-2">{% trans "Verify" %}</button>
       </form>
 
     {% else %}
       <div class="rmc-banner rmc-banner--success py-2 small mb-2">{% trans "MFA is enabled on this account." %}</div>
       {% if backup_tokens %}
       <p class="small text-muted mb-2">{% trans "Backup codes (store securely):" %}</p>
-      <div class="d-flex flex-wrap gap-1 mb-3">
+      <div class="rmc-security-checkpoint__backup-codes">
         {% for code in backup_tokens|slice:":6" %}
         <span class="rmc-badge font-monospace">{{ code }}</span>
         {% endfor %}
@@ -68,3 +74,4 @@
   </div>
 </section>
 <script src="{% static 'js/rmc-mfa-inline-copy.js' %}" defer></script>
+<script src="{% static 'js/rmc-mfa-otp.js' %}" defer nonce="{{ csp_nonce }}"></script>

@@ -28,14 +28,14 @@ _PROBE = (
     "django.setup();"
     "from django.conf import settings as s;"
     "topts = getattr(s, 'CELERY_BROKER_TRANSPORT_OPTIONS', {}) or {};"
-    "print('PROBE::' + json.dumps({"
+    "import sys; sys.stdout.write('PROBE::' + json.dumps({"
     "'broker': bool(getattr(s, 'CELERY_BROKER_URL', '')),"
     "'eager': bool(getattr(s, 'CELERY_TASK_ALWAYS_EAGER', False)),"
     "'connect_timeout': topts.get('socket_connect_timeout'),"
     "'socket_timeout': topts.get('socket_timeout'),"
     "'publish_retry': getattr(s, 'CELERY_TASK_PUBLISH_RETRY', None),"
     "'retry_on_startup': getattr(s, 'CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP', None),"
-    "}))"
+    "}) + '\\n')"
 )
 
 

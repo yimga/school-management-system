@@ -6,6 +6,12 @@
 (function () {
   var LS_KEY = 'rmc-offline-outbox-v1';
   var FLUSHING = false;
+  var globalRoot =
+    typeof globalThis !== 'undefined'
+      ? globalThis
+      : typeof window !== 'undefined'
+        ? window
+        : {};
 
   function getConfig() {
     return window.SMS_OFFLINE_CONFIG || {};
@@ -222,10 +228,10 @@
   function offlineActionAllowed(actionType) {
     var code = OFFLINE_ACTION_CAPABILITY[actionType];
     if (!code) return true;
-    if (!global.RMCIamSnapshot || typeof global.RMCIamSnapshot.hasCapability !== 'function') {
+    if (!globalRoot.RMCIamSnapshot || typeof globalRoot.RMCIamSnapshot.hasCapability !== 'function') {
       return true;
     }
-    return global.RMCIamSnapshot.hasCapability(code);
+    return globalRoot.RMCIamSnapshot.hasCapability(code);
   }
 
   function enqueueAction(payload) {

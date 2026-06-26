@@ -138,10 +138,6 @@ html[data-rmc-tp-v3-shell="1"] .tp-mission__clicks {
 }
 
 /* Onboarding: expanded copilot panel visible (preview shows open panel) */
-body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .rmc-tenant-portal-copilot-mount {
-  z-index: 50;
-}
-
 body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .lx-copilot__expanded {
   box-shadow: var(--elev-3, 0 24px 70px rgba(0, 0, 0, 0.35));
   border-left: 1px solid var(--hairline);

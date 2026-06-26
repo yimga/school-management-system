@@ -14,7 +14,7 @@ from __future__ import annotations
 from unittest import mock
 
 from django.contrib.auth import get_user_model
-from django.test import RequestFactory, TestCase, override_settings
+from django.test import TestCase, override_settings
 
 from apps.schools import tenant_offboarding as to
 from apps.schools.models import School

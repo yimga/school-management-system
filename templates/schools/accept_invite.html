@@ -1,30 +1,42 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}{% trans "Accept invitation" %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
-
-<div data-rmc-scroll-policy="paginate" class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      {% if invalid %}
-      <h1 class="h3 mb-3">{% trans "Invitation not valid" %}</h1>
-      <div class="rmc-banner rmc-banner--error">{% trans "This invitation link is invalid, expired, revoked, or has already been accepted." %}</div>
-      <p><a href="{% url 'signup_school' %}">{% trans "You can still sign up your school here" %}</a>.</p>
-      {% else %}
-      <h1 class="h3 mb-2">{% trans "You're invited to RunMyCampus" %}</h1>
-      {% if invite_school_name %}
-      <p class="text-muted">{% blocktrans trimmed with name=invite_school_name %}Set up {{ name }} on RunMyCampus. Click below to start the guided onboarding — no separate sign-up needed.{% endblocktrans %}</p>
-      {% else %}
-      <p class="text-muted">{% trans "Set up your school on RunMyCampus. Click below to start the guided onboarding — no separate sign-up needed." %}</p>
-      {% endif %}
-      <p class="small text-muted">{% trans "Invited:" %} {{ invite_email }}</p>
-      <a href="{{ signup_url }}" class="btn btn-primary">{% trans "Accept & set up my school" %}</a>
-      {% endif %}
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="invite" %}
+<section class="auth-shell" aria-labelledby="accept-invite-title">
+  <div data-rmc-scroll-policy="paginate" class="auth-card">
+    {% if invalid %}
+    <div class="rmc-security-checkpoint__icon mx-auto mb-3" style="background:color-mix(in oklab, var(--ds-danger) 12%, transparent);color:var(--ds-danger)" aria-hidden="true"><i class="bi bi-exclamation-circle"></i></div>
+    <h1 id="accept-invite-title" class="h4">{% trans "Invitation not valid" %}</h1>
+    <div class="rmc-banner rmc-banner--error mb-3">{% trans "This invitation link is invalid, expired, revoked, or has already been accepted." %}</div>
+    <a class="btn btn-primary w-100" href="{% url 'signup_school' %}">{% trans "You can still sign up your school here" %}</a>
+    {% else %}
+    <div class="rmc-security-checkpoint__head" style="border-bottom:0">
+      <span class="rmc-security-checkpoint__icon" aria-hidden="true"><i class="bi bi-envelope-open"></i></span>
+      <div>
+        <div class="rmc-security-checkpoint__eyebrow">{% trans "Invitation" %}</div>
+        <h1 id="accept-invite-title">{% trans "You're invited to RunMyCampus" %}</h1>
+      </div>
     </div>
+    <div class="rmc-security-checkpoint__body">
+      {% if invite_school_name %}
+      <p class="rmc-security-checkpoint__sub">{% blocktrans trimmed with name=invite_school_name %}Set up {{ name }} on RunMyCampus. Click below to start the guided onboarding — no separate sign-up needed.{% endblocktrans %}</p>
+      {% else %}
+      <p class="rmc-security-checkpoint__sub">{% trans "Set up your school on RunMyCampus. Click below to start the guided onboarding — no separate sign-up needed." %}</p>
+      {% endif %}
+      <p class="small text-muted mb-3">{% trans "Invited:" %} {{ invite_email }}</p>
+      <a href="{{ signup_url }}" class="btn btn-primary w-100">{% trans "Accept & set up my school" %}</a>
+    </div>
+    {% endif %}
   </div>
-</div>
+</section>
+{% include "components/security_checkpoint_page_close.html" %}
 {% endblock %}

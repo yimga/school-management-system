@@ -476,9 +476,19 @@ def _apply_auto_fix_kind_impl(*, run: Any, kind: str) -> dict[str, Any]:
             from apps.events.models import WebhookDelivery
             from apps.events.webhooks import replay_webhook_delivery
 
-            delivery = WebhookDelivery.objects.filter(pk=domain_delivery_id).first()
+            run_school_id = getattr(run, "school_id", None) or payload.get("school_id")
+            delivery = (
+                WebhookDelivery.objects.filter(pk=domain_delivery_id)  # tenant-isolation-allow: workflow-webhook-replay-by-pk-with-run-school-validation
+                .select_related("subscription", "domain_event")
+                .first()
+            )
             if delivery is None:
                 return {"ok": False, "reason": "webhook_delivery_not_found", "kind": kind}
+            if run_school_id:
+                sub_school = getattr(delivery.subscription, "school_id", None)
+                evt_school = getattr(delivery.domain_event, "school_id", None)
+                if str(sub_school or evt_school or "") != str(run_school_id):
+                    return {"ok": False, "reason": "webhook_delivery_tenant_mismatch", "kind": kind}
             replayed = replay_webhook_delivery(delivery)
             result = {
                 "ok": True,

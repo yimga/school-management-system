@@ -4,59 +4,91 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RunMyCampus · Implemented tenant shell (live Django contract)</title>
-<!--
-  OPEN THIS FILE in a browser — mirrors what shipped in Django:
-  · portal_base.html + tp_header_brand + tenant_primary_nav
-  · tp_mission_strip.html (zero-friction mission)
-  · rmc-tenant-header-100x.css (manager-matched header height)
-  · rmc-tenant-v3-100x-role-home.css (unified sidebar)
-  · cockpit _ai_copilot_rail.html (tenant endpoints + RBAC)
-  · studio_os now inherits tp_v3_tenant_shell
--->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="../../static/css/design-tokens.css">
 <link rel="stylesheet" href="../../static/css/rmc-platform-header.css">
 <link rel="stylesheet" href="../../static/css/rmc-tenant-header-100x.css">
 <link rel="stylesheet" href="../../static/css/rmc-tenant-v3-100x-role-home.css">
 <link rel="stylesheet" href="../../static/css/rmc-tenant-preview-live-bridge.css">
+<link rel="stylesheet" href="../../static/css/rmc-tenant-workspace-canvas.css">
+<link rel="stylesheet" href="../../static/css/rmc-tenant-cp-parity.css">
 <link rel="stylesheet" href="../../static/css/portal-sidebar.css">
+<link rel="stylesheet" href="../../static/css/rmc-tenant-app-shell-100x.css">
+<link rel="stylesheet" href="../../static/css/rmc-platform-vertical-compact.css">
 <link rel="stylesheet" href="../../static/css/rmc-cp-200x.css">
 <style>
   *{box-sizing:border-box}
   body{margin:0;font-family:Inter,system-ui,sans-serif;font-size:14px;background:var(--surface-bg,#f7f8fa);color:var(--text-primary)}
-  body.tp-v3-inner.portal-body-with-layout{min-height:100vh;display:flex;flex-direction:column}
-  .preview-flag{position:sticky;top:0;z-index:9999;background:#4f46e5;color:#fff;font-size:11px;font-weight:700;text-align:center;padding:7px}
-  .preview-flag a{color:#fff}
-  .shell-wrap{flex:1;display:grid;grid-template-columns:252px 1fr 52px;min-height:0}
-  .shell-wrap.copilot-open{grid-template-columns:252px 1fr 52px 340px}
-  .main-col{overflow-y:auto;padding:14px 18px 80px}
+  /* Preview-only: full viewport chrome review — file map is off-canvas */
+  .preview-flag{
+    flex:0 0 auto;z-index:1036;background:#4f46e5;color:#fff;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;gap:12px;padding:6px 12px
+  }
+  .preview-flag a,.preview-flag button{color:#fff;background:transparent;border:1px solid rgba(255,255,255,.35);
+    border-radius:8px;padding:2px 8px;font-size:10px;font-weight:700;cursor:pointer;text-decoration:none}
+  .preview-flag button:hover,.preview-flag a:hover{background:rgba(255,255,255,.12)}
+  html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .shell-wrap{
+    flex:1 1 auto;min-height:0;max-height:100%;overflow:hidden
+  }
+  .shell-wrap{display:grid;grid-template-columns:252px minmax(0,1fr);min-height:0;flex:1 1 auto}
+  .main-col{overflow-y:auto;padding:14px 18px 80px;min-height:0}
   .card{border:1px solid var(--hairline);border-radius:16px;background:var(--surface-canvas);padding:18px}
-  .dock{position:sticky;bottom:0;margin-top:16px;padding:10px 14px;border:1px solid var(--hairline);border-radius:16px 16px 0 0;background:var(--surface-popover);display:flex;gap:10px;align-items:center}
-  .rail{border-left:1px solid var(--hairline);background:var(--surface-canvas);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px}
-  .rail button{width:38px;height:38px;border:0;border-radius:10px;background:transparent;color:var(--text-secondary);font-size:16px;cursor:pointer}
-  .rail button.on{background:var(--brand-primary);color:#fff}
-  .cp{border-left:1px solid var(--hairline);background:var(--surface-elevated);padding:12px;display:flex;flex-direction:column;gap:8px;font-size:12px}
-  .cp-act{display:flex;gap:8px;padding:10px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-canvas);text-align:left;width:100%;cursor:pointer;align-items:flex-start}
-  .cp-act .tap{margin-left:auto;font-size:9px;font-weight:800;padding:3px 7px;border-radius:999px;background:var(--brand-accent);color:#04120c}
-  .spec{margin:20px;padding:16px;border:1px dashed var(--hairline);border-radius:14px;font-size:12px;color:var(--text-secondary)}
-  .spec code{font-size:11px;background:var(--surface-elevated);padding:1px 5px;border-radius:4px}
+  .dock{position:sticky;bottom:0;margin-top:16px;padding:10px 14px;border:1px solid var(--hairline);
+    border-radius:16px 16px 0 0;background:var(--surface-popover);display:flex;gap:10px;align-items:center}
+  /* Off-canvas file map — does NOT block chrome */
+  .file-map-fab{
+    position:fixed;right:16px;bottom:16px;z-index:10050;padding:10px 14px;border:0;border-radius:999px;
+    background:var(--surface-popover);color:var(--text-primary);font-size:12px;font-weight:700;cursor:pointer;
+    box-shadow:0 4px 20px rgba(0,0,0,.12);border:1px solid var(--hairline)
+  }
+  .file-map-fab:hover{background:var(--surface-elevated)}
+  .file-map-drawer{
+    position:fixed;inset:0;z-index:10040;pointer-events:none;visibility:hidden;opacity:0;
+    transition:opacity .2s ease,visibility .2s
+  }
+  .file-map-drawer.is-open{pointer-events:auto;visibility:visible;opacity:1}
+  .file-map-drawer__backdrop{position:absolute;inset:0;background:rgba(15,23,42,.45)}
+  .file-map-drawer__panel{
+    position:absolute;right:0;top:0;bottom:0;width:min(420px,92vw);background:var(--surface-canvas);
+    border-left:1px solid var(--hairline);padding:18px 20px;overflow-y:auto;
+    transform:translateX(100%);transition:transform .25s ease
+  }
+  .file-map-drawer.is-open .file-map-drawer__panel{transform:translateX(0)}
+  .file-map-drawer__panel h2{margin:0 0 10px;font-size:15px}
+  .file-map-drawer__panel ul{margin:0;padding-left:18px;line-height:1.7;font-size:12px;color:var(--text-secondary)}
+  .file-map-drawer__panel code{font-size:11px;background:var(--surface-elevated);padding:1px 5px;border-radius:4px}
+  .file-map-drawer__close{
+    position:absolute;top:12px;right:12px;width:32px;height:32px;border:1px solid var(--hairline);
+    border-radius:8px;background:var(--surface-elevated);cursor:pointer;font-size:16px
+  }
+  .scroll-hint{
+    margin:0 0 12px;padding:10px 12px;border-radius:10px;background:color-mix(in oklab,var(--brand-primary) 8%,transparent);
+    border:1px solid var(--hairline);font-size:12px;color:var(--text-secondary)
+  }
+  .scroll-hint strong{color:var(--text-primary)}
+  .filler-block{height:480px;margin-top:12px;padding:16px;border:1px dashed var(--hairline);border-radius:12px;
+    font-size:12px;color:var(--text-secondary);display:flex;align-items:center;justify-content:center}
 </style>
 </head>
-<body class="tp-v3-inner portal-body-with-layout backend-shell" data-rmc-tenant-copilot-rail="1" data-copilot="expanded">
+<body class="tp-v3-inner portal-body-with-layout backend-shell"
+      data-rmc-tenant-copilot-rail="1"
+      data-rmc-cp-scroll="canvas"
+      data-copilot="collapsed">
 
-<div class="preview-flag">
-  IMPLEMENTED SHELL — open in browser · CSS from <code>static/css/</code> ·
-  <a href="tenant-surface-world-class-proposal.html">Zero-friction v3 lab</a> ·
-  <a href="tenant-admin-cockpit-before-after.html">Before/after lab</a>
+<div class="preview-flag" data-shell-chrome="site-preview-banner-top">
+  <span>IMPLEMENTED SHELL — chrome review mode</span>
+  <a href="tenant-surface-world-class-proposal.html">Zero-friction lab</a>
+  <button type="button" id="toggle-copilot" aria-pressed="false">Toggle copilot</button>
+  <button type="button" id="open-file-map">File map</button>
 </div>
 
-<!-- ========== portal_base: .tp-header ========== -->
-<div class="tp-header" data-rmc-tenant-header-100x="1">
-  <div id="portalHeader" class="tp-header__row" role="banner">
-    <div class="container-fluid px-3 tp-header__row-inner" style="display:flex;align-items:center;gap:12px;width:100%">
+<!-- portal_base: .tp-header -->
+<div class="tp-header cp-header cp-header--tenant" data-rmc-tenant-header-100x="1">
+  <div id="portalHeader" class="tp-header__row cp-header__row" role="banner">
+    <div class="container-fluid px-3 tp-header__row-inner cp-header__row-inner" style="display:flex;align-items:center;gap:12px;width:100%">
 
-      <!-- partials/tenant/tp_header_brand.html -->
-      <a href="#" class="tp-brand" data-rmc-tp-header-brand="1">
+      <!-- tp_header_brand.html -->
+      <a href="#" class="tp-brand cp-header__brand" data-rmc-tp-header-brand="1">
         <span class="tp-brand__mark" aria-hidden="true">N</span>
         <span class="tp-brand__text">
           <span class="tp-brand__name">
@@ -70,21 +102,20 @@
         </span>
       </a>
 
-      <!-- partials/tenant_primary_nav.html (inline at lg+) -->
+      <!-- tenant_primary_nav.html -->
       <div class="tp-primary-nav-inline d-none d-lg-flex" data-rmc-tenant-primary-nav-inline="1">
-        <nav class="tp-primary-nav" aria-label="Primary portal navigation" data-rmc-tenant-primary-nav="1">
-          <a href="#" class="tp-primary-nav__item" aria-current="page">🏠 Home</a>
-          <a href="#" class="tp-primary-nav__item">💳 Finance</a>
-          <a href="#" class="tp-primary-nav__item">💬 Messages</a>
-          <a href="#" class="tp-primary-nav__item">📊 Analytics</a>
+        <nav class="tp-primary-nav cp-header__nav" aria-label="Primary portal navigation" data-rmc-tenant-primary-nav="1">
+          <a href="#" class="tp-primary-nav__item cp-header__nav-item" aria-current="page"><i class="bi bi-house-door"></i> Home</a>
+          <a href="#" class="tp-primary-nav__item cp-header__nav-item"><i class="bi bi-credit-card"></i> Finance</a>
+          <a href="#" class="tp-primary-nav__item cp-header__nav-item"><i class="bi bi-chat-dots"></i> Messages</a>
+          <a href="#" class="tp-primary-nav__item cp-header__nav-item"><i class="bi bi-graph-up"></i> Analytics</a>
         </nav>
       </div>
 
-      <span class="tp-header__vrule d-none d-lg-block" aria-hidden="true"></span>
+      <span class="tp-header__vrule cp-header__vrule d-none d-lg-block" aria-hidden="true"></span>
 
-      <!-- portal_base header search cluster -->
-      <div class="topbar-actions d-flex align-items-center gap-3 ms-auto">
-        <div class="topbar-search search-bar-wrapper" style="display:flex;align-items:center;gap:8px;flex:1;max-width:420px">
+      <div class="topbar-actions cp-header__actions d-flex align-items-center gap-3 ms-auto">
+        <div class="topbar-search search-bar-wrapper cp-header__search" style="display:flex;align-items:center;gap:8px;flex:1;max-width:420px">
           <input type="search" class="form-control form-control-sm topbar-search-input" placeholder="Search students, teachers, invoices…" id="headerSearchInput">
           <span class="topbar-search-kbd">Ctrl+K</span>
         </div>
@@ -99,7 +130,7 @@
     </div>
   </div>
 
-  <!-- partials/tenant/tp_mission_strip.html (portal_base — not on studio_os) -->
+  <!-- tp_mission_strip.html -->
   <section class="tp-mission" data-rmc-tp-mission="1" aria-label="Next best action" style="--tp-mission-pct: 42%;">
     <div class="tp-mission__ring" aria-hidden="true"><span>42%</span></div>
     <div class="tp-mission__copy">
@@ -116,95 +147,182 @@
   </section>
 </div>
 
-<div class="shell-wrap copilot-open">
-  <!-- portal_base: .portal-sidebar-col (unified canvas — no glass fork) -->
-  <aside class="portal-sidebar-col rmc-nav-sidebar__mount" data-shell-sidebar="portal" style="display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--hairline)">
-    <div class="tp-sidebar-inner sidebar p-3 tp-sidebar-inner--v3" style="flex:1;overflow-y:auto">
-      <nav class="nav flex-column gap-0" data-sidebar-nav="true">
-        <div class="sidebar-section-title">Quick access</div>
-        <a class="nav-link nav-pill active" href="#"><i class="bi bi-magic me-2"></i>Resume migration</a>
-        <a class="nav-link nav-pill" href="#"><i class="bi bi-people me-2"></i>Students</a>
-        <div class="sidebar-section-title">Today</div>
-        <a class="nav-link nav-pill" href="#"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-        <a class="nav-link nav-pill" href="#"><i class="bi bi-magic me-2"></i>Setup wizards</a>
-        <div class="sidebar-section-title">People</div>
-        <a class="nav-link nav-pill" href="#"><i class="bi bi-people me-2"></i>Students</a>
-        <a class="nav-link nav-pill" href="#"><i class="bi bi-person-badge me-2"></i>Staff</a>
+<div class="shell-wrap" id="shell-wrap">
+  <!-- portal_sidebar.html + portal_sidebar_v8_groups.html -->
+  <aside class="portal-sidebar-col rmc-nav-sidebar__mount cp-sidebar" data-shell-sidebar="portal" style="display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--hairline)">
+    <div class="tp-sidebar-inner sidebar tp-sidebar-inner--v3 cp-sidebar__scroll" style="flex:1;overflow-y:auto;min-height:0">
+      <nav class="cp-sidebar__nav" data-sidebar-nav="true" aria-label="Portal sidebar">
+        <details class="cp-sidebar__group cp-sidebar__group--tenant cp-sidebar__group--expanded" open data-rmc-portal-sidebar-group="quick-access">
+          <summary class="cp-sidebar__section cp-sidebar__group-toggle cp-sidebar__section--first">Quick access</summary>
+          <a class="cp-sidebar__item cp-sidebar__item--current" href="#" aria-current="page">
+            <span class="cp-sidebar__item-label"><i class="bi bi-magic cp-nav-icon"></i><span class="cp-nav-label">Resume migration</span></span>
+          </a>
+          <a class="cp-sidebar__item" href="#">
+            <span class="cp-sidebar__item-label"><i class="bi bi-people cp-nav-icon"></i><span class="cp-nav-label">Students</span></span>
+          </a>
+        </details>
+        <details class="cp-sidebar__group cp-sidebar__group--tenant" open data-rmc-portal-sidebar-group="today">
+          <summary class="cp-sidebar__section cp-sidebar__group-toggle">Today</summary>
+          <a class="cp-sidebar__item" href="#">
+            <span class="cp-sidebar__item-label"><i class="bi bi-speedometer2 cp-nav-icon"></i><span class="cp-nav-label">Dashboard</span></span>
+          </a>
+          <a class="cp-sidebar__item" href="#">
+            <span class="cp-sidebar__item-label"><i class="bi bi-magic cp-nav-icon"></i><span class="cp-nav-label">Setup wizards</span></span>
+          </a>
+        </details>
+        <details class="cp-sidebar__group cp-sidebar__group--tenant" data-rmc-portal-sidebar-group="people">
+          <summary class="cp-sidebar__section cp-sidebar__group-toggle">People</summary>
+          <a class="cp-sidebar__item" href="#">
+            <span class="cp-sidebar__item-label"><i class="bi bi-people cp-nav-icon"></i><span class="cp-nav-label">Students</span></span>
+          </a>
+          <a class="cp-sidebar__item" href="#">
+            <span class="cp-sidebar__item-label"><i class="bi bi-person-badge cp-nav-icon"></i><span class="cp-nav-label">Staff</span></span>
+          </a>
+          <a class="cp-sidebar__item" href="#">
+            <span class="cp-sidebar__item-label"><i class="bi bi-person-hearts cp-nav-icon"></i><span class="cp-nav-label">Guardians</span></span>
+          </a>
+        </details>
+        <details class="cp-sidebar__group cp-sidebar__group--tenant" open data-rmc-portal-sidebar-group="academics">
+          <summary class="cp-sidebar__section cp-sidebar__group-toggle">Academics</summary>
+          <a class="cp-sidebar__item" href="#"><span class="cp-sidebar__item-label"><i class="bi bi-journal-text cp-nav-icon"></i><span class="cp-nav-label">Gradebook</span></span></a>
+          <a class="cp-sidebar__item" href="#"><span class="cp-sidebar__item-label"><i class="bi bi-calendar3 cp-nav-icon"></i><span class="cp-nav-label">Timetable</span></span></a>
+          <a class="cp-sidebar__item" href="#"><span class="cp-sidebar__item-label"><i class="bi bi-clipboard-check cp-nav-icon"></i><span class="cp-nav-label">Attendance</span></span></a>
+        </details>
+        <details class="cp-sidebar__group cp-sidebar__group--tenant" data-rmc-portal-sidebar-group="finance">
+          <summary class="cp-sidebar__section cp-sidebar__group-toggle">Finance</summary>
+          <a class="cp-sidebar__item" href="#"><span class="cp-sidebar__item-label"><i class="bi bi-receipt cp-nav-icon"></i><span class="cp-nav-label">Invoices</span></span></a>
+          <a class="cp-sidebar__item" href="#"><span class="cp-sidebar__item-label"><i class="bi bi-cash-stack cp-nav-icon"></i><span class="cp-nav-label">Fee collection</span></span></a>
+          <a class="cp-sidebar__item" href="#"><span class="cp-sidebar__item-label"><i class="bi bi-pie-chart cp-nav-icon"></i><span class="cp-nav-label">Reports</span></span></a>
+        </details>
+        <details class="cp-sidebar__group cp-sidebar__group--tenant" data-rmc-portal-sidebar-group="operations">
+          <summary class="cp-sidebar__section cp-sidebar__group-toggle">Operations</summary>
+          <a class="cp-sidebar__item" href="#"><span class="cp-sidebar__item-label"><i class="bi bi-bus-front cp-nav-icon"></i><span class="cp-nav-label">Transport</span></span></a>
+          <a class="cp-sidebar__item" href="#"><span class="cp-sidebar__item-label"><i class="bi bi-house cp-nav-icon"></i><span class="cp-nav-label">Hostel</span></span></a>
+          <a class="cp-sidebar__item" href="#"><span class="cp-sidebar__item-label"><i class="bi bi-egg-fried cp-nav-icon"></i><span class="cp-nav-label">Cafeteria</span></span></a>
+          <a class="cp-sidebar__item" href="#"><span class="cp-sidebar__item-label"><i class="bi bi-shield-check cp-nav-icon"></i><span class="cp-nav-label">Compliance</span></span></a>
+        </details>
       </nav>
     </div>
   </aside>
 
-  <!-- portal_base: #main-content -->
+  <!-- #main-content — ONLY this column scrolls -->
   <main class="main-col portal-main-col" id="main-content" role="main">
-  <div class="card">
-    <h2 style="margin:0 0 8px;font-size:18px;font-weight:800">Select scope</h2>
-    <p style="margin:0 0 12px;font-size:13px;color:var(--text-secondary)">Wizard step · task canvas fills width — no void below.</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-      <button type="button" style="padding:12px;border-radius:10px;border:1px solid var(--brand-accent);background:color-mix(in oklab,var(--brand-accent) 8%,var(--surface-elevated));text-align:left;cursor:pointer">
-        <strong style="display:block;font-size:13px">Roster starter pack</strong>
-        <span style="font-size:11px;color:var(--text-secondary)">Students · Staff · Sections</span>
-        <span style="display:block;font-size:10px;font-weight:800;color:var(--brand-accent);margin-top:6px">1 click</span>
-      </button>
-      <button type="button" style="padding:12px;border-radius:10px;border:1px solid var(--hairline);background:var(--surface-elevated);text-align:left;cursor:pointer">
-        <strong style="display:block;font-size:13px">Full academic import</strong>
-        <span style="font-size:11px;color:var(--text-secondary)">+ Guardians · Grades</span>
-        <span style="display:block;font-size:10px;font-weight:800;color:var(--brand-accent);margin-top:6px">1 click</span>
-      </button>
+    <p class="scroll-hint">
+      <strong>Scroll test:</strong> This panel scrolls. Header, sidebar, and copilot rail stay pinned.
+      Collapse sidebar groups · toggle copilot from the banner · open <strong>File map</strong> only when you need Django paths.
+    </p>
+    <div class="card">
+      <h2 style="margin:0 0 8px;font-size:18px;font-weight:800">Select scope</h2>
+      <p style="margin:0 0 12px;font-size:13px;color:var(--text-secondary)">Wizard step · task canvas fills width — no void below.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <button type="button" style="padding:12px;border-radius:10px;border:1px solid var(--brand-accent);background:color-mix(in oklab,var(--brand-accent) 8%,var(--surface-elevated));text-align:left;cursor:pointer">
+          <strong style="display:block;font-size:13px">Roster starter pack</strong>
+          <span style="font-size:11px;color:var(--text-secondary)">Students · Staff · Sections</span>
+          <span style="display:block;font-size:10px;font-weight:800;color:var(--brand-accent);margin-top:6px">1 click</span>
+        </button>
+        <button type="button" style="padding:12px;border-radius:10px;border:1px solid var(--hairline);background:var(--surface-elevated);text-align:left;cursor:pointer">
+          <strong style="display:block;font-size:13px">Full academic import</strong>
+          <span style="font-size:11px;color:var(--text-secondary)">+ Guardians · Grades</span>
+          <span style="display:block;font-size:10px;font-weight:800;color:var(--brand-accent);margin-top:6px">1 click</span>
+        </button>
+      </div>
     </div>
-  </div>
-  <div class="dock">
-    <span style="font-size:11px;color:var(--text-secondary)">Path: <b style="color:var(--brand-accent)">Scope</b> → Upload → Done in <b>3 clicks</b></span>
-    <button type="button" style="margin-left:auto;padding:8px 14px;border-radius:10px;border:0;background:var(--brand-primary);color:#fff;font-weight:700;cursor:pointer">Next: Upload →</button>
-  </div>
+    <div class="dock">
+      <span style="font-size:11px;color:var(--text-secondary)">Path: <b style="color:var(--brand-accent)">Scope</b> → Upload → Done in <b>3 clicks</b></span>
+      <button type="button" style="margin-left:auto;padding:8px 14px;border-radius:10px;border:0;background:var(--brand-primary);color:#fff;font-weight:700;cursor:pointer">Next: Upload →</button>
+    </div>
+    <div class="filler-block">Extra scroll height — header / sidebar / copilot should not move</div>
   </main>
+</div>
 
-  <!-- partials/cockpit/_ai_copilot_rail.html — collapsed icons -->
-  <aside class="rail" aria-label="Copilot rail">
-    <button type="button" class="on" title="Copilot">✦</button>
-    <button type="button" title="Lens">◉</button>
-    <button type="button" title="Actions">⚡</button>
-    <button type="button" title="Today">◐</button>
-  </aside>
-
-  <!-- copilot expanded panel (data-copilot=expanded on body) -->
-  <aside class="cp lx-copilot__expanded" aria-label="AI copilot">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-      <strong style="flex:1">School Copilot</strong>
-      <span style="font-size:9px;font-weight:800;padding:3px 7px;border-radius:999px;background:rgba(16,185,129,.15);color:var(--brand-accent)">Actions</span>
+<!-- portal_base: fixed copilot mount (production contract) -->
+<div class="rmc-tenant-portal-copilot-mount" data-rmc-copilot-mount="1" aria-hidden="false">
+  <aside class="rmc-app-shell__copilot" aria-label="AI copilot" data-rmc-copilot-rail data-rmc-copilot-active-tab="chat">
+    <div class="lx-copilot">
+      <div class="lx-copilot__collapsed">
+        <button class="lx-copilot__toggle" type="button" data-rmc-copilot-toggle data-rmc-copilot-tab="chat" title="Open AI copilot" aria-label="Open AI copilot">✦</button>
+        <button class="lx-copilot__rail-icon" type="button" data-rmc-copilot-tab="lens" title="Context lens" aria-label="Context lens">◉</button>
+        <button class="lx-copilot__rail-icon" type="button" data-rmc-copilot-tab="actions" title="Suggested actions" aria-label="Suggested actions">⚡</button>
+        <button class="lx-copilot__rail-icon" type="button" data-rmc-copilot-tab="today" title="Today" aria-label="Today">◐</button>
+        <div class="lx-copilot__kbd" aria-hidden="true">⌘ K</div>
+      </div>
+      <div class="lx-copilot__expanded">
+        <div class="lx-copilot__header">
+          <div class="lx-copilot__title">
+            <span class="lx-copilot__title-mark" aria-hidden="true">✦</span>
+            <span>School Copilot</span>
+          </div>
+          <div class="lx-copilot__header-actions">
+            <button class="lx-copilot__close" type="button" data-rmc-copilot-toggle aria-label="Collapse copilot rail">→</button>
+          </div>
+        </div>
+        <p style="margin:12px 16px 0;font-size:12px;color:var(--text-secondary)">Page-aware · RBAC via <code>portal:copilot_rail_*</code></p>
+        <div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px">
+          <button type="button" style="display:flex;gap:8px;padding:10px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-canvas);text-align:left;width:100%;cursor:pointer;align-items:flex-start;font:inherit;color:inherit">
+            <span>⚡</span>
+            <span><strong>Apply roster starter pack</strong><br><span style="color:var(--text-secondary);font-size:11px">Sets scope + saves</span></span>
+          </button>
+        </div>
+        <form style="display:flex;gap:6px;margin-top:auto;padding:12px 16px 16px">
+          <input type="text" placeholder="Ask copilot…" data-rmc-copilot-input style="flex:1;padding:9px 11px;border:1px solid var(--hairline);border-radius:10px;font:inherit">
+          <button type="submit" class="lx-copilot__send" style="padding:8px 12px;border:0;border-radius:10px;background:var(--brand-primary);color:#fff">↑</button>
+        </form>
+      </div>
     </div>
-    <p style="margin:0 0 8px;color:var(--text-secondary)">Execute in 1 tap — RBAC via <code>portal:copilot_rail_send</code></p>
-    <button type="button" class="cp-act">
-      <i class="bi bi-magic"></i>
-      <div><strong>Apply roster starter pack</strong><br><span style="color:var(--text-secondary)">Sets scope + saves</span></div>
-      <span class="tap">1 tap</span>
-    </button>
-    <button type="button" class="cp-act">
-      <i class="bi bi-cloud-upload"></i>
-      <div><strong>Jump to upload</strong><br><span style="color:var(--text-secondary)">File picker opens</span></div>
-      <span class="tap">1 tap</span>
-    </button>
-    <form style="display:flex;gap:6px;margin-top:auto">
-      <input type="text" placeholder="Ask copilot…" data-rmc-copilot-input style="flex:1;padding:9px 11px;border:1px solid var(--hairline);border-radius:10px">
-      <button type="submit" style="padding:8px 12px;border:0;border-radius:10px;background:var(--brand-primary);color:#fff">↑</button>
-    </form>
   </aside>
 </div>
 
-<div class="spec">
-  <h2 style="margin:0 0 10px;font-size:15px;color:var(--text-primary)">Django files this HTML maps to</h2>
-  <ul style="margin:0;padding-left:18px;line-height:1.7">
-    <li><code>templates/portal_base.html</code> — shell, header row, mission include, copilot mount</li>
-    <li><code>templates/partials/tenant/tp_header_brand.html</code> — brand lockup + workspace pill</li>
-    <li><code>templates/partials/tenant/tp_mission_strip.html</code> — mission strip (NEW)</li>
-    <li><code>templates/partials/tenant_primary_nav.html</code> — Home / Finance / Messages / Analytics</li>
-    <li><code>templates/partials/portal_sidebar.html</code> — nav inside unified sidebar</li>
-    <li><code>templates/partials/cockpit/_ai_copilot_rail.html</code> — rail + <code>portal:copilot_rail_*</code> endpoints</li>
-    <li><code>static/css/rmc-tenant-header-100x.css</code> — manager-matched header height (~70px)</li>
-    <li><code>static/css/rmc-tenant-v3-100x-role-home.css</code> — sidebar = canvas (no glass fork)</li>
-    <li><code>static/css/rmc-tenant-preview-live-bridge.css</code> — mission strip styles</li>
-    <li><code>apps/portal/tenant_role_home.py</code> — studio_os inherits <code>tp_v3_tenant_shell</code></li>
-  </ul>
+<!-- File map: off-canvas drawer — hidden until requested -->
+<div class="file-map-drawer" id="file-map-drawer" aria-hidden="true">
+  <div class="file-map-drawer__backdrop" id="file-map-backdrop"></div>
+  <div class="file-map-drawer__panel" role="dialog" aria-labelledby="file-map-title">
+    <button type="button" class="file-map-drawer__close" id="close-file-map" aria-label="Close file map">×</button>
+    <h2 id="file-map-title">Django files this HTML maps to</h2>
+    <ul>
+      <li><code>templates/portal_base.html</code> — shell, header row, mission include, copilot mount</li>
+      <li><code>templates/partials/tenant/tp_header_brand.html</code> — brand lockup + workspace pill</li>
+      <li><code>templates/partials/tenant/tp_mission_strip.html</code> — mission strip</li>
+      <li><code>templates/partials/tenant_primary_nav.html</code> — Home / Finance / Messages / Analytics</li>
+      <li><code>templates/partials/portal_sidebar.html</code> — nav inside unified sidebar</li>
+      <li><code>templates/partials/portal_sidebar_v8_groups.html</code> — collapsible section groups</li>
+      <li><code>templates/partials/cockpit/_ai_copilot_rail.html</code> — rail + <code>portal:copilot_rail_*</code></li>
+      <li><code>static/css/rmc-tenant-header-100x.css</code> — manager-matched header height</li>
+      <li><code>static/css/rmc-tenant-v3-100x-role-home.css</code> — sidebar canvas</li>
+      <li><code>static/css/rmc-tenant-workspace-canvas.css</code> — viewport lock scroll contract</li>
+      <li><code>static/css/rmc-tenant-cp-parity.css</code> — cp-header + collapsible sidebar v8</li>
+      <li><code>apps/portal/views_copilot_rail.py</code> — tenant RBAC + page-aware copilot</li>
+    </ul>
+  </div>
 </div>
 
+<button type="button" class="file-map-fab" id="file-map-fab" aria-controls="file-map-drawer">File map</button>
+
+<script src="../../static/js/rmc-copilot-rail.js"></script>
+<script src="../../static/js/_pages/rmc-copilot-rail.js" defer></script>
+<script>
+(function () {
+  var drawer = document.getElementById('file-map-drawer');
+  var copilotBtn = document.getElementById('toggle-copilot');
+  function openMap() { drawer.classList.add('is-open'); drawer.setAttribute('aria-hidden', 'false'); }
+  function closeMap() { drawer.classList.remove('is-open'); drawer.setAttribute('aria-hidden', 'true'); }
+  document.getElementById('open-file-map').addEventListener('click', openMap);
+  document.getElementById('file-map-fab').addEventListener('click', openMap);
+  document.getElementById('close-file-map').addEventListener('click', closeMap);
+  document.getElementById('file-map-backdrop').addEventListener('click', closeMap);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMap(); });
+  copilotBtn.addEventListener('click', function () {
+    var toggle = document.querySelector('[data-rmc-copilot-toggle]');
+    if (toggle) { toggle.click(); }
+    var expanded = document.body.getAttribute('data-copilot') === 'expanded';
+    copilotBtn.setAttribute('aria-pressed', expanded ? 'true' : 'false');
+  });
+  document.body.addEventListener('click', function () {
+    window.setTimeout(function () {
+      var expanded = document.body.getAttribute('data-copilot') === 'expanded';
+      copilotBtn.setAttribute('aria-pressed', expanded ? 'true' : 'false');
+    }, 0);
+  }, true);
+})();
+</script>
 </body>
 </html>

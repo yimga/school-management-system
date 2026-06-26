@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required

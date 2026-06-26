@@ -7,17 +7,12 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/rmc-account-surface.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
 {% endblock %}
 
-{% block breadcrumbs %}
-{% include "partials/breadcrumbs.html" %}
-{% endblock %}
+{% block breadcrumbs %}{% endblock %}
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
-
-{% include "components/next_action_strip.html" %}
-
 {% include "accounts/partials/mfa_setup_page_body.html" %}
 {% endblock %}

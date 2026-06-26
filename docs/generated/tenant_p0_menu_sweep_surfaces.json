@@ -1,7 +1,7 @@
 {
   "generated_by": "scripts/generate_tenant_p0_menu_sweep_surfaces.py",
   "schema_version": 1,
-  "surface_count": 17,
+  "surface_count": 19,
   "surfaces": [
     {
       "item_id": "teacher_home",
@@ -17,6 +17,14 @@
       "role": "TEACHER",
       "url": "/portal/teacher/workflow/",
       "url_name": "portal:teacher_workflow",
+      "user": "demo.teacher"
+    },
+    {
+      "item_id": "teacher_homework",
+      "label": "teacher-teacher_homework",
+      "role": "TEACHER",
+      "url": "/portal/teacher/homework/",
+      "url_name": "portal:teacher_assignments",
       "user": "demo.teacher"
     },
     {
@@ -81,6 +89,14 @@
       "role": "STUDENT",
       "url": "/portal/student-portal/grades/",
       "url_name": "portal:student_portal_grades",
+      "user": "demo.student"
+    },
+    {
+      "item_id": "student_homework",
+      "label": "student-student_homework",
+      "role": "STUDENT",
+      "url": "/portal/student/homework/",
+      "url_name": "portal:student_assignments",
       "user": "demo.student"
     },
     {

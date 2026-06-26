@@ -1,24 +1,28 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Sign in to continue" %}{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-<section class="error-page" aria-labelledby="error-401-title">
-  <div>
-    <div class="error-code-display" aria-hidden="true">401</div>
-    <h1 id="error-401-title" class="error-title">{% trans "Sign in to continue." %}</h1>
-    <p class="error-message">{% trans "Your session expired or you signed out. Sign in again to pick up where you left off — your in-progress work is preserved." %}</p>
-    <div class="error-actions">
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="verify" %}
+<section class="auth-shell" aria-labelledby="error-401-title">
+  <div data-rmc-scroll-policy="paginate" class="auth-card text-center">
+    <div class="rmc-security-checkpoint__icon mx-auto mb-3" style="background:color-mix(in oklab, var(--ds-warning) 12%, transparent);color:var(--ds-warning)" aria-hidden="true">401</div>
+    <h1 id="error-401-title">{% trans "Sign in to continue." %}</h1>
+    <p class="rmc-security-checkpoint__sub">{% trans "Your session expired or you signed out. Sign in again to pick up where you left off — your in-progress work is preserved." %}</p>
+    <div class="rmc-security-checkpoint__actions">
       <a class="btn btn-primary" href="{% url 'accounts:login' %}{% if request.path %}?next={{ request.path|urlencode }}{% endif %}"><i class="bi bi-box-arrow-in-right me-1"></i>{% trans "Sign in" %}</a>
-      {% comment %} marketing_home exists only on the public host; fall back to the current host root
-      elsewhere so a 401 on the tenant/manager host never double-faults with NoReverseMatch. {% endcomment %}
       {% url 'marketing_home' as marketing_home_url %}
       <a class="btn btn-outline-secondary" href="{{ marketing_home_url|default:'/' }}"><i class="bi bi-house me-1"></i>{% trans "Return to homepage" %}</a>
     </div>
   </div>
 </section>
+{% include "components/security_checkpoint_page_close.html" %}
 {% endblock %}

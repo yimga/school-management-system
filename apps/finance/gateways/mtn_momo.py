@@ -6,6 +6,7 @@ from decimal import Decimal
 from typing import Optional
 from uuid import uuid4
 
+from apps.finance.gateway_http import http_get_json, http_post_json
 from .base import BasePaymentGateway, GatewayResult
 from . import registry  # noqa: F401
 
@@ -36,6 +37,66 @@ class MTNMoMoGateway(BasePaymentGateway):
                 raw_response={"status": "not_configured", "missing": missing},
             )
 
+        api_user = str(self.config.get("api_user") or "").strip()
+        api_key = str(self.config.get("api_key") or "").strip()
+        subscription_key = str(self.config.get("subscription_key") or "").strip()
+        if (
+            api_user
+            and api_key
+            and subscription_key
+            and not self.config.get("stub_only")
+            and payer_phone
+        ):
+            ref_id = reference if len(reference) >= 32 else uuid4().hex
+            zero_decimal = {"XAF", "XOF", "UGX", "RWF", "BIF"}
+            amount_major = amount if currency.upper() in zero_decimal else (amount).quantize(Decimal("0.01"))
+            base = str(
+                self.config.get("api_base_url")
+                or self.config.get("api_base")
+                or "https://sandbox.momodeveloper.mtn.com"
+            ).rstrip("/")
+            target_env = str(self.config.get("target_environment") or "sandbox")
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "X-Reference-Id": ref_id,
+                "X-Target-Environment": target_env,
+                "Ocp-Apim-Subscription-Key": subscription_key,
+            }
+            status, body = http_post_json(
+                f"{base}/collection/v1_0/requesttopay",
+                headers,
+                {
+                    "amount": str(amount_major),
+                    "currency": currency.upper(),
+                    "externalId": reference,
+                    "payer": {
+                        "partyIdType": "MSISDN",
+                        "partyId": payer_phone.lstrip("+"),
+                    },
+                    "payerMessage": (description or "School fees")[:160],
+                    "payeeNote": reference[:160],
+                },
+            )
+            if status in {200, 201, 202}:
+                return GatewayResult(
+                    success=True,
+                    transaction_id=ref_id,
+                    message="MTN MoMo request-to-pay initiated (live HTTP).",
+                    raw_response={
+                        "status": "pending",
+                        "provider": self.code,
+                        "reference": reference,
+                        "polling_url": f"{base}/collection/v1_0/requesttopay/{ref_id}",
+                        "http_status": status,
+                        "body": body or {},
+                    },
+                )
+            return GatewayResult(
+                success=False,
+                message="MTN MoMo request-to-pay failed.",
+                raw_response={"status": "http_error", "http_status": status, "body": body or {}},
+            )
+
         tx_id = f"mtn_{reference or uuid4().hex[:16]}"
         return GatewayResult(
             success=True,
@@ -54,6 +115,37 @@ class MTNMoMoGateway(BasePaymentGateway):
         )
 
     def check_status(self, transaction_id: str) -> GatewayResult:
+        api_key = str(self.config.get("api_key") or "").strip()
+        subscription_key = str(self.config.get("subscription_key") or "").strip()
+        if api_key and subscription_key and not self.config.get("stub_only"):
+            ref = transaction_id.replace("mtn_", "", 1)
+            base = str(
+                self.config.get("api_base_url")
+                or self.config.get("api_base")
+                or "https://sandbox.momodeveloper.mtn.com"
+            ).rstrip("/")
+            target_env = str(self.config.get("target_environment") or "sandbox")
+            status, body = http_get_json(
+                f"{base}/collection/v1_0/requesttopay/{ref}",
+                {
+                    "Authorization": f"Bearer {api_key}",
+                    "X-Target-Environment": target_env,
+                    "Ocp-Apim-Subscription-Key": subscription_key,
+                },
+            )
+            if status and body:
+                pstatus = str(body.get("status") or "").strip().upper()
+                is_success = pstatus == "SUCCESSFUL"
+                return GatewayResult(
+                    success=is_success,
+                    transaction_id=ref,
+                    message=f"MTN MoMo status: {pstatus or 'unknown'}",
+                    raw_response={
+                        "status": pstatus.lower(),
+                        "provider": self.code,
+                        "http_status": status,
+                    },
+                )
         status = (self.config.get("test_status") or "pending").strip().lower()
         is_success = status in {"success", "completed", "paid"}
         return GatewayResult(

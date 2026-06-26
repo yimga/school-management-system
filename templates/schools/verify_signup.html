@@ -1,24 +1,35 @@
 {% extends "base.html" %}
-{% load i18n %}
-{% block title %}Verification{% endblock %}
+{% load i18n static %}
+{% block title %}{% trans "Verification" %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
-
-<div data-rmc-scroll-policy="paginate" class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <h1 class="h3 mb-4">{% trans "Verification" %}</h1>
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="onboarding" %}
+<section class="auth-shell" aria-labelledby="verify-title">
+  <div data-rmc-scroll-policy="paginate" class="auth-card">
+    <div class="rmc-security-checkpoint__head" style="border-bottom:0">
+      <span class="rmc-security-checkpoint__icon" aria-hidden="true"><i class="bi bi-envelope-check"></i></span>
+      <div>
+        <div class="rmc-security-checkpoint__eyebrow">{% trans "Signup" %}</div>
+        <h1 id="verify-title">{% trans "Verification" %}</h1>
+      </div>
+    </div>
+    <div class="rmc-security-checkpoint__body">
       {% if error %}
-      <div class="rmc-banner rmc-banner--error">{{ error }}</div>
-      <p>{% trans "Link expired or didn't arrive?" %} <a href="{% url 'resend_signup_verification' %}">{% trans "Resend my verification link" %}</a> — {% trans "no need to sign up again." %}</p>
-      <p class="text-muted small"><a href="{% url 'signup_school' %}">{% trans "Or start a new signup" %}</a>.</p>
+      <div class="rmc-banner rmc-banner--error mb-3">{{ error }}</div>
+      <p class="rmc-security-checkpoint__sub">{% trans "Link expired or didn't arrive?" %} <a href="{% url 'resend_signup_verification' %}">{% trans "Resend my verification link" %}</a> — {% trans "no need to sign up again." %}</p>
+      <p class="small text-muted"><a href="{% url 'signup_school' %}">{% trans "Or start a new signup" %}</a>.</p>
       {% else %}
-      <p class="text-muted">Your school has been activated. Redirecting to login…</p>
+      <p class="rmc-security-checkpoint__sub">{% trans "Your school has been activated. Redirecting to login…" %}</p>
       {% endif %}
     </div>
   </div>
-</div>
+</section>
+{% include "components/security_checkpoint_page_close.html" %}
 {% endblock %}

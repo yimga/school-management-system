@@ -1,0 +1,52 @@
+# PSP sandbox charge round-trips — metric #26 (secrets-gated live HTTP).
+name: PSP sandbox charges
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 6 * * 1"
+  pull_request:
+    paths:
+      - "apps/finance/gateways/**"
+      - "apps/finance/tests/test_gateway_live_http.py"
+      - "apps/finance/tests/test_psp_sandbox_live.py"
+      - ".github/workflows/psp-sandbox-ci.yml"
+
+jobs:
+  psp-mocked-http:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Gateway HTTP round-trip tests (mocked)
+        run: |
+          python manage.py test apps.finance.tests.test_gateway_live_http --verbosity=2 --noinput
+
+  psp-live-sandbox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Live sandbox charge probes (optional secrets)
+        env:
+          PAYSTACK_SECRET_KEY: ${{ secrets.PAYSTACK_SECRET_KEY }}
+          FLUTTERWAVE_SECRET_KEY: ${{ secrets.FLUTTERWAVE_SECRET_KEY }}
+          MTN_MOMO_SUBSCRIPTION_KEY: ${{ secrets.MTN_MOMO_SUBSCRIPTION_KEY }}
+          MTN_MOMO_API_USER: ${{ secrets.MTN_MOMO_API_USER }}
+          MTN_MOMO_API_KEY: ${{ secrets.MTN_MOMO_API_KEY }}
+          RMC_PSP_SANDBOX_LIVE: "1"
+        run: |
+          python manage.py test apps.finance.tests.test_psp_sandbox_live --verbosity=2 --noinput

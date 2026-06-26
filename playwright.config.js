@@ -31,6 +31,7 @@ const _tenantHostRules = (
 
 const _managerPort = process.env.VISUAL_QA_PORT || '8012';
 const _tenantPhasePort = process.env.VISUAL_QA_TENANT_PHASE_PORT || '8013';
+const _offlineE2ePort = process.env.OFFLINE_E2E_PORT || '8777';
 const _managerBaseUrl =
   process.env.MANAGER_BASE_URL ||
   `http://manager.runmycampus.com:${_managerPort}`;
@@ -160,6 +161,64 @@ module.exports = defineConfig({
       },
     },
     {
+      name: 'offline-indexeddb-chromium',
+      testMatch: ['**/offline-multiday-indexeddb.spec.js'],
+      timeout: 60000,
+      use: {
+        channel: 'chromium',
+        baseURL: `http://127.0.0.1:${_offlineE2ePort}`,
+        serviceWorkers: 'block',
+        launchOptions: {
+          args: ['--proxy-server=direct://', '--proxy-bypass-list=*'],
+        },
+      },
+      webServer: {
+        command: 'node scripts/serve_offline_e2e_fixture.mjs',
+        cwd: __dirname,
+        env: { ...process.env, OFFLINE_E2E_PORT: _offlineE2ePort },
+        url: `http://127.0.0.1:${_offlineE2ePort}/offline-indexeddb-boot.html`,
+        reuseExistingServer: !process.env.CI,
+        timeout: 30000,
+      },
+    },
+    {
+      name: 'offline-sync-chromium',
+      testMatch: [
+        '**/offline-authenticated-sync.spec.js',
+        '**/report-card-hash-parent.spec.js',
+        '**/tenant-shell-a11y.spec.js',
+      ],
+      timeout: 120000,
+      workers: 1,
+      use: {
+        channel: 'chromium',
+        baseURL:
+          process.env.PLAYWRIGHT_TENANT_BASE_URL ||
+          `http://127.0.0.1:${_tenantPhasePort}/t/demo-school`,
+        serviceWorkers: 'block',
+        launchOptions: {
+          args: ['--proxy-server=direct://', '--proxy-bypass-list=*'],
+        },
+      },
+      ...(process.env.RMC_E2E_EXTERNAL_SERVER === '1'
+        ? {}
+        : {
+            webServer: {
+              command: 'node scripts/playwright_tenant_web_server.mjs',
+              cwd: __dirname,
+              env: {
+                ...process.env,
+                VISUAL_QA_PORT: _tenantPhasePort,
+                TENANT_SLUG: process.env.TENANT_SLUG || 'demo-school',
+                E2E_TENANT_PASSWORD: process.env.E2E_TENANT_PASSWORD || 'Test1234',
+              },
+              url: `http://127.0.0.1:${_tenantPhasePort}/t/demo-school/authentication/login/`,
+              reuseExistingServer: !process.env.CI,
+              timeout: 600000,
+            },
+          }),
+    },
+    {
       name: 'chromium',
       testIgnore: [
         '**/marketing-visual-engine.spec.js',
@@ -169,6 +228,10 @@ module.exports = defineConfig({
         '**/manager-bulk-confirm-dialog.spec.js',
         '**/manager-surface-parity.spec.js',
         '**/manager-theme-visibility.spec.js',
+        '**/offline-multiday-indexeddb.spec.js',
+        '**/offline-authenticated-sync.spec.js',
+        '**/report-card-hash-parent.spec.js',
+        '**/tenant-shell-a11y.spec.js',
       ],
       use: {
         channel: 'chromium',

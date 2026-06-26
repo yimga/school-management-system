@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from apps.setup_studio import wizard_engine, wizard_state_resolver
+from apps.setup_studio import wizard_state_resolver
 from apps.setup_studio.wizard_engine import GateBlockedError, WizardDefinition
 
 # Canonical tenant-admin User.Role tokens (mirrors wizard_views._TENANT_ADMIN_USER_ROLES).

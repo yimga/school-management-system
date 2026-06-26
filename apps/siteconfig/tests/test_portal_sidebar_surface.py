@@ -11,7 +11,6 @@ from django.test import RequestFactory, SimpleTestCase, TestCase
 
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.portal_sidebar_items import (
-    PORTAL_CONFIG_SECTIONS,
     _order_sections_ops_then_config,
     _portal_item_surface,
     build_portal_sidebar_items,

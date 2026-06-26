@@ -1,6 +1,6 @@
 """Customer success health and nudge tests."""
 
-from datetime import date, timedelta
+from datetime import timedelta
 
 from django.test import TestCase
 from django.utils import timezone
@@ -18,6 +18,7 @@ class CustomerSuccessCompletionTests(TestCase):
             is_active=True,
             created_at=timezone.now() - timedelta(days=3),
         )
+        self.assertIsNotNone(school.pk)
         first = deliver_onboarding_day_n_nudges(limit=5)
         second = deliver_onboarding_day_n_nudges(limit=5)
         self.assertGreaterEqual(first["scanned"], 1)

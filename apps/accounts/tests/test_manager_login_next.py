@@ -11,6 +11,7 @@ from apps.accounts.manager_login_next import (
     sanitize_manager_login_next,
     should_show_manager_login_surface,
     tenant_staff_should_use_public_host,
+    use_operator_login_template,
 )
 from apps.schools.models import School, SchoolMembership
 
@@ -69,7 +70,17 @@ class ManagerLoginNextSanitizerTests(TestCase):
 
     def test_operator_intent_detects_super_paths(self):
         self.assertTrue(manager_login_next_is_operator_intent("/super/schools/"))
+        self.assertTrue(manager_login_next_is_operator_intent("/super/"))
         self.assertFalse(manager_login_next_is_operator_intent("/authentication/login/"))
+
+    def test_use_operator_login_template_on_local_with_super_next(self):
+        from django.contrib.auth.models import AnonymousUser
+        from django.test import RequestFactory
+
+        req = RequestFactory().get(f"{reverse('accounts:login')}?next=/super/")
+        req.user = AnonymousUser()
+        req.public_host_kind = "local"
+        self.assertTrue(use_operator_login_template(req))
 
     def test_sanitize_strips_toxic(self):
         self.assertEqual(
@@ -113,6 +124,41 @@ class ManagerLoginViewNextTests(TestCase):
         client = Client(HTTP_HOST="manager.runmycampus.com")
         resp = client.get(reverse("accounts:login") + "?next=/super/schools/")
         self.assertEqual(resp.status_code, 200)
+
+    def test_localhost_super_next_renders_operator_login_not_tenant_roles(self):
+        """Dev on 127.0.0.1: /super/ redirect must show corporate login, not school role picker."""
+        client = Client(HTTP_HOST="127.0.0.1")
+        resp = client.get(reverse("accounts:login") + "?next=/super/")
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode()
+        self.assertIn("RunMyCampus Manager", body)
+        self.assertIn("Control plane sign-in", body)
+        self.assertNotIn("rmc-auth-immersive__role-list", body)
+        self.assertNotIn("Who are you?", body)
+
+    def test_localhost_plain_login_still_renders_tenant_immersive(self):
+        client = Client(HTTP_HOST="127.0.0.1")
+        resp = client.get(reverse("accounts:login"))
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode()
+        self.assertIn("rmc-auth-immersive", body)
+        self.assertIn("data-rmc-auth-immersive", body)
+        self.assertIn("rmc-auth-immersive__role-list", body)
+        self.assertIn("rmc-auth-immersive__canvas", body)
+        self.assertIn("rmc-auth-login-immersive.js", body)
+        self.assertNotIn("RunMyCampus Manager", body)
+        self.assertNotIn("Control plane sign-in", body)
+
+    def test_localhost_tenant_next_still_renders_immersive_not_operator(self):
+        """Tenant MFA/onboarding deep links must keep the school WOW login."""
+        client = Client(HTTP_HOST="127.0.0.1")
+        resp = client.get(
+            reverse("accounts:login") + "?next=/authentication/mfa/setup/"
+        )
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode()
+        self.assertIn("rmc-auth-immersive__role-list", body)
+        self.assertNotIn("Control plane sign-in", body)
 
     def test_cp_query_keeps_manager_login_surface(self):
         client = Client(HTTP_HOST="manager.runmycampus.com")

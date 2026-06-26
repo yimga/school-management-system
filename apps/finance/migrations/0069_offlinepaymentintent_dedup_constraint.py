@@ -23,7 +23,6 @@ def _heal_index(apps, schema_editor):
 
 
 def _drop_index(apps, schema_editor):
-    table = "finance_offlinepaymentintent"
     index = "uniq_offlinepaymentintent_invoice_client_id"
     q_index = schema_editor.connection.ops.quote_name(index)
     with schema_editor.connection.cursor() as cursor:

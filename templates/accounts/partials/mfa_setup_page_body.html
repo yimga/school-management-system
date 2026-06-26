@@ -1,95 +1,99 @@
 {% load i18n static %}
-<section class="rmc-account-auth-shell" data-rmc-auth-manager-shell="mfa-setup" data-rmc-balanced-layout="operator-form-rail" aria-labelledby="mfa-setup-title">
-  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="rmc-account-auth-shell__primary">
+<div class="rmc-security-checkpoint-page" data-rmc-security-checkpoint-page="1">
+{% include "components/security_checkpoint_trail.html" with checkpoint_flow="setup" %}
+<section class="rmc-security-checkpoint rmc-account-auth-shell" data-rmc-security-checkpoint="mfa-setup" data-rmc-auth-manager-shell="mfa-setup" aria-labelledby="mfa-setup-title">
+  <div class="rmc-account-auth-shell__primary">
     {% if messages %}
       {% for message in messages %}
-        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'Close' %}"></button>
-        </div>
+      <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show mb-2" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'Close' %}"></button>
+      </div>
       {% endfor %}
     {% endif %}
 
-    <div class="content-card rmc-account-mfa-card">
-      <div class="rmc-account-mfa-card__head">
-        <span class="rmc-account-auth-icon" aria-hidden="true"><i class="bi bi-shield-lock"></i></span>
+    <div class="rmc-security-checkpoint__card rmc-account-mfa-card">
+      <div class="rmc-security-checkpoint__head rmc-account-mfa-card__head">
+        <span class="rmc-security-checkpoint__icon rmc-account-auth-icon" aria-hidden="true"><i class="bi bi-shield-lock"></i></span>
         <div>
-          <div class="eyebrow">{% trans "Account security" %}</div>
-          <h1 id="mfa-setup-title">{% trans "Multi-factor authentication" %}</h1>
+          <div class="rmc-security-checkpoint__eyebrow">{% trans "Account security" %}</div>
+          <h1 id="mfa-setup-title">{% trans "Set up two-factor auth" %}</h1>
         </div>
       </div>
 
-      <div class="rmc-account-mfa-card__body">
+      <div class="rmc-security-checkpoint__body rmc-account-mfa-card__body">
         {% if not has_mfa and not qr_code %}
           {% if next_url %}
           <div class="rmc-banner rmc-banner--warning mb-3" role="status"><i class="bi bi-shield-lock me-1" aria-hidden="true"></i><strong>{% trans "Your organization requires two-factor authentication" %}</strong> — {% trans "for your role. Set it up below to continue to your dashboard; it takes about a minute." %}</div>
           {% else %}
           <div class="rmc-banner rmc-banner--info mb-3"><i class="bi bi-info-circle me-1"></i><strong>{% trans "MFA is currently disabled" %}</strong> {% trans "for your account." %}</div>
           {% endif %}
-          <p>{% trans "Multi-factor authentication adds a second layer of security: a one-time code from your phone on top of your password." %}</p>
-          <ol class="rmc-account-step-list">
-            <li>{% trans "Install an authenticator app such as Google Authenticator, Authy, 1Password, or Microsoft Authenticator." %}</li>
-            <li>{% trans "Generate a QR code." %}</li>
-            <li>{% trans "Scan the QR code and enter the 6-digit code to finish setup." %}</li>
-          </ol>
-          <div class="d-flex flex-wrap gap-2">
-            <form method="post" class="d-inline">
+          <p class="rmc-security-checkpoint__sub">{% trans "Install Google Authenticator, Authy, 1Password, or Microsoft Authenticator. We'll show a QR code on the next step." %}</p>
+          <div class="rmc-security-checkpoint__stepper" aria-hidden="true">
+            <span class="is-active">{% trans "1 · App" %}</span>
+            <span>{% trans "2 · Scan" %}</span>
+            <span>{% trans "3 · Verify" %}</span>
+          </div>
+          <div class="rmc-security-checkpoint__actions">
+            <form method="post">
               {% csrf_token %}
               {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
-              <button type="submit" name="enable_mfa" class="btn btn-primary btn-lg rmc-cta--gradient-indigo"><i class="bi bi-lock me-1"></i>{% trans "Enable MFA" %}</button>
+              <button type="submit" name="enable_mfa" class="btn btn-primary w-100 rmc-cta--gradient-indigo"><i class="bi bi-lock me-1"></i>{% trans "Continue — show QR code" %}</button>
             </form>
             {% if use_passkey %}
-              <span class="text-muted align-self-center mx-1">{% trans "or" %}</span>
-              <button type="button" id="btn-add-passkey-first" class="btn btn-outline-primary btn-lg"><i class="bi bi-fingerprint me-1"></i>{% trans "Add a passkey" %}</button>
+            <button type="button" id="btn-add-passkey-first" class="btn btn-outline-primary w-100"><i class="bi bi-fingerprint me-1"></i>{% trans "Add a passkey instead" %}</button>
             {% endif %}
           </div>
           {% if use_passkey %}<div id="passkey-message-first" class="mt-2 small text-muted"></div>{% endif %}
+
         {% elif qr_code %}
           <div class="rmc-banner rmc-banner--warning mb-3"><i class="bi bi-exclamation-triangle me-1"></i><strong>{% trans "Important." %}</strong> {% trans "Save your secret key in a secure place." %}</div>
-          <h2 class="h6">{% trans "Step 1: Scan this QR code" %}</h2>
-          <div class="rmc-account-mfa-qr-wrap">
-            <img src="data:image/png;base64,{{ qr_code }}" alt="{% trans 'MFA QR code' %}" class="img-fluid" width="240" height="240" decoding="async">
+          <div class="rmc-security-checkpoint__stepper" aria-hidden="true">
+            <span>{% trans "1 · App" %}</span>
+            <span class="is-active">{% trans "2 · Scan" %}</span>
+            <span>{% trans "3 · Verify" %}</span>
           </div>
-          <h2 class="h6">{% trans "Step 2: Manual entry code" %}</h2>
-          <div class="rmc-account-mfa-secret">
-            <code>{{ secret_key }}</code>
-            <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-copy-value="{{ secret_key }}"><i class="bi bi-clipboard me-1"></i>{% trans "Copy" %}</button>
+          <div class="rmc-security-checkpoint__qr-grid">
+            <div class="rmc-security-checkpoint__qr-wrap rmc-account-mfa-qr-wrap">
+              <img src="data:image/png;base64,{{ qr_code }}" alt="{% trans 'MFA QR code' %}" width="140" height="140" decoding="async">
+            </div>
+            <div>
+              <p class="rmc-security-checkpoint__sub mb-1">{% trans "Can't scan? Enter this key manually:" %}</p>
+              <div class="rmc-security-checkpoint__secret rmc-account-mfa-secret">
+                <code>{{ secret_key }}</code>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-secondary mt-2" data-rmc-copy-value="{{ secret_key }}"><i class="bi bi-clipboard me-1"></i>{% trans "Copy" %}</button>
+            </div>
           </div>
-          <h2 class="h6">{% trans "Step 3: Verify with a code" %}</h2>
-          <form method="post" class="mb-3">
+          <form method="post">
             {% csrf_token %}
             <input type="hidden" name="device_id" value="{{ device_id }}">
             {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
-            <div class="input-group rmc-account-token-group">
-              <input type="text" name="token" class="form-control form-control-lg" inputmode="numeric" placeholder="{% trans 'Enter 6-digit code' %}" maxlength="6" pattern="\d{6}" required autocomplete="off">
-              <button type="submit" name="verify_token" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>{% trans "Verify and enable" %}</button>
-            </div>
+            <label class="visually-hidden" for="mfa-setup-token">{% trans "6-digit code" %}</label>
+            {% include "components/security_checkpoint_otp.html" with input_id="mfa-setup-token" autofocus=True %}
+            <button type="submit" name="verify_token" class="btn btn-primary w-100 mt-2"><i class="bi bi-check2 me-1"></i>{% trans "Verify and enable MFA" %}</button>
           </form>
-          <div class="small text-muted"><i class="bi bi-lightbulb me-1"></i>{% trans "Enter the 6-digit code from your authenticator app to complete setup." %}</div>
+
         {% else %}
           <div class="rmc-banner rmc-banner--success mb-3"><i class="bi bi-check2-circle me-1"></i><strong>{% trans "MFA is enabled" %}</strong> {% trans "and protecting your account." %}</div>
-          <p>{% trans "Your account is protected with multi-factor authentication. You will enter a code when signing in from a new device." %}</p>
-          <dl class="data-list">
+          <p class="rmc-security-checkpoint__sub">{% trans "Your account is protected with multi-factor authentication. You will enter a code when signing in from a new device." %}</p>
+          <dl class="data-list small mb-3">
             <dt>{% trans "MFA type" %}</dt><dd>{% trans "Time-based One-Time Password (TOTP)" %}</dd>
             <dt>{% trans "Authenticator" %}</dt><dd>{% trans "Configured" %}</dd>
             <dt>{% trans "Last verified" %}</dt><dd>{% trans "This session" %}</dd>
           </dl>
           {% if backup_tokens %}
-          <div class="content-card rmc-account-backup-codes">
-            <div class="eyebrow">{% trans "Backup codes" %}</div>
-            <h3>{% trans "Store these securely." %}</h3>
-            <div class="d-flex flex-wrap gap-2">
-              {% for code in backup_tokens %}
-                <span class="rmc-badge" data-tone="soft-primary">{{ code }}</span>
-              {% endfor %}
-            </div>
-            <form method="post" class="mt-3">
-              {% csrf_token %}
-              {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
-              <button type="submit" name="regen_backup" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-repeat me-1"></i>{% trans "Regenerate backup codes" %}</button>
-            </form>
+          <p class="small fw-semibold mb-1">{% trans "Backup codes — store offline:" %}</p>
+          <div class="rmc-security-checkpoint__backup-codes">
+            {% for code in backup_tokens %}
+            <span class="rmc-badge" data-tone="soft-primary">{{ code }}</span>
+            {% endfor %}
           </div>
+          <form method="post" class="mb-3">
+            {% csrf_token %}
+            {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+            <button type="submit" name="regen_backup" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-repeat me-1"></i>{% trans "Regenerate backup codes" %}</button>
+          </form>
           {% endif %}
           {% if use_passkey %}
           <hr>
@@ -97,14 +101,14 @@
           {% if passkeys %}
           <div class="list-group mb-3">
             {% for pk in passkeys %}
-            <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div class="list-group-item d-flex justify-content-between align-items-center py-2 small">
               <span><i class="bi bi-key me-2 text-muted"></i>{{ pk.name|default:_("Passkey") }}</span>
               <span class="rmc-badge" data-tone="soft-primary">{{ pk.created_at }}</span>
             </div>
             {% endfor %}
           </div>
           {% endif %}
-          <button type="button" id="btn-add-passkey" class="btn btn-outline-primary"><i class="bi bi-plus-lg me-1"></i>{% trans "Add passkey" %}</button>
+          <button type="button" id="btn-add-passkey" class="btn btn-outline-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>{% trans "Add passkey" %}</button>
           <div id="passkey-message" class="mt-2 small text-muted"></div>
           {% endif %}
           <hr>
@@ -113,31 +117,27 @@
           <form method="post">
             {% csrf_token %}
             {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
-            <button type="button" name="disable_mfa" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#disableMfaConfirm">
+            <button type="button" name="disable_mfa" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#disableMfaConfirm">
               <i class="bi bi-unlock me-1" aria-hidden="true"></i>{% trans "Disable MFA" %}
             </button>
             {% include "components/confirm_modal.html" with modal_id="disableMfaConfirm" icon="bi-shield-exclamation" title=_("Disable MFA?") body=_("This removes the second layer of security from your account. Anyone who has your password will be able to sign in without a second factor.") confirm_label=_("Disable MFA") confirm_class="btn-danger" static_backdrop=True %}
           </form>
+          {% if next_url %}
+          <div class="rmc-security-checkpoint__actions mt-3">
+            <a class="btn btn-primary w-100" href="{{ next_url }}">{% trans "Continue to dashboard" %}</a>
+          </div>
+          {% endif %}
         {% endif %}
       </div>
 
-      <div class="rmc-account-mfa-card__foot">
-        <i class="bi bi-question-circle me-1"></i>{% trans "Need help?" %} <a href="{% url 'kb:kb_home' %}">{% trans "Open security documentation" %}</a>.
+      <div class="rmc-security-checkpoint__foot rmc-account-mfa-card__foot">
+        <span><i class="bi bi-question-circle me-1"></i>{% trans "Need help?" %}</span>
+        <a href="{% url 'kb:kb_home' %}">{% trans "Security documentation" %}</a>
       </div>
     </div>
   </div>
-  <aside class="rmc-account-auth-shell__rail" aria-label="{% trans 'Security navigation' %}">
-    <div class="content-card rmc-account-auth-rail-card">
-      <div class="eyebrow">{% trans "Next best action" %}</div>
-      <h2>{% trans "Keep this account reviewable." %}</h2>
-      <p>{% trans "Use a verified authenticator, store backup codes offline, and keep your profile contact details current." %}</p>
-      <div class="d-grid gap-2">
-        <a href="{% url 'accounts:user_profile' %}" class="btn btn-outline-secondary"><i class="bi bi-person-badge me-1"></i>{% trans "Back to my profile" %}</a>
-        <a href="{% url 'accounts:redirect' %}" class="btn btn-link">{% trans "Back to dashboard" %}</a>
-      </div>
-    </div>
-  </aside>
 </section>
+</div>
 
 {% if use_passkey %}
 <script type="application/json" id="page-data-accounts__mfa_setup-1">{
@@ -145,7 +145,8 @@
   "url_accounts_passkey_registration_verify": "{% url "accounts:passkey_registration_verify" %}"
 }</script><script src="{% static 'js/_pages/accounts__mfa_setup-1.js' %}"></script>
 {% endif %}
-<script>
+<script src="{% static 'js/rmc-mfa-otp.js' %}" defer nonce="{{ csp_nonce }}"></script>
+<script nonce="{{ csp_nonce }}">
 document.addEventListener("click", function (event) {
   var button = event.target.closest("[data-rmc-copy-value]");
   if (!button || !navigator.clipboard) return;

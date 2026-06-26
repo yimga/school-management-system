@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from functools import wraps
 
-from django.http import Http404, HttpResponseForbidden
+from django.http import HttpResponseForbidden
 
 from apps.schools.control_plane import _is_super_surface, user_has_control_plane_access
 

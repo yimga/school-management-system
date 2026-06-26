@@ -1,0 +1,37 @@
+{% load i18n %}
+{% comment %}
+Tenant v8 sidebar groups — mirrors manager_complete_sidebar_nav / cp-sidebar__group.
+Config-driven PORTAL_SIDEBAR_ITEMS grouped by section with collapsible <details>.
+{% endcomment %}
+{% regroup PORTAL_SIDEBAR_ITEMS by section as section_groups %}
+{% for group in section_groups %}
+<details class="cp-sidebar__group cp-sidebar__group--tenant{% if forloop.first %} cp-sidebar__group--expanded{% endif %}"
+         {% if forloop.first %}open{% endif %}
+         data-rmc-portal-sidebar-group="{{ group.grouper|default:'navigation'|slugify }}">
+  <summary class="cp-sidebar__section cp-sidebar__group-toggle{% if forloop.first %} cp-sidebar__section--first{% endif %}">{{ group.grouper|default:_("Navigation") }}</summary>
+  {% for item in group.list %}
+    {% if item.url %}
+  <a class="cp-sidebar__item{% if item.is_current %} cp-sidebar__item--current{% endif %}"
+     href="{{ item.url }}"
+     {% if item.is_current %}aria-current="page"{% endif %}
+     title="{{ item.label }}"
+     data-sidebar-id="{{ item.id }}"
+     data-rmc-unified-nav-id="{{ item.id }}">
+    <span class="cp-sidebar__item-label">
+      <i class="bi {{ item.icon|default:'bi-circle' }} cp-nav-icon" aria-hidden="true"></i>
+      <span class="cp-nav-label">{{ item.label }}</span>
+    </span>
+    {% if item.badge %}<span class="rmc-badge rmc-badge--count">{{ item.badge }}</span>{% endif %}
+    <button type="button"
+            class="cp-sidebar__pin cp-pin-btn{% if item.id in PINNED_SIDEBAR_IDS %} cp-pin-pinned{% endif %}"
+            data-cp-pin-id="{{ item.id }}"
+            data-sidebar-id="{{ item.id }}"
+            aria-label="{% if item.id in PINNED_SIDEBAR_IDS %}{% trans 'Remove from Quick access' %}{% else %}{% trans 'Add to Quick access' %}{% endif %}"
+            title="{% if item.id in PINNED_SIDEBAR_IDS %}{% trans 'Remove from Quick access' %}{% else %}{% trans 'Add to Quick access' %}{% endif %}">
+      <i class="bi bi-pin-angle{% if item.id in PINNED_SIDEBAR_IDS %}-fill{% endif %}" aria-hidden="true"></i>
+    </button>
+  </a>
+    {% endif %}
+  {% endfor %}
+</details>
+{% endfor %}

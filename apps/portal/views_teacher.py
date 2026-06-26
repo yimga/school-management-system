@@ -14,8 +14,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.db.models import Prefetch, Sum
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.accounts.decorators import role_required, teacher_portal_required
 from apps.accounts.models import User
@@ -28,6 +29,7 @@ from apps.academics.models import (
     Incident,
     SubjectAssignment,
 )
+from apps.academics.models_discipline import BehaviorPointLedger, RestorativeAction
 from apps.academics.scheduling import Schedule, ScheduleEntry
 from apps.academics.services import get_active_year_and_term
 from apps.evals.models import TeacherAssignment
@@ -1035,28 +1037,98 @@ def _can_manage_discipline(user):
 
 
 @login_required
+@require_http_methods(["GET", "POST"])
 def discipline_incidents_list(request: HttpRequest):
     """List disciplinary incidents. RBAC: DISCIPLINE_MASTER, CENSOR, or discipline.manage."""
     if not _can_manage_discipline(request.user):
         return HttpResponseForbidden(
             "You do not have permission to view disciplinary incidents."
         )
+    school = getattr(request, "school", None)
+
+    if request.method == "POST":
+        action = (request.POST.get("action") or "").strip().lower()
+        if action == "update_restorative" and school is not None:
+            try:
+                action_id = int(request.POST.get("restorative_id") or 0)
+            except (TypeError, ValueError):
+                action_id = 0
+            new_status = (request.POST.get("new_status") or "").strip()
+            allowed = {s.value for s in RestorativeAction.Status}
+            row = RestorativeAction.objects.filter(
+                school=school, pk=action_id
+            ).first()
+            if not row or new_status not in allowed:
+                messages.error(request, "Invalid restorative action or status.")
+            else:
+                row.status = new_status
+                upd = ["status", "updated_at"]
+                if new_status == RestorativeAction.Status.COMPLETED:
+                    row.completed_at = timezone.now()
+                    upd.append("completed_at")
+                elif row.completed_at:
+                    row.completed_at = None
+                    upd.append("completed_at")
+                row.save(update_fields=upd)
+                messages.success(request, "Restorative action updated.")
+        return redirect("portal:discipline_incidents_list")
+
     incidents_qs = Incident.objects.select_related(
         "school", "student", "teacher", "created_by"
+    ).prefetch_related(
+        Prefetch(
+            "restorative_actions",
+            queryset=RestorativeAction.objects.filter(
+                **({"school": school} if school else {})
+            ).order_by("-created_at"),
+        ),
+        Prefetch(
+            "point_entries",
+            queryset=BehaviorPointLedger.objects.filter(
+                **({"school": school} if school else {})
+            ).order_by("-created_at"),
+        ),
     )
-    school = getattr(request, "school", None)
     if school is not None:
         incidents_qs = incidents_qs.filter(school=school)
-    incidents = incidents_qs.order_by("-date", "-created_at")[:100]
+    incidents = list(incidents_qs.order_by("-date", "-created_at")[:100])
+
+    student_point_totals: dict[int, int] = {}
+    if school is not None:
+        student_ids = {inc.student_id for inc in incidents if inc.student_id}
+        if student_ids:
+            totals = (
+                BehaviorPointLedger.objects.filter(
+                    school=school,
+                    student_id__in=student_ids,
+                )
+                .values("student_id")
+                .annotate(total=Sum("points"))
+            )
+            student_point_totals = {
+                row["student_id"]: int(row["total"] or 0) for row in totals
+            }
+
+    for inc in incidents:
+        if inc.student_id:
+            inc.behavior_point_total = student_point_totals.get(inc.student_id, 0)
+        else:
+            inc.behavior_point_total = None
+
     hero = {
         "title": "Disciplinary Incidents",
-        "subtitle": "View and manage incidents (tardiness, behavior). Parents are notified when requested.",
+        "subtitle": "View incidents, behavior points, and restorative follow-ups.",
         "actions": [],
     }
     return render(
         request,
         "staff/discipline_incidents.html",
-        {"hero": hero, "incidents": incidents},
+        {
+            "hero": hero,
+            "incidents": incidents,
+            "student_point_totals": student_point_totals,
+            "restorative_status_choices": RestorativeAction.Status,
+        },
     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     )
 

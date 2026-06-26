@@ -203,7 +203,7 @@
 //   translated/pluralized (completion_summary_text) and rendered by the progress JS.
 // v4.04.99: globe Blue Marble texture cache-bust + network-first globe texture
 // so deployed manager surfaces cannot keep replaying the retired purple earth.
-const CACHE_VERSION = "sms-v4.05.62-globe-wow-v2-deck-2026-06-23";
+const CACHE_VERSION = "sms-v4.05.72-globe-landing-frame-fit-preview-2026-06-26";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

@@ -3,6 +3,7 @@
 {% block title %}{% trans "Onboard Your Campus" %} | RunMyCampus{% endblock %}
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/onboarding-migration.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
 {% endblock %}
 {% block extrahead %}{{ block.super }}
 <script nonce="{{ csp_nonce }}" type="application/json" id="page-data-rmc-signup-localization">{{ signup_localization_json|default:"{}"|safe }}</script>
@@ -12,12 +13,9 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
-
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="onboarding" checkpoint_wide=True %}
 {% comment %} primary-cta-allow: wizard-step-mutually-exclusive-branches step==1/2/3/4 {% endcomment %}
-<div data-rmc-scroll-policy="paginate" class="container py-5" data-shell-page="onboarding-wizard">
-  <div class="row justify-content-center">
-    <div class="col-xl-9">
+<div data-rmc-scroll-policy="paginate" data-shell-page="onboarding-wizard">
       <div class="card border-0 shadow-sm rounded-4">
         <div class="card-body p-4 p-lg-5">
           <h1 class="h3 mb-2">{% trans "Onboard Your Campus" %}</h1>
@@ -228,7 +226,6 @@
           {% endif %}
         </div>
       </div>
-    </div>
-  </div>
 </div>
+{% include "components/security_checkpoint_page_close.html" %}
 {% endblock %}

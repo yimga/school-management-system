@@ -22,7 +22,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from apps.finance.json_decimal import amount_str
-from apps.finance.models import Invoice, Payment, Notification, ComplianceProfile
+from apps.finance.models import Invoice, Payment, Notification
 from apps.finance.services import pay_invoice_with_wallet
 from apps.observability.tracing import trace_view
 from apps.api.serializers import InvoiceSerializer, PaymentSerializer

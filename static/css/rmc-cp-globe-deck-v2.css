@@ -663,3 +663,49 @@
     max-height: 240px;
   }
 }
+
+/* v4.05.64 — PROMPT A CSS parity (undefined-class gate) */
+.rmc-globe-deck-v2__crown-updated {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 9px;
+}
+
+.rmc-globe-deck-v2__crown-updated strong {
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  color: var(--text-primary);
+}
+
+.rmc-globe-deck-v2__lens {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rmc-globe-deck-v2__feed-row--empty {
+  display: block;
+  padding: 12px 10px;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-secondary);
+  border-bottom: 0;
+}
+
+.rmc-globe-deck-v2__school-hours {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 9px;
+  color: var(--text-secondary);
+}
+
+.rmc-globe-deck-v2__ai-compact--rail-fallback {
+  margin-top: auto;
+  padding: 8px 10px;
+  border-top: 1px solid var(--hairline);
+  background: color-mix(in srgb, var(--surface-elevated) 40%, transparent);
+  font-size: 10px;
+  color: var(--text-secondary);
+}

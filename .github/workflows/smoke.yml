@@ -42,13 +42,15 @@ jobs:
           pip install pip-audit
           pip-audit --desc
 
-      - name: SAST (bandit — high-severity informational)
-        continue-on-error: true
+      - name: SAST (bandit — high severity must be 0)
         run: |
           pip install "bandit[toml]"
           python -m bandit -r apps config -lll -q \
             --exclude '*/tests/*' \
-            --exclude '*/migrations/*' || true
+            --exclude '*/migrations/*' \
+            -f custom --msg-template '{relpath}:{line}: {test_id}' \
+            || { echo "::error::Bandit reported HIGH severity findings"; exit 1; }
+          echo "Bandit HIGH severity: 0"
 
       - name: Django check --deploy (production settings sanity)
         env:

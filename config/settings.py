@@ -2306,6 +2306,15 @@ CELERY_BEAT_SCHEDULE = {
         ),
         "options": {"queue": "default", "expires": 3600},
     },
+    "lifecycle-tenant-immutable-snapshot-daily": {
+        "task": "lifecycle.capture_tenant_immutable_snapshots_daily",
+        "schedule": (
+            _celery_crontab(hour=2, minute=30)
+            if _celery_crontab is not None
+            else 86400.0
+        ),
+        "options": {"queue": "default", "expires": 7200},
+    },
     # v3.34.0 Agent 5 — weekly upstream watch for django-cryptography
     # Django-5 compatibility. Mondays 05:00 UTC. The script ALWAYS exits
     # 0 (it's a watch, not a gate); the task layer parses the audit JSON

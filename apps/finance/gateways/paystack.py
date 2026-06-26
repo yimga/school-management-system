@@ -5,6 +5,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Optional
 
+from apps.finance.gateway_http import http_get_json, http_post_json
 from .base import BasePaymentGateway, GatewayResult
 from . import registry
 
@@ -34,6 +35,46 @@ class PaystackGateway(BasePaymentGateway):
                 message="Paystack gateway not configured.",
                 raw_response={"status": "not_configured", "missing": missing},
             )
+        secret = str(self.config.get("secret_key") or "").strip()
+        if secret and not self.config.get("stub_only"):
+            email = str(kwargs.get("payer_email") or self.config.get("default_payer_email") or "").strip()
+            if email:
+                base = str(self.config.get("api_base") or "https://api.paystack.co").rstrip("/")
+                minor = int((amount * Decimal("100")).quantize(Decimal("1")))
+                status, body = http_post_json(
+                    f"{base}/transaction/initialize",
+                    {"Authorization": f"Bearer {secret}"},
+                    {
+                        "email": email,
+                        "amount": minor,
+                        "currency": currency.upper(),
+                        "reference": reference,
+                        "metadata": {"description": description or "", "payer_phone": payer_phone or ""},
+                    },
+                )
+                if status and body and body.get("status") is True:
+                    data = body.get("data") if isinstance(body.get("data"), dict) else {}
+                    auth_url = str(data.get("authorization_url") or "")
+                    access_code = str(data.get("access_code") or "")
+                    tx_ref = str(data.get("reference") or reference)
+                    return GatewayResult(
+                        success=True,
+                        transaction_id=tx_ref,
+                        message="Paystack transaction initialized (live HTTP).",
+                        raw_response={
+                            "status": "pending",
+                            "provider": self.code,
+                            "reference": tx_ref,
+                            "authorization_url": auth_url,
+                            "access_code": access_code,
+                            "http_status": status,
+                        },
+                    )
+                return GatewayResult(
+                    success=False,
+                    message="Paystack initialize failed.",
+                    raw_response={"status": "http_error", "http_status": status, "body": body or {}},
+                )
         return GatewayResult(
             success=True,
             transaction_id=f"paystack_{reference}",
@@ -50,6 +91,24 @@ class PaystackGateway(BasePaymentGateway):
         )
 
     def check_status(self, transaction_id: str) -> GatewayResult:
+        secret = str(self.config.get("secret_key") or "").strip()
+        if secret and not self.config.get("stub_only"):
+            base = str(self.config.get("api_base") or "https://api.paystack.co").rstrip("/")
+            ref = transaction_id.replace("paystack_", "", 1)
+            status, body = http_get_json(
+                f"{base}/transaction/verify/{ref}",
+                {"Authorization": f"Bearer {secret}"},
+            )
+            if status and body and body.get("status") is True:
+                data = body.get("data") if isinstance(body.get("data"), dict) else {}
+                pstatus = str(data.get("status") or "").strip().lower()
+                is_success = pstatus == "success"
+                return GatewayResult(
+                    success=is_success,
+                    transaction_id=ref,
+                    message=f"Paystack status: {pstatus or 'unknown'}",
+                    raw_response={"status": pstatus, "provider": self.code, "http_status": status},
+                )
         status = (self.config.get("test_status") or "pending").strip().lower()
         is_success = status in {"success", "completed", "paid"}
         return GatewayResult(

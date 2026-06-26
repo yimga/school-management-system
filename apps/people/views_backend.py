@@ -82,7 +82,7 @@ def _student_create_draft_initial(request):
     ).first()
     if not draft or not draft.data:
         return None, None, None
-    form = StudentCreateForm()
+    form = StudentCreateForm(school=school)
     initial = {k: draft.data[k] for k in form.fields if k in draft.data}
     return initial, draft.updated_at, True
 
@@ -108,13 +108,16 @@ def _application_form_draft_initial(request):
 @permission_required("people.add_studentprofile", raise_exception=True)
 def backend_student_create(request):
     """Create student via user-friendly backend UI. Section 26.5: draft save/load."""
+    from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+    school = resolve_request_school(request)
     if request.method == "POST":
         from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
 
         blocked = block_if_wind_down_commerce(request)
         if blocked is not None:
             return blocked
-        form = StudentCreateForm(request.POST, request.FILES)
+        form = StudentCreateForm(request.POST, request.FILES, school=school)
         if form.is_valid():
             try:
                 with transaction.atomic():
@@ -122,6 +125,15 @@ def backend_student_create(request):
                     student.created_by = request.user
                     student.is_active = True
                     student.save()
+
+                    from apps.metadata.dynamic_forms import save_dynamic_fields_for_model
+
+                    save_dynamic_fields_for_model(
+                        form,
+                        instance=student,
+                        school=school or getattr(student, "school", None),
+                        model=student.__class__,
+                    )
 
                     # Clear draft on successful create (26.5)
                     from apps.lifecycle.tenant_school_resolve import resolve_request_school
@@ -238,7 +250,11 @@ def backend_student_create(request):
                 messages.error(request, f"Error creating student: {str(e)}")
     else:
         initial, draft_updated_at, has_draft = _student_create_draft_initial(request)
-        form = StudentCreateForm(initial=initial) if initial else StudentCreateForm()
+        form = (
+            StudentCreateForm(initial=initial, school=school)
+            if initial
+            else StudentCreateForm(school=school)
+        )
 
     if request.method == "POST":
         has_draft, draft_updated_at = False, None

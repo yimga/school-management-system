@@ -5,6 +5,7 @@
 {% block extrastyle %}{{ block.super }}
 {% comment %} Wave L7 (v3.61.8 — 2026-05-22): signup 2.0 — school-type cards + done-page polish. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-signup-v2.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
 {% endblock %}
 
 {% block extrahead %}{{ block.super }}
@@ -18,8 +19,7 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
-
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="onboarding" checkpoint_wide=True %}
 {% if cockpit.signup_form.enabled %}
 <section class="auth-shell rmc-iso-wizard-shell" aria-labelledby="signup-title" data-rmc-signup-section="1" data-rmc-isomorphic-wizard="1">
   <div data-rmc-scroll-policy="paginate" class="auth-card auth-card--signup">
@@ -381,5 +381,6 @@
   <a class="btn btn-sm btn-light" href="{{ marketing_demo_tenant_url }}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Return to demo tenant" %}</a>
 </div>
 {% endif %}
+{% include "components/security_checkpoint_page_close.html" %}
 {% endif %}{% comment %} /cockpit.signup_form.enabled {% endcomment %}
 {% endblock %}

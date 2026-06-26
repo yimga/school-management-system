@@ -1,0 +1,110 @@
+# Lighthouse CI against tenant shell (demo-school) — metric 2/17 tenant experience.
+# Boots Django + seeds demo-school, then runs lighthouserc-tenant.cjs budgets.
+#
+# Set LHCI_TENANT_STRICT=1 (repo variable) to enforce A+ thresholds (0.98 categories).
+name: Lighthouse CI (tenant shell)
+
+on:
+  pull_request:
+    paths:
+      - "templates/portal/**"
+      - "templates/portal_base.html"
+      - "static/css/**"
+      - "static/js/**"
+      - "apps/portal/**"
+      - "apps/siteconfig/**"
+      - "lighthouserc-tenant.cjs"
+      - ".github/workflows/lighthouse-tenant-ci.yml"
+  workflow_dispatch: {}
+
+jobs:
+  lhci-tenant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Migrate and seed demo-school tenant
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings_freshdb
+        run: |
+          python manage.py migrate --noinput
+          python manage.py ensure_developer_sandbox_tenant --school-slug=demo-school
+
+      - name: Boot Django on :8124 and wait for tenant login
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings_freshdb
+        run: |
+          set -e
+          python manage.py runserver 127.0.0.1:8124 --noreload &
+          echo $! > /tmp/django-tenant.pid
+          booted=0
+          for i in {1..40}; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" \
+              "http://127.0.0.1:8124/t/demo-school/authentication/login/" || echo "000")
+            if [[ "$code" =~ ^[23] ]]; then
+              echo "Tenant login up (HTTP $code) after ${i} attempts"
+              booted=1
+              break
+            fi
+            sleep 2
+          done
+          if [[ "$booted" != "1" ]]; then
+            echo "::error::Django tenant shell did not boot within 80s"
+            kill "$(cat /tmp/django-tenant.pid)" 2>/dev/null || true
+            exit 1
+          fi
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.14.x
+
+      - name: Run Lighthouse CI (tenant shell)
+        env:
+          LHCI_TENANT_URL: "http://127.0.0.1:8124/t/demo-school/authentication/login/"
+          LHCI_TENANT_STRICT: ${{ vars.LHCI_TENANT_STRICT || '0' }}
+        run: |
+          set -e
+          if [[ "${LHCI_TENANT_STRICT}" == "1" ]]; then
+            npx lhci autorun --config=./lighthouserc-tenant.cjs
+          else
+            npx lhci autorun --config=./lighthouserc-tenant.cjs \
+              || echo "::warning::Tenant Lighthouse below budget — set vars.LHCI_TENANT_STRICT=1 when ready"
+          fi
+
+      - name: Install npm deps for axe tenant scan
+        run: |
+          npm ci
+          node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Seed demo users for axe parent surface
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings_freshdb
+        run: |
+          python manage.py seed_demo_tenant_users --school-slug=demo-school
+
+      - name: axe — tenant login + parent (serious/critical = 0)
+        env:
+          PLAYWRIGHT_TENANT_BASE_URL: "http://127.0.0.1:8124/t/demo-school"
+          RMC_E2E_EXTERNAL_SERVER: "1"
+          CI: "1"
+        run: |
+          npx playwright test tests/e2e/tenant-shell-a11y.spec.js --project=offline-sync-chromium
+
+      - name: Stop background Django
+        if: always()
+        run: |
+          if [[ -f /tmp/django-tenant.pid ]]; then
+            kill "$(cat /tmp/django-tenant.pid)" 2>/dev/null || true
+            rm -f /tmp/django-tenant.pid
+          fi

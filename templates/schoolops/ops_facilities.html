@@ -8,6 +8,80 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6">{% trans "Room & asset booking" %}</h2>
+      <p class="small text-secondary mb-3">{% trans "Book labs, halls, and shared spaces. Overlapping bookings are blocked automatically." %}</p>
+      <form method="post" class="row g-2 mb-4">{% csrf_token %}
+        <input type="hidden" name="action" value="book_resource">
+        <div class="col-md-3">
+          <label class="form-label small">{% trans "Resource" %}</label>
+          <select class="form-select" name="resource_id" required>
+            <option value="">{% trans "Select…" %}</option>
+            {% for r in resources %}
+            <option value="{{ r.pk }}">{{ r.name }} ({{ r.get_resource_type_display }}, {% trans "cap." %} {{ r.capacity }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3"><label class="form-label small">{% trans "Title" %}</label><input class="form-control" name="booking_title" maxlength="200" placeholder="{% trans 'Assembly rehearsal' %}"></div>
+        <div class="col-md-3"><label class="form-label small">{% trans "Start" %}</label><input class="form-control" type="datetime-local" name="booking_start" required></div>
+        <div class="col-md-3"><label class="form-label small">{% trans "End" %}</label><input class="form-control" type="datetime-local" name="booking_end" required></div>
+        <div class="col-12"><button type="submit" class="btn btn-primary">{% trans "Book" %}</button></div>
+      </form>
+      {% if not resources %}
+      <div class="rmc-empty-state rmc-empty-state--inline mb-3">
+        <p class="rmc-empty-state__title">{% trans "No bookable resources yet" %}</p>
+        <p class="rmc-empty-state__body">{% trans "Add a room or lab below to start scheduling." %}</p>
+      </div>
+      {% endif %}
+      <form method="post" class="row g-2 border-top pt-3">{% csrf_token %}
+        <input type="hidden" name="action" value="create_resource">
+        <div class="col-md-4"><label class="form-label small">{% trans "New resource name" %}</label><input class="form-control" name="resource_name" maxlength="120" required></div>
+        <div class="col-md-3">
+          <label class="form-label small">{% trans "Type" %}</label>
+          <select class="form-select" name="resource_type">
+            {% for val, label in resource_type_choices %}
+            <option value="{{ val }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2"><label class="form-label small">{% trans "Capacity" %}</label><input class="form-control" type="number" name="resource_capacity" min="1" max="999" value="1"></div>
+        <div class="col-md-3 d-flex align-items-end"><button type="submit" class="btn btn-outline-secondary">{% trans "Add resource" %}</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="table-responsive mb-4">
+    <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-scroll-policy="paginate">
+      <caption class="visually-hidden">{% trans "Confirmed bookings" %}</caption>
+      <thead><tr><th scope="col">{% trans "Resource" %}</th><th scope="col">{% trans "Title" %}</th><th scope="col">{% trans "When" %}</th><th scope="col">{% trans "Booked by" %}</th><th scope="col"></th></tr></thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr>
+          <td>{{ b.resource.name }}</td>
+          <td>{{ b.title }}</td>
+          <td class="small">{{ b.time_range.lower|date:"Y-m-d H:i" }} — {{ b.time_range.upper|date:"Y-m-d H:i" }}</td>
+          <td class="small">{{ b.booked_by.get_full_name|default:b.booked_by.username|default:"—" }}</td>
+          <td>
+            <form method="post">{% csrf_token %}
+              <input type="hidden" name="action" value="cancel_booking">
+              <input type="hidden" name="booking_id" value="{{ b.pk }}">
+              <button type="submit" class="btn btn-outline-danger btn-sm">{% trans "Cancel" %}</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="rmc-empty-state rmc-empty-state--row">
+          <i class="bi bi-calendar-x rmc-empty-state__icon" aria-hidden="true"></i>
+          <p class="rmc-empty-state__title">{% trans "No upcoming bookings" %}</p>
+          <p class="rmc-empty-state__body">{% trans "Book a resource using the form above." %}</p>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       <h1 class="h6">{% trans "New request" %}</h1>

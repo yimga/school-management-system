@@ -893,6 +893,11 @@ from apps.schoolops.models_micro_friction import (  # noqa: E402
     LostBelongingsTagRecord,
     SubstituteHandoverPacketRecord,
 )
+from apps.schoolops.models_resource_booking import (  # noqa: E402
+    BookableResource,
+    ResourceBooking,
+)
+from apps.schoolops.models_inventory_movement import InventoryMovement  # noqa: E402
 
 __all__ = [
     "EmailDeliveryEvent",
@@ -904,4 +909,7 @@ __all__ = [
     "LostBelongingsCustodyEventRecord",
     "LostBelongingsTagRecord",
     "SubstituteHandoverPacketRecord",
+    "BookableResource",
+    "ResourceBooking",
+    "InventoryMovement",
 ]

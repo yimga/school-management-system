@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-06-26T15:39:34+00:00",
+  "rule": "bandit HIGH severity count must not exceed baseline",
+  "finding_count": 1,
+  "findings": [
+    {
+      "path": "apps/migration_cloud/landers/behavior_lander.py",
+      "line": 77,
+      "test_id": "B324",
+      "issue_text": "Use of weak SHA1 hash for security. Consider usedforsecurity=False"
+    }
+  ]
+}

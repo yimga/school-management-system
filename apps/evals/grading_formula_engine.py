@@ -6,7 +6,6 @@ import ast
 import math
 import re
 from dataclasses import dataclass
-from typing import Any
 
 _ALLOWED_NAMES = frozenset(
     {

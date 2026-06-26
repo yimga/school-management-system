@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable
+from typing import Any
 
 # Platform-wide definitions (school=None). Tenants inherit + may override per school.
 COUNTRY_EAV_CATALOG: tuple[dict[str, Any], ...] = (

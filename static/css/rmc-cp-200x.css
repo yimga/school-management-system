@@ -266,6 +266,17 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab--globe-landing .lx-world-lab__note {
   display: none;
 }
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"],
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-deck-v2="1"] {
+  --brand: #818cf8;
+  --good: #6ee7b7;
+  --ai: #c4b5fd;
+  --warn: #fde68a;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --rmc-globe-lab-glass: rgba(18, 24, 41, 0.92);
+}
+
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab--globe-landing .lx-world-lab__ai-guide {
   margin: 0;
 }
@@ -2255,19 +2266,68 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   inset: 0;
   pointer-events: none;
   border-radius: inherit;
-  opacity: 0.42;
+  opacity: 0.5;
   background: linear-gradient(
     90deg,
-    rgba(15, 23, 42, 0.72) 0%,
-    rgba(15, 23, 42, 0.72) calc(var(--rmc-terminator-x, 50%) - 8%),
-    rgba(110, 231, 183, 0.22) calc(var(--rmc-terminator-x, 50%) - 2%),
-    rgba(110, 231, 183, 0.38) var(--rmc-terminator-x, 50%),
-    rgba(110, 231, 183, 0.22) calc(var(--rmc-terminator-x, 50%) + 2%),
-    rgba(15, 23, 42, 0.72) calc(var(--rmc-terminator-x, 50%) + 8%),
-    rgba(15, 23, 42, 0.72) 100%
+    rgba(15, 23, 42, 0.78) 0%,
+    rgba(15, 23, 42, 0.78) calc(var(--rmc-terminator-x, 50%) - 10%),
+    rgba(110, 231, 183, 0.28) calc(var(--rmc-terminator-x, 50%) - 3%),
+    rgba(253, 224, 71, 0.42) var(--rmc-terminator-x, 50%),
+    rgba(110, 231, 183, 0.22) calc(var(--rmc-terminator-x, 50%) + 3%),
+    rgba(15, 23, 42, 0.78) calc(var(--rmc-terminator-x, 50%) + 10%),
+    rgba(15, 23, 42, 0.78) 100%
   );
   mix-blend-mode: soft-light;
   z-index: 2;
+  transition: opacity var(--motion-normal, 280ms) var(--ease-out, ease-out);
+}
+.lx-world__map[data-rmc-day-phase="day"] .lx-world__terminator {
+  opacity: 0.38;
+}
+.lx-world__map[data-rmc-day-phase="night"] .lx-world__terminator {
+  opacity: 0.58;
+}
+.lx-world__celestial {
+  position: absolute;
+  pointer-events: none;
+  z-index: 3;
+  border-radius: 50%;
+  transform: translateZ(0);
+  transition: left var(--motion-slow, 600ms) var(--ease-out, ease-out), top var(--motion-slow, 600ms) var(--ease-out, ease-out);
+}
+.lx-world__celestial--sun {
+  width: 32px;
+  height: 32px;
+  background: radial-gradient(circle at 35% 35%, #fff7c2, #fde047 42%, #f59e0b 100%); /* off-token-allow: celestial-sun-glow */
+  box-shadow:
+    0 0 22px rgba(253, 224, 71, 0.75),
+    0 0 48px rgba(251, 191, 36, 0.35); /* off-token-allow: celestial-sun-glow */
+}
+.lx-world__celestial--moon {
+  width: 22px;
+  height: 22px;
+  background: radial-gradient(circle at 30% 30%, #f8fafc, #cbd5e1 55%, #64748b 100%); /* off-token-allow: celestial-moon-glow */
+  box-shadow:
+    0 0 14px rgba(203, 213, 225, 0.55),
+    inset -3px -2px 4px rgba(15, 23, 42, 0.35); /* off-token-allow: celestial-moon-glow */
+}
+.lx-world__globe-sun,
+.lx-world__globe-moon {
+  pointer-events: none;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.lx-world__globe-sun {
+  width: 28px;
+  height: 28px;
+  background: radial-gradient(circle at 35% 35%, #fff7c2, #fde047 45%, #f59e0b); /* off-token-allow: celestial-sun-glow */
+  box-shadow: 0 0 18px rgba(253, 224, 71, 0.8); /* off-token-allow: celestial-sun-glow */
+}
+.lx-world__globe-moon {
+  width: 18px;
+  height: 18px;
+  background: radial-gradient(circle at 30% 30%, #f8fafc, #94a3b8 70%); /* off-token-allow: celestial-moon-glow */
+  box-shadow: 0 0 12px rgba(203, 213, 225, 0.65); /* off-token-allow: celestial-moon-glow */
 }
 .lx-world__tour-narrator-optin {
   display: inline-flex;
@@ -3329,6 +3389,23 @@ body[data-copilot="expanded"] .rmc-manager-portal-copilot-mount .lx-copilot__col
 body[data-rmc-copilot-shell="expanded"] .rmc-tenant-portal-copilot-mount .lx-copilot__collapsed,
 body[data-rmc-copilot-shell="expanded"] .rmc-manager-portal-copilot-mount .lx-copilot__collapsed {
   display: none;
+}
+
+/* Collapsed state — icon rail only (horizontal collapse to inline-end edge).
+   Mirrors /super/ grid-column shrink; tenant uses fixed mount width instead. */
+body[data-copilot="collapsed"] .rmc-tenant-portal-copilot-mount .lx-copilot__expanded,
+body[data-copilot="collapsed"] .rmc-manager-portal-copilot-mount .lx-copilot__expanded,
+body[data-rmc-copilot-shell="collapsed"] .rmc-tenant-portal-copilot-mount .lx-copilot__expanded,
+body[data-rmc-copilot-shell="collapsed"] .rmc-manager-portal-copilot-mount .lx-copilot__expanded {
+  display: none;
+}
+body[data-copilot="collapsed"] .rmc-tenant-portal-copilot-mount .lx-copilot__collapsed,
+body[data-copilot="collapsed"] .rmc-manager-portal-copilot-mount .lx-copilot__collapsed,
+body[data-rmc-copilot-shell="collapsed"] .rmc-tenant-portal-copilot-mount .lx-copilot__collapsed,
+body[data-rmc-copilot-shell="collapsed"] .rmc-manager-portal-copilot-mount .lx-copilot__collapsed,
+.rmc-tenant-portal-copilot-mount .lx-copilot__collapsed,
+.rmc-manager-portal-copilot-mount .lx-copilot__collapsed {
+  display: flex;
 }
 
 .lx-copilot__header {
@@ -4500,6 +4577,10 @@ body[data-rmc-notebook-footer-dock="1"] .rmc-footer-notebook-anchor .lx-notebook
 }
 
 /* v4.05.55 — Globe landing mission/ops split + 200x empty states */
+.rmc-cp-landing-mode {
+  display: block;
+}
+
 .rmc-cp-landing-mode__tabs {
   max-width: 28rem;
 }

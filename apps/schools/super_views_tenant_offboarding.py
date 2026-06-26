@@ -323,16 +323,13 @@ def api_purge_certificate_download(request, school_id):
 
     school = get_object_or_404(School, id=school_id)
     op = (
-        PurgeOperation.objects.filter(school_id=str(school.id), status="completed")
+        PurgeOperation.objects.filter(
+            school_id__in=[str(school.id), school.slug],
+            status="completed",
+        )
         .order_by("-completed_at")
         .first()
     )
-    if op is None:
-        op = (
-            PurgeOperation.objects.filter(school_slug=school.slug, status="completed")
-            .order_by("-completed_at")
-            .first()
-        )
     if op is None or not op.certificate:
         return _json_error("No deletion certificate found for this school", status=404)
     payload = {

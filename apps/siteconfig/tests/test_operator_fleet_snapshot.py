@@ -8,7 +8,6 @@ from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
 from apps.siteconfig.fleet_context_service import (
-    build_fleet_context,
     build_tour_narrator_line,
     rules_tour_narrator_line,
     should_use_llm_brief,

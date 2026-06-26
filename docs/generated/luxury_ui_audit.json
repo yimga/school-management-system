@@ -50,8 +50,8 @@
       ]
     }
   },
-  "generated_at": "2026-06-24T14:34:46.140574+00:00",
-  "high_impact_templates_total": 265,
+  "generated_at": "2026-06-26T15:15:09.411963+00:00",
+  "high_impact_templates_total": 266,
   "inline_styles": {
     "count": 54,
     "needs_review_count": 54,
@@ -117,8 +117,8 @@
   "luxury_gate_min_score": 13,
   "luxury_gate_passed": true,
   "missing_ds_btn": {
-    "count": 132,
-    "needs_review_count": 132,
+    "count": 133,
+    "needs_review_count": 133,
     "needs_review_paths": [
       "templates/base.html",
       "templates/control_plane_base.html",
@@ -172,6 +172,7 @@
       "templates/siteconfig/partials/north_star_ai_assistant_strip.html",
       "templates/siteconfig/partials/onboarding_body.html",
       "templates/siteconfig/partials/onboarding_step_body.html",
+      "templates/siteconfig/partials/portal_experience_presets.html",
       "templates/siteconfig/partials/region_comparison_body.html",
       "templates/siteconfig/partials/region_grading_scales_matrix_body.html",
       "templates/siteconfig/partials/region_validation_dashboard_body.html",
@@ -513,7 +514,7 @@
       "empty": 19,
       "error": 0,
       "loading": 2,
-      "offline": 1,
+      "offline": 2,
       "permission_denied": 0,
       "retry": 3
     },
@@ -531,7 +532,7 @@
         "empty": true,
         "error": false,
         "loading": false,
-        "offline": false,
+        "offline": true,
         "path": "templates/accounts/backend_dashboard.html",
         "permission_denied": false,
         "retry": false,

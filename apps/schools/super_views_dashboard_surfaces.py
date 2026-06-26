@@ -108,7 +108,7 @@ def super_dashboard_v2(request):
         target = request.get_full_path() or reverse("super:dashboard")
         return HttpResponseRedirect(target)
 
-    from apps.billing.models import BillingAccount, TenantSubscription
+    from apps.billing.models import TenantSubscription
     from apps.siteconfig.models import RevenueSnapshot
 
     first_of_month = parse_month_param(request)
@@ -208,7 +208,6 @@ def super_dashboard_v2(request):
             TenantSubscription.Status.TRIALING,
         ]
     ).count()
-    billing_account_count = BillingAccount.objects.count()
     webhook_stack = get_cached_legacy_webhook_stack()
     platform_health = get_cached_platform_health()
     timings["billing_health_ms"] = int((time.perf_counter() - t0) * 1000)

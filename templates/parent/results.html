@@ -180,6 +180,7 @@
                 <th scope="col">{% trans "Coef" %}</th>
                 <th scope="col">{% trans_term "Exam" key="exam" %}</th>
                 <th scope="col">{% trans "Avg" %}</th>
+                <th scope="col">{% trans "Grade" %}</th>
                 <th scope="col">{% trans "Status" %}</th>
               </tr>
             </thead>
@@ -194,6 +195,17 @@
                   <td data-label="{% trans 'Coef' %}">{{ r.coef }}</td>
                   <td data-label="{% trans 'Exam' %}">{{ r.exam|default_if_none:"" }}</td>
                   <td data-label="{% trans 'Avg' %}">{{ r.avg|default_if_none:"" }}</td>
+                  <td data-label="{% trans 'Grade' %}">
+                    {% if r.grade_label %}
+                      <span class="fw-semibold">{{ r.grade_label }}</span>
+                    {% elif r.letter_grade %}
+                      <span class="fw-semibold">{{ r.letter_grade }}</span>
+                    {% elif r.band %}
+                      <span class="fw-semibold">{{ r.band }}</span>
+                    {% else %}
+                      <span class="text-muted">&ndash;</span>
+                    {% endif %}
+                  </td>
                   <td data-label="{% trans 'Status' %}">
                     {% if r.avg is None %}
                       <span class="rmc-badge">{% trans "Pending" %}</span>
@@ -206,7 +218,7 @@
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="5" class="text-muted py-4 text-center">{% trans "No marks for this term yet. They will appear when the school publishes results." %}</td>
+                  <td colspan="6" class="text-muted py-4 text-center">{% trans "No marks for this term yet. They will appear when the school publishes results." %}</td>
                 </tr>
               {% endfor %}
             </tbody>

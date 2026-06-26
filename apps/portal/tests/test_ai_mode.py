@@ -5,7 +5,6 @@ Covers the pure mapping, the cascade resolver (tenant override > platform defaul
 the functional thread into the gateway tier filter, and the inference-quota guard.
 """
 
-from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -14,7 +13,7 @@ from django.test import RequestFactory, SimpleTestCase, TestCase
 
 import services.ai_helpers as ai_helpers
 from apps.platform_runtime.models import RuntimeDefaults
-from apps.portal.views_ai_mode import ai_mode_state, ai_mode_view
+from apps.portal.views_ai_mode import ai_mode_view
 from apps.schools.models import School
 from services.ai_deployment_posture import (
     VALID_AI_MODES,

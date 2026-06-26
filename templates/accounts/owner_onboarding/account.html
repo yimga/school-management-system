@@ -1,29 +1,38 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Welcome — finish setting up your account" %}{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
-
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="onboarding" %}
 <section class="auth-shell" aria-labelledby="ob-title">
   <div data-rmc-scroll-policy="paginate" class="auth-card">
     {% if validlink %}
-      <p class="text-muted small mb-1">{% blocktrans %}Step {{ step }} of {{ total_steps }}{% endblocktrans %}</p>
-      <div class="progress mb-3" style="height: 6px;" role="progressbar" aria-label="{% trans 'Onboarding progress' %}" aria-valuenow="{{ step }}" aria-valuemin="0" aria-valuemax="{{ total_steps }}">
+      <div class="rmc-security-checkpoint__head" style="border-bottom:0;padding-bottom:0">
+        <span class="rmc-security-checkpoint__icon" aria-hidden="true"><i class="bi bi-person-check"></i></span>
+        <div>
+          <div class="rmc-security-checkpoint__eyebrow">{% blocktrans %}Step {{ step }} of {{ total_steps }}{% endblocktrans %}</div>
+          <h1 id="ob-title">{% blocktrans with name=school.name|default:"RunMyCampus" %}Welcome to {{ name }}!{% endblocktrans %}</h1>
+        </div>
+      </div>
+      <div class="rmc-security-checkpoint__body" style="padding-top:0.75rem">
+      <div class="progress mb-3" style="height:6px" role="progressbar" aria-label="{% trans 'Onboarding progress' %}" aria-valuenow="{{ step }}" aria-valuemin="0" aria-valuemax="{{ total_steps }}">
         <div class="progress-bar bg-primary" style="width: {% widthratio step total_steps 100 %}%"></div>
       </div>
-      <h1 id="ob-title">{% blocktrans with name=school.name|default:"RunMyCampus" %}Welcome to {{ name }}!{% endblocktrans %}</h1>
-      <p class="auth-sub">{% trans "Let’s finish creating your account. Tell us your name and choose a password — then you’ll be signed in." %}</p>
+      <p class="rmc-security-checkpoint__sub">{% trans "Let's finish creating your account. Tell us your name and choose a password — then you'll be signed in." %}</p>
       {% if show_inline_provision_progress and provision_progress_api_url %}
       <div class="text-start mb-3">
         {% include "components/rmc_tenant_provision_progress.html" with provision_progress_api_url=provision_progress_api_url %}
       </div>
       {% endif %}
-      <p class="form-help-muted text-start mb-3">{% trans "Your password must meet the requirements listed below — pick one you will use to sign in with your email." %}</p>
+      <p class="form-help-muted text-start small mb-3">{% trans "Your password must meet the requirements listed below — pick one you will use to sign in with your email." %}</p>
       <form method="post">
         {% csrf_token %}
         {% if form.non_field_errors %}<div class="rmc-banner rmc-banner--error mb-3">{{ form.non_field_errors }}</div>{% endif %}
@@ -43,20 +52,22 @@
         {% trans "Confirm password" as ob_pwd2_label %}
         {% include "components/rmc_password_field.html" with field_id="id_new_password1" field_name="new_password1" label=ob_pwd1_label autocomplete="new-password" help_text=form.new_password1.help_text error=form.new_password1.errors.0 %}
         {% include "components/rmc_password_field.html" with field_id="id_new_password2" field_name="new_password2" label=ob_pwd2_label autocomplete="new-password" wrap_class="mb-4" error=form.new_password2.errors.0 %}
-        <button type="submit" class="btn btn-primary auth-submit">
+        <button type="submit" class="btn btn-primary auth-submit w-100">
           <i class="bi bi-arrow-right-circle me-1"></i>{% trans "Continue" %}
         </button>
       </form>
+      </div>
     {% else %}
-      <div class="auth-badge auth-badge-error" aria-hidden="true"><i class="bi bi-exclamation-circle"></i></div>
+      <div class="rmc-security-checkpoint__icon mx-auto mb-3" style="background:color-mix(in oklab, var(--ds-danger) 12%, transparent);color:var(--ds-danger)" aria-hidden="true"><i class="bi bi-exclamation-circle"></i></div>
       <h2 id="ob-title">{% trans "This setup link has expired." %}</h2>
-      <p class="auth-sub">{% trans "Setup links are valid for a limited time and can be used once. Request a fresh one to continue." %}</p>
+      <p class="rmc-security-checkpoint__sub">{% trans "Setup links are valid for a limited time and can be used once. Request a fresh one to continue." %}</p>
       {% url 'resend_signup_verification' as resend_url %}
-      <a href="{% if resend_url %}{{ resend_url }}{% else %}{% url 'accounts:login' %}{% endif %}" class="btn btn-primary auth-submit">
+      <a href="{% if resend_url %}{{ resend_url }}{% else %}{% url 'accounts:login' %}{% endif %}" class="btn btn-primary auth-submit w-100">
         <i class="bi bi-arrow-clockwise me-1"></i>{% trans "Get a new link" %}
       </a>
     {% endif %}
   </div>
 </section>
+{% include "components/security_checkpoint_page_close.html" %}
 {% if validlink %}{% include "components/rmc_password_toggle_script.html" %}{% endif %}
 {% endblock %}

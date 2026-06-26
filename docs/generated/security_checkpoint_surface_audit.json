@@ -1,0 +1,52 @@
+{
+  "surface_count": 36,
+  "full_page_templates": [
+    "templates/accounts/mfa_verify.html",
+    "templates/accounts/mfa_setup.html",
+    "templates/accounts/mfa_verify_manager.html",
+    "templates/accounts/mfa_setup_manager.html",
+    "templates/accounts/password_change_form.html",
+    "templates/accounts/password_change_done.html",
+    "templates/accounts/legacy_setup.html",
+    "templates/accounts/guardian_setup.html",
+    "templates/accounts/claim_invite.html",
+    "templates/accounts/security_posture_review.html",
+    "templates/accounts/sessions_page.html",
+    "templates/accounts/security_trust_hub.html",
+    "templates/accounts/tenant_staff_invite_accept.html",
+    "templates/accounts/operator_invite_accept.html",
+    "templates/accounts/owner_onboarding/account.html",
+    "templates/accounts/owner_onboarding/school.html",
+    "templates/accounts/owner_onboarding/done.html",
+    "templates/registration/password_reset_form.html",
+    "templates/registration/password_reset_done.html",
+    "templates/registration/password_reset_confirm.html",
+    "templates/registration/password_reset_complete.html",
+    "templates/auth/school_picker.html",
+    "templates/schools/signup_school.html",
+    "templates/schools/signup_school_done.html",
+    "templates/schools/verify_signup.html",
+    "templates/schools/resend_verification.html",
+    "templates/schools/onboard_wizard.html",
+    "templates/schools/accept_invite.html",
+    "templates/parent/settings_security.html",
+    "templates/parent/claim_invite.html",
+    "templates/errors/401.html",
+    "templates/schools/global_login_discovery.html"
+  ],
+  "partial_templates": [
+    "templates/accounts/partials/mfa_verify_page_body.html",
+    "templates/accounts/partials/mfa_setup_page_body.html",
+    "templates/accounts/partials/_mfa_setup_wizard_inline.html",
+    "templates/accounts/partials/operator_security_posture_review_body.html"
+  ],
+  "immersive_exempt": [
+    "templates/auth/login.html"
+  ],
+  "cp_login_strip_only": [
+    "templates/auth/admin_login.html",
+    "templates/auth/manager_login.html"
+  ],
+  "finding_count": 0,
+  "findings": []
+}

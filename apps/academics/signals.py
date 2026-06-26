@@ -369,7 +369,21 @@ def on_attendance_saved(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Incident)
 def on_incident_saved(sender, instance, created, **kwargs):
-    """When an incident is saved with notify_parent=True and a student, notify linked guardians."""
+    """Route discipline points + restorative actions; notify guardians when flagged."""
+    if created and instance.student_id and instance.school_id:
+        try:
+            from apps.academics.discipline_services import process_incident_routing
+
+            process_incident_routing(
+                incident=instance,
+                recorded_by=getattr(instance, "created_by", None),
+            )
+        except Exception:
+            _log_signal_failure(
+                "academics on_incident_saved discipline routing failed",
+                school_id=instance.school_id,
+                extra={"incident_id": instance.id},
+            )
     if not instance.student_id or not instance.notify_parent:
         return
     try:

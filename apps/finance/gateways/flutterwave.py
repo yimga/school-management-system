@@ -5,6 +5,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Optional
 
+from apps.finance.gateway_http import http_get_json, http_post_json
 from .base import BasePaymentGateway, GatewayResult
 from . import registry
 
@@ -34,6 +35,50 @@ class FlutterwaveGateway(BasePaymentGateway):
                 message="Flutterwave gateway not configured.",
                 raw_response={"status": "not_configured", "missing": missing},
             )
+        secret = str(self.config.get("secret_key") or "").strip()
+        if secret and not self.config.get("stub_only"):
+            email = str(kwargs.get("payer_email") or self.config.get("default_payer_email") or "").strip()
+            redirect = str(kwargs.get("redirect_url") or self.config.get("redirect_url") or "").strip()
+            if email and redirect:
+                base = str(self.config.get("api_base") or "https://api.flutterwave.com/v3").rstrip("/")
+                status, body = http_post_json(
+                    f"{base}/payments",
+                    {"Authorization": f"Bearer {secret}"},
+                    {
+                        "tx_ref": reference,
+                        "amount": str(amount),
+                        "currency": currency.upper(),
+                        "redirect_url": redirect,
+                        "customer": {
+                            "email": email,
+                            "phonenumber": payer_phone or "",
+                        },
+                        "customizations": {
+                            "title": (description or "School fees")[:50],
+                        },
+                    },
+                )
+                if status and body and str(body.get("status") or "").lower() in {"success", "successful"}:
+                    data = body.get("data") if isinstance(body.get("data"), dict) else {}
+                    link = str(data.get("link") or "")
+                    tx_ref = str(data.get("tx_ref") or reference)
+                    return GatewayResult(
+                        success=True,
+                        transaction_id=tx_ref,
+                        message="Flutterwave charge initialized (live HTTP).",
+                        raw_response={
+                            "status": "pending",
+                            "provider": self.code,
+                            "reference": tx_ref,
+                            "payment_url": link,
+                            "http_status": status,
+                        },
+                    )
+                return GatewayResult(
+                    success=False,
+                    message="Flutterwave initialize failed.",
+                    raw_response={"status": "http_error", "http_status": status, "body": body or {}},
+                )
         return GatewayResult(
             success=True,
             transaction_id=f"flw_{reference}",
@@ -50,6 +95,24 @@ class FlutterwaveGateway(BasePaymentGateway):
         )
 
     def check_status(self, transaction_id: str) -> GatewayResult:
+        secret = str(self.config.get("secret_key") or "").strip()
+        if secret and not self.config.get("stub_only"):
+            base = str(self.config.get("api_base") or "https://api.flutterwave.com/v3").rstrip("/")
+            ref = transaction_id.replace("flw_", "", 1)
+            status, body = http_get_json(
+                f"{base}/transactions/verify_by_reference?tx_ref={ref}",
+                {"Authorization": f"Bearer {secret}"},
+            )
+            if status and body and str(body.get("status") or "").lower() in {"success", "successful"}:
+                data = body.get("data") if isinstance(body.get("data"), dict) else {}
+                pstatus = str(data.get("status") or "").strip().lower()
+                is_success = pstatus in {"successful", "success", "completed", "paid"}
+                return GatewayResult(
+                    success=is_success,
+                    transaction_id=ref,
+                    message=f"Flutterwave status: {pstatus or 'unknown'}",
+                    raw_response={"status": pstatus, "provider": self.code, "http_status": status},
+                )
         status = (self.config.get("test_status") or "pending").strip().lower()
         is_success = status in {"success", "successful", "completed", "paid"}
         return GatewayResult(

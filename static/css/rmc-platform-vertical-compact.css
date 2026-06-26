@@ -4,6 +4,16 @@
  * align operator canvas with v8 200x preview (content hugs header chrome).
  */
 
+/* === Chrome stack z-index ladder (tenant fixed mount + manager bridge) ===
+   Bootstrap sticky header = 1030; copilot rail must sit ABOVE pinned tenant
+   header/mission chrome so the right column stays clickable (/super/ grid parity).
+   Dropdown menus = 1080+; modals = 1055+. */
+:root {
+  --rmc-shell-header-z: 1030;
+  --rmc-shell-sidebar-z: 1020;
+  --rmc-copilot-rail-z: 1042;
+}
+
 /* === Bleed guard: never render template comment leakage as text ========= */
 body.control-plane-shell,
 body.admin-manager-shell,
@@ -200,8 +210,9 @@ body.manager-portal-bridge .rmc-manager-portal-copilot-mount {
   right: 0;
   bottom: calc(var(--rmc-operator-footer-height, 56px) + 8px);
   width: var(--rmc-app-shell-copilot-w, 44px);
-  z-index: 45;
+  z-index: var(--rmc-copilot-rail-z, 1042);
   pointer-events: none;
+  overflow: hidden;
 }
 
 body.manager-portal-bridge .rmc-manager-portal-copilot-mount .rmc-app-shell__copilot,
@@ -272,8 +283,10 @@ body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount {
   right: 0;
   bottom: 8px;
   width: var(--rmc-app-shell-copilot-w, 44px);
-  z-index: 45;
+  z-index: var(--rmc-copilot-rail-z, 1042);
   pointer-events: none;
+  overflow: hidden;
+  transition: width var(--motion-slow, 420ms cubic-bezier(0.22, 0.61, 0.36, 1));
 }
 
 body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount .rmc-app-shell__copilot,
@@ -297,6 +310,15 @@ body[data-rmc-tenant-copilot-rail="1"][data-rmc-copilot-page-help="1"] .rmc-help
 body[data-rmc-tenant-copilot-rail="1"] .portal-main-col,
 body[data-rmc-tenant-copilot-rail="1"] #main-content {
   padding-right: calc(var(--rmc-app-shell-copilot-w, 44px) + 8px);
+  transition: padding-right var(--motion-slow, 420ms cubic-bezier(0.22, 0.61, 0.36, 1));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount,
+  body[data-rmc-tenant-copilot-rail="1"] .portal-main-col,
+  body[data-rmc-tenant-copilot-rail="1"] #main-content {
+    transition: none;
+  }
 }
 
 /* xl+ only: the expanded 360px panel reserves space by pushing content. Below

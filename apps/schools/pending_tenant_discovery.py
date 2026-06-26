@@ -18,7 +18,6 @@ from django.utils.text import slugify
 
 from apps.schools.provision_email_urls import (
     build_owner_onboarding_url,
-    build_public_login_url,
     build_public_site_url,
     build_tenant_authentication_url,
 )

@@ -3,57 +3,65 @@
 
 {% block title %}{% trans "Security settings" %}{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
-
-<h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Security settings" %}</h1>
-<div class="container-lg py-4" data-page-archetype="task-form" data-rmc-scroll-policy="paginate">
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="password" checkpoint_wide=True surface_density="hub" %}
+<div data-page-archetype="task-form" data-rmc-scroll-policy="paginate" data-rmc-security-checkpoint="security-settings">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-    <div>
-      <div class="eyebrow text-muted small">{% trans "Account" %}</div>
-      <h2 class="h4 mb-0">{% trans "Security" %}</h2>
+    <div class="rmc-security-checkpoint__head" style="border:0;padding:0;margin:0">
+      <span class="rmc-security-checkpoint__icon" aria-hidden="true"><i class="bi bi-shield-lock"></i></span>
+      <div>
+        <div class="rmc-security-checkpoint__eyebrow">{% trans "Account" %}</div>
+        <h1 class="h4 mb-0">{% trans "Security" %}</h1>
+      </div>
     </div>
     <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:parent_dashboard' %}">{% trans "Back to home" %}</a>
   </div>
 
-  <div class="card shadow-sm mb-3">
-    <div class="card-body">
-      <h3 class="h6">{% trans "Password" %}</h3>
-      <p class="small text-muted">{% trans "Use a unique password and change it if you suspect compromise." %}</p>
-      <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:password_change' %}">{% trans "Change password" %}</a>
-      <a class="btn btn-outline-secondary btn-sm ms-2" href="{% url 'accounts:password_reset' %}" data-rmc-parent-password-reset="1">{% trans "Forgot password?" %}</a>
+  <div class="rmc-security-hub-grid">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="h6">{% trans "Password" %}</h2>
+        <p class="small text-muted">{% trans "Use a unique password and change it if you suspect compromise." %}</p>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:password_change' %}">{% trans "Change password" %}</a>
+        <a class="btn btn-outline-secondary btn-sm ms-2" href="{% url 'accounts:password_reset' %}" data-rmc-parent-password-reset="1">{% trans "Forgot password?" %}</a>
+      </div>
     </div>
-  </div>
 
-  <div class="card shadow-sm mb-3" id="parent-passkey-cta">
-    <div class="card-body">
-      <h3 class="h6"><i class="bi bi-fingerprint me-1" aria-hidden="true"></i>{% trans "Passkeys" %}</h3>
-      {% if use_passkey %}
-      <p class="small text-muted">{% trans "Sign in faster with Face ID, fingerprint, or your device PIN — no codes to type." %}</p>
-      {% if passkeys %}
-      <ul class="small mb-2">
-        {% for pk in passkeys %}
-        <li>{{ pk.name|default:"Passkey" }} · {{ pk.created_at }}</li>
-        {% endfor %}
-      </ul>
-      {% endif %}
-      <a class="btn btn-primary btn-sm" href="{% url 'accounts:mfa_setup' %}">{% trans "Manage passkeys" %}</a>
-      {% else %}
-      <p class="small text-muted mb-0">{% trans "Passkeys are not enabled for this school yet. Use MFA with an authenticator app instead." %}</p>
-      <a class="btn btn-outline-secondary btn-sm mt-2" href="{% url 'accounts:mfa_setup' %}">{% trans "Set up MFA" %}</a>
-      {% endif %}
+    <div class="card shadow-sm" id="parent-passkey-cta">
+      <div class="card-body">
+        <h2 class="h6"><i class="bi bi-fingerprint me-1" aria-hidden="true"></i>{% trans "Passkeys & MFA" %}</h2>
+        {% if use_passkey %}
+        <p class="small text-muted">{% trans "Sign in faster with Face ID, fingerprint, or your device PIN — no codes to type." %}</p>
+        {% if passkeys %}
+        <ul class="small mb-2">
+          {% for pk in passkeys %}
+          <li>{{ pk.name|default:"Passkey" }} · {{ pk.created_at }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        <a class="btn btn-primary btn-sm" href="{% url 'accounts:mfa_setup' %}">{% trans "Manage passkeys" %}</a>
+        {% else %}
+        <p class="small text-muted mb-2">{% trans "Passkeys are not enabled for this school yet. Use MFA with an authenticator app instead." %}</p>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:mfa_setup' %}">{% trans "Set up MFA" %}</a>
+        {% endif %}
+      </div>
     </div>
-  </div>
 
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <h3 class="h6">{% trans "Sessions" %}</h3>
-      <p class="small text-muted">{% trans "Review devices signed into your account." %}</p>
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:sessions_page' %}">{% trans "Active sessions" %}</a>
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="h6">{% trans "Sessions" %}</h2>
+        <p class="small text-muted">{% trans "Review devices signed into your account." %}</p>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:sessions_page' %}">{% trans "Active sessions" %}</a>
+      </div>
     </div>
   </div>
 </div>
+{% include "components/security_checkpoint_page_close.html" %}
 {% endblock %}

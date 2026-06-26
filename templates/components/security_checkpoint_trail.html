@@ -1,0 +1,38 @@
+{% load i18n %}
+{% comment %}
+  Security checkpoint breadcrumb trail.
+  checkpoint_flow: verify | setup | password | reset | onboarding | invite
+{% endcomment %}
+<nav class="rmc-security-checkpoint__trail" aria-label="{% trans 'Sign-in progress' %}">
+  {% if checkpoint_flow == "verify" %}
+    <span class="rmc-security-checkpoint__trail-step">{% trans "Password" %}</span>
+    <i class="rmc-security-checkpoint__trail-sep" aria-hidden="true">›</i>
+    <span class="rmc-security-checkpoint__trail-step is-active">{% trans "Verify" %}</span>
+    <i class="rmc-security-checkpoint__trail-sep" aria-hidden="true">›</i>
+    <span class="rmc-security-checkpoint__trail-step">{% trans "Dashboard" %}</span>
+  {% elif checkpoint_flow == "setup" %}
+    <span class="rmc-security-checkpoint__trail-step">{% trans "Password" %}</span>
+    <i class="rmc-security-checkpoint__trail-sep" aria-hidden="true">›</i>
+    <span class="rmc-security-checkpoint__trail-step is-active">{% trans "Enroll MFA" %}</span>
+    <i class="rmc-security-checkpoint__trail-sep" aria-hidden="true">›</i>
+    <span class="rmc-security-checkpoint__trail-step">{% trans "Dashboard" %}</span>
+  {% elif checkpoint_flow == "password" %}
+    <span class="rmc-security-checkpoint__trail-step is-active">{% trans "Security" %}</span>
+    <i class="rmc-security-checkpoint__trail-sep" aria-hidden="true">›</i>
+    <span class="rmc-security-checkpoint__trail-step">{% trans "Profile" %}</span>
+  {% elif checkpoint_flow == "reset" %}
+    <span class="rmc-security-checkpoint__trail-step is-active">{% trans "Reset" %}</span>
+    <i class="rmc-security-checkpoint__trail-sep" aria-hidden="true">›</i>
+    <span class="rmc-security-checkpoint__trail-step">{% trans "Sign in" %}</span>
+  {% elif checkpoint_flow == "onboarding" %}
+    <span class="rmc-security-checkpoint__trail-step is-active">{% trans "Account" %}</span>
+    <i class="rmc-security-checkpoint__trail-sep" aria-hidden="true">›</i>
+    <span class="rmc-security-checkpoint__trail-step">{% trans "School" %}</span>
+  {% elif checkpoint_flow == "invite" %}
+    <span class="rmc-security-checkpoint__trail-step is-active">{% trans "Invite" %}</span>
+    <i class="rmc-security-checkpoint__trail-sep" aria-hidden="true">›</i>
+    <span class="rmc-security-checkpoint__trail-step">{% trans "Portal" %}</span>
+  {% else %}
+    <span class="rmc-security-checkpoint__trail-step is-active">{% trans "Security" %}</span>
+  {% endif %}
+</nav>

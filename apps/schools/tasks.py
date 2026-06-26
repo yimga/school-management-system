@@ -6,7 +6,6 @@ When USE_DJANGO_TENANTS is True, ensures Client and Domain exist and runs tenant
 
 import logging
 import secrets
-import time
 from contextlib import contextmanager
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -1462,6 +1461,24 @@ def _do_provision_tracked(
         except (DatabaseError, IntegrityError, ValueError, TypeError, ImportError):
             logger.exception("Grading scale provisioning failed for school %s", school_id)
             phase_b_failed_steps.append("grading_scale")
+
+        try:
+            from apps.metadata.country_eav_catalog import seed_country_eav_definitions
+
+            eav_result = seed_country_eav_definitions(
+                school=school,
+                country_code=getattr(school, "country_code", None),
+            )
+            _record_school_event(
+                school,
+                event_type="EAV_CATALOG_READY",
+                status="SUCCESS",
+                message="Country identity field catalog provisioned.",
+                payload=eav_result,
+            )
+        except (DatabaseError, IntegrityError, ValueError, TypeError, ImportError):
+            logger.exception("EAV catalog provisioning failed for school %s", school_id)
+            phase_b_failed_steps.append("eav_catalog")
 
         # W1-5: Seed 1–3 default classrooms from profile (or generic names).
         # Wrapped so a classroom/department seeding error cannot abort the whole

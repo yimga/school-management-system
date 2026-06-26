@@ -1288,6 +1288,9 @@ def create_fee_invoices(
                     "issued_date": issued_date,
                     "due_date": due_date,
                     "status": Invoice.Status.ISSUED,
+                    "total_amount": Decimal("0.01"),
+                    "school": getattr(student, "school", None)
+                    or getattr(plan, "school", None),
                 },
             )
             if not created:
@@ -1327,12 +1330,20 @@ def create_fee_invoices(
                     if item.item_type == FeeItem.ItemType.TRANSPORT:
                         if not getattr(student, "uses_transport", False):
                             continue
+                    from apps.finance.tuition_pricing import localized_tuition_amount
+
+                    line_amount = localized_tuition_amount(
+                        school=getattr(student, "school", None)
+                        or getattr(plan, "school", None),
+                        base_amount=item.amount,
+                        item_type=item.item_type,
+                    )
                     InvoiceLine.objects.create(
                         invoice=invoice,
                         description=item.name,
                         quantity=Decimal("1.00"),
-                        unit_price=item.amount,
-                        amount=item.amount,
+                        unit_price=line_amount,
+                        amount=line_amount,
                         fee_item=item,
                     )
                 # Section 7 Nuance Engine: optional fee_discount from school custom logic

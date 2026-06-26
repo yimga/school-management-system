@@ -1019,7 +1019,7 @@ def _promote_school_plan_from_processor_payload(
     if not plan_code:
         return
     try:
-        from apps.siteconfig.models import Plan
+        from apps.plans_entitlements.models import Plan
 
         target = Plan.objects.filter(slug=plan_code, is_active=True).first()
         if target is None:

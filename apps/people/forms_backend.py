@@ -76,8 +76,17 @@ class StudentCreateForm(forms.ModelForm):
             ),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, school=None, **kwargs):
+        self._school = school
         super().__init__(*args, **kwargs)
+        from apps.metadata.dynamic_forms import attach_dynamic_fields_for_model
+
+        attach_dynamic_fields_for_model(
+            self,
+            school=self._school,
+            model=StudentProfile,
+            instance=self.instance,
+        )
         # Filter to active academic year and classrooms
         # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         self.fields["academic_year"].queryset = AcademicYear.objects.filter(
@@ -173,9 +182,18 @@ class TeacherCreateForm(forms.ModelForm):
         }
 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, school=None, **kwargs):
+        self._school = school
         # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         super().__init__(*args, **kwargs)
+        from apps.metadata.dynamic_forms import attach_dynamic_fields_for_model
+
+        attach_dynamic_fields_for_model(
+            self,
+            school=self._school,
+            model=TeacherProfile,
+            instance=self.instance,
+        )
         self.fields["department"].queryset = Department.objects.all().order_by("name")
         self.fields["department"].empty_label = "Select department"
 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
@@ -248,7 +266,16 @@ class ApplicantCreateForm(forms.ModelForm):
             "stage": forms.Select(attrs={"class": "form-select"}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, school=None, **kwargs):
+        self._school = school
         super().__init__(*args, **kwargs)
+        from apps.metadata.dynamic_forms import attach_dynamic_fields_for_model
+
+        attach_dynamic_fields_for_model(
+            self,
+            school=self._school,
+            model=TeacherProfile,
+            instance=self.instance,
+        )
         self.fields["lead_source"].required = False
         self.fields["stage"].initial = Applicant.Stage.LEAD

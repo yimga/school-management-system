@@ -184,7 +184,9 @@ def notify_purge_completed(receipt: Any, *, purge_source: str = "operator") -> N
         from apps.lifecycle.models_purge import PurgeOperation
 
         op = (
-            PurgeOperation.objects.filter(school_slug=receipt.school_slug)
+            PurgeOperation.objects.filter(
+                school_id__in=[receipt.school_id, receipt.school_slug],
+            )
             .order_by("-completed_at")
             .first()
         )

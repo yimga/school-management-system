@@ -192,6 +192,16 @@ const FILL_ALTITUDE = 1.02;
 /** /super/ landing: full sphere, edge-to-edge mount; user zoom goes closer. */
 const LANDING_FULL_GLOBE_ALTITUDE = 1.93;
 const LANDING_CAMERA_FOV = 40;
+const LANDING_ATMOSPHERE = "rgba(99,102,241,0.35)";
+const LANDING_ATMOSPHERE_ALTITUDE = 0.04;
+
+type CelestialBody = {
+  lat: number;
+  lng: number;
+  kind: "sun" | "moon";
+};
+
+let celestialTimer: ReturnType<typeof setInterval> | null = null;
 
 function resolveLandingAltitudeFromSize(w: number, h: number): number {
   const side = Math.min(w, h);
@@ -232,6 +242,67 @@ function syncLandingGlobeMountLayout(mount: HTMLElement): void {
 
 function isGlobeLandingPage(): boolean {
   return !!document.querySelector('[data-rmc-cp-globe-landing="1"]');
+}
+
+function subsolarLongitudeUtc(date: Date): number {
+  const utcHours = date.getUTCHours() + date.getUTCMinutes() / 60 + date.getUTCSeconds() / 3600;
+  return ((12 - utcHours) * 15 + 360) % 360 - 180;
+}
+
+function subsolarLatitudeUtc(date: Date): number {
+  const start = Date.UTC(date.getUTCFullYear(), 0, 0);
+  const day = Math.floor(
+    (Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) - start) / 86400000
+  );
+  return 23.44 * Math.sin((2 * Math.PI * (day - 81)) / 365);
+}
+
+function celestialBodies(now = new Date()): CelestialBody[] {
+  const lat = subsolarLatitudeUtc(now);
+  const lng = subsolarLongitudeUtc(now);
+  const moonLng = lng >= 0 ? lng - 180 : lng + 180;
+  return [
+    { lat, lng, kind: "sun" },
+    { lat: -lat * 0.9, lng: moonLng, kind: "moon" },
+  ];
+}
+
+function syncCelestialBodies(globe: GlobeInstance): void {
+  if (!featureEnabled("day_night_terminator")) {
+    globe.htmlElementsData([]);
+    return;
+  }
+  const bodies = celestialBodies();
+  globe
+    .htmlElementsData(bodies)
+    .htmlLat((d: object) => (d as CelestialBody).lat)
+    .htmlLng((d: object) => (d as CelestialBody).lng)
+    .htmlAltitude(0.24)
+    .htmlElement((d: object) => {
+      const kind = (d as CelestialBody).kind;
+      const el = document.createElement("div");
+      el.className = kind === "sun" ? "lx-world__globe-sun" : "lx-world__globe-moon";
+      el.setAttribute("aria-hidden", "true");
+      return el;
+    });
+  const theme = payloadRef?.theme || ({} as GlobeTheme);
+  const hour = new Date().getHours();
+  const isDay = hour >= 6 && hour < 20;
+  const atmosphere = isGlobeLandingPage()
+    ? LANDING_ATMOSPHERE
+    : isDay
+      ? theme.atmosphere || "rgba(129,140,248,0.52)"
+      : "rgba(99,102,241,0.58)";
+  globe
+    .atmosphereColor(atmosphere)
+    .atmosphereAltitude(isGlobeLandingPage() ? LANDING_ATMOSPHERE_ALTITUDE : 0.12);
+}
+
+function wireCelestialTick(globe: GlobeInstance): void {
+  if (!featureEnabled("day_night_terminator")) return;
+  syncCelestialBodies(globe);
+  if (celestialTimer) window.clearInterval(celestialTimer);
+  celestialTimer = window.setInterval(() => syncCelestialBodies(globe), 60000);
 }
 
 function resolveDefaultAltitude(): number {
@@ -782,8 +853,8 @@ function initGlobe(container: HTMLElement, payload: GlobePayload): GlobeInstance
     .backgroundColor("rgba(0,0,0,0)")
     .showGlobe(true)
     .showAtmosphere(true)
-    .atmosphereColor(theme.atmosphere || "rgba(99,102,241,0.35)")
-    .atmosphereAltitude(0.12)
+    .atmosphereColor(isGlobeLandingPage() ? LANDING_ATMOSPHERE : theme.atmosphere || "rgba(129,140,248,0.52)")
+    .atmosphereAltitude(isGlobeLandingPage() ? LANDING_ATMOSPHERE_ALTITUDE : 0.12)
     .pointsData(applyMarkerFilters())
     .pointLat("lat")
     .pointLng("lng")
@@ -840,7 +911,7 @@ function initGlobe(container: HTMLElement, payload: GlobePayload): GlobeInstance
     globe.globeImageUrl(textureUrl);
     material.color.set("#ffffff");
     material.emissive.set("#020612");
-    material.emissiveIntensity = 0.045;
+    material.emissiveIntensity = isGlobeLandingPage() ? 0.072 : 0.045;
     material.shininess = 0.08;
   } else {
     material.color.set(theme.globeColor || "#0f1530");
@@ -914,6 +985,7 @@ function initGlobe(container: HTMLElement, payload: GlobePayload): GlobeInstance
   stage.removeAttribute("data-rmc-globe-mode");
   hideSkeleton(container);
   globeInstance = globe;
+  wireCelestialTick(globe);
   return globe;
 }
 

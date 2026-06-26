@@ -13,7 +13,6 @@ from decimal import Decimal
 
 from django.test import SimpleTestCase
 
-from apps.evals import grading
 from apps.evals.grading import (
     ASSESSMENT_WEIGHTS_SCALE_MAP,
     GRADING_SCALES,

@@ -1,32 +1,43 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}{% trans "Resend verification" %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
-
-<div data-rmc-scroll-policy="paginate" class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <h1 class="h3 mb-3">{% trans "Resend verification link" %}</h1>
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="onboarding" %}
+<section class="auth-shell" aria-labelledby="resend-title">
+  <div data-rmc-scroll-policy="paginate" class="auth-card">
+    <div class="rmc-security-checkpoint__head" style="border-bottom:0">
+      <span class="rmc-security-checkpoint__icon" aria-hidden="true"><i class="bi bi-envelope-arrow-up"></i></span>
+      <div>
+        <div class="rmc-security-checkpoint__eyebrow">{% trans "Signup" %}</div>
+        <h1 id="resend-title">{% trans "Resend verification link" %}</h1>
+      </div>
+    </div>
+    <div class="rmc-security-checkpoint__body">
       {% if sent %}
-      <div class="rmc-banner rmc-banner--success">{{ message }}</div>
-      <p><a href="{% url 'global_login_discovery' %}">{% trans "Go to login" %}</a></p>
+      <div class="rmc-banner rmc-banner--success mb-3">{{ message }}</div>
+      <a class="btn btn-primary w-100" href="{% url 'global_login_discovery' %}">{% trans "Go to login" %}</a>
       {% else %}
-      {% if error %}<div class="rmc-banner rmc-banner--error">{{ error }}</div>{% endif %}
-      <p class="text-muted">{% trans "Your signup verification link is valid for 2 days. If it expired or never arrived, enter the email you signed up with and we'll send a fresh link — no need to sign up again." %}</p>
+      {% if error %}<div class="rmc-banner rmc-banner--error mb-3">{{ error }}</div>{% endif %}
+      <p class="rmc-security-checkpoint__sub">{% trans "Your signup verification link is valid for 2 days. If it expired or never arrived, enter the email you signed up with and we'll send a fresh link — no need to sign up again." %}</p>
       <form method="post" action="{% url 'resend_signup_verification' %}" novalidate>
         {% csrf_token %}
         <div class="mb-3">
           <label for="resend-email" class="form-label">{% trans "Email address" %}</label>
           <input type="email" class="form-control" id="resend-email" name="email" required autocomplete="email" maxlength="254" inputmode="email">
         </div>
-        <button type="submit" class="btn btn-primary">{% trans "Send new link" %}</button>
+        <button type="submit" class="btn btn-primary w-100">{% trans "Send new link" %}</button>
       </form>
       {% endif %}
     </div>
   </div>
-</div>
+</section>
+{% include "components/security_checkpoint_page_close.html" %}
 {% endblock %}

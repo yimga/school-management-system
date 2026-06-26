@@ -8,7 +8,7 @@ Reads ``WorkflowRun`` + steps for ``tenant_school_provision``, falls back to
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from django.db import DatabaseError
 from django.utils import timezone
