@@ -73,7 +73,14 @@ class LMSSubmissionServiceTests(TestCase):
         self.teacher = TeacherProfile.objects.create(
             user=self.teacher_user, school=self.school
         )
+        self.student_user = User.objects.create_user(
+            username="lms_student",
+            email="lms_student@test.com",
+            password="testpass123",
+            role=User.Role.STUDENT,
+        )
         self.student = StudentProfile.objects.create(
+            user=self.student_user,
             first_name="Sam",
             last_name="Tester",
             date_of_birth=date(2012, 1, 1),
@@ -176,3 +183,66 @@ class LMSSubmissionServiceTests(TestCase):
         )
         self.assertIn(published.id, smap)
         self.assertEqual(smap[published.id].status, LMSSubmission.Status.SUBMITTED)
+
+
+class LMSOfflineApplierTests(LMSSubmissionServiceTests):
+    """The canonical offline rail (_apply_lms_submission) converges on LMSSubmission.
+
+    Inherits the fixture from LMSSubmissionServiceTests (school/classroom/student-with-user).
+    """
+
+    def test_offline_applier_creates_canonical_submission(self):
+        from apps.platform_runtime.offline_queue import _apply_lms_submission
+
+        assignment = self._assignment()
+        # student_id in the payload is deliberately spoofed; the applier must IGNORE it and
+        # resolve the student from the authenticated user_id.
+        result = _apply_lms_submission(
+            self.school.id,
+            self.student_user.id,
+            {"assignment_id": assignment.id, "student_id": 999999, "content": "offline answer"},
+        )
+        self.assertTrue(result["ok"], result)
+        sub = LMSSubmission.objects.get(assignment=assignment, student=self.student)
+        self.assertEqual(sub.status, LMSSubmission.Status.SUBMITTED)
+        self.assertEqual(sub.content, "offline answer")
+        self.assertEqual(result["submission_id"], sub.pk)
+
+    def test_offline_applier_is_idempotent_dedup(self):
+        from apps.platform_runtime.offline_queue import _apply_lms_submission
+
+        assignment = self._assignment()
+        payload = {"assignment_id": assignment.id, "content": "first"}
+        r1 = _apply_lms_submission(self.school.id, self.student_user.id, payload)
+        r2 = _apply_lms_submission(self.school.id, self.student_user.id, payload)
+        self.assertTrue(r1["ok"])
+        self.assertTrue(r2["ok"])
+        self.assertTrue(r2["dedup"])  # replay is a clean no-op
+        self.assertEqual(LMSSubmission.objects.filter(assignment=assignment).count(), 1)
+
+    def test_offline_applier_rejects_unknown_student_user(self):
+        from apps.platform_runtime.offline_queue import _apply_lms_submission
+
+        assignment = self._assignment()
+        result = _apply_lms_submission(
+            self.school.id,
+            self.teacher_user.id,  # a non-student user has no StudentProfile
+            {"assignment_id": assignment.id, "content": "x"},
+        )
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["error"], "student_profile_not_found")
+
+    def test_offline_applier_rejects_cross_school_assignment(self):
+        from apps.platform_runtime.offline_queue import _apply_lms_submission
+
+        assignment = self._assignment()
+        other_school = School.objects.create(
+            name="Other", slug="other-lms", subdomain="other-lms", is_active=True
+        )
+        result = _apply_lms_submission(
+            other_school.id,  # assignment does not belong to this school
+            self.student_user.id,
+            {"assignment_id": assignment.id, "content": "x"},
+        )
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["error"], "assignment_not_found")

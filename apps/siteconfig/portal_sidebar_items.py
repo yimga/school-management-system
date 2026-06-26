@@ -784,6 +784,16 @@ def build_portal_sidebar_items(request, site):
             )
             items.append(
                 {
+                    "id": "student_homework",
+                    "label": "Homework",
+                    "url": _safe_reverse("portal:student_assignments"),
+                    "icon": "bi-pencil-square",
+                    "section": "Learning",
+                    "badge": None,
+                }
+            )
+            items.append(
+                {
                     "id": "student_syllabus",
                     "label": "Syllabus Coverage",
                     "url": _safe_reverse("portal:portal_syllabus"),
@@ -1649,6 +1659,7 @@ _BASELINE_BY_ROLE = {
     ),
     User.Role.STUDENT.value: (
         ("student_home", "Student Home", "portal:student_portal_grades", "bi-house", "Home"),
+        ("student_homework", "Homework", "portal:student_assignments", "bi-pencil-square", "Learning"),
         ("student_workflow", "My Workflow", "portal:student_workflow", "bi-diagram-3", "My Workflow"),
     ),
 }
