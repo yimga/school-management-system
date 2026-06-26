@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/super/ globe landing — reference parity preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --hairline: rgba(148, 163, 184, 0.14);
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --dim: #64748b;
+  --brand: #818cf8;
+  --good: #6ee7b7;
+  --warn: #fde68a;
+  --ai: #c4b5fd;
+  --canvas: #0a0e18;
+  --card: #121829;
+  --frame-h: clamp(520px, calc(100dvh - 5.5rem), 1024px);
+  --rmc-globe-landing-edge-pad: clamp(4px, 2.25cqh, 14px);
+  --rmc-globe-landing-disk-fill: 0.92;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --motion-normal: 280ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #050810; color: var(--text); min-height: 100vh; }
+.preview-banner {
+  position: sticky; top: 0; z-index: 100; padding: 10px 16px;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.25);
+  background: rgba(5, 8, 16, 0.96); backdrop-filter: blur(16px);
+  font-size: 11px; color: var(--muted); line-height: 1.45;
+}
+.preview-banner strong { color: var(--good); }
+
+.shell { max-width: 1320px; margin: 0 auto; padding: 12px 16px 32px; }
+.shell-frame {
+  border: 1px solid var(--hairline); border-radius: var(--radius-lg); overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  display: grid; grid-template-columns: 200px 1fr 40px; grid-template-rows: auto 1fr;
+  min-height: calc(100dvh - 3.5rem); background: var(--canvas);
+}
+.shell-top { grid-column: 1 / -1; border-bottom: 1px solid var(--hairline); background: #060a12; }
+.shell-top__live { display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 11px; border-bottom: 1px solid rgba(110, 231, 183, 0.12); }
+.shell-top__live i { width: 7px; height: 7px; border-radius: 50%; background: var(--good); box-shadow: 0 0 8px rgba(110, 231, 183, 0.6); animation: blink 1.2s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:.35} }
+.shell-top__nav { display: flex; gap: 16px; padding: 10px 14px; font-size: 12px; color: var(--muted); }
+.shell-top__nav b { color: var(--text); margin-right: 12px; }
+.shell-side { grid-column: 1; grid-row: 2; min-height: 0; padding: 12px 10px; border-right: 1px solid var(--hairline); font-size: 11px; color: var(--muted); }
+.shell-side div { padding: 8px 10px; border-radius: 8px; margin-bottom: 4px; }
+.shell-side div.on { background: rgba(129, 140, 248, 0.12); color: var(--text); font-weight: 600; }
+.shell-copilot { grid-column: 3; grid-row: 2; min-height: 0; border-left: 1px solid var(--hairline); writing-mode: vertical-rl; text-align: center; font-size: 10px; font-weight: 700; color: var(--dim); padding: 12px 0; }
+.shell-main { grid-column: 2; grid-row: 2; padding: 8px 10px 10px; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+
+.globe-lab { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; height: auto; max-height: none; }
+.ai-guide {
+  display: grid; grid-template-columns: auto 1fr 1fr auto auto; gap: 10px; align-items: center;
+  padding: 8px 10px; border: 1px solid rgba(196, 181, 253, 0.22); border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(196, 181, 253, 0.1), rgba(16, 185, 129, 0.055)), rgba(12, 16, 28, 0.78);
+}
+.ai-guide .tag { font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ai); padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(196,181,253,.28); }
+.ai-guide strong { font-size: 12px; }
+.ai-guide .copy { font-size: 12px; color: var(--muted); }
+.ai-guide button { font: inherit; font-size: 11px; font-weight: 800; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(196,181,253,.28); background: rgba(12,16,28,.86); color: var(--text); cursor: pointer; }
+.lab-controls { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 10px; border: 1px solid var(--hairline); border-radius: var(--radius-md); background: rgba(255,255,255,.02); font-size: 11px; color: var(--muted); }
+.lab-controls button { font: inherit; font-size: 11px; font-weight: 600; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: rgba(255,255,255,.04); color: var(--text); cursor: pointer; }
+.lab-controls button.wow { border-color: rgba(251,191,36,.5); color: var(--warn); background: rgba(251,191,36,.1); box-shadow: 0 0 24px rgba(251,191,36,.12); }
+
+.master-card {
+  flex: 1 1 auto; min-height: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr) min(272px, 27vw); grid-template-rows: 1fr;
+  overflow: hidden; border: 1px solid var(--hairline); border-radius: var(--radius-lg); background: var(--card);
+}
+
+.lx-world__map {
+  position: relative; min-height: 0; height: 100%; overflow: hidden;
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  container-type: size;
+  --rmc-globe-landing-edge-pad: clamp(4px, 2.25%, 14px);
+  background:
+    radial-gradient(ellipse 92% 86% at 50% 48%, rgba(99, 102, 241, 0.11), transparent 58%),
+    radial-gradient(ellipse 68% 62% at 46% 54%, rgba(16, 185, 129, 0.07), transparent 52%),
+    radial-gradient(120% 110% at 42% 38%, rgba(16,185,129,0.1), transparent 68%);
+  transition: background var(--motion-normal) var(--ease-out);
+}
+.lx-world__map::after { display: none; }
+.lx-world__map--aurora-warn {
+  background: radial-gradient(120% 110% at 42% 38%, rgba(251,191,36,0.14), transparent 68%),
+              radial-gradient(80% 60% at 30% 70%, rgba(252,211,77,0.06), transparent 55%);
+}
+.lx-world__globe-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; z-index: 0; }
+.lx-world__globe-stage.revealed { animation: globe-reveal .85s var(--ease-out); }
+@keyframes globe-reveal { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+#rmc-world-globe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  transform: none;
+}
+#rmc-world-globe canvas { display: block; width: 100% !important; height: 100% !important; outline: none; }
+
+.map-chrome { position: absolute; left: 14px; top: 14px; z-index: 3; display: flex; flex-wrap: wrap; gap: 6px; font-size: 10px; }
+.mode-toggle { display: inline-flex; border: 1px solid var(--hairline); border-radius: 8px; overflow: hidden; background: rgba(18,24,41,.9); }
+.mode-toggle span { padding: 4px 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.mode-toggle span.on { background: rgba(52,211,153,.12); color: var(--good); }
+.mode-toggle span.off { color: var(--muted); border-left: 1px solid var(--hairline); }
+.pill { padding: 4px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: rgba(18,24,41,.9); color: var(--muted); cursor: pointer; }
+.pill.wow { border-color: rgba(251,191,36,.45); color: var(--warn); }
+
+.zone {
+  position: absolute; z-index: 2; padding: 8px 10px; border-radius: 10px; font-size: 10px; max-width: 168px;
+  backdrop-filter: blur(16px); border: 1px solid; box-shadow: 0 8px 32px rgba(0,0,0,.35);
+  transition: opacity var(--motion-normal), transform var(--motion-normal);
+}
+.zone b { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px; font-weight: 700; }
+.zone--ui { top: 14px; right: 14px; border-color: rgba(129,140,248,.35); background: rgba(10,14,26,.82); }
+.zone--ui b { color: var(--brand); }
+.zone--data-mr { top: 42%; right: 14px; border-color: rgba(110,231,183,.35); background: rgba(6,18,14,.82); max-width: 150px; }
+.zone--data-mr b { color: var(--good); }
+.zone--data-bl { bottom: 52px; left: 14px; border-color: rgba(110,231,183,.35); background: rgba(6,18,14,.82); }
+.zone--ai-br { bottom: 14px; right: 14px; border-color: rgba(196,181,253,.35); background: rgba(18,12,32,.85); max-width: 175px; }
+.zone--ai-br b { color: var(--ai); }
+.zone--share { top: 14px; right: 14px; border-color: rgba(251,191,36,.4); background: rgba(24,18,6,.88); max-width: 200px; }
+.zone--share b { color: var(--warn); }
+.wow-on .zone--share { display: block; }
+.wow-on .zone--ui:not(.zone--share) { top: 58px; }
+
+.kbd-bar { position: absolute; left: 14px; bottom: 14px; z-index: 3; display: flex; gap: 10px; font-size: 9px; color: var(--dim); }
+.kbd-bar kbd { font: inherit; padding: 2px 5px; border-radius: 4px; border: 1px solid var(--hairline); background: rgba(255,255,255,.04); color: var(--muted); }
+
+.legend {
+  min-height: 0; height: 100%; overflow: hidden;
+  display: flex; flex-direction: column; gap: 6px; padding: 10px 12px;
+  border-left: 1px solid var(--hairline); border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  background: rgba(18, 24, 41, 0.96);
+}
+.legend .eyebrow { font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+.legend .count { font-size: clamp(1.65rem, 3.6vw, 2.2rem); font-weight: 800; line-height: 1; }
+.legend .count small { font-size: 14px; font-weight: 600; color: var(--muted); margin-left: 6px; }
+.legend .sub { font-size: 11px; color: var(--muted); font-style: italic; margin: 2px 0 4px; }
+.legend-row {
+  display: flex; justify-content: space-between; align-items: center; padding: 3px 8px; font-size: 11.5px;
+  border-radius: 8px; background: rgba(255,255,255,.02); border: 1px solid var(--hairline); color: var(--muted);
+}
+.legend-row strong { color: var(--text); }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; font-size: 10px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--hairline); color: var(--muted); }
+.swatch { width: 8px; height: 8px; border-radius: 50%; }
+.pulse-block { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--hairline); flex: 0 1 auto; }
+.pulse-block .title { font-size: 9px; font-weight: 800; text-transform: uppercase; color: var(--dim); margin-bottom: 4px; }
+.pulse-block .title .live { color: var(--good); margin-right: 4px; }
+.pulse-item { display: flex; gap: 8px; padding: 3px 0; font-size: 10.5px; color: var(--muted); border-bottom: 1px solid rgba(148,163,184,.06); }
+.pulse-item time { color: var(--dim); min-width: 28px; }
+.brief-block {
+  margin-top: 4px; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid rgba(196,181,253,.22); background: rgba(196,181,253,.06); font-size: 11px;
+}
+.brief-block .lbl { font-size: 9px; font-weight: 800; color: var(--ai); text-transform: uppercase; margin-bottom: 4px; }
+.brief-block strong { display: block; font-size: 12px; margin-bottom: 4px; }
+.brief-block p { margin: 0 0 8px; color: var(--muted); line-height: 1.4; }
+.ask-fleet {
+  width: 100%; text-align: left; font: inherit; font-size: 11px; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid var(--hairline); background: rgba(12,16,28,.9); color: var(--muted); cursor: pointer;
+}
+.radar-block { margin-top: 2px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: rgba(255,255,255,.02); font-size: 11px; }
+.radar-block .lbl { font-size: 9px; font-weight: 800; color: var(--good); text-transform: uppercase; margin-bottom: 4px; }
+
+@media (max-height: 760px) {
+  .legend { overflow-y: auto; overscroll-behavior: contain; }
+}
+@media (max-width: 900px) {
+  .shell-frame { grid-template-columns: 1fr; }
+  .shell-side, .shell-copilot { display: none; }
+  .master-card { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; }
+  .legend { max-height: 14rem; border-left: 0; border-top: 1px solid var(--hairline); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lx-world__globe-stage.revealed { animation: none; }
+  .shell-top__live i { animation: none; }
+}
+</style>
+</head>
+<body class="wow-on">
+<div class="preview-banner">
+  <strong>Stretched fill</strong> — alt ~1.93, FOV 40°, edge-to-edge. Ctrl+Shift+R.
+</div>
+
+<div class="shell">
+  <div class="shell-frame">
+    <header class="shell-top">
+      <div class="shell-top__live"><i aria-hidden="true"></i><span style="color:var(--good);font-weight:800;font-size:9px;letter-spacing:.1em">LIVE</span> 2 schools live · 1 needs eyes</div>
+      <div class="shell-top__nav"><b>RunMyCampus</b><span>Schools</span><span>Billing</span></div>
+    </header>
+    <aside class="shell-side" aria-hidden="true"><div class="on">Command center</div><div>Schools</div></aside>
+    <main class="shell-main">
+      <section class="globe-lab lx-world--wow-on">
+        <div class="ai-guide">
+          <span class="tag">AI Copilot</span>
+          <strong>2 schools live. 1 need eyes.</strong>
+          <span class="copy">Fleet attention · 1 suspended</span>
+          <button type="button">Ask AI</button>
+          <button type="button">Smart tour</button>
+        </div>
+        <div class="lab-controls">
+          <label><input type="checkbox" checked> Void zones A–D</label>
+          <label><input type="checkbox" checked> Wow effects</label>
+          <button type="button" class="wow" id="toggle-wow">✦ Wow demo ON</button>
+          <button type="button" id="btn-sse">↻ Simulate SSE</button>
+        </div>
+        <div class="master-card">
+          <div class="lx-world__map lx-world__map--aurora-warn" id="master-map">
+            <div class="lx-world__globe-stage revealed">
+              <div id="rmc-world-globe"></div>
+            </div>
+            <div class="map-chrome">
+              <div class="mode-toggle"><span class="on">Live</span><span class="off">Offline</span></div>
+              <span class="pill" id="fresh-pill">Updated 3:11 PM</span>
+              <span class="pill">Tour</span>
+              <span class="pill" id="reset-pill">Reset view</span>
+            </div>
+            <div class="zone zone--share" id="zone-share"><b>Share view</b><span id="share-hash">#globe=8.0,-5.0,2.00</span></div>
+            <div class="zone zone--ui" id="zone-a"><b>A · Viewport</b>West Africa · 2 in view<br><span style="color:var(--muted)">0 operators viewing</span></div>
+            <div class="zone zone--data-mr" id="zone-b"><b>B · School hours</b>1 region in session now</div>
+            <div class="zone zone--data-bl" id="zone-c"><b>C · Caption</b>Drag · zoom · click pin</div>
+            <div class="zone zone--ai-br" id="zone-d"><b>D · AI whisper</b>Fleet healthy · 1 suspended in view</div>
+            <div class="kbd-bar"><span><kbd>T</kbd> tour</span><span><kbd>R</kbd> reset</span><span><kbd>Esc</kbd> clear</span></div>
+          </div>
+          <aside class="legend lx-world__legend-panel--globe-landing">
+            <div class="eyebrow">Global footprint</div>
+            <div class="count">2 <small>schools live</small></div>
+            <div class="sub">Across 2 regions · 1 country today</div>
+            <div class="legend-row"><span><span class="dot" style="background:#a5b4fc"></span>West Africa</span><strong>1</strong></div>
+            <div class="legend-row"><span><span class="dot" style="background:#6ee7b7"></span>Other</span><strong>1</strong></div>
+            <div class="chips">
+              <span class="chip"><span class="swatch" style="background:#6ee7b7"></span>Active</span>
+              <span class="chip"><span class="swatch" style="background:#fcd34d"></span>Suspended</span>
+              <span class="chip"><span class="swatch" style="background:#93c5fd"></span>Frozen</span>
+            </div>
+            <div class="pulse-block">
+              <div class="title"><span class="live">● LIVE</span> Fleet pulse</div>
+              <div class="pulse-item"><time>2m</time><span>New School → active</span></div>
+              <div class="pulse-item"><time>1h</time><span>Tour completed · West Africa</span></div>
+            </div>
+            <div class="brief-block">
+              <div class="lbl">AI · Fleet brief</div>
+              <strong>2 schools, 1 needs eyes.</strong>
+              <p>Demo School suspended in Nigeria; New School healthy in Côte d'Ivoire.</p>
+              <button type="button" class="ask-fleet">Ask about West Africa → assist dock</button>
+            </div>
+            <div class="radar-block">
+              <div class="lbl">Radar · Expansion targets</div>
+              East Africa · Europe pipeline · 2 ghost pins on map
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+    <aside class="shell-copilot" aria-hidden="true">AI</aside>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/globe.gl@2.33.1/dist/globe.gl.min.js"></script>
+<script>
+(function () {
+  var arcs = [
+    { startLat: 40.71, startLng: -74.01, endLat: 5.36, endLng: -4.01, color: "rgba(129,140,248,0.55)" },
+    { startLat: 40.71, startLng: -74.01, endLat: 9.08, endLng: 8.68, color: "rgba(252,211,77,0.45)" }
+  ];
+  var markers = [
+    { lat: 9.08, lng: 8.68, name: "New School", region: "West Africa", status: "active", color: "rgba(110,231,183,0.95)" },
+    { lat: 6.45, lng: 3.39, name: "Demo School", region: "West Africa", status: "suspended", color: "rgba(252,211,77,0.95)" }
+  ];
+  var container = document.getElementById("rmc-world-globe");
+  var mapEl = document.getElementById("master-map");
+  var masterCard = document.querySelector(".master-card");
+  var globe = null;
+  var wowOn = true;
+  var DEFAULT = { lat: 8, lng: -5, altitude: 1.93 };
+  var LANDING_FOV = 40;
+
+  function resolveLandingAltitude(w, h) {
+    var side = Math.min(w, h);
+    if (side < 1) return DEFAULT.altitude;
+    return Math.max(1.9, Math.min(1.97, 1.93 - (side - 480) / 6000));
+  }
+
+  function tuneLandingCamera() {
+    if (!globe) return;
+    try {
+      var cam = globe.camera();
+      if (cam && typeof cam.fov === "number") {
+        cam.fov = LANDING_FOV;
+        if (cam.updateProjectionMatrix) cam.updateProjectionMatrix();
+      }
+    } catch (_e) {}
+  }
+
+  function syncMountLayout() {
+    if (!mapEl || !container) return 0;
+    var w = mapEl.clientWidth;
+    var h = mapEl.clientHeight;
+    if (w < 8 || h < 8) return 0;
+    container.style.position = "absolute";
+    container.style.inset = "0";
+    container.style.left = "0";
+    container.style.top = "0";
+    container.style.right = "0";
+    container.style.bottom = "0";
+    container.style.width = "100%";
+    container.style.height = "100%";
+    container.style.transform = "none";
+    return resolveLandingAltitude(w, h);
+  }
+
+  function resizeGlobe() {
+    var alt = syncMountLayout();
+    if (!globe || !container) return;
+    var w = container.clientWidth;
+    var h = container.clientHeight;
+    if (w < 8 || h < 8) return;
+    globe.width(w);
+    globe.height(h);
+    tuneLandingCamera();
+    if (alt > 0) {
+      var pov = globe.pointOfView();
+      if (!pov || Math.abs((pov.altitude || 0) - alt) > 0.04) {
+        globe.pointOfView({ lat: DEFAULT.lat, lng: DEFAULT.lng, altitude: alt }, 0);
+      }
+    }
+  }
+  function syncHash() {
+    if (!globe) return;
+    try {
+      var pov = globe.pointOfView();
+      document.getElementById("share-hash").textContent =
+        "#globe=" + pov.lat.toFixed(1) + "," + pov.lng.toFixed(1) + "," + (pov.altitude || 1.02).toFixed(2);
+    } catch (_e) {}
+  }
+  function resetView() {
+    if (!globe || !mapEl) return;
+    var alt = resolveLandingAltitude(mapEl.clientWidth, mapEl.clientHeight);
+    globe.pointOfView({ lat: DEFAULT.lat, lng: DEFAULT.lng, altitude: alt }, 800);
+    window.setTimeout(syncHash, 850);
+  }
+  function initGlobe() {
+    if (typeof Globe !== "function" || !container) return;
+    var alt = syncMountLayout();
+    globe = Globe()(container)
+      .globeImageUrl("https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg")
+      .backgroundColor("rgba(0,0,0,0)")
+      .showAtmosphere(true)
+      .atmosphereColor("rgba(99,102,241,0.35)")
+      .atmosphereAltitude(0.04)
+      .pointsData(markers)
+      .pointLat("lat").pointLng("lng").pointColor("color")
+      .pointAltitude(0.025).pointRadius(0.42)
+      .ringsData(markers.filter(function (m) { return m.status === "suspended"; }))
+      .ringLat("lat").ringLng("lng")
+      .ringColor(function () { return "rgba(252,211,77,0.85)"; })
+      .ringMaxRadius(3.4).ringPropagationSpeed(1.4).ringRepeatPeriod(2200)
+      .arcsData(arcs)
+      .arcColor("color")
+      .arcAltitude(0.12)
+      .arcStroke(0.45);
+    globe.controls().autoRotate = true;
+    globe.controls().autoRotateSpeed = 0.35;
+    globe.controls().addEventListener("change", syncHash);
+    tuneLandingCamera();
+    globe.pointOfView({ lat: DEFAULT.lat, lng: DEFAULT.lng, altitude: alt || DEFAULT.altitude }, 0);
+    resizeGlobe();
+    syncHash();
+    window.addEventListener("resize", resizeGlobe);
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(resizeGlobe);
+      ro.observe(container);
+      if (mapEl) ro.observe(mapEl);
+      if (masterCard) ro.observe(masterCard);
+    }
+  }
+  function boot() {
+    initGlobe();
+    window.setTimeout(resizeGlobe, 50);
+    window.setTimeout(resizeGlobe, 250);
+  }
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(boot);
+  } else {
+    window.requestAnimationFrame(function () { window.requestAnimationFrame(boot); });
+  }
+  document.getElementById("toggle-wow").addEventListener("click", function () {
+    wowOn = !wowOn;
+    document.body.classList.toggle("wow-on", wowOn);
+    document.getElementById("master-map").classList.toggle("lx-world__map--aurora-warn", wowOn);
+    this.textContent = wowOn ? "✦ Wow demo ON" : "✦ Wow demo OFF";
+    if (globe) globe.controls().autoRotate = wowOn;
+  });
+  document.getElementById("reset-pill").addEventListener("click", resetView);
+  document.getElementById("btn-sse").addEventListener("click", function () {
+    document.getElementById("fresh-pill").textContent = "Updated " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    document.getElementById("zone-c").innerHTML = "<b>C · Caption</b>Provisioning started";
+  });
+})();
+</script>
+</body>
+</html>

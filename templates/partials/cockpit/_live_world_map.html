@@ -6,21 +6,15 @@
 {% with lwm_layout=cockpit.live_world_map.layout|default:"hero" %}
 {% with lwm_fleet=cockpit.live_world_map.fleet_snapshot %}
 {% with lwm_features=cockpit.live_world_map.globe_payload.features %}
-<section class="lx-world-lab{% if lwm_features.wow_enabled != False %} lx-world--wow-on{% endif %}" id="rmc-globe-master-lab" aria-label="{% trans 'Live world map of tenant locations' %}" data-rmc-page-fold-nav="required" data-rmc-globe-wow-plus="1" data-rmc-globe-surface-elevation="1" data-rmc-globe-master-lab="1">
+<section class="lx-world-lab{% if rmc_cp_globe_landing_minimal_chrome %} lx-world-lab--globe-landing{% endif %}{% if lwm_features.wow_enabled != False %} lx-world--wow-on{% endif %}" id="rmc-globe-master-lab" aria-label="{% trans 'Live world map of tenant locations' %}" data-rmc-page-fold-nav="required" data-rmc-globe-wow-plus="1" data-rmc-globe-surface-elevation="1" data-rmc-globe-master-lab="1">
   <header class="lx-world-lab__header">
-    {% if rmc_cp_globe_landing_minimal_chrome %}
+    {% if not rmc_cp_globe_landing_minimal_chrome %}
     <h2 class="lx-world-lab__title">
       <span class="lx-world-lab__tag">{% trans "Live" %}</span>
       {% trans "Master preview — all layers" %}
     </h2>
     <p class="lx-world-lab__note">{% trans "Drag the globe · hover legend rows (magnetic fly-to) · toggle layers · turn on Wow demo for aurora + arcs + auto-rotate." %}</p>
-    <div class="visually-hidden" aria-hidden="true" id="rmc-world-globe-ai-guide" data-rmc-globe-ai-block>
-      <strong id="rmc-world-globe-ai-guide-headline"></strong>
-      <span id="rmc-world-globe-ai-guide-copy"></span>
-      <button type="button" class="lx-world-lab__ai-guide-btn" id="rmc-world-globe-ai-guide-ask" tabindex="-1">{% trans "Ask AI" %}</button>
-      <button type="button" class="lx-world-lab__ai-guide-btn" id="rmc-world-globe-ai-guide-tour" tabindex="-1">{% trans "Smart tour" %}</button>
-    </div>
-    {% else %}
+    {% endif %}
     <div class="lx-world-lab__ai-guide" id="rmc-world-globe-ai-guide" data-rmc-globe-ai-block>
       <span class="lx-world-lab__tag">{% trans "AI Copilot" %}</span>
       <strong id="rmc-world-globe-ai-guide-headline">{% if lwm_fleet and lwm_fleet.fleet_brief.headline %}{{ lwm_fleet.fleet_brief.headline }}{% else %}{% trans "Fleet focus ready" %}{% endif %}</strong>
@@ -28,7 +22,6 @@
       <button type="button" class="lx-world-lab__ai-guide-btn" id="rmc-world-globe-ai-guide-ask">{% trans "Ask AI" %}</button>
       <button type="button" class="lx-world-lab__ai-guide-btn" id="rmc-world-globe-ai-guide-tour">{% trans "Smart tour" %}</button>
     </div>
-    {% endif %}
   </header>
   <div class="lx-world-lab__controls" role="group" aria-label="{% trans 'Globe AI controls' %}">
     <label><input type="checkbox" id="layer-void" checked> {% trans "Void zones A-D" %}</label>
@@ -50,7 +43,7 @@
       id="rmc-world-globe-stage"
       data-rmc-offline-surface="globe-footprint"
     >
-      <svg class="lx-world__svg lx-world__svg-fallback" viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <svg class="lx-world__svg lx-world__svg-fallback" viewBox="0 0 600 280" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
           <radialGradient id="lx-globe-bg" cx="50%" cy="40%" r="60%">
             <stop offset="0%" stop-color="rgba(99,102,241,0.18)"/>

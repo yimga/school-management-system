@@ -227,10 +227,15 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   gap: 14px;
   margin-bottom: 0.75rem;
 }
-/* Globe landing — master preview parity + void band + Live/Offline toggle. */
+/* Globe landing — shell layout + globe mount sizing/position only (WebGL/arcs/wow untouched). */
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] {
   padding-top: 0 !important;
   padding-bottom: 0.25rem;
+  --rmc-globe-landing-frame-height: clamp(520px, calc(100dvh - 5.5rem), 1024px);
+  /* ~2–3% edge pad on the map cell (pairs with JS mount sizing + landing camera). */
+  --rmc-globe-landing-edge-pad: clamp(4px, 2.25%, 14px);
+  --rmc-globe-landing-disk-fill: 0.92;
+  --rmc-globe-landing-fit-pad: var(--rmc-globe-landing-edge-pad);
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .cp-page-body {
   padding-top: 0;
@@ -240,31 +245,36 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   margin-bottom: 0;
   gap: 0;
 }
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] #rmc-globe-master-lab {
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] #rmc-globe-master-lab.lx-world-lab--globe-landing {
   margin-top: 0;
-  gap: 10px;
+  gap: 6px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: var(--rmc-globe-landing-frame-height);
+  max-height: var(--rmc-globe-landing-frame-height);
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .rmc-app-shell__canvas-body {
   padding-top: 0;
 }
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__header {
-  padding: 0 4px 2px;
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab--globe-landing .lx-world-lab__header {
+  padding: 0 2px 0;
+  margin: 0;
+  flex: 0 0 auto;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab--globe-landing .lx-world-lab__title,
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab--globe-landing .lx-world-lab__note {
+  display: none;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab--globe-landing .lx-world-lab__ai-guide {
   margin: 0;
 }
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__title {
-  font-size: 17px;
-}
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__note {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.35;
-  color: var(--text-secondary);
-}
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab__controls {
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world-lab--globe-landing .lx-world-lab__controls {
   display: flex !important;
   flex-wrap: wrap;
-  padding: 10px 12px;
-  gap: 8px;
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  gap: 5px;
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world__chrome-rail--globe-landing-hidden {
   display: none !important;
@@ -274,10 +284,12 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] #master-card.lx-world--hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) min(280px, 28vw);
-  grid-template-rows: minmax(240px, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) min(272px, 27vw);
+  grid-template-rows: 1fr;
+  flex: 1 1 auto;
   min-height: 0;
-  max-height: min(82vh, 720px);
+  max-height: 100%;
+  height: 100%;
   overflow: hidden;
   align-items: stretch;
 }
@@ -285,9 +297,15 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   grid-column: 1;
   grid-row: 1;
   height: 100%;
-  min-height: 240px;
+  min-height: 0;
   max-height: none;
   align-self: stretch;
+  container-type: size;
+  --rmc-globe-landing-edge-pad: clamp(4px, 2.25%, 14px);
+  background:
+    radial-gradient(ellipse 92% 86% at 50% 48%, rgba(99, 102, 241, 0.11), transparent 58%),
+    radial-gradient(ellipse 68% 62% at 46% 54%, rgba(16, 185, 129, 0.07), transparent 52%),
+    radial-gradient(120% 110% at 42% 38%, rgba(16, 185, 129, 0.1), transparent 68%);
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__glass-dock--stacked.lx-world__glass-dock--chrome-rail {
   position: absolute;
@@ -300,17 +318,9 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__chrome-rail--stacked {
   display: none !important;
 }
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__void-band {
-  grid-column: 1;
-  grid-row: 2;
-  min-height: 0;
-  padding: 6px 10px;
-  gap: 8px;
-}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__void-band,
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__pulse-timeline {
-  grid-column: 1;
-  grid-row: 3;
-  padding: 6px 10px 8px;
+  display: none !important;
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world__void-band .rmc-cockpit-pulse__label {
   display: none;
@@ -324,23 +334,54 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
 }
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__legend-panel {
   grid-column: 2;
-  grid-row: 1 / -1;
+  grid-row: 1;
   min-height: 0;
-  max-height: none;
-  height: auto;
-  align-self: stretch;
-  overflow-y: auto;
-}
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__globe-stage,
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__globe,
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__svg-fallback {
-  width: 100%;
+  max-height: 100%;
   height: 100%;
+  align-self: stretch;
 }
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__globe-stage,
-[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__globe {
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__operator-guide {
+  display: none;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__map::after {
+  display: none;
+}
+/* Edge-to-edge globe mount — sizing via JS + 100% fallback (WebGL/arcs/wow untouched). */
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__globe-stage {
   align-items: stretch;
   justify-content: stretch;
+  z-index: 0;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero #rmc-world-globe,
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__globe {
+  position: absolute;
+  inset: 0;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
+  max-width: none;
+  max-height: none;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__svg-fallback {
+  position: absolute;
+  inset: 0;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
+  max-width: none;
+  max-height: none;
+}
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero.lx-world--hero {
+  min-height: 0;
+  max-height: 100%;
 }
 /* Hero stack (all manager landing pages using hero layout). */
 .lx-world--hero .lx-world__chrome-rail--stacked {
@@ -373,14 +414,18 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   margin-bottom: 1px;
 }
 @media (max-width: 1100px) {
+  [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] {
+    --rmc-globe-landing-frame-height: clamp(360px, calc(100dvh - 10rem), 780px);
+  }
   [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] #master-card.lx-world--hero {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(220px, 46vh) auto auto auto;
+    grid-template-rows: minmax(0, 1fr) auto;
   }
   [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .lx-world--hero .lx-world__legend-panel {
     grid-column: 1;
-    grid-row: 4;
-    max-height: 240px;
+    grid-row: 2;
+    max-height: 11rem;
+    height: auto;
   }
   .lx-world--hero {
     grid-template-columns: 1fr;

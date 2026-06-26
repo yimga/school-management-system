@@ -172,6 +172,7 @@ let tourIndex = 0;
 let tourWaypoints: TourWaypoint[] = [];
 let payloadRef: GlobePayload | null = null;
 let resizeHandler: (() => void) | null = null;
+let resizeObserver: ResizeObserver | null = null;
 let allRegionLabels: RegionLabel[] = [];
 let allCountryLabels: RegionLabel[] = [];
 let controlsChangeHandler: (() => void) | null = null;
@@ -188,6 +189,63 @@ let firstVisitHandled = false;
 const FIRST_VISIT_KEY = "rmc-globe-first-visit-done";
 const DEFAULT_CAMERA = { lat: 8, lng: -5, altitude: 1.02 };
 const FILL_ALTITUDE = 1.02;
+/** /super/ landing: full sphere, edge-to-edge mount; user zoom goes closer. */
+const LANDING_FULL_GLOBE_ALTITUDE = 1.93;
+const LANDING_CAMERA_FOV = 40;
+
+function resolveLandingAltitudeFromSize(w: number, h: number): number {
+  const side = Math.min(w, h);
+  if (side < 1) return LANDING_FULL_GLOBE_ALTITUDE;
+  return Math.max(1.9, Math.min(1.97, 1.93 - (side - 480) / 6000));
+}
+
+function tuneLandingCamera(globe: GlobeInstance, mount: HTMLElement): void {
+  if (!isGlobeLandingPage()) return;
+  try {
+    const cam = globe.camera() as { fov?: number; updateProjectionMatrix?: () => void };
+    if (cam && typeof cam.fov === "number") {
+      cam.fov = LANDING_CAMERA_FOV;
+      cam.updateProjectionMatrix?.();
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+function syncLandingGlobeMountLayout(mount: HTMLElement): void {
+  if (!isGlobeLandingPage()) return;
+  const map = mount.closest(".lx-world__map") as HTMLElement | null;
+  if (!map) return;
+  const w = map.clientWidth;
+  const h = map.clientHeight;
+  if (w < 8 || h < 8) return;
+  mount.style.position = "absolute";
+  mount.style.inset = "0";
+  mount.style.left = "0";
+  mount.style.top = "0";
+  mount.style.right = "0";
+  mount.style.bottom = "0";
+  mount.style.width = "100%";
+  mount.style.height = "100%";
+  mount.style.transform = "none";
+}
+
+function isGlobeLandingPage(): boolean {
+  return !!document.querySelector('[data-rmc-cp-globe-landing="1"]');
+}
+
+function resolveDefaultAltitude(): number {
+  if (isGlobeLandingPage()) {
+    const mount = document.getElementById("rmc-world-globe");
+    const map = mount?.closest(".lx-world__map") as HTMLElement | null;
+    if (map && map.clientWidth > 0 && map.clientHeight > 0) {
+      return resolveLandingAltitudeFromSize(map.clientWidth, map.clientHeight);
+    }
+    return LANDING_FULL_GLOBE_ALTITUDE;
+  }
+  const cam = payloadRef?.camera;
+  return typeof cam?.altitude === "number" ? cam.altitude : FILL_ALTITUDE;
+}
 
 function readPayload(): GlobePayload | null {
   const el = document.getElementById("rmc-world-globe-data");
@@ -216,6 +274,10 @@ function showFallback(container: HTMLElement): void {
   if (globeInstance && resizeHandler) {
     window.removeEventListener("resize", resizeHandler);
     resizeHandler = null;
+  }
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
   }
   globeInstance = null;
   const stage = getGlobeStage(container);
@@ -634,11 +696,12 @@ function defaultCamera(): GlobeCamera {
   return {
     lat: cam.lat ?? DEFAULT_CAMERA.lat,
     lng: cam.lng ?? DEFAULT_CAMERA.lng,
-    altitude: cam.altitude ?? DEFAULT_CAMERA.altitude,
+    altitude: resolveDefaultAltitude(),
   };
 }
 
 function maybeFirstVisitFlyIn(): void {
+  if (isGlobeLandingPage()) return;
   if (hashViewApplied || firstVisitHandled || prefersReducedMotion() || !featureEnabled("first_visit_fly_in")) return;
   try {
     if (sessionStorage.getItem(FIRST_VISIT_KEY)) {
@@ -664,7 +727,7 @@ function maybeFirstVisitFlyIn(): void {
     api.flyTo({
       lat: cam.lat ?? DEFAULT_CAMERA.lat,
       lng: cam.lng ?? DEFAULT_CAMERA.lng,
-      altitude: cam.altitude ?? FILL_ALTITUDE,
+      altitude: cam.altitude ?? resolveDefaultAltitude(),
       ms: prefersReducedMotion() ? 0 : 2200,
     });
   }, prefersReducedMotion() ? 0 : 700);
@@ -789,10 +852,11 @@ function initGlobe(container: HTMLElement, payload: GlobePayload): GlobeInstance
   const camera = payload.camera || {};
   hashViewApplied = applyGlobeHashIfPresent(globe);
   if (!hashViewApplied) {
+    tuneLandingCamera(globe, container);
     globe.pointOfView({
       lat: camera.lat ?? DEFAULT_CAMERA.lat,
       lng: camera.lng ?? DEFAULT_CAMERA.lng,
-      altitude: camera.altitude ?? FILL_ALTITUDE,
+      altitude: resolveDefaultAltitude(),
     });
   }
 
@@ -827,12 +891,20 @@ function initGlobe(container: HTMLElement, payload: GlobePayload): GlobeInstance
   }
 
   const resize = () => {
+    syncLandingGlobeMountLayout(container);
     globe.width(container.clientWidth);
     globe.height(container.clientHeight);
+    tuneLandingCamera(globe, container);
   };
   resize();
   window.addEventListener("resize", resize);
   resizeHandler = resize;
+  if (typeof ResizeObserver !== "undefined") {
+    resizeObserver = new ResizeObserver(() => resize());
+    resizeObserver.observe(container);
+    const mapCell = container.closest(".lx-world__map");
+    if (mapCell) resizeObserver.observe(mapCell);
+  }
 
   container.dataset.rmcWorldGlobeInited = "1";
   container.classList.add("lx-world__globe--webgl-ready");
@@ -976,7 +1048,7 @@ const api: RMCWorldGlobeApi = {
     api.flyTo({
       lat: cam.lat ?? DEFAULT_CAMERA.lat,
       lng: cam.lng ?? DEFAULT_CAMERA.lng,
-      altitude: cam.altitude ?? FILL_ALTITUDE,
+      altitude: resolveDefaultAltitude(),
       ms: prefersReducedMotion() ? 0 : 1200,
     });
     window.setTimeout(() => syncMapLabels(), prefersReducedMotion() ? 0 : 1250);
