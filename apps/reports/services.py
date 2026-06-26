@@ -776,6 +776,13 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         term=term,
     )
     labels = _resolve_report_labels(student)
+    # World-scale label: for schools on a non-numeric scale (WAEC A1–F9, Pass/Fail,
+    # qualitative descriptor) show their native grade beside the number. Resolved once
+    # here (N+1-safe); returns None for ordinary numeric/letter scales so their report
+    # cards are visually unchanged.
+    from apps.evals.models import resolve_extended_band_label
+
+    scale_type = getattr(weights, "grading_scale", "") or ""
 
     rows = []
     total_weighted = 0.0
@@ -807,6 +814,7 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
                 "practical": e.practical_score,
                 "average": average_score,
                 "total": total_score,
+                "band": resolve_extended_band_label(scale_type, average_score),
                 "subject_rank_display": subject_rankings.get(
                     e.subject_assignment_id, "- / -"
                 ),
@@ -838,6 +846,7 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
 
     summary = {
         "average": overall_average,
+        "overall_band": resolve_extended_band_label(scale_type, overall_average),
         "class_position": class_position,
         "class_size": len(class_rankings),
         "class_rank_display": _rank_display(class_position, len(class_rankings)),
@@ -922,6 +931,13 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
     labels = _resolve_report_labels(student)
     terms = terms_for_student(academic_year, student.classroom)
 
+    # World-scale label (WAEC / Pass-Fail / qualitative), resolved once (N+1-safe);
+    # None for ordinary numeric/letter scales so the transcript is visually unchanged.
+    from apps.evals.grading_provisioning import resolve_local_scale_type
+    from apps.evals.models import resolve_extended_band_label
+
+    annual_scale_type = resolve_local_scale_type(getattr(student, "school", None))
+
     term_rows = []
     for term in terms:
         term_avg = _annual_average_for_student(student, [term])
@@ -931,6 +947,7 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
             {
                 "term": term.label,
                 "avg": term_avg,
+                "band": resolve_extended_band_label(annual_scale_type, term_avg),
                 "pos": class_position,
                 "class_size": len(class_rankings),
                 "rank_display": _rank_display(class_position, len(class_rankings)),
@@ -998,6 +1015,7 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         "terms": terms,
         "term_rows": term_rows,
         "annual_average": annual_average,
+        "annual_band": resolve_extended_band_label(annual_scale_type, annual_average),
         "class_position": class_position,
         "class_size": len(class_rankings),
         "class_rank_display": _rank_display(class_position, len(class_rankings)),

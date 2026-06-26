@@ -97,6 +97,7 @@
           <th scope="col">Class</th>
           <th scope="col">{% term_label %}</th>
           <th scope="col">Exam</th>
+          <th scope="col">Grade</th>
         </tr>
       </thead>
       <tbody>
@@ -112,11 +113,12 @@
             <td>{{ e.subject_assignment.classroom.name }}</td>
             <td>{{ e.term.get_name_display }}</td>
             <td>{{ e.exam_score|default:"—" }}</td>
+            <td>{{ row.band|default:e.letter_grade|default:"—" }}</td>
           </tr>
           {% endwith %}
         {% empty %}
           <tr>
-            <td colspan="5">
+            <td colspan="6">
               <div class="rmc-empty rmc-empty--row" role="status" aria-live="polite">
                 <div class="rmc-empty__icon" aria-hidden="true"><i class="bi bi-table"></i></div>
                 <p class="rmc-empty__message">{% trans "No marks entered yet for the selected filters." %}</p>

@@ -59,7 +59,7 @@
     </div>
     <div class="box">
       <b>Summary</b><br>
-      Average: <b>{{ summary.average|format_number:2|default:"-" }}</b><br>
+      Average: <b>{{ summary.average|format_number:2|default:"-" }}</b>{% if summary.overall_band %} <span class="sub">({{ summary.overall_band }})</span>{% endif %}<br>
       {% term "classroom" capitalize=True as cl_sg %}{% trans "Rank in" %} {{ cl_sg }}: <b>{{ summary.class_rank_display|default:"-" }}</b><br>
       Specialty Rank: <b>{{ summary.specialty_rank_display|default:"-" }}</b><br>
       School Rank: <b>{{ summary.school_rank_display|default:"-" }}</b><br>
@@ -104,7 +104,7 @@
             <td class="text-end">{{ row.practical|default_if_none:"" }}</td>
             <td class="text-end">
               {% if row.complete %}
-                {{ row.total|format_number:2 }}
+                {{ row.total|format_number:2 }}{% if row.band %} <span class="sub">({{ row.band }})</span>{% endif %}
               {% else %}
                 <span class="sub">Pending</span>
               {% endif %}

@@ -2267,12 +2267,24 @@ def teacher_marks_list(request: HttpRequest):
         if compare_raw in get_supported_scales()
         else ""
     )
+    # Resolve the school's operational scale ONCE (N+1-safe) so the gradebook can show
+    # the native grade label (WAEC A1–F9, Pass/Fail, descriptor) for non-numeric scales.
+    from apps.evals.grading_provisioning import resolve_local_scale_type
+    from apps.evals.models import resolve_extended_band_label
+
+    list_scale_type = resolve_local_scale_type(getattr(teacher, "school", None))
     mark_rows: list[dict[str, Any]] = []
     for e in evals_list:
         rosetta = None
         if rosetta_target:
             rosetta = view_grade_in_target_system(e, rosetta_target)
-        mark_rows.append({"evaluation": e, "rosetta": rosetta})
+        mark_rows.append(
+            {
+                "evaluation": e,
+                "rosetta": rosetta,
+                "band": resolve_extended_band_label(list_scale_type, e.total_score),
+            }
+        )
 
     export_csv_params = request.GET.copy()
     export_csv_params["export"] = "csv"

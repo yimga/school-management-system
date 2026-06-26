@@ -41,7 +41,7 @@
       {% endif %}
     </div>
     <div class="ms-auto" style="text-align:right;">
-      <div class="pill">AVERAGE: {{ annual_average|format_number:2|default:"-" }}</div>
+      <div class="pill">AVERAGE: {{ annual_average|format_number:2|default:"-" }}{% if annual_band %} ({{ annual_band }}){% endif %}</div>
       <div style="margin-top:6px;font-size:10pt;">
         Class Rank: {{ class_rank_display|default:"-" }} |
         Specialty Rank: {{ specialty_rank_display|default:"-" }} |
@@ -79,7 +79,7 @@
       {% for row in term_rows %}
         <tr>
           <td>{{ row.term }}</td>
-          <td class="text-end">{{ row.avg|format_number:2|default:"-" }}</td>
+          <td class="text-end">{{ row.avg|format_number:2|default:"-" }}{% if row.band %} ({{ row.band }}){% endif %}</td>
           <td class="text-end">{{ row.rank_display|default:"-" }}</td>
         </tr>
       {% empty %}
