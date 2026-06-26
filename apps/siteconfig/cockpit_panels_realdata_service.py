@@ -942,6 +942,8 @@ def _resolve_trust_pillars_alerts() -> dict[str, Any] | None:
                 "last_checked": _("per upload"),
             },
         ]
+        for pillar in pillars:
+            pillar["title"] = pillar["label"]
 
         return {
             "enabled": True,

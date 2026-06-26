@@ -464,6 +464,7 @@ def _trust_pillars_alerts_demo() -> dict[str, Any]:
             {
                 "slug": "audit_chain",
                 "label": _("Audit chain integrity"),
+                "title": _("Audit chain integrity"),
                 "value": _("verified"),
                 "status": "ok",
                 "last_checked": _("Mon · 02:00 UTC"),
@@ -471,6 +472,7 @@ def _trust_pillars_alerts_demo() -> dict[str, Any]:
             {
                 "slug": "maa_signatures",
                 "label": _("MAA signatures"),
+                "title": _("MAA signatures"),
                 "value": _("counsel-blessed v1.0"),
                 "status": "ok",
                 "last_checked": _("on each sign"),
@@ -478,6 +480,7 @@ def _trust_pillars_alerts_demo() -> dict[str, Any]:
             {
                 "slug": "encryption_at_rest",
                 "label": _("Encryption at rest"),
+                "title": _("Encryption at rest"),
                 "value": _("AES-256 · MultiFernet"),
                 "status": "ok",
                 "last_checked": _("monthly rotation"),
@@ -485,6 +488,7 @@ def _trust_pillars_alerts_demo() -> dict[str, Any]:
             {
                 "slug": "ferpa_retention",
                 "label": _("FERPA retention"),
+                "title": _("FERPA retention"),
                 "value": _("90d floor"),
                 "status": "ok",
                 "last_checked": _("docs/SECURITY_KEYS.md"),
@@ -492,6 +496,7 @@ def _trust_pillars_alerts_demo() -> dict[str, Any]:
             {
                 "slug": "webhook_signing",
                 "label": _("Webhook signing"),
+                "title": _("Webhook signing"),
                 "value": _("HMAC-SHA256 + canonical JSON"),
                 "status": "ok",
                 "last_checked": _("per delivery"),
@@ -499,6 +504,7 @@ def _trust_pillars_alerts_demo() -> dict[str, Any]:
             {
                 "slug": "mfa_enforcement",
                 "label": _("MFA enforcement"),
+                "title": _("MFA enforcement"),
                 "value": _("operator-required"),
                 "status": "ok",
                 "last_checked": _("on each sign-in"),
@@ -506,6 +512,7 @@ def _trust_pillars_alerts_demo() -> dict[str, Any]:
             {
                 "slug": "companion_handshake",
                 "label": _("Companion handshake"),
+                "title": _("Companion handshake"),
                 "value": _("X25519 sealed box"),
                 "status": "ok",
                 "last_checked": _("per upload"),
