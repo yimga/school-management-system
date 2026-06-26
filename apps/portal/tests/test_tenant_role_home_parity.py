@@ -39,9 +39,16 @@ class TenantRoleHomeHelperTests(SimpleTestCase):
             GET = {}
             public_host_kind = "tenant"
             resolver_match = _Match()
+            # Session + request-cached hat flags so the role getter
+            # (portal_roles.get_effective_portal_role) resolves without a DB hit
+            # under SimpleTestCase.
+            session = {}
+            _portal_teacher_hat = False
+            _portal_parent_hat = False
 
             class user:
                 is_authenticated = True
+                role = "TEACHER"
 
         ctx = tp_v3_role_home_shell_context(_Req())
         self.assertTrue(ctx["tp_v3_role_home"])
@@ -176,16 +183,13 @@ class TenantExperienceCommandTests(SimpleTestCase):
 
 
 class TenantRoleHomeTemplateTests(SimpleTestCase):
-    def test_teacher_dashboard_has_hero_and_legacy_gate(self):
+    def test_teacher_dashboard_renders_v3_home_partial(self):
+        # Teacher-100x retired the legacy hero_greeting + tdm-bg stack in favour of
+        # the v3 role-home partial (_rmc_dh_teacher_home); the hero/chrome now comes
+        # from portal_base via the tp_v3 shell, so the page just composes the partial.
         text = (ROOT / "templates/teacher/dashboard.html").read_text(encoding="utf-8")
-        self.assertIn("hero_greeting.html", text)
-        self.assertIn("teacher_show_legacy_dashboard", text)
-        self.assertIn("tdm-bg", text)
-        gate_idx = text.find("teacher_show_legacy_dashboard")
-        legacy_idx = text.find('class="tdm-bg"')
-        self.assertGreater(legacy_idx, 0)
-        self.assertGreater(gate_idx, 0)
-        self.assertLess(gate_idx, legacy_idx)
+        self.assertIn("teacher/_rmc_dh_teacher_home.html", text)
+        self.assertIn('extends "portal_base.html"', text)
 
     def test_backend_dashboard_has_hero_and_legacy_gate(self):
         text = (ROOT / "templates/accounts/backend_dashboard.html").read_text(
