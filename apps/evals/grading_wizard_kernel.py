@@ -59,6 +59,10 @@ _SCALE_TYPE_MAP = {
     "qualitative": "qualitative_pd",
     "qualitative_pd": "qualitative_pd",
     "descriptive": "qualitative_pd",
+    "t_score": "standard_score_t",
+    "t-score": "standard_score_t",
+    "standard_score_t": "standard_score_t",
+    "hensachi": "standard_score_t",
 }
 
 

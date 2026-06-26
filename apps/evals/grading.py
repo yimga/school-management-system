@@ -192,6 +192,25 @@ ASSESSMENT_WEIGHTS_SCALE_MAP = {
     "waec_letter": "0-100",
     "pass_fail": "0-100",
     "qualitative_pd": "0-100",
+    # T-score: raw entry on 0–100; the T value is cohort-relative (cohort_t_scores).
+    "standard_score_t": "0-100",
+}
+
+# THE bridge between the two grading systems: each registries.GradeScaleRegistry
+# world-scale code (see scripts/verify_grading_scale_registry_coverage.REQUIRED_CODES)
+# → the operational AssessmentWeights scale_type that actually computes it. Keeping
+# this explicit (not implicit) is what makes "the catalog advertises N scales" and
+# "teachers can grade on N scales" provably the same set — enforced by a coverage test.
+REGISTRY_SCALE_TYPE_MAP = {
+    "0-20": "numeric_0_20",
+    "0-100": "percentage",
+    "GPA_4": "gpa_4_0",
+    "LETTER": "letter_a_e",
+    "PASS_FAIL": "pass_fail",
+    "NUMERIC_1_5": "numeric_1_5",
+    "WAEC_LETTER": "waec_letter",
+    "STANDARD_SCORE_T": "standard_score_t",
+    "QUALITATIVE_PD": "qualitative_pd",
 }
 
 # RegionConfig / migration profile aliases → GRADING_SCALES keys
@@ -252,6 +271,29 @@ def format_grade_band(scale_type, score) -> str:
         pass
     display_scale = ASSESSMENT_WEIGHTS_SCALE_MAP.get(scale_type) or normalize_scale_id(scale_type)
     return get_grade_letter(score, display_scale)
+
+
+def cohort_t_scores(raw_scores, *, ndigits: int = 1) -> list:
+    """Standardised T-scores for a cohort of raw marks: ``T = 50 + 10·(x − mean)/sd``.
+
+    The East-Asian T-score (Japanese *hensachi*) is cohort-RELATIVE — a single mark
+    has no T-score in isolation; it only means something against the distribution of
+    the whole class/grade. So this is an aggregate over the cohort, returning a T per
+    input mark (aligned to input order; ``None`` marks stay ``None``). Uses the
+    population standard deviation (a fixed cohort, not a sample). When the cohort has
+    <2 graded marks or zero spread (everyone identical), every T is the mean 50.0.
+    Never raises."""
+    import statistics
+
+    values = [None if s is None else float(s) for s in raw_scores]
+    graded = [v for v in values if v is not None]
+    if len(graded) < 2:
+        return [None if v is None else 50.0 for v in values]
+    mean = statistics.fmean(graded)
+    sd = statistics.pstdev(graded)
+    if sd == 0:
+        return [None if v is None else 50.0 for v in values]
+    return [None if v is None else round(50.0 + 10.0 * (v - mean) / sd, ndigits) for v in values]
 
 
 def get_scale_for_school(school) -> str:

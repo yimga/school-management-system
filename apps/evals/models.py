@@ -33,6 +33,10 @@ GRADING_SCALE_BANDS: dict[str, dict[str, float]] = {
     "waec_letter": {"a": 75, "b": 65, "c": 55, "d": 50, "e": 0, "score_scale": 100},
     "pass_fail": {"a": 50, "b": 50, "c": 50, "d": 50, "e": 0, "score_scale": 100},
     "qualitative_pd": {"a": 85, "b": 70, "c": 55, "d": 50, "e": 0, "score_scale": 100},
+    # T-score is cohort-RELATIVE (the defining T = 50 + 10·(x−mean)/sd is computed by
+    # cohort_t_scores, not from one raw score). These coarse bands only drive score_scale
+    # + the single-score letter fallback; the T value comes from the cohort helper.
+    "standard_score_t": {"a": 70, "b": 60, "c": 50, "d": 40, "e": 0, "score_scale": 100},
 }
 
 # Field defaults for the numeric_0_20 scale — used to detect "thresholds untouched".
@@ -214,6 +218,7 @@ class AssessmentWeights(models.Model):
             ("waec_letter", "WAEC letter bands (A1–F9)"),
             ("pass_fail", "Pass / Fail"),
             ("qualitative_pd", "Qualitative descriptors"),
+            ("standard_score_t", "T-score (East Asia)"),
         ],
         default="numeric_0_20",
     )
@@ -306,6 +311,7 @@ class GradingScale(models.Model):
         WAEC_LETTER = "waec_letter", "WAEC letter bands (A1–F9)"
         PASS_FAIL = "pass_fail", "Pass / Fail"
         QUALITATIVE_PD = "qualitative_pd", "Qualitative descriptors"
+        STANDARD_SCORE_T = "standard_score_t", "T-score (East Asia)"
 
     school = models.ForeignKey(
         "schools.School",
