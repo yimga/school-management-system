@@ -4,6 +4,7 @@
   var root = document.querySelector("[data-rmc-auth-immersive]");
   if (!root) return;
 
+  document.documentElement.setAttribute("data-rmc-shell", "off");
   document.documentElement.classList.add("rmc-auth-immersive-doc-lock");
   document.body.classList.add("rmc-auth-immersive-doc-lock", "rmc-auth-immersive-page");
   document.documentElement.style.overflow = "hidden";

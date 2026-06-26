@@ -5,6 +5,16 @@
 
 {% block body_class %}rmc-auth-immersive-page{% endblock %}
 
+{% block extrahead %}
+  <script nonce="{{ csp_nonce }}">
+    document.documentElement.setAttribute("data-rmc-shell", "off");
+  </script>
+{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block footer %}{% endblock %}
+
 {% block extrastyle_tail %}
   <link rel="stylesheet" href="{% static 'css/auth-login-canvas.css' %}">
 {% endblock %}

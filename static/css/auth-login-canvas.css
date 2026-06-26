@@ -1,4 +1,4 @@
-/* auth-login-canvas.css — Immersive A+B login (v5 · viewport-fit · 2026-06-23) */
+/* auth-login-canvas.css — Immersive A+B login (v6 · layout-fix · 2026-06-26) */
 
 html.rmc-auth-immersive-doc-lock,
 body.rmc-auth-immersive-doc-lock,
@@ -22,7 +22,10 @@ html:not([data-rmc-shell="off"]) body.rmc-auth-immersive-page[data-rmc-cp-scroll
   height: 100dvh !important;
 }
 
+body.rmc-auth-immersive-page .app-container,
 body:has(.rmc-auth-immersive) .app-container {
+  width: 100%;
+  max-width: none;
   height: 100%;
   min-height: 0;
   display: flex;
@@ -30,14 +33,19 @@ body:has(.rmc-auth-immersive) .app-container {
   overflow: hidden;
 }
 
+body.rmc-auth-immersive-page nav.navbar,
+body.rmc-auth-immersive-page .statement-header.topbar-sticky,
 body:has(.rmc-auth-immersive) nav.navbar,
 body:has(.rmc-auth-immersive) .statement-header.topbar-sticky {
   display: none !important;
 }
 
+body.rmc-auth-immersive-page main.container.rmc-shell-main,
 body:has(.rmc-auth-immersive) main.container.rmc-shell-main {
+  width: 100%;
   max-width: none;
   padding: 0;
+  margin: 0;
   flex: 1;
   min-height: 0;
   overflow: hidden;
@@ -45,8 +53,11 @@ body:has(.rmc-auth-immersive) main.container.rmc-shell-main {
   flex-direction: column;
 }
 
+body.rmc-auth-immersive-page .rmc-shell-content-grid,
+body.rmc-auth-immersive-page .page-wrap,
 body:has(.rmc-auth-immersive) .rmc-shell-content-grid,
 body:has(.rmc-auth-immersive) .page-wrap {
+  width: 100%;
   padding: 0;
   margin: 0;
   max-width: none;
@@ -57,6 +68,13 @@ body:has(.rmc-auth-immersive) .page-wrap {
   flex-direction: column;
 }
 
+body.rmc-auth-immersive-page .breadcrumb,
+body.rmc-auth-immersive-page nav[aria-label="breadcrumb"],
+body.rmc-auth-immersive-page .rmc-page-explain-strip,
+body.rmc-auth-immersive-page .next-action-strip,
+body.rmc-auth-immersive-page .rmc-shell-footer,
+body.rmc-auth-immersive-page .rmc-mfa-nudge,
+body.rmc-auth-immersive-page .django-messages-shell,
 body:has(.rmc-auth-immersive) .breadcrumb,
 body:has(.rmc-auth-immersive) nav[aria-label="breadcrumb"],
 body:has(.rmc-auth-immersive) .rmc-page-explain-strip,
@@ -71,18 +89,20 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   --rmc-auth-glass: color-mix(in srgb, var(--surface-elevated, #0e1426) 88%, transparent);
   --rmc-auth-hair: var(--hairline, rgba(255, 255, 255, .11));
   --rmc-auth-muted: var(--text-secondary, #94a3b8);
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  flex: none;
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  align-self: stretch;
   width: 100%;
-  min-height: 0;
-  height: auto;
-  max-height: none;
+  min-width: 0;
+  min-height: 100dvh;
+  height: 100dvh;
+  max-height: 100dvh;
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(380px, 1fr);
   color: var(--text-primary, #f8fafc);
   overflow: hidden;
+  isolation: isolate;
 }
 
 .rmc-auth-immersive:has(.rmc-auth-immersive__ticker) {
@@ -90,7 +110,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
 }
 
 .rmc-auth-immersive__bg {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   background: var(--surface-bg, #050810);
@@ -114,7 +134,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
 }
 
 .rmc-auth-immersive__ticker {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;

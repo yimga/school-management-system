@@ -38,10 +38,22 @@ test.describe('Immersive login canvas', () => {
       document.body.classList.contains('rmc-auth-immersive-doc-lock')
     );
 
-    const metrics = await page.evaluate(() => ({
-      docScroll: document.documentElement.scrollHeight - window.innerHeight,
-    }));
+    const metrics = await page.evaluate(() => {
+      const immersive = document.querySelector("[data-rmc-auth-immersive]");
+      const glass = document.querySelector(".rmc-auth-immersive__glass");
+      const immersiveBox = immersive ? immersive.getBoundingClientRect() : null;
+      const glassBox = glass ? glass.getBoundingClientRect() : null;
+      return {
+        docScroll: document.documentElement.scrollHeight - window.innerHeight,
+        immersiveWidth: immersiveBox ? immersiveBox.width : 0,
+        glassWidth: glassBox ? glassBox.width : 0,
+        shellOff: document.documentElement.getAttribute("data-rmc-shell"),
+      };
+    });
     expect(metrics.docScroll).toBeLessThanOrEqual(2);
+    expect(metrics.shellOff).toBe("off");
+    expect(metrics.immersiveWidth).toBeGreaterThan(900);
+    expect(metrics.glassWidth).toBeGreaterThan(280);
   });
 
   test('mobile shows brand strip above sign-in card', async ({ page }) => {
