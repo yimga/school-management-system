@@ -14,6 +14,7 @@
 {% comment %} v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-calendar-weather-dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-cp-globe-deck-v2.css' %}">
 {% endblock %}
 
 {% block cp_workspace_header %}{% endblock %}
@@ -21,7 +22,7 @@
 {% comment %} v4.02.x: LIVE marquee row is now the DEFAULT in control_plane_unified_header.html
    (every operator page) — per-dashboard override removed to avoid a double row. {% endcomment %}
 
-{% block cp_layout_attrs %} data-rmc-cp-globe-landing="1"{% endblock %}
+{% block cp_layout_attrs %} data-rmc-cp-globe-landing="1" data-rmc-cp-globe-deck-v2="1"{% endblock %}
 
 {% block cp_content %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#rmc-globe-master-lab">{% trans "Skip to live globe mission" %}</a>
@@ -44,21 +45,11 @@
    would_render=true. {% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-cp-landing-mode" data-rmc-cp-landing-mode="mission" data-rmc-page-fold-nav="required">
-  <div class="rmc-segmented rmc-cp-landing-mode__tabs mb-3" role="tablist" aria-label="{% trans 'Control plane landing view' %}">
-    <button type="button" class="rmc-segmented__btn is-active" role="tab" aria-selected="true" data-rmc-cp-landing-tab="mission" id="rmc-cp-landing-tab-mission">{% trans "Globe mission" %}</button>
-    <button type="button" class="rmc-segmented__btn" role="tab" aria-selected="false" data-rmc-cp-landing-tab="operations" id="rmc-cp-landing-tab-operations">{% trans "Operations board" %}</button>
-  </div>
   <p class="rmc-cp-cockpit-live-stale small text-warning mb-2" data-rmc-cp-cockpit-live-stale hidden aria-live="polite">{% trans "Live metrics may be stale — showing last snapshot." %}</p>
   <div class="rmc-cp-landing-pane" data-rmc-cp-landing-pane="mission">
 <div class="rmc-cp-200x-landing" data-rmc-cp-200x-landing="1" data-rmc-cp-cockpit-live="1" data-rmc-section-nav="curated">
-<nav class="rmc-section-nav rmc-page-fold-nav mb-2" aria-label="{% trans 'Mission sections' %}">
-  <a href="#rmc-globe-master-lab" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Globe" %}</a>
-  {% if cockpit.forecast_lane.enabled %}<a href="#rmc-cockpit-forecast" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Forecast" %}</a>{% endif %}
-  {% if cockpit.slo_clocks.enabled %}<a href="#rmc-cockpit-slo" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "SLO" %}</a>{% endif %}
-  {% if cockpit.tenant_heatmap.enabled %}<a href="#rmc-cockpit-heatmap" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Heatmap" %}</a>{% endif %}
-  {% if cockpit.revenue_waterfall.enabled %}<a href="#rmc-cockpit-revenue" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Revenue" %}</a>{% endif %}
-  {% if cockpit.audit_feed.enabled %}<a href="#rmc-cockpit-audit" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Audit" %}</a>{% endif %}
-</nav>
+{% comment %}v4.05.62: WOW v2 deck — mission tabs + lens nav live on frame crown/spine/filmstrip
+   (_globe_deck_v2_shell.html). Legacy .rmc-section-nav above globe retired.{% endcomment %}
 {% comment %}v4.01.43: LIVE banner moved to cp_shell_header_ticker header row.{% endcomment %}
 {% if cockpit.pulse_metrics.cards and not cockpit.live_world_map.enabled %}
 {% comment %}v4.05.28: When live world map is on, pulse renders inside the 96px
@@ -68,7 +59,7 @@
 </div>
 {% endif %}
 {% if cockpit.live_world_map.enabled %}
-{% include "partials/cockpit/_live_world_map.html" %}
+{% include "partials/cockpit/_globe_deck_v2_shell.html" %}
 {% endif %}
 {% if cockpit.forecast_lane.enabled %}
   {% if cockpit.forecast_lane.cards %}
@@ -881,5 +872,6 @@
     "cp-readiness": "{% filter escapejs %}{% trans 'Readiness' %}{% endfilter %}"
   }
 }</script><script src="{% static 'js/_pages/schools__super_dashboard-1.js' %}"></script>
+<script src="{% static 'js/rmc-globe-deck-v2.js' %}" defer nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/rmc-fleet-live.js' %}" defer></script>
 {% endblock %}

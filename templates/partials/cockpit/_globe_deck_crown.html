@@ -1,0 +1,20 @@
+{% load i18n %}
+{% comment %} WOW v2 frame crown — mission/ops tabs + freshness + tour/share proxies. {% endcomment %}
+<div class="rmc-globe-deck-v2__crown" role="presentation">
+  <div class="rmc-segmented rmc-globe-deck-v2__mission-tabs" role="tablist" aria-label="{% trans 'Control plane landing view' %}">
+    <button type="button" class="rmc-segmented__btn is-active" role="tab" aria-selected="true" data-rmc-cp-landing-tab="mission" id="rmc-cp-landing-tab-mission">{% trans "Globe mission" %}</button>
+    <button type="button" class="rmc-segmented__btn" role="tab" aria-selected="false" data-rmc-cp-landing-tab="operations" id="rmc-cp-landing-tab-operations">{% trans "Operations board" %}</button>
+  </div>
+  <div class="rmc-globe-deck-v2__crown-mid">
+    <span class="rmc-globe-deck-v2__crown-updated">
+      {% trans "Updated" %}
+      <strong id="rmc-globe-deck-v2-freshness" data-rmc-globe-deck-freshness="1">—</strong>
+    </span>
+    <kbd class="rmc-globe-deck-v2__kbd">L</kbd> {% trans "live layer" %}
+    <kbd class="rmc-globe-deck-v2__kbd">R</kbd> {% trans "reset view" %}
+  </div>
+  <div class="rmc-globe-deck-v2__crown-actions">
+    <button type="button" class="rmc-globe-deck-v2__crown-btn" data-rmc-globe-deck-proxy="rmc-world-globe-tour-start">{% trans "Tour" %}</button>
+    <button type="button" class="rmc-globe-deck-v2__crown-btn" data-rmc-globe-deck-proxy="rmc-world-globe-share-viewport">{% trans "Share" %}</button>
+  </div>
+</div>

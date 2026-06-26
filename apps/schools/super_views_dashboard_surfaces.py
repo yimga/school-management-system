@@ -570,6 +570,7 @@ def super_dashboard_v2(request):
         cockpit_export_pdf_url = f"{cockpit_export_pdf_url}?month={current_request_month}"
 
     request.rmc_cp_globe_landing_minimal_chrome = True
+    request.rmc_cp_globe_deck_v2 = True
     response = render(
         request,
         "schools/super_dashboard.html",
@@ -634,6 +635,7 @@ def super_dashboard_v2(request):
             "data_residency_readiness": data_residency_readiness,
             "fleet_summary_label": format_fleet_summary_label(resolve_fleet_summary()),
             "rmc_cp_globe_landing_minimal_chrome": True,
+            "rmc_cp_globe_deck_v2": True,
             "proof_ledger_url": proof_ledger_url,
             "cockpit_export_pdf_url": cockpit_export_pdf_url,
         },

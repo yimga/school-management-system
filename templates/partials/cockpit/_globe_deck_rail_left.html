@@ -1,0 +1,91 @@
+{% load i18n %}
+{% comment %} WOW v2 left operator rail — incidents, pulse mosaic, SLO bars, fleet feed, presence. {% endcomment %}
+{% with lwm_fleet=cockpit.live_world_map.fleet_snapshot %}
+<aside class="rmc-globe-deck-v2__rail rmc-globe-deck-v2__rail--left" aria-label="{% trans 'Operator metrics' %}">
+  <div class="rmc-globe-deck-v2__rail-cap">
+    <div class="rmc-globe-deck-v2__lbl">
+      <span>{% trans "Incidents" %}</span>
+      <span class="rmc-globe-deck-v2__live-pip" aria-hidden="true"></span>
+    </div>
+    <div class="rmc-globe-deck-v2__incident-stack">
+      <div class="rmc-globe-deck-v2__inc rmc-globe-deck-v2__inc--bad">
+        <div>
+          <strong>{% trans "Open critical" %}</strong>
+          <em>{% trans "Platform incidents" %}</em>
+        </div>
+        <span class="rmc-globe-deck-v2__inc-n">{{ critical_incident_count|default:0 }}</span>
+      </div>
+      <div class="rmc-globe-deck-v2__inc rmc-globe-deck-v2__inc--warn">
+        <div>
+          <strong>{% trans "Needs eyes" %}</strong>
+          <em>{% trans "Open / acknowledged" %}</em>
+        </div>
+        <span class="rmc-globe-deck-v2__inc-n">{% with open_n=incident_counts.open|default:0 ack_n=incident_counts.acknowledged|default:0 %}{{ open_n|add:ack_n }}{% endwith %}</span>
+      </div>
+      <div class="rmc-globe-deck-v2__inc rmc-globe-deck-v2__inc--good">
+        <div>
+          <strong>{% trans "Resolved 24h" %}</strong>
+          <em>{% trans "Recently cleared" %}</em>
+        </div>
+        <span class="rmc-globe-deck-v2__inc-n">{{ incident_counts.resolved|default:0 }}</span>
+      </div>
+    </div>
+    {% if platform_incidents_url %}
+    <a href="{{ platform_incidents_url }}" class="rmc-globe-deck-v2__inc-link small">{% trans "Open incident console →" %}</a>
+    {% endif %}
+  </div>
+
+  {% if cockpit.pulse_metrics.cards %}
+  <div class="rmc-globe-deck-v2__rail-cap">
+    <div class="rmc-globe-deck-v2__lbl">{% trans "Platform pulse" %}</div>
+    <div class="rmc-globe-deck-v2__pulse-mosaic" data-rmc-scroll-policy="paginate">
+      {% for card in cockpit.pulse_metrics.cards|slice:":6" %}
+      <article class="rmc-globe-deck-v2__pulse-cell rmc-cockpit-pulse-card--{{ card.severity|default:'ok' }}">
+        <em>{{ card.head }}</em>
+        <strong>{{ card.value|default:"—" }}</strong>
+        {% if card.label %}<span>{{ card.label }}</span>{% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if cockpit.slo_clocks.enabled and cockpit.slo_clocks.clocks %}
+  <div class="rmc-globe-deck-v2__rail-cap">
+    <div class="rmc-globe-deck-v2__lbl">{% trans "SLO snapshot" %}</div>
+    <div class="rmc-globe-deck-v2__slo-bars">
+      {% for clock in cockpit.slo_clocks.clocks|slice:":4" %}
+      <div class="rmc-globe-deck-v2__slo-row">
+        <label>{{ clock.label }}</label>
+        <div class="rmc-globe-deck-v2__slo-track" role="presentation">
+          <div class="rmc-globe-deck-v2__slo-fill rmc-globe-deck-v2__slo-fill--{{ clock.dot_status|default:'ok' }}"></div>
+        </div>
+        <b>{{ clock.value|default:"—" }}{% if clock.value_suffix %}{{ clock.value_suffix }}{% endif %}</b>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="rmc-globe-deck-v2__rail-grow">
+    <div class="rmc-globe-deck-v2__lbl rmc-globe-deck-v2__lbl--pad">{% trans "Live fleet pulse" %}</div>
+    <div class="rmc-globe-deck-v2__feed" data-rmc-scroll-policy="paginate">
+      {% if lwm_fleet and lwm_fleet.pulse_events %}
+        {% for ev in lwm_fleet.pulse_events|slice:":8" %}
+        <div class="rmc-globe-deck-v2__feed-row">
+          <time>{{ ev.time_label }}</time>
+          <span>{{ ev.text }}</span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="rmc-globe-deck-v2__feed-row rmc-globe-deck-v2__feed-row--empty">
+          <span class="text-muted small">{% trans "Fleet pulse will appear as schools change." %}</span>
+        </div>
+      {% endif %}
+    </div>
+    <div class="rmc-globe-deck-v2__presence-wrap">
+      {% include "partials/cockpit/_operator_presence.html" %}
+    </div>
+  </div>
+</aside>
+{% endwith %}

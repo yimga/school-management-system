@@ -1,0 +1,81 @@
+{% load i18n %}
+{% comment %} WOW v2 right rail — schools hero ring, regions, fleet status, clocks, trust, AI brief. {% endcomment %}
+{% with lwm_fleet=cockpit.live_world_map.fleet_snapshot %}
+<aside class="rmc-globe-deck-v2__rail rmc-globe-deck-v2__rail--right" aria-label="{% trans 'Fleet snapshot' %}">
+  <div class="rmc-globe-deck-v2__schools-ring">
+    <div class="rmc-globe-deck-v2__ring" aria-hidden="true">
+      <i><span id="rmc-globe-deck-v2-schools-n">{{ cockpit.live_world_map.schools_live|default:"—" }}</span></i>
+    </div>
+    <div class="rmc-globe-deck-v2__schools-copy">
+      <strong>{% trans "Schools live" %}</strong>
+      <span>{{ cockpit.live_world_map.subline|default:fleet_summary_label }}</span>
+    </div>
+  </div>
+
+  {% if cockpit.live_world_map.regional_breakdown %}
+  <div class="rmc-globe-deck-v2__rail-cap">
+    <div class="rmc-globe-deck-v2__lbl">{% trans "Regional breakdown" %}</div>
+    <div class="rmc-globe-deck-v2__region-list" data-rmc-scroll-policy="paginate">
+      {% for row in cockpit.live_world_map.regional_breakdown %}
+      <button type="button" class="rmc-globe-deck-v2__region-row" data-rmc-region="{{ row.label }}" data-rmc-fly-lat="{{ row.fly_lat|default:'' }}" data-rmc-fly-lng="{{ row.fly_lng|default:'' }}">
+        <span>{{ row.label }}</span>
+        <span class="rmc-globe-deck-v2__region-c">{{ row.count }}</span>
+      </button>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="rmc-globe-deck-v2__rail-cap">
+    <div class="rmc-globe-deck-v2__lbl">{% trans "Fleet status" %}</div>
+    <div class="rmc-globe-deck-v2__fleet-status">
+      <span class="rmc-globe-deck-v2__status-chip on" data-rmc-status-filter="active">{% trans "Active" %}</span>
+      <span class="rmc-globe-deck-v2__status-chip" data-rmc-status-filter="suspended">{% trans "Suspended" %}</span>
+      <span class="rmc-globe-deck-v2__status-chip" data-rmc-status-filter="frozen">{% trans "Frozen" %}</span>
+    </div>
+    {% if lwm_fleet and lwm_fleet.school_hours_regions %}
+    <p class="rmc-globe-deck-v2__school-hours small text-muted mb-0 mt-2">
+      {% blocktrans count counter=lwm_fleet.school_hours_regions %}{{ counter }} region in school hours{% plural %}{{ counter }} regions in school hours{% endblocktrans %}
+    </p>
+    {% endif %}
+  </div>
+
+  {% if cockpit.regional_clocks.enabled and cockpit.regional_clocks.clocks %}
+  <div class="rmc-globe-deck-v2__rail-cap">
+    <div class="rmc-globe-deck-v2__lbl">{% trans "Regional clocks" %}</div>
+    <div class="rmc-globe-deck-v2__clock-grid">
+      {% for c in cockpit.regional_clocks.clocks|slice:":4" %}
+      <div class="rmc-globe-deck-v2__clk" data-rmc-clock-tz="{{ c.timezone|default:'UTC' }}">
+        <em>{{ c.label|default:c.timezone }}</em>
+        <strong class="lx-clocks__time" aria-live="off">—</strong>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if cockpit.trust_nutrition.enabled and cockpit.trust_nutrition.rows %}
+  <div class="rmc-globe-deck-v2__rail-cap rmc-globe-deck-v2__rail-cap--grow">
+    <div class="rmc-globe-deck-v2__lbl">{% trans "Trust & compliance" %}</div>
+    <div class="rmc-globe-deck-v2__trust-feed" data-rmc-scroll-policy="paginate">
+      {% for row in cockpit.trust_nutrition.rows|slice:":5" %}
+      <div class="rmc-globe-deck-v2__trust-row">
+        <span>{{ row.label|default:row.title }}</span>
+        <span class="rmc-globe-deck-v2__trust-pill rmc-globe-deck-v2__trust-pill--{{ row.status|default:'neutral' }}">{{ row.value|default:"—" }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="rmc-globe-deck-v2__ai-compact" id="rmc-world-globe-ai-guide" data-rmc-globe-ai-block>
+    <div class="rmc-globe-deck-v2__lbl">{% trans "Fleet brief" %}</div>
+    <strong id="rmc-world-globe-ai-guide-headline">{% if lwm_fleet and lwm_fleet.fleet_brief.headline %}{{ lwm_fleet.fleet_brief.headline }}{% else %}{% trans "Fleet focus ready" %}{% endif %}</strong>
+    <p id="rmc-world-globe-ai-guide-copy">{% if lwm_fleet and lwm_fleet.whisper_line %}{{ lwm_fleet.whisper_line }}{% elif lwm_fleet and lwm_fleet.fleet_brief.body %}{{ lwm_fleet.fleet_brief.body }}{% else %}{% trans "Ask AI where to look first, then run a guided tour from the live globe." %}{% endif %}</p>
+    <div class="rmc-globe-deck-v2__ai-row">
+      <button type="button" class="rmc-globe-deck-v2__crown-btn" id="rmc-world-globe-ai-guide-ask">{% trans "Ask AI" %}</button>
+      <button type="button" class="rmc-globe-deck-v2__crown-btn" id="rmc-world-globe-ai-guide-tour">{% trans "Smart tour" %}</button>
+    </div>
+  </div>
+</aside>
+{% endwith %}

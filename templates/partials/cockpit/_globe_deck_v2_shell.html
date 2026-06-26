@@ -1,0 +1,18 @@
+{% load i18n %}
+{% comment %} WOW v2 globe command deck — left rail + crown/spine/globe/film + right rail. {% endcomment %}
+<div class="rmc-globe-deck-v2" data-rmc-cp-globe-deck-v2="1" data-rmc-page-fold-nav="required">
+  <section class="rmc-globe-deck-v2__frame" aria-label="{% trans 'Globe command deck' %}">
+    {% include "partials/cockpit/_globe_deck_rail_left.html" %}
+    <div class="rmc-globe-deck-v2__center">
+      {% include "partials/cockpit/_globe_deck_crown.html" %}
+      <div class="rmc-globe-deck-v2__main-row">
+        {% include "partials/cockpit/_globe_deck_lens_nav.html" with deck_lens_variant="spine" %}
+        <div class="rmc-globe-deck-v2__globe-cell" id="rmc-globe-deck-v2-globe-host">
+          {% include "partials/cockpit/_live_world_map.html" %}
+        </div>
+      </div>
+      {% include "partials/cockpit/_globe_deck_lens_nav.html" with deck_lens_variant="film" %}
+    </div>
+    {% include "partials/cockpit/_globe_deck_rail_right.html" %}
+  </section>
+</div>

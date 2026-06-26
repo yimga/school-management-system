@@ -6,7 +6,7 @@
 {% with lwm_layout=cockpit.live_world_map.layout|default:"hero" %}
 {% with lwm_fleet=cockpit.live_world_map.fleet_snapshot %}
 {% with lwm_features=cockpit.live_world_map.globe_payload.features %}
-<section class="lx-world-lab{% if rmc_cp_globe_landing_minimal_chrome %} lx-world-lab--globe-landing{% endif %}{% if lwm_features.wow_enabled != False %} lx-world--wow-on{% endif %}" id="rmc-globe-master-lab" aria-label="{% trans 'Live world map of tenant locations' %}" data-rmc-page-fold-nav="required" data-rmc-globe-wow-plus="1" data-rmc-globe-surface-elevation="1" data-rmc-globe-master-lab="1">
+<section class="lx-world-lab{% if rmc_cp_globe_landing_minimal_chrome %} lx-world-lab--globe-landing{% endif %}{% if rmc_cp_globe_deck_v2 %} lx-world-lab--globe-deck-v2{% endif %}{% if lwm_features.wow_enabled != False %} lx-world--wow-on{% endif %}" id="rmc-globe-master-lab" aria-label="{% trans 'Live world map of tenant locations' %}" data-rmc-page-fold-nav="required" data-rmc-globe-wow-plus="1" data-rmc-globe-surface-elevation="1" data-rmc-globe-master-lab="1">
   <header class="lx-world-lab__header">
     {% if not rmc_cp_globe_landing_minimal_chrome %}
     <h2 class="lx-world-lab__title">
@@ -15,6 +15,7 @@
     </h2>
     <p class="lx-world-lab__note">{% trans "Drag the globe · hover legend rows (magnetic fly-to) · toggle layers · turn on Wow demo for aurora + arcs + auto-rotate." %}</p>
     {% endif %}
+    {% if not rmc_cp_globe_deck_v2 %}
     <div class="lx-world-lab__ai-guide" id="rmc-world-globe-ai-guide" data-rmc-globe-ai-block>
       <span class="lx-world-lab__tag">{% trans "AI Copilot" %}</span>
       <strong id="rmc-world-globe-ai-guide-headline">{% if lwm_fleet and lwm_fleet.fleet_brief.headline %}{{ lwm_fleet.fleet_brief.headline }}{% else %}{% trans "Fleet focus ready" %}{% endif %}</strong>
@@ -22,6 +23,7 @@
       <button type="button" class="lx-world-lab__ai-guide-btn" id="rmc-world-globe-ai-guide-ask">{% trans "Ask AI" %}</button>
       <button type="button" class="lx-world-lab__ai-guide-btn" id="rmc-world-globe-ai-guide-tour">{% trans "Smart tour" %}</button>
     </div>
+    {% endif %}
   </header>
   <details class="lx-world-lab__controls-advanced"{% if not rmc_cp_globe_landing_minimal_chrome %} open{% endif %}>
     <summary class="lx-world-lab__controls-advanced-summary">{% trans "Advanced globe controls" %}</summary>
