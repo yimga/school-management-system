@@ -182,6 +182,19 @@ if [[ "${SEED_DEMO:-0}" == "1" ]]; then
   run "${PYTHON_BIN}" manage.py seed_demo --reset
 fi
 
+# Starter Knowledge Base articles (per-tenant content). Opt-in (default 0) so
+# steady-state deploys stay fast. Idempotent (get_or_create on slug); content is
+# country-neutral. Seeds every tenant schema; one tenant's failure is logged and
+# skipped, never aborting the deploy. Flip RUN_SEED_KB_ARTICLES=1 for a one-time
+# backfill when you want tenant KBs populated.
+if [[ "${RUN_SEED_KB_ARTICLES:-0}" == "1" ]]; then
+  if [[ "${TENANT_MODE}" == "1" ]]; then
+    run "${PYTHON_BIN}" manage.py seed_kb_articles --all-tenants
+  else
+    run "${PYTHON_BIN}" manage.py seed_kb_articles
+  fi
+fi
+
 # Optional: bootstrap platform catalogs so Manager surfaces are populated (idempotent).
 # Default when RUN_BOOTSTRAP_PLATFORM_CATALOG=1: full bootstrap (--all). Set RUN_MINIMAL_BOOTSTRAP=1 for blueprint+marketplace only.
 if [[ "${RUN_BOOTSTRAP_PLATFORM_CATALOG:-0}" == "1" ]]; then

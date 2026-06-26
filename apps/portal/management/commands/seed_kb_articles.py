@@ -1044,96 +1044,139 @@ Example: 2024/10/001</pre>
             },
             # System Admin Articles
             {
-                "title": "System Backup and Data Security",
+                "title": "Keeping your school's data safe",
                 "slug": "system-backup-security",
-                "summary": "Essential information about backing up your data, maintaining security, and protecting sensitive information.",
+                "summary": "How RunMyCampus protects your data and what your school controls: role-based access, two-factor sign-in, and a reliable audit trail.",
                 "content": """
-<h2>Data Backup Overview</h2>
-<p>Regular backups are crucial for business continuity and disaster recovery.</p>
+<h2>How your data is protected</h2>
+<p>RunMyCampus hosts and backs up your school's data for you. You do not configure backup servers or schedules — that is handled at the platform level. This article focuses on what you <em>do</em> control to keep your information safe.</p>
 
-<h3>Types of Backups</h3>
+<h3>Who can see what — roles</h3>
 <ul>
-<li><strong>Daily Backups:</strong> Automatic, stored on secure servers</li>
-<li><strong>Weekly Backups:</strong> Comprehensive backup of all data</li>
-<li><strong>Monthly Backups:</strong> Archive for long-term retention</li>
+<li>Access is role-based: staff, teachers, parents, and students each see only what their role allows.</li>
+<li>Review role assignments when people join or leave, and remove access promptly when someone leaves.</li>
 </ul>
 
-<h2>Automatic Backup Configuration</h2>
-<h3>Setting Up Auto-Backups</h3>
-<ol>
-<li>Navigate to: System Settings → Backup & Recovery</li>
-<li>Click "Configure Automatic Backups"</li>
-<li>Set backup frequency (Daily, Weekly, Monthly)</li>
-<li>Choose backup time (preferably off-peak hours)</li>
-<li>Enable encryption for sensitive data</li>
-<li>Save configuration</li>
-</ol>
-
-<h3>Backup Schedule</h3>
-<pre>Monday-Friday: 2:00 AM UTC
-Weekend: 4:00 AM UTC
-First of month: Full system backup</pre>
-
-<h2>Manual Backup Process</h2>
-<ol>
-<li>Go to: System Settings → Backup & Recovery</li>
-<li>Click "Create Manual Backup Now"</li>
-<li>Select data to include</li>
-<li>Click "Start Backup"</li>
-<li>Download backup file when complete</li>
-<li>Store securely offline</li>
-</ol>
-
-<h2>Data Security Best Practices</h2>
-<h3>Access Control</h3>
+<h3>Stronger sign-in — two-factor authentication</h3>
 <ul>
-<li>Use strong passwords (minimum 12 characters)</li>
-<li>Enable two-factor authentication (2FA)</li>
-<li>Regularly audit user access rights</li>
-<li>Disable inactive accounts</li>
-<li>Implement role-based access control</li>
+<li>Accounts with elevated access require two-factor authentication (2FA).</li>
+<li>Administrators choose how 2FA is rolled out (strict, a grace window, or optional) per school or platform-wide.</li>
 </ul>
 
-<h3>Data Privacy</h3>
+<h3>An audit trail you can rely on</h3>
 <ul>
-<li>Encrypt sensitive student data</li>
-<li>Encrypt financial information</li>
-<li>Use HTTPS for all communications</li>
-<li>Comply with data protection regulations</li>
-<li>Implement data retention policies</li>
+<li>Sensitive records keep an audit trail — for example, viewing a compliance disclosure is itself logged.</li>
+<li>This means both reads and changes to protected data are accounted for.</li>
 </ul>
 
-<h2>Disaster Recovery</h2>
-<h3>Backup Verification</h3>
-<ol>
-<li>Monthly test restore of backups</li>
-<li>Verify all data is recoverable</li>
-<li>Document recovery procedures</li>
-<li>Train staff on recovery process</li>
-</ol>
-
-<h3>Recovery Process</h3>
-<ol>
-<li>Contact system administrator</li>
-<li>Identify backup to restore</li>
-<li>Initiate recovery procedure</li>
-<li>Verify data integrity post-recovery</li>
-<li>Communicate with affected users</li>
-</ol>
-
-<h2>Important Notes</h2>
+<h3>Good habits for staff</h3>
 <ul>
-<li>Backups are retained for 90 days by default</li>
-<li>Extended backups require storage upgrade</li>
-<li>Deleted data may be recovered from backups</li>
-<li>System maintenance requires brief downtime</li>
-<li>Maintenance windows: Sundays 2-4 AM UTC</li>
+<li>Use a strong, unique password and enable 2FA.</li>
+<li>Don't share logins; create proper accounts with the right role instead.</li>
+<li>Sign out on shared devices.</li>
 </ul>
+
+<h2>Exporting your data</h2>
+<p>Your school's data belongs to your school. If you need a copy for your records or to move between systems, ask an administrator about the available export tools rather than copying data manually.</p>
                 """,
                 "category": "system-admin",
                 "difficulty": "ADVANCED",
                 "read_time": 12,
                 "tags": ["backup", "security", "data-protection", "administration"],
+                "is_featured": False,
+            },
+            # Verified, country-neutral starter articles (grounded in real platform behaviour)
+            {
+                "title": "Working offline and syncing later",
+                "slug": "working-offline-sync",
+                "summary": "How the platform keeps you productive without a connection: supported forms capture to your device and sync automatically when you reconnect.",
+                "content": """
+<h2>Offline-first by design</h2>
+<p>Schools don't always have reliable internet. Several everyday workflows keep working when you go offline and sync on their own once you're back online — you won't lose what you typed.</p>
+
+<h3>What works offline</h3>
+<ul>
+<li>Field-capture forms (for example notes and reports) save to your device and queue for sync.</li>
+<li>Supported forms show a hint such as "stays on this device until you reconnect and sync".</li>
+<li>When the connection returns, queued items upload in the background.</li>
+</ul>
+
+<h3>What to expect</h3>
+<ul>
+<li>Fill in and submit the form as normal — there are no special steps offline.</li>
+<li>Keep the tab open until sync completes after you reconnect.</li>
+<li>If a sync conflict occurs, the platform keeps both versions for staff to resolve rather than silently dropping data.</li>
+</ul>
+
+<h3>Tips</h3>
+<ul>
+<li>Avoid clearing site data while items are still queued.</li>
+<li>Reconnect periodically so the queue doesn't grow large.</li>
+</ul>
+""",
+                "category": "getting-started",
+                "difficulty": "BEGINNER",
+                "read_time": 5,
+                "tags": ["offline", "sync", "connectivity", "field-capture"],
+                "is_featured": False,
+            },
+            {
+                "title": "Where your grading scale comes from",
+                "slug": "grading-scale-provenance",
+                "summary": "Your school's grade scale (for example /20, /100, or a grade-point scale) is configured per school, and the system converts between scales automatically.",
+                "content": """
+<h2>One scale per school</h2>
+<p>Different regions grade differently — out of 20, out of 100, or on a grade-point scale. Your school's effective scale is configured for your school, not hard-coded, so scores, report cards, and validation all use the same denominator.</p>
+
+<h3>Seeing your scale</h3>
+<ul>
+<li>Open the Grading scale bands page to view the effective scale: band labels, grade points, and normalized ranges.</li>
+<li>The page is read-only; it reflects what is configured for your school.</li>
+</ul>
+
+<h3>How conversions work</h3>
+<ul>
+<li>The platform converts between locale scales automatically where needed, so a /20 school and a /100 school each see grades in their own terms.</li>
+<li>Score entry is bounded by your school's operational scale — you can't accidentally enter a score above the maximum your scale allows.</li>
+</ul>
+
+<h3>Changing the scale</h3>
+<ul>
+<li>The grading scale is set from your grading & language configuration; ask an administrator if it needs to change.</li>
+</ul>
+""",
+                "category": "grading-assessment",
+                "difficulty": "BEGINNER",
+                "read_time": 5,
+                "tags": ["grading", "scale", "localization", "assessment"],
+                "is_featured": False,
+            },
+            {
+                "title": "Two-factor authentication (2FA) for your account",
+                "slug": "two-factor-authentication",
+                "summary": "Why privileged roles require a second factor, and how your school's rollout mode (strict, grace, or optional) affects you.",
+                "content": """
+<h2>Why 2FA</h2>
+<p>Accounts with elevated access always require two-factor authentication — the same security posture used by major platforms. The second factor protects student and financial data even if a password is stolen.</p>
+
+<h3>Rollout modes</h3>
+<ul>
+<li><strong>Strict</strong> — you must set up 2FA before you can access protected pages.</li>
+<li><strong>Grace</strong> — you're nudged to set up 2FA and required to finish within a grace window measured from your join date.</li>
+<li><strong>Optional</strong> — you're prompted but never blocked (typically test or demo tenants).</li>
+</ul>
+
+<h3>Good to know</h3>
+<ul>
+<li>If you already have 2FA enabled, the rollout mode never affects you.</li>
+<li>Administrators can set the mode for a single school or as the platform default.</li>
+<li>Grace and Optional still show a persistent "set up 2FA" prompt; only Strict blocks the page.</li>
+</ul>
+""",
+                "category": "system-admin",
+                "difficulty": "BEGINNER",
+                "read_time": 4,
+                "tags": ["security", "2fa", "mfa", "authentication"],
                 "is_featured": False,
             },
         ]

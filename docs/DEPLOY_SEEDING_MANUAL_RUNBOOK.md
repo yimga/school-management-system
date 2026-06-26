@@ -9,6 +9,7 @@ sets these to `"0"` on the web service:
 | `RUN_BOOTSTRAP_PLATFORM_CATALOG` | `bootstrap_platform_catalog --all` |
 | `APPLY_UI_FIXTURE_ON_DEPLOY` | `import_ui_config fixtures/ui_config.json` |
 | `RUN_PLATFORM_SEED` | `seed_platform_complete --skip-tenants` |
+| `RUN_SEED_KB_ARTICLES` | `seed_kb_articles --all-tenants` (starter KB content, per-tenant; OFF by default — one-time backfill) |
 | `RUN_PGVECTOR_MIGRATE` | `migrate_embeddings_to_pgvector` + index verify |
 
 ## Still automatic on every deploy (do nothing)
@@ -32,6 +33,11 @@ Use the venv interpreter. All commands are idempotent.
 
 # After changing platform public-schema seed data:
 .venv/bin/python manage.py seed_platform_complete --skip-tenants --continue-on-error
+
+# Populate starter Knowledge Base articles in every tenant schema (idempotent,
+# country-neutral content). Omit --all-tenants to seed only the current schema;
+# --schema NAME (repeatable) to target specific tenants.
+.venv/bin/python manage.py seed_kb_articles --all-tenants
 
 # After changing the embedding pipeline (or first run on a new DB):
 .venv/bin/python manage.py migrate_embeddings_to_pgvector --write-env-flag

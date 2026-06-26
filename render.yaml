@@ -120,6 +120,11 @@ services:
         value: "0"
       - key: RUN_PLATFORM_SEED
         value: "0"
+      # Starter Knowledge Base articles (per-tenant content). OFF by default —
+      # flip to "1" for a one-time backfill when you want tenant KBs populated.
+      # Idempotent (get_or_create on slug); seeds every tenant schema.
+      - key: RUN_SEED_KB_ARTICLES
+        value: "0"
       - key: RUN_PGVECTOR_MIGRATE
         value: "0"
       # Kept ON: cheap pre-traffic safety gate (fails only on misconfigured
