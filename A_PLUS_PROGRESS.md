@@ -1,8 +1,23 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-06-26 (queue wave 10 — ordered fixes + gate re-run)  
-**Commit audited:** `645851087` (HEAD) · **uncommitted** wave-10 delta  
-**Loop:** PROMPT A queue items 1–3 + 6 **DONE locally** → PROMPT B **still NO-GO** (26 metrics <98)
+**Last refreshed:** 2026-06-26 (wave 10 pushed + moat E2E subdomain fix)  
+**Commit on main:** `2eaf72f2e` (wave 10) · follow-up moat fix pending push  
+**Loop:** PROMPT A continuing → PROMPT B **NO-GO**
+
+---
+
+## GitHub CI status (2026-06-26)
+
+| Workflow | Trigger | Result | Notes |
+|----------|---------|--------|-------|
+| `django-tests-postgres.yml` | push main | **BLOCKED** | Actions budget exhausted — job never started |
+| `tenant-moat-e2e.yml` | push main | **BLOCKED** | Same — re-run when budget resets |
+| Local `pre_deploy_gate` (SKIP_VISUAL_QA=1) | dev | **PASS** | exit 0 |
+| Local Postgres test bundle (SQLite) | dev | **46/47 OK** | hash ledger test fixed in follow-up |
+| Local `test:e2e:offline-multiday` | dev | **1/1 PASS** | serverless fixture |
+| Local `test:e2e:tenant-moat:armed` | dev | **PARTIAL** | multiday OK; auth suite failed on path-tenant 301 → fixed subdomain + host rules |
+
+**Action:** Increase GitHub Actions budget or use self-hosted runner to confirm CI green.
 
 ---
 

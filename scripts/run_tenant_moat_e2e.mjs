@@ -13,7 +13,7 @@ const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const port = (process.env.VISUAL_QA_TENANT_PHASE_PORT || process.env.VISUAL_QA_PORT || '8016').trim();
 const slug = (process.env.TENANT_SLUG || 'demo-school').trim();
 const password = process.env.E2E_TENANT_PASSWORD || 'Test1234';
-const loginUrl = `http://127.0.0.1:${port}/t/${slug}/authentication/login/`;
+const loginUrl = `http://${slug}.runmycampus.com:${port}/authentication/login/`;
 
 function resolvePython() {
   if (process.env.VISUAL_QA_PYTHON) {
@@ -60,7 +60,8 @@ function probe(url) {
 async function waitForServer(maxSeconds = 240) {
   for (let i = 0; i < maxSeconds; i += 1) {
     const code = await probe(loginUrl);
-    if (code >= 200 && code < 500) {
+    // 301/302 to subdomain canonical host breaks Playwright on 127.0.0.1 — require 200.
+    if (code === 200) {
       return;
     }
     await new Promise((r) => setTimeout(r, 1000));
@@ -79,6 +80,8 @@ const baseEnv = {
   RMC_E2E_BYPASS_MFA: '1',
   CSRF_COOKIE_SECURE: '0',
   SESSION_COOKIE_SECURE: '0',
+  ALLOWED_HOSTS: '127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com',
+  MULTI_TENANT_BASE_DOMAIN: 'runmycampus.com',
   VISUAL_QA_PORT: port,
   VISUAL_QA_TENANT_PHASE_PORT: port,
   TENANT_SLUG: slug,
@@ -139,18 +142,27 @@ process.on('exit', killServer);
 
 await waitForServer();
 
-console.log('=== tenant moat e2e: Playwright ===');
+console.log('=== tenant moat e2e: Playwright (offline multiday serverless) ===');
 const pwCli = path.join(repo, 'node_modules', '@playwright', 'test', 'cli.js');
+const multiday = spawnSync(
+  process.execPath,
+  [pwCli, 'test', 'tests/e2e/offline-multiday-indexeddb.spec.js', '--project=offline-indexeddb-chromium'],
+  { cwd: repo, env: { ...process.env, ...baseEnv, CI: '1' }, stdio: 'inherit', shell: false },
+);
+if (multiday.status !== 0) {
+  killServer();
+  process.exit(multiday.status ?? 1);
+}
+
+console.log('=== tenant moat e2e: Playwright (auth + report-card + axe) ===');
 const pw = spawnSync(
   process.execPath,
   [
     pwCli,
     'test',
-    'tests/e2e/offline-multiday-indexeddb.spec.js',
     'tests/e2e/offline-authenticated-sync.spec.js',
     'tests/e2e/report-card-hash-parent.spec.js',
     'tests/e2e/tenant-shell-a11y.spec.js',
-    '--project=offline-indexeddb-chromium',
     '--project=offline-sync-chromium',
   ],
   {
@@ -160,7 +172,8 @@ const pw = spawnSync(
       ...baseEnv,
       CI: '1',
       RMC_E2E_EXTERNAL_SERVER: '1',
-      PLAYWRIGHT_TENANT_BASE_URL: `http://127.0.0.1:${port}/t/${slug}`,
+      TENANT_E2E_SUBDOMAIN: '1',
+      PLAYWRIGHT_TENANT_BASE_URL: `http://${slug}.runmycampus.com:${port}`,
     },
     stdio: 'inherit',
     shell: false,

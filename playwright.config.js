@@ -194,10 +194,10 @@ module.exports = defineConfig({
         channel: 'chromium',
         baseURL:
           process.env.PLAYWRIGHT_TENANT_BASE_URL ||
-          `http://127.0.0.1:${_tenantPhasePort}/t/demo-school`,
+          `http://demo-school.runmycampus.com:${_tenantPhasePort}`,
         serviceWorkers: 'block',
         launchOptions: {
-          args: ['--proxy-server=direct://', '--proxy-bypass-list=*'],
+          args: _chromiumArgs(_tenantHostRules),
         },
       },
       ...(process.env.RMC_E2E_EXTERNAL_SERVER === '1'
@@ -212,7 +212,7 @@ module.exports = defineConfig({
                 TENANT_SLUG: process.env.TENANT_SLUG || 'demo-school',
                 E2E_TENANT_PASSWORD: process.env.E2E_TENANT_PASSWORD || 'Test1234',
               },
-              url: `http://127.0.0.1:${_tenantPhasePort}/t/demo-school/authentication/login/`,
+              url: `http://demo-school.runmycampus.com:${_tenantPhasePort}/authentication/login/`,
               reuseExistingServer: !process.env.CI,
               timeout: 600000,
             },
