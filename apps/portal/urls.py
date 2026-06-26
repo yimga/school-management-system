@@ -61,6 +61,7 @@ from .views_lms import (
     teacher_assignments,
     teacher_assignment_create,
     teacher_assignment_grade,
+    teacher_gradebook,
 )
 from .views_parent_gdpr import api_parent_data_rights_status, parent_data_rights
 from .parent_finance_health import parent_finance_health
@@ -423,6 +424,10 @@ urlpatterns = [
         teacher_assignment_create,
         name="teacher_assignment_create",
     ),
+    # Read-only homework gradebook (students x assignments matrix). Literal "gradebook"
+    # segment — registered before the <int:assignment_id> grade route is irrelevant since
+    # the converter never matches a non-integer, but kept grouped with the homework routes.
+    path("teacher/homework/gradebook/", teacher_gradebook, name="teacher_gradebook"),
     path(
         "teacher/homework/<int:assignment_id>/grade/",
         teacher_assignment_grade,

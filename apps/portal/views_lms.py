@@ -30,6 +30,7 @@ from apps.academics.lms_services import (
     AssignmentClosedError,
     create_assignment,
     grade_submission,
+    homework_gradebook_for,
     open_assignments_for_student,
     publish_assignment,
     submit_assignment,
@@ -346,5 +347,52 @@ def teacher_assignment_grade(request: HttpRequest, assignment_id: int):
             "assignment": assignment,
             "submissions": submissions,
             "page_title": f"Grade — {assignment.title}",
+        },
+    )
+
+
+@role_required(User.Role.TEACHER)
+@require_http_methods(["GET"])
+def teacher_gradebook(request: HttpRequest):
+    """Read-only homework gradebook: a students x assignments grade matrix per class.
+
+    Surfaces LMS homework grades only — it never writes into ``evals.Evaluation`` (owner
+    decision 2026-06-26: homework stays separate from the seq/exam report card).
+    """
+    guard = _teacher_guard(request)
+    if not isinstance(guard, tuple):
+        return guard
+    school, teacher = guard
+
+    # The class picker only offers classes this teacher actually has published homework for.
+    classroom_choices = []
+    seen = set()
+    for a in teacher_assignments_for(school=school, teacher=teacher):
+        if a.status == LMSAssignment.Status.PUBLISHED and a.classroom_id not in seen:
+            seen.add(a.classroom_id)
+            classroom_choices.append(a.classroom)
+    classroom_choices.sort(key=lambda c: (c.name or ""))
+
+    classroom_id = request.GET.get("classroom")
+    classroom = next(
+        (c for c in classroom_choices if str(c.id) == classroom_id), None
+    )
+    if classroom is None and classroom_choices:
+        classroom = classroom_choices[0]
+
+    gradebook = (
+        homework_gradebook_for(school=school, teacher=teacher, classroom=classroom)
+        if classroom is not None
+        else None
+    )
+    return render(
+        request,
+        "portal/teacher_gradebook.html",
+        {
+            "classroom_choices": classroom_choices,
+            "selected_classroom": classroom,
+            "gradebook": gradebook,
+            "page_title": "Homework gradebook",
+            "page_subtitle": "Each student's homework grades across this class.",
         },
     )

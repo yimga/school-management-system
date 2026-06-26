@@ -15,7 +15,10 @@
     <h1 class="mb-0">{% trans "Assignments" %}</h1>
     <p class="text-muted small mb-1">{% trans "Create homework and grade what students submit." %}</p>
   </div>
-  <a class="btn btn-primary" href="{% url 'portal:teacher_assignment_create' %}">{% trans "New assignment" %}</a>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="{% url 'portal:teacher_gradebook' %}">{% trans "Gradebook" %}</a>
+    <a class="btn btn-primary" href="{% url 'portal:teacher_assignment_create' %}">{% trans "New assignment" %}</a>
+  </div>
 </div>
 
 {% if assignments %}

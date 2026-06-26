@@ -320,3 +320,54 @@ class LMSTeacherAuthoringTests(LMSSubmissionServiceTests):
         subs = list(submissions_for_assignment(school=self.school, assignment=a))
         self.assertEqual(len(subs), 1)
         self.assertEqual(subs[0].student_id, self.student.id)
+
+
+class LMSGradebookTests(LMSSubmissionServiceTests):
+    """Read-only homework gradebook matrix (independent of evals.Evaluation)."""
+
+    def test_gradebook_empty_when_no_published_assignments(self):
+        from apps.academics.lms_services import homework_gradebook_for
+
+        self._assignment(status=LMSAssignment.Status.DRAFT)  # drafts never appear
+        gb = homework_gradebook_for(
+            school=self.school, teacher=self.teacher, classroom=self.classroom
+        )
+        self.assertEqual(gb["assignments"], [])
+        self.assertEqual(len(gb["rows"]), 1)  # the one active student
+        self.assertEqual(gb["rows"][0]["cells"], [])
+        self.assertIsNone(gb["rows"][0]["average"])
+
+    def test_gradebook_average_is_over_graded_only(self):
+        from apps.academics.lms_services import homework_gradebook_for
+
+        a1 = self._assignment()
+        a2 = self._assignment()
+        s1, _ = submit_assignment(assignment=a1, student=self.student, content="x")
+        grade_submission(submission=s1, score=80, graded_by=self.teacher_user)
+        submit_assignment(assignment=a2, student=self.student, content="y")  # ungraded
+
+        gb = homework_gradebook_for(
+            school=self.school, teacher=self.teacher, classroom=self.classroom
+        )
+        self.assertEqual(len(gb["assignments"]), 2)
+        row = gb["rows"][0]
+        self.assertEqual(row["graded_count"], 1)
+        self.assertEqual(int(row["average"]), 80)  # only the graded item counts
+        scored = [c for c in row["cells"] if c["score"] is not None]
+        self.assertEqual(len(scored), 1)
+        self.assertEqual(int(scored[0]["score"]), 80)
+
+    def test_gradebook_not_submitted_cell_status(self):
+        from apps.academics.lms_services import homework_gradebook_for
+
+        self._assignment()  # published; student has NOT submitted
+        gb = homework_gradebook_for(
+            school=self.school, teacher=self.teacher, classroom=self.classroom
+        )
+        row = gb["rows"][0]
+        self.assertEqual(len(row["cells"]), 1)
+        self.assertIsNone(row["cells"][0]["score"])
+        self.assertEqual(
+            row["cells"][0]["status"], LMSSubmission.Status.NOT_SUBMITTED
+        )
+        self.assertIsNone(row["average"])
