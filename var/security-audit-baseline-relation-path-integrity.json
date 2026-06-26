@@ -1,0 +1,6 @@
+{
+  "finding_count": 0,
+  "findings": [],
+  "generated_at": "2026-06-26T01:03:17+00:00",
+  "rule": "every literal relation path passed to .select_related/.prefetch_related on a directly-resolvable <Model>.objects chain must have its first segment resolve via the model's _meta.get_field; guard with try/except FieldError or # relation-path-allow: <reason>"
+}

@@ -206,15 +206,20 @@ class Command(BaseCommand):
             student=student,
             academic_year=academic_year,
             term=term,
-        ).select_related("component", "subject")
+        ).select_related("subject_assignment__subject")
 
         # Calculate average
         scores = {}
         for eval in evaluations:
-            subject_name = eval.subject.name if eval.subject else "General"
+            subject = (
+                eval.subject_assignment.subject
+                if eval.subject_assignment_id
+                else None
+            )
+            subject_name = subject.name if subject else "General"
             if subject_name not in scores:
                 scores[subject_name] = []
-            scores[subject_name].append(float(eval.score or 0))
+            scores[subject_name].append(float(eval.final_score or 0))
 
         average_score = 0
         if scores:
