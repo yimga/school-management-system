@@ -548,3 +548,21 @@
   border-color: color-mix(in srgb, var(--brand-primary, #4f46e5) 30%, transparent);
   color: var(--brand-primary, #4f46e5);
 }
+
+/* ---- rmc-button--destructive (cockpit live-banner emergency draft) --------
+   Semantic alias of the danger variant — the button also carries Bootstrap
+   .btn-outline-danger, so this composes on top. Defined explicitly so the
+   zero-tolerance undefined-css gate sees every referenced button variant. */
+.rmc-button--destructive {
+  background: var(--surface-elevated, transparent);
+  color: var(--text-danger, currentColor);
+  border: 1px solid color-mix(in srgb, var(--text-danger, currentColor) 40%, transparent);
+}
+
+/* ---- Live Banner Studio preview (cockpit configure → live-banner studio) --
+   Wrapper + ticker-strip + empty-state hooks for the marquee preview; compose
+   on the .rmc-cockpit-ticker / .rmc-empty-state primitives. Layout-only,
+   token-based, light/dark safe, additive (no peer template edits). */
+.rmc-live-banner-studio-preview { display: block; min-width: 0; }
+.rmc-live-banner-studio-preview__strip { width: 100%; min-width: 0; border-radius: var(--radius-3, 0.5rem); overflow: hidden; }
+.rmc-live-banner-studio-preview__empty { color: var(--text-secondary, currentColor); }
