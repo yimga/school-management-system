@@ -240,6 +240,7 @@ class GradingScale(models.Model):
         LETTER_A_E = "letter_a_e", "Letters A–E"
         GPA_4_0 = "gpa_4_0", "GPA 4.0"
         PERCENTAGE = "percentage", "Percentage 0–100"
+        NUMERIC_1_5 = "numeric_1_5", "Numeric 1–5 (Post-Soviet)"
 
     school = models.ForeignKey(
         "schools.School",

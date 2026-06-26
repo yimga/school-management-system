@@ -110,6 +110,18 @@ GRADING_SCALES = {
         },
         "display": lambda score: f"{float(score):.0f}/7",
     },
+    "1-5": {
+        "min": Decimal("0"),
+        "max": Decimal("5"),
+        "grades": {
+            "A": Decimal("4.5"),
+            "B": Decimal("4"),
+            "C": Decimal("3.5"),
+            "D": Decimal("3"),
+            "F": Decimal("0"),
+        },
+        "display": lambda score: f"{float(score):.1f}/5",
+    },
 }
 
 
@@ -174,6 +186,7 @@ ASSESSMENT_WEIGHTS_SCALE_MAP = {
     "letter_a_e": "0-20",  # Letter grades A–E on 0–20 basis
     "gpa_4_0": "gpa",
     "percentage": "0-100",
+    "numeric_1_5": "1-5",
 }
 
 # RegionConfig / migration profile aliases → GRADING_SCALES keys

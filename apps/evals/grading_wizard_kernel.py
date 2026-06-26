@@ -45,6 +45,12 @@ _SCALE_TYPE_MAP = {
     "points_100": "percentage",
     "points_1000": "percentage",
     "numeric_0_20": "numeric_0_20",
+    "numeric_1_5": "numeric_1_5",
+    # Both the raw wizard token ("1-5") and the hyphen-normalized form ("1_5") that
+    # _normalize_scale_type produces (it does .replace("-", "_")) must resolve.
+    "1-5": "numeric_1_5",
+    "1_5": "numeric_1_5",
+    "post_soviet": "numeric_1_5",
 }
 
 

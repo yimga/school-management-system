@@ -40,8 +40,12 @@ class ScaleForAssessmentWeightsTests(TestCase):
     def test_map_keys_complete(self):
         self.assertEqual(
             set(ASSESSMENT_WEIGHTS_SCALE_MAP.keys()),
-            {"numeric_0_20", "letter_a_e", "gpa_4_0", "percentage"},
+            {"numeric_0_20", "letter_a_e", "gpa_4_0", "percentage", "numeric_1_5"},
         )
+
+    def test_numeric_1_5_maps_to_1_5(self):
+        w = MagicMock(grading_scale="numeric_1_5")
+        self.assertEqual(scale_for_assessment_weights(w), "1-5")
 
 
 class ScaleIntegrationTests(TestCase):
