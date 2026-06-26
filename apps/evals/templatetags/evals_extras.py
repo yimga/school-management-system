@@ -38,3 +38,16 @@ def rosetta_view_grade_line(evaluation, to_scale="0-100"):
     if evaluation is None:
         return "—"
     return format_rosetta_line(evaluation, to_scale)
+
+
+@register.simple_tag
+def grade_band(scale_type, score):
+    """Displayed grade label for a raw ``score`` on an operational ``scale_type``.
+
+    The rich label for the non-numeric world scales — WAEC ``A1``…``F9``, ``Pass``/
+    ``Fail``, qualitative descriptor — and the ordinary A–E letter otherwise. A grade
+    surface that knows the school's scale renders its TRUE label via this one tag
+    instead of a coarse letter: ``{% grade_band scale_type score %}``."""
+    from apps.evals.grading import format_grade_band
+
+    return format_grade_band(scale_type, score)
