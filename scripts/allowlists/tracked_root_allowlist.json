@@ -1,7 +1,9 @@
 {
-  "last_reviewed": "2026-06-08",
+  "last_reviewed": "2026-06-26",
   "allowed": [
     "AGENTS.md",
+    "A_PLUS_PROGRESS.md",
+    "CURSOR_A_PLUS_MANDATE.md",
     ".coveragerc",
     ".gitattributes",
     ".cursorrules",
@@ -23,6 +25,7 @@
     "docker-compose.ollama.yml",
     "lighthouserc.js",
     "lighthouserc.cjs",
+    "lighthouserc-tenant.cjs",
     "manage.py",
     "package-lock.json",
     "package.json",

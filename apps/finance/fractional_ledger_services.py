@@ -38,7 +38,9 @@ def _clearance_threshold(school, invoice_total: Decimal) -> Decimal:
 
 
 def _ledger_paid_total(invoice: Invoice) -> Decimal:
-    agg = FractionalPaymentLedger.objects.filter(invoice=invoice).aggregate(s=Sum("amount"))
+    agg = FractionalPaymentLedger.objects.filter(
+        school=invoice.school, invoice=invoice
+    ).aggregate(s=Sum("amount"))
     return Decimal(agg["s"] or "0")
 
 

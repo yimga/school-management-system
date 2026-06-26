@@ -206,7 +206,7 @@ def seed_report_card_e2e_for_school(
         with mock.patch("apps.reports.views.render_pdf_bytes", return_value=_MOCK_PDF):
             _record_report_hash(staff, rc, _MOCK_PDF)
 
-    hash_row = ReportDocumentHash.objects.get(report_card=rc)
+    hash_row = ReportDocumentHash.objects.get(school=school, report_card=rc)
     from apps.reports.services import term_report_context
 
     grade_label = ""

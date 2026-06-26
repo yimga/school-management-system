@@ -40,7 +40,7 @@ jobs:
       - name: Verify relation-path integrity
         run: python scripts/verify_relation_path_integrity.py --compare
       - name: Run Django tests
-        run: python manage.py test --noinput -v 0 2>/dev/null || true
+        run: python manage.py test --noinput -v 0
 
   a11y-lighthouse:
     runs-on: ubuntu-latest
