@@ -1,0 +1,6 @@
+{
+  "finding_count": 0,
+  "findings": [],
+  "generated_at": "2026-06-25T23:53:58+00:00",
+  "rule": "every literal {% static 'path' %} tag must resolve via Django's staticfiles finders (project static/ or an installed app's static/); guard with {# static-ref-allow: <reason> #}"
+}

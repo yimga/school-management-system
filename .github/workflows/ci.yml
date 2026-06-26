@@ -27,6 +27,8 @@ jobs:
         run: python scripts/verify_url_name_integrity.py --compare
       - name: Verify template-reference integrity
         run: python scripts/verify_template_reference_integrity.py --compare
+      - name: Verify static-asset reference integrity
+        run: python scripts/verify_static_reference_integrity.py --compare
       - name: Verify settings-key integrity
         run: python scripts/verify_settings_key_integrity.py --compare
       - name: Migrate DB (grade-scale registry gate needs tables)

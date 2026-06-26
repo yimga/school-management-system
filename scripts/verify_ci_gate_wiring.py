@@ -41,11 +41,12 @@ WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 # to this tuple.
 REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Reference-integrity family — the "literal string -> runtime registry ->
-    # 500/silent" loophole class. All four must always run.
+    # 500/silent" loophole class. All members must always run.
     ("scripts/scan_import_reference_integrity.py", "architectural-boundaries.yml"),
     ("scripts/verify_get_model_integrity.py", "ci.yml"),
     ("scripts/verify_url_name_integrity.py", "ci.yml"),
     ("scripts/verify_template_reference_integrity.py", "ci.yml"),
+    ("scripts/verify_static_reference_integrity.py", "ci.yml"),
     ("scripts/verify_settings_key_integrity.py", "ci.yml"),
     ("scripts/verify_field_reference_integrity.py", "ci.yml"),
     # Documented-baseline drift meta-check (doc vs JSON).
