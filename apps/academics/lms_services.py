@@ -21,13 +21,31 @@ Design contract:
 
 from __future__ import annotations
 
+import logging
 from datetime import date as date_type
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
 from django.db import transaction
 from django.utils import timezone
 
 from apps.academics.models_lms import LMSAssignment, LMSSubmission
+
+logger = logging.getLogger(__name__)
+
+# ── Gradebook materialization (homework grade -> evals.Evaluation) ─────────────
+# The Evaluation component a graded homework score flows into. Writing into the
+# authoritative gradebook is DESTRUCTIVE (it would overwrite a teacher's manually
+# entered marks in that slot), so this is OPT-IN per school: it stays "none" until
+# a school points School.settings['lms_homework_eval_component'] at a dedicated
+# component. The chosen slot is then HOMEWORK-OWNED. Maps config value -> (the
+# Evaluation field, the AssessmentWeights attr that gates it).
+_HOMEWORK_EVAL_COMPONENTS = {
+    "seq1": ("seq1_score", "seq1_weight"),
+    "seq2": ("seq2_score", "seq2_weight"),
+    "practical": ("practical_score", "practical_weight"),
+}
+_HOMEWORK_EVAL_DISABLED = "none"
 
 
 # Submission states that mean "the student has already turned this in" — a replayed
@@ -129,7 +147,139 @@ def grade_submission(
     submission.save(
         update_fields=["score", "feedback", "graded_at", "graded_by", "status", "updated_at"]
     )
+    # Mirror the grade into the gradebook when the school opted in. Best-effort:
+    # a materialization failure must NEVER break grading (the LMS grade is the
+    # source of truth; the Evaluation is a derived convenience).
+    try:
+        materialize_evaluation_from_submission(submission=submission)
+    except Exception as exc:  # noqa: BLE001 — gradebook sync is derived, never load-bearing
+        logger.warning(
+            "lms grade->evaluation materialization skipped sub=%s err=%s",
+            getattr(submission, "pk", None),
+            exc,
+        )
     return submission
+
+
+def _resolve_homework_eval_component(school) -> str:
+    """The Evaluation component homework grades flow into for ``school``.
+
+    School-configurable via ``School.settings['lms_homework_eval_component']``
+    (``seq1`` | ``seq2`` | ``practical`` | ``none``). Defaults to ``none`` —
+    materialization is off until a school explicitly picks a homework-owned slot,
+    so it can never silently overwrite manually entered marks.
+    """
+    raw = ""
+    try:
+        cfg = getattr(school, "settings", None)
+        if isinstance(cfg, dict):
+            raw = str(cfg.get("lms_homework_eval_component") or "").strip().lower()
+    except Exception:  # noqa: BLE001 — config read is best-effort
+        raw = ""
+    return raw if raw in _HOMEWORK_EVAL_COMPONENTS else _HOMEWORK_EVAL_DISABLED
+
+
+def _convert_homework_score(raw_score, points_possible, scale) -> Decimal:
+    """Rescale a raw homework score onto the school's operational grade scale.
+
+    A submission is scored on the assignment's ``points_possible`` axis (e.g. /100)
+    but Evaluation components are validated against the school's grade scale (e.g.
+    /20), so an unconverted score would be out of range or wildly wrong. Clamped to
+    ``[0, scale]`` and rounded to 2dp. e.g. ``80/100`` on a /20 school -> ``16.00``.
+    """
+    try:
+        raw = Decimal(str(raw_score))
+        pts = Decimal(str(points_possible or 0))
+        sc = Decimal(str(scale or 0))
+    except (TypeError, ValueError, ArithmeticError):
+        return Decimal("0")
+    if pts <= 0 or sc <= 0:
+        return Decimal("0")
+    value = (raw / pts) * sc
+    if value < 0:
+        value = Decimal("0")
+    elif value > sc:
+        value = sc
+    return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def materialize_evaluation_from_submission(*, submission) -> dict:
+    """Upsert a graded LMS homework submission into the gradebook (``evals.Evaluation``).
+
+    Idempotent: keyed on ``(academic_year, term, subject_assignment, student)`` so a
+    re-grade updates the SAME row instead of duplicating. Writes ONLY the school's
+    configured homework component, rescaled onto the school's grade scale. Returns a
+    structured ``{"materialized": bool, "reason"/"component"/...}`` and NEVER raises;
+    it skips cleanly when the school disabled it, the slot carries zero weight, the
+    assignment has no term, the student has no academic year, or no matching
+    SubjectAssignment exists (homework on a subject that isn't a graded roster slot).
+    """
+    assignment = submission.assignment
+    school = assignment.school
+    student = submission.student
+
+    if submission.score is None or submission.status != LMSSubmission.Status.GRADED:
+        return {"materialized": False, "reason": "not_graded"}
+
+    component = _resolve_homework_eval_component(school)
+    if component == _HOMEWORK_EVAL_DISABLED:
+        return {"materialized": False, "reason": "disabled"}
+    field_name, weight_attr = _HOMEWORK_EVAL_COMPONENTS[component]
+
+    term = assignment.term
+    if term is None:
+        return {"materialized": False, "reason": "no_term"}
+    academic_year = getattr(student, "academic_year", None)
+    if academic_year is None:
+        return {"materialized": False, "reason": "no_student_year"}
+
+    from apps.academics.models import SubjectAssignment
+    from apps.evals.grading_provisioning import resolve_school_score_scale
+    from apps.evals.models import AssessmentWeights, Evaluation
+
+    # Resolve the gradebook SubjectAssignment from the STUDENT's roster dimensions
+    # (so Evaluation.clean()'s year/class/specialty invariants hold) plus the
+    # assignment's subject + term.
+    sa = SubjectAssignment.objects.filter(
+        school=school,
+        academic_year=academic_year,
+        term=term,
+        classroom_id=getattr(student, "classroom_id", None),
+        specialty_id=getattr(student, "specialty_id", None),
+        subject_id=assignment.subject_id,
+    ).first()
+    if sa is None:
+        return {"materialized": False, "reason": "no_subject_assignment"}
+
+    # Never inject into an unweighted slot (e.g. a percentage/GPA school whose model
+    # doesn't use seq1) — that would surprise the gradebook composite.
+    weights = AssessmentWeights.get_for(
+        academic_year, getattr(student, "classroom", None), term
+    )
+    if int(getattr(weights, weight_attr, 0) or 0) <= 0:
+        return {"materialized": False, "reason": "component_unweighted"}
+
+    scale = resolve_school_score_scale(school)
+    value = _convert_homework_score(submission.score, assignment.points_possible, scale)
+
+    evaluation, _created = Evaluation.objects.get_or_create(
+        academic_year=academic_year,
+        term=term,
+        subject_assignment=sa,
+        student=student,
+        defaults={"school": school, "teacher": assignment.teacher},
+    )
+    setattr(evaluation, field_name, value)
+    if getattr(evaluation, "school_id", None) is None:
+        evaluation.school = school
+    evaluation._audit_change_type = "import"
+    evaluation.save()
+    return {
+        "materialized": True,
+        "component": field_name,
+        "value": str(value),
+        "evaluation_id": evaluation.id,
+    }
 
 
 def open_assignments_for_student(*, school, student, classroom_id: int | None = None):
@@ -265,6 +415,74 @@ def submissions_for_assignment(*, school, assignment):
     )
 
 
+def homework_gradebook_for(*, school, teacher, classroom):
+    """Students x published-assignments homework-grade matrix for one of the teacher's classes.
+
+    Independent of ``evals.Evaluation`` BY DESIGN (owner decision 2026-06-26 — "keep
+    separate"): homework grades are surfaced here, never written into the seq/exam
+    report-card components, so a homework mark can never clobber a continuous-assessment
+    score. Returns ``{"assignments": [LMSAssignment, ...], "rows": [{"student", "cells":
+    [{assignment, submission, score, status}], "average", "graded_count"}, ...]}``.
+    """
+    from apps.people.models import StudentProfile
+
+    assignments = list(
+        LMSAssignment.objects.filter(
+            school=school,
+            teacher=teacher,
+            classroom=classroom,
+            status=LMSAssignment.Status.PUBLISHED,
+        )
+        .select_related("subject")
+        .order_by("due_at", "created_at", "id")
+    )
+    students = list(
+        StudentProfile.objects.filter(
+            school=school, classroom=classroom, is_active=True
+        ).order_by("last_name", "first_name")
+    )
+
+    sub_map: dict[tuple[int, int], LMSSubmission] = {}
+    if assignments and students:
+        for s in LMSSubmission.objects.filter(
+            school=school, assignment__in=assignments, student__in=students
+        ).select_related("student"):
+            sub_map[(s.student_id, s.assignment_id)] = s
+
+    rows = []
+    for student in students:
+        cells = []
+        graded_scores = []
+        for a in assignments:
+            sub = sub_map.get((student.id, a.id))
+            score = None
+            if (
+                sub is not None
+                and sub.status == LMSSubmission.Status.GRADED
+                and sub.score is not None
+            ):
+                score = sub.score
+                graded_scores.append(score)
+            cells.append(
+                {
+                    "assignment": a,
+                    "submission": sub,
+                    "score": score,
+                    "status": sub.status if sub else LMSSubmission.Status.NOT_SUBMITTED,
+                }
+            )
+        average = (sum(graded_scores) / len(graded_scores)) if graded_scores else None
+        rows.append(
+            {
+                "student": student,
+                "cells": cells,
+                "average": average,
+                "graded_count": len(graded_scores),
+            }
+        )
+    return {"assignments": assignments, "rows": rows}
+
+
 __all__ = [
     "AssignmentClosedError",
     "submit_assignment",
@@ -275,4 +493,5 @@ __all__ = [
     "publish_assignment",
     "teacher_assignments_for",
     "submissions_for_assignment",
+    "homework_gradebook_for",
 ]
