@@ -1104,6 +1104,53 @@
     </fieldset>
     {% endif %}
 
+    {% comment %} ---- Login immersive canvas (tenant sign-in left panel) -------- {% endcomment %}
+    {% if login_canvas_fields %}
+    <fieldset id="cockpit-login-canvas" class="border rounded-3 p-3 mb-4" data-cockpit-block="login-canvas"
+              data-lic-pro-entitled="{% if login_canvas_pro_entitled %}1{% else %}0{% endif %}"
+              data-lic-upgrade-sheet-id="rmc-login-canvas-pro-upgrade">
+      <legend class="h6 px-2 fw-bold">{% trans "Login canvas (tenant sign-in)" %}</legend>
+      <p class="small text-muted mb-3">
+        {% trans "Configure the left immersive panel on the tenant login page: layout preset, hero carousel/marquee, metrics, feed preview, gallery, and trust chips. Pro tier unlocks multi-slide heroes and marquee mode. Empty copy fields fall through to platform defaults." %}
+      </p>
+      {% include "partials/cockpit/_login_canvas_preview.html" with preview=login_canvas_preview %}
+      <div class="row g-3">
+        {% for field in login_canvas_fields %}
+          <div class="col-md-6{% if field.name == 'lic_hero_slides_lines' or field.name == 'lic_gallery_lines' or field.name == 'lic_sponsored_lines' or field.name == 'lic_trust_chip_lines' %} col-12{% endif %}">
+            {% if field.field.widget.input_type == "checkbox" %}
+              <div class="form-check">
+                {{ field }}
+                <label for="{{ field.id_for_label }}" class="form-check-label small fw-semibold">{{ field.label }}</label>
+              </div>
+              {% if field.help_text %}
+                <div class="form-text small">{{ field.help_text }}</div>
+              {% endif %}
+            {% else %}
+              <label for="{{ field.id_for_label }}" class="form-label small fw-semibold">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}
+                <div class="form-text small">{{ field.help_text }}</div>
+              {% endif %}
+            {% endif %}
+            {% if field.name == "lic_gallery_lines" and login_canvas_gallery_upload_url %}
+              {% include "partials/cockpit/_login_canvas_gallery_upload.html" with upload_url=login_canvas_gallery_upload_url %}
+            {% endif %}
+            {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {% url 'manager_help_center' as login_canvas_help_url %}
+    {% with upgrade_body=_("Marquee and hybrid hero modes, multi-slide carousels, gallery moments, and sponsored slots are part of Login canvas Pro. Enable the feature on your plan or turn on the Pro toggle after upgrading.") %}
+      {% include "components/rmc_bottom_sheet.html" with sheet_id="rmc-login-canvas-pro-upgrade" sheet_title=_("Login canvas Pro") sheet_subtitle=upgrade_body sheet_icon="bi-stars" sheet_variant="rmc-sheet--md" sheet_body='<div id="rmc-login-canvas-pro-upgrade-body"></div>' %}
+      <template id="rmc-login-canvas-pro-upgrade-template">
+        {% include "components/upgrade_modal_placeholder.html" with feature_code="login_canvas_pro" upgrade_title=_("Unlock Login canvas Pro") upgrade_body=upgrade_body billing_url=login_canvas_billing_url contact_url=login_canvas_help_url %}
+      </template>
+    {% endwith %}
+    {% endif %}
+
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <button type="submit" class="btn btn-primary">{% trans "Save configuration" %}</button>
       <button type="submit" name="action" value="reset_defaults" class="btn btn-outline-warning"
@@ -1119,4 +1166,16 @@
 {% block cp_shell_after %}
   {{ block.super }}
   <script src="{% static 'js/rmc-live-banner-studio.js' %}" nonce="{{ csp_nonce }}"></script>
+  {% if login_canvas_fields %}
+  <script src="{% static 'js/rmc-login-canvas-cockpit.js' %}" nonce="{{ csp_nonce }}"></script>
+  <script nonce="{{ csp_nonce }}">
+    (function () {
+      var tpl = document.getElementById("rmc-login-canvas-pro-upgrade-template");
+      var target = document.getElementById("rmc-login-canvas-pro-upgrade-body");
+      if (tpl && target && "content" in tpl) {
+        target.appendChild(tpl.content.cloneNode(true));
+      }
+    })();
+  </script>
+  {% endif %}
 {% endblock %}

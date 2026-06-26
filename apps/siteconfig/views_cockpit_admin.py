@@ -20,9 +20,10 @@ from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.views import View
 from django.views.generic import FormView
 
 from .forms_cockpit import CockpitPayloadForm
@@ -87,6 +88,7 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
     def get_form_kwargs(self) -> dict[str, Any]:
         kwargs = super().get_form_kwargs()
         kwargs["instance"] = _resolve_site_settings_instance(self.request)
+        kwargs["configure_request"] = self.request
         return kwargs
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
@@ -265,6 +267,41 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         ctx["signup_form_fields"] = [
             form[name] for name in getattr(form, "SIGNUP_FORM_FIELDS", ())
         ]
+        ctx["login_canvas_fields"] = [
+            form[name] for name in getattr(form, "LOGIN_CANVAS_FIELDS", ())
+        ]
+        try:
+            from apps.accounts.login_immersive_canvas import (
+                build_login_canvas_cockpit_preview,
+                login_canvas_pro_enabled,
+                resolve_login_immersive_section,
+            )
+
+            preview_request = self.request
+            preview_request.site_settings = form.instance
+            section = resolve_login_immersive_section(preview_request)
+            ctx["login_canvas_preview"] = build_login_canvas_cockpit_preview(
+                section, self.request
+            )
+            pro_section = {
+                "pro_enabled": bool(form["lic_pro_enabled"].value()),
+            }
+            ctx["login_canvas_pro_entitled"] = login_canvas_pro_enabled(
+                self.request, pro_section
+            )
+        except Exception:
+            ctx["login_canvas_preview"] = {}
+            ctx["login_canvas_pro_entitled"] = False
+        try:
+            ctx["login_canvas_gallery_upload_url"] = reverse(
+                "siteconfig:login_canvas_gallery_upload"
+            )
+        except Exception:
+            ctx["login_canvas_gallery_upload_url"] = ""
+        try:
+            ctx["login_canvas_billing_url"] = reverse("siteconfig:billing_plan_readonly")
+        except Exception:
+            ctx["login_canvas_billing_url"] = ""
         # v3.58.x Wave 10 Agent S: trust pillars alerts editor — closes
         # the v8 200x preview's alerts-feed gap. Enable toggle + chrome
         # copy + 7 pillar label overrides. Same getattr() guard so older
@@ -499,3 +536,92 @@ class CockpitShellConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormVie
             messages.info(request, _("Cockpit shell settings reset to defaults."))
             return HttpResponseRedirect(request.path)
         return super().post(request, *args, **kwargs)
+
+
+class LoginCanvasGalleryUploadView(LoginRequiredMixin, UserPassesTestMixin, View):
+    """POST gallery image for login canvas; returns JSON ``public_url``.
+
+    # rbac-allow: staff-configure-login-canvas-gallery-upload
+    """
+
+    http_method_names = ["post", "options"]
+    raise_exception = True
+
+    def test_func(self) -> bool:
+        return user_may_configure_tenant_experience(self.request.user)
+
+    def post(self, request: HttpRequest) -> HttpResponse:
+        from apps.accounts.login_canvas_media import accept_login_canvas_gallery_image
+        from apps.siteconfig.views_tenant_studio_hub import (
+            _read_upload_bounded,
+            _resolve_logo_max_bytes,
+        )
+
+        school = getattr(request, "school", None)
+        if school is None:
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "error_code": "missing_tenant",
+                    "error_message": "tenant context is required",
+                },
+                status=400,
+            )
+
+        uploaded = request.FILES.get("image") if hasattr(request, "FILES") else None
+        if uploaded is None:
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "error_code": "missing_file",
+                    "error_message": "image field is required",
+                },
+                status=400,
+            )
+
+        max_bytes = _resolve_logo_max_bytes()
+        declared_size = int(getattr(uploaded, "size", 0) or 0)
+        if declared_size > max_bytes:
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "error_code": "oversize",
+                    "error_message": f"image exceeds {max_bytes // 1024} KB cap",
+                },
+                status=400,
+            )
+
+        image_bytes = _read_upload_bounded(uploaded, max_bytes=max_bytes)
+        if image_bytes is None:
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "error_code": "oversize",
+                    "error_message": f"image exceeds {max_bytes // 1024} KB cap",
+                },
+                status=400,
+            )
+
+        result = accept_login_canvas_gallery_image(
+            school,
+            image_bytes,
+            original_filename=(getattr(uploaded, "name", "") or "").strip(),
+        )
+        if not result.ok:
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "error_code": result.error_code,
+                    "error_message": result.error_message,
+                },
+                status=400,
+            )
+
+        return JsonResponse(
+            {
+                "ok": True,
+                "public_url": result.public_url,
+                "storage_path": result.storage_path,
+            },
+            status=200,
+        )

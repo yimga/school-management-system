@@ -1,0 +1,16 @@
+{% load i18n static %}
+<div class="login-canvas-gallery-upload mt-2" data-rmc-login-canvas-gallery-upload data-upload-url="{{ upload_url }}">
+  <label class="form-label small fw-semibold mb-1" for="rmc-lic-gallery-file">{% trans "Upload gallery image" %}</label>
+  <div class="d-flex flex-wrap align-items-center gap-2">
+    <input type="file"
+           id="rmc-lic-gallery-file"
+           class="form-control form-control-sm"
+           accept="image/png,image/jpeg,image/webp"
+           data-rmc-lic-gallery-file>
+    <button type="button" class="btn btn-sm btn-outline-primary" data-rmc-lic-gallery-upload-btn disabled>
+      {% trans "Add to gallery" %}
+    </button>
+  </div>
+  <div class="form-text small">{% trans "PNG, JPEG, or WebP. The public URL is appended to the gallery lines field above." %}</div>
+  <div class="small mt-1 d-none" role="status" data-rmc-lic-gallery-upload-status></div>
+</div>

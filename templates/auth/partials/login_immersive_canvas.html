@@ -1,0 +1,167 @@
+{% load i18n static %}
+{% comment %}
+  Configurable login canvas (left panel). Driven by LOGIN_IMMERSIVE from
+  apps.accounts.login_immersive_canvas.build_login_immersive_render_context.
+{% endcomment %}
+{% with lic=immersive %}
+<div class="rmc-auth-immersive__canvas-body" data-rmc-login-canvas-body>
+  <header class="rmc-auth-immersive__head rmc-auth-immersive__zone" data-rmc-login-zone="head">
+    <div class="rmc-auth-immersive__brand" id="preview-login-brand">
+      <div class="rmc-auth-immersive__logo hero-logo">
+        {% if is_manager_host and not SITE_LOGO_URL and not PUBLIC_BRAND_FAVICON_URL %}
+          <span>R</span>
+        {% elif PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}
+          <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="80" height="80" decoding="async" loading="eager">
+        {% elif SITE_LOGO_URL %}
+          <img src="{{ SITE_LOGO_URL }}" alt="" width="80" height="80" decoding="async" loading="eager">
+        {% else %}
+          <span>{% if PUBLIC_BRAND_MODE %}R{% elif SITE.site_name %}{{ SITE.site_name|slice:":1" }}{% else %}S{% endif %}</span>
+        {% endif %}
+      </div>
+      <div>
+        <h1>
+          {% if is_manager_host %}
+            RunMyCampus
+          {% elif PUBLIC_BRAND_MODE %}
+            {{ PUBLIC_BRAND_NAME }}
+          {% elif SITE.login_hero_heading %}
+            {{ SITE.login_hero_heading }}
+          {% else %}
+            {{ SITE.site_name|default:"School Management System" }}
+          {% endif %}
+        </h1>
+        <p>
+          {% if is_manager_host %}
+            {% trans "Platform & school management" %}
+          {% elif PUBLIC_BRAND_MODE %}
+            {% trans "Platform & school management" %}
+          {% elif SITE.login_hero_subtext %}
+            {{ SITE.login_hero_subtext }}
+          {% elif lic.site_tagline %}
+            {{ lic.site_tagline }}
+          {% else %}
+            {{ SITE.tagline|default:"Sign in for staff, families, and admins" }}
+          {% endif %}
+        </p>
+      </div>
+    </div>
+    <div class="rmc-auth-immersive__clock">
+      <strong data-rmc-auth-clock>{{ lic.clock_label }}</strong>
+      {{ lic.date_label }}
+    </div>
+  </header>
+
+  {% if lic.hero_mode == "marquee" or lic.hero_mode == "hybrid" %}
+  <div class="rmc-auth-immersive__hero-marquee rmc-auth-immersive__zone{% if lic.hero_full_bleed %} rmc-auth-immersive__hero-marquee--bleed{% endif %}"
+       data-rmc-login-zone="hero"
+       data-rmc-login-hero-mode="{{ lic.hero_mode }}"
+       style="--rmc-auth-marquee-seconds: {{ lic.hero_scroll_seconds }}s;">
+    <div class="rmc-auth-immersive__hero-marquee-track" data-rmc-login-marquee-track>
+      {% for slide in lic.carousel_slides %}
+        <span class="rmc-auth-immersive__hero-marquee-item" data-rmc-login-marquee-item{% if slide.role_hint %} data-rmc-auth-role-hint="{{ slide.role_hint }}"{% endif %}{% if slide.sponsored %} data-rmc-sponsored="1"{% endif %}>
+          {% if slide.eyebrow %}<em>{{ slide.eyebrow }}</em>{% endif %}
+          <strong>{{ slide.title }}</strong>
+          {% if slide.body %}<span>{{ slide.body }}</span>{% endif %}
+        </span>
+      {% endfor %}
+      {% for slide in lic.carousel_slides %}
+        <span class="rmc-auth-immersive__hero-marquee-item" aria-hidden="true"{% if slide.role_hint %} data-rmc-auth-role-hint="{{ slide.role_hint }}"{% endif %}>
+          {% if slide.eyebrow %}<em>{{ slide.eyebrow }}</em>{% endif %}
+          <strong>{{ slide.title }}</strong>
+        </span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if lic.hero_mode == "carousel" or lic.hero_mode == "static" or lic.hero_mode == "hybrid" %}
+  {% if lic.carousel_slides %}
+  <div class="rmc-auth-immersive__carousel rmc-auth-immersive__zone{% if lic.hero_full_bleed %} rmc-auth-immersive__carousel--bleed{% endif %}"
+       id="preview-login-carousel"
+       data-rmc-login-zone="hero"
+       data-rmc-login-hero-mode="{{ lic.hero_mode }}">
+    {% for slide in lic.carousel_slides %}
+      <div class="rmc-auth-immersive__slide{% if forloop.first %} is-on{% endif %}"
+           data-rmc-auth-carousel-slide
+           {% if slide.role_hint %}data-rmc-auth-role-hint="{{ slide.role_hint }}"{% endif %}
+           {% if slide.sponsored %}data-rmc-sponsored="1"{% endif %}>
+        {% if slide.eyebrow %}<em>{{ slide.eyebrow }}</em>{% endif %}
+        <strong>{{ slide.title }}</strong>
+        {% if slide.body %}<p>{{ slide.body }}</p>{% endif %}
+        {% if slide.cta_label and slide.cta_url %}
+          <a class="rmc-auth-immersive__slide-cta" href="{{ slide.cta_url }}">{{ slide.cta_label }}</a>
+        {% endif %}
+      </div>
+    {% endfor %}
+    {% if lic.hero_mode != "static" and lic.carousel_slides|length > 1 %}
+    <div class="rmc-auth-immersive__dots">
+      {% for slide in lic.carousel_slides %}
+        <button type="button" class="{% if forloop.first %}is-on{% endif %}" data-rmc-auth-carousel-dot data-index="{{ forloop.counter0 }}" aria-label="{% blocktrans with num=forloop.counter %}Slide {{ num }}{% endblocktrans %}"></button>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+  {% endif %}
+
+  {% if lic.bento_stats %}
+  <div class="rmc-auth-immersive__bento rmc-auth-immersive__zone" data-rmc-login-zone="bento">
+    {% for tile in lic.bento_stats %}
+      <article class="rmc-auth-immersive__tile" data-rmc-metric-key="{{ tile.key|default:'' }}">
+        <span class="rmc-auth-immersive__tile-k">{{ tile.label }}</span>
+        <span class="rmc-auth-immersive__tile-v">{{ tile.value }}</span>
+        <span class="rmc-auth-immersive__tile-s">{{ tile.sub }}</span>
+      </article>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if lic.dash_feed %}
+  <div class="rmc-auth-immersive__preview-head rmc-auth-immersive__zone" data-rmc-login-zone="feed-head">
+    <span>{{ lic.feed_section_label }}</span>
+    <span class="rmc-auth-immersive__pill" data-rmc-auth-preview-pill>{{ lic.role_preview_labels.default }}</span>
+  </div>
+  <div class="rmc-auth-immersive__dash rmc-auth-immersive__zone" data-rmc-login-zone="feed">
+    <div class="rmc-auth-immersive__dash-top">{{ lic.dash_title }}</div>
+    <div class="rmc-auth-immersive__dash-body">
+      {% include "auth/partials/login_immersive_dash_panels.html" %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if lic.moments %}
+  <div class="rmc-auth-immersive__moments rmc-auth-immersive__zone" data-rmc-login-zone="gallery">
+    {% for moment in lic.moments %}
+      <figure class="rmc-auth-immersive__moment">
+        {% if moment.link_url %}
+          <a href="{{ moment.link_url }}" class="rmc-auth-immersive__moment-link">
+            <img src="{{ moment.url }}" alt="{{ moment.alt|default:moment.caption }}" width="400" height="250" decoding="async" loading="lazy">
+          </a>
+        {% else %}
+          <img src="{{ moment.url }}" alt="{{ moment.alt|default:moment.caption }}" width="400" height="250" decoding="async" loading="lazy">
+        {% endif %}
+        <figcaption>{{ moment.caption }}</figcaption>
+      </figure>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if lic.trust_chips %}
+  <div class="rmc-auth-immersive__trust rmc-auth-immersive__zone" data-rmc-login-zone="trust">
+    {% for chip in lic.trust_chips %}
+      <span>{% if chip.icon %}{{ chip.icon }} {% endif %}{{ chip.label }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if lic.pro_enabled %}
+  <p class="rmc-auth-immersive__pro-badge rmc-auth-immersive__zone" data-rmc-login-zone="pro">{% trans "Login Canvas Pro" %}</p>
+  {% endif %}
+
+  {% if request.user.is_authenticated %}
+    <div class="rmc-auth-immersive__signedin">
+      <span>{% blocktrans with name=request.user.username %}Logged in as {{ name }}{% endblocktrans %}</span>
+    </div>
+  {% endif %}
+</div>
+{% endwith %}

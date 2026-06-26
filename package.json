@@ -10,6 +10,7 @@
     "test:e2e:signup-production": "playwright test tests/e2e/signup-production-smoke.spec.js",
     "test:e2e:signup-golden-path": "playwright test tests/e2e/signup-golden-path.spec.js",
     "test:e2e:signup-cold-path": "playwright test tests/e2e/signup-cold-path.spec.js",
+    "test:e2e:login-immersive": "playwright test tests/e2e/login-immersive-canvas.spec.js",
     "test:e2e:tenant-lifecycle-setup": "playwright test tests/e2e/tenant-lifecycle-setup-progress.spec.js",
     "test:e2e:tenant-lifecycle-launch-ready": "playwright test tests/e2e/tenant-lifecycle-launch-ready.spec.js",
     "test:e2e:tenant-lifecycle-launch-ready:armed": "python manage.py seed_provisioning_golive_e2e && playwright test tests/e2e/tenant-lifecycle-launch-ready.spec.js",

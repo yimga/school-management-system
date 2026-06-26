@@ -1,0 +1,26 @@
+{% load i18n %}
+{% comment %}Compact brand strip on mobile — keeps story without page scroll.{% endcomment %}
+{% with lic=immersive %}
+{% if lic.carousel_slides or lic.bento_stats %}
+<div class="rmc-auth-immersive__mobile-strip-inner">
+  {% if lic.carousel_slides %}
+    {% with slide=lic.carousel_slides.0 %}
+    <div class="rmc-auth-immersive__mobile-hero">
+      {% if slide.eyebrow %}<span class="rmc-auth-immersive__mobile-eyebrow">{{ slide.eyebrow }}</span>{% endif %}
+      <strong>{{ slide.title }}</strong>
+    </div>
+    {% endwith %}
+  {% endif %}
+  {% if lic.bento_stats %}
+  <div class="rmc-auth-immersive__mobile-metrics">
+    {% for tile in lic.bento_stats|slice:":2" %}
+      <span class="rmc-auth-immersive__mobile-metric">
+        <em>{{ tile.label }}</em>
+        <b>{{ tile.value }}</b>
+      </span>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+{% endwith %}

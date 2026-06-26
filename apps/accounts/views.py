@@ -4414,6 +4414,13 @@ def login_view(request):
             "moments": [],
             "clock_label": "",
             "date_label": "",
+            "dash_preview": {},
+            "role_preview_labels": {
+                "default": _("School pulse"),
+                "staff": _("Staff dashboard"),
+                "parent": _("Family portal"),
+                "student": _("Student hub"),
+            },
         }
     template = (
         "auth/manager_login.html"

@@ -1865,6 +1865,150 @@ def _serialize_trust_pill_lines(items: list[dict[str, Any]] | None) -> str:
     return "\n".join(rows)
 
 
+def _parse_lic_hero_slides(value: str) -> list[dict[str, str]]:
+    """One per line: ``eyebrow | title | body | role_hint``."""
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|")]
+        if len(parts) < 2:
+            continue
+        title = parts[1] if len(parts) > 1 else ""
+        if not title:
+            continue
+        slide: dict[str, str] = {
+            "eyebrow": parts[0] if len(parts) > 0 else "",
+            "title": title,
+            "body": parts[2] if len(parts) > 2 else "",
+            "role_hint": (parts[3] if len(parts) > 3 else "").lower(),
+        }
+        if len(parts) > 4 and parts[4].strip():
+            slide["publish_start_iso"] = parts[4].strip()
+        if len(parts) > 5 and parts[5].strip():
+            slide["publish_end_iso"] = parts[5].strip()
+        out.append(slide)
+    return out
+
+
+def _serialize_lic_hero_slides(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("title") or "").strip()
+        if not title:
+            continue
+        eyebrow = str(item.get("eyebrow") or "").strip()
+        body = str(item.get("body") or "").strip()
+        role_hint = str(item.get("role_hint") or "").strip()
+        row_parts = [eyebrow, title]
+        if body:
+            row_parts.append(body)
+        if role_hint:
+            row_parts.append(role_hint)
+        rows.append(" | ".join(row_parts))
+    return "\n".join(rows)
+
+
+def _parse_lic_trust_chip_lines(value: str) -> list[dict[str, str]]:
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        label = line.strip()
+        if label:
+            out.append({"icon": "", "label": label})
+    return out
+
+
+def _serialize_lic_trust_chip_lines(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if isinstance(item, str) and item.strip():
+            rows.append(item.strip())
+        elif isinstance(item, dict):
+            label = str(item.get("label") or "").strip()
+            if label:
+                rows.append(label)
+    return "\n".join(rows)
+
+
+def _parse_lic_gallery_lines(value: str) -> list[dict[str, str]]:
+    """One per line: ``url | caption | alt | link_url``."""
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|")]
+        if not parts or not parts[0]:
+            continue
+        out.append(
+            {
+                "url": parts[0],
+                "caption": parts[1] if len(parts) > 1 else "",
+                "alt": parts[2] if len(parts) > 2 else parts[1] if len(parts) > 1 else "",
+                "link_url": parts[3] if len(parts) > 3 else "",
+            }
+        )
+    return out
+
+
+def _serialize_lic_gallery_lines(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        url = str(item.get("url") or item.get("image_url") or "").strip()
+        if not url:
+            continue
+        caption = str(item.get("caption") or "").strip()
+        alt = str(item.get("alt") or "").strip()
+        link = str(item.get("link_url") or "").strip()
+        row = " | ".join(p for p in (url, caption, alt, link) if p)
+        rows.append(row)
+    return "\n".join(rows)
+
+
+def _parse_lic_sponsored_lines(value: str) -> list[dict[str, str]]:
+    out: list[dict[str, str]] = []
+    for line in _split_lines(value):
+        parts = [p.strip() for p in line.split("|")]
+        title = parts[1] if len(parts) > 1 else (parts[0] if parts else "")
+        if not title:
+            continue
+        out.append(
+            {
+                "eyebrow": parts[0] if len(parts) > 1 else "",
+                "title": title,
+                "body": parts[2] if len(parts) > 2 else "",
+                "cta_label": parts[3] if len(parts) > 3 else "",
+                "cta_url": parts[4] if len(parts) > 4 else "",
+                "sponsored": True,
+            }
+        )
+    return out
+
+
+def _serialize_lic_sponsored_lines(items: list[dict[str, Any]] | None) -> str:
+    if not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("title") or item.get("label") or "").strip()
+        if not title:
+            continue
+        eyebrow = str(item.get("eyebrow") or "").strip()
+        body = str(item.get("body") or "").strip()
+        cta_label = str(item.get("cta_label") or "").strip()
+        cta_url = str(item.get("cta_url") or "").strip()
+        row_parts = [p for p in (eyebrow, title, body, cta_label, cta_url) if p]
+        rows.append(" | ".join(row_parts))
+    return "\n".join(rows)
+
+
 def _serialize_quotes(items: list[Any] | None) -> str:
     if not items:
         return ""
@@ -4118,6 +4262,195 @@ class CockpitPayloadForm(forms.ModelForm):
         ),
     )
 
+    # ---- Login immersive canvas (tenant portal sign-in left panel) ----
+    lic_enabled = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Enable login canvas"),
+        help_text=_("Left-panel immersive canvas on the tenant login page."),
+    )
+    lic_layout_preset = forms.ChoiceField(
+        required=False,
+        choices=(
+            ("civic_editorial", _("Civic editorial")),
+            ("campus_hero", _("Campus hero")),
+            ("calm_command", _("Calm command")),
+            ("family_first", _("Family first")),
+            ("minimal_glass", _("Minimal glass")),
+        ),
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label=_("Login canvas: layout preset"),
+    )
+    lic_theme_variant = forms.ChoiceField(
+        required=False,
+        choices=(
+            ("brand", _("Brand")),
+            ("dark", _("Dark")),
+            ("light", _("Light")),
+            ("high_contrast", _("High contrast")),
+        ),
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label=_("Login canvas: theme variant"),
+    )
+    lic_hero_mode = forms.ChoiceField(
+        required=False,
+        choices=(
+            ("carousel", _("Carousel")),
+            ("marquee", _("Marquee (Pro)")),
+            ("static", _("Static")),
+            ("hybrid", _("Hybrid (Pro)")),
+        ),
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label=_("Login canvas: hero mode"),
+    )
+    lic_hero_full_bleed = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Login canvas: full-bleed hero banner"),
+    )
+    lic_hero_scroll_seconds = forms.IntegerField(
+        required=False,
+        min_value=8,
+        max_value=120,
+        widget=_NUMBER,
+        label=_("Login canvas: hero scroll seconds"),
+        help_text=_("Carousel interval / marquee duration (8–120)."),
+    )
+    lic_pro_enabled = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Login canvas: Pro tier"),
+        help_text=_("Unlocks multi-slide carousel, marquee, gallery, sponsored slots."),
+    )
+    lic_show_ticker = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Login canvas: show activity ticker"),
+    )
+    lic_show_bento = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Login canvas: show metric bento"),
+    )
+    lic_show_feed = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Login canvas: show after-sign-in feed"),
+    )
+    lic_show_gallery = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Login canvas: show gallery moments"),
+    )
+    lic_show_trust = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Login canvas: show trust chips"),
+    )
+    lic_compact_viewport = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Login canvas: compact on short viewports"),
+    )
+    lic_feed_section_label = forms.CharField(
+        required=False,
+        max_length=80,
+        widget=_TEXT,
+        label=_("Login canvas: feed section label"),
+    )
+    lic_dash_title = forms.CharField(
+        required=False,
+        max_length=120,
+        widget=_TEXT,
+        label=_("Login canvas: dash panel title"),
+    )
+    lic_hero_slides_lines = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_MEDIUM,
+        label=_("Login canvas: hero slides"),
+        help_text=_(
+            "One slide per line: eyebrow | title | body | role_hint | start_iso | end_iso. "
+            "role_hint is optional (staff, parent, student). Pro unlocks more slides."
+        ),
+    )
+    lic_gallery_lines = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_MEDIUM,
+        label=_("Login canvas: gallery moments"),
+        help_text=_("One per line: url | caption | alt | link_url"),
+    )
+    lic_metric_tile_keys = forms.CharField(
+        required=False,
+        max_length=240,
+        widget=_TEXT,
+        label=_("Login canvas: metric tile keys"),
+        help_text=_(
+            "Comma-separated keys: students_active, today_date, portal_secure, "
+            "support_help, events_this_week, attendance_rate_7d, staff_active, languages_count"
+        ),
+    )
+    lic_allow_sponsored_slot = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Login canvas: allow sponsored hero slots"),
+    )
+    lic_sponsored_lines = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_SMALL,
+        label=_("Login canvas: sponsored slots"),
+        help_text=_(
+            "Pro only. One per line: eyebrow | title | body | cta_label | cta_url"
+        ),
+    )
+    lic_dash_staff_note = forms.CharField(
+        required=False,
+        max_length=320,
+        widget=_TEXTAREA_SMALL,
+        label=_("Login canvas: staff preview note"),
+    )
+    lic_dash_parent_note = forms.CharField(
+        required=False,
+        max_length=320,
+        widget=_TEXTAREA_SMALL,
+        label=_("Login canvas: parent preview note"),
+    )
+    lic_dash_student_note = forms.CharField(
+        required=False,
+        max_length=320,
+        widget=_TEXTAREA_SMALL,
+        label=_("Login canvas: student preview note"),
+    )
+    lic_trust_chip_lines = forms.CharField(
+        required=False,
+        widget=_TEXTAREA_SMALL,
+        label=_("Login canvas: trust chip lines"),
+        help_text=_("One label per line."),
+    )
+    lic_role_preview_staff = forms.CharField(
+        required=False,
+        max_length=60,
+        widget=_TEXT,
+        label=_("Login canvas: staff preview pill"),
+    )
+    lic_role_preview_parent = forms.CharField(
+        required=False,
+        max_length=60,
+        widget=_TEXT,
+        label=_("Login canvas: parent preview pill"),
+    )
+    lic_role_preview_student = forms.CharField(
+        required=False,
+        max_length=60,
+        widget=_TEXT,
+        label=_("Login canvas: student preview pill"),
+    )
+    lic_role_preview_default = forms.CharField(
+        required=False,
+        max_length=60,
+        widget=_TEXT,
+        label=_("Login canvas: default preview pill"),
+    )
+
     class Meta:
         # Imported lazily inside ``Meta`` to keep the import surface narrow.
         from apps.siteconfig.models import SiteSettings as _SiteSettings
@@ -4457,6 +4790,36 @@ class CockpitPayloadForm(forms.ModelForm):
         "signup_form_footer_login_label",
         "signup_form_footer_login_url",
     )
+    LOGIN_CANVAS_FIELDS: tuple[str, ...] = (
+        "lic_enabled",
+        "lic_layout_preset",
+        "lic_theme_variant",
+        "lic_hero_mode",
+        "lic_hero_full_bleed",
+        "lic_hero_scroll_seconds",
+        "lic_pro_enabled",
+        "lic_show_ticker",
+        "lic_show_bento",
+        "lic_show_feed",
+        "lic_show_gallery",
+        "lic_show_trust",
+        "lic_compact_viewport",
+        "lic_feed_section_label",
+        "lic_dash_title",
+        "lic_hero_slides_lines",
+        "lic_gallery_lines",
+        "lic_metric_tile_keys",
+        "lic_allow_sponsored_slot",
+        "lic_sponsored_lines",
+        "lic_dash_staff_note",
+        "lic_dash_parent_note",
+        "lic_dash_student_note",
+        "lic_trust_chip_lines",
+        "lic_role_preview_staff",
+        "lic_role_preview_parent",
+        "lic_role_preview_student",
+        "lic_role_preview_default",
+    )
 
     # Form-field-name → cockpit_payload key mapping for the v3.57.1 sections.
     # Used by both _seed_initial_from_payload and _build_payload so the round
@@ -4486,7 +4849,8 @@ class CockpitPayloadForm(forms.ModelForm):
         ("tv3_lesson_of_day_enabled", "lesson_of_day"),
     )
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, *args: Any, configure_request: Any = None, **kwargs: Any) -> None:
+        self.configure_request = configure_request
         super().__init__(*args, **kwargs)
         from apps.siteconfig.tenant_experience_policy import AI_MODE_CHOICES
         from apps.siteconfig.tenant_experience_presets import (
@@ -5069,6 +5433,84 @@ class CockpitPayloadForm(forms.ModelForm):
         self.fields["signup_form_footer_login_url"].initial = signup_form.get(
             "footer_login_url", ""
         )
+
+        lic = payload.get("login_immersive_canvas") or {}
+        if "enabled" in lic:
+            self.fields["lic_enabled"].initial = bool(lic.get("enabled"))
+        else:
+            self.fields["lic_enabled"].initial = True
+        self.fields["lic_layout_preset"].initial = lic.get(
+            "layout_preset", "civic_editorial"
+        )
+        self.fields["lic_theme_variant"].initial = lic.get("theme_variant", "brand")
+        hero = lic.get("hero_banner") or {}
+        self.fields["lic_hero_mode"].initial = hero.get("mode", "carousel")
+        if "full_bleed" in hero:
+            self.fields["lic_hero_full_bleed"].initial = bool(hero.get("full_bleed"))
+        else:
+            self.fields["lic_hero_full_bleed"].initial = True
+        self.fields["lic_hero_scroll_seconds"].initial = hero.get("scroll_seconds", 32)
+        if "pro_enabled" in lic:
+            self.fields["lic_pro_enabled"].initial = bool(lic.get("pro_enabled"))
+        zones = lic.get("zones") or {}
+        for field_name, zone_key, default in (
+            ("lic_show_ticker", "show_ticker", True),
+            ("lic_show_bento", "show_bento", True),
+            ("lic_show_feed", "show_feed", True),
+            ("lic_show_gallery", "show_gallery", True),
+            ("lic_show_trust", "show_trust", True),
+            ("lic_compact_viewport", "compact_on_short_viewport", True),
+        ):
+            if zone_key in zones:
+                self.fields[field_name].initial = bool(zones.get(zone_key))
+            else:
+                self.fields[field_name].initial = default
+        feed = lic.get("feed") or {}
+        self.fields["lic_feed_section_label"].initial = feed.get("section_label", "")
+        self.fields["lic_dash_title"].initial = feed.get("dash_title", "")
+        self.fields["lic_hero_slides_lines"].initial = _serialize_lic_hero_slides(
+            hero.get("slides")
+        )
+        self.fields["lic_gallery_lines"].initial = _serialize_lic_gallery_lines(
+            (lic.get("gallery") or {}).get("items")
+        )
+        self.fields["lic_metric_tile_keys"].initial = ", ".join(
+            (lic.get("metrics") or {}).get("tile_keys") or []
+        )
+        monetization = lic.get("monetization") or {}
+        if "allow_sponsored_slot" in monetization:
+            self.fields["lic_allow_sponsored_slot"].initial = bool(
+                monetization.get("allow_sponsored_slot")
+            )
+        self.fields["lic_sponsored_lines"].initial = _serialize_lic_sponsored_lines(
+            monetization.get("sponsored_slots")
+        )
+        dash_preview = lic.get("dash_preview") or {}
+        self.fields["lic_dash_staff_note"].initial = (dash_preview.get("staff") or {}).get(
+            "note", ""
+        )
+        self.fields["lic_dash_parent_note"].initial = (
+            dash_preview.get("parent") or {}
+        ).get("note", "")
+        self.fields["lic_dash_student_note"].initial = (
+            dash_preview.get("student") or {}
+        ).get("note", "")
+        self.fields["lic_trust_chip_lines"].initial = _serialize_lic_trust_chip_lines(
+            lic.get("trust_chips")
+        )
+        role_preview = lic.get("role_preview") or {}
+        self.fields["lic_role_preview_staff"].initial = (role_preview.get("staff") or {}).get(
+            "pill", ""
+        )
+        self.fields["lic_role_preview_parent"].initial = (
+            role_preview.get("parent") or {}
+        ).get("pill", "")
+        self.fields["lic_role_preview_student"].initial = (
+            role_preview.get("student") or {}
+        ).get("pill", "")
+        self.fields["lic_role_preview_default"].initial = (
+            role_preview.get("default") or {}
+        ).get("pill", "")
 
     # ------------------------------------------------------------------
     # Flat-form -> nested-payload assembly.
@@ -5770,10 +6212,116 @@ class CockpitPayloadForm(forms.ModelForm):
             signup_overlay["footer_login_url"] = signup_login_url
         payload["signup_form"] = signup_overlay
 
+        lic_overlay: dict[str, Any] = {
+            "enabled": bool(cleaned.get("lic_enabled")),
+            "pro_enabled": bool(cleaned.get("lic_pro_enabled")),
+            "zones": {
+                "show_ticker": bool(cleaned.get("lic_show_ticker")),
+                "show_bento": bool(cleaned.get("lic_show_bento")),
+                "show_feed": bool(cleaned.get("lic_show_feed")),
+                "show_gallery": bool(cleaned.get("lic_show_gallery")),
+                "show_trust": bool(cleaned.get("lic_show_trust")),
+                "compact_on_short_viewport": bool(cleaned.get("lic_compact_viewport")),
+            },
+        }
+        layout = (cleaned.get("lic_layout_preset") or "").strip()
+        if layout:
+            lic_overlay["layout_preset"] = layout
+        theme = (cleaned.get("lic_theme_variant") or "").strip()
+        if theme:
+            lic_overlay["theme_variant"] = theme
+        hero_overlay: dict[str, Any] = {
+            "mode": (cleaned.get("lic_hero_mode") or "carousel").strip(),
+            "full_bleed": bool(cleaned.get("lic_hero_full_bleed")),
+        }
+        scroll_sec = cleaned.get("lic_hero_scroll_seconds")
+        if scroll_sec is not None:
+            hero_overlay["scroll_seconds"] = int(scroll_sec)
+        hero_slides = _parse_lic_hero_slides(cleaned.get("lic_hero_slides_lines") or "")
+        if hero_slides:
+            hero_overlay["slides"] = hero_slides
+        lic_overlay["hero_banner"] = hero_overlay
+        gallery_items = _parse_lic_gallery_lines(cleaned.get("lic_gallery_lines") or "")
+        if gallery_items:
+            lic_overlay["gallery"] = {"enabled": True, "items": gallery_items}
+        metric_keys_raw = (cleaned.get("lic_metric_tile_keys") or "").strip()
+        if metric_keys_raw:
+            lic_overlay["metrics"] = {
+                "enabled": True,
+                "tile_keys": [
+                    k.strip()
+                    for k in metric_keys_raw.replace("\n", ",").split(",")
+                    if k.strip()
+                ][:4],
+            }
+        monetization_overlay: dict[str, Any] = {
+            "allow_sponsored_slot": bool(cleaned.get("lic_allow_sponsored_slot")),
+        }
+        sponsored = _parse_lic_sponsored_lines(cleaned.get("lic_sponsored_lines") or "")
+        if sponsored:
+            monetization_overlay["sponsored_slots"] = sponsored
+        lic_overlay["monetization"] = monetization_overlay
+        feed_label = (cleaned.get("lic_feed_section_label") or "").strip()
+        dash_title = (cleaned.get("lic_dash_title") or "").strip()
+        feed_overlay: dict[str, Any] = {}
+        if feed_label:
+            feed_overlay["section_label"] = feed_label
+        if dash_title:
+            feed_overlay["dash_title"] = dash_title
+        if feed_overlay:
+            lic_overlay["feed"] = feed_overlay
+        trust_chips = _parse_lic_trust_chip_lines(
+            cleaned.get("lic_trust_chip_lines") or ""
+        )
+        if trust_chips:
+            lic_overlay["trust_chips"] = trust_chips
+        role_preview_overlay: dict[str, Any] = {}
+        for role_key, field_name in (
+            ("staff", "lic_role_preview_staff"),
+            ("parent", "lic_role_preview_parent"),
+            ("student", "lic_role_preview_student"),
+            ("default", "lic_role_preview_default"),
+        ):
+            pill = (cleaned.get(field_name) or "").strip()
+            if pill:
+                role_preview_overlay[role_key] = {"pill": pill}
+        if role_preview_overlay:
+            lic_overlay["role_preview"] = role_preview_overlay
+        dash_overlay: dict[str, Any] = {}
+        for role_key, field_name in (
+            ("staff", "lic_dash_staff_note"),
+            ("parent", "lic_dash_parent_note"),
+            ("student", "lic_dash_student_note"),
+        ):
+            note = (cleaned.get(field_name) or "").strip()
+            if note:
+                dash_overlay[role_key] = {"note": note}
+        if dash_overlay:
+            lic_overlay["dash_preview"] = dash_overlay
+        payload["login_immersive_canvas"] = lic_overlay
+
         return payload
 
     def clean(self) -> dict[str, Any]:
         cleaned = super().clean() or {}
+        from apps.accounts.login_immersive_canvas import login_canvas_pro_enabled
+
+        request = getattr(self, "configure_request", None)
+        pro_section = {"pro_enabled": bool(cleaned.get("lic_pro_enabled"))}
+        pro_entitled = (
+            login_canvas_pro_enabled(request, pro_section) if request is not None else False
+        )
+        hero_mode = str(cleaned.get("lic_hero_mode") or "carousel").strip().lower()
+        if hero_mode in {"marquee", "hybrid"} and not pro_entitled:
+            self.add_error(
+                "lic_hero_mode",
+                _("Marquee and hybrid hero modes require Login canvas Pro."),
+            )
+        if cleaned.get("lic_allow_sponsored_slot") and not pro_entitled:
+            self.add_error(
+                "lic_allow_sponsored_slot",
+                _("Sponsored hero slots require Login canvas Pro."),
+            )
         payload = self._build_payload(cleaned)
         cleaned["cockpit_payload"] = payload
         # Phase B: cockpit_payload is persisted by the owning view via

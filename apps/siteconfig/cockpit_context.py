@@ -943,6 +943,14 @@ def cockpit_context(request) -> dict[str, Any]:
             # enabled` gate is the visibility control.
             "signup_form": _signup_form_defaults(),
         }
+        try:
+            from apps.accounts.login_immersive_canvas import login_canvas_defaults
+
+            manager_cockpit["login_immersive_canvas"] = login_canvas_defaults(
+                is_manager=True
+            )
+        except Exception:
+            pass
         # 200x manager element defaults (all enabled=False).
         manager_cockpit.update(manager_200x_defaults())
         # v3.57.0: 10 NEW /super/** front-office 200x elements (all enabled=False).
@@ -1083,6 +1091,12 @@ def cockpit_context(request) -> dict[str, Any]:
         # SiteSettings.cockpit_payload.signup_form.*.
         "signup_form": _signup_form_defaults(),
     }
+    try:
+        from apps.accounts.login_immersive_canvas import login_canvas_defaults
+
+        tenant_cockpit["login_immersive_canvas"] = login_canvas_defaults(is_manager=False)
+    except Exception:
+        pass
     # v2 dashboard section defaults from cockpit_tenant_dashboard helper.
     tenant_cockpit.update(build_tenant_dashboard_cockpit())
     # v3.57.0: 10 NEW v3 100x tenant cockpit sections (all enabled=False).

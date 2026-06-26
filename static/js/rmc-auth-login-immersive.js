@@ -4,6 +4,12 @@
   var root = document.querySelector("[data-rmc-auth-immersive]");
   if (!root) return;
 
+  document.documentElement.classList.add("rmc-auth-immersive-doc-lock");
+  document.body.classList.add("rmc-auth-immersive-doc-lock", "rmc-auth-immersive-page");
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+  document.body.style.padding = "0";
+
   var stepRole = root.querySelector("[data-rmc-auth-step='role']");
   var stepCreds = root.querySelector("[data-rmc-auth-step='creds']");
   var progress = root.querySelectorAll("[data-rmc-auth-progress]");
@@ -13,7 +19,9 @@
   var panels = root.querySelectorAll("[data-rmc-auth-preview]");
   var pill = root.querySelector("[data-rmc-auth-preview-pill]");
   var roles = root.querySelectorAll("[data-rmc-auth-role]");
-  var backBtn = root.querySelector("[data-rmc-auth-back]");
+  var backBtn =
+    root.querySelector("[data-rmc-auth-back]") ||
+    root.querySelector(".rmc-auth-immersive__back");
   var tabs = root.querySelectorAll("[data-rmc-auth-tab]");
   var tabPanels = root.querySelectorAll("[data-rmc-auth-tab-panel]");
   var slides = root.querySelectorAll("[data-rmc-auth-carousel-slide]");
@@ -33,6 +41,14 @@
       p.classList.toggle("is-on", p.getAttribute("data-rmc-auth-preview") === key);
     });
     if (pill) pill.textContent = meta.pill;
+    if (slides.length && key && key !== "default") {
+      var matchIdx = -1;
+      slides.forEach(function (s, i) {
+        var hint = (s.getAttribute("data-rmc-auth-role-hint") || "").toLowerCase();
+        if (hint && hint === key) matchIdx = i;
+      });
+      if (matchIdx >= 0) showSlide(matchIdx);
+    }
   }
 
   function setStep(which) {
@@ -78,14 +94,35 @@
   });
 
   if (backBtn) {
-    backBtn.addEventListener("click", function () {
+    backBtn.addEventListener("click", function (e) {
+      e.preventDefault();
       setStep("role");
       setPreview("default");
+      if (roleInput) roleInput.value = "";
       roles.forEach(function (b) {
         b.classList.remove("is-picked");
       });
+      var firstRole = roles[0];
+      if (firstRole) firstRole.focus();
     });
   }
+
+  roles.forEach(function (btn, idx) {
+    btn.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+        e.preventDefault();
+        var next = roles[idx + 1] || roles[0];
+        next.focus();
+      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        var prev = roles[idx - 1] || roles[roles.length - 1];
+        prev.focus();
+      } else if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        btn.click();
+      }
+    });
+  });
 
   tabs.forEach(function (tab) {
     tab.addEventListener("click", function () {
@@ -100,6 +137,14 @@
   });
 
   var ci = 0;
+  var carouselMs = 7000;
+  try {
+    var sec = parseInt(root.getAttribute("data-rmc-hero-scroll-seconds") || "7", 10);
+    if (sec > 0) carouselMs = Math.max(3000, sec * 1000);
+  } catch (e) {
+    /* no-op */
+  }
+
   function showSlide(n) {
     ci = n;
     slides.forEach(function (s, i) {
@@ -110,13 +155,17 @@
     });
   }
   if (slides.length > 1) {
-    var timer = setInterval(function () {
-      showSlide((ci + 1) % slides.length);
-    }, 7000);
+    var heroMode = (root.getAttribute("data-rmc-login-hero-mode") || "carousel").toLowerCase();
+    var timer = null;
+    if (heroMode !== "static") {
+      timer = setInterval(function () {
+        showSlide((ci + 1) % slides.length);
+      }, carouselMs);
+    }
     dots.forEach(function (d) {
       d.addEventListener("click", function () {
         showSlide(parseInt(d.getAttribute("data-index") || "0", 10));
-        clearInterval(timer);
+        if (timer) clearInterval(timer);
       });
     });
   }

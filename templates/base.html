@@ -209,6 +209,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
     {% comment %} v4.01.46: dual-plane must load last in head (after vertical-compact). {% endcomment %}
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
+    {% block extrastyle_tail %}{% endblock %}
   </head>
 
   {% comment %} Pass 8 UX consistency: activate the `.form-system` class globally so the

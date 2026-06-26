@@ -3,7 +3,9 @@
 
 {% block title %}{% trans "School portal login" %}{% endblock %}
 
-{% block extrastyle %}
+{% block body_class %}rmc-auth-immersive-page{% endblock %}
+
+{% block extrastyle_tail %}
   <link rel="stylesheet" href="{% static 'css/auth-login-canvas.css' %}">
 {% endblock %}
 
@@ -19,12 +21,16 @@
 <div class="rmc-auth-immersive"
      id="preview-login-page"
      data-rmc-auth-immersive
-     data-rmc-scroll-policy="paginate"
+     data-rmc-login-layout="{{ immersive.layout_preset }}"
+     data-rmc-login-theme="{{ immersive.theme_variant }}"
+     data-rmc-login-hero-mode="{{ immersive.hero_mode }}"
+     data-rmc-hero-scroll-seconds="{{ immersive.hero_scroll_seconds }}"
+     {% if immersive.compact_on_short_viewport %}data-rmc-login-compact="1"{% endif %}
      data-preview-label="{% trans 'Immersive login' %}"
-     data-preview-default-label="{% trans 'School pulse' %}"
-     data-preview-staff-label="{% trans 'Staff dashboard' %}"
-     data-preview-parent-label="{% trans 'Family portal' %}"
-     data-preview-student-label="{% trans 'Student hub' %}"
+     data-preview-default-label="{{ immersive.role_preview_labels.default }}"
+     data-preview-staff-label="{{ immersive.role_preview_labels.staff }}"
+     data-preview-parent-label="{{ immersive.role_preview_labels.parent }}"
+     data-preview-student-label="{{ immersive.role_preview_labels.student }}"
      {% if request.method == "POST" %}data-rmc-auth-start-creds="1"{% endif %}>
 
   <div class="rmc-auth-immersive__bg" aria-hidden="true">
@@ -47,117 +53,14 @@
   </div>
   {% endif %}
 
-  <aside class="rmc-auth-immersive__canvas" id="preview-login-hero" data-preview-label="{% trans 'Login canvas' %}">
-    <header class="rmc-auth-immersive__head">
-      <div class="rmc-auth-immersive__brand" id="preview-login-brand">
-        <div class="rmc-auth-immersive__logo hero-logo">
-          {% if is_manager_host and not SITE_LOGO_URL and not PUBLIC_BRAND_FAVICON_URL %}
-            <span>R</span>
-          {% elif PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}
-            <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="80" height="80" decoding="async" loading="eager">
-          {% elif SITE_LOGO_URL %}
-            <img src="{{ SITE_LOGO_URL }}" alt="" width="80" height="80" decoding="async" loading="eager">
-          {% else %}
-            <span>{% if PUBLIC_BRAND_MODE %}R{% elif SITE.site_name %}{{ SITE.site_name|slice:":1" }}{% else %}S{% endif %}</span>
-          {% endif %}
-        </div>
-        <div>
-          <h1>
-            {% if is_manager_host %}
-              RunMyCampus
-            {% elif PUBLIC_BRAND_MODE %}
-              {{ PUBLIC_BRAND_NAME }}
-            {% elif SITE.login_hero_heading %}
-              {{ SITE.login_hero_heading }}
-            {% else %}
-              {{ SITE.site_name|default:"School Management System" }}
-            {% endif %}
-          </h1>
-          <p>
-            {% if is_manager_host %}
-              {% trans "Platform & school management" %}
-            {% elif PUBLIC_BRAND_MODE %}
-              {% trans "Platform & school management" %}
-            {% elif SITE.login_hero_subtext %}
-              {{ SITE.login_hero_subtext }}
-            {% else %}
-              {{ SITE.tagline|default:"Sign in for staff, families, and admins" }}
-            {% endif %}
-          </p>
-        </div>
-      </div>
-      <div class="rmc-auth-immersive__clock">
-        <strong data-rmc-auth-clock>{{ immersive.clock_label }}</strong>
-        {{ immersive.date_label }}
-      </div>
-    </header>
-
-    {% if immersive.carousel_slides %}
-    <div class="rmc-auth-immersive__carousel" id="preview-login-carousel">
-      {% for slide in immersive.carousel_slides %}
-        <div class="rmc-auth-immersive__slide{% if forloop.first %} is-on{% endif %}" data-rmc-auth-carousel-slide>
-          <em>{{ slide.eyebrow }}</em>
-          <strong>{{ slide.title }}</strong>
-          {% if slide.body %}<p>{{ slide.body }}</p>{% endif %}
-        </div>
-      {% endfor %}
-      <div class="rmc-auth-immersive__dots">
-        {% for slide in immersive.carousel_slides %}
-          <button type="button" class="{% if forloop.first %}is-on{% endif %}" data-rmc-auth-carousel-dot data-index="{{ forloop.counter0 }}" aria-label="{% blocktrans with num=forloop.counter %}Slide {{ num }}{% endblocktrans %}"></button>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
-    {% if immersive.bento_stats %}
-    <div class="rmc-auth-immersive__bento">
-      {% for tile in immersive.bento_stats %}
-        <article class="rmc-auth-immersive__tile">
-          <span class="rmc-auth-immersive__tile-k">{{ tile.label }}</span>
-          <span class="rmc-auth-immersive__tile-v">{{ tile.value }}</span>
-          <span class="rmc-auth-immersive__tile-s">{{ tile.sub }}</span>
-        </article>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="rmc-auth-immersive__preview-head">
-      <span>{% trans "After you sign in" %}</span>
-      <span class="rmc-auth-immersive__pill" data-rmc-auth-preview-pill>{% trans "School pulse" %}</span>
-    </div>
-    <div class="rmc-auth-immersive__dash">
-      <div class="rmc-auth-immersive__dash-top">{% trans "Today at your school" %}</div>
-      <div class="rmc-auth-immersive__dash-body">
-        {% include "auth/partials/login_immersive_dash_panels.html" %}
-      </div>
-    </div>
-
-    {% if immersive.moments %}
-    <div class="rmc-auth-immersive__moments">
-      {% for moment in immersive.moments %}
-        <figure class="rmc-auth-immersive__moment">
-          <img src="{{ moment.url }}" alt="{{ moment.caption }}" width="400" height="250" decoding="async" loading="lazy">
-          <figcaption>{{ moment.caption }}</figcaption>
-        </figure>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="rmc-auth-immersive__trust">
-      <span>{% trans "FERPA-safe" %}</span>
-      <span>{% trans "Encrypted" %}</span>
-      <span>{% trans "SSO ready" %}</span>
-      <span>{% trans "Tenant branded" %}</span>
-    </div>
-
-    {% if request.user.is_authenticated %}
-      <div class="rmc-auth-immersive__signedin">
-        <span>{% blocktrans with name=request.user.username %}Logged in as {{ name }}{% endblocktrans %}</span>
-      </div>
-    {% endif %}
+  <aside class="rmc-auth-immersive__canvas" id="preview-login-hero" data-preview-label="{% trans 'Login canvas' %}" data-rmc-login-canvas>
+    {% include "auth/partials/login_immersive_canvas.html" %}
   </aside>
 
   <div class="rmc-auth-immersive__auth">
+    <div class="rmc-auth-immersive__mobile-strip" data-rmc-login-mobile-strip>
+      {% include "auth/partials/login_immersive_mobile_strip.html" %}
+    </div>
     <div class="rmc-auth-immersive__glass" id="preview-login-form" data-preview-label="{% trans 'Sign-in form' %}">
       <div class="rmc-auth-immersive__glass-inner">
       <form method="post" novalidate id="rmc-auth-login-form">
@@ -280,7 +183,7 @@
         </div>
 
         <div class="rmc-auth-immersive__step{% if request.method == 'POST' %} is-on{% endif %}" data-rmc-auth-step="creds">
-          <button type="button" class="rmc-auth-immersive__back" data-rmc-auth-back">← {% trans "Change role" %}</button>
+          <button type="button" class="rmc-auth-immersive__back" data-rmc-auth-back>← {% trans "Change role" %}</button>
           <h2 class="rmc-auth-immersive__step-title">{% trans "Sign in securely" %}</h2>
           <p class="rmc-auth-immersive__sub">{% blocktrans %}Use <strong data-rmc-auth-picked-role>{{ TENANT_LABELS.staff|default:"Staff" }}</strong> credentials — school email, not the school name.{% endblocktrans %}</p>
 

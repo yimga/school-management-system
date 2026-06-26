@@ -1,0 +1,27 @@
+{% load i18n %}
+{% comment %}
+  Reusable upgrade / paywall placeholder for gated features.
+  Include when a module is not entitled instead of a blank screen or 403.
+
+  Optional context:
+    upgrade_title, upgrade_body, feature_code, billing_url, contact_url
+{% endcomment %}
+<div class="rmc-upgrade-placeholder rounded-2xl border p-4" data-rmc-upgrade-placeholder{% if feature_code %} data-rmc-upgrade-feature="{{ feature_code }}"{% endif %}>
+  <div class="d-flex align-items-start gap-3">
+    <span class="rmc-upgrade-placeholder__icon text-primary" aria-hidden="true"><i class="bi bi-stars"></i></span>
+    <div class="flex-grow-1">
+      <h4 class="h6 mb-2">{{ upgrade_title|default:_("Upgrade to unlock") }}</h4>
+      <p class="text-muted small mb-3 mb-md-0">
+        {{ upgrade_body|default:_("This capability is not included on your current plan. View plans or talk with your account team to enable it.") }}
+      </p>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        {% if billing_url %}
+          <a href="{{ billing_url }}" class="btn btn-primary btn-sm">{% trans "View plans" %}</a>
+        {% endif %}
+        {% if contact_url %}
+          <a href="{{ contact_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Contact support" %}</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

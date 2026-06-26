@@ -1,22 +1,17 @@
 {% load i18n %}
+{% with dp=LOGIN_IMMERSIVE.dash_preview %}
 <div class="rmc-auth-dash-panel is-on" data-rmc-auth-preview="default">
+  {% if dp.default.mini_cards %}
   <div class="rmc-auth-dash-grid3">
-    <div class="rmc-auth-mini-card rmc-auth-mini-card--hot">
-      <span class="rmc-auth-mini-card__k">{% trans "Portal" %}</span>
-      <span class="rmc-auth-mini-card__v">{% trans "Secure" %}</span>
-      <span class="rmc-auth-mini-card__s">{% trans "Encrypted sign-in" %}</span>
-    </div>
-    <div class="rmc-auth-mini-card rmc-auth-mini-card--green">
-      <span class="rmc-auth-mini-card__k">{% trans "Families" %}</span>
-      <span class="rmc-auth-mini-card__v">{% trans "Linked" %}</span>
-      <span class="rmc-auth-mini-card__s">{% trans "Invite-based access" %}</span>
-    </div>
-    <div class="rmc-auth-mini-card rmc-auth-mini-card--blue">
-      <span class="rmc-auth-mini-card__k">{% trans "Staff" %}</span>
-      <span class="rmc-auth-mini-card__v">{% trans "Ready" %}</span>
-      <span class="rmc-auth-mini-card__s">{% trans "Gradebook & attendance" %}</span>
-    </div>
+    {% for card in dp.default.mini_cards %}
+      <div class="rmc-auth-mini-card{% if card.tone %} rmc-auth-mini-card--{{ card.tone }}{% endif %}">
+        <span class="rmc-auth-mini-card__k">{{ card.k }}</span>
+        <span class="rmc-auth-mini-card__v">{{ card.v }}</span>
+        <span class="rmc-auth-mini-card__s">{{ card.s }}</span>
+      </div>
+    {% endfor %}
   </div>
+  {% endif %}
   {% for row in LOGIN_IMMERSIVE.dash_feed %}
   <div class="rmc-auth-dash-row">
     <span class="rmc-auth-dash-row__av" aria-hidden="true">{{ row.icon }}</span>
@@ -30,47 +25,44 @@
 </div>
 
 <div class="rmc-auth-dash-panel" data-rmc-auth-preview="staff">
+  {% if dp.staff.mini_cards %}
   <div class="rmc-auth-dash-grid3">
-    <div class="rmc-auth-mini-card rmc-auth-mini-card--hot">
-      <span class="rmc-auth-mini-card__k">{% trans "Class" %}</span>
-      <span class="rmc-auth-mini-card__v">10A</span>
-      <span class="rmc-auth-mini-card__s">{% trans "Sample roster" %}</span>
-    </div>
-    <div class="rmc-auth-mini-card">
-      <span class="rmc-auth-mini-card__k">{% trans "Pending" %}</span>
-      <span class="rmc-auth-mini-card__v">—</span>
-      <span class="rmc-auth-mini-card__s">{% trans "Grades after sign-in" %}</span>
-    </div>
-    <div class="rmc-auth-mini-card rmc-auth-mini-card--green">
-      <span class="rmc-auth-mini-card__k">{% trans "Today" %}</span>
-      <span class="rmc-auth-mini-card__v">{% trans "Live" %}</span>
-      <span class="rmc-auth-mini-card__s">{% trans "Attendance register" %}</span>
-    </div>
+    {% for card in dp.staff.mini_cards %}
+      <div class="rmc-auth-mini-card{% if card.tone %} rmc-auth-mini-card--{{ card.tone }}{% endif %}">
+        <span class="rmc-auth-mini-card__k">{{ card.k }}</span>
+        <span class="rmc-auth-mini-card__v">{{ card.v }}</span>
+        <span class="rmc-auth-mini-card__s">{{ card.s }}</span>
+      </div>
+    {% endfor %}
   </div>
-  <p class="rmc-auth-dash-note">{% trans "Teachers land on the teacher dashboard with gradebook and class tools." %}</p>
+  {% endif %}
+  {% if dp.staff.note %}<p class="rmc-auth-dash-note">{{ dp.staff.note }}</p>{% endif %}
 </div>
 
 <div class="rmc-auth-dash-panel" data-rmc-auth-preview="parent">
+  {% if dp.parent.child_card %}
   <div class="rmc-auth-child-card">
-    <span class="rmc-auth-child-card__avatar" aria-hidden="true">{% trans "FG" %}</span>
+    <span class="rmc-auth-child-card__avatar" aria-hidden="true">{{ dp.parent.child_card.avatar }}</span>
     <span>
-      <b>{% trans "Family portal preview" %}</b>
-      <small>{% trans "Fees, report cards, and teacher messages after you sign in." %}</small>
+      <b>{{ dp.parent.child_card.title }}</b>
+      <small>{{ dp.parent.child_card.subtitle }}</small>
     </span>
   </div>
-  <p class="rmc-auth-dash-note">{% trans "First time? Use Family invite below to claim your school token." %}</p>
+  {% endif %}
+  {% if dp.parent.note %}<p class="rmc-auth-dash-note">{{ dp.parent.note }}</p>{% endif %}
 </div>
 
 <div class="rmc-auth-dash-panel" data-rmc-auth-preview="student">
+  {% if dp.student.schedule_rows %}
   <div class="rmc-auth-schedule">
+    {% for row in dp.student.schedule_rows %}
     <div class="rmc-auth-schedule__row">
-      <time>{% trans "Now" %}</time>
-      <div><b>{% trans "Your timetable" %}</b><small>{% trans "Classes and rooms after sign-in" %}</small></div>
+      <time>{{ row.time }}</time>
+      <div><b>{{ row.title }}</b><small>{{ row.subtitle }}</small></div>
     </div>
-    <div class="rmc-auth-schedule__row">
-      <time>{% trans "Due" %}</time>
-      <div><b>{% trans "Assignments" %}</b><small>{% trans "Homework and results in one place" %}</small></div>
-    </div>
+    {% endfor %}
   </div>
-  <p class="rmc-auth-dash-note">{% trans "Students use school email or student ID — not the school name." %}</p>
+  {% endif %}
+  {% if dp.student.note %}<p class="rmc-auth-dash-note">{{ dp.student.note }}</p>{% endif %}
 </div>
+{% endwith %}

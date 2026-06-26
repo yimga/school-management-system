@@ -1,0 +1,55 @@
+{% load i18n %}
+{% if preview %}
+<section class="rmc-login-canvas-preview border rounded-3 p-3 mb-3" aria-label="{% trans 'Login canvas preview' %}">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+    <div class="small fw-semibold text-uppercase">{% trans "Login canvas preview" %}</div>
+    <div class="small text-muted">
+      {% if preview.pro_enabled %}
+        <span class="badge text-bg-success">{% trans "Pro" %}</span>
+      {% else %}
+        <span class="badge text-bg-secondary">{% trans "Free tier" %}</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="rmc-login-canvas-preview__mock rmc-auth-immersive"
+       data-rmc-login-layout="{{ preview.layout_preset }}"
+       data-rmc-login-theme="{{ preview.theme_variant }}">
+    <div class="rmc-login-canvas-preview__mock-canvas">
+      <div class="rmc-login-canvas-preview__mock-head">
+        <span class="rmc-login-canvas-preview__mock-logo" aria-hidden="true">S</span>
+        <div>
+          <strong>{% trans "School portal" %}</strong>
+          <small>{{ preview.layout_preset }} · {{ preview.theme_variant }}</small>
+        </div>
+      </div>
+      {% if preview.slide_titles %}
+      <div class="rmc-login-canvas-preview__mock-hero">
+        <em>{{ preview.hero_mode }}</em>
+        <strong>{{ preview.slide_titles.0 }}</strong>
+        {% if preview.slide_count > 1 %}
+          <span class="small text-muted">+{{ preview.slide_count|add:"-1" }} {% trans "slides" %}</span>
+        {% endif %}
+      </div>
+      {% endif %}
+      {% if preview.metric_keys %}
+      <div class="rmc-login-canvas-preview__mock-bento">
+        {% for key in preview.metric_keys %}
+          <span><small>{{ key }}</small></span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="rmc-login-canvas-preview__mock-auth" aria-hidden="true">
+      <div class="rmc-login-canvas-preview__mock-card">{% trans "Sign in" %}</div>
+    </div>
+  </div>
+  <ul class="small text-muted mb-0 mt-2 ps-3">
+    <li>{% blocktrans with mode=preview.hero_mode %}Hero: {{ mode }}{% endblocktrans %}</li>
+    <li>{% blocktrans with count=preview.gallery_count %}Gallery moments: {{ count }}{% endblocktrans %}</li>
+    <li>{% blocktrans with count=preview.trust_count %}Trust chips: {{ count }}{% endblocktrans %}</li>
+    {% if preview.sponsored_count %}
+      <li>{% blocktrans with count=preview.sponsored_count %}Sponsored slots: {{ count }}{% endblocktrans %}</li>
+    {% endif %}
+  </ul>
+</section>
+{% endif %}

@@ -171,6 +171,7 @@ from .views_tenant_studio_hub import (
 from .views_cockpit_admin import (
     CockpitConfigureView,
     CockpitShellConfigureView,
+    LoginCanvasGalleryUploadView,
     MarketingVoiceConfigureView,
 )
 from .views_live_banner_studio import (
@@ -686,6 +687,12 @@ urlpatterns = [
         "super/configure/cockpit/",
         CockpitConfigureView.as_view(),
         name="cockpit_configure",
+    ),
+    # rbac-allow: staff-configure-login-canvas-gallery-upload
+    path(
+        "super/configure/cockpit/login-canvas/gallery-upload/",
+        LoginCanvasGalleryUploadView.as_view(),
+        name="login_canvas_gallery_upload",
     ),
     # rbac-allow: staff-configure-live-banner-studio-ai-assist
     path(
