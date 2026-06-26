@@ -34,7 +34,10 @@ _PRESET_TO_SCALE_TYPE: dict[str, str] = {
 }
 
 _LOCAL_DEFAULT_CODE = "local-default"
-_VALID_SCALE_TYPES = {"numeric_0_20", "letter_a_e", "gpa_4_0", "percentage", "numeric_1_5"}
+_VALID_SCALE_TYPES = {
+    "numeric_0_20", "letter_a_e", "gpa_4_0", "percentage", "numeric_1_5",
+    "waec_letter", "pass_fail", "qualitative_pd",
+}
 
 
 def _normalize_scale_type(raw: Any) -> str:

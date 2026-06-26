@@ -301,11 +301,33 @@ class GradeConverter:
             return 0.0
         return (float(numeric_score) / self._scale()) * 100.0
 
+    def band_label(self, numeric_score: Decimal) -> str:
+        """The DISPLAYED grade for this score on the weights' scale.
+
+        For scales whose grade label does not fit the 5-band A–E model — WAEC
+        (A1…F9), Pass/Fail, qualitative descriptors — this returns the rich band
+        label (e.g. "A1", "Pass", "Meeting Expectations"). For the ordinary A–E
+        numeric scales it is exactly ``numeric_to_letter`` (backward-compatible),
+        so existing callers see no change."""
+        if numeric_score is None:
+            return ""
+        scale = getattr(self.weights, "grading_scale", "") or ""
+        try:
+            from apps.evals.models import resolve_extended_band_label
+
+            rich = resolve_extended_band_label(scale, numeric_score)
+            if rich is not None:
+                return rich
+        except Exception:  # noqa: BLE001 — rich label is best-effort; fall back to A–E
+            pass
+        return self.numeric_to_letter(numeric_score)
+
     def convert(self, numeric_score: Decimal) -> Dict:
         """Returns all conversion formats."""
         return {
             "numeric": numeric_score,
             "letter": self.numeric_to_letter(numeric_score),
+            "band": self.band_label(numeric_score),
             "gpa": self.numeric_to_gpa(numeric_score),
             "percentage": self.numeric_to_percentage(numeric_score),
         }

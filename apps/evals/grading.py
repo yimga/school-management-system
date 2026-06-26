@@ -187,6 +187,11 @@ ASSESSMENT_WEIGHTS_SCALE_MAP = {
     "gpa_4_0": "gpa",
     "percentage": "0-100",
     "numeric_1_5": "1-5",
+    # WAEC / Pass-Fail / qualitative are scored on a 0–100 raw basis (their displayed
+    # label comes from EXTENDED_GRADE_BANDS, not numeric cross-scale conversion).
+    "waec_letter": "0-100",
+    "pass_fail": "0-100",
+    "qualitative_pd": "0-100",
 }
 
 # RegionConfig / migration profile aliases → GRADING_SCALES keys
@@ -226,6 +231,27 @@ def scale_for_assessment_weights(weights) -> str:
         return "0-20"
     scale = getattr(weights, "grading_scale", None)
     return ASSESSMENT_WEIGHTS_SCALE_MAP.get(scale, "0-20")
+
+
+def format_grade_band(scale_type, score) -> str:
+    """The displayed grade label for a raw ``score`` on an operational ``scale_type``.
+
+    Returns the rich band label for the extended families (WAEC ``A1``…``F9``,
+    ``Pass``/``Fail``, qualitative descriptor) and the ordinary A–E letter for the
+    numeric scales. Use this anywhere a grade is shown so non-5-band scales render
+    their true label instead of a coarse letter. Never raises."""
+    if score is None:
+        return ""
+    try:
+        from apps.evals.models import resolve_extended_band_label
+
+        rich = resolve_extended_band_label(scale_type or "", score)
+        if rich is not None:
+            return rich
+    except Exception:  # noqa: BLE001 — rich label is best-effort
+        pass
+    display_scale = ASSESSMENT_WEIGHTS_SCALE_MAP.get(scale_type) or normalize_scale_id(scale_type)
+    return get_grade_letter(score, display_scale)
 
 
 def get_scale_for_school(school) -> str:

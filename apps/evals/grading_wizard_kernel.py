@@ -51,6 +51,14 @@ _SCALE_TYPE_MAP = {
     "1-5": "numeric_1_5",
     "1_5": "numeric_1_5",
     "post_soviet": "numeric_1_5",
+    "waec": "waec_letter",
+    "waec_letter": "waec_letter",
+    "pass_fail": "pass_fail",
+    "passfail": "pass_fail",
+    "binary": "pass_fail",
+    "qualitative": "qualitative_pd",
+    "qualitative_pd": "qualitative_pd",
+    "descriptive": "qualitative_pd",
 }
 
 

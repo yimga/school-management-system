@@ -27,15 +27,74 @@ GRADING_SCALE_BANDS: dict[str, dict[str, float]] = {
     # Post-Soviet 1–5 (5=excellent … 1=poor), pass at 3. Fits the 5-band model on a
     # 0–5 axis, so GradeConverter computes letters/GPA/% with no special casing.
     "numeric_1_5": {"a": 4.5, "b": 4, "c": 3.5, "d": 3, "e": 0, "score_scale": 5},
+    # Scales whose true grade label lives in EXTENDED_GRADE_BANDS. These coarse A–E
+    # tiers exist only so score_scale + the legacy single-char letter_grade still work;
+    # the displayed grade (A1…F9 / Pass-Fail / descriptor) comes from band_label.
+    "waec_letter": {"a": 75, "b": 65, "c": 55, "d": 50, "e": 0, "score_scale": 100},
+    "pass_fail": {"a": 50, "b": 50, "c": 50, "d": 50, "e": 0, "score_scale": 100},
+    "qualitative_pd": {"a": 85, "b": 70, "c": 55, "d": 50, "e": 0, "score_scale": 100},
 }
 
 # Field defaults for the numeric_0_20 scale — used to detect "thresholds untouched".
 _NUMERIC_0_20_DEFAULT_BANDS = (18.0, 16.0, 14.0, 10.0, 0.0)
 
+# Rich band labels for scales whose grade representation does NOT fit the 5-band A–E
+# numeric model: WAEC's 9 lettered bands, binary Pass/Fail, and qualitative descriptors.
+# Each ``bands`` is (label, min_score) on the scale's 0..score_scale axis, DESCENDING.
+# The coarse A–E tier in GRADING_SCALE_BANDS still drives score_scale + the legacy
+# single-char ``Evaluation.letter_grade`` (backward-compatible); the rich label here is
+# DERIVED on demand (resolve_extended_band_label / GradeConverter.band_label), so no
+# schema change to the high-volume Evaluation table is needed.
+EXTENDED_GRADE_BANDS: dict[str, dict] = {
+    "waec_letter": {
+        "score_scale": 100,
+        "kind": "letter",
+        "bands": [
+            ("A1", 75), ("B2", 70), ("B3", 65), ("C4", 60), ("C5", 55),
+            ("C6", 50), ("D7", 45), ("E8", 40), ("F9", 0),
+        ],
+    },
+    "pass_fail": {
+        "score_scale": 100,
+        "kind": "binary",
+        "bands": [("Pass", 50), ("Fail", 0)],
+    },
+    "qualitative_pd": {
+        "score_scale": 100,
+        "kind": "qualitative",
+        "bands": [
+            ("Exceeding Expectations", 85),
+            ("Meeting Expectations", 70),
+            ("Approaching Expectations", 50),
+            ("Beginning", 0),
+        ],
+    },
+}
+
 
 def default_bands_for_scale(scale: str) -> dict[str, float]:
     """Letter-grade bands (+ score_scale) for a grading_scale choice; numeric_0_20 default."""
     return GRADING_SCALE_BANDS.get(scale) or GRADING_SCALE_BANDS["numeric_0_20"]
+
+
+def resolve_extended_band_label(scale: str, score) -> Optional[str]:
+    """Rich band label for a non-5-band scale (WAEC / Pass-Fail / qualitative), else None.
+
+    Returns None for scales that use the ordinary 5-band A–E model (callers fall back to
+    GradeConverter.numeric_to_letter). Never raises — a bad score yields the lowest band.
+    """
+    spec = EXTENDED_GRADE_BANDS.get(scale)
+    if not spec or score is None:
+        return None
+    try:
+        value = float(score)
+    except (TypeError, ValueError):
+        return None
+    label = spec["bands"][-1][0]  # lowest band is the floor
+    for band_label, min_score in spec["bands"]:
+        if value >= float(min_score):
+            return band_label
+    return label
 
 
 def _apply_scale_consistent_bands(instance) -> None:
@@ -152,6 +211,9 @@ class AssessmentWeights(models.Model):
             ("gpa_4_0", "GPA 4.0 Scale"),
             ("percentage", "Percentage 0–100"),
             ("numeric_1_5", "Numeric 1–5 (Post-Soviet)"),
+            ("waec_letter", "WAEC letter bands (A1–F9)"),
+            ("pass_fail", "Pass / Fail"),
+            ("qualitative_pd", "Qualitative descriptors"),
         ],
         default="numeric_0_20",
     )
@@ -241,6 +303,9 @@ class GradingScale(models.Model):
         GPA_4_0 = "gpa_4_0", "GPA 4.0"
         PERCENTAGE = "percentage", "Percentage 0–100"
         NUMERIC_1_5 = "numeric_1_5", "Numeric 1–5 (Post-Soviet)"
+        WAEC_LETTER = "waec_letter", "WAEC letter bands (A1–F9)"
+        PASS_FAIL = "pass_fail", "Pass / Fail"
+        QUALITATIVE_PD = "qualitative_pd", "Qualitative descriptors"
 
     school = models.ForeignKey(
         "schools.School",
