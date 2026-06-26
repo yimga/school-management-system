@@ -1,0 +1,69 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Assignments" %}{% endblock %}
+
+{% block page_archetype %}teacher-homework{% endblock %}
+
+{% block content %}
+{% include "components/next_action_strip.html" %}
+
+<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" tabindex="-1">
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-0">{% trans "Assignments" %}</h1>
+    <p class="text-muted small mb-1">{% trans "Create homework and grade what students submit." %}</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'portal:teacher_assignment_create' %}">{% trans "New assignment" %}</a>
+</div>
+
+{% if assignments %}
+<div class="table-responsive">
+  <table class="table align-middle">
+    <thead>
+      <tr>
+        <th scope="col">{% trans "Title" %}</th>
+        <th scope="col">{% trans "Class" %}</th>
+        <th scope="col">{% trans "Status" %}</th>
+        <th scope="col">{% trans "Due" %}</th>
+        <th scope="col" class="text-end">{% trans "Submitted" %}</th>
+        <th scope="col" class="text-end">{% trans "Graded" %}</th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in assignments %}
+      <tr>
+        <td>
+          <div class="fw-semibold">{{ a.title }}</div>
+          <div class="small text-muted">{{ a.subject.name }}</div>
+        </td>
+        <td>{{ a.classroom.name }}</td>
+        <td>
+          {% if a.status == "PUBLISHED" %}<span class="badge bg-success">{{ a.get_status_display }}</span>
+          {% elif a.status == "DRAFT" %}<span class="badge bg-secondary">{{ a.get_status_display }}</span>
+          {% else %}<span class="badge bg-light text-dark">{{ a.get_status_display }}</span>{% endif %}
+        </td>
+        <td class="small">{% if a.due_at %}{{ a.due_at|date:"M j, P" }}{% else %}—{% endif %}</td>
+        <td class="text-end">{{ a.submission_count }}</td>
+        <td class="text-end">{{ a.graded_count }}</td>
+        <td class="text-end">
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:teacher_assignment_grade' assignment_id=a.id %}">{% trans "Open" %}</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center text-muted py-5">
+    <p class="mb-1 fw-semibold">{% trans "No assignments yet" %}</p>
+    <p class="small mb-3">{% trans "Create your first homework assignment for a class." %}</p>
+    <a class="btn btn-primary" href="{% url 'portal:teacher_assignment_create' %}">{% trans "New assignment" %}</a>
+  </div>
+</div>
+{% endif %}
+</div>
+{% endblock %}

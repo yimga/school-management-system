@@ -55,7 +55,13 @@ from .views import (
     preview_student_syllabus,
     preview_communication_test,
 )
-from .views_lms import student_assignments, student_assignment_submit
+from .views_lms import (
+    student_assignments,
+    student_assignment_submit,
+    teacher_assignments,
+    teacher_assignment_create,
+    teacher_assignment_grade,
+)
 from .views_parent_gdpr import api_parent_data_rights_status, parent_data_rights
 from .parent_finance_health import parent_finance_health
 from .views_parent_finance import (
@@ -409,6 +415,18 @@ urlpatterns = [
         "student/homework/<int:assignment_id>/",
         student_assignment_submit,
         name="student_assignment_submit",
+    ),
+    # Teacher authoring + grading side of the homework loop.
+    path("teacher/homework/", teacher_assignments, name="teacher_assignments"),
+    path(
+        "teacher/homework/new/",
+        teacher_assignment_create,
+        name="teacher_assignment_create",
+    ),
+    path(
+        "teacher/homework/<int:assignment_id>/grade/",
+        teacher_assignment_grade,
+        name="teacher_assignment_grade",
     ),
     # Semantic aliases for Phase 7 URL cleanup
     path("student-portal/grades/", student_portal_grades, name="student_portal_grades"),

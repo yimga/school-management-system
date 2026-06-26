@@ -246,3 +246,77 @@ class LMSOfflineApplierTests(LMSSubmissionServiceTests):
         )
         self.assertFalse(result["ok"])
         self.assertEqual(result["error"], "assignment_not_found")
+
+
+class LMSTeacherAuthoringTests(LMSSubmissionServiceTests):
+    """Teacher authoring side: create / publish / list / submissions."""
+
+    def test_create_assignment_draft(self):
+        from apps.academics.lms_services import create_assignment
+
+        a = create_assignment(
+            school=self.school,
+            classroom=self.classroom,
+            subject=self.subject,
+            teacher=self.teacher,
+            title="Essay 1",
+            instructions="Write 500 words.",
+        )
+        self.assertEqual(a.status, LMSAssignment.Status.DRAFT)
+        self.assertEqual(a.teacher_id, self.teacher.id)
+        self.assertIsNone(a.available_at)
+
+    def test_create_assignment_published_sets_available_at(self):
+        from apps.academics.lms_services import create_assignment
+
+        a = create_assignment(
+            school=self.school,
+            classroom=self.classroom,
+            subject=self.subject,
+            teacher=self.teacher,
+            title="Quiz 1",
+            publish=True,
+        )
+        self.assertEqual(a.status, LMSAssignment.Status.PUBLISHED)
+        self.assertIsNotNone(a.available_at)
+        self.assertTrue(a.is_open_for_submissions)
+
+    def test_create_assignment_rejects_short_title(self):
+        from apps.academics.lms_services import create_assignment
+
+        with self.assertRaises(ValueError):
+            create_assignment(
+                school=self.school,
+                classroom=self.classroom,
+                subject=self.subject,
+                teacher=self.teacher,
+                title="x",
+            )
+
+    def test_publish_assignment(self):
+        from apps.academics.lms_services import publish_assignment
+
+        a = self._assignment(status=LMSAssignment.Status.DRAFT)
+        published = publish_assignment(assignment=a)
+        self.assertEqual(published.status, LMSAssignment.Status.PUBLISHED)
+        self.assertIsNotNone(published.available_at)
+
+    def test_teacher_assignments_for_counts(self):
+        from apps.academics.lms_services import teacher_assignments_for
+
+        a = self._assignment()
+        submit_assignment(assignment=a, student=self.student, content="done")
+        rows = list(teacher_assignments_for(school=self.school, teacher=self.teacher))
+        self.assertTrue(any(r.id == a.id for r in rows))
+        row = next(r for r in rows if r.id == a.id)
+        self.assertEqual(row.submission_count, 1)
+        self.assertEqual(row.graded_count, 0)
+
+    def test_submissions_for_assignment(self):
+        from apps.academics.lms_services import submissions_for_assignment
+
+        a = self._assignment()
+        submit_assignment(assignment=a, student=self.student, content="done")
+        subs = list(submissions_for_assignment(school=self.school, assignment=a))
+        self.assertEqual(len(subs), 1)
+        self.assertEqual(subs[0].student_id, self.student.id)

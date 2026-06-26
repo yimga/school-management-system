@@ -1,0 +1,61 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "New assignment" %}{% endblock %}
+
+{% block page_archetype %}teacher-homework-create{% endblock %}
+
+{% block content %}
+{% include "components/next_action_strip.html" %}
+
+<div class="visually-hidden rmc-empty-state-sentinel" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" tabindex="-1">
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-0">{% trans "New assignment" %}</h1>
+    <p class="text-muted small mb-1">{% trans "Save as a draft, or publish so students see it now." %}</p>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:teacher_assignments' %}">{% trans "Back" %}</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" dir="auto">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label" for="hw-title">{% trans "Title" %}</label>
+        <input class="form-control" type="text" id="hw-title" name="title" required maxlength="200">
+      </div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label" for="hw-class">{% trans "Class" %}</label>
+          <select class="form-select" id="hw-class" name="classroom" required>
+            <option value="">{% trans "Select a class…" %}</option>
+            {% for c in classrooms %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label" for="hw-subject">{% trans "Subject" %}</label>
+          <select class="form-select" id="hw-subject" name="subject" required>
+            <option value="">{% trans "Select a subject…" %}</option>
+            {% for s in subjects %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="hw-instructions">{% trans "Instructions" %}</label>
+        <textarea class="form-control" id="hw-instructions" name="instructions" rows="6"></textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="hw-due">{% trans "Due date & time (optional)" %}</label>
+        <input class="form-control" type="datetime-local" id="hw-due" name="due_at">
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary" type="submit" name="publish" value="0">{% trans "Save draft" %}</button>
+        <button class="btn btn-primary" type="submit" name="publish" value="1">{% trans "Publish to students" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+{% endblock %}

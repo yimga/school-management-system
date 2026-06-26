@@ -164,10 +164,115 @@ def submission_map_for_student(*, school, student, assignment_ids: list[int]) ->
     return {r.assignment_id: r for r in rows}
 
 
+# --- Teacher authoring -----------------------------------------------------
+
+
+@transaction.atomic
+def create_assignment(
+    *,
+    school,
+    classroom,
+    subject,
+    teacher,
+    title: str,
+    instructions: str = "",
+    assignment_type: str = LMSAssignment.AssignmentType.HOMEWORK,
+    points_possible=100,
+    term=None,
+    due_at=None,
+    available_at=None,
+    attachment=None,
+    publish: bool = False,
+) -> LMSAssignment:
+    """Create a teacher's assignment (DRAFT, or PUBLISHED when ``publish`` is set).
+
+    School is taken from the caller-resolved classroom/teacher context; ``title`` is
+    required. Students only ever see PUBLISHED assignments (``open_assignments_for_student``).
+    """
+    title = (title or "").strip()
+    if len(title) < 3:
+        raise ValueError("title_min_3_chars")
+    status = (
+        LMSAssignment.Status.PUBLISHED if publish else LMSAssignment.Status.DRAFT
+    )
+    if publish and available_at is None:
+        available_at = timezone.now()
+    return LMSAssignment.objects.create(
+        school=school,
+        classroom=classroom,
+        subject=subject,
+        teacher=teacher,
+        term=term,
+        title=title[:200],
+        instructions=(instructions or "")[:8000],
+        assignment_type=assignment_type,
+        status=status,
+        points_possible=points_possible,
+        due_at=due_at,
+        available_at=available_at,
+        attachment=attachment,
+    )
+
+
+@transaction.atomic
+def publish_assignment(*, assignment: LMSAssignment) -> LMSAssignment:
+    """Move a DRAFT assignment to PUBLISHED so it appears to students."""
+    if assignment.status == LMSAssignment.Status.PUBLISHED:
+        return assignment
+    assignment.status = LMSAssignment.Status.PUBLISHED
+    if assignment.available_at is None:
+        assignment.available_at = timezone.now()
+    assignment.save(update_fields=["status", "available_at", "updated_at"])
+    return assignment
+
+
+def teacher_assignments_for(*, school, teacher):
+    """All of a teacher's assignments for this school (newest first), with submission counts."""
+    from django.db.models import Count, Q
+
+    return (
+        LMSAssignment.objects.filter(school=school, teacher=teacher)
+        .select_related("subject", "classroom")
+        .annotate(
+            submission_count=Count(
+                "submissions",
+                filter=Q(
+                    submissions__status__in=(
+                        LMSSubmission.Status.SUBMITTED,
+                        LMSSubmission.Status.LATE,
+                        LMSSubmission.Status.GRADED,
+                        LMSSubmission.Status.RETURNED,
+                    )
+                ),
+                distinct=True,
+            ),
+            graded_count=Count(
+                "submissions",
+                filter=Q(submissions__status=LMSSubmission.Status.GRADED),
+                distinct=True,
+            ),
+        )
+        .order_by("-created_at", "-id")
+    )
+
+
+def submissions_for_assignment(*, school, assignment):
+    """All submissions for an assignment (tenant-scoped), newest submitted first."""
+    return (
+        LMSSubmission.objects.filter(school=school, assignment=assignment)
+        .select_related("student")
+        .order_by("-submitted_at", "student__last_name", "student__first_name")
+    )
+
+
 __all__ = [
     "AssignmentClosedError",
     "submit_assignment",
     "grade_submission",
     "open_assignments_for_student",
     "submission_map_for_student",
+    "create_assignment",
+    "publish_assignment",
+    "teacher_assignments_for",
+    "submissions_for_assignment",
 ]

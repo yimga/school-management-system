@@ -569,6 +569,16 @@ def build_portal_sidebar_items(request, site):
         )
         items.append(
             {
+                "id": "teacher_homework",
+                "label": "Homework",
+                "url": _safe_reverse("portal:teacher_assignments"),
+                "icon": "bi-journal-text",
+                "section": "Learning Management",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
                 "id": "marks_entry",
                 "label": "Enter Marks",
                 "url": _safe_reverse("evals:teacher_marks_entry"),
@@ -1647,6 +1657,7 @@ _BASELINE_BY_ROLE = {
     User.Role.TEACHER.value: (
         ("teacher_home", "My Classes", "portal:teacher_dashboard_alias", "bi-grid", "Workspace"),
         ("teacher_workflow", "My Workflow", "portal:teacher_workflow", "bi-diagram-3", "Workspace"),
+        ("teacher_homework", "Homework", "portal:teacher_assignments", "bi-journal-text", "Learning Management"),
         ("teacher_marks", "Gradebook / Marks", "evals:teacher_marks_list", "bi-table", "Workspace"),
         ("teacher_attendance", "Attendance", "portal:teacher_attendance", "bi-clipboard-check", "Workspace"),
         ("teacher_timetable", "Timetable", "portal:teacher_timetable", "bi-calendar-week", "Workspace"),
