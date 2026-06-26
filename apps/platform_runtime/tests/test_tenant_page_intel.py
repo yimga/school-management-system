@@ -13,6 +13,7 @@ from apps.platform_runtime.control_plane_page_intel import (
     TENANT_BUCKET_FLOW,
     TENANT_PAGES,
     TENANT_SECTION_DEFAULT_FLOW,
+    humanised_page_help,
     resolve_tenant_page,
     tenant_flow_steps,
 )
@@ -82,14 +83,34 @@ class TenantFlowStepsTests(SimpleTestCase):
     def test_empty_when_nothing_maps(self):
         self.assertEqual(tenant_flow_steps("zzz:zzz", "zzz", "anonymous"), [])
 
-    def test_targets_only_in_flow_get_humanised_label(self):
-        # teacher_lesson_notes is a flow TARGET but not a TENANT_PAGES key →
-        # humanised title, never a crash / empty title.
-        steps = tenant_flow_steps("portal:teacher_assignments", "portal", "teacher")
-        by_view = {s["viewname"]: s for s in steps}
-        self.assertIn("portal:teacher_lesson_notes", by_view)
-        self.assertEqual(by_view["portal:teacher_lesson_notes"]["title"], "Teacher Lesson Notes")
-        self.assertTrue(by_view["portal:teacher_lesson_notes"]["body"])
+    def test_every_step_has_nonempty_title_and_body(self):
+        # No mapped page (or bucket/section fallback) may ever produce a step with
+        # an empty title/body — whether the target is a curated key or humanised.
+        flows = (
+            [(vn, vn.split(":", 1)[0], "admin") for vn in TENANT_PAGES]
+            + [("x:unmapped", "x", b) for b in TENANT_BUCKET_FLOW]
+            + [("y:unmapped", ns, "anonymous") for ns in TENANT_SECTION_DEFAULT_FLOW]
+        )
+        for view_name, namespace, bucket in flows:
+            for step in tenant_flow_steps(view_name, namespace, bucket):
+                self.assertTrue(step["title"], f"{view_name}->{step['viewname']}")
+                self.assertTrue(step["body"], f"{view_name}->{step['viewname']}")
+                self.assertIsInstance(step["priority"], int)
+
+    def test_humanised_fallback_formats_unmapped_target(self):
+        # The curated map now covers every referenced target, but the fallback
+        # path must still format an unmapped viewname (future-proofing).
+        title, body = humanised_page_help("portal:some_new_page", "portal")
+        self.assertEqual(title, "Some New Page")
+        self.assertIn("your school portal", body)
+
+    def test_forum_cross_role_page_falls_through_to_bucket_flow(self):
+        # forum_home has an empty flow on purpose: when you are ON it, the role
+        # bucket flow leads, so a teacher and a student get different next steps.
+        teacher = self._viewnames(tenant_flow_steps("portal:forum_home", "portal", "teacher"))
+        student = self._viewnames(tenant_flow_steps("portal:forum_home", "portal", "student"))
+        self.assertEqual(teacher, list(TENANT_BUCKET_FLOW["teacher"]))
+        self.assertEqual(student, list(TENANT_BUCKET_FLOW["student"]))
 
 
 class TenantMapWellFormednessTests(SimpleTestCase):

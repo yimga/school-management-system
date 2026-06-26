@@ -154,8 +154,7 @@ class TenantPageFlowCollectorTests(SimpleTestCase):
     def test_bucket_scoping_admin_finance(self):
         req = _req("/finance/", "finance", "dashboard")
         titles = [a.title for a in _collect_tenant_page_flow(req, "admin")]
-        # invoices/payments are TENANT_PAGES entries; requests humanises.
-        self.assertEqual(titles, ["Invoices", "Payments", "Requests"])
+        self.assertEqual(titles, ["Invoices", "Payments", "Requests & approvals"])
 
     def test_page_flow_is_not_a_must_do_source(self):
         # Critical: page_flow must stay discretionary so it never buries

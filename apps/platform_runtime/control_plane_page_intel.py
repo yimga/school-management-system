@@ -388,6 +388,82 @@ TENANT_PAGES: dict[str, dict[str, Any]] = {
         "audiences": frozenset({"admin", "founder", "staff"}),
         "flow": ("evals:class_ranking", "finance:dashboard"),
     },
+    # --- teacher (secondary) ---
+    "portal:teacher_lesson_notes": {
+        "title": "Lesson notes",
+        "body": "Plan and record what each class covers — the backbone of your week.",
+        "priority": 52,
+        "audiences": frozenset({"teacher", "admin", "staff"}),
+        "flow": ("portal:teacher_timetable", "portal:teacher_attendance", "portal:cahier_list"),
+    },
+    "portal:teacher_leave": {
+        "title": "Leave",
+        "body": "Request time off and track approvals without leaving the portal.",
+        "priority": 46,
+        "audiences": frozenset({"teacher", "admin", "staff"}),
+        "flow": ("portal:teacher_dashboard_alias", "portal:teacher_timetable"),
+    },
+    "portal:teacher_feed": {
+        "title": "Staff feed",
+        "body": "Announcements and updates from leadership and colleagues.",
+        "priority": 44,
+        "audiences": frozenset({"teacher", "admin", "staff"}),
+        "flow": ("portal:teacher_dashboard_alias", "portal:teacher_assignments"),
+    },
+    # --- parent (secondary) ---
+    "portal:parent_finance_health": {
+        "title": "Finance health",
+        "body": "Your payment standing at a glance — on track, due soon, or overdue.",
+        "priority": 58,
+        "audiences": frozenset({"parent"}),
+        "flow": ("portal:parent_finance", "portal:parent_wallet"),
+    },
+    "portal:parent_wallet": {
+        "title": "Wallet",
+        "body": "Stored balance and payment methods for fast fee settlement.",
+        "priority": 50,
+        "audiences": frozenset({"parent"}),
+        "flow": ("portal:parent_finance", "portal:parent_finance_health"),
+    },
+    "portal:parent_feed": {
+        "title": "School feed",
+        "body": "Announcements and moments from your child's school.",
+        "priority": 46,
+        "audiences": frozenset({"parent"}),
+        "flow": ("portal:parent_performance", "portal:parent_dashboard"),
+    },
+    # --- student (secondary) ---
+    "portal:portal_syllabus": {
+        "title": "Syllabus & resources",
+        "body": "What you're learning this term and the materials to get there.",
+        "priority": 50,
+        "audiences": frozenset({"student", "teacher"}),
+        "flow": ("portal:student_assignments", "portal:student_portal_grades"),
+    },
+    "portal:forum_home": {
+        "title": "Community forum",
+        "body": "Class and club discussions across your school community.",
+        "priority": 40,
+        # Cross-role page: described first-class when it is a flow TARGET, but the
+        # empty flow makes it fall through to the role bucket flow when you are ON
+        # it (so a teacher and a student each get role-appropriate next steps).
+        "flow": (),
+    },
+    # --- admin / finance (secondary) ---
+    "evals:school_ranking": {
+        "title": "School rankings",
+        "body": "Whole-school standing on the grading scale (T-score where set).",
+        "priority": 50,
+        "audiences": frozenset({"admin", "founder", "staff", "teacher"}),
+        "flow": ("evals:class_ranking", "analytics:dashboard"),
+    },
+    "finance:requests": {
+        "title": "Requests & approvals",
+        "body": "Fee waivers, refunds, and finance approvals awaiting action.",
+        "priority": 48,
+        "audiences": frozenset({"admin", "founder", "staff"}),
+        "flow": ("finance:dashboard", "finance:invoices", "finance:payments"),
+    },
 }
 
 # Per-bucket default onward flow when the CURRENT tenant page is not explicitly
