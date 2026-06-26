@@ -4398,6 +4398,9 @@ def login_view(request):
         context["password_reset_public_url"] = None
     context["public_tenant_login_hub"] = False
     context["login_workspace_schools"] = []
+    context["post_role"] = (
+        request.POST.get("role") or request.GET.get("role") or "staff"
+    )
     try:
         from apps.accounts.login_immersive_context import build_login_immersive_context
 

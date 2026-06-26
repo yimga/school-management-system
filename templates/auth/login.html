@@ -15,7 +15,7 @@
 {% if not portal_claim_url %}{% url 'accounts:claim_invite' as portal_claim_url %}{% endif %}
 {% url 'resend_signup_verification' as resend_url %}
 
-{% with immersive=LOGIN_IMMERSIVE post_role=request.POST.role|default:request.GET.role|default:"staff" %}
+{% with immersive=LOGIN_IMMERSIVE %}
 <div class="rmc-auth-immersive"
      id="preview-login-page"
      data-rmc-auth-immersive
