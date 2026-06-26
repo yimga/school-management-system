@@ -436,6 +436,46 @@ def grading_settings(request):
         "grading_scale"
     ) or get_platform_defaults(use_db=False)["grading_scale"]
     current_language = policy.get("default_language") or "en"
+
+    # Homework -> gradebook materialization slot (a school-owned setting, separate
+    # from the policy-override system). Default "none" = OFF: graded homework is
+    # never written into the gradebook until an owner dedicates a component slot,
+    # so it can never silently overwrite manually entered marks. The valid set is
+    # the SOT in apps.academics.lms_services; the import is try/except-guarded
+    # (gate-excused) so this view degrades safely if that module changes.
+    try:
+        from apps.academics.lms_services import (
+            _HOMEWORK_EVAL_COMPONENTS as _hw_components,
+            _resolve_homework_eval_component as _resolve_hw,
+        )
+        homework_eval_components = tuple(_hw_components.keys())
+        current_homework_eval = _resolve_hw(school)
+    except Exception:  # noqa: BLE001 — optional cross-app coupling; degrade safe
+        homework_eval_components = ("seq1", "seq2", "practical")
+        _hw_cfg = school.settings if isinstance(school.settings, dict) else {}
+        _hw_raw = str(_hw_cfg.get("lms_homework_eval_component") or "").strip().lower()
+        current_homework_eval = _hw_raw if _hw_raw in homework_eval_components else "none"
+
+    if request.method == "POST" and "homework_eval_component" in request.POST:
+        choice = (request.POST.get("homework_eval_component") or "").strip().lower()
+        if choice in set(homework_eval_components) | {"none"}:
+            if not isinstance(school.settings, dict):
+                school.settings = {}
+            school.settings["lms_homework_eval_component"] = choice
+            school.save(update_fields=["settings"])
+            if choice == "none":
+                messages.success(
+                    request, "Homework grades will stay out of the gradebook."
+                )
+            else:
+                messages.success(
+                    request,
+                    f"Graded homework now flows into the {choice} component of the gradebook.",
+                )
+        else:
+            messages.warning(request, "Unrecognized homework grading option.")
+        return redirect("siteconfig:grading_settings")
+
     if request.method == "POST":
         new_grading = (request.POST.get("grading_scale") or "").strip() or None
         new_language = (request.POST.get("default_language") or "").strip() or None
@@ -464,6 +504,15 @@ def grading_settings(request):
     region = getattr(school, "default_region", None)
     grading_choices = get_grading_scale_choices_for_school(school)
     action_url = reverse("siteconfig:user_preferences")
+    homework_eval_labels = {
+        "seq1": "Sequence 1",
+        "seq2": "Sequence 2",
+        "practical": "Practical",
+    }
+    homework_eval_choices = [("none", "Off — keep homework out of the gradebook")] + [
+        (k, homework_eval_labels.get(k, k.replace("_", " ").title()))
+        for k in homework_eval_components
+    ]
     return render(
         request,
         "siteconfig/grading_settings.html",
@@ -474,6 +523,8 @@ def grading_settings(request):
             "current_language": current_language,
             "grading_choices": grading_choices,
             "language_choices": _language_choices_for_school(school),
+            "current_homework_eval": current_homework_eval,
+            "homework_eval_choices": homework_eval_choices,
             "action_url": action_url,
             "action_text": "Back to preferences",
         },

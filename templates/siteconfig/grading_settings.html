@@ -43,5 +43,24 @@
         </form>
       </div>
     </div>
+    <div class="card shadow-sm mt-3">
+      <div class="card-body">
+        <h2 class="h5 mb-2">{% trans "Homework in the gradebook" %}</h2>
+        <p class="text-muted mb-3">{% trans "Choose whether graded homework is recorded into the gradebook and which assessment component it counts toward. “Off” keeps homework out of the gradebook (the default) so it never overwrites marks you enter by hand. Dedicate a component only if your grading scheme reserves that slot for homework." %}</p>
+        <form method="post" action="">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" for="homework_eval_component">{% trans "Homework grading" %}</label>
+            <select class="form-select" id="homework_eval_component" name="homework_eval_component">
+              {% for value, label in homework_eval_choices %}
+                <option value="{{ value }}" {% if current_homework_eval == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <div class="form-text">{% trans "The chosen component must carry weight in your assessment scheme for homework to affect the final grade. Switching back to “Off” stops new homework grades from posting; it does not remove ones already recorded." %}</div>
+          </div>
+          <button type="submit" class="btn btn-primary">{% trans "Save homework grading" %}</button>
+        </form>
+      </div>
+    </div>
   </div>
 {% endblock %}
