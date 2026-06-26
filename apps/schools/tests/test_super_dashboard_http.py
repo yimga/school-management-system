@@ -55,10 +55,11 @@ class SuperDashboardHttpTests(TransactionTestCase):
         self.assertNotIn("/authentication/login/", location)
         self.assertIn("month=2026-05", location)
 
-    def test_dashboard_phase_h_skip_link_targets_main(self):
+    def test_dashboard_phase_h_skip_link_targets_globe_mission(self):
         response = self._get_dashboard()
         body = response.content.decode("utf-8")
-        self.assertIn('href="#super-dashboard-main"', body)
+        self.assertIn('href="#rmc-globe-master-lab"', body)
+        self.assertIn('id="rmc-globe-master-lab"', body)
         self.assertIn('id="super-dashboard-main"', body)
 
     def test_dashboard_renders_operator_super_dashboard_curated_links(self):

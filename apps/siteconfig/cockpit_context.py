@@ -145,14 +145,19 @@ def _deep_merge(base: Any, override: Any) -> Any:
 
 
 def _apply_globe_landing_cockpit_contract(request, manager_cockpit: dict[str, Any]) -> None:
-    """Globe landing (/super/) always renders AI guide + live world map regardless of payload toggles."""
+    """Globe landing (/super/) always renders AI guide + live world map unless operator opted out."""
     if not getattr(request, "rmc_cp_globe_landing_minimal_chrome", False):
         return
     lwm = manager_cockpit.setdefault("live_world_map", {})
     if not isinstance(lwm, dict):
         return
-    if lwm.get("enabled") is not False:
-        lwm["enabled"] = True
+    # Honor only operator-persisted cockpit_payload opt-out — not honest-empty
+    # resolver overlays that set enabled=False when fleet data is absent.
+    raw_payload = _resolve_cockpit_payload(request)
+    raw_lwm = raw_payload.get("live_world_map") if isinstance(raw_payload, dict) else {}
+    if isinstance(raw_lwm, dict) and raw_lwm.get("enabled") is False:
+        return
+    lwm["enabled"] = True
     if not lwm.get("fleet_snapshot"):
         try:
             import json
