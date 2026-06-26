@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
 {% block cp_workspace_header %}{% endblock %}
 {% block rmc_workspace_os_header %}{% endblock %}
-{% load i18n region_format tenant_hook phase8_tags %}
+{% load i18n region_format tenant_hook phase8_tags terminology_tags %}
 {% load static %}
 {% block title %}{% trans "Money Center" %}{% endblock %}
 
@@ -145,7 +145,7 @@
             <table class="table table-sm align-middle mb-0 table-family rmc-data-table" aria-label="Recent payments" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <thead>
                 <tr>
-                  <th scope="col">Invoice</th>
+                  <th scope="col">{% term "invoice" %}</th>
                   <th scope="col">Method</th>
                   <th scope="col" class="text-end">Amount</th>
                 </tr>

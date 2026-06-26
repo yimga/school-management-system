@@ -1,12 +1,12 @@
 {% extends "portal_base.html" %}
-{% load i18n static %}
+{% load i18n static terminology_tags %}
 
-{% block title %}Generate Fee Invoices{% endblock %}
+{% block title %}Generate Fee {% term "invoice" plural=True %}{% endblock %}
 
 {% block content %}
 {% include "components/next_action_strip.html" %}
 
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Generate Fee Invoices</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">Generate Fee {% term "invoice" plural=True %}</h1>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 {% url 'finance:dashboard' as generate_fees_back_url %}

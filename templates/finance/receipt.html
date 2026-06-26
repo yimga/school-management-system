@@ -1,4 +1,4 @@
-{% load i18n region_format %}
+{% load i18n region_format terminology_tags %}
 <!doctype html>
 <html lang="{{ LANGUAGE_CODE|default:'en' }}">
   <head>
@@ -27,7 +27,7 @@
 <div data-rmc-scroll-policy="paginate" class="section">
       <strong>{% trans "Billed to" %}</strong>
       <div>{{ invoice.student|default:invoice.counterparty }}</div>
-      <div>Invoice: {{ invoice.reference|default:invoice.id }}</div>
+      <div>{% term "invoice" %}: {{ invoice.reference|default:invoice.id }}</div>
       <div>Due: {{ invoice.due_date|format_date|default:"n/a" }}</div>
     </div>
 
@@ -35,7 +35,7 @@
       <strong>{% trans "Payment details" %}</strong>
       <div>Method: {{ payment.get_method_display }}</div>
       <div>Amount: {{ payment.amount|format_currency }}</div>
-      <div>Invoice total: {{ invoice.total_amount|format_currency }}</div>
+      <div>{% term "invoice" %} total: {{ invoice.total_amount|format_currency }}</div>
       <div>Remaining balance: {{ invoice.balance_amount|format_currency }}</div>
     </div>
 

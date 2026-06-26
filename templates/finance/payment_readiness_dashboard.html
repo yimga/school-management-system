@@ -1,6 +1,6 @@
 {% extends "portal_base.html" %}
 {% block rmc_workspace_os_header %}{% endblock %}
-{% load static i18n %}
+{% load static i18n terminology_tags %}
 {% block title %}{% trans "Payment Readiness Center" %} — {{ school.name }}{% endblock %}
 
 {% block content %}
@@ -80,7 +80,7 @@
               <th scope="col">Role</th>
               <th scope="col">Rail</th>
               <th scope="col">Status</th>
-              <th scope="col">Message</th>
+              <th scope="col">{% term "message" %}</th>
               <th scope="col">Action</th>
             </tr>
           </thead>

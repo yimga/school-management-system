@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n region_format %}
+{% load i18n region_format terminology_tags %}
 
 {% block title %}Split payment allocation{% endblock %}
 
@@ -53,13 +53,13 @@
         <div class="mb-3">
           <h6 class="mb-2">Payer Split (Optional)</h6>
           <div class="small text-muted mb-2">
-            Use <strong>Equal</strong> to split across finance-enabled guardians, or <strong>Custom</strong> to set exact guardian shares.
+            Use <strong>Equal</strong> to split across finance-enabled {% term_lower "guardian" plural=True %}, or <strong>Custom</strong> to set exact {% term_lower "guardian" %} shares.
           </div>
           <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Payer Split (Optional)" %}</caption>
             <thead>
               <tr>
-                <th scope="col">Guardian</th>
+                <th scope="col">{% term "guardian" %}</th>
                 <th scope="col" class="text-end" style="width: 180px;">Amount</th>
               </tr>
             </thead>

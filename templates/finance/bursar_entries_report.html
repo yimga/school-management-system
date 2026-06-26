@@ -1,6 +1,7 @@
 {% extends "portal_base.html" %}
 {% load region_format %}
 {% load i18n %}
+{% load terminology_tags %}
 
 {% block title %}Bursar Entries Report{% endblock %}
 
@@ -33,7 +34,7 @@
         <thead>
           <tr>
             <th scope="col">Date</th>
-            <th scope="col">Invoice / Student</th>
+            <th scope="col">{% term "invoice" %} / {% term "student" %}</th>
             <th scope="col">Method</th>
             <th scope="col" class="text-end">Amount</th>
           </tr>

@@ -1,6 +1,7 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
 {% load region_format %}
+{% load terminology_tags %}
 {% load static %}
 
 {% block title %}{% trans "Payments" %}{% endblock %}
@@ -63,7 +64,7 @@
       <table class="table table-sm align-middle table-sticky-head table-zebra table-family rmc-data-table" aria-label="Payments list: invoice, method, amount, paid date, and actions" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
-            <th scope="col">Invoice</th>
+            <th scope="col">{% term "invoice" %}</th>
             <th scope="col">Method</th>
             <th scope="col" class="text-end">Amount</th>
             <th scope="col">Paid at</th>
