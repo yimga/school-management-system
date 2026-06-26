@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import pathlib
 import sys
+import tempfile
 import unittest
 
 SCRIPTS_DIR = pathlib.Path(__file__).resolve().parent.parent
@@ -147,6 +148,40 @@ class HtmlDetectorTests(unittest.TestCase):
             "<div>${{ price }}</div>\n"
         )
         self.assertEqual(out, [])
+
+
+class FileDiscoveryTests(unittest.TestCase):
+    """Prove scan() walks the right files: .html + email/SMS .txt UNDER a
+    templates/ path, and never a stray non-template .txt (requirements.txt etc.)."""
+
+    def _build_tree(self):
+        tmp = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(tmp, ignore_errors=True))
+        (tmp / "templates" / "email").mkdir(parents=True)
+        (tmp / "templates" / "email" / "invoice.txt").write_text(
+            "Your balance is ${{ total }}\n", encoding="utf-8"
+        )
+        (tmp / "templates" / "page.html").write_text(
+            "<div>${{ amount }}</div>\n", encoding="utf-8"
+        )
+        # A non-template .txt with the same pattern must NOT be scanned.
+        (tmp / "requirements.txt").write_text("cost ${{ x }}\n", encoding="utf-8")
+        (tmp / "apps").mkdir()
+        return tmp
+
+    def test_txt_templates_scanned_but_non_templates_skipped(self):
+        tmp = self._build_tree()
+        orig = (s.REPO_ROOT, s.PY_SCAN_ROOTS, s.HTML_SCAN_ROOTS)
+        try:
+            s.REPO_ROOT = tmp
+            s.PY_SCAN_ROOTS = (tmp / "apps",)
+            s.HTML_SCAN_ROOTS = (tmp / "templates", tmp / "apps")
+            found = {f["path"] for f in s.scan()}
+        finally:
+            s.REPO_ROOT, s.PY_SCAN_ROOTS, s.HTML_SCAN_ROOTS = orig
+        self.assertIn("templates/email/invoice.txt", found)  # email money sealed
+        self.assertIn("templates/page.html", found)
+        self.assertNotIn("requirements.txt", found)  # non-template .txt ignored
 
 
 class ContractTests(unittest.TestCase):

@@ -20,8 +20,8 @@ It flags the high-signal shapes (chosen to keep false positives at zero):
               "$%.2f" % value      "₦%d" % qty
           a glyph glued to a str.format field on the formatted literal --
               "${}".format(value)  "${:,.2f}".format(total)
-  HTML     a currency symbol glued to a Django variable -- e.g.
-              ${{ amount }}   ₦{{ invoice.total }}
+  template a currency symbol glued to a Django variable, in any .html OR an
+           email/SMS .txt body -- e.g.   ${{ amount }}   ₦{{ invoice.total }}
 
 The % / .format detectors are AST-anchored to the real ``%`` operation / the
 real ``.format()`` receiver, so a shell-style ``"${HOME}"`` literal, a regex, or
@@ -196,19 +196,25 @@ def scan() -> list[dict[str, str | int]]:
                 continue
             findings.extend(_scan_python_text(_rel(path), text))
 
-    seen_html: set[Path] = set()
+    # Django templates: every .html, plus email/SMS .txt bodies (scoped to a
+    # templates/ path so requirements.txt / fixtures / data files never match).
+    seen_tpl: set[Path] = set()
     for root in HTML_SCAN_ROOTS:
         if not root.is_dir():
             continue
-        for path in root.rglob("*.html"):
-            if _skipped(path) or path in seen_html:
-                continue
-            seen_html.add(path)
-            try:
-                text = path.read_text(encoding="utf-8")
-            except OSError:
-                continue
-            findings.extend(_scan_html_text(_rel(path), text))
+        for pattern in ("*.html", "*.txt"):
+            for path in root.rglob(pattern):
+                if _skipped(path) or path in seen_tpl:
+                    continue
+                rel = _rel(path)
+                if pattern == "*.txt" and "templates/" not in rel:
+                    continue
+                seen_tpl.add(path)
+                try:
+                    text = path.read_text(encoding="utf-8")
+                except OSError:
+                    continue
+                findings.extend(_scan_html_text(rel, text))
 
     findings.sort(key=lambda item: (str(item["path"]), int(item["line"])))
     return findings
