@@ -25,7 +25,10 @@ from typing import Any, Iterable, Optional, Sequence
 from django.conf import settings
 from django.urls import NoReverseMatch, reverse
 
-from apps.platform_runtime.control_plane_page_intel import manager_flow_steps
+from apps.platform_runtime.control_plane_page_intel import (
+    manager_flow_steps,
+    tenant_flow_steps,
+)
 
 _REVERSE_ERRORS = (NoReverseMatch, ValueError, TypeError)
 
@@ -736,6 +739,43 @@ def _request_view(request: Any | None) -> tuple[str, str]:
     return view_name, namespace
 
 
+def _collect_tenant_page_flow(request: Any | None, bucket: str) -> list[SystemAction]:
+    """Curated "next steps FROM this tenant page" for the school-host "Your flow".
+
+    The tenant counterpart to :func:`get_control_plane_actions`: reads the curated
+    per-route, role-scoped flow from
+    ``apps.platform_runtime.control_plane_page_intel.tenant_flow_steps`` and turns
+    each resolvable target into a DISCRETIONARY ``page_flow`` action (source NOT in
+    ``_MUST_DO_SOURCES``, urgency ``normal``), so it integrates with the existing
+    role/state actions and is reordered by page-affinity downstream — never burying
+    an onboarding / health / overdue step. Current page is excluded here too.
+    Returns ``[]`` for an unmapped route / bucket (the flow keeps its role actions).
+    """
+    view_name, namespace = _request_view(request)
+    if not view_name:
+        return []
+    current_path = _current_path(request).rstrip("/")
+    out: list[SystemAction] = []
+    for step in tenant_flow_steps(view_name, namespace, bucket):
+        url = _safe_reverse(step["viewname"])
+        if not url:
+            continue
+        if current_path and url.rstrip("/") == current_path:
+            continue
+        out.append(
+            SystemAction(
+                type="navigation",
+                title=step["title"],
+                description=step["body"],
+                action_url=url,
+                priority=int(step.get("priority", 40)),
+                audience="all",  # bucket-scoping already done in tenant_flow_steps
+                source="page_flow",
+            )
+        )
+    return out
+
+
 def get_control_plane_actions(
     user,
     *,
@@ -837,6 +877,11 @@ def get_actions_for_user(
         merged.extend(_collect_marketplace_actions(user, school))
         if bucket == "staff":
             merged.extend(_collect_teacher_actions(user, school))
+
+    # Curated, page-aware onward flow FROM the current tenant page (discretionary;
+    # never a must-do — see _collect_tenant_page_flow). Joins the role/state
+    # actions and is reordered by apply_page_awareness below.
+    merged.extend(_collect_tenant_page_flow(request, bucket))
 
     merged = [a for a in merged if _audience_matches(a, bucket)]
     merged = _dedupe(merged)

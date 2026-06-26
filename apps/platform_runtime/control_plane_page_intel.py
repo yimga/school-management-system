@@ -241,3 +241,253 @@ def manager_flow_steps(view_name: str, namespace: str) -> list[dict[str, Any]]:
                 }
             )
     return steps
+
+
+# ===========================================================================
+# TENANT page intelligence — the school-host counterpart to MANAGER_PAGES.
+#
+# Makes the tenant "Your flow" launchpad (apps.platform_runtime.action_engine)
+# page-aware the same way the operator side already is: a school-host page
+# offers the logical next steps FROM it, curated per ROLE, instead of relying
+# only on the generic URL-segment affinity ordering of role/state actions.
+#
+# Role scoping uses the LOWERCASE audience buckets that
+# ``action_engine.infer_primary_audience`` returns ("teacher" / "parent" /
+# "student" / "admin" / "founder" / "staff"), never uppercase role tokens — same
+# convention as the rest of action_engine, so no hardcoded role string is added.
+#
+# Each entry: title + one-line body + priority + ``flow`` (ordered next
+# viewnames) + optional ``audiences`` (the buckets the page's curated flow
+# applies to; omitted/empty => every bucket). Every flow URL is reverse()-
+# resolved at call time by the consumer and skipped when it does not resolve, so
+# referencing a not-yet-wired route is harmless. The page-flow actions are
+# emitted as a DISCRETIONARY source (never a must-do), so they can never bury an
+# onboarding / health / overdue-balance step.
+# ===========================================================================
+TENANT_PAGES: dict[str, dict[str, Any]] = {
+    # --- teacher ---
+    "portal:teacher_dashboard_alias": {
+        "title": "Teacher home",
+        "body": "Your classes, today's register, and grading shortcuts in one place.",
+        "priority": 70,
+        "audiences": frozenset({"teacher", "admin", "staff"}),
+        "flow": ("portal:teacher_attendance", "portal:teacher_gradebook", "portal:teacher_timetable"),
+    },
+    "portal:teacher_attendance": {
+        "title": "Take attendance",
+        "body": "Mark today's register for your classes — the fastest path to a complete day.",
+        "priority": 66,
+        "audiences": frozenset({"teacher", "admin", "staff"}),
+        "flow": ("portal:teacher_gradebook", "portal:teacher_assignments", "portal:teacher_timetable"),
+    },
+    "portal:teacher_assignments": {
+        "title": "Homework",
+        "body": "Author and assign homework, then grade submissions as they arrive.",
+        "priority": 64,
+        "audiences": frozenset({"teacher", "admin", "staff"}),
+        "flow": ("portal:teacher_gradebook", "portal:teacher_attendance", "portal:teacher_lesson_notes"),
+    },
+    "portal:teacher_gradebook": {
+        "title": "Gradebook",
+        "body": "The students × assignments matrix — see who is missing work at a glance.",
+        "priority": 62,
+        "audiences": frozenset({"teacher", "admin", "staff"}),
+        "flow": ("portal:teacher_assignments", "evals:class_ranking", "portal:teacher_attendance"),
+    },
+    "portal:teacher_timetable": {
+        "title": "Timetable",
+        "body": "Your teaching schedule — jump from a period straight into its register.",
+        "priority": 58,
+        "audiences": frozenset({"teacher", "admin", "staff"}),
+        "flow": ("portal:teacher_attendance", "portal:teacher_lesson_notes", "portal:teacher_gradebook"),
+    },
+    "portal:cahier_list": {
+        "title": "Lesson diary",
+        "body": "Log what you taught — the running record parents and leadership can follow.",
+        "priority": 54,
+        "audiences": frozenset({"teacher", "admin", "staff"}),
+        "flow": ("portal:teacher_lesson_notes", "portal:teacher_timetable", "portal:teacher_attendance"),
+    },
+    # --- parent ---
+    "portal:parent_dashboard": {
+        "title": "Family home",
+        "body": "Each child's progress, balances, and anything waiting on you.",
+        "priority": 70,
+        "audiences": frozenset({"parent"}),
+        "flow": ("portal:parent_performance", "portal:parent_finance", "portal:signature_pending_list"),
+    },
+    "portal:parent_performance": {
+        "title": "Performance",
+        "body": "Grades, attendance, and the trend for each of your children.",
+        "priority": 64,
+        "audiences": frozenset({"parent"}),
+        "flow": ("portal:parent_finance", "portal:parent_feed", "portal:parent_dashboard"),
+    },
+    "portal:parent_finance": {
+        "title": "Fees & balances",
+        "body": "What's due, what's paid, and the fastest way to settle it.",
+        "priority": 62,
+        "audiences": frozenset({"parent"}),
+        "flow": ("portal:parent_finance_health", "portal:parent_wallet", "portal:signature_pending_list"),
+    },
+    "portal:signature_pending_list": {
+        "title": "Signatures",
+        "body": "Consent and acknowledgement requests waiting for your signature.",
+        "priority": 56,
+        "audiences": frozenset({"parent"}),
+        "flow": ("portal:parent_dashboard", "portal:parent_finance"),
+    },
+    # --- student ---
+    "portal:student_portal_grades": {
+        "title": "My grades",
+        "body": "Your latest results, term by term, with the class context.",
+        "priority": 70,
+        "audiences": frozenset({"student"}),
+        "flow": ("portal:student_assignments", "portal:portal_syllabus", "portal:forum_home"),
+    },
+    "portal:student_assignments": {
+        "title": "My homework",
+        "body": "What's set, what's due, and what you've already submitted.",
+        "priority": 64,
+        "audiences": frozenset({"student"}),
+        "flow": ("portal:student_portal_grades", "portal:portal_syllabus", "portal:forum_home"),
+    },
+    # --- admin / finance / leadership ---
+    "finance:dashboard": {
+        "title": "Finance home",
+        "body": "Collections, outstanding balances, and the day's revenue pulse.",
+        "priority": 68,
+        "audiences": frozenset({"admin", "founder", "staff"}),
+        "flow": ("finance:invoices", "finance:payments", "finance:requests"),
+    },
+    "finance:invoices": {
+        "title": "Invoices",
+        "body": "Raise, review, and reconcile fee invoices across the school.",
+        "priority": 62,
+        "audiences": frozenset({"admin", "founder", "staff"}),
+        "flow": ("finance:payments", "finance:requests", "finance:dashboard"),
+    },
+    "finance:payments": {
+        "title": "Payments",
+        "body": "Record and trace payments against outstanding balances.",
+        "priority": 60,
+        "audiences": frozenset({"admin", "founder", "staff"}),
+        "flow": ("finance:invoices", "finance:dashboard", "finance:requests"),
+    },
+    "evals:class_ranking": {
+        "title": "Class rankings",
+        "body": "Cohort standing on the school's grading scale (T-score where set).",
+        "priority": 56,
+        "audiences": frozenset({"admin", "founder", "staff", "teacher"}),
+        "flow": ("evals:school_ranking", "analytics:dashboard"),
+    },
+    "analytics:dashboard": {
+        "title": "Analytics",
+        "body": "Whole-school insight — attainment, attendance, and risk in one view.",
+        "priority": 54,
+        "audiences": frozenset({"admin", "founder", "staff"}),
+        "flow": ("evals:class_ranking", "finance:dashboard"),
+    },
+}
+
+# Per-bucket default onward flow when the CURRENT tenant page is not explicitly
+# mapped. Keyed by the lowercase audience bucket so a teacher on an unmapped page
+# still gets teacher-relevant next steps (and never, say, parent finance).
+TENANT_BUCKET_FLOW: dict[str, tuple[str, ...]] = {
+    "teacher": (
+        "portal:teacher_dashboard_alias",
+        "portal:teacher_attendance",
+        "portal:teacher_gradebook",
+        "portal:teacher_timetable",
+    ),
+    "parent": (
+        "portal:parent_dashboard",
+        "portal:parent_performance",
+        "portal:parent_finance",
+        "portal:signature_pending_list",
+    ),
+    "student": (
+        "portal:student_portal_grades",
+        "portal:student_assignments",
+        "portal:portal_syllabus",
+    ),
+    "admin": (
+        "finance:dashboard",
+        "analytics:dashboard",
+        "evals:class_ranking",
+    ),
+}
+# founder / staff share the admin onward flow.
+TENANT_BUCKET_FLOW["founder"] = TENANT_BUCKET_FLOW["admin"]
+TENANT_BUCKET_FLOW["staff"] = TENANT_BUCKET_FLOW["admin"]
+
+# Namespace fallback when neither the route nor the bucket maps (last resort
+# before returning empty — tenant pages already carry role/state actions, so we
+# do NOT force a global list here).
+TENANT_SECTION_DEFAULT_FLOW: dict[str, tuple[str, ...]] = {
+    "finance": ("finance:dashboard", "finance:invoices", "finance:payments"),
+    "evals": ("evals:class_ranking", "evals:school_ranking"),
+    "analytics": ("analytics:dashboard",),
+}
+
+
+def resolve_tenant_page(view_name: str) -> Optional[dict[str, Any]]:
+    """Return the first-class tenant page-intel entry for a route, or None."""
+    if not view_name:
+        return None
+    return TENANT_PAGES.get(view_name)
+
+
+def _tenant_flow_targets(view_name: str, namespace: str, bucket: str) -> tuple[str, ...]:
+    entry = TENANT_PAGES.get(view_name)
+    if entry and entry.get("flow"):
+        audiences = entry.get("audiences") or frozenset()
+        if not audiences or bucket in audiences:
+            return tuple(entry["flow"])
+    if bucket and bucket in TENANT_BUCKET_FLOW:
+        return TENANT_BUCKET_FLOW[bucket]
+    if namespace and namespace in TENANT_SECTION_DEFAULT_FLOW:
+        return TENANT_SECTION_DEFAULT_FLOW[namespace]
+    return ()
+
+
+def tenant_flow_steps(
+    view_name: str, namespace: str, bucket: str
+) -> list[dict[str, Any]]:
+    """Ordered next-step descriptors ``{viewname,title,body,priority}`` FROM the
+    current TENANT page, scoped to the user's lowercase audience ``bucket``.
+
+    Mirrors :func:`manager_flow_steps`: each target is described by its own
+    ``TENANT_PAGES`` entry; targets that exist only as flow destinations get a
+    humanised label. URL resolution and current-page exclusion are the caller's
+    job, so this stays import-light and unit-testable without the URLconf.
+    Returns ``[]`` when nothing maps (the tenant flow still has its role/state
+    actions, so unlike the operator side there is no forced global fallback)."""
+    steps: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for target in _tenant_flow_targets(view_name, namespace, bucket):
+        if not target or target in seen or target == view_name:
+            continue
+        seen.add(target)
+        meta = TENANT_PAGES.get(target)
+        if meta:
+            steps.append(
+                {
+                    "viewname": target,
+                    "title": meta["title"],
+                    "body": meta["body"],
+                    "priority": int(meta.get("priority", _DEFAULT_STEP_PRIORITY)),
+                }
+            )
+            continue
+        hum = humanised_page_help(target, target.split(":", 1)[0])
+        if hum:
+            steps.append(
+                {
+                    "viewname": target,
+                    "title": hum[0],
+                    "body": hum[1],
+                    "priority": _DEFAULT_STEP_PRIORITY,
+                }
+            )
+    return steps

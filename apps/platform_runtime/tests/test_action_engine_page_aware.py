@@ -7,14 +7,24 @@ never re-offers the page the user is already on — while genuinely urgent
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 from django.test import SimpleTestCase
 
 from apps.platform_runtime.action_engine import (
     SystemAction,
+    _collect_tenant_page_flow,
     _current_path,
     _page_segments,
     apply_page_awareness,
 )
+
+
+def _req(path: str, namespace: str, url_name: str):
+    return SimpleNamespace(
+        path=path,
+        resolver_match=SimpleNamespace(namespace=namespace, url_name=url_name),
+    )
 
 
 def _a(title, url, priority=40, *, type="navigation", source="role_default", audience="all"):
@@ -121,6 +131,46 @@ class ExcludeCurrentPageTests(SimpleTestCase):
         low = _a("Low", "/b/", priority=10)
         out = apply_page_awareness([low, high], "", single=False)
         self.assertEqual([a.title for a in out], ["High", "Low"])
+
+
+class TenantPageFlowCollectorTests(SimpleTestCase):
+    """``_collect_tenant_page_flow`` turns the curated tenant flow into real,
+    resolvable ``page_flow`` actions — bucket-scoped, current-page excluded."""
+
+    def test_teacher_home_yields_curated_next_steps(self):
+        req = _req("/portal/teacher/", "portal", "teacher_dashboard_alias")
+        actions = _collect_tenant_page_flow(req, "teacher")
+        titles = [a.title for a in actions]
+        self.assertEqual(titles, ["Take attendance", "Gradebook", "Timetable"])
+        for a in actions:
+            self.assertEqual(a.source, "page_flow")
+            self.assertTrue(a.action_url.startswith("/"))
+
+    def test_current_page_is_excluded(self):
+        req = _req("/portal/teacher/", "portal", "teacher_dashboard_alias")
+        urls = {a.action_url.rstrip("/") for a in _collect_tenant_page_flow(req, "teacher")}
+        self.assertNotIn("/portal/teacher", urls)
+
+    def test_bucket_scoping_admin_finance(self):
+        req = _req("/finance/", "finance", "dashboard")
+        titles = [a.title for a in _collect_tenant_page_flow(req, "admin")]
+        # invoices/payments are TENANT_PAGES entries; requests humanises.
+        self.assertEqual(titles, ["Invoices", "Payments", "Requests"])
+
+    def test_page_flow_is_not_a_must_do_source(self):
+        # Critical: page_flow must stay discretionary so it never buries
+        # onboarding / health / overdue actions.
+        from apps.platform_runtime.action_engine import _MUST_DO_SOURCES, _is_must_do
+
+        req = _req("/portal/teacher/", "portal", "teacher_dashboard_alias")
+        for a in _collect_tenant_page_flow(req, "teacher"):
+            self.assertNotIn(a.source, _MUST_DO_SOURCES)
+            self.assertFalse(_is_must_do(a))
+
+    def test_no_resolver_match_is_empty(self):
+        self.assertEqual(_collect_tenant_page_flow(None, "teacher"), [])
+        bare = SimpleNamespace(path="/x/", resolver_match=None)
+        self.assertEqual(_collect_tenant_page_flow(bare, "teacher"), [])
 
 
 class SingleActionTierTests(SimpleTestCase):
