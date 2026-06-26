@@ -20,12 +20,16 @@
      --rmc-preview-banner-h  site-preview banner height (0 when absent)
    ============================================================ */
 
-/* 0. SCROLL ROOT — un-break the sticky stack (document mode legacy only).
-   Canvas mode (default v3 tenant shell) uses rmc-tenant-workspace-canvas.css
-   viewport lock instead — header/sidebar pinned via flex, main scrolls. */
+/* 0. SCROLL ROOT — tenant v3 uses document scroll by default so long
+   dashboards stay reachable. Canvas mode is retained only as an explicit
+   rollback path via rmc-tenant-workspace-canvas.css. */
 html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) {
   overflow-x: clip;
-  overflow-y: visible;
+  overflow-y: auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: auto;
+  max-height: none;
 }
 
 /* 1. STICKY MASTER HEADER — document-mode fallback only */
@@ -85,7 +89,19 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-s
   html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .portal-layout-wrap,
   html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .portal-layout-row {
     overflow: visible;
+    min-height: auto;
+    max-height: none;
   }
+}
+
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) #main-content,
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .portal-main-col,
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .page-wrap,
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .portal-page-body,
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .tp-canvas-body {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
 }
 
 /* 4. STICKY SIDEBAR WITH ITS OWN SCROLL TRACK (lg+) — a long sidebar
@@ -103,6 +119,10 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-s
     flex-direction: column;
     overflow: hidden;
     z-index: 1020;
+    border-right: 1px solid var(--hairline);
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--surface-elevated) 94%, transparent), var(--surface-canvas)),
+      var(--surface-elevated);
   }
   html[data-rmc-layout="fluid"][data-surface="tenant"][data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell) .portal-sidebar-col.rmc-nav-sidebar__mount > .tp-sidebar-inner,
   html[data-rmc-layout="fluid"][data-surface="tenant"][data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell) .portal-sidebar-col.rmc-nav-sidebar__mount > .sidebar,
@@ -113,6 +133,9 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-s
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 42%, transparent) transparent;
+    padding-bottom: 1rem;
   }
   html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col > .rmc-nav-sidebar__toolbar {
     flex: 0 0 auto;

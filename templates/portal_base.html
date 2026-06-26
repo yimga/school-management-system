@@ -159,6 +159,8 @@
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-nav-sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-horizontal-nav-rail.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
     {% comment %} v4.02.69: tenant v3 100x preview shell CSS (batch 1649). {% endcomment %}
     {% if request.public_host_kind != 'manager' %}
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-header-100x.css' %}">
@@ -194,7 +196,7 @@
 
   {% comment %} Pass 8 UX consistency: activate `.form-system` globally so the design system's
      focus rings / hover borders / button polish actually render on every portal form. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif tp_v3_tenant_shell %}{% if tp_v3_role_home %} tp-v3-role-home{% else %} tp-v3-inner{% endif %}{% endif %} {% block body_extra_class %}{% endblock %}"{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %} data-rmc-cp-scroll="{% block body_scroll_policy %}{% if tp_v3_tenant_shell %}canvas{% else %}document{% endif %}{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace"{% if request.user.is_authenticated %} data-rmc-page-help="1"{% if request.public_host_kind == 'manager' and cockpit.operator_tools.enabled|default:False %}{% elif request.public_host_kind != 'manager' and cockpit.tenant_tools.enabled|default:False %}{% else %} data-rmc-back-to-top-policy="always"{% endif %}{% endif %}{% if request.user.is_authenticated and cockpit.ai_copilot_rail.enabled %}{% if request.public_host_kind == 'manager' %} data-rmc-notebook-footer-dock="1"{% else %} data-rmc-tenant-copilot-rail="1"{% endif %} data-copilot="{{ cockpit.ai_copilot_rail.default_state|default:'collapsed' }}"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %}{% endif %}{% if tp_v3_role_home %} data-rmc-preview-live-shell="1"{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif tp_v3_tenant_shell %}{% if tp_v3_role_home %} tp-v3-role-home{% else %} tp-v3-inner{% endif %}{% endif %} {% block body_extra_class %}{% endblock %}"{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %} data-rmc-cp-scroll="{% block body_scroll_policy %}document{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace"{% if request.user.is_authenticated %} data-rmc-page-help="1"{% if request.public_host_kind == 'manager' and cockpit.operator_tools.enabled|default:False %}{% elif request.public_host_kind != 'manager' and cockpit.tenant_tools.enabled|default:False %}{% else %} data-rmc-back-to-top-policy="always"{% endif %}{% endif %}{% if request.user.is_authenticated and cockpit.ai_copilot_rail.enabled %}{% if request.public_host_kind == 'manager' %} data-rmc-notebook-footer-dock="1"{% else %} data-rmc-tenant-copilot-rail="1"{% endif %} data-copilot="{{ cockpit.ai_copilot_rail.default_state|default:'collapsed' }}"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %}{% endif %}{% if tp_v3_role_home %} data-rmc-preview-live-shell="1"{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -378,13 +380,8 @@
     {% comment %} Band-row primary nav: the full-width row fallback, shown only below lg
        (at lg+ the inline copy in the header line takes over — see tp-primary-nav-inline). {% endcomment %}
     <div class="tp-primary-nav-bandrow d-lg-none">{% include "partials/tenant_primary_nav.html" %}</div>
-    {% if tp_v3_tenant_shell and request.user.is_authenticated %}
-      {% if request.resolver_match.namespace != 'studio_os' and request.resolver_match.namespace != 'setup_studio' %}
-      {% include "partials/tenant/tp_mission_strip.html" %}
-      {% endif %}
-    {% endif %}
-      {% comment %} v4.05 (2026-06-25): LIVE banner = bottom-most sub-bar of the pinned
-         header stack (operator parity). {% endcomment %}
+      {% comment %} v4.05.73: mission strip lives in dashboard surface (portal-page-body),
+         not header chrome — keeps header compact; see tp-mission-surface below. {% endcomment %}
       {% block portal_shell_header_ticker_tenant %}
         {% if tenant_role_home_landing and request.public_host_kind != 'manager' %}
         <div class="tp-header__live-banner" data-rmc-tenant-header-live="1">
@@ -402,7 +399,7 @@
           {% if request.public_host_kind == 'manager' %}
             {% include "partials/control_plane_sidebar.html" %}
           {% else %}
-          <div class="tp-sidebar-inner{% if tp_v3_tenant_shell %} tp-sidebar-inner--v3{% else %} sidebar p-3{% endif %}"{% if tp_v3_tenant_shell %} data-rmc-cp-sidebar-v8="1"{% endif %}>
+          <div class="tp-sidebar-inner{% if tp_v3_tenant_shell %} tp-sidebar-inner--v3{% else %} sidebar p-3{% endif %}"{% if tp_v3_tenant_shell %} data-rmc-cp-sidebar-v8="1" data-rmc-sidebar-scroll-root="1"{% endif %}>
             {% include "partials/portal_sidebar.html" %}
           </div>
           {% endif %}
@@ -521,6 +518,17 @@
             {% endblock %}
 
             <div class="portal-page-body{% if tp_v3_tenant_shell %} tp-canvas-body{% endif %}" data-rmc-portal-page-body="1" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
+            {% comment %} v4.05.73: Next-best-action mission strip — dashboard surface only on
+               role-home landings (backend/parent/teacher/student home), never header chrome. {% endcomment %}
+            {% block tenant_dashboard_mission_surface %}
+            {% if tp_v3_tenant_shell and tenant_role_home_landing and request.user.is_authenticated %}
+              {% if request.resolver_match.namespace != 'studio_os' and request.resolver_match.namespace != 'setup_studio' %}
+              <div class="tp-mission-surface" data-rmc-tp-mission-surface="1">
+                {% include "partials/tenant/tp_mission_strip.html" %}
+              </div>
+              {% endif %}
+            {% endif %}
+            {% endblock %}
             {% comment %} v4.02.10: workflow guidance + live progress strips live in Tools tray only. {% endcomment %}
             {% if wind_down_mode %}
             {% include "partials/rmc_wind_down_banner.html" %}

@@ -5,7 +5,31 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
+{% if tp_v3_tenant_shell and request.user.is_authenticated %}
+  <div class="tp-mission-surface tp-mission-surface--activation" data-rmc-tp-mission-surface="1" data-rmc-activation-dashboard-mission="1">
+    {% if tenant_experience_command.enabled and tenant_experience_command.primary_action.url %}
+      {% include "partials/tenant/tp_mission_strip.html" %}
+    {% else %}
+      {% url 'school_studio' as activation_studio_url %}
+      <section class="tp-mission tp-mission--activation-fallback" data-rmc-tp-mission="1" aria-label="{% trans 'Activation next action' %}" style="--tp-mission-pct: 100%;">
+        <div class="tp-mission__ring" aria-hidden="true"><span>{% trans "Go" %}</span></div>
+        <div class="tp-mission__copy">
+          <h2 class="tp-mission__title">{% trans "Next" %}: {% trans "School Studio" %}</h2>
+          <p class="tp-mission__sub">{% trans "Configure readiness, branding, data import, and go-live from the dashboard surface." %}</p>
+        </div>
+        <div class="tp-mission__cta">
+          <a href="{{ activation_studio_url|default:primary_action_url }}" class="tp-mission__go btn btn-sm" data-rmc-activation-next-action="school-studio">
+            <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i>
+            {% trans "Do it now" %}
+          </a>
+          <span class="tp-mission__clicks">{% trans "1 click" %}</span>
+        </div>
+      </section>
+    {% endif %}
+  </div>
+{% else %}
+  {% include "components/next_action_strip.html" %}
+{% endif %}
 
 <div data-rmc-scroll-policy="paginate" class="container py-5">
   <div class="row justify-content-center">

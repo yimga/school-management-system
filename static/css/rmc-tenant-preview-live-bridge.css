@@ -59,15 +59,37 @@ html[data-rmc-tp-v3-shell="1"] .tp-mission {
   grid-template-columns: auto 1fr auto;
   gap: 12px;
   align-items: center;
-  margin: 0 14px 10px;
-  padding: 10px 14px;
-  border-radius: var(--radius-xl, 16px);
-  border: 1px solid color-mix(in oklab, var(--school-primary, var(--brand-primary)) 28%, var(--hairline));
-  background: linear-gradient(
-    90deg,
-    color-mix(in oklab, var(--school-primary, var(--brand-primary)) 10%, var(--surface-canvas)),
-    color-mix(in oklab, var(--school-accent, var(--brand-accent)) 6%, var(--surface-canvas))
-  );
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg, 10px);
+  border: 1px solid color-mix(in oklab, var(--school-primary, var(--brand-primary)) 24%, var(--hairline));
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--school-primary, var(--brand-primary)) 10%, transparent), transparent 44%),
+    linear-gradient(90deg, var(--surface-elevated), color-mix(in oklab, var(--school-accent, var(--brand-accent)) 7%, var(--surface-elevated)));
+  box-shadow: 0 10px 30px color-mix(in oklab, var(--shadow-color, #000) 10%, transparent);
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-mission-surface {
+  margin-block: 0.65rem 0.95rem;
+  padding: 0 clamp(0.35rem, 1.2vw, 0.75rem);
+  max-width: min(100%, 1760px);
+  width: 100%;
+  margin-inline: auto;
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-mission-surface::before {
+  content: "Dashboard next action";
+  display: block;
+  margin: 0 0 0.35rem;
+  color: var(--text-tertiary);
+  font-size: var(--type-size-micro, 0.6875rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-mission-surface--activation::before {
+  content: "Activation command";
 }
 
 html[data-rmc-tp-v3-shell="1"] .tp-mission__ring {
@@ -100,13 +122,23 @@ html[data-rmc-tp-v3-shell="1"] .tp-mission__title {
   margin: 0;
   font-size: 14px;
   font-weight: 800;
-  color: var(--text-primary);
+  color: #f8fafc; /* off-token-allow: mission-card-contrast-on-dark-surface */
+}
+
+html[data-bs-theme="dark"][data-rmc-tp-v3-shell="1"] .tp-mission__title,
+html[data-resolved-theme="dark"][data-rmc-tp-v3-shell="1"] .tp-mission__title {
+  color: #f8fafc; /* off-token-allow: mission-card-contrast-on-dark-surface */
 }
 
 html[data-rmc-tp-v3-shell="1"] .tp-mission__sub {
   margin: 2px 0 0;
   font-size: 12px;
-  color: var(--text-secondary);
+  color: rgba(248, 250, 252, 0.78); /* off-token-allow: mission-card-contrast-on-dark-surface */
+}
+
+html[data-bs-theme="dark"][data-rmc-tp-v3-shell="1"] .tp-mission__sub,
+html[data-resolved-theme="dark"][data-rmc-tp-v3-shell="1"] .tp-mission__sub {
+  color: rgba(248, 250, 252, 0.78); /* off-token-allow: mission-card-contrast-on-dark-surface */
 }
 
 html[data-rmc-tp-v3-shell="1"] .tp-mission__cta {

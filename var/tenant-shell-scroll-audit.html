@@ -1,0 +1,14 @@
+<!doctype html><meta charset="utf-8"><title>Tenant Shell Scroll Audit</title><style>body{background:#07101f;color:#e8edf8;font:14px system-ui;margin:0;padding:32px}.ok{color:#3ee69f}.bad{color:#ff6b6b}pre{background:#061023;border:1px solid #20304c;border-radius:8px;padding:12px;white-space:pre-wrap}.shot{max-width:100%;border:1px solid #20304c;border-radius:10px}</style><h1>Tenant Shell Scroll Audit</h1><p class="ok">7/7 checks passing</p><ul><li class="ok">PASS: No page 500</li><li class="ok">PASS: Tenant shell defaults to document scroll</li><li class="ok">PASS: Document/body can vertically scroll</li><li class="ok">PASS: Body overflow is scrollable</li><li class="ok">PASS: No next-action/mission strip in header</li><li class="ok">PASS: Activation next action lives in main/dashboard</li><li class="ok">PASS: Sidebar has its own vertical scroll contract</li></ul><pre>{
+  &quot;status&quot;: &quot;HTTP ok&quot;,
+  &quot;bodyScrollPolicy&quot;: &quot;document&quot;,
+  &quot;bodyOverflowY&quot;: &quot;auto&quot;,
+  &quot;documentScrollHeight&quot;: 1434,
+  &quot;viewportHeight&quot;: 1080,
+  &quot;canDocumentScroll&quot;: true,
+  &quot;missionInHeaderCount&quot;: 0,
+  &quot;activationMissionCount&quot;: 1,
+  &quot;missionIsInsideSurface&quot;: true,
+  &quot;activationMissionInMain&quot;: true,
+  &quot;sidebarOverflowY&quot;: &quot;auto&quot;,
+  &quot;missionTitleColor&quot;: &quot;rgb(26, 22, 18)&quot;
+}</pre><p><a href="tenant-shell-scroll-audit.png">Open screenshot PNG</a></p><img class="shot" src="tenant-shell-scroll-audit.png">
